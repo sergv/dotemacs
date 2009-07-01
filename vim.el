@@ -1,3 +1,20 @@
+;;; vim.el --- a VIM-emulation for Emacs
+
+;; Copyright (C) 2009 Frank Fischer
+;; 
+;; Version: 0.0.1
+;; Keywords: emulations
+;; Human-Keywords: vim, emacs
+;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;; License: GPLv2 or later, as described below under "License"
+;; Compatibility: Developed on Emacs 22 - everything else is unknown.
+;;
+;; URL: http://www.tu-chemnitz.de/~fifr/repos/vim-mode.el
+;; 
+;; This file is not part of GNU Emacs.
+
+
 ;; simple VIM-mode for Emacs
 ;;
 ;; this project is in a VERY early development state and many function

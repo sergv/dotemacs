@@ -1,3 +1,14 @@
+;;; vim-modes.el
+
+;; Copyright (C) 2009 Frank Fischer
+;; 
+;; Version: 0.0.1
+;; Keywords: emulations
+;; Human-Keywords: vim, emacs
+;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;; License: GPLv2 or later, as described below under "License"
+
 (provide 'vim-modes)
 
 (defstruct (vim:mode
