@@ -1,0 +1,105 @@
+;; simple VIM-mode for Emacs
+;;
+;; this project is in a VERY early development state and many function
+;; have not been implemented yet.
+;;
+;; If you want to try, open this file in your Emacs and evaluate the buffer.
+;; The mode can be activated by 'M-x vim-mode'.
+;;
+;; Currently, Emacs integration is poor and no variable is buffer-local.
+;;
+;; Don't forget to disable Viper if you want to try vim-mode.
+;;
+;;
+;; Documentation:
+;;
+;; The project is poorly documented.  The only few information you get
+;; are the following few lines.
+;;
+;; The project is divided into many files.  Each file implements some
+;; almost-independent feature:
+;;
+;;  - vim.el:  This file just sets up the mode and loads the other files.
+;;
+;;  - vim-keys.el: This one of the two most important files.  The core
+;;                 of all key-handling is done here.  Here you find
+;;                 the heart of all magic stuff happening in vim-mode.
+;;                 Correct handling of undo/redo as well as the
+;;                 connection of commands and motions and the powerful
+;;                 command-mappings happens in this file.
+;;
+;;  - vim-node.el: This is second most important file.  vim-mode has
+;;                 its own keymap.  The implementation of them is in
+;;                 this file.
+;;
+;;  - vim-modes.el: Each VIM-mode (normal-mode, insert-mode, ...) is
+;;                  represented by some functions and variables.  The
+;;                  corresponding data-structures are in this file.
+;;
+;;  - vim-insert-mode.el: The implementations of insert-mode.
+;;
+;;  - vim-normal-mode.el: The implementations of normal-mode.
+;;
+;;  - vim-commands.el: The implementations of commands like 'delete',
+;;                     'yank', 'paste' and so on.
+;;
+;;  - vim-motions.el: The implementations of motion commands like 'h',
+;;                    'i', 'j', 'k', 'f', 'w', ...
+;;
+;;  - vim-undo.el: Some variables and functions for undo/redo.
+;;
+;;  - vim-maps.el: The definition of the basic keymaps.  This file
+;;                 connects the keymaps with the commands and motions
+;;                 defined in vim-commands.el and vim-motions.el.
+;;                 vim-mode requires only a small number of
+;;                 core-commands since many commands can be expressed
+;;                 as mappings to combinations of simpler commands
+;;                 (see this file).
+;;
+;; TODO:
+;;
+;; Many commands and functions are still missing.
+;;
+;; HAVE:
+;;   - framework for keymaps, motions, commands and command-mappings
+;;   - insert-mode and normal-mode
+;;   - simple motions
+;;   - deletion, yank, paste, change
+;;   - undo/redo
+;;
+;; MISSING:
+;;   - word motions
+;;   - searching
+;;   - replacing "R" 
+;;   - ex-mode
+;;   - visual-mode
+;;   - marks and register
+;;   - better Emacs integration (modes, buffer local variables, ...)
+
+(require 'cl)
+
+(let ((load-path (cons (expand-file-name ".") load-path)))
+  (load "vim-node")
+  (load "vim-keys")
+  (load "vim-modes")
+  (load "vim-insert-mode")
+  (load "vim-normal-mode")
+  (load "vim-commands")
+  (load "vim-motions")
+  (load "vim-undo")
+  (load "vim-maps"))
+
+(define-minor-mode vim-mode
+  "VIM emulation mode."
+  :lighter " VIM"
+  :initial-value nil
+  :global nil
+  :keymap nil)
+
+(defun vim:initialize ()
+  (setq vim-key-mode t)
+  (vim:update-position)
+  (vim:activate-mode vim:normal-mode))
+
+(add-hook 'vim-mode-hook 'vim:initialize)
+
