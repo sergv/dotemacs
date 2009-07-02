@@ -97,6 +97,7 @@
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
   (load "vim-node")
+  (load "vim-vim")
   (load "vim-keys")
   (load "vim-modes")
   (load "vim-insert-mode")

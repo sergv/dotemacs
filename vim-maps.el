@@ -13,6 +13,11 @@
 ;;   - better mapping to support stuff like
 ;;     (vim:def-map "c" "d{motion}a")
 ;;
+;;   - because of this, mapping "cc" to "0C" does not work with a
+;;     count since the count is eaten by the '0'
+;;
+;;   - similarily 'o' and 'O' won't work
+;;
 ;;   - mapping to "ESC" to leave insert-mode doesn't work because ESC
 ;;     is seen as meta-prefix, I think
 ;;
@@ -22,10 +27,9 @@
 ;;     behaviour, too.  A 'deep-mapping' should save the mapping on
 ;;     definition of "x", therefor let "x" behave as usual even after
 ;;     redefining "l"
+;;
+;;   - do we need a special insert-mode-mapping to simulate ESC?
 (provide 'vim-maps)
-
-(load "vim-motions")
-
 
 ;(vim:def-motion "0" 'vim:motion-beginning-of-line :type 'exclusive)
 (vim:def-special "0" 'vim:feed-numeric-prefix-or-bol)
