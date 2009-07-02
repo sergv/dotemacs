@@ -55,8 +55,15 @@
 
 (defun vim:cmd-delete (count motion)
   "Deletes the characters defined by motion."
-  (kill-region (car motion) (1+ (cdr motion)))
-  (goto-char (car motion)))
+  (if (eq vim:current-motion-type 'linewise)
+      (progn
+        (goto-char (car motion))
+        (vim:cmd-delete-line (1+ (- (line-number-at-pos (cdr motion))
+                                    (line-number-at-pos (car motion))))
+                             nil))
+    (progn
+      (kill-region (car motion) (min (point-max) (1+ (cdr motion))))
+      (goto-char (car motion)))))
 
 
 (defun vim:cmd-change (count motion)
