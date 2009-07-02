@@ -253,7 +253,7 @@
                         (or vim:current-motion-count 1))
                    nil)))
       (vim:project-motion
-       (if (vim:motion-arg-command-p cmd)
+       (if (vim:command-arg cmd)
            (funcall (vim:command-function cmd) count vim:current-motion-arg)
          (funcall (vim:command-function cmd) count))))))
 
