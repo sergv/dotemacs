@@ -18,11 +18,11 @@
 (defun vim:connect-undos ()
   (labels
       ((find-mark (lst)
-                  (cond
-                   ((null lst) nil)
-                   ((eq lst vim:last-undo) t)
-                   (t (find-mark (cdr lst))))))
-    
+                  (while (or (null lst)
+                             (eq lst vim:last-undo))
+                    (setq lst (cdr lst)))
+                  (not (null lst))))
+                   
     ;; ensure vim:last-undo is still in the undo list
     (when (and vim:last-undo
                (not (eq vim:last-undo buffer-undo-list))
@@ -41,8 +41,6 @@
             (setq lst (cdr lst))))))
 
     (setq vim:last-undo nil)))
-              
-      
 
 
 (defun vim:cmd-undo (count motion)
