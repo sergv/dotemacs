@@ -84,7 +84,7 @@
                 (vim:make-command :type type
                                   :function func
                                   :arg arg)
-                :function 'vim:execute-command))
+                :function 'vim:execute-motion))
 
 (defun* vim:def-simple (keys func &key (mode vim:normal-mode) (arg nil))
   (vim:add-node (vim:mode-get-keymap mode) keys
@@ -117,12 +117,12 @@
 
 
 (defun vim:execute-command (node)
-  (let ((cmd-type (vim:command-type (vim:node-cmd node))))
-    (cond
-     ((null cmd-type)  (vim:do-command node))
-     ((eq 'map cmd-type) ('map (error "Execute mapping")))
-     (t (vim:do-motion-command node)))
-    (vim:vim-reset-key-state)))
+  (when vim:current-cmd
+    (error "Unexpected command in operator-pending mode"))
+  (vim:go-to-node node)
+  (setq vim:current-cmd node)
+  (vim:execute-current-command)
+  (vim:vim-reset-key-state))
 
 
 (defun vim:prepare-complex-command (node)
@@ -130,6 +130,25 @@
     (error "Expected motion"))
   (setq vim:current-cmd node)
   (vim:go-to-node node))
+
+
+(defun vim:execute-motion (node)
+  "Executes the motion command of node or completes a pending complex command."
+  
+  (vim:go-to-node node)
+  (setq vim:current-motion node)
+  
+  (unless vim:current-cmd
+    (setq vim:current-motion-count vim:current-cmd-count)
+    (setq vim:current-cmd-count nil))
+
+  (when (vim:command-arg (vim:node-cmd vim:current-motion))
+    (setq vim:current-motion-arg (read-char)))
+  
+  (if vim:current-cmd
+      (vim:execute-current-command)
+    (vim:execute-current-motion))
+  (vim:vim-reset-key-state))
 
 
 (defun vim:execute-special (node)
@@ -163,41 +182,8 @@
                                 :cmd (vim:make-command :type 'exclusive
                                                        :function 'vim:motion-beginning-of-line)
                                 :function 'vim:execute-command)))
-      (vim:do-motion-command dummy))))
+      (vim:execute-motion dummy))))
   (vim:go-to-node vim:normal-mode-keymap))
-
-
-(defun vim:do-command (node)
-  "Executes the command of node."
-  (when vim:current-cmd
-    (error "Unexpected command in operator-pending mode"))
-  (vim:go-to-node node)
-  (setq vim:current-cmd node)
-  (vim:execute-current-command)
-  (vim:reset-key-state))
-
-
-(defun vim:do-motion-command (node)
-  "Executes the motion command of node."
-  
-  (vim:go-to-node node)
-  
-  (unless vim:current-cmd
-    (setq vim:current-motion-count vim:current-cmd-count)
-    (setq vim:current-cmd-count nil))
-
-  ;; arguments missing
-  
-  (vim:go-to-node node)
-  (setq vim:current-motion node)
-  
-  (when (vim:command-arg (vim:node-cmd vim:current-motion))
-    (setq vim:current-motion-arg (read-char)))
-  
-  (if vim:current-cmd
-      (vim:execute-current-command)
-    (vim:execute-current-motion))
-  (vim:vim-reset-key-state))
 
 
 (defun vim:convert-command-counts ()
