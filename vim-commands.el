@@ -27,23 +27,22 @@
         (end (save-excursion
                (forward-line (1- (or count 1)))
                (line-end-position))))
-    (cond
-     ((< beg end)
-      (kill-region beg end (list 'vim:insert-yanked-lines))
-      (delete-char -1 nil))
-
-     ;; empty line - kill the newline before
-     ((> beg (point-min))
-      (kill-region (1- beg) end
-                   (list 'vim:insert-yanked-lines "")))
-
-     ;; empty line at the beginning of buffer - kill the newline behind
-     ((< end (point-max))
-      (kill-region beg (1+ end)
-                   (list 'vim:insert-yanked-lines "")))
-
-     ;; buffer must be empty - do nothing
-     (t))))
+    
+    (if (= beg end)
+        (kill-region beg (1+ end) (list 'vim:insert-yanked-lines ""))
+      (progn
+        (kill-region beg end (list 'vim:insert-yanked-lines))
+        ;; now we have to remove a new-line
+        (cond
+         ;; delete the following newline
+         ((< end (point-max))
+          (delete-char 1))
+         ;;  delete the previous newline
+         ((> beg (point-min))
+          (delete-char -1))
+         
+         ;; buffer must be empty - do nothing
+         (t))))))
 
 
 (defun vim:cmd-delete (count motion)
@@ -97,7 +96,7 @@
   "Pastes the latest yanked text behind point."
   (dotimes (i (or count 1))
     (let ((vim:paste-behind t))
-      (forward-char)
+      (unless (eolp) (forward-char))
       (yank)
       (backward-char))))
 
