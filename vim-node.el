@@ -35,7 +35,7 @@
   "Adds the command bound to sequence chars to node."
 
   (labels
-      ((add-node (node pos len cmd)
+      ((add-node (node pos len cmd n-keymap func)
                  (case (- len pos)
                    (0 (error "Can't add empty key-sequence to map."))
    
@@ -45,13 +45,13 @@
                       (if subnode
                           (progn
                             (setf (vim:node-cmd subnode) cmd)
-                            (setf (vim:node-next-keymap subnode) next-keymap)
-                            (setf (vim:node-function subnode) function))
+                            (setf (vim:node-next-keymap subnode) n-keymap)
+                            (setf (vim:node-function subnode) func))
                         (progn
                           (setq subnode (vim:make-node :key key
                                                        :cmd cmd
-                                                       :next-keymap next-keymap
-                                                       :function function))
+                                                       :next-keymap n-keymap
+                                                       :function func))
                           (setf (vim:node-next node)
                                 (cons (cons key subnode) (vim:node-next node)))))
                       subnode))
@@ -60,10 +60,10 @@
                     (let* ((key (elt keys pos))
                            ;; get or create the next node
                            (parent (or (vim:get-subnode node key)
-                                       (add-node node pos 1 nil))))
-                      (add-node parent (1+ pos) len cmd))))))
+                                       (add-node node pos 1 nil nil nil))))
+                      (add-node parent (1+ pos) len cmd n-keymap func))))))
     
-    (add-node node 0 (length keys) cmd)))
+    (add-node node 0 (length keys) cmd next-keymap function)))
 
 
 
