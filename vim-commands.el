@@ -27,9 +27,16 @@
         (end (save-excursion
                (forward-line (1- (or count 1)))
                (line-end-position))))
-    
+
     (if (= beg end)
-        (kill-region beg (1+ end) (list 'vim:insert-yanked-lines ""))
+        (progn
+          (condition-case nil
+              (if (= (point) (point-min))
+                  (delete-char 1)
+                (delete-char -1))
+            (beginning-of-buffer nil)
+            (end-of-buffer nil))
+          (kill-new " " nil (list 'vim:insert-yanked-lines "")))
       (progn
         (kill-region beg end (list 'vim:insert-yanked-lines))
         ;; now we have to remove a new-line
@@ -42,7 +49,8 @@
           (delete-char -1))
          
          ;; buffer must be empty - do nothing
-         (t))))))
+         (t))))
+    (goto-char (vim:motion-first-non-blank 1))))
 
 
 (defun vim:cmd-delete (count motion)
