@@ -93,6 +93,7 @@
 (vim:def-map "s" "xi")
 
 (vim:def-simple "r" 'vim:cmd-replace-char :arg t)
+(vim:def-simple "R" 'vim:cmd-replace)
 
 (vim:def-simple "yy" 'vim:cmd-yank-line)
 (vim:def-complex "y" 'vim:cmd-yank)

@@ -125,6 +125,12 @@
   (backward-char))
 
 
+(defun vim:cmd-replace (count motion)
+  "Goes to replace-mode."
+  (overwrite-mode t)
+  (vim:normal-insert 1 nil))
+
+
 (defun vim:cmd-yank (count motion)
   "Saves the characters in motion into the kill-ring."
   (kill-new (buffer-substring (vim:motion-begin motion) (1+ (vim:motion-end motion)))))

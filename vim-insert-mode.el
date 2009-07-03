@@ -17,11 +17,12 @@
 (defvar vim:last-insert-undo nil)
 
 (defun vim:insert-mode-activate ()
-  (setq cursor-type 'bar)
+  (setq cursor-type (if overwrite-mode 'hbar 'bar))
   (setq vim:last-insert-undo (or vim:next-insert-undo vim:last-undo)))
 
 (defun vim:insert-mode-deactivate ()
   (setq cursor-type 'box)
+  (overwrite-mode nil)
   (setq vim:last-undo vim:last-insert-undo
         vim:last-insert-undo nil))
 
