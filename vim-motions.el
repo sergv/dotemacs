@@ -58,13 +58,6 @@
         (1- pos)
       pos)))
 
-(defun vim:adjust-point ()
-  "Adjust the pointer after a command."
-  (when (and (eolp) (not (bolp))
-             (not (eq vim:active-mode vim:insert-mode)))
-    (backward-char)))
-
-
 (defun vim:motion-left (count)
   "Move the cursor count characters left."
   (vim:make-motion :end (max (line-beginning-position)
