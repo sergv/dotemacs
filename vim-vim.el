@@ -16,6 +16,10 @@
 
 ;; TODO: - currently the next-keymap of a complex command is the keymap itself
 
+(defvar vim:repeat-events
+  "The sequence of events for the repeat command."
+  nil)
+
 (defvar vim:current-register
   "The register of the current command."
   nil)

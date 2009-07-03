@@ -213,3 +213,10 @@
         (backward-char)))))
 
 
+(defun vim:cmd-repeat (count motions)
+  "Repeats the last command."
+  (unless vim:repeat-events
+    (error "Nothing to repeat"))
+  (vim:vim-reset-key-state)
+  (dotimes (i (or count 1))
+    (execute-kbd-macro vim:repeat-events)))

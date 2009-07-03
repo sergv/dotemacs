@@ -15,17 +15,30 @@
 
 (defvar vim:next-insert-undo nil)
 (defvar vim:last-insert-undo nil)
+(defvar vim:current-insert-key-sequence nil)
 
 (defun vim:insert-mode-activate ()
   (message "-- INSERT --")
+  (setq overwrite-mode nil)
   (setq cursor-type 'bar)
+  (setq vim:current-insert-key-sequence vim:current-key-sequence)
   (setq vim:last-insert-undo (or vim:next-insert-undo vim:last-undo)))
 
 (defun vim:insert-mode-deactivate ()
   (setq cursor-type 'box)
-  (overwrite-mode nil)
+  (setq overwrite-mode nil)
   (setq vim:last-undo vim:last-insert-undo
-        vim:last-insert-undo nil))
+        vim:last-insert-undo nil)
+  (unless executing-kbd-macro
+    (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape]))
+    (setq vim:current-insert-key-sequence nil))
+  )
+
+(defun vim:insert-mode-default-handler ()
+  "The default event handler of the insert mode."
+  (unless executing-kbd-macro
+    (push last-command-event vim:current-insert-key-sequence))
+  nil)
 
 (defun vim:insert-mode-exit ()
   (vim:activate-mode vim:normal-mode)
@@ -37,13 +50,15 @@
                  :deactivate #'vim:insert-mode-deactivate
                  :execute-command #'vim:default-mode-exec-cmd
                  :execute-motion #'vim:default-mode-exec-motion
+                 :default-handler #'vim:insert-mode-default-handler
                  :keymap 'vim:insert-mode-keymap))
 
 
 (defun vim:replace-mode-activate ()
   (message "-- REPLACE --")
   (setq cursor-type 'hbar)
-  (overwrite-mode t)
+  (setq vim:current-insert-key-sequence vim:current-key-sequence)
+  (setq overwrite-mode t)
   (setq vim:last-insert-undo (or vim:next-insert-undo vim:last-undo)))
 
 (defvar vim:replace-mode
@@ -52,4 +67,5 @@
                  :deactivate #'vim:insert-mode-deactivate
                  :execute-command #'vim:default-mode-exec-cmd
                  :execute-motion #'vim:default-mode-exec-motion
+                 :default-handler #'vim:insert-mode-default-handler
                  :keymap 'vim:insert-mode-keymap))

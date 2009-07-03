@@ -8,6 +8,10 @@
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
+;;
+;; TODO:
+;;
+;;  - some commands should not be repeatable (like 'u', 'C-r' or scrolling)
 
 (provide 'vim-modes)
 
@@ -52,7 +56,8 @@
 (defun vim:default-mode-exec-cmd (cmd count motion &optional arg)
   (if arg
       (funcall (vim:command-function cmd) count motion arg)
-    (funcall (vim:command-function cmd) count motion)))
+    (funcall (vim:command-function cmd) count motion))
+  (setq vim:repeat-events (vconcat (reverse vim:current-key-sequence))))
 
 (defun vim:default-mode-exec-motion (motion)
   (goto-char (vim:motion-end motion)))

@@ -111,6 +111,8 @@
 (vim:def-simple "u" 'vim:cmd-undo)
 (vim:def-simple (kbd "C-r") 'vim:cmd-redo)
 
+(vim:def-simple "." 'vim:cmd-repeat)
+
 (vim:def-simple [escape]
                 #'(lambda (count motion)
                     (vim:insert-mode-exit))

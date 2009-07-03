@@ -25,7 +25,8 @@
 
 
 (defun vim:reset-key-state ()
-  (setq vim:current-node (vim:active-keymap)))
+  (setq vim:current-node (vim:active-keymap)
+        vim:current-key-sequence nil))
 
 (defun vim:input-key (key)
   "Appends the given key to the current command."
@@ -69,6 +70,7 @@
 
 (defun vim:handle-key ()
   (interactive)
+  (push last-command-event vim:current-key-sequence)
   (when
       (catch 'vim:unknown-command
         (condition-case err
@@ -80,6 +82,7 @@
            (vim:vim-reset-key-state)
            (error err)))
         nil)
+    (vim:vim-reset-key-state)
     (when (null (and (vim:mode-default-handler vim:active-mode)
                      (funcall (vim:mode-default-handler vim:active-mode))))
       (push last-command-event unread-command-events)
