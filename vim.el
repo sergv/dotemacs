@@ -83,11 +83,11 @@
 ;;   - simple motions
 ;;   - deletion, yank, paste, change
 ;;   - undo/redo
+;;   - repeat
 ;;
 ;; MISSING:
 ;;   - word motions
 ;;   - searching
-;;   - replacing "R" 
 ;;   - ex-mode
 ;;   - visual-mode
 ;;   - marks and register

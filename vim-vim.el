@@ -13,12 +13,16 @@
 
 ;; This file contains the stuff specific for vim-like keybindins.
 
-
 ;; TODO: - currently the next-keymap of a complex command is the keymap itself
 
 (defvar vim:repeat-events
   "The sequence of events for the repeat command."
   nil)
+
+(defun vim:do-not-repeat ()
+  "Supresses repeating of the current command."
+  (unless executing-kbd-macro
+    (setq vim:current-key-sequence nil)))
 
 (defvar vim:current-register
   "The register of the current command."
@@ -63,8 +67,9 @@
         vim:current-motion-count nil
         vim:current-motion nil
         vim:current-motion-arg nil
-        vim:current-motion-type nil
-        vim:current-key-sequence nil))
+        vim:current-motion-type nil)
+  (unless executing-kbd-macro
+    (setq vim:current-key-sequence nil)))
 
 
 ;; The type should be nil, map or motion.

@@ -10,7 +10,9 @@
 ;; License: GPLv2 or later, as described below under "License"
 
 ;; TODO:
-;;  - special keymap for motions following commands
+;;
+;;  - special keymap for motions following commands (required for
+;;    text-objects)
 
 (provide 'vim-keys)
 
@@ -25,8 +27,9 @@
 
 
 (defun vim:reset-key-state ()
-  (setq vim:current-node (vim:active-keymap)
-        vim:current-key-sequence nil))
+  (setq vim:current-node (vim:active-keymap))
+  (unless executing-kbd-macro
+    vim:current-key-sequence nil))
 
 (defun vim:input-key (key)
   "Appends the given key to the current command."
@@ -70,7 +73,8 @@
 
 (defun vim:handle-key ()
   (interactive)
-  (push last-command-event vim:current-key-sequence)
+  (unless executing-kbd-macro
+    (push last-command-event vim:current-key-sequence))
   (when
       (catch 'vim:unknown-command
         (condition-case err

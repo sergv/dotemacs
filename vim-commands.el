@@ -37,13 +37,6 @@
 ;; Furthermore, each operation should place (point) at the correct
 ;; position after the operation.
 
-;; TODO:
-;;
-;;  - vim:yank-line may be wrong at the last line in a buffer
-;;  - the position of the cursor after yank works for "p" and "P" but
-;;    is wrong for Emacs-commands
-;;  - vim:cmd-delete-line should delete newlines correctly (even "\r\n")
-
 (provide 'vim-commands)
 
 (require 'redo)
@@ -68,7 +61,8 @@
 
 (defun vim:cmd-delete-line (count motion)
   "Deletes the next count lines."
-  (vim:cmd-yank-line count motion)
+  (let ((vim:current-key-sequence nil))
+    (vim:cmd-yank-line count motion))
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (forward-line (1- (or count 1)))
@@ -151,11 +145,13 @@
 
 (defun vim:cmd-yank (count motion)
   "Saves the characters in motion into the kill-ring."
+  (vim:do-not-repeat)
   (kill-new (buffer-substring (vim:motion-begin motion) (1+ (vim:motion-end motion)))))
   
 
 (defun vim:cmd-yank-line (count motion)
   "Saves the next count lines into the kill-ring."
+  (vim:do-not-repeat)
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (forward-line (1- (or count 1)))
