@@ -52,17 +52,8 @@
 (defun vim:default-mode-exec-cmd (cmd count motion &optional arg)
   (if arg
       (funcall (vim:command-function cmd) count motion arg)
-    (funcall (vim:command-function cmd) count motion))
-  (vim:update-position))
+    (funcall (vim:command-function cmd) count motion)))
 
 (defun vim:default-mode-exec-motion (motion)
-  (if (vim:range-p motion)
-      (vim:default-mode-exec-motion (cdr motion))
-    (if (vim:coord-p motion)
-        (progn
-          (setq vim:current-coord motion)
-          (goto-char (vim:coord-to-pos motion)))
-      (progn
-        (setq vim:current-coord (vim:make-coord-from-pos motion))
-        (goto-char motion)))))
+  (goto-char (vim:motion-end motion)))
 

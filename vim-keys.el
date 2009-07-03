@@ -91,7 +91,6 @@
   (when (and (not (input-pending-p))
              vim-mode
              (not (eq this-command 'vim:handle-key)))
-    (vim:update-position)
     (remove-hook 'post-command-hook 'vim:enable-keymap)
     (setq vim-key-mode t)))
 
@@ -109,8 +108,3 @@
   :global nil
   :keymap vim:mode-map)
 
-
-(add-hook 'vim-key-mode-hook 'vim:update-position)
-
-(defun vim:update-position ()
-  (setq vim:current-coord (vim:make-coord-from-pos (point))))

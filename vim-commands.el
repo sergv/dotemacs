@@ -9,69 +9,108 @@
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
+;; Description:
+
+;; In general there are two types of commands: those operating on a
+;; motion and those not taking a motion.  Examples of the first one
+;; are the vim-commands c, d, y, =, examples of the second one are dd,
+;; D, p, x.
+;;
+;; A function implementing a motion should take two or three arguments:
+;;
+;;  - a count
+;;  - a motion of type vim:motion
+;;  - an (optional) argument character
+;;
+;; If the operation does not require a motion, the second parameter is
+;; usually nil.  If the operation takes a motion, the cound parameter
+;; should usually be ignored since the count has already been regarded
+;; by the motion itself (the motion function got (command-count *
+;; motion-count) as count parameter.
+;;
+;; An operations based on motions should always respect the motion
+;; type, i.e. if the motion is linewise or not.  Motions passed to
+;; commands will always be inclusive (and never exlusive).  For
+;; example, the command dG has a linewise motion argument and should
+;; delete whole lines.
+;;
+;; Furthermore, each operation should place (point) at the correct
+;; position after the operation.
+
 ;; TODO:
 ;;
 ;;  - vim:yank-line may be wrong at the last line in a buffer
 ;;  - the position of the cursor after yank works for "p" and "P" but
 ;;    is wrong for Emacs-commands
+;;  - vim:cmd-delete-line should delete newlines correctly (even "\r\n")
 
 (provide 'vim-commands)
 
 (require 'redo)
 
-(defvar vim:paste-behind nil)
-
 (defun vim:cmd-delete-line (count motion)
   "Deletes the next count lines."
+  (vim:cmd-yank-line count motion)
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (forward-line (1- (or count 1)))
                (line-end-position))))
-
-    (if (= beg end)
-        (progn
-          (condition-case nil
-              (if (= (point) (point-min))
-                  (delete-char 1)
-                (delete-char -1))
-            (beginning-of-buffer nil)
-            (end-of-buffer nil))
-          (kill-new " " nil (list 'vim:insert-yanked-lines "")))
-      (progn
-        (kill-region beg end (list 'vim:insert-yanked-lines))
-        ;; now we have to remove a new-line
-        (cond
-         ;; delete the following newline
-         ((< end (point-max))
-          (delete-char 1))
-         ;;  delete the previous newline
-         ((> beg (point-min))
-          (delete-char -1))
-         
-         ;; buffer must be empty - do nothing
-         (t))))
-    (goto-char (vim:motion-first-non-blank 1))))
+    (if (= beg (point-min))
+        (if (= end (point-max))
+            (erase-buffer)
+          (delete-region beg (save-excursion
+                               (goto-char end)
+                               (forward-line)
+                               (line-beginning-position))))
+      (delete-region (save-excursion
+                       (goto-char beg)
+                       (forward-line -1)
+                       (line-end-position))
+                     end))
+    (goto-char beg)
+    (goto-char (vim:motion-end (vim:motion-first-non-blank 1)))))
 
 
 (defun vim:cmd-delete (count motion)
   "Deletes the characters defined by motion."
   (if (eq vim:current-motion-type 'linewise)
       (progn
-        (goto-char (car motion))
-        (vim:cmd-delete-line (1+ (- (line-number-at-pos (cdr motion))
-                                    (line-number-at-pos (car motion))))
-                             nil))
+        (goto-char (vim:motion-begin motion))
+        (vim:cmd-delete-line (vim:motion-line-count motion) nil))
     (progn
-      (kill-region (car motion) (min (point-max) (1+ (cdr motion))))
-      (goto-char (car motion)))))
+      (kill-region (vim:motion-begin motion) (min (point-max) (1+ (vim:motion-end motion))))
+      (goto-char (vim:motion-begin motion)))))
 
 
 (defun vim:cmd-change (count motion)
   "Deletes the characters defined by motion and goes to insert mode."
-  (vim:cmd-delete count motion)
-  (if (eolp)
-      (vim:normal-append 1 nil)
-    (vim:normal-insert 1 nil)))
+  (if (eq vim:current-motion-type 'linewise)
+      (progn
+        (goto-char (vim:motion-begin motion))
+        (vim:cmd-change-line (vim:motion-line-count motion) nil))
+    (progn
+      (vim:cmd-delete count motion)
+      (if (eolp)
+          (vim:normal-append 1 nil)
+        (vim:normal-insert 1 nil)))))
+
+
+(defun vim:cmd-change-line (count motion)
+  "Deletes count lines and goes to insert mode."
+  (let ((pos (line-beginning-position)))
+    (vim:cmd-delete-line count motion)
+    (if (< (point) pos)
+        (progn
+          (end-of-line)
+          (newline))
+      (progn
+        (beginning-of-line)
+        (newline)
+        (forward-line -1)))
+    (indent-according-to-mode)
+    (if (eolp)
+        (vim:normal-append 1 nil)
+      (vim:normal-insert 1 nil))))
 
 
 (defun vim:cmd-replace-char (count motion arg)
@@ -88,7 +127,7 @@
 
 (defun vim:cmd-yank (count motion)
   "Saves the characters in motion into the kill-ring."
-  (kill-new (buffer-substring (car motion) (1+ (cdr motion)))))
+  (kill-new (buffer-substring (vim:motion-begin motion) (1+ (vim:motion-end motion)))))
   
 
 (defun vim:cmd-yank-line (count motion)
@@ -97,41 +136,56 @@
         (end (save-excursion
                (forward-line (1- (or count 1)))
                (line-end-position))))
-    (kill-new (buffer-substring beg end) nil
-              (list 'vim:insert-yanked-lines))))
+    (kill-new (concat (buffer-substring beg end) "\n") nil)))
 
 (defun vim:cmd-paste-before (count motion)
   "Pastes the latest yanked text before the cursor position."
-  (dotimes (i (or count 1))
-    (let ((vim:paste-behind nil))
-      (yank)))
-  (backward-char))
+  (unless kill-ring-yank-pointer
+    (error "kill-ring empty"))
+  
+  (let* ((txt (car kill-ring-yank-pointer))
+         (linewise (= (elt txt (1- (length txt))) ?\n)))
+    (if linewise
+        (progn
+          (beginning-of-line)
+          (save-excursion
+            (dotimes (i (or count 1))
+              (yank))))
+      (progn
+        (dotimes (i (or count 1))
+          (yank))
+        (backward-char)))))
+
 
 (defun vim:cmd-paste-behind (count motion)
   "Pastes the latest yanked text behind point."
-  (dotimes (i (or count 1))
-    (let ((vim:paste-behind t))
-      (unless (eolp) (forward-char))
-      (yank)
-      (backward-char))))
-
-(defun vim:insert-yanked-lines (text)
-  (if vim:paste-behind
+  (unless kill-ring-yank-pointer
+    (error "kill-ring empty"))
+  
+  (let* ((txt (car kill-ring-yank-pointer))
+         (linewise (= (elt txt (1- (length txt))) ?\n))
+         (last-line (= (line-end-position) (point-max))))
+    (if linewise
+        (progn
+          (if last-line
+              (progn
+                (end-of-line)
+                (newline))
+            (forward-line))
+          (beginning-of-line)
+          (save-excursion
+            (dotimes (i (or count 1))
+              (yank))
+            (when last-line
+              ;; remove the last newline
+              (let ((del-pos (point)))
+                (forward-line -1)
+                (end-of-line)
+                (delete-region (point) del-pos)))))
       (progn
-        (end-of-line)
-        (newline)
-        (let ((beg (point)))
-          (insert text)
-          (remove-text-properties beg (point) '(yank-handler))
-          (goto-char beg))
-        (setq vim:paste-begin nil))
-    (progn
-      (beginning-of-line)
-      (let ((beg (point)))
-        (insert text)
-        (remove-text-properties beg (point) '(yank-handler))
-        (newline)
-        (goto-char beg))))
-  (forward-char))
+        (forward-char)
+        (dotimes (i (or count 1))
+          (yank))
+        (backward-char)))))
 
 

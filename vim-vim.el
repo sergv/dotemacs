@@ -63,10 +63,7 @@
         vim:current-key-sequence nil))
 
 
-;; The type should be nil, map, inclusive, exclusive or linewise.
-;; If type is nil this command is an operation, if it's map its a mapping and
-;; otherwise it's a motion.
-
+;; The type should be nil, map or motion.
 (defstruct (vim:command
             (:constructor vim:make-command))
   type        ; The type of the command.
@@ -78,10 +75,9 @@
 (defun* vim:def-motion (keys func
                              &key
                              (mode vim:normal-mode)
-                             (arg nil)
-                             (type 'inclusive))
+                             (arg nil))
   (vim:add-node (vim:mode-get-keymap mode) keys
-                (vim:make-command :type type
+                (vim:make-command :type 'motion
                                   :function func
                                   :arg arg)
                 :function 'vim:execute-motion))
@@ -218,7 +214,7 @@
              (vim:node-cmd vim:current-cmd)
              vim:current-cmd-count
              (vim:get-current-cmd-motion)))
-
+  
   (vim:adjust-point))
 
 
@@ -238,78 +234,72 @@
                      (* (or vim:current-cmd-count 1)
                         (or vim:current-motion-count 1))
                    nil)))
-      (vim:project-motion
-       (if (vim:command-arg cmd)
-           (funcall (vim:command-function cmd) count vim:current-motion-arg)
-         (funcall (vim:command-function cmd) count))))))
+      (if (vim:command-arg cmd)
+          (funcall (vim:command-function cmd) count vim:current-motion-arg)
+        (funcall (vim:command-function cmd) count)))))
 
 
 (defun vim:get-current-cmd-motion ()
   "Returns the motion range for the current command w.r.t. inclusive/exclusive/linewise."
   (if vim:current-motion
       
-      (let ((motion (vim:get-current-motion))
-            (cmd (vim:node-cmd vim:current-motion)))
+      (let ((motion (vim:get-current-motion)))
 
-        ;; if the motion is only a position, the second position is
-        ;; (point)
-        (unless (vim:range-p motion)
-          (setq motion (cons motion (point))))
-
-        ;; convert possible row-column pairs
-        (setq motion (cons (if (vim:coord-p (car motion))
-                               (vim:coord-to-pos (car motion))
-                             (car motion))
-                           (if (vim:coord-p (cdr motion))
-                               (vim:coord-to-pos (cdr motion))
-                             (cdr motion))))
-        
         ;; order the motion
-        (setq motion (cons (min (car motion) (cdr motion))
-                           (max (car motion) (cdr motion))))
+        (when (> (vim:motion-begin motion)
+                 (vim:motion-end motion))
+          (setq motion (vim:make-motion :begin (vim:motion-end motion)
+                                        :end (vim:motion-begin motion)
+                                        :type (vim:motion-type motion))))
         
-        (case (vim:command-type cmd)
+        (case (vim:motion-type motion)
           ('inclusive
            (setq vim:current-motion-type 'inclusive)
-           (cons (car motion) (vim:adjust-end-of-line-position (cdr motion))))
+           (vim:make-motion :begin (vim:motion-begin motion)
+                            :end (vim:adjust-end-of-line-position (vim:motion-end motion))
+                            :type 'inclusive))
 
           ('exclusive
-           (if (= (cdr motion)
-                  (save-excursion
-                    (goto-char (cdr motion))
-                    (line-beginning-position)))
+           (if (save-excursion
+                 (goto-char (vim:motion-end motion))
+                 (bolp))
                
                (if (save-excursion
-                     (goto-char (car motion))
+                     (goto-char (vim:motion-begin motion))
                      (looking-back "^[[:space:]]*"))
                    ;; motion becomes linewise(-exclusive)
                    (progn
                      (setq vim:current-motion-type 'linewise)
-                     (cons (save-excursion
-                             (goto-char (car motion))
-                             (line-beginning-position))
-                           (1- (cdr motion)))) ; will move to the previous end-of-line
+                     (vim:make-motion :begin (save-excursion
+                                               (goto-char (vim:motion-begin motion))
+                                               (line-beginning-position))
+                                      :end (1- (vim:motion-end motion)) ; will move to the previous end-of-line
+                                      :type 'linewise))
                  
                  ;; motion becomes inclusive
                  (progn
                    (setq vim:current-motion-type 'inclusive)
-                   (cons (car motion) (1- (cdr motion))))) ; will move to the previous end-of-line
-
+                   (vim:make-motion :begin (vim:motion-begin motion)
+                                    :end (1- (vim:motion-end motion)) ; will move to the previous end-of-line
+                                    :type 'inclusive)))
+                                    
              ;; usual exclusive motion; in this case the end-of-motion
              ;; will not be on the first character in a line, so (1-
-             ;; (cdr motion)) is save
+             ;; (vim:motion-end motion)) is save
              (setq vim:current-motion-type 'exclusive)
-             (cons (car motion) (1- (cdr motion)))))
+             (vim:make-motion :begin (vim:motion-begin motion)
+                              :end (1- (vim:motion-end motion))
+                              :type 'inclusive)))
 
           ('linewise
-           (message "LINEWISE")
            (setq vim:current-motion-type 'linewise)
-           (cons (save-excursion
-                   (goto-char (car motion))
-                   (line-beginning-position))
-                 (save-excursion
-                   (goto-char (cdr motion))
-                   (line-end-position))))))
+           (vim:make-motion :begin (save-excursion
+                                     (goto-char (vim:motion-begin motion))
+                                     (line-beginning-position))
+                            :end (save-excursion
+                                   (goto-char (vim:motion-end motion))
+                                   (line-end-position))
+                            :type 'linewise))))
 
     ;; no motion -> return nil
     nil))
