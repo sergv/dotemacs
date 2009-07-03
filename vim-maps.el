@@ -101,10 +101,10 @@
 (vim:def-simple "p" 'vim:cmd-paste-behind)
 (vim:def-simple "P" 'vim:cmd-paste-before)
 
-(vim:def-simple "i" 'vim:normal-insert)
-(vim:def-simple "a" 'vim:normal-append)
-(vim:def-map "I" "^i")
-(vim:def-map "A" "$a")
+(vim:def-simple "i" 'vim:cmd-insert)
+(vim:def-simple "a" 'vim:cmd-append)
+(vim:def-simple "I" 'vim:cmd-Insert)
+(vim:def-simple "A" 'vim:cmd-Append)
 (vim:def-map "o" (kbd "A RET TAB"))
 (vim:def-map "O" (kbd "0 i RET <up> TAB"))
 

@@ -48,6 +48,24 @@
 
 (require 'redo)
 
+
+(defun vim:cmd-insert (count motion)
+  (vim:activate-mode vim:insert-mode))
+
+(defun vim:cmd-append (count motion)
+  (unless (eolp) (forward-char))
+  (vim:activate-mode vim:insert-mode))
+
+(defun vim:cmd-Insert (count motion)
+  (beginning-of-line)
+  (vim:cmd-insert count motion))
+
+(defun vim:cmd-Append (count motion)
+  (end-of-line)
+  (vim:cmd-append count motion))
+
+
+
 (defun vim:cmd-delete-line (count motion)
   "Deletes the next count lines."
   (vim:cmd-yank-line count motion)
@@ -91,8 +109,8 @@
     (progn
       (vim:cmd-delete count motion)
       (if (eolp)
-          (vim:normal-append 1 nil)
-        (vim:normal-insert 1 nil)))))
+          (vim:cmd-append 1 nil)
+        (vim:cmd-insert 1 nil)))))
 
 
 (defun vim:cmd-change-line (count motion)
@@ -109,8 +127,8 @@
         (forward-line -1)))
     (indent-according-to-mode)
     (if (eolp)
-        (vim:normal-append 1 nil)
-      (vim:normal-insert 1 nil))))
+        (vim:cmd-append 1 nil)
+      (vim:cmd-insert 1 nil))))
 
 
 (defun vim:cmd-replace-char (count motion arg)
