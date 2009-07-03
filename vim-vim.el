@@ -254,6 +254,10 @@
       
       (let ((motion (vim:get-current-motion)))
 
+        ;; if begin is nil, set it to point
+        (unless (vim:motion-begin motion)
+          (setf (vim:motion-begin motion) (point)))
+
         ;; order the motion
         (when (> (vim:motion-begin motion)
                  (vim:motion-end motion))

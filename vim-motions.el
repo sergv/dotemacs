@@ -38,9 +38,9 @@
 ;; This structure is passed to operators taking a motion.
 (defstruct (vim:motion
             (:constructor vim:make-motion))
-  (begin (point)) ; first point in this motion
-  end             ; last point in this motion
-  type            ; 'inclusive, 'exclusive, 'linewise
+  begin  ; first point in this motion
+  end    ; last point in this motion
+  type   ; 'inclusive, 'exclusive, 'linewise
   )
 
 (defun vim:motion-line-count (motion)
