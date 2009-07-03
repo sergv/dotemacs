@@ -18,7 +18,8 @@
 
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
-  (when (not (eq vim:active-mode vim:insert-mode))
+  (when (and (not (eq vim:active-mode vim:insert-mode))
+             (not (eq vim:active-mode vim:replace-mode)))
     (when vim:this-column
       (goto-char (min (+ (line-beginning-position) vim:this-column)
                       (line-end-position))))

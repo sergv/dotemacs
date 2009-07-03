@@ -17,7 +17,8 @@
 (defvar vim:last-insert-undo nil)
 
 (defun vim:insert-mode-activate ()
-  (setq cursor-type (if overwrite-mode 'hbar 'bar))
+  (message "-- INSERT --")
+  (setq cursor-type 'bar)
   (setq vim:last-insert-undo (or vim:next-insert-undo vim:last-undo)))
 
 (defun vim:insert-mode-deactivate ()
@@ -33,6 +34,21 @@
 (defvar vim:insert-mode
   (vim:make-mode :name "Insert"
                  :activate #'vim:insert-mode-activate
+                 :deactivate #'vim:insert-mode-deactivate
+                 :execute-command #'vim:default-mode-exec-cmd
+                 :execute-motion #'vim:default-mode-exec-motion
+                 :keymap 'vim:insert-mode-keymap))
+
+
+(defun vim:replace-mode-activate ()
+  (message "-- REPLACE --")
+  (setq cursor-type 'hbar)
+  (overwrite-mode t)
+  (setq vim:last-insert-undo (or vim:next-insert-undo vim:last-undo)))
+
+(defvar vim:replace-mode
+  (vim:make-mode :name "Replace"
+                 :activate #'vim:replace-mode-activate
                  :deactivate #'vim:insert-mode-deactivate
                  :execute-command #'vim:default-mode-exec-cmd
                  :execute-motion #'vim:default-mode-exec-motion

@@ -145,8 +145,8 @@
 
 (defun vim:cmd-replace (count motion)
   "Goes to replace-mode."
-  (overwrite-mode t)
-  (vim:normal-insert 1 nil))
+  (vim:activate-mode vim:replace-mode))
+
 
 
 (defun vim:cmd-yank (count motion)
