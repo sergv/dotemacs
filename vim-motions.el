@@ -13,12 +13,26 @@
 
 (provide 'vim-motions)
 
+(defvar vim:this-column nil)
+(defvar vim:last-column nil)
 
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
-  (when (and (eolp) (not (bolp))
-             (not (eq vim:active-mode vim:insert-mode)))
-    (backward-char)))
+  (when (not (eq vim:active-mode vim:insert-mode))
+    (when vim:this-column
+      (goto-char (min (+ (line-beginning-position) vim:this-column)
+                      (line-end-position))))
+    ;; always stop at the last character (not the newline)
+    (when (and (eolp) (not (bolp)))
+      (backward-char)))
+  (setq vim:last-column (or vim:this-column
+                            (- (point) (line-beginning-position))))
+  (setq vim:this-column nil))
+
+
+(defun vim:use-last-column ()
+  (setq vim:this-column vim:last-column))
+        
 
 ;; This structure is passed to operators taking a motion.
 (defstruct (vim:motion
@@ -65,6 +79,7 @@
 
 (defun vim:motion-up (count)
   "Move the cursor count lines up."
+  (vim:use-last-column)
   (vim:make-motion :end (save-excursion
                           (forward-line (- (or count 1)))
                           (point))
@@ -72,6 +87,7 @@
 
 (defun vim:motion-down (count)
   "Move the cursor count lines down."
+  (vim:use-last-column)
   (vim:make-motion :end (save-excursion
                           (forward-line (or count 1))
                           (point))
