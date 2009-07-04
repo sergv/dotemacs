@@ -11,7 +11,9 @@
 
 (provide 'vim-normal-mode)
 
-(defvar vim:normal-mode-keymap (vim:make-node))
+(defvar vim:motion-keymap (vim:make-node))
+(defvar vim:normal-mode-keymap
+  (vim:make-node :next-keymap vim:motion-keymap))
 
 (defun vim:normal-mode-activate ()
   )

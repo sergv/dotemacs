@@ -27,8 +27,8 @@
 (defun vim:insert-mode-deactivate ()
   (setq cursor-type 'box)
   (setq overwrite-mode nil)
-  (setq vim:last-undo vim:last-insert-undo
-        vim:last-insert-undo nil)
+  (setq vim:last-undo vim:last-insert-undo)
+  (setq vim:last-insert-undo nil)
   (unless executing-kbd-macro
     (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape]))
     (setq vim:current-insert-key-sequence nil))

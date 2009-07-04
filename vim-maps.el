@@ -113,4 +113,4 @@
 
 (vim:nmap "." 'vim:cmd-repeat)
 
-(vim:map [escape] 'vim:insert-mode-exit :mode vim:insert-mode)
+(vim:imap [escape] 'vim:insert-mode-exit)

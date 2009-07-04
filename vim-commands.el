@@ -225,6 +225,7 @@
 
 (vim:define vim:cmd-repeat (count)
             :type 'simple
+            :repeatable nil
   "Repeats the last command."
   (unless vim:repeat-events
     (error "Nothing to repeat"))

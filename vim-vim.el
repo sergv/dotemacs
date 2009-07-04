@@ -131,15 +131,14 @@
   (get 'type cmd))
   
 
-(defun* vim:map (keys cmd &key (mode vim:normal-mode))
+(defun* vim:map (keys cmd &key (keymap vim:normal-mode-keymap))
   "Creates a mapping of keys to cmd in keymap of mode."
   (when (sequencep cmd)
     (put 'type cmd 'map)
     (put 'argument cmd nil)
-    (put 'repeatable cmd (eq mode vim:normal-mode))
-    (message "CMD %s rep %s" keys (get 'repeatable cmd)))
+    (put 'repeatable cmd (eq keymap vim:normal-mode-keymap)))
      
-  (vim:add-node (vim:mode-get-keymap mode) keys
+  (vim:add-node keymap keys
                 cmd
                 :function (case (vim:cmd-type cmd)
                             ('simple 'vim:execute-command)
@@ -148,15 +147,19 @@
                             ('special 'vim:execute-special)
                             (t 'vim:execute-motion))
                 :next-keymap (and (eq (vim:cmd-type cmd) 'complex)
-                                  vim:normal-mode-keymap)))
+                                  vim:motion-keymap)))
 
 (defun vim:nmap (keys cmd)
   "Creates a mapping of keys to cmd in vim:normal-mode-keymap."
-  (vim:map keys cmd :mode vim:normal-mode))
+  (vim:map keys cmd :keymap vim:normal-mode-keymap))
 
 (defun vim:omap (keys cmd)
   "Creates a mapping of keys to cmd in vim:motion-keymap."
-  (vim:map keys cmd :mode vim:normal-mode))
+  (vim:map keys cmd :keymap vim:motion-keymap))
+
+(defun vim:imap (keys cmd)
+  "Creates a mapping of keys to cmd in vim:insert-mode-keymap."
+  (vim:map keys cmd :keymap vim:insert-mode-keymap))
 
 
 (defun vim:execute-command (node)
