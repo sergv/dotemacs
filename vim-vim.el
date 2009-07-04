@@ -80,45 +80,83 @@
   arg         ; If non-nil the command takes an argument.
   )
 
+;; type should be one of: simple, complex, inclusive, exclusive,
+;; linewise or special
+(defmacro* vim:define (name (&rest args)
+                            &rest body)
+  (let ((type nil)
+        (arg nil)
+        (repeatable t))
+    (while (keywordp (car body))
+      (case (car body)
+        (:type (setq type (cadr body)))
+        (:argument (setq arg (cadr body)))
+        (:repeatable (setq repeatable (cadr body)))
+        (t (error "Unexpected keyword")))
+      (setq body (cddr body)))
+    
+    `(progn
+       (defun ,name ,args ,@body)
+       (put 'type ',name ,type)
+       (put 'argument ',name ,arg)
+       (put 'repeatable ',name ,repeatable))))
 
-(defun* vim:def-motion (keys func
-                             &key
-                             (mode vim:normal-mode)
-                             (arg nil))
+(defun vim:cmd-arg-p (cmd)
+  "Returns non-nil iff command cmd takes an argument."
+  (get 'argument cmd))
+  
+(defun vim:cmd-repeatable-p (cmd)
+  "Returns non-nil iff command cmd is repeatable."
+  (get 'repeatable cmd))
+
+(defun vim:cmd-motion-p (cmd)
+  "Returns non-nil iff command cmd is a motion."
+  (memq (get 'type cmd)
+        '(inclusive exclusive linewise)))
+
+(defun vim:cmd-simple-p (cmd)
+  "Returns non-nil iff command cmd is a simple command."
+  (eq (get 'type cmd) 'simple))
+  
+(defun vim:cmd-complex-p (cmd)
+  "Returns non-nil iff command cmd is a complex command."
+  (eq (get 'type cmd) 'complex))
+  
+(defun vim:cmd-mapping-p (cmd)
+  "Returns non-nil iff command cmd is a complex command."
+  (eq (get 'type cmd) 'map))
+
+(defun vim:cmd-type (cmd)
+  "Returns the type of command cmd."
+  (get 'type cmd))
+  
+
+(defun* vim:map (keys cmd &key (mode vim:normal-mode))
+  "Creates a mapping of keys to cmd in keymap of mode."
+  (when (sequencep cmd)
+    (put 'type cmd 'map)
+    (put 'argument cmd nil)
+    (put 'repeatable cmd (eq mode vim:normal-mode))
+    (message "CMD %s rep %s" keys (get 'repeatable cmd)))
+     
   (vim:add-node (vim:mode-get-keymap mode) keys
-                (vim:make-command :type 'motion
-                                  :function func
-                                  :arg arg)
-                :function 'vim:execute-motion))
+                cmd
+                :function (case (vim:cmd-type cmd)
+                            ('simple 'vim:execute-command)
+                            ('complex 'vim:prepare-complex-command)
+                            ('map 'vim:execute-mapping)
+                            ('special 'vim:execute-special)
+                            (t 'vim:execute-motion))
+                :next-keymap (and (eq (vim:cmd-type cmd) 'complex)
+                                  vim:normal-mode-keymap)))
 
-(defun* vim:def-simple (keys func &key (mode vim:normal-mode) (arg nil))
-  (vim:add-node (vim:mode-get-keymap mode) keys
-                (vim:make-command :type nil
-                                  :function func
-                                  :arg arg)
-                :function 'vim:execute-command))
+(defun vim:nmap (keys cmd)
+  "Creates a mapping of keys to cmd in vim:normal-mode-keymap."
+  (vim:map keys cmd :mode vim:normal-mode))
 
-(defun* vim:def-complex (keys func &key (mode vim:normal-mode))
-  (vim:add-node (vim:mode-get-keymap mode) keys
-                (vim:make-command :type nil
-                                  :function func
-                                  :arg nil)
-                :next-keymap (vim:mode-get-keymap mode)
-                :function 'vim:prepare-complex-command))
-
-(defun* vim:def-map (keys rhs &key (mode vim:normal-mode))
-  (vim:add-node (vim:mode-get-keymap mode) keys
-                (vim:make-command :type 'map
-                                  :function rhs)
-                :function 'vim:execute-mapping))
-
-(defun* vim:def-special (keys func &key (mode vim:normal-mode))
-  (vim:add-node (vim:mode-get-keymap mode) keys
-                (vim:make-command :type nil
-                                  :function func)
-                ;; special commands return to their own keymap
-                :function 'vim:execute-special))
-
+(defun vim:omap (keys cmd)
+  "Creates a mapping of keys to cmd in vim:motion-keymap."
+  (vim:map keys cmd :mode vim:normal-mode))
 
 
 (defun vim:execute-command (node)
@@ -147,7 +185,7 @@
     (setq vim:current-motion-count vim:current-cmd-count)
     (setq vim:current-cmd-count nil))
 
-  (when (vim:command-arg (vim:node-cmd vim:current-motion))
+  (when (vim:cmd-arg-p (vim:node-cmd vim:current-motion))
     (setq vim:current-motion-arg (read-char)))
   
   (if vim:current-cmd
@@ -158,12 +196,13 @@
 
 (defun vim:execute-special (node)
   "Executes the function of a special command without noticing the node otherwise."
-  (funcall (vim:command-function (vim:node-cmd node)) node))
+  (funcall (vim:node-cmd node) node))
 
 
 
 ;; this command is implemented as a special command
-(defun vim:feed-numeric-prefix (node)
+(vim:define vim:feed-numeric-prefix (node)
+            :type 'special
   "Saves the numeric character and continues."
   (let ((char (vim:node-key node)))
     (if vim:current-cmd
@@ -173,7 +212,8 @@
 
 
 ;; this command is implemented as a special command
-(defun vim:feed-numeric-prefix-or-bol (node)
+(vim:define vim:feed-numeric-prefix-or-bol (node)
+            :type 'special
   "Saves the numeric character and continues."
   (cond
    ((and (not vim:current-cmd) vim:current-cmd-count)
@@ -184,8 +224,7 @@
 
    (t
     (let ((dummy (vim:make-node :key ?0
-                                :cmd (vim:make-command :type 'exclusive
-                                                       :function 'vim:motion-beginning-of-line)
+                                :cmd 'vim:motion-beginning-of-line
                                 :function 'vim:execute-command)))
       (vim:execute-motion dummy))))
   (vim:go-to-node vim:normal-mode-keymap))
@@ -210,19 +249,14 @@
   "Execute the current full command."
   (vim:convert-command-counts)
 
-  (when (vim:command-arg (vim:node-cmd vim:current-cmd))
+  (when (vim:cmd-arg-p (vim:node-cmd vim:current-cmd))
     (setq vim:current-cmd-arg (read-char)))
   
-  (if vim:current-cmd-arg
-      (funcall (vim:mode-execute-command vim:active-mode)
-               (vim:node-cmd vim:current-cmd)
-               vim:current-cmd-count
-               (vim:get-current-cmd-motion)
-               vim:current-cmd-arg)
-    (funcall (vim:mode-execute-command vim:active-mode)
-             (vim:node-cmd vim:current-cmd)
-             vim:current-cmd-count
-             (vim:get-current-cmd-motion)))
+  (funcall (vim:mode-execute-command vim:active-mode)
+           (vim:node-cmd vim:current-cmd)
+           vim:current-cmd-count
+           (vim:get-current-cmd-motion)
+           vim:current-cmd-arg)
   
   (vim:adjust-point))
 
@@ -243,9 +277,16 @@
                      (* (or vim:current-cmd-count 1)
                         (or vim:current-motion-count 1))
                    nil)))
-      (if (vim:command-arg cmd)
-          (funcall (vim:command-function cmd) count vim:current-motion-arg)
-        (funcall (vim:command-function cmd) count)))))
+      (let ((motion (if (vim:cmd-arg-p cmd)
+                        (funcall cmd count vim:current-motion-arg)
+                      (funcall cmd count))))
+        (if (consp motion)
+            (vim:make-motion :begin (car motion)
+                             :end (cdr motion)
+                             :type (vim:cmd-type cmd))
+          (vim:make-motion :begin nil
+                           :end motion
+                           :type (vim:cmd-type cmd)))))))
 
 
 (defun vim:get-current-cmd-motion ()
@@ -324,8 +365,14 @@
   (setq vim:current-node (or vim:current-cmd
                              (vim:active-keymap)))
 
+  (when (and vim:current-key-sequence
+             (vim:cmd-repeatable-p (vim:node-cmd node))
+             (not executing-kbd-macro))
+    (setq vim:repeat-events
+          (vconcat (reverse vim:current-key-sequence))))
+
   (let ((vim:next-insert-undo vim:last-undo))
     ;; replay the rhs-events
-    (execute-kbd-macro (vim:command-function (vim:node-cmd node)))))
+    (execute-kbd-macro (vim:node-cmd node))))
 
 

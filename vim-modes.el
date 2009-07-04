@@ -49,13 +49,19 @@
       (vim:mode-get-keymap vim:active-mode)
     nil))
     
-(defun vim:default-mode-exec-cmd (cmd count motion &optional arg)
-  (if arg
-      (funcall (vim:command-function cmd) count motion arg)
-    (funcall (vim:command-function cmd) count motion))
-  (when (and vim:current-key-sequence
-             (not executing-kbd-macro))
-    (setq vim:repeat-events (vconcat (reverse vim:current-key-sequence)))))
+(defun vim:default-mode-exec-cmd (cmd count motion arg)
+  (let ((rest (if (vim:cmd-arg-p cmd) (list arg) nil)))
+    (cond
+     ((vim:cmd-simple-p cmd) (push count rest))
+     ((vim:cmd-complex-p cmd) (push motion rest))
+     ((vim:cmd-motion-p cmd) (push count rest)))
+    (apply cmd rest)
+                
+    (when (and vim:current-key-sequence
+               (vim:cmd-repeatable-p cmd)
+               (not executing-kbd-macro))
+      (setq vim:repeat-events
+            (vconcat (reverse vim:current-key-sequence))))))
 
 (defun vim:default-mode-exec-motion (motion)
   (goto-char (vim:motion-end motion)))

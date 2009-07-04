@@ -42,27 +42,31 @@
 (require 'redo)
 
 
-(defun vim:cmd-insert (count motion)
+(vim:define vim:cmd-insert (count)
+            :type 'simple
   (vim:activate-mode vim:insert-mode))
 
-(defun vim:cmd-append (count motion)
+(vim:define vim:cmd-append (count)
+            :type 'simple
   (unless (eolp) (forward-char))
   (vim:activate-mode vim:insert-mode))
 
-(defun vim:cmd-Insert (count motion)
+(vim:define vim:cmd-Insert (count)
+            :type 'simple
   (beginning-of-line)
-  (vim:cmd-insert count motion))
+  (vim:cmd-insert count))
 
-(defun vim:cmd-Append (count motion)
+(vim:define vim:cmd-Append (count)
+            :type 'simple
   (end-of-line)
-  (vim:cmd-append count motion))
+  (vim:cmd-append count))
 
 
 
-(defun vim:cmd-delete-line (count motion)
+(vim:define vim:cmd-delete-line (count)
+            :type 'simple
   "Deletes the next count lines."
-  (let ((vim:current-key-sequence nil))
-    (vim:cmd-yank-line count motion))
+  (vim:cmd-yank-line count)
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (forward-line (1- (or count 1)))
@@ -80,37 +84,40 @@
                        (line-end-position))
                      end))
     (goto-char beg)
-    (goto-char (vim:motion-end (vim:motion-first-non-blank 1)))))
+    (goto-char (vim:motion-first-non-blank 1))))
 
 
-(defun vim:cmd-delete (count motion)
+(vim:define vim:cmd-delete (motion)
+            :type 'complex
   "Deletes the characters defined by motion."
   (if (eq vim:current-motion-type 'linewise)
       (progn
         (goto-char (vim:motion-begin motion))
-        (vim:cmd-delete-line (vim:motion-line-count motion) nil))
+        (vim:cmd-delete-line (vim:motion-line-count motion)))
     (progn
       (kill-region (vim:motion-begin motion) (min (point-max) (1+ (vim:motion-end motion))))
       (goto-char (vim:motion-begin motion)))))
 
 
-(defun vim:cmd-change (count motion)
+(vim:define vim:cmd-change (motion)
+            :type 'complex
   "Deletes the characters defined by motion and goes to insert mode."
   (if (eq vim:current-motion-type 'linewise)
       (progn
         (goto-char (vim:motion-begin motion))
-        (vim:cmd-change-line (vim:motion-line-count motion) nil))
+        (vim:cmd-change-line (vim:motion-line-count motion)))
     (progn
-      (vim:cmd-delete count motion)
+      (vim:cmd-delete motion)
       (if (eolp)
-          (vim:cmd-append 1 nil)
-        (vim:cmd-insert 1 nil)))))
+          (vim:cmd-append 1)
+        (vim:cmd-insert 1)))))
 
 
-(defun vim:cmd-change-line (count motion)
+(vim:define vim:cmd-change-line (count)
+            :type 'simple
   "Deletes count lines and goes to insert mode."
   (let ((pos (line-beginning-position)))
-    (vim:cmd-delete-line count motion)
+    (vim:cmd-delete-line count)
     (if (< (point) pos)
         (progn
           (end-of-line)
@@ -121,11 +128,13 @@
         (forward-line -1)))
     (indent-according-to-mode)
     (if (eolp)
-        (vim:cmd-append 1 nil)
-      (vim:cmd-insert 1 nil))))
+        (vim:cmd-append 1)
+      (vim:cmd-insert 1))))
 
 
-(defun vim:cmd-replace-char (count motion arg)
+(vim:define vim:cmd-replace-char (count arg)
+            :type 'simple
+            :argument t
   "Replaces the next count characters with arg."
   (unless (integerp arg)
     (error "Expected a character."))
@@ -137,28 +146,32 @@
   (backward-char))
 
 
-(defun vim:cmd-replace (count motion)
+(vim:define vim:cmd-replace (count)
+            :type 'simple
   "Goes to replace-mode."
   (vim:activate-mode vim:replace-mode))
 
 
 
-(defun vim:cmd-yank (count motion)
+(vim:define vim:cmd-yank (motion)
+            :type 'complex
+            :repeatable nil
   "Saves the characters in motion into the kill-ring."
-  (vim:do-not-repeat)
   (kill-new (buffer-substring (vim:motion-begin motion) (1+ (vim:motion-end motion)))))
   
 
-(defun vim:cmd-yank-line (count motion)
+(vim:define vim:cmd-yank-line (count)
+            :type 'simple
+            :repeatable nil
   "Saves the next count lines into the kill-ring."
-  (vim:do-not-repeat)
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (forward-line (1- (or count 1)))
                (line-end-position))))
     (kill-new (concat (buffer-substring beg end) "\n") nil)))
 
-(defun vim:cmd-paste-before (count motion)
+(vim:define vim:cmd-paste-before (count)
+            :type 'simple
   "Pastes the latest yanked text before the cursor position."
   (unless kill-ring-yank-pointer
     (error "kill-ring empty"))
@@ -177,7 +190,8 @@
         (backward-char)))))
 
 
-(defun vim:cmd-paste-behind (count motion)
+(vim:define vim:cmd-paste-behind (count)
+            :type 'simple
   "Pastes the latest yanked text behind point."
   (unless kill-ring-yank-pointer
     (error "kill-ring empty"))
@@ -209,7 +223,8 @@
         (backward-char)))))
 
 
-(defun vim:cmd-repeat (count motions)
+(vim:define vim:cmd-repeat (count)
+            :type 'simple
   "Repeats the last command."
   (unless vim:repeat-events
     (error "Nothing to repeat"))

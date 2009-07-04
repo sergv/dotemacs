@@ -43,14 +43,16 @@
     (setq vim:last-undo nil)))
 
 
-(defun vim:cmd-undo (count motion)
-  (vim:do-not-repeat)
+(vim:define vim:cmd-undo (count)
+            :type 'simple
+            :repeatable nil
   (setq vim:last-undo nil)
   (dotimes (i (or count 1))
     (undo)))
     
-(defun vim:cmd-redo (count motion)
-  (vim:do-not-repeat)
+(vim:define vim:cmd-redo (count)
+            :type 'simple
+            :repeatable nil
   (setq vim:last-undo nil)
   (redo (or count 1)))
     
