@@ -95,8 +95,7 @@
         ;(execute-kbd-macro (vector last-command-event))))))
 
 (defun vim:enable-keymap ()
-  (when (and (not (input-pending-p))
-             vim-mode
+  (when (and vim-mode
              (not (eq this-command 'vim:handle-key)))
     (remove-hook 'post-command-hook 'vim:enable-keymap)
     (setq vim-key-mode t)))
