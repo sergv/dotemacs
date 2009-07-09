@@ -41,7 +41,7 @@
   (when vim:active-mode
     (funcall (vim:mode-activate mode)))
   
-  (vim:vim-reset-key-state))
+  (vim:reset-key-state))
 
 
 (defun vim:active-keymap ()

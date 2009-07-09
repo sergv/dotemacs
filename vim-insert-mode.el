@@ -13,30 +13,34 @@
 
 (defvar vim:insert-mode-keymap (vim:make-node))
 
-(defvar vim:next-insert-undo nil)
 (defvar vim:last-insert-undo nil)
 (defvar vim:current-insert-key-sequence nil)
+
+(defun vim:insert-active-p ()
+  (if vim:last-insert-undo t nil))
 
 (defun vim:insert-mode-activate ()
   (message "-- INSERT --")
   (setq overwrite-mode nil)
   (setq cursor-type 'bar)
   (setq vim:current-insert-key-sequence vim:current-key-sequence)
-  (setq vim:last-insert-undo (or vim:next-insert-undo vim:last-undo)))
+  (setq vim:last-insert-undo buffer-undo-list))
 
 (defun vim:insert-mode-deactivate ()
+  ;; connect the undos
+  (when vim:last-insert-undo
+    (vim:connect-undos vim:last-insert-undo)
+    (setq vim:last-insert-undo nil))
+  
   (setq cursor-type 'box)
   (setq overwrite-mode nil)
   (setq vim:last-undo vim:last-insert-undo)
-  (setq vim:last-insert-undo nil)
-  (unless executing-kbd-macro
-    (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape]))
-    (setq vim:current-insert-key-sequence nil))
-  )
+  (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape]))
+  (setq vim:current-insert-key-sequence nil))
 
 (defun vim:insert-mode-default-handler ()
   "The default event handler of the insert mode."
-  (unless executing-kbd-macro
+  (when (vim:toplevel-execution)
     (push last-command-event vim:current-insert-key-sequence))
   nil)
 
@@ -59,7 +63,7 @@
   (setq cursor-type 'hbar)
   (setq vim:current-insert-key-sequence vim:current-key-sequence)
   (setq overwrite-mode t)
-  (setq vim:last-insert-undo (or vim:next-insert-undo vim:last-undo)))
+  (setq vim:last-insert-undo buffer-undo-list))
 
 (defvar vim:replace-mode
   (vim:make-mode :name "Replace"

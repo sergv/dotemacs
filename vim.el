@@ -116,7 +116,7 @@
 
 (defun vim:initialize ()
   (setq vim-key-mode t)
-  (vim:vim-reset-key-state)
+  (vim:reset-key-state)
   (vim:activate-mode vim:normal-mode))
 
 (add-hook 'vim-mode-hook 'vim:initialize)

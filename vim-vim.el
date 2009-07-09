@@ -19,11 +19,6 @@
   "The sequence of events for the repeat command."
   nil)
 
-(defun vim:do-not-repeat ()
-  "Supresses repeating of the current command."
-  (unless executing-kbd-macro
-    (setq vim:current-key-sequence nil)))
-
 (defvar vim:current-register
   "The register of the current command."
   nil)
@@ -56,10 +51,13 @@
   "The type of the current motion (inclusive, exclusive, linewise)."
   nil)
 
+(defun vim:toplevel-execution ()
+  "Returns t iff this is a toplevel execution, not a mapping or repeat."
+  (not executing-kbd-macro))
 
-(defun vim:vim-reset-key-state ()
+
+(defadvice vim:reset-key-state (before vim:vim-reset-key-state)
   "Resets the current state of the keymap."
-  (vim:reset-key-state)
   (setq vim:current-register nil
         vim:current-cmd-count nil
         vim:current-cmd nil
@@ -67,9 +65,8 @@
         vim:current-motion-count nil
         vim:current-motion nil
         vim:current-motion-arg nil
-        vim:current-motion-type nil)
-  (unless executing-kbd-macro
-    (setq vim:current-key-sequence nil)))
+        vim:current-motion-type nil))
+(ad-activate 'vim:reset-key-state)
 
 
 ;; The type should be nil, map or motion.
@@ -168,7 +165,7 @@
   (vim:go-to-node node)
   (setq vim:current-cmd node)
   (vim:execute-current-command)
-  (vim:vim-reset-key-state))
+  (vim:reset-key-state))
 
 
 (defun vim:prepare-complex-command (node)
@@ -194,7 +191,7 @@
   (if vim:current-cmd
       (vim:execute-current-command)
     (vim:execute-current-motion))
-  (vim:vim-reset-key-state))
+  (vim:reset-key-state))
 
 
 (defun vim:execute-special (node)
@@ -255,11 +252,13 @@
   (when (vim:cmd-arg-p (vim:node-cmd vim:current-cmd))
     (setq vim:current-cmd-arg (read-char)))
   
-  (funcall (vim:mode-execute-command vim:active-mode)
-           (vim:node-cmd vim:current-cmd)
-           vim:current-cmd-count
-           (vim:get-current-cmd-motion)
-           vim:current-cmd-arg)
+  (let ((last-undo buffer-undo-list))
+    (funcall (vim:mode-execute-command vim:active-mode)
+             (vim:node-cmd vim:current-cmd)
+             vim:current-cmd-count
+             (vim:get-current-cmd-motion)
+             vim:current-cmd-arg)
+    (vim:connect-undos last-undo))
   
   (vim:adjust-point))
 
@@ -369,13 +368,17 @@
                              (vim:active-keymap)))
 
   (when (and vim:current-key-sequence
-             (vim:cmd-repeatable-p (vim:node-cmd node))
-             (not executing-kbd-macro))
+             (vim:cmd-repeatable-p (vim:node-cmd node)))
     (setq vim:repeat-events
           (vconcat (reverse vim:current-key-sequence))))
 
-  (let ((vim:next-insert-undo vim:last-undo))
-    ;; replay the rhs-events
-    (execute-kbd-macro (vim:node-cmd node))))
+  (let ((vim:repeat-events nil)
+        (last-undo buffer-undo-list))
+      ;; replay the rhs-events
+    (execute-kbd-macro (vim:node-cmd node))
+    ;; if the map ends in insert-mode, update the undo data
+    (if (vim:insert-active-p)
+        (setq vim:last-insert-undo last-undo))
+    (vim:connect-undos last-undo)))
 
 

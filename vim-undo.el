@@ -9,23 +9,36 @@
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
+;; Description:
+
+;; Before the execution of an editing command, the calling function
+;; should save the current head of buffer-undo-list.  When the
+;; editing-command has finished, the calling function should use
+;; vim:connect-undos to connect the changes made during editing to one
+;; single undo-block.
+;;
+;; Insert-mode has a special handling: when activated, it stores the
+;; current head of buffer-undo-list in vim:last-insert-undo and used
+;; this pointer to connect all editing actions during insert-mode to
+;; one undo-block when insert-mode is deactivated.  If a function
+;; activates insert-mode it may modify vim:last-insert-undo to an
+;; apropriate value (see vim:execute-mapping for an example).
+
 (provide 'vim-undo)
 
 
 ;; undo stuff
-(defvar vim:last-undo nil)
-
-(defun vim:connect-undos ()
+(defun vim:connect-undos (last-undo)
   (labels
       ((find-mark (lst)
                   (while (or (null lst)
-                             (eq lst vim:last-undo))
+                             (eq lst last-undo))
                     (setq lst (cdr lst)))
                   (not (null lst))))
                    
-    ;; ensure vim:last-undo is still in the undo list
-    (when (and vim:last-undo
-               (not (eq vim:last-undo buffer-undo-list))
+    ;; ensure last-undo is still in the undo list
+    (when (and last-undo
+               (not (eq last-undo buffer-undo-list))
                (find-mark buffer-undo-list))
       
       ;; add the end-of-command mark if not already there
@@ -35,12 +48,10 @@
       ;; remove all nils until the mark
       (let ((lst buffer-undo-list))
         (while (and lst
-                    (not (eq (cdr lst) vim:last-undo)))
+                    (not (eq (cdr lst) last-undo)))
           (if (null (cadr lst))
               (setcdr lst (cddr lst))
-            (setq lst (cdr lst))))))
-
-    (setq vim:last-undo nil)))
+            (setq lst (cdr lst))))))))
 
 
 (vim:define vim:cmd-undo (count)

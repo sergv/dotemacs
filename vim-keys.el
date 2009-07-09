@@ -25,11 +25,10 @@
   "The key-sequence of the current command."
   nil)
 
-
 (defun vim:reset-key-state ()
   (setq vim:current-node (vim:active-keymap))
-  (unless executing-kbd-macro
-    vim:current-key-sequence nil))
+  (when (vim:toplevel-execution)
+    (setq vim:current-key-sequence nil)))
 
 (defun vim:input-key (key)
   "Appends the given key to the current command."
@@ -73,20 +72,17 @@
 
 (defun vim:handle-key ()
   (interactive)
-  (unless executing-kbd-macro
+  (when (vim:toplevel-execution)
     (push last-command-event vim:current-key-sequence))
   (when
       (catch 'vim:unknown-command
         (condition-case err
-            (progn
-              (setq vim:last-undo buffer-undo-list)
-              (vim:input-key last-command-event)
-              (vim:connect-undos))
+            (vim:input-key last-command-event)
           (error
-           (vim:vim-reset-key-state)
+           (vim:reset-key-state)
            (error err)))
         nil)
-    (vim:vim-reset-key-state)
+    (vim:reset-key-state)
     (when (null (and (vim:mode-default-handler vim:active-mode)
                      (funcall (vim:mode-default-handler vim:active-mode))))
       (push last-command-event unread-command-events)
