@@ -87,26 +87,30 @@
     (forward-line (or count 1))
     (point)))
 
-(vim:define vim:motion-beginning-of-line (count)
+(vim:define vim:motion-beginning-of-line ()
             :type 'exclusive
+            :count nil
   "Move the cursor to the beginning of the current line."
   (line-beginning-position))
 
-(vim:define vim:motion-first-non-blank (count)
+(vim:define vim:motion-first-non-blank ()
             :type 'exclusive
+            :count nil
   "Move the cursor to the first non-blank character of the current line."
   (save-excursion
     (beginning-of-line)
     (re-search-forward "[^[:space:]]\\|$" )
     (match-beginning 0)))
 
-(vim:define vim:motion-end-of-line (count)
+(vim:define vim:motion-end-of-line ()
             :type 'inclusive
+            :count nil
   "Move the cursor to the end of the current line."
   (line-end-position))
 
-(vim:define vim:motion-last-non-blank (count)
+(vim:define vim:motion-last-non-blank ()
             :type 'inclusive
+            :count nil
   "Move the cursor to the last non-blank charactor of the current line."
   (save-excursion
     (beginning-of-line)
@@ -117,22 +121,20 @@
 (vim:define vim:motion-go-to-first-non-blank-beg (count)
             :type 'linewise
   "Moves the cursor to the first non-blank charactor of line count."
-  (let ((motion (save-excursion
-                  (if count
-                      (goto-line count)
-                    (goto-char (point-min)))
-                  (vim:motion-first-non-blank 1))))
-    (vim:motion-end motion)))
+  (save-excursion
+    (if count
+        (goto-line count)
+      (goto-char (point-min)))
+    (vim:motion-first-non-blank)))
   
 (vim:define vim:motion-go-to-first-non-blank-end (count)
             :type 'linewise
   "Moves the cursor to the first non-blank charactor of line count."
-  (let ((motion (save-excursion
-                  (if count
-                      (goto-line count)
-                    (goto-char (point-max)))
-                  (vim:motion-first-non-blank 1))))
-    (vim:motion-end motion)))
+  (save-excursion
+    (if count
+        (goto-line count)
+      (goto-char (point-max)))
+    (vim:motion-first-non-blank)))
 
 (vim:define vim:motion-fwd-word (count)
             :type 'exclusive
