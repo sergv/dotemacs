@@ -20,6 +20,8 @@
   execute-motion     ; Called to execute a motion.
   keymap             ; The root node of the mode's keymap
   default-handler    ; The function called if no matching key could been found.
+  activate-hook      ; hook called after activation
+  deactivate-hook    ; hook called after deactivation
   )
 
 (defun vim:mode-get-keymap (mode)
@@ -37,11 +39,20 @@
   
   (when vim:active-mode
     (funcall (vim:mode-deactivate vim:active-mode)))
-  (setq vim:active-mode mode)
-  (when vim:active-mode
-    (funcall (vim:mode-activate mode)))
   
-  (vim:reset-key-state))
+  (let ((last-mode vim:active-mode))
+    (setq vim:active-mode mode)
+    
+    (when (and last-mode
+               (vim:mode-deactivate-hook last-mode))
+      (run-hooks (vim:mode-deactivate-hook last-mode)))
+    
+    (when vim:active-mode
+      (funcall (vim:mode-activate mode))
+      (when (vim:mode-activate-hook vim:active-mode)
+        (run-hooks (vim:mode-activate-hook vim:active-mode))))
+  
+    (vim:reset-key-state)))
 
 
 (defun vim:active-keymap ()
@@ -50,12 +61,13 @@
     nil))
     
 (defun vim:default-mode-exec-cmd (cmd count motion arg)
-  (let ((rest (if (vim:cmd-arg-p cmd) (list arg) nil)))
-    (cond
-     ((vim:cmd-simple-p cmd) (push count rest))
-     ((vim:cmd-complex-p cmd) (push motion rest))
-     ((vim:cmd-motion-p cmd) (push count rest)))
-    (apply cmd rest)
+  (let ((parameters nil))
+    (when (vim:cmd-arg-p cmd) (push arg parameters))
+    (if (vim:cmd-complex-p cmd)
+        (push motion parameters)
+      (when (vim:cmd-count-p cmd)
+        (push count parameters)))
+    (apply cmd parameters)
                 
     (when (and vim:current-key-sequence
                (vim:cmd-repeatable-p cmd)
@@ -64,5 +76,9 @@
             (vconcat (reverse vim:current-key-sequence))))))
 
 (defun vim:default-mode-exec-motion (motion)
-  (goto-char (vim:motion-end motion)))
+  (if (eq (vim:motion-type motion) 'block)
+      (progn
+        (goto-line (car (vim:motion-end motion)))
+        (move-to-column (cdr (vim:motion-end motion))))
+    (goto-char (vim:motion-end motion))))
 

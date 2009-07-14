@@ -16,6 +16,7 @@
   (vim:make-node :next-keymap vim:motion-keymap))
 
 (defun vim:normal-mode-activate ()
+  (message "-- NORMAL --")
   )
 
 (defun vim:normal-mode-deactivate ()

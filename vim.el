@@ -51,14 +51,14 @@
 ;;
 ;;  - vim-modes.el: Each VIM-mode (normal-mode, insert-mode, ...) is
 ;;                  represented by some functions and variables.  The
-;;                  corresponding data-structures are in this file.
-;;
-;;  - vim-insert-mode.el: The implementations of insert-mode.
-;;
-;;  - vim-normal-mode.el: The implementations of normal-mode.
-;;
-;;  - vim-commands.el: The implementations of commands like 'delete',
-;;                     'yank', 'paste' and so on.
+;;                  corresponding data-structures are in this file.   
+;;                                                                    
+;;  - vim-insert-mode.el: The implementations of insert-mode.         
+;;                                                                    
+;;  - vim-normal-mode.el: The implementations of normal-mode.         
+;;                                                                    
+;;  - vim-commands.el: The implementations of commands like 'delete', 
+;;                     'yank', 'paste' and so on.               
 ;;
 ;;  - vim-motions.el: The implementations of motion commands like 'h',
 ;;                    'i', 'j', 'k', 'f', 'w', ...
@@ -96,12 +96,13 @@
 (require 'cl)
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
-  (load "vim-node")
+                (load "vim-node")
   (load "vim-vim")
   (load "vim-keys")
   (load "vim-modes")
   (load "vim-insert-mode")
   (load "vim-normal-mode")
+  (load "vim-visual-mode")
   (load "vim-commands")
   (load "vim-motions")
   (load "vim-undo")

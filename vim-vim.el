@@ -83,12 +83,16 @@
                             &rest body)
   (let ((type nil)
         (arg nil)
-        (repeatable t))
+        (repeatable t)
+        (count t)
+        (keep-visual nil))
     (while (keywordp (car body))
       (case (car body)
         (:type (setq type (cadr body)))
         (:argument (setq arg (cadr body)))
         (:repeatable (setq repeatable (cadr body)))
+        (:count (setq count (cadr body)))
+        (:keep-visual (setq keep-visual (cadr body)))
         (t (error "Unexpected keyword")))
       (setq body (cddr body)))
     
@@ -96,7 +100,9 @@
        (defun ,name ,args ,@body)
        (put 'type ',name ,type)
        (put 'argument ',name ,arg)
-       (put 'repeatable ',name ,repeatable))))
+       (put 'repeatable ',name ,repeatable)
+       (put 'count ',name ,count)
+       (put 'keep-visual ',name ,keep-visual))))
 
 (defun vim:cmd-arg-p (cmd)
   "Returns non-nil iff command cmd takes an argument."
@@ -105,6 +111,10 @@
 (defun vim:cmd-repeatable-p (cmd)
   "Returns non-nil iff command cmd is repeatable."
   (get 'repeatable cmd))
+
+(defun vim:cmd-count-p (cmd)
+  "Returns non-nil iff command cmd takes a count."
+  (get 'count cmd))
 
 (defun vim:cmd-motion-p (cmd)
   "Returns non-nil iff command cmd is a motion."
@@ -126,6 +136,10 @@
 (defun vim:cmd-type (cmd)
   "Returns the type of command cmd."
   (get 'type cmd))
+
+(defun vim:cmd-keep-visual-p (cmd)
+  "Returns non-nil iff command cmd should stay in visual mode."
+  (get 'keep-visual cmd))
   
 
 (defun* vim:map (keys cmd &key (keymap vim:normal-mode-keymap))
@@ -158,6 +172,24 @@
   "Creates a mapping of keys to cmd in vim:insert-mode-keymap."
   (vim:map keys cmd :keymap vim:insert-mode-keymap))
 
+(defun vim:vmap (keys cmd)
+  "Creates a mapping of keys to cmd in vim:visual-mode-keymap."
+  ;; The difference to vim:map is that complex commands don't get a
+  ;; next-keymap and no command is repeatable.
+  (when (sequencep cmd)
+    (put 'type cmd 'map)
+    (put 'argument cmd nil)
+    (put 'repeatable nil)) ; don't repeat visual-mode commands
+     
+  (vim:add-node vim:visual-mode-keymap keys
+                cmd
+                :function (case (vim:cmd-type cmd)
+                            ('simple 'vim:execute-command)
+                            ('complex 'vim:prepare-complex-command)
+                            ('map 'vim:execute-mapping)
+                            ('special 'vim:execute-special)
+                            (t 'vim:execute-motion))))
+
 
 (defun vim:execute-command (node)
   (when vim:current-cmd
@@ -171,8 +203,12 @@
 (defun vim:prepare-complex-command (node)
   (when vim:current-cmd
     (error "Expected motion"))
-  (setq vim:current-cmd node)
-  (vim:go-to-node node))
+  (if (vim:node-next-keymap node)
+      (progn 
+        (setq vim:current-cmd node)
+        (vim:go-to-node node))
+    ;; execute command as if it would have no motion
+    (vim:execute-command node)))
 
 
 (defun vim:execute-motion (node)
@@ -252,13 +288,13 @@
   (when (vim:cmd-arg-p (vim:node-cmd vim:current-cmd))
     (setq vim:current-cmd-arg (read-char)))
   
-  (let ((last-undo buffer-undo-list))
+  (let ((vim:last-undo buffer-undo-list))
     (funcall (vim:mode-execute-command vim:active-mode)
              (vim:node-cmd vim:current-cmd)
              vim:current-cmd-count
              (vim:get-current-cmd-motion)
              vim:current-cmd-arg)
-    (vim:connect-undos last-undo))
+    (vim:connect-undos vim:last-undo))
   
   (vim:adjust-point))
 
@@ -278,11 +314,16 @@
                          vim:current-motion-count)
                      (* (or vim:current-cmd-count 1)
                         (or vim:current-motion-count 1))
-                   nil)))
-      (let ((motion (if (vim:cmd-arg-p cmd)
-                        (funcall cmd count vim:current-motion-arg)
-                      (funcall cmd count))))
-        (if (consp motion)
+                   nil))
+          (parameters nil))
+      (when (vim:cmd-arg-p cmd)
+        (push vim:current-motion-arg parameters))
+      (when (vim:cmd-count-p cmd)
+        (push vim:current-motion-count parameters))
+      (let ((motion (apply cmd parameters)))
+        ;; block-motions return a pair of points or a pair of pairs
+        (if (or (and (eq (vim:cmd-type cmd)'block) (consp (car motion)))
+                (and (not (eq (vim:cmd-type cmd) 'block)) (consp motion)))
             (vim:make-motion :begin (car motion)
                              :end (cdr motion)
                              :type (vim:cmd-type cmd))
@@ -299,7 +340,11 @@
 
         ;; if begin is nil, set it to point
         (unless (vim:motion-begin motion)
-          (setf (vim:motion-begin motion) (point)))
+          (if (eq (vim:motion-type motion) 'block)
+              (setf (vim:motion-begin motion)
+                    (cons (vim:row-of-pos (point))
+                          (vim:col-of-pos (point))))
+            (setf (vim:motion-begin motion) (point))))
 
         ;; order the motion
         (when (> (vim:motion-begin motion)
@@ -355,7 +400,11 @@
                             :end (save-excursion
                                    (goto-char (vim:motion-end motion))
                                    (line-end-position))
-                            :type 'linewise))))
+                            :type 'linewise))
+
+          ('block
+           (setq vim:current-motion-type 'block)
+           motion)))
 
     ;; no motion -> return nil
     nil))

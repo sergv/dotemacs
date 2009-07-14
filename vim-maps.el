@@ -82,6 +82,8 @@
 (vim:omap ";" 'vim:motion-repeat-last-find)
 (vim:omap "," 'vim:motion-repeat-last-find-opposite)
 
+(vim:omap "iw" 'vim:motion-inner-word)
+
 (vim:nmap "x" "dl")
 (vim:nmap "D" "d$")
 (vim:nmap "dd" 'vim:cmd-delete-line)
@@ -113,4 +115,31 @@
 
 (vim:nmap "." 'vim:cmd-repeat)
 
+(vim:nmap "v" 'vim:visual-toggle-normal)
+(vim:nmap "V" 'vim:visual-toggle-linewise)
+(vim:nmap (kbd "C-v") 'vim:visual-toggle-block)
+(vim:nmap "gv" 'vim:visual-mode-reactivate)
+
 (vim:imap [escape] 'vim:insert-mode-exit)
+
+(vim:vmap [escape] 'vim:visual-mode-exit)
+(vim:vmap "v" 'vim:visual-toggle-normal)
+(vim:vmap "V" 'vim:visual-toggle-linewise)
+(vim:vmap (kbd "C-v") 'vim:visual-toggle-block)
+
+(vim:vmap "d" 'vim:cmd-delete)
+(vim:vmap "D" 'vim:cmd-delete)
+(vim:vmap "x" 'vim:cmd-delete)
+
+(vim:vmap "c" 'vim:cmd-change)
+(vim:vmap "C" 'vim:cmd-change)
+(vim:vmap "r" 'vim:cmd-replace-region)
+(vim:vmap "R" 'vim:cmd-change)
+(vim:vmap "s" 'vim:cmd-change)
+(vim:vmap "S" 'vim:cmd-change)
+
+(vim:vmap "y" 'vim:cmd-yank)
+(vim:vmap "Y" 'vim:cmd-yank)
+
+(vim:vmap "I" 'vim:visual-insert)
+(vim:vmap "A" 'vim:visual-append)

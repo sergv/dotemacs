@@ -90,11 +90,25 @@
 (vim:define vim:cmd-delete (motion)
             :type 'complex
   "Deletes the characters defined by motion."
-  (if (eq vim:current-motion-type 'linewise)
-      (progn
-        (goto-char (vim:motion-begin motion))
-        (vim:cmd-delete-line (vim:motion-line-count motion)))
-    (progn
+  (case (vim:motion-type motion)
+    ('linewise
+     (goto-char (vim:motion-begin motion))
+     (vim:cmd-delete-line (vim:motion-line-count motion)))
+
+    ('block
+     (vim:cmd-yank motion)
+     (let ((beg (save-excursion
+                  (goto-line (car (vim:motion-begin motion)))
+                  (move-to-column (cdr (vim:motion-begin motion)) t)
+                  (point)))
+           (end (save-excursion
+                  (goto-line (car (vim:motion-end motion)))
+                  (move-to-column (1+ (cdr (vim:motion-end motion))) t)
+                  (point))))
+       (delete-rectangle beg end)
+       (goto-char beg)))
+
+    (t
       (kill-region (vim:motion-begin motion) (min (point-max) (1+ (vim:motion-end motion))))
       (goto-char (vim:motion-begin motion)))))
 
@@ -102,15 +116,20 @@
 (vim:define vim:cmd-change (motion)
             :type 'complex
   "Deletes the characters defined by motion and goes to insert mode."
-  (if (eq vim:current-motion-type 'linewise)
-      (progn
-        (goto-char (vim:motion-begin motion))
-        (vim:cmd-change-line (vim:motion-line-count motion)))
-    (progn
-      (vim:cmd-delete motion)
-      (if (eolp)
-          (vim:cmd-append 1)
-        (vim:cmd-insert 1)))))
+  (case (vim:motion-type motion)
+    ('linewise
+     (goto-char (vim:motion-begin motion))
+     (vim:cmd-change-line (vim:motion-line-count motion)))
+
+    ('block
+     (vim:cmd-delete motion)
+     (vim:visual-insert motion))
+
+    (t
+     (vim:cmd-delete motion)
+     (if (eolp)
+         (vim:cmd-append 1)
+       (vim:cmd-insert 1)))))
 
 
 (vim:define vim:cmd-change-line (count)
@@ -152,12 +171,83 @@
   (vim:activate-mode vim:replace-mode))
 
 
+(vim:define vim:cmd-replace-region (motion arg)
+            :type 'complex
+            :argument t
+   "Replace the complete region with `arg'"
+   (case (vim:motion-type motion)
+     ('block
+      ;; replace in block
+      (let ((begrow (car (vim:motion-begin motion)))
+            (begcol (cdr (vim:motion-begin motion)))
+            (endrow (car (vim:motion-end motion)))
+            (endcol (1+ (cdr (vim:motion-end motion)))))
+        (goto-line begrow)
+        (dotimes (i (1+ (- endrow begrow)))
+          ;; TODO does it work with \r\n at the end?
+          (let ((maxcol (save-excursion
+                          (end-of-line)
+                          (current-column))))
+            (when (> maxcol begcol)
+              (delete-region (save-excursion
+                               (move-to-column begcol t)
+                               (point))
+                             (save-excursion
+                               (move-to-column (min endcol maxcol) t)
+                               (point)))
+              (move-to-column begcol t)
+              (insert-char arg (- (min endcol maxcol) begcol))))
+          (forward-line 1))
+        (goto-line begrow)
+        (move-to-column begcol)))
+       
+     (t ;; replace in linewise and normal
+      (let ((begrow (vim:row-of-pos (vim:motion-begin motion)))
+            (endrow (vim:row-of-pos (vim:motion-end motion))))
+        (goto-line begrow)
+        (do ((r begrow (1+ r)))
+            ((> r endrow))
+          (goto-line r)
+          (let ((begcol
+                 (if (and (= r begrow)
+                          (not (eq (vim:motion-type motion) 'linewise)))
+                     (save-excursion
+                       (goto-char (vim:motion-begin motion))
+                       (current-column))
+                   0))
+                (endcol
+                 (if (and (= r endrow)
+                          (not (eq (vim:motion-type motion) 'linewise)))
+                     (save-excursion
+                       (goto-char (vim:motion-end motion))
+                       (1+ (current-column)))
+                   ;; TODO does it work with \r\n at the end?
+                   (save-excursion
+                     (end-of-line)
+                     (current-column)))))
+
+              (delete-region (save-excursion
+                               (move-to-column begcol t)
+                               (point))
+                             (save-excursion
+                               (move-to-column endcol t)
+                               (point)))
+              (move-to-column begcol t)
+              (insert-char arg (- endcol begcol)))))
+
+        (goto-char (vim:motion-begin motion)))))
+
 
 (vim:define vim:cmd-yank (motion)
             :type 'complex
             :repeatable nil
   "Saves the characters in motion into the kill-ring."
-  (kill-new (buffer-substring (vim:motion-begin motion) (1+ (vim:motion-end motion)))))
+  (case (vim:motion-type motion)
+    ('block (vim:cmd-yank-rectangle motion))
+    (t
+     (kill-new (buffer-substring
+                (vim:motion-begin motion)
+                (1+ (vim:motion-end motion)))))))
   
 
 (vim:define vim:cmd-yank-line (count)
@@ -170,6 +260,36 @@
                (line-end-position))))
     (kill-new (concat (buffer-substring beg end) "\n") nil)))
 
+
+(defun vim:cmd-yank-rectangle (motion)
+  "Stores the rectangle defined by motion into the kill-ring."
+  ;; TODO: yanking should not insert spaces or expand tabs.
+  (let ((begrow (car (vim:motion-begin motion)))
+        (begcol (cdr (vim:motion-begin motion)))
+        (endrow (car (vim:motion-end motion)))
+        (endcol (cdr (vim:motion-end motion)))
+        (parts nil))
+    (goto-line endrow)
+    (dotimes (i (1+ (- endrow begrow)))
+      (let ((beg (save-excursion (move-to-column begcol t) (point)))
+            (end (save-excursion (move-to-column (1+ endcol) t) (point))))
+        (setq parts (cons "\n" (cons (buffer-substring beg end) parts)))
+        (forward-line -1)))
+    (kill-new (apply #'concat (cdr parts)) nil (list 'vim:yank-block-handler))
+    (goto-line begrow)
+    (move-to-column begcol)))
+
+
+(defun vim:yank-block-handler (text)
+  "Inserts the current text as block."
+  (let ((parts (split-string text "\n"))
+        (col (current-column)))
+    (dolist (part parts)
+      (insert part)
+      (forward-line 1)
+      (move-to-column col t))))
+                    
+
 (vim:define vim:cmd-paste-before (count)
             :type 'simple
   "Pastes the latest yanked text before the cursor position."
@@ -177,17 +297,21 @@
     (error "kill-ring empty"))
   
   (let* ((txt (car kill-ring-yank-pointer))
-         (linewise (= (elt txt (1- (length txt))) ?\n)))
-    (if linewise
-        (progn
-          (beginning-of-line)
-          (save-excursion
-            (dotimes (i (or count 1))
-              (yank))))
-      (progn
+         (yhandler (get-text-property 0 'yank-handler txt)))
+    (cond
+     (yhandler ; block or other strange things
+      (save-excursion (yank))) 
+     
+     ((= (elt txt (1- (length txt))) ?\n) ; linewise
+      (beginning-of-line)
+      (save-excursion
         (dotimes (i (or count 1))
-          (yank))
-        (backward-char)))))
+          (yank))))
+
+     (t ; normal
+      (dotimes (i (or count 1))
+        (yank))
+      (backward-char)))))
 
 
 (vim:define vim:cmd-paste-behind (count)
@@ -197,35 +321,42 @@
     (error "kill-ring empty"))
   
   (let* ((txt (car kill-ring-yank-pointer))
-         (linewise (= (elt txt (1- (length txt))) ?\n))
-         (last-line (= (line-end-position) (point-max))))
-    (if linewise
-        (progn
-          (if last-line
-              (progn
-                (end-of-line)
-                (newline))
-            (forward-line))
-          (beginning-of-line)
-          (save-excursion
-            (dotimes (i (or count 1))
-              (yank))
-            (when last-line
-              ;; remove the last newline
-              (let ((del-pos (point)))
-                (forward-line -1)
-                (end-of-line)
-                (delete-region (point) del-pos)))))
-      (progn
-        (forward-char)
-        (dotimes (i (or count 1))
-          (yank))
-        (backward-char)))))
+         (yhandler (get-text-property 0 'yank-handler txt)))
+
+    (cond
+     (yhandler ; block or other string things
+      (forward-char)
+      (save-excursion (yank)))
+
+     ((= (elt txt (1- (length txt))) ?\n) ; linewise
+      (let ((last-line (= (line-end-position) (point-max))))
+        (if last-line
+            (progn
+              (end-of-line)
+              (newline))
+          (forward-line))
+        (beginning-of-line)
+        (save-excursion
+          (dotimes (i (or count 1))
+            (yank))
+          (when last-line
+            ;; remove the last newline
+            (let ((del-pos (point)))
+              (forward-line -1)
+              (end-of-line)
+              (delete-region (point) del-pos))))))
+
+     (t ; normal
+      (forward-char)
+      (dotimes (i (or count 1))
+        (yank))
+      (backward-char)))))
 
 
-(vim:define vim:cmd-repeat (count)
+(vim:define vim:cmd-repeat ()
             :type 'simple
             :repeatable nil
+            :count nil
   "Repeats the last command."
   (unless vim:repeat-events
     (error "Nothing to repeat"))
@@ -235,3 +366,5 @@
           (vim:repeat-events nil))
       (execute-kbd-macro repeat-events)))
   (vim:reset-key-state))
+
+
