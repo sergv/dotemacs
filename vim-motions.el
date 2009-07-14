@@ -16,18 +16,31 @@
 (defvar vim:this-column nil)
 (defvar vim:last-column nil)
 
+(defun vim:row-of-pos (pos)
+  "Returns the row of the given position."
+  (line-number-at-pos pos))
+
+(defun vim:col-of-pos (pos)
+  "Returns the column of the given position."
+  (save-excursion
+    (goto-char pos)
+    (current-column)))
+
+
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
   (when (and (not (eq vim:active-mode vim:insert-mode))
              (not (eq vim:active-mode vim:replace-mode)))
+             
     (when vim:this-column
-      (goto-char (min (+ (line-beginning-position) vim:this-column)
-                      (line-end-position))))
+      (move-to-column vim:this-column))
     ;; always stop at the last character (not the newline)
-    (when (and (eolp) (not (bolp)))
+    (when (and (not (eq vim:active-mode vim:visual-mode))
+               (eolp) (not (bolp)))
       (backward-char)))
+  
   (setq vim:last-column (or vim:this-column
-                            (- (point) (line-beginning-position))))
+                            (vim:col-of-pos (point))))
   (setq vim:this-column nil))
 
 
