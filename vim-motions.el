@@ -168,3 +168,16 @@
     (1- (point))))
 
 
+
+(vim:define vim:motion-inner-word (count)
+            :type 'inclusive
+   "Select `count' words."
+   (cons (save-excursion
+           (forward-char)
+           (re-search-backward "\\b\\w" nil t)
+           (match-beginning 0))
+         (save-excursion
+           (re-search-forward "\\w\\b" nil t (or count 1))
+           (match-beginning 0))))
+           
+   
