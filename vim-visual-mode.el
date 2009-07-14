@@ -203,7 +203,7 @@
 (defun vim:visual-post-command ()
   (cond
    ((eq vim:active-mode vim:visual-mode)
-    (if (memq this-command viper-deactivate-mark-commands)
+    (if (memq this-command vim:visual-deactivate-mark-commands)
         (condition-case nil
             (vim:visual-mode-exit)
           (error nil))
