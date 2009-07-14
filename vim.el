@@ -75,23 +75,23 @@
 ;;
 ;; TODO:
 ;;
-;; Many commands and functions are still missing.
-;;
 ;; HAVE:
 ;;   - framework for keymaps, motions, commands and command-mappings
-;;   - insert-mode and normal-mode
+;;   - insert-mode, normal-mode and visual-mode
 ;;   - simple motions
-;;   - deletion, yank, paste, change
+;;   - deletion, yank, paste, change, replace
 ;;   - undo/redo
 ;;   - repeat
 ;;
 ;; MISSING:
-;;   - word motions
-;;   - searching
-;;   - ex-mode
-;;   - visual-mode
-;;   - marks and register
 ;;   - better Emacs integration (modes, buffer local variables, ...)
+;;   - word motions
+;;   - search motions
+;;   - text objects
+;;   - several commands
+;;   - scrolling
+;;   - ex-mode
+;;   - marks and register
 
 (require 'cl)
 

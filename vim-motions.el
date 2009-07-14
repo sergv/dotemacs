@@ -9,26 +9,59 @@
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
-;; TODO: bad insert-mode hack in vim:adjust-point
+;; Description:
+
+;; Motions describe functions moving the cursor or representing an
+;; argument for an operator.  There are three types of motions:
+;; character-wise, line-wise and block-wise.  Usually only the first
+;; two types are represented by motion-commands while the last one is
+;; implicitly used by visual-block-mode.
+;;
+;; Each motion-function may return one position or a pair of positions
+;; in the buffer.  If it returns one position it's considered as the
+;; end of the motion.  If it returns two positions the first is
+;; considered as the begin and the other as the end of the motion.
+;; The latter is useful for implementing text-objects.
+;;
+;; Motions are defined using the `vim:define' macro:
+;;
+;;  (vim:define my-motion (count arg)
+;;              :type 'inclusive
+;;              :count t
+;;              :argument t
+;;
+;;     ... code ...
+;;
+;;     position)
+;;
+;; The type of a motion should be one of `inclusive', `exclusive',
+;; `linewise' or `block'.  The first two types are characterwise.
+;;
+;; If `count' is non-nil, the motion takes an optional count
+;; argument.  In this case the first parameter passed to the function
+;; is the count (may be nil if no count is given).  If `count' is nil
+;; the paramter must be omitted.
+;;
+;; If `argument' is non-nil, the motion takes an addition
+;; key-argument.  In this case the last parameter passed to the
+;; function is the corresponding event.  This event may be an
+;; arbitrary Emacs-event so the function should check its type and
+;; signal an error if the event is invalid.  If `argument' is nil
+;; the parameter must be omitted.
+;;
+
 
 (provide 'vim-motions)
 
-(defvar vim:this-column nil)
-(defvar vim:last-column nil)
+(defvar vim:this-column nil
+  "The resulting column of the current motion.")
 
-(defun vim:row-of-pos (pos)
-  "Returns the row of the given position."
-  (line-number-at-pos pos))
-
-(defun vim:col-of-pos (pos)
-  "Returns the column of the given position."
-  (save-excursion
-    (goto-char pos)
-    (current-column)))
-
+(defvar vim:last-column nil
+  "The resulting column of the previous motion.")
 
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
+  ;; TODO: should we check modes directly?
   (when (and (not (eq vim:active-mode vim:insert-mode))
              (not (eq vim:active-mode vim:replace-mode)))
              
@@ -40,15 +73,17 @@
       (backward-char)))
   
   (setq vim:last-column (or vim:this-column
-                            (vim:col-of-pos (point))))
+                            (current-column)))
   (setq vim:this-column nil))
 
 
 (defun vim:use-last-column ()
+  "This function should by called by a motion not changing the column."
   (setq vim:this-column vim:last-column))
         
 
 ;; This structure is passed to operators taking a motion.
+;; It should *not* be returned by motions.
 (defstruct (vim:motion
             (:constructor vim:make-motion))
   begin  ; first point in this motion
@@ -56,12 +91,65 @@
   type   ; 'inclusive, 'exclusive, 'linewise
   )
 
+
 (defun vim:motion-line-count (motion)
   "Returns a new motion with same range but new type."
-  (1+ (- (line-number-at-pos (max (vim:motion-begin motion)
-                                  (vim:motion-end motion)))
-         (line-number-at-pos (min (vim:motion-begin motion)
-                                  (vim:motion-end motion))))))
+  (let ((cnt
+         (1+ (case (vim:motion-type motion)
+               ('linewise (- (vim:motion-end motion)
+                             (vim:motion-begin motion)))
+               ('block (- (car (vim:motion-end motion))
+                          (car (vim:motion-begin motion))))
+               
+               (t (- (line-number-at-pos (vim:motion-end motion))
+                     (line-number-at-pos (vim:motion-begin motion))))))))
+    (when (< cnt 0)
+      (error "Invalid motion (begin must be <= end)"))
+    cnt))
+
+
+(defun vim:motion-begin-row (motion)
+  "Returns the row-number of the beginning-position of `motion'."
+  (case (vim:motion-type motion)
+    ('linewise (vim:motion-begin motion))
+    ('block (car (vim:motion-begin motion)))
+    (t (line-number-at-pos (vim:motion-begin motion)))))
+      
+
+(defun vim:motion-end-row (motion)
+  "Returns the row-number of the end-position of `motion'."
+  (case (vim:motion-type motion)
+    ('linewise (vim:motion-end motion))
+    ('block (car (vim:motion-end motion)))
+    (t (line-number-at-pos (vim:motion-end motion)))))
+
+
+(defun vim:motion-begin-pos (motion)
+  "Returns the offset of the beginning-position of `motion'."
+  (case (vim:motion-type motion)
+    ('linewise (save-excursion
+                 (goto-line (vim:motion-begin motion))
+                 (line-beginning-position)))
+    ('block (save-excursion
+              (goto-line (car (vim:motion-begin motion)))
+              (move-to-column (cdr (vim:motion-begin motion)))
+              (point)))
+    (t (vim:motion-begin motion))))
+
+
+(defun vim:motion-end-pos (motion)
+  "Returns the offset of the end-position of `motion'."
+  (case (vim:motion-type motion)
+    ('linewise (save-excursion
+                 (goto-line (vim:motion-end motion))
+                 (line-end-position)))
+    ('block (save-excursion
+              (goto-line (car (vim:motion-end motion)))
+              (move-to-column (cdr (vim:motion-end motion)))
+              (point)))
+    (t (vim:motion-end motion))))
+                              
+      
 
 
 (defun vim:adjust-end-of-line-position (pos)

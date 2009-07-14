@@ -16,26 +16,63 @@
 ;; are the vim-commands c, d, y, =, examples of the second one are dd,
 ;; D, p, x.
 ;;
-;; A function implementing a motion should take two or three arguments:
+;; An operation based on motions should always respect the motion
+;; type, i.e. if the motion is character-wise, line-wise or block-wise
+;; not.  Motions passed to commands will always be inclusive (and
+;; never exlusive).  For example, the command dG has a line-wise motion
+;; argument and should delete whole lines.
 ;;
-;;  - a count
-;;  - a motion of type vim:motion
-;;  - an (optional) argument character
+;; Motions are passed via the vim:motion structure.  The
+;; representation of the start and end-positions depends on the
+;; motion-type:
 ;;
-;; If the operation does not require a motion, the second parameter is
-;; usually nil.  If the operation takes a motion, the count parameter
-;; should usually be ignored since the count has already been regarded
-;; by the motion itself (the motion function got (command-count *
-;; motion-count) as count parameter.
-;;
-;; An operations based on motions should always respect the motion
-;; type, i.e. if the motion is linewise or not.  Motions passed to
-;; commands will always be inclusive (and never exlusive).  For
-;; example, the command dG has a linewise motion argument and should
-;; delete whole lines.
+;;   - character-wise: each position is a buffer-offset,
+;;   - line-wise: each position is a line-number,
+;;   - block-wise: each position is a (row,column) pair.
 ;;
 ;; Furthermore, each operation should place (point) at the correct
 ;; position after the operation.
+;;
+;;
+;; Operations are defined by the `vim:define' macro:
+;;
+;;  (vim:define my-command (count arg)
+;;              :type 'simple
+;;              :argument t
+;;              :count t
+;;              :repeatable t
+;;
+;;       ... code ...
+;;  )
+;;
+;; The command-type `:type' should be one of `simple', `complex' or `special'.
+;; Simple commands are commands not taking a motion-argument.  Complex commands
+;; are operations with motion-argument.  Special-commands are called without
+;; affecting the key-parse mode and can be used to implement special behaviour
+;; on some keys (e.g. numeric counts are implemented using special commands).
+;;
+;; If `type' is complex, the first argument passed to the function is
+;; the associated motion as a vim:motion structure.
+;;
+;; If `count' is non-nil, the command takes an optional count
+;; argument.  In this case the first parameter passed to the function
+;; is the count (may be nil if no count is given).  If the command is
+;; `complex', no count-argument is possible since the command-count
+;; has already been passed to the associated motion (i.e. the motion
+;; has got the count (command-count * motion-count).  If `count' is
+;; nil the paramter must be omitted.
+;;
+;; If `argument' is non-nil, the command takes an addition
+;; key-argument.  In this case the last parameter passed to the
+;; function is the corresponding event.  This event may be an
+;; arbitrary Emacs-event so the function should check its type and
+;; signal an error if the event is invalid.  If `argument' is nil
+;; the parameter must be omitted.
+;;
+;; If `repeatable' is non-nil, the command can be repeated using the
+;; '.' command.  Some commands like scrolling commands or the repeat-command
+;; itself cannot be repeated and should set repeatable to nil.
+
 
 (provide 'vim-commands)
 
@@ -92,7 +129,7 @@
   "Deletes the characters defined by motion."
   (case (vim:motion-type motion)
     ('linewise
-     (goto-char (vim:motion-begin motion))
+     (goto-line (vim:motion-begin motion))
      (vim:cmd-delete-line (vim:motion-line-count motion)))
 
     ('block
@@ -118,7 +155,7 @@
   "Deletes the characters defined by motion and goes to insert mode."
   (case (vim:motion-type motion)
     ('linewise
-     (goto-char (vim:motion-begin motion))
+     (goto-line (vim:motion-begin motion))
      (vim:cmd-change-line (vim:motion-line-count motion)))
 
     ('block
@@ -202,8 +239,8 @@
         (move-to-column begcol)))
        
      (t ;; replace in linewise and normal
-      (let ((begrow (vim:row-of-pos (vim:motion-begin motion)))
-            (endrow (vim:row-of-pos (vim:motion-end motion))))
+      (let ((begrow (vim:motion-begin-row motion))
+            (endrow (vim:motion-end-row motion)))
         (goto-line begrow)
         (do ((r begrow (1+ r)))
             ((> r endrow))
@@ -246,8 +283,8 @@
     ('block (vim:cmd-yank-rectangle motion))
     (t
      (kill-new (buffer-substring
-                (vim:motion-begin motion)
-                (1+ (vim:motion-end motion)))))))
+                (vim:motion-begin-pos motion)
+                (1+ (vim:motion-end-pos motion)))))))
   
 
 (vim:define vim:cmd-yank-line (count)
@@ -263,6 +300,8 @@
 
 (defun vim:cmd-yank-rectangle (motion)
   "Stores the rectangle defined by motion into the kill-ring."
+  (unless (eq (vim:motion-type motion) 'block)
+    (error "Motion must be of type block"))
   ;; TODO: yanking should not insert spaces or expand tabs.
   (let ((begrow (car (vim:motion-begin motion)))
         (begcol (cdr (vim:motion-begin motion)))

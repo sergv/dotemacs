@@ -342,8 +342,8 @@
         (unless (vim:motion-begin motion)
           (if (eq (vim:motion-type motion) 'block)
               (setf (vim:motion-begin motion)
-                    (cons (vim:row-of-pos (point))
-                          (vim:col-of-pos (point))))
+                    (cons (line-number-at-pos (point))
+                          (current-column)))
             (setf (vim:motion-begin motion) (point))))
 
         ;; order the motion
@@ -371,10 +371,8 @@
                    ;; motion becomes linewise(-exclusive)
                    (progn
                      (setq vim:current-motion-type 'linewise)
-                     (vim:make-motion :begin (save-excursion
-                                               (goto-char (vim:motion-begin motion))
-                                               (line-beginning-position))
-                                      :end (1- (vim:motion-end motion)) ; will move to the previous end-of-line
+                     (vim:make-motion :begin (line-number-at-pos (vim:motion-begin motion))
+                                      :end (1- (line-number-at-pos (vim:motion-end motion)))
                                       :type 'linewise))
                  
                  ;; motion becomes inclusive
@@ -394,15 +392,12 @@
 
           ('linewise
            (setq vim:current-motion-type 'linewise)
-           (vim:make-motion :begin (save-excursion
-                                     (goto-char (vim:motion-begin motion))
-                                     (line-beginning-position))
-                            :end (save-excursion
-                                   (goto-char (vim:motion-end motion))
-                                   (line-end-position))
+           (vim:make-motion :begin (line-number-at-pos (vim:motion-begin motion))
+                            :end (line-number-at-pos (vim:motion-end motion))
                             :type 'linewise))
 
           ('block
+              ;; TODO: here more work is required
            (setq vim:current-motion-type 'block)
            motion)))
 
