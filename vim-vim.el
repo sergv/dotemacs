@@ -13,8 +13,6 @@
 
 ;; This file contains the stuff specific for vim-like keybindins.
 
-;; TODO: - currently the next-keymap of a complex command is the keymap itself
-
 (vim:deflocalvar vim:repeat-events
   "The sequence of events for the repeat command."
   nil)

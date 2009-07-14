@@ -34,4 +34,5 @@
                  :deactivate #'vim:normal-mode-deactivate
                  :execute-command #'vim:default-mode-exec-cmd
                  :execute-motion #'vim:default-mode-exec-motion
-                 :keymap 'vim:normal-mode-keymap))
+                 :keymap 'vim:normal-mode-keymap
+                 :default-handler 'vim:default-default-handler))

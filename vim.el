@@ -23,8 +23,6 @@
 ;; If you want to try, open this file in your Emacs and evaluate the buffer.
 ;; The mode can be activated by 'M-x vim-mode'.
 ;;
-;; Currently, Emacs integration is poor and no variable is buffer-local.
-;;
 ;; Don't forget to disable Viper if you want to try vim-mode.
 ;;
 ;;

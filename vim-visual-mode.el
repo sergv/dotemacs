@@ -443,7 +443,8 @@
                  :deactivate #'vim:visual-mode-deactivate
                  :execute-command #'vim:visual-mode-exec-cmd
                  :execute-motion #'vim:visual-mode-exec-motion
-                 :keymap 'vim:visual-mode-keymap))
+                 :keymap 'vim:visual-mode-keymap
+                 :default-handler 'vim:default-default-handler))
 
 
 (vim:define vim:visual-insert (motion)

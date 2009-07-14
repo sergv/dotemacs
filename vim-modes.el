@@ -83,3 +83,17 @@
         (move-to-column (cdr (vim:motion-end motion))))
     (goto-char (vim:motion-end motion))))
 
+
+(defun vim:default-default-handler ()
+  "Returns t iff the character is printable."
+  ;; TODO:  this is propably not very good
+  (if (and (integerp last-command-event)
+           (null (event-modifiers last-command-event)))
+      (let ((vim-key-mode nil))
+        (let ((binding (key-binding (vector last-command-event))))
+        (if (eq binding 'self-insert-command)
+            t
+          nil)))
+    nil))
+           
+      

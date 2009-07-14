@@ -9,11 +9,6 @@
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
-;; TODO:
-;;
-;;  - special keymap for motions following commands (required for
-;;    text-objects)
-
 (provide 'vim-keys)
 
 
@@ -83,8 +78,8 @@
            (error err)))
         nil)
     (vim:reset-key-state)
-    (when (null (and (vim:mode-default-handler vim:active-mode)
-                     (funcall (vim:mode-default-handler vim:active-mode))))
+    (unless (and (vim:mode-default-handler vim:active-mode)
+                 (funcall (vim:mode-default-handler vim:active-mode)))
       (push last-command-event unread-command-events)
       (add-hook 'post-command-hook 'vim:enable-keymap)
       (setq vim-key-mode nil))))
