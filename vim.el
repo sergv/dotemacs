@@ -30,32 +30,35 @@
 ;;
 ;; Documentation:
 ;;
-;; The project is poorly documented.  The only few information you get
-;; are the following few lines.
-;;
 ;; The project is divided into many files.  Each file implements some
 ;; almost-independent feature:
 ;;
 ;;  - vim.el:  This file just sets up the mode and loads the other files.
 ;;
-;;  - vim-keys.el: This one of the two most important files.  The core
-;;                 of all key-handling is done here.  Here you find
-;;                 the heart of all magic stuff happening in vim-mode.
+;;  - vim-keys.el: This one of the most important files.  The core of
+;;                 all key-handling is done here.  Here you find the
+;;                 heart of all magic stuff happening in vim-mode.
 ;;                 Correct handling of undo/redo as well as the
 ;;                 connection of commands and motions and the powerful
 ;;                 command-mappings happens in this file.
 ;;
 ;;  - vim-node.el: This is second most important file.  vim-mode has
-;;                 its own keymap.  The implementation of them is in
-;;                 this file.
+;;                 its own keymap.  The implementation of the
+;;                 structure is in this file.
+;;
+;;  - vim-vim.el: This file contains the magic coupling (parsed) key-events
+;;                to actual motions and commands.  Furthermore it contains
+;;                the framework to define new motions and commands.
 ;;
 ;;  - vim-modes.el: Each VIM-mode (normal-mode, insert-mode, ...) is
 ;;                  represented by some functions and variables.  The
 ;;                  corresponding data-structures are in this file.   
+;;
+;;  - vim-insert-mode.el: The implementation of insert-mode.         
 ;;                                                                    
-;;  - vim-insert-mode.el: The implementations of insert-mode.         
+;;  - vim-normal-mode.el: The implementation of normal-mode.         
 ;;                                                                    
-;;  - vim-normal-mode.el: The implementations of normal-mode.         
+;;  - vim-visual-mode.el: The implementation of visual-mode.         
 ;;                                                                    
 ;;  - vim-commands.el: The implementations of commands like 'delete', 
 ;;                     'yank', 'paste' and so on.               
@@ -92,8 +95,14 @@
 ;;   - scrolling
 ;;   - ex-mode
 ;;   - marks and register
+;;   - repeating based on commands instead of key-sequences?
 
 (require 'cl)
+
+(defmacro vim:deflocalvar (name &rest args)
+  `(progn
+     (defvar ,name ,@args)
+     (make-variable-buffer-local ',name)))
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
                 (load "vim-node")
@@ -111,14 +120,15 @@
 (define-minor-mode vim-mode
   "VIM emulation mode."
   :lighter " VIM"
-  :initial-value nil
+  :init-value nil
   :global nil
   :keymap nil)
 
 (defun vim:initialize ()
-  (setq vim-key-mode t)
-  (vim:reset-key-state)
-  (vim:activate-mode vim:normal-mode))
+  (when vim-mode
+    (setq vim-key-mode t)
+    (vim:reset-key-state)
+    (vim:activate-mode vim:normal-mode)))
 
 (add-hook 'vim-mode-hook 'vim:initialize)
 

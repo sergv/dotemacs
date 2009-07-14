@@ -15,39 +15,39 @@
 
 ;; TODO: - currently the next-keymap of a complex command is the keymap itself
 
-(defvar vim:repeat-events
+(vim:deflocalvar vim:repeat-events
   "The sequence of events for the repeat command."
   nil)
 
-(defvar vim:current-register
+(vim:deflocalvar vim:current-register
   "The register of the current command."
   nil)
 
-(defvar vim:current-cmd-count
+(vim:deflocalvar vim:current-cmd-count
   "The count of the current command."
   nil)
 
-(defvar vim:current-cmd
+(vim:deflocalvar vim:current-cmd
   "The node of the current command."
   nil)
 
-(defvar vim:current-cmd-arg
+(vim:deflocalvar vim:current-cmd-arg
   "The argument of the current command."
   nil)
 
-(defvar vim:current-motion-count
+(vim:deflocalvar vim:current-motion-count
   "The count of the current motion."
   nil)
 
-(defvar vim:current-motion
+(vim:deflocalvar vim:current-motion
   "The node of the current motion."
   nil)
 
-(defvar vim:current-motion-arg
+(vim:deflocalvar vim:current-motion-arg
   "The argument of the current motion."
   nil)
 
-(defvar vim:current-motion-type
+(vim:deflocalvar vim:current-motion-type
   "The type of the current motion (inclusive, exclusive, linewise)."
   nil)
 

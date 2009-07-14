@@ -53,10 +53,10 @@
 
 (provide 'vim-motions)
 
-(defvar vim:this-column nil
+(vim:deflocalvar vim:this-column nil
   "The resulting column of the current motion.")
 
-(defvar vim:last-column nil
+(vim:deflocalvar vim:last-column nil
   "The resulting column of the previous motion.")
 
 (defun vim:adjust-point ()

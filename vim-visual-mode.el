@@ -29,33 +29,33 @@
 (defconst vim:visual-mode-keymap
   (vim:make-node :next-keymap vim:motion-keymap))
 
-(defvar vim:visual-mode-type
+(vim:deflocalvar vim:visual-mode-type
   "Type of visual mode, should be 'normal, 'linewise or 'block."
   'normal)
 
 ;; Last transient-mark-mode.
-(defvar vim:visual-old-transient-mark-mode)
+(vim:deflocalvar vim:visual-old-transient-mark-mode)
 
 ;; Old global variables changed in visual-mode.
-(defvar vim:visual-old-global-variables)
+(vim:deflocalvar vim:visual-old-global-variables)
 
 ;; List of overlays for the current region.
-(defvar vim:visual-overlays)
+(vim:deflocalvar vim:visual-overlays)
 
 ;; The last beginning position of the region.
-(defvar vim:visual-last-begin)
+(vim:deflocalvar vim:visual-last-begin)
 
 ;; The last end position of the region.
-(defvar vim:visual-last-end)
+(vim:deflocalvar vim:visual-last-end)
 
 ;; The last motion used to insert something in visual mode.
-(defvar vim:visual-last-insert-motion nil)
+(vim:deflocalvar vim:visual-last-insert-motion nil)
 
 ;; The undo-mark of the last visual mode insert command.
-(defvar vim:visual-last-insert-undo nil)
+(vim:deflocalvar vim:visual-last-insert-undo nil)
 
 ;; If non-nil, the last region will be used when visual mode is activated.
-(defvar vim:visual-reactivate-last-region nil)
+(vim:deflocalvar vim:visual-reactivate-last-region nil)
 
 ;;; System variables which must temporarily be buffer local.
 (defconst vim:visual-temporary-local-variables

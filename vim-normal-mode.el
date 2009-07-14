@@ -11,19 +11,24 @@
 
 (provide 'vim-normal-mode)
 
-(defvar vim:motion-keymap (vim:make-node))
-(defvar vim:normal-mode-keymap
+(defcustom vim:normal-mode-cursor 'box
+  "The cursor-type for normal-mode."
+  :group 'vim-mode)
+
+(defconst vim:motion-keymap (vim:make-node))
+(defconst vim:normal-mode-keymap
   (vim:make-node :next-keymap vim:motion-keymap))
 
 (defun vim:normal-mode-activate ()
   (message "-- NORMAL --")
+  (setq cursor-type vim:normal-mode-cursor)
   )
 
 (defun vim:normal-mode-deactivate ()
   )
 
 
-(defvar vim:normal-mode
+(defconst vim:normal-mode
   (vim:make-mode :name "Normal"
                  :activate #'vim:normal-mode-activate
                  :deactivate #'vim:normal-mode-deactivate

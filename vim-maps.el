@@ -9,6 +9,38 @@
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
+;; Description:
+
+;; This file contains all standard keymaps.  Key mappings are defined
+;; using one of the following vim-like macros:
+
+;;   - vim:map ... general mapping in an arbitrary mode
+;;   - vim:nmap ... mapping in the normal-mode keymap
+;;   - vim:omap ... mapping in the motion keymap
+;;   - vim:imap ... mapping in the insert-mode keymap
+;;   - vim:vmap ... mapping in the visual-mode keymap
+;;
+;; Commands should usually be placed in the normal-mode keymap.
+;; Motions should be placed in the motion keymap.  All commands in the
+;; motion-keymap are available as motions in normal-mode and
+;; visual-mode (but may be overwritten by the corresponding keymaps)
+;; and as motion-arguments for complex commands in normal-mode.
+;;
+;; A mapping has one of the following two forms:
+;;
+;;   (vim:map KEYEVENTS 'my-command)
+;;
+;;   (vim:map KEYEVENTS MAPEVENTS)
+;;
+;; The first form maps the events in KEYEVENTS to the command
+;; my-command.  The second form defines a vim-like mapping of
+;; KEYEVENTS to MAPEVENTS, i.e. the activation of KEYEVENTS invokes
+;; the (key-)events in MAPEVENTS.
+;;
+;; Events is a usual Emacs-sequence of events as it would be used by
+;; define-key.
+
+
 ;; TODO:
 ;;   - better mapping to support stuff like
 ;;     (vim:def-map "c" "d{motion}a")

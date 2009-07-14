@@ -11,14 +11,23 @@
 
 (provide 'vim-insert-mode)
 
-(defvar vim:insert-mode-keymap (vim:make-node))
-(defvar vim:insert-mode-activate-hook nil
+(defcustom vim:insert-mode-cursor 'bar
+  "The cursor-type for insert-mode."
+  :group 'vim-mode)
+
+(defcustom vim:replace-mode-cursor 'hbar
+  "The cursor-type for replace-mode."
+  :group 'vim-mode)
+
+
+(defconst vim:insert-mode-keymap (vim:make-node))
+(vim:deflocalvar vim:insert-mode-activate-hook nil
   "Hooks called when insert-mode is activated.")
-(defvar vim:insert-mode-deactivate-hook nil
+(vim:deflocalvar vim:insert-mode-deactivate-hook nil
   "Hooks called when insert-mode is activated.")
 
-(defvar vim:last-insert-undo nil)
-(defvar vim:current-insert-key-sequence nil)
+(vim:deflocalvar vim:last-insert-undo nil)
+(vim:deflocalvar vim:current-insert-key-sequence nil)
 
 (defun vim:insert-active-p ()
   (if vim:last-insert-undo t nil))
@@ -26,7 +35,7 @@
 (defun vim:insert-mode-activate ()
   (message "-- INSERT --")
   (setq overwrite-mode nil)
-  (setq cursor-type 'bar)
+  (setq cursor-type vim:insert-mode-cursor)
   (setq vim:current-insert-key-sequence vim:current-key-sequence)
   (setq vim:last-insert-undo buffer-undo-list))
 
@@ -36,7 +45,6 @@
     (vim:connect-undos vim:last-insert-undo)
     (setq vim:last-insert-undo nil))
   
-  (setq cursor-type 'box)
   (setq overwrite-mode nil)
   (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape])))
 
@@ -51,7 +59,7 @@
   (vim:activate-mode vim:normal-mode)
   (goto-char (max (line-beginning-position) (1- (point)))))
 
-(defvar vim:insert-mode
+(defconst vim:insert-mode
   (vim:make-mode :name "Insert"
                  :activate #'vim:insert-mode-activate
                  :deactivate #'vim:insert-mode-deactivate
@@ -65,12 +73,12 @@
 
 (defun vim:replace-mode-activate ()
   (message "-- REPLACE --")
-  (setq cursor-type 'hbar)
+  (setq cursor-type vim:replace-mode-cursor)
   (setq vim:current-insert-key-sequence vim:current-key-sequence)
   (setq overwrite-mode t)
   (setq vim:last-insert-undo buffer-undo-list))
 
-(defvar vim:replace-mode
+(defconst vim:replace-mode
   (vim:make-mode :name "Replace"
                  :activate #'vim:replace-mode-activate
                  :deactivate #'vim:insert-mode-deactivate

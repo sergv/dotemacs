@@ -17,11 +17,11 @@
 (provide 'vim-keys)
 
 
-(defvar vim:current-node
+(vim:deflocalvar vim:current-node
   "The currently active node."
   nil)
 
-(defvar vim:current-key-sequence
+(vim:deflocalvar vim:current-key-sequence
   "The key-sequence of the current command."
   nil)
 

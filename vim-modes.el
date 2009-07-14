@@ -24,6 +24,7 @@
   deactivate-hook    ; hook called after deactivation
   )
 
+
 (defun vim:mode-get-keymap (mode)
   "Returns the keymap of a modes."
   (let ((keymap (vim:mode-keymap mode)))
@@ -32,7 +33,7 @@
       keymap)))
 
 
-(defvar vim:active-mode nil)
+(vim:deflocalvar vim:active-mode nil)
 
 (defun vim:activate-mode (mode)
   "Activates a mode."
