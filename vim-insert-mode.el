@@ -12,6 +12,10 @@
 (provide 'vim-insert-mode)
 
 (defvar vim:insert-mode-keymap (vim:make-node))
+(defvar vim:insert-mode-activate-hook nil
+  "Hooks called when insert-mode is activated.")
+(defvar vim:insert-mode-deactivate-hook nil
+  "Hooks called when insert-mode is activated.")
 
 (defvar vim:last-insert-undo nil)
 (defvar vim:current-insert-key-sequence nil)
@@ -34,9 +38,7 @@
   
   (setq cursor-type 'box)
   (setq overwrite-mode nil)
-  (setq vim:last-undo vim:last-insert-undo)
-  (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape]))
-  (setq vim:current-insert-key-sequence nil))
+  (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape])))
 
 (defun vim:insert-mode-default-handler ()
   "The default event handler of the insert mode."
@@ -44,7 +46,8 @@
     (push last-command-event vim:current-insert-key-sequence))
   nil)
 
-(vim:define vim:insert-mode-exit (count)
+(vim:define vim:insert-mode-exit ()
+            :count nil
   (vim:activate-mode vim:normal-mode)
   (goto-char (max (line-beginning-position) (1- (point)))))
 
@@ -55,7 +58,9 @@
                  :execute-command #'vim:default-mode-exec-cmd
                  :execute-motion #'vim:default-mode-exec-motion
                  :default-handler #'vim:insert-mode-default-handler
-                 :keymap 'vim:insert-mode-keymap))
+                 :keymap 'vim:insert-mode-keymap
+                 :activate-hook 'vim:insert-mode-activate-hook
+                 :deactivate-hook 'vim:insert-mode-deactivate-hook))
 
 
 (defun vim:replace-mode-activate ()
@@ -72,4 +77,6 @@
                  :execute-command #'vim:default-mode-exec-cmd
                  :execute-motion #'vim:default-mode-exec-motion
                  :default-handler #'vim:insert-mode-default-handler
-                 :keymap 'vim:insert-mode-keymap))
+                 :keymap 'vim:insert-mode-keymap
+                 :activate-hook 'vim:insert-mode-activate-hook
+                 :deactivate-hook 'vim:insert-mode-deactivate-hook))
