@@ -23,7 +23,7 @@
 ;;  - an (optional) argument character
 ;;
 ;; If the operation does not require a motion, the second parameter is
-;; usually nil.  If the operation takes a motion, the cound parameter
+;; usually nil.  If the operation takes a motion, the count parameter
 ;; should usually be ignored since the count has already been regarded
 ;; by the motion itself (the motion function got (command-count *
 ;; motion-count) as count parameter.
@@ -53,7 +53,7 @@
 
 (vim:define vim:cmd-Insert (count)
             :type 'simple
-  (beginning-of-line)
+  (goto-char (vim:motion-first-non-blank))
   (vim:cmd-insert count))
 
 (vim:define vim:cmd-Append (count)
@@ -84,7 +84,7 @@
                        (line-end-position))
                      end))
     (goto-char beg)
-    (goto-char (vim:motion-first-non-blank 1))))
+    (goto-char (vim:motion-first-non-blank))))
 
 
 (vim:define vim:cmd-delete (motion)
