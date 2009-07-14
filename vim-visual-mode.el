@@ -14,6 +14,11 @@
 ;; 
 ;; This file is not part of GNU Emacs.
 
+;; TODO:
+
+;;   - when calling a non-vim-mode-command the region should be modified
+;;     s.t. the emacs command uses the correct region.
+
 
 (provide 'vim-visual-mode)
 

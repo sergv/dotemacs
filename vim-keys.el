@@ -7,7 +7,10 @@
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; License: GPLv2 or later.
+;;
+;; This file contains code adapted from viper (viper-util.el).
+;; viper-util.el is part of GNU Emacs.
 
 (provide 'vim-keys)
 
@@ -77,17 +80,50 @@
            (vim:reset-key-state)
            (error err)))
         nil)
-    (vim:reset-key-state)
-    (unless (and (vim:mode-default-handler vim:active-mode)
+    (if (and (vim:mode-default-handler vim:active-mode)
                  (funcall (vim:mode-default-handler vim:active-mode)))
-      (push last-command-event unread-command-events)
-      (add-hook 'post-command-hook 'vim:enable-keymap)
-      (setq vim-key-mode nil))))
-        ;(execute-kbd-macro (vector last-command-event))))))
+        (vim:reset-key-state)
+      (unwind-protect
+          (vim:escape-to-emacs vim:current-key-sequence)
+        (vim:reset-key-state)))))
+
+
+;; from viper
+(defsubst vim:ESC-event-p (event)
+  (let ((ESC-keys '(?\e (control \[) escape))
+        (key (viper-event-key event)))
+    (member key ESC-keys)))
+
+
+;; from viper
+(defun vim:escape-to-emacs (events)
+  "Executes some `events' in emacs."
+        
+  (let* ((vim-key-mode nil)
+         (unread-command-events events)
+         (keys (read-key-sequence nil))
+         (event (elt (listify-key-sequence keys) 0)))
+
+    (when (vim:ESC-event-p event)
+      (let ((unread-command-events keys))
+        (setq keys (read-key-sequence nil))))
+        
+    (let ((command (key-binding keys)))
+      (setq this-command command)
+      (setq last-command-event (elt keys (1- (length keys))))
+      (setq last-command-char last-command-event)
+      (command-execute command)
+      (when (memq command '(digit-argument
+                            universal-argument))
+        (vim:escape-to-emacs nil)))))
+
 
 (defun vim:enable-keymap ()
   (when (and vim-mode
-             (not (eq this-command 'vim:handle-key)))
+             (not (memq this-command '(vim:handle-key
+                                       digit-argument
+                                       universal-argument
+                                       universal-argument-other-key))))
     (remove-hook 'post-command-hook 'vim:enable-keymap)
     (setq vim-key-mode t)))
 

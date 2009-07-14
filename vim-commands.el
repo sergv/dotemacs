@@ -407,3 +407,10 @@
   (vim:reset-key-state))
 
 
+(vim:define vim:cmd-emacs ()
+            :type 'simple
+            :repeatable nil
+            :count nil
+   "Switches to Emacs for the next command."
+   (message "Switch to Emacs for the next command.")
+   (vim:escape-to-emacs nil))

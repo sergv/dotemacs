@@ -63,6 +63,8 @@
 ;;   - do we need a special insert-mode-mapping to simulate ESC?
 (provide 'vim-maps)
 
+(vim:nmap "\\" 'vim:cmd-emacs)
+
 ;(vim:def-motion "0" 'vim:motion-beginning-of-line :type 'exclusive)
 (vim:omap "0" 'vim:feed-numeric-prefix-or-bol)
 (vim:omap "1" 'vim:feed-numeric-prefix)
