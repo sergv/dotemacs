@@ -90,9 +90,8 @@
 
 ;; from viper
 (defsubst vim:ESC-event-p (event)
-  (let ((ESC-keys '(?\e (control \[) escape))
-        (key (viper-event-key event)))
-    (member key ESC-keys)))
+  (let ((ESC-keys '(?\e (control \[) escape)))
+    (member event ESC-keys)))
 
 
 ;; from viper
