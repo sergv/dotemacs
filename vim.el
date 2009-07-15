@@ -116,10 +116,13 @@
   :keymap nil)
 
 (defun vim:initialize ()
-  (when vim-mode
-    (setq vim-key-mode t)
-    (vim:reset-key-state)
-    (vim:activate-mode vim:normal-mode)))
+  (if vim-mode
+      (progn
+	(setq vim-key-mode t)
+	(vim:reset-key-state)
+	(vim:activate-mode vim:normal-mode))
+    (progn
+      (setq vim-key-mode nil))))
 
 (add-hook 'vim-mode-hook 'vim:initialize)
 
