@@ -308,7 +308,7 @@
       (when (vim:cmd-arg-p cmd)
         (push vim:current-motion-arg parameters))
       (when (vim:cmd-count-p cmd)
-        (push vim:current-motion-count parameters))
+        (push count parameters))
       (let ((motion (apply cmd parameters)))
         ;; block-motions return a pair of points or a pair of pairs
         (if (or (and (eq (vim:cmd-type cmd)'block) (consp (car motion)))
