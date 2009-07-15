@@ -34,9 +34,8 @@
 (defconst vim:visual-mode-keymap
   (vim:make-node :next-keymap vim:motion-keymap))
 
-(vim:deflocalvar vim:visual-mode-type
-  "Type of visual mode, should be 'normal, 'linewise or 'block."
-  'normal)
+(vim:deflocalvar vim:visual-mode-type 'normal
+  "Type of visual mode, should be 'normal, 'linewise or 'block.")
 
 ;; Last transient-mark-mode.
 (vim:deflocalvar vim:visual-old-transient-mark-mode)

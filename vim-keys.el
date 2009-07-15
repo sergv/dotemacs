@@ -15,13 +15,11 @@
 (provide 'vim-keys)
 
 
-(vim:deflocalvar vim:current-node
-  "The currently active node."
-  nil)
+(vim:deflocalvar vim:current-node nil
+  "The currently active node.")
 
-(vim:deflocalvar vim:current-key-sequence
-  "The key-sequence of the current command."
-  nil)
+(vim:deflocalvar vim:current-key-sequence nil
+  "The key-sequence of the current command.")
 
 (defun vim:reset-key-state ()
   (setq vim:current-node (vim:active-keymap))

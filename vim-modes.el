@@ -33,7 +33,8 @@
       keymap)))
 
 
-(vim:deflocalvar vim:active-mode nil)
+(vim:deflocalvar vim:active-mode nil
+   "The currently active mode.")
 
 (defun vim:activate-mode (mode)
   "Activates a mode."

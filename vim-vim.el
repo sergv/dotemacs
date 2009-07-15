@@ -13,41 +13,32 @@
 
 ;; This file contains the stuff specific for vim-like keybindins.
 
-(vim:deflocalvar vim:repeat-events
-  "The sequence of events for the repeat command."
-  nil)
+(vim:deflocalvar vim:repeat-events nil
+  "The sequence of events for the repeat command.")
 
-(vim:deflocalvar vim:current-register
-  "The register of the current command."
-  nil)
+(vim:deflocalvar vim:current-register nil
+  "The register of the current command.")
 
-(vim:deflocalvar vim:current-cmd-count
-  "The count of the current command."
-  nil)
+(vim:deflocalvar vim:current-cmd-count nil
+  "The count of the current command.")
 
-(vim:deflocalvar vim:current-cmd
-  "The node of the current command."
-  nil)
+(vim:deflocalvar vim:current-cmd nil
+  "The node of the current command.")
 
-(vim:deflocalvar vim:current-cmd-arg
-  "The argument of the current command."
-  nil)
+(vim:deflocalvar vim:current-cmd-arg nil
+  "The argument of the current command.")
 
-(vim:deflocalvar vim:current-motion-count
-  "The count of the current motion."
-  nil)
+(vim:deflocalvar vim:current-motion-count nil
+  "The count of the current motion.")
 
-(vim:deflocalvar vim:current-motion
-  "The node of the current motion."
-  nil)
+(vim:deflocalvar vim:current-motion nil
+  "The node of the current motion.")
 
-(vim:deflocalvar vim:current-motion-arg
-  "The argument of the current motion."
-  nil)
+(vim:deflocalvar vim:current-motion-arg nil
+  "The argument of the current motion.")
 
-(vim:deflocalvar vim:current-motion-type
-  "The type of the current motion (inclusive, exclusive, linewise)."
-  nil)
+(vim:deflocalvar vim:current-motion-type nil
+  "The type of the current motion (inclusive, exclusive, linewise).")
 
 (defun vim:toplevel-execution ()
   "Returns t iff this is a toplevel execution, not a mapping or repeat."
