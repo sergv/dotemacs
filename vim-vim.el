@@ -211,7 +211,9 @@
     (setq vim:current-cmd-count nil))
 
   (when (vim:cmd-arg-p (vim:node-cmd vim:current-motion))
-    (setq vim:current-motion-arg (read-char)))
+    (setq vim:current-motion-arg (read-char))
+    (when (vim:toplevel-execution)
+      (push vim:current-motion-arg vim:current-key-sequence)))
   
   (if vim:current-cmd
       (vim:execute-current-command)
@@ -275,7 +277,9 @@
   (vim:convert-command-counts)
 
   (when (vim:cmd-arg-p (vim:node-cmd vim:current-cmd))
-    (setq vim:current-cmd-arg (read-char)))
+    (setq vim:current-cmd-arg (read-char))
+    (when (vim:toplevel-execution)
+      (push vim:current-cmd-arg vim:current-key-sequence)))
   
   (let ((vim:last-undo buffer-undo-list))
     (funcall (vim:mode-execute-command vim:active-mode)
