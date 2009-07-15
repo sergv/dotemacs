@@ -105,16 +105,16 @@
   ;; TODO: when executing a command with count in Emacs mode, the
   ;; first event after that command is ignored.
         
-  (let* ((vim-key-mode nil)
-         (unread-command-events events)
-         (keys (read-key-sequence nil))
-         (event (elt (listify-key-sequence keys) 0)))
+  (let* ((unread-command-events events)
+	 (keys (read-key-sequence nil))
+	 (event (elt (listify-key-sequence keys) 0)))
 
     (when (vim:ESC-event-p event)
       (let ((unread-command-events keys))
         (setq keys (read-key-sequence nil))))
-        
-    (let ((command (key-binding keys)))
+    (let ((command
+	   (let ((vim-key-mode nil))
+	     (key-binding keys))))
       (setq this-command command)
       (setq last-command-event (elt keys (1- (length keys))))
       (setq last-command-char last-command-event)
@@ -123,22 +123,7 @@
                             universal-argument))
         (vim:escape-to-emacs nil)))))
 
-
-(defun vim:enable-keymap ()
-  (when (and vim-mode
-             (not (memq this-command '(vim:handle-key
-                                       digit-argument
-                                       universal-argument
-                                       universal-argument-other-key))))
-    (remove-hook 'post-command-hook 'vim:enable-keymap)
-    (setq vim-key-mode t)))
-
-
-(defvar vim:mode-map nil)
-(setq vim:mode-map
-      (list 'keymap
-            (cons t 'vim:handle-key)))
-
+(defconst vim:mode-map (list 'keymap (cons t 'vim:handle-key)))
 
 (define-minor-mode vim-key-mode
   "VIM emulation mode - keymap"
