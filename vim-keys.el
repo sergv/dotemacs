@@ -70,16 +70,21 @@
   (interactive)
   (when (vim:toplevel-execution)
     (push last-command-event vim:current-key-sequence))
-  (when
-      (catch 'vim:unknown-command
-        (condition-case err
-            (vim:input-key last-command-event)
-          (error
-           (vim:reset-key-state)
-           (error err)))
-        nil)
-    (if (and (vim:mode-default-handler vim:active-mode)
-                 (funcall (vim:mode-default-handler vim:active-mode)))
+  (when 
+      (or (null vim:active-mode)
+	  (catch 'vim:unknown-command
+	    (condition-case err
+		(vim:input-key (if (consp last-command-event)
+				   (car last-command-event)
+				 last-command-event))
+	      (error
+	       (vim:reset-key-state)
+	       (error err)))
+	    nil))
+
+    (if (and vim:active-mode
+	     (vim:mode-default-handler vim:active-mode)
+	     (funcall (vim:mode-default-handler vim:active-mode)))
         (vim:reset-key-state)
       (unwind-protect
           ;; TODO: should we send more than only the current event?
