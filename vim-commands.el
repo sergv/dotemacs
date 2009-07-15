@@ -76,9 +76,6 @@
 
 (provide 'vim-commands)
 
-(require 'redo)
-
-
 (vim:define vim:cmd-insert (count)
             :type 'simple
   (vim:activate-mode vim:insert-mode))

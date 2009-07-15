@@ -36,9 +36,6 @@
 ;;  - vim-keys.el: This one of the most important files.  The core of
 ;;                 all key-handling is done here.  Here you find the
 ;;                 heart of all magic stuff happening in vim-mode.
-;;                 Correct handling of undo/redo as well as the
-;;                 connection of commands and motions and the powerful
-;;                 command-mappings happens in this file.
 ;;
 ;;  - vim-node.el: This is second most important file.  vim-mode has
 ;;                 its own keymap.  The implementation of the
@@ -69,10 +66,6 @@
 ;;  - vim-maps.el: The definition of the basic keymaps.  This file
 ;;                 connects the keymaps with the commands and motions
 ;;                 defined in vim-commands.el and vim-motions.el.
-;;                 vim-mode requires only a small number of
-;;                 core-commands since many commands can be expressed
-;;                 as mappings to combinations of simpler commands
-;;                 (see this file).
 ;;
 ;; TODO:
 ;;
