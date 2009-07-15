@@ -82,7 +82,8 @@
                  (funcall (vim:mode-default-handler vim:active-mode)))
         (vim:reset-key-state)
       (unwind-protect
-          (vim:escape-to-emacs vim:current-key-sequence)
+          ;; TODO: should we send more than only the current event?
+          (vim:escape-to-emacs (list last-command-event))
         (vim:reset-key-state)))))
 
 
@@ -95,6 +96,9 @@
 ;; from viper
 (defun vim:escape-to-emacs (events)
   "Executes some `events' in emacs."
+
+  ;; TODO: when executing a command with count in Emacs mode, the
+  ;; first event after that command is ignored.
         
   (let* ((vim-key-mode nil)
          (unread-command-events events)
