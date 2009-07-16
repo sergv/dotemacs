@@ -66,6 +66,11 @@
 (vim:deflocalvar vim:last-find nil
   "The previous find command (command . arg).")
 
+(defcustom vim:word "a-zA-Z_"
+  "Regexp-set matching a word."
+  :type 'string
+  :group 'vim-mode)
+
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
   ;; TODO: should we check modes directly?
@@ -244,13 +249,136 @@
       (goto-char (point-max)))
     (vim:motion-first-non-blank)))
 
+
 (vim:define vim:motion-fwd-word (count)
             :type 'exclusive
   "Moves the cursor beginning of the next word."
   (save-excursion
-    (forward-word (or count 1))
+    (dotimes (i (or count 1))
+      (forward-char)
+      (while
+          (not
+           (or (and (looking-back "[[:space:]\r\n]")
+                    (looking-at "[^[:space:]\r\n]"))
+               (and (looking-back (concat "[" vim:word "]"))
+                    (looking-at (concat "[^[:space:]\r\n" vim:word "]")))
+               (and (looking-back (concat "[^[:space:]\r\n" vim:word "]"))
+                    (looking-at (concat "[" vim:word "]")))
+               (and (bolp) (eolp))))
+        (forward-char)))
     (point)))
 
+
+(vim:define vim:motion-fwd-WORD (count)
+            :type 'exclusive
+  "Moves the cursor to beginning of the next WORD."
+  (save-excursion
+    (dotimes (i (or count 1))
+      (forward-char)
+      (while
+          (not
+           (or (and (looking-back "[[:space:]\r\n]")
+                    (looking-at "[^[:space:]\r\n]"))
+               (and (bolp) (eolp))))
+        (forward-char)))
+    (point)))
+
+
+(vim:define vim:motion-fwd-word-end (count)
+            :type 'inclusive
+  "Moves the cursor to the end of the next word."            
+  (save-excursion
+    (dotimes (i (or count 1))
+      (forward-char)
+      (while
+          (not
+           (or (and (looking-at (concat "[^[:space:]\r\n]"
+                                        "[[:space:]\r\n]")))
+               (and (looking-at (concat "[" vim:word "]"
+                                        "[^[:space:]\r\n" vim:word "]")))
+               (and (looking-at (concat "[^[:space:]\r\n" vim:word "]"
+                                        "[" vim:word "]")))))
+        (forward-char)))
+    (point)))
+  
+
+(vim:define vim:motion-fwd-WORD-end (count)
+            :type 'inclusive
+  "Moves the cursor to the end of the next WORD."            
+  (save-excursion
+    (dotimes (i (or count 1))
+      (forward-char)
+      (while
+          (not (and (looking-at (concat "[^[:space:]\r\n]"
+                                        "[[:space:]\r\n]"))))
+        (forward-char)))
+    (point)))
+  
+
+(vim:define vim:motion-bwd-word (count)
+            :type 'exclusive
+  "Moves the cursor beginning of the previous word."
+  (save-excursion
+    (dotimes (i (or count 1))
+      (backward-char)
+      (while
+          (not
+           (or (and (looking-back "[[:space:]\r\n]")
+                    (looking-at "[^[:space:]\r\n]"))
+               (and (looking-back (concat "[" vim:word "]"))
+                    (looking-at (concat "[^[:space:]\r\n" vim:word "]")))
+               (and (looking-back (concat "[^[:space:]\r\n" vim:word "]"))
+                    (looking-at (concat "[" vim:word "]")))
+               (and (bolp) (eolp))))
+        (backward-char)))
+    (point)))
+  
+
+(vim:define vim:motion-bwd-WORD (count)
+            :type 'exclusive
+  "Moves the cursor to beginning of the previous WORD."
+  (save-excursion
+    (dotimes (i (or count 1))
+      (backward-char)
+      (while
+          (not
+           (or (and (looking-back "[[:space:]\r\n]")
+                    (looking-at "[^[:space:]\r\n]"))
+               (and (bolp) (eolp))))
+        (backward-char)))
+    (point)))
+
+
+(vim:define vim:motion-bwd-word-end (count)
+            :type 'inclusive
+  "Moves the cursor to the end of the previous word."            
+  (save-excursion
+    (dotimes (i (or count 1))
+      (backward-char)
+      (while
+          (not
+           (or (and (looking-at (concat "[^[:space:]\r\n]"
+                                        "[[:space:]\r\n]")))
+               (and (looking-at (concat "[" vim:word "]"
+                                        "[^[:space:]\r\n" vim:word "]")))
+               (and (looking-at (concat "[^[:space:]\r\n" vim:word "]"
+                                        "[" vim:word "]")))))
+        (backward-char)))
+    (point)))
+            
+
+(vim:define vim:motion-bwd-WORD-end (count)
+            :type 'inclusive
+  "Moves the cursor to the end of the next WORD."            
+  (save-excursion
+    (dotimes (i (or count 1))
+      (backward-char)
+      (while
+          (not (and (looking-at (concat "[^[:space:]\r\n]"
+                                        "[[:space:]\r\n]"))))
+        (backward-char)))
+    (point)))
+            
 
 (vim:define vim:motion-find (count arg)
             :type 'inclusive
