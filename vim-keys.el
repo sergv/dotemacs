@@ -105,23 +105,30 @@
   ;; TODO: when executing a command with count in Emacs mode, the
   ;; first event after that command is ignored.
         
-  (let* ((unread-command-events events)
-	 (keys (read-key-sequence nil))
-	 (event (elt (listify-key-sequence keys) 0)))
+  (let (command
+        keys
+        event)
 
-    (when (vim:ESC-event-p event)
-      (let ((unread-command-events keys))
-        (setq keys (read-key-sequence nil))))
-    (let ((command
-	   (let ((vim-key-mode nil))
-	     (key-binding keys))))
-      (setq this-command command)
-      (setq last-command-event (elt keys (1- (length keys))))
-      (setq last-command-char last-command-event)
-      (command-execute command)
-      (when (memq command '(digit-argument
-                            universal-argument))
-        (vim:escape-to-emacs nil)))))
+    ;; read the key-sequence and get the appropriate command
+    (let ((vim-key-mode nil))
+      (let ((unread-command-events events))
+        (setq keys (read-key-sequence nil))
+        (setq event (elt (listify-key-sequence keys) 0)))
+
+      (when (vim:ESC-event-p event)
+        (let ((unread-command-events keys))
+          (setq keys (read-key-sequence nil))))
+    
+      (setq command (key-binding keys)))
+    
+    ;; execute the command
+    (setq this-command command)
+    (setq last-command-event (elt keys (1- (length keys))))
+    (setq last-command-char last-command-event)
+    (command-execute command)
+    (when (memq command '(digit-argument
+                          universal-argument))
+      (vim:escape-to-emacs nil))))
 
 (defconst vim:mode-map (list 'keymap (cons t 'vim:handle-key)))
 
