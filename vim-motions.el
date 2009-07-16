@@ -250,9 +250,10 @@
             :argument t
   "Move the cursor to the next count'th occurrence of arg."
   (save-excursion
+    (forward-char)
     (unless (search-forward (char-to-string arg)
                             nil t (or count 1))
-      (error (format "Can't find %s" arg)))
+      (error (format "Can't find %c" arg)))
     (1- (point))))
 
 
