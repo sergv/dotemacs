@@ -23,6 +23,10 @@
 ;; considered as the begin and the other as the end of the motion.
 ;; The latter is useful for implementing text-objects.
 ;;
+;; A motion function may overwrite its default type given by :type
+;; by prepending a symbol to its return value describing the type
+;; (see vim:motion-repeat-last-find for an example).
+;;
 ;; Motions are defined using the `vim:define' macro:
 ;;
 ;;  (vim:define my-motion (count arg)
@@ -58,6 +62,9 @@
 
 (vim:deflocalvar vim:last-column nil
   "The resulting column of the previous motion.")
+
+(vim:deflocalvar vim:last-find nil
+  "The previous find command (command . arg).")
 
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
@@ -254,8 +261,69 @@
     (unless (search-forward (char-to-string arg)
                             nil t (or count 1))
       (error (format "Can't find %c" arg)))
+    (setq vim:last-find (cons 'vim:motion-find arg))
     (1- (point))))
 
+
+(vim:define vim:motion-find-back (count arg)
+            :type 'exclusive
+            :argument t
+  "Move the cursor to the previous count'th occurrence of arg."
+  (save-excursion
+    (unless (search-backward (char-to-string arg)
+                             nil t (or count 1))
+      (error (format "Can't find %c" arg)))
+    (setq vim:last-find (cons 'vim:motion-find-back arg))
+    (point)))
+
+
+(vim:define vim:motion-find-to (count arg)
+            :type 'inclusive
+            :argument t
+  "Move the cursor to the character before the next count'th\
+   occurence of arg."
+  (let ((pos (1- (vim:motion-find count arg))))
+    (setq vim:last-find (cons 'vim:motion-find-to arg))
+    pos))
+
+
+(vim:define vim:motion-find-back-to (count arg)
+            :type 'exclusive
+            :argument t
+  "Move the cursor to the character after the previous count'th\
+   occurence of arg."
+  (let ((pos (1+ (vim:motion-find-back count arg))))
+    (setq vim:last-find (cons 'vim:motion-find-to arg))
+    pos))
+
+
+(vim:define vim:motion-repeat-last-find (count)
+            :type 'inclusive
+  "Repeats the last find command."
+  (unless vim:last-find
+    (error "No previous find command."))
+  (cons (vim:cmd-type (car vim:last-find))
+        (funcall (car vim:last-find)
+                 count
+                 (cdr vim:last-find))))
+
+
+(vim:define vim:motion-repeat-last-find-opposite (count)
+            :type 'inclusive
+  "Repeats the last find command."
+  (unless vim:last-find
+    (error "No previous find command."))
+  (let ((func (case (car vim:last-find)
+                ('vim:motion-find 'vim:motion-find-back)
+                ('vim:motion-find-back 'vim:motion-find)
+                ('vim:motion-find-to 'vim:motion-find-back-to)
+                ('vim:motion-find-back-to 'vim:motion-find-to)
+                (t (error (format "Unexpected find command %s"
+                                  (car vim:last-find))))))
+        (arg (cdr vim:last-find)))
+    (let ((vim:last-find nil))
+      (cons (vim:cmd-type func)
+            (funcall func count arg)))))
 
 
 (vim:define vim:motion-inner-word (count)

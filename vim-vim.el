@@ -313,7 +313,14 @@
         (push vim:current-motion-arg parameters))
       (when (vim:cmd-count-p cmd)
         (push count parameters))
-      (let ((motion (apply cmd parameters)))
+      (let* ((motion (apply cmd parameters))
+             (type (vim:cmd-type motion)))
+        ;; check if the motion overwrites its default type
+        (when (and (consp motion)
+                   (symbolp (car motion)))
+          (setq type (car motion))
+          (setq motion (cdr motion)))
+                   
         ;; block-motions return a pair of points or a pair of pairs
         (if (or (and (eq (vim:cmd-type cmd)'block) (consp (car motion)))
                 (and (not (eq (vim:cmd-type cmd) 'block)) (consp motion)))
