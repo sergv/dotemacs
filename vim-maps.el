@@ -152,7 +152,9 @@
 (vim:nmap "v" 'vim:visual-toggle-normal)
 (vim:nmap "V" 'vim:visual-toggle-linewise)
 (vim:nmap (kbd "C-v") 'vim:visual-toggle-block)
-(vim:nmap "gv" 'vim:visual-mode-reactivate)
+;; TODO: we have to put this one in movement-map because it conflicts with
+;; gg, ge, gE and so on
+(vim:omap "gv" 'vim:visual-mode-reactivate)
 
 (vim:imap [escape] 'vim:insert-mode-exit)
 
