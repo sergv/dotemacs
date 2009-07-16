@@ -45,6 +45,12 @@
   (not executing-kbd-macro))
 
 
+(defun vim:operator-pending-p ()
+  "Return non-nil iff an operator is waiting for a motion."
+  (and vim:current-cmd
+       (vim:cmd-complex-p (vim:node-cmd vim:current-cmd))))
+
+
 (defadvice vim:reset-key-state (before vim:vim-reset-key-state)
   "Resets the current state of the keymap."
   (setq vim:current-register nil
