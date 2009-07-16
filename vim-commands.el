@@ -160,6 +160,24 @@
      (vim:visual-insert motion))
 
     (t
+     ;; TODO: getting the node from vim:motion-keymap is dangerous if
+     ;; someone changes the binding of e or E.  It would be better to
+     ;; create a new dummy vim:node representing the motion!
+     
+     ;; deal with cw and cW
+     (unless (member (char-after)
+                     '(?  ?\r ?\n ?\t))
+       (cond
+        ((eq (vim:node-cmd vim:current-motion) 
+             'vim:motion-fwd-word)
+         (setq vim:current-motion (vim:get-subnode vim:motion-keymap ?e))
+         (setq motion (vim:get-current-cmd-motion)))
+        
+        ((eq (vim:node-cmd vim:current-motion) 
+             'vim:motion-fwd-WORD)
+         (setq vim:current-motion (vim:get-subnode vim:motion-keymap ?E))
+         (setq motion (vim:get-current-cmd-motion)))))
+        
      (vim:cmd-delete motion)
      (if (eolp)
          (vim:cmd-append 1)
