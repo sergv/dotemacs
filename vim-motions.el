@@ -266,6 +266,15 @@
                     (looking-at (concat "[" vim:word "]")))
                (and (bolp) (eolp))))
         (forward-char)))
+    ;; in operator-pending mode, if we reached the beginning of a new
+    ;; line, go back to the end of the previous line
+    (when (and vim:current-cmd
+               (looking-back "^[[:space:]]*")
+               (not (save-excursion
+                      (forward-line -1)
+                      (and (bolp) (eolp)))))
+      (forward-line -1)
+      (end-of-line))
     (point)))
 
 
@@ -281,6 +290,15 @@
                     (looking-at "[^[:space:]\r\n]"))
                (and (bolp) (eolp))))
         (forward-char)))
+    ;; in operator-pending mode, if we reached the beginning of a new
+    ;; line, go back to the end of the previous line
+    (when (and vim:current-cmd
+               (looking-back "^[[:space:]]*")
+               (not (save-excursion
+                      (forward-line -1)
+                      (and (bolp) (eolp)))))
+      (forward-line -1)
+      (end-of-line))
     (point)))
 
 
