@@ -18,6 +18,8 @@
 
 (provide 'vim-scroll)
 
+(require 'windmove nil t)
+
 (defun vim:num-visible-lines ()
   "Returns the number of currently visible lines."
   (- (window-height) 1))
@@ -150,3 +152,74 @@
   (goto-char (window-start))
   (recenter -1)
   (goto-char (vim:motion-first-non-blank)))
+
+
+
+
+(vim:define vim:window-split (count)
+            :type 'simple
+            :repeatable nil
+  "Splits the current window horizontally, `count' lines height."            
+  (split-window (selected-window) count))
+
+
+(vim:define vim:window-vsplit (count)
+            :type 'simple
+            :repeatable nil
+  "Splits the current window vertically, `count' columns width."            
+  (split-window (selected-window) count t))
+
+
+(vim:define vim:window-close ()
+            :type 'simple
+            :repeatable nil
+            :count nil
+  "Closes the current window."
+  (delete-window))
+
+
+(vim:define vim:window-only ()
+            :type 'simple
+            :repeatable nil
+            :count nil
+  "Closes all but the current window."
+  (delete-other-windows))
+
+
+;(vim:define vim:window-left ()
+;            :type 'simple
+;            :repeatable nil
+;            :count nil
+;  "Select the window at the left."
+;  (windmove-left))
+
+
+;(vim:define vim:window-up ()
+;            :type 'simple
+;            :repeatable nil
+;            :count nil
+;  "Select the window above."
+;  (windmove-up))
+
+
+;(vim:define vim:window-down ()
+;            :type 'simple
+;            :repeatable nil
+;            :count nil
+;  "Select the window below."
+;  (windmove-down))
+
+
+;(vim:define vim:window-right ()
+;            :type 'simple
+;            :repeatable nil
+;            :count nil
+;  "Select the window below at the right."
+;  (windmove-right))
+
+(vim:define vim:window-set-height (count)
+            :type 'simple
+            :repeatable nil
+   "Sets the height of the current window to `count'."
+   
+            
