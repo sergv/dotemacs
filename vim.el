@@ -88,7 +88,11 @@
 ;;   - marks and register
 ;;   - repeating based on commands instead of key-sequences?
 
-(require 'cl)
+;; - the special handling of w and W in operator pending mode could be
+;;   implemented in a cleaner way by using a special operator-pending
+;;   keymap inheriting the motion-keymap
+;;
+;; - sim(require 'cl)
 
 (defmacro vim:deflocalvar (name &rest args)
   `(progn
@@ -96,7 +100,7 @@
      (make-variable-buffer-local ',name)))
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
-                (load "vim-node")
+  (load "vim-node")
   (load "vim-vim")
   (load "vim-keys")
   (load "vim-modes")
@@ -105,6 +109,7 @@
   (load "vim-visual-mode")
   (load "vim-commands")
   (load "vim-motions")
+  (load "vim-scroll")
   (load "vim-undo")
   (load "vim-maps"))
 

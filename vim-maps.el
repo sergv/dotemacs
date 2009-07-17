@@ -149,12 +149,30 @@
 
 (vim:nmap "." 'vim:cmd-repeat)
 
+(vim:nmap (kbd "C-e") 'vim:scroll-line-down)
+(vim:nmap (kbd "C-d") 'vim:scroll-down)
+(vim:nmap (kbd "C-f") 'vim:scroll-page-down)
+(vim:nmap "z+" 'vim:scroll-bottom-line-to-top)
+
+(vim:nmap (kbd "C-y") 'vim:scroll-line-up)
+(vim:nmap (kbd "C-u") 'vim:scroll-up)
+(vim:nmap (kbd "C-b") 'vim:scroll-page-up)
+(vim:nmap "z^" 'vim:scroll-top-line-to-bottom)
+
+(vim:nmap "zt" 'vim:scroll-line-to-top)
+(vim:nmap (vconcat "z" [return]) "zt^")
+(vim:nmap "zz" 'vim:scroll-line-to-center)
+(vim:nmap "z." "z.^")
+(vim:nmap "zb" 'vim:scroll-line-to-bottom)
+(vim:nmap "z-" "zb^")
+
 (vim:nmap "v" 'vim:visual-toggle-normal)
 (vim:nmap "V" 'vim:visual-toggle-linewise)
 (vim:nmap (kbd "C-v") 'vim:visual-toggle-block)
 ;; TODO: we have to put this one in movement-map because it conflicts with
 ;; gg, ge, gE and so on
 (vim:omap "gv" 'vim:visual-mode-reactivate)
+
 
 (vim:imap [escape] 'vim:insert-mode-exit)
 
