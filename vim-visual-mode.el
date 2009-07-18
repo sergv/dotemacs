@@ -563,3 +563,37 @@
         (vim:cmd-repeat)
         (forward-line 1))
       (vim:connect-undos vim:visual-last-insert-undo))))
+
+
+(vim:define vim:visual-exchange-point-and-mark ()
+            :type 'simple
+            :repeatable nil
+            :count nil
+            :keep-visual t
+   "Exchanges point and mark."
+   (exchange-point-and-mark))
+
+
+(vim:define vim:visual-jump-point ()
+            :type 'simple
+            :repeatable nil
+            :count nil
+            :keep-visual t
+  "In normal and linewise visual mode, this is the same as
+`vim:visual-exchange-point-and-mark'.  In block visual-mode the
+cursor jumps to the other corner of the selected region in the
+current line."
+  (case vim:visual-mode-type
+    ((normal linewise)
+     (vim:visual-exchange-point-and-mark))
+    ('block
+	(let ((mark-col (save-excursion
+			  (goto-char (mark t))
+			  (current-column)))
+	      (point-col (current-column)))
+	  (set-mark (save-excursion
+		      (goto-char (mark t))
+		      (move-to-column point-col t)
+		      (point)))
+	  (move-to-column mark-col t)))
+    (t (error "Not in visual mode."))))

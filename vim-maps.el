@@ -236,3 +236,6 @@
 
 (vim:vmap "I" 'vim:visual-insert)
 (vim:vmap "A" 'vim:visual-append)
+
+(vim:vmap "o" 'vim:visual-exchange-point-and-mark)
+(vim:vmap "O" 'vim:visual-jump-point)

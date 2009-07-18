@@ -61,6 +61,9 @@
 ;;  - vim-motions.el: The implementations of motion commands like 'h',
 ;;                    'i', 'j', 'k', 'f', 'w', ...
 ;;
+;;  - vim-scroll.el: The implementation of scrolling commands like
+;;                   'zz', 'Ctrl-F' and window commands like 'C-w s'.
+;;
 ;;  - vim-undo.el: Some variables and functions for undo/redo.
 ;;
 ;;  - vim-maps.el: The definition of the basic keymaps.  This file
