@@ -217,9 +217,9 @@
 ;  "Select the window below at the right."
 ;  (windmove-right))
 
-(vim:define vim:window-set-height (count)
-            :type 'simple
-            :repeatable nil
-   "Sets the height of the current window to `count'."
+;(vim:define vim:window-set-height (count)
+;            :type 'simple
+;            :repeatable nil
+;   "Sets the height of the current window to `count'."
    
             
