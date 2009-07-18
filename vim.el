@@ -97,6 +97,8 @@
 ;;
 ;; - sim(require 'cl)
 
+(require 'cl)
+
 (defmacro vim:deflocalvar (name &rest args)
   `(progn
      (defvar ,name ,@args)
