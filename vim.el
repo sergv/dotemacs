@@ -101,6 +101,23 @@
 
 (require 'cl)
 
+(defgroup vim-mode nil
+  "A VIM emulation mode."
+  :group 'emulations)
+
+(defcustom vim:whitelist
+  nil
+  "*List of major modes in which vim-mode should be enabled."
+  :type '(repeat symbol)
+  :group 'vim-mode)
+
+(defcustom vim:blacklist
+  nil
+  "*List of major modes in which vim-mode should *NOT* be enabled."
+  :type '(repeat symbol)
+  :group 'vim-mode)
+
+
 (defmacro vim:deflocalvar (name &rest args)
   `(progn
      (defvar ,name ,@args)
@@ -121,21 +138,28 @@
   (load "vim-undo")
   (load "vim-maps"))
 
-(define-minor-mode vim-mode
+
+(define-minor-mode vim-local-mode
   "VIM emulation mode."
   :lighter " VIM"
   :init-value nil
   :global nil
   :keymap nil)
 
+(define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
+
+
 (defun vim:initialize ()
-  (if vim-mode
-      (progn
-	(setq vim-key-mode t)
-	(vim:reset-key-state)
-	(vim:activate-mode vim:normal-mode))
-    (progn
-      (setq vim-key-mode nil))))
+  (unless (minibufferp)
+    (when (or (and (null vim:whitelist)
+                   (not (member major-mode vim:blacklist)))
+              (and vim:whitelist
+                   (member major-mode vim:whitelist)))
+      (vim-local-mode 1)
+      (setq vim-key-mode t)
+      (vim:reset-key-state)
+      (vim:activate-mode vim:normal-mode))))
+
 
 (add-hook 'vim-mode-hook 'vim:initialize)
 
