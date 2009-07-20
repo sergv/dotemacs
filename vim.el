@@ -10,7 +10,7 @@
 ;; License: GPLv2 or later, as described below under "License"
 ;; Compatibility: Developed on Emacs 22 - everything else is unknown.
 ;;
-;; URL: http://www.tu-chemnitz.de/~fifr/repos/vim-mode.el
+;; URL: http://www.tu-chemnitz.de/~fifr/repos/vim-mode
 ;; 
 ;; This file is not part of GNU Emacs.
 
@@ -62,7 +62,9 @@
 ;;                    'i', 'j', 'k', 'f', 'w', ...
 ;;
 ;;  - vim-scroll.el: The implementation of scrolling commands like
-;;                   'zz', 'Ctrl-F' and window commands like 'C-w s'.
+;;                   'zz', 'Ctrl-F'.
+;;
+;;  - vim-window-el: The implementation of window commands like 'C-w s'.
 ;;
 ;;  - vim-undo.el: Some variables and functions for undo/redo.
 ;;
@@ -115,6 +117,7 @@
   (load "vim-commands")
   (load "vim-motions")
   (load "vim-scroll")
+  (load "vim-window")
   (load "vim-undo")
   (load "vim-maps"))
 
