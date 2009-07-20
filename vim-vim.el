@@ -186,6 +186,26 @@
                             (t 'vim:execute-motion))))
 
 
+(defmacro vim:apply-save-buffer (&rest args)
+  "Like `apply' but stores the current buffer."
+  (let ((ret (gensym)))
+  `(progn
+     (save-current-buffer
+       (setq ,ret (apply ,@args))
+       (setq vim:new-buffer (current-buffer))
+       ,ret))))
+
+
+(defmacro vim:funcall-save-buffer (&rest args)
+  "Like `funcall' but stores the current buffer."
+  (let ((ret (gensym)))
+  `(progn
+     (save-current-buffer
+       (setq ,ret (funcall ,@args))
+       (setq vim:new-buffer (current-buffer))
+       ,ret))))
+
+
 (defun vim:execute-command (node)
   (when vim:current-cmd
     (error "Unexpected command in operator-pending mode"))
@@ -229,7 +249,8 @@
 
 (defun vim:execute-special (node)
   "Executes the function of a special command without noticing the node otherwise."
-  (funcall (vim:node-cmd node) node))
+  (vim:funcall-save-buffer (vim:node-cmd node) node))
+  
 
 
 
@@ -319,7 +340,7 @@
         (push vim:current-motion-arg parameters))
       (when (vim:cmd-count-p cmd)
         (push count parameters))
-      (let* ((motion (apply cmd parameters))
+      (let* ((motion (vim:apply-save-buffer cmd parameters))
              (type (vim:cmd-type motion)))
         ;; check if the motion overwrites its default type
         (when (and (consp motion)
@@ -425,7 +446,9 @@
   (let ((vim:repeat-events nil)
         (last-undo buffer-undo-list))
       ;; replay the rhs-events
-    (execute-kbd-macro (vim:node-cmd node))
+    (save-current-buffer
+      (execute-kbd-macro (vim:node-cmd node))
+      (setq vim:new-buffer (current-buffer)))
     ;; if the map ends in insert-mode, update the undo data
     (if (vim:insert-active-p)
         (setq vim:last-insert-undo last-undo))

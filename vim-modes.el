@@ -69,7 +69,7 @@
         (push motion parameters)
       (when (vim:cmd-count-p cmd)
         (push count parameters)))
-    (apply cmd parameters)
+    (vim:apply-save-buffer cmd parameters)
                 
     (when (and vim:current-key-sequence
                (vim:cmd-repeatable-p cmd)

@@ -21,6 +21,9 @@
 (vim:deflocalvar vim:current-key-sequence nil
   "The key-sequence of the current command.")
 
+(vim:deflocalvar vim:new-buffer nil
+  "The buffer the be made current at the end of key-handline.")
+
 (defun vim:reset-key-state ()
   (setq vim:current-node (vim:active-keymap))
   (when (vim:toplevel-execution)
@@ -74,9 +77,12 @@
       (or (null vim:active-mode)
 	  (catch 'vim:unknown-command
 	    (condition-case err
-		(vim:input-key (if (consp last-command-event)
-				   (car last-command-event)
-				 last-command-event))
+                (let ((vim:new-buffer nil))
+                  (vim:input-key (if (consp last-command-event)
+                                     (car last-command-event)
+                                   last-command-event))
+                  (when vim:new-buffer
+                    (set-buffer vim:new-buffer)))
 	      (error
 	       (vim:reset-key-state)
 	       (error err)))
