@@ -91,7 +91,7 @@
 
   (if (and (integerp last-command-event)
            (null (event-modifiers last-command-event)))
-      (let ((vim-key-mode nil))
+      (let ((vim-local-mode nil))
         (let ((binding (key-binding (vector last-command-event))))
         (if (eq binding 'self-insert-command)
             (progn

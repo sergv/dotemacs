@@ -116,7 +116,7 @@
         event)
 
     ;; read the key-sequence and get the appropriate command
-    (let ((vim-key-mode nil))
+    (let ((vim-local-mode nil))
       (let ((unread-command-events events))
         (setq keys (read-key-sequence nil))
         (setq event (elt (listify-key-sequence keys) 0)))
@@ -135,13 +135,4 @@
     (when (memq command '(digit-argument
                           universal-argument))
       (vim:escape-to-emacs nil))))
-
-(defconst vim:mode-map (list 'keymap (cons t 'vim:handle-key)))
-
-(define-minor-mode vim-key-mode
-  "VIM emulation mode - keymap"
-  :lighter nil
-  :initial-value nil
-  :global nil
-  :keymap vim:mode-map)
 

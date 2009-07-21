@@ -139,18 +139,15 @@
   (load "vim-maps"))
 
 
+(defconst vim:mode-map (list 'keymap (cons t 'vim:handle-key)))
 (define-minor-mode vim-local-mode
   "VIM emulation mode."
   :lighter " VIM"
   :init-value nil
   :global nil
-  :keymap nil
-
-  (unless vim-local-mode
-    (vim-key-mode -1)))
+  :keymap vim:mode-map)
 
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
-
 
 (defun vim:initialize ()
   (unless (minibufferp)
@@ -159,7 +156,6 @@
               (and vim:whitelist
                    (member major-mode vim:whitelist)))
       (vim-local-mode 1)
-      (setq vim-key-mode t)
       (vim:reset-key-state)
       (vim:activate-mode vim:normal-mode))))
 
