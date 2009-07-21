@@ -105,6 +105,23 @@
 
 
 ;; from viper
+(defun vim:set-unread-command-events (events)
+  (setq unread-command-events
+        (let ((new-events
+               (cond
+                ((eventp events) (list events))
+                ((listp events) events)
+                ((sequencep events)
+                 (listify-key-sequence events))
+                (t (error
+                    "vim:set-unread-command-events: Invalid argument, %S" events)))))
+          (when (not (eventp nil))
+            (setq new-events (delq nil new-events)))
+          (append new-events unread-command-events))))
+                
+
+
+;; from viper
 (defun vim:escape-to-emacs (events)
   "Executes some `events' in emacs."
 
@@ -117,12 +134,14 @@
 
     ;; read the key-sequence and get the appropriate command
     (let ((vim-local-mode nil))
-      (let ((unread-command-events events))
+      (let (unread-command-events)
+        (vim:set-unread-command-events events)
         (setq keys (read-key-sequence nil))
         (setq event (elt (listify-key-sequence keys) 0)))
 
       (when (vim:ESC-event-p event)
-        (let ((unread-command-events keys))
+        (let (unread-command-events)
+          (vim:set-unread-command-events keys)
           (setq keys (read-key-sequence nil))))
     
       (setq command (key-binding keys)))
