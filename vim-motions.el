@@ -211,9 +211,8 @@
             :count nil
   "Move the cursor to the first non-blank character of the current line."
   (save-excursion
-    (beginning-of-line)
-    (re-search-forward "[^[:space:]]\\|$" )
-    (match-beginning 0)))
+    (back-to-indentation)
+    (point)))
 
 (vim:define vim:motion-end-of-line ()
             :type 'inclusive
