@@ -136,6 +136,20 @@
     (t (line-number-at-pos (vim:motion-end motion)))))
 
 
+(defun vim:motion-begin-col (motion)
+  "Returns the column-number of the beginning-position of `motion'."
+  (case (vim:motion-type motion)
+    ('block (cdr (vim:motion-begin motion)))
+    (t (error "Column information only available for block motions."))))
+      
+
+(defun vim:motion-end-col (motion)
+  "Returns the column-number of the end-position of `motion'."
+  (case (vim:motion-type motion)
+    ('block (cdr (vim:motion-end motion)))
+    (t (error "Column information only available for block motions."))))
+
+
 (defun vim:motion-begin-pos (motion)
   "Returns the offset of the beginning-position of `motion'."
   (case (vim:motion-type motion)
