@@ -99,6 +99,8 @@
 ;;
 ;; - sim(require 'cl)
 
+(provide 'vim)
+
 (require 'cl)
 
 (defgroup vim-mode nil
