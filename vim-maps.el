@@ -116,6 +116,8 @@
 (vim:omap ";" 'vim:motion-repeat-last-find)
 (vim:omap "," 'vim:motion-repeat-last-find-opposite)
 
+(vim:omap "%" 'vim:motion-jump-item)
+
 (vim:omap "iw" 'vim:motion-inner-word)
 
 (vim:nmap "x" "dl")
