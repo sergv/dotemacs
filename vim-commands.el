@@ -409,6 +409,26 @@
       (backward-char)))))
 
 
+(vim:define vim:cmd-join-lines (count)
+	    :type 'simple
+   "Join `count' lines with a minimum of two lines."
+   (dotimes (i (max 1 (1- (or count 1))))
+     (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
+       (delete-region (match-beginning 2)
+		      (match-end 2))
+       (when (and (= (match-beginning 1) (match-end 1))
+		  (= (match-beginning 3) (match-end 3)))
+	 (insert-char ?  1))
+       (backward-char))))
+
+
+(vim:define vim:cmd-join (motion)
+	    :type 'complex
+   "Join the lines covered by `motion'."
+   (goto-line (vim:motion-begin-row motion))
+   (vim:cmd-join-lines (vim:motion-line-count motion)))
+
+
 (vim:define vim:cmd-repeat ()
             :type 'simple
             :repeatable nil

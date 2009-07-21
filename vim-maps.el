@@ -137,6 +137,8 @@
 (vim:nmap "p" 'vim:cmd-paste-behind)
 (vim:nmap "P" 'vim:cmd-paste-before)
 
+(vim:nmap "J" 'vim:cmd-join-lines)
+
 (vim:nmap "/" 'vim:search-start)
 (vim:nmap "?" 'vim:search-start-backward)
 (vim:nmap "*" 'vim:search-word)
@@ -248,6 +250,8 @@
 
 (vim:vmap "y" 'vim:cmd-yank)
 (vim:vmap "Y" 'vim:cmd-yank)
+
+(vim:vmap "J" 'vim:cmd-join)
 
 (vim:vmap "I" 'vim:visual-insert)
 (vim:vmap "A" 'vim:visual-append)
