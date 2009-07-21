@@ -165,6 +165,13 @@
 
 (vim:nmap "." 'vim:cmd-repeat)
 
+(vim:nmap "=" 'vim:cmd-indent)
+(vim:nmap "==" 'vim:cmd-indent-lines)
+(vim:nmap "<" 'vim:cmd-shift-left)
+(vim:nmap "<<" 'vim:cmd-shift-left-lines)
+(vim:nmap ">" 'vim:cmd-shift-right)
+(vim:nmap ">>" 'vim:cmd-shift-right-lines)
+
 (vim:nmap (kbd "C-e") 'vim:scroll-line-down)
 (vim:nmap (kbd "C-d") 'vim:scroll-down)
 (vim:nmap (kbd "C-f") 'vim:scroll-page-down)
@@ -254,6 +261,10 @@
 (vim:vmap "Y" 'vim:cmd-yank)
 
 (vim:vmap "J" 'vim:cmd-join)
+
+(vim:vmap "=" 'vim:cmd-indent)
+(vim:vmap "<" 'vim:cmd-shift-left)
+(vim:vmap ">" 'vim:cmd-shift-right)
 
 (vim:vmap "I" 'vim:visual-insert)
 (vim:vmap "A" 'vim:visual-append)

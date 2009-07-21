@@ -76,6 +76,11 @@
 
 (provide 'vim-commands)
 
+(defcustom vim:shift-width 8
+  "The number of columns for shifting commands like < or >."
+  :type 'integer
+  :group 'vim-mode)
+
 (vim:define vim:cmd-insert (count)
             :type 'simple
   (vim:activate-mode vim:insert-mode))
@@ -411,22 +416,67 @@
 
 (vim:define vim:cmd-join-lines (count)
 	    :type 'simple
-   "Join `count' lines with a minimum of two lines."
-   (dotimes (i (max 1 (1- (or count 1))))
-     (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
-       (delete-region (match-beginning 2)
-		      (match-end 2))
-       (when (and (= (match-beginning 1) (match-end 1))
-		  (= (match-beginning 3) (match-end 3)))
-	 (insert-char ?  1))
-       (backward-char))))
+  "Join `count' lines with a minimum of two lines."
+  (dotimes (i (max 1 (1- (or count 1))))
+    (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
+      (delete-region (match-beginning 2)
+                     (match-end 2))
+      (when (and (= (match-beginning 1) (match-end 1))
+                 (= (match-beginning 3) (match-end 3)))
+        (insert-char ?  1))
+      (backward-char))))
 
 
 (vim:define vim:cmd-join (motion)
 	    :type 'complex
-   "Join the lines covered by `motion'."
-   (goto-line (vim:motion-begin-row motion))
-   (vim:cmd-join-lines (vim:motion-line-count motion)))
+  "Join the lines covered by `motion'."
+  (goto-line (vim:motion-begin-row motion))
+  (vim:cmd-join-lines (vim:motion-line-count motion)))
+
+
+(vim:define vim:cmd-indent (motion)
+            :type 'complex
+  "Reindent the lines covered by `motion'."
+  (goto-line (vim:motion-begin-row motion))
+  (vim:cmd-indent-lines (vim:motion-line-count motion)))
+  
+
+(vim:define vim:cmd-indent-lines (count)
+            :type 'simple
+  "Reindent the next `count' lines."
+  (indent-region (line-beginning-position)
+                 (line-end-position count)))
+  
+
+(vim:define vim:cmd-shift-left (motion)
+            :type 'complex
+  "Shift the lines covered by `motion' leftwards."
+  (goto-line (vim:motion-begin-row motion))
+  (vim:cmd-shift-left-lines (vim:motion-line-count motion)))
+
+
+(vim:define vim:cmd-shift-left-lines (count)
+            :type 'simple
+  "Shift the next `count' lines leftwards."
+  (indent-rigidly (line-beginning-position)
+                  (line-end-position count)
+                  (- vim:shift-width)))
+
+
+(vim:define vim:cmd-shift-right (motion)
+            :type 'complex
+  "Shift the lines covered by `motion' rightwards."
+  (goto-line (vim:motion-begin-row motion))
+  (vim:cmd-shift-right-lines (vim:motion-line-count motion)))
+  
+
+(vim:define vim:cmd-shift-right-lines (count)
+            :type 'simple
+  "Shift the next `count' lines rightwards."
+  (indent-rigidly (line-beginning-position)
+                  (line-end-position count)
+                  vim:shift-width))
+
 
 
 (vim:define vim:cmd-repeat ()
