@@ -137,6 +137,14 @@
 (vim:nmap "p" 'vim:cmd-paste-behind)
 (vim:nmap "P" 'vim:cmd-paste-before)
 
+(vim:nmap "/" 'vim:search-start)
+(vim:nmap "?" 'vim:search-start-backward)
+(vim:nmap "n" 'vim:search-repeat)
+(vim:nmap "N" 'vim:search-repeat-opposite)
+;; The next two maps are very special for an active search.
+(vim:map "n" 'vim:search-repeat :keymap vim:search-mode-keymap)
+(vim:map "N" 'vim:search-repeat-opposite :keymap vim:search-mode-keymap)
+
 (vim:nmap "i" 'vim:cmd-insert)
 (vim:nmap "a" 'vim:cmd-append)
 (vim:nmap "I" 'vim:cmd-Insert)
