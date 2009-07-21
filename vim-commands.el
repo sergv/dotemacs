@@ -478,6 +478,77 @@
                   vim:shift-width))
 
 
+(vim:define vim:cmd-toggle-case (motion)
+            :type 'complex
+  "Toggles the case of all characters defined by `motion'."
+  (vim:change-case motion
+                   #'(lambda (beg end)
+                       (save-excursion
+                         (goto-char beg)
+                         (while (< beg end)
+                           (setq c (following-char))
+                           (delete-char 1 nil)
+                           (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
+                           (setq beg (1+ beg)))))))
+
+
+(vim:define vim:cmd-toggle-case-lines (count)
+            :type 'simple
+  "Toggles the case of all characters of the next `count' lines."
+  (vim:cmd-toggle-case (vim:make-motion :begin (line-number-at-pos (point))
+                                        :end (+ (line-number-at-pos (point)) (or count 1) -1)
+                                        :type 'linewise)))
+
+
+(vim:define vim:cmd-make-upcase (motion)
+            :type 'complex
+  "Upcases all characters defined by `motion'."
+  (vim:change-case motion #'upcase-region))
+
+
+(vim:define vim:cmd-make-upcase-lines (count)
+            :type 'simple
+  "Upcases all characters of the next `count' lines."
+  (vim:cmd-make-upcase (vim:make-motion :begin (line-number-at-pos (point))
+                                        :end (+ (line-number-at-pos (point)) (or count 1) -1)
+                                        :type 'linewise)))
+
+
+(vim:define vim:cmd-make-downcase (motion)
+            :type 'complex
+  "Downcases all characters defined by `motion'."
+  (vim:change-case motion #'downcase-region))
+
+
+(vim:define vim:cmd-make-downcase-lines (count)
+            :type 'simple
+  "Downcases all characters of the next `count' lines."
+  (vim:cmd-make-downcase (vim:make-motion :begin (line-number-at-pos (point))
+                                          :end (+ (line-number-at-pos (point)) (or count 1) -1)
+                                          :type 'linewise)))
+
+
+(defun vim:change-case (motion case-func)
+  (case (vim:motion-type motion)
+    ('block
+        (do ((l (vim:motion-begin-row motion) (1+ l)))
+            ((> l (vim:motion-end-row motion)))
+          (funcall case-func
+                   (save-excursion
+                     (goto-line l)
+                     (move-to-column (vim:motion-begin-col motion))
+                     (point))
+                   (save-excursion
+                     (goto-line l)
+                     (move-to-column (vim:motion-end-col motion))
+                     (1+ (point))))))
+    ('linewise
+     (save-excursion
+       (funcall case-func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))))
+    (t
+     (funcall case-func (vim:motion-begin-pos motion) (1+ (vim:motion-end-pos motion)))
+     (goto-char (1+ (vim:motion-end-pos motion))))))
+
 
 (vim:define vim:cmd-repeat ()
             :type 'simple

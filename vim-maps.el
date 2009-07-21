@@ -172,6 +172,14 @@
 (vim:nmap ">" 'vim:cmd-shift-right)
 (vim:nmap ">>" 'vim:cmd-shift-right-lines)
 
+(vim:nmap "~" "g~l")
+(vim:omap "g~" 'vim:cmd-toggle-case)
+(vim:omap "g~~" 'vim:cmd-toggle-case-lines)
+(vim:omap "gU" 'vim:cmd-make-upcase)
+(vim:omap "gUU" 'vim:cmd-make-upcase-lines)
+(vim:omap "gu" 'vim:cmd-make-downcase)
+(vim:omap "guu" 'vim:cmd-make-downcase-lines)
+
 (vim:nmap (kbd "C-e") 'vim:scroll-line-down)
 (vim:nmap (kbd "C-d") 'vim:scroll-down)
 (vim:nmap (kbd "C-f") 'vim:scroll-page-down)
@@ -267,6 +275,10 @@
 (vim:vmap "=" 'vim:cmd-indent)
 (vim:vmap "<" 'vim:cmd-shift-left)
 (vim:vmap ">" 'vim:cmd-shift-right)
+
+(vim:vmap "~" 'vim:cmd-toggle-case)
+(vim:vmap "U" 'vim:cmd-make-upcase)
+(vim:vmap "u" 'vim:cmd-make-downcase)
 
 (vim:vmap "I" 'vim:visual-insert)
 (vim:vmap "A" 'vim:visual-append)
