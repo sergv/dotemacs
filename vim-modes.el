@@ -14,6 +14,7 @@
 (defstruct (vim:mode
             (:constructor vim:make-mode))
   name               ; The name of the mode.
+  id                 ; The modeline id character.
   activate           ; Called when the mode is activated.
   deactivate         ; Called when the mode is deactivated.
   execute-command    ; Called to execute a command.
@@ -54,6 +55,7 @@
       (when (vim:mode-activate-hook vim:active-mode)
         (run-hooks (vim:mode-activate-hook vim:active-mode))))
   
+    (vim:update-mode-line)
     (vim:reset-key-state)))
 
 

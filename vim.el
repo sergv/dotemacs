@@ -147,9 +147,27 @@
   :lighter " VIM"
   :init-value nil
   :global nil
-  :keymap vim:mode-map)
+  :keymap vim:mode-map
+
+  (unless vim-local-mode
+    (setq global-mode-string
+          (delq 'vim:mode-string global-mode-string ))))
 
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
+
+
+(vim:deflocalvar vim:mode-string)
+
+(defun vim:update-mode-line ()
+  "Updates the mode-line to show the current active VIM-mode."
+  (setq vim:mode-string
+        (concat "<"
+                (or (and vim:active-mode
+                         (vim:mode-id vim:active-mode))
+                    "VIM")
+                ">"))
+  (force-mode-line-update))
+
 
 (defun vim:initialize ()
   (unless (minibufferp)
@@ -159,5 +177,8 @@
                    (member major-mode vim:whitelist)))
       (vim-local-mode 1)
       (vim:reset-key-state)
-      (vim:activate-mode vim:normal-mode))))
+      (vim:activate-mode vim:normal-mode)
+      (unless (memq 'vim:mode-string global-mode-string)
+        (setq global-mode-string
+              (append '("" vim:mode-string) (cdr global-mode-string)))))))
 

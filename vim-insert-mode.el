@@ -61,6 +61,7 @@
 
 (defconst vim:insert-mode
   (vim:make-mode :name "Insert"
+                 :id "I"
                  :activate #'vim:insert-mode-activate
                  :deactivate #'vim:insert-mode-deactivate
                  :execute-command #'vim:default-mode-exec-cmd
@@ -80,6 +81,7 @@
 
 (defconst vim:replace-mode
   (vim:make-mode :name "Replace"
+                 :id "R"
                  :activate #'vim:replace-mode-activate
                  :deactivate #'vim:insert-mode-deactivate
                  :execute-command #'vim:default-mode-exec-cmd

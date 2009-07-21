@@ -443,6 +443,7 @@
 
 (defconst vim:visual-mode
   (vim:make-mode :name "Visual"
+                 :id "V"
                  :activate #'vim:visual-mode-activate
                  :deactivate #'vim:visual-mode-deactivate
                  :execute-command #'vim:visual-mode-exec-cmd

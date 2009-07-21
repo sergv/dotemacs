@@ -27,7 +27,6 @@
   (vim:make-node :next-keymap vim:motion-keymap))
 
 (defun vim:normal-mode-activate ()
-  (message "-- NORMAL --")
   (setq cursor-type vim:normal-mode-cursor))
 
 (defun vim:normal-mode-deactivate ()
@@ -36,6 +35,7 @@
 
 (defconst vim:normal-mode
   (vim:make-mode :name "Normal"
+                 :id "N"
                  :activate #'vim:normal-mode-activate
                  :deactivate #'vim:normal-mode-deactivate
                  :execute-command #'vim:default-mode-exec-cmd
@@ -65,6 +65,7 @@
 ;; if something else than a repeat-search event occurs.
 (defconst vim:search-mode
   (vim:make-mode :name "Search"
+                 :id "S"
 		 :activate #'vim:search-mode-activate
 		 :deactivate #'vim:search-mode-deactivate
 		 :execute-command #'vim:default-mode-exec-cmd
