@@ -296,6 +296,8 @@
   "Saves the characters in motion into the kill-ring."
   (case (vim:motion-type motion)
     ('block (vim:cmd-yank-rectangle motion))
+    ('linewise (goto-line (vim:motion-begin-row motion))
+	       (vim:cmd-yank-line (vim:motion-line-count motion)))
     (t
      (kill-new (buffer-substring
                 (vim:motion-begin-pos motion)
