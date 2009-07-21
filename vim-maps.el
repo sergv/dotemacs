@@ -139,6 +139,10 @@
 
 (vim:nmap "/" 'vim:search-start)
 (vim:nmap "?" 'vim:search-start-backward)
+(vim:nmap "*" 'vim:search-word)
+(vim:nmap "#" 'vim:search-word-backward)
+(vim:omap "g*" 'vim:search-unbounded-word)
+(vim:omap "g#" 'vim:search-unbounded-word-backward)
 (vim:nmap "n" 'vim:search-repeat)
 (vim:nmap "N" 'vim:search-repeat-opposite)
 ;; The next two maps are very special for an active search.

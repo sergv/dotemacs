@@ -9,6 +9,13 @@
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
+;; TODO:
+;;
+;;  - searching currently uses isearch.  Although this is quite powerful,
+;;    it's only usuably as interactive search and difficult to use with
+;;    semi-interactive stuff like the "*" command.  The current implementation
+;;    using unread-command-events is quite ugly.
+
 (provide 'vim-normal-mode)
 
 (defcustom vim:normal-mode-cursor 'box
@@ -109,3 +116,61 @@
 		    ('forward 'backward)
 		    (t 'forward))))
 
+
+(defun vim:start-word-search (unbounded direction)
+  
+  (condition-case nil
+      (goto-char (vim:motion-bwd-word-end 1))
+    (error nil))
+  
+  (save-excursion
+    (re-search-forward (concat "\\<[" vim:word "]+\\>")))
+  
+  (when (eq direction 'backward)
+    (goto-char (1+ (match-end 0))))
+  (let ((events (reverse (append (if (eq direction 'forward)
+				     "/"
+				   "?")
+				 (if unbounded
+				     (regexp-quote (match-string 0))
+				   (concat "\\<" 
+					   (regexp-quote (match-string 0))
+					   "\\>"))
+				 [return]
+				 "n"
+				 nil))))
+    (while events
+      (push (car events) unread-command-events)
+      (setq events (cdr events)))))
+
+
+(vim:define vim:search-word ()
+	    :type 'simple
+	    :repeatable nil
+	    :count nil
+  "Searches the next occurence of word under the cursor."
+  (vim:start-word-search nil 'forward))
+    
+    
+(vim:define vim:search-word-backward ()
+	    :type 'simple
+	    :repeatable nil
+	    :count nil
+  "Searches the next occurence of word under the cursor."
+  (vim:start-word-search nil 'backward))
+    
+    
+(vim:define vim:search-unbounded-word ()
+	    :type 'simple
+	    :repeatable nil
+	    :count nil
+  "Searches the next occurence of word under the cursor."
+  (vim:start-word-search t 'forward))
+    
+    
+(vim:define vim:search-unbounded-word-backward ()
+	    :type 'simple
+	    :repeatable nil
+	    :count nil
+  "Searches the next occurence of word under the cursor."
+  (vim:start-word-search t 'backward))
