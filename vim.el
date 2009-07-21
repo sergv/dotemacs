@@ -144,7 +144,10 @@
   :lighter " VIM"
   :init-value nil
   :global nil
-  :keymap nil)
+  :keymap nil
+
+  (unless vim-local-mode
+    (vim-key-mode -1)))
 
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
 
@@ -159,7 +162,4 @@
       (setq vim-key-mode t)
       (vim:reset-key-state)
       (vim:activate-mode vim:normal-mode))))
-
-
-(add-hook 'vim-mode-hook 'vim:initialize)
 
