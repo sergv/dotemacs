@@ -28,7 +28,7 @@
 
 (require 'redo nil t)
 
-
+(defvar vim:last-undo)
 
 ;; undo stuff
 (defun vim:connect-undos (last-undo)
