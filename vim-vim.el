@@ -176,7 +176,7 @@
   (when (sequencep cmd)
     (put 'type cmd 'map)
     (put 'argument cmd nil)
-    (put 'repeatable nil)) ; don't repeat visual-mode commands
+    (put 'repeatable cmd nil)) ; don't repeat visual-mode commands
      
   (vim:add-node vim:visual-mode-keymap keys
                 cmd
