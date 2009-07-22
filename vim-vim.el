@@ -13,6 +13,8 @@
 
 ;; This file contains the stuff specific for vim-like keybindins.
 
+(provide 'vim-vim)
+
 (vim:deflocalvar vim:repeat-events nil
   "The sequence of events for the repeat command.")
 
