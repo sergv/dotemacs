@@ -170,8 +170,8 @@
      ;; create a new dummy vim:node representing the motion!
      
      ;; deal with cw and cW
-     (unless (member (char-after)
-                     '(?  ?\r ?\n ?\t))
+     (when (and vim:current-motion
+                (not (member (char-after) '(?  ?\r ?\n ?\t))))
        (cond
         ((eq (vim:node-cmd vim:current-motion) 
              'vim:motion-fwd-word)
