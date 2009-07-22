@@ -114,14 +114,6 @@ executed if the do not delete any other window."
     (windmove-down)))
 
 
-(vim:define vim:window-down (count)
-            :type 'simple
-            :repeatable nil
-  "Move the cursor to new `count'-th window below the current one."
-  (dotimes (i (or count 1))
-    (windmove-down)))
-
-
 (vim:define vim:window-bottom-right ()
             :type 'simple
             :repeatable nil
