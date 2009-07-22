@@ -486,10 +486,10 @@
                        (save-excursion
                          (goto-char beg)
                          (while (< beg end)
-                           (setq c (following-char))
-                           (delete-char 1 nil)
-                           (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
-                           (setq beg (1+ beg)))))))
+                           (let ((c (following-char)))
+                             (delete-char 1 nil)
+                             (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
+                             (setq beg (1+ beg))))))))
 
 
 (vim:define vim:cmd-toggle-case-lines (count)
