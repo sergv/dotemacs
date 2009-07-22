@@ -114,7 +114,7 @@
   :group 'vim-mode)
 
 (defcustom vim:blacklist
-  nil
+  '(debugger-mode)
   "*List of major modes in which vim-mode should *NOT* be enabled."
   :type '(repeat symbol)
   :group 'vim-mode)
