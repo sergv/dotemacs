@@ -558,10 +558,10 @@
   (unless vim:repeat-events
     (error "Nothing to repeat"))
   (vim:reset-key-state)
-  (dotimes (i (or count 1))
+  ;;(dotimes (i (or count 1))
     (let ((repeat-events vim:repeat-events)
           (vim:repeat-events nil))
-      (execute-kbd-macro repeat-events)))
+      (execute-kbd-macro repeat-events));)
   (vim:reset-key-state))
 
 
