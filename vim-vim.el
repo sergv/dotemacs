@@ -193,9 +193,9 @@
   (let ((ret (gensym)))
   `(progn
      (save-current-buffer
-       (setq ,ret (apply ,@args))
-       (setq vim:new-buffer (current-buffer))
-       ,ret))))
+       (let ((,ret (apply ,@args)))
+         (setq vim:new-buffer (current-buffer))
+         ,ret)))))
 
 
 (defmacro vim:funcall-save-buffer (&rest args)
@@ -203,9 +203,9 @@
   (let ((ret (gensym)))
   `(progn
      (save-current-buffer
-       (setq ,ret (funcall ,@args))
-       (setq vim:new-buffer (current-buffer))
-       ,ret))))
+       (let ((,ret (funcall ,@args)))
+         (setq vim:new-buffer (current-buffer))
+         ,ret)))))
 
 
 (defun vim:execute-command (node)
