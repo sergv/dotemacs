@@ -175,13 +175,34 @@
        (cond
         ((eq (vim:node-cmd vim:current-motion) 
              'vim:motion-fwd-word)
-         (setq vim:current-motion (vim:get-subnode vim:motion-keymap ?e))
-         (setq motion (vim:get-current-cmd-motion)))
+         (let ((pos
+                (save-excursion
+                  (dotimes (i (* (or vim:current-cmd-count 1)
+                                 (or vim:current-motion-count 1)))
+                    (while
+                        (not
+                         (or (and (looking-at (concat "[^[:space:]\r\n]"
+                                                      "[[:space:]\r\n]")))
+                             (and (looking-at (concat "[" vim:word "]"
+                                                      "[^[:space:]\r\n" vim:word "]")))
+                             (and (looking-at (concat "[^[:space:]\r\n" vim:word "]"
+                                                      "[" vim:word "]")))))
+                      (forward-char)))
+                  (point))))
+           (setq motion (vim:make-motion :begin (point) :end pos :type 'inclusive))))
         
         ((eq (vim:node-cmd vim:current-motion) 
              'vim:motion-fwd-WORD)
-         (setq vim:current-motion (vim:get-subnode vim:motion-keymap ?E))
-         (setq motion (vim:get-current-cmd-motion)))))
+         (let ((pos
+                (save-excursion
+                  (dotimes (i (* (or vim:current-cmd-count 1)
+                                 (or vim:current-motion-count 1)))
+                    (while
+                        (not (and (looking-at (concat "[^[:space:]\r\n]"
+                                                      "[[:space:]\r\n]"))))
+                      (forward-char)))
+                  (point))))
+           (setq motion (vim:make-motion :begin (point) :end pos :type 'inclusive))))))
         
      (vim:cmd-delete motion)
      (if (eolp)
