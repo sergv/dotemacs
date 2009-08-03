@@ -35,28 +35,19 @@
       (1+ (- (line-number-at-pos (point-max))
              (line-number-at-pos (window-end))))))
 
-(vim:define vim:scroll-line-up (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-line-up (count nonrepeatable keep-visual)
   "Scrolls the window `count' lines upwards."
   (vim:use-last-column)
   (scroll-down (or count 1)))
 
 
-(vim:define vim:scroll-line-down (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-line-down (count nonrepeatable keep-visual)
   "Scrolls the window `count' lines downwards."
   (vim:use-last-column)
   (scroll-up (or count 1)))
 
 
-(vim:define vim:scroll-up (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-up (count nonrepeatable keep-visual)
   "Scrolls the window and the cursor `count' lines upwards, default half of the screen."
   (vim:use-last-column)
   (let ((p (point))
@@ -69,10 +60,7 @@
       (ding))))
 
 
-(vim:define vim:scroll-down (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-down (count nonrepeatable keep-visual)
   "Scrolls the window and the cursor `count' lines downwards, default half of the screen."
   (vim:use-last-column)
   (let ((p (point))
@@ -85,10 +73,7 @@
       (ding))))
 
 
-(vim:define vim:scroll-page-up (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-page-up (count nonrepeatable keep-visual)
   "Scrolls the window `count' pages upwards."
   (vim:use-last-column)
   (condition-case nil
@@ -97,10 +82,7 @@
     (error (goto-char (point-min)))))
 
 
-(vim:define vim:scroll-page-down (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-page-down (count nonrepeatable keep-visual)
   "Scrolls the window `count' pages upwards."
   (vim:use-last-column)
   (condition-case nil
@@ -109,40 +91,28 @@
     (error (goto-char (point-max)))))
 
 
-(vim:define vim:scroll-line-to-top (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-line-to-top (count nonrepeatable keep-visual)
   "Scrolls line number `count' (or the cursor line) to the top of the window."            
   (vim:use-last-column)
   (goto-line (or count (line-number-at-pos (point))))
   (recenter 0))
 
 
-(vim:define vim:scroll-line-to-center (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-line-to-center (count nonrepeatable keep-visual)
   "Scrolls line number `count' (or the cursor line) to the center of the window."            
   (vim:use-last-column)
   (goto-line (or count (line-number-at-pos (point))))
   (recenter nil))
 
 
-(vim:define vim:scroll-line-to-bottom (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls line number `count' (or the cursor line) to the bottom of the window."            
   (vim:use-last-column)
   (goto-line (or count (line-number-at-pos (point))))
   (recenter -1))
 
 
-(vim:define vim:scroll-bottom-line-to-top (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-bottom-line-to-top (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
       (goto-line count)
@@ -151,10 +121,7 @@
   (goto-char (vim:motion-first-non-blank)))
 
 
-(vim:define vim:scroll-top-line-to-bottom (count)
-            :type 'simple
-            :repeatable nil
-            :keep-visual t
+(vim:defcmd vim:scroll-top-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
       (goto-line count)

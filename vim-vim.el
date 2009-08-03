@@ -50,7 +50,7 @@
 (defun vim:operator-pending-p ()
   "Return non-nil iff an operator is waiting for a motion."
   (and vim:current-cmd
-       (vim:cmd-complex-p (vim:node-cmd vim:current-cmd))))
+       (vim:cmd-motion-p (vim:node-cmd vim:current-cmd))))
 
 
 (defadvice vim:reset-key-state (before vim:vim-reset-key-state)
@@ -98,13 +98,78 @@
                                ,@(when count `((count ,(first args))))
                                ,@(when arg`((argument ,(car (last args))))))
                         ,@body)
-      `(progn
-         (defun ,name ,args ,@body)
-         (put 'type ',name ,type)
-         (put 'argument ',name ,arg)
-         (put 'repeatable ',name ,repeatable)
-         (put 'count ',name ,count)
-         (put 'keep-visual ',name ,keep-visual)))))
+      `(vim:defcmd ,name (,@(when (and (equal type ''simple) count) `((count ,(pop args))))
+                          ,@(when (equal type ''complex) `((motion ,(pop args))))
+                          ,@(when arg `((argument ,(pop args)))))
+                   ,@body))))
+                                  
+;      `(progn
+;         (defun ,name ,args ,@body)
+;         (put 'type ',name ,type)
+;         (put 'argument ',name ,arg)
+;         (put 'repeatable ',name ,repeatable)
+;         (put 'count ',name ,count)
+;         (put 'keep-visual ',name ,keep-visual)))))
+
+
+(defmacro* vim:defcmd (name (&rest args) &rest body)
+  (let ((count nil)
+        (motion nil)
+        (argument nil)
+        (keep-visual nil)
+        (repeatable t)
+        (params nil)
+        (named-params nil)
+        (doc nil))
+
+    ;; extract documentation string
+    (if (and (consp body)
+               (cdr body)
+               (stringp (car body)))
+        (setq doc (car body)
+              body (cdr body))
+      (setq doc (format "VIM - command (%s %s)" name args)))
+    
+    ;; collect parameters
+    (dolist (arg args)
+      (case (if (consp arg) (car arg) arg)
+        ('count (setq count t)
+                (push '(count nil) params)
+                (when (and (consp arg)
+                           (not (eq (cadr arg) 'count)))
+                  (push `(,(cadr arg) count) named-params)))
+
+        ('motion (setq motion t)
+                 (push 'motion params)
+                (when (and (consp arg)
+                           (not (eq (cadr arg) 'motion)))
+                  (push `(,(cadr arg) motion) named-params)))
+        
+        ('argument (setq argument t)
+                   (push 'argument params)
+                   (when (and (consp arg)
+                              (not (eq (cadr arg) 'argument)))
+                     (push `(,(cadr arg) argument) named-params)))
+
+        ('keep-visual (setq keep-visual t))
+        ('do-not-keep-visual (setq keep-visual nil))
+        ('repeatable (setq repeatable t))
+        ('nonrepeatable (setq repeatable nil))
+        
+        (t (error "%s: Unexpected argument: %s" 'vim:defcmd arg))))
+
+    `(progn
+       (put 'type ',name ',(if motion 'complex 'simple))
+       (put 'count ',name ,count)
+       (put 'motion ',name ,motion)
+       (put 'argument ',name ,argument)
+       (put 'keep-visual ',name ,keep-visual)
+       (put 'repeatable ',name ,repeatable)
+       (defun* ,name (,@(when params `(&key ,@params))
+                      ,@(when named-params `(&aux ,@named-params)))
+       ,doc
+       ,@body))))
+
 
 (defmacro* vim:defmotion (name (&rest args) &rest body)
   (let ((type nil)
@@ -154,7 +219,19 @@
        ,doc
        ,@body))))
 
+(defmacro* vim:defspecial (name (param) &body body)
+  `(progn
+     (put 'type ',name 'special)
+     (defun ,name (,param) ,@body)))
 
+
+(defun vim:cmd-count-p (cmd)
+  "Returns non-nil iff command cmd takes a count."
+  (get 'count cmd))
+
+(defun vim:cmd-motion-p (cmd)
+  "Returns non-nil iff command `cmd' takes a motion parameter."
+  (get 'motion cmd))
 
 (defun vim:cmd-arg-p (cmd)
   "Returns non-nil iff command cmd takes an argument."
@@ -164,35 +241,18 @@
   "Returns non-nil iff command cmd is repeatable."
   (get 'repeatable cmd))
 
-(defun vim:cmd-count-p (cmd)
-  "Returns non-nil iff command cmd takes a count."
-  (get 'count cmd))
-
-(defun vim:cmd-motion-p (cmd)
-  "Returns non-nil iff command cmd is a motion."
-  (memq (get 'type cmd)
-        '(inclusive exclusive linewise)))
-
-(defun vim:cmd-simple-p (cmd)
-  "Returns non-nil iff command cmd is a simple command."
-  (eq (get 'type cmd) 'simple))
-  
-(defun vim:cmd-complex-p (cmd)
-  "Returns non-nil iff command cmd is a complex command."
-  (eq (get 'type cmd) 'complex))
+(defun vim:cmd-keep-visual-p (cmd)
+  "Returns non-nil iff command cmd should stay in visual mode."
+  (get 'keep-visual cmd))
   
 (defun vim:cmd-mapping-p (cmd)
   "Returns non-nil iff command cmd is a complex command."
-  (eq (get 'type cmd) 'map))
+  (eq (vim:cmd-type cmd) 'map))
 
 (defun vim:cmd-type (cmd)
   "Returns the type of command cmd."
   (get 'type cmd))
 
-(defun vim:cmd-keep-visual-p (cmd)
-  "Returns non-nil iff command cmd should stay in visual mode."
-  (get 'keep-visual cmd))
-  
 
 (defun* vim:map (keys cmd &key (keymap vim:normal-mode-keymap))
   "Creates a mapping of keys to cmd in keymap of mode."
@@ -312,8 +372,7 @@
 
 
 ;; this command is implemented as a special command
-(vim:define vim:feed-numeric-prefix (node)
-            :type 'special
+(vim:defspecial vim:feed-numeric-prefix (node)
   "Saves the numeric character and continues."
   (let ((char (vim:node-key node)))
     (if vim:current-cmd
@@ -323,8 +382,7 @@
 
 
 ;; this command is implemented as a special command
-(vim:define vim:feed-numeric-prefix-or-bol (node)
-            :type 'special
+(vim:defspecial vim:feed-numeric-prefix-or-bol (node)
   "Saves the numeric character and continues."
   (cond
    ((and (not vim:current-cmd) vim:current-cmd-count)

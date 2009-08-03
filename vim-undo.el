@@ -57,16 +57,12 @@
             (setq lst (cdr lst))))))))
 
 
-(vim:define vim:cmd-undo (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:cmd-undo (count nonrepeatable)
   (setq vim:last-undo nil)
   (dotimes (i (or count 1))
     (undo)))
     
-(vim:define vim:cmd-redo (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:cmd-redo (count nonrepeatable)
   (setq vim:last-undo nil)
   (redo (or count 1)))
     

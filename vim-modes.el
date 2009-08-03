@@ -66,11 +66,9 @@
     
 (defun vim:default-mode-exec-cmd (cmd count motion arg)
   (let ((parameters nil))
-    (when (vim:cmd-arg-p cmd) (push arg parameters))
-    (if (vim:cmd-complex-p cmd)
-        (push motion parameters)
-      (when (vim:cmd-count-p cmd)
-        (push count parameters)))
+    (when (vim:cmd-count-p cmd) (push count parameters) (push :count parameters))
+    (when (vim:cmd-motion-p cmd) (push motion parameters) (push :motion parameters))
+    (when (vim:cmd-arg-p cmd) (push arg parameters) (push :argument parameters))
     (vim:apply-save-buffer cmd parameters)
                 
     (when (and vim:current-key-sequence

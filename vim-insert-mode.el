@@ -54,8 +54,7 @@
     (push last-command-event vim:current-insert-key-sequence))
   nil)
 
-(vim:define vim:insert-mode-exit ()
-            :count nil
+(vim:defcmd vim:insert-mode-exit ()
   (vim:activate-mode vim:normal-mode)
   (goto-char (max (line-beginning-position) (1- (point)))))
 

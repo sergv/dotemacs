@@ -93,45 +93,27 @@
     (vim:activate-visual type)))
   
 
-(vim:define vim:visual-toggle-normal ()
-            :type 'simple
-            :repeatable nil
-            :count nil
-            :keep-visual t
+(vim:defcmd vim:visual-toggle-normal (nonrepeatable keep-visual)
     "Switches to normal visual-mode or deactivates it."
     (vim:visual-toggle-mode 'normal))
 
 
-(vim:define vim:visual-toggle-linewise ()
-            :type 'simple
-            :repeatable nil
-            :count nil
-            :keep-visual t
+(vim:defcmd vim:visual-toggle-linewise (nonrepeatable keep-visual)
     "Switches to linewise visual-mode or deactivates it."
     (vim:visual-toggle-mode 'linewise))
 
 
-(vim:define vim:visual-toggle-block ()
-            :type 'simple
-            :repeatable nil
-            :count nil
-            :keep-visual t
+(vim:defcmd vim:visual-toggle-block (nonrepeatable keep-visual)
     "Switches to block visual-mode or deactivates it."
     (vim:visual-toggle-mode 'block))
 
 
-(vim:define vim:visual-mode-exit ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:visual-mode-exit (nonrepeatable)
   "Deactivates visual mode."
   (vim:activate-mode vim:normal-mode))
 
 
-(vim:define vim:visual-mode-reactivate ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:visual-mode-reactivate (nonrepeatable)
   "Called when the last visual region should be reactivated."
   (unless (and vim:visual-mode-type
                vim:visual-last-begin
@@ -427,7 +409,7 @@
   (setq vim:visual-last-end (cons (line-number-at-pos (point))
                                   (current-column)))
 
-  (if (vim:cmd-complex-p cmd)
+  (if (vim:cmd-motion-p cmd)
       (vim:default-mode-exec-cmd cmd
                                  count 
                                  (vim:visual-current-motion)
@@ -452,9 +434,7 @@
                  :default-handler 'vim:default-default-handler))
 
 
-(vim:define vim:visual-insert (motion)
-            :type 'complex
-            :repeatable nil
+(vim:defcmd vim:visual-insert (motion nonrepeatable)
   "Starts insertion at the left column of a visual region."
   
   (case vim:visual-mode-type
@@ -516,9 +496,7 @@
       (vim:connect-undos vim:visual-last-insert-undo))))
 
 
-(vim:define vim:visual-append (motion)
-            :type 'complex
-            :repeatable nil
+(vim:defcmd vim:visual-append (motion nonrepeatable)
   "Starts insertion at the right column of a visual block."
   
   (case vim:visual-mode-type
@@ -566,20 +544,12 @@
       (vim:connect-undos vim:visual-last-insert-undo))))
 
 
-(vim:define vim:visual-exchange-point-and-mark ()
-            :type 'simple
-            :repeatable nil
-            :count nil
-            :keep-visual t
+(vim:defcmd vim:visual-exchange-point-and-mark (nonrepeatable keep-visual)
    "Exchanges point and mark."
    (exchange-point-and-mark))
 
 
-(vim:define vim:visual-jump-point ()
-            :type 'simple
-            :repeatable nil
-            :count nil
-            :keep-visual t
+(vim:defcmd vim:visual-jump-point (nonrepeatable keep-visual)
   "In normal and linewise visual mode, this is the same as
 `vim:visual-exchange-point-and-mark'.  In block visual-mode the
 cursor jumps to the other corner of the selected region in the

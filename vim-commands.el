@@ -34,44 +34,42 @@
 ;; position after the operation.
 ;;
 ;;
-;; Operations are defined by the `vim:define' macro:
+;; Operations are defined by the `vim:defcmd' macro:
 ;;
-;;  (vim:define my-command (count arg)
-;;              :type 'simple
-;;              :argument t
-;;              :count t
-;;              :repeatable t
+;;  (vim:defcmd my-command (count motion arg repeatable do-not-keep-visual)
 ;;
 ;;       ... code ...
 ;;  )
 ;;
-;; The command-type `:type' should be one of `simple', `complex' or `special'.
-;; Simple commands are commands not taking a motion-argument.  Complex commands
-;; are operations with motion-argument.  Special-commands are called without
-;; affecting the key-parse mode and can be used to implement special behaviour
-;; on some keys (e.g. numeric counts are implemented using special commands).
+;; If the command takes a count, a parameter `count' should be
+;; specified in the parameter list.  The actual parameter has the name
+;; `count' but may also be renamed by `(count new-name)' instead of
+;; `count' in the parameter list.  Notice that complex commands
+;; (commands taking a motion-argument) should not take a count
+;; parameter since the count has already been passed to the motion.
 ;;
-;; If `type' is complex, the first argument passed to the function is
-;; the associated motion as a vim:motion structure.
+;; If the command takes a motion, a parameter `motion' should be
+;; specified in the parameter list.  The actual parameter has the name
+;; `motion' but may also be renamed by `(motion new-name)' instead of
+;; `motion' in the parameter list. 
 ;;
-;; If `count' is non-nil, the command takes an optional count
-;; argument.  In this case the first parameter passed to the function
-;; is the count (may be nil if no count is given).  If the command is
-;; `complex', no count-argument is possible since the command-count
-;; has already been passed to the associated motion (i.e. the motion
-;; has got the count (command-count * motion-count).  If `count' is
-;; nil the paramter must be omitted.
+;; If the command takes an additional argument motion, a parameter
+;; `argument' should be specified in the parameter list.  The actual
+;; parameter has the name `argument' but may also be renamed by
+;; `(argument new-name)' instead of `argument' in the parameter list.
 ;;
-;; If `argument' is non-nil, the command takes an addition
-;; key-argument.  In this case the last parameter passed to the
-;; function is the corresponding event.  This event may be an
-;; arbitrary Emacs-event so the function should check its type and
-;; signal an error if the event is invalid.  If `argument' is nil
-;; the parameter must be omitted.
+;; If the command is repeatable by using '.', a parameter `repeatable'
+;; should be added to the argument list.  If the command is not
+;; repeatable, put `nonrepeatable' instead.  By default all commands
+;; are repeatable, but some commands should not be, e.g. scrolling or
+;; window-commands.
 ;;
-;; If `repeatable' is non-nil, the command can be repeated using the
-;; '.' command.  Some commands like scrolling commands or the repeat-command
-;; itself cannot be repeated and should set repeatable to nil.
+;; If a command executed in visual-mode should keep visual mode
+;; active, a parameter `keep-visual' should be added to the argument
+;; list.  If the command should exit visual mode (this is the
+;; default), add 'do-not-keep-visual' to the argument list.  Some
+;; commands should keep visual mode active, e.g. scrolling commands or
+;; some visual-mode specific commands like 'o' or 'O'.
 
 
 (provide 'vim-commands)
@@ -81,31 +79,26 @@
   :type 'integer
   :group 'vim-mode)
 
-(vim:define vim:cmd-insert (count)
-            :type 'simple
+(vim:defcmd vim:cmd-insert (count)
   (vim:activate-mode vim:insert-mode))
 
-(vim:define vim:cmd-append (count)
-            :type 'simple
+(vim:defcmd vim:cmd-append (count)
   (unless (eolp) (forward-char))
   (vim:activate-mode vim:insert-mode))
 
-(vim:define vim:cmd-Insert (count)
-            :type 'simple
+(vim:defcmd vim:cmd-Insert (count)
   (goto-char (vim:motion-first-non-blank))
-  (vim:cmd-insert count))
+  (vim:cmd-insert :count count))
 
-(vim:define vim:cmd-Append (count)
-            :type 'simple
+(vim:defcmd vim:cmd-Append (count)
   (end-of-line)
-  (vim:cmd-append count))
+  (vim:cmd-append :count count))
 
 
 
-(vim:define vim:cmd-delete-line (count)
-            :type 'simple
+(vim:defcmd vim:cmd-delete-line (count)
   "Deletes the next count lines."
-  (vim:cmd-yank-line count)
+  (vim:cmd-yank-line :count count)
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (forward-line (1- (or count 1)))
@@ -126,16 +119,15 @@
     (goto-char (vim:motion-first-non-blank))))
 
 
-(vim:define vim:cmd-delete (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-delete (motion)
   "Deletes the characters defined by motion."
   (case (vim:motion-type motion)
     ('linewise
      (goto-line (vim:motion-begin motion))
-     (vim:cmd-delete-line (vim:motion-line-count motion)))
+     (vim:cmd-delete-line :count (vim:motion-line-count motion)))
 
     ('block
-     (vim:cmd-yank motion)
+     (vim:cmd-yank :motion motion)
      (let ((beg (save-excursion
                   (goto-line (car (vim:motion-begin motion)))
                   (move-to-column (cdr (vim:motion-begin motion)) t)
@@ -152,17 +144,16 @@
       (goto-char (vim:motion-begin motion)))))
 
 
-(vim:define vim:cmd-change (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-change (motion)
   "Deletes the characters defined by motion and goes to insert mode."
   (case (vim:motion-type motion)
     ('linewise
      (goto-line (vim:motion-begin motion))
-     (vim:cmd-change-line (vim:motion-line-count motion)))
+     (vim:cmd-change-line :count (vim:motion-line-count motion)))
 
     ('block
-     (vim:cmd-delete motion)
-     (vim:visual-insert motion))
+     (vim:cmd-delete :motion motion)
+     (vim:visual-insert :motion motion))
 
     (t
      ;; TODO: getting the node from vim:motion-keymap is dangerous if
@@ -204,17 +195,16 @@
                   (point))))
            (setq motion (vim:make-motion :begin (point) :end pos :type 'inclusive))))))
         
-     (vim:cmd-delete motion)
+     (vim:cmd-delete :motion motion)
      (if (eolp)
-         (vim:cmd-append 1)
-       (vim:cmd-insert 1)))))
+         (vim:cmd-append :count 1)
+       (vim:cmd-insert :count 1)))))
 
 
-(vim:define vim:cmd-change-line (count)
-            :type 'simple
+(vim:defcmd vim:cmd-change-line (count)
   "Deletes count lines and goes to insert mode."
   (let ((pos (line-beginning-position)))
-    (vim:cmd-delete-line count)
+    (vim:cmd-delete-line :count count)
     (if (< (point) pos)
         (progn
           (end-of-line)
@@ -225,12 +215,11 @@
         (forward-line -1)))
     (indent-according-to-mode)
     (if (eolp)
-        (vim:cmd-append 1)
-      (vim:cmd-insert 1))))
+        (vim:cmd-append :count 1)
+      (vim:cmd-insert :count 1))))
 
 
-(vim:define vim:cmd-replace-char (count arg)
-            :type 'simple
+(vim:defcmd vim:cmd-replace-char (count (argument arg))
             :argument t
   "Replaces the next count characters with arg."
   (unless (integerp arg)
@@ -243,15 +232,12 @@
   (backward-char))
 
 
-(vim:define vim:cmd-replace (count)
-            :type 'simple
+(vim:defcmd vim:cmd-replace (count)
   "Goes to replace-mode."
   (vim:activate-mode vim:replace-mode))
 
 
-(vim:define vim:cmd-replace-region (motion arg)
-            :type 'complex
-            :argument t
+(vim:defcmd vim:cmd-replace-region (motion (argument arg))
    "Replace the complete region with `arg'"
    (case (vim:motion-type motion)
      ('block
@@ -316,23 +302,19 @@
         (goto-char (vim:motion-begin motion)))))
 
 
-(vim:define vim:cmd-yank (motion)
-            :type 'complex
-            :repeatable nil
+(vim:defcmd vim:cmd-yank (motion nonrepeatable)
   "Saves the characters in motion into the kill-ring."
   (case (vim:motion-type motion)
-    ('block (vim:cmd-yank-rectangle motion))
+    ('block (vim:cmd-yank-rectangle :motion motion))
     ('linewise (goto-line (vim:motion-begin-row motion))
-	       (vim:cmd-yank-line (vim:motion-line-count motion)))
+	       (vim:cmd-yank-line :count (vim:motion-line-count motion)))
     (t
      (kill-new (buffer-substring
                 (vim:motion-begin-pos motion)
                 (1+ (vim:motion-end-pos motion)))))))
   
 
-(vim:define vim:cmd-yank-line (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:cmd-yank-line (count nonrepeatable)
   "Saves the next count lines into the kill-ring."
   (let ((beg (line-beginning-position))
         (end (save-excursion
@@ -372,8 +354,7 @@
       (move-to-column col t))))
                     
 
-(vim:define vim:cmd-paste-before (count)
-            :type 'simple
+(vim:defcmd vim:cmd-paste-before (count)
   "Pastes the latest yanked text before the cursor position."
   (unless kill-ring-yank-pointer
     (error "kill-ring empty"))
@@ -396,8 +377,7 @@
       (backward-char)))))
 
 
-(vim:define vim:cmd-paste-behind (count)
-            :type 'simple
+(vim:defcmd vim:cmd-paste-behind (count)
   "Pastes the latest yanked text behind point."
   (unless kill-ring-yank-pointer
     (error "kill-ring empty"))
@@ -435,8 +415,7 @@
       (backward-char)))))
 
 
-(vim:define vim:cmd-join-lines (count)
-	    :type 'simple
+(vim:defcmd vim:cmd-join-lines (count)
   "Join `count' lines with a minimum of two lines."
   (dotimes (i (max 1 (1- (or count 1))))
     (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
@@ -448,59 +427,51 @@
       (backward-char))))
 
 
-(vim:define vim:cmd-join (motion)
-	    :type 'complex
+(vim:defcmd vim:cmd-join (motion)
   "Join the lines covered by `motion'."
   (goto-line (vim:motion-begin-row motion))
-  (vim:cmd-join-lines (vim:motion-line-count motion)))
+  (vim:cmd-join-lines :count (vim:motion-line-count motion)))
 
 
-(vim:define vim:cmd-indent (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-indent (motion)
   "Reindent the lines covered by `motion'."
   (goto-line (vim:motion-begin-row motion))
-  (vim:cmd-indent-lines (vim:motion-line-count motion)))
+  (vim:cmd-indent-lines :count (vim:motion-line-count motion)))
   
 
-(vim:define vim:cmd-indent-lines (count)
-            :type 'simple
+(vim:defcmd vim:cmd-indent-lines (count)
   "Reindent the next `count' lines."
   (indent-region (line-beginning-position)
                  (line-end-position count)))
   
 
-(vim:define vim:cmd-shift-left (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-shift-left (motion)
   "Shift the lines covered by `motion' leftwards."
   (goto-line (vim:motion-begin-row motion))
-  (vim:cmd-shift-left-lines (vim:motion-line-count motion)))
+  (vim:cmd-shift-left-lines :count (vim:motion-line-count motion)))
 
 
-(vim:define vim:cmd-shift-left-lines (count)
-            :type 'simple
+(vim:defcmd vim:cmd-shift-left-lines (count)
   "Shift the next `count' lines leftwards."
   (indent-rigidly (line-beginning-position)
                   (line-end-position count)
                   (- vim:shift-width)))
 
 
-(vim:define vim:cmd-shift-right (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-shift-right (motion)
   "Shift the lines covered by `motion' rightwards."
   (goto-line (vim:motion-begin-row motion))
-  (vim:cmd-shift-right-lines (vim:motion-line-count motion)))
+  (vim:cmd-shift-right-lines :count (vim:motion-line-count motion)))
   
 
-(vim:define vim:cmd-shift-right-lines (count)
-            :type 'simple
+(vim:defcmd vim:cmd-shift-right-lines (count)
   "Shift the next `count' lines rightwards."
   (indent-rigidly (line-beginning-position)
                   (line-end-position count)
                   vim:shift-width))
 
 
-(vim:define vim:cmd-toggle-case (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-toggle-case (motion)
   "Toggles the case of all characters defined by `motion'."
   (vim:change-case motion
                    #'(lambda (beg end)
@@ -513,40 +484,35 @@
                              (setq beg (1+ beg))))))))
 
 
-(vim:define vim:cmd-toggle-case-lines (count)
-            :type 'simple
+(vim:defcmd vim:cmd-toggle-case-lines (count)
   "Toggles the case of all characters of the next `count' lines."
-  (vim:cmd-toggle-case (vim:make-motion :begin (line-number-at-pos (point))
-                                        :end (+ (line-number-at-pos (point)) (or count 1) -1)
-                                        :type 'linewise)))
+  (vim:cmd-toggle-case :motion (vim:make-motion :begin (line-number-at-pos (point))
+                                                :end (+ (line-number-at-pos (point)) (or count 1) -1)
+                                                :type 'linewise)))
 
 
-(vim:define vim:cmd-make-upcase (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-make-upcase (motion)
   "Upcases all characters defined by `motion'."
   (vim:change-case motion #'upcase-region))
 
 
-(vim:define vim:cmd-make-upcase-lines (count)
-            :type 'simple
+(vim:defcmd vim:cmd-make-upcase-lines (count)
   "Upcases all characters of the next `count' lines."
-  (vim:cmd-make-upcase (vim:make-motion :begin (line-number-at-pos (point))
-                                        :end (+ (line-number-at-pos (point)) (or count 1) -1)
-                                        :type 'linewise)))
+  (vim:cmd-make-upcase :motion (vim:make-motion :begin (line-number-at-pos (point))
+                                                :end (+ (line-number-at-pos (point)) (or count 1) -1)
+                                                :type 'linewise)))
 
 
-(vim:define vim:cmd-make-downcase (motion)
-            :type 'complex
+(vim:defcmd vim:cmd-make-downcase (motion)
   "Downcases all characters defined by `motion'."
   (vim:change-case motion #'downcase-region))
 
 
-(vim:define vim:cmd-make-downcase-lines (count)
-            :type 'simple
+(vim:defcmd vim:cmd-make-downcase-lines (count)
   "Downcases all characters of the next `count' lines."
-  (vim:cmd-make-downcase (vim:make-motion :begin (line-number-at-pos (point))
-                                          :end (+ (line-number-at-pos (point)) (or count 1) -1)
-                                          :type 'linewise)))
+  (vim:cmd-make-downcase :motion (vim:make-motion :begin (line-number-at-pos (point))
+                                                  :end (+ (line-number-at-pos (point)) (or count 1) -1)
+                                                  :type 'linewise)))
 
 
 (defun vim:change-case (motion case-func)
@@ -571,10 +537,7 @@
      (goto-char (1+ (vim:motion-end-pos motion))))))
 
 
-(vim:define vim:cmd-repeat ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:cmd-repeat (nonrepeatable)
   "Repeats the last command."
   (unless vim:repeat-events
     (error "Nothing to repeat"))
@@ -586,10 +549,7 @@
   (vim:reset-key-state))
 
 
-(vim:define vim:cmd-emacs ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:cmd-emacs (nonrepeatable)
    "Switches to Emacs for the next command."
    (message "Switch to Emacs for the next command.")
    (vim:escape-to-emacs nil))

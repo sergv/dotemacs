@@ -52,72 +52,51 @@ executed if the do not delete any other window."
    (t (set-window-buffer win tree))))
 
 
-(vim:define vim:window-split (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-split (count nonrepeatable)
   "Splits the current window horizontally, `count' lines height."            
   (split-window (selected-window) count))
 
 
-(vim:define vim:window-vsplit (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-vsplit (count nonrepeatable)
   "Splits the current window vertically, `count' columns width."            
   (split-window (selected-window) count t))
 
 
-(vim:define vim:window-close ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-close (nonrepeatable)
   "Closes the current window."
   (delete-window))
 
 
-(vim:define vim:window-only ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-only (nonrepeatable)
   "Closes all but the current window."
   (delete-other-windows))
 
 
-(vim:define vim:window-left (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-left (count nonrepeatable)
   "Move the cursor to new `count'-th window left of the current one."
   (dotimes (i (or count 1))
     (windmove-left)))
 
 
-(vim:define vim:window-right (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-right (count nonrepeatable)
   "Move the cursor to new `count'-th window right of the current one."
   (dotimes (i (or count 1))
     (windmove-right)))
 
 
-(vim:define vim:window-up (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-up (count nonrepeatable)
   "Move the cursor to new `count'-th window above the current one."
   (dotimes (i (or count 1))
     (windmove-up)))
 
 
-(vim:define vim:window-down (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-down (count nonrepeatable)
   "Move the cursor to new `count'-th window below the current one."
   (dotimes (i (or count 1))
     (windmove-down)))
 
 
-(vim:define vim:window-bottom-right ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-bottom-right (nonrepeatable)
   "Move the cursor to bottom-right window."
   (do ((success t))
       ((not success))
@@ -134,10 +113,7 @@ executed if the do not delete any other window."
       (error nil))))
      
 
-(vim:define vim:window-top-left ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-top-left (nonrepeatable)
   "Move the cursor to top-left window."
   (do ((success t))
       ((not success))
@@ -155,7 +131,7 @@ executed if the do not delete any other window."
 
 
 
-(vim:define vim:window-previous ()
+(vim:defcmd vim:window-previous (nonrepeatable)
             :type 'simple
             :repeatable nil
             :count nil
@@ -163,7 +139,7 @@ executed if the do not delete any other window."
   (select-window (get-lru-window)))
             
 
-(vim:define vim:window-new (count)
+(vim:defcmd vim:window-new (count nonrepeatable)
             :type 'simple
             :repeatable nil
   "Splits the current window horizontally and opens a new buffer names `new'."
@@ -171,7 +147,7 @@ executed if the do not delete any other window."
   (set-window-buffer (selected-window) (generate-new-buffer "*new*")))
 
 
-(vim:define vim:window-balance ()
+(vim:defcmd vim:window-balance (nonrepeatable)
             :type 'simple
             :repeatable nil
             :count nil
@@ -179,7 +155,7 @@ executed if the do not delete any other window."
   (balance-windows))
 
 
-(vim:define vim:window-increase-height (count)
+(vim:defcmd vim:window-increase-height (count nonrepeatable)
             :type 'simple
             :repeatable nil
   "Increase current window height by `count'."
@@ -190,7 +166,7 @@ executed if the do not delete any other window."
     (error nil)))
             
 
-(vim:define vim:window-decrease-height (count)
+(vim:defcmd vim:window-decrease-height (count nonrepeatable)
             :type 'simple
             :repeatable nil
   "Decrease current window height by `count'."
@@ -198,9 +174,7 @@ executed if the do not delete any other window."
                       (- (window-height) window-min-height))))
             
 
-(vim:define vim:window-increase-width (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-increase-width (count nonrepeatable)
   "Increase current window width by `count'."
   (condition-case nil
       (dotimes (i (or count 1))
@@ -209,17 +183,13 @@ executed if the do not delete any other window."
     (error nil)))
             
 
-(vim:define vim:window-decrease-width (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-decrease-width (count nonrepeatable)
   "Decrease current window width by `count'."
   (shrink-window-horizontally (min (or count 1)
                                    (- (window-width) window-min-width))))
             
 
-(vim:define vim:window-set-height (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-set-height (count nonrepeatable)
    "Sets the height of the current window to `count'."
    (condition-case nil
        (cond
@@ -242,9 +212,7 @@ executed if the do not delete any other window."
             (enlarge-window 1)))))))
          
    
-(vim:define vim:window-set-width (count)
-            :type 'simple
-            :repeatable nil
+(vim:defcmd vim:window-set-width (count nonrepeatable)
    "Sets the width of the current window to `count'."
    (condition-case nil
        (cond
@@ -267,10 +235,7 @@ executed if the do not delete any other window."
             (enlarge-window-horizontally 1)))))))
 
 
-(vim:define vim:window-rotate-upwards ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-rotate-upwards (nonrepeatable)
    "Rotates the windows according to the currenty cyclic ordering."
    (let ((wlist (window-list))
          (blist (mapcar #'(lambda (w) (window-buffer w))
@@ -283,10 +248,7 @@ executed if the do not delete any other window."
      (select-window (car (last (window-list))))))
      
      
-(vim:define vim:window-rotate-downwards ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-rotate-downwards (nonrepeatable)
    "Rotates the windows according to the currenty cyclic ordering."
    (let ((wlist (window-list))
          (blist (mapcar #'(lambda (w) (window-buffer w))
@@ -299,10 +261,7 @@ executed if the do not delete any other window."
      (select-window (cadr (window-list)))))
 
 
-(vim:define vim:window-move-very-top ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-move-very-top (nonrepeatable)
    "Closes the current window, splits the upper-left one horizontally
 and redisplays the current buffer there."
    (unless (one-window-p)
@@ -318,10 +277,7 @@ and redisplays the current buffer there."
      (balance-windows)))
 
 
-(vim:define vim:window-move-far-left ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-move-far-left (nonrepeatable)
    "Closes the current window, splits the upper-left one vertically
 and redisplays the current buffer there."
    (unless (one-window-p)
@@ -337,10 +293,7 @@ and redisplays the current buffer there."
      (balance-windows)))
      
 
-(vim:define vim:window-move-far-right ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-move-far-right (nonrepeatable)
    "Closes the current window, splits the lower-right one vertically
 and redisplays the current buffer there."
    (unless (one-window-p)
@@ -358,10 +311,7 @@ and redisplays the current buffer there."
 
      
 
-(vim:define vim:window-move-very-bottom ()
-            :type 'simple
-            :repeatable nil
-            :count nil
+(vim:defcmd vim:window-move-very-bottom (nonrepeatable)
    "Closes the current window, splits the lower-right one horizontally
 and redisplays the current buffer there."
    (unless (one-window-p)

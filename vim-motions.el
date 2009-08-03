@@ -406,7 +406,7 @@
 (vim:defmotion vim:motion-find-to (inclusive count (argument arg))
   "Move the cursor to the character before the next count'th\
    occurence of arg."
-  (let ((pos (1- (vim:motion-find count arg))))
+  (let ((pos (1- (vim:motion-find :count count :argument arg))))
     (setq vim:last-find (cons 'vim:motion-find-to arg))
     pos))
 
@@ -414,7 +414,7 @@
 (vim:defmotion vim:motion-find-back-to (exclusive count (argument arg))
   "Move the cursor to the character after the previous count'th\
    occurence of arg."
-  (let ((pos (1+ (vim:motion-find-back count arg))))
+  (let ((pos (1+ (vim:motion-find-back :count count :argument arg))))
     (setq vim:last-find (cons 'vim:motion-find-to arg))
     pos))
 

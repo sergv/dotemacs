@@ -74,10 +74,7 @@
 		 :default-handler 'vim:search-default-handler))
 
 
-(vim:define vim:search-start ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-start (nonrepeatable)
   "Starts an incremental regexp search."
   (unless (eq vim:active-mode vim:search-mode)
     (vim:activate-mode vim:search-mode))
@@ -85,10 +82,7 @@
   (isearch-forward t))
 
 
-(vim:define vim:search-start-backward ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-start-backward (nonrepeatable)
   "Starts an incremental regexp search."
   (unless (eq vim:active-mode vim:search-mode)
     (vim:activate-mode vim:search-mode))
@@ -96,20 +90,14 @@
   (isearch-backward t))
 
 
-(vim:define vim:search-repeat ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-repeat (nonrepeatable)
   "Repeats the last incremental search."
   (unless (eq vim:active-mode vim:search-mode)
     (vim:activate-mode vim:search-mode))
   (isearch-repeat vim:last-search-direction))
 
 
-(vim:define vim:search-repeat-opposite ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-repeat-opposite (nonrepeatable)
   "Starts an incremental regexp search."
   (unless (eq vim:active-mode vim:search-mode)
     (vim:activate-mode vim:search-mode))
@@ -145,33 +133,21 @@
       (setq events (cdr events)))))
 
 
-(vim:define vim:search-word ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-word (nonrepeatable)
   "Searches the next occurence of word under the cursor."
   (vim:start-word-search nil 'forward))
     
     
-(vim:define vim:search-word-backward ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-word-backward (nonrepeatable)
   "Searches the next occurence of word under the cursor."
   (vim:start-word-search nil 'backward))
     
     
-(vim:define vim:search-unbounded-word ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-unbounded-word (nonrepeatable)
   "Searches the next occurence of word under the cursor."
   (vim:start-word-search t 'forward))
     
     
-(vim:define vim:search-unbounded-word-backward ()
-	    :type 'simple
-	    :repeatable nil
-	    :count nil
+(vim:defcmd vim:search-unbounded-word-backward (nonrepeatable)
   "Searches the next occurence of word under the cursor."
   (vim:start-word-search t 'backward))
