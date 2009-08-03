@@ -93,13 +93,68 @@
         (t (error "Unexpected keyword")))
       (setq body (cddr body)))
     
+    (if (member type '('inclusive 'exclusive 'linewise 'block))
+        `(vim:defmotion ,name (,(cadr type)
+                               ,@(when count `((count ,(first args))))
+                               ,@(when arg`((argument ,(car (last args))))))
+                        ,@body)
+      `(progn
+         (defun ,name ,args ,@body)
+         (put 'type ',name ,type)
+         (put 'argument ',name ,arg)
+         (put 'repeatable ',name ,repeatable)
+         (put 'count ',name ,count)
+         (put 'keep-visual ',name ,keep-visual)))))
+
+(defmacro* vim:defmotion (name (&rest args) &rest body)
+  (let ((type nil)
+        (count nil)
+        (argument nil)
+        (params nil)
+        (named-params nil)
+        (doc nil))
+
+    ;; extract documentation string
+    (if (and (consp body)
+               (cdr body)
+               (stringp (car body)))
+        (setq doc (car body)
+              body (cdr body))
+      (setq doc (format "VIM - motion (%s %s)" name args)))
+    
+    ;; collect parameters
+    (dolist (arg args)
+      (case (if (consp arg) (car arg) arg)
+        ((inclusive exclusive linewise block)
+         (setq type arg))
+        
+        ('count (setq count t)
+                (push '(count nil) params)
+                (when (and (consp arg)
+                           (not (eq (cadr arg) 'count)))
+                  (push `(,(cadr arg) count) named-params)))
+        
+        ('argument (setq argument t)
+                   (push 'argument params)
+                   (when (and (consp arg)
+                              (not (eq (cadr arg) 'argument)))
+                     (push `(,(cadr arg) argument) named-params)))
+        
+        (t (error "%s: Unexpected argument: %s" 'vim:defmotion arg))))
+
+    (unless type
+      (error "%s: Motion type must be specified" 'vim:defmotion))
+
     `(progn
-       (defun ,name ,args ,@body)
-       (put 'type ',name ,type)
-       (put 'argument ',name ,arg)
-       (put 'repeatable ',name ,repeatable)
+       (put 'type ',name ',type)
        (put 'count ',name ,count)
-       (put 'keep-visual ',name ,keep-visual))))
+       (put 'argument ',name ,argument)
+       (defun* ,name (,@(when params `(&key ,@params))
+                      ,@(when named-params `(&aux ,@named-params)))
+       ,doc
+       ,@body))))
+
+
 
 (defun vim:cmd-arg-p (cmd)
   "Returns non-nil iff command cmd takes an argument."
@@ -338,10 +393,15 @@
                         (or vim:current-motion-count 1))
                    nil))
           (parameters nil))
+
+      ;; build the parameter-list
       (when (vim:cmd-arg-p cmd)
-        (push vim:current-motion-arg parameters))
+        (push vim:current-motion-arg parameters)
+        (push :argument parameters))
       (when (vim:cmd-count-p cmd)
-        (push count parameters))
+        (push count parameters)
+        (push :count parameters))
+      
       (let* ((motion (vim:apply-save-buffer cmd parameters))
              (type (vim:cmd-type motion)))
         ;; check if the motion overwrites its default type
