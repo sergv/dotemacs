@@ -74,43 +74,6 @@
   arg         ; If non-nil the command takes an argument.
   )
 
-;; type should be one of: simple, complex, inclusive, exclusive,
-;; linewise or special
-(defmacro* vim:define (name (&rest args)
-                            &rest body)
-  (let ((type nil)
-        (arg nil)
-        (repeatable t)
-        (count t)
-        (keep-visual nil))
-    (while (keywordp (car body))
-      (case (car body)
-        (:type (setq type (cadr body)))
-        (:argument (setq arg (cadr body)))
-        (:repeatable (setq repeatable (cadr body)))
-        (:count (setq count (cadr body)))
-        (:keep-visual (setq keep-visual (cadr body)))
-        (t (error "Unexpected keyword")))
-      (setq body (cddr body)))
-    
-    (if (member type '('inclusive 'exclusive 'linewise 'block))
-        `(vim:defmotion ,name (,(cadr type)
-                               ,@(when count `((count ,(first args))))
-                               ,@(when arg`((argument ,(car (last args))))))
-                        ,@body)
-      `(vim:defcmd ,name (,@(when (and (equal type ''simple) count) `((count ,(pop args))))
-                          ,@(when (equal type ''complex) `((motion ,(pop args))))
-                          ,@(when arg `((argument ,(pop args)))))
-                   ,@body))))
-                                  
-;      `(progn
-;         (defun ,name ,args ,@body)
-;         (put 'type ',name ,type)
-;         (put 'argument ',name ,arg)
-;         (put 'repeatable ',name ,repeatable)
-;         (put 'count ',name ,count)
-;         (put 'keep-visual ',name ,keep-visual)))))
-
 
 (defmacro* vim:defcmd (name (&rest args) &rest body)
   (let ((count nil)
