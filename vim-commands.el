@@ -166,10 +166,11 @@
        (cond
         ((eq (vim:node-cmd vim:current-motion) 
              'vim:motion-fwd-word)
-         (let ((pos
+         (let* ((cnt (* (or vim:current-cmd-count 1)
+                        (or vim:current-motion-count 1)))
+                (pos
                 (save-excursion
-                  (dotimes (i (* (or vim:current-cmd-count 1)
-                                 (or vim:current-motion-count 1)))
+                  (dotimes (i cnt)
                     (while
                         (not
                          (or (and (looking-at (concat "[^[:space:]\r\n]"
@@ -178,21 +179,26 @@
                                                       "[^[:space:]\r\n" vim:word "]")))
                              (and (looking-at (concat "[^[:space:]\r\n" vim:word "]"
                                                       "[" vim:word "]")))))
+                      (forward-char))
+                    (when (< i (1- cnt))
                       (forward-char)))
                   (point))))
            (setq motion (vim:make-motion :begin (point) :end pos :type 'inclusive))))
         
         ((eq (vim:node-cmd vim:current-motion) 
              'vim:motion-fwd-WORD)
-         (let ((pos
-                (save-excursion
-                  (dotimes (i (* (or vim:current-cmd-count 1)
-                                 (or vim:current-motion-count 1)))
-                    (while
-                        (not (and (looking-at (concat "[^[:space:]\r\n]"
-                                                      "[[:space:]\r\n]"))))
-                      (forward-char)))
-                  (point))))
+         (let* ((cnt (* (or vim:current-cmd-count 1)
+                        (or vim:current-motion-count 1)))
+                (pos
+                 (save-excursion
+                   (dotimes (i cnt)
+                     (while
+                         (not (and (looking-at (concat "[^[:space:]\r\n]"
+                                                       "[[:space:]\r\n]"))))
+                       (forward-char))
+                     (when (< i (1- cnt))
+                       (forward-char)))
+                   (point))))
            (setq motion (vim:make-motion :begin (point) :end pos :type 'inclusive))))))
         
      (vim:cmd-delete :motion motion)

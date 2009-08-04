@@ -182,6 +182,7 @@
        ,doc
        ,@body))))
 
+
 (defmacro* vim:defspecial (name (param) &body body)
   `(progn
      (put 'type ',name 'special)
