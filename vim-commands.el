@@ -329,7 +329,7 @@
     (kill-new (concat (buffer-substring beg end) "\n") nil)))
 
 
-(defun vim:cmd-yank-rectangle (motion)
+(vim:defcmd vim:cmd-yank-rectangle (motion nonrepeatable)
   "Stores the rectangle defined by motion into the kill-ring."
   (unless (eq (vim:motion-type motion) 'block)
     (error "Motion must be of type block"))
