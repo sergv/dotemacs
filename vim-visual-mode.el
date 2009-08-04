@@ -445,7 +445,7 @@
      (setq vim:visual-last-insert-motion motion)
      (goto-line (car (vim:motion-begin motion)))
      (move-to-column (cdr (vim:motion-begin motion)) t)
-     (vim:cmd-insert 1)
+     (vim:cmd-insert :count 1)
      (add-hook 'vim:insert-mode-deactivate-hook
                'vim:insert-block-copies))
 
@@ -458,7 +458,7 @@
                             :end (vim:motion-end-row motion)
                             :type 'linewise))
      (goto-char (vim:motion-begin-pos motion))
-     (vim:cmd-Insert 1)
+     (vim:cmd-Insert :count 1)
      (add-hook 'vim:insert-mode-deactivate-hook
                'vim:insert-linewise-copies)))
 
@@ -480,7 +480,7 @@
                   begcol)
           (move-to-column begcol t)
           (vim:cmd-repeat)))
-      (vim:connect-undos vim:visual-last-insert-undo))))
+      (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
 (defun vim:insert-linewise-copies ()
@@ -493,7 +493,7 @@
       (dotimes (i (- endrow begrow))
         (goto-line (+ begrow i 1))
         (vim:cmd-repeat))
-      (vim:connect-undos vim:visual-last-insert-undo))))
+      (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
 (vim:defcmd vim:visual-append (motion nonrepeatable)
@@ -507,7 +507,7 @@
      (setq vim:visual-last-insert-motion motion)
      (goto-line (car (vim:motion-begin motion)))
      (move-to-column (cdr (vim:motion-end motion)) t)
-     (vim:cmd-append 1)
+     (vim:cmd-append :count 1)
      (add-hook 'vim:insert-mode-deactivate-hook
                'vim:append-block-copies))
 
@@ -520,7 +520,7 @@
                             :end (vim:motion-end-row motion)
                             :type 'linewise))
      (goto-char (vim:motion-begin-pos motion))
-     (vim:cmd-Append 1)
+     (vim:cmd-Append :count 1)
      (add-hook 'vim:insert-mode-deactivate-hook
                'vim:insert-linewise-copies)))
 
@@ -533,7 +533,6 @@
   (let ((begrow (car (vim:motion-begin vim:visual-last-insert-motion)))
         (endrow (car (vim:motion-end vim:visual-last-insert-motion)))
         (endcol (cdr (vim:motion-end vim:visual-last-insert-motion))))
-    (message "OK")
     (save-excursion
       (goto-line (1+ begrow))
       (dotimes (i (- endrow begrow))
@@ -541,7 +540,7 @@
         (move-to-column endcol t)
         (vim:cmd-repeat)
         (forward-line 1))
-      (vim:connect-undos vim:visual-last-insert-undo))))
+      (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
 (vim:defcmd vim:visual-exchange-point-and-mark (nonrepeatable keep-visual)
