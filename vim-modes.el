@@ -89,15 +89,22 @@
   "Returns t iff the character is printable."
   ;; TODO:  this is propably not very good
 
-  (if (and (integerp last-command-event)
-           (null (event-modifiers last-command-event)))
-      (let ((vim-local-mode nil))
-        (let ((binding (key-binding (vector last-command-event))))
+  (cond
+   ((and (vim:ESC-event-p last-command-event)
+         (or vim:current-motion-count
+             vim:current-cmd-count
+             (not (eq vim:current-node (vim:active-keymap)))))
+    (ding)
+    t)
+   ((and (integerp last-command-event)
+         (null (event-modifiers last-command-event)))
+    (let ((vim-local-mode nil))
+      (let ((binding (key-binding (vector last-command-event))))
         (if (eq binding 'self-insert-command)
             (progn
               (ding)
               t)
-          nil)))
-    nil))
+          nil))))
+   (t nil)))
            
       
