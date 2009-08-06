@@ -128,7 +128,7 @@
 (vim:nmap "C" "d$a")
 (vim:nmap "cc" 'vim:cmd-change-line)
 (vim:nmap "c" 'vim:cmd-change)
-(vim:nmap "s" "xi")
+(vim:nmap "s" 'vim:cmd-change-char)
 
 (vim:nmap "r" 'vim:cmd-replace-char)
 (vim:nmap "R" 'vim:cmd-replace)

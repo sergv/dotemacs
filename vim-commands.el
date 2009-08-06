@@ -225,6 +225,19 @@
       (vim:cmd-insert :count 1))))
 
 
+(vim:defcmd vim:cmd-change-char (count)
+  "Deletes the next count characters and goes to insert mode."
+  (let* ((pos (point))
+         (end (vim:motion-right :count count))
+         (motion (vim:make-motion :begin (point)
+                                  :end (1- end)
+                                  :type 'inclusive)))
+    (vim:cmd-delete :motion motion)
+    (if (< (point) pos)
+        (vim:cmd-append)
+      (vim:cmd-insert))))
+
+
 (vim:defcmd vim:cmd-replace-char (count (argument arg))
             :argument t
   "Replaces the next count characters with arg."
