@@ -386,21 +386,23 @@
   "Move the cursor to the next count'th occurrence of arg."
   (save-excursion
     (forward-char)
-    (unless (search-forward (char-to-string arg)
-                            nil t (or count 1))
-      (error (format "Can't find %c" arg)))
-    (setq vim:last-find (cons 'vim:motion-find arg))
-    (1- (point))))
+    (let ((case-fold-search nil))
+      (unless (search-forward (char-to-string arg)
+                              nil t (or count 1))
+        (error (format "Can't find %c" arg)))
+      (setq vim:last-find (cons 'vim:motion-find arg))
+      (1- (point)))))
 
 
 (vim:defmotion vim:motion-find-back (exclusive count (argument arg))
   "Move the cursor to the previous count'th occurrence of arg."
   (save-excursion
-    (unless (search-backward (char-to-string arg)
-                             nil t (or count 1))
-      (error (format "Can't find %c" arg)))
-    (setq vim:last-find (cons 'vim:motion-find-back arg))
-    (point)))
+    (let ((case-fold-search nil))
+      (unless (search-backward (char-to-string arg)
+                               nil t (or count 1))
+        (error (format "Can't find %c" arg)))
+      (setq vim:last-find (cons 'vim:motion-find-back arg))
+      (point))))
 
 
 (vim:defmotion vim:motion-find-to (inclusive count (argument arg))
