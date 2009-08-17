@@ -348,30 +348,45 @@
     (error "Motion must be of type block"))
   ;; TODO: yanking should not insert spaces or expand tabs.
   (let ((begrow (car (vim:motion-begin motion)))
-        (begcol (cdr (vim:motion-begin motion)))
-        (endrow (car (vim:motion-end motion)))
-        (endcol (cdr (vim:motion-end motion)))
-        (parts nil))
+	(begcol (cdr (vim:motion-begin motion)))
+	(endrow (car (vim:motion-end motion)))
+	(endcol (cdr (vim:motion-end motion)))
+	(parts nil))
     (goto-line endrow)
     (dotimes (i (1+ (- endrow begrow)))
-      (let ((beg (save-excursion (move-to-column begcol t) (point)))
-            (end (save-excursion (move-to-column (1+ endcol) t) (point))))
-        (setq parts (cons "\n" (cons (buffer-substring beg end) parts)))
+      (let ((beg (save-excursion (move-to-column begcol) (point)))
+            (end (save-excursion (move-to-column (1+ endcol)) (point))))
+        (push (cons (save-excursion (goto-char beg)
+                                    (- (current-column) begcol))
+                    (buffer-substring beg end))
+              parts)
         (forward-line -1)))
-    (kill-new (apply #'concat (cdr parts)) nil (list 'vim:yank-block-handler))
+    (kill-new " " nil (list 'vim:yank-block-handler
+                                                     (cons (- endcol begcol -1) parts)))
     (goto-line begrow)
     (move-to-column begcol)))
 
 
 (defun vim:yank-block-handler (text)
   "Inserts the current text as block."
-  (let ((parts (split-string text "\n"))
+  (let ((ncols (car text))
+        (parts (cdr text))
         (col (current-column)))
+    
     (dolist (part parts)
-      (insert part)
-      (forward-line 1)
-      (move-to-column col t))))
-                    
+      
+      (let* ((offset (car part))
+             (txt (cdr part))
+             (len (length txt)))
+        
+        (move-to-column col)
+        (unless (and (< (current-column) col)   ; nothing in this line
+                     (<= offset 0) (zerop len)) ; and nothing to insert
+          (move-to-column (+ col (max 0 offset)) t)
+          (insert txt)
+          (insert (make-string (- ncols len) ? )))
+        (forward-line 1)))))
+
 
 (vim:defcmd vim:cmd-paste-before (count)
   "Pastes the latest yanked text before the cursor position."
@@ -405,7 +420,7 @@
          (yhandler (get-text-property 0 'yank-handler txt)))
 
     (cond
-     (yhandler ; block or other string things
+     (yhandler ; block or other strange things
       (forward-char)
       (save-excursion (yank)))
 
