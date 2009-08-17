@@ -88,7 +88,8 @@
 (defun vim:visual-toggle-mode (type)
   "Switches to visual mode of certain type or deactivates the mode."
   (if (and (eq vim:active-mode vim:visual-mode)
-           (eq vim:visual-mode-type type))
+           (eq vim:visual-mode-type type)
+           (vim:toplevel-execution))
       (vim:visual-mode-exit)
     (vim:activate-visual type)))
   
