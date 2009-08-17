@@ -261,7 +261,7 @@
 (vim:vmap "x" 'vim:cmd-delete)
 
 (vim:vmap "c" 'vim:cmd-change)
-(vim:vmap "C" 'vim:cmd-change)
+(vim:vmap "C" "Vc")
 (vim:vmap "r" 'vim:cmd-replace-region)
 (vim:vmap "R" 'vim:cmd-change)
 (vim:vmap "s" 'vim:cmd-change)
