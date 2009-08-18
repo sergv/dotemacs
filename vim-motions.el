@@ -221,7 +221,7 @@
   "Move the cursor to the last non-blank charactor of the current line."
   (save-excursion
     (beginning-of-line)
-    (re-search-forward "[[:space:]]*$")
+    (re-search-forward "[ \t]*$")
     (max (line-beginning-position)
          (1- (match-beginning 0)))))
 
@@ -249,18 +249,18 @@
       (forward-char)
       (while
           (not
-           (or (and (looking-back "[[:space:]\r\n]")
-                    (looking-at "[^[:space:]\r\n]"))
+           (or (and (looking-back "[ \t\r\n]")
+                    (looking-at "[^ \t\r\n]"))
                (and (looking-back (concat "[" vim:word "]"))
-                    (looking-at (concat "[^[:space:]\r\n" vim:word "]")))
-               (and (looking-back (concat "[^[:space:]\r\n" vim:word "]"))
+                    (looking-at (concat "[^ \t\r\n" vim:word "]")))
+               (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
                     (looking-at (concat "[" vim:word "]")))
                (and (bolp) (eolp))))
         (forward-char)))
     ;; in operator-pending mode, if we reached the beginning of a new
     ;; line, go back to the end of the previous line
     (when (and (vim:operator-pending-p)
-               (looking-back "^[[:space:]]*")
+               (looking-back "^[ \t]*")
                (not (save-excursion
                       (forward-line -1)
                       (and (bolp) (eolp)))))
@@ -276,14 +276,14 @@
       (forward-char)
       (while
           (not
-           (or (and (looking-back "[[:space:]\r\n]")
-                    (looking-at "[^[:space:]\r\n]"))
+           (or (and (looking-back "[ \t\r\n]")
+                    (looking-at "[^ \t\r\n]"))
                (and (bolp) (eolp))))
         (forward-char)))
     ;; in operator-pending mode, if we reached the beginning of a new
     ;; line, go back to the end of the previous line
     (when (and (vim:operator-pending-p)
-               (looking-back "^[[:space:]]*")
+               (looking-back "^[ \t]*")
                (not (save-excursion
                       (forward-line -1)
                       (and (bolp) (eolp)))))
@@ -299,11 +299,11 @@
       (forward-char)
       (while
           (not
-           (or (and (looking-at (concat "[^[:space:]\r\n]"
-                                        "[[:space:]\r\n]")))
+           (or (and (looking-at (concat "[^ \t\r\n]"
+                                        "[ \t\r\n]")))
                (and (looking-at (concat "[" vim:word "]"
-                                        "[^[:space:]\r\n" vim:word "]")))
-               (and (looking-at (concat "[^[:space:]\r\n" vim:word "]"
+                                        "[^ \t\r\n" vim:word "]")))
+               (and (looking-at (concat "[^ \t\r\n" vim:word "]"
                                         "[" vim:word "]")))))
         (forward-char)))
     (point)))
@@ -315,8 +315,8 @@
     (dotimes (i (or count 1))
       (forward-char)
       (while
-          (not (and (looking-at (concat "[^[:space:]\r\n]"
-                                        "[[:space:]\r\n]"))))
+          (not (and (looking-at (concat "[^ \t\r\n]"
+                                        "[ \t\r\n]"))))
         (forward-char)))
     (point)))
   
@@ -328,11 +328,11 @@
       (backward-char)
       (while
           (not
-           (or (and (looking-back "[[:space:]\r\n]")
-                    (looking-at "[^[:space:]\r\n]"))
+           (or (and (looking-back "[ \t\r\n]")
+                    (looking-at "[^ \t\r\n]"))
                (and (looking-back (concat "[" vim:word "]"))
-                    (looking-at (concat "[^[:space:]\r\n" vim:word "]")))
-               (and (looking-back (concat "[^[:space:]\r\n" vim:word "]"))
+                    (looking-at (concat "[^ \t\r\n" vim:word "]")))
+               (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
                     (looking-at (concat "[" vim:word "]")))
                (and (bolp) (eolp))))
         (backward-char)))
@@ -346,8 +346,8 @@
       (backward-char)
       (while
           (not
-           (or (and (looking-back "[[:space:]\r\n]")
-                    (looking-at "[^[:space:]\r\n]"))
+           (or (and (looking-back "[ \t\r\n]")
+                    (looking-at "[^ \t\r\n]"))
                (and (bolp) (eolp))))
         (backward-char)))
     (point)))
@@ -360,11 +360,11 @@
       (backward-char)
       (while
           (not
-           (or (and (looking-at (concat "[^[:space:]\r\n]"
-                                        "[[:space:]\r\n]")))
+           (or (and (looking-at (concat "[^ \t\r\n]"
+                                        "[ \t\r\n]")))
                (and (looking-at (concat "[" vim:word "]"
-                                        "[^[:space:]\r\n" vim:word "]")))
-               (and (looking-at (concat "[^[:space:]\r\n" vim:word "]"
+                                        "[^ \t\r\n" vim:word "]")))
+               (and (looking-at (concat "[^ \t\r\n" vim:word "]"
                                         "[" vim:word "]")))))
         (backward-char)))
     (point)))
@@ -376,8 +376,8 @@
     (dotimes (i (or count 1))
       (backward-char)
       (while
-          (not (and (looking-at (concat "[^[:space:]\r\n]"
-                                        "[[:space:]\r\n]"))))
+          (not (and (looking-at (concat "[^ \t\r\n]"
+                                        "[ \t\r\n]"))))
         (backward-char)))
     (point)))
             

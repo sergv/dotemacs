@@ -173,11 +173,11 @@
                   (dotimes (i cnt)
                     (while
                         (not
-                         (or (and (looking-at (concat "[^[:space:]\r\n]"
-                                                      "[[:space:]\r\n]")))
+                         (or (and (looking-at (concat "[^ \t\r\n]"
+                                                      "[ \t\r\n]")))
                              (and (looking-at (concat "[" vim:word "]"
-                                                      "[^[:space:]\r\n" vim:word "]")))
-                             (and (looking-at (concat "[^[:space:]\r\n" vim:word "]"
+                                                      "[^ \t\r\n" vim:word "]")))
+                             (and (looking-at (concat "[^ \t\r\n" vim:word "]"
                                                       "[" vim:word "]")))))
                       (forward-char))
                     (when (< i (1- cnt))
@@ -193,8 +193,8 @@
                  (save-excursion
                    (dotimes (i cnt)
                      (while
-                         (not (and (looking-at (concat "[^[:space:]\r\n]"
-                                                       "[[:space:]\r\n]"))))
+                         (not (looking-at (concat "[^ \t\r\n]"
+                                                  "[ \t\r\n]")))
                        (forward-char))
                      (when (< i (1- cnt))
                        (forward-char)))
