@@ -33,13 +33,27 @@
   )
 
 
+(defun vim:normal-mode-exec-cmd (cmd count motion arg)
+  "Executes a command, updates repeat-information and clears the key-sequence."
+  (vim:default-mode-exec-cmd cmd count motion arg)
+  (when (vim:cmd-repeatable-p cmd)
+    (setq vim:repeat-events (vconcat (reverse vim:current-key-sequence))))
+  (vim:clear-key-sequence))
+
+
+(defun vim:normal-mode-exec-motion (motion)
+  "Executes a motion and clears the key-sequence."
+  (vim:default-mode-exec-motion motion)
+  (vim:clear-key-sequence))
+
+
 (defconst vim:normal-mode
   (vim:make-mode :name "Normal"
                  :id "N"
                  :activate #'vim:normal-mode-activate
                  :deactivate #'vim:normal-mode-deactivate
-                 :execute-command #'vim:default-mode-exec-cmd
-                 :execute-motion #'vim:default-mode-exec-motion
+                 :execute-command #'vim:normal-mode-exec-cmd
+                 :execute-motion #'vim:normal-mode-exec-motion
                  :keymap 'vim:normal-mode-keymap
                  :default-handler 'vim:default-default-handler))
 

@@ -27,7 +27,6 @@
   "Hooks called when insert-mode is activated.")
 
 (vim:deflocalvar vim:last-insert-undo nil)
-(vim:deflocalvar vim:current-insert-key-sequence nil)
 
 (defun vim:insert-active-p ()
   (if vim:last-insert-undo t nil))
@@ -36,7 +35,6 @@
   (message "-- INSERT --")
   (setq overwrite-mode nil)
   (setq cursor-type vim:insert-mode-cursor)
-  (setq vim:current-insert-key-sequence vim:current-key-sequence)
   (setq vim:last-insert-undo buffer-undo-list))
 
 (defun vim:insert-mode-deactivate ()
@@ -46,12 +44,16 @@
     (setq vim:last-insert-undo nil))
   
   (setq overwrite-mode nil)
-  (setq vim:repeat-events (vconcat (reverse vim:current-insert-key-sequence) [escape])))
+  ;; append the key-sequence during insert-mode to the repeat-events
+  ;; note that the key-sequence of the command just deactivated insert-mode
+  ;; is already part of vim:current-key-sequence
+  (setq vim:repeat-events (vconcat vim:repeat-events
+                                   (reverse vim:current-key-sequence)))
+  (vim:clear-key-sequence))
+
 
 (defun vim:insert-mode-default-handler ()
   "The default event handler of the insert mode."
-  (when (vim:toplevel-execution)
-    (push last-command-event vim:current-insert-key-sequence))
   nil)
 
 (vim:defcmd vim:insert-mode-exit ()

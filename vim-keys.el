@@ -25,9 +25,12 @@
   "The buffer the be made current at the end of key-handline.")
 
 (defun vim:reset-key-state ()
-  (setq vim:current-node (vim:active-keymap))
-  (when (vim:toplevel-execution)
-    (setq vim:current-key-sequence nil)))
+  "Resets the internal state to the start-state of the current key-map."
+  (setq vim:current-node (vim:active-keymap)))
+
+(defun vim:clear-key-sequence ()
+  "Clears the internal log of key-sequences."
+  (setq vim:current-key-sequence nil))
 
 (defun vim:input-key (key)
   "Appends the given key to the current command."
@@ -85,12 +88,13 @@
                     (set-buffer vim:new-buffer)))
 	      (error
 	       (vim:reset-key-state)
+               (vim:clear-key-sequence)
 	       (error err)))
 	    nil))
 
     (if (and vim:active-mode
-	     (vim:mode-default-handler vim:active-mode)
-	     (funcall (vim:mode-default-handler vim:active-mode)))
+             (vim:mode-default-handler vim:active-mode)
+             (funcall (vim:mode-default-handler vim:active-mode)))
         (vim:reset-key-state)
       (unwind-protect
           ;; TODO: should we send more than only the current event?

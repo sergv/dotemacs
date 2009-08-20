@@ -182,6 +182,47 @@
   (deactivate-mark))
 
 
+(defun vim:visual-mode-exec-cmd (cmd count motion arg)
+  "Called to execute a command is visual mode."
+  
+  ;; save the last region
+  (setq vim:visual-last-begin (cons (line-number-at-pos (mark t))
+                                    (save-excursion
+                                      (goto-char (mark t))
+                                      (current-column))))
+  (setq vim:visual-last-end (cons (line-number-at-pos (point))
+                                  (current-column)))
+
+  (if (vim:cmd-motion-p cmd)
+      (vim:normal-mode-exec-cmd cmd
+                                 count 
+                                 (vim:visual-current-motion)
+                                 arg)
+    (vim:normal-mode-exec-cmd cmd count motion arg))
+
+  ;; deactivate visual mode unless the command should keep it
+  (when (and (eq vim:active-mode vim:visual-mode)
+             (not (vim:cmd-keep-visual-p cmd)))
+    (vim:visual-mode-exit)))
+
+
+(defun vim:visual-mode-exec-motion (motion)
+  "Called to execute a motion in visual mode."
+  (vim:visual-adjust-region motion)
+  (vim:clear-key-sequence))
+
+
+(defconst vim:visual-mode
+  (vim:make-mode :name "Visual"
+                 :id "V"
+                 :activate #'vim:visual-mode-activate
+                 :deactivate #'vim:visual-mode-deactivate
+                 :execute-command #'vim:visual-mode-exec-cmd
+                 :execute-motion #'vim:visual-mode-exec-motion
+                 :keymap 'vim:visual-mode-keymap
+                 :default-handler 'vim:default-default-handler))
+
+
 (defun vim:visual-post-command ()
   (cond
    ((eq vim:active-mode vim:visual-mode)
@@ -399,43 +440,7 @@
     (vim:default-mode-exec-motion motion)))
 
 
-(defun vim:visual-mode-exec-cmd (cmd count motion arg)
-  "Called to execute a command is visual mode."
-  
-  ;; save the last region
-  (setq vim:visual-last-begin (cons (line-number-at-pos (mark t))
-                                    (save-excursion
-                                      (goto-char (mark t))
-                                      (current-column))))
-  (setq vim:visual-last-end (cons (line-number-at-pos (point))
-                                  (current-column)))
-
-  (if (vim:cmd-motion-p cmd)
-      (vim:default-mode-exec-cmd cmd
-                                 count 
-                                 (vim:visual-current-motion)
-                                 arg)
-    (vim:default-mode-exec-cmd cmd count motion arg))
-  (when (and (eq vim:active-mode vim:visual-mode)
-             (not (vim:cmd-keep-visual-p cmd)))
-    (vim:visual-mode-exit)))
-
-(defun vim:visual-mode-exec-motion (motion)
-  "Called to execute a motion in visual mode."
-  (vim:visual-adjust-region motion))
-
-(defconst vim:visual-mode
-  (vim:make-mode :name "Visual"
-                 :id "V"
-                 :activate #'vim:visual-mode-activate
-                 :deactivate #'vim:visual-mode-deactivate
-                 :execute-command #'vim:visual-mode-exec-cmd
-                 :execute-motion #'vim:visual-mode-exec-motion
-                 :keymap 'vim:visual-mode-keymap
-                 :default-handler 'vim:default-default-handler))
-
-
-(vim:defcmd vim:visual-insert (motion nonrepeatable)
+(vim:defcmd vim:visual-insert (motion)
   "Starts insertion at the left column of a visual region."
   
   (case vim:visual-mode-type
@@ -497,7 +502,7 @@
       (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
-(vim:defcmd vim:visual-append (motion nonrepeatable)
+(vim:defcmd vim:visual-append (motion)
   "Starts insertion at the right column of a visual block."
   
   (case vim:visual-mode-type

@@ -37,6 +37,7 @@
 (vim:deflocalvar vim:active-mode nil
    "The currently active mode.")
 
+
 (defun vim:activate-mode (mode)
   "Activates a mode."
   
@@ -60,24 +61,23 @@
 
 
 (defun vim:active-keymap ()
+  "Returns the keymap of the currently active mode."
   (if vim:active-mode
       (vim:mode-get-keymap vim:active-mode)
     nil))
     
+
 (defun vim:default-mode-exec-cmd (cmd count motion arg)
+  "Executes a command."
   (let ((parameters nil))
     (when (vim:cmd-count-p cmd) (push count parameters) (push :count parameters))
     (when (vim:cmd-motion-p cmd) (push motion parameters) (push :motion parameters))
     (when (vim:cmd-arg-p cmd) (push arg parameters) (push :argument parameters))
-    (vim:apply-save-buffer cmd parameters)
-                
-    (when (and vim:current-key-sequence
-               (vim:cmd-repeatable-p cmd)
-               (not executing-kbd-macro))
-      (setq vim:repeat-events
-            (vconcat (reverse vim:current-key-sequence))))))
+    (vim:apply-save-buffer cmd parameters)))
+
 
 (defun vim:default-mode-exec-motion (motion)
+  "Executes a motion."
   (if (eq (vim:motion-type motion) 'block)
       (progn
         (goto-line (car (vim:motion-end motion)))
@@ -89,13 +89,18 @@
   "Returns t iff the character is printable."
   ;; TODO:  this is propably not very good
 
+  ;; usually emacs commands cancel any recording of events
+  (vim:clear-key-sequence)
   (cond
+   ;; some unknown event during parsing
    ((and (vim:ESC-event-p last-command-event)
          (or vim:current-motion-count
              vim:current-cmd-count
              (not (eq vim:current-node (vim:active-keymap)))))
     (ding)
     t)
+   
+   ;; a non-printable command
    ((and (integerp last-command-event)
          (null (event-modifiers last-command-event)))
     (let ((vim-local-mode nil))
@@ -105,6 +110,7 @@
               (ding)
               t)
           nil))))
+   
    (t nil)))
            
       

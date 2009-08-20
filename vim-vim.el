@@ -288,6 +288,7 @@
 
 
 (defun vim:execute-command (node)
+  "Executes the command of node."
   (when vim:current-cmd
     (error "Unexpected command in operator-pending mode"))
   (vim:go-to-node node)
@@ -522,20 +523,16 @@
   (setq vim:current-node (or vim:current-cmd
                              (vim:active-keymap)))
 
-  (when (and vim:current-key-sequence
-             (vim:cmd-repeatable-p (vim:node-cmd node)))
-    (setq vim:repeat-events
-          (vconcat (reverse vim:current-key-sequence))))
-
-  (let ((vim:repeat-events nil)
-        (last-undo buffer-undo-list))
-      ;; replay the rhs-events
+  (let ((last-undo buffer-undo-list)
+        (start-in-insert-mode (vim:insert-active-p))
+        (vim:current-key-sequence nil))
+    
     (save-current-buffer
       (execute-kbd-macro (vim:node-cmd node))
       (setq vim:new-buffer (current-buffer)))
     ;; if the map ends in insert-mode, update the undo data
-    (if (vim:insert-active-p)
-        (setq vim:last-insert-undo last-undo))
-    (vim:connect-undos last-undo)))
-
+    (if (and (not start-in-insert-mode)
+             (vim:insert-active-p))
+        (setq vim:last-insert-undo last-undo)
+      (vim:connect-undos last-undo))))
 

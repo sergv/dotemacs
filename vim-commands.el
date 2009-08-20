@@ -579,8 +579,7 @@
   ;;(dotimes (i (or count 1))
     (let ((repeat-events vim:repeat-events)
           (vim:repeat-events nil))
-      (execute-kbd-macro repeat-events));)
-  (vim:reset-key-state))
+      (execute-kbd-macro repeat-events)))
 
 
 (vim:defcmd vim:cmd-emacs (nonrepeatable)
