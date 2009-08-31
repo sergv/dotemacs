@@ -117,7 +117,9 @@
   '(debugger-mode
     compilation-mode
     grep-mode
-    gud-mode)
+    gud-mode
+    sldb-mode
+    slime-repl-mode)
   "*List of major modes in which vim-mode should *NOT* be enabled."
   :type '(repeat symbol)
   :group 'vim-mode)
