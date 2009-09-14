@@ -380,6 +380,41 @@
                                         "[ \t\r\n]"))))
         (backward-char)))
     (point)))
+
+
+(vim:defmotion vim:motion-fwd-sentence (exclusive count)
+  "Move the cursor `count' sentences forward."
+  
+  (save-excursion
+    (re-search-forward "\\(?:[.!?][]\"')]*\\(?:[ \t\r]+\\|$\\)\n?\\|\\=[ \t\r]*\n\\(?:[ \t\r]*\n\\)*[ \t\r]*\\)"
+                       nil
+                       t
+                       (or count 1))
+    (point)))
+            
+
+(vim:defmotion vim:motion-bwd-sentence (exclusive count)
+  "Move the cursor `count' sentences forward."
+  
+  (save-excursion
+    (dotimes (i (or count 1))
+      (goto-char (max (save-excursion (backward-sentence 1) (point))
+                      (save-excursion (backward-paragraph 1) (point)))))
+    (point)))
+            
+
+(vim:defmotion vim:motion-fwd-paragraph (exclusive count)
+  "Move the cursor `count' paragraphs forward."
+  (save-excursion
+    (forward-paragraph (or count 1))
+    (point)))
+            
+
+(vim:defmotion vim:motion-bwd-paragraph (exclusive count)
+  "Move the cursor `count' paragraphs backward."
+  (save-excursion
+    (backward-paragraph (or count 1))
+    (point)))
             
 
 (vim:defmotion vim:motion-find (inclusive count (argument arg))
