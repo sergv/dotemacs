@@ -94,6 +94,20 @@
   (end-of-line)
   (vim:cmd-append :count count))
 
+(vim:defcmd vim:cmd-insert-line-above (count)
+  "Inserts a new line above the current one and goes to insert mode."
+  (goto-char (vim:motion-beginning-of-line))
+  (newline)
+  (forward-line -1)
+  (indent-according-to-mode)
+  (vim:cmd-Insert))
+
+(vim:defcmd vim:cmd-insert-line-below (count)
+  "Inserts a new line below the current one and goes to insert mode."
+  (goto-char (vim:motion-end-of-line))
+  (newline)
+  (indent-according-to-mode)
+  (vim:cmd-insert))
 
 
 (vim:defcmd vim:cmd-delete-line (count)

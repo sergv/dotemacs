@@ -157,8 +157,10 @@
 (vim:nmap "a" 'vim:cmd-append)
 (vim:nmap "I" 'vim:cmd-Insert)
 (vim:nmap "A" 'vim:cmd-Append)
-(vim:nmap "o" (kbd "A RET TAB"))
-(vim:nmap "O" (kbd "0 i RET <up> TAB"))
+;(vim:nmap "o" (kbd "A RET TAB"))
+(vim:nmap "o" 'vim:cmd-insert-line-below)
+;(vim:nmap "O" (kbd "0 i RET <up> TAB"))
+(vim:nmap "O" 'vim:cmd-insert-line-above)
 
 (vim:nmap "u" 'vim:cmd-undo)
 (vim:nmap (kbd "C-r") 'vim:cmd-redo)
