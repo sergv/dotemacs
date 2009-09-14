@@ -524,8 +524,8 @@
                              (vim:active-keymap)))
 
   (let ((last-undo buffer-undo-list)
-        (start-in-insert-mode (vim:insert-active-p))
-        (vim:current-key-sequence nil))
+        (start-in-insert-mode (vim:insert-active-p)))
+        ;(vim:current-key-sequence nil))
     
     (save-current-buffer
       (execute-kbd-macro (vim:node-cmd node))
