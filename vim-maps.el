@@ -125,7 +125,7 @@
 (vim:nmap "dd" 'vim:cmd-delete-line)
 (vim:nmap "d" 'vim:cmd-delete)
 
-(vim:nmap "C" "d$a")
+(vim:nmap "C" 'vim:cmd-change-rest-of-line)
 (vim:nmap "cc" 'vim:cmd-change-line)
 (vim:nmap "c" 'vim:cmd-change)
 (vim:nmap "s" 'vim:cmd-change-char)

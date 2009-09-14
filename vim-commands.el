@@ -239,6 +239,15 @@
       (vim:cmd-insert :count 1))))
 
 
+(vim:defcmd vim:cmd-change-rest-of-line ()
+  "Deletes the rest of the current line."
+  (vim:cmd-delete :motion (vim:make-motion :begin (point)
+                                           :end (1- (line-end-position))
+                                           :type 'inclusive))
+  (vim:cmd-append :count 1))
+                                
+
+
 (vim:defcmd vim:cmd-change-char (count)
   "Deletes the next count characters and goes to insert mode."
   (let* ((pos (point))
