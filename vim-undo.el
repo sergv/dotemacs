@@ -34,8 +34,8 @@
 (defun vim:connect-undos (last-undo)
   (labels
       ((find-mark (lst)
-                  (while (or (null lst)
-                             (eq lst last-undo))
+                  (while (not (or (null lst)
+                                  (eq lst last-undo)))
                     (setq lst (cdr lst)))
                   (not (null lst))))
                    
