@@ -237,8 +237,8 @@
 (vim:nmap "gv" 'vim:visual-mode-reactivate)
 
 
-(vim:imap [escape] 'vim:insert-mode-exit)
-(vim:imap (kbd "ESC") 'vim:insert-mode-exit)
+(vim:map [escape] 'vim:insert-mode-exit :keymap vim:insert-mode-ESC-keymap)
+(vim:map (kbd "ESC") 'vim:insert-mode-exit :keymap vim:insert-mode-ESC-keymap)
 (vim:imap [insert] 'vim:insert-mode-toggle-replace)
 (vim:imap [kp-insert] 'vim:insert-mode-toggle-replace)
 

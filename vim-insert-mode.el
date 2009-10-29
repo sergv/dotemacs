@@ -16,8 +16,10 @@
 (defcustom vim:insert-mode-replace-cursor 'hbar
   "Cursor for replace-mode.")
 
-(defconst vim:insert-mode-keymap (vim:make-keymap)
-  "VIM operator-pending-mode keymap.")
+(defconst vim:insert-mode-ESC-keymap (vim:make-keymap)
+  "VIM insert-mode keymap for the ESC-key.")
+(defconst vim:insert-mode-keymap (vim:make-keymap vim:insert-mode-ESC-keymap)
+  "VIM insert-mode keymap.")
 (defun vim:imap (keys command)
   "Defines a new insert-mode mapping."
   (vim:map keys command :keymap vim:insert-mode-keymap))

@@ -21,7 +21,8 @@
     (error "Expected Emacs-keymap"))
 
   (cond
-   ((commandp command) (define-key keymap keys command))
+   ((or (symbolp command) (commandp command))
+    (define-key keymap keys command))
    ((sequencep command)
     (lexical-let ((command command))
       (define-key keymap keys
