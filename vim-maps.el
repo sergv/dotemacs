@@ -240,6 +240,8 @@
 
 (vim:imap [escape] 'vim:insert-mode-exit)
 (vim:imap (kbd "ESC") 'vim:insert-mode-exit)
+(vim:imap [insert] 'vim:insert-mode-toggle-replace)
+(vim:imap [kp-insert] 'vim:insert-mode-toggle-replace)
 
 (vim:vmap [escape] 'vim:visual-mode-exit)
 (vim:vmap (kbd "ESC") 'vim:visual-mode-exit)

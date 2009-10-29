@@ -115,6 +115,11 @@ and switches to insert-mode."
   (indent-according-to-mode)
   (vim:cmd-insert))
 
+(vim:defcmd vim:cmd-replace (count)
+  "Goes to replace-mode."
+  (vim:activate-mode 'insert)
+  (vim:insert-mode-toggle-replace))
+
 (vim:defcmd vim:insert-mode-exit (nonrepeatable)
   "Deactivates insert-mode, returning to normal-mode."
   (vim:activate-mode 'normal)
@@ -291,11 +296,6 @@ and switches to insert-mode."
   (delete-region (point) (+ (point) (or count 1)))
   (insert-char arg (or count 1))
   (backward-char))
-
-
-(vim:defcmd vim:cmd-replace (count)
-  "Goes to replace-mode."
-  (vim:activate-mode vim:replace-mode))
 
 
 (vim:defcmd vim:cmd-replace-region (motion (argument arg))
