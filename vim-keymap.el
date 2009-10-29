@@ -30,6 +30,13 @@
 (defconst vim:override-keymap (make-keymap)
   "Global parent keymap to override some Emacs default bindings.")
 (suppress-keymap vim:override-keymap)
+(vim:map (kbd "ESC ESC ESC")
+         (lambda ()
+           "Exits any VIM mode and returns to normal-mode."
+           (interactive)
+           (vim:activate-normal-mode)
+           (ding))
+         :keymap vim:override-keymap)
 
 
 ;; TODO: This function is currently empty and serves only as hook for
