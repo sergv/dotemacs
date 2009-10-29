@@ -41,8 +41,6 @@
 
 (defun vim:operator-pending-mode-command (command)
   "Executes a complex command in operator-pending mode."
-  (message "O: %s" command)
-
   (unwind-protect
       (case (vim:cmd-type command)
         ('simple (error "No simple-commands allowed in operator-pending mode."))
@@ -68,24 +66,16 @@
 
 (defun vim:normal-mode-command (command)
   "Executes a motion or simple-command or prepares a complex command."
-  (message "N: %s" command)
-
   (case (vim:cmd-type command)
     ('simple (vim:execute-simple-command command))
     ('complex (vim:prepare-complex-command command))
     ('map (error "no mapping so far"))
     ('special (error "no special so far"))
-    (t (vim:execute-motion command)))
-
-  (when (and (memq (vim:cmd-type command) '(simple complex))
-             (vim:cmd-repeatable-p command))
-    (message "REP: %s" (this-command-keys))))
+    (t (vim:execute-motion command))))
 
 
 (defun vim:execute-motion (command)
   "Executes a motion."
-  (message "N: motion %s" command)
-
   (setq vim:current-motion command)
 
   (when current-prefix-arg
@@ -137,8 +127,6 @@
 
 (defun vim:prepare-complex-command (command)
   "Prepares a complex command, switching to operator-pending mode."
-  (message "N: complex %s" command)
-
   (when current-prefix-arg
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
   
@@ -148,8 +136,6 @@
 
 (defun vim:execute-complex-command (motion-command)
   "Executes a complex command with a certain motion command."
-  (message "O: complex %s %s" vim:current-cmd motion-command)
-  
   (setq vim:current-motion motion-command)
 
   (when current-prefix-arg

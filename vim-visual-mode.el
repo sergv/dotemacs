@@ -176,7 +176,6 @@
 (defun vim:visual-mode-deactivate ()
   "Called when visual mode is deactivated."
 
-  (message "DEACT")
   ;; hide the selection
   (vim:visual-hide-region)
   
@@ -192,8 +191,6 @@
 
 (defun vim:visual-mode-command (command)
   "Executes a command in visual mode."
-  (message "V: %s" command)
-  
   (case (vim:cmd-type command)
     ('simple (vim:visual-execute-command command))
     ('complex (vim:visual-execute-command command))

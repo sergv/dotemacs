@@ -215,7 +215,6 @@
 (defun vim:motion-beginning-of-line-or-digit-argument ()
   "Feeds a 0 count or moves the cursor to the beginning of the line."
   (interactive)
-  (message "C: %s" current-prefix-arg)
   (if (and current-prefix-arg
            (not (zerop (prefix-numeric-value current-prefix-arg))))
       (call-interactively 'digit-argument)
