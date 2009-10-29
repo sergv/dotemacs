@@ -148,8 +148,8 @@
 (vim:nmap "n" 'vim:search-repeat)
 (vim:nmap "N" 'vim:search-repeat-opposite)
 ;; The next two maps are very special for an active search.
-;(vim:map "n" 'vim:search-repeat :keymap vim:search-mode-keymap)
-;(vim:map "N" 'vim:search-repeat-opposite :keymap vim:search-mode-keymap)
+(vim:map "n" 'vim:search-repeat :keymap vim:search-mode-keymap)
+(vim:map "N" 'vim:search-repeat-opposite :keymap vim:search-mode-keymap)
 
 (vim:nmap "i" 'vim:cmd-insert)
 (vim:nmap "a" 'vim:cmd-append)

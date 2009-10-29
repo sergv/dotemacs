@@ -146,6 +146,7 @@
     (load "vim-scroll")
     (load "vim-window")
     (load "vim-undo")
+    (load "vim-search")
     (load "vim-maps"))
   
   (require 'vim-keymap)
