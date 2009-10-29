@@ -81,12 +81,12 @@
 
 (vim:defcmd vim:cmd-insert (count)
   "Switches to insert-mode before point."
-  (vim:activate-mode 'insert))
+  (vim:activate-insert-mode))
 
 (vim:defcmd vim:cmd-append (count)
   "Switches to insert-mode after point."
   (unless (eolp) (forward-char))
-  (vim:activate-mode 'insert))
+  (vim:activate-insert-mode))
 
 (vim:defcmd vim:cmd-Insert (count)
   "Moves the cursor to the beginning of the current line
@@ -117,12 +117,12 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-replace (count)
   "Goes to replace-mode."
-  (vim:activate-mode 'insert)
+  (vim:activate-insert-mode)
   (vim:insert-mode-toggle-replace))
 
 (vim:defcmd vim:insert-mode-exit (nonrepeatable)
   "Deactivates insert-mode, returning to normal-mode."
-  (vim:activate-mode 'normal)
+  (vim:activate-normal-mode)
   (goto-char (max (line-beginning-position) (1- (point)))))
 
 

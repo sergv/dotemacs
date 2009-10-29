@@ -90,7 +90,7 @@
   (setq vim:visual-mode-type type)
   (if (vim:visual-mode-p)
       (vim:visual-highlight-region)
-    (vim:activate-mode 'visual)))
+    (vim:activate-visual-mode)))
 
 (defun vim:visual-toggle-mode (type)
   "Switches to visual mode of certain type or deactivates the mode."
@@ -118,7 +118,7 @@
 
 (vim:defcmd vim:visual-mode-exit (nonrepeatable)
   "Deactivates visual mode, returning to normal-mode."
-  (vim:activate-mode 'normal))
+  (vim:activate-normal-mode))
 
 
 (vim:defcmd vim:visual-mode-reactivate (nonrepeatable)

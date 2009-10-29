@@ -51,6 +51,7 @@ a `keymap' and a `command-function' to be called when a vim-command should
 be executed."
   (let* ((mode-name (vim:mode-name name))
          (pred-name (intern (concat (symbol-name mode-name) "-p")))
+         (on-name (intern (concat "vim:activate-" (symbol-name name) "-mode")))
          (cursor-name (intern (concat (symbol-name mode-name)
                                       "-cursor"))))
     `(progn
@@ -77,4 +78,8 @@ be executed."
 
        (defun ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol-name name) " mode.")
-         (and ,mode-name t)))))
+         (and ,mode-name t))
+       (defun ,on-name ()
+         ,(concat "Activates " (symbol-name name) " mode.")
+         (interactive)
+         (vim:activate-mode ',name)))))

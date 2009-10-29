@@ -28,7 +28,7 @@
   (isearch-exit))
 
 (vim:defcmd vim:search-mode-exit ()
-  (vim:activate-mode 'normal)
+  (vim:activate-normal-mode)
   (push last-command-event unread-command-events))
 
 ;; Search mode is a very special mode being activated during a search
@@ -50,7 +50,7 @@
 (vim:defcmd vim:search-start (nonrepeatable)
   "Starts an incremental regexp search."
   (unless (vim:search-mode-p)
-    (vim:activate-mode 'search))
+    (vim:activate-search-mode))
   (setq vim:last-search-direction 'forward)
   (isearch-forward t))
 
@@ -58,7 +58,7 @@
 (vim:defcmd vim:search-start-backward (nonrepeatable)
   "Starts an incremental regexp search."
   (unless (vim:search-mode-p)
-    (vim:activate-mode 'search))
+    (vim:activate-search-mode))
   (setq vim:last-search-direction 'backward)
   (isearch-backward t))
 
@@ -66,14 +66,14 @@
 (vim:defcmd vim:search-repeat (nonrepeatable)
   "Repeats the last incremental search."
   (unless (vim:search-mode-p)
-    (vim:activate-mode 'search))
+    (vim:activate-search-mode))
   (isearch-repeat vim:last-search-direction))
 
 
 (vim:defcmd vim:search-repeat-opposite (nonrepeatable)
   "Starts an incremental regexp search."
   (unless (vim:search-mode-p)
-    (vim:activate-mode 'search))
+    (vim:activate-search-mode))
   (isearch-repeat (case vim:last-search-direction
 		    ('forward 'backward)
 		    (t 'forward))))

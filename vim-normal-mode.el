@@ -42,7 +42,7 @@
         (t (vim:execute-complex-command command)))
     
     (when (vim:operator-pending-mode-p)
-      (vim:activate-mode 'normal))))
+      (vim:activate-normal-mode))))
 
 
 (defconst vim:normal-mode-keymap (vim:make-keymap vim:operator-pending-mode-keymap)
@@ -123,7 +123,7 @@
   
   (setq vim:current-cmd command)
   (setq vim:current-key-sequence (vconcat vim:current-key-sequence (this-command-keys)))
-  (vim:activate-mode 'operator-pending))
+  (vim:activate-operator-pending-mode))
 
 (defun vim:execute-complex-command (motion-command)
   "Executes a complex command with a certain motion command."

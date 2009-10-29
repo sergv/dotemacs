@@ -184,7 +184,7 @@
                    (member major-mode vim:whitelist)))
       (setq vim:active-mode nil)
       (vim-local-mode 1)
-      (vim:activate-mode 'normal)
+      (vim:activate-normal-mode)
       (unless (memq 'vim:mode-string global-mode-string)
         (setq global-mode-string
               (append '("" vim:mode-string) (cdr global-mode-string)))))))
