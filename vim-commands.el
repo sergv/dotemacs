@@ -457,39 +457,40 @@ and switches to insert-mode."
   "Pastes the latest yanked text behind point."
   (unless kill-ring-yank-pointer
     (error "kill-ring empty"))
-  
-  (let* ((txt (car kill-ring-yank-pointer))
-         (yhandler (get-text-property 0 'yank-handler txt)))
 
-    (cond
-     (yhandler ; block or other strange things
-      (forward-char)
-      (save-excursion (yank)))
+  (if (= (point) (point-max))
+      (vim:cmd-paste-before :count count)
+    (let* ((txt (car kill-ring-yank-pointer))
+           (yhandler (get-text-property 0 'yank-handler txt)))
 
-     ((= (elt txt (1- (length txt))) ?\n) ; linewise
-      (let ((last-line (= (line-end-position) (point-max))))
-        (if last-line
-            (progn
-              (end-of-line)
-              (newline))
-          (forward-line))
-        (beginning-of-line)
-        (save-excursion
-          (dotimes (i (or count 1))
-            (yank))
-          (when last-line
-            ;; remove the last newline
-            (let ((del-pos (point)))
-              (forward-line -1)
-              (end-of-line)
-              (delete-region (point) del-pos))))))
+      (cond
+       (yhandler                       ; block or other strange things
+        (forward-char)
+        (save-excursion (yank)))
 
-     (t ; normal
-      (forward-char)
-      (dotimes (i (or count 1))
-        (yank))
-      (backward-char)))))
+       ((= (elt txt (1- (length txt))) ?\n) ; linewise
+        (let ((last-line (= (line-end-position) (point-max))))
+          (if last-line
+              (progn
+                (end-of-line)
+                (newline))
+            (forward-line))
+          (beginning-of-line)
+          (save-excursion
+            (dotimes (i (or count 1))
+              (yank))
+            (when last-line
+              ;; remove the last newline
+              (let ((del-pos (point)))
+                (forward-line -1)
+                (end-of-line)
+                (delete-region (point) del-pos))))))
 
+       (t                               ; normal
+        (forward-char)
+        (dotimes (i (or count 1))
+          (yank))
+        (backward-char))))))
 
 (vim:defcmd vim:cmd-join-lines (count)
   "Join `count' lines with a minimum of two lines."
