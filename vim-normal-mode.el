@@ -78,7 +78,7 @@
     (setq vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
 
   (when (vim:cmd-arg-p command)
-    (setq vim:current-motion-arg (read-char)))
+    (setq vim:current-motion-arg (read-char-exclusive)))
 
   (unwind-protect
       (let ((motion (vim:get-current-motion)))
@@ -99,7 +99,7 @@
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
   
   (when (vim:cmd-arg-p command)
-    (setq vim:current-cmd-arg (read-char)))
+    (setq vim:current-cmd-arg (read-char-exclusive)))
 
   (unwind-protect
       (let ((parameters nil)
@@ -143,7 +143,7 @@
     (setq vim:current-cmd-count nil))
 
   (when (vim:cmd-arg-p motion-command)
-    (setq vim:current-motion-arg (read-char)))
+    (setq vim:current-motion-arg (read-char-exclusive)))
 
   (unwind-protect
       (let ((vim:last-undo buffer-undo-list))

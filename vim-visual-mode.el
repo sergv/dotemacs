@@ -222,7 +222,7 @@
             (if (vim:cmd-arg-p command)
                 (vim:funcall-save-buffer (vim:cmd-function command)
                                          :motion (vim:visual-current-motion)
-                                         :argument (read-char))
+                                         :argument (read-char-exclusive))
               (vim:funcall-save-buffer (vim:cmd-function command)
                                        :motion (vim:visual-current-motion)))
             (when (vim:cmd-repeatable-p command)
@@ -249,7 +249,7 @@
     (setq vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
 
   (when (vim:cmd-arg-p command)
-    (setq vim:current-motion-arg (read-char)))
+    (setq vim:current-motion-arg (read-char-exclusive)))
 
   (unwind-protect
      (vim:visual-adjust-region (vim:get-current-motion)) 
