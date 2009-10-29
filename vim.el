@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009 Frank Fischer
 ;; 
-;; Version: 0.0.1
+;; Version: 0.2.0
 ;; Keywords: emulations
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
@@ -119,25 +119,27 @@
     grep-mode
     gud-mode
     sldb-mode
-    slime-repl-mode)
+    slime-repl-mode
+    reftex-select-bib-mode
+    )
   "*List of major modes in which vim-mode should *NOT* be enabled."
   :type '(repeat symbol)
   :group 'vim-mode)
 
 
 (defmacro vim:deflocalvar (name &rest args)
+  "Defines a buffer-local variable."
   `(progn
      (defvar ,name ,@args)
      (make-variable-buffer-local ',name)))
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
   (eval-when-compile
-    (load "vim-node")
-    (load "vim-vim")
-    (load "vim-keys")
+    (load "vim-keymap")
     (load "vim-modes")
-    (load "vim-insert-mode")
+    (load "vim-vim")
     (load "vim-normal-mode")
+    (load "vim-insert-mode")
     (load "vim-visual-mode")
     (load "vim-commands")
     (load "vim-motions")
@@ -145,13 +147,12 @@
     (load "vim-window")
     (load "vim-undo")
     (load "vim-maps"))
-
-  (require 'vim-node)
-  (require 'vim-vim)
-  (require 'vim-keys)
+  
+  (require 'vim-keymap)
   (require 'vim-modes)
-  (require 'vim-insert-mode)
+  (require 'vim-vim)
   (require 'vim-normal-mode)
+  (require 'vim-insert-mode)
   (require 'vim-visual-mode)
   (require 'vim-commands)
   (require 'vim-motions)
@@ -161,33 +162,18 @@
   (require 'vim-maps))
 
 
-(defconst vim:mode-map (list 'keymap (cons t 'vim:handle-key)))
 (define-minor-mode vim-local-mode
   "VIM emulation mode."
   :lighter " VIM"
   :init-value nil
   :global nil
-  :keymap vim:mode-map
-
+  
   (unless vim-local-mode
     (setq global-mode-string
-          (delq 'vim:mode-string global-mode-string ))))
-
+          (delq 'vim:mode-string global-mode-string ))
+    (vim:activate-mode nil)))
+    
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
-
-
-(vim:deflocalvar vim:mode-string)
-
-(defun vim:update-mode-line ()
-  "Updates the mode-line to show the current active VIM-mode."
-  (setq vim:mode-string
-        (concat "<"
-                (or (and vim:active-mode
-                         (vim:mode-id vim:active-mode))
-                    "VIM")
-                ">"))
-  (force-mode-line-update))
-
 
 (defun vim:initialize ()
   (unless (minibufferp)
@@ -195,10 +181,9 @@
                    (not (member major-mode vim:blacklist)))
               (and vim:whitelist
                    (member major-mode vim:whitelist)))
+      (setq vim:active-mode nil)
       (vim-local-mode 1)
-      (vim:reset-key-state)
-      (vim:activate-mode vim:normal-mode)
+      (vim:activate-mode 'normal)
       (unless (memq 'vim:mode-string global-mode-string)
         (setq global-mode-string
               (append '("" vim:mode-string) (cdr global-mode-string)))))))
-

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009 Frank Fischer
 ;; 
-;; Version: 0.0.1
+;; Version: 0.2.0
 ;; Keywords: emulations
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
@@ -27,12 +27,19 @@
   :type 'face
   :group 'vim-mode)
 
-(defcustom vim:visual-mode-cursor 'hollow
-  "The cursor-type for visual-mode."
-  :group 'vim-mode)
+(defconst vim:visual-mode-keymap (vim:make-keymap vim:operator-pending-mode-keymap)
+  "VIM visual-mode keymap.")
+(defun vim:vmap (keys command)
+  "Defines a new visual-mode mapping."
+  (vim:map keys command :keymap vim:visual-mode-keymap))
 
-(defconst vim:visual-mode-keymap
-  (vim:make-node :next-keymap vim:motion-keymap))
+(vim:define-mode visual "VIM visual mode"
+                 :ident "V"
+                 :keymap vim:visual-mode-keymap
+                 :command-function 'vim:visual-mode-command
+                 :cursor 'hollow
+                 :activate 'vim:visual-mode-activate
+                 :deactivate 'vim:visual-mode-deactivate)
 
 (vim:deflocalvar vim:visual-mode-type 'normal
   "Type of visual mode, should be 'normal, 'linewise or 'block.")
@@ -81,18 +88,18 @@
 (defun vim:activate-visual (type)
   "Activates visual-mode with certain type."
   (setq vim:visual-mode-type type)
-  (if (eq vim:active-mode vim:visual-mode)
+  (if (vim:visual-mode-p)
       (vim:visual-highlight-region)
-    (vim:activate-mode vim:visual-mode)))
+    (vim:activate-mode 'visual)))
 
 (defun vim:visual-toggle-mode (type)
   "Switches to visual mode of certain type or deactivates the mode."
-  (if (and (eq vim:active-mode vim:visual-mode)
+  (if (and (vim:visual-mode-p)
            (eq vim:visual-mode-type type)
            (vim:toplevel-execution))
       (vim:visual-mode-exit)
     (vim:activate-visual type)))
-  
+
 
 (vim:defcmd vim:visual-toggle-normal (nonrepeatable keep-visual)
     "Switches to normal visual-mode or deactivates it."
@@ -110,8 +117,8 @@
 
 
 (vim:defcmd vim:visual-mode-exit (nonrepeatable)
-  "Deactivates visual mode."
-  (vim:activate-mode vim:normal-mode))
+  "Deactivates visual mode, returning to normal-mode."
+  (vim:activate-mode 'normal))
 
 
 (vim:defcmd vim:visual-mode-reactivate (nonrepeatable)
@@ -169,6 +176,7 @@
 (defun vim:visual-mode-deactivate ()
   "Called when visual mode is deactivated."
 
+  (message "DEACT")
   ;; hide the selection
   (vim:visual-hide-region)
   
@@ -182,7 +190,19 @@
   (deactivate-mark))
 
 
-(defun vim:visual-mode-exec-cmd (cmd count motion arg)
+(defun vim:visual-mode-command (command)
+  "Executes a command in visual mode."
+  (message "V: %s" command)
+  
+  (case (vim:cmd-type command)
+    ('simple (vim:visual-execute-command command))
+    ('complex (vim:visual-execute-command command))
+    ('map (error "no mapping so far"))
+    ('special (error "no special so far"))
+    (t (vim:visual-execute-motion command))))
+
+
+(defun vim:visual-execute-command (command)
   "Called to execute a command is visual mode."
   
   ;; save the last region
@@ -193,39 +213,52 @@
   (setq vim:visual-last-end (cons (line-number-at-pos (point))
                                   (current-column)))
 
-  (if (vim:cmd-motion-p cmd)
-      (vim:normal-mode-exec-cmd cmd
-                                 count 
-                                 (vim:visual-current-motion)
-                                 arg)
-    (vim:normal-mode-exec-cmd cmd count motion arg))
+  (if (vim:cmd-motion-p command)
+      (unwind-protect
+          (let ((vim:last-undo buffer-undo-list))
+            (if (vim:cmd-arg-p command)
+                (vim:funcall-save-buffer (vim:cmd-function command)
+                                         :motion (vim:visual-current-motion)
+                                         :argument (read-char))
+              (vim:funcall-save-buffer (vim:cmd-function command)
+                                       :motion (vim:visual-current-motion)))
+            (when (vim:cmd-repeatable-p command)
+              (setq vim:repeat-events (vconcat vim:current-key-sequence)))
+
+            (vim:connect-undos vim:last-undo))
+        (vim:reset-key-state)
+        (vim:clear-key-sequence)
+        (vim:adjust-point))
+    (vim:execute-simple-command command))
 
   ;; deactivate visual mode unless the command should keep it
-  (when (and (eq vim:active-mode vim:visual-mode)
-             (not (vim:cmd-keep-visual-p cmd)))
+  (when (and vim:visual-mode
+             (not (vim:cmd-keep-visual-p command)))
     (vim:visual-mode-exit)))
+  
 
-
-(defun vim:visual-mode-exec-motion (motion)
+(defun vim:visual-execute-motion (command)
   "Called to execute a motion in visual mode."
-  (vim:visual-adjust-region motion)
-  (vim:clear-key-sequence))
+  
+  (setq vim:current-motion command)
 
+  (when current-prefix-arg
+    (setq vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
 
-(defconst vim:visual-mode
-  (vim:make-mode :name "Visual"
-                 :id "V"
-                 :activate #'vim:visual-mode-activate
-                 :deactivate #'vim:visual-mode-deactivate
-                 :execute-command #'vim:visual-mode-exec-cmd
-                 :execute-motion #'vim:visual-mode-exec-motion
-                 :keymap 'vim:visual-mode-keymap
-                 :default-handler 'vim:default-default-handler))
+  (when (vim:cmd-arg-p command)
+    (setq vim:current-motion-arg (read-char)))
 
+  (unwind-protect
+     (vim:visual-adjust-region (vim:get-current-motion)) 
+    
+    (vim:adjust-point)
+    (vim:clear-key-sequence)
+    (vim:reset-key-state)))
+  
 
 (defun vim:visual-post-command ()
   (cond
-   ((eq vim:active-mode vim:visual-mode)
+   ((vim:visual-mode-p)
     (if (memq this-command vim:visual-deactivate-mark-commands)
         (condition-case nil
             (vim:visual-mode-exit)
@@ -437,43 +470,48 @@
           (goto-char (if (< (point) (mark t))
                          (vim:motion-begin-pos motion)
                        (vim:motion-end-pos motion)))))
-    (vim:default-mode-exec-motion motion)))
 
+    (progn
+      (if (eq (vim:motion-type motion) 'block)
+          (progn
+            (goto-line (car (vim:motion-end motion)))
+            (move-to-column (cdr (vim:motion-end motion))))
+        (goto-char (vim:motion-end motion))))))
+      
 
 (vim:defcmd vim:visual-insert (motion)
   "Starts insertion at the left column of a visual region."
   
   (case vim:visual-mode-type
     ('block
-     ;; TODO: ensure the right command is run on repeation.
+     ;; TODO: ensure the right command is run on repetition.
      ;; this is really a dirty hack
-     (setq vim:current-key-sequence (list ?i))
+     (setq vim:current-key-sequence "i")
      (setq vim:visual-last-insert-motion motion)
      (goto-line (car (vim:motion-begin motion)))
      (move-to-column (cdr (vim:motion-begin motion)) t)
      (vim:cmd-insert :count 1)
-     (add-hook 'vim:insert-mode-deactivate-hook
+     (add-hook 'vim:normal-mode-on-hook
                'vim:insert-block-copies))
 
     ('linewise
-     ;; TODO: ensure the right command is run on repeation.
+     ;; TODO: ensure the right command is run on repetition.
      ;; this is really a dirty hack
-     (setq vim:current-key-sequence (list ?I))
+     (setq vim:current-key-sequence "I")
      (setq vim:visual-last-insert-motion
            (vim:make-motion :begin (vim:motion-begin-row motion)
                             :end (vim:motion-end-row motion)
                             :type 'linewise))
      (goto-char (vim:motion-begin-pos motion))
      (vim:cmd-Insert :count 1)
-     (add-hook 'vim:insert-mode-deactivate-hook
+     (add-hook 'vim:normal-mode-on-hook
                'vim:insert-linewise-copies)))
 
   (setq vim:visual-last-insert-undo vim:last-insert-undo))
 
-
 (defun vim:insert-block-copies ()
   "Called to repeat the last block-insert."
-  (remove-hook 'vim:insert-mode-deactivate-hook 'vim:insert-block-copies)
+  (remove-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies)
   (let ((begrow (car (vim:motion-begin vim:visual-last-insert-motion)))
         (begcol (cdr (vim:motion-begin vim:visual-last-insert-motion)))
         (endrow (car (vim:motion-end vim:visual-last-insert-motion))))
@@ -491,7 +529,7 @@
 
 (defun vim:insert-linewise-copies ()
   "Called to repeat the last linewise-insert."
-  (remove-hook 'vim:insert-mode-deactivate-hook 'vim:insert-linewise-copies)
+  (remove-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies)
   (let ((begrow (vim:motion-begin-row vim:visual-last-insert-motion))
         (endrow (vim:motion-end-row vim:visual-last-insert-motion)))
     (save-excursion
@@ -509,25 +547,25 @@
     ('block
      ;; TODO: ensure the right command is run on repeation.
      ;; this is really a dirty hack
-     (setq vim:current-key-sequence (list ?a))
+     (setq vim:current-key-sequence "a")
      (setq vim:visual-last-insert-motion motion)
      (goto-line (car (vim:motion-begin motion)))
      (move-to-column (cdr (vim:motion-end motion)) t)
      (vim:cmd-append :count 1)
-     (add-hook 'vim:insert-mode-deactivate-hook
+     (add-hook 'vim:normal-mode-on-hook
                'vim:append-block-copies))
 
     ('linewise
      ;; TODO: ensure the right command is run on repeation.
      ;; this is really a dirty hack
-     (setq vim:current-key-sequence (list ?A))
+     (setq vim:current-key-sequence "A")
      (setq vim:visual-last-insert-motion
            (vim:make-motion :begin (vim:motion-begin-row motion)
                             :end (vim:motion-end-row motion)
                             :type 'linewise))
      (goto-char (vim:motion-begin-pos motion))
      (vim:cmd-Append :count 1)
-     (add-hook 'vim:insert-mode-deactivate-hook
+     (add-hook 'vim:normal-mode-on-hook
                'vim:insert-linewise-copies)))
 
   (setq vim:visual-last-insert-undo vim:last-insert-undo))
@@ -535,7 +573,7 @@
 
 (defun vim:append-block-copies ()
   "Called to repeat the last block-insert."
-  (remove-hook 'vim:insert-mode-deactivate-hook 'vim:append-block-copies)
+  (remove-hook 'vim:normal-mode-on-hook 'vim:append-block-copies)
   (let ((begrow (car (vim:motion-begin vim:visual-last-insert-motion)))
         (endrow (car (vim:motion-end vim:visual-last-insert-motion)))
         (endcol (cdr (vim:motion-end vim:visual-last-insert-motion))))

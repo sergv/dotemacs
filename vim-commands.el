@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009 Frank Fischer
 ;; 
-;; Version: 0.0.1
+;; Version: 0.2.0
 ;; Keywords: emulations
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
@@ -17,10 +17,10 @@
 ;; D, p, x.
 ;;
 ;; An operation based on motions should always respect the motion
-;; type, i.e. if the motion is character-wise, line-wise or block-wise
-;; not.  Motions passed to commands will always be inclusive (and
-;; never exlusive).  For example, the command dG has a line-wise motion
-;; argument and should delete whole lines.
+;; type, i.e. if the motion is character-wise, line-wise or
+;; block-wise. Motions passed to commands will always be inclusive
+;; (and never exlusive). For example, the command dG has a line-wise
+;; motion argument and should delete whole lines.
 ;;
 ;; Motions are passed via the vim:motion structure.  The
 ;; representation of the start and end-positions depends on the
@@ -80,17 +80,23 @@
   :group 'vim-mode)
 
 (vim:defcmd vim:cmd-insert (count)
-  (vim:activate-mode vim:insert-mode))
+  "Switches to insert-mode before point."
+  (vim:activate-mode 'insert))
 
 (vim:defcmd vim:cmd-append (count)
+  "Switches to insert-mode after point."
   (unless (eolp) (forward-char))
-  (vim:activate-mode vim:insert-mode))
+  (vim:activate-mode 'insert))
 
 (vim:defcmd vim:cmd-Insert (count)
+  "Moves the cursor to the beginning of the current line
+and switches to insert-mode."
   (goto-char (vim:motion-first-non-blank))
   (vim:cmd-insert :count count))
 
 (vim:defcmd vim:cmd-Append (count)
+  "Moves the cursor to the end of the current line
+and switches to insert-mode."
   (end-of-line)
   (vim:cmd-append :count count))
 
@@ -108,6 +114,11 @@
   (newline)
   (indent-according-to-mode)
   (vim:cmd-insert))
+
+(vim:defcmd vim:insert-mode-exit (nonrepeatable)
+  "Deactivates insert-mode, returning to normal-mode."
+  (vim:activate-mode 'normal)
+  (goto-char (max (line-beginning-position) (1- (point)))))
 
 
 (vim:defcmd vim:cmd-delete-line (count)
@@ -158,6 +169,16 @@
       (goto-char (vim:motion-begin motion)))))
 
 
+(vim:defcmd vim:cmd-delete-char (count)
+  "Deletes the next count characters."
+  (let* ((pos (point))
+         (end (vim:motion-right :count count))
+         (motion (vim:make-motion :begin (point)
+                                  :end (1- end)
+                                  :type 'inclusive)))
+    (vim:cmd-delete :motion motion)))
+
+
 (vim:defcmd vim:cmd-change (motion)
   "Deletes the characters defined by motion and goes to insert mode."
   (case (vim:motion-type motion)
@@ -178,8 +199,7 @@
      (when (and vim:current-motion
                 (not (member (char-after) '(?  ?\r ?\n ?\t))))
        (cond
-        ((eq (vim:node-cmd vim:current-motion) 
-             'vim:motion-fwd-word)
+        ((eq vim:current-motion 'vim:motion-fwd-word)
          (let* ((cnt (* (or vim:current-cmd-count 1)
                         (or vim:current-motion-count 1)))
                 (pos
@@ -199,8 +219,7 @@
                   (point))))
            (setq motion (vim:make-motion :begin (point) :end pos :type 'inclusive))))
         
-        ((eq (vim:node-cmd vim:current-motion) 
-             'vim:motion-fwd-WORD)
+        ((eq vim:current-motion 'vim:motion-fwd-WORD)
          (let* ((cnt (* (or vim:current-cmd-count 1)
                         (or vim:current-motion-count 1)))
                 (pos

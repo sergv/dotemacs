@@ -59,7 +59,7 @@
 (vim:deflocalvar vim:last-find nil
   "The previous find command (command . arg).")
 
-(defcustom vim:word "0-9a-zA-Z_"
+(defcustom vim:word "0-9[:alpha:]_"
   "Regexp-set matching a word."
   :type 'string
   :group 'vim-mode)
@@ -67,13 +67,13 @@
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
   ;; TODO: should we check modes directly?
-  (when (and (not (eq vim:active-mode vim:insert-mode))
-             (not (eq vim:active-mode vim:replace-mode)))
+  (when (and (not (vim:insert-mode-p))
+             );(not vim:replace-mode))
              
     (when vim:this-column
       (move-to-column vim:this-column))
     ;; always stop at the last character (not the newline)
-    (when (and (not (eq vim:active-mode vim:visual-mode))
+    (when (and (not (vim:visual-mode-p))
                (eolp) (not (bolp)))
       (backward-char)))
   
@@ -161,7 +161,8 @@
   (case (vim:motion-type motion)
     ('linewise (save-excursion
                  (goto-line (vim:motion-end motion))
-                 (line-end-position)))
+                 (max (line-beginning-position)
+                      (1- (line-end-position)))))
     ('block (save-excursion
               (goto-line (car (vim:motion-end motion)))
               (move-to-column (cdr (vim:motion-end motion)))
@@ -202,6 +203,24 @@
   (save-excursion
     (forward-line (or count 1))
     (point)))
+
+(vim:defmotion vim:motion-lines (linewise count)
+  "Moves count - 1 lines down."
+  (vim:use-last-column)
+  (save-excursion
+    (forward-line (1- (or count 1)))
+    (point)))
+
+
+(defun vim:motion-beginning-of-line-or-digit-argument ()
+  "Feeds a 0 count or moves the cursor to the beginning of the line."
+  (interactive)
+  (message "C: %s" current-prefix-arg)
+  (if (and current-prefix-arg
+           (not (zerop (prefix-numeric-value current-prefix-arg))))
+      (call-interactively 'digit-argument)
+    (call-interactively 'vim:motion-beginning-of-line)))
+                 
 
 (vim:defmotion vim:motion-beginning-of-line (exclusive)
   "Move the cursor to the beginning of the current line."

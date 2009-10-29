@@ -2,92 +2,58 @@
 
 ;; Copyright (C) 2009 Frank Fischer
 ;; 
-;; Version: 0.0.1
+;; Version: 0.2.0
 ;; Keywords: emulations
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
+;; TODO: replace-mode
+
 (provide 'vim-insert-mode)
-
-(defcustom vim:insert-mode-cursor 'bar
-  "The cursor-type for insert-mode."
-  :group 'vim-mode)
-
-(defcustom vim:replace-mode-cursor 'hbar
-  "The cursor-type for replace-mode."
-  :group 'vim-mode)
-
-
-(defconst vim:insert-mode-keymap (vim:make-node))
-(vim:deflocalvar vim:insert-mode-activate-hook nil
-  "Hooks called when insert-mode is activated.")
-(vim:deflocalvar vim:insert-mode-deactivate-hook nil
-  "Hooks called when insert-mode is activated.")
 
 (vim:deflocalvar vim:last-insert-undo nil)
 
-(defun vim:insert-active-p ()
-  (if vim:last-insert-undo t nil))
+(defconst vim:insert-mode-keymap (vim:make-keymap)
+  "VIM operator-pending-mode keymap.")
+(defun vim:imap (keys command)
+  "Defines a new insert-mode mapping."
+  (vim:map keys command :keymap vim:insert-mode-keymap))
 
-(defun vim:insert-mode-activate ()
-  (message "-- INSERT --")
+(vim:define-mode insert "VIM operator-pending mode"
+                 :ident "I"
+                 :keymap vim:insert-mode-keymap
+                 :command-function 'vim:insert-mode-command
+                 :cursor 'bar
+                 :activate 'vim:insert-mode-activated
+                 :deactivate 'vim:insert-mode-deactivated)
+
+(defun vim:insert-mode-command (command)
+  "Executes a simple command in insert mode."
+  (case (vim:cmd-type command)
+    ('simple (vim:execute-simple-command command))
+    ('complex (error "No complex command allowed in insert-mode."))
+    ('map (error "No maps so far"))
+    (t (vim:execute-motion command))))
+
+(defun vim:insert-mode-activated()
+  "Called when insert-mode is activated."
   (setq overwrite-mode nil)
-  (setq cursor-type vim:insert-mode-cursor)
-  (setq vim:last-insert-undo buffer-undo-list))
-
-(defun vim:insert-mode-deactivate ()
-  ;; connect the undos
-  (when vim:last-insert-undo
-    (vim:connect-undos vim:last-insert-undo)
-    (setq vim:last-insert-undo nil))
+  (setq vim:last-insert-undo vim:last-undo)
+  (add-hook 'pre-command-hook 'vim:insert-save-key-sequence))
   
+(defun vim:insert-mode-deactivated ()
+  "Called when insert-mode is deactivated."
   (setq overwrite-mode nil)
-  ;; append the key-sequence during insert-mode to the repeat-events
-  ;; note that the key-sequence of the command just deactivated insert-mode
-  ;; is already part of vim:current-key-sequence
+  (remove-hook 'pre-command-hook 'vim:insert-save-key-sequence)
+  ;; the command that has just ended insert-mode should NOT be repeatable
+  ;; and will therefore NOT override repeat-sequence.
   (setq vim:repeat-events (vconcat vim:repeat-events
-                                   (reverse vim:current-key-sequence)))
-  (vim:clear-key-sequence))
+                                   vim:current-key-sequence))
+  (setq vim:last-undo vim:last-insert-undo))
 
-
-(defun vim:insert-mode-default-handler ()
-  "The default event handler of the insert mode."
-  nil)
-
-(vim:defcmd vim:insert-mode-exit ()
-  (vim:activate-mode vim:normal-mode)
-  (goto-char (max (line-beginning-position) (1- (point)))))
-
-(defconst vim:insert-mode
-  (vim:make-mode :name "Insert"
-                 :id "I"
-                 :activate #'vim:insert-mode-activate
-                 :deactivate #'vim:insert-mode-deactivate
-                 :execute-command #'vim:default-mode-exec-cmd
-                 :execute-motion #'vim:default-mode-exec-motion
-                 :default-handler #'vim:insert-mode-default-handler
-                 :keymap 'vim:insert-mode-keymap
-                 :activate-hook 'vim:insert-mode-activate-hook
-                 :deactivate-hook 'vim:insert-mode-deactivate-hook))
-
-
-(defun vim:replace-mode-activate ()
-  (message "-- REPLACE --")
-  (setq cursor-type vim:replace-mode-cursor)
-  (setq vim:current-insert-key-sequence vim:current-key-sequence)
-  (setq overwrite-mode t)
-  (setq vim:last-insert-undo buffer-undo-list))
-
-(defconst vim:replace-mode
-  (vim:make-mode :name "Replace"
-                 :id "R"
-                 :activate #'vim:replace-mode-activate
-                 :deactivate #'vim:insert-mode-deactivate
-                 :execute-command #'vim:default-mode-exec-cmd
-                 :execute-motion #'vim:default-mode-exec-motion
-                 :default-handler #'vim:insert-mode-default-handler
-                 :keymap 'vim:insert-mode-keymap
-                 :activate-hook 'vim:insert-mode-activate-hook
-                 :deactivate-hook 'vim:insert-mode-deactivate-hook))
+(defun vim:insert-save-key-sequence ()
+  "Called in insert-mode to save key-events."
+  (setq vim:current-key-sequence (vconcat vim:current-key-sequence
+                                          (this-command-keys))))

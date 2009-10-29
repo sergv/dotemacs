@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009 Frank Fischer
 ;; 
-;; Version: 0.0.1
+;; Version: 0.2.0
 ;; Keywords: emulations
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
@@ -11,106 +11,70 @@
 
 (provide 'vim-modes)
 
-(defstruct (vim:mode
-            (:constructor vim:make-mode))
-  name               ; The name of the mode.
-  id                 ; The modeline id character.
-  activate           ; Called when the mode is activated.
-  deactivate         ; Called when the mode is deactivated.
-  execute-command    ; Called to execute a command.
-  execute-motion     ; Called to execute a motion.
-  keymap             ; The root node of the mode's keymap
-  default-handler    ; The function called if no matching key could been found.
-  activate-hook      ; hook called after activation
-  deactivate-hook    ; hook called after deactivation
-  )
+(vim:deflocalvar vim:mode-string)
+(defun vim:update-mode-line (ident)
+  "Updates the mode-line to show the specified identifier `ident'."
+  (setq vim:mode-string (concat "<" (or ident "?") ">"))
+  (force-mode-line-update))
 
 
-(defun vim:mode-get-keymap (mode)
-  "Returns the keymap of a modes."
-  (let ((keymap (vim:mode-keymap mode)))
-    (if (symbolp keymap)
-        (symbol-value keymap)
-      keymap)))
-
+(defun vim:mode-name (mode)
+  "Converts a mode-name to vim-mode naming conventions, e.g.
+'normal is converted to 'vim:normal-mode."
+  (intern (concat "vim:" (symbol-name mode) "-mode")))
 
 (vim:deflocalvar vim:active-mode nil
-   "The currently active mode.")
+  "The currently active vim-mode.") 
 
+(vim:deflocalvar vim:active-command-function nil
+  "The command function of the currently active vim-mode.")
 
 (defun vim:activate-mode (mode)
-  "Activates a mode."
-  
+  "Activates a certain vim-mode, disabling the currently active one."
   (when vim:active-mode
-    (funcall (vim:mode-deactivate vim:active-mode)))
-  
-  (let ((last-mode vim:active-mode))
-    (setq vim:active-mode mode)
-    
-    (when (and last-mode
-               (vim:mode-deactivate-hook last-mode))
-      (run-hooks (vim:mode-deactivate-hook last-mode)))
-    
-    (when vim:active-mode
-      (funcall (vim:mode-activate mode))
-      (when (vim:mode-activate-hook vim:active-mode)
-        (run-hooks (vim:mode-activate-hook vim:active-mode))))
-  
-    (vim:update-mode-line)
-    (vim:reset-key-state)))
+    (funcall vim:active-mode -1))
+  (when mode
+    (funcall (vim:mode-name mode) 1)))
 
 
-(defun vim:active-keymap ()
-  "Returns the keymap of the currently active mode."
-  (if vim:active-mode
-      (vim:mode-get-keymap vim:active-mode)
-    nil))
-    
+(defmacro* vim:define-mode (name doc
+                                 &key
+                                 ident
+                                 keymap
+                                 command-function
+                                 (cursor ''box)
+                                 activate
+                                 deactivate
+                                 )
+  "Defines a new VIM-mode with certain `name', mode-line-identifiert `ident',
+a `keymap' and a `command-function' to be called when a vim-command should
+be executed."
+  (let* ((mode-name (vim:mode-name name))
+         (pred-name (intern (concat (symbol-name mode-name) "-p")))
+         (cursor-name (intern (concat (symbol-name mode-name)
+                                      "-cursor"))))
+    `(progn
+       (defcustom ,cursor-name ,cursor
+         ,(concat "The cursor-type for vim-mode " (symbol-name name) ".")
+         :group 'vim-mode)
+       
+       (define-minor-mode ,mode-name ,doc
+         :keymap ,keymap
+         :init-value nil
+         
+         (if ,mode-name
+             (progn
+               ,@(when ident `((vim:update-mode-line ,ident)))
+               (setq vim:active-mode ',mode-name)
+               (setq vim:active-command-function
+                     ,(if command-function
+                          command-function
+                        'vim:default-command-function))
+               (setq cursor-type ,cursor-name)
+               ,@(and activate `((funcall ,activate))))
+           (progn
+             ,@(and deactivate `((funcall ,deactivate))))))
 
-(defun vim:default-mode-exec-cmd (cmd count motion arg)
-  "Executes a command."
-  (let ((parameters nil))
-    (when (vim:cmd-count-p cmd) (push count parameters) (push :count parameters))
-    (when (vim:cmd-motion-p cmd) (push motion parameters) (push :motion parameters))
-    (when (vim:cmd-arg-p cmd) (push arg parameters) (push :argument parameters))
-    (vim:apply-save-buffer cmd parameters)))
-
-
-(defun vim:default-mode-exec-motion (motion)
-  "Executes a motion."
-  (if (eq (vim:motion-type motion) 'block)
-      (progn
-        (goto-line (car (vim:motion-end motion)))
-        (move-to-column (cdr (vim:motion-end motion))))
-    (goto-char (vim:motion-end motion))))
-
-
-(defun vim:default-default-handler ()
-  "Returns t iff the character is printable."
-  ;; TODO:  this is propably not very good
-
-  ;; usually emacs commands cancel any recording of events
-  (vim:clear-key-sequence)
-  (cond
-   ;; some unknown event during parsing
-   ((and (vim:ESC-event-p last-command-event)
-         (or vim:current-motion-count
-             vim:current-cmd-count
-             (not (eq vim:current-node (vim:active-keymap)))))
-    (ding)
-    t)
-   
-   ;; a non-printable command
-   ((and (integerp last-command-event)
-         (null (event-modifiers last-command-event)))
-    (let ((vim-local-mode nil))
-      (let ((binding (key-binding (vector last-command-event))))
-        (if (eq binding 'self-insert-command)
-            (progn
-              (ding)
-              t)
-          nil))))
-   
-   (t nil)))
-           
-      
+       (defun ,pred-name ()
+         ,(concat "Returns t iff vim-mode is in " (symbol-name name) " mode.")
+         (and ,mode-name t)))))

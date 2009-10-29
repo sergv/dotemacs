@@ -2,16 +2,13 @@
 
 ;; Copyright (C) 2009 Frank Fischer
 ;; 
-;; Version: 0.0.1
+;; Version: 0.2.0
 ;; Keywords: emulations
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; License: GPLv2 or later, as described below under "License"
 
-;; Description
-
-;; This file contains the stuff specific for vim-like keybindins.
 
 (provide 'vim-vim)
 
@@ -47,12 +44,6 @@
   (not executing-kbd-macro))
 
 
-(defun vim:operator-pending-p ()
-  "Return non-nil iff an operator is waiting for a motion."
-  (and vim:current-cmd
-       (vim:cmd-motion-p (vim:node-cmd vim:current-cmd))))
-
-
 (defadvice vim:reset-key-state (before vim:vim-reset-key-state)
   "Resets the current state of the keymap."
   (setq vim:current-register nil
@@ -66,16 +57,8 @@
 (ad-activate 'vim:reset-key-state)
 
 
-;; The type should be nil, map or motion.
-(defstruct (vim:command
-            (:constructor vim:make-command))
-  type        ; The type of the command.
-  function    ; Function to be invoked.
-  arg         ; If non-nil the command takes an argument.
-  )
-
-
 (defmacro* vim:defcmd (name (&rest args) &rest body)
+  "Defines a new VIM-command."
   (let ((count nil)
         (motion nil)
         (argument nil)
@@ -128,10 +111,16 @@
        (put 'argument ',name ,argument)
        (put 'keep-visual ',name ,keep-visual)
        (put 'repeatable ',name ,repeatable)
-       (defun* ,name (,@(when params `(&key ,@params))
-                      ,@(when named-params `(&aux ,@named-params)))
-       ,doc
-       ,@body))))
+       (put 'function ',name
+            (function* (lambda (,@(when params `(&key ,@params))
+                                ,@(when named-params `(&aux ,@named-params)))
+                         ,@body)))
+       (defun* ,name (&rest args)
+         ,doc
+         (interactive)
+         (if (called-interactively-p)
+             (funcall vim:active-command-function ',name)
+           (apply (get 'function ',name) args))))))
 
 
 (defmacro* vim:defmotion (name (&rest args) &rest body)
@@ -177,16 +166,22 @@
        (put 'type ',name ',type)
        (put 'count ',name ,count)
        (put 'argument ',name ,argument)
-       (defun* ,name (,@(when params `(&key ,@params))
-                      ,@(when named-params `(&aux ,@named-params)))
-       ,doc
-       ,@body))))
+       (put 'function ',name
+            (function* (lambda (,@(when params `(&key ,@params))
+                                ,@(when named-params `(&aux ,@named-params)))
+                         ,@body)))
+       (defun* ,name (&rest args)
+         ,doc
+         (interactive)
+         (if (called-interactively-p)
+             (funcall vim:active-command-function ',name)
+           (apply (get 'function ',name) args))))))
 
 
-(defmacro* vim:defspecial (name (param) &body body)
-  `(progn
-     (put 'type ',name 'special)
-     (defun ,name (,param) ,@body)))
+;;(defmacro* vim:defspecial (name (param) &body body)
+;;  `(progn
+;;     (put 'type ',name 'special)
+;;     (defun ,name (,param) ,@body)))
 
 
 (defun vim:cmd-count-p (cmd)
@@ -217,54 +212,9 @@
   "Returns the type of command cmd."
   (get 'type cmd))
 
-
-(defun* vim:map (keys cmd &key (keymap vim:normal-mode-keymap))
-  "Creates a mapping of keys to cmd in keymap of mode."
-  (when (sequencep cmd)
-    (put 'type cmd 'map)
-    (put 'argument cmd nil)
-    (put 'repeatable cmd (eq keymap vim:normal-mode-keymap)))
-     
-  (vim:add-node keymap keys
-                cmd
-                :function (case (vim:cmd-type cmd)
-                            ('simple 'vim:execute-command)
-                            ('complex 'vim:prepare-complex-command)
-                            ('map 'vim:execute-mapping)
-                            ('special 'vim:execute-special)
-                            (t 'vim:execute-motion))
-                :next-keymap (and (eq (vim:cmd-type cmd) 'complex)
-                                  vim:motion-keymap)))
-
-(defun vim:nmap (keys cmd)
-  "Creates a mapping of keys to cmd in vim:normal-mode-keymap."
-  (vim:map keys cmd :keymap vim:normal-mode-keymap))
-
-(defun vim:omap (keys cmd)
-  "Creates a mapping of keys to cmd in vim:motion-keymap."
-  (vim:map keys cmd :keymap vim:motion-keymap))
-
-(defun vim:imap (keys cmd)
-  "Creates a mapping of keys to cmd in vim:insert-mode-keymap."
-  (vim:map keys cmd :keymap vim:insert-mode-keymap))
-
-(defun vim:vmap (keys cmd)
-  "Creates a mapping of keys to cmd in vim:visual-mode-keymap."
-  ;; The difference to vim:map is that complex commands don't get a
-  ;; next-keymap and no command is repeatable.
-  (when (sequencep cmd)
-    (put 'type cmd 'map)
-    (put 'argument cmd nil)
-    (put 'repeatable cmd nil)) ; don't repeat visual-mode commands
-     
-  (vim:add-node vim:visual-mode-keymap keys
-                cmd
-                :function (case (vim:cmd-type cmd)
-                            ('simple 'vim:execute-command)
-                            ('complex 'vim:prepare-complex-command)
-                            ('map 'vim:execute-mapping)
-                            ('special 'vim:execute-special)
-                            (t 'vim:execute-motion))))
+(defun vim:cmd-function (cmd)
+  "Returns the function of command `cmd'."
+  (get 'function cmd))
 
 
 (defmacro vim:apply-save-buffer (&rest args)
@@ -287,129 +237,10 @@
          ,ret)))))
 
 
-(defun vim:execute-command (node)
-  "Executes the command of node."
-  (when vim:current-cmd
-    (error "Unexpected command in operator-pending mode"))
-  (vim:go-to-node node)
-  (setq vim:current-cmd node)
-  (vim:execute-current-command)
-  (vim:reset-key-state))
-
-
-(defun vim:prepare-complex-command (node)
-  (when vim:current-cmd
-    (error "Expected motion"))
-  (if (vim:node-next-keymap node)
-      (progn 
-        (setq vim:current-cmd node)
-        (vim:go-to-node node))
-    ;; execute command as if it would have no motion
-    (vim:execute-command node)))
-
-
-(defun vim:execute-motion (node)
-  "Executes the motion command of node or completes a pending complex command."
-  
-  (vim:go-to-node node)
-  (setq vim:current-motion node)
-  
-  (unless vim:current-cmd
-    (setq vim:current-motion-count vim:current-cmd-count)
-    (setq vim:current-cmd-count nil))
-
-  (when (vim:cmd-arg-p (vim:node-cmd vim:current-motion))
-    (setq vim:current-motion-arg (read-char))
-    (when (vim:toplevel-execution)
-      (push vim:current-motion-arg vim:current-key-sequence)))
-  
-  (if vim:current-cmd
-      (vim:execute-current-command)
-    (vim:execute-current-motion))
-  (vim:reset-key-state))
-
-
-(defun vim:execute-special (node)
-  "Executes the function of a special command without noticing the node otherwise."
-  (vim:funcall-save-buffer (vim:node-cmd node) node))
-  
-
-
-
-;; this command is implemented as a special command
-(vim:defspecial vim:feed-numeric-prefix (node)
-  "Saves the numeric character and continues."
-  (let ((char (vim:node-key node)))
-    (if vim:current-cmd
-        (push (- char ?0) vim:current-motion-count)
-      (push (- char ?0) vim:current-cmd-count)))
-  (vim:go-to-node vim:normal-mode-keymap))
-
-
-;; this command is implemented as a special command
-(vim:defspecial vim:feed-numeric-prefix-or-bol (node)
-  "Saves the numeric character and continues."
-  (cond
-   ((and (not vim:current-cmd) vim:current-cmd-count)
-    (push (- (vim:node-key node) ?0) vim:current-cmd-count))
-   
-   ((and vim:current-cmd vim:current-motion-count)
-    (push (- (vim:node-key node) ?0) vim:current-motion-count))
-
-   (t
-    (let ((dummy (vim:make-node :key ?0
-                                :cmd 'vim:motion-beginning-of-line
-                                :function 'vim:execute-command)))
-      (vim:execute-motion dummy))))
-  (vim:go-to-node vim:normal-mode-keymap))
-
-
-(defun vim:convert-command-counts ()
-  "Converts the count-lists to numbers."
-  (labels
-      
-      ((convert (rest)
-                (if rest
-                    (+ (car rest) (* 10 (convert (cdr rest))))
-                  0)))
-    
-    (when vim:current-cmd-count
-      (setq vim:current-cmd-count (convert vim:current-cmd-count)))
-    (when vim:current-motion-count
-      (setq vim:current-motion-count (convert vim:current-motion-count)))))
-
-
-(defun vim:execute-current-command ()
-  "Execute the current full command."
-  (vim:convert-command-counts)
-
-  (when (vim:cmd-arg-p (vim:node-cmd vim:current-cmd))
-    (setq vim:current-cmd-arg (read-char))
-    (when (vim:toplevel-execution)
-      (push vim:current-cmd-arg vim:current-key-sequence)))
-  
-  (let ((vim:last-undo buffer-undo-list))
-    (funcall (vim:mode-execute-command vim:active-mode)
-             (vim:node-cmd vim:current-cmd)
-             vim:current-cmd-count
-             (vim:get-current-cmd-motion)
-             vim:current-cmd-arg)
-    (vim:connect-undos vim:last-undo))
-  
-  (vim:adjust-point))
-
-
-(defun vim:execute-current-motion ()
-  "Execute the current motion."
-  (vim:convert-command-counts)
-  (funcall (vim:mode-execute-motion vim:active-mode) (vim:get-current-motion))
-  (vim:adjust-point))
-
-
 (defun vim:get-current-motion ()
   (if (null vim:current-motion)
       nil
-    (let ((cmd (vim:node-cmd vim:current-motion))
+    (let ((cmd vim:current-motion)
           (count (if (or vim:current-cmd-count
                          vim:current-motion-count)
                      (* (or vim:current-cmd-count 1)
@@ -424,8 +255,8 @@
       (when (vim:cmd-count-p cmd)
         (push count parameters)
         (push :count parameters))
-      
-      (let* ((motion (vim:apply-save-buffer cmd parameters))
+
+      (let* ((motion (vim:apply-save-buffer (vim:cmd-function cmd) parameters))
              (type (vim:cmd-type motion)))
         ;; check if the motion overwrites its default type
         (when (and (consp motion)
@@ -515,24 +346,4 @@
 
     ;; no motion -> return nil
     nil))
-
-
-(defun vim:execute-mapping (node)
-  "Executes the right-hand-side of the mapping command."
-  ;; reset key-state to the correct intermediate state
-  (setq vim:current-node (or vim:current-cmd
-                             (vim:active-keymap)))
-
-  (let ((last-undo buffer-undo-list)
-        (start-in-insert-mode (vim:insert-active-p)))
-        ;(vim:current-key-sequence nil))
-    
-    (save-current-buffer
-      (execute-kbd-macro (vim:node-cmd node))
-      (setq vim:new-buffer (current-buffer)))
-    ;; if the map ends in insert-mode, update the undo data
-    (if (and (not start-in-insert-mode)
-             (vim:insert-active-p))
-        (setq vim:last-insert-undo last-undo)
-      (vim:connect-undos last-undo))))
 

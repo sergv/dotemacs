@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009 Frank Fischer
 ;; 
-;; Version: 0.0.1
+;; Version: 0.2.0
 ;; Keywords: emulations
 ;; Human-Keywords: vim, emacs
 ;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
@@ -16,15 +16,16 @@
 
 ;;   - vim:map ... general mapping in an arbitrary mode
 ;;   - vim:nmap ... mapping in the normal-mode keymap
-;;   - vim:omap ... mapping in the motion keymap
+;;   - vim:omap ... mapping in the operator-pending keymap
 ;;   - vim:imap ... mapping in the insert-mode keymap
 ;;   - vim:vmap ... mapping in the visual-mode keymap
 ;;
 ;; Commands should usually be placed in the normal-mode keymap.
-;; Motions should be placed in the motion keymap.  All commands in the
-;; motion-keymap are available as motions in normal-mode and
-;; visual-mode (but may be overwritten by the corresponding keymaps)
-;; and as motion-arguments for complex commands in normal-mode.
+;; Motions should be placed in the operator-pending keymap. All
+;; commands in the operator-pending-keymap are available as
+;; operator-pending in normal-mode and visual-mode (but may be
+;; overwritten by the corresponding keymaps) and as motion-arguments
+;; for complex commands in normal-mode.
 ;;
 ;; A mapping has one of the following two forms:
 ;;
@@ -65,17 +66,16 @@
 
 (vim:nmap "\\" 'vim:cmd-emacs)
 
-;(vim:def-motion "0" 'vim:motion-beginning-of-line :type 'exclusive)
-(vim:omap "0" 'vim:feed-numeric-prefix-or-bol)
-(vim:omap "1" 'vim:feed-numeric-prefix)
-(vim:omap "2" 'vim:feed-numeric-prefix)
-(vim:omap "3" 'vim:feed-numeric-prefix)
-(vim:omap "4" 'vim:feed-numeric-prefix)
-(vim:omap "5" 'vim:feed-numeric-prefix)
-(vim:omap "6" 'vim:feed-numeric-prefix)
-(vim:omap "7" 'vim:feed-numeric-prefix)
-(vim:omap "8" 'vim:feed-numeric-prefix)
-(vim:omap "9" 'vim:feed-numeric-prefix)
+(vim:omap "0" 'vim:motion-beginning-of-line-or-digit-argument)
+(vim:omap "1" 'digit-argument)
+(vim:omap "2" 'digit-argument)
+(vim:omap "3" 'digit-argument)
+(vim:omap "4" 'digit-argument)
+(vim:omap "5" 'digit-argument)
+(vim:omap "6" 'digit-argument)
+(vim:omap "7" 'digit-argument)
+(vim:omap "8" 'digit-argument)
+(vim:omap "9" 'digit-argument)
 ;(vim:def-special "\"" 'vim:do-something-funny-with-registers)
 
 (vim:omap "h" 'vim:motion-left)
@@ -120,20 +120,18 @@
 
 (vim:omap "iw" 'vim:motion-inner-word)
 
-(vim:nmap "x" "dl")
+;(vim:nmap "x" "dl")
+(vim:nmap "x" 'vim:cmd-delete-char)
 (vim:nmap "D" "d$")
-(vim:nmap "dd" 'vim:cmd-delete-line)
 (vim:nmap "d" 'vim:cmd-delete)
 
 (vim:nmap "C" 'vim:cmd-change-rest-of-line)
-(vim:nmap "cc" 'vim:cmd-change-line)
 (vim:nmap "c" 'vim:cmd-change)
 (vim:nmap "s" 'vim:cmd-change-char)
 
 (vim:nmap "r" 'vim:cmd-replace-char)
 (vim:nmap "R" 'vim:cmd-replace)
 
-(vim:nmap "yy" 'vim:cmd-yank-line)
 (vim:nmap "y" 'vim:cmd-yank)
 (vim:nmap "Y" "yy")
 (vim:nmap "p" 'vim:cmd-paste-behind)
@@ -150,16 +148,14 @@
 (vim:nmap "n" 'vim:search-repeat)
 (vim:nmap "N" 'vim:search-repeat-opposite)
 ;; The next two maps are very special for an active search.
-(vim:map "n" 'vim:search-repeat :keymap vim:search-mode-keymap)
-(vim:map "N" 'vim:search-repeat-opposite :keymap vim:search-mode-keymap)
+;(vim:map "n" 'vim:search-repeat :keymap vim:search-mode-keymap)
+;(vim:map "N" 'vim:search-repeat-opposite :keymap vim:search-mode-keymap)
 
 (vim:nmap "i" 'vim:cmd-insert)
 (vim:nmap "a" 'vim:cmd-append)
 (vim:nmap "I" 'vim:cmd-Insert)
 (vim:nmap "A" 'vim:cmd-Append)
-;(vim:nmap "o" (kbd "A RET TAB"))
 (vim:nmap "o" 'vim:cmd-insert-line-below)
-;(vim:nmap "O" (kbd "0 i RET <up> TAB"))
 (vim:nmap "O" 'vim:cmd-insert-line-above)
 
 (vim:nmap "u" 'vim:cmd-undo)
@@ -170,17 +166,12 @@
 (vim:nmap "=" 'vim:cmd-indent)
 (vim:nmap "==" 'vim:cmd-indent-lines)
 (vim:nmap "<" 'vim:cmd-shift-left)
-(vim:nmap "<<" 'vim:cmd-shift-left-lines)
 (vim:nmap ">" 'vim:cmd-shift-right)
-(vim:nmap ">>" 'vim:cmd-shift-right-lines)
 
 (vim:nmap "~" "g~l")
 (vim:omap "g~" 'vim:cmd-toggle-case)
-(vim:omap "g~~" 'vim:cmd-toggle-case-lines)
 (vim:omap "gU" 'vim:cmd-make-upcase)
-(vim:omap "gUU" 'vim:cmd-make-upcase-lines)
 (vim:omap "gu" 'vim:cmd-make-downcase)
-(vim:omap "guu" 'vim:cmd-make-downcase-lines)
 
 (vim:omap (kbd "C-e") 'vim:scroll-line-down)
 (vim:omap (kbd "C-d") 'vim:scroll-down)
@@ -244,9 +235,7 @@
 (vim:nmap "v" 'vim:visual-toggle-normal)
 (vim:nmap "V" 'vim:visual-toggle-linewise)
 (vim:nmap (kbd "C-v") 'vim:visual-toggle-block)
-;; TODO: we have to put this one in movement-map because it conflicts with
-;; gg, ge, gE and so on
-(vim:omap "gv" 'vim:visual-mode-reactivate)
+(vim:nmap "gv" 'vim:visual-mode-reactivate)
 
 
 (vim:imap [escape] 'vim:insert-mode-exit)
