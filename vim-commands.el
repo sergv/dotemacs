@@ -513,40 +513,25 @@ and switches to insert-mode."
 (vim:defcmd vim:cmd-indent (motion)
   "Reindent the lines covered by `motion'."
   (goto-line (vim:motion-begin-row motion))
-  (vim:cmd-indent-lines :count (vim:motion-line-count motion)))
-  
-
-(vim:defcmd vim:cmd-indent-lines (count)
-  "Reindent the next `count' lines."
   (indent-region (line-beginning-position)
-                 (line-end-position count)))
+                 (line-end-position (vim:motion-line-count motion))))
   
 
 (vim:defcmd vim:cmd-shift-left (motion)
   "Shift the lines covered by `motion' leftwards."
   (goto-line (vim:motion-begin-row motion))
-  (vim:cmd-shift-left-lines :count (vim:motion-line-count motion)))
-
-
-(vim:defcmd vim:cmd-shift-left-lines (count)
-  "Shift the next `count' lines leftwards."
   (indent-rigidly (line-beginning-position)
-                  (line-end-position count)
+                  (line-end-position (vim:motion-line-count motion))
                   (- vim:shift-width)))
 
 
 (vim:defcmd vim:cmd-shift-right (motion)
   "Shift the lines covered by `motion' rightwards."
   (goto-line (vim:motion-begin-row motion))
-  (vim:cmd-shift-right-lines :count (vim:motion-line-count motion)))
-  
-
-(vim:defcmd vim:cmd-shift-right-lines (count)
-  "Shift the next `count' lines rightwards."
   (indent-rigidly (line-beginning-position)
-                  (line-end-position count)
+                  (line-end-position (vim:motion-line-count motion))
                   vim:shift-width))
-
+  
 
 (vim:defcmd vim:cmd-toggle-case (motion)
   "Toggles the case of all characters defined by `motion'."
@@ -561,35 +546,14 @@ and switches to insert-mode."
                              (setq beg (1+ beg))))))))
 
 
-(vim:defcmd vim:cmd-toggle-case-lines (count)
-  "Toggles the case of all characters of the next `count' lines."
-  (vim:cmd-toggle-case :motion (vim:make-motion :begin (line-number-at-pos (point))
-                                                :end (+ (line-number-at-pos (point)) (or count 1) -1)
-                                                :type 'linewise)))
-
-
 (vim:defcmd vim:cmd-make-upcase (motion)
   "Upcases all characters defined by `motion'."
   (vim:change-case motion #'upcase-region))
 
 
-(vim:defcmd vim:cmd-make-upcase-lines (count)
-  "Upcases all characters of the next `count' lines."
-  (vim:cmd-make-upcase :motion (vim:make-motion :begin (line-number-at-pos (point))
-                                                :end (+ (line-number-at-pos (point)) (or count 1) -1)
-                                                :type 'linewise)))
-
-
 (vim:defcmd vim:cmd-make-downcase (motion)
   "Downcases all characters defined by `motion'."
   (vim:change-case motion #'downcase-region))
-
-
-(vim:defcmd vim:cmd-make-downcase-lines (count)
-  "Downcases all characters of the next `count' lines."
-  (vim:cmd-make-downcase :motion (vim:make-motion :begin (line-number-at-pos (point))
-                                                  :end (+ (line-number-at-pos (point)) (or count 1) -1)
-                                                  :type 'linewise)))
 
 
 (defun vim:change-case (motion case-func)
