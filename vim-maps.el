@@ -164,7 +164,6 @@
 (vim:nmap "." 'vim:cmd-repeat)
 
 (vim:nmap "=" 'vim:cmd-indent)
-(vim:nmap "==" 'vim:cmd-indent-lines)
 (vim:nmap "<" 'vim:cmd-shift-left)
 (vim:nmap ">" 'vim:cmd-shift-right)
 

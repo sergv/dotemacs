@@ -17,11 +17,7 @@
 (defun* vim:map (keys command &key (keymap nil))
   "Maps the sequence of events `keys' to a `command' in a certain
 `keymap.'"
-  (when (and (symbolp command)
-             (keymapp keymap)
-             (not (and (> (length keys) 1)
-                       (eq (aref keys (- (length keys) 2))
-                           (aref keys (- (length keys) 1))))))
+  (when (and (symbolp command) (keymapp keymap))
     (define-key keymap keys command)))
 
 
