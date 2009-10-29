@@ -160,6 +160,7 @@
   (require 'vim-scroll)
   (require 'vim-window)
   (require 'vim-undo)
+  (require 'vim-search)
   (require 'vim-maps))
 
 

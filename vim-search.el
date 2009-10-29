@@ -16,6 +16,8 @@
 ;;    semi-interactive stuff like the "*" command.  The current implementation
 ;;    using unread-command-events is quite ugly.
 
+(provide 'vim-search)
+
 (defconst vim:search-mode-keymap (list 'keymap '(t . vim:search-mode-exit)))
 
 (vim:deflocalvar vim:search-last-direction nil
