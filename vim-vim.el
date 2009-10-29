@@ -210,7 +210,9 @@
 
 (defun vim:cmd-type (cmd)
   "Returns the type of command cmd."
-  (get 'type cmd))
+  (if (sequencep cmd)
+      'map
+    (get 'type cmd)))
 
 (defun vim:cmd-function (cmd)
   "Returns the function of command `cmd'."

@@ -50,7 +50,7 @@
   (case (vim:cmd-type command)
     ('simple (vim:execute-simple-command command))
     ('complex (error "No complex command allowed in insert-mode."))
-    ('map (error "No maps so far"))
+    ('map (vim:execute-mapping command))
     (t (vim:execute-motion command))))
 
 (defun vim:insert-mode-activated ()
@@ -72,5 +72,6 @@
 
 (defun vim:insert-save-key-sequence ()
   "Called in insert-mode to save key-events."
-  (setq vim:current-key-sequence (vconcat vim:current-key-sequence
-                                          (this-command-keys))))
+  (when (vim:toplevel-execution)
+    (setq vim:current-key-sequence (vconcat vim:current-key-sequence
+                                            (this-command-keys)))))

@@ -69,7 +69,7 @@
   (case (vim:cmd-type command)
     ('simple (vim:execute-simple-command command))
     ('complex (vim:prepare-complex-command command))
-    ('map (error "no mapping so far"))
+    ('map (vim:execute-mapping command))
     ('special (error "no special so far"))
     (t (vim:execute-motion command))))
 
@@ -161,6 +161,11 @@
     (vim:reset-key-state)
     (vim:clear-key-sequence)
     (vim:adjust-point)))
+
+
+(defun vim:execute-mapping (events)
+  "Executes certain `events' defined by a mapping."
+  (execute-kbd-macro events))
 
 
 ;;(defconst vim:search-mode-keymap (vim:make-node))

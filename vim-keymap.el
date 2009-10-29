@@ -17,8 +17,17 @@
 (defun* vim:map (keys command &key (keymap nil))
   "Maps the sequence of events `keys' to a `command' in a certain
 `keymap.'"
-  (when (and (symbolp command) (keymapp keymap))
-    (define-key keymap keys command)))
+  (unless (keymapp keymap)
+    (error "Expected Emacs-keymap"))
+
+  (cond
+   ((commandp command) (define-key keymap keys command))
+   ((sequencep command)
+    (lexical-let ((command command))
+      (define-key keymap keys
+        (lambda () (interactive)
+          (funcall vim:active-command-function command)))))
+   (t (error "Invalid binding"))))
 
 
 (defun vim:make-keymap (&optional parent)
