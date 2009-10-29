@@ -278,7 +278,7 @@
         (forward-char)))
     ;; in operator-pending mode, if we reached the beginning of a new
     ;; line, go back to the end of the previous line
-    (when (and (vim:operator-pending-p)
+    (when (and (vim:operator-pending-mode-p)
                (looking-back "^[ \t]*")
                (not (save-excursion
                       (forward-line -1)
@@ -301,7 +301,7 @@
         (forward-char)))
     ;; in operator-pending mode, if we reached the beginning of a new
     ;; line, go back to the end of the previous line
-    (when (and (vim:operator-pending-p)
+    (when (and (vim:operator-pending-mode-p)
                (looking-back "^[ \t]*")
                (not (save-excursion
                       (forward-line -1)
