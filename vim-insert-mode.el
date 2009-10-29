@@ -52,7 +52,6 @@
   (case (vim:cmd-type command)
     ('simple (vim:execute-simple-command command))
     ('complex (error "No complex command allowed in insert-mode."))
-    ('map (vim:execute-mapping command))
     (t (vim:execute-motion command))))
 
 (defun vim:insert-mode-activated ()

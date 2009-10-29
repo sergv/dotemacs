@@ -204,15 +204,9 @@
   "Returns non-nil iff command cmd should stay in visual mode."
   (get 'keep-visual cmd))
   
-(defun vim:cmd-mapping-p (cmd)
-  "Returns non-nil iff command cmd is a complex command."
-  (eq (vim:cmd-type cmd) 'map))
-
 (defun vim:cmd-type (cmd)
   "Returns the type of command cmd."
-  (if (sequencep cmd)
-      'map
-    (get 'type cmd)))
+  (get 'type cmd))
 
 (defun vim:cmd-function (cmd)
   "Returns the function of command `cmd'."

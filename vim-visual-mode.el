@@ -194,7 +194,6 @@
   (case (vim:cmd-type command)
     ('simple (vim:visual-execute-command command))
     ('complex (vim:visual-execute-command command))
-    ('map (error "no mapping so far"))
     ('special (error "no special so far"))
     (t (vim:visual-execute-motion command))))
 
