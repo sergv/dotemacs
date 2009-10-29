@@ -89,7 +89,14 @@
   "Activates visual-mode with certain type."
   (setq vim:visual-mode-type type)
   (if (vim:visual-mode-p)
-      (vim:visual-highlight-region)
+      (progn
+        (vim:visual-highlight-region)
+        (case vim:visual-mode-type
+          ('normal (message "-- VISUAL --"))
+          ('linewise (message "-- VISUAL LINE --"))
+          ('block (message "-- VISUAL BLOCK --"))
+          (t (error "Unknown visual mode type: %s"
+                    vim:visual-mode-type))))
     (vim:activate-visual-mode)))
 
 (defun vim:visual-toggle-mode (type)
