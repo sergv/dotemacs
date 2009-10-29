@@ -14,7 +14,8 @@
 (vim:deflocalvar vim:last-insert-undo nil)
 
 (defcustom vim:insert-mode-replace-cursor 'hbar
-  "Cursor for replace-mode.")
+  "Cursor for replace-mode."
+  :group 'vim-mode)
 
 (defconst vim:insert-mode-ESC-keymap (vim:make-keymap)
   "VIM insert-mode keymap for the ESC-key.")
