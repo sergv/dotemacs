@@ -113,7 +113,7 @@
         (vim:apply-save-buffer (vim:cmd-function command) parameters)
         (when (vim:cmd-repeatable-p command)
           (setq vim:repeat-events (vconcat vim:current-key-sequence
-                                           (this-command-keys))))
+                                           (this-command-keys-vector))))
         (vim:connect-undos vim:last-undo))
 
     (vim:reset-key-state)
@@ -127,7 +127,7 @@
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
   
   (setq vim:current-cmd command)
-  (setq vim:current-key-sequence (vconcat vim:current-key-sequence (this-command-keys)))
+  (setq vim:current-key-sequence (vconcat vim:current-key-sequence (this-command-keys-vector)))
   (vim:activate-operator-pending-mode))
 
 (defun vim:execute-complex-command (motion-command)
@@ -151,7 +151,7 @@
                                  :motion (vim:get-current-cmd-motion))
         (when (vim:cmd-repeatable-p vim:current-cmd)
           (setq vim:repeat-events (vconcat vim:current-key-sequence
-                                           (this-command-keys))))
+                                           (this-command-keys-vector))))
         (vim:connect-undos vim:last-undo))
     
     (vim:reset-key-state)
