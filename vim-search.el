@@ -46,7 +46,7 @@
 (defun vim:search-mode-command (command)
   "Executes a simple-command in search-mode."
   (case (vim:cmd-type command)
-    ('simple (vim:execute-simple-command command))
+    ('simple (vim:normal-execute-simple-command command))
     (t (error "Only simple commands allowed in search-mode."))))
 
 (vim:defcmd vim:search-start (nonrepeatable)

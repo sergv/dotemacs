@@ -51,9 +51,9 @@
 (defun vim:insert-mode-command (command)
   "Executes a simple command in insert mode."
   (case (vim:cmd-type command)
-    ('simple (vim:execute-simple-command command))
+    ('simple (vim:normal-execute-simple-command command))
     ('complex (error "No complex command allowed in insert-mode."))
-    (t (vim:execute-motion command))))
+    (t (vim:normal-execute-motion command))))
 
 (defun vim:insert-mode-activated ()
   "Called when insert-mode is activated."

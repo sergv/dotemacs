@@ -59,8 +59,15 @@
 ;; The last end position of the region.
 (vim:deflocalvar vim:visual-last-end)
 
+;; Info-struct to save information for visual-insertion.
+(defstruct (vim:visual-insert-info
+            (:constructor vim:make-visual-insert-info))
+  first-line
+  last-line
+  column)
+
 ;; The last motion used to insert something in visual mode.
-(vim:deflocalvar vim:visual-last-insert-motion nil)
+(vim:deflocalvar vim:visual-last-insert-info nil)
 
 ;; The undo-mark of the last visual mode insert command.
 (vim:deflocalvar vim:visual-last-insert-undo nil)
@@ -232,7 +239,7 @@
         (vim:reset-key-state)
         (vim:clear-key-sequence)
         (vim:adjust-point))
-    (vim:execute-simple-command command))
+    (vim:normal-execute-simple-command command))
 
   ;; deactivate visual mode unless the command should keep it
   (when (and vim:visual-mode
@@ -252,7 +259,7 @@
     (setq vim:current-motion-arg (read-char-exclusive)))
 
   (unwind-protect
-     (vim:visual-adjust-region (vim:get-current-motion)) 
+     (vim:visual-adjust-region (vim:execute-current-motion))
     
     (vim:adjust-point)
     (vim:clear-key-sequence)
@@ -433,94 +440,76 @@
 
 (defun vim:visual-current-normal-motion ()
   "Returns a motion representing the current normal region."
-  (vim:make-motion :begin (min (point) (mark t))
+  (vim:make-motion :has-begin t
+                   :begin (min (point) (mark t))
                    :end (max (point) (mark t))
                    :type 'inclusive))
 
 
 (defun vim:visual-current-linewise-motion ()
   "Returns a motion representing the current linewise region."
-  (vim:make-motion :begin (line-number-at-pos (min (point) (mark t)))
-                   :end (line-number-at-pos (max (point) (mark t)))
+  (vim:make-motion :has-begin t
+                   :begin (min (point) (mark t))
+                   :end (max (point) (mark t))
                    :type 'linewise))
 
 
 (defun vim:visual-current-block-motion ()
   "Returns a motion representing the current block region."
-  (let ((row1 (line-number-at-pos (mark t)))
-        (col1 (save-excursion (goto-char (mark t)) (current-column)))
-        (row2 (line-number-at-pos (point)))
-        (col2 (current-column)))
-    (vim:make-motion :begin (cons (min row1 row2)      
-                                  (min col1 col2))
-                     :end (cons (max row1 row2)
-                                (max col1 col2))
-                     :type 'block)))
+  (vim:make-motion :has-begin t
+                   :begin (min (point) (mark t))
+		   :end (max (point) (mark t))
+		   :type 'block))
 
 
 (defun vim:visual-adjust-region (motion)
   "Adjusts the region according to a certain motion."
-  (if (vim:motion-begin motion)
+  (if (vim:motion-has-begin motion)
       (progn
         (case (vim:motion-type motion)
           ('linewise (vim:activate-visual 'linewise))
           ('block (vim:activate-visual 'block))
           (t (vim:activate-visual 'normal)))
-        (if (= (point) (mark t))
-            (progn
-              (set-mark (vim:motion-begin-pos motion))
-              (goto-char (vim:motion-end-pos motion)))
-          (goto-char (if (< (point) (mark t))
-                         (vim:motion-begin-pos motion)
-                       (vim:motion-end-pos motion)))))
-
-    (progn
-      (if (eq (vim:motion-type motion) 'block)
-          (progn
-            (goto-line (car (vim:motion-end motion)))
-            (move-to-column (cdr (vim:motion-end motion))))
-        (goto-char (vim:motion-end motion))))))
+        (set-mark (vim:motion-begin motion))))) 
       
 
 (vim:defcmd vim:visual-insert (motion)
   "Starts insertion at the left column of a visual region."
+  
+  (setq vim:visual-last-insert-info
+        (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
+                                     :last-line (vim:motion-last-line motion)
+                                     :column (vim:motion-first-col motion)))
+  
+  (goto-line (vim:motion-first-line motion))
+  (move-to-column (vim:motion-first-col motion) t)
   
   (case vim:visual-mode-type
     ('block
      ;; TODO: ensure the right command is run on repetition.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "i")
-     (setq vim:visual-last-insert-motion motion)
-     (goto-line (car (vim:motion-begin motion)))
-     (move-to-column (cdr (vim:motion-begin motion)) t)
      (vim:cmd-insert :count 1)
-     (add-hook 'vim:normal-mode-on-hook
-               'vim:insert-block-copies))
+     (add-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies))
 
     ('linewise
      ;; TODO: ensure the right command is run on repetition.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "I")
-     (setq vim:visual-last-insert-motion
-           (vim:make-motion :begin (vim:motion-begin-row motion)
-                            :end (vim:motion-end-row motion)
-                            :type 'linewise))
-     (goto-char (vim:motion-begin-pos motion))
      (vim:cmd-Insert :count 1)
-     (add-hook 'vim:normal-mode-on-hook
-               'vim:insert-linewise-copies)))
+     (add-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies)))
 
   (setq vim:visual-last-insert-undo vim:last-insert-undo))
 
 (defun vim:insert-block-copies ()
   "Called to repeat the last block-insert."
   (remove-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies)
-  (let ((begrow (car (vim:motion-begin vim:visual-last-insert-motion)))
-        (begcol (cdr (vim:motion-begin vim:visual-last-insert-motion)))
-        (endrow (car (vim:motion-end vim:visual-last-insert-motion))))
+  (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
+        (begcol (vim:visual-insert-info-column vim:visual-last-insert-info))
+        (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
       (dotimes (i (- endrow begrow))
-        (goto-line (+ begrow i 1))
+            (goto-line (+ begrow i 1))
         (when (>= (save-excursion
                     (end-of-line)
                     (current-column))
@@ -533,8 +522,8 @@
 (defun vim:insert-linewise-copies ()
   "Called to repeat the last linewise-insert."
   (remove-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies)
-  (let ((begrow (vim:motion-begin-row vim:visual-last-insert-motion))
-        (endrow (vim:motion-end-row vim:visual-last-insert-motion)))
+  (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
+        (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
       (goto-line (1+ begrow))
       (dotimes (i (- endrow begrow))
@@ -546,30 +535,28 @@
 (vim:defcmd vim:visual-append (motion)
   "Starts insertion at the right column of a visual block."
   
+  (setq vim:visual-last-insert-info
+        (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
+                                     :last-line (vim:motion-last-line motion)
+                                     :column (vim:motion-last-col motion)))
+  
+  (goto-line (vim:motion-first-line motion))
+  (move-to-column (vim:motion-first-col motion) t)
+  
   (case vim:visual-mode-type
     ('block
      ;; TODO: ensure the right command is run on repeation.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "a")
-     (setq vim:visual-last-insert-motion motion)
-     (goto-line (car (vim:motion-begin motion)))
-     (move-to-column (cdr (vim:motion-end motion)) t)
      (vim:cmd-append :count 1)
-     (add-hook 'vim:normal-mode-on-hook
-               'vim:append-block-copies))
+     (add-hook 'vim:normal-mode-on-hook 'vim:append-block-copies))
 
     ('linewise
      ;; TODO: ensure the right command is run on repeation.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "A")
-     (setq vim:visual-last-insert-motion
-           (vim:make-motion :begin (vim:motion-begin-row motion)
-                            :end (vim:motion-end-row motion)
-                            :type 'linewise))
-     (goto-char (vim:motion-begin-pos motion))
      (vim:cmd-Append :count 1)
-     (add-hook 'vim:normal-mode-on-hook
-               'vim:insert-linewise-copies)))
+     (add-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies)))
 
   (setq vim:visual-last-insert-undo vim:last-insert-undo))
 
@@ -577,9 +564,9 @@
 (defun vim:append-block-copies ()
   "Called to repeat the last block-insert."
   (remove-hook 'vim:normal-mode-on-hook 'vim:append-block-copies)
-  (let ((begrow (car (vim:motion-begin vim:visual-last-insert-motion)))
-        (endrow (car (vim:motion-end vim:visual-last-insert-motion)))
-        (endcol (cdr (vim:motion-end vim:visual-last-insert-motion))))
+  (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
+        (endcol (vim:visual-insert-info-column vim:visual-last-insert-info))
+        (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
       (goto-line (1+ begrow))
       (dotimes (i (- endrow begrow))

@@ -90,126 +90,147 @@
 ;; This structure is passed to operators taking a motion.
 ;; It should *not* be returned by motions.
 (defstruct (vim:motion
-            (:constructor vim:make-motion))
+            (:constructor vim:make-motion-struct))
+  has-begin ; t iff the motion defined an explicit begin
   begin  ; first point in this motion
   end    ; last point in this motion
   type   ; 'inclusive, 'exclusive, 'linewise
   )
 
+(defun* vim:make-motion (&key
+                         has-begin
+			 (begin (point))
+			 (end (point))
+			 type)
+  "Creates a new motion with `begin' and `end' always 
+positions within (point-min) and (point-max) and not at 
+ (line-end-position) (if possible)."
+  (unless type
+    (setq type (if (<= begin end) 'inclusive 'exclusive)))
+  
+  (labels 
+      ((shrink-to (pos lower upper)
+                  (max lower (min upper pos)))
+       
+       (normalize-pos (pos)
+                      (let ((pos (shrink-to pos (point-min) (point-max))))
+                        (shrink-to pos 
+                                   (save-excursion
+                                     (goto-char pos)
+                                     (line-beginning-position))
+                                   (save-excursion
+                                     (goto-char pos)
+                                     (line-end-position))))))
+    
+    (vim:make-motion-struct :has-begin has-begin
+                            :begin (normalize-pos begin)
+                            :end (normalize-pos end)
+                            :type type)))
+
 
 (defun vim:motion-line-count (motion)
-  "Returns a new motion with same range but new type."
-  (let ((cnt
-         (1+ (case (vim:motion-type motion)
-               ('linewise (- (vim:motion-end motion)
-                             (vim:motion-begin motion)))
-               ('block (- (car (vim:motion-end motion))
-                          (car (vim:motion-begin motion))))
-               
-               (t (- (line-number-at-pos (vim:motion-end motion))
-                     (line-number-at-pos (vim:motion-begin motion))))))))
-    (when (< cnt 0)
-      (error "Invalid motion (begin must be <= end)"))
-    cnt))
+  "Returns the number of lines the `motion' covers."
+  (1+ (- (vim:motion-last-line motion)
+	 (vim:motion-first-line motion))))
 
+(defun vim:motion-first-line (motion)
+  "Returns the first line covered by `motion'."
+  (min (line-number-at-pos (vim:motion-begin motion))
+       (line-number-at-pos (vim:motion-end motion))))
 
-(defun vim:motion-begin-row (motion)
-  "Returns the row-number of the beginning-position of `motion'."
-  (case (vim:motion-type motion)
-    ('linewise (vim:motion-begin motion))
-    ('block (car (vim:motion-begin motion)))
-    (t (line-number-at-pos (vim:motion-begin motion)))))
-      
+(defun vim:motion-last-line (motion)
+  "Returns the last line covered by `motion'."
+  (max (line-number-at-pos (vim:motion-begin motion))
+       (line-number-at-pos (vim:motion-end motion))))
 
-(defun vim:motion-end-row (motion)
-  "Returns the row-number of the end-position of `motion'."
-  (case (vim:motion-type motion)
-    ('linewise (vim:motion-end motion))
-    ('block (car (vim:motion-end motion)))
-    (t (line-number-at-pos (vim:motion-end motion)))))
+(defun vim:motion-first-col (motion)
+  "Returns the first column covered by `motion'."
+  (min (save-excursion 
+	 (goto-char (vim:motion-begin motion))
+	 (current-column))
+       (save-excursion 
+	 (goto-char (vim:motion-end motion))
+	 (current-column))))
 
-
-(defun vim:motion-begin-col (motion)
-  "Returns the column-number of the beginning-position of `motion'."
-  (case (vim:motion-type motion)
-    ('block (cdr (vim:motion-begin motion)))
-    (t (error "Column information only available for block motions."))))
-      
-
-(defun vim:motion-end-col (motion)
-  "Returns the column-number of the end-position of `motion'."
-  (case (vim:motion-type motion)
-    ('block (cdr (vim:motion-end motion)))
-    (t (error "Column information only available for block motions."))))
-
+(defun vim:motion-last-col (motion)
+  "Returns the last column covered by `motion'."
+  (max (save-excursion 
+	 (goto-char (vim:motion-begin motion))
+	 (current-column))
+       (save-excursion 
+	 (goto-char (vim:motion-end motion))
+	 (current-column))))
 
 (defun vim:motion-begin-pos (motion)
-  "Returns the offset of the beginning-position of `motion'."
-  (case (vim:motion-type motion)
-    ('linewise (save-excursion
-                 (goto-line (vim:motion-begin motion))
-                 (line-beginning-position)))
-    ('block (save-excursion
-              (goto-line (car (vim:motion-begin motion)))
-              (move-to-column (cdr (vim:motion-begin motion)))
-              (point)))
-    (t (vim:motion-begin motion))))
-
+  "Returns the smaller position covered by `motion'."
+  (if (eq (vim:motion-type motion) 'linewise)
+      (save-excursion
+	(goto-line (vim:motion-first-line motion))
+	(line-beginning-position))
+    (min (vim:motion-begin motion)
+	 (vim:motion-end motion))))
 
 (defun vim:motion-end-pos (motion)
-  "Returns the offset of the end-position of `motion'."
-  (case (vim:motion-type motion)
-    ('linewise (save-excursion
-                 (goto-line (vim:motion-end motion))
-                 (max (line-beginning-position)
-                      (1- (line-end-position)))))
-    ('block (save-excursion
-              (goto-line (car (vim:motion-end motion)))
-              (move-to-column (cdr (vim:motion-end motion)))
-              (point)))
-    (t (vim:motion-end motion))))
-                              
-      
+  "Returns the larger position covered by `motion' + 1, so 
+it can be used as the end of an Emacs range."
+  (if (eq (vim:motion-type motion) 'linewise)
+      (save-excursion
+	(goto-line (vim:motion-last-line motion))
+	(line-end-position))
+
+    (let ((e (max (vim:motion-begin motion)
+		  (vim:motion-end motion))))
+      (if (eq (vim:motion-type motion) 'exclusive)
+	  e
+	(1+ e)))))
+
+
+(defmacro vim:do-motion (type expression)
+  "Executes a motion body, ensuring the return of a valid vim:motion object."
+  (let ((current-pos (gensym))
+        (motion (gensym)))
+    `(let* ((,current-pos (point))
+            (,motion ,expression))
+       (if (vim:motion-p ,motion)
+           ,motion
+         (vim:make-motion :has-begin nil
+                          :begin ,current-pos
+                          :end (point)
+                          :type ,type)))))
 
 
 (defun vim:adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
   (save-excursion
     (goto-char pos)
-    (if (eolp)
-        (1- pos)
-      pos)))
+    (max (line-beginning-position)
+         (min (1- (line-end-position)) pos))))
 
 (vim:defmotion vim:motion-left (exclusive count)
   "Move the cursor count characters left."
-  (max (line-beginning-position)
-       (- (point) (or count 1))))
+  (unless (bolp)
+    (backward-char (or count 1))))
 
 (vim:defmotion vim:motion-right (exclusive count)
   "Move the cursor count characters right."
-  (min (line-end-position)
-       (+ (point) (or count 1))))
+  (goto-char
+   (min (line-end-position)
+        (+ (point) (or count 1)))))
 
 (vim:defmotion vim:motion-up (linewise count)
   "Move the cursor count lines up."
   (vim:use-last-column)
-  (save-excursion
-    (forward-line (- (or count 1)))
-    (point)))
+  (forward-line (- (or count 1))))
 
 (vim:defmotion vim:motion-down (linewise count)
   "Move the cursor count lines down."
   (vim:use-last-column)
-  (save-excursion
-    (forward-line (or count 1))
-    (point)))
-
+  (forward-line (or count 1)))
+  
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
   (vim:use-last-column)
-  (save-excursion
-    (forward-line (1- (or count 1)))
-    (point)))
+  (forward-line (1- (or count 1))))
 
 
 (defun vim:motion-beginning-of-line-or-digit-argument ()
@@ -223,265 +244,234 @@
 
 (vim:defmotion vim:motion-beginning-of-line (exclusive)
   "Move the cursor to the beginning of the current line."
-  (line-beginning-position))
+  (beginning-of-line))
 
 (vim:defmotion vim:motion-first-non-blank (exclusive)
   "Move the cursor to the first non-blank character of the current line."
-  (save-excursion
-    (back-to-indentation)
-    (point)))
+  (back-to-indentation))
 
 (vim:defmotion vim:motion-end-of-line (inclusive)
   "Move the cursor to the end of the current line."
-  (line-end-position))
+  (end-of-line))
 
 (vim:defmotion vim:motion-last-non-blank (inclusive)
   "Move the cursor to the last non-blank charactor of the current line."
-  (save-excursion
-    (beginning-of-line)
-    (re-search-forward "[ \t]*$")
-    (max (line-beginning-position)
-         (1- (match-beginning 0)))))
+  (goto-char
+   (save-excursion
+     (beginning-of-line)
+     (re-search-forward "[ \t]*$")
+     (max (line-beginning-position)
+          (1- (match-beginning 0))))))
 
 (vim:defmotion vim:motion-go-to-first-non-blank-beg (linewise count)
   "Moves the cursor to the first non-blank charactor of line count."
-  (save-excursion
-    (if count
-        (goto-line count)
-      (goto-char (point-min)))
-    (vim:motion-first-non-blank)))
+  (if count
+      (goto-line count)
+    (goto-char (point-min)))
+  (vim:motion-first-non-blank))
   
 (vim:defmotion vim:motion-go-to-first-non-blank-end (linewise count)
   "Moves the cursor to the first non-blank charactor of line count."
-  (save-excursion
-    (if count
-        (goto-line count)
-      (goto-char (point-max)))
-    (vim:motion-first-non-blank)))
+  (if count
+      (goto-line count)
+    (goto-char (point-max)))
+  (vim:motion-first-non-blank))
 
 
 (vim:defmotion vim:motion-fwd-word (exclusive count)
   "Moves the cursor beginning of the next word."
-  (save-excursion
-    (dotimes (i (or count 1))
-      (forward-char)
-      (while
-          (not
-           (or (and (looking-back "[ \t\r\n]")
-                    (looking-at "[^ \t\r\n]"))
-               (and (looking-back (concat "[" vim:word "]"))
-                    (looking-at (concat "[^ \t\r\n" vim:word "]")))
-               (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
-                    (looking-at (concat "[" vim:word "]")))
-               (and (bolp) (eolp))))
-        (forward-char)))
-    ;; in operator-pending mode, if we reached the beginning of a new
-    ;; line, go back to the end of the previous line
-    (when (and (vim:operator-pending-mode-p)
-               (looking-back "^[ \t]*")
-               (not (save-excursion
-                      (forward-line -1)
-                      (and (bolp) (eolp)))))
-      (forward-line -1)
-      (end-of-line))
-    (point)))
+  (dotimes (i (or count 1))
+    (forward-char)
+    (while
+        (not
+         (or (and (looking-back "[ \t\r\n]")
+                  (looking-at "[^ \t\r\n]"))
+             (and (looking-back (concat "[" vim:word "]"))
+                  (looking-at (concat "[^ \t\r\n" vim:word "]")))
+             (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
+                  (looking-at (concat "[" vim:word "]")))
+             (and (bolp) (eolp))))
+      (forward-char)))
+  ;; in operator-pending mode, if we reached the beginning of a new
+  ;; line, go back to the end of the previous line
+  (when (and (vim:operator-pending-mode-p)
+             (looking-back "^[ \t]*")
+             (not (save-excursion
+                    (forward-line -1)
+                    (and (bolp) (eolp)))))
+    (forward-line -1)
+    (end-of-line)))
 
 
 (vim:defmotion vim:motion-fwd-WORD (exclusive count)
   "Moves the cursor to beginning of the next WORD."
-  (save-excursion
-    (dotimes (i (or count 1))
-      (forward-char)
-      (while
-          (not
-           (or (and (looking-back "[ \t\r\n]")
-                    (looking-at "[^ \t\r\n]"))
-               (and (bolp) (eolp))))
-        (forward-char)))
-    ;; in operator-pending mode, if we reached the beginning of a new
-    ;; line, go back to the end of the previous line
-    (when (and (vim:operator-pending-mode-p)
-               (looking-back "^[ \t]*")
-               (not (save-excursion
-                      (forward-line -1)
-                      (and (bolp) (eolp)))))
-      (forward-line -1)
-      (end-of-line))
-    (point)))
+  (dotimes (i (or count 1))
+    (forward-char)
+    (while
+        (not
+         (or (and (looking-back "[ \t\r\n]")
+                  (looking-at "[^ \t\r\n]"))
+             (and (bolp) (eolp))))
+      (forward-char)))
+  ;; in operator-pending mode, if we reached the beginning of a new
+  ;; line, go back to the end of the previous line
+  (when (and (vim:operator-pending-mode-p)
+             (looking-back "^[ \t]*")
+             (not (save-excursion
+                    (forward-line -1)
+                    (and (bolp) (eolp)))))
+    (forward-line -1)
+    (end-of-line)))
 
 
 (vim:defmotion vim:motion-fwd-word-end (inclusive count)
   "Moves the cursor to the end of the next word."            
-  (save-excursion
-    (dotimes (i (or count 1))
-      (forward-char)
-      (while
-          (not
-           (or (and (looking-at (concat "[^ \t\r\n]"
-                                        "[ \t\r\n]")))
-               (and (looking-at (concat "[" vim:word "]"
-                                        "[^ \t\r\n" vim:word "]")))
-               (and (looking-at (concat "[^ \t\r\n" vim:word "]"
+  (dotimes (i (or count 1))
+    (forward-char)
+    (while
+        (not
+         (or (and (looking-at (concat "[^ \t\r\n]"
+                                      "[ \t\r\n]")))
+             (and (looking-at (concat "[" vim:word "]"
+                                      "[^ \t\r\n" vim:word "]")))
+             (and (looking-at (concat "[^ \t\r\n" vim:word "]"
                                         "[" vim:word "]")))))
-        (forward-char)))
-    (point)))
-  
+      (forward-char))))
+
 
 (vim:defmotion vim:motion-fwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
-  (save-excursion
-    (dotimes (i (or count 1))
-      (forward-char)
-      (while
-          (not (and (looking-at (concat "[^ \t\r\n]"
-                                        "[ \t\r\n]"))))
-        (forward-char)))
-    (point)))
+  (dotimes (i (or count 1))
+    (forward-char)
+    (while
+        (not (and (looking-at (concat "[^ \t\r\n]"
+                                      "[ \t\r\n]"))))
+      (forward-char))))
   
 
 (vim:defmotion vim:motion-bwd-word (exclusive count)
   "Moves the cursor beginning of the previous word."
-  (save-excursion
-    (dotimes (i (or count 1))
-      (backward-char)
-      (while
-          (not
-           (or (and (looking-back "[ \t\r\n]")
-                    (looking-at "[^ \t\r\n]"))
-               (and (looking-back (concat "[" vim:word "]"))
-                    (looking-at (concat "[^ \t\r\n" vim:word "]")))
-               (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
-                    (looking-at (concat "[" vim:word "]")))
-               (and (bolp) (eolp))))
-        (backward-char)))
-    (point)))
+  (dotimes (i (or count 1))
+    (backward-char)
+    (while
+        (not
+         (or (and (looking-back "[ \t\r\n]")
+                  (looking-at "[^ \t\r\n]"))
+             (and (looking-back (concat "[" vim:word "]"))
+                  (looking-at (concat "[^ \t\r\n" vim:word "]")))
+             (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
+                  (looking-at (concat "[" vim:word "]")))
+             (and (bolp) (eolp))))
+      (backward-char))))
   
 
 (vim:defmotion vim:motion-bwd-WORD (exclusive count)
   "Moves the cursor to beginning of the previous WORD."
-  (save-excursion
-    (dotimes (i (or count 1))
-      (backward-char)
-      (while
-          (not
-           (or (and (looking-back "[ \t\r\n]")
-                    (looking-at "[^ \t\r\n]"))
-               (and (bolp) (eolp))))
-        (backward-char)))
-    (point)))
+  (dotimes (i (or count 1))
+    (backward-char)
+    (while
+        (not
+         (or (and (looking-back "[ \t\r\n]")
+                  (looking-at "[^ \t\r\n]"))
+             (and (bolp) (eolp))))
+      (backward-char))))
 
 
 (vim:defmotion vim:motion-bwd-word-end (inclusive count)
   "Moves the cursor to the end of the previous word."            
-  (save-excursion
-    (dotimes (i (or count 1))
-      (backward-char)
-      (while
-          (not
-           (or (and (looking-at (concat "[^ \t\r\n]"
-                                        "[ \t\r\n]")))
-               (and (looking-at (concat "[" vim:word "]"
-                                        "[^ \t\r\n" vim:word "]")))
-               (and (looking-at (concat "[^ \t\r\n" vim:word "]"
+  (dotimes (i (or count 1))
+    (backward-char)
+    (while
+        (not
+         (or (and (looking-at (concat "[^ \t\r\n]"
+                                      "[ \t\r\n]")))
+             (and (looking-at (concat "[" vim:word "]"
+                                      "[^ \t\r\n" vim:word "]")))
+             (and (looking-at (concat "[^ \t\r\n" vim:word "]"
                                         "[" vim:word "]")))))
-        (backward-char)))
-    (point)))
+      (backward-char))))
             
 
 (vim:defmotion vim:motion-bwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
-  (save-excursion
-    (dotimes (i (or count 1))
-      (backward-char)
-      (while
-          (not (and (looking-at (concat "[^ \t\r\n]"
-                                        "[ \t\r\n]"))))
-        (backward-char)))
-    (point)))
+  (dotimes (i (or count 1))
+    (backward-char)
+    (while
+        (not (and (looking-at (concat "[^ \t\r\n]"
+                                      "[ \t\r\n]"))))
+      (backward-char))))
 
 
 (vim:defmotion vim:motion-fwd-sentence (exclusive count)
   "Move the cursor `count' sentences forward."
   
-  (save-excursion
-    (re-search-forward "\\(?:[.!?][]\"')]*\\(?:[ \t\r]+\\|$\\)\n?\\|\\=[ \t\r]*\n\\(?:[ \t\r]*\n\\)*[ \t\r]*\\)"
-                       nil
-                       t
-                       (or count 1))
-    (point)))
+  (re-search-forward "\\(?:[.!?][]\"')]*\\(?:[ \t\r]+\\|$\\)\n?\\|\\=[ \t\r]*\n\\(?:[ \t\r]*\n\\)*[ \t\r]*\\)"
+                     nil
+                     t
+                     (or count 1)))
             
 
 (vim:defmotion vim:motion-bwd-sentence (exclusive count)
   "Move the cursor `count' sentences forward."
   
-  (save-excursion
-    (dotimes (i (or count 1))
-      (goto-char (max (save-excursion (backward-sentence 1) (point))
-                      (save-excursion (backward-paragraph 1) (point)))))
-    (point)))
+  (dotimes (i (or count 1))
+    (goto-char (max (save-excursion (backward-sentence 1) (point))
+                    (save-excursion (backward-paragraph 1) (point))))))
             
 
 (vim:defmotion vim:motion-fwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs forward."
-  (save-excursion
-    (forward-paragraph (or count 1))
-    (point)))
+  (forward-paragraph (or count 1)))
             
 
 (vim:defmotion vim:motion-bwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs backward."
-  (save-excursion
-    (backward-paragraph (or count 1))
-    (point)))
+  (backward-paragraph (or count 1)))
             
 
 (vim:defmotion vim:motion-find (inclusive count (argument arg))
   "Move the cursor to the next count'th occurrence of arg."
-  (save-excursion
-    (forward-char)
-    (let ((case-fold-search nil))
-      (unless (search-forward (char-to-string arg)
-                              nil t (or count 1))
-        (error (format "Can't find %c" arg)))
-      (setq vim:last-find (cons 'vim:motion-find arg))
-      (1- (point)))))
+  (forward-char)
+  (let ((case-fold-search nil))
+    (unless (search-forward (char-to-string arg)
+                            nil t (or count 1))
+      (error (format "Can't find %c" arg)))
+    (setq vim:last-find (cons 'vim:motion-find arg))
+    (backward-char)))
 
 
 (vim:defmotion vim:motion-find-back (exclusive count (argument arg))
   "Move the cursor to the previous count'th occurrence of arg."
-  (save-excursion
-    (let ((case-fold-search nil))
-      (unless (search-backward (char-to-string arg)
-                               nil t (or count 1))
-        (error (format "Can't find %c" arg)))
-      (setq vim:last-find (cons 'vim:motion-find-back arg))
-      (point))))
+  (let ((case-fold-search nil))
+    (unless (search-backward (char-to-string arg)
+                             nil t (or count 1))
+      (error (format "Can't find %c" arg)))
+    (setq vim:last-find (cons 'vim:motion-find-back arg))))
 
 
 (vim:defmotion vim:motion-find-to (inclusive count (argument arg))
   "Move the cursor to the character before the next count'th\
    occurence of arg."
-  (let ((pos (1- (vim:motion-find :count count :argument arg))))
-    (setq vim:last-find (cons 'vim:motion-find-to arg))
-    pos))
+  (vim:motion-find :count count :argument arg)
+  (backward-char)
+  (setq vim:last-find (cons 'vim:motion-find-to arg)))
 
 
 (vim:defmotion vim:motion-find-back-to (exclusive count (argument arg))
   "Move the cursor to the character after the previous count'th\
    occurence of arg."
-  (let ((pos (1+ (vim:motion-find-back :count count :argument arg))))
-    (setq vim:last-find (cons 'vim:motion-find-to arg))
-    pos))
+   (vim:motion-find-back :count count :argument arg)
+   (forward-char)
+   (setq vim:last-find (cons 'vim:motion-find-to arg)))
 
 
 (vim:defmotion vim:motion-repeat-last-find (inclusive count)
   "Repeats the last find command."
   (unless vim:last-find
     (error "No previous find command."))
-  (cons (vim:cmd-type (car vim:last-find))
-        (funcall (car vim:last-find)
-                 :count count
-                 :argument (cdr vim:last-find))))
+  (funcall (car vim:last-find)
+           :count count
+           :argument (cdr vim:last-find)))
 
 
 (vim:defmotion vim:motion-repeat-last-find-opposite (inclusive count)
@@ -497,45 +487,47 @@
                                   (car vim:last-find))))))
         (arg (cdr vim:last-find)))
     (let ((vim:last-find nil))
-      (cons (vim:cmd-type func)
-            (funcall func :count count :argument arg)))))
+      (funcall func :count count :argument arg))))
 
 
 (vim:defmotion vim:motion-jump-item (inclusive)
   "Find the next item in this line after or under the cursor and
 jumps to the corresponding one."
-  (save-excursion
-    (let ((next-open
-           (condition-case err
-               (1- (scan-lists (point) 1 -1))
-             (error
-              (point-max))))
-          (next-close
-           (condition-case nil
-               (1- (scan-lists (point) 1 +1))
-             (error (point-max)))))
-      (let ((pos (min next-open next-close)))
-        (when (>= pos (line-end-position))
-          (error "No matching item found on the current line."))
-        (if (= pos next-open)
-            (progn
-              (goto-char pos)
-              (forward-list)
-              (backward-char))
+  (let ((next-open
+         (condition-case err
+             (1- (scan-lists (point) 1 -1))
+           (error
+            (point-max))))
+        (next-close
+         (condition-case nil
+             (1- (scan-lists (point) 1 +1))
+           (error (point-max)))))
+    (let ((pos (min next-open next-close)))
+      (when (>= pos (line-end-position))
+        (error "No matching item found on the current line."))
+      (if (= pos next-open)
           (progn
-            (goto-char (1+ pos))
-            (backward-list)))
-        (point)))))
+            (goto-char pos)
+            (forward-list)
+            (backward-char))
+        (progn
+          (goto-char (1+ pos))
+          (backward-list))))))
 
 
 (vim:defmotion vim:motion-inner-word (inclusive count)
    "Select `count' words."
-   (cons (save-excursion
-           (forward-char)
-           (re-search-backward "\\b\\w" nil t)
-           (match-beginning 0))
-         (save-excursion
-           (re-search-forward "\\w\\b" nil t (or count 1))
-           (match-beginning 0))))
+   (let ((beg (save-excursion
+                (forward-char)
+                (re-search-backward "\\b\\w" nil t)
+                (match-beginning 0)))
+         (end (save-excursion
+                (re-search-forward "\\w\\b" nil t (or count 1))
+                (match-beginning 0))))
+     (goto-char end)
+     (vim:make-motion :has-begin t
+                      :begin beg
+                      :end end
+                      :type 'inclusive)))
            
    

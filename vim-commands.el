@@ -91,7 +91,7 @@
 (vim:defcmd vim:cmd-Insert (count)
   "Moves the cursor to the beginning of the current line
 and switches to insert-mode."
-  (goto-char (vim:motion-first-non-blank))
+  (vim:motion-first-non-blank)
   (vim:cmd-insert :count count))
 
 (vim:defcmd vim:cmd-Append (count)
@@ -102,7 +102,7 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-insert-line-above (count)
   "Inserts a new line above the current one and goes to insert mode."
-  (goto-char (vim:motion-beginning-of-line))
+  (vim:motion-beginning-of-line)
   (newline)
   (forward-line -1)
   (indent-according-to-mode)
@@ -110,7 +110,7 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-insert-line-below (count)
   "Inserts a new line below the current one and goes to insert mode."
-  (goto-char (vim:motion-end-of-line))
+  (vim:motion-end-of-line)
   (newline)
   (indent-according-to-mode)
   (vim:cmd-insert))
@@ -146,49 +146,37 @@ and switches to insert-mode."
                        (line-end-position))
                      end))
     (goto-char beg)
-    (goto-char (vim:motion-first-non-blank))))
+    (vim:motion-first-non-blank)))
 
 
 (vim:defcmd vim:cmd-delete (motion)
   "Deletes the characters defined by motion."
   (case (vim:motion-type motion)
     ('linewise
-     (goto-line (vim:motion-begin motion))
+     (goto-line (vim:motion-first-line motion))
      (vim:cmd-delete-line :count (vim:motion-line-count motion)))
 
     ('block
      (vim:cmd-yank :motion motion)
-     (let ((beg (save-excursion
-                  (goto-line (car (vim:motion-begin motion)))
-                  (move-to-column (cdr (vim:motion-begin motion)) t)
-                  (point)))
-           (end (save-excursion
-                  (goto-line (car (vim:motion-end motion)))
-                  (move-to-column (1+ (cdr (vim:motion-end motion))) t)
-                  (point))))
-       (delete-rectangle beg end)
-       (goto-char beg)))
+     (delete-rectangle (vim:motion-begin-pos motion)
+		       (vim:motion-end-pos motion))
+     (goto-char (vim:motion-begin-pos motion)))
 
     (t
-      (kill-region (vim:motion-begin motion) (min (point-max) (1+ (vim:motion-end motion))))
-      (goto-char (vim:motion-begin motion)))))
+     (kill-region (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
+     (goto-char (vim:motion-begin-pos motion)))))
 
 
 (vim:defcmd vim:cmd-delete-char (count)
   "Deletes the next count characters."
-  (let* ((pos (point))
-         (end (vim:motion-right :count count))
-         (motion (vim:make-motion :begin (point)
-                                  :end (1- end)
-                                  :type 'inclusive)))
-    (vim:cmd-delete :motion motion)))
+  (vim:cmd-delete :motion (vim:motion-right :count (or count 1))))
 
 
 (vim:defcmd vim:cmd-change (motion)
   "Deletes the characters defined by motion and goes to insert mode."
   (case (vim:motion-type motion)
     ('linewise
-     (goto-line (vim:motion-begin motion))
+     (goto-line (vim:motion-first-line motion))
      (vim:cmd-change-line :count (vim:motion-line-count motion)))
 
     ('block
@@ -274,12 +262,8 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-change-char (count)
   "Deletes the next count characters and goes to insert mode."
-  (let* ((pos (point))
-         (end (vim:motion-right :count count))
-         (motion (vim:make-motion :begin (point)
-                                  :end (1- end)
-                                  :type 'inclusive)))
-    (vim:cmd-delete :motion motion)
+  (let ((pos (point)))
+    (vim:cmd-delete-char :count count)
     (if (< (point) pos)
         (vim:cmd-append)
       (vim:cmd-insert))))
@@ -303,10 +287,10 @@ and switches to insert-mode."
    (case (vim:motion-type motion)
      ('block
       ;; replace in block
-      (let ((begrow (car (vim:motion-begin motion)))
-            (begcol (cdr (vim:motion-begin motion)))
-            (endrow (car (vim:motion-end motion)))
-            (endcol (1+ (cdr (vim:motion-end motion)))))
+      (let ((begrow (vim:motion-first-line motion))
+            (begcol (vim:motion-first-col motion))
+            (endrow (vim:motion-last-line motion))
+            (endcol (1+ (vim:motion-last-col motion))))
         (goto-line begrow)
         (dotimes (i (1+ (- endrow begrow)))
           ;; TODO does it work with \r\n at the end?
@@ -327,8 +311,8 @@ and switches to insert-mode."
         (move-to-column begcol)))
        
      (t ;; replace in linewise and normal
-      (let ((begrow (vim:motion-begin-row motion))
-            (endrow (vim:motion-end-row motion)))
+      (let ((begrow (vim:motion-first-line motion))
+            (endrow (vim:motion-last-line motion)))
         (goto-line begrow)
         (do ((r begrow (1+ r)))
             ((> r endrow))
@@ -337,42 +321,42 @@ and switches to insert-mode."
                  (if (and (= r begrow)
                           (not (eq (vim:motion-type motion) 'linewise)))
                      (save-excursion
-                       (goto-char (vim:motion-begin motion))
+                       (goto-char (vim:motion-begin-pos motion))
                        (current-column))
                    0))
                 (endcol
                  (if (and (= r endrow)
                           (not (eq (vim:motion-type motion) 'linewise)))
                      (save-excursion
-                       (goto-char (vim:motion-end motion))
-                       (1+ (current-column)))
+                       (goto-char (vim:motion-end-pos motion))
+                       (current-column))
                    ;; TODO does it work with \r\n at the end?
                    (save-excursion
                      (end-of-line)
                      (current-column)))))
 
-              (delete-region (save-excursion
-                               (move-to-column begcol t)
-                               (point))
-                             (save-excursion
-                               (move-to-column endcol t)
-                               (point)))
-              (move-to-column begcol t)
-              (insert-char arg (- endcol begcol)))))
-
-        (goto-char (vim:motion-begin motion)))))
+	    (delete-region (save-excursion
+			     (move-to-column begcol t)
+			     (point))
+			   (save-excursion
+			     (move-to-column endcol t)
+			     (point)))
+	    (move-to-column begcol t)
+	    (insert-char arg (- endcol begcol)))))
+      
+      (goto-char (vim:motion-begin-pos motion)))))
 
 
 (vim:defcmd vim:cmd-yank (motion nonrepeatable)
   "Saves the characters in motion into the kill-ring."
   (case (vim:motion-type motion)
     ('block (vim:cmd-yank-rectangle :motion motion))
-    ('linewise (goto-line (vim:motion-begin-row motion))
+    ('linewise (goto-line (vim:motion-first-line motion))
 	       (vim:cmd-yank-line :count (vim:motion-line-count motion)))
     (t
      (kill-new (buffer-substring
                 (vim:motion-begin-pos motion)
-                (1+ (vim:motion-end-pos motion)))))))
+                (vim:motion-end-pos motion))))))
   
 
 (vim:defcmd vim:cmd-yank-line (count nonrepeatable)
@@ -389,10 +373,10 @@ and switches to insert-mode."
   (unless (eq (vim:motion-type motion) 'block)
     (error "Motion must be of type block"))
   ;; TODO: yanking should not insert spaces or expand tabs.
-  (let ((begrow (car (vim:motion-begin motion)))
-	(begcol (cdr (vim:motion-begin motion)))
-	(endrow (car (vim:motion-end motion)))
-	(endcol (cdr (vim:motion-end motion)))
+  (let ((begrow (vim:motion-first-line motion))
+	(begcol (vim:motion-first-col motion))
+	(endrow (vim:motion-last-line motion))
+	(endcol (vim:motion-last-col motion))
 	(parts nil))
     (goto-line endrow)
     (dotimes (i (1+ (- endrow begrow)))
@@ -506,20 +490,20 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-join (motion)
   "Join the lines covered by `motion'."
-  (goto-line (vim:motion-begin-row motion))
+  (goto-line (vim:motion-first-line motion))
   (vim:cmd-join-lines :count (vim:motion-line-count motion)))
 
 
 (vim:defcmd vim:cmd-indent (motion)
   "Reindent the lines covered by `motion'."
-  (goto-line (vim:motion-begin-row motion))
+  (goto-line (vim:motion-first-line motion))
   (indent-region (line-beginning-position)
                  (line-end-position (vim:motion-line-count motion))))
   
 
 (vim:defcmd vim:cmd-shift-left (motion)
   "Shift the lines covered by `motion' leftwards."
-  (goto-line (vim:motion-begin-row motion))
+  (goto-line (vim:motion-first-line motion))
   (indent-rigidly (line-beginning-position)
                   (line-end-position (vim:motion-line-count motion))
                   (- vim:shift-width)))
@@ -527,7 +511,7 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-shift-right (motion)
   "Shift the lines covered by `motion' rightwards."
-  (goto-line (vim:motion-begin-row motion))
+  (goto-line (vim:motion-first-line motion))
   (indent-rigidly (line-beginning-position)
                   (line-end-position (vim:motion-line-count motion))
                   vim:shift-width))
@@ -559,23 +543,23 @@ and switches to insert-mode."
 (defun vim:change-case (motion case-func)
   (case (vim:motion-type motion)
     ('block
-        (do ((l (vim:motion-begin-row motion) (1+ l)))
-            ((> l (vim:motion-end-row motion)))
+        (do ((l (vim:motion-first-line motion) (1+ l)))
+            ((> l (vim:motion-last-line motion)))
           (funcall case-func
                    (save-excursion
                      (goto-line l)
-                     (move-to-column (vim:motion-begin-col motion))
+                     (move-to-column (vim:motion-first-col motion))
                      (point))
                    (save-excursion
                      (goto-line l)
-                     (move-to-column (vim:motion-end-col motion))
+                     (move-to-column (vim:motion-last-col motion))
                      (1+ (point))))))
     ('linewise
      (save-excursion
        (funcall case-func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))))
     (t
-     (funcall case-func (vim:motion-begin-pos motion) (1+ (vim:motion-end-pos motion)))
-     (goto-char (1+ (vim:motion-end-pos motion))))))
+     (funcall case-func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
+     (goto-char (vim:motion-end-pos motion)))))
 
 
 (vim:defcmd vim:cmd-repeat (nonrepeatable)

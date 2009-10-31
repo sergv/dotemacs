@@ -39,7 +39,7 @@
         ('simple (error "No simple-commands allowed in operator-pending mode."))
         ('complex (error "No complex-commands allowed in operator-pending mode."))
         ('special (error "no special so far"))
-        (t (vim:execute-complex-command command)))
+        (t (vim:normal-execute-complex-command command)))
     
     (when (vim:operator-pending-mode-p)
       (vim:activate-normal-mode))))
@@ -64,13 +64,13 @@
 (defun vim:normal-mode-command (command)
   "Executes a motion or simple-command or prepares a complex command."
   (case (vim:cmd-type command)
-    ('simple (vim:execute-simple-command command))
-    ('complex (vim:prepare-complex-command command))
+    ('simple (vim:normal-execute-simple-command command))
+    ('complex (vim:normal-prepare-complex-command command))
     ('special (error "no special so far"))
-    (t (vim:execute-motion command))))
+    (t (vim:normal-execute-motion command))))
 
 
-(defun vim:execute-motion (command)
+(defun vim:normal-execute-motion (command)
   "Executes a motion."
   (setq vim:current-motion command)
 
@@ -81,19 +81,14 @@
     (setq vim:current-motion-arg (read-char-exclusive)))
 
   (unwind-protect
-      (let ((motion (vim:get-current-motion)))
-        (if (eq (vim:motion-type motion) 'block)
-            (progn
-              (goto-line (car (vim:motion-end motion)))
-              (move-to-column (cdr (vim:motion-end motion))))
-          (goto-char (vim:motion-end motion))))
+      (vim:execute-current-motion)
     
     (vim:reset-key-state)
     (vim:clear-key-sequence)
     (vim:adjust-point)))
 
 
-(defun vim:execute-simple-command (command)
+(defun vim:normal-execute-simple-command (command)
   "Executes a simple command."
   (when current-prefix-arg
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
@@ -121,7 +116,7 @@
     (vim:adjust-point)))
     
 
-(defun vim:prepare-complex-command (command)
+(defun vim:normal-prepare-complex-command (command)
   "Prepares a complex command, switching to operator-pending mode."
   (when current-prefix-arg
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
@@ -130,7 +125,7 @@
   (setq vim:current-key-sequence (vconcat vim:current-key-sequence (this-command-keys-vector)))
   (vim:activate-operator-pending-mode))
 
-(defun vim:execute-complex-command (motion-command)
+(defun vim:normal-execute-complex-command (motion-command)
   "Executes a complex command with a certain motion command."
   (setq vim:current-motion motion-command)
 
