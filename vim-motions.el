@@ -208,8 +208,8 @@ it can be used as the end of an Emacs range."
 
 (vim:defmotion vim:motion-left (exclusive count)
   "Move the cursor count characters left."
-  (unless (bolp)
-    (backward-char (or count 1))))
+  (goto-char (max (line-beginning-position)
+                  (- (point) (or count 1)))))
 
 (vim:defmotion vim:motion-right (exclusive count)
   "Move the cursor count characters right."
