@@ -120,7 +120,8 @@ positions within (point-min) and (point-max) and not at
                                      (line-beginning-position))
                                    (save-excursion
                                      (goto-char pos)
-                                     (1- (line-end-position)))))))
+                                     (- (line-end-position)
+                                        (if (eq type 'inclusive) 1 0)))))))
     
     (vim:make-motion-struct :has-begin has-begin
                             :begin (normalize-pos begin)
