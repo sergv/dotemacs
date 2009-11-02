@@ -251,15 +251,15 @@ it can be used as the end of an Emacs range."
   "Move the cursor to the first non-blank character of the current line."
   (back-to-indentation))
 
-(vim:defmotion vim:motion-end-of-line (inclusive)
+(vim:defmotion vim:motion-end-of-line (inclusive count)
   "Move the cursor to the end of the current line."
-  (end-of-line))
+  (end-of-line count))
 
-(vim:defmotion vim:motion-last-non-blank (inclusive)
+(vim:defmotion vim:motion-last-non-blank (inclusive count)
   "Move the cursor to the last non-blank charactor of the current line."
   (goto-char
    (save-excursion
-     (beginning-of-line)
+     (beginning-of-line count)
      (re-search-forward "[ \t]*$")
      (max (line-beginning-position)
           (1- (match-beginning 0))))))
