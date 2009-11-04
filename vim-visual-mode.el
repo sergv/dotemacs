@@ -470,7 +470,16 @@
           ('linewise (vim:activate-visual 'linewise))
           ('block (vim:activate-visual 'block))
           (t (vim:activate-visual 'normal)))
-        (set-mark (vim:motion-begin motion))))) 
+        (if (< (point) (mark t))
+            ;; increase backward
+            (progn
+              (goto-char (vim:motion-begin-pos motion))
+              (when (> (vim:motion-end-pos motion) (mark t))
+                (set-mark (vim:motion-end-pos motion))))
+          ;; increase forward
+          (when (< (vim:motion-begin motion)
+                          (mark t))
+            (set-mark (vim:motion-begin motion)))))))
       
 
 (vim:defcmd vim:visual-insert (motion)
