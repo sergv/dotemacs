@@ -180,8 +180,11 @@ and switches to insert-mode."
      (vim:cmd-change-line :count (vim:motion-line-count motion)))
 
     ('block
-     (vim:cmd-delete :motion motion)
-     (vim:visual-insert :motion motion))
+        (let ((insert-info (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
+                                                        :last-line (vim:motion-last-line motion)
+                                                        :column (vim:motion-first-col motion))))
+          (vim:cmd-delete :motion motion)
+          (vim:visual-start-insert insert-info)))
 
     (t
      ;; TODO: getting the node from vim:motion-keymap is dangerous if
