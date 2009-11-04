@@ -520,11 +520,12 @@ jumps to the corresponding one."
    "Select `count' words."
    (let ((beg (save-excursion
                 (forward-char)
-                (re-search-backward "\\b\\w" nil t)
-                (match-beginning 0)))
+                (vim:motion-bwd-word)
+                (point)))
          (end (save-excursion
-                (re-search-forward "\\w\\b" nil t (or count 1))
-                (match-beginning 0))))
+                (backward-char)
+                (vim:motion-fwd-word-end :count count)
+                (point))))
      (goto-char end)
      (vim:make-motion :has-begin t
                       :begin beg
