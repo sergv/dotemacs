@@ -475,14 +475,18 @@
 
 (vim:defcmd vim:visual-insert (motion)
   "Starts insertion at the left column of a visual region."
+
+  (vim:visual-start-insert 
+   (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
+                                :last-line (vim:motion-last-line motion)
+                                :column (vim:motion-first-col motion))))
+
+(defun vim:visual-start-insert (insert-info)
+  "Starts a new multi-line insert operation with `insert-info'."
   
-  (setq vim:visual-last-insert-info
-        (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
-                                     :last-line (vim:motion-last-line motion)
-                                     :column (vim:motion-first-col motion)))
-  
-  (goto-line (vim:motion-first-line motion))
-  (move-to-column (vim:motion-first-col motion) t)
+  (setq vim:visual-last-insert-info insert-info)
+  (goto-line (vim:visual-insert-info-first-line insert-info))
+  (move-to-column (vim:visual-insert-info-column insert-info) t)
   
   (case vim:visual-mode-type
     ('block
@@ -535,13 +539,18 @@
 (vim:defcmd vim:visual-append (motion)
   "Starts insertion at the right column of a visual block."
   
-  (setq vim:visual-last-insert-info
-        (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
-                                     :last-line (vim:motion-last-line motion)
-                                     :column (vim:motion-last-col motion)))
+  (vim:visual-start-append
+   (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
+                                :last-line (vim:motion-last-line motion)
+                                :column (vim:motion-last-col motion))))
+
   
-  (goto-line (vim:motion-first-line motion))
-  (move-to-column (vim:motion-first-col motion) t)
+(defun vim:visual-start-append (insert-info)
+  "Starts a new multi-line append operation with `insert-info'."
+  
+  (setq vim:visual-last-insert-info insert-info)
+  (goto-line (vim:visual-insert-info-first-line insert-info))
+  (move-to-column (vim:visual-insert-info-column insert-info) t)
   
   (case vim:visual-mode-type
     ('block
