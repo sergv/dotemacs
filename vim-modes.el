@@ -60,7 +60,7 @@ be executed."
          :group 'vim-mode)
        
        (define-minor-mode ,mode-name ,doc
-         :keymap ,keymap
+         :keymap nil
          :init-value nil
          
          (if ,mode-name
@@ -75,6 +75,8 @@ be executed."
                ,@(and activate `((funcall ,activate))))
            (progn
              ,@(and deactivate `((funcall ,deactivate))))))
+
+       (add-to-list 'vim:emulation-mode-alist (cons ',mode-name ,keymap))
 
        (defun ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol-name name) " mode.")

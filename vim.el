@@ -133,6 +133,9 @@
      (defvar ,name ,@args)
      (make-variable-buffer-local ',name)))
 
+(defvar vim:emulation-mode-alist nil
+  "List of all keymaps used by some modes.")
+
 (let ((load-path (cons (expand-file-name ".") load-path)))
   (eval-when-compile
     (load "vim-keymap")
@@ -163,18 +166,21 @@
   (require 'vim-search)
   (require 'vim-maps))
 
-
 (define-minor-mode vim-local-mode
   "VIM emulation mode."
   :lighter " VIM"
   :init-value nil
   :global nil
   
-  (unless vim-local-mode
-    (setq global-mode-string
-          (delq 'vim:mode-string global-mode-string ))
-    (vim:activate-mode nil)))
-    
+  (if vim-local-mode
+      (add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist)
+    (progn
+      (setq emulation-mode-map-alists
+            (delq 'vim:emulation-mode-alist emulation-mode-map-alists))
+      (setq global-mode-string
+            (delq 'vim:mode-string global-mode-string ))
+      (vim:activate-mode nil))))
+  
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
 
 (defun vim:initialize ()
