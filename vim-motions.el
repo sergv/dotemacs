@@ -444,6 +444,7 @@ it can be used as the end of an Emacs range."
   (let ((case-fold-search nil))
     (unless (search-forward (char-to-string arg)
                             nil t (or count 1))
+      (backward-char)
       (error (format "Can't find %c" arg)))
     (setq vim:last-find (cons 'vim:motion-find arg))
     (backward-char)))
