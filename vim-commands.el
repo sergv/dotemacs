@@ -400,13 +400,21 @@ and switches to insert-mode."
   "Inserts the current text as block."
   (let ((ncols (car text))
         (parts (cdr text))
-        (col (current-column)))
+        (col (current-column))
+	(current-line (line-number-at-pos (point))))
     
     (dolist (part parts)
       
       (let* ((offset (car part))
              (txt (cdr part))
              (len (length txt)))
+	
+	;; maybe we have to insert a new line at eob
+	(when (< (line-number-at-pos (point))
+		 current-line)
+	  (end-of-buffer)
+	  (newline))
+	(incf current-line)
         
         (move-to-column col)
         (unless (and (< (current-column) col)   ; nothing in this line
@@ -414,7 +422,7 @@ and switches to insert-mode."
           (move-to-column (+ col (max 0 offset)) t)
           (insert txt)
           (insert (make-string (- ncols len) ? )))
-        (forward-line 1)))))
+	(forward-line 1)))))
 
 
 (vim:defcmd vim:cmd-paste-before (count)
