@@ -333,12 +333,12 @@ it can be used as the end of an Emacs range."
     (forward-char)
     (while
         (not
-         (or (and (looking-at (concat "[^ \t\r\n]"
-                                      "[ \t\r\n]")))
-             (and (looking-at (concat "[" vim:word "]"
-                                      "[^ \t\r\n" vim:word "]")))
-             (and (looking-at (concat "[^ \t\r\n" vim:word "]"
-                                        "[" vim:word "]")))
+         (or (looking-at (concat "[^ \t\r\n]"
+                                 "[ \t\r\n]"))
+             (looking-at (concat "[" vim:word "]"
+                                 "[^ \t\r\n" vim:word "]"))
+             (looking-at (concat "[^ \t\r\n" vim:word "]"
+                                 "[" vim:word "]"))
              (eobp)))
       (forward-char))))
 
@@ -348,7 +348,7 @@ it can be used as the end of an Emacs range."
   (dotimes (i (or count 1))
     (forward-char)
     (while
-        (not (and (looking-at (concat "[^ \t\r\n]"
+        (not (or (looking-at (concat "[^ \t\r\n]"
                                       "[ \t\r\n]"))
                   (eobp)))
       (forward-char))))
@@ -405,9 +405,9 @@ it can be used as the end of an Emacs range."
   (dotimes (i (or count 1))
     (backward-char)
     (while
-        (not (and (looking-at (concat "[^ \t\r\n]"
-                                      "[ \t\r\n]"))
-                  (bobp)))
+        (not (or (looking-at (concat "[^ \t\r\n]"
+                                     "[ \t\r\n]"))
+                 (bobp)))
       (backward-char))))
 
 
