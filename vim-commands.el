@@ -588,3 +588,12 @@ and switches to insert-mode."
    "Switches to Emacs for the next command."
    (message "Switch to Emacs for the next command.")
    (vim:escape-to-emacs nil))
+
+(vim:defcmd vim:cmd-write-and-close (nonrepeatable)
+   "Saves the current buffer and closes the window."
+   (save-buffer)
+   (condition-case nil
+       (delete-window)
+     (error (condition-case nil
+                (delete-frame)
+              (error (save-buffers-kill-emacs))))))

@@ -282,8 +282,12 @@ Returns a list of up to three elements: (cmd beg end)"
         (if vim:ex-keep-reading
             (error "Ex-command %s does not accept an argument" vim:ex-cmd)
           (funcall cmd :begin vim:ex-beg :end vim:ex-end)))))
+
+    ('simple
+        (if vim:ex-keep-reading
+            (error "Ex-command %s does not accept an argument" vim:ex-cmd)
+          (funcall cmd)))
     
-    ('complex (error "Execution of complex commands in ex-mode not yet implemented!"))
     (t (error "Invalid ex-command bound to %s" vim:ex-cmd))))
 
 
