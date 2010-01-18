@@ -149,6 +149,8 @@
     (load "vim-scroll")
     (load "vim-window")
     (load "vim-undo")
+    (load "vim-ex")
+    (load "vim-ex-commands")
     (load "vim-search")
     (load "vim-maps"))
   
@@ -163,6 +165,8 @@
   (require 'vim-scroll)
   (require 'vim-window)
   (require 'vim-undo)
+  (require 'vim-ex)
+  (require 'vim-ex-commands)
   (require 'vim-search)
   (require 'vim-maps))
 

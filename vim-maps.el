@@ -277,3 +277,18 @@
 
 (vim:vmap "o" 'vim:visual-exchange-point-and-mark)
 (vim:vmap "O" 'vim:visual-jump-point)
+
+
+
+(vim:emap "edit" 'vim:excmd-edit)
+(vim:emap "e" "edit")
+(vim:emap "write" 'vim:excmd-write)
+(vim:emap "w" "write")
+(vim:emap "write!" 'vim:excmd-write-q)
+(vim:emap "w!" "write!")
+(vim:emap "wall" 'vim:excmd-write-all)
+(vim:emap "wa" "wall")
+(vim:emap "wall!" 'vim:excmd-write-all-q)
+(vim:emap "wa!" "wall!")
+(vim:emap "buffer" 'vim:excmd-buffer)
+(vim:emap "b" "buffer")
