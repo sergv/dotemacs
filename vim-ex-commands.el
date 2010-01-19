@@ -53,7 +53,10 @@
 
 (vim:defexcmd vim:excmd-buffer ((buffer-argument buffer))
   "Switches to another buffer."
-  (switch-to-buffer buffer))
+  (case buffer
+    ((t) (switch-to-buffer (other-buffer)))
+    ((nil) nil)
+    (t (switch-to-buffer buffer))))
 
 (vim:defexcmd vim:excmd-split ((file-argument file))
   "Splits the current window horizontally and visits `file'."
