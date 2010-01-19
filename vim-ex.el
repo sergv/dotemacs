@@ -126,13 +126,10 @@
 (defun vim:ex-complete-file-argument (arg predicate flag)
   ;; completes a file-name
   (if (null arg)
-      (and (buffer-file-name vim:ex-current-buffer)
-           (file-name-directory (buffer-file-name vim:ex-current-buffer)))
-    (let ((dir (file-name-directory arg))
+      default-directory
+    (let ((dir (or (file-name-directory arg)
+                   (with-current-buffer vim:ex-current-buffer default-directory)))
           (fname (file-name-nondirectory arg)))
-      (unless dir
-        (when (buffer-file-name vim:ex-current-buffer)
-          (setq dir (file-name-directory (buffer-file-name vim:ex-current-buffer)))))
       (cond
        ((null dir) (ding))
        ((null flag)
@@ -143,7 +140,7 @@
           (t (concat dir result)))))
          
        ((eq t flag) 
-        (mapcar #'(lambda (x) (concat dir x)) (file-name-all-completions fname dir)))
+        (file-name-all-completions fname dir))
      
        ((eq 'lambda flag)
         (eq (file-name-completion fname dir predicate) t))))))
