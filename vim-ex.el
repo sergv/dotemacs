@@ -179,7 +179,9 @@
           (if cmd
           (case (get 'type cmd)
             ('ex
-             (funcall cmd :begin beg :end end :argument arg))
+             (if (get 'argument cmd)
+                 (funcall cmd :begin beg :end end :argument arg)
+               (funcall cmd :begin beg :end end)))
             ('simple
              (funcall cmd))
             (t (error "Unexpected command-type bound to %s" vim:ex-cmd)))
