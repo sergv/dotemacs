@@ -177,9 +177,9 @@
 
         (with-current-buffer vim:ex-current-buffer
           (if cmd
-          (case (get 'type cmd)
+          (case (vim:cmd-type cmd)
             ('ex
-             (if (get 'argument cmd)
+             (if (vim:cmd-arg-p cmd)
                  (funcall cmd :begin beg :end end :argument arg)
                (funcall cmd :begin beg :end end)))
             ('simple
@@ -350,7 +350,7 @@ Returns a list of up to three elements: (cmd beg end)"
   (while (stringp cmd)
     (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
 
-  (case (get 'type cmd)
+  (case (vim:cmd-type cmd)
     ('ex
      (case (get 'argument cmd)
        ('file-argument
