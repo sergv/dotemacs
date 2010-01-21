@@ -67,6 +67,18 @@
       (switch-to-buffer buffer)
     (switch-to-buffer (other-buffer))))
 
+(vim:defcmd vim:cmd-delete-buffer ((argument:buffer buffer) nonrepeatable)
+  "Deletes a buffer."
+  (kill-buffer buffer))
+
+(vim:defcmd vim:cmd-delete-buffer-q ((argument:buffer buffer) nonrepeatable)
+  "Deletes a buffer without saving."
+  (if buffer
+      (with-current-buffer buffer
+        (set-buffer-modified-p nil))
+    (set-buffer-modified-p nil))
+  (kill-buffer buffer))
+
 (vim:defcmd vim:cmd-quit (nonrepeatable)
   "Closes the current window, exits Emacs if this is the last window."
   (condition-case nil

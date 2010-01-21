@@ -324,3 +324,7 @@
 (vim:emap "wqa" "wqall")
 (vim:emap "xall" "wqall")
 (vim:emap "xa" "xall")
+(vim:emap "bdelete" 'vim:cmd-delete-buffer)
+(vim:emap "bd" "bdelete")
+(vim:emap "bdelete!" 'vim:cmd-delete-buffer-q)
+(vim:emap "bd!" "bdelete!")
