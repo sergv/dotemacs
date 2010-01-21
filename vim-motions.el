@@ -438,7 +438,7 @@ it can be used as the end of an Emacs range."
   (backward-paragraph (or count 1)))
             
 
-(vim:defmotion vim:motion-find (inclusive count (argument arg))
+(vim:defmotion vim:motion-find (inclusive count (argument:char arg))
   "Move the cursor to the next count'th occurrence of arg."
   (forward-char)
   (let ((case-fold-search nil))
@@ -450,7 +450,7 @@ it can be used as the end of an Emacs range."
     (backward-char)))
 
 
-(vim:defmotion vim:motion-find-back (exclusive count (argument arg))
+(vim:defmotion vim:motion-find-back (exclusive count (argument:char arg))
   "Move the cursor to the previous count'th occurrence of arg."
   (let ((case-fold-search nil))
     (unless (search-backward (char-to-string arg)
@@ -459,7 +459,7 @@ it can be used as the end of an Emacs range."
     (setq vim:last-find (cons 'vim:motion-find-back arg))))
 
 
-(vim:defmotion vim:motion-find-to (inclusive count (argument arg))
+(vim:defmotion vim:motion-find-to (inclusive count (argument:char arg))
   "Move the cursor to the character before the next count'th\
    occurence of arg."
   (vim:motion-find :count count :argument arg)
@@ -467,7 +467,7 @@ it can be used as the end of an Emacs range."
   (setq vim:last-find (cons 'vim:motion-find-to arg)))
 
 
-(vim:defmotion vim:motion-find-back-to (exclusive count (argument arg))
+(vim:defmotion vim:motion-find-back-to (exclusive count (argument:char arg))
   "Move the cursor to the character after the previous count'th\
    occurence of arg."
    (vim:motion-find-back :count count :argument arg)

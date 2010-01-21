@@ -61,10 +61,10 @@
           (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
         
         (if (null cmd) (ding)
-          (let ((result (case (get 'argument cmd)
-                          (file-argument
+          (let ((result (case (vim:cmd-arg cmd)
+                          (file
                            (vim:ex-complete-file-argument nil nil nil))
-                          (buffer-argument
+                          (buffer
                            (vim:ex-complete-buffer-argument nil nil nil))
                           ((t)
                            (vim:ex-complete-text-argument nil nil nil)))))
@@ -114,10 +114,10 @@
       (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
 
     (if (null cmd) (ding)
-      (case (get 'argument cmd)
-        (file-argument
+      (case (vim:cmd-arg cmd)
+        (file
          (vim:ex-complete-file-argument arg predicate flag))
-        (buffer-argument
+        (buffer
          (vim:ex-complete-buffer-argument arg predicate flag))
         ((t)
          (vim:ex-complete-text-argument arg predicate flag))
@@ -165,26 +165,55 @@
 (defun vim:ex-execute-command (cmdline)
   (interactive)
 
-    (multiple-value-bind (range cmd spaces arg beg end) (vim:ex-split-cmdline cmdline)
-      (setq vim:ex-cmd cmd)
+  (multiple-value-bind (range cmd spaces arg beg end) (vim:ex-split-cmdline cmdline)
+    (setq vim:ex-cmd cmd)
     
-      (let ((cmd vim:ex-cmd))
-        (while (stringp cmd)
-          (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
+    (let ((cmd vim:ex-cmd)
+          (motion (cond
+                   ((and beg end)
+                    (vim:make-motion :begin (save-excursion
+                                              (goto-line beg)
+                                              (line-beginning-position))
+                                     :end (save-excursion
+                                            (goto-line end)
+                                            (line-beginning-position))
+                                     :has-begin t
+                                     :type 'linewise))
+                   (beg
+                    (vim:make-motion :begin (save-excursion
+                                              (goto-line beg)
+                                              (line-beginning-position))
+                                     :end (save-excursion
+                                            (goto-line beg)
+                                            (line-beginning-position))
+                                     :has-begin t
+                                     :type 'linewise))))
+          (count (and (not end) beg)))
+      
+      (while (stringp cmd)
+        (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
 
-        (when (zerop (length arg))
-          (setq arg t))
+      (when (zerop (length arg))
+        (setq arg nil))
 
-        (with-current-buffer vim:ex-current-buffer
-          (if cmd
-          (case (vim:cmd-type cmd)
-            ('ex
-             (if (vim:cmd-arg-p cmd)
-                 (funcall cmd :begin beg :end end :argument arg)
-               (funcall cmd :begin beg :end end)))
-            ('simple
-             (funcall cmd))
-            (t (error "Unexpected command-type bound to %s" vim:ex-cmd)))
+      (with-current-buffer vim:ex-current-buffer
+        (if cmd
+            (case (vim:cmd-type cmd)
+              ('complex
+               (if (vim:cmd-arg-p cmd)
+                   (funcall cmd :motion motion :argument arg)
+                 (funcall cmd :motion motion)))
+              ('simple
+               (when end
+                 (error "Command does not take a range: %s" vim:ex-cmd))
+               (if (vim:cmd-arg-p cmd)
+                   (if (vim:cmd-count-p cmd)
+                       (funcall cmd :count beg :argument arg)
+                     (funcall cmd :argument arg))
+                 (if (vim:cmd-count-p cmd)
+                     (funcall cmd :count count)
+                   (funcall cmd))))
+              (t (error "Unexpected command-type bound to %s" vim:ex-cmd)))
           (ding))))))
     
 
@@ -344,47 +373,6 @@ Returns a list of up to three elements: (cmd beg end)"
          (prev-of-prev-search (error "Prev-of-prev-search not yet implemented."))
          (next-of-prev-subst (error "Next-of-prev-subst not yet implemented."))
          (t (error "Invalid address: %s" address))))))))
-
-
-(defun vim:ex-do-command (cmd)
-  (while (stringp cmd)
-    (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
-
-  (case (vim:cmd-type cmd)
-    ('ex
-     (case (get 'argument cmd)
-       ('file-argument
-        (funcall cmd
-        :begin vim:ex-beg :end vim:ex-end
-        :argument (if vim:ex-keep-reading
-                      (read-file-name (concat ":" vim:ex-cmdline " "))
-                    t)))
-       
-       ('buffer-argument
-        (funcall cmd
-        :begin vim:ex-beg :end vim:ex-end
-        :argument (if vim:ex-keep-reading
-                      (read-buffer (concat ":" vim:ex-cmdline " ") (other-buffer))
-                    t)))
-
-       ('argument
-        (funcall cmd
-        :begin vim:ex-beg :end vim:ex-end
-        :argument (if vim:ex-keep-reading
-                      (read-from-minibuffer (concat ":" vim:ex-cmdline " "))
-                    t)))
-       
-       (t
-        (if vim:ex-keep-reading
-        (error "Ex-command %s does not accept an argument" vim:ex-cmd)
-        (funcall cmd :begin vim:ex-beg :end vim:ex-end)))))
-
-    ('simple
-     (if vim:ex-keep-reading
-         (error "Ex-command %s does not accept an argument" vim:ex-cmd)
-       (funcall cmd)))
-    
-    (t (error "Invalid ex-command bound to %s" vim:ex-cmd))))
 
 
 (defun vim:ex-read-command ()

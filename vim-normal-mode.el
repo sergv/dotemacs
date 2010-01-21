@@ -77,7 +77,7 @@
   (when current-prefix-arg
     (setq vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
 
-  (when (vim:cmd-arg-p command)
+  (when (vim:cmd-char-arg-p command)
     (setq vim:current-motion-arg (read-char-exclusive)))
 
   (unwind-protect
@@ -93,7 +93,7 @@
   (when current-prefix-arg
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
   
-  (when (vim:cmd-arg-p command)
+  (when (vim:cmd-char-arg-p command)
     (setq vim:current-cmd-arg (read-char-exclusive)))
 
   (unwind-protect
@@ -102,7 +102,7 @@
         (when (vim:cmd-count-p command)
           (push vim:current-cmd-count parameters)
           (push :count parameters))
-        (when (vim:cmd-arg-p command)
+        (when (vim:cmd-char-arg-p command)
           (push vim:current-cmd-arg parameters)
           (push :argument parameters))
         (vim:apply-save-buffer (vim:cmd-function command) parameters)
@@ -137,7 +137,7 @@
                                       (or vim:current-motion-count 1)))
     (setq vim:current-cmd-count nil))
 
-  (when (vim:cmd-arg-p motion-command)
+  (when (vim:cmd-char-arg-p motion-command)
     (setq vim:current-motion-arg (read-char-exclusive)))
 
   (unwind-protect

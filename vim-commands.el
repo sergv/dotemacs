@@ -272,8 +272,7 @@ and switches to insert-mode."
       (vim:cmd-insert))))
 
 
-(vim:defcmd vim:cmd-replace-char (count (argument arg))
-            :argument t
+(vim:defcmd vim:cmd-replace-char (count (argument:char arg))
   "Replaces the next count characters with arg."
   (unless (integerp arg)
     (error "Expected a character."))
@@ -285,7 +284,7 @@ and switches to insert-mode."
   (backward-char))
 
 
-(vim:defcmd vim:cmd-replace-region (motion (argument arg))
+(vim:defcmd vim:cmd-replace-region (motion (argument:char arg))
    "Replace the complete region with `arg'"
    (case (vim:motion-type motion)
      ('block

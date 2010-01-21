@@ -79,23 +79,44 @@
     ;; collect parameters
     (dolist (arg args)
       (case (if (consp arg) (car arg) arg)
-        ('count (setq count t)
-                (push '(count nil) params)
-                (when (and (consp arg)
-                           (not (eq (cadr arg) 'count)))
-                  (push `(,(cadr arg) count) named-params)))
+        ('count
+         (setq count t)
+         (push '(count nil) params)
+         (when (and (consp arg)
+                    (not (eq (cadr arg) 'count)))
+           (push `(,(cadr arg) count) named-params)))
 
-        ('motion (setq motion t)
-                 (push 'motion params)
-                 (when (and (consp arg)
-                            (not (eq (cadr arg) 'motion)))
-                   (push `(,(cadr arg) motion) named-params)))
+        ('motion
+         (when motion
+           (error "%s: only one motion argument may be specified: %s" 'vim:defcmd arg))
+         (setq motion t)
+         (push 'motion params)
+         (when (and (consp arg)
+                    (not (eq (cadr arg) 'motion)))
+           (push `(,(cadr arg) motion) named-params)))
+
+        ('motion:optional
+         (when motion
+           (error "%s: only one motion argument may be specified: %s" 'vim:defcmd arg))
+         (setq motion ''optional)
+         (push 'motion params)
+         (when (and (consp arg)
+                    (not (eq (cadr arg) 'motion)))
+           (push `(,(cadr arg) motion) named-params)))
         
-        ('argument (setq argument t)
-                   (push 'argument params)
-                   (when (and (consp arg)
-                              (not (eq (cadr arg) 'argument)))
-                     (push `(,(cadr arg) argument) named-params)))
+        ((argument argument:char argument:file argument:buffer)
+         (when argument
+           (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
+         (let* ((arg-name (symbol-name (if (consp arg) (car arg) arg)))
+                (pos (position ?: arg-name))
+                (arg-type (if pos
+                              `',(intern (substring arg-name (1+ pos)))
+                            t)))
+           (setq argument arg-type)
+           (push 'argument params)
+           (when (and (consp arg)
+                      (not (eq (cadr arg) 'argument)))
+             (push `(,(cadr arg) argument) named-params))))
 
         ('keep-visual (setq keep-visual t))
         ('do-not-keep-visual (setq keep-visual nil))
@@ -145,17 +166,21 @@
         ((inclusive exclusive linewise block)
          (setq type arg))
         
-        ('count (setq count t)
-                (push '(count nil) params)
-                (when (and (consp arg)
-                           (not (eq (cadr arg) 'count)))
-                  (push `(,(cadr arg) count) named-params)))
+        ('count
+         (setq count t)
+         (push '(count nil) params)
+         (when (and (consp arg)
+                    (not (eq (cadr arg) 'count)))
+           (push `(,(cadr arg) count) named-params)))
         
-        ('argument (setq argument t)
-                   (push 'argument params)
-                   (when (and (consp arg)
-                              (not (eq (cadr arg) 'argument)))
-                     (push `(,(cadr arg) argument) named-params)))
+        ((argument argument:char)
+         (when argument
+           (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
+         (setq argument ''char)
+         (push 'argument params)
+         (when (and (consp arg)
+                    (not (eq (cadr arg) 'argument)))
+           (push `(,(cadr arg) argument) named-params)))
         
         (t (error "%s: Unexpected argument: %s" 'vim:defmotion arg))))
 
@@ -234,9 +259,29 @@
   "Returns non-nil iff command `cmd' takes a motion parameter."
   (get 'motion cmd))
 
-(defun vim:cmd-arg-p (cmd)
-  "Returns non-nil iff command cmd takes an argument."
+(defun vim:cmd-arg (cmd)
+  "Returns the type of command's argument."
   (get 'argument cmd))
+
+(defun vim:cmd-arg-p (cmd)
+  "Returns non-nil iff command cmd takes an argument of arbitrary type."
+  (not (null (get 'argument cmd))))
+  
+(defun vim:cmd-text-arg-p (cmd)
+  "Returns non-nil iff command cmd takes a text argument."
+  (eq (vim:cmd-arg cmd) t))
+  
+(defun vim:cmd-char-arg-p (cmd)
+  "Returns non-nil iff command cmd takes a char argument."
+  (eq (vim:cmd-arg cmd) 'char))
+  
+(defun vim:cmd-file-arg-p (cmd)
+  "Returns non-nil iff command cmd takes a file argument."
+  (eq (vim:cmd-arg cmd) 'file))
+  
+(defun vim:cmd-buffer-arg-p (cmd)
+  "Returns non-nil iff command cmd takes a buffer argument."
+  (eq (vim:cmd-arg cmd) 'buffer))
   
 (defun vim:cmd-repeatable-p (cmd)
   "Returns non-nil iff command cmd is repeatable."
@@ -289,7 +334,7 @@ vim:motion object."
           (parameters nil))
 
       ;; build the parameter-list
-      (when (vim:cmd-arg-p cmd)
+      (when (vim:cmd-char-arg-p cmd)
         (push vim:current-motion-arg parameters)
         (push :argument parameters))
       (when (vim:cmd-count-p cmd)
@@ -324,6 +369,3 @@ command-specific transformations."
         ;; motion becomes inclusive
         (setf (vim:motion-type motion) 'inclusive)))
     motion))
-                 
-    
-

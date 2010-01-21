@@ -52,14 +52,18 @@ executed if the do not delete any other window."
    (t (set-window-buffer win tree))))
 
 
-(vim:defcmd vim:window-split (count nonrepeatable)
-  "Splits the current window horizontally, `count' lines height."            
-  (split-window (selected-window) count))
+(vim:defcmd vim:window-split (count (argument:file file) nonrepeatable)
+  "Splits the current window horizontally, `count' lines height, editing a certain `file'."            
+  (let ((new-win (split-window (selected-window) count)))
+    (when file
+      (vim:cmd-edit :argument file))))
 
 
-(vim:defcmd vim:window-vsplit (count nonrepeatable)
-  "Splits the current window vertically, `count' columns width."            
-  (split-window (selected-window) count t))
+(vim:defcmd vim:window-vsplit (count (argument:file file) nonrepeatable)
+  "Splits the current window vertically, `count' columns width, editing a certain `file'."            
+  (let ((new-win (split-window (selected-window) count t)))
+    (when file
+      (vim:cmd-edit :argument file))))
 
 
 (vim:defcmd vim:window-close (nonrepeatable)
@@ -139,12 +143,24 @@ executed if the do not delete any other window."
   (select-window (get-lru-window)))
             
 
-(vim:defcmd vim:window-new (count nonrepeatable)
+(vim:defcmd vim:window-new (count (argument:file file) nonrepeatable)
             :type 'simple
             :repeatable nil
-  "Splits the current window horizontally and opens a new buffer names `new'."
+  "Splits the current window horizontally and opens a new buffer or edits a certain `file'."
   (split-window (selected-window) count)
-  (set-window-buffer (selected-window) (generate-new-buffer "*new*")))
+  (if file
+      (vim:cmd-edit :argument file)
+    (set-window-buffer (selected-window) (generate-new-buffer "*new*"))))
+
+
+(vim:defcmd vim:window-vnew (count (argument:file file) nonrepeatable)
+            :type 'simple
+            :repeatable nil
+  "Splits the current window vertically and opens a new buffer name or edits a certain `file'."
+  (split-window (selected-window) count t)
+  (if file
+      (vim:cmd-edit :argument file)
+    (set-window-buffer (selected-window) (generate-new-buffer "*new*"))))
 
 
 (vim:defcmd vim:window-balance (nonrepeatable)
