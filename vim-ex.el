@@ -264,7 +264,7 @@ Returns a list of up to three elements: (cmd beg end)"
             end-off 0
             sep ?,))
     
-    (when (= pos (or (string-match "[[:alnum:]]+" text pos) -1))
+    (when (= pos (or (string-match "[[:alnum:]!]+" text pos) -1))
       (setq cmd (cons (match-beginning 0) (match-end 0))))
                
     (multiple-value-bind (start end) (vim:ex-get-range (and begin (cons begin begin-off)) sep (and end (cons end end-off)))
