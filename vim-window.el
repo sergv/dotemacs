@@ -150,7 +150,10 @@ executed if the do not delete any other window."
   (split-window (selected-window) count)
   (if file
       (vim:cmd-edit :argument file)
-    (set-window-buffer (selected-window) (generate-new-buffer "*new*"))))
+    (let ((buffer (generate-new-buffer "*new*")))
+      (set-window-buffer (selected-window) buffer)
+      (with-current-buffer buffer (normal-mode)))))
+  
 
 
 (vim:defcmd vim:window-vnew (count (argument:file file) nonrepeatable)
@@ -160,7 +163,9 @@ executed if the do not delete any other window."
   (split-window (selected-window) count t)
   (if file
       (vim:cmd-edit :argument file)
-    (set-window-buffer (selected-window) (generate-new-buffer "*new*"))))
+    (let ((buffer (generate-new-buffer "*new*")))
+      (set-window-buffer (selected-window) buffer)
+      (with-current-buffer buffer (normal-mode)))))
 
 
 (vim:defcmd vim:window-balance (nonrepeatable)

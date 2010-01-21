@@ -21,10 +21,15 @@
                                     (line-end-position))
                                 beg-pos))))
         
-        (if (and (null beg-pos)
-                 (string= file-name (buffer-file-name)))
-            (save-buffer)
-          (write-region beg-pos end-pos file-name append nil nil mustbenew))))))
+        (cond
+         ((and (null beg-pos)
+               (string= file-name (buffer-file-name)))
+            (save-buffer)a)
+         ((and (null beg-pos)
+               (null (buffer-file-name)))
+          (write-file file-name))
+         (t
+          (write-region beg-pos end-pos file-name append nil nil mustbenew)))))))
 
 
 (vim:defcmd vim:cmd-write (motion (argument:file file) nonrepeatable)
