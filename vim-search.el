@@ -51,35 +51,39 @@
 
 (vim:defcmd vim:search-start (nonrepeatable)
   "Starts an incremental regexp search."
-  (unless (vim:search-mode-p)
-    (vim:activate-search-mode))
-  (setq vim:last-search-direction 'forward)
-  (isearch-forward t))
-
+  (let ((search-nonincremental-instead nil))
+    (ad-activate 'isearch-message-prefix)
+    (isearch-forward-regexp)
+    (ad-deactivate 'isearch-message-prefix)
+    (setq vim:last-search-direction (if isearch-forward 'forward 'backward))))
 
 (vim:defcmd vim:search-start-backward (nonrepeatable)
   "Starts an incremental regexp search."
-  (unless (vim:search-mode-p)
-    (vim:activate-search-mode))
-  (setq vim:last-search-direction 'backward)
-  (isearch-backward t))
-
+  (let ((search-nonincremental-instead nil))
+    (ad-activate 'isearch-message-prefix)
+    (isearch-backward-regexp)
+    (ad-deactivate 'isearch-message-prefix)
+    (setq vim:last-search-direction (if isearch-forward 'forward 'backward))))
 
 (vim:defcmd vim:search-repeat (nonrepeatable)
   "Repeats the last incremental search."
   (unless (vim:search-mode-p)
     (vim:activate-search-mode))
-  (isearch-repeat vim:last-search-direction))
-
+  (ad-activate 'isearch-message-prefix)
+  (isearch-repeat vim:last-search-direction)
+  (ad-deactivate 'isearch-message-prefix))
 
 (vim:defcmd vim:search-repeat-opposite (nonrepeatable)
   "Starts an incremental regexp search."
   (unless (vim:search-mode-p)
     (vim:activate-search-mode))
-  (isearch-repeat (case vim:last-search-direction
-		    ('forward 'backward)
-		    (t 'forward))))
+  (ad-activate 'isearch-message-prefix)
+  (isearch-repeat (if (eq vim:last-search-direction 'forward) 'backward 'forward))
+  (ad-deactivate 'isearch-message-prefix))
 
+(defadvice isearch-message-prefix (after vim:isearch-message-prefix (&optional c-q-hack ellipsis nonincremental))
+  "This advice changes the minibuffer indicator to '/' or '?'"
+  (setq ad-return-value (if isearch-forward "/" "?")))
 
 (defun vim:start-word-search (unbounded direction)
  
