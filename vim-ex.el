@@ -17,7 +17,7 @@
   "Keymap used in ex-mode.")
 
 (define-key vim:ex-keymap "\t" 'minibuffer-complete)
-(define-key vim:ex-keymap [return] 'minibuffer-complete-and-exit)
+(define-key vim:ex-keymap [return] 'exit-minibuffer)
 (define-key vim:ex-keymap " " 'vim:ex-expect-argument)
 (define-key vim:ex-keymap (kbd "C-j") 'vim:ex-execute-command)
 (define-key vim:ex-keymap (kbd "C-g") 'abort-recursive-edit)
@@ -159,8 +159,10 @@
 
 (defun vim:ex-complete-text-argument (arg predicate flag)
   ;; completes an arbitrary text-argument
-  t)
-
+  (case flag
+    ((nil) t)
+    ((t) (list arg))
+    ('lambda t)))
 
 (defun vim:ex-execute-command (cmdline)
   (interactive)
