@@ -9,40 +9,78 @@
 ;;; Commentary:
 
 ;; Motions describe functions moving the cursor or representing an
-;; argument for an operator.  There are three types of motions:
-;; character-wise, line-wise and block-wise.  Usually only the first
+;; argument for an operator. There are three types of motions:
+;; character-wise, line-wise and block-wise. Usually only the first
 ;; two types are represented by motion-commands while the last one is
 ;; implicitly used by visual-block-mode.
 ;;
-;; Each motion-function may return one position or a pair of positions
-;; in the buffer.  If it returns one position it's considered as the
-;; end of the motion.  If it returns two positions the first is
-;; considered as the begin and the other as the end of the motion.
-;; The latter is useful for implementing text-objects.
+;; A motion is defined using the macro 'vim:defmotion' which has the
+;; following form:
+;; 
+;; (vim:defmotion name (count 
+;;                      argument[:{char}] 
+;;                      {inclusive,exclusive,linewise,block}) 
+;;   body...)
 ;;
-;; A motion function may overwrite its default type given by :type
-;; by prepending a symbol to its return value describing the type
-;; (see vim:motion-repeat-last-find for an example).
+;; Each of the arguments is optional. The names of the arguments must
+;; be exactly as in the definition above (but see 'Argument-renaming'
+;; below).
 ;;
-;; Motions are defined using the `vim:defmotion' macro:
+;; The COUNT argument (if given) takes the count of the motion which
+;; is usually the number how often the motion should be repeated. This
+;; argument may be nil if no count is given.
 ;;
-;;  (vim:defmotion my-motion (inclusive count (argument arg))
+;; The ARGUMENT argument is an aditional text-argument to be given and
+;; may be nil, too. If it is specified as ARGUMENT:CHAR, the argument
+;; is a one-character argument (see `vim:motion-find' usually bound to
+;; 'f' for an example), otherwise it's a string-argument. Currently all
+;; motions taking an argument take a character-argument.
 ;;
-;;     ... code ...
+;; One if the pseudo-arguments INCLUSIVE, EXCLUSIVE, LINEWISE and BLOCK
+;; must be given and specifies the type of the motion. See the Vim-manual
+;; for an explanation of motion-types.
 ;;
-;;     position)
+;; If you do not like the default argument names, they may be renamed by using
+;; (ARG NEWNAME) instead of ARG, e.g.
 ;;
-;; The type of a motion should be one of `inclusive', `exclusive',
-;; `linewise' or `block'.  The first two types are characterwise.
-;; This type must be specified in the parameter list.
+;;   (vim:defmotion vim:motion-find (inclusive count (argument:char arg))
 ;;
-;; If the motion takes a count, the `count' parameter should be specified.
-;; The count will passed to an argument named `count'.  If you wish to rename
-;; this parameter, use (count new-name) instead.
+;; defines an inclusive motion with a count-argument but renames the 
+;; character-argument to ARG.
 ;;
-;; If the motion takes an argument, the `argument' parameter should be specified.
-;; The argument will passed to an argument named `argument'.  If you wish to rename
-;; this parameter, use (argument new-name) instead.
+;; Each motion should return an object of type `vim:motion'. This may happen
+;; in one of two ways: explicit or implicit. 
+;;
+;; Explicit: The function creates an object of type `vim:motion' using
+;; `vim:make-motion' specifing the begin position, the end position
+;; and the type of the motion (overriding the motion-type specified in
+;; the argument list). If the motion is a usual motion, the vim:motion
+;; parameter :has-begin should be nil, if it's a text-objects it
+;; should be t. The difference is that text-objects actively define a
+;; range from the begin-position to the end-position, while
+;; conventional motions define only the end-position placing begin at
+;; (point). The motion should also change (point) usually to the
+;; end-position of the returned motion.
+;;
+;; Implicit: Creating an explicit `vim:motion' object is overkill for
+;; most simple motions. If the motion does not return a `vim:motion'
+;; object, its created implicitly with the following rules: 
+;;   - the begin-position is set to (point) before the execution of motion's 
+;;     body
+;;   - the end-position is set to (point) after the execution of motion's
+;;     body
+;;   - :has-begin is nil 
+;;   - the type is the type defined in the motion's argument list
+;; Almost all motions defined in this file are implicit.
+;;
+;; Note that, independently on whether the motion is defined
+;; implicitly or explicitly, calling a motion always returns a
+;; `vim:motion' object, i.e. (vim:motion-p (vim:motion-left)) would
+;; return t.
+;;
+;; Motions can be bound to some key-sequence as any other interactive
+;; Emacs function, but they work only in vim-mode. Ususally motions
+;; are bound to the operator-pending-mode keymap using `vim:omap'.
 
 ;;; Code:
 
