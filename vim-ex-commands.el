@@ -64,7 +64,9 @@
 (vim:defcmd vim:cmd-buffer ((argument:buffer buffer) nonrepeatable)
   "Switches to another buffer."
   (if buffer
-      (switch-to-buffer buffer)
+      (when (or (get-buffer buffer)
+                (y-or-n-p (format "No buffer with name \"%s\" exists. Create new buffer? " buffer)))
+        (switch-to-buffer buffer))
     (switch-to-buffer (other-buffer))))
 
 (vim:defcmd vim:cmd-delete-buffer ((argument:buffer buffer) nonrepeatable)
