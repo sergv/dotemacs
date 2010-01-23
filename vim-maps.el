@@ -328,3 +328,5 @@
 (vim:emap "bd" "bdelete")
 (vim:emap "bdelete!" 'vim:cmd-delete-buffer-q)
 (vim:emap "bd!" "bdelete!")
+(vim:emap "substitute" 'vim:cmd-substitute)
+(vim:emap "s" "substitute")

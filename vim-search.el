@@ -15,6 +15,8 @@
 ;;    it's only usuably as interactive search and difficult to use with
 ;;    semi-interactive stuff like the "*" command.  The current implementation
 ;;    using unread-command-events is quite ugly.
+;;  - the substitute command should be more interactive and especially an operation
+;;    without the 'g' option should highlight all future occurences
 
 (provide 'vim-search)
 
@@ -130,3 +132,96 @@
 (vim:defcmd vim:search-unbounded-word-backward (nonrepeatable)
   "Searches the next occurence of word under the cursor."
   (vim:start-word-search t 'backward))
+
+
+(vim:defcmd vim:cmd-substitute (motion argument nonrepeatable)
+  "The VIM substitutde command: [range]s/pattern/replacement/flags"
+  (multiple-value-bind (pattern replacement flags) (vim:parse-substitute argument)
+    (lexical-let* ((pattern pattern)
+                   (replacement replacement)
+                   (first-line (if motion (vim:motion-first-line motion) (line-number-at-pos (point))))
+                   (last-line (if motion (vim:motion-last-line motion) (line-number-at-pos (point))))
+                   (whole-line (and flags (find ?g flags)))
+                   (confirm (and flags (find ?c flags)))
+                   (ignore-case (and flags (find ?i flags)))
+                   (dont-ignore-case (and flags (find ?I flags)))
+                   (case-fold-search (or (and case-fold-search
+                                              (not dont-ignore-case))
+                                         (and (not case-fold-search)
+                                              ignore-case)))
+                   (case-replace case-fold-search)
+                   (last-point (point))
+                   (overlay (make-overlay (point) (point)))
+                   (next-line (line-number-at-pos (point)))
+                   (nreplaced 0))
+      
+      (unwind-protect
+          (if whole-line
+              ;; this one is easy, just use the built in function
+              (perform-replace pattern replacement confirm t nil nil nil 
+                               (save-excursion
+                                 (goto-line first-line)
+                                 (line-beginning-position))
+                               (save-excursion
+                                 (goto-line last-line)
+                                 (line-end-position)))
+            (if confirm
+                (progn
+                  ;; this one is more difficult, we have to do the
+                  ;; highlighting and questioning on our own
+                  (overlay-put overlay 'face
+                               (if (internal-find-face 'isearch nil)
+                                   'isearch 'region))
+                  (map-y-or-n-p #'(lambda (x)
+                                    (set-match-data x)
+                                    (move-overlay overlay (match-beginning 0) (match-end 0))
+                                    (concat "Query replacing " 
+                                            (match-string 0) 
+                                            " with "
+                                            (match-substitute-replacement replacement case-fold-search)
+                                            ": "))
+                                #'(lambda (x) 
+                                    (set-match-data x) 
+                                    (replace-match replacement case-fold-search) 
+                                    (incf nreplaced)
+                                    (setq last-point (point)))
+                                #'(lambda ()
+                                    (let ((end (save-excursion 
+                                                 (goto-line last-line)
+                                                 (line-end-position))))
+                                      (goto-line next-line)
+                                      (beginning-of-line)
+                                      (when (and (> end (point))
+                                                 (re-search-forward pattern end t nil))
+                                        (setq last-point (point))
+                                        (setq next-line (1+ (line-number-at-pos (point))))
+                                        (match-data))))))
+              
+              ;; just replace the first occurences per line
+              ;; without highlighting and asking
+              (goto-line first-line)
+              (beginning-of-line)
+              (while (and (<= (line-number-at-pos (point)) last-line)
+                          (re-search-forward pattern (save-excursion
+                                                       (goto-line last-line)
+                                                       (line-end-position))
+                                             t nil))
+                (incf nreplaced)
+                (replace-match replacement)
+                (setq last-point (point))
+                (forward-line)
+                (beginning-of-line)))
+
+            (goto-char last-point)
+            (if (= nreplaced 1)
+                (message "Replaced 1 occurence")
+              (message "Replaced %d occurences" nreplaced)))
+           
+        ;; clean-up the overlay
+        (delete-overlay overlay)))))
+
+
+(defun vim:parse-substitute (text)
+  (when (string-match "\\`\\s-*/\\(\\(?:[^/]\\|\\\\.\\)+\\)/\\(\\(?:[^/]\\|\\\\.\\)*\\)\\(?:/\\([giIc]*\\)\\)?\\s-*\\'"
+                      text)
+    (values (match-string 1 text) (match-string 2 text) (match-string 3 text))))
