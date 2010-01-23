@@ -1,3 +1,13 @@
+;;; vim-ex-commands.el - Implementation of some ex-mode commands.
+
+;; Copyright (C) 2009, 2010 Frank Fischer
+
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Code:
+
 (provide 'vim-ex-commands)
 
 (defun* vim:save-buffer (file-name &key begin end mustbenew append)
@@ -120,3 +130,5 @@
   "Saves the current buffer and closes the window."
   (vim:cmd-write-q :argument file)
   (vim:cmd-quit))
+
+;;; vim-ex-commands.el ends here

@@ -1,15 +1,12 @@
 ;;; vim-maps.el
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.2.0
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
 
-;; Description:
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
 
 ;; This file contains all standard keymaps.  Key mappings are defined
 ;; using one of the following vim-like macros:
@@ -19,6 +16,7 @@
 ;;   - vim:omap ... mapping in the operator-pending keymap
 ;;   - vim:imap ... mapping in the insert-mode keymap
 ;;   - vim:vmap ... mapping in the visual-mode keymap
+;;   - vim:emap ... mapping in the ex-mode keymap
 ;;
 ;; Commands should usually be placed in the normal-mode keymap.
 ;; Motions should be placed in the operator-pending keymap. All
@@ -38,11 +36,10 @@
 ;; KEYEVENTS to MAPEVENTS, i.e. the activation of KEYEVENTS invokes
 ;; the (key-)events in MAPEVENTS.
 ;;
-;; Events is a usual Emacs-sequence of events as it would be used by
+;; EVENTS is a usual Emacs-sequence of events as it would be used by
 ;; define-key.
 
-
-;; TODO:
+;;; TODO:
 ;;   - better mapping to support stuff like
 ;;     (vim:def-map "c" "d{motion}a")
 ;;
@@ -60,8 +57,9 @@
 ;;     behaviour, too.  A 'deep-mapping' should save the mapping on
 ;;     definition of "x", therefor let "x" behave as usual even after
 ;;     redefining "l"
-;;
-;;   - do we need a special insert-mode-mapping to simulate ESC?
+
+;;; Code:
+
 (provide 'vim-maps)
 
 (vim:nmap "\\" 'vim:cmd-emacs)
@@ -330,3 +328,5 @@
 (vim:emap "bd!" "bdelete!")
 (vim:emap "substitute" 'vim:cmd-substitute)
 (vim:emap "s" "substitute")
+
+;;; vim-maps.el ends here

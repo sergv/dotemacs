@@ -1,19 +1,18 @@
-;;; vim-scroll.el
+;;; vim-scroll.el - Implementation of scrolling commands
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.0.1
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
 
-;; Description:
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
 
 ;; This file contains implementations for the scrolling.  Scroll
 ;; operations are usually just simple commands and should not be
 ;; repeatable but should keep visual mode.
+
+;;; Code:
 
 
 (provide 'vim-scroll)
@@ -131,5 +130,4 @@
   (recenter -1)
   (goto-char (vim:motion-first-non-blank)))
 
-
-
+;;; vim-scroll.el ends here

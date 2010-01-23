@@ -1,15 +1,12 @@
-;;; vim-motions.el
+;;; vim-motions.el - Implementation of VIM motions.
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.0.1
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
 
-;; Description:
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
 
 ;; Motions describe functions moving the cursor or representing an
 ;; argument for an operator.  There are three types of motions:
@@ -46,6 +43,8 @@
 ;; If the motion takes an argument, the `argument' parameter should be specified.
 ;; The argument will passed to an argument named `argument'.  If you wish to rename
 ;; this parameter, use (argument new-name) instead.
+
+;;; Code:
 
 
 (provide 'vim-motions)
@@ -540,5 +539,5 @@ jumps to the corresponding one."
                       :begin beg
                       :end end
                       :type 'inclusive)))
-           
-   
+
+;;; vim-motions.el ends here

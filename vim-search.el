@@ -1,13 +1,10 @@
-;;; vim-search.el
+;;; vim-search.el - Search und substitute commands for ex-mode.
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.2.0
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
+
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
 
 ;; TODO:
 ;;
@@ -17,6 +14,8 @@
 ;;    using unread-command-events is quite ugly.
 ;;  - the substitute command should be more interactive and especially an operation
 ;;    without the 'g' option should highlight all future occurences
+
+;;; Code:
 
 (provide 'vim-search)
 
@@ -225,3 +224,5 @@
   (when (string-match "\\`\\s-*/\\(\\(?:[^/]\\|\\\\.\\)+\\)/\\(\\(?:[^/]\\|\\\\.\\)*\\)\\(?:/\\([giIc]*\\)\\)?\\s-*\\'"
                       text)
     (values (match-string 1 text) (match-string 2 text) (match-string 3 text))))
+
+;;; vim-search.el ends here

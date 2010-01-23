@@ -1,19 +1,18 @@
-;;; vim-window.el
+;;; vim-window.el - Implementation of window commands.
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.0.1
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
 
-;; Description:
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
 
 ;; This file contains implementations for the window operations.
 ;; Window operations are usually just simple commands and should not
 ;; be repeatable.
+
+;;; Code:
 
 (provide 'vim-window)
 
@@ -347,5 +346,4 @@ and redisplays the current buffer there."
            (select-window newwin))))
      (balance-windows)))
         
-
-            
+;;; vim-window.el ends here

@@ -1,3 +1,12 @@
+;;; vim-ex.el - Ex-mode.
+
+;; Copyright (C) 2009, 2010 Frank Fischer
+
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Code:
 (provide 'vim-ex)
 
 (defvar vim:ex-commands nil
@@ -388,3 +397,4 @@ Returns a list of up to three elements: (cmd beg end)"
 
 (vim:nmap ":" 'vim:ex-read-command)
 
+;;; vim-ex.el ends here

@@ -1,23 +1,17 @@
-;;; vim.el --- a VIM-emulation for Emacs
+;;; vim-insert-mode.el - VIM visual mode.
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.2.0
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
-;; Compatibility: Developed on Emacs 22 - everything else is unknown.
+;; Copyright (C) 2009, 2010 Frank Fischer
+
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;;
-;; URL: http://www.tu-chemnitz.de/~fifr/repos/vim-mode.el
-;; 
 ;; This file is not part of GNU Emacs.
 
 ;; TODO:
 
 ;;   - when calling a non-vim-mode-command the region should be modified
 ;;     s.t. the emacs command uses the correct region.
+
+;;; Code:
 
 
 (provide 'vim-visual-mode)
@@ -619,3 +613,5 @@ current line."
 		      (point)))
 	  (move-to-column mark-col t)))
     (t (error "Not in visual mode."))))
+
+;;; vim-visual-mode.el ends here

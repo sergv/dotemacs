@@ -1,16 +1,12 @@
-;;; vim-keymap.el
+;;; vim-keymap.el - Basic keymapping for vim-mode
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.2.0
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later.
+;; Copyright (C) 2009, 2010 Frank Fischer
+
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;;
-;; This file contains code adapted from viper (viper-util.el).
-;; viper-util.el is part of GNU Emacs.
+;; This file is not part of GNU Emacs.
+
+;;; Code:
 
 (provide 'vim-keymap)
 
@@ -54,3 +50,5 @@
 (defun vim:clear-key-sequence ()
   "Clears the internal log of key-sequences."
   (setq vim:current-key-sequence nil))
+
+;;; vim-keymap.el ends here

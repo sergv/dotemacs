@@ -1,14 +1,12 @@
-;;; vim-node.el
+;;; vim-vim.el - Basic functions and macros for vim-mode.
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.2.0
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
 
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Code:
 
 (provide 'vim-vim)
 
@@ -369,3 +367,5 @@ command-specific transformations."
         ;; motion becomes inclusive
         (setf (vim:motion-type motion) 'inclusive)))
     motion))
+
+;;; vim-vim.el ends here

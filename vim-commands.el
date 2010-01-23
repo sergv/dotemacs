@@ -1,15 +1,12 @@
 ;;; vim-commands.el
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.2.0
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
 
-;; Description:
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
 
 ;; In general there are two types of commands: those operating on a
 ;; motion and those not taking a motion.  Examples of the first one
@@ -70,6 +67,8 @@
 ;; default), add 'do-not-keep-visual' to the argument list.  Some
 ;; commands should keep visual mode active, e.g. scrolling commands or
 ;; some visual-mode specific commands like 'o' or 'O'.
+
+;;; Code:
 
 
 (provide 'vim-commands)
@@ -596,3 +595,5 @@ and switches to insert-mode."
      (error (condition-case nil
                 (delete-frame)
               (error (save-buffers-kill-emacs))))))
+
+;;; vim-commands.el ends here

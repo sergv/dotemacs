@@ -1,15 +1,12 @@
-;;; vim-undo.el
+;;; vim-undo.el - Undo/Redo for VIM.
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.0.1
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
 
-;; Description:
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
 
 ;; Before the execution of an editing command, the calling function
 ;; should save the current head of buffer-undo-list.  When the
@@ -23,6 +20,8 @@
 ;; one undo-block when insert-mode is deactivated.  If a function
 ;; activates insert-mode it may modify vim:last-insert-undo to an
 ;; apropriate value (see vim:execute-mapping for an example).
+
+;;; Code:
 
 (provide 'vim-undo)
 
@@ -65,7 +64,5 @@
 (vim:defcmd vim:cmd-redo (count nonrepeatable)
   (setq vim:last-undo nil)
   (redo (or count 1)))
-    
-  
-  
-  
+
+;;; vim-undo.el ends here

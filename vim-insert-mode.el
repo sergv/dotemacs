@@ -1,13 +1,10 @@
-;;; vim-insert-mode.el
+;;; vim-insert-mode.el - VIM insert-mode.
 
-;; Copyright (C) 2009 Frank Fischer
-;; 
-;; Version: 0.2.0
-;; Keywords: emulations
-;; Human-Keywords: vim, emacs
-;; Authors: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; License: GPLv2 or later, as described below under "License"
+;; Copyright (C) 2009, 2010 Frank Fischer
+
+;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
+;;
+;; This file is not part of GNU Emacs.
 
 (provide 'vim-insert-mode)
 
@@ -77,3 +74,5 @@
   (when (vim:toplevel-execution)
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
                                             (this-command-keys-vector)))))
+
+;;; vim-insert-mode.el ends here
