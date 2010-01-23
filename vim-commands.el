@@ -9,64 +9,81 @@
 ;;; Commentary:
 
 ;; In general there are two types of commands: those operating on a
-;; motion and those not taking a motion.  Examples of the first one
-;; are the vim-commands c, d, y, =, examples of the second one are dd,
-;; D, p, x.
+;; motion and those not taking a motion. Examples of the first one are
+;; the vim-commands c, d, y, =, examples of the second one are dd, D,
+;; p, x.
 ;;
-;; An operation based on motions should always respect the motion
-;; type, i.e. if the motion is character-wise, line-wise or
-;; block-wise. Motions passed to commands will always be inclusive
-;; (and never exlusive). For example, the command dG has a line-wise
-;; motion argument and should delete whole lines.
+;; Commands are defined using the `vim:defcmd' macro and have the
+;; following form:
 ;;
-;; Motions are passed via the vim:motion structure.  The
-;; representation of the start and end-positions depends on the
-;; motion-type:
+;;   (vim:defcmd name (count 
+;;                     motion[:optional]
+;;                     argument[:{char,file,buffer}] 
+;;                     [nonrepeatable]
+;;                     [keep-visual])
+;;      body ...)
 ;;
-;;   - character-wise: each position is a buffer-offset,
-;;   - line-wise: each position is a line-number,
-;;   - block-wise: each position is a (row,column) pair.
+;; Each of the arguments is optional. The names of the arguments must
+;; be exactly as in the definition above (but see 'Argument-renaming'
+;; below).
 ;;
-;; Furthermore, each operation should place (point) at the correct
-;; position after the operation.
+;; The COUNT argument (if given) takes the count of the command which
+;; is usually the number how often the command should be repeated.
+;; This argument may be nil if no count is given. If the command takes
+;; a MOTION argument, no COUNT argument is allowed (will always be
+;; nil).
 ;;
+;; The MOTION argument defines the range where the command should work
+;; on. It's always of type `vim:motion'. Usually, a command should
+;; respect the of the motion, i.e. charwise, linewise or block, but
+;; there are commands that behave indepently of the motion type (e.g.
+;; `vim:cmd-shift-left' always works linewise). If the MOTION
+;; parameter has the form motion:optional, the MOTION parameter may be
+;; nil, which can only happen if the command is bound in ex-mode (e.g.
+;; the command `vim:cmd-substitute' is bound to :s may be called
+;; without a motion, in which case it works only on the current line).
+;; If the command is bound in normal-mode, the MOTION argument will
+;; usually be created by some motion-command bound in
+;; operator-pending-mode.
 ;;
-;; Operations are defined by the `vim:defcmd' macro:
+;; The ARGUMENT argument is an aditional text-argument to be given and
+;; may be nil, too. If it is specified as ARGUMENT:CHAR, the argument
+;; is a one-character argument (see `vim:cmd-replace-char' usually
+;; bound to 'r' for an example). If it specified as ARGUMENT:FILE it
+;; takes a file-name as argument, ARGUMENT:BUFFER takes a buffer-name
+;; as argument and a single ARGUMENT takes a string as argument. Only
+;; the type ARGUMENT:CHAR has an effect in normal-mode, the others are
+;; only important if bound in ex-mode. In this case the type of the
+;; argument determines how minibuffer-completion is done. The argument
+;; may be nil in which case the command should have a default
+;; behaviour (e.g. the command `vim:cmd-write' bound to :write takes
+;; an ARGUMENT:FILE argument and saves the current buffer to the given
+;; file or to the buffer's own file if ARGUMENT is nil).
 ;;
-;;  (vim:defcmd my-command (count motion arg repeatable do-not-keep-visual)
+;; The pseudo-argument NONREPEATABLE means, the command will not be
+;; recorded to the repeat command (usually bound to '.'). This is
+;; useful for non-editing commands, e.g. all window and scrolling
+;; commands have this behaviour.
 ;;
-;;       ... code ...
-;;  )
+;; The pseudo-argument KEEP-VISUAL means the command should not exit
+;; visual-mode and go back to normal-mode when called in visual-mode.
+;; This is useful for scrolling-commands which stay in visual-mode but
+;; are no regular motions (scrolling commands move the (point) but are
+;; no real motions since they can't in operating-pending mode), or
+;; some visual-mode specific command like
+;; `vim:visual-exchange-point-and-mark', usually bound to 'o').
+;; 
+;; If you do not like the default argument names, they may be renamed
+;; by using (ARG NEWNAME) instead of ARG, e.g.
 ;;
-;; If the command takes a count, a parameter `count' should be
-;; specified in the parameter list.  The actual parameter has the name
-;; `count' but may also be renamed by `(count new-name)' instead of
-;; `count' in the parameter list.  Notice that complex commands
-;; (commands taking a motion-argument) should not take a count
-;; parameter since the count has already been passed to the motion.
+;;   (vim:defcmd vim:cmd-replace-char (count (argument:char arg))
 ;;
-;; If the command takes a motion, a parameter `motion' should be
-;; specified in the parameter list.  The actual parameter has the name
-;; `motion' but may also be renamed by `(motion new-name)' instead of
-;; `motion' in the parameter list. 
+;; defines a simple command with a COUNT argument but renames the
+;; character-argument to ARG.
 ;;
-;; If the command takes an additional argument motion, a parameter
-;; `argument' should be specified in the parameter list.  The actual
-;; parameter has the name `argument' but may also be renamed by
-;; `(argument new-name)' instead of `argument' in the parameter list.
+;; Each command should place (point) at the correct position after the
+;; operation.
 ;;
-;; If the command is repeatable by using '.', a parameter `repeatable'
-;; should be added to the argument list.  If the command is not
-;; repeatable, put `nonrepeatable' instead.  By default all commands
-;; are repeatable, but some commands should not be, e.g. scrolling or
-;; window-commands.
-;;
-;; If a command executed in visual-mode should keep visual mode
-;; active, a parameter `keep-visual' should be added to the argument
-;; list.  If the command should exit visual mode (this is the
-;; default), add 'do-not-keep-visual' to the argument list.  Some
-;; commands should keep visual mode active, e.g. scrolling commands or
-;; some visual-mode specific commands like 'o' or 'O'.
 
 ;;; Code:
 
