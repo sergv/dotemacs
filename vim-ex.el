@@ -21,8 +21,8 @@
 (define-key vim:ex-keymap " " 'vim:ex-expect-argument)
 (define-key vim:ex-keymap (kbd "C-j") 'vim:ex-execute-command)
 (define-key vim:ex-keymap (kbd "C-g") 'abort-recursive-edit)
-(define-key vim:ex-keymap [up] 'next-history-element)
-(define-key vim:ex-keymap [down] 'previous-history-element)
+(define-key vim:ex-keymap [up] 'previous-history-element)
+(define-key vim:ex-keymap [down] 'next-history-element)
 
 (defvar vim:ex-keep-reading nil)
 (defvar vim:ex-cmdline nil)
