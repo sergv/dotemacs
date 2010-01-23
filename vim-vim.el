@@ -201,54 +201,6 @@
            (apply (get 'function ',name) args))))))
 
 
-(defmacro* vim:defexcmd (name (&rest args) &rest body)
-  (let ((argument nil)
-        (params '(begin end))
-        (named-params nil)
-        (doc nil))
-
-    ;; extract documentation string
-    (if (and (consp body)
-               (cdr body)
-               (stringp (car body)))
-        (setq doc (car body)
-              body (cdr body))
-      (setq doc (format "VIM - ex-command (%s %s)" name args)))
-    
-    ;; collect parameters
-    (dolist (arg args)
-      (case (if (consp arg) (car arg) arg)
-        ((argument file-argument buffer-argument)
-         (setq argument (if (consp arg) (car arg) arg))
-         (push 'argument params)
-         (when (and (consp arg)
-                    (not (eq (cadr arg) 'argument)))
-           (push `(,(cadr arg) argument) named-params)))
-
-        ('begin
-         (when (and (consp arg)
-                    (not (eq (cadr arg) 'begin)))
-           (push `(,(cadr arg) begin) named-params)))
-
-        ('end
-         (when (and (consp arg)
-                    (not (eq (cadr arg) 'end)))
-           (push `(,(cadr arg) end) named-params)))
-        
-        (t (error "%s: Unexpected argument: %s" 'vim:defexcmd arg))))
-
-    `(progn
-       (put 'type ',name 'ex)
-       (put 'argument ',name ',argument)
-       (put 'function ',name
-            (function* (lambda (,@(when params `(&key ,@params))
-                                ,@(when named-params `(&aux ,@named-params)))
-                         ,@body)))
-       (defun* ,name (&rest args)
-         ,doc
-         (apply (get 'function ',name) args)))))
-
-
 (defun vim:cmd-count-p (cmd)
   "Returns non-nil iff command cmd takes a count."
   (get 'count cmd))
