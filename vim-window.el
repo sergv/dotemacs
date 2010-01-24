@@ -215,11 +215,12 @@ executed if the do not delete any other window."
        (cond
         ((null count)
          ;; maximize
-         (while (/= (window-body-height)
-                    (vim:save-window-resize
-                     (enlarge-window 1)
-                     (window-body-height)))))
-        
+         (condition-case nil
+             (while (/= (window-body-height)
+                        (vim:save-window-resize
+                         (enlarge-window 1)
+                         (window-body-height))))
+           (error nil)))
         ((< count (window-body-height))
          ;; shrink window
          (while (/= (window-body-height) (max count window-min-height))
@@ -238,11 +239,12 @@ executed if the do not delete any other window."
        (cond
         ((null count)
          ;; maximize
-         (while (/= (window-width)
-                    (vim:save-window-resize
-                     (enlarge-window-horizontally 1)
-                     (window-width)))))
-        
+         (condition-case nil
+             (while (/= (window-width)
+                        (vim:save-window-resize
+                         (enlarge-window-horizontally 1)
+                         (window-width))))
+           (error nil)))
         ((< count (window-width))
          ;; shrink window
          (while (/= (window-width) (max count window-min-width))
