@@ -601,7 +601,7 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-emacs (nonrepeatable)
    "Switches to Emacs for the next command."
-   (message "Switch to Emacs for the next command.")
+   (let (message-log-max) (message "Switch to Emacs for the next command."))
    (vim:escape-to-emacs nil))
 
 (vim:defcmd vim:cmd-write-and-close (nonrepeatable)

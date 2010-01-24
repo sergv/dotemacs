@@ -37,11 +37,11 @@
   (setq overwrite-mode (not overwrite-mode))
   (if overwrite-mode
       (progn
-        (message "-- REPLACE --")
+        (let (message-log-max) (message "-- REPLACE --"))
         (setq cursor-type vim:insert-mode-replace-cursor)
         (vim:update-mode-line "R"))
     (progn
-      (message "-- INSERT --")
+      (let (message-log-max) (message "-- INSERT --"))
         (setq cursor-type vim:insert-mode-cursor)
       (vim:update-mode-line "I"))))
 
@@ -55,7 +55,7 @@
 (defun vim:insert-mode-activated ()
   "Called when insert-mode is activated."
   (setq overwrite-mode nil)
-  (message "-- INSERT --")
+  (let (message-log-max) (message "-- INSERT --"))
   (setq vim:last-insert-undo vim:last-undo)
   (add-hook 'pre-command-hook 'vim:insert-save-key-sequence))
   

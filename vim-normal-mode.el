@@ -58,7 +58,7 @@
 
 (defun vim:normal-mode-activate ()
   "Called when normal-mode is activated."
-  (message "-- NORMAL --"))
+  (let (message-log-max) (message "-- NORMAL --")))
 
 (defun vim:normal-mode-command (command)
   "Executes a motion or simple-command or prepares a complex command."
