@@ -15,60 +15,42 @@
 (defconst vim:xemacs-p (string-match "XEmacs" emacs-version))
 (defconst vim:emacs-p (not vim:xemacs-p))
 
-(cond 
- (vim:emacs-p
-  
-  (defun vim:set-keymap-default-binding (keymap command)
-    "Sets the default binding of a keymap."
+(defmacro vim:emacsen (&rest impls)
+  "Defines some body depending in emacs version."
+  `(progn ,@(cdr (or (find-if #'(lambda (x) (eval (car x))) impls)
+                     '(t (error "Not implemented for this Emacs version"))))))
+
+
+(defun vim:set-keymap-default-binding (keymap command)
+  "Sets the default binding of a keymap."
+  (vim:emacsen
+   (vim:emacs-p
     (define-key keymap t command))
+   
+   (vim:xemacs-p
+    (set-keymap-default-binding keymap command))))
 
-  (defmacro vim:called-interactively-p ()
-    "Returns t iff the containing function has been called interactively."
-    '(called-interactively-p))
+(defmacro vim:called-interactively-p ()
+  "Returns t iff the containing function has been called interactively."
+  (vim:emacsen
+   (vim:emacs-p '(called-interactively-p))
+   (vim:xemacs-p '(interactive-p))))
 
-  (defun vim:minibuffer-p ()
-    "Returns t iff the minibuffer is active."
-    (minibufferp))
-  
-  (defun vim:this-command-keys ()
-    "Returns a vector containing the current command's events."
-    (this-command-keys-vector))
+(defun vim:minibuffer-p ()
+  "Returns t iff the minibuffer is active."
+  (vim:emacsen
+   (vim:emacs-p (minibufferp))
+   (vim:xemacs-p (active-minibuffer-window))))
 
-  (defun vim:looking-back (regexp)
-    "Returns t if REGEXP matches text before point, ending at point, and nil otherwise."
-    (looking-back regexp))
-
-  (defun vim:initialize-keymaps (enable)
-    (if enable
-	(add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist)
-      (setq emulation-mode-map-alists
-	    (delq 'vim:emulation-mode-alist emulation-mode-map-alists))))
+(defun vim:this-command-keys ()
+  "Returns a vector containing the current command's events."
+  (vim:emacsen
+   (vim:emacs-p (this-command-keys-vector))
+   (vim:xemacs-p (this-command-keys))))
 
 
-  )
- 
- 
- (vim:xemacs-p
-
-  (defun vim:set-keymap-default-binding (keymap command)
-    "Sets the default binding of a keymap."
-    (set-keymap-default-binding keymap command))
-
-  (defmacro vim:called-interactively-p ()
-    "Returns t iff the containing function has been called interactively."
-    '(interactive-p))
-
-  (defun vim:minibuffer-p ()
-    "Returns t iff the minibuffer is active."
-    (active-minibuffer-window))
-
-  (defun vim:this-command-keys ()
-    "Returns a vector containing the current command's events."
-    (this-command-keys))
-  
-; taken straight out of http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/lisp/subr.el?rev=1.530&view=auto
-  (defun vim:looking-back (regexp &optional limit greedy)
-    "Return non-nil if text before point matches regular expression REGEXP.
+(defun vim:looking-back (regexp &optional limit greedy)
+  "Return non-nil if text before point matches regular expression REGEXP.
 Like `looking-at' except matches before point, and is slower.
 LIMIT if non-nil speeds up the search by specifying a minimum
 starting position, to avoid checking matches that would start
@@ -76,31 +58,48 @@ before LIMIT.
 If GREEDY is non-nil, extend the match backwards as far as possible,
 stopping when a single additional previous character cannot be part
 of a match for REGEXP."
+  (vim:emacsen
+   (vim:emacs-p (looking-back regexp limit greedy))
+   
+   (vim:xemacs-p 
     (let ((start (point))
           (pos
            (save-excursion
              (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
                   (point)))))
       (if (and greedy pos)
-      (save-restriction
-        (narrow-to-region (point-min) start)
-        (while (and (> pos (point-min))
-                    (save-excursion
-                      (goto-char pos)
-                      (backward-char 1)
-                      (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
-          (setq pos (1- pos)))
-        (save-excursion
-          (goto-char pos)
-          (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
-      (not (null pos))))
+          (save-restriction
+            (narrow-to-region (point-min) start)
+            (while (and (> pos (point-min))
+                        (save-excursion
+                          (goto-char pos)
+                          (backward-char 1)
+                          (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
+              (setq pos (1- pos)))
+            (save-excursion
+              (goto-char pos)
+              (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
+      (not (null pos))))))
+  
 
-  (defun vim:initialize-keymaps (enable)
+(defun vim:initialize-keymaps (enable)
+  "Initialize keymaps when vim-mode is enabled."
+  (vim:emacsen
+   (vim:emacs-p
+    (if enable
+        (add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist)
+      (setq emulation-mode-map-alists
+            (delq 'vim:emulation-mode-alist emulation-mode-map-alists))))
+   
+   (vim:xemacs-p
     (if enable
 	(vim:normalize-minor-mode-map-alist)
       (setq minor-mode-map-alist (set-difference minor-mode-map-alist
 						 vim:emulation-mode-alist
-						 :key 'car))))
+						 :key 'car))))))
+
+
+(when vim:xemacs-p
   
   (defun vim:normalize-minor-mode-map-alist ()
     (make-local-variable 'minor-mode-map-alist)
@@ -157,68 +156,69 @@ call another major mode in their body."
 				  "-mode\\'" "" (symbol-name mode))))))
 
       `(progn
-	(defvar ,MODE-major-mode nil)
-	(make-variable-buffer-local ',MODE-major-mode)
-	;; The actual global minor-mode
-	(define-minor-mode ,global-mode
-	  ,(format "Toggle %s in every possible buffer.
+         (defvar ,MODE-major-mode nil)
+         (make-variable-buffer-local ',MODE-major-mode)
+         ;; The actual global minor-mode
+         (define-minor-mode ,global-mode
+           ,(format "Toggle %s in every possible buffer.
 With prefix ARG, turn %s on if and only if ARG is positive.
 %s is enabled in all buffers where `%s' would do it.
 See `%s' for more information on %s."
-		   pretty-name pretty-global-name pretty-name turn-on
-		   mode pretty-name)
-	  :global t ,@group ,@(nreverse extra-keywords)
+                    pretty-name pretty-global-name pretty-name turn-on
+                    mode pretty-name)
+           :global t ,@group ,@(nreverse extra-keywords)
 
-	  ;; Setup hook to handle future mode changes and new buffers.
-	  (if ,global-mode
-	      (progn
-		(add-hook 'after-change-major-mode-hook
-			  ',MODE-enable-in-buffers)
-		(add-hook 'find-file-hook ',MODE-check-buffers)
-		(add-hook 'change-major-mode-hook ',MODE-cmhh))
-	    (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
-	    (remove-hook 'find-file-hook ',MODE-check-buffers)
-	    (remove-hook 'change-major-mode-hook ',MODE-cmhh))
+           ;; Setup hook to handle future mode changes and new buffers.
+           (if ,global-mode
+               (progn
+                 (add-hook 'after-change-major-mode-hook
+                           ',MODE-enable-in-buffers)
+                 (add-hook 'find-file-hook ',MODE-check-buffers)
+                 (add-hook 'change-major-mode-hook ',MODE-cmhh))
+             (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
+             (remove-hook 'find-file-hook ',MODE-check-buffers)
+             (remove-hook 'change-major-mode-hook ',MODE-cmhh))
 
-	  ;; Go through existing buffers.
-	  (dolist (buf (buffer-list))
-	    (with-current-buffer buf
-	      (if ,global-mode (,turn-on) (when ,mode (,mode -1))))))
+           ;; Go through existing buffers.
+           (dolist (buf (buffer-list))
+             (with-current-buffer buf
+               (if ,global-mode (,turn-on) (when ,mode (,mode -1))))))
 
-	;; Autoloading define-globalized-minor-mode autoloads everything
-	;; up-to-here.
-	:autoload-end
+         ;; Autoloading define-globalized-minor-mode autoloads everything
+         ;; up-to-here.
+         :autoload-end
 
-	;; List of buffers left to process.
-	(defvar ,MODE-buffers nil)
+         ;; List of buffers left to process.
+         (defvar ,MODE-buffers nil)
 
-	;; The function that calls TURN-ON in each buffer.
-	(defun ,MODE-enable-in-buffers ()
-	  (dolist (buf ,MODE-buffers)
-	    (when (buffer-live-p buf)
-	      (with-current-buffer buf
-		(if ,mode
-		    (unless (eq ,MODE-major-mode major-mode)
-		      (,mode -1)
-		      (,turn-on)
-		      (setq ,MODE-major-mode major-mode))
-		  (,turn-on)
-		  (setq ,MODE-major-mode major-mode))))))
-	(put ',MODE-enable-in-buffers 'definition-name ',global-mode)
+         ;; The function that calls TURN-ON in each buffer.
+         (defun ,MODE-enable-in-buffers ()
+           (dolist (buf ,MODE-buffers)
+             (when (buffer-live-p buf)
+               (with-current-buffer buf
+                 (if ,mode
+                     (unless (eq ,MODE-major-mode major-mode)
+                       (,mode -1)
+                       (,turn-on)
+                       (setq ,MODE-major-mode major-mode))
+                   (,turn-on)
+                   (setq ,MODE-major-mode major-mode))))))
+         (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
 
-	(defun ,MODE-check-buffers ()
-	  (,MODE-enable-in-buffers)
-	  (setq ,MODE-buffers nil)
-	  (remove-hook 'post-command-hook ',MODE-check-buffers))
-	(put ',MODE-check-buffers 'definition-name ',global-mode)
+         (defun ,MODE-check-buffers ()
+           (,MODE-enable-in-buffers)
+           (setq ,MODE-buffers nil)
+           (remove-hook 'post-command-hook ',MODE-check-buffers))
+         (put ',MODE-check-buffers 'definition-name ',global-mode)
 
-	;; The function that catches kill-all-local-variables.
-	(defun ,MODE-cmhh ()
-	  (add-to-list ',MODE-buffers (current-buffer))
-	  (add-hook 'post-command-hook ',MODE-check-buffers))
-	(put ',MODE-cmhh 'definition-name ',global-mode))))
+         ;; The function that catches kill-all-local-variables.
+         (defun ,MODE-cmhh ()
+           (add-to-list ',MODE-buffers (current-buffer))
+           (add-hook 'post-command-hook ',MODE-check-buffers))
+         (put ',MODE-cmhh 'definition-name ',global-mode))))
+
+  )
       
-  ))
 
 
 ;;; vim-combat.el ends here
