@@ -49,7 +49,7 @@
             (arg (substring cmdline (cdr cmd-region))))
     
         ;; skip whitespaces
-        (when (string-match "\\`[[:space:]]*" arg)
+        (when (string-match "\\`\s-*" arg)
           (setq spaces (match-string 0 arg)
                 arg (substring arg (match-end 0))))
       
@@ -275,7 +275,7 @@ Returns a list of up to three elements: (cmd beg end)"
             end-off 0
             sep ?,))
     
-    (when (= pos (or (string-match "[[:alnum:]!]+" text pos) -1))
+    (when (= pos (or (string-match "[a-zA-Z0-9!]+" text pos) -1))
       (setq cmd (cons (match-beginning 0) (match-end 0))))
                
     (multiple-value-bind (start end) (vim:ex-get-range (and begin (cons begin begin-off)) sep (and end (cons end end-off)))
@@ -286,7 +286,7 @@ Returns a list of up to three elements: (cmd beg end)"
   (cond
    ((>= pos (length text)) nil)
    
-   ((= pos (or (string-match "[[:digit:]]+" text pos) -1))
+   ((= pos (or (string-match "[0-9]+" text pos) -1))
     (values (cons 'abs (string-to-number (match-string 0 text)))
             (match-end 0)))
 
@@ -321,7 +321,7 @@ Returns a list of up to three elements: (cmd beg end)"
 
 (defun vim:ex-parse-offset (text pos)
   (let ((off nil))
-    (while (= pos (or (string-match "\\([-+]\\)\\([[:digit:]]+\\)?" text pos) -1))
+    (while (= pos (or (string-match "\\([-+]\\)\\([0-9]+\\)?" text pos) -1))
       (if (string= (match-string 1 text) "+")
           (setq off (+ (or off 0) (if (match-beginning 2)
                                       (string-to-number (match-string 2 text))

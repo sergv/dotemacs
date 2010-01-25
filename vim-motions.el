@@ -96,7 +96,7 @@
 (vim:deflocalvar vim:last-find nil
   "The previous find command (command . arg).")
 
-(defcustom vim:word "0-9[:alpha:]_"
+(defcustom vim:word "0-9a-zA-Z_"
   "Regexp-set matching a word."
   :type 'string
   :group 'vim-mode)
