@@ -322,11 +322,11 @@ it can be used as the end of an Emacs range."
     (forward-char)
     (while
         (not
-         (or (and (looking-back "[ \t\r\n]")
+         (or (and (vim:looking-back "[ \t\r\n]")
                   (looking-at "[^ \t\r\n]"))
-             (and (looking-back (concat "[" vim:word "]"))
+             (and (vim:looking-back (concat "[" vim:word "]"))
                   (looking-at (concat "[^ \t\r\n" vim:word "]")))
-             (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
+             (and (vim:looking-back (concat "[^ \t\r\n" vim:word "]"))
                   (looking-at (concat "[" vim:word "]")))
              (and (bolp) (eolp))
              (eobp)))
@@ -334,7 +334,7 @@ it can be used as the end of an Emacs range."
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
   (when (and (vim:operator-pending-mode-p)
-             (looking-back "^[ \t]*")
+             (vim:looking-back "^[ \t]*")
              (not (save-excursion
                     (forward-line -1)
                     (and (bolp) (eolp)))))
@@ -348,7 +348,7 @@ it can be used as the end of an Emacs range."
     (forward-char)
     (while
         (not
-         (or (and (looking-back "[ \t\r\n]")
+         (or (and (vim:looking-back "[ \t\r\n]")
                   (looking-at "[^ \t\r\n]"))
              (and (bolp) (eolp))
              (eobp)))
@@ -356,7 +356,7 @@ it can be used as the end of an Emacs range."
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
   (when (and (vim:operator-pending-mode-p)
-             (looking-back "^[ \t]*")
+             (vim:looking-back "^[ \t]*")
              (not (save-excursion
                     (forward-line -1)
                     (and (bolp) (eolp)))))
@@ -397,11 +397,11 @@ it can be used as the end of an Emacs range."
     (backward-char)
     (while
         (not
-         (or (and (looking-back "[ \t\r\n]")
+         (or (and (vim:looking-back "[ \t\r\n]")
                   (looking-at "[^ \t\r\n]"))
-             (and (looking-back (concat "[" vim:word "]"))
+             (and (vim:looking-back (concat "[" vim:word "]"))
                   (looking-at (concat "[^ \t\r\n" vim:word "]")))
-             (and (looking-back (concat "[^ \t\r\n" vim:word "]"))
+             (and (vim:looking-back (concat "[^ \t\r\n" vim:word "]"))
                   (looking-at (concat "[" vim:word "]")))
              (and (bolp) (eolp))
              (bobp)))
@@ -414,7 +414,7 @@ it can be used as the end of an Emacs range."
     (backward-char)
     (while
         (not
-         (or (and (looking-back "[ \t\r\n]")
+         (or (and (vim:looking-back "[ \t\r\n]")
                   (looking-at "[^ \t\r\n]"))
              (and (bolp) (eolp))
              (bobp)))

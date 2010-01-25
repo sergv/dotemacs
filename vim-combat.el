@@ -22,19 +22,28 @@
     "Sets the default binding of a keymap."
     (define-key keymap t command))
 
-  (defun vim:called-interactively-p ()
+  (defmacro vim:called-interactively-p ()
     "Returns t iff the containing function has been called interactively."
-    (called-interactively-p))
+    '(called-interactively-p))
 
   (defun vim:minibuffer-p ()
     "Returns t iff the minibuffer is active."
     (minibufferp))
+  
+  (defun vim:this-command-keys ()
+    "Returns a vector containing the current command's events."
+    (this-command-keys-vector))
+
+  (defun vim:looking-back (regexp)
+    "Returns t if REGEXP matches text before point, ending at point, and nil otherwise."
+    (looking-back regexp))
 
   (defun vim:initialize-keymaps (enable)
     (if enable
 	(add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist)
       (setq emulation-mode-map-alists
 	    (delq 'vim:emulation-mode-alist emulation-mode-map-alists))))
+
 
   )
  
@@ -45,13 +54,46 @@
     "Sets the default binding of a keymap."
     (set-keymap-default-binding keymap command))
 
-  (defun vim:called-interactively-p ()
+  (defmacro vim:called-interactively-p ()
     "Returns t iff the containing function has been called interactively."
-    (interactive-p))
+    '(interactive-p))
 
   (defun vim:minibuffer-p ()
     "Returns t iff the minibuffer is active."
     (active-minibuffer-window))
+
+  (defun vim:this-command-keys ()
+    "Returns a vector containing the current command's events."
+    (this-command-keys))
+  
+; taken straight out of http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/lisp/subr.el?rev=1.530&view=auto
+  (defun vim:looking-back (regexp &optional limit greedy)
+    "Return non-nil if text before point matches regular expression REGEXP.
+Like `looking-at' except matches before point, and is slower.
+LIMIT if non-nil speeds up the search by specifying a minimum
+starting position, to avoid checking matches that would start
+before LIMIT.
+If GREEDY is non-nil, extend the match backwards as far as possible,
+stopping when a single additional previous character cannot be part
+of a match for REGEXP."
+    (let ((start (point))
+          (pos
+           (save-excursion
+             (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
+                  (point)))))
+      (if (and greedy pos)
+      (save-restriction
+        (narrow-to-region (point-min) start)
+        (while (and (> pos (point-min))
+                    (save-excursion
+                      (goto-char pos)
+                      (backward-char 1)
+                      (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
+          (setq pos (1- pos)))
+        (save-excursion
+          (goto-char pos)
+          (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
+      (not (null pos))))
 
   (defun vim:initialize-keymaps (enable)
     (if enable

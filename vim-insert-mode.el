@@ -73,6 +73,6 @@
   "Called in insert-mode to save key-events."
   (when (vim:toplevel-execution)
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
-                                            (this-command-keys-vector)))))
+                                            (vim:this-command-keys)))))
 
 ;;; vim-insert-mode.el ends here

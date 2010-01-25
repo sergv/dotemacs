@@ -14,6 +14,8 @@
   "Keymap to bind the repeat-operator-event.")
 (defconst vim:operator-pending-mode-keymap (vim:make-keymap vim:operator-repeat-keymap)
   "VIM operator-pending-mode keymap.")
+(defvar vim:operator-repeat-last-event nil
+  "Last event for double-commands like dd.")
 (defun vim:omap (keys command)
   "Defines a new operator-pending-mode mapping."
   (vim:map keys command :keymap vim:operator-pending-mode-keymap))
@@ -25,10 +27,14 @@
 
 (add-hook 'vim:operator-pending-mode-hook 'vim:set-operator-repeat-key)
 (defun vim:set-operator-repeat-key ()
-  (if vim:operator-pending-mode
-      (vim:map (vector last-command-event) 'vim:motion-lines
-               :keymap vim:operator-repeat-keymap)
-    (setcdr vim:operator-repeat-keymap (keymap-parent vim:operator-repeat-keymap))))
+  (cond
+   (vim:operator-pending-mode
+    (setq vim:operator-repeat-last-event (vector last-command-event))
+    (vim:map vim:operator-repeat-last-event 'vim:motion-lines
+	     :keymap vim:operator-repeat-keymap))
+
+   (vim:operator-repeat-last-event
+    (vim:map vim:operator-repeat-last-event nil :keymap vim:operator-repeat-keymap))))
 
 
 (defun vim:operator-pending-mode-command (command)
@@ -107,7 +113,7 @@
         (vim:apply-save-buffer (vim:cmd-function command) parameters)
         (when (vim:cmd-repeatable-p command)
           (setq vim:repeat-events (vconcat vim:current-key-sequence
-                                           (this-command-keys-vector))))
+                                           (vim:this-command-keys))))
         (vim:connect-undos vim:last-undo))
 
     (vim:reset-key-state)
@@ -121,7 +127,7 @@
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
   
   (setq vim:current-cmd command)
-  (setq vim:current-key-sequence (vconcat vim:current-key-sequence (this-command-keys-vector)))
+  (setq vim:current-key-sequence (vconcat vim:current-key-sequence (vim:this-command-keys)))
   (vim:activate-operator-pending-mode))
 
 (defun vim:normal-execute-complex-command (motion-command)
@@ -145,7 +151,7 @@
                                  :motion (vim:get-current-cmd-motion))
         (when (vim:cmd-repeatable-p vim:current-cmd)
           (setq vim:repeat-events (vconcat vim:current-key-sequence
-                                           (this-command-keys-vector))))
+                                           (vim:this-command-keys))))
         (vim:connect-undos vim:last-undo))
     
     (vim:reset-key-state)

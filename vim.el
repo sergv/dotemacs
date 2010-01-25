@@ -91,6 +91,8 @@
 ;;   - marks and register
 ;;   - ...
 
+;; - several calls 'looking-back' may be inefficient
+
 ;;; Code:
 
 (provide 'vim)
