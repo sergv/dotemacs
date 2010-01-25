@@ -1,4 +1,4 @@
-;;; vim-commands.el
+;;; vim-commands.el - Implementation of VIM commands.
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
