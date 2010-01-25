@@ -12,34 +12,32 @@
 
 (defun* vim:save-buffer (file-name &key begin end mustbenew append)
   "Saves the lines from `begin' to `end' to file `file-name'."
-  (when file-name
-    (with-current-buffer vim:ex-current-buffer
-      (when (eq file-name t)
-        (setq file-name (buffer-file-name))
-        (unless file-name
-          (error "Please specify a file-name for this buffer!")))
+  (with-current-buffer vim:ex-current-buffer
+    (when (null file-name)
+      (setq file-name (buffer-file-name))
+      (unless file-name
+        (error "Please specify a file-name for this buffer!")))
 
-      (let (beg-pos end-pos)
-        (when begin
-          (setq beg-pos (save-excursion 
-                          (goto-line begin)
-                          (line-beginning-position)))
-          (setq end-pos
-                (setq end-pos (if end
-                                  (save-excursion
-                                    (goto-line end)
-                                    (line-end-position))
-                                beg-pos))))
+    (let (beg-pos end-pos)
+      (when begin
+        (setq beg-pos (save-excursion 
+                        (goto-line begin)
+                        (line-beginning-position)))
+        (setq end-pos (if end
+                          (save-excursion
+                            (goto-line end)
+                            (line-end-position))
+                        beg-pos)))
         
-        (cond
-         ((and (null beg-pos)
-               (string= file-name (buffer-file-name)))
-            (save-buffer)a)
-         ((and (null beg-pos)
-               (null (buffer-file-name)))
-          (write-file file-name))
-         (t
-          (write-region beg-pos end-pos file-name append nil nil mustbenew)))))))
+      (cond
+       ((and (null beg-pos)
+             (string= file-name (buffer-file-name)))
+        (save-buffer))
+       ((and (null beg-pos)
+             (null (buffer-file-name)))
+        (write-file file-name))
+       (t
+        (write-region beg-pos end-pos file-name append nil nil mustbenew))))))
 
 
 (vim:defcmd vim:cmd-write (motion (argument:file file) nonrepeatable)
