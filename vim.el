@@ -171,12 +171,11 @@
   :lighter " VIM"
   :init-value nil
   :global nil
-  
+
   (if vim-local-mode
-      (add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist)
+      (vim:initialize-keymaps t)
     (progn
-      (setq emulation-mode-map-alists
-            (delq 'vim:emulation-mode-alist emulation-mode-map-alists))
+      (vim:initialize-keymaps nil)
       (setq global-mode-string
             (delq 'vim:mode-string global-mode-string ))
       (vim:activate-mode nil))))
@@ -184,7 +183,7 @@
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
 
 (defun vim:initialize ()
-  (unless (minibufferp)
+  (unless (vim:minibuffer-p)
     (when (or (and (null vim:whitelist)
                    (not (member major-mode vim:blacklist)))
               (and vim:whitelist
