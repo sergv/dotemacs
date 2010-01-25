@@ -132,6 +132,7 @@
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
   (eval-when-compile
+    (load "vim-combat")
     (load "vim-keymap")
     (load "vim-modes")
     (load "vim-vim")
@@ -148,6 +149,7 @@
     (load "vim-search")
     (load "vim-maps"))
   
+  (require 'vim-combat)
   (require 'vim-keymap)
   (require 'vim-modes)
   (require 'vim-vim)

@@ -137,7 +137,7 @@
        (defun* ,name (&rest args)
          ,doc
          (interactive)
-         (if (called-interactively-p)
+         (if (vim:called-interactively-p)
              (funcall vim:active-command-function ',name)
            (apply (get 'function ',name) args))))))
 
@@ -196,7 +196,7 @@
        (defun* ,name (&rest args)
          ,doc
          (interactive)
-         (if (called-interactively-p)
+         (if (vim:called-interactively-p)
              (funcall vim:active-command-function ',name)
            (apply (get 'function ',name) args))))))
 

@@ -19,7 +19,8 @@
 
 (provide 'vim-search)
 
-(defconst vim:search-mode-keymap (list 'keymap '(t . vim:search-mode-exit)))
+(defconst vim:search-mode-keymap (make-sparse-keymap))
+(vim:set-keymap-default-binding vim:search-mode-keymap 'vim:search-mode-exit)
 
 (vim:deflocalvar vim:search-last-direction nil
   "The last search direction, either 'forward or 'backward.")
