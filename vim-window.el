@@ -16,21 +16,28 @@
 
 (provide 'vim-window)
 
-(defmacro vim:save-window-resize (&rest body)
-  "Makes all resizing functions on `body' save in the sense that they are only
-executed if the do not delete any other window."
-  `(let ((noldwin (length (window-list)))
-         (wincfg nil)
-         (ret nil))
-     (save-window-excursion
-       (setq ret (progn ,@body))
-       (when (= noldwin (length (window-list)))
-         (setq wincfg (current-window-configuration))))
-     (if wincfg
-         (set-window-configuration wincfg)
-       (error "Operation would delete a window."))
-     ret))
-     
+
+(defun vim:resize-window (new-size &optional horizontal)   
+  "Sets the current window's with or height to `new-size'."
+  (let ((wincfg (current-window-configuration))
+	(nwins (length (window-list)))
+	(count (if horizontal
+		   (- new-size (window-width))
+		 (- new-size (window-height)))))
+
+    (catch 'loop
+      (save-window-excursion
+	(while (not (zerop count))
+	  (if (> count 0)
+	      (progn (enlarge-window 1 horizontal) (decf count))
+	    (progn
+	      (shrink-window 1 horizontal)
+	      (incf count)))
+	  (if (= nwins (length (window-list)))
+	      (setq wincfg (current-window-configuration))
+	    (throw 'loop t)))))
+    (set-window-configuration wincfg)))
+         
 
 (defun vim:get-buffer-tree (wintree)
   "Extracts the buffer tree from a given window-tree."
@@ -179,82 +186,34 @@ executed if the do not delete any other window."
             :type 'simple
             :repeatable nil
   "Increase current window height by `count'."
-  (condition-case nil
-      (dotimes (i (or count 1))
-        (vim:save-window-resize
-         (enlarge-window 1)))
-    (error nil)))
+  (vim:resize-window (+ (window-height) (or count 1))))
             
 
 (vim:defcmd vim:window-decrease-height (count nonrepeatable)
             :type 'simple
             :repeatable nil
   "Decrease current window height by `count'."
-  (shrink-window (min (or count 1)
-                      (- (window-height) window-min-height))))
-            
+  (vim:resize-window (- (window-height) (or count 1))))
+
 
 (vim:defcmd vim:window-increase-width (count nonrepeatable)
   "Increase current window width by `count'."
-  (condition-case nil
-      (dotimes (i (or count 1))
-        (vim:save-window-resize
-         (enlarge-window-horizontally 1)))
-    (error nil)))
+  (vim:resize-window (+ (window-width) (or count 1)) t))
             
 
 (vim:defcmd vim:window-decrease-width (count nonrepeatable)
   "Decrease current window width by `count'."
-  (shrink-window-horizontally (min (or count 1)
-                                   (- (window-width) window-min-width))))
-            
+  (vim:resize-window (- (window-width) (or count 1)) t))
+
 
 (vim:defcmd vim:window-set-height (count nonrepeatable)
    "Sets the height of the current window to `count'."
-   (condition-case nil
-       (cond
-        ((null count)
-         ;; maximize
-         (condition-case nil
-             (while (/= (window-height)
-                        (vim:save-window-resize
-                         (enlarge-window 1)
-                         (window-height))))
-           (error nil)))
-        ((< count (window-height))
-         ;; shrink window
-         (while (/= (window-height) (max count window-min-height))
-           (vim:save-window-resize
-            (shrink-window 1))))
-        (t
-         ;; enlarge window
-         (while (/= (window-height) count)
-           (vim:save-window-resize
-            (enlarge-window 1)))))))
-         
-   
+   (vim:resize-window (or count (frame-height)) nil))
+
+
 (vim:defcmd vim:window-set-width (count nonrepeatable)
    "Sets the width of the current window to `count'."
-   (condition-case nil
-       (cond
-        ((null count)
-         ;; maximize
-         (condition-case nil
-             (while (/= (window-width)
-                        (vim:save-window-resize
-                         (enlarge-window-horizontally 1)
-                         (window-width))))
-           (error nil)))
-        ((< count (window-width))
-         ;; shrink window
-         (while (/= (window-width) (max count window-min-width))
-           (vim:save-window-resize
-            (shrink-window-horizontally 1))))
-        (t
-         ;; enlarge window
-         (while (/= (window-width) count)
-           (vim:save-window-resize
-            (enlarge-window-horizontally 1)))))))
+   (vim:resize-window (or count (frame-width)) t))
 
 
 (vim:defcmd vim:window-rotate-upwards (nonrepeatable)
