@@ -175,8 +175,7 @@ and switches to insert-mode."
     ('block
      (vim:cmd-yank :motion motion)
      (delete-rectangle (vim:motion-begin-pos motion)
-		       (vim:motion-end-pos motion))
-     (goto-char (vim:motion-begin-pos motion)))
+		       (vim:motion-end-pos motion)))
 
     (t
      (kill-region (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
@@ -431,12 +430,13 @@ and switches to insert-mode."
 	  (newline))
 	(incf current-line)
         
-        (move-to-column col)
         (unless (and (< (current-column) col)   ; nothing in this line
                      (<= offset 0) (zerop len)) ; and nothing to insert
           (move-to-column (+ col (max 0 offset)) t)
           (insert txt)
-          (insert (make-string (- ncols len) ? )))
+          (unless (eolp)
+            ;; text follows, so we have to insert spaces
+            (insert (make-string (- ncols len) ? ))))
 	(forward-line 1)))))
 
 

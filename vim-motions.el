@@ -200,28 +200,53 @@ positions within (point-min) and (point-max) and not at
 	 (current-column))))
 
 (defun vim:motion-begin-pos (motion)
-  "Returns the smaller position covered by `motion'."
-  (if (eq (vim:motion-type motion) 'linewise)
-      (save-excursion
-	(goto-line (vim:motion-first-line motion))
-	(line-beginning-position))
-    (min (vim:motion-begin motion)
-	 (vim:motion-end motion))))
+  "Returns the smaller position covered by `motion'.
+The result is modified depending on the motion type to
+return the correct start-position of emacs-ranges, i.e.
+  - if motion is inclusive or exclusive, nothing is changed
+  - if motion is line-wise, is always bol of the first line in the motion,
+  - if motion is block 1 is added if and only if the begin column
+    is larget than the end column."
+  (case (vim:motion-type motion)
+    (linewise
+     (save-excursion
+       (goto-line (vim:motion-first-line motion))
+       (line-beginning-position)))
+    ('block
+     (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
+           (e (max (vim:motion-begin motion) (vim:motion-end motion))))
+       (if (> (save-excursion (goto-char b) (current-column))
+              (save-excursion (goto-char e) (current-column)))
+           (1+ b)
+         b)))
+    (t (min (vim:motion-begin motion) (vim:motion-end motion)))))
+  
 
 (defun vim:motion-end-pos (motion)
-  "Returns the larger position covered by `motion' + 1, so 
-it can be used as the end of an Emacs range."
-  (if (eq (vim:motion-type motion) 'linewise)
-      (save-excursion
-	(goto-line (vim:motion-last-line motion))
-	(line-end-position))
-
-    (let ((e (max (vim:motion-begin motion)
-		  (vim:motion-end motion))))
-      (if (eq (vim:motion-type motion) 'exclusive)
-	  e
-	(1+ e)))))
-
+  "Returns the larger position covered by `motion'.
+The result is modified depending on the motion type to
+return the correct end-position of emacs-ranges, i.e.
+  - if motion is inclusive, 1 is added,
+  - if motion is exclusive, nothing is change,
+  - if motion is line-wise, is always eol of the last line in the motion,
+  - if motion is block 1 is added if and only if the end column
+    is larger than or equal to the begin column."
+  (case (vim:motion-type motion)
+    (linewise
+     (save-excursion
+       (goto-line (vim:motion-last-line motion))
+       (line-end-position)))
+    ('block
+     (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
+           (e (max (vim:motion-begin motion) (vim:motion-end motion))))
+       (if (>= (save-excursion (goto-char e) (current-column))
+               (save-excursion (goto-char b) (current-column)))
+           (1+ e)
+         e)))
+    (inclusive
+     (1+ (max (vim:motion-begin motion) (vim:motion-end motion))))
+    (t (max (vim:motion-begin motion) (vim:motion-end motion)))))
+    
 
 (defmacro vim:do-motion (type expression)
   "Executes a motion body, ensuring the return of a valid vim:motion object."
