@@ -217,6 +217,80 @@ See `%s' for more information on %s."
            (add-hook 'post-command-hook ',MODE-check-buffers))
          (put ',MODE-cmhh 'definition-name ',global-mode))))
 
+  ;; This is a hack written by Hovav Shacham, author of the windmove package, so that 
+  ;; windmove will work in xemacs
+  ;;--- begin hack ---
+ 
+  ;; simulate `window-edges' using `window-pixel-edges'; from
+  ;; Nix , based on tapestry.el.
+  (defun window-edges (&optional window)
+    (let ((edges (window-pixel-edges window))
+	  tmp)
+      (setq tmp edges)
+      (setcar tmp (/ (car tmp) (face-width 'default)))
+      (setq tmp (cdr tmp))
+      (setcar tmp (/ (car tmp) (face-height 'default)))
+      (setq tmp (cdr tmp))
+      (setcar tmp (/ (car tmp) (face-width 'default)))
+      (setq tmp (cdr tmp))
+      (setcar tmp (/ (car tmp) (face-height 'default)))
+      edges))
+  
+  ;; simulate `window-at' with `walk-windows'
+  (defun window-at (x y &optional frame)
+    (let ((f (if (null frame)
+		 (selected-frame)
+	       frame)))
+      (let ((guess-wind nil))
+	(walk-windows (function (lambda (w)
+				  (let ((w-edges (window-edges w)))
+				    (when (and (eq f (window-frame w))
+					       (<= (nth 0 w-edges) x)
+					       (>= (nth 2 w-edges) x)
+					       (<= (nth 1 w-edges) y)
+					       (>= (nth 3 w-edges) y))
+				      (setq guess-wind w)))))
+		      t ; walk minibuffers
+		      t) ; walk all frames
+	guess-wind)))
+  
+  ;; redo `windmove-coordinates-of-position' without compute-motion
+  (defun walk-screen-lines (lines goal)
+    (cond
+     ((< (window-point) goal) (1- lines))
+     ((= (window-point) goal) lines)
+     (t (vertical-motion 1)
+	(walk-screen-lines (1+ lines) goal))))
+  (defun windmove-coordinates-of-position (pos &optional window)
+    (let* ((w (if (null window)
+		  (selected-window)
+		window))
+	   (b (window-buffer w)))
+      (save-selected-window
+	(select-window w)
+	(save-excursion
+	  (let* ((y (progn (goto-char (window-start))
+			   (walk-screen-lines 0 pos)))
+		 (x (- (progn (goto-char pos)
+			      (current-column))
+		       (progn (goto-char (window-start))
+			      (vertical-motion y)
+			      (current-column)))))
+	    (cons x y))))))            
+  
+  ;; for some reason, XEmacs is more conservative in reporting `frame-width'
+  ;; and `frame-height'; we apparently need to get rid of the 1- in each.
+  (defun windmove-frame-edges (window)
+    (let ((frame (if window
+		     (window-frame window)
+		   (selected-frame))))
+      (let ((x-min 0)
+	    (y-min 0)
+	    (x-max (frame-width frame))
+	    (y-max (frame-height frame)))
+	(list x-min y-min x-max y-max))))
+  
+  ;; --- end hack --- 
   )
       
 
