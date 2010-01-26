@@ -49,7 +49,7 @@
             (arg (substring cmdline (cdr cmd-region))))
     
         ;; skip whitespaces
-        (when (string-match "\\`\s-*" arg)
+        (when (string-match "\\`\\s-*" arg)
           (setq spaces (match-string 0 arg)
                 arg (substring arg (match-end 0))))
       

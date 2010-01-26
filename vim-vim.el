@@ -312,7 +312,7 @@ command-specific transformations."
       
       (if (save-excursion
             (goto-char (vim:motion-begin-pos motion))
-            (vim:looking-back "^\s-*"))
+            (vim:looking-back "^\\s-*"))
           ;; motion becomes linewise(-exclusive)
           (setf (vim:motion-type motion) 'linewise)
         
