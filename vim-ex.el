@@ -59,7 +59,7 @@
   ;; called if the space separating the command from the argument has
   ;; been pressed
   (interactive "p")
-  (let ((cmdline (buffer-substring 2 (point-max)))) 
+  (let ((cmdline (buffer-substring (point-min) (point-max)))) 
     (self-insert-command n)
     (multiple-value-bind (range cmd spaces arg beg end) (vim:ex-split-cmdline cmdline)
 
@@ -142,17 +142,17 @@
       (cond
        ((null dir) (ding))
        ((null flag)
-        (let ((result (file-name-completion fname dir predicate)))
-        (case result
-          ((nil) nil)
-          ((t) t)
-          (t (concat dir result)))))
-         
+        (let ((result (file-name-completion fname dir)))
+	  (case result
+	    ((nil) nil)
+	    ((t) t)
+	    (t (concat dir result)))))
+       
        ((eq t flag) 
         (file-name-all-completions fname dir))
-     
+       
        ((eq 'lambda flag)
-        (eq (file-name-completion fname dir predicate) t))))))
+        (eq (file-name-completion fname dir) t))))))
       
 (defun vim:ex-complete-buffer-argument (arg predicate flag)
   ;; completes a buffer name
