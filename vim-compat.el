@@ -115,6 +115,9 @@ of a match for REGEXP."
 
 
 (when vim:xemacs-p
+  (unless (fboundp 'line-number-at-pos)
+    (defun line-number-at-pos (&optional pos)
+      (line-number pos)))
   
   (defun vim:normalize-minor-mode-map-alist ()
     (make-local-variable 'minor-mode-map-alist)
