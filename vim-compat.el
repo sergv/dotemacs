@@ -25,6 +25,17 @@
   `(progn ,@(cdr (or (find-if #'(lambda (x) (eval (car x))) impls)
                      '(t (error "Not implemented for this Emacs version"))))))
 
+(defun vim:set-cursor (cursor)
+  "Changes the cursor to type `cursor'."
+  (vim:emacsen
+   (vim:emacs-p (setq cursor-type cursor))
+   (vim:xemacs-p 
+    (case cursor
+      (bar 
+       (setq bar-cursor 2))
+      (t
+       (setq bar-cursor nil))))))
+
 
 (defun vim:set-keymap-default-binding (keymap command)
   "Sets the default binding of a keymap."

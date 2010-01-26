@@ -71,7 +71,7 @@ be executed."
                      ,(if command-function
                           command-function
                         'vim:default-command-function))
-               (setq cursor-type ,cursor-name)
+	       (vim:set-cursor ,cursor-name)
                ,@(and activate `((funcall ,activate))))
            (progn
              ,@(and deactivate `((funcall ,deactivate))))))
