@@ -34,7 +34,7 @@
   "Returns t iff the containing function has been called interactively."
   (vim:emacsen
    (vim:emacs-p '(called-interactively-p))
-   (vim:xemacs-p '(interactive-p))))
+   (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
 (defun vim:minibuffer-p ()
   "Returns t iff the minibuffer is active."
