@@ -15,6 +15,11 @@
 (defconst vim:xemacs-p (string-match "XEmacs" emacs-version))
 (defconst vim:emacs-p (not vim:xemacs-p))
 
+(defconst vim:default-region-face (if vim:xemacs-p 'zmacs-region 'region))
+(defconst vim:deactivate-region-hook (if vim:xemacs-p
+					 'zmacs-deactivate-region-hook
+				       deactivate-mark-hook))
+
 (defmacro vim:emacsen (&rest impls)
   "Defines some body depending in emacs version."
   `(progn ,@(cdr (or (find-if #'(lambda (x) (eval (car x))) impls)
@@ -43,6 +48,10 @@
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:this-command-keys 'this-command-keys-vector))
  (vim:xemacs-p (defalias 'vim:this-command-keys 'this-command-keys)))
+
+(vim:emacsen
+ (vim:emacs-p (defalias 'vim:deactivate-mark 'deactivate-mark))
+ (vim:xemacs-p (defalias 'vim:deactivate-mark 'zmacs-deactivate-region)))
 
 
 (defun vim:looking-back (regexp &optional limit greedy)

@@ -10,13 +10,14 @@
 
 ;;   - when calling a non-vim-mode-command the region should be modified
 ;;     s.t. the emacs command uses the correct region.
+;;   - check interaction with region (deactivate-mark-hook and others)
 
 ;;; Code:
 
 
 (provide 'vim-visual-mode)
 
-(defcustom vim:visual-region-face 'region
+(defcustom vim:visual-region-face vim:default-region-face
   "Face of the highlighted region."
   :type 'face
   :group 'vim-mode)
@@ -71,8 +72,8 @@
 
 ;;; System variables which must temporarily be buffer local.
 (defconst vim:visual-temporary-local-variables
-  '(transient-mark-mode
-    deactivate-mark-hook))
+  `(transient-mark-mode
+    ,vim:deactivate-region-hook))
 
 ;;; Commands the deactivate the mark (and so visual-mode).
 (defconst vim:visual-deactivate-mark-commands
@@ -180,7 +181,7 @@
   (mapcar #'make-local-variable vim:visual-temporary-local-variables)
   (when (boundp 'transient-mark-mode) (setq transient-mark-mode nil))
   (add-hook 'post-command-hook 'vim:visual-post-command)
-  (add-hook 'deactivate-mark-hook 'vim:visual-mode-exit))
+  (add-hook vim:deactivate-region-hook 'vim:visual-mode-exit))
 
 
 (defun vim:visual-mode-deactivate ()
@@ -190,13 +191,13 @@
   (vim:visual-hide-region)
   
   ;; cleanup local variables
-  (setq deactivate-mark-hook (delq 'vim:visual-mode-exit deactivate-mark-hook))
+  (set vim:deactivate-region-hook (delq 'vim:visual-mode-exit (symbol-value vim:deactivate-region-hook)))
   (setq post-command-hook (delq 'vim:visual-post-command post-command-hook))
   (when (boundp 'transient-mark-mode)
     (setq transient-mark-mode vim:visual-old-transient-mark-mode))
   (vim:visual-delete-overlays vim:visual-overlays)
   (mapcar #'kill-local-variable vim:visual-old-global-variables)
-  (deactivate-mark))
+  (vim:deactivate-mark))
 
 
 (defun vim:visual-mode-command (command)
