@@ -1,4 +1,4 @@
-;;; vim-combat.el - Layer for interfacing different Emacsen
+;;; vim-compat.el - Layer for interfacing different Emacsen
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -8,7 +8,7 @@
 
 ;;; Code:
 
-(provide 'vim-combat)
+(provide 'vim-compat)
 
 ;; Check emacs and xemacs
 
@@ -221,4 +221,4 @@ See `%s' for more information on %s."
       
 
 
-;;; vim-combat.el ends here
+;;; vim-compat.el ends here

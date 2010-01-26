@@ -34,6 +34,8 @@
 ;;
 ;;  - vim.el:  This file just sets up the mode and loads the other files.
 ;;
+;;  - vim-compat.el: Compatibility layer for different Emacsen.
+;;
 ;;  - vim-keymap.el: A few functions for defining keymaps for vim-mode.
 ;;
 ;;  - vim-vim.el: This file contains the macros for defining motions
@@ -134,7 +136,7 @@
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
   (eval-when-compile
-    (load "vim-combat")
+    (load "vim-compat")
     (load "vim-keymap")
     (load "vim-modes")
     (load "vim-vim")
@@ -151,7 +153,7 @@
     (load "vim-search")
     (load "vim-maps"))
   
-  (require 'vim-combat)
+  (require 'vim-compat)
   (require 'vim-keymap)
   (require 'vim-modes)
   (require 'vim-vim)
