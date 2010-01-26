@@ -289,7 +289,7 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-replace-char (count (argument:char arg))
   "Replaces the next count characters with arg."
-  (unless (integerp arg)
+  (unless (vim:char-p arg)
     (error "Expected a character."))
   (when (< (- (line-end-position) (point))
            (or count 1))

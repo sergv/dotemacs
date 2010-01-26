@@ -53,6 +53,10 @@
  (vim:emacs-p (defalias 'vim:deactivate-mark 'deactivate-mark))
  (vim:xemacs-p (defalias 'vim:deactivate-mark 'zmacs-deactivate-region)))
 
+(vim:emacsen
+ (vim:emacs-p (defalias 'vim:char-p 'integerp))
+ (vim:xemacs-p (defalias 'vim:char-p 'characterp)))
+
 
 (defun vim:looking-back (regexp &optional limit greedy)
   "Return non-nil if text before point matches regular expression REGEXP.
