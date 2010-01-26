@@ -36,17 +36,13 @@
    (vim:emacs-p '(called-interactively-p))
    (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
-(defun vim:minibuffer-p ()
-  "Returns t iff the minibuffer is active."
-  (vim:emacsen
-   (vim:emacs-p (minibufferp))
-   (vim:xemacs-p (active-minibuffer-window))))
+(vim:emacsen
+ (vim:emacs-p (defalias 'vim:minibuffer-p 'minibufferp))
+ (vim:xemacs-p (defalias 'vim:minibuffer-p 'active-minibuffer-window)))
 
-(defun vim:this-command-keys ()
-  "Returns a vector containing the current command's events."
-  (vim:emacsen
-   (vim:emacs-p (this-command-keys-vector))
-   (vim:xemacs-p (this-command-keys))))
+(vim:emacsen
+ (vim:emacs-p (defalias 'vim:this-command-keys 'this-command-keys-vector))
+ (vim:xemacs-p (defalias 'vim:this-command-keys 'this-command-keys)))
 
 
 (defun vim:looking-back (regexp &optional limit greedy)
