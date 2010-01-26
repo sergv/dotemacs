@@ -57,6 +57,12 @@
  (vim:emacs-p (defalias 'vim:char-p 'integerp))
  (vim:xemacs-p (defalias 'vim:char-p 'characterp)))
 
+(defun vim:test-completion (string collection &optional predicate)
+  "Returns non-nil if `string' is a valid completion."
+  (vim:emacsen
+   (vim:emacs-p (test-completion string collection predicate))
+   (vim:xemacs-p (eq (try-completion string collection predicate) t))))
+
 
 (defun vim:looking-back (regexp &optional limit greedy)
   "Return non-nil if text before point matches regular expression REGEXP.

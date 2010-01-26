@@ -114,7 +114,7 @@
   (cond
    ((null flag) (try-completion cmd vim:ex-commands predicate))
    ((eq t flag) (all-completions cmd vim:ex-commands predicate))
-   ((eq 'lambda flag) (test-completion cmd vim:ex-commands predicate))))
+   ((eq 'lambda flag) (vim:test-completion cmd vim:ex-commands predicate))))
 
 (defun vim:ex-complete-argument (arg predicate flag)
   ;; completes the argument
@@ -164,7 +164,7 @@
        ((eq t flag) 
         (all-completions arg buffers predicate))
        ((eq 'lambda flag)
-        (test-completion arg buffers predicate))))))
+        (vim:test-completion arg buffers predicate))))))
 
 (defun vim:ex-complete-text-argument (arg predicate flag)
   ;; completes an arbitrary text-argument
