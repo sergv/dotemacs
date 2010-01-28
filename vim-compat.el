@@ -137,6 +137,12 @@ of a match for REGEXP."
 						       vim:emulation-mode-alist
 						       :key 'car))))
   
+  (defadvice add-minor-mode (after vim:add-minor-mode 
+                             (toggle name &optional keymap after toggle-fun)
+                             activate)
+    "Run vim:normalize-minor-mode-map-alist after adding a minor mode."
+    (vim:normalize-minor-mode-map-alist))
+  
   (defadvice kill-new (before vim:kill-new (string &optional replace yank-handler) activate)
     "Set the yank-handler property at the given string."
     (message "OK")
