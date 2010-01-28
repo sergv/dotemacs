@@ -136,6 +136,24 @@ of a match for REGEXP."
 				       (set-difference minor-mode-map-alist
 						       vim:emulation-mode-alist
 						       :key 'car))))
+  
+  (defadvice kill-new (before vim:kill-new (string &optional replace yank-handler) activate)
+    "Set the yank-handler property at the given string."
+    (message "OK")
+    (when yank-handler
+      (put-text-property 0 (length string) 'yank-handler yank-handler string)))
+  
+  (defadvice yank (around vim:yank (&optional arg) activate)
+    "Like `yank' but respects the yank-handler property."
+    (let* ((text (nth (if (numberp arg) arg 0) kill-ring-yank-pointer))
+           (yank-handler (and text
+                              (get-text-property 0 'yank-handler text))))
+      (if (or (null yank-handler) (null (car yank-handler)))
+          ad-do-it
+        (funcall (car yank-handler)
+                 (or (nth 1 yank-handler) text)))))
+  
+          
 
   (defmacro define-globalized-minor-mode (global-mode mode turn-on &rest keys)
     "Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
