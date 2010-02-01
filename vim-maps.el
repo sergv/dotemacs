@@ -143,8 +143,8 @@
 (vim:nmap "?" 'vim:search-start-backward)
 (vim:nmap "*" 'vim:search-word)
 (vim:nmap "#" 'vim:search-word-backward)
-(vim:omap "g*" 'vim:search-unbounded-word)
-(vim:omap "g#" 'vim:search-unbounded-word-backward)
+(vim:nmap "g*" 'vim:search-unbounded-word)
+(vim:nmap "g#" 'vim:search-unbounded-word-backward)
 (vim:nmap "n" 'vim:search-repeat)
 (vim:nmap "N" 'vim:search-repeat-opposite)
 ;; The next two maps are very special for an active search.
@@ -168,9 +168,9 @@
 (vim:nmap ">" 'vim:cmd-shift-right)
 
 (vim:nmap "~" "g~l")
-(vim:omap "g~" 'vim:cmd-toggle-case)
-(vim:omap "gU" 'vim:cmd-make-upcase)
-(vim:omap "gu" 'vim:cmd-make-downcase)
+(vim:nmap "g~" 'vim:cmd-toggle-case)
+(vim:nmap "gU" 'vim:cmd-make-upcase)
+(vim:nmap "gu" 'vim:cmd-make-downcase)
 
 (vim:omap (kbd "C-e") 'vim:scroll-line-down)
 (vim:omap (kbd "C-d") 'vim:scroll-down)
