@@ -189,6 +189,7 @@
                    (member major-mode vim:whitelist)))
       (setq vim:active-mode nil)
       (vim-local-mode 1)
+      (vim:intercept-ESC-mode 1)
       (vim:activate-normal-mode)
       (unless (memq 'vim:mode-string global-mode-string)
         (setq global-mode-string

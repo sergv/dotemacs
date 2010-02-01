@@ -15,14 +15,50 @@
 `keymap.'"
   (define-key keymap keys command))
 
-
 (defun vim:make-keymap (&optional parent)
   "Creates a new keymap with a certain `parent' keymap."
   (let ((kmap (make-sparse-keymap)))
     (when parent (set-keymap-parent kmap parent))
     kmap))
 
+;; Interception of ESC event. The ESC event is intercepted. If not
+;; followed by another key, i.e. not used as a prefix-key, the event
+;; [escape] is sent, otherwise the interception-keymap is disabled for
+;; the next command and the ESC event is resent.
+(defcustom vim:intercept-ESC-timeout 0.1
+  "Time in seconds to wait for another key after an ESC event."
+  :group 'vim-mode)
 
+(defconst vim:intercept-ESC-keymap (make-sparse-keymap)
+  "Keymap to map ESC to [escape].")
+
+(define-minor-mode vim:intercept-ESC-mode
+  "VIM minor mode to capture ESC."
+  nil nil nil)
+
+;; This keymap is used as the first emulation-map.
+(add-to-list 'vim:emulation-mode-alist (cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap))
+
+(defun vim:intercept-ESC ()
+  "Waits a short time for further keys, otherwise sending [escape]."
+  (interactive)
+  (if (sit-for vim:intercept-ESC-timeout t)
+      (push 'escape unread-command-events)
+    (add-hook 'pre-command-hook 'vim:enable-intercept-ESC)
+    (vim:intercept-ESC-mode -1)
+    (push (string-to-char "\e") unread-command-events)))
+
+(defun vim:enable-intercept-ESC ()
+  "Enables interception of ESC after executing a (prefix-)command."
+  (unless (eq this-command 'vim:intercept-ESC)
+    (remove-hook 'pre-command-hook 'vim:enable-intercept-ESC)
+    (vim:intercept-ESC-mode 1)))
+
+;; Catch '\e' and convert it to [escape] if not used as prefix key.
+(vim:map (kbd "ESC") 'vim:intercept-ESC :keymap vim:intercept-ESC-keymap)
+
+
+;; The override keymap, useful especially in insert-mode.
 (defconst vim:override-keymap (make-keymap)
   "Global parent keymap to override some Emacs default bindings.")
 (suppress-keymap vim:override-keymap)
@@ -33,6 +69,7 @@
            (vim:activate-normal-mode)
            (ding))
          :keymap vim:override-keymap)
+
 
 
 ;; TODO: This function is currently empty and serves only as hook for

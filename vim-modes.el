@@ -76,7 +76,7 @@ be executed."
            (progn
              ,@(and deactivate `((funcall ,deactivate))))))
 
-       (add-to-list 'vim:emulation-mode-alist (cons ',mode-name ,keymap))
+       (add-to-list 'vim:emulation-mode-alist (cons ',mode-name ,keymap) t)
 
        (defun ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol-name name) " mode.")

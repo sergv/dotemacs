@@ -14,9 +14,7 @@
   "Cursor for replace-mode."
   :group 'vim-mode)
 
-(defconst vim:insert-mode-ESC-keymap (vim:make-keymap)
-  "VIM insert-mode keymap for the ESC-key.")
-(defconst vim:insert-mode-keymap (vim:make-keymap vim:insert-mode-ESC-keymap)
+(defconst vim:insert-mode-keymap (vim:make-keymap)
   "VIM insert-mode keymap.")
 (defun vim:imap (keys command)
   "Defines a new insert-mode mapping."
