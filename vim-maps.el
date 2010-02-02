@@ -48,9 +48,6 @@
 ;;
 ;;   - similarily 'o' and 'O' won't work
 ;;
-;;   - mapping to "ESC" to leave insert-mode doesn't work because ESC
-;;     is seen as meta-prefix, I think
-;;
 ;;   - should we have a 'deep-mapping' function: for example, "x" is
 ;;     mapped to "dl" in the default keymap.  If someone decides to
 ;;     redefine "l" to some other command, "x" will change its
@@ -143,8 +140,8 @@
 (vim:nmap "?" 'vim:search-start-backward)
 (vim:nmap "*" 'vim:search-word)
 (vim:nmap "#" 'vim:search-word-backward)
-(vim:omap "g*" 'vim:search-unbounded-word)
-(vim:omap "g#" 'vim:search-unbounded-word-backward)
+(vim:nmap "g*" 'vim:search-unbounded-word)
+(vim:nmap "g#" 'vim:search-unbounded-word-backward)
 (vim:nmap "n" 'vim:search-repeat)
 (vim:nmap "N" 'vim:search-repeat-opposite)
 ;; The next two maps are very special for an active search.
@@ -168,9 +165,9 @@
 (vim:nmap ">" 'vim:cmd-shift-right)
 
 (vim:nmap "~" "g~l")
-(vim:omap "g~" 'vim:cmd-toggle-case)
-(vim:omap "gU" 'vim:cmd-make-upcase)
-(vim:omap "gu" 'vim:cmd-make-downcase)
+(vim:nmap "g~" 'vim:cmd-toggle-case)
+(vim:nmap "gU" 'vim:cmd-make-upcase)
+(vim:nmap "gu" 'vim:cmd-make-downcase)
 
 (vim:omap (kbd "C-e") 'vim:scroll-line-down)
 (vim:omap (kbd "C-d") 'vim:scroll-down)
@@ -184,6 +181,7 @@
 
 (vim:omap "zt" 'vim:scroll-line-to-top)
 (vim:omap (vconcat "z" [return]) "zt^")
+(vim:omap (kbd "z RET") (vconcat "z" [return]))
 (vim:omap "zz" 'vim:scroll-line-to-center)
 (vim:omap "z." "z.^")
 (vim:omap "zb" 'vim:scroll-line-to-bottom)
@@ -237,13 +235,12 @@
 (vim:nmap "gv" 'vim:visual-mode-reactivate)
 
 
-(vim:map [escape] 'vim:insert-mode-exit :keymap vim:insert-mode-ESC-keymap)
-(vim:map (kbd "ESC") 'vim:insert-mode-exit :keymap vim:insert-mode-ESC-keymap)
+(vim:imap [escape] 'vim:insert-mode-exit)
 (vim:imap [insert] 'vim:insert-mode-toggle-replace)
-(vim:imap [kp-insert] 'vim:insert-mode-toggle-replace)
+(vim:imap [kp-insert] [insert])
+(vim:imap [insertchar] [insert])
 
 (vim:vmap [escape] 'vim:visual-mode-exit)
-(vim:vmap (kbd "ESC") 'vim:visual-mode-exit)
 (vim:vmap "v" 'vim:visual-toggle-normal)
 (vim:vmap "V" 'vim:visual-toggle-linewise)
 (vim:vmap (kbd "C-v") 'vim:visual-toggle-block)

@@ -27,6 +27,7 @@
 
 (define-key vim:ex-keymap "\t" 'minibuffer-complete)
 (define-key vim:ex-keymap [return] 'exit-minibuffer)
+(define-key vim:ex-keymap (kbd "RET") 'exit-minibuffer)
 (define-key vim:ex-keymap " " 'vim:ex-expect-argument)
 (define-key vim:ex-keymap (kbd "C-j") 'vim:ex-execute-command)
 (define-key vim:ex-keymap (kbd "C-g") 'abort-recursive-edit)

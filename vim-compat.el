@@ -18,7 +18,7 @@
 (defconst vim:default-region-face (if vim:xemacs-p 'zmacs-region 'region))
 (defconst vim:deactivate-region-hook (if vim:xemacs-p
 					 'zmacs-deactivate-region-hook
-				       deactivate-mark-hook))
+				       'deactivate-mark-hook))
 
 (defmacro vim:emacsen (&rest impls)
   "Defines some body depending in emacs version."
@@ -41,10 +41,34 @@
   "Sets the default binding of a keymap."
   (vim:emacsen
    (vim:emacs-p
-    (define-key keymap t command))
+    (define-key keymap [t] command))
    
    (vim:xemacs-p
     (set-keymap-default-binding keymap command))))
+
+(defun vim:intercept-ESC ()
+  "Waits a short time for further keys, otherwise sending [escape]."
+  (interactive)
+  (vim:emacsen
+   (vim:emacs-p
+    (if (sit-for vim:intercept-ESC-timeout t)
+        (push 'escape unread-command-events))
+    (add-hook 'pre-command-hook 'vim:enable-intercept-ESC)
+    (vim:intercept-ESC-mode -1)
+    (push (string-to-char "\e") unread-command-events))
+   
+   (vim:xemacs-p
+    (let ((cmd (let (vim:intercept-ESC-mode) (key-binding [escape]))))
+      (if (and cmd (or (not (vim:toplevel-execution))
+                       (sit-for vim:intercept-ESC-timeout t)))
+          (progn
+            (setq vim:current-key-sequence 
+                  (vconcat vim:current-key-sequence (vector (copy-event last-command-event))))
+            (call-interactively cmd))
+        
+        (add-hook 'pre-command-hook 'vim:enable-intercept-ESC)
+        (vim:intercept-ESC-mode -1)
+        (push (copy-event last-command-event) unread-command-events))))))
 
 (defmacro vim:called-interactively-p ()
   "Returns t iff the containing function has been called interactively."

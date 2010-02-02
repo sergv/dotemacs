@@ -14,9 +14,7 @@
   "Cursor for replace-mode."
   :group 'vim-mode)
 
-(defconst vim:insert-mode-ESC-keymap (vim:make-keymap)
-  "VIM insert-mode keymap for the ESC-key.")
-(defconst vim:insert-mode-keymap (vim:make-keymap vim:insert-mode-ESC-keymap)
+(defconst vim:insert-mode-keymap (vim:make-keymap)
   "VIM insert-mode keymap.")
 (defun vim:imap (keys command)
   "Defines a new insert-mode mapping."
@@ -71,7 +69,8 @@
 
 (defun vim:insert-save-key-sequence ()
   "Called in insert-mode to save key-events."
-  (when (vim:toplevel-execution)
+  (when (and (vim:toplevel-execution)
+             (not (eq this-command 'vim:intercept-ESC)))
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
                                             (vim:this-command-keys)))))
 
