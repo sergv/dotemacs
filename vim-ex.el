@@ -60,7 +60,7 @@
   ;; called if the space separating the command from the argument has
   ;; been pressed
   (interactive "p")
-  (let ((cmdline (buffer-substring (point-min) (point-max)))) 
+  (let ((cmdline (vim:minibuffer-contents)))
     (self-insert-command n)
     (multiple-value-bind (range cmd spaces arg beg end) (vim:ex-split-cmdline cmdline)
 

@@ -92,6 +92,13 @@
  (vim:emacs-p (defalias 'vim:char-p 'integerp))
  (vim:xemacs-p (defalias 'vim:char-p 'characterp)))
 
+(vim:emacsen
+ (vim:emacs-p (defalias 'vim:minibuffer-contents 'minibuffer-contents))
+ (vim:xemacs-p (defsubst vim:minibuffer-contents ()
+                 "Returns the editable content of the currently active minibuffer."
+                 (when (vim:minibuffer-p)
+                   (buffer-substring (point-min) (point-max))))))
+
 (defun vim:test-completion (string collection &optional predicate)
   "Returns non-nil if `string' is a valid completion."
   (vim:emacsen
