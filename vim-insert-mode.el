@@ -69,7 +69,8 @@
 
 (defun vim:insert-save-key-sequence ()
   "Called in insert-mode to save key-events."
-  (when (vim:toplevel-execution)
+  (when (and (vim:toplevel-execution)
+             (not (eq this-command 'vim:intercept-ESC)))
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
                                             (this-command-keys-vector)))))
 
