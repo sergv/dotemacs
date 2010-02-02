@@ -176,7 +176,6 @@ of a match for REGEXP."
   
   (defadvice kill-new (before vim:kill-new (string &optional replace yank-handler) activate)
     "Set the yank-handler property at the given string."
-    (message "OK")
     (when yank-handler
       (put-text-property 0 (length string) 'yank-handler yank-handler string)))
   
