@@ -235,12 +235,12 @@
 (vim:nmap "gv" 'vim:visual-mode-reactivate)
 
 
-(vim:imap [escape] 'vim:insert-mode-exit)
+(vim:imap (vector vim:ESC-event) 'vim:insert-mode-exit)
 (vim:imap [insert] 'vim:insert-mode-toggle-replace)
 (vim:imap [kp-insert] [insert])
 (vim:imap [insertchar] [insert])
 
-(vim:vmap [escape] 'vim:visual-mode-exit)
+(vim:vmap (vector vim:ESC-event) 'vim:visual-mode-exit)
 (vim:vmap "v" 'vim:visual-toggle-normal)
 (vim:vmap "V" 'vim:visual-toggle-linewise)
 (vim:vmap (kbd "C-v") 'vim:visual-toggle-block)
