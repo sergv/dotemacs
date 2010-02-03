@@ -115,19 +115,18 @@
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
       (goto-line count)
-    (goto-char (window-end)))
+    (goto-char (window-end))
+    (unless (bobp) (backward-char)))
   (recenter 0)
-  (goto-char (vim:motion-first-non-blank)))
+  (vim:motion-first-non-blank))
 
 
 (vim:defcmd vim:scroll-top-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
       (goto-line count)
-    (goto-char (max (1- (window-start)) (point-min))))
+    (goto-char (window-start)))
   (recenter -1)
-  (goto-char (window-start))
-  (recenter -1)
-  (goto-char (vim:motion-first-non-blank)))
+  (vim:motion-first-non-blank))
 
 ;;; vim-scroll.el ends here
