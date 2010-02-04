@@ -6,6 +6,9 @@
 ;;
 ;; This file is not part of GNU Emacs.
 
+;;; TODO :
+;; - for some reason GNU Emacs does not show '-- REPLACE --'
+
 (provide 'vim-insert-mode)
 
 (vim:deflocalvar vim:last-insert-undo nil)
@@ -53,13 +56,13 @@
 
 (defun vim:insert-mode-activated ()
   "Called when insert-mode is activated."
-  (setq overwrite-mode nil)
+  (overwrite-mode -1)
   (setq vim:last-insert-undo vim:last-undo)
   (add-hook 'pre-command-hook 'vim:insert-save-key-sequence))
   
 (defun vim:insert-mode-deactivated ()
   "Called when insert-mode is deactivated."
-  (setq overwrite-mode nil)
+  (overwrite-mode -1)
   (remove-hook 'pre-command-hook 'vim:insert-save-key-sequence)
   ;; the command that has just ended insert-mode should NOT be repeatable
   ;; and will therefore NOT override repeat-sequence.
