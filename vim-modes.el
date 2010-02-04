@@ -38,14 +38,14 @@
 
 
 (defmacro* vim:define-mode (name doc
+                                 &rest body
                                  &key
                                  ident
+                                 message
                                  keymap
                                  command-function
                                  (cursor ''box)
-                                 activate
-                                 deactivate
-                                 )
+                                 &allow-other-keys)
   "Defines a new VIM-mode with certain `name', mode-line-identifiert `ident',
 a `keymap' and a `command-function' to be called when a vim-command should
 be executed."
@@ -59,25 +59,23 @@ be executed."
          ,(concat "The cursor-type for vim-mode " (symbol-name name) ".")
          :group 'vim-mode)
        
-       (define-minor-mode ,mode-name ,doc
-         :keymap nil
-         :init-value nil
-         
-         (if ,mode-name
-             (progn
-               ,@(when ident `((vim:update-mode-line ,ident)))
-               (setq vim:active-mode ',mode-name)
-               (setq vim:active-command-function
-                     ,(if command-function
-                          command-function
-                        'vim:default-command-function))
-	       (vim:set-cursor ,cursor-name)
-               ,@(and activate `((funcall ,activate))))
-           (progn
-             ,@(and deactivate `((funcall ,deactivate))))))
+       (define-minor-mode ,mode-name ,doc nil nil nil
+         (when ,mode-name
+           ,@(when ident `((vim:update-mode-line ,ident)))
+           ,@(when message `((let (message-log-max) (message ,message))))
+           (setq vim:active-mode ',mode-name)
+           (setq vim:active-command-function
+                 ,(if command-function
+                      command-function
+                    'vim:default-command-function))
+           (vim:set-cursor ,cursor-name))
+         ,@(progn
+             (while (keywordp (car body)) (pop body) (pop body))
+             body))
 
        (add-to-list 'vim:emulation-mode-alist (cons ',mode-name ,keymap) t)
 
+       
        (defun ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol-name name) " mode.")
          (and ,mode-name t))

@@ -58,13 +58,9 @@
 
 (vim:define-mode normal "VIM normal mode"
                  :ident "N"
+                 :message "-- NORMAL --"
                  :keymap vim:normal-mode-keymap
-                 :command-function 'vim:normal-mode-command
-                 :activate 'vim:normal-mode-activate)
-
-(defun vim:normal-mode-activate ()
-  "Called when normal-mode is activated."
-  (let (message-log-max) (message "-- NORMAL --")))
+                 :command-function 'vim:normal-mode-command)
 
 (defun vim:normal-mode-command (command)
   "Executes a motion or simple-command or prepares a complex command."
