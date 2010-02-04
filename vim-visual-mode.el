@@ -31,9 +31,9 @@
                  :ident "V"
                  :keymap vim:visual-mode-keymap
                  :command-function 'vim:visual-mode-command
-                 :cursor 'hollow
-                 :activate 'vim:visual-mode-activate
-                 :deactivate 'vim:visual-mode-deactivate)
+                 :cursor 'hollow)
+(add-hook 'vim:visual-mode-on-hook 'vim:visual-mode-activate)
+(add-hook 'vim:visual-mode-off-hook 'vim:visual-mode-deactivate)
 
 (vim:deflocalvar vim:visual-mode-type 'normal
   "Type of visual mode, should be 'normal, 'linewise or 'block.")

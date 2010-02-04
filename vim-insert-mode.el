@@ -22,17 +22,18 @@
 
 (vim:define-mode insert "VIM insert-mode"
                  :ident "I"
+                 :message "-- INSERT --"
                  :keymap vim:insert-mode-keymap
                  :command-function 'vim:insert-mode-command
-                 :cursor 'bar
-                 :activate 'vim:insert-mode-activated
-                 :deactivate 'vim:insert-mode-deactivated)
+                 :cursor 'bar)
+(add-hook 'vim:insert-mode-on-hook 'vim:insert-mode-activated)
+(add-hook 'vim:insert-mode-off-hook 'vim:insert-mode-deactivated)
 
 (vim:defcmd vim:insert-mode-toggle-replace ()
   "Toggles overwrite-mode in insert-mode."
   (unless (vim:insert-mode-p)
     (error "Toggling overwrite-mode only allowed in insert-mode."))
-  (setq overwrite-mode (not overwrite-mode))
+  (overwrite-mode nil)
   (if overwrite-mode
       (progn
         (let (message-log-max) (message "-- REPLACE --"))
@@ -40,7 +41,7 @@
         (vim:update-mode-line "R"))
     (progn
       (let (message-log-max) (message "-- INSERT --"))
-        (setq cursor-type vim:insert-mode-cursor)
+      (setq cursor-type vim:insert-mode-cursor)
       (vim:update-mode-line "I"))))
 
 (defun vim:insert-mode-command (command)
@@ -53,7 +54,6 @@
 (defun vim:insert-mode-activated ()
   "Called when insert-mode is activated."
   (setq overwrite-mode nil)
-  (let (message-log-max) (message "-- INSERT --"))
   (setq vim:last-insert-undo vim:last-undo)
   (add-hook 'pre-command-hook 'vim:insert-save-key-sequence))
   
