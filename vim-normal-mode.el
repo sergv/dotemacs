@@ -6,21 +6,39 @@
 ;;
 ;; This file is not part of GNU Emacs.
 
+
+;;; TODO:
+;; - bindings in local-omap keymap will not be seen as motions in
+;;   normal-mode since the parent-keymap of the normal-mode keymap
+;;   is operator-pending-keymap and not its local counterpart. The
+;;   reason is that the binding of the local counterpart will be
+;;   changed to a buffer-local binding.
+
 ;;; Code:
 
 (provide 'vim-normal-mode)
 
 (defconst vim:operator-repeat-keymap (vim:make-keymap vim:override-keymap)
   "Keymap to bind the repeat-operator-event.")
+
 (defconst vim:operator-pending-mode-keymap (vim:make-keymap vim:operator-repeat-keymap)
   "VIM operator-pending-mode keymap.")
-(defun vim:omap (keys command)
+
+(defconst vim:operator-pending-mode-local-keymap (vim:make-keymap)
+  "VIM operator-pending-mode local keymap.")
+
+(defsubst vim:omap (keys command)
   "Defines a new operator-pending-mode mapping."
   (vim:map keys command :keymap vim:operator-pending-mode-keymap))
+
+(defsubst vim:local-omap (keys command)
+  "Defines a new buffer local operator-pending-mode mapping."
+  (vim:map keys command :keymap vim:operator-pending-mode-local-keymap))
 
 (vim:define-mode operator-pending "VIM operator-pending mode"
                  :ident "O"
                  :keymap vim:operator-pending-mode-keymap
+                 :local-keymap vim:operator-pending-mode-local-keymap
                  :command-function 'vim:operator-pending-mode-command)
 
 (add-hook 'vim:operator-pending-mode-hook 'vim:set-operator-repeat-key)
@@ -46,14 +64,23 @@
 
 (defconst vim:normal-mode-keymap (vim:make-keymap vim:operator-pending-mode-keymap)
   "VIM normal-mode keymap.")
-(defun vim:nmap (keys command)
+
+(defconst vim:normal-mode-local-keymap (vim:make-keymap)
+  "VIM normal-mode keymap.")
+
+(defsubst vim:nmap (keys command)
   "Defines a new normal-mode mapping."
   (vim:map keys command :keymap vim:normal-mode-keymap))
+
+(defsubst vim:local-nmap (keys command)
+  "Defines a new buffer local normal-mode mapping."
+  (vim:map keys command :keymap vim:normal-mode-local-keymap))
 
 (vim:define-mode normal "VIM normal mode"
                  :ident "N"
                  :message "-- NORMAL --"
                  :keymap vim:normal-mode-keymap
+                 :local-keymap vim:normal-mode-local-keymap
                  :command-function 'vim:normal-mode-command)
 
 (defun vim:normal-mode-command (command)

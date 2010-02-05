@@ -43,6 +43,7 @@
                                  ident
                                  message
                                  keymap
+                                 local-keymap
                                  command-function
                                  (cursor ''box)
                                  &allow-other-keys)
@@ -73,7 +74,10 @@ be executed."
              (while (keywordp (car body)) (pop body) (pop body))
              body))
 
-       (add-to-list 'vim:emulation-mode-alist (cons ',mode-name ,keymap) t)
+       ,@(when local-keymap
+           `((add-to-list 'vim:local-keymaps '(,mode-name . ,local-keymap))))
+       ,@(when keymap
+           `((add-to-list 'vim:global-keymaps '(,mode-name . ,keymap))))
 
        
        (defun ,pred-name ()

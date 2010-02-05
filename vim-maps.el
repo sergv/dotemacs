@@ -18,6 +18,18 @@
 ;;   - vim:vmap ... mapping in the visual-mode keymap
 ;;   - vim:emap ... mapping in the ex-mode keymap
 ;;
+;; Furthermore, for each of these map-function there's a buffer-local
+;; variant
+;;
+;;   - vim:local-nmap ... mapping in the normal-mode local keymap
+;;   - vim:local-omap ... mapping in the operator-pending local keymap
+;;   - vim:local-imap ... mapping in the insert-mode local keymap
+;;   - vim:local-vmap ... mapping in the visual-mode local keymap
+;;   - vim:local-emap ... mapping in the ex-mode local keymap
+;;
+;; The local versions should be used to define mode specific bindings
+;; as local-set-key would do.
+;;
 ;; Commands should usually be placed in the normal-mode keymap.
 ;; Motions should be placed in the operator-pending keymap. All
 ;; commands in the operator-pending-keymap are available as
@@ -36,7 +48,7 @@
 ;; KEYEVENTS to MAPEVENTS, i.e. the activation of KEYEVENTS invokes
 ;; the (key-)events in MAPEVENTS.
 ;;
-;; EVENTS is a usual Emacs-sequence of events as it would be used by
+;; KEYEVENTS is a usual Emacs-sequence of events as it would be used by
 ;; define-key.
 
 ;;; TODO:
