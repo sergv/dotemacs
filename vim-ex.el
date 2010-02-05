@@ -12,15 +12,27 @@
 (defvar vim:ex-commands nil
   "List of pairs (command . function).")
 
+(vim:deflocalvar vim:ex-local-commands nil
+  "List of pairs (command . function).")
+
 (defvar vim:ex-history nil
   "History of ex-commands.")
 
 (defun vim:emap (keys command)
   "Maps an ex-command to some function."
-  (let ((pair (find-if (lambda (x) (string= (car x) keys)) vim:ex-commands)))
-    (if pair
-        (setcdr pair command)
-      (setq vim:ex-commands (acons keys command vim:ex-commands)))))
+  (unless (find-if #'(lambda (x) (string= (car x) keys)) vim:ex-commands)
+    (add-to-list 'vim:ex-commands (cons keys command))))
+
+(defun vim:local-emap (keys command)
+  "Maps an ex-command to some function buffer-local."
+  (unless (find-if #'(lambda (x) (string= (car x) keys)) vim:ex-local-commands)
+    (add-to-list 'vim:ex-local-commands (cons keys command))))
+
+(defun vim:ex-binding (cmd)
+  "Returns the current binding of `cmd' or nil."
+  (with-current-buffer vim:ex-current-buffer
+    (or (cdr-safe (assoc cmd vim:ex-local-commands))
+        (cdr-safe (assoc cmd vim:ex-commands)))))
 
 (defvar vim:ex-keymap (make-sparse-keymap)
   "Keymap used in ex-mode.")
@@ -68,7 +80,7 @@
                  (zerop (length spaces))
                  (zerop (length arg)))
         (while (stringp cmd)
-          (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
+          (setq cmd (vim:ex-binding cmd)))
         
         (if (null cmd) (ding)
           (let ((result (case (vim:cmd-arg cmd)
@@ -112,16 +124,22 @@
         
 (defun vim:ex-complete-command (cmd predicate flag)
   ;; completes the command
-  (cond
-   ((null flag) (try-completion cmd vim:ex-commands predicate))
-   ((eq t flag) (all-completions cmd vim:ex-commands predicate))
-   ((eq 'lambda flag) (vim:test-completion cmd vim:ex-commands predicate))))
+  (with-current-buffer vim:ex-current-buffer
+    (cond
+     ((null flag) (or (try-completion cmd vim:ex-local-commands predicate)
+                      (try-completion cmd vim:ex-commands predicate)))
+   
+     ((eq t flag) (or (all-completions cmd vim:ex-local-commands predicate)
+                      (all-completions cmd vim:ex-commands predicate)))
+   
+     ((eq 'lambda flag) (or (vim:test-completion cmd vim:ex-local-commands predicate)
+                            (vim:test-completion cmd vim:ex-commands predicate))))))
 
 (defun vim:ex-complete-argument (arg predicate flag)
   ;; completes the argument
   (let ((cmd vim:ex-cmd))
     (while (stringp cmd)
-      (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
+      (setq cmd (vim:ex-binding cmd)))
 
     (if (null cmd) (ding)
       (case (vim:cmd-arg cmd)
@@ -169,10 +187,11 @@
 
 (defun vim:ex-complete-text-argument (arg predicate flag)
   ;; completes an arbitrary text-argument
-  (case flag
-    ((nil) t)
-    ((t) (list arg))
-    ('lambda t)))
+  (when arg
+    (case flag
+      ((nil) t)
+      ((t) (list arg))
+      ('lambda t))))
 
 (defun vim:ex-execute-command (cmdline)
   (interactive)
@@ -203,7 +222,7 @@
           (count (and (not end) beg)))
       
       (while (stringp cmd)
-        (setq cmd (cdr-safe (assoc cmd vim:ex-commands))))
+        (setq cmd (vim:ex-binding cmd)))
 
       (when (zerop (length arg))
         (setq arg nil))

@@ -19,14 +19,23 @@
 
 (defconst vim:insert-mode-keymap (vim:make-keymap)
   "VIM insert-mode keymap.")
-(defun vim:imap (keys command)
+
+(defconst vim:insert-mode-local-keymap (vim:make-keymap)
+  "VIM insert-mode local keymap.")
+
+(defsubst vim:imap (keys command)
   "Defines a new insert-mode mapping."
   (vim:map keys command :keymap vim:insert-mode-keymap))
+
+(defsubst vim:local-imap (keys command)
+  "Defines a new buffer local insert-mode mapping."
+  (vim:map keys command :keymap vim:insert-mode-local-keymap))
 
 (vim:define-mode insert "VIM insert-mode"
                  :ident "I"
                  :message "-- INSERT --"
                  :keymap vim:insert-mode-keymap
+                 :local-keymap vim:insert-mode-local-keymap
                  :command-function 'vim:insert-mode-command
                  :cursor 'bar)
 (add-hook 'vim:insert-mode-on-hook 'vim:insert-mode-activated)

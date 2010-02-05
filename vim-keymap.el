@@ -10,6 +10,12 @@
 
 (provide 'vim-keymap)
 
+(defvar vim:local-keymaps nil
+  "A list of buffer-local keymaps for vim-mode.")
+
+(defvar vim:global-keymaps nil
+  "A list of global keymaps for vim-mode.")
+
 (defun* vim:map (keys command &key (keymap nil))
   "Maps the sequence of events `keys' to a `command' in a certain
 `keymap.'"
@@ -35,9 +41,6 @@
 (define-minor-mode vim:intercept-ESC-mode
   "VIM minor mode to capture ESC."
   nil nil nil)
-
-;; This keymap is used as the first emulation-map.
-(add-to-list 'vim:emulation-mode-alist (cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap))
 
 ;; This function is defined in vim:compat.el
 ;; (defun vim:intercept-ESC () ...)

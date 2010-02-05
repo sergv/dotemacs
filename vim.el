@@ -177,7 +177,23 @@
   :global nil
 
   (if vim-local-mode
-      (vim:initialize-keymaps t)
+      (progn
+        (make-local-variable 'vim:emulation-mode-alist)
+        ;; global keymaps
+        (dolist (mode-keym vim:global-keymaps)
+          (let ((mode (car mode-keym))
+                (keym (cdr mode-keym)))
+            (push (cons mode (symbol-value keym)) vim:emulation-mode-alist)))
+        ;; local keymaps
+        (dolist (mode-keym vim:local-keymaps)
+          (let ((mode (car mode-keym))
+                (keym (cdr mode-keym)))
+            (make-local-variable keym)
+            (set keym (copy-keymap (symbol-value keym)))
+            (push (cons mode (symbol-value keym)) vim:emulation-mode-alist)))
+        ;; The ESC keymap is used as the first emulation-map.
+        (push (cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap) vim:emulation-mode-alist)
+        (vim:initialize-keymaps t))
     (progn
       (vim:initialize-keymaps nil)
       (setq global-mode-string
