@@ -169,10 +169,11 @@
 
 (defun vim:ex-complete-text-argument (arg predicate flag)
   ;; completes an arbitrary text-argument
-  (case flag
-    ((nil) t)
-    ((t) (list arg))
-    ('lambda t)))
+  (when arg
+    (case flag
+      ((nil) t)
+      ((t) (list arg))
+      ('lambda t))))
 
 (defun vim:ex-execute-command (cmdline)
   (interactive)
