@@ -119,6 +119,8 @@
     sldb-mode
     slime-repl-mode
     reftex-select-bib-mode
+    completion-list-mode
+    help-mode
     )
   "*List of major modes in which vim-mode should *NOT* be enabled."
   :type '(repeat symbol)
