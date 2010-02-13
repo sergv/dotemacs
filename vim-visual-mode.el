@@ -634,4 +634,10 @@ current line."
 	  (move-to-column mark-col t)))
     (t (error "Not in visual mode."))))
 
+
+(vim:defcmd vim:visual-ex-read-command (nonrepeatable)
+  "Starts ex-mode with visual-marks as initial input."
+  (vim:visual-mode-exit)
+  (vim:ex-read-command "'<,'>"))
+
 ;;; vim-visual-mode.el ends here

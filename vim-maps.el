@@ -250,6 +250,7 @@
 (vim:nmap (kbd "C-v") 'vim:visual-toggle-block)
 (vim:nmap "gv" 'vim:visual-mode-reactivate)
 
+(vim:nmap ":" 'vim:ex-read-command)
 
 (vim:imap (vector vim:ESC-event) 'vim:insert-mode-exit)
 (vim:imap [insert] 'vim:insert-mode-toggle-replace)
@@ -290,6 +291,8 @@
 
 (vim:vmap "o" 'vim:visual-exchange-point-and-mark)
 (vim:vmap "O" 'vim:visual-jump-point)
+
+(vim:vmap ":" 'vim:visual-ex-read-command)
 
 
 

@@ -328,7 +328,7 @@ Returns a list of up to three elements: (cmd beg end)"
    ((= (aref text pos) ?')
     (if (>= (1+ pos) (length text))
         nil
-      (values `(mark (aref text (1+ pos))) (+ 2 pos))))
+      (values `(mark ,(aref text (1+ pos))) (+ 2 pos))))
 
    ((= (aref text pos) ?%)
     (values 'all (1+ pos)))
@@ -399,22 +399,20 @@ Returns a list of up to three elements: (cmd beg end)"
          (current-line (line-number-at-pos (point)))
          (first-line (line-number-at-pos (point-min)))
          (last-line (line-number-at-pos (point-max)))
-         (mark (error "Marks not yet implemented."))
+         (mark (line-number-at-pos (vim:get-local-mark (cadr base))))
          (next-of-prev-search (error "Next-of-prev-search not yet implemented."))
          (prev-of-prev-search (error "Prev-of-prev-search not yet implemented."))
          (next-of-prev-subst (error "Next-of-prev-subst not yet implemented."))
          (t (error "Invalid address: %s" address))))))))
 
 
-(defun vim:ex-read-command ()
+(defun vim:ex-read-command (&optional initial-input)
   "Starts ex-mode."
   (interactive)
   (let ((vim:ex-current-buffer (current-buffer)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
-      (let ((result (completing-read ":" 'vim:ex-complete nil nil nil  'vim:ex-history)))
+      (let ((result (completing-read ":" 'vim:ex-complete nil nil initial-input  'vim:ex-history)))
         (when result
           (vim:ex-execute-command result))))))
-
-(vim:nmap ":" 'vim:ex-read-command)
 
 ;;; vim-ex.el ends here
