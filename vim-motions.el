@@ -272,7 +272,7 @@ return the correct end-position of emacs-ranges, i.e.
 (defun vim:local-mark-p (mark-char)
   "Returns t if `mark-char' is a local mark."
   (or (and (>= mark-char ?a) (<= mark-char ?z))
-          (member mark-char '(?^ ?.))))
+          (member mark-char '(?^ ?. ?< ?>))))
 
 (defun vim:global-mark-p (mark-char)
   "Returns t if `mark-char' is a global mark."

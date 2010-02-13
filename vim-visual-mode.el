@@ -197,6 +197,15 @@
 
   ;; hide the selection
   (vim:visual-hide-region)
+
+  (vim:set-mark ?< (save-excursion
+                     (goto-line (car vim:visual-last-begin))
+                     (move-to-column (cdr vim:visual-last-begin))
+                     (point)))
+  (vim:set-mark ?> (save-excursion
+                     (goto-line (car vim:visual-last-end))
+                     (move-to-column (cdr vim:visual-last-end))
+                     (point)))
   
   ;; cleanup local variables
   (set vim:deactivate-region-hook (delq 'vim:visual-mode-exit (symbol-value vim:deactivate-region-hook)))
