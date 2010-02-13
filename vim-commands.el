@@ -617,4 +617,33 @@ and switches to insert-mode."
   "Sets the mark `mark-char' at point."
   (vim:set-mark mark-char))
 
+(vim:defcmd vim:cmd-show-marks (nonrepeatable (argument marks))
+  "Shows all currently defined marks."
+  (let ((all-marks (append vim:local-marks-alist vim:global-marks-alist)))
+    (when marks
+      (setq all-marks (remove-if-not #'(lambda (x) (find (car x) marks)) all-marks)))
+
+    (setq all-marks (sort all-marks #'(lambda (x y) (< (car x) (car y)))))
+    (setq all-marks (apply #'concat
+                           (mapcar
+                            #'(lambda (m)
+                                (format "%3c  %5d %3d %s\n"
+                                        (car m)
+                                        (line-number-at-pos (cdr m))
+                                        (save-excursion
+                                          (goto-char (cdr m))
+                                          (current-column))
+                                        (buffer-substring-no-properties
+                                         (save-excursion
+                                           (goto-char (cdr m))
+                                           (line-beginning-position))
+                                         (+ 20
+                                            (save-excursion
+                                              (goto-char (cdr m))
+                                              (line-beginning-position))))))
+                            all-marks)))
+    (let (message-truncate-lines message-log-max)
+      (message "%4s %5s %3s %s\n%s" "Mark" "Line" "Col" "File/Text"
+               all-marks))))
+    
 ;;; vim-commands.el ends here

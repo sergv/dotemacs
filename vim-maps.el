@@ -344,5 +344,7 @@
 (vim:emap "bd!" "bdelete!")
 (vim:emap "substitute" 'vim:cmd-substitute)
 (vim:emap "s" "substitute")
+(vim:emap "marks" 'vim:cmd-show-marks)
+
 
 ;;; vim-maps.el ends here
