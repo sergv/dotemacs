@@ -251,6 +251,9 @@
 (vim:nmap "gv" 'vim:visual-mode-reactivate)
 
 (vim:nmap ":" 'vim:ex-read-command)
+(vim:nmap "q" 'vim:cmd-toggle-macro-recording)
+(vim:nmap "@" 'vim:cmd-execute-macro)
+    
 
 (vim:imap (vector vim:ESC-event) 'vim:insert-mode-exit)
 (vim:imap [insert] 'vim:insert-mode-toggle-replace)

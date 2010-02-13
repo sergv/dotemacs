@@ -645,5 +645,37 @@ and switches to insert-mode."
     (let (message-truncate-lines message-log-max)
       (message "%4s %5s %3s %s\n%s" "Mark" "Line" "Col" "File/Text"
                all-marks))))
-    
+
+(vim:deflocalvar vim:current-macro nil
+  "The name of the currently recorded macro.")
+
+(vim:defcmd vim:cmd-toggle-macro-recording ((argument:char reg) nonrepeatable)
+  "Toggles recording of a keyboard macro."
+  (if reg
+      (progn
+        (put 'vim:cmd-toggle-macro-recording 'argument nil)
+        (vim:cmd-start-macro reg))
+    (progn
+      (put 'vim:cmd-toggle-macro-recording 'argument 'char)
+      (vim:cmd-stop-macro))))
+
+(defun vim:cmd-start-macro (reg)
+  "Starts recording a macro in register `reg'."
+  (setq vim:current-macro reg)
+  (start-kbd-macro nil)
+  (let (message-log-max)
+    (message "Start recording keyboard macro in register '%c'" reg)))
+
+(defun vim:cmd-stop-macro ()
+  "Stops recording of a macro."
+  (end-kbd-macro)
+  (let (message-log-max)
+    (message "Stop recording keyboard macro in register '%c'" vim:current-macro))
+  (set-register vim:current-macro last-kbd-macro))
+
+(vim:defcmd vim:cmd-execute-macro (count nonrepeatable (argument:char reg))
+  ;;; TODO: count does not work because (point) is incorrect during execution.
+  "Executes the keyboard-macro in register `reg.'"
+  (execute-kbd-macro (get-register reg) count))
+
 ;;; vim-commands.el ends here
