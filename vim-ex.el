@@ -316,26 +316,30 @@ Returns a list of up to three elements: (cmd beg end)"
    ((= (aref text pos) ?.)
     (values 'current-line (1+ pos)))
 
-   ((= (aref text pos) ?/)
-    (values 'next-of-prev-search (1+ pos)))
-   
-   ((= (aref text pos) ??)
-    (values 'prev-of-prev-search (1+ pos)))
-   
-   ((= (aref text pos) ?&)
-    (values 'next-of-prev-subst (1+ pos)))
-
    ((= (aref text pos) ?')
     (if (>= (1+ pos) (length text))
         nil
       (values `(mark ,(aref text (1+ pos))) (+ 2 pos))))
 
-   ((= (aref text pos) ?%)
-    (values 'all (1+ pos)))
-   
    ((= (aref text pos) ?/)
-    (error "Regexp-addresses not yet implemented"))
-    
+    (when (string-match "\\([^/]+\\|\\\\.\\)\\(?:/\\|$\\)"
+                        text (1+ pos))
+      (values (cons 're-fwd (match-string 1 text))
+              (match-end 0))))
+   
+   ((= (aref text pos) ??)
+    (when (string-match "\\([^?]+\\|\\\\.\\)\\(?:?\\|$\\)"
+                        text (1+ pos))
+      (values (cons 're-bwd (match-string 1 text))
+              (match-end 0))))
+   
+   ((and (= (aref text pos) ?\\)
+         (< pos (1- (length text))))
+    (case (aref text (1+ pos))
+      (?/ (values 'next-of-prev-search (1+ pos)))
+      (?? (values 'prev-of-prev-search (1+ pos)))
+      (?& (values 'next-of-prev-subst (1+ pos)))))
+
    (t nil)))
 
 
