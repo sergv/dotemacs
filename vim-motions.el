@@ -302,14 +302,14 @@ return the correct end-position of emacs-ranges, i.e.
    ((vim:local-mark-p mark-char)
     (let ((m (cdr-safe (assoc mark-char vim:local-marks-alist))))
       (if m m
-        (error "No mark '%c' defined."))))
+        (error "No mark '%c' defined." mark-char))))
    ((vim:global-mark-p mark-char)
     (let ((m (cdr-safe (assoc mark-char vim:global-marks-alist))))
       (if m
           (if (eq (marker-buffer m) (current-buffer))
               m
             (error "Global mark '%c' not in current buffer." mark-char))
-        (error "No mark '%c' defined."))))
+        (error "No mark '%c' defined." mark-char))))
    (t
     (error "Unknown mark: '%c'" mark-char))))
 
