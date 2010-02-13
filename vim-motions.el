@@ -260,7 +260,7 @@ return the correct end-position of emacs-ranges, i.e.
                           :begin ,current-pos
                           :end (point)
                           :type ,type)))))
-
+(font-lock-add-keywords 'emacs-lisp-mode ("vim:do-motion"))
 
 (defun vim:adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
