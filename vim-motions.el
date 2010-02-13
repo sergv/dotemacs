@@ -269,17 +269,26 @@ return the correct end-position of emacs-ranges, i.e.
 (defvar vim:global-marks-alist nil
   "Global marks.")
 
+(defun vim:local-mark-p (mark-char)
+  "Returns t if `mark-char' is a local mark."
+  (or (and (>= mark-char ?a) (<= mark-char ?z))
+          (member mark-char '(?^))))
+
+(defun vim:global-mark-p (mark-char)
+  "Returns t if `mark-char' is a global mark."
+  (and (>= mark-char ?A) (<= mark-char ?z)))
+
 (defun vim:set-mark (mark-char &optional pos)
   "Sets the mark `mark-char' to `pos' or (point)."
   (let (m)
     (cond
-     ((and (>= mark-char ?a) (<= mark-char ?z))
+     ((vim:local-mark-p mark-char)
       (setq m (or (cdr-safe (assoc mark-char vim:local-marks-alist))))
       (unless m
         (setq m (make-marker))
         (push (cons mark-char m) vim:local-marks-alist)))
      
-     ((and (>= mark-char ?A) (<= mark-char ?A))
+     ((vim:global-mark-p mark-char)
       (setq m (or (cdr-safe (assoc mark-char vim:global-marks-alist))))
       (unless m
         (setq m (make-marker))
@@ -287,15 +296,14 @@ return the correct end-position of emacs-ranges, i.e.
      (t (error "Unknown mark '%c'" mark-char)))
     (set-marker m (or pos (point)))))
 
-
 (defun vim:get-local-mark (mark-char)
   "Returns the marker of `mark-char' if it's in the current buffer."
   (cond
-   ((and (>= mark-char ?a) (<= mark-char ?z))
+   ((vim:local-mark-p mark-char)
     (let ((m (cdr-safe (assoc mark-char vim:local-marks-alist))))
       (if m m
         (error "No mark '%c' defined."))))
-   ((and (>= mark-char ?A) (<= mark-char ?A))
+   ((vim:global-mark-p mark-char)
     (let ((m (cdr-safe (assoc mark-char vim:global-marks-alist))))
       (if m
           (if (eq (marker-buffer m) (current-buffer))

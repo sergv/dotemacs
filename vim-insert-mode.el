@@ -72,6 +72,7 @@
 (defun vim:insert-mode-deactivated ()
   "Called when insert-mode is deactivated."
   (overwrite-mode -1)
+  (vim:set-mark ?^)
   (remove-hook 'pre-command-hook 'vim:insert-save-key-sequence)
   ;; the command that has just ended insert-mode should NOT be repeatable
   ;; and will therefore NOT override repeat-sequence.
