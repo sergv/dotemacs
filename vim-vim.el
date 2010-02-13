@@ -125,13 +125,13 @@
         (t (error "%s: Unexpected argument: %s" 'vim:defcmd arg))))
 
     `(progn
-       (put 'type ',name ',(if motion 'complex 'simple))
-       (put 'count ',name ,count)
-       (put 'motion ',name ,motion)
-       (put 'argument ',name ,argument)
-       (put 'keep-visual ',name ,keep-visual)
-       (put 'repeatable ',name ,repeatable)
-       (put 'function ',name
+       (put ',name 'type ',(if motion 'complex 'simple))
+       (put ',name 'count ,count)
+       (put ',name 'motion ,motion)
+       (put ',name 'argument ,argument)
+       (put ',name 'keep-visual ,keep-visual)
+       (put ',name 'repeatable ,repeatable)
+       (put ',name 'function
             (function* (lambda (,@(when params `(&key ,@params))
                                 ,@(when named-params `(&aux ,@named-params)))
                          ,@body)))
@@ -140,7 +140,7 @@
          (interactive)
          (if (vim:called-interactively-p)
              (funcall vim:active-command-function ',name)
-           (apply (get 'function ',name) args))))))
+           (apply (get ',name 'function) args))))))
 
 (defmacro* vim:defmotion (name (&rest args) &rest body)
   (declare (indent defun))
@@ -187,10 +187,10 @@
       (error "%s: Motion type must be specified" 'vim:defmotion))
 
     `(progn
-       (put 'type ',name ',type)
-       (put 'count ',name ,count)
-       (put 'argument ',name ,argument)
-       (put 'function ',name
+       (put ',name 'type ',type)
+       (put ',name 'count ,count)
+       (put ',name 'argument ,argument)
+       (put ',name 'function
             (function* (lambda (,@(when params `(&key ,@params))
                                 ,@(when named-params `(&aux ,@named-params)))
                          (vim:do-motion ',type (progn ,@body)))))
@@ -199,25 +199,25 @@
          (interactive)
          (if (vim:called-interactively-p)
              (funcall vim:active-command-function ',name)
-           (apply (get 'function ',name) args))))))
+           (apply (get ',name 'function) args))))))
 
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:defcmd" "vim:defmotion"))
 
 (defun vim:cmd-count-p (cmd)
   "Returns non-nil iff command cmd takes a count."
-  (get 'count cmd))
+  (get cmd 'count))
 
 (defun vim:cmd-motion-p (cmd)
   "Returns non-nil iff command `cmd' takes a motion parameter."
-  (get 'motion cmd))
+  (get cmd 'motion))
 
 (defun vim:cmd-arg (cmd)
   "Returns the type of command's argument."
-  (get 'argument cmd))
+  (get cmd 'argument))
 
 (defun vim:cmd-arg-p (cmd)
   "Returns non-nil iff command cmd takes an argument of arbitrary type."
-  (not (null (get 'argument cmd))))
+  (not (null (get cmd 'argument))))
   
 (defun vim:cmd-text-arg-p (cmd)
   "Returns non-nil iff command cmd takes a text argument."
@@ -237,19 +237,19 @@
   
 (defun vim:cmd-repeatable-p (cmd)
   "Returns non-nil iff command cmd is repeatable."
-  (get 'repeatable cmd))
+  (get cmd 'repeatable))
 
 (defun vim:cmd-keep-visual-p (cmd)
   "Returns non-nil iff command cmd should stay in visual mode."
-  (get 'keep-visual cmd))
+  (get cmd 'keep-visual))
   
 (defun vim:cmd-type (cmd)
   "Returns the type of command cmd."
-  (get 'type cmd))
+  (get cmd 'type))
 
 (defun vim:cmd-function (cmd)
   "Returns the function of command `cmd'."
-  (get 'function cmd))
+  (get cmd 'function))
 
 
 (defmacro vim:apply-save-buffer (&rest args)
