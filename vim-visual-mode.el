@@ -198,15 +198,6 @@
   ;; hide the selection
   (vim:visual-hide-region)
 
-  (vim:set-mark ?< (save-excursion
-                     (goto-line (car vim:visual-last-begin))
-                     (move-to-column (cdr vim:visual-last-begin))
-                     (point)))
-  (vim:set-mark ?> (save-excursion
-                     (goto-line (car vim:visual-last-end))
-                     (move-to-column (cdr vim:visual-last-end))
-                     (point)))
-  
   ;; cleanup local variables
   (set vim:deactivate-region-hook (delq 'vim:visual-mode-exit (symbol-value vim:deactivate-region-hook)))
   (setq post-command-hook (delq 'vim:visual-post-command post-command-hook))
@@ -236,6 +227,14 @@
                                       (current-column))))
   (setq vim:visual-last-end (cons (line-number-at-pos (point))
                                   (current-column)))
+  (vim:set-mark ?< (save-excursion
+                     (goto-line (car vim:visual-last-begin))
+                     (move-to-column (cdr vim:visual-last-begin))
+                     (point)))
+  (vim:set-mark ?> (save-excursion
+                     (goto-line (car vim:visual-last-end))
+                     (move-to-column (cdr vim:visual-last-end))
+                     (point)))
 
   (if (vim:cmd-motion-p command)
       (unwind-protect
@@ -637,7 +636,6 @@ current line."
 
 (vim:defcmd vim:visual-ex-read-command (nonrepeatable)
   "Starts ex-mode with visual-marks as initial input."
-  (vim:visual-mode-exit)
   (vim:ex-read-command "'<,'>"))
 
 ;;; vim-visual-mode.el ends here
