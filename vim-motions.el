@@ -283,8 +283,9 @@ return the correct end-position of emacs-ranges, i.e.
       (setq m (or (cdr-safe (assoc mark-char vim:global-marks-alist))))
       (unless m
         (setq m (make-marker))
-        (push (cons mark-char m) vim:global-marks-alist))))
-    (when m (set-marker m (or pos (point))))))
+        (push (cons mark-char m) vim:global-marks-alist)))
+     (t (error "Unknown mark '%c'" mark-char)))
+    (set-marker m (or pos (point)))))
 
 
 (defun vim:get-local-mark (mark-char)
