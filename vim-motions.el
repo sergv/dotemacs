@@ -272,7 +272,7 @@ return the correct end-position of emacs-ranges, i.e.
 (defun vim:local-mark-p (mark-char)
   "Returns t if `mark-char' is a local mark."
   (or (and (>= mark-char ?a) (<= mark-char ?z))
-          (member mark-char '(?^))))
+          (member mark-char '(?^ ?.))))
 
 (defun vim:global-mark-p (mark-char)
   "Returns t if `mark-char' is a global mark."
@@ -312,6 +312,11 @@ return the correct end-position of emacs-ranges, i.e.
         (error "No mark '%c' defined." mark-char))))
    (t
     (error "Unknown mark: '%c'" mark-char))))
+
+(add-hook 'before-change-functions 'vim:set-change-mark)
+(defun vim:set-change-mark (beg end)
+  "Sets the change mark . to `beg'."
+  (vim:set-mark ?. beg))
 
 (defun vim:adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
