@@ -127,9 +127,13 @@
 
 (vim:omap "%" 'vim:motion-jump-item)
 
+(vim:omap "'" 'vim:motion-mark-line)
+(vim:omap "`" 'vim:motion-mark)
+
 (vim:omap "iw" 'vim:motion-inner-word)
 
 ;(vim:nmap "x" "dl")
+(vim:nmap "m" 'vim:cmd-set-mark)
 (vim:nmap "x" 'vim:cmd-delete-char)
 (vim:nmap "D" "d$")
 (vim:nmap "d" 'vim:cmd-delete)

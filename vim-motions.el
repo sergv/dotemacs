@@ -106,7 +106,7 @@
   ;; TODO: should we check modes directly?
   (when (and (not (vim:insert-mode-p))
              );(not vim:replace-mode))
-             
+    
     (when vim:this-column
       (move-to-column vim:this-column))
     ;; always stop at the last character (not the newline)
@@ -122,7 +122,7 @@
 (defun vim:use-last-column ()
   "This function should by called by a motion not changing the column."
   (setq vim:this-column vim:last-column))
-        
+
 
 ;; This structure is passed to operators taking a motion.
 ;; It should *not* be returned by motions.
@@ -213,14 +213,14 @@ return the correct start-position of emacs-ranges, i.e.
        (goto-line (vim:motion-first-line motion))
        (line-beginning-position)))
     ('block
-     (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
-           (e (max (vim:motion-begin motion) (vim:motion-end motion))))
-       (if (> (save-excursion (goto-char b) (current-column))
-              (save-excursion (goto-char e) (current-column)))
-           (1+ b)
-         b)))
+        (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
+              (e (max (vim:motion-begin motion) (vim:motion-end motion))))
+          (if (> (save-excursion (goto-char b) (current-column))
+                 (save-excursion (goto-char e) (current-column)))
+              (1+ b)
+            b)))
     (t (min (vim:motion-begin motion) (vim:motion-end motion)))))
-  
+
 
 (defun vim:motion-end-pos (motion)
   "Returns the larger position covered by `motion'.
@@ -237,16 +237,16 @@ return the correct end-position of emacs-ranges, i.e.
        (goto-line (vim:motion-last-line motion))
        (line-end-position)))
     ('block
-     (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
-           (e (max (vim:motion-begin motion) (vim:motion-end motion))))
-       (if (>= (save-excursion (goto-char e) (current-column))
-               (save-excursion (goto-char b) (current-column)))
-           (1+ e)
-         e)))
+        (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
+              (e (max (vim:motion-begin motion) (vim:motion-end motion))))
+          (if (>= (save-excursion (goto-char e) (current-column))
+                  (save-excursion (goto-char b) (current-column)))
+              (1+ e)
+            e)))
     (inclusive
      (1+ (max (vim:motion-begin motion) (vim:motion-end motion))))
     (t (max (vim:motion-begin motion) (vim:motion-end motion)))))
-    
+
 
 (defmacro vim:do-motion (type expression)
   "Executes a motion body, ensuring the return of a valid vim:motion object."
@@ -260,7 +260,49 @@ return the correct end-position of emacs-ranges, i.e.
                           :begin ,current-pos
                           :end (point)
                           :type ,type)))))
-(font-lock-add-keywords 'emacs-lisp-mode ("vim:do-motion"))
+(font-lock-add-keywords 'emacs-lisp-mode '("vim:do-motion"))
+
+
+(vim:deflocalvar vim:local-marks-alist nil
+  "Local marks for this buffer.")
+
+(defvar vim:global-marks-alist nil
+  "Global marks.")
+
+(defun vim:set-mark (mark-char &optional pos)
+  "Sets the mark `mark-char' to `pos' or (point)."
+  (let (m)
+    (cond
+     ((and (>= mark-char ?a) (<= mark-char ?z))
+      (setq m (or (cdr-safe (assoc mark-char vim:local-marks-alist))))
+      (unless m
+        (setq m (make-marker))
+        (push (cons mark-char m) vim:local-marks-alist)))
+     
+     ((and (>= mark-char ?A) (<= mark-char ?A))
+      (setq m (or (cdr-safe (assoc mark-char vim:global-marks-alist))))
+      (unless m
+        (setq m (make-marker))
+        (push (cons mark-char m) vim:global-marks-alist))))
+    (when m (set-marker m (or pos (point))))))
+
+
+(defun vim:get-local-mark (mark-char)
+  "Returns the marker of `mark-char' if it's in the current buffer."
+  (cond
+   ((and (>= mark-char ?a) (<= mark-char ?z))
+    (let ((m (cdr-safe (assoc mark-char vim:local-marks-alist))))
+      (if m m
+        (error "No mark '%c' defined."))))
+   ((and (>= mark-char ?A) (<= mark-char ?A))
+    (let ((m (cdr-safe (assoc mark-char vim:global-marks-alist))))
+      (if m
+          (if (eq (marker-buffer m) (current-buffer))
+              m
+            (error "Global mark '%c' not in current buffer." mark-char))
+        (error "No mark '%c' defined."))))
+   (t
+    (error "Unknown mark: '%c'" mark-char))))
 
 (defun vim:adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
@@ -289,7 +331,7 @@ return the correct end-position of emacs-ranges, i.e.
   "Move the cursor count lines down."
   (vim:use-last-column)
   (forward-line (or count 1)))
-  
+
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
   (vim:use-last-column)
@@ -303,7 +345,7 @@ return the correct end-position of emacs-ranges, i.e.
            (not (zerop (prefix-numeric-value current-prefix-arg))))
       (call-interactively 'digit-argument)
     (call-interactively 'vim:motion-beginning-of-line)))
-                 
+
 
 (vim:defmotion vim:motion-beginning-of-line (exclusive)
   "Move the cursor to the beginning of the current line."
@@ -332,7 +374,7 @@ return the correct end-position of emacs-ranges, i.e.
       (goto-line count)
     (goto-char (point-min)))
   (vim:motion-first-non-blank))
-  
+
 (vim:defmotion vim:motion-go-to-first-non-blank-end (linewise count)
   "Moves the cursor to the first non-blank charactor of line count."
   (if count
@@ -411,10 +453,10 @@ return the correct end-position of emacs-ranges, i.e.
     (forward-char)
     (while
         (not (or (looking-at (concat "[^ \t\r\n]"
-                                      "[ \t\r\n]"))
-                  (eobp)))
+                                     "[ \t\r\n]"))
+                 (eobp)))
       (forward-char))))
-  
+
 
 (vim:defmotion vim:motion-bwd-word (exclusive count)
   "Moves the cursor beginning of the previous word."
@@ -431,7 +473,7 @@ return the correct end-position of emacs-ranges, i.e.
              (and (bolp) (eolp))
              (bobp)))
       (backward-char))))
-  
+
 
 (vim:defmotion vim:motion-bwd-WORD (exclusive count)
   "Moves the cursor to beginning of the previous WORD."
@@ -457,10 +499,10 @@ return the correct end-position of emacs-ranges, i.e.
              (and (looking-at (concat "[" vim:word "]"
                                       "[^ \t\r\n" vim:word "]")))
              (and (looking-at (concat "[^ \t\r\n" vim:word "]"
-                                        "[" vim:word "]")))
+                                      "[" vim:word "]")))
              (bobp)))
       (backward-char))))
-            
+
 
 (vim:defmotion vim:motion-bwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
@@ -480,7 +522,7 @@ return the correct end-position of emacs-ranges, i.e.
                      nil
                      t
                      (or count 1)))
-            
+
 
 (vim:defmotion vim:motion-bwd-sentence (exclusive count)
   "Move the cursor `count' sentences forward."
@@ -488,17 +530,17 @@ return the correct end-position of emacs-ranges, i.e.
   (dotimes (i (or count 1))
     (goto-char (max (save-excursion (backward-sentence 1) (point))
                     (save-excursion (backward-paragraph 1) (point))))))
-            
+
 
 (vim:defmotion vim:motion-fwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs forward."
   (forward-paragraph (or count 1)))
-            
+
 
 (vim:defmotion vim:motion-bwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs backward."
   (backward-paragraph (or count 1)))
-            
+
 
 (vim:defmotion vim:motion-find (inclusive count (argument:char arg))
   "Move the cursor to the next count'th occurrence of arg."
@@ -532,9 +574,9 @@ return the correct end-position of emacs-ranges, i.e.
 (vim:defmotion vim:motion-find-back-to (exclusive count (argument:char arg))
   "Move the cursor to the character after the previous count'th\
    occurence of arg."
-   (vim:motion-find-back :count count :argument arg)
-   (forward-char)
-   (setq vim:last-find (cons 'vim:motion-find-to arg)))
+  (vim:motion-find-back :count count :argument arg)
+  (forward-char)
+  (setq vim:last-find (cons 'vim:motion-find-to arg)))
 
 
 (vim:defmotion vim:motion-repeat-last-find (inclusive count)
@@ -588,19 +630,30 @@ jumps to the corresponding one."
 
 
 (vim:defmotion vim:motion-inner-word (inclusive count)
-   "Select `count' words."
-   (let ((beg (save-excursion
-                (forward-char)
-                (vim:motion-bwd-word)
-                (point)))
-         (end (save-excursion
-                (backward-char)
-                (vim:motion-fwd-word-end :count count)
-                (point))))
-     (goto-char end)
-     (vim:make-motion :has-begin t
-                      :begin beg
-                      :end end
-                      :type 'inclusive)))
+  "Select `count' words."
+  (let ((beg (save-excursion
+               (forward-char)
+               (vim:motion-bwd-word)
+               (point)))
+        (end (save-excursion
+               (backward-char)
+               (vim:motion-fwd-word-end :count count)
+               (point))))
+    (goto-char end)
+    (vim:make-motion :has-begin t
+                     :begin beg
+                     :end end
+                     :type 'inclusive)))
+
+
+(vim:defmotion vim:motion-mark (exclusive (argument:char mark-char))
+  "Moves to the position of `mark-char'."
+  (goto-char (vim:get-local-mark mark-char)))
+
+(vim:defmotion vim:motion-mark-line (linewise (argument:char mark-char))
+  "Moves to the first non-blank char in the line of `mark-char'."
+  (goto-char (vim:get-local-mark mark-char))
+  (vim:motion-first-non-blank)
+  t)
 
 ;;; vim-motions.el ends here
