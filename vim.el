@@ -129,9 +129,11 @@
 
 (defmacro vim:deflocalvar (name &rest args)
   "Defines a buffer-local variable."
+  (declare (indent defun))
   `(progn
      (defvar ,name ,@args)
      (make-variable-buffer-local ',name)))
+(font-lock-add-keywords 'emacs-lisp-mode '("vim:deflocalvar"))
 
 (defvar vim:emulation-mode-alist nil
   "List of all keymaps used by some modes.")
