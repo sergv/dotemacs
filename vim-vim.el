@@ -57,6 +57,7 @@
 
 (defmacro* vim:defcmd (name (&rest args) &rest body)
   "Defines a new VIM-command."
+  (declare (indent defun))
   (let ((count nil)
         (motion nil)
         (argument nil)
@@ -141,8 +142,8 @@
              (funcall vim:active-command-function ',name)
            (apply (get 'function ',name) args))))))
 
-
 (defmacro* vim:defmotion (name (&rest args) &rest body)
+  (declare (indent defun))
   (let ((type nil)
         (count nil)
         (argument nil)
@@ -200,6 +201,7 @@
              (funcall vim:active-command-function ',name)
            (apply (get 'function ',name) args))))))
 
+(font-lock-add-keywords 'emacs-lisp-mode '("vim:defcmd" "vim:defmotion"))
 
 (defun vim:cmd-count-p (cmd)
   "Returns non-nil iff command cmd takes a count."
