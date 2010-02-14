@@ -178,7 +178,8 @@ and switches to insert-mode."
 		       (vim:motion-end-pos motion)))
 
     (t
-     (kill-region (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
+     (vim:cmd-yank :motion motion)
+     (delete-region (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-begin-pos motion)))))
 
 
@@ -378,11 +379,18 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-yank-line (count nonrepeatable)
   "Saves the next count lines into the kill-ring."
-  (let ((beg (line-beginning-position))
-        (end (save-excursion
-               (forward-line (1- (or count 1)))
-               (line-end-position))))
-    (kill-new (concat (buffer-substring beg end) "\n") nil)))
+  (let (lines
+        (linenr (line-number-at-pos (point))))
+    (setq count (or count 1))
+    (save-excursion
+      (while (> count 0)
+        (push (buffer-substring (line-beginning-position) (line-end-position)) lines)
+        (forward-line)
+        (decf count)
+        (incf linenr)
+        (when (> linenr (line-number-at-pos (point)))
+          (setq count 0))))
+    (kill-new " " nil (list 'vim:yank-line-handler (reverse lines)))))
 
 
 (vim:defcmd vim:cmd-yank-rectangle (motion nonrepeatable)
@@ -405,10 +413,16 @@ and switches to insert-mode."
               parts)
         (forward-line -1)))
     (kill-new " " nil (list 'vim:yank-block-handler
-                                                     (cons (- endcol begcol -1) parts)))
+                            (cons (- endcol begcol -1) parts)))
     (goto-line begrow)
     (move-to-column begcol)))
 
+(defun vim:yank-line-handler (text)
+  "Inserts the current text linewise."
+  (beginning-of-line)
+  (dolist (line text)
+    (insert line)
+    (newline)))
 
 (defun vim:yank-block-handler (text)
   "Inserts the current text as block."
@@ -444,23 +458,10 @@ and switches to insert-mode."
   "Pastes the latest yanked text before the cursor position."
   (unless kill-ring-yank-pointer
     (error "kill-ring empty"))
-  
-  (let* ((txt (car kill-ring-yank-pointer))
-         (yhandler (get-text-property 0 'yank-handler txt)))
-    (cond
-     (yhandler ; block or other strange things
-      (save-excursion (yank))) 
-     
-     ((= (elt txt (1- (length txt))) ?\n) ; linewise
-      (beginning-of-line)
-      (save-excursion
-        (dotimes (i (or count 1))
-          (yank))))
 
-     (t ; normal
-      (dotimes (i (or count 1))
-        (yank))
-      (backward-char)))))
+  (dotimes (i (or count 1))
+    (save-excursion
+      (yank))))
 
 
 (vim:defcmd vim:cmd-paste-behind (count)
@@ -468,39 +469,32 @@ and switches to insert-mode."
   (unless kill-ring-yank-pointer
     (error "kill-ring empty"))
 
-  (if (= (point) (point-max))
-      (vim:cmd-paste-before :count count)
-    (let* ((txt (car kill-ring-yank-pointer))
-           (yhandler (get-text-property 0 'yank-handler txt)))
-
-      (cond
-       (yhandler                       ; block or other strange things
-        (forward-char)
-        (save-excursion (yank)))
-
-       ((= (elt txt (1- (length txt))) ?\n) ; linewise
-        (let ((last-line (= (line-end-position) (point-max))))
-          (if last-line
-              (progn
-                (end-of-line)
-                (newline))
-            (forward-line))
-          (beginning-of-line)
-          (save-excursion
-            (dotimes (i (or count 1))
-              (yank))
-            (when last-line
-              ;; remove the last newline
-              (let ((del-pos (point)))
-                (forward-line -1)
-                (end-of-line)
-                (delete-region (point) del-pos))))))
-
-       (t                               ; normal
+  (let* ((txt (car kill-ring-yank-pointer))
+         (yhandler (get-text-property 0 'yank-handler txt)))
+    (case (car-safe yhandler)
+      (vim:yank-line-handler
+       (end-of-line)
+       (if (eobp)
+           (progn
+             (newline)
+             (save-excursion
+               (vim:cmd-paste-before :count count)
+               (end-of-buffer)
+               (delete-backward-char 1)))
+         (forward-line)
+         (vim:cmd-paste-before :count count))
+       (vim:motion-first-non-blank))
+      
+      (vim:yank-block-handler
+       (forward-char)
+       (vim:cmd-paste-before :count count))
+      
+      (t
         (forward-char)
         (dotimes (i (or count 1))
           (yank))
-        (backward-char))))))
+        (backward-char)))))
+
 
 (vim:defcmd vim:cmd-join-lines (count)
   "Join `count' lines with a minimum of two lines."
