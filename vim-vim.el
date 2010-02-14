@@ -59,6 +59,7 @@
   "Defines a new VIM-command."
   (declare (indent defun))
   (let ((count nil)
+        (register nil)
         (motion nil)
         (argument nil)
         (keep-visual nil)
@@ -84,6 +85,13 @@
          (when (and (consp arg)
                     (not (eq (cadr arg) 'count)))
            (push `(,(cadr arg) count) named-params)))
+
+        ('register
+         (setq register t)
+         (push '(register nil) params)
+         (when (and (consp arg)
+                    (not (eq (cadr arg) 'register)))
+           (push `(,(cadr arg) register) named-params)))
 
         ('motion
          (when motion
@@ -129,6 +137,7 @@
        (put ',name 'count ,count)
        (put ',name 'motion ,motion)
        (put ',name 'argument ,argument)
+       (put ',name 'register ,register)
        (put ',name 'keep-visual ,keep-visual)
        (put ',name 'repeatable ,repeatable)
        (put ',name 'function
@@ -207,6 +216,10 @@
   "Returns non-nil iff command cmd takes a count."
   (get cmd 'count))
 
+(defun vim:cmd-register-p (cmd)
+  "Returns non-nil iff command may take a register."
+  (get cmd 'register))
+
 (defun vim:cmd-motion-p (cmd)
   "Returns non-nil iff command `cmd' takes a motion parameter."
   (get cmd 'motion))
@@ -270,6 +283,11 @@
        (let ((,ret (funcall ,@args)))
          (setq vim:new-buffer (current-buffer))
          ,ret)))))
+
+(defun vim:select-register ()
+  "Sets the register for the next command."
+  (interactive)
+  (setq vim:current-register (read-char)))
 
 
 (defun vim:execute-current-motion ()

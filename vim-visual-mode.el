@@ -238,16 +238,15 @@
 
   (if (vim:cmd-motion-p command)
       (unwind-protect
-          (let ((vim:last-undo buffer-undo-list))
-            (if (vim:cmd-arg-p command)
-                (vim:funcall-save-buffer (vim:cmd-function command)
-                                         :motion (vim:visual-current-motion)
-                                         :argument (read-char-exclusive))
-              (vim:funcall-save-buffer (vim:cmd-function command)
-                                       :motion (vim:visual-current-motion)))
+          (let ((vim:last-undo buffer-undo-list) parameters)
+            (push (vim:visual-current-motion) parameters)
+            (push :motion parameters)
+            (when (vim:cmd-register-p command)
+              (push vim:current-register parameters)
+              (push :register parameters))
+            (vim:apply-save-buffer (vim:cmd-function command) parameters)
             (when (vim:cmd-repeatable-p command)
               (setq vim:repeat-events (vconcat vim:current-key-sequence)))
-
             (vim:connect-undos vim:last-undo))
         (vim:reset-key-state)
         (vim:clear-key-sequence)

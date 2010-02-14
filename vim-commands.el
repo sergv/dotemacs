@@ -142,9 +142,9 @@ and switches to insert-mode."
   (goto-char (max (line-beginning-position) (1- (point)))))
 
 
-(vim:defcmd vim:cmd-delete-line (count)
+(vim:defcmd vim:cmd-delete-line (count register)
   "Deletes the next count lines."
-  (vim:cmd-yank-line :count count)
+  (vim:cmd-yank-line :count count :register register)
   (let ((beg (line-beginning-position))
         (end (save-excursion
                (forward-line (1- (or count 1)))
@@ -165,48 +165,47 @@ and switches to insert-mode."
     (vim:motion-first-non-blank)))
 
 
-(vim:defcmd vim:cmd-delete (motion)
+(vim:defcmd vim:cmd-delete (motion register)
   "Deletes the characters defined by motion."
   (case (vim:motion-type motion)
     ('linewise
      (goto-line (vim:motion-first-line motion))
-     (vim:cmd-delete-line :count (vim:motion-line-count motion)))
+     (vim:cmd-delete-line :count (vim:motion-line-count motion)
+                          :register register))
 
     ('block
-     (vim:cmd-yank :motion motion)
+     (vim:cmd-yank :motion motion :register register)
      (delete-rectangle (vim:motion-begin-pos motion)
 		       (vim:motion-end-pos motion)))
 
     (t
-     (vim:cmd-yank :motion motion)
+     (vim:cmd-yank :motion motion :register register)
      (delete-region (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-begin-pos motion)))))
 
 
-(vim:defcmd vim:cmd-delete-char (count)
+(vim:defcmd vim:cmd-delete-char (count register)
   "Deletes the next count characters."
-  (vim:cmd-delete :motion (vim:motion-right :count (or count 1))))
+  (vim:cmd-delete :motion (vim:motion-right :count (or count 1))
+                  :register register))
 
 
-(vim:defcmd vim:cmd-change (motion)
+(vim:defcmd vim:cmd-change (motion register)
   "Deletes the characters defined by motion and goes to insert mode."
   (case (vim:motion-type motion)
     ('linewise
      (goto-line (vim:motion-first-line motion))
-     (vim:cmd-change-line :count (vim:motion-line-count motion)))
+     (vim:cmd-change-line :count (vim:motion-line-count motion)
+                          :register register))
 
     ('block
         (let ((insert-info (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
                                                         :last-line (vim:motion-last-line motion)
                                                         :column (vim:motion-first-col motion))))
-          (vim:cmd-delete :motion motion)
+          (vim:cmd-delete :motion motion :register register)
           (vim:visual-start-insert insert-info)))
 
     (t
-     ;; TODO: getting the node from vim:motion-keymap is dangerous if
-     ;; someone changes the binding of e or E.  It would be better to
-     ;; create a new dummy vim:node representing the motion!
-     
      ;; deal with cw and cW
      (when (and vim:current-motion
                 (not (member (char-after) '(?  ?\r ?\n ?\t))))
@@ -246,16 +245,16 @@ and switches to insert-mode."
                    (point))))
            (setq motion (vim:make-motion :begin (point) :end pos :type 'inclusive))))))
         
-     (vim:cmd-delete :motion motion)
+     (vim:cmd-delete :motion motion :register register)
      (if (eolp)
          (vim:cmd-append :count 1)
        (vim:cmd-insert :count 1)))))
 
 
-(vim:defcmd vim:cmd-change-line (count)
+(vim:defcmd vim:cmd-change-line (count register)
   "Deletes count lines and goes to insert mode."
   (let ((pos (line-beginning-position)))
-    (vim:cmd-delete-line :count count)
+    (vim:cmd-delete-line :count count :register register)
     (if (< (point) pos)
         (progn
           (end-of-line)
@@ -274,15 +273,16 @@ and switches to insert-mode."
   "Deletes the rest of the current line."
   (vim:cmd-delete :motion (vim:make-motion :begin (point)
                                            :end (1- (line-end-position))
-                                           :type 'inclusive))
+                                           :type 'inclusive)
+                  :register register)
   (vim:cmd-append :count 1))
                                 
 
 
-(vim:defcmd vim:cmd-change-char (count)
+(vim:defcmd vim:cmd-change-char (count register)
   "Deletes the next count characters and goes to insert mode."
   (let ((pos (point)))
-    (vim:cmd-delete-char :count count)
+    (vim:cmd-delete-char :count count :register register)
     (if (< (point) pos)
         (vim:cmd-append)
       (vim:cmd-insert))))
@@ -365,19 +365,23 @@ and switches to insert-mode."
       (goto-char (vim:motion-begin-pos motion)))))
 
 
-(vim:defcmd vim:cmd-yank (motion nonrepeatable)
+(vim:defcmd vim:cmd-yank (motion register nonrepeatable)
   "Saves the characters in motion into the kill-ring."
   (case (vim:motion-type motion)
-    ('block (vim:cmd-yank-rectangle :motion motion))
+    ('block (vim:cmd-yank-rectangle :motion motion :register register))
     ('linewise (goto-line (vim:motion-first-line motion))
-	       (vim:cmd-yank-line :count (vim:motion-line-count motion)))
+	       (vim:cmd-yank-line :count (vim:motion-line-count motion)
+                                  :register register))
     (t
-     (kill-new (buffer-substring
-                (vim:motion-begin-pos motion)
-                (vim:motion-end-pos motion))))))
+     (let ((text (buffer-substring
+                  (vim:motion-begin-pos motion)
+                  (vim:motion-end-pos motion))))
+       (if register
+           (set-register register text)
+         (kill-new text))))))
   
 
-(vim:defcmd vim:cmd-yank-line (count nonrepeatable)
+(vim:defcmd vim:cmd-yank-line (count register nonrepeatable)
   "Saves the next count lines into the kill-ring."
   (let (lines
         (linenr (line-number-at-pos (point))))
@@ -390,10 +394,16 @@ and switches to insert-mode."
         (incf linenr)
         (when (> linenr (line-number-at-pos (point)))
           (setq count 0))))
-    (kill-new " " nil (list 'vim:yank-line-handler (reverse lines)))))
+    (if register
+        (let ((txt (make-string 1 ? )))
+          (put-text-property 0 1 'yank-handler
+                             (list 'vim:yank-line-handler (reverse lines))
+                             txt)
+          (set-register register txt))
+      (kill-new " " nil (list 'vim:yank-line-handler (reverse lines))))))
 
 
-(vim:defcmd vim:cmd-yank-rectangle (motion nonrepeatable)
+(vim:defcmd vim:cmd-yank-rectangle (motion register nonrepeatable)
   "Stores the rectangle defined by motion into the kill-ring."
   (unless (eq (vim:motion-type motion) 'block)
     (error "Motion must be of type block"))
@@ -412,8 +422,16 @@ and switches to insert-mode."
                     (buffer-substring beg end))
               parts)
         (forward-line -1)))
-    (kill-new " " nil (list 'vim:yank-block-handler
-                            (cons (- endcol begcol -1) parts)))
+    (if register
+        (let ((txt (make-string 1 ? )))
+          (put-text-property 0 1
+                             'yank-handler
+                             (list 'vim:yank-block-handler
+                                   (cons (- endcol begcol -1) parts)) 
+                             txt)
+          (set-register register txt))
+      (kill-new " " nil (list 'vim:yank-block-handler
+                              (cons (- endcol begcol -1) parts))))
     (goto-line begrow)
     (move-to-column begcol)))
 
@@ -454,22 +472,26 @@ and switches to insert-mode."
 	(forward-line 1)))))
 
 
-(vim:defcmd vim:cmd-paste-before (count)
+(vim:defcmd vim:cmd-paste-before (count register)
   "Pastes the latest yanked text before the cursor position."
-  (unless kill-ring-yank-pointer
+  (unless (or kill-ring-yank-pointer register)
     (error "kill-ring empty"))
 
   (dotimes (i (or count 1))
     (save-excursion
-      (yank))))
+      (if register
+          (insert-for-yank (get-register register))
+        (yank)))))
 
 
-(vim:defcmd vim:cmd-paste-behind (count)
+(vim:defcmd vim:cmd-paste-behind (count register)
   "Pastes the latest yanked text behind point."
-  (unless kill-ring-yank-pointer
+  (unless (or kill-ring-yank-pointer register)
     (error "kill-ring empty"))
 
-  (let* ((txt (car kill-ring-yank-pointer))
+  (let* ((txt (if register
+                  (get-register register)
+                (car kill-ring-yank-pointer)))
          (yhandler (get-text-property 0 'yank-handler txt)))
     (case (car-safe yhandler)
       (vim:yank-line-handler
@@ -478,21 +500,23 @@ and switches to insert-mode."
            (progn
              (newline)
              (save-excursion
-               (vim:cmd-paste-before :count count)
+               (vim:cmd-paste-before :count count :register register)
                (end-of-buffer)
                (delete-backward-char 1)))
          (forward-line)
-         (vim:cmd-paste-before :count count))
+         (vim:cmd-paste-before :count count :register register))
        (vim:motion-first-non-blank))
       
       (vim:yank-block-handler
        (forward-char)
-       (vim:cmd-paste-before :count count))
+       (vim:cmd-paste-before :count count :register register))
       
       (t
         (forward-char)
         (dotimes (i (or count 1))
-          (yank))
+          (if register
+              (insert-for-yank (get-register register))
+            (yank)))
         (backward-char)))))
 
 

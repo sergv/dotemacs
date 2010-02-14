@@ -131,6 +131,10 @@
         (when (vim:cmd-char-arg-p command)
           (push vim:current-cmd-arg parameters)
           (push :argument parameters))
+        (when (and (vim:cmd-register-p command)
+                   vim:current-register)
+          (push vim:current-register parameters)
+          (push :register parameters))
         (vim:apply-save-buffer (vim:cmd-function command) parameters)
         (when (vim:cmd-repeatable-p command)
           (setq vim:repeat-events (vconcat vim:current-key-sequence
@@ -168,8 +172,12 @@
 
   (unwind-protect
       (let ((vim:last-undo buffer-undo-list))
-        (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
-                                 :motion (vim:get-current-cmd-motion))
+        (if (and (vim:cmd-register-p vim:current-cmd) vim:current-register)
+            (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                                     :motion (vim:get-current-cmd-motion)
+                                     :register vim:current-register)
+          (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                                   :motion (vim:get-current-cmd-motion)))
         (when (vim:cmd-repeatable-p vim:current-cmd)
           (setq vim:repeat-events (vconcat vim:current-key-sequence
                                            (vim:this-command-keys))))

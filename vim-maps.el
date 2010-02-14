@@ -83,7 +83,7 @@
 (vim:omap "7" 'digit-argument)
 (vim:omap "8" 'digit-argument)
 (vim:omap "9" 'digit-argument)
-;(vim:def-special "\"" 'vim:do-something-funny-with-registers)
+(vim:nmap "\"" 'vim:select-register)
 
 (vim:nmap "ZZ" 'vim:cmd-write-and-close)
 
@@ -264,6 +264,7 @@
 (vim:vmap "v" 'vim:visual-toggle-normal)
 (vim:vmap "V" 'vim:visual-toggle-linewise)
 (vim:vmap (kbd "C-v") 'vim:visual-toggle-block)
+(vim:vmap "\"" 'vim:select-register)
 
 (vim:vmap "d" 'vim:cmd-delete)
 (vim:vmap "D" 'vim:cmd-delete)
