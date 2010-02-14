@@ -674,8 +674,8 @@ and switches to insert-mode."
   (set-register vim:current-macro last-kbd-macro))
 
 (vim:defcmd vim:cmd-execute-macro (count nonrepeatable (argument:char reg))
-  ;;; TODO: count does not work because (point) is incorrect during execution.
   "Executes the keyboard-macro in register `reg.'"
+  (vim:reset-key-state)
   (execute-kbd-macro (get-register reg) count))
 
 ;;; vim-commands.el ends here
