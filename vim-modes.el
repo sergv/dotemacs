@@ -87,6 +87,7 @@ be executed."
          ,(concat "Activates " (symbol-name name) " mode.")
          (interactive)
          (vim:activate-mode ',name)))))
+(font-lock-add-keywords 'emacs-lisp-mode '("vim:define-mode"))
 
 ;;; vim-modes.el ends here
 
