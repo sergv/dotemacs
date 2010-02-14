@@ -269,7 +269,7 @@ and switches to insert-mode."
       (vim:cmd-insert :count 1))))
 
 
-(vim:defcmd vim:cmd-change-rest-of-line ()
+(vim:defcmd vim:cmd-change-rest-of-line (register)
   "Deletes the rest of the current line."
   (vim:cmd-delete :motion (vim:make-motion :begin (point)
                                            :end (1- (line-end-position))
