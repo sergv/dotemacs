@@ -689,4 +689,83 @@ current line."
           vim:visual-last-mark nil
           vim:visual-new-point nil)))
 
+
+(defun vim:visual-mouse-region (event)
+  "Go to visual-mode on mouse-motion."
+  (interactive "e")
+  (vim:visual-drag-mouse-region 'char))
+
+(defun vim:visual-word-mouse-region (event)
+  "Go to visual-mode and word selection on mouse-motion."
+  (interactive "e")
+  (vim:visual-drag-mouse-region 'word))
+
+(defun vim:visual-line-mouse-region (event)
+  "Go to linewise visual-mode on mouse-motion."
+  (interactive "e")
+  (vim:visual-drag-mouse-region 'linewise))
+
+(defun vim:visual-drag-mouse-region (mode)  
+  "Update visual-region during mouse-motion."
+  (vim:visual-mode-exit)
+  (select-window (posn-window (event-start event)))
+  (let ((start-pos (posn-point (event-start event))))
+    (goto-char (posn-point (event-start event)))
+    
+    (case mode
+      ('linewise
+       (vim:visual-toggle-linewise)
+       (vim:visual-highlight-region))
+      ('word
+       (vim:visual-toggle-normal)
+       (multiple-value-bind (p m) (vim:visual-get-word-region start-pos start-pos)
+         (set-mark m)
+         (goto-char p))
+       (vim:visual-highlight-region)))
+    
+    (track-mouse
+      (catch 'exit
+        (while t
+          (let ((ev (read-event)))
+            (cond
+             ((mouse-movement-p ev)
+              (unless (vim:visual-mode-p)
+                (if (eq mode 'linewise)
+                    (vim:visual-toggle-linewise)
+                  (vim:visual-toggle-normal)))
+
+              (let ((end-pos (posn-point (event-end ev))))
+                (if (eq mode 'word)
+                    (multiple-value-bind (p m) (vim:visual-get-word-region end-pos start-pos)
+                      (set-mark m)
+                      (goto-char p))
+                  (set-mark start-pos)
+                  (goto-char (posn-point (event-end ev)))))
+              
+              (vim:visual-highlight-region))
+           
+             ((and (symbolp (event-basic-type ev))
+                   (string-match "mouse" (symbol-name (event-basic-type ev))))
+             (throw 'exit nil))
+
+             (t
+              (push ev unread-command-events)
+              (let* ((keyseq (read-key-sequence nil))
+                     (cmd (key-binding keyseq)))
+                (call-interactively cmd)
+                (unless (vim:visual-mode-p)
+                  (throw 'exit nil)))))))))))
+
+
+(defun vim:visual-get-word-region (point-pos mark-pos)
+  "Returns the start and end position of the word-wise region."
+  (let ((point-motion (save-excursion (goto-char point-pos) (vim:motion-inner-word)))
+        (mark-motion (save-excursion (goto-char mark-pos) (vim:motion-inner-word))))
+    (if (< point-pos mark-pos)
+        (values (vim:motion-begin point-motion)
+                (vim:motion-end mark-motion))
+      (values (vim:motion-end point-motion)
+              (vim:motion-begin mark-motion)))))
+                      
+
 ;;; vim-visual-mode.el ends here
