@@ -206,7 +206,7 @@
   (remove-hook 'pre-command-hook 'vim:visual-normalize-region)
   (remove-hook 'post-command-hook 'vim:visual-denormalize-region)
   (remove-hook 'post-command-hook 'vim:visual-post-command post-command-hook)
-  (remove-hook vim:deactivate-region-hook 'foo)
+  (remove-hook vim:deactivate-region-hook 'vim:visual-mode-exit)
   (when (boundp 'transient-mark-mode)
     (setq transient-mark-mode vim:visual-old-transient-mark-mode))
   (vim:visual-delete-overlays vim:visual-overlays)
