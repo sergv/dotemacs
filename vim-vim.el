@@ -287,7 +287,7 @@
 (defun vim:select-register ()
   "Sets the register for the next command."
   (interactive)
-  (setq vim:current-register (read-char)))
+  (setq vim:current-register (read-char-exclusive)))
 
 
 (defun vim:execute-current-motion ()
