@@ -42,6 +42,8 @@
                  :command-function 'vim:operator-pending-mode-command)
 
 (add-hook 'vim:operator-pending-mode-hook 'vim:operator-pending-activate)
+(add-hook 'vim:operator-pending-mode-off-hook 'vim:operator-pending-deactivate)
+
 (defun vim:operator-pending-activate ()
   (cond
    (vim:operator-pending-mode
@@ -53,13 +55,16 @@
    (vim:operator-repeat-last-event
     (vim:map vim:operator-repeat-last-event nil :keymap vim:operator-repeat-keymap))))
 
+
+(defun vim:operator-pending-deactivate ()
+  (remove-hook 'post-command-hook 'vim:operator-pending-mode-exit))
+
 (defun vim:operator-pending-mode-exit ()
   "Exits operator-pending-mode and returns to normal-mode."
   (interactive)
   (unless (or (vim:cmd-function this-command)
               (eq this-command 'digit-argument)
               (eq this-command 'universal-argument-other-key))
-    (remove-hook 'post-command-hook 'vim:operator-pending-mode-exit)
     (vim:activate-normal-mode)))
 
 
