@@ -289,6 +289,13 @@
   (interactive)
   (setq vim:current-register (read-char-exclusive)))
 
+(defun vim:get-register (register)
+  "Returns the content of `register', signals error on fail."
+  (let ((txt (get-register register)))
+    (unless txt
+      (error "Register '%c' empty." register))
+    txt))
+
 
 (defun vim:execute-current-motion ()
   "Executes the current motion and returns the representing

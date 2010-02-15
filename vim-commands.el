@@ -480,7 +480,7 @@ and switches to insert-mode."
   (dotimes (i (or count 1))
     (save-excursion
       (if register
-          (insert-for-yank (get-register register))
+          (insert-for-yank (vim:get-register register))
         (yank)))))
 
 
@@ -490,7 +490,7 @@ and switches to insert-mode."
     (error "kill-ring empty"))
 
   (let* ((txt (if register
-                  (get-register register)
+                  (vim:get-register register)
                 (car kill-ring-yank-pointer)))
          (yhandler (get-text-property 0 'yank-handler txt)))
     (case (car-safe yhandler)
@@ -515,7 +515,7 @@ and switches to insert-mode."
         (forward-char)
         (dotimes (i (or count 1))
           (if register
-              (insert-for-yank (get-register register))
+              (insert-for-yank (vim:get-register register))
             (yank)))
         (backward-char)))))
 
@@ -694,6 +694,6 @@ and switches to insert-mode."
 (vim:defcmd vim:cmd-execute-macro (count nonrepeatable (argument:char reg))
   "Executes the keyboard-macro in register `reg.'"
   (vim:reset-key-state)
-  (execute-kbd-macro (get-register reg) count))
+  (execute-kbd-macro (vim:get-register reg) count))
 
 ;;; vim-commands.el ends here
