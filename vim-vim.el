@@ -10,7 +10,7 @@
 
 (provide 'vim-vim)
 
-(vim:deflocalvar vim:repeat-events nil
+(defvar vim:repeat-events nil
   "The sequence of events for the repeat command.")
 
 (vim:deflocalvar vim:current-register nil
