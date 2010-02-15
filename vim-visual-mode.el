@@ -9,7 +9,7 @@
 ;; TODO:
 
 ;;   - when calling a non-vim-mode-command the region should be modified
-;;     s.t. the emacs command uses the correct region.
+;;     s.t. the emacs command uses the correct region for block-mode
 ;;   - check interaction with region (deactivate-mark-hook and others)
 
 ;;; Code:
@@ -83,16 +83,18 @@
   `(transient-mark-mode
     ,vim:deactivate-region-hook))
 
-;;; Commands the deactivate the mark (and so visual-mode).
+;;; Commands that deactivate the mark (and so visual-mode).
 (defconst vim:visual-deactivate-mark-commands
   '(clear-rectangle
+    clipboard-kill-ring-save
     copy-rectangle
     copy-rectangle-to-register
     kill-rectangle
     open-rectangle
     string-rectangle
     yank-rectangle
-    keyboard-quit))
+    keyboard-quit
+    ))
 
 
 (defun vim:activate-visual (type)
@@ -189,6 +191,8 @@
   (mapcar #'make-local-variable vim:visual-temporary-local-variables)
   (when (boundp 'transient-mark-mode) (setq transient-mark-mode nil))
   (add-hook 'post-command-hook 'vim:visual-post-command)
+  (add-hook 'pre-command-hook 'vim:visual-normalize-region)
+  (add-hook 'post-command-hook 'vim:visual-denormalize-region)
   (add-hook vim:deactivate-region-hook 'vim:visual-mode-exit))
 
 
@@ -199,8 +203,10 @@
   (vim:visual-hide-region)
 
   ;; cleanup local variables
-  (set vim:deactivate-region-hook (delq 'vim:visual-mode-exit (symbol-value vim:deactivate-region-hook)))
-  (setq post-command-hook (delq 'vim:visual-post-command post-command-hook))
+  (remove-hook 'pre-command-hook 'vim:visual-normalize-region)
+  (remove-hook 'post-command-hook 'vim:visual-denormalize-region)
+  (remove-hook 'post-command-hook 'vim:visual-post-command post-command-hook)
+  (remove-hook vim:deactivate-region-hook 'foo)
   (when (boundp 'transient-mark-mode)
     (setq transient-mark-mode vim:visual-old-transient-mark-mode))
   (vim:visual-delete-overlays vim:visual-overlays)
@@ -281,7 +287,8 @@
 (defun vim:visual-post-command ()
   (cond
    ((vim:visual-mode-p)
-    (if (memq this-command vim:visual-deactivate-mark-commands)
+    (if (or deactivate-mark
+            (memq this-command vim:visual-deactivate-mark-commands))
         (condition-case nil
             (vim:visual-mode-exit)
           (error nil))
@@ -636,5 +643,50 @@ current line."
 (vim:defcmd vim:visual-ex-read-command (nonrepeatable)
   "Starts ex-mode with visual-marks as initial input."
   (vim:ex-read-command "'<,'>"))
+
+(vim:deflocalvar vim:visual-last-point nil
+  "The position of point before a region-command.")
+(vim:deflocalvar vim:visual-last-mark nil
+  "The position of mark before a region-command.")
+(vim:deflocalvar vim:visual-new-point nil
+  "The position of modified point before a region-command." )
+
+(defun vim:visual-normalize-region ()
+  (when (vim:visual-mode-p)
+    (let* ((iform (interactive-form this-command))
+           (use-region (or (eq this-command 'execute-extended-command)
+                           (and iform (cdr iform)
+                                (string= (cadr iform) "r")))))
+      (when use-region
+        (setq vim:visual-last-point (point)
+              vim:visual-last-mark (mark))
+        (case vim:visual-mode-type
+          (normal
+           (if (> (point) (mark)) (forward-char) (set-mark (1+ (mark)))))
+          
+          (linewise
+           (if (> (point) (mark))
+               (progn
+                 (end-of-line)
+                 (forward-char)
+                 (set-mark (save-excursion
+                             (goto-char (mark))
+                             (line-beginning-position))))
+             (beginning-of-line)
+             (set-mark (save-excursion
+                         (goto-char (mark))
+                         (1+ (line-end-position))))))
+          
+          ('block))
+        (setq vim:visual-new-point (point))))))
+
+(defun vim:visual-denormalize-region()
+  (when (and vim:visual-last-point vim:visual-last-mark)
+    (set-mark vim:visual-last-mark)
+    (when (= (point) vim:visual-new-point)
+      (goto-char vim:visual-last-point))
+    (setq vim:visual-last-point nil
+          vim:visual-last-mark nil
+          vim:visual-new-point nil)))
 
 ;;; vim-visual-mode.el ends here
