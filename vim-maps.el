@@ -73,6 +73,7 @@
 
 (vim:nmap "\\" 'vim:cmd-emacs)
 
+(vim:omap [escape] 'vim:operator-pending-mode-exit)
 (vim:omap "0" 'vim:motion-beginning-of-line-or-digit-argument)
 (vim:omap "1" 'digit-argument)
 (vim:omap "2" 'digit-argument)
