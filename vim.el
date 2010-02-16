@@ -20,6 +20,7 @@
 ;; - rect-mark.el
 ;; - viper
 ;; - vimpulse.el
+;; - windmove.el
 ;;
 ;; Special thanks go to the authors of those packages.
 

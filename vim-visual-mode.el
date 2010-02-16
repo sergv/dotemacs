@@ -284,7 +284,7 @@
 (defun vim:visual-post-command ()
   (cond
    ((vim:visual-mode-p)
-    (if (or deactivate-mark
+    (if (or (vim:do-deactivate-mark)
             (memq this-command vim:visual-deactivate-mark-commands))
         (condition-case nil
             (vim:visual-mode-exit)
@@ -314,7 +314,7 @@ This function is also responsible for setting the X-selection."
   (cond
    ((not (eq window-system 'x)) nil)
    ((= 1 (length vim:visual-overlays))
-    (x-set-selection nil (car vim:visual-overlays)))
+    (vim:x-set-selection nil (car vim:visual-overlays)))
    ((< 1 (length vim:visual-overlays))
     (let ((text (apply #'concat
                        (mapcar #'(lambda (ov)
@@ -322,7 +322,7 @@ This function is also responsible for setting the X-selection."
                                                                            (overlay-end ov))
                                            "\n"))
                                vim:visual-overlays))))
-      (x-set-selection nil text)))))
+      (vim:x-set-selection nil text)))))
 
 
 (defun vim:visual-highlight-normal (start end)
@@ -702,70 +702,70 @@ current line."
 (defun vim:visual-mouse-region (event)
   "Go to visual-mode on mouse-motion."
   (interactive "e")
-  (vim:visual-drag-mouse-region 'char))
+  (vim:visual-drag-mouse-region event 'char))
 
 (defun vim:visual-word-mouse-region (event)
   "Go to visual-mode and word selection on mouse-motion."
   (interactive "e")
-  (vim:visual-drag-mouse-region 'word))
+  (vim:visual-drag-mouse-region event 'word))
 
 (defun vim:visual-line-mouse-region (event)
   "Go to linewise visual-mode on mouse-motion."
   (interactive "e")
-  (vim:visual-drag-mouse-region 'linewise))
+  (vim:visual-drag-mouse-region event 'linewise))
 
-(defun vim:visual-drag-mouse-region (mode)  
+(defun vim:visual-drag-mouse-region (event mode)  
   "Update visual-region during mouse-motion."
   (vim:visual-mode-exit)
-  (select-window (posn-window (event-start event)))
-  (let ((start-pos (posn-point (event-start event))))
-    (goto-char (posn-point (event-start event)))
+  (select-window (vim:mouse-event-window event))
+  (let ((start-pos (vim:mouse-event-point event)))
+    (when start-pos
+      (goto-char start-pos)
     
-    (case mode
-      ('linewise
-       (vim:visual-toggle-linewise)
-       (vim:visual-highlight-region))
-      ('word
-       (vim:visual-toggle-normal)
-       (multiple-value-bind (p m) (vim:visual-get-word-region start-pos start-pos)
-         (set-mark m)
-         (goto-char p))
-       (vim:visual-highlight-region)))
+      (case mode
+        ('linewise
+         (vim:visual-toggle-linewise)
+         (vim:visual-highlight-region))
+        ('word
+         (vim:visual-toggle-normal)
+         (multiple-value-bind (p m) (vim:visual-get-word-region start-pos start-pos)
+           (set-mark m)
+           (goto-char p))
+         (vim:visual-highlight-region)))
     
-    (track-mouse
-      (catch 'exit
-        (while t
-          (let ((ev (read-event)))
-            (cond
-             ((mouse-movement-p ev)
-              (let ((end-pos (posn-point (event-end ev))))
-                (when (and (not (vim:visual-mode-p))
-                           (/= start-pos end-pos))
-                  (if (eq mode 'linewise)
-                      (vim:visual-toggle-linewise)
-                    (vim:visual-toggle-normal)))
+      (vim:track-mouse
+        (catch 'exit
+          (while t
+            (let ((ev (vim:read-event)))
+              (cond
+               ((vim:mouse-movement-p ev)
+                (let ((end-pos (vim:mouse-event-point ev)))
+                  (when end-pos
+                    (when (and (not (vim:visual-mode-p))
+                               (/= start-pos end-pos))
+                      (if (eq mode 'linewise)
+                          (vim:visual-toggle-linewise)
+                        (vim:visual-toggle-normal)))
 
-                (when (vim:visual-mode-p)
-                  (if (eq mode 'word)
-                      (multiple-value-bind (p m) (vim:visual-get-word-region end-pos start-pos)
-                        (set-mark m)
-                        (goto-char p))
-                    (set-mark start-pos)
-                    (goto-char (posn-point (event-end ev))))
+                    (when (vim:visual-mode-p)
+                      (if (eq mode 'word)
+                          (multiple-value-bind (p m) (vim:visual-get-word-region end-pos start-pos)
+                            (set-mark m)
+                            (goto-char p))
+                        (set-mark start-pos)
+                        (goto-char end-pos))
               
-                  (vim:visual-highlight-region))))
+                      (vim:visual-highlight-region)))))
            
-             ((and (symbolp (event-basic-type ev))
-                   (string-match "mouse" (symbol-name (event-basic-type ev))))
-             (throw 'exit nil))
+               ((vim:mouse-event-p ev) (throw 'exit nil))
 
-             (t
-              (push ev unread-command-events)
-              (let* ((keyseq (read-key-sequence nil))
-                     (cmd (key-binding keyseq)))
-                (call-interactively cmd)
-                (unless (vim:visual-mode-p)
-                  (throw 'exit nil)))))))))))
+               (t
+                (push ev unread-command-events)
+                (let* ((keyseq (read-key-sequence nil))
+                       (cmd (key-binding keyseq)))
+                  (call-interactively cmd)
+                  (unless (vim:visual-mode-p)
+                    (throw 'exit nil))))))))))))
 
 
 (defun vim:visual-get-word-region (point-pos mark-pos)

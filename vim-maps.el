@@ -352,14 +352,16 @@
 (vim:emap "marks" 'vim:cmd-show-marks)
 
 
-(vim:nmap [down-mouse-1] 'vim:visual-mouse-region)
-(vim:vmap [down-mouse-1] 'vim:visual-mouse-region)
+(vim:nmap (vector vim:down-mouse-1) 'vim:visual-mouse-region)
+(vim:vmap (vector vim:down-mouse-1) 'vim:visual-mouse-region)
 
-(vim:nmap [double-down-mouse-1] 'vim:visual-word-mouse-region)
-(vim:vmap [double-down-mouse-1] 'vim:visual-word-mouse-region)
+(when vim:emacs-p
+  (vim:nmap [double-down-mouse-1] 'vim:visual-word-mouse-region)
+  (vim:vmap [double-down-mouse-1]  'vim:visual-word-mouse-region)
 
-(vim:nmap [triple-down-mouse-1] 'vim:visual-line-mouse-region)
-(vim:vmap [triple-down-mouse-1] 'vim:visual-line-mouse-region)
+  (vim:nmap [triple-down-mouse-1]  'vim:visual-line-mouse-region)
+  (vim:vmap [triple-down-mouse-1]  'vim:visual-line-mouse-region)
+  )
 
 
 ;;; vim-maps.el ends here

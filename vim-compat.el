@@ -98,6 +98,59 @@
  (vim:xemacs-p (defalias 'vim:deactivate-mark 'zmacs-deactivate-region)))
 
 (vim:emacsen
+ (vim:emacs-p (defsubst vim:do-deactivate-mark() deactivate-mark))
+ (vim:xemacs-p (defsubst vim:do-deactivate-mark() nil)))
+
+(vim:emacsen
+ (vim:emacs-p (defalias 'vim:x-set-selection 'x-set-selection))
+ (vim:xemacs-p (defalias 'vim:x-set-selection 'x-own-selection)))
+
+(vim:emacsen
+ (vim:emacs-p
+  (defconst vim:down-mouse-1 'down-mouse-1)
+  (defconst vim:down-mouse-1 'down-mouse-1)
+  (defsubst vim:mouse-event-window (ev) (posn-window (event-start event)))
+  (defsubst vim:mouse-event-point (ev) (posn-point (event-start ev)))
+  (defalias 'vim:mouse-movement-p 'mouse-movement-p)
+  (defsubst vim:mouse-event-p (ev)
+    (and (symbolp (event-basic-type ev))
+         (string-match "mouse" (symbol-name (event-basic-type ev)))))
+  (defmacro vim:track-mouse (&rest body)
+    `(track-mouse ,@body)))
+  
+ (vim:xemacs-p
+  (defconst vim:down-mouse-1 'button1)
+  (defconst vim:down-mouse-1 'button1)
+  (defalias 'vim:mouse-event-window 'event-window)
+  (defalias 'vim:mouse-event-point 'event-closest-point)
+  (defalias 'vim:mouse-movement-p 'motion-event-p)
+  (defalias 'vim:mouse-event-p 'mouse-event-p)
+  (defmacro vim:track-mouse (&rest body)
+    `(progn ,@body))))
+(font-lock-add-keywords 'emacs-lisp-mode '("vim:track-mouse"))
+
+
+(vim:emacsen
+ (vim:emacs-p
+  (defalias 'vim:read-event 'read-event))
+ (vim:xemacs-p
+  (defun vim:read-event ()
+    (let (event)
+      (while (progn
+               (setq event (next-event))
+               (not (or (key-press-event-p event)
+                        (button-press-event-p event)
+                        (button-release-event-p event)
+                        (motion-event-p event)
+                        (menu-event-p event))))
+           (dispatch-event event))
+      event))))
+
+
+
+
+
+(vim:emacsen
  (vim:emacs-p (defalias 'vim:char-p 'integerp))
  (vim:xemacs-p (defalias 'vim:char-p 'characterp)))
 
@@ -182,6 +235,14 @@ of a match for REGEXP."
                              activate)
     "Run vim:normalize-minor-mode-map-alist after adding a minor mode."
     (vim:normalize-minor-mode-map-alist))
+
+  (defun insert-for-yank (text)
+    (let* ((yank-handler (and text
+                              (get-text-property 0 'yank-handler text))))
+      (if (or (null yank-handler) (null (car yank-handler)))
+          (insert text)
+        (funcall (car yank-handler)
+                 (or (nth 1 yank-handler) text)))))
   
   (defadvice kill-new (before vim:kill-new (string &optional replace yank-handler) activate)
     "Set the yank-handler property at the given string."
