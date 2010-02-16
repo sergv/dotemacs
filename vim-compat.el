@@ -103,7 +103,7 @@
 
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:x-set-selection 'x-set-selection))
- (vim:xemacs-p (defalias 'vim:x-set-selection 'x-own-selection)))
+ (vim:xemacs-p (defsubst  vim:x-set-selection (type data) (own-selection data type))))
 
 (vim:emacsen
  (vim:emacs-p
