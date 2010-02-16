@@ -300,7 +300,8 @@
 
 
 (defun vim:visual-highlight-region ()
-  "Highlights the selected region depending on `point' and `mark'."
+  "Highlights the selected region depending on `point' and `mark'.
+This function is also responsible for setting the X-selection."
 
   (let ((start (min (point) (mark t)))
         (end (max (point) (mark t))))
@@ -308,8 +309,20 @@
       ('normal (vim:visual-highlight-normal start end))
       ('linewise (vim:visual-highlight-linewise start end))
       ('block (vim:visual-highlight-block start end))
-      (t (error "Unknown visual mode %s" vim:visual-mode-type)))))
+      (t (error "Unknown visual mode %s" vim:visual-mode-type))))
 
+  (cond
+   ((not (eq window-system 'x)) nil)
+   ((= 1 (length vim:visual-overlays))
+    (x-set-selection nil (car vim:visual-overlays)))
+   ((< 1 (length vim:visual-overlays))
+    (let ((text (apply #'concat
+                       (mapcar #'(lambda (ov)
+                                   (concat (buffer-substring-no-properties (overlay-start ov)
+                                                                           (overlay-end ov))
+                                           "\n"))
+                               vim:visual-overlays))))
+      (x-set-selection nil text)))))
 
 
 (defun vim:visual-highlight-normal (start end)
