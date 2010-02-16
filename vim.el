@@ -6,12 +6,22 @@
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; URL: http://www.emacswiki.org/emacs/VimMode 
 ;; License: GPLv2 or later, as described below under "License"
-;; Compatibility: Developed on Emacs 22 - everything else is unknown.
-;; Version: 0.2.0
+;; Compatibility: Emacs 22, 23, XEmacs 21.4
+;; Version: 0.3.0
 ;; Keywords: emulation, vim
 ;; Human-Keywords: vim, emacs
 ;;
 ;; This file is not part of GNU Emacs.
+
+;;; Acknowledgements:
+
+;; This package contains code from several other packages:
+;;
+;; - rect-mark.el
+;; - viper
+;; - vimpulse.el
+;;
+;; Special thanks go to the authors of those packages.
 
 ;;; Commentary:
 

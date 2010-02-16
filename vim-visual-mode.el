@@ -401,7 +401,6 @@ This function is also responsible for setting the X-selection."
 	;; in the currently selected window.
 	(goto-char window-start)
 	(dotimes (i nlines)
-	  ;(while  (< (point) window-end)
 	  (let ((row-start (progn
 			     (move-to-column start-col nil)
 			     (point)))
