@@ -207,7 +207,7 @@
          ,doc
          (interactive)
          (if (vim:called-interactively-p)
-             (funcall vim:active-command-function ',name)
+             (vim:execute-command ',name)
            (apply (get ',name 'function) args))))))
 
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:defcmd" "vim:defmotion"))
@@ -295,6 +295,21 @@
     (unless txt
       (error "Register '%c' empty." register))
     txt))
+
+
+(defun vim:execute-command (cmd)
+  "Executes the vim-command `cmd'.
+If an error occures, this function switches back to normal-mode.
+Since all vim-mode commands go through this function, this is
+the perfect point to do some house-keeping."
+  (condition-case err
+      (funcall vim:active-command-function cmd)
+    (error
+     (vim:reset-key-state)
+     (vim:clear-key-sequence)
+     (vim:adjust-point)
+     (vim:activate-normal-mode)
+     (signal (car err) (cdr err)))))
 
 
 (defun vim:execute-current-motion ()

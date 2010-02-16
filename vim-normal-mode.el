@@ -70,15 +70,13 @@
 
 (defun vim:operator-pending-mode-command (command)
   "Executes a complex command in operator-pending mode."
-  (unwind-protect
-      (case (vim:cmd-type command)
-        ('simple (error "No simple-commands allowed in operator-pending mode."))
-        ('complex (error "No complex-commands allowed in operator-pending mode."))
-        ('special (error "no special so far"))
-        (t (vim:normal-execute-complex-command command)))
+  (case (vim:cmd-type command)
+    ('simple (error "No simple-commands allowed in operator-pending mode."))
+    ('complex (error "No complex-commands allowed in operator-pending mode."))
+    (t (vim:normal-execute-complex-command command)))
     
-    (when (vim:operator-pending-mode-p)
-      (vim:activate-normal-mode))))
+  (when (vim:operator-pending-mode-p)
+      (vim:activate-normal-mode)))
 
 
 (defconst vim:normal-mode-keymap (vim:make-keymap vim:operator-pending-mode-keymap)
@@ -121,12 +119,11 @@
   (when (vim:cmd-char-arg-p command)
     (setq vim:current-motion-arg (read-char-exclusive)))
 
-  (unwind-protect
-      (vim:execute-current-motion)
+  (vim:execute-current-motion)
     
-    (vim:reset-key-state)
-    (vim:clear-key-sequence)
-    (vim:adjust-point)))
+  (vim:reset-key-state)
+  (vim:clear-key-sequence)
+  (vim:adjust-point))
 
 
 (defun vim:normal-execute-simple-command (command)
@@ -137,28 +134,27 @@
   (when (vim:cmd-char-arg-p command)
     (setq vim:current-cmd-arg (read-char-exclusive)))
 
-  (unwind-protect
-      (let ((parameters nil)
-            (vim:last-undo buffer-undo-list))
-        (when (vim:cmd-count-p command)
-          (push vim:current-cmd-count parameters)
-          (push :count parameters))
-        (when (vim:cmd-char-arg-p command)
-          (push vim:current-cmd-arg parameters)
-          (push :argument parameters))
-        (when (and (vim:cmd-register-p command)
-                   vim:current-register)
-          (push vim:current-register parameters)
-          (push :register parameters))
-        (vim:apply-save-buffer (vim:cmd-function command) parameters)
-        (when (vim:cmd-repeatable-p command)
-          (setq vim:repeat-events (vconcat vim:current-key-sequence
-                                           (vim:this-command-keys))))
-        (vim:connect-undos vim:last-undo))
+  (let ((parameters nil)
+        (vim:last-undo buffer-undo-list))
+    (when (vim:cmd-count-p command)
+      (push vim:current-cmd-count parameters)
+      (push :count parameters))
+    (when (vim:cmd-char-arg-p command)
+      (push vim:current-cmd-arg parameters)
+      (push :argument parameters))
+    (when (and (vim:cmd-register-p command)
+               vim:current-register)
+      (push vim:current-register parameters)
+      (push :register parameters))
+    (vim:apply-save-buffer (vim:cmd-function command) parameters)
+    (when (vim:cmd-repeatable-p command)
+      (setq vim:repeat-events (vconcat vim:current-key-sequence
+                                       (vim:this-command-keys))))
+    (vim:connect-undos vim:last-undo))
 
-    (vim:reset-key-state)
-    (vim:clear-key-sequence)
-    (vim:adjust-point)))
+  (vim:reset-key-state)
+  (vim:clear-key-sequence)
+  (vim:adjust-point))
     
 
 (defun vim:normal-prepare-complex-command (command)
@@ -185,21 +181,20 @@
   (when (vim:cmd-char-arg-p motion-command)
     (setq vim:current-motion-arg (read-char-exclusive)))
 
-  (unwind-protect
-      (let ((vim:last-undo buffer-undo-list))
-        (if (and (vim:cmd-register-p vim:current-cmd) vim:current-register)
-            (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
-                                     :motion (vim:get-current-cmd-motion)
-                                     :register vim:current-register)
-          (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
-                                   :motion (vim:get-current-cmd-motion)))
-        (when (vim:cmd-repeatable-p vim:current-cmd)
-          (setq vim:repeat-events (vconcat vim:current-key-sequence
-                                           (vim:this-command-keys))))
-        (vim:connect-undos vim:last-undo))
+  (let ((vim:last-undo buffer-undo-list))
+    (if (and (vim:cmd-register-p vim:current-cmd) vim:current-register)
+        (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                                 :motion (vim:get-current-cmd-motion)
+                                 :register vim:current-register)
+      (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                               :motion (vim:get-current-cmd-motion)))
+    (when (vim:cmd-repeatable-p vim:current-cmd)
+      (setq vim:repeat-events (vconcat vim:current-key-sequence
+                                       (vim:this-command-keys))))
+    (vim:connect-undos vim:last-undo))
     
-    (vim:reset-key-state)
-    (vim:clear-key-sequence)
-    (vim:adjust-point)))
+  (vim:reset-key-state)
+  (vim:clear-key-sequence)
+  (vim:adjust-point))
 
 ;;; vim-normal-mode.el ends here
