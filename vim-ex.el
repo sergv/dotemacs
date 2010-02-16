@@ -12,6 +12,8 @@
 (defvar vim:ex-commands nil
   "List of pairs (command . function).")
 
+(defvar vim:ex-current-buffer)
+
 (vim:deflocalvar vim:ex-local-commands nil
   "List of pairs (command . function).")
 
