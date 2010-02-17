@@ -699,20 +699,14 @@ current line."
           vim:visual-new-point nil)))
 
 
-(defun vim:visual-mouse-region (event)
-  "Go to visual-mode on mouse-motion."
+(defun vim:visual-mouse-clicked (event)
+  "Dispatches singe, double, triple or quad clicks."
   (interactive "e")
-  (vim:visual-drag-mouse-region event 'char))
-
-(defun vim:visual-word-mouse-region (event)
-  "Go to visual-mode and word selection on mouse-motion."
-  (interactive "e")
-  (vim:visual-drag-mouse-region event 'word))
-
-(defun vim:visual-line-mouse-region (event)
-  "Go to linewise visual-mode on mouse-motion."
-  (interactive "e")
-  (vim:visual-drag-mouse-region event 'linewise))
+  (case (vim:mouse-click-count event)
+    (2 (vim:visual-drag-mouse-region event 'word))
+    (3 (vim:visual-drag-mouse-region event 'linewise))
+    (4 (vim:visual-drag-mouse-region event 'block))
+    (t (vim:visual-drag-mouse-region event 'char))))
 
 (defun vim:visual-drag-mouse-region (event mode)  
   "Update visual-region during mouse-motion."
@@ -723,14 +717,17 @@ current line."
       (goto-char start-pos)
     
       (case mode
-        ('linewise
-         (vim:visual-toggle-linewise)
-         (vim:visual-highlight-region))
         ('word
          (vim:visual-toggle-normal)
          (multiple-value-bind (p m) (vim:visual-get-word-region start-pos start-pos)
            (set-mark m)
            (goto-char p))
+         (vim:visual-highlight-region))
+        ('linewise
+         (vim:visual-toggle-linewise)
+         (vim:visual-highlight-region))
+        ('block
+         (vim:visual-toggle-block)
          (vim:visual-highlight-region)))
     
       (vim:track-mouse

@@ -116,7 +116,22 @@
     (and (symbolp (event-basic-type ev))
          (string-match "mouse" (symbol-name (event-basic-type ev)))))
   (defmacro vim:track-mouse (&rest body)
-    `(track-mouse ,@body)))
+    `(track-mouse ,@body))
+  (vim:deflocalvar vim:mouse-click-count 0)
+  (vim:deflocalvar vim:mouse-click-last-time nil)
+  (defun vim:mouse-click-count (event)
+    (let ((time (posn-timestamp event)))
+      (setq vim:mouse-click-count
+            (cond
+             ((intersection (event-modifiers event) '(double triple))
+              (event-click-count event))
+             ((and vim:mouse-click-last-time
+                   (< (- time vim:mouse-click-last-time) double-click-time))
+              (1+ vim:mouse-click-count))
+             (t 1)))
+      (setq vim:mouse-click-last-time time)
+      vim:mouse-click-count))
+  )
   
  (vim:xemacs-p
   (defconst vim:down-mouse-1 'button1)
@@ -126,7 +141,24 @@
   (defalias 'vim:mouse-movement-p 'motion-event-p)
   (defalias 'vim:mouse-event-p 'mouse-event-p)
   (defmacro vim:track-mouse (&rest body)
-    `(progn ,@body))))
+    `(progn ,@body))
+  (vim:deflocalvar vim:mouse-click-count 0)
+  (vim:deflocalvar vim:mouse-click-last-time nil)
+  (defcustom vim:visual-double-click-time 500
+    "Number of milliseconds for a repeating click.")
+  (defun vim:mouse-click-count (event)
+    (let ((time (event-timestamp event)))
+      (message "TIME: %s %s" time vim:mouse-click-last-time)
+      (setq vim:mouse-click-count
+            (if (and vim:mouse-click-last-time
+                     (< (- time vim:mouse-click-last-time) vim:visual-double-click-time))
+                (1+ vim:mouse-click-count)
+              1))
+      (setq vim:mouse-click-last-time time)
+      (message "CLICK: %s" vim:mouse-click-count)
+      vim:mouse-click-count))
+  ))
+
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:track-mouse"))
 
 
