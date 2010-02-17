@@ -178,7 +178,7 @@
 (defun vim:ex-complete-buffer-argument (arg predicate flag)
   ;; completes a buffer name
   (when arg
-    (let ((buffers (mapcar #'buffer-name (buffer-list t))))
+    (let ((buffers (mapcar #'(lambda (buffer) (cons (buffer-name buffer) nil)) (buffer-list t))))
       (cond
        ((null flag)
         (try-completion arg buffers predicate))
