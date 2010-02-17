@@ -161,7 +161,6 @@
 
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:track-mouse"))
 
-
 (vim:emacsen
  (vim:emacs-p
   (defalias 'vim:read-event 'read-event))
@@ -185,6 +184,24 @@
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:char-p 'integerp))
  (vim:xemacs-p (defalias 'vim:char-p 'characterp)))
+
+(vim:emacsen
+ (vim:emacs-p (defalias 'vim:perform-replace 'perform-replace))
+ (vim:xemacs-p 
+  (defun vim:perform-replace (from-string replacements query-flag regexp-flag delimited-flag
+                              &optional repeat-count map beg end)
+    (if (or beg end)
+        (progn
+          (push-mark (or beg (point-min)))
+          (goto-char (or end (point-max)))
+          (zmacs-activate-region)
+          (let ((result
+                 (perform-replace from-string replacements query-flag regexp-flag delimited-flag
+                                  repeat-count map)))
+            (pop-mark)
+            result))
+      (perform-replace from-string replacements query-flag regexp-flag delimited-flag
+                       repeat-count map)))))
 
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:minibuffer-contents 'minibuffer-contents))

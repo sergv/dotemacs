@@ -158,13 +158,13 @@
       (unwind-protect
           (if whole-line
               ;; this one is easy, just use the built in function
-              (perform-replace pattern replacement confirm t nil nil nil 
-                               (save-excursion
-                                 (goto-line first-line)
-                                 (line-beginning-position))
-                               (save-excursion
-                                 (goto-line last-line)
-                                 (line-end-position)))
+              (vim:perform-replace pattern replacement confirm t nil nil nil 
+                                   (save-excursion
+                                     (goto-line first-line)
+                                     (line-beginning-position))
+                                   (save-excursion
+                                     (goto-line last-line)
+                                     (line-end-position)))
             (if confirm
                 (progn
                   ;; this one is more difficult, we have to do the
