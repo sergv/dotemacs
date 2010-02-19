@@ -21,15 +21,14 @@
 ;; activates insert-mode it may modify vim:last-insert-undo to an
 ;; apropriate value (see vim:execute-mapping for an example).
 
-;;; TODO
-
-;; - dependency on redo may cause an error
-
 ;;; Code:
 
 (provide 'vim-undo)
 
-(require 'redo)
+(condition-case nil
+    (require 'redo)
+  (error
+   (message "vim-mode: Could not load 'redo', redo-command not available.")))
 
 (defvar vim:last-undo)
 
