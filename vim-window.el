@@ -16,6 +16,11 @@
 
 (provide 'vim-window)
 
+(condition-case nil
+    (require 'windmove)
+  (error
+   (message "vim-mode: Could not load 'windmove', window-commands not available.")
+   nil))
 
 (defun vim:resize-window (new-size &optional horizontal)   
   "Sets the current window's with or height to `new-size'."

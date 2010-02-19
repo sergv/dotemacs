@@ -12,16 +12,10 @@
 ;; operations are usually just simple commands and should not be
 ;; repeatable but should keep visual mode.
 
-;;; TODO:
-
-;;  - dependency on windmove may force an error
-
 ;;; Code:
 
 
 (provide 'vim-scroll)
-
-(require 'windmove)
 
 (defun vim:num-visible-lines ()
   "Returns the number of currently visible lines."
