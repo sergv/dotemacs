@@ -110,7 +110,7 @@
          ((eq t result) t)
          ((stringp result)
           (if flag result (concat range result)))
-         ((listp result) (if flag result (map #'(lambda (x) (concat range x)) result)))
+         ((listp result) (if flag result (mapcar #'(lambda (x) (concat range x)) result)))
          (t (error "Completion returned unexpected value.")))))
               
      ;; otherwise complete the argument
@@ -120,7 +120,7 @@
          ((null result) nil)
          ((eq t result) t)
          ((stringp result) (if flag result (concat range cmd spaces result)))
-         ((listp result) (if flag result (map #'(lambda (x) (concat range cmd spaces x)) result)))
+         ((listp result) (if flag result (mapcar #'(lambda (x) (concat range cmd spaces x)) result)))
          (t (error "Completion returned unexpected value."))))))))
 
         
