@@ -13,6 +13,7 @@
 ;; Check emacs and xemacs
 
 (defconst vim:xemacs-p (string-match "XEmacs" emacs-version))
+(defconst vim:emacs23-p (>= emacs-major-version 23))
 (defconst vim:emacs-p (not vim:xemacs-p))
 
 (defconst vim:default-region-face (if vim:xemacs-p 'zmacs-region 'region))
@@ -71,6 +72,7 @@
 (defmacro vim:called-interactively-p ()
   "Returns t iff the containing function has been called interactively."
   (vim:emacsen
+   (vim:emacs23-p '(called-interactively-p 'interactive))
    (vim:emacs-p '(called-interactively-p))
    (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
