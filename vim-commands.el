@@ -458,8 +458,8 @@ and switches to insert-mode."
 	;; maybe we have to insert a new line at eob
 	(when (< (line-number-at-pos (point))
 		 current-line)
-	  (end-of-buffer)
-	  (newline))
+          (goto-char (point-max))
+          (newline))
 	(incf current-line)
         
         (unless (and (< (current-column) col)   ; nothing in this line
@@ -501,7 +501,7 @@ and switches to insert-mode."
              (newline)
              (save-excursion
                (vim:cmd-paste-before :count count :register register)
-               (end-of-buffer)
+               (goto-char (point-max))
                (delete-backward-char 1)))
          (forward-line)
          (vim:cmd-paste-before :count count :register register))
