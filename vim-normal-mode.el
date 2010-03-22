@@ -16,8 +16,6 @@
 
 ;;; Code:
 
-(provide 'vim-normal-mode)
-
 (defconst vim:operator-repeat-keymap (vim:make-keymap vim:override-keymap)
   "Keymap to bind the repeat-operator-event.")
 
@@ -196,5 +194,7 @@
   (vim:reset-key-state)
   (vim:clear-key-sequence)
   (vim:adjust-point))
+
+(provide 'vim-normal-mode)
 
 ;;; vim-normal-mode.el ends here

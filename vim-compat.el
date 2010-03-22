@@ -8,8 +8,6 @@
 
 ;;; Code:
 
-(provide 'vim-compat)
-
 ;; Check emacs and xemacs
 
 (defconst vim:xemacs-p (string-match "XEmacs" emacs-version))
@@ -524,7 +522,7 @@ See `%s' for more information on %s."
 	      (t win))))
 	(list (subwindows root) mini))))
   )
-      
 
+(provide 'vim-compat)
 
 ;;; vim-compat.el ends here

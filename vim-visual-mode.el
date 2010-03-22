@@ -14,9 +14,6 @@
 
 ;;; Code:
 
-
-(provide 'vim-visual-mode)
-
 (defcustom vim:visual-region-face vim:default-region-face
   "Face of the highlighted region."
   :type 'face
@@ -775,5 +772,7 @@ current line."
       (values (vim:motion-end point-motion)
               (vim:motion-begin mark-motion)))))
                       
+
+(provide 'vim-visual-mode)
 
 ;;; vim-visual-mode.el ends here

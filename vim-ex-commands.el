@@ -8,8 +8,6 @@
 
 ;;; Code:
 
-(provide 'vim-ex-commands)
-
 (defun* vim:save-buffer (file-name &key begin end mustbenew append)
   "Saves the lines from `begin' to `end' to file `file-name'."
   (with-current-buffer vim:ex-current-buffer
@@ -128,5 +126,7 @@
   "Saves the current buffer and closes the window."
   (vim:cmd-write-q :argument file)
   (vim:cmd-quit))
+
+(provide 'vim-ex-commands)
 
 ;;; vim-ex-commands.el ends here

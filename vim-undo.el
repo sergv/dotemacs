@@ -23,8 +23,6 @@
 
 ;;; Code:
 
-(provide 'vim-undo)
-
 (condition-case nil
     (require 'redo)
   (error
@@ -67,5 +65,7 @@
 (vim:defcmd vim:cmd-redo (count nonrepeatable)
   (setq vim:last-undo nil)
   (redo (or count 1)))
+
+(provide 'vim-undo)
 
 ;;; vim-undo.el ends here

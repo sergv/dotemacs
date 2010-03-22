@@ -108,8 +108,6 @@
 
 ;;; Code:
 
-(provide 'vim)
-
 (eval-when-compile
   (require 'cl))
 
@@ -232,5 +230,7 @@
         (setq global-mode-string
               (append '("" vim:mode-string) (cdr global-mode-string)))))))
 
+
+(provide 'vim)
 
 ;;; vim.el ends here

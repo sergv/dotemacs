@@ -87,9 +87,6 @@
 
 ;;; Code:
 
-
-(provide 'vim-commands)
-
 (defcustom vim:shift-width 8
   "The number of columns for shifting commands like < or >."
   :type 'integer
@@ -695,5 +692,7 @@ and switches to insert-mode."
   "Executes the keyboard-macro in register `reg.'"
   (vim:reset-key-state)
   (execute-kbd-macro (vim:get-register reg) count))
+
+(provide 'vim-commands)
 
 ;;; vim-commands.el ends here

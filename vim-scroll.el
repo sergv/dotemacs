@@ -14,9 +14,6 @@
 
 ;;; Code:
 
-
-(provide 'vim-scroll)
-
 (defun vim:num-visible-lines ()
   "Returns the number of currently visible lines."
   (- (window-height) 1))
@@ -126,5 +123,7 @@
     (goto-char (window-start)))
   (recenter -1)
   (vim:motion-first-non-blank))
+
+(provide 'vim-scroll)
 
 ;;; vim-scroll.el ends here

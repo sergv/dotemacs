@@ -84,9 +84,6 @@
 
 ;;; Code:
 
-
-(provide 'vim-motions)
-
 (vim:deflocalvar vim:this-column nil
   "The resulting column of the current motion.")
 
@@ -669,5 +666,7 @@ jumps to the corresponding one."
   (goto-char (vim:get-local-mark mark-char))
   (vim:motion-first-non-blank)
   t)
+
+(provide 'vim-motions)
 
 ;;; vim-motions.el ends here

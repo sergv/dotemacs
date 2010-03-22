@@ -8,9 +8,6 @@
 
 ;;; Code:
 
-
-(provide 'vim-modes)
-
 (vim:deflocalvar vim:mode-string)
 (defun vim:update-mode-line (ident)
   "Updates the mode-line to show the specified identifier `ident'."
@@ -88,6 +85,8 @@ be executed."
          (interactive)
          (vim:activate-mode ',name)))))
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:define-mode"))
+
+(provide 'vim-modes)
 
 ;;; vim-modes.el ends here
 

@@ -14,8 +14,6 @@
 
 ;;; Code:
 
-(provide 'vim-window)
-
 (condition-case nil
     (require 'windmove)
   (error
@@ -312,4 +310,7 @@ and redisplays the current buffer there."
            (select-window newwin))))
      (balance-windows)))
         
+
+(provide 'vim-window)
+
 ;;; vim-window.el ends here

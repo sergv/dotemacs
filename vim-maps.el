@@ -69,8 +69,6 @@
 
 ;;; Code:
 
-(provide 'vim-maps)
-
 (vim:nmap "\\" 'vim:cmd-emacs)
 
 (vim:omap [escape] 'vim:operator-pending-mode-exit)
@@ -354,5 +352,7 @@
 
 (vim:nmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
 (vim:vmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
+
+(provide 'vim-maps)
 
 ;;; vim-maps.el ends here

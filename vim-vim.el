@@ -8,8 +8,6 @@
 
 ;;; Code:
 
-(provide 'vim-vim)
-
 (defvar vim:repeat-events nil
   "The sequence of events for the repeat command.")
 
@@ -361,5 +359,7 @@ command-specific transformations."
         ;; motion becomes inclusive
         (setf (vim:motion-type motion) 'inclusive)))
     motion))
+
+(provide 'vim-vim)
 
 ;;; vim-vim.el ends here

@@ -17,8 +17,6 @@
 
 ;;; Code:
 
-(provide 'vim-search)
-
 (defconst vim:search-mode-keymap (make-sparse-keymap))
 (vim:set-keymap-default-binding vim:search-mode-keymap 'vim:search-mode-exit)
 
@@ -225,5 +223,7 @@
   (when (string-match "\\`\\s-*/\\(\\(?:[^/]\\|\\\\.\\)+\\)/\\(\\(?:[^/]\\|\\\\.\\)*\\)\\(?:/\\([giIc]*\\)\\)?\\s-*\\'"
                       text)
     (values (match-string 1 text) (match-string 2 text) (match-string 3 text))))
+
+(provide 'vim-search)
 
 ;;; vim-search.el ends here

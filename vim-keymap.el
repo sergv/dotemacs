@@ -8,8 +8,6 @@
 
 ;;; Code:
 
-(provide 'vim-keymap)
-
 (defvar vim:local-keymaps nil
   "A list of buffer-local keymaps for vim-mode.")
 
@@ -84,5 +82,7 @@
 (defun vim:clear-key-sequence ()
   "Clears the internal log of key-sequences."
   (setq vim:current-key-sequence nil))
+
+(provide 'vim-keymap)
 
 ;;; vim-keymap.el ends here

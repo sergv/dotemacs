@@ -9,7 +9,7 @@
 ;;; TODO :
 ;; - for some reason GNU Emacs does not show '-- REPLACE --'
 
-(provide 'vim-insert-mode)
+;;; Code:
 
 (vim:deflocalvar vim:last-insert-undo nil)
 
@@ -86,5 +86,7 @@
              (not (eq this-command 'vim:intercept-ESC)))
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
                                             (vim:this-command-keys)))))
+
+(provide 'vim-insert-mode)
 
 ;;; vim-insert-mode.el ends here

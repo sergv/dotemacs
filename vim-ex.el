@@ -7,7 +7,6 @@
 ;; This file is not part of GNU Emacs.
 
 ;;; Code:
-(provide 'vim-ex)
 
 (defvar vim:ex-commands nil
   "List of pairs (command . function).")
@@ -420,5 +419,7 @@ Returns a list of up to three elements: (cmd beg end)"
       (let ((result (completing-read ":" 'vim:ex-complete nil nil initial-input  'vim:ex-history)))
         (when result
           (vim:ex-execute-command result))))))
+
+(provide 'vim-ex)
 
 ;;; vim-ex.el ends here
