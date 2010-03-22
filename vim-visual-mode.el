@@ -188,7 +188,7 @@
                 vim:visual-temporary-local-variables))
   
   ;; The make them all buffer local, too.
-  (mapcar #'make-local-variable vim:visual-temporary-local-variables)
+  (mapc #'make-local-variable vim:visual-temporary-local-variables)
   (when (boundp 'transient-mark-mode) (setq transient-mark-mode nil))
   (add-hook 'post-command-hook 'vim:visual-post-command)
   (add-hook 'pre-command-hook 'vim:visual-normalize-region)
@@ -210,7 +210,7 @@
   (when (boundp 'transient-mark-mode)
     (setq transient-mark-mode vim:visual-old-transient-mark-mode))
   (vim:visual-delete-overlays vim:visual-overlays)
-  (mapcar #'kill-local-variable vim:visual-old-global-variables)
+  (mapc #'kill-local-variable vim:visual-old-global-variables)
   (vim:deactivate-mark))
 
 
