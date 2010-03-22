@@ -110,7 +110,8 @@
 
 (provide 'vim)
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 
 (defgroup vim-mode nil
   "A VIM emulation mode."
