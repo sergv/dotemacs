@@ -70,8 +70,17 @@
 (defmacro vim:called-interactively-p ()
   "Returns t iff the containing function has been called interactively."
   (vim:emacsen
-   (vim:emacs23-p '(called-interactively-p 'interactive))
-   (vim:emacs-p '(called-interactively-p))
+   (vim:emacs-p
+    ;; TODO: perhaps (interactive-p) is enough?
+    (if (not (fboundp 'called-interactively-p))
+        '(interactive-p)
+      ;; Else, it is defined, but perhaps too old?
+      (condition-case nil
+          (progn
+            (called-interactively-p nil)
+            '(called-interactively-p 'interactive))
+        (error
+         '(called-interactively-p)))))
    (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
 (vim:emacsen
