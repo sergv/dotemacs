@@ -336,17 +336,17 @@ return the correct end-position of emacs-ranges, i.e.
 (vim:defmotion vim:motion-up (linewise count)
   "Move the cursor count lines up."
   (vim:use-last-column)
-  (forward-line (- (or count 1))))
+  (forward-visible-line (- (or count 1))))
 
 (vim:defmotion vim:motion-down (linewise count)
   "Move the cursor count lines down."
   (vim:use-last-column)
-  (forward-line (or count 1)))
+  (forward-visible-line (or count 1)))
 
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
   (vim:use-last-column)
-  (forward-line (1- (or count 1))))
+  (forward-visible-line (1- (or count 1))))
 
 
 (defun vim:motion-beginning-of-line-or-digit-argument ()
@@ -414,9 +414,9 @@ return the correct end-position of emacs-ranges, i.e.
   (when (and (vim:operator-pending-mode-p)
              (vim:looking-back "^[ \t]*")
              (not (save-excursion
-                    (forward-line -1)
+                    (forward-visible-line -1)
                     (and (bolp) (eolp)))))
-    (forward-line -1)
+    (forward-visible-line -1)
     (end-of-line)))
 
 
@@ -436,9 +436,9 @@ return the correct end-position of emacs-ranges, i.e.
   (when (and (vim:operator-pending-mode-p)
              (vim:looking-back "^[ \t]*")
              (not (save-excursion
-                    (forward-line -1)
+                    (forward-visible-line -1)
                     (and (bolp) (eolp)))))
-    (forward-line -1)
+    (forward-visible-line -1)
     (end-of-line)))
 
 
