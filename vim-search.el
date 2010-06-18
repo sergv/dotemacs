@@ -38,7 +38,7 @@
 ;; if something else than a repeat-search event occurs.
 (vim:define-mode search "VIM search mode"
                  :ident "S"
-                 :keymap vim:search-mode-keymap
+                 :keymaps '(vim:search-mode-keymap)
                  :command-function 'vim:search-mode-command)
 (add-hook 'vim:search-mode-on-hook 'vim:search-mode-activate)
 (add-hook 'vim:search-mode-off-hook 'vim:search-mode-activate)

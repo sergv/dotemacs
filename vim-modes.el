@@ -39,14 +39,12 @@
                                  &key
                                  ident
                                  message
-                                 keymap
-                                 local-keymap
                                  command-function
-                                 (cursor ''box)
-                                 &allow-other-keys)
-  "Defines a new VIM-mode with certain `name', mode-line-identifiert `ident',
-a `keymap' and a `command-function' to be called when a vim-command should
-be executed."
+                                 cursor
+                                 keymaps)
+  "Defines a new VIM-mode with certain `name', mode-line-identifier `ident',
+activation `message', a `command-function' to be called when a
+vim-command should be executed, a `cursor' shape and a list of `keymaps'."
   (let* ((mode-name (vim:mode-name name))
          (pred-name (intern (concat (symbol-name mode-name) "-p")))
          (on-name (intern (concat "vim:activate-" (symbol-name name) "-mode")))
@@ -66,24 +64,22 @@ be executed."
                  ,(if command-function
                       command-function
                     'vim:default-command-function))
-           (vim:set-cursor ,cursor-name))
+           (vim:set-cursor ,cursor-name)
+           (vim:set-keymaps ',mode-name ,keymaps)
+           )
          ,@(progn
              (while (keywordp (car body)) (pop body) (pop body))
              body))
 
-       ,@(when local-keymap
-           `((add-to-list 'vim:local-keymaps '(,mode-name . ,local-keymap))))
-       ,@(when keymap
-           `((add-to-list 'vim:global-keymaps '(,mode-name . ,keymap))))
-
-       
        (defun ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol-name name) " mode.")
          (and ,mode-name t))
+       
        (defun ,on-name ()
          ,(concat "Activates " (symbol-name name) " mode.")
          (interactive)
          (vim:activate-mode ',name)))))
+
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:define-mode"))
 
 (provide 'vim-modes)

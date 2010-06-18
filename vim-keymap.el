@@ -53,7 +53,7 @@
 (vim:map (kbd "ESC") 'vim:intercept-ESC :keymap vim:intercept-ESC-keymap)
 
 
-;; The override keymap, useful especially in insert-mode.
+;; The override keymap, useful especially in normal-mode.
 (defconst vim:override-keymap (make-keymap)
   "Global parent keymap to override some Emacs default bindings.")
 (suppress-keymap vim:override-keymap)
@@ -66,6 +66,16 @@
          :keymap vim:override-keymap)
 
 
+;; This function sets up the keymaps for the current mode.
+(defun vim:set-keymaps (mode-name keymaps)
+  (setq vim:emulation-mode-alist
+        (mapcan #'(lambda (keym)
+                    (let ((localname (intern (replace-regexp-in-string "-keymap" "-local-keymap"
+                                                                        (symbol-name keym)))))
+                      (list (cons mode-name (symbol-value localname))
+                            (cons mode-name (symbol-value keym)))))
+                keymaps))
+  (push (cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap) vim:emulation-mode-alist))
 
 ;; TODO: This function is currently empty and serves only as hook for
 ;; defadvice.

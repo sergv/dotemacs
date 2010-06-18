@@ -34,8 +34,7 @@
 (vim:define-mode insert "VIM insert-mode"
                  :ident "I"
                  :message "-- INSERT --"
-                 :keymap vim:insert-mode-keymap
-                 :local-keymap vim:insert-mode-local-keymap
+                 :keymaps '(vim:insert-mode-keymap)
                  :command-function 'vim:insert-mode-command
                  :cursor 'bar)
 (add-hook 'vim:insert-mode-on-hook 'vim:insert-mode-activated)

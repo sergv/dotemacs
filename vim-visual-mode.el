@@ -34,8 +34,7 @@
 
 (vim:define-mode visual "VIM visual mode"
                  :ident "V"
-                 :keymap vim:visual-mode-keymap
-                 :local-keymap vim:visual-mode-local-keymap
+                 :keymaps '(vim:visual-mode-keymap)
                  :command-function 'vim:visual-mode-command
                  :cursor 'hollow)
 (add-hook 'vim:visual-mode-on-hook 'vim:visual-mode-activate)
