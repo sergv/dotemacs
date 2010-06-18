@@ -76,7 +76,7 @@
       (vim:activate-normal-mode)))
 
 
-(defconst vim:normal-mode-keymap (vim:make-keymap vim:operator-pending-mode-keymap)
+(defconst vim:normal-mode-keymap (vim:make-keymap)
   "VIM normal-mode keymap.")
 
 (defconst vim:normal-mode-local-keymap (vim:make-keymap)
@@ -93,7 +93,7 @@
 (vim:define-mode normal "VIM normal mode"
                  :ident "N"
                  :message "-- NORMAL --"
-                 :keymaps '(vim:normal-mode-keymap)
+                 :keymaps '(vim:normal-mode-keymap vim:operator-pending-mode-keymap)
                  :command-function 'vim:normal-mode-command)
 
 (defun vim:normal-mode-command (command)

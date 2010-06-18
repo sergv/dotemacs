@@ -19,7 +19,7 @@
   :type 'face
   :group 'vim-mode)
 
-(defconst vim:visual-mode-keymap (vim:make-keymap vim:operator-pending-mode-keymap)
+(defconst vim:visual-mode-keymap (vim:make-keymap)
   "VIM visual-mode keymap.")
 (defconst vim:visual-mode-local-keymap (vim:make-keymap)
   "VIM visual-mode local keymap.")
@@ -34,7 +34,7 @@
 
 (vim:define-mode visual "VIM visual mode"
                  :ident "V"
-                 :keymaps '(vim:visual-mode-keymap)
+                 :keymaps '(vim:visual-mode-keymap vim:operator-pending-mode-keymap)
                  :command-function 'vim:visual-mode-command
                  :cursor 'hollow)
 (add-hook 'vim:visual-mode-on-hook 'vim:visual-mode-activate)
