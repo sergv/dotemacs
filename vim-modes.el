@@ -40,7 +40,7 @@
                                  ident
                                  message
                                  command-function
-                                 cursor
+                                 (cursor ''box)
                                  keymaps)
   "Defines a new VIM-mode with certain `name', mode-line-identifier `ident',
 activation `message', a `command-function' to be called when a
