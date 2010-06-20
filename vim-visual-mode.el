@@ -19,18 +19,7 @@
   :type 'face
   :group 'vim-mode)
 
-(defconst vim:visual-mode-keymap (vim:make-keymap)
-  "VIM visual-mode keymap.")
-(defconst vim:visual-mode-local-keymap (vim:make-keymap)
-  "VIM visual-mode local keymap.")
-
-(defsubst vim:vmap (keys command)
-  "Defines a new visual-mode mapping."
-  (vim:map keys command :keymap vim:visual-mode-keymap))
-
-(defsubst vim:local-vmap (keys command)
-  "Defines a new buffer local visual-mode mapping."
-  (vim:map keys command :keymap vim:visual-mode-local-keymap))
+(vim:define-keymap visual-mode "visual mode" :map-command vmap)
 
 (vim:define-mode visual "VIM visual mode"
                  :ident "V"

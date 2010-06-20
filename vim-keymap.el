@@ -8,12 +8,6 @@
 
 ;;; Code:
 
-(defvar vim:local-keymaps nil
-  "A list of buffer-local keymaps for vim-mode.")
-
-(defvar vim:global-keymaps nil
-  "A list of global keymaps for vim-mode.")
-
 (defun* vim:map (keys command &key (keymap nil))
   "Maps the sequence of events `keys' to a `command' in a certain
 `keymap.'"
@@ -24,6 +18,36 @@
   (let ((kmap (make-sparse-keymap)))
     (when parent (set-keymap-parent kmap parent))
     kmap))
+
+(defmacro vim:define-keymap (name
+                             doc
+                             &key
+                             map-command)
+  "Defines global and local keymaps for a mode with name
+vim:`name'-[local-]keymap and a map command vim:`map-command'
+and vim:local-`map-command'."
+  (let ((glbkeym (concat "vim:" (symbol-name name) "-keymap"))
+        (lockeym (concat "vim:" (symbol-name name) "-local-keymap")))
+    `(progn
+       (defconst ,(intern glbkeym) (vim:make-keymap)
+         ,(concat "VIM global keymap: " doc))
+       (defconst ,(intern lockeym) (vim:make-keymap)
+         ,(concat "VIM buffer local keymap: " doc))
+       ,@(when map-command
+          `((defsubst ,(intern (concat "vim:" (symbol-name map-command)))
+              (keys command)
+              ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
+                       glbkeym)
+              (vim:map keys command :keymap ,(intern glbkeym)))
+            (defsubst ,(intern (concat "vim:local-" (symbol-name map-command)))
+               (keys command)
+               ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
+                        lockeym)
+               (vim:map keys command :keymap ,(intern lockeym))))))))
+(font-lock-add-keywords 'emacs-lisp-mode '("vim:define-keymap"))
+             
+    
+  
 
 ;; Interception of ESC event. The ESC event is intercepted. If not
 ;; followed by another key, i.e. not used as a prefix-key, the event

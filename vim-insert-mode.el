@@ -17,19 +17,7 @@
   "Cursor for replace-mode."
   :group 'vim-mode)
 
-(defconst vim:insert-mode-keymap (vim:make-keymap)
-  "VIM insert-mode keymap.")
-
-(defconst vim:insert-mode-local-keymap (vim:make-keymap)
-  "VIM insert-mode local keymap.")
-
-(defsubst vim:imap (keys command)
-  "Defines a new insert-mode mapping."
-  (vim:map keys command :keymap vim:insert-mode-keymap))
-
-(defsubst vim:local-imap (keys command)
-  "Defines a new buffer local insert-mode mapping."
-  (vim:map keys command :keymap vim:insert-mode-local-keymap))
+(vim:define-keymap insert-mode "insert-mode" :map-command imap)
 
 (vim:define-mode insert "VIM insert-mode"
                  :ident "I"

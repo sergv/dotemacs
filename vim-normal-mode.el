@@ -19,23 +19,13 @@
 (defconst vim:operator-repeat-keymap (vim:make-keymap)
   "Keymap to bind the repeat-operator-event.")
 
-(defconst vim:operator-pending-mode-keymap (vim:make-keymap vim:operator-repeat-keymap)
-  "VIM operator-pending-mode keymap.")
-
-(defconst vim:operator-pending-mode-local-keymap (vim:make-keymap)
-  "VIM operator-pending-mode local keymap.")
-
-(defsubst vim:omap (keys command)
-  "Defines a new operator-pending-mode mapping."
-  (vim:map keys command :keymap vim:operator-pending-mode-keymap))
-
-(defsubst vim:local-omap (keys command)
-  "Defines a new buffer local operator-pending-mode mapping."
-  (vim:map keys command :keymap vim:operator-pending-mode-local-keymap))
+(vim:define-keymap operator-pending-mode
+                   "operator pending mode"
+                   :map-command omap)
 
 (vim:define-mode operator-pending "VIM operator-pending mode"
                  :ident "O"
-                 :keymaps '(vim:operator-pending-mode-keymap vim:override-keymap)
+                 :keymaps '(vim:operator-pending-mode-keymap vim:operator-repeat-keymap vim:override-keymap)
                  :command-function 'vim:operator-pending-mode-command)
 
 (add-hook 'vim:operator-pending-mode-hook 'vim:operator-pending-activate)
@@ -76,19 +66,7 @@
       (vim:activate-normal-mode)))
 
 
-(defconst vim:normal-mode-keymap (vim:make-keymap)
-  "VIM normal-mode keymap.")
-
-(defconst vim:normal-mode-local-keymap (vim:make-keymap)
-  "VIM normal-mode keymap.")
-
-(defsubst vim:nmap (keys command)
-  "Defines a new normal-mode mapping."
-  (vim:map keys command :keymap vim:normal-mode-keymap))
-
-(defsubst vim:local-nmap (keys command)
-  "Defines a new buffer local normal-mode mapping."
-  (vim:map keys command :keymap vim:normal-mode-local-keymap))
+(vim:define-keymap normal-mode "normal mode" &map-command nmap)
 
 (vim:define-mode normal "VIM normal mode"
                  :ident "N"
