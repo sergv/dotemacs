@@ -115,25 +115,26 @@
   "A VIM emulation mode."
   :group 'emulations)
 
-(defcustom vim:whitelist
-  nil
-  "*List of major modes in which vim-mode should be enabled."
-  :type '(repeat symbol)
+(defcustom vim:default-initial-mode
+  'normal
+  "The default initial vim sub-mode."
+  :type '(symbol :tag "vim-mode start mode")
   :group 'vim-mode)
 
-(defcustom vim:blacklist
-  '(debugger-mode
-    compilation-mode
-    grep-mode
-    gud-mode
-    sldb-mode
-    slime-repl-mode
-    reftex-select-bib-mode
-    completion-list-mode
-    help-mode
-    )
-  "*List of major modes in which vim-mode should *NOT* be enabled."
-  :type '(repeat symbol)
+(defcustom vim:initial-modes
+  '((debugger-mode . nil)
+    (compilation-mode . nil)
+    (grep-mode . nil)
+    (gud-mode . nil)
+    (sldb-mode . nil)
+    (slime-repl-mode . nil)
+    (reftex-select-bib-mode . nil)
+    (completion-list-mode . nil)
+    (help-mode . nil))
+  "Associated list of (major-mode . vim:mode) which specifies the
+vim sub-mode in which vim-mode should start when a buffer with the
+given major-mode is created."
+  :type '(repeat (cons (symbol :tag "major mode") (symbol :tag "vim-mode start mode")))
   :group 'vim-mode)
 
 
@@ -204,17 +205,16 @@
 
 (defun vim:initialize ()
   (unless (vim:minibuffer-p)
-    (when (or (and (null vim:whitelist)
-                   (not (member major-mode vim:blacklist)))
-              (and vim:whitelist
-                   (member major-mode vim:whitelist)))
-      (setq vim:active-mode nil)
-      (vim-local-mode 1)
-      (vim:intercept-ESC-mode 1)
-      (vim:activate-normal-mode)
-      (unless (memq 'vim:mode-string global-mode-string)
-        (setq global-mode-string
-              (append '("" vim:mode-string) (cdr global-mode-string)))))))
+    (let ((mode (cdr (or (assoc major-mode vim:initial-modes)
+                         (cons t vim:default-initial-mode)))))
+      (when mode
+        (setq vim:active-mode nil)
+        (vim-local-mode 1)
+        (vim:intercept-ESC-mode 1)
+        (vim:activate-mode mode)
+        (unless (memq 'vim:mode-string global-mode-string)
+          (setq global-mode-string
+                (append '("" vim:mode-string) (cdr global-mode-string))))))))
 
 
 (provide 'vim)
