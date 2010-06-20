@@ -130,8 +130,8 @@
     (slime-repl-mode . window)
     (reftex-select-bib-mode . window)
     (completion-list-mode . window)
-    (help-mode . window)
-    (info-mode . window))
+    (help-mode . motion)
+    (Info-mode . motion))
   "Associated list of (major-mode . vim:mode) which specifies the
 vim sub-mode in which vim-mode should start when a buffer with the
 given major-mode is created."

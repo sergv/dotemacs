@@ -25,7 +25,10 @@
 
 (vim:define-mode operator-pending "VIM operator-pending mode"
                  :ident "O"
-                 :keymaps '(vim:operator-pending-mode-keymap vim:operator-repeat-keymap vim:override-keymap)
+                 :keymaps '(vim:operator-pending-mode-keymap
+                            vim:motion-mode-keymap
+                            vim:operator-repeat-keymap
+                            vim:override-keymap)
                  :command-function 'vim:operator-pending-mode-command)
 
 (add-hook 'vim:operator-pending-mode-hook 'vim:operator-pending-activate)
@@ -73,6 +76,7 @@
                  :message "-- NORMAL --"
                  :keymaps '(vim:normal-mode-keymap
                             vim:operator-pending-mode-keymap
+                            vim:motion-mode-keymap
                             vim:window-mode-keymap
                             vim:override-keymap)
                  :command-function 'vim:normal-mode-command)

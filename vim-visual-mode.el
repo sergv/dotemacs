@@ -23,7 +23,9 @@
 
 (vim:define-mode visual "VIM visual mode"
                  :ident "V"
-                 :keymaps '(vim:visual-mode-keymap vim:operator-pending-mode-keymap)
+                 :keymaps '(vim:visual-mode-keymap
+                            vim:operator-pending-mode-keymap
+                            vim:motion-mode-keymap)
                  :command-function 'vim:visual-mode-command
                  :cursor 'hollow)
 (add-hook 'vim:visual-mode-on-hook 'vim:visual-mode-activate)

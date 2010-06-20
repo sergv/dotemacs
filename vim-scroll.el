@@ -14,6 +14,13 @@
 
 ;;; Code:
 
+(vim:define-keymap motion-mode "motion mode" :map-command mmap)
+
+(vim:define-mode motion "VIM motion mode"
+                 :ident "M"
+                 :keymaps '(vim:motion-mode-keymap vim:window-mode-keymap)
+                 :command-function 'vim:normal-mode-command)
+
 (defun vim:num-visible-lines ()
   "Returns the number of currently visible lines."
   (- (window-height) 1))
