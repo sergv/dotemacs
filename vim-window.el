@@ -20,6 +20,25 @@
    (message "vim-mode: Could not load 'windmove', window-commands not available.")
    nil))
 
+(defconst vim:window-mode-keymap (vim:make-keymap)
+  "VIM window-mode global keymap.")
+
+(defconst vim:window-mode-local-keymap (vim:make-keymap)
+  "VIM window-mode local keymap.")
+
+(defsubst vim:wmap (keys command)
+  "Defines a new window-mode mapping."
+  (vim:map keys command :keymap vim:window-mode-keymap))
+
+(defsubst vim:local-wmap (keys command)
+  "Defines a new buffer-local window-mode mapping."
+  (vim:map keys command :keymap vim:window-mode-local-keymap))
+
+(vim:define-mode window "VIM window mode"
+                 :ident "W"
+                 :keymaps '(vim:window-mode-keymap)
+                 :command-function 'vim:normal-mode-command)
+
 (defun vim:resize-window (new-size &optional horizontal)   
   "Sets the current window's with or height to `new-size'."
   (let ((wincfg (current-window-configuration))

@@ -122,15 +122,16 @@
   :group 'vim-mode)
 
 (defcustom vim:initial-modes
-  '((debugger-mode . nil)
-    (compilation-mode . nil)
-    (grep-mode . nil)
-    (gud-mode . nil)
-    (sldb-mode . nil)
-    (slime-repl-mode . nil)
-    (reftex-select-bib-mode . nil)
-    (completion-list-mode . nil)
-    (help-mode . nil))
+  '((debugger-mode . window)
+    (compilation-mode . window)
+    (grep-mode . window)
+    (gud-mode . window)
+    (sldb-mode . window)
+    (slime-repl-mode . window)
+    (reftex-select-bib-mode . window)
+    (completion-list-mode . window)
+    (help-mode . window)
+    (info-mode . window))
   "Associated list of (major-mode . vim:mode) which specifies the
 vim sub-mode in which vim-mode should start when a buffer with the
 given major-mode is created."

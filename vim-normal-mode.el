@@ -16,7 +16,7 @@
 
 ;;; Code:
 
-(defconst vim:operator-repeat-keymap (vim:make-keymap vim:override-keymap)
+(defconst vim:operator-repeat-keymap (vim:make-keymap)
   "Keymap to bind the repeat-operator-event.")
 
 (defconst vim:operator-pending-mode-keymap (vim:make-keymap vim:operator-repeat-keymap)
@@ -35,7 +35,7 @@
 
 (vim:define-mode operator-pending "VIM operator-pending mode"
                  :ident "O"
-                 :keymaps '(vim:operator-pending-mode-keymap)
+                 :keymaps '(vim:operator-pending-mode-keymap vim:override-keymap)
                  :command-function 'vim:operator-pending-mode-command)
 
 (add-hook 'vim:operator-pending-mode-hook 'vim:operator-pending-activate)
@@ -93,7 +93,10 @@
 (vim:define-mode normal "VIM normal mode"
                  :ident "N"
                  :message "-- NORMAL --"
-                 :keymaps '(vim:normal-mode-keymap vim:operator-pending-mode-keymap)
+                 :keymaps '(vim:normal-mode-keymap
+                            vim:operator-pending-mode-keymap
+                            vim:window-mode-keymap
+                            vim:override-keymap)
                  :command-function 'vim:normal-mode-command)
 
 (defun vim:normal-mode-command (command)
