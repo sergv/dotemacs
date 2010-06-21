@@ -366,6 +366,7 @@ command-specific transformations."
 
 (vim:define-mode emacs "VIM emacs-mode"
                  :ident "E"
+                 :message "-- EMACS --"
                  :keymaps '(vim:emacs-keymap)
                  :command-function 'vim:normal-mode-command)
 
