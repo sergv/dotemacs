@@ -178,6 +178,23 @@
   (vim:clear-key-sequence)
   (vim:adjust-point))
 
+
+(vim:define-mode operator-pending "VIM operator-pending mode"
+                 :ident "O"
+                 :keymaps '(vim:operator-pending-mode-keymap
+                            vim:motion-mode-keymap
+                            vim:operator-repeat-keymap
+                            vim:override-keymap)
+                 :command-function 'vim:operator-pending-mode-command)
+
+(defconst vim:emacs-keymap (vim:make-keymap)
+  "Keymap for EMACS mode.")
+
+(vim:define-mode emacs "VIM emacs-mode"
+                 :ident "E"
+                 :keymaps '(vim:emacs-keymap)
+                 :command-function 'vim:normal-mode-command)
+
 (provide 'vim-normal-mode)
 
 ;;; vim-normal-mode.el ends here

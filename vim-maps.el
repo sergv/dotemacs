@@ -71,6 +71,9 @@
 
 (vim:nmap "\\" 'vim:cmd-emacs)
 
+(vim:nmap (kbd "C-z") 'vim:activate-emacs-mode)
+(vim:map (kbd "C-z") 'vim:activate-normal-mode :keymap vim:emacs-keymap)
+
 (vim:omap [escape] 'vim:operator-pending-mode-exit)
 (vim:omap "0" 'vim:motion-beginning-of-line-or-digit-argument)
 (vim:omap "1" 'digit-argument)
