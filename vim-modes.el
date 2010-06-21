@@ -65,8 +65,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
                       command-function
                     'vim:default-command-function))
            (vim:set-cursor ,cursor-name)
-           (vim:set-keymaps ',mode-name ,keymaps)
-           )
+           (vim:set-keymaps ',mode-name ,keymaps))
          ,@(progn
              (while (keywordp (car body)) (pop body) (pop body))
              body))

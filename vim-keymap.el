@@ -91,17 +91,21 @@ and vim:local-`map-command'."
 
 
 ;; This function sets up the keymaps for the current mode.
-(defun vim:set-keymaps (mode-name keymaps)
-  (setq vim:emulation-mode-alist
-        (mapcan #'(lambda (keym)
-                    (let ((localname (intern (replace-regexp-in-string "mode-keymap" "mode-local-keymap"
-                                                                        (symbol-name keym)))))
-                      (if (eq localname keym)
-                          (list (cons mode-name (symbol-value keym)))
-                        (list (cons mode-name (symbol-value localname))
-                              (cons mode-name (symbol-value keym))))))
-                keymaps))
-  (push (cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap) vim:emulation-mode-alist))
+(defmacro vim:set-keymaps (mode-name keymaps)
+  (when (eq (car-safe mode-name) 'quote)
+    (setq mode-name (cadr mode-name)))
+  (when (eq (car-safe keymaps) 'quote)
+    (setq keymaps (cadr keymaps)))
+  `(setq vim:emulation-mode-alist
+         (list ,@(cons '(cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap)
+                       (mapcan #'(lambda (keym)
+                                   (let ((localname (intern (replace-regexp-in-string "mode-keymap" "mode-local-keymap"
+                                                                                      (symbol-name keym)))))
+                                     (if (eq localname keym)
+                                         (list `(cons ',mode-name ,keym))
+                                       (list `(cons ',mode-name ,localname)
+                                             `(cons ',mode-name ,keym)))))
+                               keymaps)))))
 
 ;; TODO: This function is currently empty and serves only as hook for
 ;; defadvice.
