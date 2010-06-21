@@ -17,8 +17,8 @@
 
 ;;; Code:
 
-(defconst vim:search-mode-keymap (make-sparse-keymap))
-(vim:set-keymap-default-binding vim:search-mode-keymap 'vim:search-mode-exit)
+(defconst vim:search-keymap (make-sparse-keymap))
+(vim:set-keymap-default-binding vim:search-keymap 'vim:search-mode-exit)
 
 (vim:deflocalvar vim:search-last-direction nil
   "The last search direction, either 'forward or 'backward.")
@@ -38,7 +38,7 @@
 ;; if something else than a repeat-search event occurs.
 (vim:define-mode search "VIM search mode"
                  :ident "S"
-                 :keymaps '(vim:search-mode-keymap)
+                 :keymaps '(vim:search-keymap)
                  :command-function 'vim:search-mode-command)
 (add-hook 'vim:search-mode-on-hook 'vim:search-mode-activate)
 (add-hook 'vim:search-mode-off-hook 'vim:search-mode-activate)
