@@ -360,6 +360,44 @@ command-specific transformations."
         (setf (vim:motion-type motion) 'inclusive)))
     motion))
 
+
+(defconst vim:emacs-keymap (vim:make-keymap)
+  "Keymap for EMACS mode.")
+
+(vim:define-mode emacs "VIM emacs-mode"
+                 :ident "E"
+                 :keymaps '(vim:emacs-keymap)
+                 :command-function 'vim:normal-mode-command)
+
+;; from viper
+(defsubst vim:ESC-event-p (event)
+  (let ((ESC-keys '(?\e (control \[) escape))
+        (key (event-basic-type event)))
+    (member key ESC-keys)))
+
+;; from viper
+(defun vim:escape-to-emacs (events)
+  "Executes some `events' in emacs."
+
+  (let* ((vim-key-mode nil)
+         (unread-command-events events)
+         (keys (read-key-sequence nil))
+         (event (elt (listify-key-sequence keys) 0)))
+
+    (when (vim:ESC-event-p event)
+      (let ((unread-command-events keys))
+        (setq keys (read-key-sequence nil))))
+
+    (let ((command (key-binding keys)))
+      (setq this-command command)
+      (setq last-command-event (elt keys (1- (length keys))))
+      (setq last-command-char last-command-event)
+      (command-execute command)
+      (when (memq command '(digit-argument
+                            universal-argument))
+        (vim:escape-to-emacs nil)))))
+
+
 (provide 'vim-vim)
 
 ;;; vim-vim.el ends here
