@@ -93,8 +93,13 @@
 (vim:deflocalvar vim:last-find nil
   "The previous find command (command . arg).")
 
-(defcustom vim:word "0-9a-zA-Z_"
+(defcustom vim:word "[:word:]"
   "Regexp-set matching a word."
+  :type 'string
+  :group 'vim-mode)
+
+(defcustom vim:whitespace " \t\r\n"
+  "Regexp-set matching a whitespace."
   :type 'string
   :group 'vim-mode)
 
@@ -396,19 +401,20 @@ return the correct end-position of emacs-ranges, i.e.
 
 (vim:defmotion vim:motion-fwd-word (exclusive count)
   "Moves the cursor beginning of the next word."
-  (dotimes (i (or count 1))
-    (forward-char)
-    (while
-        (not
-         (or (and (vim:looking-back "[ \t\r\n]")
-                  (looking-at "[^ \t\r\n]"))
-             (and (vim:looking-back (concat "[" vim:word "]"))
-                  (looking-at (concat "[^ \t\r\n" vim:word "]")))
-             (and (vim:looking-back (concat "[^ \t\r\n" vim:word "]"))
-                  (looking-at (concat "[" vim:word "]")))
-             (and (bolp) (eolp))
-             (eobp)))
-      (forward-char)))
+  (let ((word (concat "[" vim:word "]"))
+        (noword (concat "[^" vim:word "]"))
+        (nonword (concat "[^" vim:whitespace vim:word "]"))
+        (nononword (concat "[" vim:whitespace vim:word "]")))
+    (dotimes (i (or count 1))
+      (forward-char)
+      (while
+          (not
+           (or (and (looking-back noword) (looking-at word))
+               (and (looking-back nononword) (looking-at nonword))
+               (and (bolp) (eolp))
+               (eobp)))
+        (forward-char))))
+
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
   (when (and (vim:operator-pending-mode-p)
@@ -418,112 +424,95 @@ return the correct end-position of emacs-ranges, i.e.
                     (and (bolp) (eolp)))))
     (forward-line -1)
     (end-of-line)))
-
-
-(vim:defmotion vim:motion-fwd-WORD (exclusive count)
-  "Moves the cursor to beginning of the next WORD."
-  (dotimes (i (or count 1))
-    (forward-char)
-    (while
-        (not
-         (or (and (vim:looking-back "[ \t\r\n]")
-                  (looking-at "[^ \t\r\n]"))
-             (and (bolp) (eolp))
-             (eobp)))
-      (forward-char)))
-  ;; in operator-pending mode, if we reached the beginning of a new
-  ;; line, go back to the end of the previous line
-  (when (and (vim:operator-pending-mode-p)
-             (vim:looking-back "^[ \t]*")
-             (not (save-excursion
-                    (forward-line -1)
-                    (and (bolp) (eolp)))))
-    (forward-line -1)
-    (end-of-line)))
-
-
-(vim:defmotion vim:motion-fwd-word-end (inclusive count)
-  "Moves the cursor to the end of the next word."            
-  (dotimes (i (or count 1))
-    (forward-char)
-    (while
-        (not
-         (or (looking-at (concat "[^ \t\r\n]"
-                                 "[ \t\r\n]"))
-             (looking-at (concat "[" vim:word "]"
-                                 "[^ \t\r\n" vim:word "]"))
-             (looking-at (concat "[^ \t\r\n" vim:word "]"
-                                 "[" vim:word "]"))
-             (eobp)))
-      (forward-char))))
-
-
-(vim:defmotion vim:motion-fwd-WORD-end (inclusive count)
-  "Moves the cursor to the end of the next WORD."            
-  (dotimes (i (or count 1))
-    (forward-char)
-    (while
-        (not (or (looking-at (concat "[^ \t\r\n]"
-                                     "[ \t\r\n]"))
-                 (eobp)))
-      (forward-char))))
 
 
 (vim:defmotion vim:motion-bwd-word (exclusive count)
   "Moves the cursor beginning of the previous word."
-  (dotimes (i (or count 1))
-    (backward-char)
-    (while
-        (not
-         (or (and (vim:looking-back "[ \t\r\n]")
-                  (looking-at "[^ \t\r\n]"))
-             (and (vim:looking-back (concat "[" vim:word "]"))
-                  (looking-at (concat "[^ \t\r\n" vim:word "]")))
-             (and (vim:looking-back (concat "[^ \t\r\n" vim:word "]"))
-                  (looking-at (concat "[" vim:word "]")))
-             (and (bolp) (eolp))
-             (bobp)))
-      (backward-char))))
+  (let ((word (concat "[" vim:word "]"))
+        (noword (concat "[^" vim:word "]"))
+        (nonword (concat "[^" vim:whitespace vim:word "]"))
+        (nononword (concat "[" vim:whitespace vim:word "]")))
+    (dotimes (i (or count 1))
+      (backward-char)
+      (while
+          (not
+           (or (and (looking-back noword) (looking-at word))
+               (and (looking-back nononword) (looking-at nonword))
+               (and (bolp) (eolp))
+               (eobp)))
+        (backward-char))))
 
 
-(vim:defmotion vim:motion-bwd-WORD (exclusive count)
-  "Moves the cursor to beginning of the previous WORD."
-  (dotimes (i (or count 1))
-    (backward-char)
-    (while
-        (not
-         (or (and (vim:looking-back "[ \t\r\n]")
-                  (looking-at "[^ \t\r\n]"))
-             (and (bolp) (eolp))
-             (bobp)))
-      (backward-char))))
+(vim:defmotion vim:motion-fwd-word-end (inclusive count)
+  "Moves the cursor to the end of the next word."            
+  (let ((wordend (concat "[" vim:word "][^" vim:word "]"))
+        (nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
+    (forward-char)
+    (re-search-forward (concat wordend "\\|" nowordend "\\|\\'") nil nil (or count 1))
+    (goto-char (match-beginning 0))))
 
 
 (vim:defmotion vim:motion-bwd-word-end (inclusive count)
   "Moves the cursor to the end of the previous word."            
-  (dotimes (i (or count 1))
-    (backward-char)
-    (while
-        (not
-         (or (and (looking-at (concat "[^ \t\r\n]"
-                                      "[ \t\r\n]")))
-             (and (looking-at (concat "[" vim:word "]"
-                                      "[^ \t\r\n" vim:word "]")))
-             (and (looking-at (concat "[^ \t\r\n" vim:word "]"
-                                      "[" vim:word "]")))
-             (bobp)))
-      (backward-char))))
+  (let ((wordend (concat "[" vim:word "][^" vim:word "]"))
+        (nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
+    (unless (eobp) (forward-char))
+    (re-search-backward (concat wordend "\\|" nowordend "\\|\\`") nil nil (or count 1))
+    (goto-char (match-beginning 0))))
+
+
+(vim:defmotion vim:motion-fwd-WORD (exclusive count)
+  "Moves the cursor to beginning of the next WORD."
+  (let ((WORD (concat "[^" vim:whitespace "]"))
+        (noWORD (concat "[" vim:whitespace "]")))
+    (dotimes (i (or count 1))
+      (forward-char)
+      (while
+          (not
+           (or (and (looking-back noWORD) (looking-at WORD))
+               (and (bolp) (eolp))
+               (eobp)))
+        (forward-char))))
+  
+  ;; in operator-pending mode, if we reached the beginning of a new
+  ;; line, go back to the end of the previous line
+  (when (and (vim:operator-pending-mode-p)
+             (vim:looking-back "^[ \t]*")
+             (not (save-excursion
+                    (forward-line -1)
+                    (and (bolp) (eolp)))))
+    (forward-line -1)
+    (end-of-line)))
+
+
+(vim:defmotion vim:motion-bwd-WORD (exclusive count)
+  "Moves the cursor to beginning of the previous WORD."
+  (let ((WORD (concat "[^" vim:whitespace "]"))
+        (noWORD (concat "[" vim:whitespace "]")))
+    (dotimes (i (or count 1))
+      (backward-char)
+      (while
+          (not
+           (or (and (looking-back noWORD) (looking-at WORD))
+               (and (bolp) (eolp))
+               (eobp)))
+        (backward-char))))
+
+
+(vim:defmotion vim:motion-fwd-WORD-end (inclusive count)
+  "Moves the cursor to the end of the next WORD."            
+  (let ((WORDend (concat "[^" vim:whitespace "][" vim:whitespace "]")))
+    (forward-char)
+    (re-search-forward (concat WORDend "\\|\\'") nil nil (or count 1))
+    (goto-char (match-beginning 0))))
 
 
 (vim:defmotion vim:motion-bwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
-  (dotimes (i (or count 1))
-    (backward-char)
-    (while
-        (not (or (looking-at (concat "[^ \t\r\n]"
-                                     "[ \t\r\n]"))
-                 (bobp)))
-      (backward-char))))
+  (let ((WORDend (concat "[^" vim:whitespace "][" vim:whitespace "]")))
+    (unless (eobp) (forward-char))
+    (re-search-backward (concat WORDend "\\|\\'") nil nil (or count 1))
+    (goto-char (match-beginning 0))))
 
 
 (vim:defmotion vim:motion-fwd-sentence (exclusive count)
