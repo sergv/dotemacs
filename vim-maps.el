@@ -99,6 +99,10 @@
 (vim:omap "G" 'vim:motion-go-to-first-non-blank-end) 
 (vim:omap "gg" 'vim:motion-go-to-first-non-blank-beg) 
 
+(vim:omap "H" 'vim:motion-window-first-line)
+(vim:omap "M" 'vim:motion-window-middle-line)
+(vim:omap "L" 'vim:motion-window-last-line)
+
 (vim:omap "w" 'vim:motion-fwd-word)
 (vim:omap "W" 'vim:motion-fwd-WORD)
 (vim:omap "e" 'vim:motion-fwd-word-end)
