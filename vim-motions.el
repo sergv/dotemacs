@@ -107,7 +107,7 @@
   "Adjust the pointer after a command."
   ;; TODO: should we check modes directly?
   (when (and (not (vim:insert-mode-p))
-             );(not vim:replace-mode))
+             )				;(not vim:replace-mode))
     
     (when vim:this-column
       (move-to-column vim:this-column))
@@ -130,10 +130,10 @@
 ;; It should *not* be returned by motions.
 (defstruct (vim:motion
             (:constructor vim:make-motion-struct))
-  has-begin ; t iff the motion defined an explicit begin
-  begin  ; first point in this motion
-  end    ; last point in this motion
-  type   ; 'inclusive, 'exclusive, 'linewise
+  has-begin		  ; t iff the motion defined an explicit begin
+  begin			  ; first point in this motion
+  end			  ; last point in this motion
+  type			  ; 'inclusive, 'exclusive, 'linewise
   )
 
 (defun* vim:make-motion (&key
@@ -274,7 +274,7 @@ return the correct end-position of emacs-ranges, i.e.
 (defun vim:local-mark-p (mark-char)
   "Returns t if `mark-char' is a local mark."
   (or (and (>= mark-char ?a) (<= mark-char ?z))
-          (member mark-char '(?^ ?. ?< ?>))))
+      (member mark-char '(?^ ?. ?< ?>))))
 
 (defun vim:global-mark-p (mark-char)
   "Returns t if `mark-char' is a global mark."
@@ -440,13 +440,13 @@ return the correct end-position of emacs-ranges, i.e.
                (and (looking-back nononword) (looking-at nonword))
                (and (bolp) (eolp))
                (eobp)))
-        (backward-char))))
+        (backward-char)))))
 
 
 (vim:defmotion vim:motion-fwd-word-end (inclusive count)
   "Moves the cursor to the end of the next word."            
   (let ((wordend (concat "[" vim:word "][^" vim:word "]"))
-        (nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
+	(nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
     (forward-char)
     (re-search-forward (concat wordend "\\|" nowordend "\\|\\'") nil nil (or count 1))
     (goto-char (match-beginning 0))))
@@ -455,7 +455,7 @@ return the correct end-position of emacs-ranges, i.e.
 (vim:defmotion vim:motion-bwd-word-end (inclusive count)
   "Moves the cursor to the end of the previous word."            
   (let ((wordend (concat "[" vim:word "][^" vim:word "]"))
-        (nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
+	(nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
     (unless (eobp) (forward-char))
     (re-search-backward (concat wordend "\\|" nowordend "\\|\\`") nil nil (or count 1))
     (goto-char (match-beginning 0))))
@@ -464,23 +464,23 @@ return the correct end-position of emacs-ranges, i.e.
 (vim:defmotion vim:motion-fwd-WORD (exclusive count)
   "Moves the cursor to beginning of the next WORD."
   (let ((WORD (concat "[^" vim:whitespace "]"))
-        (noWORD (concat "[" vim:whitespace "]")))
+	(noWORD (concat "[" vim:whitespace "]")))
     (dotimes (i (or count 1))
       (forward-char)
       (while
-          (not
-           (or (and (looking-back noWORD) (looking-at WORD))
-               (and (bolp) (eolp))
-               (eobp)))
-        (forward-char))))
+	  (not
+	   (or (and (looking-back noWORD) (looking-at WORD))
+	       (and (bolp) (eolp))
+	       (eobp)))
+	(forward-char))))
   
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
   (when (and (vim:operator-pending-mode-p)
-             (vim:looking-back "^[ \t]*")
-             (not (save-excursion
-                    (forward-line -1)
-                    (and (bolp) (eolp)))))
+	     (vim:looking-back "^[ \t]*")
+	     (not (save-excursion
+		    (forward-line -1)
+		    (and (bolp) (eolp)))))
     (forward-line -1)
     (end-of-line)))
 
@@ -488,15 +488,15 @@ return the correct end-position of emacs-ranges, i.e.
 (vim:defmotion vim:motion-bwd-WORD (exclusive count)
   "Moves the cursor to beginning of the previous WORD."
   (let ((WORD (concat "[^" vim:whitespace "]"))
-        (noWORD (concat "[" vim:whitespace "]")))
+	(noWORD (concat "[" vim:whitespace "]")))
     (dotimes (i (or count 1))
       (backward-char)
       (while
-          (not
-           (or (and (looking-back noWORD) (looking-at WORD))
-               (and (bolp) (eolp))
-               (eobp)))
-        (backward-char))))
+	  (not
+	   (or (and (looking-back noWORD) (looking-at WORD))
+	       (and (bolp) (eolp))
+	       (eobp)))
+	(backward-char)))))
 
 
 (vim:defmotion vim:motion-fwd-WORD-end (inclusive count)
@@ -519,9 +519,9 @@ return the correct end-position of emacs-ranges, i.e.
   "Move the cursor `count' sentences forward."
   
   (re-search-forward "\\(?:[.!?][]\"')]*\\(?:[ \t\r]+\\|$\\)\n?\\|\\=[ \t\r]*\n\\(?:[ \t\r]*\n\\)*[ \t\r]*\\)"
-                     nil
-                     t
-                     (or count 1)))
+		     nil
+		     t
+		     (or count 1)))
 
 
 (vim:defmotion vim:motion-bwd-sentence (exclusive count)
@@ -529,7 +529,7 @@ return the correct end-position of emacs-ranges, i.e.
   
   (dotimes (i (or count 1))
     (goto-char (max (save-excursion (backward-sentence 1) (point))
-                    (save-excursion (backward-paragraph 1) (point))))))
+		    (save-excursion (backward-paragraph 1) (point))))))
 
 
 (vim:defmotion vim:motion-fwd-paragraph (exclusive count)
@@ -547,7 +547,7 @@ return the correct end-position of emacs-ranges, i.e.
   (forward-char)
   (let ((case-fold-search nil))
     (unless (search-forward (char-to-string arg)
-                            nil t (or count 1))
+			    nil t (or count 1))
       (backward-char)
       (error (format "Can't find %c" arg)))
     (setq vim:last-find (cons 'vim:motion-find arg))
@@ -558,7 +558,7 @@ return the correct end-position of emacs-ranges, i.e.
   "Move the cursor to the previous count'th occurrence of arg."
   (let ((case-fold-search nil))
     (unless (search-backward (char-to-string arg)
-                             nil t (or count 1))
+			     nil t (or count 1))
       (error (format "Can't find %c" arg)))
     (setq vim:last-find (cons 'vim:motion-find-back arg))))
 
@@ -584,8 +584,8 @@ return the correct end-position of emacs-ranges, i.e.
   (unless vim:last-find
     (error "No previous find command."))
   (funcall (car vim:last-find)
-           :count count
-           :argument (cdr vim:last-find)))
+	   :count count
+	   :argument (cdr vim:last-find)))
 
 
 (vim:defmotion vim:motion-repeat-last-find-opposite (inclusive count)
@@ -593,13 +593,13 @@ return the correct end-position of emacs-ranges, i.e.
   (unless vim:last-find
     (error "No previous find command."))
   (let ((func (case (car vim:last-find)
-                ('vim:motion-find 'vim:motion-find-back)
-                ('vim:motion-find-back 'vim:motion-find)
-                ('vim:motion-find-to 'vim:motion-find-back-to)
-                ('vim:motion-find-back-to 'vim:motion-find-to)
-                (t (error (format "Unexpected find command %s"
-                                  (car vim:last-find))))))
-        (arg (cdr vim:last-find)))
+		('vim:motion-find 'vim:motion-find-back)
+		('vim:motion-find-back 'vim:motion-find)
+		('vim:motion-find-to 'vim:motion-find-back-to)
+		('vim:motion-find-back-to 'vim:motion-find-to)
+		(t (error (format "Unexpected find command %s"
+				  (car vim:last-find))))))
+	(arg (cdr vim:last-find)))
     (let ((vim:last-find nil))
       (funcall func :count count :argument arg))))
 
@@ -608,42 +608,42 @@ return the correct end-position of emacs-ranges, i.e.
   "Find the next item in this line after or under the cursor and
 jumps to the corresponding one."
   (let ((next-open
-         (condition-case err
-             (1- (scan-lists (point) 1 -1))
-           (error
-            (point-max))))
-        (next-close
-         (condition-case nil
-             (1- (scan-lists (point) 1 +1))
-           (error (point-max)))))
+	 (condition-case err
+	     (1- (scan-lists (point) 1 -1))
+	   (error
+	    (point-max))))
+	(next-close
+	 (condition-case nil
+	     (1- (scan-lists (point) 1 +1))
+	   (error (point-max)))))
     (let ((pos (min next-open next-close)))
       (when (>= pos (line-end-position))
-        (error "No matching item found on the current line."))
+	(error "No matching item found on the current line."))
       (if (= pos next-open)
-          (progn
-            (goto-char pos)
-            (forward-list)
-            (backward-char))
-        (progn
-          (goto-char (1+ pos))
-          (backward-list))))))
+	  (progn
+	    (goto-char pos)
+	    (forward-list)
+	    (backward-char))
+	(progn
+	  (goto-char (1+ pos))
+	  (backward-list))))))
 
 
 (vim:defmotion vim:motion-inner-word (inclusive count)
   "Select `count' words."
   (let ((beg (save-excursion
-               (forward-char)
-               (vim:motion-bwd-word)
-               (point)))
-        (end (save-excursion
-               (backward-char)
-               (vim:motion-fwd-word-end :count count)
-               (point))))
+	       (forward-char)
+	       (vim:motion-bwd-word)
+	       (point)))
+	(end (save-excursion
+	       (backward-char)
+	       (vim:motion-fwd-word-end :count count)
+	       (point))))
     (goto-char end)
     (vim:make-motion :has-begin t
-                     :begin beg
-                     :end end
-                     :type 'inclusive)))
+		     :begin beg
+		     :end end
+		     :type 'inclusive)))
 
 
 (vim:defmotion vim:motion-mark (exclusive (argument:char mark-char))
