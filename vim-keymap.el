@@ -8,10 +8,26 @@
 
 ;;; Code:
 
+(defmacro vim:kbdmacro-to-command (events)
+  "Creates a command passing prefix-argument to given keyboard-macro `events'."
+  (let ((arg (gensym)))
+    `(lambda (,arg)
+       (interactive "P")
+       (execute-kbd-macro
+        (if ,arg
+            (vconcat (number-to-string (prefix-numeric-value ,arg))
+                     ,events)
+          ,events)))))
+
+
 (defun* vim:map (keys command &key (keymap nil))
   "Maps the sequence of events `keys' to a `command' in a certain
 `keymap.'"
-  (define-key keymap keys command))
+  (if (or (stringp command)
+          (vectorp command))
+      (lexical-let ((kbdevents command))
+        (define-key keymap keys (vim:kbdmacro-to-command kbdevents)))
+    (define-key keymap keys command)))
 
 (defun vim:make-keymap (&optional parent)
   "Creates a new keymap with a certain `parent' keymap."
