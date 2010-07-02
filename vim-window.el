@@ -152,16 +152,11 @@
 
 
 (vim:defcmd vim:window-previous (nonrepeatable)
-            :type 'simple
-            :repeatable nil
-            :count nil
   "Move the cursor to the previous (last accessed) window."
   (select-window (get-lru-window)))
             
 
 (vim:defcmd vim:window-new (count (argument:file file) nonrepeatable)
-            :type 'simple
-            :repeatable nil
   "Splits the current window horizontally and opens a new buffer or edits a certain `file'."
   (split-window (selected-window) count)
   (if file
@@ -173,8 +168,6 @@
 
 
 (vim:defcmd vim:window-vnew (count (argument:file file) nonrepeatable)
-            :type 'simple
-            :repeatable nil
   "Splits the current window vertically and opens a new buffer name or edits a certain `file'."
   (split-window (selected-window) count t)
   (if file
@@ -185,23 +178,16 @@
 
 
 (vim:defcmd vim:window-balance (nonrepeatable)
-            :type 'simple
-            :repeatable nil
-            :count nil
   "Balances all window sizes."
   (balance-windows))
 
 
 (vim:defcmd vim:window-increase-height (count nonrepeatable)
-            :type 'simple
-            :repeatable nil
   "Increase current window height by `count'."
   (vim:resize-window (+ (window-height) (or count 1))))
             
 
 (vim:defcmd vim:window-decrease-height (count nonrepeatable)
-            :type 'simple
-            :repeatable nil
   "Decrease current window height by `count'."
   (vim:resize-window (- (window-height) (or count 1))))
 
