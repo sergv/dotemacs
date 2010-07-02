@@ -150,11 +150,30 @@
       (error nil))))
 
 
-
-(vim:defcmd vim:window-previous (nonrepeatable)
+(vim:defcmd vim:window-lru (nonrepeatable)
   "Move the cursor to the previous (last accessed) window."
   (select-window (get-lru-window)))
             
+
+(vim:defcmd vim:window-next (count nonrepeatable)
+  "Move the cursor to the next window in the cyclic order.
+With `count' go to the count-th window in the order starting from
+top-left."
+  (if (not count)
+      (select-window (next-window))
+    (vim:window-top-left)
+    (other-window (1- (or count 1)))))
+
+
+(vim:defcmd vim:window-prev (count nonrepeatable)
+  "Move the cursor to the previous window in the cyclic order.
+With `count' go to the count-th window in the order starting from
+top-left."
+  (if (not count)
+      (select-window (previous-window))
+    (vim:window-top-left)
+    (other-window (1- (or count 1)))))
+
 
 (vim:defcmd vim:window-new (count (argument:file file) nonrepeatable)
   "Splits the current window horizontally and opens a new buffer or edits a certain `file'."
