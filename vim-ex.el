@@ -312,6 +312,9 @@ Returns a list of up to three elements: (cmd beg end)"
     (values (cons 'abs (string-to-number (match-string 0 text)))
             (match-end 0)))
 
+   ((= (aref text pos) ?$)
+    (values (cons 'abs (line-number-at-pos (point-max))) (1+ pos)))
+
    ((= (aref text pos) ?\%)
     (values 'all (1+ pos)))
     
