@@ -247,7 +247,7 @@
                     (funcall cmd))))
                 (t (error "Unexpected command-type bound to %s" vim:ex-cmd))))
          (beg (vim:motion-go-to-first-non-blank-beg :count (or end beg)))
-         (t (message "%s %s" range beg) (ding)))))))
+         (t (ding)))))))
     
 
 ;; parser for ex-commands
