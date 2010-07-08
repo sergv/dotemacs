@@ -46,6 +46,16 @@
 (define-key vim:ex-keymap (kbd "C-g") 'abort-recursive-edit)
 (define-key vim:ex-keymap [up] 'previous-history-element)
 (define-key vim:ex-keymap [down] 'next-history-element)
+(define-key vim:ex-keymap "\d" 'vim:ex-delete-backward-char)
+
+(defun vim:ex-delete-backward-char (n)
+  "Delete the previous `n' characters. If ex-buffer is empty,
+cancel ex-mode."
+  (interactive "p")
+  (if (and (>= n 1)
+           (zerop (length (minibuffer-contents))))
+      (exit-minibuffer))
+  (delete-backward-char n))
 
 (defvar vim:ex-keep-reading nil)
 (defvar vim:ex-cmdline nil)
@@ -421,7 +431,8 @@ Returns a list of up to three elements: (cmd beg end)"
   (let ((vim:ex-current-buffer (current-buffer)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (let ((result (completing-read ":" 'vim:ex-complete nil nil initial-input  'vim:ex-history)))
-        (when result
+        (when (and result
+                   (not (zerop (length result))))
           (vim:ex-execute-command result))))))
 
 (provide 'vim-ex)
