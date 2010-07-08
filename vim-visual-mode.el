@@ -228,6 +228,9 @@
                      (goto-line (car vim:visual-last-end))
                      (move-to-column (cdr vim:visual-last-end))
                      (point)))
+  
+  (when (vim:cmd-char-arg-p command)
+    (setq vim:current-cmd-arg (read-char-exclusive)))
 
   (if (vim:cmd-motion-p command)
       (let ((vim:last-undo buffer-undo-list) parameters)
@@ -236,6 +239,9 @@
         (when (vim:cmd-register-p command)
           (push vim:current-register parameters)
           (push :register parameters))
+        (when (vim:cmd-char-arg-p command)
+          (push vim:current-cmd-arg parameters)
+          (push :argument parameters))
         (vim:apply-save-buffer (vim:cmd-function command) parameters)
         (when (vim:cmd-repeatable-p command)
           (setq vim:repeat-events (vconcat vim:current-key-sequence)))
