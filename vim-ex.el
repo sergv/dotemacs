@@ -56,7 +56,7 @@
 (defun vim:ex-split-cmdline (cmdline)
   (multiple-value-bind (cmd-region beg end) (vim:ex-parse cmdline)
     (if (null cmd-region)
-        (values "" "" cmdline "" nil nil)
+        (values cmdline "" cmdline "" beg end)
       (let ((range (substring cmdline 0 (car cmd-region)))
             (cmd (substring cmdline (car cmd-region) (cdr cmd-region)))
             (spaces "")
@@ -229,24 +229,25 @@
         (setq arg nil))
 
       (with-current-buffer vim:ex-current-buffer
-        (if cmd
-            (case (vim:cmd-type cmd)
-              ('complex
-               (if (vim:cmd-arg-p cmd)
-                   (funcall cmd :motion motion :argument arg)
-                 (funcall cmd :motion motion)))
-              ('simple
-               (when end
-                 (error "Command does not take a range: %s" vim:ex-cmd))
-               (if (vim:cmd-arg-p cmd)
-                   (if (vim:cmd-count-p cmd)
-                       (funcall cmd :count beg :argument arg)
-                     (funcall cmd :argument arg))
-                 (if (vim:cmd-count-p cmd)
-                     (funcall cmd :count count)
-                   (funcall cmd))))
-              (t (error "Unexpected command-type bound to %s" vim:ex-cmd)))
-          (ding))))))
+        (cond
+         (cmd (case (vim:cmd-type cmd)
+                ('complex
+                 (if (vim:cmd-arg-p cmd)
+                     (funcall cmd :motion motion :argument arg)
+                   (funcall cmd :motion motion)))
+                ('simple
+                (when end
+                  (error "Command does not take a range: %s" vim:ex-cmd))
+                (if (vim:cmd-arg-p cmd)
+                    (if (vim:cmd-count-p cmd)
+                        (funcall cmd :count beg :argument arg)
+                      (funcall cmd :argument arg))
+                  (if (vim:cmd-count-p cmd)
+                      (funcall cmd :count count)
+                    (funcall cmd))))
+                (t (error "Unexpected command-type bound to %s" vim:ex-cmd))))
+         (beg (vim:motion-go-to-first-non-blank-beg :count (or end beg)))
+         (t (message "%s %s" range beg) (ding)))))))
     
 
 ;; parser for ex-commands
