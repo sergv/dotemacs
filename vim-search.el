@@ -222,7 +222,21 @@
 (defun vim:parse-substitute (text)
   (when (string-match "\\`\\s-*/\\(\\(?:[^/]\\|\\\\.\\)+\\)/\\(\\(?:[^/]\\|\\\\.\\)*\\)\\(?:/\\([giIc]*\\)\\)?\\s-*\\'"
                       text)
-    (values (match-string 1 text) (match-string 2 text) (match-string 3 text))))
+    (let ((pattern (match-string 1 text))
+          (replacement (match-string 2 text))
+          (flags (match-string 3 text)))
+      (values pattern
+              ;; handle some special escapes, especially \\ and \/
+              (replace-regexp-in-string "\\\\."
+                                        (lambda (x)
+                                          (cond ((string= x "\\n") "\n")
+                                                ((string= x "\\t") "\t")
+                                                ((string= x "\\r") "\r")
+                                                ((string= x "\\/") "/")
+                                                ((string= x "\\\\") "\\\\\\\\")
+                                                (t x)))
+                                        replacement)
+              flags))))
 
 (provide 'vim-search)
 
