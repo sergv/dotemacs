@@ -517,19 +517,24 @@ return the correct end-position of emacs-ranges, i.e.
 
 (vim:defmotion vim:motion-fwd-sentence (exclusive count)
   "Move the cursor `count' sentences forward."
-  
-  (re-search-forward "\\(?:[.!?][]\"')]*\\(?:[ \t\r]+\\|$\\)\n?\\|\\=[ \t\r]*\n\\(?:[ \t\r]*\n\\)*[ \t\r]*\\)"
-		     nil
-		     t
-		     (or count 1)))
-
+  (dotimes (i (or count 1))
+    (let ((par-end (save-excursion
+                     (forward-paragraph)
+                     (point))))
+      (unless (re-search-forward (sentence-end) par-end t)
+        (goto-char par-end)))))
+    
 
 (vim:defmotion vim:motion-bwd-sentence (exclusive count)
-  "Move the cursor `count' sentences forward."
-  
+  "Move the cursor `count' sentences backward."
   (dotimes (i (or count 1))
-    (goto-char (max (save-excursion (backward-sentence 1) (point))
-		    (save-excursion (backward-paragraph 1) (point))))))
+    (let ((par-beg (save-excursion
+                     (backward-paragraph)
+                     (point))))
+      (if (re-search-backward (concat (sentence-end) "[^ \t\n]")
+                              par-beg t)
+          (goto-char (1- (match-end 0)))
+        (goto-char par-beg)))))
 
 
 (vim:defmotion vim:motion-fwd-paragraph (exclusive count)
