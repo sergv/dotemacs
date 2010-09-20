@@ -122,6 +122,21 @@
     "Switches to block visual-mode or deactivates it."
     (vim:visual-toggle-mode 'block))
 
+(defun vim:visual-normal-mode-p ()
+  "Returns `t' iff charwise visual mode is activated, nil otherwise."
+  (and vim:visual-mode
+       (eq vim:visual-mode-type 'normal)))
+
+(defun vim:visual-linewise-mode-p ()
+  "Returns `t' iff linewise visual mode is activated, nil otherwise."
+  (and vim:visual-mode
+       (eq vim:visual-mode-type 'linewise)))
+
+(defun vim:visual-block-mode-p ()
+  "Returns `t' iff block visual mode is activated, nil otherwise."
+  (and vim:visual-mode
+       (eq vim:visual-mode-type 'block)))
+
 
 (vim:defcmd vim:visual-mode-exit (nonrepeatable)
   "Deactivates visual mode, returning to normal-mode."
