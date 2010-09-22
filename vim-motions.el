@@ -93,7 +93,7 @@
 (vim:deflocalvar vim:last-find nil
   "The previous find command (command . arg).")
 
-(defcustom vim:word "[:word:]"
+(defcustom vim:word "[:word:]_"
   "Regexp-set matching a word."
   :type 'string
   :group 'vim-mode)
@@ -399,22 +399,296 @@ return the correct end-position of emacs-ranges, i.e.
   (vim:motion-first-non-blank))
 
 
+(defun vim:union-selector (&rest selectors)
+  "Returns a selector which returns the object of all selectors
+which is closest to point."
+  (lexical-let ((selectors selectors))
+    #'(lambda (direction)
+        (reduce #'(lambda (obj1 obj2)
+                    (multiple-value-bind (b1 e1) obj1
+                      (multiple-value-bind (b2 e2) obj2
+                        (cond
+                         ((not obj1) obj2)
+                         ((not obj2) obj1)
+                         ((> direction 0)
+                          (if (or (< b1 b2)
+                                  (and (= b1 b2) (> e1 e2)))
+                              obj1 obj2))
+                         ((<= direction 0)
+                          (if (or (> e1 e2)
+                                  (and (= e1 e2) (< b1 b2)))
+                              obj1 obj2))))))
+                          
+                (mapcar #'(lambda (sel) (funcall sel direction)) selectors)))))
+ 
+
+(defun vim:select-re (direction re not-re)
+  "Returns a selector based on regular expressions.
+`re' should be a regular expression matching the text-object
+starting at (point). `not-re' should be a regular expression
+matching the first element backwards which is not contained in
+the object at point."
+  (labels
+      ((select-beg () (save-excursion
+                        (re-search-backward not-re nil t)
+                        (1+ (match-beginning 0))))
+       (select-end () (save-excursion
+                        (re-search-forward re nil t)
+                        (if (= (match-beginning 0) (match-end 0))
+                            (point)
+                          (1- (match-end 0))))))
+
+    (cond
+     ((looking-at re) (values (select-beg) (select-end)))
+     
+     ((> direction 0)
+      (save-excursion
+        (when (re-search-forward re nil t)
+          (goto-char (match-beginning 0))
+          (values (point) (select-end)))))
+
+     ((< direction 0)
+      (save-excursion
+        (when (re-search-backward re nil t)
+          (goto-char (match-beginning 0))
+          (values (select-beg) (point))))))))
+
+
+(defun vim:select-ws (direction)
+  "A selector for whitespaces [ \t]."
+  (vim:select-re direction "[ \t]+" "[^ \t]"))
+  
+
+(defun vim:select-word (direction)
+  "A selector for words."
+  (let ((word (concat "[" vim:word "]+\\|^$"))
+        (noword (concat "[^" vim:word "]"))
+        (nonword (concat "[^ \t\r\n" vim:word "]+"))
+        (nononword (concat "[ \t\r\n" vim:word "]")))
+    (funcall (vim:union-selector #'(lambda (dir) (vim:select-re dir word noword))
+                                 #'(lambda (dir) (vim:select-re dir nonword nononword)))
+             direction)))
+                     
+
+(defun vim:select-WORD (direction)
+  "A selector for WORDs."
+  (let ((WORD (concat "[^ \t\r\n]+\\|^$"))
+        (noWORD (concat "[ \t\r\n]")))
+    (vim:select-re direction WORD noWORD)))
+
+
+(defun vim:move-fwd-beg (n selector)
+  "Moves the cursor to the beginning of the `n'-th text-object
+forward given by `selector'. A selector is a function taking one
+parameter `direction' and should return two values specifing the
+first and the last position of the selected text-object. If
+`direction' is 0 only text-objects at (point) should be returned.
+If `direction' is > 0 a text-object at (point) or the next one in
+forward direction should be returned. If `direction' is < 0 a
+text-objext at (point) or the next one in backward direction
+should be returned. If no such text-object exists the function
+should return `nil'."
+  (if (eobp) (ding)
+    (multiple-value-bind (beg end) (funcall selector 0)
+      (when end (goto-char (1+ end)))
+      (dotimes (i n)
+        (multiple-value-bind (beg end) (funcall selector 1)
+          (if (< (1+ i) n)
+              (goto-char (1+ (or end (point-max))))
+            (goto-char (or beg (point-max)))))))))
+
+
+(defun vim:move-fwd-end (n selector)
+  "Moves the cursor to the end of the `n'-th text-object forward
+given by `selector'. A selector is a function taking one
+parameter `direction' and should return two values specifing the
+first and the last position of the selected text-object. If
+`direction' is 0 only text-objects at (point) should be returned.
+If `direction' is > 0 a text-object at (point) or the next one in
+forward direction should be returned. If `direction' is < 0 a
+text-objext at (point) or the next one in backward direction
+should be returned. If no such text-object exists the function
+should return `nil'."
+  (if (eobp) (ding)
+    (dotimes (i n)
+      (forward-char)
+      (multiple-value-bind (beg end) (funcall selector 1)
+        (goto-char (or end (point-max)))))))
+          
+
+(defun vim:move-bwd-beg (n selector)
+  "Moves the cursor to the beginning of the `n'-th text-object
+backward given by `selector'. A selector is a function taking one
+parameter `direction' and should return two values specifing the
+first and the last position of the selected text-object. If
+`direction' is 0 only text-objects at (point) should be returned.
+If `direction' is > 0 a text-object at (point) or the next one in
+forward direction should be returned. If `direction' is < 0 a
+text-objext at (point) or the next one in backward direction
+should be returned. If no such text-object exists the function
+should return `nil'."
+  (if (bobp) (ding)
+    (dotimes (i n)
+      (backward-char)
+      (multiple-value-bind (beg end) (funcall selector -1)
+        (goto-char (or beg (point-min)))))))
+
+
+(defun vim:move-bwd-end (n selector)
+  "Moves the cursor to the end of the `n'-th text-object backward
+given by `selector'. A selector is a function taking one
+parameter `direction' and should return two values specifing the
+first and the last position of the selected text-object. If
+`direction' is 0 only text-objects at (point) should be returned.
+If `direction' is > 0 a text-object at (point) or the next one in
+forward direction should be returned. If `direction' is < 0 a
+text-objext at (point) or the next one in backward direction
+should be returned. If no such text-object exists the function
+should return `nil'."
+  (if (bobp) (ding)
+    (multiple-value-bind (beg end) (funcall selector 0)
+      (when beg (goto-char (1- beg)))
+      (dotimes (i n)
+        (multiple-value-bind (beg end) (funcall selector -1)
+          (if (< (1+ i) n)
+              (goto-char (1- (or beg (point-min))))
+            (goto-char (or end (point-min)))))))))
+
+
+(defun vim:inner-motion (n selector type)
+  "Selects or extends an inner text-object given by `selector'.
+`n' is the number of text-objects to be selected (or by which the
+selection should be extended), `type' is the type of the motion
+to be returned. A selector is a function taking one parameter
+`direction' and should return two values specifing the first
+and the last position of the selected text-object. If
+`direction' is 0 only text-objects at (point) should be
+returned. If `direction' is > 0 a text-object at (point) or the
+next one in forward direction should be returned. If
+`direction' is < 0 a text-objext at (point) or the next one in
+backward direction should be returned. If no such text-object
+exists the function should return `nil'."
+  (let ((sel (vim:union-selector #'vim:select-ws selector))
+        beg end pnt)
+    (if (and (vim:visual-mode-p)
+             (/= (point) (mark)))
+        ;; extend visual range
+        (if (< (point) (mark))
+            ;; extend backward
+            (progn
+              (setq beg (save-excursion
+                         (vim:move-bwd-beg n sel)
+                          (point)))
+              (setq end (1- (mark))
+                    pnt beg))
+          ;; extend forward
+          (setq end (save-excursion
+                      (vim:move-fwd-end n sel)
+                      (point)))
+          (setq beg (mark)
+                pnt end))
+      
+      ;; select current ...
+      (multiple-value-bind (b e) (funcall sel 0)
+        (setq beg b)
+        (save-excursion
+          (goto-char e)
+          ;; ... and extend forward
+          (vim:move-fwd-end (1- n) sel)
+          (setq end (point)))
+        (setq pnt end)))
+
+    ;; change to normal visual mode
+    (when (vim:visual-linewise-mode-p)
+      (vim:visual-toggle-normal))
+    
+    (goto-char pnt)
+    (vim:make-motion :has-begin t
+                     :begin beg
+                     :end end
+                     :type type)))
+
+
+(defun vim:outer-motion (n selector type)
+  "Selects or extends an outer text-object given by `selector'.
+`n' is the number of text-objects to be selected (or by which the
+selection should be extended), `type' is the type of the motion
+to be returned. A selector is a function taking one parameter
+`direction' and should return two values specifing the first
+and the last position of the selected text-object. If
+`direction' is 0 only text-objects at (point) should be
+returned. If `direction' is > 0 a text-object at (point) or the
+next one in forward direction should be returned. If
+`direction' is < 0 a text-objext at (point) or the next one in
+backward direction should be returned. If no such text-object
+exists the function should return `nil'."
+  (let (beg end pnt)
+    (if (and (vim:visual-mode-p) (/= (point) (mark)))
+        ;; extend visual range
+        (if (< (point) (mark))
+            ;; extend backward
+            (progn
+              (dotimes (i n)
+                (let ((wsb (save-excursion (vim:move-bwd-beg 1 #'vim:select-ws) (point))))
+                  (vim:move-bwd-beg 1 selector)
+                  (when (and wsb (< wsb (point)) (looking-back "[ \t]"))
+                    (goto-char wsb))))
+              (setq end (point)
+                    pnt (point)))
+          
+          ;; extend forward
+          (dotimes (i n)
+            (let ((wse (save-excursion (vim:move-fwd-end 1 #'vim:select-ws) (point))))
+              (vim:move-fwd-end 1 selector)
+              (when (and wse (> wse (point)) (looking-at ".[ \t]"))
+                (goto-char wse))))
+          (setq end (point)
+                pnt (point)))
+      
+      ;; select current ...
+      (save-excursion
+        (multiple-value-bind (b e) (funcall selector 1)
+          (goto-char e)
+          (vim:move-fwd-end (1- n) selector)
+          (setq beg b
+                end (point))))
+
+      (cond
+       ;; started at whitespace before object
+       ((looking-at "[ \t]")
+        (multiple-value-bind (wsb wse) (vim:select-ws 0)
+          (setq beg wsb)))
+       ;; no whitespace after object, note that there may be no
+       ;; whitespace before the object, too
+       ((save-excursion (goto-char end) (not (looking-at ".[ \t]")))
+        (goto-char beg)
+        (skip-chars-backward " \t")
+        (setq beg (point)))
+       ;; whitespace after object
+       (t
+        (goto-char end)
+        (vim:move-fwd-end 1 #'vim:select-ws)
+        (setq end (point))))
+      
+      (setq pnt end))
+
+    ;; change to normal visual mode
+    (when (vim:visual-linewise-mode-p)
+      (vim:visual-toggle-normal))
+    
+    (goto-char pnt)
+    (if beg
+        (vim:make-motion :has-begin t
+                         :begin beg
+                         :end end
+                         :type type)
+      (vim:make-motion :end end :type type))))
+
+
 (vim:defmotion vim:motion-fwd-word (exclusive count)
   "Moves the cursor beginning of the next word."
-  (let ((word (concat "[" vim:word "]"))
-        (noword (concat "[^" vim:word "]"))
-        (nonword (concat "[^" vim:whitespace vim:word "]"))
-        (nononword (concat "[" vim:whitespace vim:word "]")))
-    (dotimes (i (or count 1))
-      (forward-char)
-      (while
-          (not
-           (or (and (looking-back noword) (looking-at word))
-               (and (looking-back nononword) (looking-at nonword))
-               (and (bolp) (eolp))
-               (eobp)))
-        (forward-char))))
-
+  (vim:move-fwd-beg (or count 1) #'vim:select-word)
+  
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
   (when (and (vim:operator-pending-mode-p)
@@ -428,91 +702,67 @@ return the correct end-position of emacs-ranges, i.e.
 
 (vim:defmotion vim:motion-bwd-word (exclusive count)
   "Moves the cursor beginning of the previous word."
-  (let ((word (concat "[" vim:word "]"))
-        (noword (concat "[^" vim:word "]"))
-        (nonword (concat "[^" vim:whitespace vim:word "]"))
-        (nononword (concat "[" vim:whitespace vim:word "]")))
-    (dotimes (i (or count 1))
-      (backward-char)
-      (while
-          (not
-           (or (and (looking-back noword) (looking-at word))
-               (and (looking-back nononword) (looking-at nonword))
-               (and (bolp) (eolp))
-               (eobp)))
-        (backward-char)))))
+  (vim:move-bwd-beg (or count 1) #'vim:select-word))
 
 
 (vim:defmotion vim:motion-fwd-word-end (inclusive count)
   "Moves the cursor to the end of the next word."            
-  (let ((wordend (concat "[" vim:word "][^" vim:word "]"))
-	(nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
-    (forward-char)
-    (re-search-forward (concat wordend "\\|" nowordend "\\|\\'") nil nil (or count 1))
-    (goto-char (match-beginning 0))))
+  (vim:move-fwd-end (or count 1) #'vim:select-word))
 
 
 (vim:defmotion vim:motion-bwd-word-end (inclusive count)
   "Moves the cursor to the end of the previous word."            
-  (let ((wordend (concat "[" vim:word "][^" vim:word "]"))
-	(nowordend (concat "[^" vim:whitespace vim:word "][" vim:whitespace vim:word "]")))
-    (unless (eobp) (forward-char))
-    (re-search-backward (concat wordend "\\|" nowordend "\\|\\`") nil nil (or count 1))
-    (goto-char (match-beginning 0))))
+  (vim:move-bwd-end (or count 1) #'vim:select-word))
+
+
+(vim:defmotion vim:motion-inner-word (inclusive count)
+  "Select `count' inner words."
+  (vim:inner-motion (or count 1) #'vim:select-word 'inclusive))
+
+
+(vim:defmotion vim:motion-outer-word (inclusive count)
+  "Select `count' outer words."
+  (vim:outer-motion (or count 1) #'vim:select-word 'inclusive))
 
 
 (vim:defmotion vim:motion-fwd-WORD (exclusive count)
   "Moves the cursor to beginning of the next WORD."
-  (let ((WORD (concat "[^" vim:whitespace "]"))
-	(noWORD (concat "[" vim:whitespace "]")))
-    (dotimes (i (or count 1))
-      (forward-char)
-      (while
-	  (not
-	   (or (and (looking-back noWORD) (looking-at WORD))
-	       (and (bolp) (eolp))
-	       (eobp)))
-	(forward-char))))
+  (vim:move-fwd-beg (or count 1) #'vim:select-WORD)
   
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
   (when (and (vim:operator-pending-mode-p)
-	     (vim:looking-back "^[ \t]*")
-	     (not (save-excursion
-		    (forward-line -1)
-		    (and (bolp) (eolp)))))
+             (vim:looking-back "^[ \t]*")
+             (not (save-excursion
+                    (forward-line -1)
+                    (and (bolp) (eolp)))))
     (forward-line -1)
     (end-of-line)))
 
 
 (vim:defmotion vim:motion-bwd-WORD (exclusive count)
   "Moves the cursor to beginning of the previous WORD."
-  (let ((WORD (concat "[^" vim:whitespace "]"))
-	(noWORD (concat "[" vim:whitespace "]")))
-    (dotimes (i (or count 1))
-      (backward-char)
-      (while
-	  (not
-	   (or (and (looking-back noWORD) (looking-at WORD))
-	       (and (bolp) (eolp))
-	       (eobp)))
-	(backward-char)))))
+  (vim:move-bwd-beg (or count 1) #'vim:select-WORD))
 
 
 (vim:defmotion vim:motion-fwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
-  (let ((WORDend (concat "[^" vim:whitespace "][" vim:whitespace "]")))
-    (forward-char)
-    (re-search-forward (concat WORDend "\\|\\'") nil nil (or count 1))
-    (goto-char (match-beginning 0))))
+  (vim:move-fwd-end (or count 1) #'vim:select-WORD))
 
 
 (vim:defmotion vim:motion-bwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
-  (let ((WORDend (concat "[^" vim:whitespace "][" vim:whitespace "]")))
-    (unless (eobp) (forward-char))
-    (re-search-backward (concat WORDend "\\|\\'") nil nil (or count 1))
-    (goto-char (match-beginning 0))))
+  (vim:move-bwd-end (or count 1) #'vim:select-WORD))
+
+
+(vim:defmotion vim:motion-inner-WORD (inclusive count)
+  "Select `count' inner WORDs."
+  (vim:inner-motion (or count 1) #'vim:select-WORD 'inclusive))
+
+
+(vim:defmotion vim:motion-outer-WORD (inclusive count)
+  "Select `count' outer WORDs."
+  (vim:outer-motion (or count 1) #'vim:select-WORD 'inclusive))
 
 
 (vim:defmotion vim:motion-fwd-sentence (exclusive count)
@@ -552,7 +802,7 @@ return the correct end-position of emacs-ranges, i.e.
   (forward-char)
   (let ((case-fold-search nil))
     (unless (search-forward (char-to-string arg)
-			    nil t (or count 1))
+                            nil t (or count 1))
       (backward-char)
       (error (format "Can't find %c" arg)))
     (setq vim:last-find (cons 'vim:motion-find arg))
@@ -563,7 +813,7 @@ return the correct end-position of emacs-ranges, i.e.
   "Move the cursor to the previous count'th occurrence of arg."
   (let ((case-fold-search nil))
     (unless (search-backward (char-to-string arg)
-			     nil t (or count 1))
+                             nil t (or count 1))
       (error (format "Can't find %c" arg)))
     (setq vim:last-find (cons 'vim:motion-find-back arg))))
 
@@ -589,8 +839,8 @@ return the correct end-position of emacs-ranges, i.e.
   (unless vim:last-find
     (error "No previous find command."))
   (funcall (car vim:last-find)
-	   :count count
-	   :argument (cdr vim:last-find)))
+           :count count
+           :argument (cdr vim:last-find)))
 
 
 (vim:defmotion vim:motion-repeat-last-find-opposite (inclusive count)
@@ -598,13 +848,13 @@ return the correct end-position of emacs-ranges, i.e.
   (unless vim:last-find
     (error "No previous find command."))
   (let ((func (case (car vim:last-find)
-		('vim:motion-find 'vim:motion-find-back)
-		('vim:motion-find-back 'vim:motion-find)
-		('vim:motion-find-to 'vim:motion-find-back-to)
-		('vim:motion-find-back-to 'vim:motion-find-to)
-		(t (error (format "Unexpected find command %s"
-				  (car vim:last-find))))))
-	(arg (cdr vim:last-find)))
+                ('vim:motion-find 'vim:motion-find-back)
+                ('vim:motion-find-back 'vim:motion-find)
+                ('vim:motion-find-to 'vim:motion-find-back-to)
+                ('vim:motion-find-back-to 'vim:motion-find-to)
+                (t (error (format "Unexpected find command %s"
+                                  (car vim:last-find))))))
+        (arg (cdr vim:last-find)))
     (let ((vim:last-find nil))
       (funcall func :count count :argument arg))))
 
@@ -613,42 +863,25 @@ return the correct end-position of emacs-ranges, i.e.
   "Find the next item in this line after or under the cursor and
 jumps to the corresponding one."
   (let ((next-open
-	 (condition-case err
-	     (1- (scan-lists (point) 1 -1))
-	   (error
-	    (point-max))))
-	(next-close
-	 (condition-case nil
-	     (1- (scan-lists (point) 1 +1))
-	   (error (point-max)))))
+         (condition-case err
+             (1- (scan-lists (point) 1 -1))
+           (error
+            (point-max))))
+        (next-close
+         (condition-case nil
+             (1- (scan-lists (point) 1 +1))
+           (error (point-max)))))
     (let ((pos (min next-open next-close)))
       (when (>= pos (line-end-position))
-	(error "No matching item found on the current line."))
+        (error "No matching item found on the current line."))
       (if (= pos next-open)
-	  (progn
-	    (goto-char pos)
-	    (forward-list)
-	    (backward-char))
-	(progn
-	  (goto-char (1+ pos))
-	  (backward-list))))))
-
-
-(vim:defmotion vim:motion-inner-word (inclusive count)
-  "Select `count' words."
-  (let ((beg (save-excursion
-	       (forward-char)
-	       (vim:motion-bwd-word)
-	       (point)))
-	(end (save-excursion
-	       (backward-char)
-	       (vim:motion-fwd-word-end :count count)
-	       (point))))
-    (goto-char end)
-    (vim:make-motion :has-begin t
-		     :begin beg
-		     :end end
-		     :type 'inclusive)))
+          (progn
+            (goto-char pos)
+            (forward-list)
+            (backward-char))
+        (progn
+          (goto-char (1+ pos))
+          (backward-list))))))
 
 
 (vim:defmotion vim:motion-mark (exclusive (argument:char mark-char))

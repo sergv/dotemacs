@@ -133,6 +133,9 @@
 (vim:omap "`" 'vim:motion-mark)
 
 (vim:omap "iw" 'vim:motion-inner-word)
+(vim:omap "aw" 'vim:motion-outer-word)
+(vim:omap "iW" 'vim:motion-inner-WORD)
+(vim:omap "aW" 'vim:motion-outer-WORD)
 
 ;(vim:nmap "x" "dl")
 (vim:nmap "m" 'vim:cmd-set-mark)
