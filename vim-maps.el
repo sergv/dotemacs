@@ -141,6 +141,33 @@
 (vim:omap "ip" 'vim:motion-inner-paragraph)
 (vim:omap "ap" 'vim:motion-outer-paragraph)
 
+(vim:omap "i[" 'vim:motion-inner-brackets)
+(vim:omap "i]" 'vim:motion-inner-brackets)
+(vim:omap "a[" 'vim:motion-outer-brackets)
+(vim:omap "a]" 'vim:motion-outer-brackets)
+
+(vim:omap "i(" 'vim:motion-inner-parenthesis)
+(vim:omap "i)" 'vim:motion-inner-parenthesis)
+(vim:omap "ib" 'vim:motion-inner-parenthesis)
+(vim:omap "a(" 'vim:motion-outer-parenthesis)
+(vim:omap "a)" 'vim:motion-outer-parenthesis)
+(vim:omap "ab" 'vim:motion-outer-parenthesis)
+
+(vim:omap "i<" 'vim:motion-inner-angles)
+(vim:omap "i>" 'vim:motion-inner-angles)
+(vim:omap "a<" 'vim:motion-outer-angles)
+(vim:omap "a>" 'vim:motion-outer-angles)
+
+(vim:omap "i{" 'vim:motion-inner-braces)
+(vim:omap "i}" 'vim:motion-inner-braces)
+(vim:omap "iB" 'vim:motion-inner-braces)
+(vim:omap "a{" 'vim:motion-outer-braces)
+(vim:omap "a}" 'vim:motion-outer-braces)
+(vim:omap "aB" 'vim:motion-outer-braces)
+
+(vim:omap "it" 'vim:motion-inner-xml-tags)
+(vim:omap "at" 'vim:motion-outer-xml-tags)
+
 ;(vim:nmap "x" "dl")
 (vim:nmap "m" 'vim:cmd-set-mark)
 (vim:nmap "x" 'vim:cmd-delete-char)

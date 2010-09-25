@@ -834,6 +834,133 @@ text-object before or at point."
       (vim:make-motion :end end :type type))))
 
 
+(defun vim:block-select (open-re close-re match-test open-pos close-pos n)
+  "Returns the position of an enclosing block."
+  (labels
+      ((find-at-point (re pos begin)
+                      (goto-char pos)
+                      ;; start searching the object in the current
+                      ;; line to see if it's at point
+                      (forward-line 0)
+                      (while (and (re-search-forward re
+                                                     (line-end-position) t)
+                                  (< (match-end 0) pos)))
+                      (if (and (match-beginning 0)
+                               (<= (match-beginning 0) open-pos)
+                               (>= (match-end 0) open-pos))
+                          ;; found object at cursor
+                          (if begin
+                              (goto-char (match-beginning 0))
+                            (goto-char (match-end 0)))
+                        (goto-char pos))))
+    (catch 'end
+      (save-excursion
+        (let ((combined-re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)"))
+              op-beg op-end cl-beg cl-end
+              (cnt n)
+              found-stack)
+          ;; set default match-test
+          (unless match-test (setq match-test #'(lambda (a b) t)))
+          ;; search the opening object
+          (find-at-point open-re open-pos nil)
+          (while (> cnt 0)
+            (unless (re-search-backward combined-re nil t) (throw 'end nil))
+            (if (match-beginning 1)
+                (if found-stack
+                    (if (funcall match-test
+                                 (cons (match-beginning 1)
+                                       (match-end 1))
+                                 (car found-stack))
+                        ;; found matching opening object
+                        (pop found-stack)
+                      ;; found object does not match
+                      (throw 'end nil))
+                  ;; found enclosing opening object
+                  (decf cnt))
+              (push (cons (match-beginning 2) (match-end 2)) found-stack)))
+                  
+          ;; found the opening object
+          (setq op-beg (match-beginning 0)
+                op-end (1- (match-end 0)))
+          
+          ;; search the closing object
+          (push (cons op-beg (1+ op-end)) found-stack)
+          (goto-char (1+ op-end))
+          (while found-stack
+            (unless (re-search-forward combined-re nil t) (throw 'end nil))
+            (if (match-beginning 2)
+                (if (funcall match-test
+                             (car found-stack)
+                             (cons (match-beginning 2)
+                                   (match-end 2)))
+                    ;; found matching closing object
+                    (pop found-stack)
+                  ;; found object does not match
+                  (throw 'end nil))
+              ;; found opening object
+              (push (cons (match-beginning 1) (match-end 1)) found-stack)))
+                  
+          ;; found the closing object
+          (setq cl-beg (match-beginning 0)
+                cl-end (1- (match-end 0)))
+          (when (>= cl-end close-pos)
+            (values op-beg op-end cl-beg cl-end)))))))
+
+
+(defun vim:inner-block (open-re close-re match-test n)
+  "Selects the next `n' enclosing blocks excluding the delimiters."
+  (let (open-pos close-pos)
+    (if (vim:visual-mode-p)
+        (setq open-pos (min (point) (mark))
+              close-pos (max (point) (mark)))
+      (setq open-pos (point)
+            close-pos (point)))
+
+    ;; check if we the current inner tag is selected completely
+    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+        (vim:block-select open-re close-re match-test open-pos close-pos 1)
+      (when (and op-beg
+                 (= (1+ op-end) open-pos)
+                 (= (1- cl-beg) close-pos))
+        (incf n)))
+    
+    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+        (vim:block-select open-re close-re match-test open-pos close-pos n)
+      (when op-beg
+        (goto-char (if (< (point) (mark)) (1+ op-end) (1- cl-beg)))
+        (vim:make-motion :has-begin t
+                         :begin (1+ op-end)
+                         :end (1- cl-beg)
+                         :type 'inclusive)))))
+
+
+(defun vim:outer-block (open-re close-re match-test n)
+  "Selects the next `n' enclosing blocks including the delimiters."
+  (let (open-pos close-pos)
+    (if (vim:visual-mode-p)
+        (setq open-pos (min (point) (mark))
+              close-pos (max (point) (mark)))
+      (setq open-pos (point)
+            close-pos (point)))
+
+    ;; check if we the current inner tag is selected completely
+    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+        (vim:block-select open-re close-re match-test open-pos close-pos 1)
+      (when (and op-beg
+                 (= op-beg open-pos)
+                 (= cl-end close-pos))
+        (incf n)))
+    
+    (multiple-value-bind (op-beg op-end cl-beg cl-end)
+        (vim:block-select open-re close-re match-test open-pos close-pos n)
+      (when op-beg
+        (goto-char (if (< (point) (mark)) op-beg cl-end))
+        (vim:make-motion :has-begin t
+                         :begin op-beg
+                         :end cl-end
+                         :type 'inclusive)))))
+
+
 (vim:defmotion vim:motion-fwd-word (exclusive count)
   "Moves the cursor beginning of the next word."
   (vim:move-fwd-beg (or count 1) #'vim:boundary-word)
@@ -969,6 +1096,72 @@ text-object before or at point."
 (vim:defmotion vim:motion-outer-paragraph (inclusive count)
   "Select `count' outer words."
   (vim:outer-motion (or count 1) #'vim:boundary-paragraph #'vim:boundary-wl 'linewise))
+
+
+(vim:defmotion vim:motion-inner-parenthesis (inclusive count)
+  "Select `count' enclosing pairs of () exclusive."
+  (vim:inner-block "(" ")" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-outer-parenthesis (inclusive count)
+  "Select `count' enclosing pairs of () inclusive."
+  (vim:outer-block "(" ")" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-inner-brackets (inclusive count)
+  "Select `count' enclosing pairs of [] exclusive."
+  (vim:inner-block "\\[" "\\]" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-outer-brackets (inclusive count)
+  "Select `count' enclosing pairs of [] inclusive."
+  (vim:outer-block "[" "]" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-inner-braces (inclusive count)
+  "Select `count' enclosing pairs of {} exclusive."
+  (vim:inner-block "{" "}" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-outer-braces (inclusive count)
+  "Select `count' enclosing pairs of {} inclusive."
+  (vim:outer-block "{" "}" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-inner-angles (inclusive count)
+  "Select `count' enclosing pairs of <> exclusive."
+  (vim:inner-block "<" ">" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-outer-angles (inclusive count)
+  "Select `count' enclosing pairs of <> inclusive."
+  (vim:outer-block "<" ">" nil (or count 1)))
+
+
+(vim:defmotion vim:motion-inner-xml-tags (inclusive count)
+  "Select `count' enclosing pairs of <tag> </tag> exclusive."
+  (vim:inner-block "<[^/>]+?>" "</[^/>]+?>"
+                   #'(lambda (tag1 tag2)
+                       (zerop (compare-buffer-substrings nil
+                                                         (1+ (car tag1))
+                                                         (1- (cdr tag1))
+                                                         nil
+                                                         (+ 2 (car tag2))
+                                                         (1- (cdr tag2)))))
+                   (or count 1)))
+
+
+(vim:defmotion vim:motion-outer-xml-tags (inclusive count)
+  "Select `count' enclosing pairs of <tag> </tag> inclusive."
+  (vim:outer-block "<[^/>]+?>" "</[^/>]+?>"
+                   #'(lambda (tag1 tag2)
+                       (zerop (compare-buffer-substrings nil
+                                                         (1+ (car tag1))
+                                                         (1- (cdr tag1))
+                                                         nil
+                                                         (+ 2 (car tag2))
+                                                         (1- (cdr tag2)))))
+                   (or count 1)))
 
 
 (vim:defmotion vim:motion-find (inclusive count (argument:char arg))
