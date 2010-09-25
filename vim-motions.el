@@ -728,14 +728,6 @@ text-object before or at point."
               end e
               pnt e)))
 
-    ;; change to normal visual mode
-    (when (vim:visual-mode-p)
-      (cond
-       ((and (vim:visual-linewise-mode-p) (not linewise))
-        (vim:visual-toggle-normal))
-       ((and (vim:visual-normal-mode-p) linewise)
-        (vim:visual-toggle-linewise))))
-    
     (goto-char pnt)
     (if beg
         (vim:make-motion :has-begin t
@@ -833,13 +825,6 @@ text-object before or at point."
       
       (setq pnt end))
 
-    ;; change to normal visual mode
-    (cond
-     ((and linewise (vim:visual-normal-mode-p))
-      (vim:visual-toggle-linewise))
-     ((and (not linewise) (vim:visual-linewise-mode-p))
-      (vim:visual-toggle-linewise)))
-    
     (goto-char pnt)
     (if beg
         (vim:make-motion :has-begin t
