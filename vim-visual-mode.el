@@ -86,9 +86,9 @@
 
 (defun vim:activate-visual (type)
   "Activates visual-mode with certain type."
-  (setq vim:visual-mode-type type)
   (if (vim:visual-mode-p)
-      (progn
+      (unless (eq vim:visual-mode-type type)
+        (setq vim:visual-mode-type type)
         (vim:visual-highlight-region)
         (let (message-log-max)
           (case vim:visual-mode-type
@@ -97,6 +97,7 @@
             ('block (message "-- VISUAL BLOCK --"))
             (t (error "Unknown visual mode type: %s"
                       vim:visual-mode-type)))))
+    (setq vim:visual-mode-type type)
     (vim:activate-visual-mode)))
 
 (defun vim:visual-toggle-mode (type)
@@ -500,22 +501,19 @@ This function is also responsible for setting the X-selection."
 
 (defun vim:visual-adjust-region (motion)
   "Adjusts the region according to a certain motion."
-  (if (vim:motion-has-begin motion)
-      (progn
-        (case (vim:motion-type motion)
-          ('linewise (vim:activate-visual 'linewise))
-          ('block (vim:activate-visual 'block))
-          (t (vim:activate-visual 'normal)))
-        (if (< (point) (mark t))
-            ;; increase backward
-            (progn
-              (goto-char (vim:motion-begin-pos motion))
-              (when (> (vim:motion-end-pos motion) (mark t))
-                (set-mark (vim:motion-end-pos motion))))
-          ;; increase forward
-          (when (< (vim:motion-begin motion)
-                          (mark t))
-            (set-mark (vim:motion-begin motion)))))))
+  (when (vim:motion-has-begin motion)
+    (vim:activate-visual (case (vim:motion-type motion)
+                           ('linewise 'linewise)
+                           ('block 'block)
+                           (t 'normal)))
+    (let ((beg (min (vim:motion-begin motion) (vim:motion-end motion)))
+          (end (max (vim:motion-begin motion) (vim:motion-end motion))))
+      (if (>= (point) end)
+          (progn
+            (set-mark beg)
+            (goto-char end))
+        (set-mark end)
+        (goto-char beg)))))
       
 
 (vim:defcmd vim:visual-insert (motion)

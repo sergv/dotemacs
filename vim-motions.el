@@ -707,16 +707,14 @@ text-object before or at point."
                 (funcall forward -1)
                 (multiple-value-bind (b e) (funcall sel 'bwd)
                   (goto-char (or b (point-min)))))
-              (setq beg (point)
-                    end (1- (mark))
+              (setq end (mark)
                     pnt (point)))
           ;; extend forward
           (dotimes (i n)
             (funcall forward +1)
             (multiple-value-bind (b e) (funcall sel 'fwd)
               (goto-char (or e (1- (point-max))))))
-          (setq beg (mark)
-                end (point)
+          (setq end (point)
                 pnt (point)))
       
       ;; select current ...
@@ -739,10 +737,14 @@ text-object before or at point."
         (vim:visual-toggle-linewise))))
     
     (goto-char pnt)
-    (vim:make-motion :has-begin t
-                     :begin beg
-                     :end end
-                     :type type)))
+    (if beg
+        (vim:make-motion :has-begin t
+                         :begin beg
+                         :end end
+                         :type type)
+      (vim:make-motion :has-begin nil
+                       :end end
+                       :type type))))
 
 
 (defun vim:outer-motion (n boundary ws-boundary type)
