@@ -399,208 +399,344 @@ return the correct end-position of emacs-ranges, i.e.
   (vim:motion-first-non-blank))
 
 
-(defun vim:union-selector (&rest selectors)
-  "Returns a selector which returns the object of all selectors
-which is closest to point."
-  (lexical-let ((selectors selectors))
-    #'(lambda (direction)
-        (reduce #'(lambda (obj1 obj2)
-                    (multiple-value-bind (b1 e1) obj1
-                      (multiple-value-bind (b2 e2) obj2
-                        (cond
-                         ((not obj1) obj2)
-                         ((not obj2) obj1)
-                         ((> direction 0)
-                          (if (or (< b1 b2)
-                                  (and (= b1 b2) (> e1 e2)))
-                              obj1 obj2))
-                         ((<= direction 0)
-                          (if (or (> e1 e2)
-                                  (and (= e1 e2) (< b1 b2)))
-                              obj1 obj2))))))
-                          
-                (mapcar #'(lambda (sel) (funcall sel direction)) selectors)))))
- 
-
-(defun vim:select-re (direction re not-re)
-  "Returns a selector based on regular expressions.
-`re' should be a regular expression matching the text-object
-starting at (point). `not-re' should be a regular expression
-matching the first element backwards which is not contained in
-the object at point."
-  (labels
-      ((select-beg () (save-excursion
-                        (re-search-backward not-re nil t)
-                        (1+ (match-beginning 0))))
-       (select-end () (save-excursion
-                        (re-search-forward re nil t)
-                        (if (= (match-beginning 0) (match-end 0))
-                            (point)
-                          (1- (match-end 0))))))
-
-    (cond
-     ((looking-at re) (values (select-beg) (select-end)))
-     
-     ((> direction 0)
-      (save-excursion
-        (when (re-search-forward re nil t)
-          (goto-char (match-beginning 0))
-          (values (point) (select-end)))))
-
-     ((< direction 0)
-      (save-excursion
-        (when (re-search-backward re nil t)
-          (goto-char (match-beginning 0))
-          (values (select-beg) (point))))))))
+(defun vim:boundary-chars (direction chars)
+  "A boundary selector for a sequence of `chars'."
+  (save-excursion
+    (case direction
+      (fwd
+       (when (re-search-forward (concat "[" chars "]+") nil t)
+         (1- (match-end 0))))
+      (bwd
+       (unless (looking-at (concat "[" chars "]"))
+         (skip-chars-backward (if (= (aref chars 0) ?^)
+                                  (substring chars 1)
+                                (concat "^" chars))))
+       (skip-chars-backward chars)
+       (when (looking-at (concat "[" chars "]"))
+         (point))))))
 
 
-(defun vim:select-ws (direction)
-  "A selector for whitespaces [ \t]."
-  (vim:select-re direction "[ \t]+" "[^ \t]"))
+(defun vim:boundary-lines (direction predicate)
+  "A boundary selector for lines identified by an predicate.
+The begin-boundary is placed at the first character of the first
+line, the end-boundary is placed at the last character before the
+newline character of the last line."
+  (save-excursion
+    (let ((dir (case direction
+                 (fwd +1)
+                 (bwd -1))))
+      ;; The last newline on a non-empty line does not count as part
+      ;; of the current line.
+      (when (and (not (bolp)) (looking-at "\n")) (forward-char))
+      (forward-line 0)
+      ;; skip unmatched lines
+      (while (and (not (funcall predicate)) (zerop (forward-line dir))))
+      ;; skip matched lines
+      (when (funcall predicate)
+        (while (save-excursion
+                 (and (zerop (forward-line dir))
+                      (funcall predicate)))
+          (forward-line dir))
+        (case direction
+          (fwd (end-of-line)
+               (when (and (not (bolp)) (looking-at "\n"))
+                 (backward-char)))
+          (bwd (forward-line 0)))
+        (point)))))
   
 
-(defun vim:select-word (direction)
-  "A selector for words."
-  (let ((word (concat "[" vim:word "]+\\|^$"))
-        (noword (concat "[^" vim:word "]"))
-        (nonword (concat "[^ \t\r\n" vim:word "]+"))
-        (nononword (concat "[ \t\r\n" vim:word "]")))
-    (funcall (vim:union-selector #'(lambda (dir) (vim:select-re dir word noword))
-                                 #'(lambda (dir) (vim:select-re dir nonword nononword)))
-             direction)))
-                     
-
-(defun vim:select-WORD (direction)
-  "A selector for WORDs."
-  (let ((WORD (concat "[^ \t\r\n]+\\|^$"))
-        (noWORD (concat "[ \t\r\n]")))
-    (vim:select-re direction WORD noWORD)))
+(defun vim:boundary-empty-line (direction)
+  "A boundary selector for a single empty line."
+  (save-excursion
+    (let ((dir (case direction
+                 (fwd +1)
+                 (bwd -1))))
+      (while (and (not (and (bolp) (eolp))) (zerop (forward-line dir))))
+      (when (and (bolp) (eolp))
+        (point)))))
 
 
-(defun vim:move-fwd-beg (n selector)
+(defun vim:boundary-ws (direction)
+  "A boundary selector for whitespaces excluding newlines."
+  (vim:boundary-chars direction " \r\t"))
+
+
+(defun vim:boundary-wl (direction)
+  "A boundary selector for whitespaces."
+  (vim:boundary-lines direction #'(lambda () (and (bolp) (eolp)))))
+
+
+(defun vim:boundary-wsnl (direction)
+  "A boundary selector for all whitespaces. A newline at the
+beginning or end of the object (except empty lines) is not
+counted."
+  (save-excursion
+    (catch 'end
+      (case direction
+        (fwd (while (let ((pos (vim:boundary-chars 'fwd " \t\r\n")))
+                      (unless pos (throw 'end nil))
+                      (goto-char pos)
+                      (when (and (not (bolp))
+                                 (looking-at "\n")
+                                 (not (looking-back "[ \t\r\n]")))
+                        (forward-char) t))))
+        (bwd (let ((start (point)))
+               (while (let ((pos (vim:boundary-chars 'bwd " \t\r\n")))
+                        (unless pos (throw 'end nil))
+                        (goto-char pos)
+                        (when (and (not (bolp))
+                                   (looking-at "\n"))
+                          (if (and (looking-at "\n[ \t\r\n]")
+                                   (< (point) start))
+                              (progn (forward-char) nil)
+                            (backward-char) t)))))))
+      (point))))
+         
+
+(defun vim:boundary-word (direction)
+  "A boundary selector for words."
+  (funcall (vim:union-boundary #'(lambda (dir) (vim:boundary-chars dir vim:word))
+                               #'(lambda (dir) (vim:boundary-chars dir (concat "^ \t\r\n" vim:word)))
+                               #'(lambda (dir) (vim:boundary-empty-line dir)))
+           direction))
+
+
+(defun vim:boundary-WORD (direction)
+  "A boundary selector for WORDs."
+  (funcall (vim:union-boundary #'(lambda (dir) (vim:boundary-chars dir "^ \t\r\n"))
+                               #'(lambda (dir) (vim:boundary-empty-line dir)))
+           direction))
+                 
+
+(defun vim:boundary-sentence (direction)
+  "A boundary selector for sentences."
+  (save-excursion
+    (case direction
+      (fwd (when (re-search-forward "\\([.!?][])\"']*\\)\\(?:[ \t\r\n]+\\|\\'\\)" nil t)
+             (1- (match-end 1))))
+      (bwd (let ((start (point))
+                 dot)
+             ;; search the final char of the previous sentence, check
+             ;; if it is really the end of a sentence up to the
+             ;; beginning of the next sentence, and ensure that this
+             ;; beginning is not behind the start position
+             (while (and (setq dot (re-search-backward "[.!?]" nil t))
+                         (not (bobp))
+                         (or (not (re-search-forward "\\=[.!?][])\"']*[ \t\r\n]+" nil t))
+                             (> (match-end 0) start)))
+               (goto-char (1- dot)))
+             (when dot (point)))))))
+
+
+(defun vim:boundary-paragraph (direction)
+  "A boundary selector for paragraphs.
+A paragraph is a non-empty sequence of non-empty lines."
+  (vim:boundary-lines direction #'(lambda () (not (and (bolp) (eolp))))))
+
+
+(defun vim:union-boundary (&rest boundaries)
+  "A boundary selector returning the nearest bound out of a set
+of bounds."
+  (lexical-let ((boundaries boundaries))
+    #'(lambda (direction)
+        (let ((positions (mapcan #'(lambda (bnd)
+                                     (let ((pos (funcall bnd direction)))
+                                       (when pos (list pos))))
+                                 boundaries)))
+          (when positions
+            (apply (case direction
+                     (fwd #'min)
+                     (bwd #'max))
+                   positions))))))
+                       
+
+(defun vim:union-selector (&rest boundaries)
+  "A selector returns a pair of coordinates of the next (or
+previous) object described by one of the given `boundaries'."
+  (lexical-let ((boundaries boundaries))
+    (labels
+        ((find-best (get-object first-better)
+                    (reduce #'(lambda (obj1 obj2)
+                                (multiple-value-bind (b1 e1) obj1
+                                  (multiple-value-bind (b2 e2) obj2
+                                    (cond
+                                     ((null obj1) obj2)
+                                     ((null obj2) obj1)
+                                     ((funcall first-better b1 e1 b2 e2) obj1)
+                                     (t obj2)))))
+                            (mapcar get-object boundaries))))
+    #'(lambda (direction)
+        (case direction
+          (fwd (find-best #'(lambda (bnd)
+                              (let ((end (funcall bnd 'fwd)))
+                                (when end
+                                  (let ((beg (save-excursion
+                                               (goto-char end)
+                                               (funcall bnd 'bwd))))
+                                    (values beg end)))))
+                          #'(lambda (b1 e1 b2 e2)
+                              (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
+          
+          (bwd (find-best #'(lambda (bnd)
+                              (let ((beg (funcall bnd 'bwd)))
+                                (when beg
+                                  (let ((end (save-excursion
+                                               (goto-char beg)
+                                               (funcall bnd 'fwd))))
+                                    (values beg end)))))
+                          #'(lambda (b1 e1 b2 e2)
+                              (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
+
+
+(defun vim:move-fwd-beg (n boundary &optional linewise)
   "Moves the cursor to the beginning of the `n'-th text-object
-forward given by `selector'. A selector is a function taking one
-parameter `direction' and should return two values specifing the
-first and the last position of the selected text-object. If
-`direction' is 0 only text-objects at (point) should be returned.
-If `direction' is > 0 a text-object at (point) or the next one in
-forward direction should be returned. If `direction' is < 0 a
-text-objext at (point) or the next one in backward direction
-should be returned. If no such text-object exists the function
-should return `nil'."
-  (if (eobp) (ding)
-    (multiple-value-bind (beg end) (funcall selector 0)
-      (when end (goto-char (1+ end)))
-      (dotimes (i n)
-        (multiple-value-bind (beg end) (funcall selector 1)
-          (if (< (1+ i) n)
-              (goto-char (1+ (or end (point-max))))
-            (goto-char (or beg (point-max)))))))))
+forward given by `boundary'. A boundary is a function taking one
+parameter `direction' which is either 'fwd or 'bwd. If the
+paramter is 'fwd the function should return the last position
+contained in the first text-object after or at point. If the
+parameter is 'bwd the function should return the first position
+contained in the first text-object before or at point."
+  (catch 'end
+    (when (> n 0)
+      (let ((start (point)))
+        ;; can't move further if already at the end of buffer
+        (when (>= start (1- (point-max))) (signal 'end-of-buffer))
+        ;; go to the end of the (possibly) current object
+        (let ((pos (funcall boundary 'fwd)))
+          (if pos (goto-char pos)
+            ;; no such object
+            (goto-char (point-max))
+            (throw 'end nil)))
+        ;; check if this object is really the current one
+        (when (< start (or (funcall boundary 'bwd) (point-min)))
+          ;; if not, count this object
+          (decf n))
+        ;; search the end of the next objects
+        (dotimes (i n)
+          (if linewise (forward-line) (forward-char))
+          (let ((next (funcall boundary 'fwd)))
+            (unless next (goto-char (point-max)) (throw 'end nil))
+            (goto-char next)))
+        ;; found the end of the object, go to its beginning
+        (goto-char (or (funcall boundary 'bwd) (point-min)))))))
 
 
-(defun vim:move-fwd-end (n selector)
+(defun vim:move-fwd-end (n boundary &optional linewise)
   "Moves the cursor to the end of the `n'-th text-object forward
-given by `selector'. A selector is a function taking one
-parameter `direction' and should return two values specifing the
-first and the last position of the selected text-object. If
-`direction' is 0 only text-objects at (point) should be returned.
-If `direction' is > 0 a text-object at (point) or the next one in
-forward direction should be returned. If `direction' is < 0 a
-text-objext at (point) or the next one in backward direction
-should be returned. If no such text-object exists the function
-should return `nil'."
-  (if (eobp) (ding)
+given by `boundary'. A boundary is a function taking one
+parameter `direction' which is either 'fwd or 'bwd. If the
+paramter is 'fwd the function should return the last position
+contained in the first text-object after or at point. If the
+parameter is 'bwd the function should return the first position
+contained in the first text-object before or at point."
+  (when (> n 0)
+    (when (>= (point) (1- (point-max))) (signal 'end-of-buffer)))
     (dotimes (i n)
-      (forward-char)
-      (multiple-value-bind (beg end) (funcall selector 1)
-        (goto-char (or end (point-max)))))))
+      (if linewise (forward-line) (forward-char))
+      (goto-char (or (funcall boundary 'fwd) (point-max)))))
           
 
-(defun vim:move-bwd-beg (n selector)
+(defun vim:move-bwd-beg (n boundary &optional linewise)
   "Moves the cursor to the beginning of the `n'-th text-object
-backward given by `selector'. A selector is a function taking one
-parameter `direction' and should return two values specifing the
-first and the last position of the selected text-object. If
-`direction' is 0 only text-objects at (point) should be returned.
-If `direction' is > 0 a text-object at (point) or the next one in
-forward direction should be returned. If `direction' is < 0 a
-text-objext at (point) or the next one in backward direction
-should be returned. If no such text-object exists the function
-should return `nil'."
-  (if (bobp) (ding)
+backward given by `boundary'. A boundary is a function taking one
+parameter `direction' which is either 'fwd or 'bwd. If the
+paramter is 'fwd the function should return the last position
+contained in the first text-object after or at point. If the
+parameter is 'bwd the function should return the first position
+contained in the first text-object before or at point."
+  (when (> n 0)
+    (when (bobp) (signal 'beginning-of-buffer))
     (dotimes (i n)
-      (backward-char)
-      (multiple-value-bind (beg end) (funcall selector -1)
-        (goto-char (or beg (point-min)))))))
+      (if linewise (forward-line -1) (backward-char))
+      (goto-char (or (funcall boundary 'bwd) (point-min))))))
 
 
-(defun vim:move-bwd-end (n selector)
+(defun vim:move-bwd-end (n boundary &optional linewise)
   "Moves the cursor to the end of the `n'-th text-object backward
-given by `selector'. A selector is a function taking one
-parameter `direction' and should return two values specifing the
-first and the last position of the selected text-object. If
-`direction' is 0 only text-objects at (point) should be returned.
-If `direction' is > 0 a text-object at (point) or the next one in
-forward direction should be returned. If `direction' is < 0 a
-text-objext at (point) or the next one in backward direction
-should be returned. If no such text-object exists the function
-should return `nil'."
-  (if (bobp) (ding)
-    (multiple-value-bind (beg end) (funcall selector 0)
-      (when beg (goto-char (1- beg)))
-      (dotimes (i n)
-        (multiple-value-bind (beg end) (funcall selector -1)
-          (if (< (1+ i) n)
-              (goto-char (1- (or beg (point-min))))
-            (goto-char (or end (point-min)))))))))
+given by `boundary'. A boundary is a function taking one
+parameter `direction' which is either 'fwd or 'bwd. If the
+paramter is 'fwd the function should return the last position
+contained in the first text-object after or at point. If the
+parameter is 'bwd the function should return the first position
+contained in the first text-object before or at point."
+  (catch 'end
+    (when (> n 0)
+      (let ((start (point)))
+        ;; can't move further if already at the beginning of buffer
+        (when (eobp) (signal 'beginning-of-buffer))
+        ;; go to the beginning of the (possibly) current object
+        (let ((pos (funcall boundary 'bwd)))
+          (if pos (goto-char pos)
+            ;; no such object
+            (goto-char (point-min))
+            (throw 'end nil)))
+        ;; check if this object is really the current one
+        (when (> start (or (funcall boundary 'fwd) (point-min)))
+          ;; if not, count this object
+          (decf n))
+        (dotimes (i n)
+          (if linewise (forward-line -1) (forward-char -1))
+          (let ((next (funcall boundary 'bwd)))
+            (unless next (goto-char (point-min)) (throw 'end nil))
+            (goto-char next)))
+        (goto-char (or (funcall boundary 'fwd) (point-min)))))))
+    
 
-
-(defun vim:inner-motion (n selector type)
-  "Selects or extends an inner text-object given by `selector'.
+(defun vim:inner-motion (n boundary ws-boundary type)
+  "Selects or extends an inner text-object given by `boundary'.
 `n' is the number of text-objects to be selected (or by which the
-selection should be extended), `type' is the type of the motion
-to be returned. A selector is a function taking one parameter
-`direction' and should return two values specifing the first
-and the last position of the selected text-object. If
-`direction' is 0 only text-objects at (point) should be
-returned. If `direction' is > 0 a text-object at (point) or the
-next one in forward direction should be returned. If
-`direction' is < 0 a text-objext at (point) or the next one in
-backward direction should be returned. If no such text-object
-exists the function should return `nil'."
-  (let ((sel (vim:union-selector #'vim:select-ws selector))
-        beg end pnt)
+selection should be extended), `ws-boundary' selects the
+whitespace object, `type' is the type of the motion to be
+returned. A boundary is a function taking one parameter
+`direction' which is either 'fwd or 'bwd. If the paramter is 'fwd
+the function should return the last position contained in the
+first text-object after or at point. If the parameter is 'bwd the
+function should return the first position contained in the first
+text-object before or at point."
+  (let* ((linewise (eq type 'linewise))
+         (forward (if linewise #'forward-line #'forward-char))
+         (sel (vim:union-selector ws-boundary boundary))
+         beg end pnt)
     (if (and (vim:visual-mode-p)
              (/= (point) (mark)))
         ;; extend visual range
         (if (< (point) (mark))
             ;; extend backward
             (progn
-              (setq beg (save-excursion
-                         (vim:move-bwd-beg n sel)
-                          (point)))
-              (setq end (1- (mark))
-                    pnt beg))
+              (dotimes (i n)
+                (funcall forward -1)
+                (multiple-value-bind (b e) (funcall sel 'bwd)
+                  (goto-char (or b (point-min)))))
+              (setq beg (point)
+                    end (1- (mark))
+                    pnt (point)))
           ;; extend forward
-          (setq end (save-excursion
-                      (vim:move-fwd-end n sel)
-                      (point)))
+          (dotimes (i n)
+            (funcall forward +1)
+            (multiple-value-bind (b e) (funcall sel 'fwd)
+              (goto-char (or e (1- (point-max))))))
           (setq beg (mark)
-                pnt end))
+                end (point)
+                pnt (point)))
       
       ;; select current ...
-      (multiple-value-bind (b e) (funcall sel 0)
-        (setq beg b)
-        (save-excursion
-          (goto-char e)
-          ;; ... and extend forward
-          (vim:move-fwd-end (1- n) sel)
-          (setq end (point)))
-        (setq pnt end)))
+      (multiple-value-bind (b e) (funcall sel 'fwd)
+        (dotimes (i (1- n))
+          (goto-char (or e (1- (point-max))))
+          (funcall forward +1)
+          (multiple-value-bind (nb ne) (funcall sel 'fwd)
+            (setq e (or ne (1- point-max)))))
+        (setq beg b
+              end e
+              pnt e)))
 
     ;; change to normal visual mode
-    (when (vim:visual-linewise-mode-p)
-      (vim:visual-toggle-normal))
+    (when (vim:visual-mode-p)
+      (cond
+       ((and (vim:visual-linewise-mode-p) (not linewise))
+        (vim:visual-toggle-normal))
+       ((and (vim:visual-normal-mode-p) linewise)
+        (vim:visual-toggle-linewise))))
     
     (goto-char pnt)
     (vim:make-motion :has-begin t
@@ -609,72 +745,98 @@ exists the function should return `nil'."
                      :type type)))
 
 
-(defun vim:outer-motion (n selector type)
-  "Selects or extends an outer text-object given by `selector'.
+(defun vim:outer-motion (n boundary ws-boundary type)
+  "Selects or extends an outer text-object given by `boundary'.
 `n' is the number of text-objects to be selected (or by which the
-selection should be extended), `type' is the type of the motion
-to be returned. A selector is a function taking one parameter
-`direction' and should return two values specifing the first
-and the last position of the selected text-object. If
-`direction' is 0 only text-objects at (point) should be
-returned. If `direction' is > 0 a text-object at (point) or the
-next one in forward direction should be returned. If
-`direction' is < 0 a text-objext at (point) or the next one in
-backward direction should be returned. If no such text-object
-exists the function should return `nil'."
-  (let (beg end pnt)
+selection should be extended), `ws-boundary' selects the
+whitespace object, `type' is the type of the motion to be
+returned. A boundary is a function taking one parameter
+`direction' which is either 'fwd or 'bwd. If the paramter is 'fwd
+the function should return the last position contained in the
+first text-object after or at point. If the parameter is 'bwd the
+function should return the first position contained in the first
+text-object before or at point."
+  (let* ((linewise (eq type 'linewise))
+         (forward (if linewise #'forward-line #'forward-char))
+         (sel (vim:union-selector boundary))
+         (ws-sel (vim:union-selector ws-boundary))
+         beg end pnt)
     (if (and (vim:visual-mode-p) (/= (point) (mark)))
         ;; extend visual range
         (if (< (point) (mark))
             ;; extend backward
             (progn
               (dotimes (i n)
-                (let ((wsb (save-excursion (vim:move-bwd-beg 1 #'vim:select-ws) (point))))
-                  (vim:move-bwd-beg 1 selector)
-                  (when (and wsb (< wsb (point)) (looking-back "[ \t]"))
+                (multiple-value-bind (wsb wse) (save-excursion
+                                                 (funcall forward -1)
+                                                 (funcall ws-sel 'bwd))
+                  (vim:move-bwd-beg 1 boundary linewise)
+                  (when (and wsb (< wsb (point))
+                             (save-excursion
+                               (funcall forward -1)
+                               (>= wse (point))))
                     (goto-char wsb))))
               (setq end (point)
                     pnt (point)))
           
           ;; extend forward
           (dotimes (i n)
-            (let ((wse (save-excursion (vim:move-fwd-end 1 #'vim:select-ws) (point))))
-              (vim:move-fwd-end 1 selector)
-              (when (and wse (> wse (point)) (looking-at ".[ \t]"))
+            (multiple-value-bind (wsb wse) (save-excursion
+                                             (funcall forward +1)
+                                             (funcall ws-sel 'fwd))
+              (vim:move-fwd-end 1 boundary linewise)
+              (when (and wsb (> wse (point))
+                         (save-excursion
+                           (funcall forward +1)
+                           (<= wsb (point))))
                 (goto-char wse))))
           (setq end (point)
                 pnt (point)))
       
       ;; select current ...
       (save-excursion
-        (multiple-value-bind (b e) (funcall selector 1)
-          (goto-char e)
-          (vim:move-fwd-end (1- n) selector)
+        (multiple-value-bind (b e) (funcall sel 'fwd)
+          (unless b (signal 'no-such-object '("No such text object")))
+          (dotimes (i (1- n))
+            (goto-char e)
+            (funcall forward +1)
+            (multiple-value-bind (nb ne) (funcall sel 'fwd)
+              (when ne (setq e ne))))
           (setq beg b
-                end (point))))
+                end e)))
 
+      ;; check whitespace before object
       (cond
-       ;; started at whitespace before object
-       ((looking-at "[ \t]")
-        (multiple-value-bind (wsb wse) (vim:select-ws 0)
-          (setq beg wsb)))
-       ;; no whitespace after object, note that there may be no
-       ;; whitespace before the object, too
-       ((save-excursion (goto-char end) (not (looking-at ".[ \t]")))
+       ;; started at white-space
+       ((multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
+          (if (and wsb (<= wsb (point)))
+              (setq beg wsb))))
+       
+       ;; whitespace behind
+       ((save-excursion
+          (when (< end (point-max))
+            (goto-char end)
+            (funcall forward +1)
+            (multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
+              (if (and wsb (<= wsb (point)))
+                  (setq end wse))))))
+
+       ;; no whitespace behind
+       ((> beg (point-min))
         (goto-char beg)
-        (skip-chars-backward " \t")
-        (setq beg (point)))
-       ;; whitespace after object
-       (t
-        (goto-char end)
-        (vim:move-fwd-end 1 #'vim:select-ws)
-        (setq end (point))))
+        (funcall forward -1)
+        (multiple-value-bind (wsb wse) (funcall ws-sel 'bwd)
+          (if (and wse (>= wse (point)))
+              (setq beg wsb)))))
       
       (setq pnt end))
 
     ;; change to normal visual mode
-    (when (vim:visual-linewise-mode-p)
-      (vim:visual-toggle-normal))
+    (cond
+     ((and linewise (vim:visual-normal-mode-p))
+      (vim:visual-toggle-linewise))
+     ((and (not linewise) (vim:visual-linewise-mode-p))
+      (vim:visual-toggle-linewise)))
     
     (goto-char pnt)
     (if beg
@@ -687,7 +849,7 @@ exists the function should return `nil'."
 
 (vim:defmotion vim:motion-fwd-word (exclusive count)
   "Moves the cursor beginning of the next word."
-  (vim:move-fwd-beg (or count 1) #'vim:select-word)
+  (vim:move-fwd-beg (or count 1) #'vim:boundary-word)
   
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
@@ -702,32 +864,32 @@ exists the function should return `nil'."
 
 (vim:defmotion vim:motion-bwd-word (exclusive count)
   "Moves the cursor beginning of the previous word."
-  (vim:move-bwd-beg (or count 1) #'vim:select-word))
+  (vim:move-bwd-beg (or count 1) #'vim:boundary-word))
 
 
 (vim:defmotion vim:motion-fwd-word-end (inclusive count)
   "Moves the cursor to the end of the next word."            
-  (vim:move-fwd-end (or count 1) #'vim:select-word))
+  (vim:move-fwd-end (or count 1) #'vim:boundary-word))
 
 
 (vim:defmotion vim:motion-bwd-word-end (inclusive count)
   "Moves the cursor to the end of the previous word."            
-  (vim:move-bwd-end (or count 1) #'vim:select-word))
+  (vim:move-bwd-end (or count 1) #'vim:boundary-word))
 
 
 (vim:defmotion vim:motion-inner-word (inclusive count)
   "Select `count' inner words."
-  (vim:inner-motion (or count 1) #'vim:select-word 'inclusive))
+  (vim:inner-motion (or count 1) #'vim:boundary-word #'vim:boundary-ws 'inclusive))
 
 
 (vim:defmotion vim:motion-outer-word (inclusive count)
   "Select `count' outer words."
-  (vim:outer-motion (or count 1) #'vim:select-word 'inclusive))
+  (vim:outer-motion (or count 1) #'vim:boundary-word #'vim:boundary-ws 'inclusive))
 
 
 (vim:defmotion vim:motion-fwd-WORD (exclusive count)
   "Moves the cursor to beginning of the next WORD."
-  (vim:move-fwd-beg (or count 1) #'vim:select-WORD)
+  (vim:move-fwd-beg (or count 1) #'vim:boundary-WORD)
   
   ;; in operator-pending mode, if we reached the beginning of a new
   ;; line, go back to the end of the previous line
@@ -742,59 +904,84 @@ exists the function should return `nil'."
 
 (vim:defmotion vim:motion-bwd-WORD (exclusive count)
   "Moves the cursor to beginning of the previous WORD."
-  (vim:move-bwd-beg (or count 1) #'vim:select-WORD))
+  (vim:move-bwd-beg (or count 1) #'vim:boundary-WORD))
 
 
 (vim:defmotion vim:motion-fwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
-  (vim:move-fwd-end (or count 1) #'vim:select-WORD))
+  (vim:move-fwd-end (or count 1) #'vim:boundary-WORD))
 
 
 (vim:defmotion vim:motion-bwd-WORD-end (inclusive count)
   "Moves the cursor to the end of the next WORD."            
-  (vim:move-bwd-end (or count 1) #'vim:select-WORD))
+  (vim:move-bwd-end (or count 1) #'vim:boundary-WORD))
 
 
 (vim:defmotion vim:motion-inner-WORD (inclusive count)
   "Select `count' inner WORDs."
-  (vim:inner-motion (or count 1) #'vim:select-WORD 'inclusive))
+  (vim:inner-motion (or count 1) #'vim:boundary-WORD #'vim:boundary-ws 'inclusive))
 
 
 (vim:defmotion vim:motion-outer-WORD (inclusive count)
   "Select `count' outer WORDs."
-  (vim:outer-motion (or count 1) #'vim:select-WORD 'inclusive))
+  (vim:outer-motion (or count 1) #'vim:boundary-WORD #'vim:boundary-ws 'inclusive))
 
 
 (vim:defmotion vim:motion-fwd-sentence (exclusive count)
   "Move the cursor `count' sentences forward."
   (dotimes (i (or count 1))
-    (let ((par-end (save-excursion
-                     (forward-paragraph)
-                     (point))))
-      (unless (re-search-forward (sentence-end) par-end t)
-        (goto-char par-end)))))
+    (goto-char (min (save-excursion
+                      (vim:move-fwd-beg 1 #'vim:boundary-sentence)
+                      (point))
+                    (save-excursion
+                      (vim:motion-fwd-paragraph)
+                      (point))))))
     
 
 (vim:defmotion vim:motion-bwd-sentence (exclusive count)
   "Move the cursor `count' sentences backward."
-  (dotimes (i (or count 1))
-    (let ((par-beg (save-excursion
-                     (backward-paragraph)
-                     (point))))
-      (if (re-search-backward (concat (sentence-end) "[^ \t\n]")
-                              par-beg t)
-          (goto-char (1- (match-end 0)))
-        (goto-char par-beg)))))
+  (vim:move-bwd-beg (or count 1)
+                    (vim:union-boundary #'vim:boundary-sentence #'vim:boundary-paragraph)))
+
+
+(vim:defmotion vim:motion-inner-sentence (inclusive count)
+  "Select `count' inner words."
+  (vim:inner-motion (or count 1)
+                    (vim:union-boundary #'vim:boundary-sentence #'vim:boundary-paragraph)
+                    #'vim:boundary-wsnl 'inclusive))
+
+
+(vim:defmotion vim:motion-outer-sentence (inclusive count)
+  "Select `count' outer words."
+  (vim:outer-motion (or count 1)
+                    (vim:union-boundary #'vim:boundary-sentence #'vim:boundary-paragraph)
+                    #'vim:boundary-wsnl 'inclusive))
 
 
 (vim:defmotion vim:motion-fwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs forward."
-  (forward-paragraph (or count 1)))
+  (if (eobp) (signal 'end-of-buffer)
+    (dotimes (i (or count 1))
+      (goto-char (or (vim:boundary-paragraph 'fwd) (point-max)))
+      (forward-line))))
 
 
 (vim:defmotion vim:motion-bwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs backward."
-  (backward-paragraph (or count 1)))
+  (if (bobp) (signal 'beginning-of-buffer)
+    (dotimes (i (or count 1))
+      (goto-char (or (vim:boundary-paragraph 'bwd) (point-min)))
+      (forward-line -1))))
+
+
+(vim:defmotion vim:motion-inner-paragraph (inclusive count)
+  "Select `count' inner words."
+  (vim:inner-motion (or count 1) #'vim:boundary-paragraph #'vim:boundary-wl 'linewise))
+
+
+(vim:defmotion vim:motion-outer-paragraph (inclusive count)
+  "Select `count' outer words."
+  (vim:outer-motion (or count 1) #'vim:boundary-paragraph #'vim:boundary-wl 'linewise))
 
 
 (vim:defmotion vim:motion-find (inclusive count (argument:char arg))

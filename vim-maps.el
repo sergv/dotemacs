@@ -136,6 +136,10 @@
 (vim:omap "aw" 'vim:motion-outer-word)
 (vim:omap "iW" 'vim:motion-inner-WORD)
 (vim:omap "aW" 'vim:motion-outer-WORD)
+(vim:omap "is" 'vim:motion-inner-sentence)
+(vim:omap "as" 'vim:motion-outer-sentence)
+(vim:omap "ip" 'vim:motion-inner-paragraph)
+(vim:omap "ap" 'vim:motion-outer-paragraph)
 
 ;(vim:nmap "x" "dl")
 (vim:nmap "m" 'vim:cmd-set-mark)
