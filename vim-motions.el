@@ -1098,12 +1098,12 @@ text-object before or at point."
   (vim:outer-motion (or count 1) #'vim:boundary-paragraph #'vim:boundary-wl 'linewise))
 
 
-(vim:defmotion vim:motion-inner-parenthesis (inclusive count)
+(vim:defmotion vim:motion-inner-parentheses (inclusive count)
   "Select `count' enclosing pairs of () exclusive."
   (vim:inner-block "(" ")" nil (or count 1)))
 
 
-(vim:defmotion vim:motion-outer-parenthesis (inclusive count)
+(vim:defmotion vim:motion-outer-parentheses (inclusive count)
   "Select `count' enclosing pairs of () inclusive."
   (vim:outer-block "(" ")" nil (or count 1)))
 

@@ -146,12 +146,12 @@
 (vim:omap "a[" 'vim:motion-outer-brackets)
 (vim:omap "a]" 'vim:motion-outer-brackets)
 
-(vim:omap "i(" 'vim:motion-inner-parenthesis)
-(vim:omap "i)" 'vim:motion-inner-parenthesis)
-(vim:omap "ib" 'vim:motion-inner-parenthesis)
-(vim:omap "a(" 'vim:motion-outer-parenthesis)
-(vim:omap "a)" 'vim:motion-outer-parenthesis)
-(vim:omap "ab" 'vim:motion-outer-parenthesis)
+(vim:omap "i(" 'vim:motion-inner-parentheses)
+(vim:omap "i)" 'vim:motion-inner-parentheses)
+(vim:omap "ib" 'vim:motion-inner-parentheses)
+(vim:omap "a(" 'vim:motion-outer-parentheses)
+(vim:omap "a)" 'vim:motion-outer-parentheses)
+(vim:omap "ab" 'vim:motion-outer-parentheses)
 
 (vim:omap "i<" 'vim:motion-inner-angles)
 (vim:omap "i>" 'vim:motion-inner-angles)
