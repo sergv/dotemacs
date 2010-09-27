@@ -723,7 +723,7 @@ text-object before or at point."
           (goto-char (or e (1- (point-max))))
           (funcall forward +1)
           (multiple-value-bind (nb ne) (funcall sel 'fwd)
-            (setq e (or ne (1- point-max)))))
+            (setq e (or ne (1- (point-max))))))
         (setq beg b
               end e
               pnt e)))
