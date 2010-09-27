@@ -75,12 +75,9 @@
     (if (not (fboundp 'called-interactively-p))
         '(interactive-p)
       ;; Else, it is defined, but perhaps too old?
-      (condition-case nil
-          (progn
-            (called-interactively-p nil)
-            '(called-interactively-p 'interactive))
-        (error
-         '(called-interactively-p)))))
+      (case (car-safe (subr-arity (symbol-function 'called-interactively-p)))
+        (0 '(called-interactively-p))
+        (1 '(called-interactively-p 'interactive)))))
    (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
 (vim:emacsen
