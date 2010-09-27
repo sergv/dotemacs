@@ -391,13 +391,16 @@ and switches to insert-mode."
         (incf linenr)
         (when (> linenr (line-number-at-pos (point)))
           (setq count 0))))
-    (if register
-        (let ((txt (make-string 1 ? )))
-          (put-text-property 0 1 'yank-handler
-                             (list 'vim:yank-line-handler (reverse lines))
-                             txt)
-          (set-register register txt))
-      (kill-new " " nil (list 'vim:yank-line-handler (reverse lines))))))
+    (let ((txt (make-string 1 ? )))
+      (if register
+          (progn
+            (put-text-property 0 1 'yank-handler
+                               (list #'vim:yank-line-handler (reverse lines) nil
+                                     #'vim:yank-line-undo)
+                               txt)
+            (set-register register txt))
+        (kill-new txt nil (list #'vim:yank-line-handler (reverse lines) nil
+                                #'vim:yank-line-undo))))))
 
 
 (vim:defcmd vim:cmd-yank-rectangle (motion register nonrepeatable)
@@ -419,16 +422,17 @@ and switches to insert-mode."
                     (buffer-substring beg end))
               parts)
         (forward-line -1)))
-    (if register
-        (let ((txt (make-string 1 ? )))
-          (put-text-property 0 1
-                             'yank-handler
-                             (list 'vim:yank-block-handler
-                                   (cons (- endcol begcol -1) parts)) 
-                             txt)
-          (set-register register txt))
-      (kill-new " " nil (list 'vim:yank-block-handler
-                              (cons (- endcol begcol -1) parts))))
+    (let ((txt (make-string 1 ? )))
+      (if register
+          (progn
+            (put-text-property 0 1
+                               'yank-handler
+                               (list 'vim:yank-block-handler
+                                     (cons (- endcol begcol -1) parts)) 
+                               txt)
+            (set-register register txt))
+        (kill-new txt nil (list 'vim:yank-block-handler
+                                (cons (- endcol begcol -1) parts)))))
     (goto-line begrow)
     (move-to-column begcol)))
 
