@@ -103,6 +103,11 @@
   :type 'string
   :group 'vim-mode)
 
+(defcustom vim:find-skip-newlines nil
+  "If non-nil character find motions t,T,f,F skip over newlines."
+  :type 'boolean
+  :group 'vim-mode)
+
 (defun vim:adjust-point ()
   "Adjust the pointer after a command."
   ;; TODO: should we check modes directly?
@@ -1169,7 +1174,8 @@ text-object before or at point."
   (forward-char)
   (let ((case-fold-search nil))
     (unless (search-forward (char-to-string arg)
-                            nil t (or count 1))
+                            (unless vim:find-skip-newlines (line-end-position))
+			    t (or count 1))
       (backward-char)
       (error (format "Can't find %c" arg)))
     (setq vim:last-find (cons 'vim:motion-find arg))
@@ -1180,7 +1186,8 @@ text-object before or at point."
   "Move the cursor to the previous count'th occurrence of arg."
   (let ((case-fold-search nil))
     (unless (search-backward (char-to-string arg)
-                             nil t (or count 1))
+			     (unless vim:find-skip-newlines (line-beginning-position))
+                             t (or count 1))
       (error (format "Can't find %c" arg)))
     (setq vim:last-find (cons 'vim:motion-find-back arg))))
 
