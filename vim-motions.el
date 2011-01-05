@@ -358,6 +358,21 @@ return the correct end-position of emacs-ranges, i.e.
   (vim:use-last-column)
   (forward-visible-line (1- (or count 1))))
 
+(vim:defmotion vim:motion-window-first-line (linewise count)
+  "Moves the cursor to the first line of the window, plus count lines, default zero."
+  (move-to-window-line (or count 0))
+  (back-to-indentation))
+
+(vim:defmotion vim:motion-window-middle-line (linewise count)
+  "Moves the cursor to the beginning of the middle line of the window.  Ignores count."
+  (move-to-window-line (/ (window-body-height) 2))
+  (back-to-indentation))
+
+(vim:defmotion vim:motion-window-last-line (linewise count)
+  "Moves the cursor to the last line of the window, minus count lines, default zero."
+  (move-to-window-line (- (window-body-height) (or count 0) 1))
+  (back-to-indentation))
+
 
 (defun vim:motion-beginning-of-line-or-digit-argument ()
   "Feeds a 0 count or moves the cursor to the beginning of the line."
