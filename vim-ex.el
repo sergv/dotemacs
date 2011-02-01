@@ -54,10 +54,10 @@
   "Keymap used in ex-mode.")
 
 (define-key vim:ex-keymap "\t" 'minibuffer-complete)
-(define-key vim:ex-keymap [return] 'vim:ex-mode-exit)
-(define-key vim:ex-keymap (kbd "RET") 'vim:ex-mode-exit)
+(define-key vim:ex-keymap [return] 'vim:ex-mode-complete-and-exit)
+(define-key vim:ex-keymap (kbd "RET") 'vim:ex-mode-complete-and-exit)
 (define-key vim:ex-keymap " " 'vim:ex-expect-argument)
-(define-key vim:ex-keymap (kbd "C-j") 'vim:ex-execute-command)
+(define-key vim:ex-keymap (kbd "C-j") 'vim:ex-mode-complete-and-exit)
 (define-key vim:ex-keymap (kbd "C-g") 'vim:ex-mode-abort)
 (define-key vim:ex-keymap [up] 'previous-history-element)
 (define-key vim:ex-keymap [down] 'next-history-element)
@@ -115,11 +115,23 @@ except for the info message."
 
 (defun vim:ex-binding (cmd)
   "Returns the current binding of `cmd' or nil."
-  (with-current-buffer vim:ex-current-buffer
-    (while (and cmd (stringp cmd))
-      (setq cmd (or (cdr-safe (assoc cmd vim:ex-local-commands))
-		    (cdr-safe (assoc cmd vim:ex-commands)))))
-    cmd))
+  (if (not (stringp cmd)) cmd
+    (with-current-buffer vim:ex-current-buffer
+      (let* ((cmds (vim:ex-complete-command cmd nil t))
+	     (c (cond
+		 ;; no command found
+		 ((null cmds) nil) 
+		 ;; exactly one completion found
+		 ((null (cdr cmds)) (car cmds))
+		 ;; one exact completion found
+		 ((member cmd cmds) cmd)
+		 ;; more than one inexact completion found
+		 (t nil))))
+      
+	(while (and c (stringp c))
+	  (setq c (or (cdr-safe (assoc c vim:ex-local-commands))
+		      (cdr-safe (assoc c vim:ex-commands)))))
+	c))))
 
 (defun vim:ex-delete-backward-char (n)
   "Delete the previous `n' characters. If ex-buffer is empty,
@@ -216,11 +228,11 @@ This function should be called whenever the minibuffer is exited."
   (remove-hook 'after-change-functions #'vim:ex-change t))
   
 
-(defun vim:ex-mode-exit ()
-  "Calls `exit-minibuffer' and cleanup."
+(defun vim:ex-mode-complete-and-exit ()
+  "Calls `minibuffer-complete-and-exit' and cleanup."
   (interactive)
   (vim:ex-stop-session)
-  (exit-minibuffer))
+  (minibuffer-complete-and-exit))
 
 
 (defun vim:ex-mode-abort ()
@@ -302,15 +314,10 @@ has been pressed."
                  (zerop (length spaces))
                  (zerop (length arg)))
 	(setq cmd (vim:ex-binding cmd))
-        (if (null cmd) (ding)
-          (let ((result (case (vim:cmd-arg cmd)
-                          (file
-                           (vim:ex-complete-file-argument nil nil nil))
-                          (buffer
-                           (vim:ex-complete-buffer-argument nil nil nil))
-                          ((t)
-                           (vim:ex-complete-text-argument nil nil nil)))))
-            (when result (insert result))))))))
+	(if (null cmd) (ding)
+	  (setq vim:ex-cmd cmd)
+	  (let ((result (vim:ex-complete-argument nil nil nil)))
+	    (when result (insert result))))))))
           
 
 (defun vim:ex-complete (cmdline predicate flag)
@@ -351,8 +358,8 @@ has been pressed."
      ((null flag) (or (try-completion cmd vim:ex-local-commands predicate)
                       (try-completion cmd vim:ex-commands predicate)))
    
-     ((eq t flag) (or (all-completions cmd vim:ex-local-commands predicate)
-                      (all-completions cmd vim:ex-commands predicate)))
+     ((eq t flag) (append (all-completions cmd vim:ex-local-commands predicate)
+			  (all-completions cmd vim:ex-commands predicate)))
    
      ((eq 'lambda flag) (or (vim:test-completion cmd vim:ex-local-commands predicate)
                             (vim:test-completion cmd vim:ex-commands predicate))))))
@@ -641,9 +648,9 @@ the offset and the new position."
   (interactive)
   (let ((vim:ex-current-buffer (current-buffer))
 	(vim:ex-current-window (selected-window)))
-    (let ((minibuffer-local-completion-map vim:ex-keymap))
+    (let ((minibuffer-local-must-match-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read ":" 'vim:ex-complete nil nil initial-input  'vim:ex-history)))
+      (let ((result (completing-read ":" 'vim:ex-complete nil t initial-input  'vim:ex-history)))
         (when (and result
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))
