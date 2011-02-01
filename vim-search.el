@@ -536,12 +536,14 @@ possibly wrapping and eob or bob."
       ('backward (backward-char))
       (t (forward-char)))
     (vim:search-next)
-    (when isearch-success
-      (when (and vim:search-highlight-all
-		 (not (vim:hl-active-p 'vim:search)))
-	(vim:make-hl 'vim:search)
-	(vim:hl-change 'vim:search vim:search-pattern))
-      (goto-char isearch-match-beg))
+    (if isearch-success
+       (progn
+         (when (and vim:search-highlight-all
+                    (not (vim:hl-active-p 'vim:search)))
+           (vim:make-hl 'vim:search)
+           (vim:hl-change 'vim:search vim:search-pattern))
+         (goto-char isearch-match-beg))
+      (goto-char vim:search-start-point))
     (when (or isearch-error isearch-wrapped) (ding))
     (when isearch-message
       (let (message-log-max)
