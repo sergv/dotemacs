@@ -983,17 +983,19 @@ text-object before or at point."
 
 (vim:defmotion vim:motion-fwd-word (exclusive count)
   "Moves the cursor beginning of the next word."
-  (vim:move-fwd-beg (or count 1) #'vim:boundary-word)
+  (let ((line (line-number-at-pos (point))))
+    (vim:move-fwd-beg (or count 1) #'vim:boundary-word)
   
-  ;; in operator-pending mode, if we reached the beginning of a new
-  ;; line, go back to the end of the previous line
-  (when (and (vim:operator-pending-mode-p)
-             (vim:looking-back "^[ \t]*")
-             (not (save-excursion
-                    (forward-visible-line -1)
-                    (and (bolp) (eolp)))))
-    (forward-visible-line -1)
-    (end-of-line)))
+    ;; in operator-pending mode, if we reached the beginning of a new
+    ;; line, go back to the end of the previous line
+    (when (and (vim:operator-pending-mode-p)
+	       (< line (line-number-at-pos (point))) ; only if we skipped a newline
+	       (vim:looking-back "^[ \t]*")
+	       (not (save-excursion
+		      (forward-visible-line -1)
+		      (and (bolp) (eolp)))))
+      (forward-visible-line -1)
+      (end-of-line))))
 
 
 (vim:defmotion vim:motion-bwd-word (exclusive count)
@@ -1023,17 +1025,19 @@ text-object before or at point."
 
 (vim:defmotion vim:motion-fwd-WORD (exclusive count)
   "Moves the cursor to beginning of the next WORD."
-  (vim:move-fwd-beg (or count 1) #'vim:boundary-WORD)
+  (let ((line (line-number-at-pos (point))))
+    (vim:move-fwd-beg (or count 1) #'vim:boundary-WORD)
   
-  ;; in operator-pending mode, if we reached the beginning of a new
-  ;; line, go back to the end of the previous line
-  (when (and (vim:operator-pending-mode-p)
-             (vim:looking-back "^[ \t]*")
-             (not (save-excursion
-                    (forward-visible-line -1)
-                    (and (bolp) (eolp)))))
-    (forward-visible-line -1)
-    (end-of-line)))
+    ;; in operator-pending mode, if we reached the beginning of a new
+    ;; line, go back to the end of the previous line
+    (when (and (vim:operator-pending-mode-p)
+	       (< line (line-number-at-pos (point))) ; only if we skipped a newline
+	       (vim:looking-back "^[ \t]*")
+	       (not (save-excursion
+		      (forward-visible-line -1)
+		      (and (bolp) (eolp)))))
+      (forward-visible-line -1)
+      (end-of-line))))
 
 
 (vim:defmotion vim:motion-bwd-WORD (exclusive count)
