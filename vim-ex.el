@@ -35,8 +35,7 @@
 (defvar vim:ex-history nil
   "History of ex-commands.")
 
-(defface vim:ex-info '(
-		       ( ((supports :slant))
+(defface vim:ex-info '(( ((supports :slant))
 			 :slant italic
 			 :foreground "red"))
   "Face for the info message in ex mode."

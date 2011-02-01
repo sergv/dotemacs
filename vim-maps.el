@@ -194,17 +194,14 @@
 
 (vim:nmap "J" 'vim:cmd-join-lines)
 
-(vim:nmap "/" 'vim:search-start)
-(vim:nmap "?" 'vim:search-start-backward)
+(vim:nmap "/" 'vim:motion-search-fwd)
+(vim:nmap "?" 'vim:motion-search-bwd)
 (vim:nmap "*" 'vim:search-word)
 (vim:nmap "#" 'vim:search-word-backward)
 (vim:nmap "g*" 'vim:search-unbounded-word)
 (vim:nmap "g#" 'vim:search-unbounded-word-backward)
-(vim:nmap "n" 'vim:search-repeat)
-(vim:nmap "N" 'vim:search-repeat-opposite)
-;; The next two maps are very special for an active search.
-(vim:map "n" 'vim:search-repeat :keymap vim:search-keymap)
-(vim:map "N" 'vim:search-repeat-opposite :keymap vim:search-keymap)
+(vim:nmap "n" 'vim:motion-search-next)
+(vim:nmap "N" 'vim:motion-search-next-reverse)
 
 (vim:nmap "i" 'vim:cmd-insert)
 (vim:nmap "a" 'vim:cmd-append)
@@ -394,6 +391,8 @@
 (vim:emap "substitute" 'vim:cmd-substitute)
 (vim:emap "s" "substitute")
 (vim:emap "marks" 'vim:cmd-show-marks)
+(vim:emap "noh" "nohlsearch")
+(vim:emap "nohlsearch" 'vim:cmd-nohighlight)
 
 
 (vim:nmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
