@@ -23,8 +23,24 @@
 (defvar vim:ex-current-window nil
   "The window to which the currently active ex session belongs to.")
 
+(defvar vim:ex-info-length nil
+  "Current info string.")
+
+(defvar vim:ex-info-string nil
+  "Current info string.")
+
+(defvar vim:ex-update-info nil
+  "Flag to indicate that an update is in progress.")
+
 (defvar vim:ex-history nil
   "History of ex-commands.")
+
+(defface vim:ex-info '(
+		       ( ((supports :slant))
+			 :slant italic
+			 :foreground "red"))
+  "Face for the info message in ex mode."
+  :group 'vim-mode)
 
 (defvar vim:ex-cmd nil
   "The currently parsed command.")
@@ -50,6 +66,33 @@
 (define-key vim:ex-keymap (kbd "ESC ESC ESC") 'vim:ex-mode-keyboard-escape-quit)
 
 
+(defun vim:ex-set-info (info)
+  "Changes the active ex info message."
+  (when (and vim:ex-minibuffer
+	     (not (equal info vim:ex-info-string)))
+    (with-current-buffer vim:ex-minibuffer
+      (let ((vim:ex-update-info t)
+	    after-change-functions)
+	(when vim:ex-info-length
+	  (delete-region (- (point-max) vim:ex-info-length) (point-max)))
+	(if info
+	    (let ((beg (point-max)))
+	      (save-excursion
+		(goto-char (point-max))
+		(insert (concat "   [" info "]"))
+		(setq vim:ex-info-length (- (point-max) beg))
+		(put-text-property beg (point-max) 'point-entered #'vim:ex-info-point-entered)
+		(put-text-property beg (point-max) 'face #'vim:ex-info)
+		))
+	  (setq vim:ex-info-length nil))))
+    (setq vim:ex-info-string info)))
+
+
+(defun vim:ex-info-point-entered (old new)
+  "Moves point before the info string."
+  (goto-char (- (point-max) vim:ex-info-length)))
+
+
 (defun vim:ex-contents ()
   "Returns the contents of the ex buffer.
 The content is the same as minibuffer-contents would return
@@ -57,7 +100,9 @@ except for the info message."
   (with-current-buffer vim:ex-minibuffer
     (buffer-substring-no-properties
      (minibuffer-prompt-end)
-     (point-max))))
+     (if vim:ex-info-length
+	 (- (point-max) vim:ex-info-length)
+       (point-max)))))
 
 (defun vim:emap (keys command)
   "Maps an ex-command to some function."
@@ -133,7 +178,9 @@ cancel ex-mode."
 This function should be called as minibuffer-setup-hook when an
 ex-mode starts."
   (remove-hook 'minibuffer-setup-hook #'vim:ex-setup) ; Just for the case.
-  (setq vim:ex-cmd nil
+  (setq vim:ex-info-length nil
+	vim:ex-info-string nil
+	vim:ex-cmd nil
 	vim:ex-arg nil
 	vim:ex-arg-handler nil
 	vim:ex-range nil
@@ -142,6 +189,16 @@ ex-mode starts."
 (defun vim:ex-teardown ()
   "Deinitializes the minibuffer for an ex-like mode.
 This function should be called whenever the minibuffer is exited."
+  (when vim:ex-info-length
+    (with-current-buffer vim:ex-minibuffer
+      (let ((len vim:ex-info-length))
+	(remove-text-properties (minibuffer-prompt-end)
+				(point-max)
+				'(point-entered nil))
+	(setq vim:ex-info-string nil)
+	(setq vim:ex-info-length nil)
+	(delete-char (- (point-max) len)
+		     (point-max)))))
   (setq vim:ex-minibuffer nil))
   
 
