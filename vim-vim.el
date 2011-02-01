@@ -109,26 +109,30 @@
                     (not (eq (cadr arg) 'motion)))
            (push `(,(cadr arg) motion) named-params)))
         
-        ((argument argument:char argument:file argument:buffer)
-         (when argument
-           (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
-         (let* ((arg-name (symbol-name (if (consp arg) (car arg) arg)))
-                (pos (position ?: arg-name))
-                (arg-type (if pos
-                              `',(intern (substring arg-name (1+ pos)))
-                            t)))
-           (setq argument arg-type)
-           (push 'argument params)
-           (when (and (consp arg)
-                      (not (eq (cadr arg) 'argument)))
-             (push `(,(cadr arg) argument) named-params))))
-
         ('keep-visual (setq keep-visual t))
         ('do-not-keep-visual (setq keep-visual nil))
         ('repeatable (setq repeatable t))
         ('nonrepeatable (setq repeatable nil))
         
-        (t (error "%s: Unexpected argument: %s" 'vim:defcmd arg))))
+	(t
+	 (if (not (string-match "^argument\\(:[[:word:]]+\\)?$"
+				(symbol-name (if (consp arg)
+						 (car arg)
+					       arg))))
+	     (error "%s: Unexpected argument: %s" 'vim:defcmd arg) 
+	   
+	   (when argument
+	     (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
+	   (let* ((arg-name (symbol-name (if (consp arg) (car arg) arg)))
+		  (pos (position ?: arg-name))
+		  (arg-type (if pos
+				`',(intern (substring arg-name (1+ pos)))
+			      ''text)))
+	     (setq argument arg-type)
+	     (push 'argument params)
+	     (when (and (consp arg)
+			(not (eq (cadr arg) 'argument)))
+	       (push `(,(cadr arg) argument) named-params)))))))
 
     `(progn
        (put ',name 'type ',(if motion 'complex 'simple))
