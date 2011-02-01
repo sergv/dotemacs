@@ -17,6 +17,13 @@
 
 ;;; Code:
 
+(defcustom vim:interactive-search-highlight 'all-windows
+  "Determine in which windows the interactive highlighting should be shown."
+  :type '(radio (const :tag "All windows." all-windows)
+		(const :tag "Selected window." selected-window)
+		(const :tag "Disable highlighting." nil))
+  :group 'vim-mode)
+
 (defconst vim:search-keymap (make-sparse-keymap))
 (vim:set-keymap-default-binding vim:search-keymap 'vim:search-mode-exit)
 
@@ -85,8 +92,238 @@
   "This advice changes the minibuffer indicator to '/' or '?'"
   (setq ad-return-value (if isearch-forward "/" "?")))
 
+
+;; A pattern.
+(defstruct (vim:pattern
+	    (:constructor nil)
+	    (:constructor vim:make-pattern
+			  (&key ((:regex re))
+				((:case-fold ca) nil)
+				(whole-line t)
+			   &aux (regex (vim:regex-without-case re))
+			        (case-fold (vim:regex-case re ca)))))
+  regex      ;; The pattern itself.
+  case-fold  ;; The case for this pattern.
+  whole-line ;; If non-nil the pattern matches the whole line,
+	     ;; otherwise only the first occurrence.
+  )
+
+(defun vim:regex-without-case (re)
+  "Returns the regular expression without all occurrences of \\c and \\C."
+  (replace-regexp-in-string "\\\\[cC]" "" re t t))
+
+(defun vim:regex-case (re default-case)
+  "Returns the case as implied by \\c or \\C in regular expression `re'.
+If \\c appears anywhere in the pattern, the pattern is case
+insenstive, if \\C appears the pattern is case sensitive. Only
+the first occurrence of \\c or \\C is used, all others are
+ignored. If neither \\c nor \\C appears in the pattern, the
+case specified by `default-case' is used. `default-case' should be either
+'sensitive, 'insensitive or 'smart. In the latter case the pattern will be
+case-sensitive if and only if it contains an upper-case letter, otherwise it
+will be case-insensitive."
+  (if (string-match "\\\\[cC]" re)
+      (if (string= (match-string 0 re) "\\c")
+	  'insensitive
+	'sensitive)
+    (case default-case
+      ((sensitive insensitive) default-case)
+      (smart (if (isearch-no-upper-case-p re t) 'insensitive 'sensitive))
+      (t nil))))
+
+;; The lazy-highlighting framework.
+(vim:deflocalvar vim:active-highlights-alist nil
+  "An alist of currently active highlights."
+  )
+
+(defstruct (vim:hl
+            (:constructor vim:make-highlight))
+  name	     ;; The name of this highlight.
+  pattern    ;; The search pattern.
+  face	     ;; The face for this highlights.
+  window     ;; The window where this highlight has been started.
+  beg        ;; The minimal position for the highlighting.
+  end        ;; The maximal position for the highlighting.
+  update-hook ;; Hook to be called when the lazy highlighting.
+  match-hook ;; Hook to be called when a single lazy highlight pattern has been setup.
+  overlays   ;; The currently active overlays.
+  )
+
+(defun* vim:make-hl (name &key
+			  (face 'lazy-highlight)
+			  (win (selected-window))
+			  (beg nil)
+			  (end nil)
+			  (update-hook nil)
+			  (match-hook nil))
+  "Creates new highlighting object with a certain `name'."
+  (when (assoc name vim:active-highlights-alist)
+    (vim:delete-hl name))
+  (when (null vim:active-highlights-alist)
+    (add-hook 'window-scroll-functions #'vim:hl-update-highlights-scroll nil t)
+    (add-hook 'window-size-change-functions #'vim:hl-update-highlights-resize nil))
+  (push (cons name (vim:make-highlight :name name
+				       :pattern nil
+				       :face face
+				       :overlays nil
+				       :window win
+				       :beg beg
+				       :end end
+				       :update-hook update-hook
+				       :match-hook match-hook))
+	vim:active-highlights-alist))
+
+
+(defun vim:delete-hl (name)
+  "Removes the highlighting object with a certain `name'."
+  (let ((hl (cdr-safe (assoc name vim:active-highlights-alist))))
+    (when hl
+      (mapc #'delete-overlay (vim:hl-overlays hl))
+      (setq vim:active-highlights-alist
+	    (remove* name vim:active-highlights-alist :key #'car))
+      (vim:hl-update-highlights))
+    (when (null vim:active-highlights-alist)
+      (remove-hook 'window-scroll-functions #'vim:hl-update-highlights-scroll t)
+      (remove-hook 'window-size-change-functions #'vim:hl-update-highlights-resize))))
+
+
+(defun vim:hl-active-p (name)
+  "Returns t iff the highlight with a certain name is active."
+  (and (assoc name vim:active-highlights-alist) t))
+
+
+(defun vim:hl-change (name new-pattern)
+  "Sets the regular expression of the highlighting object with
+name `name' to `new-regex'."
+  (let ((hl (cdr-safe (assoc name vim:active-highlights-alist))))
+    (when hl
+      (setf (vim:hl-pattern hl)
+	    (if (zerop (length new-pattern))
+		nil
+	      new-pattern))
+      (vim:hl-idle-update))))
+
+
+(defun vim:hl-set-region (name beg end)
+  (let ((hl (cdr-safe (assoc name vim:active-highlights-alist))))
+    (when hl
+      (setf (vim:hl-beg hl) beg
+	    (vim:hl-end hl) end)
+      (vim:hl-idle-update))))
+
+
+(defun* vim:hl-update-highlights ()
+  "Updates the overlays of all active highlights."
+  (dolist (hl (mapcar #'cdr vim:active-highlights-alist))
+    (let ((old-ovs (vim:hl-overlays hl))
+	  new-ovs
+	  (pattern (vim:hl-pattern hl))
+	  (face (vim:hl-face hl))
+	  (match-hook (vim:hl-match-hook hl))
+	  result)
+      (condition-case lossage
+	  (progn
+	    (when pattern
+	      (dolist (win (if (eq vim:interactive-search-highlight 'all-windows)
+			       (get-buffer-window-list (current-buffer) nil t)
+			     (list (vim:hl-window hl))))
+		(let ((begin (max (window-start win)
+				  (or (vim:hl-beg hl) (point-min))))
+		      (end (min (window-end win)
+				(or (vim:hl-end hl) (point-max))))
+		      last-line)
+		  (when (< begin end)
+		    (save-excursion
+		      (goto-char begin)
+		      ;; set the overlays for the current highlight, reusing old overlays
+		      ;; (if possible)
+		      (while (and (vim:search-find-next-pattern pattern)
+				  (< (match-beginning 0) (match-end 0))
+				  (<= (match-end 0) end))
+			(when (or (vim:pattern-whole-line pattern)
+				  (not (equal (line-number-at-pos (match-beginning 0)) last-line)))
+			  (setq last-line (line-number-at-pos (match-beginning 0)))
+			  (push (if old-ovs
+				    (progn
+				      (move-overlay (car old-ovs)
+						    (match-beginning 0)
+						    (match-end 0))
+				      (overlay-put (car old-ovs) 'face face)
+				      (pop old-ovs))
+				  (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+				    (overlay-put ov 'face face)
+				    (overlay-put ov 'vim:hl (vim:hl-name hl))
+				    ov))
+				new-ovs)
+			  (when match-hook (funcall match-hook (car new-ovs)))
+			  )))))))
+	    
+	    (mapc #'delete-overlay old-ovs)
+	    (setf (vim:hl-overlays hl) new-ovs)
+	    (setq result (when (and pattern (null new-ovs)) "No match")))
+	
+	(invalid-regexp
+	 (setq result (cadr lossage)))
+	
+	(search-failed
+	 (setq result (nth 2 lossage)))
+
+	(error
+	 (setq result (format "%s" lossage))))
+      
+      (when (vim:hl-update-hook hl)
+	(funcall (vim:hl-update-hook hl) result)))))
+
+
+(defvar vim:hl-update-timer nil
+  "Time used for updating highlights.")
+
+
+(defun vim:hl-idle-update () 
+  "Triggers the timer to update the highlights in the current buffer."
+  (when (and vim:interactive-search-highlight
+	     vim:active-highlights-alist)
+    (when vim:hl-update-timer
+      (cancel-timer vim:hl-update-timer))
+    (setq vim:hl-update-timer
+	  (run-at-time 0.1 nil
+		       #'vim:hl-do-update-highlight
+		       (current-buffer)))))
+
+
+(defun* vim:hl-do-update-highlight (&optional buffer)
+  "Timer function, updating the highlights."
+  (with-current-buffer buffer
+    (vim:hl-update-highlights))
+  (setq vim:hl-update-timer nil))
+
+
+(defun vim:hl-update-highlights-scroll (win begin)
+  "Update highlights after scrolling in some window."
+  (with-current-buffer (window-buffer)
+    (vim:hl-idle-update)))
+
+
+(defun vim:hl-update-highlights-resize (frame)
+  "Updates highlights after resizing a window."
+  (let ((buffers (delete-dups (mapcar #'window-buffer (window-list frame)))))
+    (dolist (buf buffers)
+      (with-current-buffer buf
+	(vim:hl-idle-update)))))
+
+
+;; Search commands
+(defun* vim:search-find-next-pattern (pattern &optional
+					      (direction 'forward))
+  "Looks for the next occurrence of pattern in a certain direction."
+  (let ((case-fold-search (eq (vim:pattern-case-fold pattern) 'insensitive)))
+    (case direction
+      ('forward (re-search-forward (vim:pattern-regex pattern) nil t))
+      ('backward (re-search-backward (vim:pattern-regex pattern) nil t))
+      (t (error "Unknown search direction: %s" direction)))))
+  
+
 (defun vim:start-word-search (unbounded direction)
- 
   (condition-case nil
       (goto-char (vim:motion-bwd-word-end :count 1))
     (error nil))
@@ -132,6 +369,7 @@
   (vim:start-word-search t 'backward))
 
 
+;; Substitute
 (vim:defcmd vim:cmd-substitute (motion argument nonrepeatable)
   "The VIM substitutde command: [range]s/pattern/replacement/flags"
   (multiple-value-bind (pattern replacement flags) (vim:parse-substitute argument)
