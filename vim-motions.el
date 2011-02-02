@@ -84,6 +84,12 @@
 
 ;;; Code:
 
+;; TODO:
+;;   - should motions that do not change point automatically (ding)?
+;;     this is not true in general, e.g., t
+;;   - alternatively operator pending mode could never ding, but then
+;;     all motions have to be valid even in case of erros
+
 (vim:deflocalvar vim:this-column nil
   "The resulting column of the current motion.")
 
@@ -620,7 +626,9 @@ contained in the first text-object before or at point."
     (when (> n 0)
       (let ((start (point)))
         ;; can't move further if already at the end of buffer
-        (when (>= start (1- (point-max))) (signal 'end-of-buffer nil))
+        (when (and (not (vim:operator-pending-mode-p))
+		   (>= start (1- (point-max))))
+	  (signal 'end-of-buffer nil))
         ;; go to the end of the (possibly) current object
         (let ((pos (funcall boundary 'fwd)))
           (if pos (goto-char pos)
@@ -650,10 +658,12 @@ contained in the first text-object after or at point. If the
 parameter is 'bwd the function should return the first position
 contained in the first text-object before or at point."
   (when (> n 0)
-    (when (>= (point) (1- (point-max))) (signal 'end-of-buffer nil)))
+    (when (and (not (vim:operator-pending-mode-p))
+	       (>= (point) (1- (point-max))))
+      (signal 'end-of-buffer nil))
     (dotimes (i n)
       (if linewise (forward-line) (forward-char))
-      (goto-char (or (funcall boundary 'fwd) (point-max)))))
+      (goto-char (or (funcall boundary 'fwd) (point-max))))))
           
 
 (defun vim:move-bwd-beg (n boundary &optional linewise)
