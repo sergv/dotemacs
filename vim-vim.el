@@ -33,7 +33,12 @@
   "The argument of the current motion.")
 
 (vim:deflocalvar vim:current-motion-type nil
-  "The type of the current motion (inclusive, exclusive, linewise).")
+  "The type of the current motion (inclusive, exclusive,
+  linewise).")
+
+(vim:deflocalvar vim:current-force-motion-type nil
+  "The forced type of the motion of current command (inclusive,
+  exclusive, linewise).")
 
 (defun vim:toplevel-execution ()
   "Returns t iff this is a toplevel execution, not a mapping or repeat."
@@ -49,7 +54,8 @@
         vim:current-motion-count nil
         vim:current-motion nil
         vim:current-motion-arg nil
-        vim:current-motion-type nil))
+        vim:current-motion-type nil
+	vim:current-force-motion-type nil))
 (ad-activate 'vim:reset-key-state)
 
 
@@ -342,6 +348,14 @@ vim:motion object."
   "Returns the motion range for the current command w.r.t.
 command-specific transformations."
   (let ((motion (save-excursion (vim:execute-current-motion))))
+    (when vim:current-force-motion-type
+      (setf (vim:motion-type motion)
+	    (if (eq vim:current-force-motion-type 'char)
+		(case (vim:motion-type motion)
+		  (exclusive 'inclusive)
+		  (t 'exclusive))
+	      vim:current-force-motion-type)))
+		
     (when (and (eq (vim:motion-type motion) 'exclusive)
                (save-excursion
                  (goto-char (vim:motion-end-pos motion))

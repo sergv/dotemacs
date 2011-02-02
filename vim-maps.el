@@ -171,6 +171,9 @@
 
 (vim:omap "it" 'vim:motion-inner-xml-tags)
 (vim:omap "at" 'vim:motion-outer-xml-tags)
+(vim:omap "v" 'vim:cmd-force-charwise)
+(vim:omap "V" 'vim:cmd-force-linewise)
+(vim:omap (kbd "C-v") 'vim:cmd-force-blockwise)
 
 ;(vim:nmap "x" "dl")
 (vim:nmap "m" 'vim:cmd-set-mark)

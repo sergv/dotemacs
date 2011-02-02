@@ -120,8 +120,6 @@
   (when (and (not (vim:insert-mode-p))
              )				;(not vim:replace-mode))
     
-    (when vim:this-column
-      (move-to-column vim:this-column))
     ;; always stop at the last character (not the newline)
     (when (and (not (vim:visual-mode-p))
                (eolp) (not (bolp)))
@@ -269,6 +267,8 @@ return the correct end-position of emacs-ranges, i.e.
             (,motion ,expression))
        (if (vim:motion-p ,motion)
            ,motion
+	 (when vim:this-column
+	   (move-to-column vim:this-column))
          (vim:make-motion :has-begin nil
                           :begin ,current-pos
                           :end (point)
