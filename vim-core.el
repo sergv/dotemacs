@@ -306,6 +306,9 @@ and the (default) type of the motion."
   ;; TODO: should we check modes directly?
   (when (and (not (vim:insert-mode-p))
              )				;(not vim:replace-mode))
+
+    (when vim:this-column
+      (move-to-column vim:this-column))
     
     ;; always stop at the last character (not the newline)
     (when (and (not (vim:visual-mode-p))

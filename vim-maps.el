@@ -254,7 +254,7 @@
 (vim:omap (vconcat "z" [return]) "zt^")
 (vim:omap (kbd "z RET") (vconcat "z" [return]))
 (vim:omap "zz" 'vim:scroll-line-to-center)
-(vim:omap "z." "z.^")
+(vim:omap "z." "zz^")
 (vim:omap "zb" 'vim:scroll-line-to-bottom)
 (vim:omap "z-" "zb^")
 
