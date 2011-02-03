@@ -271,6 +271,7 @@ name `name' to `new-regex'."
 				  (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
 				    (overlay-put ov 'face face)
 				    (overlay-put ov 'vim:hl (vim:hl-name hl))
+				    (overlay-put ov 'priority 1000)
 				    ov))
 				new-ovs)
 			  (when match-hook (funcall match-hook (car new-ovs)))
@@ -444,7 +445,7 @@ possibly wrapping and eob or bob."
 			vim:search-match-beg
 			vim:search-match-end)
 	(setq vim:search-overlay (make-overlay vim:search-match-beg vim:search-match-end))
-	(overlay-put vim:search-overlay 'priority 10000)
+	(overlay-put vim:search-overlay 'priority 1001)
 	(overlay-put vim:search-overlay 'face 'isearch)))
     (when vim:search-highlight-all
       (vim:hl-change 'vim:search (and isearch-success vim:search-pattern)))))
