@@ -8,9 +8,21 @@
 
 ;;; Code:
 
+(require 'vim-keymap)
+
+(defmacro vim:deflocalvar (name &rest args)
+  "Defines a buffer-local variable."
+  (declare (indent defun))
+  `(progn
+     (defvar ,name ,@args)
+     (make-variable-buffer-local ',name)))
+(font-lock-add-keywords 'emacs-lisp-mode '("vim:deflocalvar"))
+
+
 (defvar vim:repeat-events nil
   "The sequence of events for the repeat command.")
 
+(defvar vim:current-register)
 (vim:deflocalvar vim:current-register nil
   "The register of the current command.")
 

@@ -87,6 +87,8 @@
 
 ;;; Code:
 
+(require 'vim-vim)
+
 (defcustom vim:shift-width 8
   "The number of columns for shifting commands like < or >."
   :type 'integer

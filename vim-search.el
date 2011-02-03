@@ -77,6 +77,12 @@ highlighted."
 (defvar vim:search-pattern nil
   "The actual search pattern.")
 
+(defvar vim:search-match-beg nil
+  "The beginning position of the last match.")
+
+(defvar vim:search-match-end nil
+  "The end position of the last match.")
+
 (defvar vim:substitute-pattern nil
   "The actual replacement.")
 
@@ -358,8 +364,7 @@ name `name' to `new-regex'."
       
     (cond
      (isearch-success
-      (setq isearch-other-end (if (eq vim:search-direction 'forward) (match-beginning 0) (match-end 0))
-	    result nil))
+      (setq isearch-other-end (if (eq vim:search-direction 'forward) (match-beginning 0) (match-end 0))))
      ((not isearch-error)
       (setq isearch-error "No match")))
     (if isearch-wrapped
@@ -383,8 +388,8 @@ possibly wrapping and eob or bob."
 	     ;; normal search
 	     ((vim:search-find-next-pattern vim:search-pattern
 					    vim:search-direction)
-	      (setq isearch-match-beg (match-beginning 0)
-		    isearch-match-end (match-end 0)
+	      (setq vim:search-match-beg (match-beginning 0)
+		    vim:search-match-end (match-end 0)
 		    result (if wrapped 1 t)
 		    retry nil))
 
@@ -397,7 +402,7 @@ possibly wrapping and eob or bob."
 	   
 	     ;; already wrapped, search failed
 	     (t
-	      (setq isearch-match-beg nil isearch-match-end nil
+	      (setq vim:search-match-beg nil vim:search-match-end nil
 		    result nil
 		    retry nil))))
 	  result))
@@ -419,12 +424,12 @@ possibly wrapping and eob or bob."
   (vim:ex-set-info isearch-message)
   (when vim:search-interactive
     (when isearch-success
-      (goto-char isearch-match-beg)
+      (goto-char vim:search-match-beg)
       (if vim:search-overlay
 	  (move-overlay vim:search-overlay
-			isearch-match-beg
-			isearch-match-end)
-	(setq vim:search-overlay (make-overlay isearch-match-beg isearch-match-end))
+			vim:search-match-beg
+			vim:search-match-end)
+	(setq vim:search-overlay (make-overlay vim:search-match-beg vim:search-match-end))
 	(overlay-put vim:search-overlay 'priority 10000)
 	(overlay-put vim:search-overlay 'face 'isearch)))
     (when vim:search-highlight-all
@@ -471,12 +476,12 @@ possibly wrapping and eob or bob."
 	(goto-char vim:search-start-point)
 	(save-excursion
 	  (dotimes (i (or vim:search-count 1))
-	    (if (eq direction 'backward)
+	    (if (eq vim:search-direction 'backward)
 		(backward-char)
 	      (forward-char))
 	    (vim:search-next)
-	    (when isearch-match-beg
-	      (goto-char isearch-match-beg))))
+	    (when vim:search-match-beg
+	      (goto-char vim:search-match-beg))))
 	(vim:search-update)))))
 
 
@@ -514,8 +519,8 @@ possibly wrapping and eob or bob."
 				 ('backward "?"))
 			       nil 'vim:search-history)
 	      (goto-char vim:search-start-point)
-	      (if isearch-match-beg
-		  (goto-char isearch-match-beg)
+	      (if vim:search-match-beg
+		  (goto-char vim:search-match-beg)
 		(vim:find-next))
 	      (vim:adjust-point))))
       (quit 
@@ -542,7 +547,7 @@ possibly wrapping and eob or bob."
                     (not (vim:hl-active-p 'vim:search)))
            (vim:make-hl 'vim:search)
            (vim:hl-change 'vim:search vim:search-pattern))
-         (goto-char isearch-match-beg))
+         (goto-char vim:search-match-beg))
       (goto-char vim:search-start-point))
     (when (or isearch-error isearch-wrapped) (ding))
     (when isearch-message

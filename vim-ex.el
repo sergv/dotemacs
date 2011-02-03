@@ -47,7 +47,7 @@
   "The currently parse command.")
 (defvar vim:ex-arg-handler nil
   "The currently active argument handler.")
-(defvar vim:ex-region nil
+(defvar vim:ex-range nil
   "The currently parsed region.")
 
 (defvar vim:ex-keymap (make-sparse-keymap)
