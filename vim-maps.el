@@ -109,7 +109,9 @@
 (vim:mmap "g_" 'vim:motion-last-non-blank)
 
 (vim:mmap "k" 'vim:motion-up)
+(vim:mmap "gk" 'vim:motion-screen-up)
 (vim:mmap "j" 'vim:motion-down)
+(vim:mmap "gj" 'vim:motion-screen-down)
 (vim:mmap "-" "k^")
 (vim:mmap "+" "j^")
 (vim:mmap "G" 'vim:motion-go-to-first-non-blank-end) 

@@ -189,18 +189,28 @@
 
 (vim:defmotion vim:motion-up (linewise count)
   "Move the cursor count lines up."
-  (vim:use-last-column)
-  (forward-visible-line (- (or count 1))))
+  (let (line-move-visual)
+    (previous-line (or count 1))))
 
 (vim:defmotion vim:motion-down (linewise count)
   "Move the cursor count lines down."
-  (vim:use-last-column)
-  (forward-visible-line (or count 1)))
+  (let (line-move-visual)
+    (next-line (or count 1))))
 
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
-  (vim:use-last-column)
-  (forward-visible-line (1- (or count 1))))
+  (let (line-move-visual)
+    (next-line (1- (or count 1)))))
+
+(vim:defmotion vim:motion-screen-up (linewise count)
+  "Move the cursor count screen lines up."
+  (let ((line-move-visual t))
+    (previous-line (or count 1))))
+
+(vim:defmotion vim:motion-screen-down (linewise count)
+  "Move the cursor count screen lines down."
+  (let ((line-move-visual t))
+    (next-line (or count 1))))
 
 (vim:defmotion vim:motion-window-first-line (linewise count)
   "Moves the cursor to the first line of the window, plus count lines, default zero."

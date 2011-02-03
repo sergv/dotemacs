@@ -12,6 +12,9 @@
 ;; operations are usually just simple commands and should not be
 ;; repeatable but should keep visual mode.
 
+;; TODO: is vim:use-last-column really needed anymore? Vim does not
+;; preserve the column in all cases.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
