@@ -87,7 +87,13 @@
 
 ;;; Code:
 
-(require 'vim-vim)
+(eval-when-compile (require 'cl))
+(require 'vim-defs)
+(require 'vim-macs)
+(require 'vim-core)
+(require 'vim-compat)
+(require 'vim-motions)
+
 
 (defcustom vim:shift-width 8
   "The number of columns for shifting commands like < or >."

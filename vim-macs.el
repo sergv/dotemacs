@@ -1,4 +1,4 @@
-;;; vim-vim.el - Basic macros for vim-mode.
+;;; vim-macs.el - Basic macros for vim-mode.
 
 ;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
@@ -171,7 +171,9 @@
              (vim:execute-command ',name)
            (apply (get ',name 'function) args))))))
 
-(font-lock-add-keywords 'emacs-lisp-mode '("vim:deflocalvar" "vim:defcmd" "vim:defmotion"))
+(font-lock-add-keywords
+ 'emacs-lisp-mode '
+ ("vim:deflocalvar" "vim:defcmd" "vim:defmotion"))
 
 (provide 'vim-macs)
 

@@ -13,6 +13,11 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'vim-macs)
+(require 'vim-ex)
+
+
 (defcustom vim:interactive-search-highlight 'all-windows
   "Determine in which windows the interactive highlighting should be shown."
   :type '(radio (const :tag "All windows." all-windows)

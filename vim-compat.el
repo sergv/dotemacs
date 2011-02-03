@@ -11,6 +11,8 @@
 ;; Check emacs and xemacs
 
 (require 'vim-macs)
+(require 'vim-defs)
+(eval-when-compile (require 'cl))
 
 (defconst vim:xemacs-p (string-match "XEmacs" emacs-version))
 (defconst vim:emacs23-p (>= emacs-major-version 23))

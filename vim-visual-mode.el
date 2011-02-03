@@ -14,6 +14,14 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'vim-macs)
+(require 'vim-modes)
+(require 'vim-normal-mode)
+(require 'vim-insert-mode)
+(require 'vim-ex)
+(require 'vim-commands)
+
 (defcustom vim:visual-region-face vim:default-region-face
   "Face of the highlighted region."
   :type 'face

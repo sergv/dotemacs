@@ -69,6 +69,19 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'vim-keymap)
+(require 'vim-motions)
+(require 'vim-commands)
+(require 'vim-ex-commands)
+(require 'vim-scroll)
+(require 'vim-window)
+(require 'vim-search)
+(require 'vim-normal-mode)
+(require 'vim-insert-mode)
+(require 'vim-visual-mode)
+(require 'vim-ex)
+
 (vim:nmap "\\" 'vim:cmd-emacs)
 
 (vim:nmap (kbd "C-z") 'vim:activate-emacs-mode)

@@ -90,14 +90,12 @@
 ;;   - alternatively operator pending mode could never ding, but then
 ;;     all motions have to be valid even in case of erros
 
-(vim:deflocalvar vim:this-column nil
-  "The resulting column of the current motion.")
+(eval-when-compile (require 'cl))
+(require 'vim-defs)
+(require 'vim-macs)
+(require 'vim-core)
+(require 'vim-compat)
 
-(vim:deflocalvar vim:last-column nil
-  "The resulting column of the previous motion.")
-
-(vim:deflocalvar vim:last-find nil
-  "The previous find command (command . arg).")
 
 (defcustom vim:word "[:word:]_"
   "Regexp-set matching a word."
@@ -114,167 +112,8 @@
   :type 'boolean
   :group 'vim-mode)
 
-(defun vim:adjust-point ()
-  "Adjust the pointer after a command."
-  ;; TODO: should we check modes directly?
-  (when (and (not (vim:insert-mode-p))
-             )				;(not vim:replace-mode))
-    
-    ;; always stop at the last character (not the newline)
-    (when (and (not (vim:visual-mode-p))
-               (eolp) (not (bolp)))
-      (backward-char)))
-  
-  (setq vim:last-column (or vim:this-column
-                            (current-column)))
-  (setq vim:this-column nil))
-
-
-(defun vim:use-last-column ()
-  "This function should by called by a motion not changing the column."
-  (setq vim:this-column vim:last-column))
-
-
-;; This structure is passed to operators taking a motion.
-;; It should *not* be returned by motions.
-(defstruct (vim:motion
-            (:constructor vim:make-motion-struct))
-  has-begin		  ; t iff the motion defined an explicit begin
-  begin			  ; first point in this motion
-  end			  ; last point in this motion
-  type			  ; 'inclusive, 'exclusive, 'linewise
-  )
-
-(defun* vim:make-motion (&key
-                         has-begin
-			 (begin (point))
-			 (end (point))
-			 type)
-  "Creates a new motion with `begin' and `end' always 
-positions within (point-min) and (point-max) and not at 
- (line-end-position) (if possible)."
-  (unless type
-    (setq type (if (<= begin end) 'inclusive 'exclusive)))
-  
-  (labels 
-      ((shrink-to (pos lower upper)
-                  (max lower (min upper pos)))
-       
-       (normalize-pos (pos)
-                      (let ((pos (shrink-to pos (point-min) (point-max))))
-                        (shrink-to pos 
-                                   (save-excursion
-                                     (goto-char pos)
-                                     (line-beginning-position))
-                                   (save-excursion
-                                     (goto-char pos)
-                                     (- (line-end-position)
-                                        (if (eq type 'inclusive) 1 0)))))))
-    
-    (vim:make-motion-struct :has-begin has-begin
-                            :begin (normalize-pos begin)
-                            :end (normalize-pos end)
-                            :type type)))
-
-
-(defun vim:motion-line-count (motion)
-  "Returns the number of lines the `motion' covers."
-  (1+ (- (vim:motion-last-line motion)
-	 (vim:motion-first-line motion))))
-
-(defun vim:motion-first-line (motion)
-  "Returns the first line covered by `motion'."
-  (min (line-number-at-pos (vim:motion-begin motion))
-       (line-number-at-pos (vim:motion-end motion))))
-
-(defun vim:motion-last-line (motion)
-  "Returns the last line covered by `motion'."
-  (max (line-number-at-pos (vim:motion-begin motion))
-       (line-number-at-pos (vim:motion-end motion))))
-
-(defun vim:motion-first-col (motion)
-  "Returns the first column covered by `motion'."
-  (min (save-excursion 
-	 (goto-char (vim:motion-begin motion))
-	 (current-column))
-       (save-excursion 
-	 (goto-char (vim:motion-end motion))
-	 (current-column))))
-
-(defun vim:motion-last-col (motion)
-  "Returns the last column covered by `motion'."
-  (max (save-excursion 
-	 (goto-char (vim:motion-begin motion))
-	 (current-column))
-       (save-excursion 
-	 (goto-char (vim:motion-end motion))
-	 (current-column))))
-
-(defun vim:motion-begin-pos (motion)
-  "Returns the smaller position covered by `motion'.
-The result is modified depending on the motion type to
-return the correct start-position of emacs-ranges, i.e.
-  - if motion is inclusive or exclusive, nothing is changed
-  - if motion is line-wise, is always bol of the first line in the motion,
-  - if motion is block 1 is added if and only if the begin column
-    is larget than the end column."
-  (case (vim:motion-type motion)
-    (linewise
-     (save-excursion
-       (goto-line (vim:motion-first-line motion))
-       (line-beginning-position)))
-    ('block
-        (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
-              (e (max (vim:motion-begin motion) (vim:motion-end motion))))
-          (if (> (save-excursion (goto-char b) (current-column))
-                 (save-excursion (goto-char e) (current-column)))
-              (1+ b)
-            b)))
-    (t (min (vim:motion-begin motion) (vim:motion-end motion)))))
-
-
-(defun vim:motion-end-pos (motion)
-  "Returns the larger position covered by `motion'.
-The result is modified depending on the motion type to
-return the correct end-position of emacs-ranges, i.e.
-  - if motion is inclusive, 1 is added,
-  - if motion is exclusive, nothing is change,
-  - if motion is line-wise, is always eol of the last line in the motion,
-  - if motion is block 1 is added if and only if the end column
-    is larger than or equal to the begin column."
-  (case (vim:motion-type motion)
-    (linewise
-     (save-excursion
-       (goto-line (vim:motion-last-line motion))
-       (line-end-position)))
-    ('block
-        (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
-              (e (max (vim:motion-begin motion) (vim:motion-end motion))))
-          (if (>= (save-excursion (goto-char e) (current-column))
-                  (save-excursion (goto-char b) (current-column)))
-              (1+ e)
-            e)))
-    (inclusive
-     (1+ (max (vim:motion-begin motion) (vim:motion-end motion))))
-    (t (max (vim:motion-begin motion) (vim:motion-end motion)))))
-
-
-(defmacro vim:do-motion (type expression)
-  "Executes a motion body, ensuring the return of a valid vim:motion object."
-  (let ((current-pos (make-symbol "current-pos"))
-        (motion (make-symbol "motion")))
-    `(let* ((,current-pos (point))
-            (,motion ,expression))
-       (if (vim:motion-p ,motion)
-           ,motion
-	 (when vim:this-column
-	   (move-to-column vim:this-column))
-         (vim:make-motion :has-begin nil
-                          :begin ,current-pos
-                          :end (point)
-                          :type ,type)))))
-(font-lock-add-keywords 'emacs-lisp-mode '("vim:do-motion"))
-
+(vim:deflocalvar vim:last-find nil
+  "The previous find command (command . arg).")
 
 (vim:deflocalvar vim:local-marks-alist nil
   "Local marks for this buffer.")
@@ -330,13 +169,6 @@ return the correct end-position of emacs-ranges, i.e.
 (defun vim:set-change-mark (beg end)
   "Sets the change mark . to `beg'."
   (vim:set-mark ?. beg))
-
-(defun vim:adjust-end-of-line-position (pos)
-  "If pos is an end-of-line returns pos - 1 and pos otherwise."
-  (save-excursion
-    (goto-char pos)
-    (max (line-beginning-position)
-         (min (1- (line-end-position)) pos))))
 
 (vim:defmotion vim:motion-left (exclusive count)
   "Move the cursor count characters left."

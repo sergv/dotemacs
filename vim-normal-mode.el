@@ -16,6 +16,30 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'vim-defs)
+(require 'vim-core)
+(require 'vim-keymap)
+(require 'vim-compat)
+(require 'vim-undo)
+
+;; Basic keymap for motion/scroll commands.
+(vim:define-keymap motion-mode "motion mode" :map-command mmap)
+
+(vim:define-mode motion "VIM motion mode"
+                 :ident "M"
+                 :keymaps '(vim:motion-mode-keymap vim:window-mode-keymap)
+                 :command-function 'vim:normal-mode-command)
+
+;; Basic keymap for window commands.
+(vim:define-keymap window-mode "window mode" :map-command wmap)
+
+(vim:define-mode window "VIM window mode"
+                 :ident "W"
+                 :keymaps '(vim:window-mode-keymap)
+                 :command-function 'vim:normal-mode-command)
+
+
 (defconst vim:operator-repeat-keymap (vim:make-keymap)
   "Keymap to bind the repeat-operator-event.")
 

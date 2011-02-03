@@ -8,6 +8,12 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'vim-macs)
+(require 'vim-core)
+(require 'vim-compat)
+(require 'vim-motions)
+
 (defvar vim:ex-commands nil
   "List of pairs (command . function).")
 
