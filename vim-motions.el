@@ -96,9 +96,6 @@
 (require 'vim-core)
 (require 'vim-compat)
 
-(vim:deflocalvar vim:last-find nil
-  "The previous find command (command . arg).")
-
 (defcustom vim:word "[:word:]_"
   "Regexp-set matching a word."
   :type 'string
