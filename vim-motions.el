@@ -1042,12 +1042,7 @@ but only on the current line."
   (save-excursion
     (let* ((p (point))
 	   (end (line-end-position))
-	   (re (concat open-qt
-		       "\\(?:[^\\\\"
-		       open-qt
-		       close-qt
-		       "]\\|\\\\.\\)*"
-		       close-qt))
+	   (re (concat open-qt "\\(?:[^\\\\]\\|\\\\.\\)*" close-qt))
 	   md
 	   (retry t))
       (beginning-of-line)
@@ -1079,22 +1074,34 @@ but only on the current line."
   (let ((bounds (vim:bounds-of-generic-quote open-qt
 					     (or close-qt open-qt))))
     (cond
+     ;; no quote found
      ((not bounds) (signal 'no-such-object nil))
+     ;; point is in visual mode on one of both quotes
+     ;; oq quoted text is empty
      ((or (>= 1 (- (cdr bounds) (car bounds)))
 	  (eq count 2)
 	  (and (vim:visual-mode-p)
-	       (= (point) (1+ (car bounds)))
-	       (= (mark) (1- (cdr bounds)))))
+	       (= (min (point) (mark)) (1+ (car bounds)))
+	       (= (max (point) (mark)) (1- (cdr bounds)))))
+      (goto-char 
+       (if (and (vim:visual-mode-p) (< (point) (mark)))
+	   (car bounds)
+	 (cdr bounds)))
       (vim:make-motion :has-begin t
 		       :begin (car bounds)
 		       :end (cdr bounds)
 		       :type 'inclusive))
+     ;; visual mode an point is on at leas one of both quotes
      ((and (vim:visual-mode-p)
 	   (not (= (point) (mark)))
 	   (or (>= (car bounds) (min (point) (mark)))
 	       (<= (cdr bounds) (max (point) (mark)))))
       (signal 'no-such-object nil))
      (t
+      (goto-char 
+       (if (and (vim:visual-mode-p) (< (point) (mark)))
+	   (1+ (car bounds))
+	 (1- (cdr bounds))))
       (vim:make-motion :has-begin t
 		       :begin (1+ (car bounds))
 		       :end (1- (cdr bounds))
@@ -1105,6 +1112,7 @@ but only on the current line."
   "Select text between two quotes including the quotes."
   (if (and (vim:visual-mode-p)
 	   (/= (point) (mark)))
+      ;; visual mode so extend the region
       (let* ((bounds (vim:bounds-of-generic-quote
 		      open-qt (or close-qt open-qt)
 		      (if (< (point) (mark))
@@ -1122,18 +1130,24 @@ but only on the current line."
     (let ((bounds (vim:bounds-of-generic-quote open-qt
 					       (or close-qt open-qt))))
       (cond
+       ;; nothing found
        ((not bounds) (signal 'no-such-object nil))
+       ;; extend whitespaces to the right
        ((save-excursion
 	  (goto-char (1+ (cdr bounds)))
 	  (looking-at "[ \t\r]"))
-	(vim:make-motion :has-begin t
-			 :begin (car bounds)
-			 :end (save-excursion
+	(let ((end (save-excursion
 				(goto-char (1+ (cdr bounds)))
 				(skip-chars-forward " \t\r")
-				(1- (point)))
-			 :type 'inclusive))
+				(1- (point)))))
+	  (goto-char end)
+	  (vim:make-motion :has-begin t
+			   :begin (car bounds)
+			   :end end
+			   :type 'inclusive)))
        (t
+       ;; extend whitespaces to the left
+	(goto-char (cdr bounds))
 	(vim:make-motion :has-begin t
 			 :begin (save-excursion
 				  (goto-char (car bounds))
