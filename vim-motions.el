@@ -96,6 +96,8 @@
 (require 'vim-core)
 (require 'vim-compat)
 
+(vim:deflocalvar vim:last-find nil
+  "The previous find command (command . arg).")
 
 (defcustom vim:word "[:word:]_"
   "Regexp-set matching a word."
@@ -1032,6 +1034,139 @@ text-object before or at point."
                                                          (+ 2 (car tag2))
                                                          (1- (cdr tag2)))))
                    (or count 1)))
+
+
+(defun vim:bounds-of-generic-quote (open-qt close-qt &optional side)
+  "Returns the start and end points of a text enclosed in some quotes,
+but only on the current line."
+  (save-excursion
+    (let* ((p (point))
+	   (end (line-end-position))
+	   (re (concat open-qt
+		       "\\(?:[^\\\\"
+		       open-qt
+		       close-qt
+		       "]\\|\\\\.\\)*"
+		       close-qt))
+	   md
+	   (retry t))
+      (beginning-of-line)
+      (while retry
+	(if (not (re-search-forward re end t))
+	    (setq retry nil)
+	  (case side
+	    ((nil)
+	     (when (> (match-end 0) p)
+	       (setq retry nil)
+	       (when (<= (match-beginning 0) p)
+		 (setq md (match-data)))))
+	    (before
+	     (if (>= (match-beginning 0) p)
+		 (setq retry nil)
+	       (setq md (match-data))))
+	    (after
+	     (when (> (match-end 0) (1+ p))
+	       (setq retry nil
+		     md (match-data)))))))
+	  
+      (when md
+	(set-match-data md)
+	(cons (match-beginning 0) (1- (match-end 0)))))))
+
+
+(defun vim:inner-quote (count open-qt &optional close-qt)
+  "Select text between two quotes."
+  (let ((bounds (vim:bounds-of-generic-quote open-qt
+					     (or close-qt open-qt))))
+    (cond
+     ((not bounds) (signal 'no-such-object nil))
+     ((or (>= 1 (- (cdr bounds) (car bounds)))
+	  (eq count 2)
+	  (and (vim:visual-mode-p)
+	       (= (point) (1+ (car bounds)))
+	       (= (mark) (1- (cdr bounds)))))
+      (vim:make-motion :has-begin t
+		       :begin (car bounds)
+		       :end (cdr bounds)
+		       :type 'inclusive))
+     ((and (vim:visual-mode-p)
+	   (not (= (point) (mark)))
+	   (or (>= (car bounds) (min (point) (mark)))
+	       (<= (cdr bounds) (max (point) (mark)))))
+      (signal 'no-such-object nil))
+     (t
+      (vim:make-motion :has-begin t
+		       :begin (1+ (car bounds))
+		       :end (1- (cdr bounds))
+		       :type 'inclusive)))))
+
+
+(defun vim:outer-quote (count open-qt &optional close-qt)
+  "Select text between two quotes including the quotes."
+  (if (and (vim:visual-mode-p)
+	   (/= (point) (mark)))
+      (let* ((bounds (vim:bounds-of-generic-quote
+		      open-qt (or close-qt open-qt)
+		      (if (< (point) (mark))
+			  'before
+			'after)))
+	     (beg (min (point) (mark) (car bounds)))
+	     (end (max (point) (mark) (cdr bounds)))
+	     (pnt (if (< (point) (mark)) beg end)))
+	(goto-char pnt)
+	(vim:make-motion :has-begin t
+			 :begin beg
+			 :end end
+			 :type 'inclusive))
+		  
+    (let ((bounds (vim:bounds-of-generic-quote open-qt
+					       (or close-qt open-qt))))
+      (cond
+       ((not bounds) (signal 'no-such-object nil))
+       ((save-excursion
+	  (goto-char (1+ (cdr bounds)))
+	  (looking-at "[ \t\r]"))
+	(vim:make-motion :has-begin t
+			 :begin (car bounds)
+			 :end (save-excursion
+				(goto-char (1+ (cdr bounds)))
+				(skip-chars-forward " \t\r")
+				(1- (point)))
+			 :type 'inclusive))
+       (t
+	(vim:make-motion :has-begin t
+			 :begin (save-excursion
+				  (goto-char (car bounds))
+				  (skip-chars-backward " \t\r")
+				  (point))
+			 :end (cdr bounds)
+			 :type 'inclusive))))))
+
+
+(vim:defmotion vim:motion-inner-single-quote (inclusive count)
+  "Select text between two single quotes without the quotes."
+  (vim:inner-quote count "'"))
+
+(vim:defmotion vim:motion-outer-single-quote (inclusive count)
+  "Select text between two single quotes including the quotes."
+  (vim:outer-quote count "'"))
+
+(vim:defmotion vim:motion-inner-double-quote (inclusive count)
+  "Select text between two double quotes without the quotes."
+  (vim:inner-quote count "\""))
+
+(vim:defmotion vim:motion-outer-double-quote (inclusive count)
+  "Select text between two double quotes including the quotes."
+  (vim:outer-quote count "\""))
+
+(vim:defmotion vim:motion-inner-back-quote (inclusive count)
+  "Select text between two back quotes without the quotes."
+  (vim:inner-quote count "`"))
+
+(vim:defmotion vim:motion-outer-back-quote (inclusive count)
+  "Select text between two back quotes including the quotes."
+  (vim:outer-quote count "`"))
+
 
 
 (vim:defmotion vim:motion-find (inclusive count (argument:char arg))

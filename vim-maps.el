@@ -184,6 +184,14 @@
 
 (vim:omap "it" 'vim:motion-inner-xml-tags)
 (vim:omap "at" 'vim:motion-outer-xml-tags)
+
+(vim:omap "i'" 'vim:motion-inner-single-quote)
+(vim:omap "a'" 'vim:motion-outer-single-quote)
+(vim:omap "i\"" 'vim:motion-inner-double-quote)
+(vim:omap "a\"" 'vim:motion-outer-double-quote)
+(vim:omap "i`" 'vim:motion-inner-back-quote)
+(vim:omap "a`" 'vim:motion-outer-back-quote)
+
 (vim:omap "v" 'vim:cmd-force-charwise)
 (vim:omap "V" 'vim:cmd-force-linewise)
 (vim:omap (kbd "C-v") 'vim:cmd-force-blockwise)
