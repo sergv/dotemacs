@@ -164,7 +164,14 @@
    (t
     (error "Unknown mark: '%c'" mark-char))))
 
-(add-hook 'before-change-functions 'vim:set-change-mark)
+(add-hook 'vim-mode-on-hook
+	  #'(lambda ()
+	      (add-hook 'before-change-functions 'vim:set-change-mark)))
+
+(add-hook 'vim-mode-off-hook
+	  #'(lambda ()
+	      (remove-hook 'before-change-functions 'vim:set-change-mark)))
+
 (defun vim:set-change-mark (beg end)
   "Sets the change mark . to `beg'."
   (vim:set-mark ?. beg))
