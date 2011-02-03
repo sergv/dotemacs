@@ -10,6 +10,8 @@
 
 ;; Check emacs and xemacs
 
+(require 'vim-macs)
+
 (defconst vim:xemacs-p (string-match "XEmacs" emacs-version))
 (defconst vim:emacs23-p (>= emacs-major-version 23))
 (defconst vim:emacs-p (not vim:xemacs-p))
