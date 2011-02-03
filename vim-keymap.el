@@ -10,7 +10,7 @@
 
 (defmacro vim:kbdmacro-to-command (events)
   "Creates a command passing prefix-argument to given keyboard-macro `events'."
-  (let ((arg (gensym)))
+  (let ((arg (make-symbol "arg")))
     `(lambda (,arg)
        (interactive "P")
        (execute-kbd-macro
@@ -118,15 +118,17 @@ and vim:local-`map-command'."
   (when (eq (car-safe keymaps) 'quote)
     (setq keymaps (cadr keymaps)))
   `(setq vim:emulation-mode-alist
-         (list ,@(cons '(cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap)
-                       (mapcan #'(lambda (keym)
-                                   (let ((localname (intern (replace-regexp-in-string "mode-keymap" "mode-local-keymap"
-                                                                                      (symbol-name keym)))))
-                                     (if (eq localname keym)
-                                         (list `(cons ',mode-name ,keym))
-                                       (list `(cons ',mode-name ,localname)
-                                             `(cons ',mode-name ,keym)))))
-                               keymaps)))))
+         (list
+	  ,@(apply #'append '((cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap))
+		    (mapcar #'(lambda (keym)
+				(let ((localname (intern (replace-regexp-in-string
+							  "mode-keymap" "mode-local-keymap"
+							  (symbol-name keym)))))
+				  (if (eq localname keym)
+				      (list `(cons ',mode-name ,keym))
+				    (list `(cons ',mode-name ,localname)
+					  `(cons ',mode-name ,keym)))))
+			    keymaps)))))
 
 ;; TODO: This function is currently empty and serves only as hook for
 ;; defadvice.

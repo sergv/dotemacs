@@ -169,6 +169,7 @@ will be case-insensitive."
 			  (update-hook nil)
 			  (match-hook nil))
   "Creates new highlighting object with a certain `name'."
+  (unless (symbolp name) (error "Excepted symbol as name of highlight."))
   (when (assoc name vim:active-highlights-alist)
     (vim:delete-hl name))
   (when (null vim:active-highlights-alist)
@@ -192,7 +193,7 @@ will be case-insensitive."
     (when hl
       (mapc #'delete-overlay (vim:hl-overlays hl))
       (setq vim:active-highlights-alist
-	    (remove* name vim:active-highlights-alist :key #'car))
+	    (assq-delete-all name vim:active-highlights-alist))
       (vim:hl-update-highlights))
     (when (null vim:active-highlights-alist)
       (remove-hook 'window-scroll-functions #'vim:hl-update-highlights-scroll t)
@@ -457,7 +458,13 @@ possibly wrapping and eob or bob."
     ;;       used for (lazy) highlighting. Perhaps it would be better
     ;;       to disable those overlays temporarily before calling
     ;;       isearch-range-invisible.
-    (setq isearch-opened-overlays (remove-duplicates isearch-opened-overlays))
+    ;;  the following code is equivalent to
+    ;; (setq isearch-opened-overlays nil
+    ;;       (remove-duplicates isearch-opened-overlays))
+    (let (ovs)
+      (dolist (ov isearch-opened-overlays)
+	(unless (member ov ovs) (push ov ovs)))
+      (setq isearch-opened-overlays ovs))
     (isearch-clean-overlays))
   (remove-hook 'minibuffer-exit-hook #'vim:search-stop-session)
   (remove-hook 'after-change-functions #'vim:search-update-pattern t)
@@ -639,13 +646,16 @@ The search matches the `count'-th occurrence of the word."
   (when vim:substitute-highlight-all
     (multiple-value-bind (pattern replacement flags)
 	(vim:parse-substitute vim:ex-arg)
+      (setq flags (append flags nil))
       (with-selected-window vim:ex-current-window
 	(with-current-buffer vim:ex-current-buffer 
 	  (setq vim:substitute-pattern
 		(and pattern
 		     (vim:make-pattern :regex pattern
-				       :whole-line (find ?g flags)
-				       :case-fold (or vim:substitute-case
+				       :whole-line (memq ?g flags)
+				       :case-fold (or (and (memq ?i flags) 'insensitive)
+						      (and (memq ?I flags) 'sensitive)
+						      vim:substitute-case
 						      vim:search-case)))
 		vim:substitute-replacement replacement)
 	  (vim:hl-set-region 'vim:substitute
@@ -691,91 +701,91 @@ The search matches the `count'-th occurrence of the word."
   (multiple-value-bind (pattern replacement flags) (vim:parse-substitute argument)
     (unless pattern (error "No pattern given."))
     (unless replacement (error "No replacement given."))
+    (setq flags (append flags nil))
     (lexical-let* ((replacement replacement)
                    (first-line (if motion (vim:motion-first-line motion) (line-number-at-pos (point))))
                    (last-line (if motion (vim:motion-last-line motion) (line-number-at-pos (point))))
-                   (whole-line (and flags (find ?g flags)))
-                   (confirm (and flags (find ?c flags)))
-                   (ignore-case (and flags (find ?i flags)))
-                   (dont-ignore-case (and flags (find ?I flags)))
+                   (whole-line (and flags (memq ?g flags)))
+                   (confirm (and flags (memq ?c flags)))
+                   (ignore-case (and flags (memq ?i flags)))
+                   (dont-ignore-case (and flags (memq ?I flags)))
 		   (pattern (vim:make-pattern :regex pattern
 					      :whole-line whole-line
-					      :case-fold (or (and case-fold-search
-								  (not dont-ignore-case))
-							     (and (not case-fold-search)
-								  ignore-case))))
-                   (case-fold-search (vim:pattern-case-fold pattern))
-                   (case-replace case-fold-search)
+					      :case-fold (or (and ignore-case 'insensitive)
+							     (and dont-ignore-case 'sensitive)
+							     vim:substitute-case
+							     vim:search-case)))
 		   (regex (vim:pattern-regex pattern))
                    (last-point (point))
                    (overlay (make-overlay (point) (point)))
                    (next-line (line-number-at-pos (point)))
                    (nreplaced 0))
-      
-      (unwind-protect
-          (if whole-line
-              ;; this one is easy, just use the built in function
-              (vim:perform-replace regex replacement confirm t nil nil nil 
-                                   (save-excursion
-                                     (goto-line first-line)
-                                     (line-beginning-position))
-                                   (save-excursion
-                                     (goto-line last-line)
-                                     (line-end-position)))
-            (if confirm
-                (progn
-                  ;; this one is more difficult, we have to do the
-                  ;; highlighting and questioning on our own
-                  (overlay-put overlay 'face
-                               (if (facep 'isearch)
-                                   'isearch 'region))
-                  (map-y-or-n-p #'(lambda (x)
-                                    (set-match-data x)
-                                    (move-overlay overlay (match-beginning 0) (match-end 0))
-                                    (concat "Query replacing " 
-                                            (match-string 0) 
-                                            " with "
-                                            (vim:match-substitute-replacement replacement case-fold-search)
-                                            ": "))
-                                #'(lambda (x) 
-                                    (set-match-data x) 
-                                    (replace-match replacement case-fold-search) 
-                                    (incf nreplaced)
-                                    (setq last-point (point)))
-                                #'(lambda ()
-                                    (let ((end (save-excursion 
-                                                 (goto-line last-line)
-                                                 (line-end-position))))
-                                      (goto-line next-line)
-                                      (beginning-of-line)
-                                      (when (and (> end (point))
-                                                 (re-search-forward regex end t nil))
-                                        (setq last-point (point))
-                                        (setq next-line (1+ (line-number-at-pos (point))))
-                                        (match-data))))))
+      (let ((case-fold-search (eq 'insensitive (vim:pattern-case-fold pattern)))
+	    (case-replace case-fold-search))
+	(unwind-protect
+	    (if whole-line
+		;; this one is easy, just use the built in function
+		(vim:perform-replace regex replacement confirm t nil nil nil 
+				     (save-excursion
+				       (goto-line first-line)
+				       (line-beginning-position))
+				     (save-excursion
+				       (goto-line last-line)
+				       (line-end-position)))
+	      (if confirm
+		  (progn
+		    ;; this one is more difficult, we have to do the
+		    ;; highlighting and questioning on our own
+		    (overlay-put overlay 'face
+				 (if (facep 'isearch)
+				     'isearch 'region))
+		    (map-y-or-n-p #'(lambda (x)
+				      (set-match-data x)
+				      (move-overlay overlay (match-beginning 0) (match-end 0))
+				      (concat "Query replacing " 
+					      (match-string 0) 
+					      " with "
+					      (vim:match-substitute-replacement replacement case-fold-search)
+					      ": "))
+				  #'(lambda (x) 
+				      (set-match-data x) 
+				      (replace-match replacement case-fold-search) 
+				      (incf nreplaced)
+				      (setq last-point (point)))
+				  #'(lambda ()
+				      (let ((end (save-excursion 
+						   (goto-line last-line)
+						   (line-end-position))))
+					(goto-line next-line)
+					(beginning-of-line)
+					(when (and (> end (point))
+						   (re-search-forward regex end t nil))
+					  (setq last-point (point))
+					  (setq next-line (1+ (line-number-at-pos (point))))
+					  (match-data))))))
               
-              ;; just replace the first occurences per line
-              ;; without highlighting and asking
-              (goto-line first-line)
-              (beginning-of-line)
-              (while (and (<= (line-number-at-pos (point)) last-line)
-                          (re-search-forward regex (save-excursion
-						     (goto-line last-line)
-						     (line-end-position))
-                                             t nil))
-                (incf nreplaced)
-                (replace-match replacement)
-                (setq last-point (point))
-                (forward-line)
-                (beginning-of-line)))
+		;; just replace the first occurences per line
+		;; without highlighting and asking
+		(goto-line first-line)
+		(beginning-of-line)
+		(while (and (<= (line-number-at-pos (point)) last-line)
+			    (re-search-forward regex (save-excursion
+						       (goto-line last-line)
+						       (line-end-position))
+					       t nil))
+		  (incf nreplaced)
+		  (replace-match replacement)
+		  (setq last-point (point))
+		  (forward-line)
+		  (beginning-of-line)))
 
-            (goto-char last-point)
-            (if (= nreplaced 1)
-                (message "Replaced 1 occurence")
-              (message "Replaced %d occurences" nreplaced)))
+	      (goto-char last-point)
+	      (if (= nreplaced 1)
+		  (message "Replaced 1 occurence")
+		(message "Replaced %d occurences" nreplaced)))
            
-        ;; clean-up the overlay
-        (delete-overlay overlay)))))
+	  ;; clean-up the overlay
+	  (delete-overlay overlay))))))
 
 
 (defun vim:parse-substitute (text)

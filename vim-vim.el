@@ -133,25 +133,20 @@
         ('nonrepeatable (setq repeatable nil))
         
 	(t
-	 (if (not (string-match "^argument\\(:[[:word:]]+\\)?$"
-				(symbol-name (if (consp arg)
-						 (car arg)
-					       arg))))
-	     (error "%s: Unexpected argument: %s" 'vim:defcmd arg) 
-	   
+	 (let ((arg-name (symbol-name (if (consp arg) (car arg) arg))))
+	   (unless (string-match "^argument\\(?::\\([[:word:]]+\\)\\)?$" arg-name)
+	     (error "%s: Unexpected argument: %s" 'vim:defcmd arg))
 	   (when argument
 	     (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
-	   (let* ((arg-name (symbol-name (if (consp arg) (car arg) arg)))
-		  (pos (position ?: arg-name))
-		  (arg-type (if pos
-				`',(intern (substring arg-name (1+ pos)))
-			      ''text)))
+	   (let ((arg-type (if (match-beginning 1)
+			       `',(intern (match-string 1))
+			     ''text)))
 	     (setq argument arg-type)
 	     (push 'argument params)
 	     (when (and (consp arg)
 			(not (eq (cadr arg) 'argument)))
 	       (push `(,(cadr arg) argument) named-params)))))))
-
+      
     `(progn
        (put ',name 'type ',(if motion 'complex 'simple))
        (put ',name 'count ,count)
@@ -287,7 +282,7 @@
 
 (defmacro vim:apply-save-buffer (&rest args)
   "Like `apply' but stores the current buffer."
-  (let ((ret (gensym)))
+  (let ((ret (make-symbol "ret")))
   `(progn
      (save-current-buffer
        (let ((,ret (apply ,@args)))
@@ -297,7 +292,7 @@
 
 (defmacro vim:funcall-save-buffer (&rest args)
   "Like `funcall' but stores the current buffer."
-  (let ((ret (gensym)))
+  (let ((ret (make-symbol "ret")))
   `(progn
      (save-current-buffer
        (let ((,ret (funcall ,@args)))

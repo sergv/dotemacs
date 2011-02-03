@@ -421,9 +421,7 @@ and switches to insert-mode."
                     (buffer-substring beg end))
               parts)
         (forward-line -1)))
-    (let ((txt (apply #'concat (cdr (mapcan
-				     #'(lambda (part) (list "\n" (cdr part)))
-				     parts)))))
+    (let ((txt (mapconcat #'cdr parts "\n")))
       ;; `txt' contains the block as single lines
       (if register
           (progn
@@ -683,7 +681,9 @@ and switches to insert-mode."
   "Shows all currently defined marks."
   (let ((all-marks (append vim:local-marks-alist vim:global-marks-alist)))
     (when marks
-      (setq all-marks (remove-if-not #'(lambda (x) (find (car x) marks)) all-marks)))
+      (setq marks (append marks nil))
+      (setq all-marks
+	    (remq nil (mapcar #'(lambda (x) (and (memq (car x) marks) x)) all-marks))))
 
     (setq all-marks (sort all-marks #'(lambda (x y) (< (car x) (car y)))))
     (setq all-marks (apply #'concat

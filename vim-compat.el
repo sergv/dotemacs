@@ -21,8 +21,10 @@
 
 (defmacro vim:emacsen (&rest impls)
   "Defines some body depending in emacs version."
-  `(progn ,@(cdr (or (find-if #'(lambda (x) (eval (car x))) impls)
-                     '(t (error "Not implemented for this Emacs version"))))))
+  (while (and impls (not (eval (caar impls))))
+    (pop impls))
+  (if impls `(progn ,@(cdar impls))
+    (error "Not implemented for this Emacs version")))
 
 (defun vim:set-cursor (cursor)
   "Changes the cursor to type `cursor'."
@@ -129,7 +131,8 @@
     (let ((time (posn-timestamp event)))
       (setq vim:mouse-click-count
             (cond
-             ((intersection (event-modifiers event) '(double triple))
+             ((or (memq 'double (event-modifiers event))
+		  (memq 'triple (event-modifiers event)))
               (event-click-count event))
              ((and vim:mouse-click-last-time
                    (< (- time vim:mouse-click-last-time) double-click-time))
@@ -288,9 +291,11 @@ of a match for REGEXP."
    (vim:xemacs-p
     (if enable
 	(vim:normalize-minor-mode-map-alist)
-      (setq minor-mode-map-alist (set-difference minor-mode-map-alist
-						 vim:emulation-mode-alist
-						 :key 'car))))))
+      (setq minor-mode-map-alist
+	    (remq nil
+		  (mapcar #'(lambda (x)
+			      (unless (assq (car x) vim:emulation-mode-alist) x))
+			  minor-mode-map-alist)))))))
 
 
 (when vim:xemacs-p
@@ -300,10 +305,13 @@ of a match for REGEXP."
   
   (defun vim:normalize-minor-mode-map-alist ()
     (make-local-variable 'minor-mode-map-alist)
-    (setq minor-mode-map-alist (append vim:emulation-mode-alist
-				       (set-difference minor-mode-map-alist
-						       vim:emulation-mode-alist
-						       :key 'car))))
+    (setq minor-mode-map-alist
+	  (apply #'append
+		 vim:emulation-mode-alist
+		 (mapcar #'(lambda (x)
+			     (unless (assq (car x) vim:emulation-mode-alist)
+			       (list x)))
+			 minor-mode-map-alist))))
   
   (defadvice add-minor-mode (after vim:add-minor-mode 
                              (toggle name &optional keymap after toggle-fun)
@@ -489,6 +497,7 @@ See `%s' for more information on %s."
      ((= (window-point) goal) lines)
      (t (vertical-motion 1)
 	(walk-screen-lines (1+ lines) goal))))
+  
   (defun windmove-coordinates-of-position (pos &optional window)
     (let* ((w (if (null window)
 		  (selected-window)

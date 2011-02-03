@@ -261,8 +261,8 @@ return the correct end-position of emacs-ranges, i.e.
 
 (defmacro vim:do-motion (type expression)
   "Executes a motion body, ensuring the return of a valid vim:motion object."
-  (let ((current-pos (gensym))
-        (motion (gensym)))
+  (let ((current-pos (make-symbol "current-pos"))
+        (motion (make-symbol "motion")))
     `(let* ((,current-pos (point))
             (,motion ,expression))
        (if (vim:motion-p ,motion)
@@ -565,11 +565,13 @@ A paragraph is a non-empty sequence of non-empty lines."
 of bounds."
   (lexical-let ((boundaries boundaries))
     #'(lambda (direction)
-        (let ((positions (mapcan #'(lambda (bnd)
-                                     (let ((pos (funcall bnd direction)))
-                                       (when pos (list pos))))
-                                 boundaries)))
-          (when positions
+        (let ((positions
+	       (apply #'append
+		      (mapcar #'(lambda (bnd)
+				  (let ((pos (funcall bnd direction)))
+				    (when pos (list pos))))
+			      boundaries))))
+	  (when positions
             (apply (case direction
                      (fwd #'min)
                      (bwd #'max))
@@ -582,36 +584,38 @@ previous) object described by one of the given `boundaries'."
   (lexical-let ((boundaries boundaries))
     (labels
         ((find-best (get-object first-better)
-                    (reduce #'(lambda (obj1 obj2)
-                                (multiple-value-bind (b1 e1) obj1
-                                  (multiple-value-bind (b2 e2) obj2
-                                    (cond
-                                     ((null obj1) obj2)
-                                     ((null obj2) obj1)
-                                     ((funcall first-better b1 e1 b2 e2) obj1)
-                                     (t obj2)))))
-                            (mapcar get-object boundaries))))
-    #'(lambda (direction)
-        (case direction
-          (fwd (find-best #'(lambda (bnd)
-                              (let ((end (funcall bnd 'fwd)))
-                                (when end
-                                  (let ((beg (save-excursion
-                                               (goto-char end)
-                                               (funcall bnd 'bwd))))
-                                    (values beg end)))))
-                          #'(lambda (b1 e1 b2 e2)
-                              (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
+		    (let (obj1)
+		      (dolist (obj2 (mapcar get-object boundaries))
+			(multiple-value-bind (b1 e1) obj1
+			  (multiple-value-bind (b2 e2) obj2
+			    (setq obj1
+				  (cond
+				   ((null obj1) obj2)
+				   ((null obj2) obj1)
+				   ((funcall first-better b1 e1 b2 e2) obj1)
+				   (t obj2))))))
+		      obj1)))
+      #'(lambda (direction)
+	  (case direction
+	    (fwd (find-best #'(lambda (bnd)
+				(let ((end (funcall bnd 'fwd)))
+				  (when end
+				    (let ((beg (save-excursion
+						 (goto-char end)
+						 (funcall bnd 'bwd))))
+				      (values beg end)))))
+			    #'(lambda (b1 e1 b2 e2)
+				(or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
           
-          (bwd (find-best #'(lambda (bnd)
-                              (let ((beg (funcall bnd 'bwd)))
-                                (when beg
-                                  (let ((end (save-excursion
-                                               (goto-char beg)
-                                               (funcall bnd 'fwd))))
-                                    (values beg end)))))
-                          #'(lambda (b1 e1 b2 e2)
-                              (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
+	    (bwd (find-best #'(lambda (bnd)
+				(let ((beg (funcall bnd 'bwd)))
+				  (when beg
+				    (let ((end (save-excursion
+						 (goto-char beg)
+						 (funcall bnd 'fwd))))
+				      (values beg end)))))
+			    #'(lambda (b1 e1 b2 e2)
+				(or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
 
 
 (defun vim:move-fwd-beg (n boundary &optional linewise)

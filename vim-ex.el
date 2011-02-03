@@ -105,13 +105,17 @@ except for the info message."
 
 (defun vim:emap (keys command)
   "Maps an ex-command to some function."
-  (unless (find-if #'(lambda (x) (string= (car x) keys)) vim:ex-commands)
-    (add-to-list 'vim:ex-commands (cons keys command))))
+  (let ((binding (assoc keys vim:ex-commands)))
+    (if binding
+	(setcdr binding command)
+      (add-to-list 'vim:ex-commands (cons keys command)))))
 
 (defun vim:local-emap (keys command)
   "Maps an ex-command to some function buffer-local."
-  (unless (find-if #'(lambda (x) (string= (car x) keys)) vim:ex-local-commands)
-    (add-to-list 'vim:ex-local-commands (cons keys command))))
+  (let ((binding (assoc keys vim:ex-local-commands)))
+    (if binding
+	(setcdr binding command)
+      (add-to-list 'vim:ex-local-commands (cons keys command)))))
 
 (defun vim:ex-binding (cmd)
   "Returns the current binding of `cmd' or nil."
