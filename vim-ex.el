@@ -543,7 +543,7 @@ the range and the new position."
             (match-end 0)))
 
    ((= (aref text pos) ?$)
-    (values (cons 'abs (line-number-at-pos (point-max))) (1+ pos)))
+    (values 'last-line (1+ pos)))
 
    ((= (aref text pos) ?\%)
     (values 'all (1+ pos)))
