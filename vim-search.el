@@ -273,7 +273,15 @@ name `name' to `new-regex'."
 	    
 	    (mapc #'delete-overlay old-ovs)
 	    (setf (vim:hl-overlays hl) new-ovs)
-	    (setq result (when (and pattern (null new-ovs)) "No match")))
+	    (if (or (null pattern) new-ovs)
+		(setq result t)
+	      ;; maybe the match could just not be found somewhere else?
+	      (save-excursion
+		(goto-char (vim:hl-beg hl))
+		(if (and (vim:search-find-next-pattern pattern)
+			 (< (match-end 0) (vim:hl-end hl)))
+		    (setq result (format "Match in line %d" (line-number-at-pos (match-beginning 0))))
+		  (setq result "No match")))))
 	
 	(invalid-regexp
 	 (setq result (cadr lossage)))
