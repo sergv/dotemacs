@@ -1042,6 +1042,12 @@ text-object before or at point."
   "Select `count' enclosing pairs of <> inclusive."
   (vim:outer-block "<" ">" nil (or count 1)))
 
+(defun vim:compare-blocks-match1 (open-md close-md)
+  "Helper functions, compares two blocks by the regular
+expression subgroup 1."
+  (zerop (compare-buffer-substrings
+	  nil (nth 2 open-md) (nth 3 open-md)
+	  nil (nth 2 close-md) (nth 3 close-md))))
 
 (defun vim:generic-motion-xml-blocks (block-function count)
   "Calls a block selection function with regular expressions
@@ -1049,10 +1055,7 @@ matching xml tags. `block-function' should be either
 #'vim:inner-block or #'vim:out-block."
   (funcall block-function
 	   "<\\([^/>]+?\\)>" "</\\([^/>]+?\\)>"
-	   #'(lambda (open-md close-md)
-	       (zerop (compare-buffer-substrings
-		       nil (nth 2 open-md) (nth 3 open-md)
-		       nil (nth 2 close-md) (nth 3 close-md))))
+	   #'vim:compare-blocks-match1
 	   (or count 1)))
 
 
