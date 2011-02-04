@@ -821,13 +821,22 @@ text-object before or at point."
     (multiple-value-bind (op-beg op-end cl-beg cl-end)
         (vim:block-select open-re close-re match-test open-pos close-pos 1)
       (when (and op-beg
-                 (= (1+ op-end) open-pos)
+                 (or (= (1+ op-end) open-pos)
+		     (and (= (+ 2 op-end) open-pos)
+			  (save-excursion
+			    (goto-char (1+ op-end))
+			    (and (eolp) (not (bolp))))))
                  (= (1- cl-beg) close-pos))
         (incf n)))
     
     (multiple-value-bind (op-beg op-end cl-beg cl-end)
         (vim:block-select open-re close-re match-test open-pos close-pos n)
       (when op-beg
+	(when (save-excursion
+		(goto-char (1+ op-end))
+		(and (eolp) (not (bolp))))
+	  ;; The opening tag ended right at eol, so skip the newline
+	  (incf op-end))
         (goto-char (if (< (point) (mark)) (1+ op-end) (1- cl-beg)))
         (vim:make-motion :has-begin t
                          :begin (1+ op-end)
