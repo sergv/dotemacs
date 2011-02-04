@@ -826,7 +826,11 @@ text-object before or at point."
 			  (save-excursion
 			    (goto-char (1+ op-end))
 			    (and (eolp) (not (bolp))))))
-                 (= (1- cl-beg) close-pos))
+		 (or (= (1- cl-beg) close-pos)
+		     (and (= (- cl-beg 2) close-pos)
+			  (save-excursion
+			    (goto-char cl-beg)
+			    (bolp)))))
         (incf n)))
     
     (multiple-value-bind (op-beg op-end cl-beg cl-end)
