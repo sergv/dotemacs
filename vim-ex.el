@@ -60,10 +60,10 @@
   "Keymap used in ex-mode.")
 
 (define-key vim:ex-keymap "\t" 'minibuffer-complete)
-(define-key vim:ex-keymap [return] 'vim:ex-mode-complete-and-exit)
-(define-key vim:ex-keymap (kbd "RET") 'vim:ex-mode-complete-and-exit)
+(define-key vim:ex-keymap [return] 'vim:ex-mode-exit)
+(define-key vim:ex-keymap (kbd "RET") 'vim:ex-mode-exit)
 (define-key vim:ex-keymap " " 'vim:ex-expect-argument)
-(define-key vim:ex-keymap (kbd "C-j") 'vim:ex-mode-complete-and-exit)
+(define-key vim:ex-keymap (kbd "C-j") 'vim:ex-mode-exit)
 (define-key vim:ex-keymap (kbd "C-g") 'vim:ex-mode-abort)
 (define-key vim:ex-keymap [up] 'previous-history-element)
 (define-key vim:ex-keymap [down] 'next-history-element)
@@ -238,11 +238,11 @@ This function should be called whenever the minibuffer is exited."
   (remove-hook 'after-change-functions #'vim:ex-change t))
   
 
-(defun vim:ex-mode-complete-and-exit ()
+(defun vim:ex-mode-exit ()
   "Calls `minibuffer-complete-and-exit' and cleanup."
   (interactive)
   (vim:ex-stop-session)
-  (minibuffer-complete-and-exit))
+  (exit-minibuffer))
 
 
 (defun vim:ex-mode-abort ()
@@ -658,9 +658,9 @@ the offset and the new position."
   (interactive)
   (let ((vim:ex-current-buffer (current-buffer))
 	(vim:ex-current-window (selected-window)))
-    (let ((minibuffer-local-must-match-map vim:ex-keymap))
+    (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read ":" 'vim:ex-complete nil t initial-input  'vim:ex-history)))
+      (let ((result (completing-read ":" 'vim:ex-complete nil nil initial-input  'vim:ex-history)))
         (when (and result
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))
