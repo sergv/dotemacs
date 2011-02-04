@@ -734,53 +734,72 @@ text-object before or at point."
                           (if begin
                               (goto-char (match-beginning 0))
                             (goto-char (match-end 0)))
-                        (goto-char pos))))
+                        (goto-char pos)))
+
+       ;; splits the match-data into parts belonging to the
+       ;; open-regexp and the close-regexp
+       (split-match-data (n-open)
+			 (let* ((open-md (cddr (match-data)))
+				(split-cdr (nthcdr (1+ (* 2 n-open)) open-md))
+				(close-md (cdr split-cdr)))
+			   (setcdr split-cdr nil)
+			   (values open-md close-md))))
     (catch 'end
       (save-excursion
-        (let ((combined-re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)"))
-              op-beg op-end cl-beg cl-end
-              (cnt n)
-              found-stack)
+        (let ((combined-re (concat "\\("
+				    open-re
+				    "\\)\\|\\("
+				    close-re
+				    "\\)"))
+	      (n-open-groups (regexp-opt-depth open-re))
+	      op-beg op-end cl-beg cl-end
+	      (cnt n)
+	      found-stack)
           ;; set default match-test
           (unless match-test (setq match-test #'(lambda (a b) t)))
           ;; search the opening object
           (find-at-point open-re open-pos nil)
           (while (> cnt 0)
             (unless (re-search-backward combined-re nil t) (throw 'end nil))
-            (if (match-beginning 1)
-                (if found-stack
-                    (if (funcall match-test
-                                 (cons (match-beginning 1)
-                                       (match-end 1))
-                                 (car found-stack))
-                        ;; found matching opening object
-                        (pop found-stack)
-                      ;; found object does not match
-                      (throw 'end nil))
-                  ;; found enclosing opening object
-                  (decf cnt))
-              (push (cons (match-beginning 2) (match-end 2)) found-stack)))
+	    ;; split match data for open and close regexp
+	    (multiple-value-bind (open-md close-md)
+		(split-match-data n-open-groups)
+	      (if (car open-md)
+		  ;; match opening regexp
+		  (if found-stack
+		      (if (funcall match-test open-md (car found-stack))
+			  ;; found matching opening object
+			  (pop found-stack)
+			;; found object does not match
+			(throw 'end nil))
+		    ;; found enclosing opening object
+		    (decf cnt)
+		    (when (zerop cnt)
+		      ;; found the opening object we looked for, so
+		      ;; store it as the only object in the stack
+		      (push open-md found-stack)))
+		;; match closing regexp, save it
+		(push close-md found-stack))))
                   
           ;; found the opening object
           (setq op-beg (match-beginning 0)
                 op-end (1- (match-end 0)))
           
           ;; search the closing object
-          (push (cons op-beg (1+ op-end)) found-stack)
           (goto-char (1+ op-end))
           (while found-stack
             (unless (re-search-forward combined-re nil t) (throw 'end nil))
-            (if (match-beginning 2)
-                (if (funcall match-test
-                             (car found-stack)
-                             (cons (match-beginning 2)
-                                   (match-end 2)))
-                    ;; found matching closing object
-                    (pop found-stack)
-                  ;; found object does not match
-                  (throw 'end nil))
-              ;; found opening object
-              (push (cons (match-beginning 1) (match-end 1)) found-stack)))
+	    (multiple-value-bind (open-md close-md)
+		(split-match-data n-open-groups)
+	      (if (car close-md)
+		  ;; match closing regexp
+		  (if (funcall match-test (car found-stack) close-md)
+		      ;; found matching closing object
+		      (pop found-stack)
+		    ;; found object does not match
+		    (throw 'end nil))
+		;; found opening object
+		(push open-md found-stack))))
                   
           ;; found the closing object
           (setq cl-beg (match-beginning 0)
@@ -1024,30 +1043,27 @@ text-object before or at point."
   (vim:outer-block "<" ">" nil (or count 1)))
 
 
+(defun vim:generic-motion-xml-blocks (block-function count)
+  "Calls a block selection function with regular expressions
+matching xml tags. `block-function' should be either
+#'vim:inner-block or #'vim:out-block."
+  (funcall block-function
+	   "<\\([^/>]+?\\)>" "</\\([^/>]+?\\)>"
+	   #'(lambda (open-md close-md)
+	       (zerop (compare-buffer-substrings
+		       nil (nth 2 open-md) (nth 3 open-md)
+		       nil (nth 2 close-md) (nth 3 close-md))))
+	   (or count 1)))
+
+
 (vim:defmotion vim:motion-inner-xml-tags (inclusive count)
   "Select `count' enclosing pairs of <tag> </tag> exclusive."
-  (vim:inner-block "<[^/>]+?>" "</[^/>]+?>"
-                   #'(lambda (tag1 tag2)
-                       (zerop (compare-buffer-substrings nil
-                                                         (1+ (car tag1))
-                                                         (1- (cdr tag1))
-                                                         nil
-                                                         (+ 2 (car tag2))
-                                                         (1- (cdr tag2)))))
-                   (or count 1)))
+  (vim:generic-motion-xml-blocks #'vim:inner-block count))
 
 
 (vim:defmotion vim:motion-outer-xml-tags (inclusive count)
   "Select `count' enclosing pairs of <tag> </tag> inclusive."
-  (vim:outer-block "<[^/>]+?>" "</[^/>]+?>"
-                   #'(lambda (tag1 tag2)
-                       (zerop (compare-buffer-substrings nil
-                                                         (1+ (car tag1))
-                                                         (1- (cdr tag1))
-                                                         nil
-                                                         (+ 2 (car tag2))
-                                                         (1- (cdr tag2)))))
-                   (or count 1)))
+  (vim:generic-motion-xml-blocks #'vim:outer-block count))
 
 
 (defun vim:bounds-of-generic-quote (open-qt close-qt &optional side)
