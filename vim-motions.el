@@ -189,16 +189,19 @@
 
 (vim:defmotion vim:motion-up (linewise count)
   "Move the cursor count lines up."
+  (vim:use-last-column)
   (let (line-move-visual)
     (previous-line (or count 1))))
 
 (vim:defmotion vim:motion-down (linewise count)
   "Move the cursor count lines down."
+  (vim:use-last-column)
   (let (line-move-visual)
     (next-line (or count 1))))
 
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
+  (vim:use-last-column)
   (let (line-move-visual)
     (next-line (1- (or count 1)))))
 
