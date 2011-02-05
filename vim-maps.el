@@ -142,6 +142,10 @@
 (vim:mmap "][" 'vim:motion-fwd-section)
 (vim:mmap "[[" 'vim:motion-bwd-section)
 (vim:mmap "[]" 'vim:motion-bwd-section)
+(vim:mmap "[(" 'vim:motion-backward-opening-parenthesis)
+(vim:mmap "])" 'vim:motion-forward-closing-parenthesis)
+(vim:mmap "[{" 'vim:motion-backward-opening-brace)
+(vim:mmap "]}" 'vim:motion-forward-closing-brace)
 
 (vim:omap "f" 'vim:motion-find)
 (vim:omap "F" 'vim:motion-find-back)

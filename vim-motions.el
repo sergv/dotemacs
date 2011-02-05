@@ -1338,6 +1338,62 @@ jumps to the corresponding one."
           (backward-list))))))
 
 
+(defun vim:forward-end-of-block (open-re close-re count)
+  "Go to the `count'-th next unmatched end of block."
+  (let ((cnt (or count 1))
+	(re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)"))
+	(retry t))
+    (save-excursion
+      (while (and (> cnt 0)
+		  (re-search-forward re nil t))
+	(if (match-beginning 1)
+	    (incf cnt)
+	  (decf cnt))))
+    (if (zerop cnt)
+	(goto-char (match-beginning 0))
+      (signal 'no-such-object (list "No closing of block found.")))))
+      
+(defun vim:backward-beginning-of-block (open-re close-re count)
+  "Go to the `count'-th previous unmatched beginning of block."
+  (let ((cnt (or count 1))
+	(re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)"))
+	(retry t))
+    (save-excursion
+      (while (and (> cnt 0)
+		  (re-search-backward re nil t))
+	(if (match-beginning 1)
+	    (decf cnt)
+	  (incf cnt))))
+    (if (zerop cnt)
+	(goto-char (match-beginning 0))
+      (signal 'no-such-object (list "No opening of block found.")))))
+      
+
+(vim:defmotion vim:motion-forward-closing-parenthesis (exclusive count)
+  "Go to the `count'-th previous unmatched opening (."
+  (vim:forward-end-of-block "(" ")" count))
+
+(vim:defmotion vim:motion-backward-opening-parenthesis (exclusive count)
+  "Go to the `count'-th next unmatched closing )."
+  (vim:backward-beginning-of-block "(" ")" count))
+
+(vim:defmotion vim:motion-forward-closing-bracket (exclusive count)
+  "Go to the `count'-th previous unmatched opening [."
+  (vim:forward-end-of-block "[" "]" count))
+
+(vim:defmotion vim:motion-backward-opening-bracket (exclusive count)
+  "Go to the `count'-th next unmatched closing ]."
+  (vim:backward-beginning-of-block "[" "]" count))
+
+(vim:defmotion vim:motion-forward-closing-brace (exclusive count)
+  "Go to the `count'-th previous unmatched opening {."
+  (vim:forward-end-of-block "{" "}" count))
+
+(vim:defmotion vim:motion-backward-opening-brace (exclusive count)
+  "Go to the `count'-th next unmatched closing }."
+  (vim:backward-beginning-of-block "{" "}" count))
+
+
 (vim:defmotion vim:motion-mark (exclusive (argument:char mark-char))
   "Moves to the position of `mark-char'."
   (goto-char (vim:get-local-mark mark-char)))
