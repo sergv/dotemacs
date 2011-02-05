@@ -275,6 +275,23 @@
     (goto-char (point-max)))
   (vim:motion-first-non-blank))
 
+(vim:defmotion vim:motion-beginning-of-screen-line (exclusive)
+  "Move the cursor to the first character of the current screen
+line."
+  (beginning-of-visual-line))
+
+(vim:defmotion vim:motion-first-non-blank-of-screen-line (exclusive)
+  "Move the cursor to the first non blank character of the
+current screen line."
+  (vim:motion-beginning-of-screen-line)
+  (skip-chars-forward " \t\r"))
+
+(vim:defmotion vim:motion-end-of-screen-line (inclusive count)
+  "Move the cursor to the last character of the current screen
+line or [count - 1] screen lines downward."
+  (end-of-visual-line count)
+  (unless (bolp) (backward-char)))
+
 
 (defun vim:boundary-chars (direction chars)
   "A boundary selector for a sequence of `chars'."

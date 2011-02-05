@@ -107,6 +107,10 @@
 (vim:mmap "^" 'vim:motion-first-non-blank)
 (vim:mmap "$" 'vim:motion-end-of-line)
 (vim:mmap "g_" 'vim:motion-last-non-blank)
+(vim:mmap "g0" 'vim:motion-beginning-of-screen-line)
+(vim:mmap "g^" 'vim:motion-first-non-blank-of-screen-line)
+(vim:mmap "gm" "g0")
+(vim:mmap "g$" 'vim:motion-end-of-screen-line)
 
 (vim:mmap "k" 'vim:motion-up)
 (vim:mmap "gk" 'vim:motion-screen-up)
