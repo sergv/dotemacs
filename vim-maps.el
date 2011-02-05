@@ -148,6 +148,10 @@
 (vim:mmap "]}" 'vim:motion-forward-closing-brace)
 (vim:mmap "[#" 'vim:motion-backward-preprocessor-if)
 (vim:mmap "]#" 'vim:motion-forward-preprocessor-endif)
+(vim:mmap "[/" 'vim:motion-backward-opening-comment)
+(vim:mmap "[*" "[/")
+(vim:mmap "]/" 'vim:motion-forward-closing-comment)
+(vim:mmap "]*" "]/")
 
 (vim:omap "f" 'vim:motion-find)
 (vim:omap "F" 'vim:motion-find-back)

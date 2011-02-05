@@ -1429,6 +1429,18 @@ jumps to the corresponding one."
 	(goto-char (match-beginning 0))
       (signal 'no-such-object (list "No opening of block found.")))))
 
+(vim:defmotion vim:motion-backward-opening-comment (exclusive count)
+  "Go to the `count'-th previous unmatched opening /*."
+  (when (save-excursion
+	  (re-search-backward "/\\*" nil t count))
+    (goto-char (match-beginning 0))))
+
+(vim:defmotion vim:motion-forward-closing-comment (exclusive count)
+  "Go to the `count'-th next unmatched closing ]."
+  (when (save-excursion
+	  (re-search-forward "\\*/" nil t count))
+    (goto-char (match-beginning 0))))
+
 
 (vim:defmotion vim:motion-mark (exclusive (argument:char mark-char))
   "Moves to the position of `mark-char'."
