@@ -1341,8 +1341,7 @@ jumps to the corresponding one."
 (defun vim:forward-end-of-block (open-re close-re count)
   "Go to the `count'-th next unmatched end of block."
   (let ((cnt (or count 1))
-	(re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)"))
-	(retry t))
+	(re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)")))
     (save-excursion
       (while (and (> cnt 0)
 		  (re-search-forward re nil t))
@@ -1356,8 +1355,7 @@ jumps to the corresponding one."
 (defun vim:backward-beginning-of-block (open-re close-re count)
   "Go to the `count'-th previous unmatched beginning of block."
   (let ((cnt (or count 1))
-	(re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)"))
-	(retry t))
+	(re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)")))
     (save-excursion
       (while (and (> cnt 0)
 		  (re-search-backward re nil t))
@@ -1392,6 +1390,44 @@ jumps to the corresponding one."
 (vim:defmotion vim:motion-backward-opening-brace (exclusive count)
   "Go to the `count'-th next unmatched closing }."
   (vim:backward-beginning-of-block "{" "}" count))
+
+(vim:defmotion vim:motion-forward-preprocessor-endif (exclusive count)
+  "Go the the `count'-th next unmatched #else or #endif."
+  (let ((cnt (or count 1))
+	(re "\\(^[ \t]*#if\\)\\|\\(^[ \t]*#else\\)\\|\\(^[ \t]*#endif\\)"))
+    (save-excursion
+      (while (and (> cnt 0)
+		  (re-search-forward re nil t))
+	(cond
+	 ((match-beginning 1) ; found #if
+	  (incf cnt)
+	  (setq prev-was-endif nil))
+	 ((match-beginning 2) ; found #else
+	  (when (= 1 cnt) (decf cnt)))
+	 (t ; found #endif
+	  (decf cnt)))))
+    (if (zerop cnt)
+	(goto-char (match-beginning 0))
+      (signal 'no-such-object (list "No closing of block found.")))))
+
+(vim:defmotion vim:motion-backward-preprocessor-if (exclusive count)
+  "Go the the `count'-th next unmatched #else or #if."
+  (let ((cnt (or count 1))
+	(re "\\(^[ \t]*#if\\)\\|\\(^[ \t]*#else\\)\\|\\(^[ \t]*#endif\\)"))
+    (save-excursion
+      (while (and (> cnt 0)
+		  (re-search-backward re nil t))
+	(cond
+	 ((match-beginning 1) ; found #if
+	  (decf cnt)
+	  (setq prev-was-endif nil))
+	 ((match-beginning 2) ; found #else
+	  (when (= 1 cnt) (decf cnt)))
+	 (t ; found #endif
+	  (incf cnt)))))
+    (if (zerop cnt)
+	(goto-char (match-beginning 0))
+      (signal 'no-such-object (list "No opening of block found.")))))
 
 
 (vim:defmotion vim:motion-mark (exclusive (argument:char mark-char))
