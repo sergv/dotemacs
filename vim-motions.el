@@ -1368,27 +1368,27 @@ jumps to the corresponding one."
       
 
 (vim:defmotion vim:motion-forward-closing-parenthesis (exclusive count)
-  "Go to the `count'-th previous unmatched opening (."
+  "Go to the `count'-th next unmatched closing )."
   (vim:forward-end-of-block "(" ")" count))
 
 (vim:defmotion vim:motion-backward-opening-parenthesis (exclusive count)
-  "Go to the `count'-th next unmatched closing )."
+  "Go to the `count'-th previous unmatched opening (."
   (vim:backward-beginning-of-block "(" ")" count))
 
 (vim:defmotion vim:motion-forward-closing-bracket (exclusive count)
-  "Go to the `count'-th previous unmatched opening [."
+  "Go to the `count'-th next unmatched closing ]."
   (vim:forward-end-of-block "[" "]" count))
 
 (vim:defmotion vim:motion-backward-opening-bracket (exclusive count)
-  "Go to the `count'-th next unmatched closing ]."
+  "Go to the `count'-th previous unmatched opening [."
   (vim:backward-beginning-of-block "[" "]" count))
 
 (vim:defmotion vim:motion-forward-closing-brace (exclusive count)
-  "Go to the `count'-th previous unmatched opening {."
+  "Go to the `count'-th next unmatched closing }."
   (vim:forward-end-of-block "{" "}" count))
 
 (vim:defmotion vim:motion-backward-opening-brace (exclusive count)
-  "Go to the `count'-th next unmatched closing }."
+  "Go to the `count'-th previous unmatched opening {."
   (vim:backward-beginning-of-block "{" "}" count))
 
 (vim:defmotion vim:motion-forward-preprocessor-endif (exclusive count)
