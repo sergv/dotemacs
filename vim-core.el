@@ -425,7 +425,6 @@ command-specific transformations."
     (let ((command (key-binding keys)))
       (setq this-command command)
       (setq last-command-event (elt keys (1- (length keys))))
-      (setq last-command-char last-command-event)
       (command-execute command)
       (when (memq command '(digit-argument
                             universal-argument))
