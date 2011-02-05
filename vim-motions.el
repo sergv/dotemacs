@@ -1068,7 +1068,7 @@ expression subgroup 1."
 (defun vim:generic-motion-xml-blocks (block-function count)
   "Calls a block selection function with regular expressions
 matching xml tags. `block-function' should be either
-#'vim:inner-block or #'vim:out-block."
+#'vim:inner-block or #'vim:outer-block."
   (funcall block-function
 	   "<\\([^/>]+?\\)>" "</\\([^/>]+?\\)>"
 	   #'vim:compare-blocks-match1
