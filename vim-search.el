@@ -547,6 +547,7 @@ possibly wrapping and eob or bob."
 				 ('backward "?"))
 			       nil 'vim:search-history)
 	      (goto-char vim:search-start-point)
+	      (vim:add-jump)
 	      (if vim:search-match-beg
 		  (goto-char vim:search-match-beg)
 		(vim:find-next))
@@ -564,6 +565,7 @@ possibly wrapping and eob or bob."
 (vim:defmotion vim:motion-search-next (exclusive count)
   "Goes to the next occurrence."
   (setq vim:search-start-point (point))
+  (vim:add-jump)
   (dotimes (i (or count 1))
     (case vim:search-direction
       ('backward (backward-char))
@@ -722,6 +724,7 @@ The search matches the `count'-th occurrence of the word."
   (multiple-value-bind (pattern replacement flags) (vim:parse-substitute argument)
     (unless pattern (error "No pattern given."))
     (unless replacement (error "No replacement given."))
+    (vim:add-jump)
     (setq flags (append flags nil))
     (lexical-let* ((replacement replacement)
                    (first-line (if motion (vim:motion-first-line motion) (line-number-at-pos (point))))
