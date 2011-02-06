@@ -91,6 +91,17 @@
   "Returns t if `mark-char' is a global mark."
   (and (>= mark-char ?A) (<= mark-char ?z)))
 
+(defun vim:special-mark-p (mark-char)
+  "Returns t if `mark-char' is one of the special marks ( ) { }."
+  (member mark-char '(?\( ?\) ?{ ?})))
+
+(defconst vim:special-mark-functions-alist
+  '((?\( . vim:motion-bwd-sentence)
+    (?\) . vim:motion-fwd-sentence)
+    (?{  . vim:motion-bwd-paragraph)
+    (?}  . vim:motion-fwd-paragraph))
+  "Assocative list for special marks to corresponding functions.")
+
 (defun vim:set-mark (mark-char &optional pos)
   "Sets the mark `mark-char' to `pos' or (point)."
   (let (m)
@@ -106,6 +117,8 @@
       (unless m
         (setq m (make-marker))
         (push (cons mark-char m) vim:global-marks-alist)))
+     ((vim:special-mark-p mark-char)
+      (error "Can't set special mark '%c'" mark-char))
      (t (error "Unknown mark '%c'" mark-char)))
     (set-marker m (or pos (point)))))
 
@@ -123,8 +136,16 @@
               m
             (error "Global mark '%c' not in current buffer." mark-char))
         (error "No mark '%c' defined." mark-char))))
+   ((vim:special-mark-p mark-char)
+    (save-excursion
+      (funcall (cdr (assoc mark-char vim:special-mark-functions-alist)))
+      (point)))
    (t
     (error "Unknown mark: '%c'" mark-char))))
+
+(defun vim:set-change-mark (beg end)
+  "Sets the change mark . to `beg'."
+  (vim:set-mark ?. beg))
 
 (add-hook 'vim-mode-on-hook
 	  #'(lambda ()
@@ -133,10 +154,6 @@
 (add-hook 'vim-mode-off-hook
 	  #'(lambda ()
 	      (remove-hook 'before-change-functions 'vim:set-change-mark)))
-
-(defun vim:set-change-mark (beg end)
-  "Sets the change mark . to `beg'."
-  (vim:set-mark ?. beg))
 
 (vim:defmotion vim:motion-left (exclusive count)
   "Move the cursor count characters left."
