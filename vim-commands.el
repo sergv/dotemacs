@@ -99,11 +99,14 @@
 (require 'vim-compat)
 (require 'vim-motions)
 
+(defgroup vim-commands nil
+  "Commands"
+  :group 'vim-mode)
 
 (defcustom vim:shift-width 8
   "The number of columns for shifting commands like < or >."
   :type 'integer
-  :group 'vim-mode)
+  :group 'vim-commands)
 
 (vim:defcmd vim:cmd-insert (count)
   "Switches to insert-mode before point."

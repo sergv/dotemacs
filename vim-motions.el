@@ -54,20 +54,24 @@
 (require 'vim-core)
 (require 'vim-compat)
 
+(defgroup vim-motions nil
+  "Motions"
+  :group 'vim-mode)
+
 (defcustom vim:word "[:word:]_"
   "Regexp-set matching a word."
   :type 'string
-  :group 'vim-mode)
+  :group 'vim-motions)
 
 (defcustom vim:whitespace " \t\r\n"
   "Regexp-set matching a whitespace."
   :type 'string
-  :group 'vim-mode)
+  :group 'vim-motions)
 
 (defcustom vim:find-skip-newlines nil
   "If non-nil character find motions t,T,f,F skip over newlines."
   :type 'boolean
-  :group 'vim-mode)
+  :group 'vim-motions)
 
 (vim:deflocalvar vim:last-find nil
   "The previous find command (command . arg).")
