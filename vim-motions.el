@@ -193,7 +193,8 @@ visited."
     
     ;; remove markers above maximum
     (while (> size vim:max-jumplist)
-      (push (pop new-jumps) old-jumps))
+      (push (pop new-jumps) old-jumps)
+      (decf size))
     ;; create new marker or reuse old one
     (let ((m (or (pop old-jumps) (make-marker))))
       (set-marker m pos)
