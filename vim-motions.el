@@ -1183,7 +1183,7 @@ but only on the current line."
   (save-excursion
     (let* ((p (point))
 	   (end (line-end-position))
-	   (re (concat open-qt "\\(?:[^\\\\]\\|\\\\.\\)*" close-qt))
+	   (re (concat open-qt "\\(?:[^\\\\]\\|\\\\.\\)*?" close-qt))
 	   md
 	   (retry t))
       (beginning-of-line)
