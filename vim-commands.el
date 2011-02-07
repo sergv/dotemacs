@@ -397,23 +397,28 @@ and switches to insert-mode."
 (vim:defcmd vim:cmd-yank-line (count register nonrepeatable)
   "Saves the next count lines into the kill-ring."
   (let ((beg (line-beginning-position))
-	end
-        (linenr (line-number-at-pos (point))))
-    (setq count (or count 1))
+	end add-newline)
+    ;; search end point 
     (save-excursion
-      (forward-line (or count 1))
-      (setq end (point)))
-    (if register
-	(let ((txt (buffer-substring beg end)))
-	  (put-text-property 0 (- end beg)
-			     'yank-handler
-			     (list #'vim:yank-line-handler txt)
-			     txt)
-	  (set-register register txt))
-      (kill-new (buffer-substring-no-properties beg end)
-		nil
-		(list #'vim:yank-line-handler
-		      (buffer-substring beg end))))))
+      (let ((nleft (forward-line (or count 1))))
+	(setq end (point))
+	(when (or (> nleft 0) (not (bolp)))
+	  ;; the last line does not end in a newline
+	  (setq add-newline t))))
+
+    (let ((txt (buffer-substring beg end))
+	  (len (- end beg)))
+      (when add-newline
+	(setq txt (concat txt "\n")
+	      len (1+ len)))
+      (if register
+	  (progn
+	    (put-text-property 0 len
+			       'yank-handler
+			       (list #'vim:yank-line-handler txt)
+			       txt)
+	    (set-register register txt))
+	(kill-new txt nil (list #'vim:yank-line-handler txt))))))
 
 
 (vim:defcmd vim:cmd-yank-rectangle (motion register nonrepeatable)
