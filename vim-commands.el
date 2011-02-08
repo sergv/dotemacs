@@ -1,6 +1,6 @@
 ;;; vim-commands.el - Implementation of VIM commands.
 
-;; Copyright (C) 2009, 2010 Frank Fischer
+;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
 ;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;;
@@ -110,12 +110,12 @@
 
 (vim:defcmd vim:cmd-insert (count)
   "Switches to insert-mode before point."
-  (vim:activate-insert-mode))
+  (vim:start-insert-mode count))
 
 (vim:defcmd vim:cmd-append (count)
   "Switches to insert-mode after point."
   (unless (eolp) (forward-char))
-  (vim:activate-insert-mode))
+  (vim:start-insert-mode count))
 
 (vim:defcmd vim:cmd-Insert (count)
   "Moves the cursor to the beginning of the current line
@@ -131,18 +131,11 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-insert-line-above (count)
   "Inserts a new line above the current one and goes to insert mode."
-  (vim:motion-beginning-of-line)
-  (newline)
-  (forward-line -1)
-  (indent-according-to-mode)
-  (vim:cmd-Insert))
+  (vim:start-insert-mode count 'above))
 
 (vim:defcmd vim:cmd-insert-line-below (count)
   "Inserts a new line below the current one and goes to insert mode."
-  (vim:motion-end-of-line)
-  (newline)
-  (indent-according-to-mode)
-  (vim:cmd-insert))
+  (vim:start-insert-mode count 'below))
 
 (vim:defcmd vim:cmd-replace (count)
   "Goes to replace-mode."
@@ -632,7 +625,9 @@ block motions."
   (vim:reset-key-state)
   ;;(dotimes (i (or count 1))
     (let ((repeat-events vim:repeat-events)
-          (vim:repeat-events nil))
+	  (current-key-sequence vim:current-key-sequence)
+          vim:repeat-events
+	  vim:current-key-sequence)
       (execute-kbd-macro repeat-events)))
 
 
