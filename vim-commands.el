@@ -314,68 +314,12 @@ and switches to insert-mode."
 
 
 (vim:defcmd vim:cmd-replace-region (motion (argument:char arg))
-   "Replace the complete region with `arg'"
-   (case (vim:motion-type motion)
-     ('block
-      ;; replace in block
-      (let ((begrow (vim:motion-first-line motion))
-            (begcol (vim:motion-first-col motion))
-            (endrow (vim:motion-last-line motion))
-            (endcol (1+ (vim:motion-last-col motion))))
-        (goto-line begrow)
-        (dotimes (i (1+ (- endrow begrow)))
-          ;; TODO does it work with \r\n at the end?
-          (let ((maxcol (save-excursion
-                          (end-of-line)
-                          (current-column))))
-            (when (> maxcol begcol)
-              (delete-region (save-excursion
-                               (move-to-column begcol t)
-                               (point))
-                             (save-excursion
-                               (move-to-column (min endcol maxcol) t)
-                               (point)))
-              (move-to-column begcol t)
-              (insert-char arg (- (min endcol maxcol) begcol))))
-          (forward-line 1))
-        (goto-line begrow)
-        (move-to-column begcol)))
-       
-     (t ;; replace in linewise and normal
-      (let ((begrow (vim:motion-first-line motion))
-            (endrow (vim:motion-last-line motion)))
-        (goto-line begrow)
-        (do ((r begrow (1+ r)))
-            ((> r endrow))
-          (goto-line r)
-          (let ((begcol
-                 (if (and (= r begrow)
-                          (not (eq (vim:motion-type motion) 'linewise)))
-                     (save-excursion
-                       (goto-char (vim:motion-begin-pos motion))
-                       (current-column))
-                   0))
-                (endcol
-                 (if (and (= r endrow)
-                          (not (eq (vim:motion-type motion) 'linewise)))
-                     (save-excursion
-                       (goto-char (vim:motion-end-pos motion))
-                       (current-column))
-                   ;; TODO does it work with \r\n at the end?
-                   (save-excursion
-                     (end-of-line)
-                     (current-column)))))
-
-	    (delete-region (save-excursion
-			     (move-to-column begcol t)
-			     (point))
-			   (save-excursion
-			     (move-to-column endcol t)
-			     (point)))
-	    (move-to-column begcol t)
-	    (insert-char arg (- endcol begcol)))))
-      
-      (goto-char (vim:motion-begin-pos motion)))))
+   "Replace complete region with `arg'"
+   (vim:apply-on-motion
+    motion
+    #'(lambda (beg end)
+	(delete-region beg end)
+	(insert-char arg (- end beg)))))
 
 
 (vim:defcmd vim:cmd-yank (motion register nonrepeatable)
@@ -624,46 +568,60 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-toggle-case (motion)
   "Toggles the case of all characters defined by `motion'."
-  (vim:change-case motion
-                   #'(lambda (beg end)
-                       (save-excursion
-                         (goto-char beg)
-                         (while (< beg end)
-                           (let ((c (following-char)))
-                             (delete-char 1 nil)
-                             (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
-                             (setq beg (1+ beg))))))))
+  (vim:apply-on-motion
+   motion
+   #'(lambda (beg end)
+       (save-excursion
+	 (goto-char beg)
+	 (while (< beg end)
+	   (let ((c (following-char)))
+	     (delete-char 1 nil)
+	     (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
+	     (setq beg (1+ beg))))))))
 
 
 (vim:defcmd vim:cmd-make-upcase (motion)
   "Upcases all characters defined by `motion'."
-  (vim:change-case motion #'upcase-region))
+  (vim:apply-on-motion motion #'upcase-region))
 
 
 (vim:defcmd vim:cmd-make-downcase (motion)
   "Downcases all characters defined by `motion'."
-  (vim:change-case motion #'downcase-region))
+  (vim:apply-on-motion motion #'downcase-region))
 
 
-(defun vim:change-case (motion case-func)
+(defun vim:apply-on-motion (motion func)
+  "Applys `func' to the region defined my a certain `motion'.
+The function `func' should take two parameters, the begin and end
+position of a region on which it should be applied. Note that
+`func' can be called more than once of motion covers a
+non-continuous region. This usually happens for linewise and
+block motions."
   (case (vim:motion-type motion)
-    ('block
-        (do ((l (vim:motion-first-line motion) (1+ l)))
-            ((> l (vim:motion-last-line motion)))
-          (funcall case-func
-                   (save-excursion
-                     (goto-line l)
-                     (move-to-column (vim:motion-first-col motion))
-                     (point))
-                   (save-excursion
-                     (goto-line l)
-                     (move-to-column (vim:motion-last-col motion))
-                     (1+ (point))))))
+     ('block
+      (save-excursion
+	(let ((begrow (vim:motion-first-line motion))
+	      (begcol (vim:motion-first-col motion))
+	      (endrow (vim:motion-last-line motion))
+	      (endcol (vim:motion-last-col motion)))
+	  (goto-line begrow)
+	  (dotimes (i (1+ (- endrow begrow)))
+	    (let ((beg (save-excursion
+			 (move-to-column begcol)
+			 (point)))
+		  (end (save-excursion
+			 (move-to-column (1+ endcol))
+			 (point))))
+	      (funcall func beg end))
+	    (forward-line)))))
     ('linewise
      (save-excursion
-       (funcall case-func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))))
+       (goto-char (vim:motion-begin-pos motion))
+       (dotimes (i (vim:motion-line-count motion))
+	 (funcall func (line-beginning-position) (line-end-position))
+	 (forward-line))))
     (t
-     (funcall case-func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
+     (funcall func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-end-pos motion)))))
 
 
