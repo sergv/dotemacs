@@ -214,7 +214,8 @@ and switches to insert-mode."
     (t
      ;; deal with cw and cW
      (when (and vim:current-motion
-                (not (member (char-after) '(?  ?\r ?\n ?\t))))
+                (not (member (char-after) '(?  ?\r ?\n ?\t)))
+		(eobp))
        (cond
         ((eq vim:current-motion 'vim:motion-fwd-word)
          (let* ((cnt (* (or vim:current-cmd-count 1)
