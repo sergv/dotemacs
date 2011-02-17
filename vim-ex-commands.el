@@ -106,7 +106,7 @@
 (vim:defcmd vim:cmd-split-prev-buffer (count nonrepeatable)
   "Splits window and goes to the `count'-th prev buffer in the buffer list."
   (vim:window-split)
-  ((vim:cmd-prev-buffer :count count))))
+  ((vim:cmd-prev-buffer :count count)))
 
 (vim:defcmd vim:cmd-delete-buffer ((argument:buffer buffer) nonrepeatable)
   "Deletes a buffer."
