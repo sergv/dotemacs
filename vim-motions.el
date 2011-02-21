@@ -1253,15 +1253,19 @@ but only on the current line."
   (if (and (vim:visual-mode-p)
 	   (/= (point) (mark)))
       ;; visual mode so extend the region
-      (let* ((bounds (vim:bounds-of-generic-quote
+      (let* ((to-right (>= (point) (mark)))
+	     (bounds (vim:bounds-of-generic-quote
 		      open-qt (or close-qt open-qt)
-		      (if (< (point) (mark))
-			  'before
-			'after)))
+		      (if to-right 'after 'before)))
 	     (beg (min (point) (mark) (car bounds)))
 	     (end (max (point) (mark) (cdr bounds)))
-	     (pnt (if (< (point) (mark)) beg end)))
+	     (pnt (if to-right end beg)))
 	(goto-char pnt)
+	(when to-right
+	  (forward-char)
+	  (skip-chars-forward " \t\r")
+	  (backward-char)
+	  (setq end (point)))
 	(vim:make-motion :has-begin t
 			 :begin beg
 			 :end end
