@@ -1194,8 +1194,7 @@ but only on the current line."
 	    ((nil)
 	     (when (> (match-end 0) p)
 	       (setq retry nil)
-	       (when (<= (match-beginning 0) p)
-		 (setq md (match-data)))))
+	       (setq md (match-data))))
 	    (before
 	     (if (>= (match-beginning 0) p)
 		 (setq retry nil)
