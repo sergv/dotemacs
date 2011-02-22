@@ -336,6 +336,7 @@
 (vim:nmap "gv" 'vim:visual-mode-reactivate)
 
 (vim:nmap ":" 'vim:ex-read-command)
+(vim:wmap (kbd "C-:") 'vim:ex-read-command)
 (vim:nmap "q" 'vim:cmd-toggle-macro-recording)
 (vim:nmap "@" 'vim:cmd-execute-macro)
     

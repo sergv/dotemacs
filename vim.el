@@ -94,6 +94,7 @@
 ;;; Changelog:
 
 ;; version 0.5
+;;     * C-: starts ex-mode in window-mode
 ;;     * command can take an addition force argument which is set
 ;;       to non-nil iff an exclamation mark has been typed behind
 ;;       the command in ex-mode
