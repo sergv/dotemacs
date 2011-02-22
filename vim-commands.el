@@ -422,8 +422,10 @@ and switches to insert-mode."
 				      vim:cmd-paste-pop
                                       vim:cmd-paste-pop-next
                                       vim:cmd-paste-before
-                                      vim:cmd-paste-behind))
-               vim:last-paste)
+                                      vim:cmd-paste-behind
+				      vim:cmd-paste-before-and-indent
+				      vim:cmd-paste-behind-and-indent))
+	       vim:last-paste)
     (error "Previous command was not a vim-mode paste: %s" last-command))
   (when vim:last-paste
     (funcall (or yank-undo-function #'delete-region)
@@ -510,6 +512,61 @@ and switches to insert-mode."
 	 (goto-char (1- (vim:paste-info-end vim:last-paste)))))
       (setf (vim:paste-info-point vim:last-paste) pos
 	    (vim:paste-info-command vim:last-paste) 'vim:cmd-paste-behind))))
+
+
+(vim:defcmd vim:cmd-paste-before-and-indent (count register)
+  "Pastes the latest yanked text before point.
+If the inserted text consists of full lines those lines are
+indented according to the current mode."
+  (vim:cmd-paste-before :count count :register register)
+  (let* ((txt (if register (vim:get-register register) (current-kill 0)))
+	 (yhandler (get-text-property 0 'yank-handler txt)))
+    (when (eq (car-safe yhandler) 'vim:yank-line-handler)
+      ;; We have to reindent the lines and update the paste-data.
+      (let* ((txt (if register (vim:get-register register) (current-kill 0)))
+	     (yhandler (get-text-property 0 'yank-handler txt)))
+      (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
+	    (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
+	(indent-region (vim:paste-info-begin vim:last-paste)
+		       (vim:paste-info-end vim:last-paste))
+	(setf (vim:paste-info-end vim:last-paste)
+	      (save-excursion
+		(goto-line endln)
+		(line-beginning-position)))
+	(vim:motion-first-non-blank)))))
+  (setf (vim:paste-info-command vim:last-paste)
+	'vim:cmd-paste-before-and-indent))
+
+
+(vim:defcmd vim:cmd-paste-behind-and-indent (count register)
+  "Pastes the latest yanked text behind point.
+If the inserted text consists of full lines those lines are
+indented according to the current mode."
+  (vim:cmd-paste-behind :count count :register register)
+  (let* ((txt (if register (vim:get-register register) (current-kill 0)))
+	 (yhandler (get-text-property 0 'yank-handler txt)))
+    (when (eq (car-safe yhandler) 'vim:yank-line-handler)
+      ;; We have to reindent the lines and update the paste-data.
+      (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
+	    (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
+	(if (vim:paste-info-at-eob vim:last-paste)
+	    (progn
+	      (indent-region (1+ (vim:paste-info-begin vim:last-paste))
+			     (1+ (vim:paste-info-end vim:last-paste)))
+	      (setf (vim:paste-info-end vim:last-paste)
+		    (save-excursion
+		      (goto-line endln)
+		      (line-end-position))))
+
+	  (indent-region (vim:paste-info-begin vim:last-paste)
+			 (vim:paste-info-end vim:last-paste))
+	  (setf (vim:paste-info-end vim:last-paste)
+		(save-excursion
+		  (goto-line endln)
+		  (line-beginning-position))))
+	(vim:motion-first-non-blank))))
+  (setf (vim:paste-info-command vim:last-paste)
+	'vim:cmd-paste-behind-and-indent))
 
 
 (vim:defcmd vim:cmd-join-lines (count)

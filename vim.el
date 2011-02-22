@@ -94,6 +94,7 @@
 ;;; Changelog:
 
 ;; version 0.5
+;;     * add ]p and ]P commands
 ;;     * paste-pop works for all mixes of block/linewise/char and for
 ;;       paste-before and paste-behind
 ;;     * add :setmode ex-command for setting vim-mode's start-mode
