@@ -94,6 +94,9 @@
 ;;; Changelog:
 
 ;; version 0.5
+;;     * command can take an addition force argument which is set
+;;       to non-nil iff an exclamation mark has been typed behind
+;;       the command in ex-mode
 ;;     * ex-commands :bn, :bp 
 ;;     * ex-mode shows info about current command
 
