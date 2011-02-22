@@ -94,6 +94,8 @@
 ;;; Changelog:
 
 ;; version 0.5
+;;     * enable search commands /, ?, *, #, g*, g# in motion-mode,
+;;       repeat search with C-n and C-N instead of n and N
 ;;     * : starts ex-mode in motion-mode
 ;;     * C-: starts ex-mode in window-mode
 ;;     * command can take an addition force argument which is set

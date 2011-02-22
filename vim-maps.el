@@ -237,12 +237,14 @@
 
 (vim:nmap "J" 'vim:cmd-join-lines)
 
-(vim:nmap "/" 'vim:motion-search-fwd)
-(vim:nmap "?" 'vim:motion-search-bwd)
-(vim:nmap "*" 'vim:search-word)
-(vim:nmap "#" 'vim:search-word-backward)
-(vim:nmap "g*" 'vim:search-unbounded-word)
-(vim:nmap "g#" 'vim:search-unbounded-word-backward)
+(vim:mmap "/" 'vim:motion-search-fwd)
+(vim:mmap "?" 'vim:motion-search-bwd)
+(vim:mmap "*" 'vim:search-word)
+(vim:mmap "#" 'vim:search-word-backward)
+(vim:mmap "g*" 'vim:search-unbounded-word)
+(vim:mmap "g#" 'vim:search-unbounded-word-backward)
+(vim:mmap (kbd "C-n") 'vim:motion-search-next)
+(vim:mmap (kbd "C-S-N") 'vim:motion-search-next-reverse)
 (vim:nmap "n" 'vim:motion-search-next)
 (vim:nmap "N" 'vim:motion-search-next-reverse)
 
