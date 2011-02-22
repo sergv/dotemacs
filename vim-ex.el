@@ -190,9 +190,9 @@ cancel ex-mode."
 					 update)
   "Defines a new argument handler `arg-type'."
   (let ((newah (vim:make-arg-handler :complete complete
-					 :activate activate
-					 :deactivate deactivate
-					 :update update))
+				     :activate activate
+				     :deactivate deactivate
+				     :update update))
 	(ah (assoc arg-type vim:argument-handlers-alist)))
     (if ah
 	(setcdr ah newah)

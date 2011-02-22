@@ -447,7 +447,7 @@
 (vim:emap "ju" "jumps")
 (vim:emap "noh" "nohlsearch")
 (vim:emap "nohlsearch" 'vim:cmd-nohighlight)
-
+(vim:emap "setmode" 'vim:cmd-setmode)
 
 (vim:nmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
 (vim:vmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
