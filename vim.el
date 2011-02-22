@@ -94,6 +94,8 @@
 ;;; Changelog:
 
 ;; version 0.5
+;;     * paste-pop works for all mixes of block/linewise/char and for
+;;       paste-before and paste-behind
 ;;     * add :setmode ex-command for setting vim-mode's start-mode
 ;;       for the current major-mode
 ;;     * enable search commands /, ?, *, #, g*, g# in motion-mode,
