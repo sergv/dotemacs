@@ -232,6 +232,7 @@ The value from `ibuffer-saved-filter-groups' is used."
                              (mode . magit-stash-mode)
                              (mode . magit-status-mode)
                              (mode . magit-wazzup-mode)
+                             (mode . gitignore-mode)
                              (name . ,(rx bol "*magit" (* nonl) "*" eol))))
         (utility-filter `(or (name . ,(rx bol
                                           (or "*Tags List*"
