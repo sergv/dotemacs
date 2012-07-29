@@ -34,9 +34,9 @@
   "Changes the cursor to type `cursor'."
   (vim:emacsen
    (vim:emacs-p (setq cursor-type cursor))
-   (vim:xemacs-p 
+   (vim:xemacs-p
     (case cursor
-      (bar 
+      (bar
        (setq bar-cursor 2))
       (t
        (setq bar-cursor nil))))))
@@ -47,13 +47,13 @@
   (vim:emacsen
    (vim:emacs-p
     (define-key keymap [t] command))
-   
+
    (vim:xemacs-p
     (set-keymap-default-binding keymap command))))
 
 (defconst vim:ESC-event (if vim:xemacs-p (make-event 'key-press '(key vim:escape))
                           'escape))
-  
+
 
 (defun vim:intercept-ESC ()
   "Waits a short time for further keys, otherwise sending [escape]."
@@ -65,7 +65,7 @@
       (add-hook 'pre-command-hook 'vim:enable-intercept-ESC)
       (vim:intercept-ESC-mode -1)
       (push last-command-event unread-command-events)))
-   
+
    (vim:xemacs-p
     (if (sit-for vim:intercept-ESC-timeout t)
         (push vim:ESC-event unread-command-events)
@@ -92,7 +92,7 @@
 
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:this-command-keys 'this-command-keys-vector))
- (vim:xemacs-p 
+ (vim:xemacs-p
   (defun vim:this-command-keys ()
     ;; this is a really dirty hack: for some reason
     ;; (this-command-keys) in XEmacs does not return events that have
@@ -103,7 +103,7 @@
       (if (zerop (length keys))
           (vector (copy-event last-command-event))
         keys)))))
-    
+
 
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:deactivate-mark 'deactivate-mark))
@@ -145,7 +145,7 @@
       (setq vim:mouse-click-last-time time)
       vim:mouse-click-count))
   )
-  
+
  (vim:xemacs-p
   (defconst vim:down-mouse-1 'button1)
   (defconst vim:down-mouse-1 'button1)
@@ -201,7 +201,7 @@
 
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:perform-replace 'perform-replace))
- (vim:xemacs-p 
+ (vim:xemacs-p
   (defun vim:perform-replace (from-string replacements query-flag regexp-flag delimited-flag
                               &optional repeat-count map beg end)
     (if (or beg end)
@@ -262,52 +262,52 @@ stopping when a single additional previous character cannot be part
 of a match for REGEXP."
   (vim:emacsen
    (vim:emacs-p (looking-back regexp limit greedy))
-   
-   (vim:xemacs-p 
+
+   (vim:xemacs-p
     (let ((start (point))
-	  (pos
-	   (save-excursion
-	     (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
-		  (point)))))
+          (pos
+           (save-excursion
+             (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
+                  (point)))))
       (if (and greedy pos)
-	  (save-restriction
-	    (narrow-to-region (point-min) start)
-	    (while (and (> pos (point-min))
-			(save-excursion
-			  (goto-char pos)
-			  (backward-char 1)
-			  (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
-	      (setq pos (1- pos)))
-	    (save-excursion
-	      (goto-char pos)
-	      (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
+          (save-restriction
+            (narrow-to-region (point-min) start)
+            (while (and (> pos (point-min))
+                        (save-excursion
+                          (goto-char pos)
+                          (backward-char 1)
+                          (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
+              (setq pos (1- pos)))
+            (save-excursion
+              (goto-char pos)
+              (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
       (not (null pos))))))
-  
+
 
 (defun vim:initialize-keymaps (enable)
   "Initialize keymaps when vim-mode is enabled."
   (vim:emacsen
    (vim:emacs-p
     (if enable
-        (add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist)
-      (setq emulation-mode-map-alists
-            (delq 'vim:emulation-mode-alist emulation-mode-map-alists))))
-   
+        (add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist t)
+        (setq emulation-mode-map-alists
+              (delq 'vim:emulation-mode-alist emulation-mode-map-alists))))
+
    (vim:xemacs-p
     (if enable
 	(vim:normalize-minor-mode-map-alist)
-      (setq minor-mode-map-alist
-	    (remq nil
-		  (mapcar #'(lambda (x)
-			      (unless (assq (car x) vim:emulation-mode-alist) x))
-			  minor-mode-map-alist)))))))
+        (setq minor-mode-map-alist
+              (remq nil
+                    (mapcar #'(lambda (x)
+                                (unless (assq (car x) vim:emulation-mode-alist) x))
+                            minor-mode-map-alist)))))))
 
 
 (when vim:xemacs-p
   (unless (fboundp 'line-number-at-pos)
     (defun line-number-at-pos (&optional pos)
       (line-number pos)))
-  
+
   (defun vim:normalize-minor-mode-map-alist ()
     (make-local-variable 'minor-mode-map-alist)
     (setq minor-mode-map-alist
@@ -317,8 +317,8 @@ of a match for REGEXP."
 			     (unless (assq (car x) vim:emulation-mode-alist)
 			       (list x)))
 			 minor-mode-map-alist))))
-  
-  (defadvice add-minor-mode (after vim:add-minor-mode 
+
+  (defadvice add-minor-mode (after vim:add-minor-mode
                              (toggle name &optional keymap after toggle-fun)
                              activate)
     "Run vim:normalize-minor-mode-map-alist after adding a minor mode."
@@ -331,12 +331,12 @@ of a match for REGEXP."
           (insert text)
         (funcall (car yank-handler)
                  (or (nth 1 yank-handler) text)))))
-  
+
   (defadvice kill-new (before vim:kill-new (string &optional replace yank-handler) activate)
     "Set the yank-handler property at the given string."
     (when yank-handler
       (put-text-property 0 (length string) 'yank-handler yank-handler string)))
-  
+
   (defadvice yank (around vim:yank (&optional arg) activate)
     "Like `yank' but respects the yank-handler property."
     (let* ((text (nth (if (numberp arg) arg 0) kill-ring-yank-pointer))
@@ -346,8 +346,8 @@ of a match for REGEXP."
           ad-do-it
         (funcall (car yank-handler)
                  (or (nth 1 yank-handler) text)))))
-  
-          
+
+
 
   (defmacro define-globalized-minor-mode (global-mode mode turn-on &rest keys)
     "Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
@@ -458,10 +458,10 @@ See `%s' for more information on %s."
            (add-hook 'post-command-hook ',MODE-check-buffers))
          (put ',MODE-cmhh 'definition-name ',global-mode))))
 
-  ;; This is a hack written by Hovav Shacham, author of the windmove package, so that 
+  ;; This is a hack written by Hovav Shacham, author of the windmove package, so that
   ;; windmove will work in xemacs
   ;;--- begin hack ---
- 
+
   ;; simulate `window-edges' using `window-pixel-edges'; from
   ;; Nix , based on tapestry.el.
   (defun window-edges (&optional window)
@@ -476,7 +476,7 @@ See `%s' for more information on %s."
       (setq tmp (cdr tmp))
       (setcar tmp (/ (car tmp) (face-height 'default)))
       edges))
-  
+
   ;; simulate `window-at' with `walk-windows'
   (defun window-at (x y &optional frame)
     (let ((f (if (null frame)
@@ -494,7 +494,7 @@ See `%s' for more information on %s."
 		      t ; walk minibuffers
 		      t) ; walk all frames
 	guess-wind)))
-  
+
   ;; redo `windmove-coordinates-of-position' without compute-motion
   (defun walk-screen-lines (lines goal)
     (cond
@@ -502,7 +502,7 @@ See `%s' for more information on %s."
      ((= (window-point) goal) lines)
      (t (vertical-motion 1)
 	(walk-screen-lines (1+ lines) goal))))
-  
+
   (defun windmove-coordinates-of-position (pos &optional window)
     (let* ((w (if (null window)
 		  (selected-window)
@@ -518,8 +518,8 @@ See `%s' for more information on %s."
 		       (progn (goto-char (window-start))
 			      (vertical-motion y)
 			      (current-column)))))
-	    (cons x y))))))            
-  
+	    (cons x y))))))
+
   ;; for some reason, XEmacs is more conservative in reporting `frame-width'
   ;; and `frame-height'; we apparently need to get rid of the 1- in each.
   (defun windmove-frame-edges (window)
@@ -531,7 +531,7 @@ See `%s' for more information on %s."
 	    (x-max (frame-width frame))
 	    (y-max (frame-height frame)))
 	(list x-min y-min x-max y-max))))
-  
+
   ;; --- end hack ---
 
   (defun window-tree (&optional frame)

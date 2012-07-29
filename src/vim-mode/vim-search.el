@@ -17,21 +17,21 @@
 (require 'vim-macs)
 (require 'vim-ex)
 
-(defcustom vim:interactive-search-highlight 'all-windows
+(defcustom vim:interactive-search-highlight 'selected-window
   "Determine in which windows the interactive highlighting should be shown."
   :type '(radio (const :tag "All windows." all-windows)
                 (const :tag "Selected window." selected-window)
                 (const :tag "Disable highlighting." nil))
   :group 'vim-ex-mode)
 
-(defcustom vim:search-case 'smart
+(defcustom vim:search-case 'sensitive
   "The case behaviour of the search command."
   :type '(radio (const :tag "Case sensitive." 'sensitive)
                 (const :tag "Case insensitive." 'insensitive)
                 (const :tag "Smart case." 'smart))
   :group 'vim-ex-mode)
 
-(defcustom vim:substitute-case nil
+(defcustom vim:substitute-case 'sensitive
   "The case behaviour of the search command."
   :type '(radio (const :tag "Same as interactive search." nil)
                 (const :tag "Case sensitive." 'sensitive)
@@ -59,6 +59,7 @@ highlighted."
   "If t and substitute patterns are highlighted the replacement is shown interactively."
   :type 'boolean
   :group 'vim-ex-mode)
+
 
 (defconst vim:search-keymap (make-sparse-keymap)
   "Keymap used in search-ex-mode.")
@@ -93,28 +94,29 @@ highlighted."
 (defvar vim:substitute-replacement nil
   "The actual replacement.")
 
-(defface vim:search '((t :inherit isearch))
+(defface vim:search '((t (:inherit isearch)))
   "Face for interactive search."
   :group 'vim-ex-mode)
 
-(defface vim:lazy-highlight '((t :inherit lazy-highlight))
+(defface vim:lazy-highlight '((t (:inherit lazy-highlight)))
   "Face for highlighting all matches in interactive search."
   :group 'vim-ex-mode)
 
-(defface vim:substitute '(( ((supports :underline))
-                            :underline t
-                            :foreground "red"))
+(defface vim:substitute '((((supports :underline))
+                           (:underline t
+                            :foreground "red")))
   "Face for interactive replacement text."
   :group 'vim-ex-mode)
 
 
 (define-key vim:search-keymap [return] #'vim:search-exit)
+(define-key vim:search-keymap (kbd "<M-escape>") #'vim:search-abort)
 (define-key vim:search-keymap (kbd "RET") #'vim:search-exit)
 (define-key vim:search-keymap (kbd "C-g") #'vim:search-abort)
 (define-key vim:search-keymap [up] #'previous-history-element)
 (define-key vim:search-keymap [down] #'next-history-element)
-(define-key vim:search-keymap (kbd "ESC ESC ESC") #'vim:search-abort)
-(define-key vim:search-keymap (kbd "\d") #'vim:ex-delete-backward-char)
+(define-key vim:search-keymap (kbd "ESC") #'vim:search-abort)
+;; (define-key vim:search-keymap (kbd "\d") #'vim:ex-delete-backward-char)
 
 ;; A pattern.
 (defstruct (vim:pattern
@@ -192,7 +194,7 @@ will be case-insensitive."
                           (update-hook nil)
                           (match-hook nil))
   "Creates new highlighting object with a certain `name'."
-  (unless (symbolp name) (error "Excepted symbol as name of highlight."))
+  (unless (symbolp name) (error "Excepted symbol as name of highlight"))
   (when (assoc name vim:active-highlights-alist)
     (vim:delete-hl name))
   (when (null vim:active-highlights-alist)
@@ -360,51 +362,41 @@ name `name' to `new-regex'."
 ;; Interactive search.
 (defun vim:search-next ()
   "Search for the next occurrence of pattern."
-  (let ((retry t))
-    (setq isearch-success nil
-          isearch-error nil)
-    (condition-case lossage
-        (progn
-          (while retry
-            (let ((search-result (vim:find-next)))
-              (case search-result
-                ((t) (setq isearch-success t
-                           isearch-wrapped nil))
-                ((nil) (setq isearch-success nil
-                             isearch-wrapped nil))
-                (t (setq isearch-success t
-                         isearch-wrapped t))))
-            (setq isearch-success (vim:find-next))
-            ;; Clear RETRY unless we matched some invisible text
-            ;; and we aren't supposed to do that.
-            (when (or (eq search-invisible t)
-                      (not isearch-success)
-                      (bobp) (eobp)
-                      (= (match-beginning 0) (match-end 0))
-                      (not (isearch-range-invisible
-                            (match-beginning 0) (match-end 0))))
-              (setq retry nil)))
-          (setq isearch-just-started nil))
+  (setq isearch-success nil
+        isearch-error nil)
+  (condition-case lossage
+      (progn
+        (let ((search-result (vim:find-next)))
+          (case search-result
+            ((t)
+             (setq isearch-success t
+                   isearch-wrapped nil))
+            ((nil)
+             (setq isearch-success nil
+                   isearch-wrapped nil))
+            (t
+             (setq isearch-success t
+                   isearch-wrapped t))))
+        (setq isearch-just-started nil))
 
-      (invalid-regexp
-       (setq isearch-error (cadr lossage)))
+    (invalid-regexp
+     (setq isearch-error (cadr lossage)))
+    (search-failed
+     (setq isearch-error (nth 2 lossage)))
 
-      (search-failed
-       (setq isearch-error (nth 2 lossage)))
+    (error
+     (setq isearch-error (format "%s" lossage))))
 
-      (error
-       (setq isearch-error (format "%s" lossage))))
-
-    (cond
-     (isearch-success
-      (setq isearch-other-end (if (eq vim:search-direction 'forward) (match-beginning 0) (match-end 0))))
-     ((not isearch-error)
-      (setq isearch-error "No match")))
-    (if isearch-wrapped
-        (if isearch-error
-            (setq isearch-message (concat "Wrapped, " isearch-error))
-          (setq isearch-message "Wrapped"))
-      (setq isearch-message isearch-error))))
+  (cond
+    (isearch-success
+     (setq isearch-other-end (if (eq vim:search-direction 'forward) (match-beginning 0) (match-end 0))))
+    ((not isearch-error)
+     (setq isearch-error "No match")))
+  (if isearch-wrapped
+    (if isearch-error
+      (setq isearch-message (concat "Wrapped, " isearch-error))
+      (setq isearch-message "Wrapped"))
+    (setq isearch-message isearch-error)))
 
 
 (defun vim:find-next ()
@@ -439,7 +431,7 @@ possibly wrapping and eob or bob."
                     result nil
                     retry nil))))
           result))
-    t))
+      t))
 
 
 (defun* vim:search-find-next-pattern (pattern &optional
@@ -459,14 +451,16 @@ possibly wrapping and eob or bob."
     (when isearch-success
       (goto-char vim:search-match-beg)
       (if vim:search-overlay
-          (move-overlay vim:search-overlay
-                        vim:search-match-beg
-                        vim:search-match-end)
-        (setq vim:search-overlay (make-overlay vim:search-match-beg vim:search-match-end))
-        (overlay-put vim:search-overlay 'priority 1001)
-        (overlay-put vim:search-overlay 'face 'vim:search)))
+        (move-overlay vim:search-overlay
+                      vim:search-match-beg
+                      vim:search-match-end)
+        (progn
+          (setq vim:search-overlay (make-overlay vim:search-match-beg vim:search-match-end))
+          (overlay-put vim:search-overlay 'priority 1001)
+          (overlay-put vim:search-overlay 'face 'vim:search))))
     (when vim:search-highlight-all
       (vim:hl-change 'vim:search (and isearch-success vim:search-pattern)))))
+
 
 
 (defun vim:search-start-session ()
@@ -505,6 +499,7 @@ possibly wrapping and eob or bob."
     (setq vim:search-overlay nil))
   (vim:ex-teardown))
 
+
 (defun vim:search-update-pattern (beg end range)
   "Called to update the current search pattern."
   (unless vim:ex-update-info
@@ -514,13 +509,13 @@ possibly wrapping and eob or bob."
       (with-selected-window vim:ex-current-window
         (goto-char vim:search-start-point)
         (save-excursion
-          (dotimes (i (or vim:search-count 1))
-            (if (eq vim:search-direction 'backward)
-                (backward-char)
-              (forward-char))
-            (vim:search-next)
-            (when vim:search-match-beg
-              (goto-char vim:search-match-beg))))
+         (dotimes (i (or vim:search-count 1))
+           (if (eq vim:search-direction 'backward)
+             (backward-char)
+             (forward-char))
+           (vim:search-next)
+           (when vim:search-match-beg
+             (goto-char vim:search-match-beg))))
         (vim:search-update)))))
 
 
@@ -538,37 +533,44 @@ possibly wrapping and eob or bob."
   (abort-recursive-edit))
 
 
-(defun vim:start-search (direction count)
-  "Starts a new search in a certain direction."
-  ;; store buffer and window where the search started
-  (let ((vim:ex-current-buffer (current-buffer))
-        (vim:ex-current-window (selected-window)))
-    (setq vim:search-count count)
-    (setq vim:search-direction direction)
-    (setq vim:search-start-point (point))
-
-    (condition-case err
-        (progn
-          ;; ensure minibuffer is initialized accordingly
-          (add-hook 'minibuffer-setup-hook #'vim:search-start-session)
-          ;; read the search string
-          (let ((minibuffer-local-map vim:search-keymap))
-            (when (read-string (case vim:search-direction
-                                 ('forward "/")
-                                 ('backward "?"))
-                               nil 'vim:search-history)
-              (goto-char vim:search-start-point)
-              (vim:add-jump)
-              (if vim:search-match-beg
-                  (goto-char vim:search-match-beg)
-                (vim:find-next))
-              (vim:adjust-point))))
-      (quit
-       (vim:search-stop-session)
-       (vim:delete-hl 'vim:search)
-       (goto-char vim:search-start-point)
-       (vim:adjust-point)
-       (signal (car err) (cdr err))))))
+;; (defun vim:start-search (direction count)
+;;   "Starts a new search in a certain direction."
+;;   ;; store buffer and window where the search started
+;;   (let ((vim:ex-current-buffer (current-buffer))
+;;         (vim:ex-current-window (selected-window)))
+;;     (setq vim:search-count count)
+;;     (setq vim:search-direction direction)
+;;     (setq vim:search-start-point (point))
+;;     (vim:save-position)
+;;
+;;     (condition-case err
+;;         (progn
+;;           ;; ensure minibuffer is initialized accordingly
+;;           (add-hook 'minibuffer-setup-hook #'vim:search-start-session)
+;;           ;; read the search string
+;;           (let ((minibuffer-local-map vim:search-keymap))
+;;             (when (read-string (case vim:search-direction
+;;                                  ('forward "/")
+;;                                  ('backward "?"))
+;;                                nil 'vim:search-history)
+;;               (goto-char vim:search-start-point)
+;;               (vim:add-jump)
+;;               (if vim:search-match-beg
+;;                 (goto-char vim:search-match-beg)
+;;                 (vim:find-next))
+;;               (vim:adjust-point))))
+;;       (quit
+;;        (vim:search-stop-session)
+;;        (vim:delete-hl 'vim:search)
+;;        (goto-char vim:search-start-point)
+;;        (vim:adjust-point))
+;;       (error
+;;        (vim:search-stop-session)
+;;        (vim:delete-hl 'vim:search)
+;;        (goto-char vim:search-start-point)
+;;        (vim:adjust-point)
+;;
+;;        (signal (car err) (cdr err))))))
 
 
 
@@ -583,13 +585,13 @@ possibly wrapping and eob or bob."
       (t (forward-char)))
     (vim:search-next)
     (if isearch-success
-       (progn
-         (when (and vim:search-highlight-all
-                    (not (vim:hl-active-p 'vim:search)))
-           (vim:make-hl 'vim:search)
-           (vim:hl-change 'vim:search vim:search-pattern))
-         (goto-char vim:search-match-beg))
-      (goto-char vim:search-start-point))
+        (progn
+          (when (and vim:search-highlight-all
+                     (not (vim:hl-active-p 'vim:search)))
+            (vim:make-hl 'vim:search)
+            (vim:hl-change 'vim:search vim:search-pattern))
+          (goto-char vim:search-match-beg))
+        (goto-char vim:search-start-point))
     (when (or isearch-error isearch-wrapped) (ding))
     (when isearch-message
       (let (message-log-max)
@@ -601,63 +603,65 @@ possibly wrapping and eob or bob."
          (if (eq vim:search-direction 'backward) 'forward 'backward)))
     (vim:motion-search-next :count count)))
 
-(vim:defmotion vim:motion-search-fwd (exclusive count)
-  "Starts a forward search."
-  (vim:start-search 'forward count))
+;; (vim:defmotion vim:motion-search-fwd (exclusive count)
+;;   "Starts a forward search."
+;;   (vim:start-search 'forward count))
 
-(vim:defmotion vim:motion-search-bwd (exclusive count)
-  "Starts a forward search."
-  (vim:start-search 'backward count))
+;; (vim:defmotion vim:motion-search-bwd (exclusive count)
+;;   "Starts a forward search."
+;;   (vim:start-search 'backward count))
 
-
-(defun vim:start-word-search (unbounded direction count)
-  "Searches for the word under point.
-
-If the first argument `unbounded' is nil the search matches only
-at word boundaries, otherwise it matches anywhere.
-
-The second argument `direction' should be either 'forward or
-'backward determining the search direction.
-
-The search matches the `count'-th occurrence of the word."
-  ;; TODO: use thing-at-point ???
-  (condition-case nil
-      (goto-char (vim:motion-bwd-word-end :count 1))
-    (error nil))
-
-  (re-search-forward (concat "\\<[" vim:word "]+\\>"))
-
-  (setq vim:search-count count
-        vim:search-pattern (vim:make-pattern
-                            :regex (if unbounded
-                                       (regexp-quote (match-string 0))
-                                     (concat "\\<" (regexp-quote (match-string 0)) "\\>"))
-                            :case-fold (case vim:search-case
-                                         ((sensitive smart) 'sensitive)
-                                         (insensitive 'insensitive)))
-        vim:search-direction direction)
-  (vim:delete-hl 'vim:search)
-  (vim:motion-search-next :count count))
-
-
-(vim:defmotion vim:search-word (exclusive count)
-  "Searches the next occurence of word under the cursor."
-  (vim:start-word-search nil 'forward count))
+;; (defun vim:start-word-search (unbounded direction count)
+;;   "Searches for the word under point.
+;;
+;; If the first argument `unbounded' is nil the search matches only
+;; at word boundaries, otherwise it matches anywhere.
+;;
+;; The second argument `direction' should be either 'forward or
+;; 'backward determining the search direction.
+;;
+;; The search matches the `count'-th occurrence of the word."
+;;   (let* ((thing (thing-at-point 'symbol))
+;;          (first-is-word-boundary (string-match-p "[A-Za-z]" (substring thing 0 1)))
+;;          (last-is-word-boundary (string-match-p "[A-Za-z]" (substring thing -1))))
+;;     (setq vim:search-count count
+;;           vim:search-pattern (vim:make-pattern
+;;                               :regex (concat (if (and (not unbounded)
+;;                                                       first-is-word-boundary)
+;;                                                "\\<"
+;;                                                "")
+;;                                              (regexp-quote thing)
+;;                                              (if (and (not unbounded)
+;;                                                       last-is-word-boundary)
+;;                                                "\\>"
+;;                                                ""))
+;;                               :case-fold (case vim:search-case
+;;                                            ((sensitive smart) 'sensitive)
+;;                                            (insensitive 'insensitive)))
+;;           vim:search-direction direction))
+;;   (vim:save-position)
+;;   (vim:delete-hl 'vim:search)
+;;   (vim:motion-search-next :count count))
 
 
-(vim:defmotion vim:search-word-backward (exclusive count)
-  "Searches the next occurence of word under the cursor."
-  (vim:start-word-search nil 'backward count))
+;; (vim:defmotion vim:search-word (exclusive count)
+;;   "Searches the next occurence of word under the cursor."
+;;   (vim:start-word-search nil 'forward count))
 
 
-(vim:defmotion vim:search-unbounded-word (exclusive count)
-  "Searches the next occurence of word under the cursor."
-  (vim:start-word-search t 'forward count))
+;; (vim:defmotion vim:search-word-backward (exclusive count)
+;;   "Searches the next occurence of word under the cursor."
+;;   (vim:start-word-search nil 'backward count))
 
 
-(vim:defmotion vim:search-unbounded-word-backward (exclusive count)
-  "Searches the next occurence of word under the cursor."
-  (vim:start-word-search t 'backward count))
+;; (vim:defmotion vim:search-unbounded-word (exclusive count)
+;;   "Searches the next occurence of word under the cursor."
+;;   (vim:start-word-search t 'forward count))
+
+
+;; (vim:defmotion vim:search-unbounded-word-backward (exclusive count)
+;;   "Searches the next occurence of word under the cursor."
+;;   (vim:start-word-search t 'backward count))
 
 
 ;; Substitute
@@ -696,13 +700,13 @@ The search matches the `count'-th occurrence of the word."
                              ;; first line
                              (if (car-safe vim:ex-range)
                                  (save-excursion
-                                   (goto-line (car vim:ex-range))
+                                   (goto-line1 (car vim:ex-range))
                                    (line-beginning-position))
                                (line-beginning-position))
                              ;; last line
                              (if (car-safe vim:ex-range)
                                  (save-excursion
-                                   (goto-line (or (cdr vim:ex-range)
+                                   (goto-line1 (or (cdr vim:ex-range)
                                                   (car vim:ex-range)))
                                    (line-end-position))
                                (line-end-position)))
@@ -732,81 +736,90 @@ The search matches the `count'-th occurrence of the word."
 (vim:defcmd vim:cmd-substitute (motion argument:substitute nonrepeatable)
   "The VIM substitutde command: [range]s/pattern/replacement/flags"
   (vim:cmd-nohighlight)
-  (multiple-value-bind (pattern replacement flags) (vim:parse-substitute argument)
-    (unless pattern (error "No pattern given."))
-    (unless replacement (error "No replacement given."))
+  (multiple-value-bind (pattern replacement flags)
+      (vim:parse-substitute argument)
+    (unless pattern (error "No pattern given"))
+    (unless replacement (error "No replacement given"))
     (vim:add-jump)
     (setq flags (append flags nil))
-    (lexical-let* ((replacement replacement)
-                   (first-line (if motion (vim:motion-first-line motion) (line-number-at-pos (point))))
-                   (last-line (if motion (vim:motion-last-line motion) (line-number-at-pos (point))))
-                   (whole-line (and flags (memq ?g flags)))
-                   (confirm (and flags (memq ?c flags)))
-                   (ignore-case (and flags (memq ?i flags)))
-                   (dont-ignore-case (and flags (memq ?I flags)))
-                   (pattern (vim:make-pattern :regex pattern
-                                              :whole-line whole-line
-                                              :case-fold (or (and ignore-case 'insensitive)
-                                                             (and dont-ignore-case 'sensitive)
-                                                             vim:substitute-case
-                                                             vim:search-case)))
-                   (regex (vim:pattern-regex pattern))
-                   (last-point (point))
-                   (overlay (make-overlay (point) (point)))
-                   (next-line (line-number-at-pos (point)))
-                   (nreplaced 0))
-      (let ((case-fold-search (eq 'insensitive (vim:pattern-case-fold pattern)))
-            (case-replace case-fold-search))
-        (unwind-protect
+
+    (lexical-let*
+     ((replacement replacement)
+      (first-line (if motion
+                    (vim:motion-first-line motion)
+                    (line-number-at-pos (point))))
+      (last-line (if motion
+                   (vim:motion-last-line motion)
+                   (line-number-at-pos (point))))
+      (whole-line (and flags (memq ?g flags)))
+      (confirm (and flags (memq ?c flags)))
+      (ignore-case (and flags (memq ?i flags)))
+      (dont-ignore-case (and flags (memq ?I flags)))
+      (pattern (vim:make-pattern
+                :regex pattern
+                :whole-line whole-line
+                :case-fold (or (and ignore-case 'insensitive)
+                               (and dont-ignore-case 'sensitive)
+                               vim:substitute-case
+                               vim:search-case)))
+      (regex (vim:pattern-regex pattern))
+      (last-point (point))
+      (overlay (make-overlay (point) (point)))
+      (next-line (line-number-at-pos (point)))
+      (nreplaced 0))
+
+     (let ((case-fold-search (eq 'insensitive (vim:pattern-case-fold pattern)))
+           (case-replace case-fold-search))
+       (unwind-protect
             (if whole-line
-                ;; this one is easy, just use the built in function
-                (vim:perform-replace regex replacement confirm t nil nil nil
-                                     (save-excursion
-                                       (goto-line first-line)
-                                       (line-beginning-position))
-                                     (save-excursion
-                                       (goto-line last-line)
-                                       (line-end-position)))
+              ;; this one is easy, just use the built in function
+              (vim:perform-replace regex replacement confirm t nil nil nil
+                                   (save-excursion
+                                    (goto-line1 first-line)
+                                    (line-beginning-position))
+                                   (save-excursion
+                                    (goto-line1 last-line)
+                                    (line-end-position)))
               (if confirm
-                  (progn
-                    ;; this one is more difficult, we have to do the
-                    ;; highlighting and questioning on our own
-                    (overlay-put overlay 'face
-                                 (if (facep 'isearch)
-                                     'isearch 'region))
-                    (map-y-or-n-p #'(lambda (x)
-                                      (set-match-data x)
-                                      (move-overlay overlay (match-beginning 0) (match-end 0))
-                                      (concat "Query replacing "
-                                              (match-string 0)
-                                              " with "
-                                              (vim:match-substitute-replacement replacement case-fold-search)
-                                              ": "))
-                                  #'(lambda (x)
-                                      (set-match-data x)
-                                      (replace-match replacement case-fold-search)
-                                      (incf nreplaced)
-                                      (setq last-point (point)))
-                                  #'(lambda ()
-                                      (let ((end (save-excursion
-                                                   (goto-line last-line)
-                                                   (line-end-position))))
-                                        (goto-line next-line)
-                                        (beginning-of-line)
-                                        (when (and (> end (point))
-                                                   (re-search-forward regex end t nil))
-                                          (setq last-point (point))
-                                          (setq next-line (1+ (line-number-at-pos (point))))
-                                          (match-data))))))
+                (progn
+                  ;; this one is more difficult, we have to do the
+                  ;; highlighting and questioning on our own
+                  (overlay-put overlay 'face
+                               (if (facep 'isearch)
+                                 'isearch 'region))
+                  (map-y-or-n-p #'(lambda (x)
+                                    (set-match-data x)
+                                    (move-overlay overlay (match-beginning 0) (match-end 0))
+                                    (concat "Query replacing "
+                                            (match-string 0)
+                                            " with "
+                                            (vim:match-substitute-replacement replacement case-fold-search)
+                                            ": "))
+                                #'(lambda (x)
+                                    (set-match-data x)
+                                    (replace-match replacement case-fold-search)
+                                    (incf nreplaced)
+                                    (setq last-point (point)))
+                                #'(lambda ()
+                                    (let ((end (save-excursion
+                                                (goto-line1 last-line)
+                                                (line-end-position))))
+                                      (goto-line1 next-line)
+                                      (beginning-of-line)
+                                      (when (and (> end (point))
+                                                 (re-search-forward regex end t nil))
+                                        (setq last-point (point))
+                                        (setq next-line (1+ (line-number-at-pos (point))))
+                                        (match-data))))))
 
                 ;; just replace the first occurences per line
                 ;; without highlighting and asking
-                (goto-line first-line)
+                (goto-line1 first-line)
                 (beginning-of-line)
                 (while (and (<= (line-number-at-pos (point)) last-line)
                             (re-search-forward regex (save-excursion
-                                                       (goto-line last-line)
-                                                       (line-end-position))
+                                                      (goto-line1 last-line)
+                                                      (line-end-position))
                                                t nil))
                   (incf nreplaced)
                   (replace-match replacement)
@@ -816,26 +829,23 @@ The search matches the `count'-th occurrence of the word."
 
               (goto-char last-point)
               (if (= nreplaced 1)
-                  (message "Replaced 1 occurence")
+                (message "Replaced 1 occurence")
                 (message "Replaced %d occurences" nreplaced)))
 
-          ;; clean-up the overlay
-          (delete-overlay overlay))))))
+         ;; clean-up the overlay
+         (delete-overlay overlay))))))
 
 
 (defun vim:parse-substitute (text)
-  (when (string-match "\\`\\s-*/\\(\\(?:[^/]\\|\\\\.\\)+\\)\\(?:/\\(\\(?:[^/]\\|\\\\.\\)*\\)\\(?:/\\([giIc]*\\)\\)?\\)?\\s-*\\'"
-                      text)
-    (let* ((pattern (match-string 1 text))
-           (replacement (match-string 2 text))
-           (flags (match-string 3 text))
-           newrepl
-           (idx 0) (n (length replacement)))
-
-      ;; handle escaped chars
-      (while (< idx n)
-        (if (and (= (aref replacement idx) ?\\)
-                 (< (1+ idx) n))
+  (when (string-match-p "^\\s-*[/|,;:!@#]." text)
+    (multiple-value-bind (pattern replacement flags)
+        (vim:parse-substitute-lowlevel text)
+      (let* (newrepl
+             (idx 0) (n (length replacement)))
+        ;; handle escaped chars
+        (while (< idx n)
+          (if (and (= (aref replacement idx) ?\\)
+                   (< (1+ idx) n))
             (let ((c (aref replacement (1+ idx))))
               (case c
                 (?n (push ?\n newrepl))
@@ -846,10 +856,124 @@ The search matches the `count'-th occurrence of the word."
                  (push c newrepl))
                 (t (push c newrepl)))
               (incf idx 2))
-          (push (aref replacement idx) newrepl)
-          (incf idx)))
+            (push (aref replacement idx) newrepl)
+            (incf idx)))
 
-      (values pattern (apply #'string (reverse newrepl)) flags))))
+        (values pattern (apply #'string (reverse newrepl)) flags)))))
+
+
+(defun vim:parse-substitute-lowlevel (str)
+  "Perform actual parse of substitute command. Works much better than
+regular expressions."
+  (let ((i 0)
+        (len (length str))
+        ;; ends are exclusive
+        pattern-start
+        pattern-end
+        replacement-start
+        replacement-end
+        flags-start
+        flags-end
+
+        delimiter
+        (delimiters (string-to-list "/|,;:!@#")))
+    (flet ((skip-quoted ()
+             (while (and (< i len)
+                         (not (char= (aref str i) delimiter)))
+               ;; skip quoted character
+               (if (char= (aref str i) ?\\)
+                 (incf i 2)
+                 (incf i))))
+           (skip-flags ()
+             (while (and (< i len)
+                         (member* (aref str i)
+                                  (string-to-list "giIc")
+                                  :test #'char=))
+               (incf i)))
+           (pattern-expand-newlines (pat)
+             (labels ((expand (pos result-pat)
+                        (cond
+                          ((= pos (length pat))
+                           result-pat)
+                          ((and (char= (aref pat pos) ?\\)
+                                (< (1+ pos) (length pat))
+                                (member* (aref pat (1+ pos))
+                                         (string-to-list
+                                          "nt")
+                                         :test #'char=))
+                           (let ((next-c (aref pat (1+ pos))))
+                             (expand (+ pos 2)
+                                     (cons (cond
+                                             ((char= next-c ?n) ?\n)
+                                             ((char= next-c ?t) ?\t))
+                                           result-pat))))
+                          (t
+                           (expand (1+ pos) (cons (aref pat pos)
+                                                  result-pat))))))
+               (concatenate 'string
+                            (nreverse (expand 0 '()))))))
+      (while (and (< i len)
+                  (not (member* (aref str i)
+                                delimiters
+                                :test #'char=))
+                  ;; (not (char= (aref str i) ?/))
+                  )
+        (incf i))
+      (setf delimiter (aref str i))
+      (incf i)
+      (setf pattern-start i)
+      (skip-quoted)
+      (setf pattern-end i)
+
+      (incf i)
+      (when (< i len)
+        (setf replacement-start i)
+        (skip-quoted)
+        (setf replacement-end i)
+        (incf i)
+
+        (when (< i len)
+          (setf flags-start i)
+          (skip-flags)
+          (setf flags-end i)))
+      (values (pattern-expand-newlines
+               (subseq str pattern-start (min len pattern-end)))
+              (when (and replacement-start
+                         replacement-end
+                         ;; hack
+                         (<= replacement-end len))
+                (subseq str replacement-start (min len replacement-end)))
+              (when (and flags-start flags-end)
+                (subseq str flags-start (min len flags-end)))))))
+
+;; test cases for vim:parse-substitute-lowlevel
+;; (loop
+;;   for (str result) in
+;;      '(("/foo/bar"          ("foo" "bar" nil))
+;;        (",foo,bar"          ("foo" "bar" nil))
+;;        (",foo,bar,"         ("foo" "bar" nil))
+;;        ("/hello/world/gI"   ("hello" "world" "gI"))
+;;        ("/\"/\"/"           ("\"" "\"" nil))
+;;        ("         /    a  " ("    a  " nil nil))
+;;        ("/xyz"              ("xyz" nil nil))
+;;        (";xyz"              ("xyz" nil nil))
+;;        ("/x/y/gic   uuuu"   ("x" "y" "gic"))
+;;        ("/abc/\\/\\/\\/\\//g" ("abc" "\\/\\/\\/\\/" "g"))
+;;        ("/^\\(.*\\)$/\\\"\\1\\\"\\n/g"
+;;         ("^\\(.*\\)$" "\\\"\\1\\\"\\n" "g"))
+;;        (",hello ,/world ! world;/,g"
+;;         ("hello " "/world ! world;/" "g"))
+;;        ("/"
+;;         ("" ;; do we need to expect nil here??? this is quite unclear
+;;          nil nil))
+;;        ("/[A-Z]/foo/g"
+;;         ("[A-Z]" "foo" "g")))
+;;   unless (equal result (vim:parse-substitute-lowlevel str))
+;;   do (error "FAIL AT CASE: STR: %S; EXPECTED: %S, RECEIVED: %S"
+;;             str
+;;             result
+;;             (vim:parse-substitute-lowlevel str))
+;;   finally return 'success)
 
 ;; Related commands.
 (vim:defcmd vim:cmd-nohighlight (nonrepeatable)

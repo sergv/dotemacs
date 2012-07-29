@@ -1,0 +1,4 @@
+#key: fill_n
+#name: fill_n algorithm
+# --
+std::fill_n( ${1:src}.begin(), ${2:size}, ${0:value});

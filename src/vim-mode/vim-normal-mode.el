@@ -28,16 +28,16 @@
 
 (vim:define-mode motion "VIM motion mode"
                  :ident "M"
-                 :keymaps '(vim:motion-mode-keymap vim:window-mode-keymap)
+                 :keymaps '(vim:motion-mode-keymap)
                  :command-function 'vim:normal-mode-command)
 
 ;; Basic keymap for window commands.
-(vim:define-keymap window-mode "window mode" :map-command wmap)
-
-(vim:define-mode window "VIM window mode"
-                 :ident "W"
-                 :keymaps '(vim:window-mode-keymap)
-                 :command-function 'vim:normal-mode-command)
+;; (vim:define-keymap window-mode "window mode" :map-command wmap)
+;;
+;; (vim:define-mode window "VIM window mode"
+;;                  :ident "W"
+;;                  :keymaps '(vim:window-mode-keymap)
+;;                  :command-function 'vim:normal-mode-command)
 
 
 (defconst vim:operator-repeat-keymap (vim:make-keymap)
@@ -97,10 +97,10 @@ like 'dd', 'yy',... .")
 	(funcall command))
     (unwind-protect
 	(case (vim:cmd-type command)
-	  ('simple (error "No simple-commands allowed in operator-pending mode."))
-	  ('complex (error "No complex-commands allowed in operator-pending mode."))
+	  ('simple (error "No simple-commands allowed in operator-pending mode"))
+	  ('complex (error "No complex-commands allowed in operator-pending mode"))
 	  (t (vim:normal-execute-complex-command command)))
-    
+
       (when (vim:operator-pending-mode-p)
 	(vim:activate-normal-mode)))))
 
@@ -126,11 +126,10 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
 (vim:define-mode normal "VIM normal mode"
                  :ident "N"
-                 :message "-- NORMAL --"
+                 ; :message "-- NORMAL --"
                  :keymaps '(vim:normal-mode-keymap
                             vim:operator-pending-mode-keymap
                             vim:motion-mode-keymap
-                            vim:window-mode-keymap
                             vim:override-keymap)
                  :command-function 'vim:normal-mode-command)
 
@@ -154,7 +153,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
     (setq vim:current-motion-arg (read-char-exclusive)))
 
   (vim:execute-current-motion)
-    
+
   (vim:reset-key-state)
   (vim:clear-key-sequence)
   (vim:adjust-point))
@@ -164,7 +163,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   "Executes a simple command."
   (when current-prefix-arg
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
-  
+
   (when (vim:cmd-char-arg-p command)
     (setq vim:current-cmd-arg (read-char-exclusive)))
 
@@ -189,13 +188,13 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   (vim:reset-key-state)
   (vim:clear-key-sequence)
   (vim:adjust-point))
-    
+
 
 (defun vim:normal-prepare-complex-command (command)
   "Prepares a complex command, switching to operator-pending mode."
   (when current-prefix-arg
     (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
-  
+
   (setq vim:current-cmd command)
   (setq vim:current-key-sequence (vconcat vim:current-key-sequence (vim:this-command-keys)))
   (vim:activate-operator-pending-mode))
@@ -226,7 +225,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
       (setq vim:repeat-events (vconcat vim:current-key-sequence
                                        (vim:this-command-keys))))
     (vim:connect-undos vim:last-undo))
-    
+
   (vim:reset-key-state)
   (vim:clear-key-sequence)
   (vim:adjust-point))

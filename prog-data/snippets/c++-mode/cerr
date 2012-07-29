@@ -1,0 +1,4 @@
+#key: cerr
+#name: std::cerr insert template
+# --
+std::cerr << $0 << std::endl;

@@ -1,0 +1,89 @@
+%% File:    ${filename}
+%% Created: ${date}
+%%
+%%
+%%
+
+\documentclass[a4paper,12pt]{article}
+
+% inner tex-encoding
+\usepackage[T2A]{fontenc}
+% document codepage
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+% indent first paragraph
+\usepackage{indentfirst}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{amsfonts} % for \input'ed gnuplot graphs
+\usepackage[unicode]{hyperref}
+\usepackage{alltt}
+\usepackage{mathtools}
+\usepackage{graphicx} % for \includegraphics
+
+
+% fix placement of floating objects
+\renewcommand{\topfraction}{0.9}	% max fraction of floats at top
+\renewcommand{\bottomfraction}{0.8}	% max fraction of floats at bottom
+% Parameters for TEXT pages (not float pages):
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}     % 2 may work better
+\setcounter{dbltopnumber}{2}    % for 2-column pages
+\renewcommand{\dbltopfraction}{0.9}	% fit big float above 2-col. text
+\renewcommand{\textfraction}{0.07}	% allow minimal text w. figs
+% Parameters for FLOAT pages (not text pages):
+\renewcommand{\floatpagefraction}{0.7}	% require fuller float pages
+% N.B.: floatpagefraction MUST be less than topfraction !!
+\renewcommand{\dblfloatpagefraction}{0.7}	% require fuller float pages
+%%
+
+
+\frenchspacing
+\selectlanguage{english} % make english subscriptions under figures
+
+% \pagestyle{empty} % don't number pages in headers/footers (?)
+
+% code listings preferences
+% use like this
+% \begin{lstlisting}[language=Lisp]
+% (defun hello () (format t "Hello World!~%"))
+% \end{lstlisting}
+\usepackage{listings}
+\lstset{
+language=Lisp,
+basicstyle=\ttfamily,
+captionpos=b
+tabsize=2,
+breaklines=true,
+breakatwhitespace=true,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+%linewidth=\textwidth,
+breakautoindent=true,
+numberbychapter=true,
+captionpos=, %to defeat bugs
+caption=''   %to defeat bugs
+}
+
+
+% for labeling & numbering inline $...$ equations
+% use like this
+% \inlineeq{a + b}\label{sum}
+% ...
+% And in \ref{sum} we showed that ...
+\newcounter{inlineequation}
+\setcounter{inlineequation}{0}
+\renewcommand{\theinlineequation}{(\Roman{inlineequation})}
+
+\newcommand{\inlineeq}[1]{\(#1\) \refstepcounter{inlineequation}\theinlineequation\ }
+
+
+% sometimes nice to have commands
+\newcommand{\rarr}[0]{\;\Rightarrow}
+\newcommand{\divLine}[0]{\begin{flushleft} \line(1, 0){100} \end{flushleft}}
+
+\begin{document}
+
+\end{document}
