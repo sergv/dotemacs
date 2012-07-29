@@ -19,8 +19,8 @@
 
 (autoload 'ipython "ipython" "Ipython repl." t)
 
-;; (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
-;; (add-to-list 'interpreter-mode-alist '("python" . python-mode))
+(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+(add-to-list 'interpreter-mode-alist '("python" . python-mode))
 
 (defun python-initialize-vars ()
   (setf py-use-number-face-p nil
