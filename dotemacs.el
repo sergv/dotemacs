@@ -251,19 +251,19 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (fortune-init-scratch-buf)
 
 
-;;test faces for readability
-;;(progn
-;;(load-file "~/emacs/color-lab.elc")
-;;(load-file "~/emacs/shr-color.elc")
-;;(mapc #'(lambda (entry)
-;;(let* ((colors (list
-;;(cadr entry)
-;;(caddr entry)))
-;;(result (shr-color-visible (car colors) (cadr colors) t)))
-;;(when (not (equal colors result))
-;;(message "face %S transform from %S to %S" (car entry) colors result))))
-;;'((face-name "bg" "fg")))
-;;nil)
+;; test faces for readability
+;; (progn
+;;   (load-file "~/emacs/color-lab.elc")
+;;   (load-file "~/emacs/shr-color.elc")
+;;   (mapc #'(lambda (entry)
+;;             (let* ((colors (list
+;;                             (cadr entry)
+;;                             (caddr entry)))
+;;                    (result (shr-color-visible (car colors) (cadr colors) t)))
+;;               (when (not (equal colors result))
+;;                 (message "face %S transform from %S to %S" (car entry) colors result))))
+;;         '((face-name "bg" "fg")))
+;;   nil)
 
 (put 'downcase-region 'disabled nil)
 (put 'erase-buffer 'disabled nil)
@@ -283,45 +283,9 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (ex-commands-re-cache-update)
 
 
-;; (defconst *solarized-colors*
-;; '((base03  "#002b36")
-;; (base02  "#073642")
-;; (base01  "#586e75") ;; optional emphasized content
-;; (base00  "#657b83") ;; body text/default code/primary content
-;; (base0   "#839496") ;; ?
-;; (base1   "#93a1a1") ;; comments/secondary content
-;; (base2   "#eee8d5") ;; background highlights
-;; (base3   "#fdf6e3") ;; background
-;; (red     "#dc322f")
-;; (orange  "#cb4b16")
-;; (yellow  "#b58900")
-;; (green   "#859900")
-;; (cyan    "#2aa198")
-;; (blue    "#268bd2")
-;; (violet  "#6c71c4")
-;; (magenta "#d33682"))
-;; "Colors used by solarized color theme, present here only for reference")
-
-;; (defun substitute-colors (seq)
-;;   (let* ((colors '(("black"   . "#657b83")
-;;                    ("white"   . "#fdf6e3")
-;;                    ("red"     . "#dc322f")
-;;                    ("orange"  . "#cb4b16")
-;;                    ("yellow"  . "#b58900")
-;;                    ("green"   . "#859900")
-;;                    ("cyan"    . "#2aa198")
-;;                    ("blue"    . "#268bd2")
-;;                    ("violet"  . "#6c71c4")
-;;                    ("magenta" . "#d33682")))
-;;          (y (loop
-;;                 for x being the elements of seq
-;;                 collect (or (cdr (assoc (replace-regexp-in-string "[^a-zA-Z]" "" x)
-;;                                         colors))
-;;                             x))))
-;;     (cond
-;;       ((vectorp seq)
-;;        (apply #'vector y))
-;;       (t y))))
+(require 'package)
+(let ((package-load-list '((melpa t))))
+  (package-initialize))
 
 
 ;; Local Variables:
