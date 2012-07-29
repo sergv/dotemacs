@@ -6,6 +6,8 @@
 ;; Created: Friday, 27 April 2012
 ;; Description:
 
+(require 'more-scheme)
+
 (defun tabbar-buffer-groups+ (buffer)
   "Return the list of group names BUFFER belongs to.
 Return only one group for each buffer."
@@ -17,7 +19,7 @@ Return only one group for each buffer."
                     '(cl-mode
                       lisp-mode
                       common-lisp-mode))
-              (not (string-match-p starred-buffer-re bufname)))
+              (not (string-match-pure? starred-buffer-re bufname)))
          '("Lisp"))
 
         ;; count repl as both lisp and slime mode
@@ -32,41 +34,41 @@ Return only one group for each buffer."
                              "*Pp Eval Output*"))))
          '("Emacs Lisp"))
 
-        ((string-match-p (rx "*"
-                             (or (seq (or "slime-repl"
-                                          "sldb")
-                                      (+ " ")
-                                      (or "sbcl"
-                                          "sbcl-full"
-                                          "cmucl"
-                                          "clisp"
-                                          "ccl"
-                                          "ecl"
-                                          "clozure"
-                                          "chicken"
-                                          "bigloo"
-                                          "guile"
-                                          "lisp"
-                                          "scheme")
-                                      (? "/"
-                                         (+ digit)))
-                                 (or "slime-events"
-                                     "slime-description"
-                                     "slime-trace"
-                                     "slime-compilation"
-                                     "slime-xref"
-                                     "slime-apropos"
-                                     "slime-inspector"
-                                     "slime-macroexpansion"
-                                     "inferior-lisp"
-                                     "lisp-interaction"
-                                     "fuzzy completions"))
-                             "*"
-                             ;; (? "<"
-                             ;;    (+ digit)
-                             ;;    ">")
-                             )
-                         (downcase bufname))
+        ((string-match-pure? (rx "*"
+                                 (or (seq (or "slime-repl"
+                                              "sldb")
+                                          (+ " ")
+                                          (or "sbcl"
+                                              "sbcl-full"
+                                              "cmucl"
+                                              "clisp"
+                                              "ccl"
+                                              "ecl"
+                                              "clozure"
+                                              "chicken"
+                                              "bigloo"
+                                              "guile"
+                                              "lisp"
+                                              "scheme")
+                                          (? "/"
+                                             (+ digit)))
+                                     (or "slime-events"
+                                         "slime-description"
+                                         "slime-trace"
+                                         "slime-compilation"
+                                         "slime-xref"
+                                         "slime-apropos"
+                                         "slime-inspector"
+                                         "slime-macroexpansion"
+                                         "inferior-lisp"
+                                         "lisp-interaction"
+                                         "fuzzy completions"))
+                                 "*"
+                                 ;; (? "<"
+                                 ;;    (+ digit)
+                                 ;;    ">")
+                                 )
+                             (downcase bufname))
          (memq major-mode
                ;; count relp here too, just in case
                '(slime-repl-mode
@@ -74,12 +76,12 @@ Return only one group for each buffer."
          '("SLIME"))
 
         ((or (eq major-mode 'scheme-mode)
-             (string-match-p (rx (or "*scheme*"
-                                     "* Guile REPL *")
-                                 (? "<"
-                                    (+ digit)
-                                    ">"))
-                             bufname))
+             (string-match-pure? (rx (or "*scheme*"
+                                         "* Guile REPL *")
+                                     (? "<"
+                                        (+ digit)
+                                        ">"))
+                                 bufname))
          '("Scheme"))
 
         ((memq major-mode
@@ -94,30 +96,30 @@ Return only one group for each buffer."
                      haskell-hugs-mode
                      ghc-core-mode
                      hugs-mode))
-             (string-match-p (rx "*haskell*"
-                                 (? "<"
-                                    (+ digit)
-                                    ">"))
-                             bufname))
+             (string-match-pure? (rx "*haskell*"
+                                     (? "<"
+                                        (+ digit)
+                                        ">"))
+                                 bufname))
          '("Haskell"))
 
         ((or (memq major-mode
                    '(prolog-mode))
-             (string-match-p (rx "*prolog*"
-                                 (? "<"
-                                    (+ digit)
-                                    ">"))
-                             bufname))
+             (string-match-pure? (rx "*prolog*"
+                                     (? "<"
+                                        (+ digit)
+                                        ">"))
+                                 bufname))
          '("Prolog"))
 
         ((or (memq major-mode
                    '(octave-mode
                      inferior-octave-mode))
-             (string-match-p (rx "*Octave*"
-                                 (? "<"
-                                    (+ digit)
-                                    ">"))
-                             bufname))
+             (string-match-pure? (rx "*Octave*"
+                                     (? "<"
+                                        (+ digit)
+                                        ">"))
+                                 bufname))
          '("Octave"))
 
         ((or (memq major-mode
@@ -125,13 +127,13 @@ Return only one group for each buffer."
                      python-repl-mode
                      inferior-python-mode
                      python-run-mode))
-             (string-match-p (rx (or "*Python*"
-                                     "*IPython*"
-                                     "*Python Output*")
-                                 (? "<"
-                                    (+ digit)
-                                    ">"))
-                             bufname))
+             (string-match-pure? (rx (or "*Python*"
+                                         "*IPython*"
+                                         "*Python Output*")
+                                     (? "<"
+                                        (+ digit)
+                                        ">"))
+                                 bufname))
          '("Python"))
 
         ((memq major-mode
@@ -143,12 +145,12 @@ Return only one group for each buffer."
                    '(maxima-mode
                      maxima-noweb-mode
                      inferior-maxima-mode))
-             (string-match-p (rx (or "*maxima*"
-                                     "*imaxima*")
-                                 (? "<"
-                                    (+ digit)
-                                    ">"))
-                             bufname))
+             (string-match-pure? (rx (or "*maxima*"
+                                         "*imaxima*")
+                                     (? "<"
+                                        (+ digit)
+                                        ">"))
+                                 bufname))
          '("Maxima"))
 
         ((or (memq major-mode
@@ -185,8 +187,8 @@ Return only one group for each buffer."
                      magit-stash-mode
                      magit-status-mode
                      magit-wazzup-mode
-                     ))
-             (string-match-p (rx bol "*magit" (* nonl) "*" eol) bufname))
+                     gitignore-mode))
+             (string-match-pure? (rx bol "*magit" (* nonl) "*" eol) bufname))
          '("Version Control"))
 
         ((or (member bufname
@@ -227,7 +229,7 @@ Return only one group for each buffer."
          '("Mail"))
 
         ;; put *scratch* buffer in "Common" group
-        ((or (string-match-p starred-buffer-re bufname)
+        ((or (string-match-pure? starred-buffer-re bufname)
              (member bufname
                      '("*scratch*"
                        "*Messages*"
