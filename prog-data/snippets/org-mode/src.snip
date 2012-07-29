@@ -1,0 +1,7 @@
+# key: src
+# name: src block
+# --
+#+NAME: ${1:name}
+#+BEGIN_SRC ${2:$$(yas/choose-value '("C" "clojure" "dot" "emacs-lisp" "gnuplot" "haskell" "js" "latex" "lisp" "lilypond" "ocaml" "octave" "org" "oz" "python" "R" "scheme" "sh" "sql" "sqlite"))} ${3:org switches}
+$0
+#+END_SRC
