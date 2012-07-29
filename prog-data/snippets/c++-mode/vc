@@ -1,0 +1,4 @@
+#key: vc
+#name: std::vector type
+# --
+std::vector<$1> $0

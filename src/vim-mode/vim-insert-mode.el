@@ -34,7 +34,7 @@
 
 (vim:define-mode insert "VIM insert-mode"
                  :ident "I"
-                 :message "-- INSERT --"
+                 ; :message "-- INSERT --"
                  :keymaps '(vim:insert-mode-keymap)
                  :command-function 'vim:insert-mode-command
                  :cursor 'bar)
@@ -44,7 +44,7 @@
 (vim:defcmd vim:insert-mode-toggle-replace ()
   "Toggles overwrite-mode in insert-mode."
   (unless (vim:insert-mode-p)
-    (error "Toggling overwrite-mode only allowed in insert-mode."))
+    (error "Toggling overwrite-mode only allowed in insert-mode"))
   (overwrite-mode nil)
   (if overwrite-mode
       (progn
@@ -88,7 +88,7 @@ where to insert a newline."
   "Executes a simple command in insert mode."
   (case (vim:cmd-type command)
     ('simple (vim:normal-execute-simple-command command))
-    ('complex (error "No complex command allowed in insert-mode."))
+    ('complex (error "No complex command allowed in insert-mode"))
     (t (vim:normal-execute-motion command))))
 
 (defun vim:insert-mode-activated ()
@@ -96,7 +96,7 @@ where to insert a newline."
   (overwrite-mode -1)
   (setq vim:last-insert-undo vim:last-undo)
   (add-hook 'pre-command-hook 'vim:insert-save-key-sequence))
-  
+
 (defun vim:insert-mode-deactivated ()
   "Called when insert-mode is deactivated."
   (overwrite-mode -1)

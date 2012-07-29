@@ -1,0 +1,4 @@
+#key: count_if
+#name: count_if algorithm
+# --
+std::count_if( ${1:src}.begin(), $1.end(), ${0:pred});

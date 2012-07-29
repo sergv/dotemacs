@@ -1,0 +1,9 @@
+# key: class
+# name: class definition
+# --
+class $1(${2:object}):
+    ${3:"""$4"""
+}
+    def __init__(self):
+        super($1, self).__init__()
+        ${5:pass}

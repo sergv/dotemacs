@@ -1,0 +1,4 @@
+#key: scast
+#name: static cast
+# --
+static_cast<$1>( $2)$0

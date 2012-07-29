@@ -1,0 +1,4 @@
+#key: cout
+#name: std::cout insert template
+# --
+std::cout << $0 << std::endl;

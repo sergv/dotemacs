@@ -1,0 +1,9 @@
+#key: main
+#name: C++ main function
+# --
+int main( int argc, char** argv)
+{
+  $0
+
+  return EXIT_SUCCESS;
+}

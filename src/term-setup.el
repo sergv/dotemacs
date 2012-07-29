@@ -1,0 +1,67 @@
+;;; term-setup.el ---
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: Tuesday, 10 January 2012
+;; Keywords:
+;; Requirements:
+;; Status:
+
+
+(eval-after-load
+ "term" ;; ansi-term et al
+ '(progn
+   (require 'common)
+
+   (setf ansi-term-color-vector
+         ["#fdf6e3" "#586475" "#dc322f" "#859900" "#b58900"
+                    "#268bd2" "#d33682" "#2aa198" "#839496"]
+         term-buffer-maximum-size 0 ;; don't truncate anything
+         ;; set pompt both for lisps and
+         term-prompt-regexp
+         "^[^#$%>\n]*\\(?:[#$%]\\|\\(?:<[0-9]*\\|-\\)?>+:?\\|\\*\\) *"
+         term-scroll-to-bottom-on-output nil
+         term-input-ignoredups t
+         term-input-ring-size 1024)
+
+   (vimmize-motion
+    (term-bol nil)
+    :doc "Move the cursor to the first character after prompt\
+on current line. See `term-bol'.")
+
+   (defun term-setup ()
+     (setf vim:normal-mode-local-keymap           (make-keymap)
+           vim:insert-mode-local-keymap           (make-keymap)
+
+           ;; vim:visual-mode-local-keymap           (make-keymap)
+           ;; vim:operator-pending-mode-local-keymap (make-sparse-keymap)
+           ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
+           )
+
+     (def-keys-for-map2 vim:normal-mode-local-keymap
+       ("^" vim:term-bol-motion)
+       ;; ("<up>" term-previous-input)
+       ;; ("<down>" term-next-input)
+       )
+
+     (def-keys-for-map2 (vim:normal-mode-local-keymap
+                         vim:insert-mode-local-keymap)
+       ("M-x"  execute-extended-command)
+       ("M-:"  eval-expression)
+       ("<f1>" term-paste))
+
+     (def-keys-for-map2 vim:insert-mode-local-keymap
+       ("SPC" term-send-raw)))
+
+   (add-hook 'term-mode-hook #'term-setup)))
+
+
+
+(provide 'term-setup)
+
+;; Local Variables:
+;; lexical-binding: t
+;; End:
+
+;;; term-setup.el ends here

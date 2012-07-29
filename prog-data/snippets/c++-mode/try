@@ -1,0 +1,11 @@
+#key: try
+#name: try-catch block
+# --
+try
+{
+  $1
+}
+catch( std::exception& ex)
+{
+  $0
+}

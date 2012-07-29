@@ -1,0 +1,27 @@
+#key: tmclass
+#name: templated class with reduced set of functions
+# --
+template<${1:typename T}>
+class ${2:myclass}
+{
+public:
+  $2();
+  ~$2();
+
+  $0
+
+private:
+
+};
+
+template<$1>
+$2<${1:$(c++-util-semantic-transform-templ-arg-list-str-to-spec-str yas/text)}>::$2()
+{
+
+}
+
+template<$1>
+$2<${1:$(c++-util-semantic-transform-templ-arg-list-str-to-spec-str yas/text)}>::~$2()
+{
+
+}

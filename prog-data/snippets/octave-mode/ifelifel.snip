@@ -1,0 +1,11 @@
+#key: ifelifel
+#name: if ... elseif ... else statement
+# --
+
+if ${1:expression}
+    ${2:% statements}
+elseif ${3:expression}
+    ${4:% statements}
+else
+    $0
+end

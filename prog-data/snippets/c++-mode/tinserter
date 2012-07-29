@@ -1,0 +1,8 @@
+#key: top<<
+#name: templated inserter operator
+# --
+template<${1:typename T}>
+std::ostream& operator<<( std::ostream& ostr, $2)
+{
+  $0
+}
