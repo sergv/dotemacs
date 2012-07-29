@@ -18,7 +18,7 @@
 (vim:deflocalvar vim:mode-string)
 
 (vim:deflocalvar vim:active-mode nil
-  "The currently active vim-mode.") 
+  "The currently active vim-mode.")
 
 (vim:deflocalvar vim:active-command-function nil
   "The command function of the currently active vim-mode.")
@@ -26,7 +26,7 @@
 (defvar vim:mode-alist nil
   "Assocative list of all registered submodes, (mode-symbol . mode-text).")
 
-(defvar vim:emulation-mode-alist nil
+(defvar-loc vim:emulation-mode-alist nil
   "List of all keymaps used by some modes.")
 
 
@@ -58,16 +58,16 @@
     (setq keymaps (cadr keymaps)))
   `(setq vim:emulation-mode-alist
          (list
-	  ,@(apply #'append '((cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap))
-		    (mapcar #'(lambda (keym)
-				(let ((localname (intern (replace-regexp-in-string
-							  "mode-keymap" "mode-local-keymap"
-							  (symbol-name keym)))))
-				  (if (eq localname keym)
-				      (list `(cons ',mode-name ,keym))
-				    (list `(cons ',mode-name ,localname)
-					  `(cons ',mode-name ,keym)))))
-			    keymaps)))))
+          ,@(apply #'append '((cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap))
+                   (mapcar #'(lambda (keym)
+                               (let ((localname (intern (replace-regexp-in-string
+                                                         "mode-keymap" "mode-local-keymap"
+                                                         (symbol-name keym)))))
+                                 (if (eq localname keym)
+                                     (list `(cons ',mode-name ,keym))
+                                     (list `(cons ',mode-name ,localname)
+                                           `(cons ',mode-name ,keym)))))
+                           keymaps)))))
 
 
 (defmacro* vim:define-mode (name doc
@@ -85,13 +85,18 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
          (pred-name (intern (concat (symbol-name mode-name) "-p")))
          (on-name (intern (concat "vim:activate-" (symbol-name name) "-mode")))
          (cursor-name (intern (concat (symbol-name mode-name)
-                                      "-cursor"))))
+                                      "-cursor")))
+         (update-keymaps-func-name (intern
+                                    (concat (symbol-name mode-name)
+                                            "-update-keymaps"))))
     `(progn
        (defcustom ,cursor-name ,cursor
          ,(concat "The cursor-type for vim-mode " (symbol-name name) ".")
          :group 'vim-cursors)
-       
+
        (push (cons ',mode-name ,(symbol-name name)) vim:mode-alist)
+
+       ;; (add-hook 'find-file-hook 'vim:normal-mode-update-keymaps)
        (define-minor-mode ,mode-name ,doc nil nil nil
          (when ,mode-name
            ,@(when ident `((vim:update-mode-line ,ident)))
@@ -102,7 +107,9 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
                       command-function
                     'vim:default-command-function))
            (vim:set-cursor ,cursor-name)
-           (vim:set-keymaps ',mode-name ,keymaps))
+           (,update-keymaps-func-name)
+           ;; (vim:set-keymaps ',mode-name ,keymaps)
+           )
          ,@(progn
              (while (keywordp (car body)) (pop body) (pop body))
              body))
@@ -110,11 +117,15 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
        (defun ,pred-name ()
          ,(concat "Returns t iff vim-mode is in " (symbol-name name) " mode.")
          (and ,mode-name t))
-       
+
        (defun ,on-name ()
          ,(concat "Activates " (symbol-name name) " mode.")
          (interactive)
-         (vim:activate-mode ',name)))))
+         (vim:activate-mode ',name))
+
+       (defun ,update-keymaps-func-name ()
+         "This function should be called after setting up local keymaps."
+         (vim:set-keymaps ',mode-name ,keymaps)))))
 
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:define-mode"))
 

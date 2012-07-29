@@ -1,0 +1,16 @@
+#key: #incls
+#name: common C++ includes
+# --
+#define _GLIBCXX_CONCEPT_CHECKS 1
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <cstdlib>
+#include <functional>
+#include <iostream>
+#include <iterator>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+

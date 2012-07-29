@@ -1,0 +1,17 @@
+#key: longtable
+#name: longtable
+# --
+\begin{longtable}{${1:column specification}}
+\caption{${2:caption}\label{tab:${3:label}}}
+\\\hline
+${4:first page header} \\\hline
+\endfirsthead
+
+\\\hline
+${5:$4 %rest pages header}
+\endhead
+\\\hline
+
+${6:table data}
+\end{longtable}
+$0

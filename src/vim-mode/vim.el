@@ -4,7 +4,7 @@
 
 ;; Author: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
 ;; Maintainer: Frank Fischer <frank.fischer@mathematik.tu-chemnitz.de>,
-;; URL: http://www.emacswiki.org/emacs/VimMode 
+;; URL: http://www.emacswiki.org/emacs/VimMode
 ;; License: GPLv2 or later, as described below under "License"
 ;; Compatibility: Emacs 22, 23
 ;; Version: 0.4.0
@@ -59,18 +59,18 @@
 ;;
 ;;  - vim-modes.el: Each VIM-mode (normal-mode, insert-mode, ...) corresponds
 ;;                  to an Emacs-minor-mode. This file contains some macros and
-;;                  functions to define new vim-modes in this context.   
+;;                  functions to define new vim-modes in this context.
 ;;
-;;  - vim-insert-mode.el: The implementation of insert-mode.         
-;;                                                                    
-;;  - vim-normal-mode.el: The implementation of normal-mode.         
-;;                                                                    
-;;  - vim-visual-mode.el: The implementation of visual-mode.         
+;;  - vim-insert-mode.el: The implementation of insert-mode.
 ;;
-;;  - vim-ex.el: The implementation of ex-mode.         
-;;                                                                    
-;;  - vim-commands.el: The implementations of commands like 'delete', 
-;;                     'yank', 'paste' and so on.               
+;;  - vim-normal-mode.el: The implementation of normal-mode.
+;;
+;;  - vim-visual-mode.el: The implementation of visual-mode.
+;;
+;;  - vim-ex.el: The implementation of ex-mode.
+;;
+;;  - vim-commands.el: The implementations of commands like 'delete',
+;;                     'yank', 'paste' and so on.
 ;;
 ;;  - vim-motions.el: The implementations of motion commands like 'h',
 ;;                    'i', 'j', 'k', 'f', 'w', ...
@@ -106,7 +106,7 @@
 ;;     * command can take an addition force argument which is set
 ;;       to non-nil iff an exclamation mark has been typed behind
 ;;       the command in ex-mode
-;;     * ex-commands :bn, :bp 
+;;     * ex-commands :bn, :bp
 ;;     * ex-mode shows info about current command
 
 ;;; Code:
@@ -115,18 +115,19 @@
   (require 'cl))
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
-  (eval-when-compile
-    (load "vim-core")
-    (load "vim-compat")
-    (load "vim-normal-mode")
-    (load "vim-keymap")
-    (load "vim-maps"))
-  
+  ;; (eval-when-compile
+  ;;   (load "vim-core")
+  ;;   (load "vim-compat")
+  ;;   (load "vim-normal-mode")
+  ;;   (load "vim-keymap")
+  ;;   (load "vim-maps"))
+
   (require 'vim-core)
   (require 'vim-compat)
   (require 'vim-normal-mode)
   (require 'vim-keymap)
-  (require 'vim-maps))
+  (require 'vim-maps)
+  (require 'vim-mouse))
 
 
 (defgroup vim-mode nil
@@ -144,16 +145,11 @@
   :group 'vim-mode-general)
 
 (defcustom vim:initial-modes
-  '((debugger-mode . window)
-    (compilation-mode . window)
-    (grep-mode . window)
-    (gud-mode . window)
+  '((gud-mode . window)
     (sldb-mode . window)
-    (slime-repl-mode . window)
     (reftex-select-bib-mode . window)
-    (completion-list-mode . window)
-    (help-mode . motion)
-    (Info-mode . motion))
+    (help-mode . normal)
+    (Info-mode . normal))
   "Associated list of (major-mode . vim:mode) which specifies the
 vim sub-mode in which vim-mode should start when a buffer with the
 given major-mode is created."
@@ -169,18 +165,14 @@ given major-mode is created."
 
   (if vim-local-mode
       (progn
-        (ad-enable-advice 'show-paren-function 'around 'vim:show-paren-function)
-        (ad-activate 'show-paren-function)
         (make-local-variable 'vim:emulation-mode-alist)
         (vim:initialize-keymaps t))
     (progn
-      (ad-disable-advice 'show-paren-function 'around 'vim:show-paren-function)
-      (ad-activate 'show-paren-function)
       (vim:initialize-keymaps nil)
       (setq global-mode-string
             (delq 'vim:mode-string global-mode-string ))
       (vim:activate-mode nil))))
-  
+
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
 
 (defun vim:initialize ()
@@ -205,23 +197,7 @@ causes the parenthesis to be highlighted."
   :group 'vim-mode-general)
 
 
-(defadvice show-paren-function (around vim:show-paren-function)
-  "Advices show-paren-function so also parentheses near point are matched."
-  (save-excursion
-    (goto-char
-     (or (catch 'end
-           (save-excursion
-             (dotimes (d (1+ (* 2 vim:show-paren-range)))
-               (forward-char (if (evenp d) d (- d)))
-               (let ((sc (syntax-class (syntax-after (point)))))
-                 (case sc
-                   (4 (throw 'end (point)))
-                   (5 (throw 'end (1+ (point)))))))
-             nil))
-         (point)))
-    ad-do-it))
-
-
+;; (require 'vimrc)
 
 (provide 'vim)
 

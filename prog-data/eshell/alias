@@ -1,0 +1,19 @@
+alias bzuntar *tar xfvj $*
+alias guntar *tar xfvz $*
+alias l *ls -CF --color=always $*
+alias la *ls -A --color=always $*
+alias ll *ls --human-readable -AlF --color=always $*
+alias untar *tar xfvp $*
+alias chmod *chmod $*
+
+alias diff *diff --unified --recursive --ignore-tab-expansion --ignore-space-change --ignore-blank-lines $*
+alias ediff ediff $1 $2
+alias ediff3 ediff3 $1 $2 $3
+alias open find-file $1
+
+alias sbcl *sbcl $*
+alias clisp *clisp $*
+alias ccl *ccl $*
+
+alias gcc *gcc $*
+alias python *python -B $*

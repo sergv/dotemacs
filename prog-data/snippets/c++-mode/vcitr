@@ -1,0 +1,4 @@
+#key: vcitr
+#name: std::vector iterator
+# --
+std::vector<$1>::iterator $0

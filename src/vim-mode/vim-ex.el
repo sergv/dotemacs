@@ -45,9 +45,7 @@
 (defvar vim:ex-history nil
   "History of ex-commands.")
 
-(defface vim:ex-info '(( ((supports :slant))
-			 :slant italic
-			 :foreground "red"))
+(defface vim:ex-info '((t :foreground "#d33682" :underline t))
   "Face for the info message in ex mode."
   :group 'vim-ex-mode)
 
@@ -63,37 +61,44 @@
 (defvar vim:ex-keymap (make-sparse-keymap)
   "Keymap used in ex-mode.")
 
-(define-key vim:ex-keymap "\t" 'minibuffer-complete)
+(define-key vim:ex-keymap (kbd "<tab>") 'minibuffer-complete)
 (define-key vim:ex-keymap [return] 'vim:ex-mode-exit)
 (define-key vim:ex-keymap (kbd "RET") 'vim:ex-mode-exit)
-(define-key vim:ex-keymap " " 'vim:ex-expect-argument)
+;; (define-key vim:ex-keymap " " 'vim:ex-expect-argument)
+(define-key vim:ex-keymap (kbd "C-p") 'icicle-yank-maybe-completing)
 (define-key vim:ex-keymap (kbd "C-j") 'vim:ex-mode-exit)
 (define-key vim:ex-keymap (kbd "C-g") 'vim:ex-mode-abort)
+(define-key vim:ex-keymap (kbd "C-w") 'backward-delete-word)
+(define-key vim:ex-keymap (kbd "C-S-w") 'backward-delete-word*)
 (define-key vim:ex-keymap [up] 'previous-history-element)
 (define-key vim:ex-keymap [down] 'next-history-element)
-(define-key vim:ex-keymap "\d" 'vim:ex-delete-backward-char)
-(define-key vim:ex-keymap (kbd "ESC ESC ESC") 'vim:ex-mode-keyboard-escape-quit)
+;; (define-key vim:ex-keymap "\d" 'vim:ex-delete-backward-char)
+;; (define-key vim:ex-keymap (kbd "ESC ESC") 'vim:ex-mode-keyboard-escape-quit)
 
 
 (defun vim:ex-set-info (info)
   "Changes the active ex info message."
-  (when (and vim:ex-minibuffer
-	     (not (equal info vim:ex-info-string)))
+  (when (and info
+             vim:ex-minibuffer
+             (not (equal info vim:ex-info-string)))
     (with-current-buffer vim:ex-minibuffer
       (let ((vim:ex-update-info t)
-	    after-change-functions)
-	(when vim:ex-info-length
-	  (delete-region (- (point-max) vim:ex-info-length) (point-max)))
-	(if info
-	    (let ((beg (point-max)))
-	      (save-excursion
-		(goto-char (point-max))
-		(insert (concat "   [" info "]"))
-		(setq vim:ex-info-length (- (point-max) beg))
-		(put-text-property beg (point-max) 'point-entered #'vim:ex-info-point-entered)
-		(put-text-property beg (point-max) 'face #'vim:ex-info)
-		))
-	  (setq vim:ex-info-length nil))))
+            after-change-functions)
+        (when vim:ex-info-length
+          (delete-region (- (point-max) vim:ex-info-length) (point-max)))
+        (if info
+          (let ((beg (point-max)))
+            (save-excursion
+             (goto-char (point-max))
+             (insert (concat "   [" info "]"))
+             (setq vim:ex-info-length (- (point-max) beg))
+             (put-text-property beg (point-max)
+                                'point-entered
+                                #'vim:ex-info-point-entered)
+             (put-text-property beg (point-max) 'face #'vim:ex-info)
+
+             (put-text-property beg (point-max) 'ex-info t)))
+          (setq vim:ex-info-length nil))))
     (setq vim:ex-info-string info)))
 
 
@@ -110,21 +115,21 @@ except for the info message."
     (buffer-substring-no-properties
      (minibuffer-prompt-end)
      (if vim:ex-info-length
-	 (- (point-max) vim:ex-info-length)
+       (- (point-max) vim:ex-info-length)
        (point-max)))))
 
 (defun vim:emap (keys command)
   "Maps an ex-command to some function."
   (let ((binding (assoc keys vim:ex-commands)))
     (if binding
-	(setcdr binding command)
+    (setcdr binding command)
       (add-to-list 'vim:ex-commands (cons keys command)))))
 
 (defun vim:local-emap (keys command)
   "Maps an ex-command to some function buffer-local."
   (let ((binding (assoc keys vim:ex-local-commands)))
     (if binding
-	(setcdr binding command)
+    (setcdr binding command)
       (add-to-list 'vim:ex-local-commands (cons keys command)))))
 
 (defun vim:ex-binding (cmd)
@@ -138,20 +143,20 @@ the symbol 'incomplete is returned."
    (t
     (with-current-buffer vim:ex-current-buffer
       (let* ((cmds (vim:ex-complete-command cmd nil t))
-	     (c (cond
-		 ;; no command found
-		 ((null cmds) nil)
-		 ;; exactly one completion found
-		 ((null (cdr cmds)) (car cmds))
-		 ;; one exact completion found
-		 ((member cmd cmds) cmd)
-		 ;; more than one inexact completion found
-		 (t 'incomplete))))
+         (c (cond
+         ;; no command found
+         ((null cmds) nil)
+         ;; exactly one completion found
+         ((null (cdr cmds)) (car cmds))
+         ;; one exact completion found
+         ((member cmd cmds) cmd)
+         ;; more than one inexact completion found
+         (t 'incomplete))))
 
-	(while (and c (stringp c))
-	  (setq c (or (cdr-safe (assoc c vim:ex-local-commands))
-		      (cdr-safe (assoc c vim:ex-commands)))))
-	c)))))
+    (while (and c (stringp c))
+      (setq c (or (cdr-safe (assoc c vim:ex-local-commands))
+              (cdr-safe (assoc c vim:ex-commands)))))
+    c)))))
 
 (defsubst vim:ex-binding-p (binding)
   "Returns t iff the given binding non-nil and not 'incomplete."
@@ -184,18 +189,18 @@ cancel ex-mode."
   )
 
 (defun* vim:define-arg-handler (arg-type &key
-					 complete
-					 activate
-					 deactivate
-					 update)
+                     complete
+                     activate
+                     deactivate
+                     update)
   "Defines a new argument handler `arg-type'."
   (let ((newah (vim:make-arg-handler :complete complete
-				     :activate activate
-				     :deactivate deactivate
-				     :update update))
-	(ah (assoc arg-type vim:argument-handlers-alist)))
+                     :activate activate
+                     :deactivate deactivate
+                     :update update))
+    (ah (assoc arg-type vim:argument-handlers-alist)))
     (if ah
-	(setcdr ah newah)
+    (setcdr ah newah)
       (push (cons arg-type newah) vim:argument-handlers-alist))))
 
 
@@ -203,10 +208,10 @@ cancel ex-mode."
   "Returns the argument handler of command `cmd'."
   (let ((cmd (vim:ex-binding cmd)))
     (if (not (vim:ex-binding-p cmd))
-	(ding)
+    (ding)
       (let* ((arg-type (vim:cmd-arg cmd))
-	     (arg-handler (assoc arg-type vim:argument-handlers-alist)))
-	(if arg-handler (cdr arg-handler))))))
+         (arg-handler (assoc arg-type vim:argument-handlers-alist)))
+    (if arg-handler (cdr arg-handler))))))
 
 (defun vim:ex-setup ()
   "Initializes the minibuffer for an ex-like mode.
@@ -214,12 +219,12 @@ This function should be called as minibuffer-setup-hook when an
 ex-mode starts."
   (remove-hook 'minibuffer-setup-hook #'vim:ex-setup) ; Just for the case.
   (setq vim:ex-info-length nil
-	vim:ex-info-string nil
-	vim:ex-cmd nil
-	vim:ex-arg nil
-	vim:ex-arg-handler nil
-	vim:ex-range nil
-	vim:ex-minibuffer (current-buffer)))
+        vim:ex-info-string nil
+        vim:ex-cmd nil
+        vim:ex-arg nil
+        vim:ex-arg-handler nil
+        vim:ex-range nil
+        vim:ex-minibuffer (current-buffer)))
 
 (defun vim:ex-teardown ()
   "Deinitializes the minibuffer for an ex-like mode.
@@ -272,41 +277,41 @@ argument handler."
   (unless vim:ex-update-info
     (let ((cmdline (vim:ex-contents)))
       (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
-	(cond
-	 ((not (string= vim:ex-cmd cmd))
-	  ;; command changed, update argument handler ...
-	  (setq vim:ex-cmd cmd
-		vim:ex-arg arg
-		vim:ex-range (cons beg end))
-	  ;; ... deactivate old handler ...
-	  (let ((arg-deactivate (and vim:ex-arg-handler
-				     (vim:arg-handler-deactivate vim:ex-arg-handler))))
-	    (when arg-deactivate (funcall arg-deactivate)))
-	  ;; ... activate and store new handler ...
-	  (let ((cmd (vim:ex-binding cmd)))
-	    (cond
-	     ((eq cmd 'incomplete)
-	      (vim:ex-set-info "Incomplete command"))
-	     ((and (not cmd)
-		   (not (zerop (length vim:ex-cmd))))
-	      (vim:ex-set-info "Unknown command"))
-	     (t
-	      (vim:ex-set-info nil)
-	      (setq vim:ex-arg-handler
-		    (and cmd (vim:ex-get-arg-handler cmd)))
-	      (let ((arg-activate (and vim:ex-arg-handler
-				       (vim:arg-handler-activate vim:ex-arg-handler))))
-		(when arg-activate (funcall arg-activate)))))))
+        (cond
+          ((not (string= vim:ex-cmd cmd))
+           ;; command changed, update argument handler ...
+           (setq vim:ex-cmd cmd
+                 vim:ex-arg arg
+                 vim:ex-range (cons beg end))
+           ;; ... deactivate old handler ...
+           (let ((arg-deactivate (and vim:ex-arg-handler
+                                      (vim:arg-handler-deactivate vim:ex-arg-handler))))
+             (when arg-deactivate (funcall arg-deactivate)))
+           ;; ... activate and store new handler ...
+           (let ((cmd (vim:ex-binding cmd)))
+             (cond
+               ((eq cmd 'incomplete)
+                (vim:ex-set-info "Incomplete command"))
+               ((and (not cmd)
+                     (not (zerop (length vim:ex-cmd))))
+                (vim:ex-set-info "Unknown command"))
+               (t
+                (vim:ex-set-info nil)
+                (setq vim:ex-arg-handler
+                      (and cmd (vim:ex-get-arg-handler cmd)))
+                (let ((arg-activate (and vim:ex-arg-handler
+                                         (vim:arg-handler-activate vim:ex-arg-handler))))
+                  (when arg-activate (funcall arg-activate)))))))
 
-	 ((or (not (string= vim:ex-arg arg))
-	      (not (equal (cons beg end) vim:ex-range)))
-	  ;; command remained the same, but argument or range changed
-	  ;; so inform the argument handler
-	  (setq vim:ex-arg arg)
-	  (setq vim:ex-range (cons beg end))
-	  (let ((arg-update (and vim:ex-arg-handler
-				 (vim:arg-handler-update vim:ex-arg-handler))))
-	    (when arg-update (funcall arg-update)))))))))
+          ((or (not (string= vim:ex-arg arg))
+               (not (equal (cons beg end) vim:ex-range)))
+           ;; command remained the same, but argument or range changed
+           ;; so inform the argument handler
+           (setq vim:ex-arg arg)
+           (setq vim:ex-range (cons beg end))
+           (let ((arg-update (and vim:ex-arg-handler
+                                  (vim:arg-handler-update vim:ex-arg-handler))))
+             (when arg-update (funcall arg-update)))))))))
 
 
 (defun vim:ex-split-cmdline (cmdline)
@@ -326,8 +331,8 @@ beg end force) with the following meanings.
             (cmd (substring cmdline (car cmd-region) (cdr cmd-region)))
             (spaces "")
             (arg (substring cmdline (if force
-					(1+ (cdr cmd-region))
-				      (cdr cmd-region)))))
+                    (1+ (cdr cmd-region))
+                      (cdr cmd-region)))))
 
         ;; skip whitespaces
         (when (string-match "\\`\\s-*" arg)
@@ -348,11 +353,11 @@ has been pressed."
       (when (and (= (point) (point-max))
                  (zerop (length spaces))
                  (zerop (length arg)))
-	(setq cmd (vim:ex-binding cmd))
-	(if (not (vim:ex-binding-p cmd)) (ding)
-	  (setq vim:ex-cmd cmd)
-	  (let ((result (vim:ex-complete-argument nil nil nil)))
-	    (when result (insert result))))))))
+    (setq cmd (vim:ex-binding cmd))
+    (if (not (vim:ex-binding-p cmd)) (ding)
+      (setq vim:ex-cmd cmd)
+      (let ((result (vim:ex-complete-argument nil nil nil)))
+        (when result (insert result))))))))
 
 
 (defun vim:ex-complete (cmdline predicate flag)
@@ -374,20 +379,20 @@ has been pressed."
       ;; modified if no `!' has been given in order to show the possible
       ;; `!' completions.
       (lexical-let*
-	  ((precicate predicate)
-	   (pred
-	    (cond
-	     ((not force) predicate)
-	     ((not predicate)
-	      #'(lambda (x)
-		  (vim:cmd-force-p (vim:ex-binding (car x)))))
-	     (t
-	      #'(lambda (x)
-		  (and (funcall predicate x)
-		       (vim:cmd-force-p (vim:ex-binding (car x))))))))
-	   (result (vim:ex-complete-command cmd pred flag)))
+      ((precicate predicate)
+       (pred
+        (cond
+         ((not force) predicate)
+         ((not predicate)
+          #'(lambda (x)
+          (vim:cmd-force-p (vim:ex-binding (car x)))))
+         (t
+          #'(lambda (x)
+          (and (funcall predicate x)
+               (vim:cmd-force-p (vim:ex-binding (car x))))))))
+       (result (vim:ex-complete-command cmd pred flag)))
 
-	(case flag
+    (case flag
           ;; try-completion, take case of a unique match which
           ;; may take a force argument
           ((nil)
@@ -423,7 +428,7 @@ has been pressed."
          ((eq t result) t)
          ((stringp result) (if flag result (concat range cmd spaces result)))
          ((listp result) (if flag result (mapcar #'(lambda (x) (concat range cmd spaces x)) result)))
-         (t (error "Completion returned unexpected value."))))))))
+         (t (error "Completion returned unexpected value"))))))))
 
 
 (defun vim:ex-complete-command (cmd predicate flag)
@@ -431,23 +436,23 @@ has been pressed."
   (with-current-buffer vim:ex-current-buffer
     (cond
      ((null flag) (or (try-completion cmd vim:ex-local-commands predicate)
-		      (try-completion cmd vim:ex-commands predicate)))
+              (try-completion cmd vim:ex-commands predicate)))
 
      ((eq t flag) (append (all-completions cmd vim:ex-local-commands predicate)
-			  (all-completions cmd vim:ex-commands predicate)))
+              (all-completions cmd vim:ex-commands predicate)))
 
      ((eq 'lambda flag) (or (vim:test-completion cmd vim:ex-local-commands predicate)
-			    (vim:test-completion cmd vim:ex-commands predicate))))))
+                (vim:test-completion cmd vim:ex-commands predicate))))))
 
 
 (defun vim:ex-complete-argument (arg predicate flag)
   "Called to complete the current argument w.r.t. the current command."
   (let* ((cmd vim:ex-cmd)
-	 (arg-handler (vim:ex-get-arg-handler cmd)))
+     (arg-handler (vim:ex-get-arg-handler cmd)))
     (if arg-handler
-	(funcall (or (vim:arg-handler-complete arg-handler)
-		     #'vim:ex-complete-text-argument)
-		 arg predicate flag)
+    (funcall (or (vim:arg-handler-complete arg-handler)
+             #'vim:ex-complete-text-argument)
+         arg predicate flag)
       (vim:ex-complete-text-argument arg predicate flag))))
 
 
@@ -462,10 +467,10 @@ has been pressed."
        ((null dir) (ding))
        ((null flag)
         (let ((result (file-name-completion fname dir)))
-	  (case result
-	    ((nil) nil)
-	    ((t) t)
-	    (t (concat dir result)))))
+      (case result
+        ((nil) nil)
+        ((t) t)
+        (t (concat dir result)))))
 
        ((eq t flag)
         (file-name-all-completions fname dir))
@@ -499,29 +504,38 @@ has been pressed."
 (defun vim:ex-execute-command (cmdline)
   "Called to execute the current command."
   (interactive)
-  (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
+  (multiple-value-bind (range cmd spaces arg beg end force)
+      (vim:ex-split-cmdline cmdline)
     (setq vim:ex-cmd cmd)
+    ;; strip ex-info part out
+    (let ((arg-ex-info-part-start (text-property-any 0
+                                                     (length arg)
+                                                     'ex-info
+                                                     t
+                                                     arg)))
+      (when arg-ex-info-part-start
+        (setf arg (subseq arg 0 arg-ex-info-part-start))))
 
     (let ((cmd vim:ex-cmd)
           (motion (cond
-                   ((and beg end)
-                    (vim:make-motion :begin (save-excursion
-                                              (goto-line beg)
+                    ((and beg end)
+                     (vim:make-motion :begin (save-excursion
+                                              (goto-line1 beg)
                                               (line-beginning-position))
-                                     :end (save-excursion
-                                            (goto-line end)
+                                      :end (save-excursion
+                                            (goto-line1 end)
                                             (line-beginning-position))
-                                     :has-begin t
-                                     :type 'linewise))
-                   (beg
-                    (vim:make-motion :begin (save-excursion
-                                              (goto-line beg)
+                                      :has-begin t
+                                      :type 'linewise))
+                    (beg
+                     (vim:make-motion :begin (save-excursion
+                                              (goto-line1 beg)
                                               (line-beginning-position))
-                                     :end (save-excursion
-                                            (goto-line beg)
+                                      :end (save-excursion
+                                            (goto-line1 beg)
                                             (line-beginning-position))
-                                     :has-begin t
-                                     :type 'linewise))))
+                                      :has-begin t
+                                      :type 'linewise))))
           (count (and (not end) beg)))
 
       (setq cmd (vim:ex-binding cmd))
@@ -530,38 +544,38 @@ has been pressed."
         (setq arg nil))
 
       (with-current-buffer vim:ex-current-buffer
-	(let (parameters)
-	  (cond
-	   ((vim:ex-binding-p cmd)
-	    (when (vim:cmd-arg-p cmd)
-	      (setq parameters (cons :argument (cons arg parameters))))
-	    (when force
-	      (if (vim:cmd-force-p cmd)
-		  (setq parameters (cons :force (cons t parameters)))
-		(error "Command cannot be forced '!'")))
-	    (case (vim:cmd-type cmd)
-	      ('complex (setq parameters
-			      (cons :motion (cons motion parameters))))
+        (let (parameters)
+          (cond
+            ((vim:ex-binding-p cmd)
+             (when (vim:cmd-arg-p cmd)
+               (setq parameters (cons :argument (cons arg parameters))))
+             (when force
+               (if (vim:cmd-force-p cmd)
+                 (setq parameters (cons :force (cons t parameters)))
+                 (error "Command cannot be forced '!'")))
+             (case (vim:cmd-type cmd)
+               ('complex (setq parameters
+                               (cons :motion (cons motion parameters))))
 
-	      ('simple
-	       (when end
-		 (error "Command does not take a range: %s" vim:ex-cmd))
-	       (when (vim:cmd-count-p cmd)
-		 (setq parameters
-		       (cons :count (cons (or count
-					      (and arg
-						   (not (vim:cmd-arg-p cmd))
-						   (string-to-number arg)))
-					  parameters)))))
+               ('simple
+                (when end
+                  (error "Command does not take a range: %s" vim:ex-cmd))
+                (when (vim:cmd-count-p cmd)
+                  (setq parameters
+                        (cons :count (cons (or count
+                                               (and arg
+                                                    (not (vim:cmd-arg-p cmd))
+                                                    (string-to-number arg)))
+                                           parameters)))))
 
-	      (t (error "Unexpected command-type bound to %s" vim:ex-cmd)))
-	    (apply cmd parameters))
+               (t (error "Unexpected command-type bound to %s" vim:ex-cmd)))
+             (apply cmd parameters))
 
-	   (beg
-	    (vim:motion-go-to-first-non-blank-beg :count (or end beg)))
-	   (t
-	    (vim:ex-set-info nil)
-	    (error "Unknown command: %s" vim:ex-cmd))))))))
+            (beg
+             (vim:motion-go-to-first-non-blank-beg :count (or end beg)))
+            (t
+             (vim:ex-set-info nil)
+             (error "Unknown command: %s" vim:ex-cmd))))))))
 
 
 ;; parser for ex-commands
@@ -570,7 +584,7 @@ has been pressed."
 Returns four values: (cmd beg end force) where
   `cmd' is a pair of indices for the command substring
   `beg' is the first line of the index range
-  `end' is the last line of the inde range
+  `end' is the last line of the index range
   `force' is non-nil iff an exclamation mark followed the command."
   (let (begin
         (begin-off 0)
@@ -615,13 +629,15 @@ Returns four values: (cmd beg end force) where
             end-off 0
             sep ?,))
 
-    (when (= pos (or (string-match "\\([a-zA-Z0-9_]+\\)\\(!\\)?" text pos) -1))
+    (when (= pos (or (string-match *ex-commands-re-cache*
+                                   ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
+                                   text pos) -1))
       (setq cmd (cons (match-beginning 1) (match-end 1))))
 
     (multiple-value-bind (start end)
-	(vim:ex-get-range (and begin (cons begin begin-off))
-			  sep
-			  (and end (cons end end-off)))
+    (vim:ex-get-range (and begin (cons begin begin-off))
+              sep
+              (and end (cons end end-off)))
       (values cmd start end (match-beginning 2)))))
 
 
@@ -695,7 +711,7 @@ the offset and the new position."
 
     (when (and sep end)
       (save-excursion
-        (when (= sep ?\;) (goto-line start))
+        (when (= sep ?\;) (goto-line1 start))
         (setq end (vim:ex-get-line end))))
 
     (values start end)))
@@ -711,7 +727,7 @@ the offset and the new position."
       (let ((line (vim:ex-get-line (car address))))
         (when line
         (save-excursion
-          (goto-line line)
+          (goto-line1 line)
           (vim:ex-get-line (cdr address))))))
 
      (t
@@ -734,9 +750,9 @@ the offset and the new position."
          (first-line (line-number-at-pos (point-min)))
          (last-line (line-number-at-pos (point-max)))
          (mark (line-number-at-pos (vim:get-local-mark (cadr base))))
-         (next-of-prev-search (error "Next-of-prev-search not yet implemented."))
-         (prev-of-prev-search (error "Prev-of-prev-search not yet implemented."))
-         (next-of-prev-subst (error "Next-of-prev-subst not yet implemented."))
+         (next-of-prev-search (error "Next-of-prev-search not yet implemented"))
+         (prev-of-prev-search (error "Prev-of-prev-search not yet implemented"))
+         (next-of-prev-subst (error "Next-of-prev-subst not yet implemented"))
          (t (error "Invalid address: %s" address))))))))
 
 
@@ -744,10 +760,15 @@ the offset and the new position."
   "Starts ex-mode."
   (interactive)
   (let ((vim:ex-current-buffer (current-buffer))
-	(vim:ex-current-window (selected-window)))
+        (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read ":" 'vim:ex-complete nil nil initial-input  'vim:ex-history)))
+      (let ((result (completing-read-vanilla ":" ;;'vim:ex-complete
+                                             (mapcar #'car vim:ex-commands)
+                                             nil
+                                             nil
+                                             initial-input
+                                             'vim:ex-history)))
         (when (and result
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))

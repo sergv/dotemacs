@@ -26,7 +26,7 @@
   "Visual mode"
   :group 'vim-mode)
 
-(defface vim:visual-region `(( t :inherit ,vim:default-region-face))
+(defface vim:visual-region `((t (:inherit ,vim:default-region-face)))
   "Face of the highlighted region."
   :group 'vim-visual-mode)
 
@@ -160,7 +160,7 @@
   (unless (and vim:visual-mode-type
                vim:visual-last-begin
                vim:visual-last-end)
-    (error "No former visual selection."))
+    (error "No former visual selection"))
 
   (setq vim:visual-reactivate-last-region t)
   (vim:activate-visual vim:visual-mode-type))
@@ -170,18 +170,18 @@
   "Called when visual mode is activated."
 
   (setq cursor-type vim:visual-mode-cursor)
-  
+
   (if vim:visual-reactivate-last-region
       (progn
         (set-mark (save-excursion
-                    (goto-line (car vim:visual-last-begin))
+                    (goto-line1 (car vim:visual-last-begin))
                     (move-to-column (cdr vim:visual-last-begin))
                     (point)))
-        (goto-line (car vim:visual-last-end))
+        (goto-line1 (car vim:visual-last-end))
         (move-to-column (cdr vim:visual-last-end))
         (setq vim:visual-reactivate-last-region nil))
     (set-mark (point)))
-  
+
   (let (message-log-max)
     (case vim:visual-mode-type
       ('normal (message "-- VISUAL --"))
@@ -198,7 +198,7 @@
 	(remq nil (mapcar #'(lambda (variable)
 			      (and (local-variable-p variable) variable))
 			  vim:visual-temporary-local-variables)))
-  
+
   ;; The make them all buffer local, too.
   (mapc #'make-local-variable vim:visual-temporary-local-variables)
   (when (boundp 'transient-mark-mode) (setq transient-mark-mode nil))
@@ -237,7 +237,7 @@
 
 (defun vim:visual-execute-command (command)
   "Called to execute a command is visual mode."
-  
+
   ;; save the last region
   (setq vim:visual-last-begin (cons (line-number-at-pos (mark t))
                                     (save-excursion
@@ -246,14 +246,14 @@
   (setq vim:visual-last-end (cons (line-number-at-pos (point))
                                   (current-column)))
   (vim:set-mark ?< (save-excursion
-                     (goto-line (car vim:visual-last-begin))
+                     (goto-line1 (car vim:visual-last-begin))
                      (move-to-column (cdr vim:visual-last-begin))
                      (point)))
   (vim:set-mark ?> (save-excursion
-                     (goto-line (car vim:visual-last-end))
+                     (goto-line1 (car vim:visual-last-end))
                      (move-to-column (cdr vim:visual-last-end))
                      (point)))
-  
+
   (when (vim:cmd-char-arg-p command)
     (setq vim:current-cmd-arg (read-char-exclusive)))
 
@@ -280,11 +280,11 @@
   (when (and vim:visual-mode
              (not (vim:cmd-keep-visual-p command)))
     (vim:visual-mode-exit)))
-  
+
 
 (defun vim:visual-execute-motion (command)
   "Called to execute a motion in visual mode."
-  
+
   (setq vim:current-motion command)
 
   (when current-prefix-arg
@@ -299,7 +299,7 @@
   (vim:adjust-point)
   (vim:clear-key-sequence)
   (vim:reset-key-state))
-  
+
 
 (defun vim:visual-post-command ()
   (cond
@@ -350,7 +350,7 @@ This function is also responsible for setting the X-selection."
   (if vim:visual-overlays
       (vim:visual-delete-overlays (cdr vim:visual-overlays))
     (setq vim:visual-overlays nil))
-  
+
   (setq vim:visual-overlays
         (list (vim:visual-create-or-update-overlay (car vim:visual-overlays)
                                                    start (1+ end)))))
@@ -364,11 +364,11 @@ This function is also responsible for setting the X-selection."
         (end-line (save-excursion
                     (goto-char end)
                     (line-end-position))))
-    
+
     (if vim:visual-overlays
         (vim:visual-delete-overlays (cdr vim:visual-overlays))
       (setq vim:visual-overlays nil))
-    
+
     (setq vim:visual-overlays
           (list (vim:visual-create-or-update-overlay (car vim:visual-overlays)
                                                      start-line
@@ -467,8 +467,8 @@ This function is also responsible for setting the X-selection."
       (overlay-put ov 'face 'vim:visual-region)
       (overlay-put ov 'priority 99)
       ov)))
-    
-  
+
+
 
 (defun vim:visual-hide-region ()
   "Removes the highlighting."
@@ -525,23 +525,23 @@ This function is also responsible for setting the X-selection."
             (goto-char end))
         (set-mark end)
         (goto-char beg)))))
-      
+
 
 (vim:defcmd vim:visual-insert (motion)
   "Starts insertion at the left column of a visual region."
 
-  (vim:visual-start-insert 
+  (vim:visual-start-insert
    (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
                                 :last-line (vim:motion-last-line motion)
                                 :column (vim:motion-first-col motion))))
 
 (defun vim:visual-start-insert (insert-info)
   "Starts a new multi-line insert operation with `insert-info'."
-  
+
   (setq vim:visual-last-insert-info insert-info)
-  (goto-line (vim:visual-insert-info-first-line insert-info))
+  (goto-line1 (vim:visual-insert-info-first-line insert-info))
   (move-to-column (vim:visual-insert-info-column insert-info) t)
-  
+
   (case vim:visual-mode-type
     ('block
      ;; TODO: ensure the right command is run on repetition.
@@ -567,7 +567,7 @@ This function is also responsible for setting the X-selection."
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
       (dotimes (i (- endrow begrow))
-            (goto-line (+ begrow i 1))
+            (goto-line1 (+ begrow i 1))
         (when (>= (save-excursion
                     (end-of-line)
                     (current-column))
@@ -583,29 +583,29 @@ This function is also responsible for setting the X-selection."
   (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
-      (goto-line (1+ begrow))
+      (goto-line1 (1+ begrow))
       (dotimes (i (- endrow begrow))
-        (goto-line (+ begrow i 1))
+        (goto-line1 (+ begrow i 1))
         (vim:cmd-repeat))
       (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
 (vim:defcmd vim:visual-append (motion)
   "Starts insertion at the right column of a visual block."
-  
+
   (vim:visual-start-append
    (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
                                 :last-line (vim:motion-last-line motion)
                                 :column (vim:motion-last-col motion))))
 
-  
+
 (defun vim:visual-start-append (insert-info)
   "Starts a new multi-line append operation with `insert-info'."
-  
+
   (setq vim:visual-last-insert-info insert-info)
-  (goto-line (vim:visual-insert-info-first-line insert-info))
+  (goto-line1 (vim:visual-insert-info-first-line insert-info))
   (move-to-column (vim:visual-insert-info-column insert-info) t)
-  
+
   (case vim:visual-mode-type
     ('block
      ;; TODO: ensure the right command is run on repeation.
@@ -631,7 +631,7 @@ This function is also responsible for setting the X-selection."
         (endcol (vim:visual-insert-info-column vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
-      (goto-line (1+ begrow))
+      (goto-line1 (1+ begrow))
       (dotimes (i (- endrow begrow))
         (move-to-column (1+ endcol) t) ; extend the newline at the end
         (move-to-column endcol t)
@@ -663,7 +663,7 @@ current line."
 		      (move-to-column point-col t)
 		      (point)))
 	  (move-to-column mark-col t)))
-    (t (error "Not in visual mode."))))
+    (t (error "Not in visual mode"))))
 
 
 (vim:defcmd vim:visual-ex-read-command (nonrepeatable)
@@ -689,7 +689,7 @@ current line."
         (case vim:visual-mode-type
           (normal
            (if (> (point) (mark)) (forward-char) (set-mark (1+ (mark)))))
-          
+
           (linewise
            (if (> (point) (mark))
                (progn
@@ -702,7 +702,7 @@ current line."
              (set-mark (save-excursion
                          (goto-char (mark))
                          (1+ (line-end-position))))))
-          
+
           ('block))
         (setq vim:visual-new-point (point))))))
 
@@ -725,14 +725,14 @@ current line."
     (4 (vim:visual-drag-mouse-region event 'block))
     (t (vim:visual-drag-mouse-region event 'char))))
 
-(defun vim:visual-drag-mouse-region (event mode)  
+(defun vim:visual-drag-mouse-region (event mode)
   "Update visual-region during mouse-motion."
   (vim:visual-mode-exit)
   (select-window (vim:mouse-event-window event))
   (let ((start-pos (vim:mouse-event-point event)))
     (when start-pos
       (goto-char start-pos)
-    
+
       (case mode
         ('word
          (vim:visual-toggle-normal)
@@ -746,7 +746,7 @@ current line."
         ('block
          (vim:visual-toggle-block)
          (vim:visual-highlight-region)))
-    
+
       (vim:track-mouse
         (catch 'exit
           (while t
@@ -768,9 +768,9 @@ current line."
                             (goto-char p))
                         (set-mark start-pos)
                         (goto-char end-pos))
-              
+
                       (vim:visual-highlight-region)))))
-           
+
                ((vim:mouse-event-p ev) (throw 'exit nil))
 
                (t
@@ -791,7 +791,7 @@ current line."
                 (vim:motion-end mark-motion))
       (values (vim:motion-end point-motion)
               (vim:motion-begin mark-motion)))))
-                      
+
 
 (provide 'vim-visual-mode)
 

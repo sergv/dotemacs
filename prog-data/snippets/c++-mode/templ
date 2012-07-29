@@ -1,0 +1,5 @@
+#key: templ
+#name: template declaration
+# --
+template<${1:typename T}>
+$0

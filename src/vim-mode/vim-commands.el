@@ -142,10 +142,17 @@ and switches to insert-mode."
   (vim:activate-insert-mode)
   (vim:insert-mode-toggle-replace))
 
+
+(defvar vim:insert-mode-exit-move-point t
+  "Whether to move point backwards on `vim:insert-mode-exit'.")
+
 (vim:defcmd vim:insert-mode-exit (nonrepeatable)
   "Deactivates insert-mode, returning to normal-mode."
   (vim:activate-normal-mode)
-  (goto-char (max (line-beginning-position) (1- (point)))))
+  (goto-char (max (line-beginning-position)
+                  (if vim:insert-mode-exit-move-point
+                    (1- (point))
+                    (point)))))
 
 
 (vim:defcmd vim:cmd-delete-line (count register)
@@ -175,7 +182,8 @@ and switches to insert-mode."
   "Deletes the characters defined by motion."
   (case (vim:motion-type motion)
     ('linewise
-     (goto-line (vim:motion-first-line motion))
+     ;; use custom goto-line to avoid Scan error: "Unbalanced parentheses"
+     (goto-line1 (vim:motion-first-line motion))
      (vim:cmd-delete-line :count (vim:motion-line-count motion)
                           :register register))
 
@@ -195,12 +203,16 @@ and switches to insert-mode."
   (vim:cmd-delete :motion (vim:motion-right :count (or count 1))
                   :register register))
 
+(vim:defcmd vim:cmd-delete-char-backward (count register)
+  "Deletes the next count characters."
+  (vim:cmd-delete :motion (vim:motion-left :count (or count 1))
+                  :register register))
 
 (vim:defcmd vim:cmd-change (motion register)
   "Deletes the characters defined by motion and goes to insert mode."
   (case (vim:motion-type motion)
     ('linewise
-     (goto-line (vim:motion-first-line motion))
+     (goto-line1 (vim:motion-first-line motion))
      (vim:cmd-change-line :count (vim:motion-line-count motion)
                           :register register))
 
@@ -269,29 +281,31 @@ and switches to insert-mode."
 (vim:defcmd vim:cmd-replace-char (count (argument:char arg))
   "Replaces the next count characters with arg."
   (unless (vim:char-p arg)
-    (error "Expected a character."))
+    (error "Expected a character"))
   (when (< (- (line-end-position) (point))
            (or count 1))
-    (error "Too few characters to end of line."))
+    (error "Too few characters to end of line"))
   (delete-region (point) (+ (point) (or count 1)))
   (insert-char arg (or count 1))
   (backward-char))
 
 
 (vim:defcmd vim:cmd-replace-region (motion (argument:char arg))
-   "Replace complete region with `arg'"
-   (vim:apply-on-motion
-    motion
-    #'(lambda (beg end)
-	(delete-region beg end)
-	(insert-char arg (- end beg)))))
+  "Replace complete region with `arg'"
+  (vim:apply-on-motion
+   motion
+   #'(lambda (beg end)
+       (save-excursion
+        (goto-char beg)
+        (delete-region beg end)
+        (insert-char arg (- end beg))))))
 
 
 (vim:defcmd vim:cmd-yank (motion register nonrepeatable)
   "Saves the characters in motion into the kill-ring."
   (case (vim:motion-type motion)
     ('block (vim:cmd-yank-rectangle :motion motion :register register))
-    ('linewise (goto-line (vim:motion-first-line motion))
+    ('linewise (goto-line1 (vim:motion-first-line motion))
 	       (vim:cmd-yank-line :count (vim:motion-line-count motion)
                                   :register register))
     (t
@@ -329,7 +343,7 @@ and switches to insert-mode."
 	(endrow (vim:motion-last-line motion))
 	(endcol (vim:motion-last-col motion))
 	(parts nil))
-    (goto-line endrow)
+    (goto-line1 endrow)
     (dotimes (i (1+ (- endrow begrow)))
       (let ((beg (save-excursion (move-to-column begcol) (point)))
             (end (save-excursion (move-to-column (1+ endcol)) (point))))
@@ -354,7 +368,7 @@ and switches to insert-mode."
                                 (cons (- endcol begcol -1) parts)
                                 nil
                                 #'delete-rectangle))))
-    (goto-line begrow)
+    (goto-line1 begrow)
     (move-to-column begcol)))
 
 (defun vim:yank-line-handler (text)
@@ -478,40 +492,40 @@ and switches to insert-mode."
     (unless txt
       (error "Kill-ring empty"))
     (let ((yhandler (get-text-property 0 'yank-handler txt))
-	  (pos (point)))
+          (pos (point)))
       (case (car-safe yhandler)
-	(vim:yank-line-handler
-	 (let ((at-eob (= (line-end-position) (point-max))))
-	   ;; We have to take care of the special case where we cannot
-	   ;; go to the next line because we reached eob.
-	   (forward-line)
-	   (when at-eob (newline))
-	   (vim:cmd-paste-before :count count :register register)
-	   (when at-eob
-	     ;; we have to remove the final newline and update paste-info
-	     (goto-char (third vim:last-paste))
-	     (delete-backward-char 1)
-	     (setf (vim:paste-info-begin vim:last-paste)
-		   (max (point-min) (1- (vim:paste-info-begin vim:last-paste)))
+        (vim:yank-line-handler
+         (let ((at-eob (= (line-end-position) (point-max))))
+           ;; We have to take care of the special case where we cannot
+           ;; go to the next line because we reached eob.
+           (forward-line)
+           (when at-eob (newline))
+           (vim:cmd-paste-before :count count :register register)
+           (when at-eob
+             ;; we have to remove the final newline and update paste-info
+             (goto-char (third vim:last-paste))
+             (delete-backward-char 1)
+             (setf (vim:paste-info-begin vim:last-paste)
+                   (max (point-min) (1- (vim:paste-info-begin vim:last-paste)))
 
-		   (vim:paste-info-end vim:last-paste)
-		   (1- (vim:paste-info-end vim:last-paste))
+                   (vim:paste-info-end vim:last-paste)
+                   (1- (vim:paste-info-end vim:last-paste))
 
-		   (vim:paste-info-at-eob vim:last-paste)
-		   t))
-	   (vim:motion-first-non-blank)))
+                   (vim:paste-info-at-eob vim:last-paste)
+                   t))
+           (vim:motion-first-non-blank)))
 
-	(vim:yank-block-handler
-	 (forward-char)
-	 (vim:cmd-paste-before :count count :register register))
+        (vim:yank-block-handler
+         (forward-char)
+         (vim:cmd-paste-before :count count :register register))
 
-	(t
-	 (unless (eobp) (forward-char))
-	 (vim:cmd-paste-before :count count :register register)
-	 ;; goto end of paste
-	 (goto-char (1- (vim:paste-info-end vim:last-paste)))))
+        (t
+         (unless (eobp) (forward-char))
+         (vim:cmd-paste-before :count count :register register)
+         ;; goto end of paste
+         (goto-char (1- (vim:paste-info-end vim:last-paste)))))
       (setf (vim:paste-info-point vim:last-paste) pos
-	    (vim:paste-info-command vim:last-paste) 'vim:cmd-paste-behind))))
+            (vim:paste-info-command vim:last-paste) 'vim:cmd-paste-behind))))
 
 
 (vim:defcmd vim:cmd-paste-before-and-indent (count register)
@@ -531,7 +545,7 @@ indented according to the current mode."
 		       (vim:paste-info-end vim:last-paste))
 	(setf (vim:paste-info-end vim:last-paste)
 	      (save-excursion
-		(goto-line endln)
+		(goto-line1 endln)
 		(line-beginning-position)))
 	(vim:motion-first-non-blank)))))
   (setf (vim:paste-info-command vim:last-paste)
@@ -555,14 +569,14 @@ indented according to the current mode."
 			     (1+ (vim:paste-info-end vim:last-paste)))
 	      (setf (vim:paste-info-end vim:last-paste)
 		    (save-excursion
-		      (goto-line endln)
+		      (goto-line1 endln)
 		      (line-end-position))))
 
 	  (indent-region (vim:paste-info-begin vim:last-paste)
 			 (vim:paste-info-end vim:last-paste))
 	  (setf (vim:paste-info-end vim:last-paste)
 		(save-excursion
-		  (goto-line endln)
+		  (goto-line1 endln)
 		  (line-beginning-position))))
 	(vim:motion-first-non-blank))))
   (setf (vim:paste-info-command vim:last-paste)
@@ -577,26 +591,26 @@ indented according to the current mode."
                      (match-end 2))
       (when (and (= (match-beginning 1) (match-end 1))
                  (= (match-beginning 3) (match-end 3)))
-        (insert-char ?  1))
+        (insert-char ?\s 1))
       (backward-char))))
 
 
 (vim:defcmd vim:cmd-join (motion)
   "Join the lines covered by `motion'."
-  (goto-line (vim:motion-first-line motion))
+  (goto-line1 (vim:motion-first-line motion))
   (vim:cmd-join-lines :count (vim:motion-line-count motion)))
 
 
 (vim:defcmd vim:cmd-indent (motion)
   "Reindent the lines covered by `motion'."
-  (goto-line (vim:motion-first-line motion))
+  (goto-line1 (vim:motion-first-line motion))
   (indent-region (line-beginning-position)
                  (line-end-position (vim:motion-line-count motion))))
 
 
 (vim:defcmd vim:cmd-shift-left (motion)
   "Shift the lines covered by `motion' leftwards."
-  (goto-line (vim:motion-first-line motion))
+  (goto-line1 (vim:motion-first-line motion))
   (indent-rigidly (line-beginning-position)
                   (line-end-position (vim:motion-line-count motion))
                   (- vim:shift-width)))
@@ -604,7 +618,7 @@ indented according to the current mode."
 
 (vim:defcmd vim:cmd-shift-right (motion)
   "Shift the lines covered by `motion' rightwards."
-  (goto-line (vim:motion-first-line motion))
+  (goto-line1 (vim:motion-first-line motion))
   (indent-rigidly (line-beginning-position)
                   (line-end-position (vim:motion-line-count motion))
                   vim:shift-width))
@@ -648,7 +662,7 @@ block motions."
 	      (begcol (vim:motion-first-col motion))
 	      (endrow (vim:motion-last-line motion))
 	      (endcol (vim:motion-last-col motion)))
-	  (goto-line begrow)
+	  (goto-line1 begrow)
 	  (dotimes (i (1+ (- endrow begrow)))
 	    (let ((beg (save-excursion
 			 (move-to-column begcol)

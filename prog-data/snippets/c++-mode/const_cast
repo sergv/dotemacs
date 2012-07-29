@@ -1,0 +1,4 @@
+#key: ccast
+#name: const cast
+# --
+const_cast<$1>( $2)$0

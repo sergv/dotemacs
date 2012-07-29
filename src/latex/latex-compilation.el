@@ -1,0 +1,37 @@
+;;; latex-compilation.el ---
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: Tuesday, 30 August 2011
+;; Keywords:
+;; Requirements:
+;; Status:
+
+(defconst latex-compile-error-regexp
+  "^\\(\\(?:/[^/\n\t]+\\)*?/?[^/\n\t]+\\):\\([0-9]+\\): ")
+
+(defconst latex-compile-warning-regexp
+  "\\(?:Latex\\|LaTeX\\|Package\\).*Warning:")
+
+(defun latex-compile ()
+  "Start compilation of LaTeX file."
+  (interactive)
+  (if-buffer-has-file
+   (when (buffer-modified-p)
+     (save-buffer)))
+  (compilation-start compile-command
+                     #'latex-compilation-mode))
+
+(define-compilation-mode latex-compilation-mode "LaTeX"
+  (set (make-local-variable 'compilation-scroll-output) 'first-error)
+
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       (list
+        (list latex-compile-warning-regexp nil)
+        (list latex-compile-error-regexp 1 2)))
+
+  (set (make-local-variable '*compilation-jump-error-regexp*)
+       latex-compile-error-regexp))
+
+;;; latex-compilation.el ends here
