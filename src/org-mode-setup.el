@@ -11,9 +11,9 @@
 (require 'common)
 
 (add-to-list 'load-path (concat +emacs-standalone-path+
-                                "org-7.8.11/lisp"))
+                                "/org-7.8.11/lisp"))
 (add-to-list 'load-path (concat +emacs-standalone-path+
-                                "org-7.8.11/contrib/lisp"))
+                                "/org-7.8.11/contrib/lisp"))
 
 (load-library "org-install")
 ;; (require 'org-install)
