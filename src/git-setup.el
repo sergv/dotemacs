@@ -76,6 +76,11 @@
 
 (add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
 
+(defun magit-log-mode-setup ()
+  (magit-status-mode-setup))
+
+(add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
+
 (defun magit-log-edit-mode-setup ()
   (init-common :use-yasnippet nil :use-comment nil)
 
