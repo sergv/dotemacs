@@ -160,19 +160,19 @@ and switches to insert-mode."
   (vim:cmd-yank-line :count count :register register)
   (let ((beg (line-beginning-position))
         (end (save-excursion
-               (forward-line (1- (or count 1)))
-               (line-end-position))))
+              (forward-line (1- (or count 1)))
+              (line-end-position))))
     (if (= beg (point-min))
-        (if (= end (point-max))
-            (erase-buffer)
-          (delete-region beg (save-excursion
-                               (goto-char end)
-                               (forward-line)
-                               (line-beginning-position))))
+      (if (= end (point-max))
+        (erase-buffer)
+        (delete-region beg (save-excursion
+                            (goto-char end)
+                            (forward-line)
+                            (line-beginning-position))))
       (delete-region (save-excursion
-                       (goto-char beg)
-                       (forward-line -1)
-                       (line-end-position))
+                      (goto-char beg)
+                      (forward-line -1)
+                      (line-end-position))
                      end))
     (goto-char beg)
     (vim:motion-first-non-blank)))
@@ -188,9 +188,9 @@ and switches to insert-mode."
                           :register register))
 
     ('block
-     (vim:cmd-yank :motion motion :register register)
-     (delete-rectangle (vim:motion-begin-pos motion)
-		       (vim:motion-end-pos motion)))
+        (vim:cmd-yank :motion motion :register register)
+      (delete-rectangle (vim:motion-begin-pos motion)
+                        (vim:motion-end-pos motion)))
 
     (t
      (vim:cmd-yank :motion motion :register register)
@@ -228,16 +228,16 @@ and switches to insert-mode."
      (when (and vim:current-motion
                 (not (member (char-after) '(?  ?\r ?\n ?\t))))
        (let ((cnt (* (or vim:current-cmd-count 1)
-		     (or vim:current-motion-count 1))))
-	 (case vim:current-motion
-	   (vim:motion-fwd-word
-	    (setq motion (vim:motion-fwd-word-end :count cnt)))
-	   (vim:motion-fwd-WORD
-	    (setq motion (vim:motion-fwd-WORD-end :count cnt))))))
+                     (or vim:current-motion-count 1))))
+         (case vim:current-motion
+           (vim:motion-fwd-word
+            (setq motion (vim:motion-fwd-word-end :count cnt)))
+           (vim:motion-fwd-WORD
+            (setq motion (vim:motion-fwd-WORD-end :count cnt))))))
 
      (vim:cmd-delete :motion motion :register register)
      (if (eolp)
-         (vim:cmd-append :count 1)
+       (vim:cmd-append :count 1)
        (vim:cmd-insert :count 1)))))
 
 
@@ -246,16 +246,16 @@ and switches to insert-mode."
   (let ((pos (line-beginning-position)))
     (vim:cmd-delete-line :count count :register register)
     (if (< (point) pos)
-        (progn
-          (end-of-line)
-          (newline))
+      (progn
+        (end-of-line)
+        (newline))
       (progn
         (beginning-of-line)
         (newline)
         (forward-line -1)))
     (indent-according-to-mode)
     (if (eolp)
-        (vim:cmd-append :count 1)
+      (vim:cmd-append :count 1)
       (vim:cmd-insert :count 1))))
 
 
@@ -274,7 +274,7 @@ and switches to insert-mode."
   (let ((pos (point)))
     (vim:cmd-delete-char :count count :register register)
     (if (< (point) pos)
-        (vim:cmd-append)
+      (vim:cmd-append)
       (vim:cmd-insert))))
 
 
@@ -306,14 +306,14 @@ and switches to insert-mode."
   (case (vim:motion-type motion)
     ('block (vim:cmd-yank-rectangle :motion motion :register register))
     ('linewise (goto-line1 (vim:motion-first-line motion))
-	       (vim:cmd-yank-line :count (vim:motion-line-count motion)
-                                  :register register))
+     (vim:cmd-yank-line :count (vim:motion-line-count motion)
+                        :register register))
     (t
      (let ((text (buffer-substring
                   (vim:motion-begin-pos motion)
                   (vim:motion-end-pos motion))))
        (if register
-           (set-register register text)
+         (set-register register text)
          (kill-new text))))))
 
 
@@ -321,16 +321,16 @@ and switches to insert-mode."
   "Saves the next count lines into the kill-ring."
   (let ((beg (line-beginning-position)))
     (save-excursion
-      (forward-line (1- (or count 1)))
-      (let ((txt (concat (buffer-substring beg (line-end-position)) "\n")))
-	(if register
-	    (progn
-	      (put-text-property 0 (length txt)
-				 'yank-handler
-				 (list #'vim:yank-line-handler txt)
-				 txt)
-	      (set-register register txt))
-	  (kill-new txt nil (list #'vim:yank-line-handler txt)))))))
+     (forward-line (1- (or count 1)))
+     (let ((txt (concat (buffer-substring beg (line-end-position)) "\n")))
+       (if register
+         (progn
+           (put-text-property 0 (length txt)
+                              'yank-handler
+                              (list #'vim:yank-line-handler txt)
+                              txt)
+           (set-register register txt))
+         (kill-new txt nil (list #'vim:yank-line-handler txt)))))))
 
 
 (vim:defcmd vim:cmd-yank-rectangle (motion register nonrepeatable)
@@ -339,10 +339,10 @@ and switches to insert-mode."
     (error "Motion must be of type block"))
   ;; TODO: yanking should not insert spaces or expand tabs.
   (let ((begrow (vim:motion-first-line motion))
-	(begcol (vim:motion-first-col motion))
-	(endrow (vim:motion-last-line motion))
-	(endcol (vim:motion-last-col motion))
-	(parts nil))
+        (begcol (vim:motion-first-col motion))
+        (endrow (vim:motion-last-line motion))
+        (endcol (vim:motion-last-col motion))
+        (parts nil))
     (goto-line1 endrow)
     (dotimes (i (1+ (- endrow begrow)))
       (let ((beg (save-excursion (move-to-column begcol) (point)))
@@ -355,15 +355,15 @@ and switches to insert-mode."
     (let ((txt (mapconcat #'cdr parts "\n")))
       ;; `txt' contains the block as single lines
       (if register
-          (progn
-            (put-text-property 0 (length txt)
-                               'yank-handler
-                               (list #'vim:yank-block-handler
-                                     (cons (- endcol begcol -1) parts)
-                                     nil
-                                     #'delete-rectangle)
-                               txt)
-            (set-register register txt))
+        (progn
+          (put-text-property 0 (length txt)
+                             'yank-handler
+                             (list #'vim:yank-block-handler
+                                   (cons (- endcol begcol -1) parts)
+                                   nil
+                                   #'delete-rectangle)
+                             txt)
+          (set-register register txt))
         (kill-new txt nil (list #'vim:yank-block-handler
                                 (cons (- endcol begcol -1) parts)
                                 nil
@@ -387,7 +387,7 @@ and switches to insert-mode."
   (let ((ncols (car text))
         (parts (cdr text))
         (col (current-column))
-	(current-line (line-number-at-pos (point)))
+        (current-line (line-number-at-pos (point)))
         (last-pos (point)))
 
     (set-mark (point))
@@ -397,12 +397,12 @@ and switches to insert-mode."
              (txt (cdr part))
              (len (length txt)))
 
-	;; maybe we have to insert a new line at eob
-	(when (< (line-number-at-pos (point))
-		 current-line)
+        ;; maybe we have to insert a new line at eob
+        (when (< (line-number-at-pos (point))
+                 current-line)
           (goto-char (point-max))
           (newline))
-	(incf current-line)
+        (incf current-line)
 
         (unless (and (< (current-column) col)   ; nothing in this line
                      (<= offset 0) (zerop len)) ; and nothing to insert
@@ -412,7 +412,7 @@ and switches to insert-mode."
             ;; text follows, so we have to insert spaces
             (insert (make-string (- ncols len) ? ))))
         (setq last-pos (point))
-	(forward-line 1)))
+        (forward-line 1)))
     (goto-char last-pos)
     (exchange-point-and-mark)))
 
@@ -433,22 +433,22 @@ and switches to insert-mode."
 (vim:defcmd vim:cmd-paste-pop (count)
   "Cycles through the kill-ring like yank-pop."
   (unless (and (member last-command '(yank
-				      vim:cmd-paste-pop
+                                      vim:cmd-paste-pop
                                       vim:cmd-paste-pop-next
                                       vim:cmd-paste-before
                                       vim:cmd-paste-behind
-				      vim:cmd-paste-before-and-indent
-				      vim:cmd-paste-behind-and-indent))
-	       vim:last-paste)
+                                      vim:cmd-paste-before-and-indent
+                                      vim:cmd-paste-behind-and-indent))
+               vim:last-paste)
     (error "Previous command was not a vim-mode paste: %s" last-command))
   (when vim:last-paste
     (funcall (or yank-undo-function #'delete-region)
-	     (vim:paste-info-begin vim:last-paste)
-	     (vim:paste-info-end vim:last-paste))
+             (vim:paste-info-begin vim:last-paste)
+             (vim:paste-info-end vim:last-paste))
     (goto-char (vim:paste-info-point vim:last-paste))
     (current-kill (or count 1))
     (funcall (vim:paste-info-command vim:last-paste)
-	     :count (vim:paste-info-count vim:last-paste))))
+             :count (vim:paste-info-count vim:last-paste))))
 
 
 (vim:defcmd vim:cmd-paste-pop-next (count)
@@ -460,27 +460,27 @@ and switches to insert-mode."
 (vim:defcmd vim:cmd-paste-before (count register)
   "Pastes the latest yanked text before the cursor position."
   (let ((pos (point))
-	beg end)
+        beg end)
     (save-excursion
-      (dotimes (i (or count 1))
-        (if register
-            (insert-for-yank (vim:get-register register))
-          (set-mark (point))
-	  (insert-for-yank (current-kill 0))
-          (setq beg (min (point) (mark t) (or beg (point)))
-                end (max (point) (mark t) (or end (point)))))))
+     (dotimes (i (or count 1))
+       (if register
+         (insert-for-yank (vim:get-register register))
+         (set-mark (point))
+         (insert-for-yank (current-kill 0))
+         (setq beg (min (point) (mark t) (or beg (point)))
+               end (max (point) (mark t) (or end (point)))))))
     (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-	   (yhandler (get-text-property 0 'yank-handler txt)))
+           (yhandler (get-text-property 0 'yank-handler txt)))
       (when (eq (car-safe yhandler) 'vim:yank-line-handler)
-	;; place cursor at for non-blank of first inserted line
-	(goto-char pos)
-	(vim:motion-first-non-blank)))
+        ;; place cursor at for non-blank of first inserted line
+        (goto-char pos)
+        (vim:motion-first-non-blank)))
     (setq vim:last-paste
-	  (vim:make-paste-info :point pos
-			       :begin beg
-			       :end end
-			       :count count
-			       :command 'vim:cmd-paste-before))))
+          (vim:make-paste-info :point pos
+                               :begin beg
+                               :end end
+                               :count count
+                               :command 'vim:cmd-paste-before))))
 
 
 (vim:defcmd vim:cmd-paste-behind (count register)
@@ -534,22 +534,22 @@ If the inserted text consists of full lines those lines are
 indented according to the current mode."
   (vim:cmd-paste-before :count count :register register)
   (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-	 (yhandler (get-text-property 0 'yank-handler txt)))
+         (yhandler (get-text-property 0 'yank-handler txt)))
     (when (eq (car-safe yhandler) 'vim:yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
       (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-	     (yhandler (get-text-property 0 'yank-handler txt)))
-      (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
-	    (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
-	(indent-region (vim:paste-info-begin vim:last-paste)
-		       (vim:paste-info-end vim:last-paste))
-	(setf (vim:paste-info-end vim:last-paste)
-	      (save-excursion
-		(goto-line1 endln)
-		(line-beginning-position)))
-	(vim:motion-first-non-blank)))))
+             (yhandler (get-text-property 0 'yank-handler txt)))
+        (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
+              (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
+          (indent-region (vim:paste-info-begin vim:last-paste)
+                         (vim:paste-info-end vim:last-paste))
+          (setf (vim:paste-info-end vim:last-paste)
+                (save-excursion
+                 (goto-line1 endln)
+                 (line-beginning-position)))
+          (vim:motion-first-non-blank)))))
   (setf (vim:paste-info-command vim:last-paste)
-	'vim:cmd-paste-before-and-indent))
+        'vim:cmd-paste-before-and-indent))
 
 
 (vim:defcmd vim:cmd-paste-behind-and-indent (count register)
@@ -558,29 +558,29 @@ If the inserted text consists of full lines those lines are
 indented according to the current mode."
   (vim:cmd-paste-behind :count count :register register)
   (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-	 (yhandler (get-text-property 0 'yank-handler txt)))
+         (yhandler (get-text-property 0 'yank-handler txt)))
     (when (eq (car-safe yhandler) 'vim:yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
       (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
-	    (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
-	(if (vim:paste-info-at-eob vim:last-paste)
-	    (progn
-	      (indent-region (1+ (vim:paste-info-begin vim:last-paste))
-			     (1+ (vim:paste-info-end vim:last-paste)))
-	      (setf (vim:paste-info-end vim:last-paste)
-		    (save-excursion
-		      (goto-line1 endln)
-		      (line-end-position))))
+            (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
+        (if (vim:paste-info-at-eob vim:last-paste)
+          (progn
+            (indent-region (1+ (vim:paste-info-begin vim:last-paste))
+                           (1+ (vim:paste-info-end vim:last-paste)))
+            (setf (vim:paste-info-end vim:last-paste)
+                  (save-excursion
+                   (goto-line1 endln)
+                   (line-end-position))))
 
-	  (indent-region (vim:paste-info-begin vim:last-paste)
-			 (vim:paste-info-end vim:last-paste))
-	  (setf (vim:paste-info-end vim:last-paste)
-		(save-excursion
-		  (goto-line1 endln)
-		  (line-beginning-position))))
-	(vim:motion-first-non-blank))))
+          (indent-region (vim:paste-info-begin vim:last-paste)
+                         (vim:paste-info-end vim:last-paste))
+          (setf (vim:paste-info-end vim:last-paste)
+                (save-excursion
+                 (goto-line1 endln)
+                 (line-beginning-position))))
+        (vim:motion-first-non-blank))))
   (setf (vim:paste-info-command vim:last-paste)
-	'vim:cmd-paste-behind-and-indent))
+        'vim:cmd-paste-behind-and-indent))
 
 
 (vim:defcmd vim:cmd-join-lines (count)
@@ -630,12 +630,12 @@ indented according to the current mode."
    motion
    #'(lambda (beg end)
        (save-excursion
-	 (goto-char beg)
-	 (while (< beg end)
-	   (let ((c (following-char)))
-	     (delete-char 1 nil)
-	     (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
-	     (setq beg (1+ beg))))))))
+        (goto-char beg)
+        (while (< beg end)
+          (let ((c (following-char)))
+            (delete-char 1 nil)
+            (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
+            (setq beg (1+ beg))))))))
 
 
 (vim:defcmd vim:cmd-make-upcase (motion)
@@ -656,28 +656,28 @@ position of a region on which it should be applied. Note that
 non-continuous region. This usually happens for linewise and
 block motions."
   (case (vim:motion-type motion)
-     ('block
-      (save-excursion
-	(let ((begrow (vim:motion-first-line motion))
-	      (begcol (vim:motion-first-col motion))
-	      (endrow (vim:motion-last-line motion))
-	      (endcol (vim:motion-last-col motion)))
-	  (goto-line1 begrow)
-	  (dotimes (i (1+ (- endrow begrow)))
-	    (let ((beg (save-excursion
-			 (move-to-column begcol)
-			 (point)))
-		  (end (save-excursion
-			 (move-to-column (1+ endcol))
-			 (point))))
-	      (funcall func beg end))
-	    (forward-line)))))
+    ('block
+        (save-excursion
+         (let ((begrow (vim:motion-first-line motion))
+               (begcol (vim:motion-first-col motion))
+               (endrow (vim:motion-last-line motion))
+               (endcol (vim:motion-last-col motion)))
+           (goto-line1 begrow)
+           (dotimes (i (1+ (- endrow begrow)))
+             (let ((beg (save-excursion
+                         (move-to-column begcol)
+                         (point)))
+                   (end (save-excursion
+                         (move-to-column (1+ endcol))
+                         (point))))
+               (funcall func beg end))
+             (forward-line)))))
     ('linewise
      (save-excursion
-       (goto-char (vim:motion-begin-pos motion))
-       (dotimes (i (vim:motion-line-count motion))
-	 (funcall func (line-beginning-position) (line-end-position))
-	 (forward-line))))
+      (goto-char (vim:motion-begin-pos motion))
+      (dotimes (i (vim:motion-line-count motion))
+        (funcall func (line-beginning-position) (line-end-position))
+        (forward-line))))
     (t
      (funcall func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-end-pos motion)))))
@@ -689,26 +689,26 @@ block motions."
     (error "Nothing to repeat"))
   (vim:reset-key-state)
   ;;(dotimes (i (or count 1))
-    (let ((repeat-events vim:repeat-events)
-	  (current-key-sequence vim:current-key-sequence)
-          vim:repeat-events
-	  vim:current-key-sequence)
-      (execute-kbd-macro repeat-events)))
+  (let ((repeat-events vim:repeat-events)
+        (current-key-sequence vim:current-key-sequence)
+        vim:repeat-events
+        vim:current-key-sequence)
+    (execute-kbd-macro repeat-events)))
 
 
 (vim:defcmd vim:cmd-emacs (nonrepeatable)
-   "Switches to Emacs for the next command."
-   (let (message-log-max) (message "Switch to Emacs for the next command."))
-   (vim:escape-to-emacs nil))
+  "Switches to Emacs for the next command."
+  (let (message-log-max) (message "Switch to Emacs for the next command."))
+  (vim:escape-to-emacs nil))
 
 (vim:defcmd vim:cmd-write-and-close (nonrepeatable)
-   "Saves the current buffer and closes the window."
-   (save-buffer)
-   (condition-case nil
-       (delete-window)
-     (error (condition-case nil
-                (delete-frame)
-              (error (save-buffers-kill-emacs))))))
+  "Saves the current buffer and closes the window."
+  (save-buffer)
+  (condition-case nil
+      (delete-window)
+    (error (condition-case nil
+               (delete-frame)
+             (error (save-buffers-kill-emacs))))))
 
 (vim:defcmd vim:cmd-set-mark ((argument:char mark-char) nonrepeatable)
   "Sets the mark `mark-char' at point."
@@ -719,22 +719,22 @@ block motions."
   (mapconcat
    #'(lambda (mark)
        (let ((show-buffer-name
-	      (not (eq (current-buffer) (marker-buffer (cdr mark))))))
-	 (with-current-buffer (marker-buffer (cdr mark))
-	   (save-excursion
-	     (goto-char (cdr mark))
-	     (let ((file-or-text
-		    (if show-buffer-name (buffer-name)
-		      (let* ((beg (save-excursion
-				    (vim:motion-first-non-blank)
-				    (point)))
-			     (end (min (+ beg 60) (line-end-position))))
-			(buffer-substring-no-properties beg end)))))
-	       (format "%3s  %5d %3d %s"
-		       (car mark)
-		       (line-number-at-pos)
-		       (current-column)
-		       file-or-text))))))
+               (not (eq (current-buffer) (marker-buffer (cdr mark))))))
+         (with-current-buffer (marker-buffer (cdr mark))
+           (save-excursion
+            (goto-char (cdr mark))
+            (let ((file-or-text
+                    (if show-buffer-name (buffer-name)
+                      (let* ((beg (save-excursion
+                                   (vim:motion-first-non-blank)
+                                   (point)))
+                             (end (min (+ beg 60) (line-end-position))))
+                        (buffer-substring-no-properties beg end)))))
+              (format "%3s  %5d %3d %s"
+                      (car mark)
+                      (line-number-at-pos)
+                      (current-column)
+                      file-or-text))))))
    marks "\n"))
 
 
@@ -745,13 +745,13 @@ block motions."
     (when marks
       (setq marks (append marks nil))
       (setq all-marks
-	    (remq nil (mapcar #'(lambda (x) (and (memq (car x) marks) x)) all-marks))))
+            (remq nil (mapcar #'(lambda (x) (and (memq (car x) marks) x)) all-marks))))
 
     (setq all-marks (sort all-marks #'(lambda (x y) (< (car x) (car y)))))
     (setq all-marks (vim:print-mark-list
-		     (mapcar #'(lambda (x)
-				 (cons (char-to-string (car x)) (cdr x)))
-			     all-marks)))
+                     (mapcar #'(lambda (x)
+                                 (cons (char-to-string (car x)) (cdr x)))
+                             all-marks)))
     (let (message-truncate-lines message-log-max)
       (message "%4s %5s %3s %s\n%s" "Mark" "Line" "Col" "File/Text"
                all-marks))))
@@ -759,20 +759,20 @@ block motions."
 (vim:defcmd vim:cmd-show-jumps (nonrepeatable)
   "Shows the current jump-list."
   (let* ((cnt 0)
-	 (pjumps (mapcar
-		  #'(lambda (x)
-		      (incf cnt)
-		      (cons (int-to-string cnt) x))
-		  (car vim:jumplist))))
+         (pjumps (mapcar
+                  #'(lambda (x)
+                      (incf cnt)
+                      (cons (int-to-string cnt) x))
+                  (car vim:jumplist))))
     (setq cnt -1)
     (let ((njumps (mapcar
-		   #'(lambda (x)
-		       (incf cnt)
-		       (cons (int-to-string cnt) x))
-		   (cdr vim:jumplist))))
+                   #'(lambda (x)
+                       (incf cnt)
+                       (cons (int-to-string cnt) x))
+                   (cdr vim:jumplist))))
       (let ((jumps (vim:print-mark-list (append (reverse pjumps) njumps)))
-	    message-truncate-lines message-log-max)
-	(message "%4s %5s %3s %s\n%s" "Jump" "Line" "Col" "File/Text" jumps)))))
+            message-truncate-lines message-log-max)
+        (message "%4s %5s %3s %s\n%s" "Jump" "Line" "Col" "File/Text" jumps)))))
 
 
 
@@ -782,9 +782,9 @@ block motions."
 (vim:defcmd vim:cmd-toggle-macro-recording ((argument:char reg) nonrepeatable)
   "Toggles recording of a keyboard macro."
   (if reg
-      (progn
-        (put 'vim:cmd-toggle-macro-recording 'argument nil)
-        (vim:cmd-start-macro reg))
+    (progn
+      (put 'vim:cmd-toggle-macro-recording 'argument nil)
+      (vim:cmd-start-macro reg))
     (progn
       (put 'vim:cmd-toggle-macro-recording 'argument 'char)
       (vim:cmd-stop-macro))))
