@@ -186,10 +186,10 @@
  '(quack-dir "~/emacs/prog-data/quack")
  '(quack-fontify-style (quote emacs))
  '(quack-global-menu-p nil)
- '(quack-remember-new-programs-p nil)
- '(quack-programs (quote ()))
+ '(quack-programs (quote nil))
  '(quack-quiet-warnings-p t)
  '(quack-remap-find-file-bindings-p nil)
+ '(quack-remember-new-programs-p nil)
  '(quack-tabs-are-evil-p t)
  '(reb-re-syntax (quote read))
  '(regexp-search-ring-max 1024)
@@ -249,7 +249,8 @@
  '(vim:shift-width 4)
  '(warning-suppress-types (quote ((\(undo\ discard-info\)))))
  '(which-func-format (quote which-func-current))
- '(which-func-maxout 1000000))
+ '(which-func-maxout 1000000)
+ '(yas/prompt-functions (quote (yas/completing-prompt))))
 
 (add-to-list 'load-path "/home/sergey/emacs")
 
