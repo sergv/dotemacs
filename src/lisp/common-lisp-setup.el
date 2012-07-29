@@ -19,33 +19,7 @@
 
 (autoload 'cltl2-lookup "cltl2" nil t)
 
-(defun paredit-insert-space-after-reader-sharpp (endp delim)
-  "This is mostly a workaround to make various reader macro
- (and cl-interpol in particular) more convenient to type, i.e.
-do not insert space after # sign was typed."
-  (cond
-    (endp
-     ;; if endp is t then
-     ;; question was about inserting a space after delimiter,
-     ;; we're not handling it
-     t)
-    ;; this is done with cl-interpol in mind, #"foo", #/bar/
-    ((member* delim '(?\" ?\/) :test #'char=)
-     (save-excursion
-      (skip-syntax-backward "^ >")
-      ;; if we're just after reader macro start
-      ;; then return nil as sign that we don't want a space
-      (not (looking-at-p "#"))))
-    ;; this is done with complex numbers in mind
-    ((char= ?\( delim)
-     (save-excursion
-      (skip-syntax-backward "^ >")
-      ;; if we're just after reader macro start
-      ;; then return nil as sign that we don't want a space
-      (not (looking-at-p "#c"))))
-    (t
-     ;; delimiter is not double quote so don't handle it
-     t)))
+
 
 (defadvice cldoc-print-current-symbol-info
     (around
@@ -72,8 +46,6 @@ do not insert space after # sign was typed."
 
   (slime-mode 1)
   (turn-on-cldoc-mode)
-  (add-to-list 'paredit-space-for-delimiter-predicates
-               #'paredit-insert-space-after-reader-sharpp)
 
   (def-keys-for-map2 (vim:normal-mode-local-keymap
                       vim:visual-mode-local-keymap)

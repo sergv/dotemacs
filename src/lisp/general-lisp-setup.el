@@ -460,7 +460,7 @@ if first value is t and nil otherwise."
   (and (not (eobp))
        (lisp-pos-is-end-of-string? (point))))
 
-;;;
+;;; list navigation, realign let
 
 (eval-after-load
  "lisp"
@@ -661,7 +661,6 @@ This command assumes point is not in a string or comment."
        (backward-sexp)))))
 
 
-
 ;;;; this is useful for all lisps
 
 (search-def-autoexpand-advices
@@ -694,6 +693,46 @@ This command assumes point is not in a string or comment."
                   :name vim:forward-slurp-sexp
                   :call-n-times t)
 
+(defun paredit-insert-space-after-reader-sharp? (end? delim)
+  "This is mostly a workaround to make various reader macro
+(e.g. vectors, cl-interpol, etc) more convenient to type.
+
+This determines whether to insert a space after the # sign."
+  (cond
+    (end?
+     ;; if end? is t then
+     ;; question was about inserting a space after delimiter,
+     ;; we're not handling it
+     t)
+    ;; common lisp
+    ((memq major-mode '(common-lisp-mode lisp-mode cl-mode))
+     ;; this is done with cl-interpol in mind, #"foo", #/bar/
+     (cond
+       ((and (member* delim '(?\" ?\/) :test #'char=))
+        (save-excursion
+         (skip-syntax-backward "^ >")
+         ;; if we're just after reader macro start
+         ;; then return nil as sign that we don't want a space
+         (not (looking-at-pure? "#"))))
+       ;; this is done with vectors, arrays and complex numbers in mind
+       ((char= ?\( delim)
+        (save-excursion
+         (skip-syntax-backward "^ >")
+         ;; if we're just after reader macro start
+         ;; then return nil as sign that we don't want a space
+         (not (looking-at-pure? "#[Ac]?"))))))
+
+    ;; this is for vectors
+    ((char= ?\( delim)
+     (save-excursion
+      (skip-syntax-backward "^ >")
+      ;; if we're just after reader macro start
+      ;; then return nil as sign that we don't want a space
+      (not (looking-at-pure? "#"))))
+    (double
+     ;; delimiter is not double quote so don't handle it
+     t)))
+
 
 ;;;; Actual setup functions
 
@@ -706,6 +745,9 @@ This command assumes point is not in a string or comment."
   (set (make-local-variable 'hs-hide-comments-when-hiding-all)
        nil)
   (enable-paredit-mode)
+  (set (make-variable-buffer-local 'paredit-space-for-delimiter-predicates)
+       (list
+        #'paredit-insert-space-after-reader-sharp?))
   ;; (set (make-local-variable 'whitespace-line-column) 81)
   ;; (set (make-local-variable 'whitespace-style) '(face lines-tail tabs))
   ;; (whitespace-mode 1)
