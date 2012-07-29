@@ -153,6 +153,8 @@
         ;; plain message will do as well... what a hard choice!
         (error "no information")))))
 
+
+
 (defun scheme-setup ()
   (lisp-setup)
   (scheme-highlight)
