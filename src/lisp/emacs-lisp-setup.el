@@ -13,6 +13,7 @@
 (require 'find-func)
 (require 'emacs-lisp-abbrev+)
 (require 'ansi-lisp-highlight)
+(require 'elisp-slime-nav)
 
 (define-common-lisp-style "emacs"
     "My custom indent style for emacs lisp."
@@ -47,9 +48,7 @@
 (defun expand-last-macro ()
   (interactive)
   ;; taken from pp.el
-  (insert (pp-to-string (macroexpand (pp-last-sexp))))
-  ;; (pp-macroexpand-last-sexp t)
-  )
+  (insert (pp-to-string (macroexpand (pp-last-sexp)))))
 
 (defun expand-last-macro-all ()
   (interactive)
@@ -83,7 +82,8 @@
     (", M"   expand-last-macro-all)
 
     ("M-:"   icicle-pp-eval-expression)
-    ("M-."   find-function)
+    ("M-."   elisp-slime-nav-find-elisp-thing-at-point)
+    ("M-,"   pop-tag-mark)
     ("M-/"   lisp-complete-symbol)
 
     ("<tab>" indent-for-tab-command)
