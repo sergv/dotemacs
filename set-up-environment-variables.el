@@ -25,11 +25,7 @@
    ("MANPATH"
     "/usr/share/man:/usr/local/share/man:/home/sergey/projects/lisp/local/share/man:/home/sergey/projects/scheme/local/share/man")
    ("PKG_CONFIG_PATH"
-    "/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/home/sergey/projects/scheme/local/lib/pkgconfig/:/home/sergey/projects/scheme/local/share/pkgconfig")
-   ("GUILE_LOAD_PATH"
-    "/home/sergey/projects/scheme/implementations/guile/guile-gnome-platform-2.16.2/atk:/home/sergey/projects/scheme/implementations/guile/guile-gnome-platform-2.16.2/cairo:/home/sergey/projects/scheme/implementations/guile/guile-gnome-platform-2.16.2/defs:/home/sergey/projects/scheme/implementations/guile/guile-gnome-platform-2.16.2/gconf:/home/sergey/projects/scheme/implementations/guile/guile-gnome-platform-2.16.2/glib:/home/sergey/projects/scheme/implementations/guile/guile-gnome-platform-2.16.2/gtk:/home/sergey/projects/scheme/implementations/guile/guile-gnome-platform-2.16.2/pango")
-   ("LTDL_LIBRARY_PATH"
-    "/home/sergey/projects/scheme/local/lib/guile-gnome-2")))
+    "/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/home/sergey/projects/scheme/local/lib/pkgconfig/:/home/sergey/projects/scheme/local/share/pkgconfig")))
 
 (defun env-var-into-list (env-var list)
   (for-each
