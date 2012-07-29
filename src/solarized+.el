@@ -217,6 +217,8 @@ Futher modified by Sergey Vinokurov."
        (org-todo                     ((t (:foreground ,red :bold t))))
        (org-done                     ((t (:foreground ,green :bold t))))
        (org-cancelled                ((t (:foreground ,violet :bold t))))
+       (org-waiting                  ((t (:foreground ,orange :bold t))))
+       (org-started                  ((t (:foreground ,blue :bold t))))
 
        (org-agenda-date              ((t (:foreground ,blue))))
        (org-agenda-date-today        ((t (:foreground ,blue :bold t))))
