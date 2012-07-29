@@ -28,7 +28,8 @@
         (completion-list-mode . nil)
         (doc-view-mode . nil)
         (browse-kill-ring-mode . nil)
-        (magit-status-mode . nil)))
+        (magit-status-mode . nil)
+        (magit-log-mode . nil)))
 
 
 (setq-default mode-line-format
