@@ -127,10 +127,28 @@ Works on both Emacs and XEmacs."
 ;;                    cstat)))))
    ))
 
-
-;; (defalias 'org-region-active-p 'org-region-active-p+)
-;; (fset 'org-region-active-p 'org-region-active-p+)
-
+(eval-after-load
+ "ob"
+ '(progn
+   (require 'ob-C)
+   ;; (require 'ob-clojure)
+   (require 'ob-dot)
+   (require 'ob-emacs-lisp)
+   (require 'ob-haskell)
+   (require 'ob-js)
+   (require 'ob-latex)
+   (require 'ob-lisp)
+   ;; (require 'ob-ocaml)
+   (require 'ob-octave)
+   (require 'ob-org)
+   ;; (require 'ob-oz)
+   (require 'ob-python)
+   ;; (require 'ob-R)
+   (require 'ob-scheme)
+   (require 'ob-sh)
+   ;; (require 'ob-sql)
+   ;; (require 'ob-sqlite)
+   ))
 
 (defun org-mode-up-heading ()
   "Move to the the beginning of heading or one level up in heading hierarchy."
