@@ -40,10 +40,12 @@
  "org"
  '(progn
    (setf org-todo-keywords
-         '((sequence "TODO(t)" "DONE(d)")
+         '((sequence "TODO(t)" "WAITING(w)" "STARTED(s)" "|" "DONE(d)")
            (sequence "|" "CANCELLED(c)"))
          org-todo-keyword-faces
-         '(("CANCELLED" . org-cancelled)))   ))
+         '(("WAITING"   . org-waiting)
+           ("STARTED"   . org-started)
+           ("CANCELLED" . org-cancelled)))))
 
 (eval-after-load
  "org-comat"
