@@ -33,62 +33,63 @@
 
 
 (defconst +scheme-implementations+
-  (list
-   (when (executable-find "csi") ;; Chicken Scheme
-     `(chicken
-       (command
-        ;; case-insensitive, no banner, require full numeric tower
-        ,(concat "csi -i -q -R numbers -r5rs-syntax "
-                 +prog-data-path+
-                 "/chicken-init.scm"
-                 " -:c "))))
-   (when (executable-find "bigloo") ;; Bigloo
-     `(bigloo
-       (command
-        ,(concat "bigloo -glines -gerror-localization -Wall -load "
-                 +prog-data-path+
-                 "/bigloo-init.scm"))))
+  (remove nil
+          (list
+           (when (executable-find "csi") ;; Chicken Scheme
+             `(chicken
+               (command
+                ;; case-insensitive, no banner, require full numeric tower
+                ,(concat "csi -i -q -R numbers -r5rs-syntax "
+                         +prog-data-path+
+                         "/chicken-init.scm"
+                         " -:c "))))
+           (when (executable-find "bigloo") ;; Bigloo
+             `(bigloo
+               (command
+                ,(concat "bigloo -glines -gerror-localization -Wall -load "
+                         +prog-data-path+
+                         "/bigloo-init.scm"))))
 
-   (when (executable-find "scheme48")
-     `(scheme48
-       (command "scheme48")))
-   (when (executable-find "guile")
-     `(guile
-       (command
-        ,(concat "guile -l "
-                 +prog-data-path+
-                 "/guile-init.scm"))))
-   ;; gambit
-   (when (executable-find "gsi")
-     `(gambit
-       (command
-        ;; -:<options>
-        ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
-        ;; s  - select standart scheme mode
-        ;; -d<debugging options>
-        ;;     a     - uncaught exceptions will be treated as errors
-        ;;             in all threads
-        ;;     R     - when a user interrupt occurs a new REPL will be started
-        ;;     [0-9] - verbosity level
-        ;;     -     - the REPL interaction channel will be standard
-        ;;             input and standard output
-        ,(format "gsi -:h1048576,s,daR9- -e \"(load \\\"%s\\\")\" -"
-                 (concat +prog-data-path+
-                         "/gambit-init.scm")))))
-   ;; gauche
-   (when (executable-find "gosh")
-     `(gauche
-       ;; -i - interactive mode
-       (command
-        ,(concat "gosh -i -l "
-                 +prog-data-path+
-                 "/gauche-init.scm"))))
+           (when (executable-find "scheme48")
+             `(scheme48
+               (command "scheme48")))
+           (when (executable-find "guile")
+             `(guile
+               (command
+                ,(concat "guile -l "
+                         +prog-data-path+
+                         "/guile-init.scm"))))
+           ;; gambit
+           (when (executable-find "gsi")
+             `(gambit
+               (command
+                ;; -:<options>
+                ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
+                ;; s  - select standart scheme mode
+                ;; -d<debugging options>
+                ;;     a     - uncaught exceptions will be treated as errors
+                ;;             in all threads
+                ;;     R     - when a user interrupt occurs a new REPL will be started
+                ;;     [0-9] - verbosity level
+                ;;     -     - the REPL interaction channel will be standard
+                ;;             input and standard output
+                ,(format "gsi -:h1048576,s,daR9- -e \"(load \\\"%s\\\")\" -"
+                         (concat +prog-data-path+
+                                 "/gambit-init.scm")))))
+           ;; gauche
+           (when (executable-find "gosh")
+             `(gauche
+               ;; -i - interactive mode
+               (command
+                ,(concat "gosh -i -l "
+                         +prog-data-path+
+                         "/gauche-init.scm"))))
 
-   (when (executable-find "mit-scheme")
-     `(mit-scheme
-       (command
-        ,(concat "mit-scheme "
-                 "--interactive ")))))
+           (when (executable-find "mit-scheme")
+             `(mit-scheme
+               (command
+                ,(concat "mit-scheme "
+                         "--interactive "))))))
   "List of scheme implementation records providing name, command to run etc")
 
 
@@ -110,8 +111,8 @@
             (default-name (symbol->string
                            default-implementation))
             (default (assoc-value 'command
-                                  (assoc default-implementation
-                                         +scheme-implementations+))
+                                  (assq default-implementation
+                                        +scheme-implementations+))
                      ;; (or (and quack-run-scheme-prompt-defaults-to-last-p
                      ;;          last)
                      ;;     quack-default-program
