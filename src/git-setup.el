@@ -69,15 +69,24 @@
     ("<down>"   magit-goto-next-section)
     ("<up>"     magit-goto-previous-section)
     ("t"        magit-goto-next-section)
-    ("n"        magit-goto-previous-section)
-    ;; ("t"        vim-mock:motion-down)
-    ;; ("n"        vim-mock:motion-up)
-    ))
+    ("n"        magit-goto-previous-section)))
 
 (add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
 
 (defun magit-log-mode-setup ()
-  (magit-status-mode-setup))
+  (def-keys-for-map1 magit-log-mode-map
+    +control-x-prefix+)
+  (def-keys-for-map1 magit-log-mode-map
+    +vim-special-keys+)
+  (def-keys-for-map2 magit-log-mode-map
+    ("r"        magit-refresh)
+    ("R"        magit-refresh-all)
+
+    ("p"        nil)
+    ("<down>"   magit-goto-next-section)
+    ("<up>"     magit-goto-previous-section)
+    ("t"        vim-mock:motion-down)
+    ("n"        vim-mock:motion-up)))
 
 (add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 
