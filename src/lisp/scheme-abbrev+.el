@@ -20,7 +20,7 @@
 
   :format-print-value "~a"
   :format-string-start "\""
-  :format-string-end "~%\""
+  :format-string-end "\\n\""
 
   :make-variable-list (lambda (list)
                         (mapconcat #'identity list "\n"))
