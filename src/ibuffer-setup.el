@@ -385,8 +385,10 @@ The value from `ibuffer-saved-filter-groups' is used."
       ("C-z"      nil)
       ("/"        ibuffer-jump-to-buffer)
 
-      ("<tab>"    ibuffer-forward-filter-group)
-      ("S-<tab>"  ibuffer-backward-filter-group)
+      ("<tab>"           ibuffer-forward-filter-group)
+      ("<iso-lefttab>"   ibuffer-forward-filter-group)
+      ("S-<tab>"         ibuffer-backward-filter-group)
+      ("<S-iso-lefttab>" ibuffer-backward-filter-group)
 
       ("r"        ibuffer-update)
       ("t"        ibuffer-cycle-buffers-forward)
