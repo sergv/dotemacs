@@ -849,8 +849,8 @@ This determines whether to insert a space after the # sign."
 
     ("g n"      cl:beginning-of-defun)
     ("g t"      cl:end-of-defun)
-    ("<home>"   cl:beginning-of-defun)
-    ("<end>"    cl:end-of-defun))
+    ("<home>"   paredit-backward)
+    ("<end>"    paredit-forward))
 
   (setup-outline-headers :header-symbol ";"
                          :length-min 3
