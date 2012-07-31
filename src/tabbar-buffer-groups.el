@@ -45,11 +45,15 @@ Return only one group for each buffer."
                                               "ccl"
                                               "ecl"
                                               "clozure"
+                                              "lisp"
+                                              "scheme"
                                               "chicken"
                                               "bigloo"
+                                              "scheme48"
                                               "guile"
-                                              "lisp"
-                                              "scheme")
+                                              "gambit"
+                                              "gauche"
+                                              "mit")
                                           (? "/"
                                              (+ digit)))
                                      (or "slime-events"
@@ -76,11 +80,20 @@ Return only one group for each buffer."
          '("SLIME"))
 
         ((or (eq major-mode 'scheme-mode)
-             (string-match-pure? (rx (or "*scheme*"
-                                         "* Guile REPL *")
-                                     (? "<"
-                                        (+ digit)
-                                        ">"))
+             (string-match-pure? (rx (or (seq "*"
+                                                  (? (or "chicken"
+                                                         "bigloo"
+                                                         "scheme48"
+                                                         "guile"
+                                                         "gambit"
+                                                         "gauche"
+                                                         "mit")
+                                                     "-")
+                                                  "scheme*")
+                                             "* Guile REPL *")
+                                         (? "<"
+                                            (+ digit)
+                                            ">"))
                                  bufname))
          '("Scheme"))
 
