@@ -17,6 +17,7 @@
  "ibuffer"
  '(progn
    (require 'ibuf-ext)
+   (require 'buffer-groups)
 
    (redefun ibuffer-jump-to-buffer (name)
      "Move point to the buffer whose name is NAME.
@@ -101,263 +102,45 @@ The value from `ibuffer-saved-filter-groups' is used."
 
 
 
-   (symbol-macrolet
-       ((lisp-filter `(predicate
-                       .
-                       (and (member* major-mode
-                                     '(cl-mode
-                                       lisp-mode
-                                       common-lisp-mode)
-                                     :test #'eq)
-                            (not (string-match-pure? "^\\*.+\\*$"
-                                                     (buffer-name))))))
-        (slime-filter `(or (mode . slime-repl-mode)
-                           (mode . sldb-mode)
-                           (name . ,(rx "*"
-                                        (or (seq (or "slime-repl"
-                                                     "sldb")
-                                                 (+ " ")
-                                                 (or "sbcl"
-                                                     "sbcl-full"
-                                                     "cmucl"
-                                                     "clisp"
-                                                     "ccl"
-                                                     "ecl"
-                                                     "clozure"
-                                                     "lisp"
-                                                     "scheme"
-                                                     "chicken"
-                                                     "bigloo"
-                                                     "scheme48"
-                                                     "guile"
-                                                     "gambit"
-                                                     "gauche"
-                                                     "mit")
-                                                 (? "/"
-                                                    (+ digit)))
-                                            (or "slime-events"
-                                                "slime-description"
-                                                "slime-trace"
-                                                "slime-compilation"
-                                                "slime-xref"
-                                                "slime-apropos"
-                                                "slime-inspector"
-                                                "slime-macroexpansion"
-                                                "inferior-lisp"
-                                                "lisp-interaction"
-                                                "fuzzy completions"))
-                                        "*"
-                                        ;; (? "<"
-                                        ;;    (+ digit)
-                                        ;;    ">")
-                                        ))))
-        (emacs-lisp-filter `(predicate
-                             .
-                             (and (member* major-mode
-                                           '(emacs-lisp-mode
-                                             inferior-emacs-lisp-mode)
-                                           :test #'eq)
-                                  (not (string-match-pure? "^\\*.+\\*$"
-                                                           (buffer-name))))))
-        (scheme-filter `(or (mode . scheme-mode)
-                            (name . ,(rx (or (seq "*"
-                                                  (? (or "chicken"
-                                                         "bigloo"
-                                                         "scheme48"
-                                                         "guile"
-                                                         "gambit"
-                                                         "gauche"
-                                                         "mit")
-                                                     "-")
-                                                  "scheme*")
-                                             "* Guile REPL *")
-                                         (? "<"
-                                            (+ digit)
-                                            ">")))))
-        (c-c++-filter `(or (mode . c-mode)
-                           (mode . c++-mode)))
-        (haskell-filter `(or (mode . haskell-mode)
-                             (mode . inferior-haskell-mode)
-                             (mode . inferior-hugs-mode)
-                             (mode . haskell-hugs-mode)
-                             (mode . ghc-core-mode)
-                             (mode . hugs-mode)
-                             (name . ,(rx "*haskell*"
-                                          (? "<"
-                                             (+ digit)
-                                             ">")))))
-        (prolog-filter `(or (mode . prolog-mode)
-                            (name . ,(rx "*prolog*"
-                                         (? "<"
-                                            (+ digit)
-                                            ">")))))
-        (octave-filter `(or (mode . octave-mode)
-                            (mode . inferiro-octave-mode)
-                            (name . ,(rx "*Octave*"
-                                         (? "<"
-                                            (+ digit)
-                                            ">")))))
-        (python-filter `(or (mode . python-mode)
-                            (mode . python-repl-mode)
-                            (mode . inferior-python-mode)
-                            (mode . python-run-mode)
-                            (name . ,(rx (or "*Python*"
-                                             "*IPython*"
-                                             "*Python Output*")
-                                         (? "<"
-                                            (+ digit)
-                                            ">")))))
-        (cython-filter `(or (mode . cython-mode)
-                            (mode . cython-compilation-mode)))
-        (maxima-filter `(or (mode . maxima-mode)
-                            (mode . maxima-noweb-mode)
-                            (mode . inferior-maxima-mode)
-                            (name . ,(rx (or "*maxima*"
-                                             "*imaxima*")
-                                         (? "<"
-                                            (+ digit)
-                                            ">")))))
-        (org-filter     `(or (mode . org-mode)
-                             (mode . org-agenda-mode)
-                             (mode . diary-mode)
-                             (mode . calendar-mode)))
-        (latex-filter   `(or (mode . latex-mode)
-                             (mode . tex-mode)
-                             (mode . LaTeX-mode)))
-        (web-filter     `(or (mode . html-mode)
-                             (mode . sgml-mode)
-                             (mode . nxhtml-mode)
-                             (mode . nxhtml-muamo-mode)
-                             (mode . nxml-mode)
-                             (mode . css-mode)
-                             (mode . js-mode)
-                             (mode . django-nxhtml-mumamo-mode)
-                             (mode . django-html-mumamo-mode)
-                             (mode . rnc-mode)))
-        (vc-filter      `(or (mode . magit-mode)
-                             (mode . magit-commit-mode)
-                             (mode . magit-diff-mode)
-                             (mode . magit-key-mode)
-                             (mode . magit-log-edit-mode)
-                             (mode . magit-log-mode)
-                             (mode . magit-reflog-mode)
-                             (mode . magit-show-branches-mode)
-                             (mode . magit-stash-mode)
-                             (mode . magit-status-mode)
-                             (mode . magit-wazzup-mode)
-                             (mode . gitignore-mode)
-                             (name . ,(rx bol "*magit" (* nonl) "*" eol))))
-        (utility-filter `(or (name . ,(rx bol
-                                          (or "*Tags List*"
-                                              "makefile"
-                                              "Makefile"
-                                              "GNUMakefile")
-                                          eol))
-                             (predicate . (get-buffer-process
-                                           (current-buffer)))
-                             (mode . comint-mode)
-                             (mode . compilation-mode)
-                             (mode . grep-mode)
-                             (mode . latex-compilation-mode)
-                             (mode . haskell-compilation-mode)
-                             (mode . hs-lint-mode)
-                             (mode . hs-scan-mode)
-                             (mode . gnuplot-run-mode)
-                             (mode . eshell-mode)
-                             (mode . shell-mode)))
-        (dired-filter `(or (mode . dired-mode)))
-        (common-filter `(or (name . ,(rx "*scratch*"))
-                            (name . ,(rx "*Messages*"))
-                            (name . ,(rx "*Pp Eval Output*"))
-                            (mode . help-mode)
-                            (mode . apropos-mode)
-                            (mode . Info-mode)
-                            (mode . Man-mode)
-                            (mode . ibuffer-mode)
-                            ;; handle everything
-                            (predicate . t))))
-     (setf ibuffer-saved-filter-groups
-           `(("lisp"
-              ("lisp" ,lisp-filter)
-              ("slime" ,slime-filter)
-              ("emacs lisp" ,emacs-lisp-filter)
-              ("scheme" ,scheme-filter)
+   (setf ibuffer-saved-filter-groups
+         `(("lisp"
+            ,(assoc "lisp"       +buffer-groups+)
+            ,(assoc "slime"      +buffer-groups+)
+            ,(assoc "emacs lisp" +buffer-groups+)
+            ,(assoc "scheme"     +buffer-groups+)
+            ,(assoc "org"        +buffer-groups+))
 
-              ("org" ,org-filter))
+           ("math"
+            ,(assoc "haskell"    +buffer-groups+)
+            ,(assoc "prolog"     +buffer-groups+)
+            ,(assoc "octave"     +buffer-groups+)
+            ,(assoc "maxima"     +buffer-groups+)
+            ,(assoc "org"        +buffer-groups+))
 
-             ("math"
-              ("haskell" ,haskell-filter)
-              ("prolog" ,prolog-filter)
-              ("octave" ,octave-filter)
-              ("maxima" ,maxima-filter)
+           ("default"
+            ,(assoc "lisp"       +buffer-groups+)
+            ,(assoc "slime"      +buffer-groups+)
+            ,(assoc "emacs lisp" +buffer-groups+)
+            ,(assoc "scheme"     +buffer-groups+)
 
-              ("org" ,org-filter))
+            ,(assoc "haskell"    +buffer-groups+)
+            ,(assoc "prolog"     +buffer-groups+)
+            ,(assoc "octave"     +buffer-groups+)
+            ,(assoc "maxima"     +buffer-groups+)
 
-             ("default"
-              ("lisp" ,lisp-filter)
-              ("slime" ,slime-filter)
-              ("emacs lisp" ,emacs-lisp-filter)
-              ("scheme" ,scheme-filter)
+            ,(assoc "c/cpp"      +buffer-groups+)
+            ,(assoc "python"     +buffer-groups+)
+            ,(assoc "cython"     +buffer-groups+)
+            ,(assoc "org"        +buffer-groups+)
+            ,(assoc "latex"      +buffer-groups+)
+            ,(assoc "web"        +buffer-groups+)
+            ,(assoc "vc"         +buffer-groups+)
 
-              ("haskell" ,haskell-filter)
-              ("prolog" ,prolog-filter)
-              ("octave" ,octave-filter)
-              ("maxima" ,maxima-filter)
+            ,(assoc "utility"    +buffer-groups+)
+            ,(assoc "dired"      +buffer-groups+)
+            ,(assoc "common"     +buffer-groups+))
+           ("all")))
 
-              ("c/cpp" ,c-c++-filter)
-              ("python" ,python-filter)
-              ("cython" ,cython-filter)
-              ("org" ,org-filter)
-              ("latex" ,latex-filter)
-              ("web" ,web-filter)
-              ("vc" ,vc-filter)
-
-              ("utility" ,utility-filter)
-              ("dired"  ,dired-filter)
-              ("common" ,common-filter)
-
-              ;; ("version control" (or (mode . svn-status-mode)
-              ;;                        (mode . svn-log-edit-mode)
-              ;;                        (name . "^\\*svn-")
-              ;;                        (name . "^\\*vc\\*$")
-              ;;                        (name . "^\\*Annotate")
-              ;;                        (name . "^\\*git-")
-              ;;                        (name . "^\\*vc-")))
-              ;; ("emacs" (or (name . "^\\*scratch\\*$")
-              ;;              (name . "^\\*Messages\\*$")
-              ;;              (name . "^TAGS\\(<[0-9]+>\\)?$")
-              ;;              (name . "^\\*Help\\*$")
-              ;;              (name . "^\\*info\\*$")
-              ;;              (name . "^\\*Occur\\*$")
-              ;;              (name . "^\\*grep\\*$")
-              ;;              (name . "^\\*Compile-Log\\*$")
-              ;;              (name . "^\\*Backtrace\\*$")
-              ;;              (name . "^\\*Process List\\*$")
-              ;;              (name . "^\\*gud\\*$")
-              ;;              (name . "^\\*Man")
-              ;;              (name . "^\\*WoMan")
-              ;;              (name . "^\\*Kill Ring\\*$")
-              ;;              (name . "^\\*Completions\\*$")
-              ;;              (name . "^\\*tramp")
-              ;;              (name . "^\\*shell\\*$")
-              ;;              (name . "^\\*compilation\\*$")))
-              ;; ("emacs source" (or (mode . emacs-lisp-mode)
-              ;;                     (filename . "/Applications/Emacs.app")
-              ;;                     (filename . "/bin/emacs")))
-              ;; ("agenda" (or (name . "^\\*Calendar\\*$")
-              ;;               (name . "^diary$")
-              ;;               (name . "^\\*Agenda")
-              ;;               (name . "^\\*org-")
-              ;;               (name . "^\\*Org")
-              ;;               (mode . org-mode)
-              ;;               (mode . muse-mode)))
-              ;; ("latex" (or (mode . latex-mode)
-              ;;              (mode . LaTeX-mode)
-              ;;              (mode . bibtex-mode)
-              ;;              (mode . reftex-mode)))
-              ;; ("dired" (or (mode . dired-mode)))
-              )
-             ("all"))))
 
    (setf ibuffer-never-show-predicates
          (list "^\\*Completions\\*$"))
