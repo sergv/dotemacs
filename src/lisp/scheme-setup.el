@@ -74,7 +74,7 @@
                 ;;     [0-9] - verbosity level
                 ;;     -     - the REPL interaction channel will be standard
                 ;;             input and standard output
-                ,(format "gsi -:h1048576,s,daR9- -e \"(load \\\"%s\\\")\" -"
+                ,(format "gsi -:h1048576,s,daR1- -e \"(load \\\"%s\\\")\" -"
                          (concat +prog-data-path+
                                  "/gambit-init.scm")))))
            ;; gauche
