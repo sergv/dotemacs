@@ -97,7 +97,7 @@ The value from `ibuffer-saved-filter-groups' is used."
     "Toggle current view to buffers with name not matching QUALIFIER."
     (:description "buffer name, no match"
      :reader (read-from-minibuffer "Filter by not matching (regexp): "))
-    (not (string-match-p qualifier (buffer-name buf))))
+    (not (string-match-pure? qualifier (buffer-name buf))))
 
 
 
@@ -109,8 +109,8 @@ The value from `ibuffer-saved-filter-groups' is used."
                                        lisp-mode
                                        common-lisp-mode)
                                      :test #'eq)
-                            (not (string-match-p "^\\*.+\\*$"
-                                                 (buffer-name))))))
+                            (not (string-match-pure? "^\\*.+\\*$"
+                                                     (buffer-name))))))
         (slime-filter `(or (mode . slime-repl-mode)
                            (mode . sldb-mode)
                            (name . ,(rx "*"
@@ -124,11 +124,15 @@ The value from `ibuffer-saved-filter-groups' is used."
                                                      "ccl"
                                                      "ecl"
                                                      "clozure"
+                                                     "lisp"
+                                                     "scheme"
                                                      "chicken"
                                                      "bigloo"
+                                                     "scheme48"
                                                      "guile"
-                                                     "lisp"
-                                                     "scheme")
+                                                     "gambit"
+                                                     "gauche"
+                                                     "mit")
                                                  (? "/"
                                                     (+ digit)))
                                             (or "slime-events"
@@ -153,10 +157,19 @@ The value from `ibuffer-saved-filter-groups' is used."
                                            '(emacs-lisp-mode
                                              inferior-emacs-lisp-mode)
                                            :test #'eq)
-                                  (not (string-match-p "^\\*.+\\*$"
-                                                       (buffer-name))))))
+                                  (not (string-match-pure? "^\\*.+\\*$"
+                                                           (buffer-name))))))
         (scheme-filter `(or (mode . scheme-mode)
-                            (name . ,(rx (or "*scheme*"
+                            (name . ,(rx (or (seq "*"
+                                                  (? (or "chicken"
+                                                         "bigloo"
+                                                         "scheme48"
+                                                         "guile"
+                                                         "gambit"
+                                                         "gauche"
+                                                         "mit")
+                                                     "-")
+                                                  "scheme*")
                                              "* Guile REPL *")
                                          (? "<"
                                             (+ digit)

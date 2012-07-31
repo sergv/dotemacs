@@ -53,6 +53,7 @@
            (when (executable-find "scheme48")
              `(scheme48
                (command "scheme48")))
+
            (when (executable-find "guile")
              `(guile
                (command
