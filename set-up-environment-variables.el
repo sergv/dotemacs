@@ -25,7 +25,9 @@
    ("MANPATH"
     "/usr/share/man:/usr/local/share/man:/home/sergey/projects/lisp/local/share/man:/home/sergey/projects/scheme/local/share/man")
    ("PKG_CONFIG_PATH"
-    "/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/home/sergey/projects/scheme/local/lib/pkgconfig/:/home/sergey/projects/scheme/local/share/pkgconfig")))
+    "/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/home/sergey/projects/scheme/local/lib/pkgconfig/:/home/sergey/projects/scheme/local/share/pkgconfig")
+   ("EDITOR"
+    "emacs")))
 
 (defun env-var-into-list (env-var list)
   (for-each
