@@ -160,8 +160,6 @@
  '(octave-block-offset 4)
  '(octave-continuation-offset 8)
  '(open-paren-in-column-0-is-defun-start nil)
- '(org-highlight-latex-fragments-and-specials t)
- '(org-pretty-entities t)
  '(package-archive-upload-base "/home/sergey/emacs/prog-data/packages")
  '(package-archives (quote (("melpa" . "http://melpa.milkbox.net/packages/"))))
  '(package-directory-list nil)

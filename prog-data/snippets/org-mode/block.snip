@@ -1,6 +1,7 @@
+# key: begin
 # key: block
-# name: block
+# name: begin/end of block
 # --
-#+BEGIN_${1:type}
+#+begin_${1:$$(down text)} ${2:options}
 $0
-#+END_${1:$(upcase text)}
+#+end_${1:$(down text)}
