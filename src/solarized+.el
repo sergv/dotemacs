@@ -225,6 +225,8 @@ Futher modified by Sergey Vinokurov."
        (org-agenda-date-weekend      ((t (:foreground ,blue :bold t))))
        (org-agenda-restriction-lock  ((t (:background ,light-yellow-background))))
        (org-clock-overlay            ((t (:background ,light-yellow-background))))
+       (org-document-info            ((t (:foreground ,violet))))
+       (org-document-title           ((t (:foreground ,violet :bold t))))
        (org-date                     ((t (:foreground ,violet :underline t))))
        (org-drawer                   ((t (:foreground ,blue))))
        (org-footnote                 ((t (:foreground ,violet :underline t))))
