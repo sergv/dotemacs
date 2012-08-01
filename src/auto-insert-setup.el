@@ -40,7 +40,9 @@
                                       "%A, %e %B %Y"))
    (list "date year" (apply-partially #'format-time-string
                                       "%Y"))
-   (list "author" (lambda () user-full-name)))
+   (list "author" (lambda () "Sergey Vinokurov"))
+   (list "email" (lambda () "serg-foo@gmail.com"))
+   (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.
 When auto-insert file template contains entry of form ${HELLO} then
 `util:auto-insert-update' will replace it with return value
