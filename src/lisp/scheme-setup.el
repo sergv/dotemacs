@@ -61,22 +61,33 @@
                          +prog-data-path+
                          "/guile-init.scm"))))
            ;; gambit
-           (when (executable-find "gsi")
-             `(gambit
-               (command
-                ;; -:<options>
-                ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
-                ;; s  - select standart scheme mode
-                ;; -d<debugging options>
-                ;;     a     - uncaught exceptions will be treated as errors
-                ;;             in all threads
-                ;;     R     - when a user interrupt occurs a new REPL will be started
-                ;;     [0-9] - verbosity level
-                ;;     -     - the REPL interaction channel will be standard
-                ;;             input and standard output
-                ,(format "gsi -:h1048576,s,daR1- -e \"(load \\\"%s\\\")\" -"
-                         (concat +prog-data-path+
-                                 "/gambit-init.scm")))))
+           ;; -:<options>
+           ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
+           ;; s  - select standart scheme mode
+           ;; -d<debugging options>
+           ;;     a     - uncaught exceptions will be treated as errors
+           ;;             in all threads
+           ;;     R     - when a user interrupt occurs a new REPL will be started
+           ;;     [0-9] - verbosity level
+           ;;     -     - the REPL interaction channel will be standard
+           ;;             input and standard output
+           (let ((command-args
+                   (format " -:h1048576,s,daR1- -e \"(load \\\"%s\\\")\" -"
+                           (concat +prog-data-path+
+                                   "/gambit-init.scm"))))
+             (cond
+               ((executable-find "gsc")
+                `(gambit
+                  (command
+                   ,(concat "gsc"
+                            command-args))))
+               ((executable-find "gsi")
+                `(gambit
+                  (command
+                   ,(concat "gsi"
+                            command-args))))
+               (else
+                nil)))
            ;; gauche
            (when (executable-find "gosh")
              `(gauche
