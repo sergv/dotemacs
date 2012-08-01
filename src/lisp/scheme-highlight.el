@@ -40,6 +40,13 @@ i.e. names matching regexp \\*.*\\*."
 
 
 (defun scheme-highlight (&optional mode)
+  (font-lock-remove-keywords
+   mode
+   `(("\\<<\\sw+>\\>" . font-lock-type-face)
+     ("\\<#?:\\sw+\\>" . font-lock-builtin-face)
+     ("(let\\s-+\\(\\sw+\\)"
+      (1 font-lock-function-name-face))))
+
   (font-lock-add-keywords
    mode
    `(;; support nearly full numeric tower
@@ -72,17 +79,23 @@ i.e. names matching regexp \\*.*\\*."
                   float)
               eow)) 0 'scheme-constant-face)
 
-     ("\\_<\\(?:\\+[^+ \n\t]+\\+\\)\\_>" 0 'scheme-constant-face)
-     ("\\_<\\(?:\\*[^* \n\t]+\\*\\)\\_>" 0 'scheme-global-variable-face)
+     ("\\_<\\+\\(?:\\sw\\|\\s_\\)+\\+\\_>"
+      (0 'scheme-constant-face))
+     ("\\_<\\*\\(?:\\sw\\|\\s_\\)+\\*\\_>"
+      (0 'scheme-global-variable-face))
 
-     ("\\_<\\(?:#f\\|#t\\)\\_>" 0 'scheme-constant-face)
+     ("\\_<\\(?:#f\\|#t\\)\\_>"
+      (0 'scheme-constant-face))
 
-     ("\\_<\\(?:[^ \n\t]+\\)\\?\\_>" 0 'scheme-predicate-face)
-     ("\\_<\\(?:[^ \n\t]+\\)!\\_>" 0 'scheme-mutating-op-face)
+     ("\\_<\\(?:\\sw\\|\\s_\\)+\\?\\_>"
+      (0 'scheme-predicate-face))
+     ("\\_<\\(?:\\sw\\|\\s_\\)+!\\_>"
+      (0 'scheme-mutating-op-face))
 
-     ;; ("\\_<:\\(?:\\s_\\|\\sw\\)*\\_>" 0 'font-lock-keyword-face t)
+     ;; dsssl named constants arguments
+     ("\\_<#!\\(?:optional\\|key\\|rest\\)\\_>"
+      (0 'font-lock-keyword-face))
 
-     ;; ("\\_<&\\(?:\\s_\\|\\sw\\)*\\_>" 0 'scheme-declaration-face t)
      (,(rx symbol-start
            (or (seq "wrong-type-arg"
                     (? "ument"))
@@ -90,8 +103,26 @@ i.e. names matching regexp \\*.*\\*."
                "out-of-range"
                "system-error")
            symbol-end)
-      0
-      'font-lock-constant-face)
+      (0 'font-lock-constant-face))
+
+     ;; fixed scheme-mode highlights
+     ("(let\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)"
+      (1 'font-lock-function-name-face))
+     ("\\_<<\\(?:\\sw\\|\\s_\\)+>\\_>"
+      (0 'font-lock-type-face))
+     (,(rxx ((symbol-regexp
+               (regexp "\\(?:\\sw\\|\\s_\\)+"))
+             (keyword-prefix (regexp "\\(?:#?:\\)"))
+             (keyword-suffix ":"))
+         symbol-start
+         (or (seq keyword-prefix
+                  symbol-regexp
+                  (? keyword-suffix))
+             (seq symbol-regexp
+                  keyword-suffix))
+         symbol-end)
+      (0 'font-lock-keyword-face))
+
      (,(rx "("
            (group
             (or "scm-error"
