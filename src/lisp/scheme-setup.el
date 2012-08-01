@@ -242,7 +242,7 @@
   :save-buffer t
   :error-msg "Can't switch to Scheme repl")
 
-
+;; define scheme-load-current-file
 (cond
   ((eq? +platform+ 'netbook-linux)
    (defvar *scheme-tmp-file* (format "/tmp/scheme%s.scm" (emacs-pid))
@@ -322,22 +322,26 @@
   ;; prompt without newlines so we add newlines to the output
   (add-hook 'comint-preoutput-filter-functions
             (let ((prev-output nil))
-              #'(lambda (output)
-                  (let ((new-output
-                          (if (and (not (= 0 (count-lines (point-min) (point-max))))
-                                   (string-match-pure? (concat "\\`"
-                                                               +scheme-prompt-regexp+
-                                                               "\\'")
-                                                       output)
-                                   prev-output
-                                   ;; last character is not newline
-                                   (not (char= (string->char "\n")
-                                               (aref prev-output
-                                                     (- (length prev-output) 1)))))
-                            (concat "\n" output)
-                            output)))
-                    (setf prev-output new-output)
-                    new-output)))
+              (lambda (output)
+                (let ((new-output
+                        (if (and
+                             (not (= 0
+                                     (count-lines (point-min)
+                                                  (point-max))))
+                             (string-match-pure?
+                              (concat "\\`"
+                                      +scheme-prompt-regexp+
+                                      "\\'")
+                              output)
+                             (not (null? prev-output))
+                             ;; last character is not newline
+                             (not (char= (string->char "\n")
+                                         (aref prev-output
+                                               (- (length prev-output) 1)))))
+                          (concat "\n" output)
+                          output)))
+                  (setf prev-output new-output)
+                  new-output)))
             nil ;; put at the start
             t   ;; local
             )
