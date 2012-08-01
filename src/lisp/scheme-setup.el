@@ -142,7 +142,51 @@
                                              +scheme-implementations+))
                          default)))
        (quack-remember-program-maybe program)
-       program))))
+       program))
+
+   ;; this just removes annoying quack warnings on scheme-mode startup
+   (redefun quack-shared-mode-hookfunc-stuff ()
+     ;; Install the Quack keymap and menu items.
+     (local-set-key quack-scheme-mode-keymap-prefix quack-scheme-mode-keymap)
+     (quack-when-xemacs
+      (when (featurep 'menubar)
+        ;;(set-buffer-menubar current-menubar)
+        ;; TODO: For XEmacs, we could have two versions of this menu -- the popup
+        ;;       one would have the Global submenu, but the menubar one would have
+        ;;       the Global submenu only if quack-global-menu-p were nil.
+        (add-submenu nil quack-scheme-mode-menuspec)
+        (set-menubar-dirty-flag)
+        (setq mode-popup-menu quack-scheme-mode-menuspec)))
+
+     ;; Bind the paren-matching keys.
+     (local-set-key ")" 'quack-insert-closing-paren)
+     (local-set-key "]" 'quack-insert-closing-bracket)
+
+     (local-set-key "(" 'quack-insert-opening-paren)
+     (local-set-key "[" 'quack-insert-opening-bracket)
+
+     ;; Steal any find-file bindings.
+     (when quack-remap-find-file-bindings-p
+       (quack-locally-steal-key-bindings 'find-file     'quack-find-file)
+       (quack-locally-steal-key-bindings 'ido-find-file 'quack-find-file))
+
+     ;; Fight against tabs.
+     (when quack-tabs-are-evil-p
+       (setq indent-tabs-mode nil))
+
+     ;; Remove character compositions, to get rid of any pretty-lambda.  (Note:
+     ;; This is bad, if it turns out compositions are used for other purposes in
+     ;; buffers that are edited with Scheme Mode.)
+     (when quack-pretty-lambda-supported-p
+       (eval '(decompose-region (point-min) (point-max))))
+
+     ;; Install fontification
+     (when quack-fontify-style
+       (quack-install-fontification))
+
+     ;; Die! Die! Die!
+     (quack-when-xemacs
+      (quack-install-global-menu)))))
 
 (defun scheme-describe-current-symbol ()
   "Give some help on symbol under point if possible."
