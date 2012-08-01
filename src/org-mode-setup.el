@@ -34,7 +34,16 @@
       ;; notes are stored in descending date order - most recent always at top
       org-reverse-note-order t
       org-enforce-todo-dependencies t
-      org-enforce-todo-checkbox-dependencies t)
+      org-enforce-todo-checkbox-dependencies t
+
+      org-highlight-latex-fragments-and-specials t
+      org-pretty-entities t
+
+      ;; fontify code in code blocks
+      org-src-fontify-natively t
+      ;; if block has an active edit buffer, it `org-edit-src'
+      ;; will switch to that buffer immediately
+      org-src-ask-before-returning-to-edit-buffer nil)
 
 (eval-after-load
  "org"
@@ -127,28 +136,68 @@ Works on both Emacs and XEmacs."
 ;;                    cstat)))))
    ))
 
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((C          . t)
+   (clojure    . nil)
+   (dot        . t)
+   (emacs-lisp . t)
+   (haskell    . t)
+   (js         . nil)
+   (latex      . t)
+   (lisp       . nil)
+   (ocaml      . nil)
+   (octave     . t)
+   (org        . t)
+   (oz         . nil)
+   (python     . nil)
+   (R          . nil)
+   (scheme     . t)
+   (sh         . nil)
+   (sql        . nil)
+   (sqlite     . nil)))
+
 (eval-after-load
- "ob"
+ "org-src"
  '(progn
-   (require 'ob-C)
-   ;; (require 'ob-clojure)
-   (require 'ob-dot)
-   (require 'ob-emacs-lisp)
-   (require 'ob-haskell)
-   (require 'ob-js)
-   (require 'ob-latex)
-   (require 'ob-lisp)
-   ;; (require 'ob-ocaml)
-   (require 'ob-octave)
-   (require 'ob-org)
-   ;; (require 'ob-oz)
-   (require 'ob-python)
-   ;; (require 'ob-R)
-   (require 'ob-scheme)
-   (require 'ob-sh)
-   ;; (require 'ob-sql)
-   ;; (require 'ob-sqlite)
-   ))
+   (setf org-src-lang-modes
+         (cons (cons "scheme" 'scheme)
+               (cons (cons "dot" 'graphviz-dot-mode)
+                     (remove-if (lambda (entry)
+                                  (string= (car entry) "dot"))
+                                org-src-lang-modes))))))
+
+(eval-after-load
+ "ob-tangle"
+ '(progn
+   (setf org-babel-tangle-lang-exts
+         (cons (cons "scheme" "scm")
+               org-babel-tangle-lang-exts))
+
+   ;; fix case when org-bracket-link-analytic-regexp matches ordinary link
+   ;; so that (match-string 5) - which is supposed to be the source name -
+   ;; becomes nil
+   (redefun org-babel-detangle (&optional source-code-file)
+     "Propagate changes in source file back original to Org-mode file.
+This requires that code blocks were tangled with link comments
+which enable the original code blocks to be found."
+     (interactive)
+     (save-excursion
+      (when source-code-file (find-file source-code-file))
+      (goto-char (point-min))
+      (let ((counter 0) new-body end)
+        (while (re-search-forward org-bracket-link-analytic-regexp nil t)
+          (when (and (not (null? (match-string 5)))
+                     (re-search-forward
+                      (concat " " (regexp-quote (match-string 5)) " ends here")))
+            (setq end (match-end 0))
+            (forward-line -1)
+            (save-excursion
+             (when (setq new-body (org-babel-tangle-jump-to-org))
+               (org-babel-update-block-body new-body)))
+            (setq counter (+ 1 counter)))
+          (goto-char end))
+        (prog1 counter (message "detangled %d code blocks" counter)))))))
 
 (defun org-mode-up-heading ()
   "Move to the the beginning of heading or one level up in heading hierarchy."
@@ -168,7 +217,9 @@ Works on both Emacs and XEmacs."
   (org-toggle-pretty-entities))
 
 (defun org-mode-setup ()
-  (init-common)
+  (init-common :use-yasnippet t)
+  (set (make-local-variable 'yas/fallback-behavior)
+       '(apply org-cycle '()))
 
   (setf vim:insert-mode-local-keymap           (make-keymap)
         vim:visual-mode-local-keymap           (make-keymap)
@@ -177,30 +228,31 @@ Works on both Emacs and XEmacs."
         vim:motion-mode-local-keymap           (make-sparse-keymap))
 
   (def-keys-for-map2 vim:normal-mode-local-keymap
-    ("M-."  org-open-at-point)
-    ("C-o"  org-open-at-point)
-    ("g o"  org-open-at-point)
+    ("TAB"   org-cycle)
+    ("<tab>" org-cycle)
 
-    ("="    org-mode-up-heading)
-    ("<up>" org-mode-up-heading)
+    ("M-."   org-open-at-point)
+    ("C-o"   org-open-at-point)
+    ("g o"   org-open-at-point)
 
-    ("<f1>" org-toggle-display-style)
-    ("z O"  show-all)
-    ;; ("z o"  show-subtree)
-    ("z c"  hide-subtree)
+    ("="     org-mode-up-heading)
+    ("<up>"  org-mode-up-heading)
+
+    ("<f1>"  org-toggle-display-style)
+    ("z O"   show-all)
+    ;; ("z o"   show-subtree)
+    ("z c"   hide-subtree)
     ;; hide everything except current entry and its parrents
-    ("z C"  hide-other)
+    ("z C"   hide-other)
 
-    ("j"    eval-last-sexp)
-    ("J"    eval-print-last-sexp-unlimited-length))
+    ("j"     eval-last-sexp)
+    ("J"     eval-print-last-sexp-unlimited-length))
 
   (def-keys-for-map2 vim:visual-mode-local-keymap
     ("j"   eval-region))
 
   (def-keys-for-map2 (vim:normal-mode-local-keymap
                       vim:insert-mode-local-keymap)
-    ("TAB"   org-cycle)
-    ("<tab>" org-cycle)
     ("M-/"   pcomplete))
 
   (def-keys-for-map2 (vim:normal-mode-local-keymap
@@ -211,14 +263,20 @@ Works on both Emacs and XEmacs."
     ("$" vim:org-end-of-line))
 
   (def-keys-for-map2 vim:insert-mode-local-keymap
-    ("SPC" abbrev+-org-self-insert-or-expand-abbrev))
+    ("TAB"   yas/expand)
+    ("<tab>" yas/expand)
+    ("SPC"   abbrev+-org-self-insert-or-expand-abbrev))
 
   (def-keys-for-map2 org-mode-map
-    ("C-k" nil)
-    ("C-t" org-todo)
-    ("SPC" abbrev+-org-self-insert-or-expand-abbrev)))
+    ("TAB"   yas/expand)
+    ("<tab>" yas/expand)
+    ("C-k"   nil)
+    ("C-t"   org-todo)
+    ("SPC"   abbrev+-org-self-insert-or-expand-abbrev)))
 
 (add-hook 'org-mode-hook #'org-mode-setup)
+
+;;;; epilogue
 
 (setf *elisp-do-not-move-files*
       (append *elisp-do-not-move-files*
