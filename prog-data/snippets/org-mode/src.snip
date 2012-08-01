@@ -1,7 +1,7 @@
 # key: src
 # name: src block
 # --
-#+NAME: ${1:name}
-#+BEGIN_SRC ${2:$$(yas/choose-value '("C" "clojure" "dot" "emacs-lisp" "gnuplot" "haskell" "js" "latex" "lisp" "lilypond" "ocaml" "octave" "org" "oz" "python" "R" "scheme" "sh" "sql" "sqlite"))} ${3:org switches}
+#+name: ${1:name}
+#+begin_src ${2:$$(yas/choose-value (mapcar (lambda (x) (symbol->string (car x))) (filter #'cdr org-babel-load-languages)))} -n -r :comments both ${3:org switches}
 $0
-#+END_SRC
+#+end_src
