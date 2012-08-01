@@ -68,11 +68,11 @@
 
   (def-keys-for-map2 (vim:normal-mode-local-keymap
                       vim:insert-mode-local-keymap)
-    ("<f1>"  scheme-load-file)
-    ("<f9>"  common-lisp-compile-and-load-file)
+    ("<f1>"    scheme-load-current-file)
+    ("<f9>"    common-lisp-compile-and-load-file)
 
-    ("M-/"   slime-complete-symbol)
-    ("M-:"   slime-interactive-eval))
+    ("M-/"     slime-complete-symbol)
+    ("M-:"     slime-interactive-eval))
 
   (def-keys-for-map2 vim:visual-mode-local-keymap
     (", m"     slime-macroexpand-1)
@@ -80,9 +80,10 @@
 
   (scheme-abbrev+-setup))
 
+;; define scheme-load-current-file
 (cond
   ((eq? +platform+ 'asus-netbook)
-   (defun scheme-load-file (&optional switch)
+   (defun scheme-load-current-file (&optional switch)
      "Load buffers' current file into SLIME. If buffer happens to have no file
 then it's content will be evaluated by SLIME."
      (interactive "P")
@@ -97,7 +98,7 @@ then it's content will be evaluated by SLIME."
        (switch-to-slime))))
   ((or (eq? +platform+ 'home-linux)
        (eq? +platform+ 'netbook-linux))
-   (defun scheme-load-file (&optional noswitch)
+   (defun scheme-load-current-file (&optional noswitch)
      "Load buffers' current file into SLIME. If buffer happens to have no file
 then it's content will be evaluated by SLIME."
      (interactive "P")
