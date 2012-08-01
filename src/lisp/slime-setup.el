@@ -126,7 +126,7 @@
     ;; (gambit-scheme
     ;;  (type scheme)
     ;;  (run-command
-    ;;   ("gsi"
+    ;;   ("gsc"
     ;;    "-:d-"))
     ;;  (init
     ;;   gambit-scheme-init))
@@ -431,6 +431,7 @@ currently chosen lisp implementation."
     (when impl-entry
       (case (assoc-value 'type impl-entry)
         (common-lisp
+         (slime-redirect-inferior-output)
          (ansi-lisp-highlight-keywords)
          ;; cl has packages and it's useful to track them in prompt
          (set (make-local-variable 'slime-repl-track-package-in-prompt) t))
@@ -453,10 +454,14 @@ currently chosen lisp implementation."
          ;; scheme has no packages and nothing at the moment that may
          ;; take their place here, so do not track
          (set (make-local-variable 'slime-repl-track-package-in-prompt) nil)
-         ;; (setf mode-name "Scheme REPL")
+         (setf mode-name "Scheme REPL")
          (when (eq? current-implementation 'mit-scheme)
            (setq slime-find-buffer-package-function
-                 'find-mit-scheme-package)))))))
+                 'find-mit-scheme-package))
+         ;; plain gambit (e.g. not gambit-scheme) is not supposed to
+         ;; print anything meaningful to it's standard output
+         (unless (eq? current-implementation 'gambit)
+           (slime-redirect-inferior-output)))))))
 
 (defun slime-interpreter-setup ()
   "Set up *inferior-lisp* buffer, still usually used by SLIME."
@@ -483,7 +488,6 @@ currently chosen lisp implementation."
   ;; to keep things separate
   (lisp-repl-setup)
   (slime-repl-implementation-specific-setup)
-  (slime-redirect-inferior-output)
 
   ;; (turn-on-cldoc-mode)
   ;;
