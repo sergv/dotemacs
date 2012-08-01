@@ -35,31 +35,6 @@
 (defconst +scheme-implementations+
   (remove nil
           (list
-           (when (executable-find "csi") ;; Chicken Scheme
-             `(chicken
-               (command
-                ;; case-insensitive, no banner, require full numeric tower
-                ,(concat "csi -i -q -R numbers -r5rs-syntax "
-                         +prog-data-path+
-                         "/chicken-init.scm"
-                         " -:c "))))
-           (when (executable-find "bigloo") ;; Bigloo
-             `(bigloo
-               (command
-                ,(concat "bigloo -glines -gerror-localization -Wall -load "
-                         +prog-data-path+
-                         "/bigloo-init.scm"))))
-
-           (when (executable-find "scheme48")
-             `(scheme48
-               (command "scheme48")))
-
-           (when (executable-find "guile")
-             `(guile
-               (command
-                ,(concat "guile -l "
-                         +prog-data-path+
-                         "/guile-init.scm"))))
            ;; gambit
            ;; -:<options>
            ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
@@ -88,6 +63,33 @@
                             command-args))))
                (else
                 nil)))
+
+           (when (executable-find "csi") ;; Chicken Scheme
+             `(chicken
+               (command
+                ;; case-insensitive, no banner, require full numeric tower
+                ,(concat "csi -i -q -R numbers -r5rs-syntax "
+                         +prog-data-path+
+                         "/chicken-init.scm"
+                         " -:c "))))
+           (when (executable-find "bigloo") ;; Bigloo
+             `(bigloo
+               (command
+                ,(concat "bigloo -glines -gerror-localization -Wall -load "
+                         +prog-data-path+
+                         "/bigloo-init.scm"))))
+
+           (when (executable-find "scheme48")
+             `(scheme48
+               (command "scheme48")))
+
+           (when (executable-find "guile")
+             `(guile
+               (command
+                ,(concat "guile -l "
+                         +prog-data-path+
+                         "/guile-init.scm"))))
+
            ;; gauche
            (when (executable-find "gosh")
              `(gauche
