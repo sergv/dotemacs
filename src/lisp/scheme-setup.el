@@ -38,7 +38,8 @@
            ;; gambit
            ;; -:<options>
            ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
-           ;; s  - select standart scheme mode
+           ;; s  - select standart scheme mode - case-insensetevie + no keywords
+           ;; S  - select gambit scheme mode   - case sensetive + keywords
            ;; -d<debugging options>
            ;;     a     - uncaught exceptions will be treated as errors
            ;;             in all threads
@@ -47,7 +48,7 @@
            ;;     -     - the REPL interaction channel will be standard
            ;;             input and standard output
            (let ((command-args
-                   (format " -:h1048576,s,daR1- -e \"(load \\\"%s\\\")\" -"
+                   (format " -:h1048576,S,daR1- -e \"(load \\\"%s\\\")\" -"
                            (concat +prog-data-path+
                                    "/gambit-init.scm"))))
              (cond
