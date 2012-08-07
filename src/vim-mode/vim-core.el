@@ -316,7 +316,8 @@ return the correct end-position of emacs-ranges, i.e.
   - if motion is exclusive, nothing is change,
   - if motion is line-wise, is always eol of the last line in the motion,
   - if motion is block 1 is added if and only if the end column
-    is larger than or equal to the begin column."
+    is larger than or equal to the begin column and char at the end is not
+    newline."
   (case (vim:motion-type motion)
     (linewise
      (save-excursion
@@ -325,8 +326,9 @@ return the correct end-position of emacs-ranges, i.e.
     ('block
         (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
               (e (max (vim:motion-begin motion) (vim:motion-end motion))))
-          (if (>= (save-excursion (goto-char e) (current-column))
-                  (save-excursion (goto-char b) (current-column)))
+          (if (and (>= (save-excursion (goto-char e) (current-column))
+                       (save-excursion (goto-char b) (current-column)))
+                   (not (char=? (char-after e) ?\n)))
             (1+ e)
             e)))
     (inclusive
