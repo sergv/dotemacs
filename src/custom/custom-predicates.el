@@ -58,7 +58,9 @@
                     eq
                     equal
                     string-match
-                    looking-at))
+                    looking-at
+                    string=
+                    char=))
    (let ((old-name (symbol-name command)))
      (let* ((new-name (replace-regexp-in-string "-*$"
                                                 "?"
