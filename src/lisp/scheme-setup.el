@@ -29,7 +29,8 @@
    (comment-fill-column nil))
 
   (:indentation
-   (define (2 &body))))
+   (define       (2 &body))
+   (define-macro (2 &body))))
 
 
 (defconst +scheme-implementations+
