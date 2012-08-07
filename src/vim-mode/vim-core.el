@@ -233,19 +233,19 @@ positions within (point-min) and (point-max) and not at
     (setq type (if (<= begin end) 'inclusive 'exclusive)))
 
   (labels
-      ((shrink-to (pos lower upper)
-         (max lower (min upper pos)))
+    ((shrink-to (pos lower upper)
+       (max lower (min upper pos)))
 
-       (normalize-pos (pos)
-         (let ((pos (shrink-to pos (point-min) (point-max))))
-           (shrink-to pos
-                      (save-excursion
-                       (goto-char pos)
-                       (line-beginning-position))
-                      (save-excursion
-                       (goto-char pos)
-                       (- (line-end-position)
-                          (if (eq type 'inclusive) 1 0)))))))
+     (normalize-pos (pos)
+       (let ((pos (shrink-to pos (point-min) (point-max))))
+         (shrink-to pos
+                    (save-excursion
+                     (goto-char pos)
+                     (line-beginning-position))
+                    (save-excursion
+                     (goto-char pos)
+                     (- (line-end-position)
+                        (if (eq type 'inclusive) 1 0)))))))
 
     (vim:make-motion-struct :has-begin has-begin
                             :begin (normalize-pos begin)

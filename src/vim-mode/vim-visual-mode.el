@@ -236,8 +236,7 @@
 
 
 (defun vim:visual-execute-command (command)
-  "Called to execute a command is visual mode."
-
+  "Called to execute a command in visual mode."
   ;; save the last region
   (setq vim:visual-last-begin (cons (line-number-at-pos (mark t))
                                     (save-excursion
@@ -505,8 +504,8 @@ This function is also responsible for setting the X-selection."
 (defun vim:visual-current-block-motion ()
   "Returns a motion representing the current block region."
   (vim:make-motion :has-begin t
-                   :begin (min (point) (mark t))
-		   :end (max (point) (mark t))
+                   :begin (region-beginning) ;; (min (point) (mark t))
+                   :end (region-end) ;; (max (point) (mark t))
 		   :type 'block))
 
 
