@@ -36,35 +36,6 @@
 (defconst +scheme-implementations+
   (remove nil
           (list
-           ;; gambit
-           ;; -:<options>
-           ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
-           ;; s  - select standart scheme mode - case-insensetevie + no keywords
-           ;; S  - select gambit scheme mode   - case sensetive + keywords
-           ;; -d<debugging options>
-           ;;     a     - uncaught exceptions will be treated as errors
-           ;;             in all threads
-           ;;     R     - when a user interrupt occurs a new REPL will be started
-           ;;     [0-9] - verbosity level
-           ;;     -     - the REPL interaction channel will be standard
-           ;;             input and standard output
-           (let ((command-args
-                   (format " -:h1048576,S,daR1- -e \"(load \\\"%s\\\")\" -"
-                           (concat +prog-data-path+
-                                   "/gambit-init.scm"))))
-             (cond
-               ((executable-find "gsc")
-                `(gambit
-                  (command
-                   ,(concat "gsc"
-                            command-args))))
-               ((executable-find "gsi")
-                `(gambit
-                  (command
-                   ,(concat "gsi"
-                            command-args))))
-               (else
-                nil)))
 
            (when (executable-find "csi") ;; Chicken Scheme
              `(chicken
@@ -74,6 +45,7 @@
                          +prog-data-path+
                          "/chicken-init.scm"
                          " -:c "))))
+
            (when (executable-find "bigloo") ;; Bigloo
              `(bigloo
                (command
@@ -105,7 +77,37 @@
              `(mit-scheme
                (command
                 ,(concat "mit-scheme "
-                         "--interactive "))))))
+                         "--interactive "))))
+
+           ;; gambit
+           ;; -:<options>
+           ;; hN - maximum heap size in N kilobytes, set to 1024 Mb
+           ;; s  - select standart scheme mode - case-insensetevie + no keywords
+           ;; S  - select gambit scheme mode   - case sensetive + keywords
+           ;; -d<debugging options>
+           ;;     a     - uncaught exceptions will be treated as errors
+           ;;             in all threads
+           ;;     R     - when a user interrupt occurs a new REPL will be started
+           ;;     [0-9] - verbosity level
+           ;;     -     - the REPL interaction channel will be standard
+           ;;             input and standard output
+           (let ((command-args
+                   (format " -:h1048576,S,daR1- -e \"(load \\\"%s\\\")\" -"
+                           (concat +prog-data-path+
+                                   "/gambit-init.scm"))))
+             (cond
+               ((executable-find "gsc")
+                `(gambit
+                  (command
+                   ,(concat "gsc"
+                            command-args))))
+               ((executable-find "gsi")
+                `(gambit
+                  (command
+                   ,(concat "gsi"
+                            command-args))))
+               (else
+                nil)))))
   "List of scheme implementation records providing name, command to run etc")
 
 
