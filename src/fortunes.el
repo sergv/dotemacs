@@ -1974,8 +1974,8 @@ for came from that piddling around with the wobbling plate.
   "Good and nice fortunes.")
 
 (defvar *fortunes*
-  (append *perlis-quotes*
-          *good-fortunes*))
+  (vconcat *perlis-quotes*
+           *good-fortunes*))
 
 (defun fortune (fortune-source)
   "Return random fortune from FORTUNE-SOURCE sequence"
@@ -1987,10 +1987,10 @@ for came from that piddling around with the wobbling plate.
 
 (defun fortune-reschedule-queue ()
   "Return queue that with all indices of fortunes
-in `*good-fortunes*' shuffled in random order.
+in `*fortunes*' shuffled in random order.
 
 Queue is just a list actually."
-  (let ((vect (make-vector (length *good-fortunes*) 0)))
+  (let ((vect (make-vector (length *fortunes*) 0)))
     (loop
       for i below (length vect)
       do (setf (aref vect i) i))
@@ -2003,7 +2003,7 @@ Queue is just a list actually."
   "Return next queued fortune using persistent queue and
 make up new queue if persistent one is empty."
   (let ((fortune-queue (persistent-store-get 'fortunes-fortune-queue)))
-    (prog1 (aref *good-fortunes*
+    (prog1 (aref *fortunes*
                  (if fortune-queue
                    (car fortune-queue)
                    (progn
