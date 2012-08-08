@@ -73,8 +73,6 @@
                 ))
 
 (setq-default frame-background-mode 'light)
-(require 'rainbow-delimiters)
-
 
 (global-auto-revert-mode t)
 
