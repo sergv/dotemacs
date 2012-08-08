@@ -17,28 +17,11 @@
 (require 'lisp-utils)
 (require 'cl)
 
-(defconst *lisp-modes*
-  '(cl-mode common-lisp-mode lisp-mode emacs-lisp-mode scheme-mode)
-  "Modes which are recognized as Lisp.")
-
 (require 'eldoc)
 (require 'paredit)
 (require 'align-let)
 (require 'outline-headers)
-
-;; (dolist (command '(vim:cmd-paste-behind
-;;                    vim:cmd-paste-before
-;;                    vim:cmd-paste-pop
-;;                    vim:cmd-paste-pop-next))
-;;   (eval `(defadvice:indent-after-yank ,command ,*lisp-modes*)))
-;;
-;; (defadvice:indent-after-yank paste-command *lisp-modes*)
-;;
-;; (for-each 'ad-unadvise
-;;           '(vim:cmd-paste-behind
-;;             vim:cmd-paste-before
-;;             vim:cmd-paste-pop
-;;             vim:cmd-paste-pop-next))
+(require 'rainbow-delimiters)
 
 
 (eval-after-load
@@ -121,6 +104,28 @@ If in a comment and if followed by invalid structure, call
        ("C-S-<right>" paredit-backward-barf-sexp)))
 
    (defadvice:auto-comment paredit-newline)))
+
+(eval-after-load
+ 'rainbow-delimiters
+ '(progn
+   ;; added handling of #\(, #\), etc in addition to ?\(, ?\), etc
+   (redefun rainbow-delimiters-char-ineligible-p (loc)
+     "Return t if char at LOC should be skipped, e.g. if inside a comment.
+
+Returns t if char at loc meets one of the following conditions:
+- Inside a string.
+- Inside a comment.
+- Is an escaped char, e.g. ?\)"
+     (let ((parse-state (save-excursion
+                         (beginning-of-defun)
+                         ;; (point) is at beg-of-defun; loc is the char location
+                         (parse-partial-sexp (point) loc))))
+       (or (nth 3 parse-state)                ; inside string?
+           (nth 4 parse-state)                ; inside comment?
+           ;; check for ?\(, ?\), #\(, #\) etc
+           (and (eq? (char-before loc) ?\\)
+                (or (eq (char-before (- loc 1)) ?\?)
+                    (eq (char-before (- loc 1)) ?\#))))))))
 
 (eval-after-load
  'lisp-mode
@@ -465,7 +470,6 @@ if first value is t and nil otherwise."
 (eval-after-load
  "lisp"
  '(progn
-
    ;; once this was and advice, but it's cleaner to redefine this up-list thing
    ;; since backward-up-list uses up-list to achieve it's goal
    ;; only one advice is necessary
