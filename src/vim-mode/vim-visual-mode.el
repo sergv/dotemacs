@@ -506,7 +506,7 @@ This function is also responsible for setting the X-selection."
   (vim:make-motion :has-begin t
                    :begin (region-beginning) ;; (min (point) (mark t))
                    :end (region-end) ;; (max (point) (mark t))
-		   :type 'block))
+                   :type 'block))
 
 
 (defun vim:visual-adjust-region (motion)
