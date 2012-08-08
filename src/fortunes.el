@@ -2,137 +2,8 @@
 (require 'comment-util)
 (require 'persistent-store)
 
-(defvar *good-fortunes*
-  ["γνωθι σεαUτόυ \(Познай себя\)
-- Inscription at Temple of Apollo at Delphi"
-
-   "Everything always takes twice as long and costs four times
-as much as you planned.
-- programmer's axiom"
-
-   "It's never the technical stuff that gets you in trouble.
-It's the personalities and the politics.
-- programmer's sayings"
-
-   "Living with a programmer is easy. All you need is the patience of a saint.
-- programmer's wives' saying"
-
-   "Applications programming is a race between software engineers,
-who strive to produce idiot-proof programs, and the Universe which
-strives to produce bigger idiots.
-- software engineers' saying
-
-   So far, the Universe is winning.
-- applications programmers' saying"
-
-   "Friends come an go, but enemies accumulate.
-- Murphy's Law #1024
-
-   and sometimes the the real trick is telling the difference.
-- Murphy's Law #1024a"
-
-   "Whenever you use a jump, be sure of your destination address.
-- programmer's saying"
-
-   "Always secure your files. You never know who's lurking about.
-- programmer's saying"
-
-   "If you eat a live toad first thing in the morning,
- nothing worse will happen all day long.
-- California saying
-
-   To you or the toad?
-- Niven's restatement of California saying"
-
-   "You never find out the whole story until after you've signed the contract.
-- programmer's saying"
-
-   "A jump gone awry is one of the hardest bugs to locate.
-- programmer's saying"
-
-   "You can't unscramble an egg.
-- old saying"
-
-   "You can if you're powerful enough.
-- the collected sayings of Wiz Zumwalt"
-
-   "Magic is real, unless declared integer.
-- the collected sayings of Wiz Zumwalt"
-
-   "Putting twice as many programmers on a project that is late
-will make it twice as late.
-- Brooks' law of programming projects"
-
-   "Good client relations are the key to a successful project.
-- consultants' saying"
-
-   "At some time in the project you're going to have to break down and
-finally define the problem.
-- programmer's saying"
-
-   "Customer support is an art, not a science.
-- marketing saying
-
-   So are most other forms of torture.
-- programmers' response"
-
-   "1 Thou shalt run lint frequently and study its pronouncements with
-care, for verily its perception and judgement oft exceed thine.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "2 Thou shalt not follow the NULL pointer, for chaos and madness await
-thee at its end.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "3 Thou shalt cast all function arguments to the expected type if they
-are not of that type already, even when thou art convinced that this
-is unnecessary, lest they take cruel vengeance upon thee when thou
-least expect it.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "4 If thy header files fail to declare the return types of thy library
-functions, thou shalt declare them thyself with the most meticulous
-care, lest grievous harm befall thy program.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "5 Thou shalt check the array bounds of all strings (indeed, all
-arrays), for surely where thou typest ``foo'' someone someday shall
-type ``supercalifragilis-ticexpialidocious''.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "6 If a function be advertised to return an error code in the event of
-difficulties, thou shalt check for that code, yea, even though the
-checks triple the size of thy code and produce aches in thy typing
-fingers, for if thou thinkest ``it cannot happen to me'', the gods
-shall surely punish thee for thy arrogance.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "7 Thou shalt study thy libraries and strive not to re-invent them
-without cause, that thy code may be short and readable and thy days
-pleasant and productive.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "8 Thou shalt make thy program's purpose and structure clear to thy
-fellow man by using the One True Brace Style, even if thou likest it
-not, for thy creativity is better used in solving problems than in
-creating beautiful new impediments to understanding.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "9 Thy external identifiers shall be unique in the first six
-characters, though this harsh discipline be irksome and the years of
-its necessity stretch before thee seemingly without end, lest thou
-tear thy hair out and go mad on that fateful day when thou desirest to
-make thy program run on an old system.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "10 Thou shalt foreswear, renounce, and abjure the vile heresy which
-claimeth that ``All the world's a VAX'', and have no commerce with the
-benighted heathens who cling to this barbarous belief, that the days
-of thy program may be long even though the days of thy current machine
-be short.
-- Henry Spencer, The Ten Commandments for C Programmers"
-
-   "I think that it's extraordinarily important that we in computer
+(defvar *perlis-quotes*
+  ["I think that it's extraordinarily important that we in computer
 science keep fun in computing. When it started out, it was an awful
 lot of fun. Of course, the paying customers got shafted every now and
 then, and after a while we began to take their complaints seriously.
@@ -171,16 +42,6 @@ parts of syntax, and regimes of control.
    "This language [LISP] induces humorous arguments among programmers,
 often being damned and praised for the same feature.
 - Alan Perlis"
-
-   "To those accustomed to the precise, structured methods of conventional
-system development, exploratory development techniques may seem messy,
-inelegant, and unsatisfying.  But it's a question of congruence:
-precision and flexibility may be just as disfunctional in novel,
-uncertain situations as sloppiness and vacillation are in familiar,
-well-defined ones.  Those who admire the massive, rigid bone structures
-of dinosaurs should remember that jellyfish still enjoy their very
-secure ecological niche.
--- Beau Sheil, \"Power Tools for Programmers\""
 
    "Programmers should never be satisfied with languages which permit
 them to program everything, but to program nothing of interest easily.
@@ -672,8 +533,181 @@ They are a superb high-level documentation.
 
    "The last epigram? Neither eat nor drink them, snuff epigrams.
 - Alan Perlis, Epigrams on Programming"
+   ]
+  "Quotes and epigrams by Alan J. Perlis")
 
-   "Беду ни праздностью, ни ленью не поправишь.
+(defvar *cl-quotes*
+  [
+   "The problem with Lisp is that it makes you so damned smug.
+- Jesse Bowman"
+
+   "Ah, but CL has a Dark Side, my young padewan, and you must take care
+not to give yourself over to it.
+
+CL's Force is the fact that it is a language-building language.  For any
+application domain, there may be a way of expressing that domain in such
+a way that it becomes natural to solve problems in that domain.  CL
+shows itself most worthy in building those language domains.
+
+But alas, many times a student of CL will become enamoured with his
+own domain, thinking it is the best or only domain and thus his little
+language that he has created is a better language than CL.  Thus starts
+the flirtation with the Dark Side: \"if my little language suits me better
+than just CL, then my little language must be better than CL and I should
+promote it\".
+
+Use the Force, young padewan; feel its power.  But beware the Dark Side;
+many strong Jedi have given themselves over to it...
+- Duane Rettig (on comp.lang.lisp)"
+
+   "...Please don't assume Lisp is only useful for Animation and Graphics,
+AI, Bioinformatics, B2B and E-Commerce, Data Mining, EDA/Semiconductor
+applications, Expert Systems, Finance, Intelligent Agents, Knowledge
+Management, Mechanical CAD, Modeling and Simulation, Natural Language,
+Optimization, Research, Risk Analysis, Scheduling, Telecom, and Web
+Authoring just because these are the only things they happened to
+list.
+- KMP"
+
+   "Did Lisp kill your father or something? Was your father driving along in his
+sports car along the sea cliff road when a pair of giant evil sweaty
+parentheses loomed up out of the rough dark sea and munched him, dragging his
+corpse back to their dark chasm beneath the waves? Will there be an ironic
+twist at the end of the movie when you eventually discover, after finally
+slaying them, that the evil parens from the depths were actually the ones Java
+programmers use to sort out their messy infix expressions?
+- David Golden on comp.lang.lisp"
+
+   "> Lisp is the red pill. -- John Fraser, comp.lang.lisp
+
+You know, the other day I was eating a juicy and delicious steak, and
+it made me think about your .sig.  It's getting close to twenty years
+since I first used Lisp, and some eleven of those years I've used
+ALGOL-style languages.  After nine years, you know what I realize?
+
+Lisp isn't always doing what the Man tells you, fighting unkillable
+bugs, being tired and cold, eating the same goddamn goop everyday...
+
+Lisp is bliss.  No more trying to make sense of C or Perl alphabet
+soup: all I see now is blonde, brunette, redhead.
+
+Lisp isn't the red pill.  It's the blue pill.
+
+Lisp. What a mind-job.
+- Peter Seibel on comp.lang.lisp"
+
+   "\[dan`b\] where do symbols come from?
+well, when a reader and a package love each other very much ..."
+
+   "> Can we quote you on that?
+
+A long time ago, someone in the Lisp industry told me it was poor form
+quote people; it suggests that they lack value.
+- Kent M Pitman <pitman@world.std.com> in comp.lang.lisp"
+
+   "Infrequently Asked Questions about Common Lisp
+
+Q: Is CDR coding useful?
+A: Programs written in CDR coding style may be faster, especially on hardware
+with CDR coding support."
+
+   "LISP has survived for 21 years because it is an approximate local
+optimum in the space of programming languages.
+- John McCarthy (1980)"
+
+   "I'm starting to see why so many Lisp users seem so damn smug.
+- Dave Fayram"
+
+   "Act from reason, and failure makes you rethink and study harder.
+Act from faith, and failure makes you blame someone and push harder."
+   ]
+  "Quotes about Common Lisp")
+
+(defvar *mean-quotes*
+  [
+   "It's never the technical stuff that gets you in trouble.
+It's the personalities and the politics.
+- programmer's sayings"
+
+   "Living with a programmer is easy. All you need is the patience of a saint.
+- programmer's wives' saying"
+
+   "Applications programming is a race between software engineers,
+who strive to produce idiot-proof programs, and the Universe which
+strives to produce bigger idiots.
+- software engineers' saying
+
+   So far, the Universe is winning.
+- applications programmers' saying"
+
+   "Friends come an go, but enemies accumulate.
+- Murphy's Law #1024
+
+   and sometimes the the real trick is telling the difference.
+- Murphy's Law #1024a"
+
+   "Whenever you use a jump, be sure of your destination address.
+- programmer's saying"
+
+   "Always secure your files. You never know who's lurking about.
+- programmer's saying"
+
+   "If you eat a live toad first thing in the morning,
+ nothing worse will happen all day long.
+- California saying
+
+   To you or the toad?
+- Niven's restatement of California saying"
+
+   "You never find out the whole story until after you've signed the contract.
+- programmer's saying"
+
+   "A jump gone awry is one of the hardest bugs to locate.
+- programmer's saying"
+
+   "You can't unscramble an egg.
+- old saying"
+
+   "You can if you're powerful enough.
+- the collected sayings of Wiz Zumwalt"
+
+   "Good client relations are the key to a successful project.
+- consultants' saying"
+
+   "Customer support is an art, not a science.
+- marketing saying
+
+   So are most other forms of torture.
+- programmers' response"
+
+   "TECO Madness: a moment of convenience, a lifetime of regret.
+- Dave Moon
+
+TECO Madness: a moment of regret, a lifetime of convenience.
+- Kent Pitman
+
+Multics Emacs: a lifetime of convenience, a moment of regret."
+
+   "With his power ring PL-1, backed by the mighty resources of the powerful
+H-6880, his faithful sidekick, the Fso Eagle, and his trusted gang: \"The
+System Daemons\", he fights a never-ending battle for truth, security, and
+the Honeywell Way!
+- T. Kenney"
+
+   "Anyway I know how to not be bothered by consing on the fly.
+- Dave Moon"
+
+   "Bawden is misinformed.  Common Lisp has no philosophy.  We are held
+together only by a shared disgust for all the alternatives.
+- Scott Fahlman, explaining why Common Lisp is the way it is...."
+
+   "43% of all statistics are worthless."
+
+   ]
+  "I don't consider these nice or profound or helpful or fun anymore")
+
+(defvar *cervantes-quotes*
+  ["Беду ни праздностью, ни ленью не поправишь.
 - Мигель де Сервантес"
 
    "Богатство — не в самом обладании богатством,
@@ -857,7 +891,92 @@ They are a superb high-level documentation.
 
    "Честность — лучшая политика.
 - Мигель де Сервантес"
+   ])
 
+(defvar *good-fortunes*
+  ["γνωθι σεαUτόυ \(Познай себя\)
+- Inscription at Temple of Apollo at Delphi"
+
+   "Everything always takes twice as long and costs four times
+as much as you planned.
+- programmer's axiom"
+
+   "Magic is real, unless declared integer.
+- the collected sayings of Wiz Zumwalt"
+
+   "To those accustomed to the precise, structured methods of conventional
+system development, exploratory development techniques may seem messy,
+inelegant, and unsatisfying.  But it's a question of congruence:
+precision and flexibility may be just as disfunctional in novel,
+uncertain situations as sloppiness and vacillation are in familiar,
+well-defined ones.  Those who admire the massive, rigid bone structures
+of dinosaurs should remember that jellyfish still enjoy their very
+secure ecological niche.
+-- Beau Sheil, \"Power Tools for Programmers\""
+
+   "Putting twice as many programmers on a project that is late
+will make it twice as late.
+- Brooks' law of programming projects"
+
+   "At some time in the project you're going to have to break down and
+finally define the problem.
+- programmer's saying"
+
+   "1 Thou shalt run lint frequently and study its pronouncements with
+care, for verily its perception and judgement oft exceed thine.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "2 Thou shalt not follow the NULL pointer, for chaos and madness await
+thee at its end.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "3 Thou shalt cast all function arguments to the expected type if they
+are not of that type already, even when thou art convinced that this
+is unnecessary, lest they take cruel vengeance upon thee when thou
+least expect it.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "4 If thy header files fail to declare the return types of thy library
+functions, thou shalt declare them thyself with the most meticulous
+care, lest grievous harm befall thy program.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "5 Thou shalt check the array bounds of all strings (indeed, all
+arrays), for surely where thou typest ``foo'' someone someday shall
+type ``supercalifragilis-ticexpialidocious''.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "6 If a function be advertised to return an error code in the event of
+difficulties, thou shalt check for that code, yea, even though the
+checks triple the size of thy code and produce aches in thy typing
+fingers, for if thou thinkest ``it cannot happen to me'', the gods
+shall surely punish thee for thy arrogance.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "7 Thou shalt study thy libraries and strive not to re-invent them
+without cause, that thy code may be short and readable and thy days
+pleasant and productive.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "8 Thou shalt make thy program's purpose and structure clear to thy
+fellow man by using the One True Brace Style, even if thou likest it
+not, for thy creativity is better used in solving problems than in
+creating beautiful new impediments to understanding.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "9 Thy external identifiers shall be unique in the first six
+characters, though this harsh discipline be irksome and the years of
+its necessity stretch before thee seemingly without end, lest thou
+tear thy hair out and go mad on that fateful day when thou desirest to
+make thy program run on an old system.
+- Henry Spencer, The Ten Commandments for C Programmers"
+
+   "10 Thou shalt foreswear, renounce, and abjure the vile heresy which
+claimeth that ``All the world's a VAX'', and have no commerce with the
+benighted heathens who cling to this barbarous belief, that the days
+of thy program may be long even though the days of thy current machine
+be short.
+- Henry Spencer, The Ten Commandments for C Programmers"
 
 
    "After all is said and done, more is said than done.
@@ -1621,26 +1740,12 @@ question of whether a submarine can swim.
 or 1024 chickens?
 - Seymour Cray"
 
-   "TECO Madness: a moment of convenience, a lifetime of regret.
-- Dave Moon
-
-TECO Madness: a moment of regret, a lifetime of convenience.
-- Kent Pitman
-
-Multics Emacs: a lifetime of convenience, a moment of regret."
-
    "A computer, to print out a fact,
 Will divide, multiply, and subtract.
     But this output can be
     No more than debris,
 If the input was short of exact.
 - Gigo"
-
-   "With his power ring PL-1, backed by the mighty resources of the powerful
-H-6880, his faithful sidekick, the Fso Eagle, and his trusted gang: \"The
-System Daemons\", he fights a never-ending battle for truth, security, and
-the Honeywell Way!
-- T. Kenney"
 
    "/* TWO LEVEL EMPTY DO NEST */
 FUTILE: PROCEDURE OPTIONS(MAIN);
@@ -1652,15 +1757,6 @@ FUTILE: PROCEDURE OPTIONS(MAIN);
 - An Introduction to Programming
   Richard Conway and David Gries"
 
-   "Anyway I know how to not be bothered by consing on the fly.
-- Dave Moon"
-
-   "Bawden is misinformed.  Common Lisp has no philosophy.  We are held
-together only by a shared disgust for all the alternatives.
-- Scott Fahlman, explaining why Common Lisp is the way it is...."
-
-   "43% of all statistics are worthless."
-
    "Nobody can fix the economy.  Nobody can be trusted with their finger on the
 button.  Nobody's perfect.  VOTE FOR NOBODY."
 
@@ -1669,6 +1765,10 @@ There is no REALITY.
 There is no CONSISTANCY.
 There are no absolute statements.
 I'm probably wrong."
+
+   "One of the things every sorcerer will tell you, is that if you have
+the name of a spirit, you have power over it.
+- Gerald Jay Sussman"
 
    "ITEM 163 (Sussman):
 
@@ -1679,9 +1779,6 @@ To exchange two variables in LISP without using a third variable:
    "There's no sense in being precise, when you don't even know what
 you're talking about.
 - John von Neumann"
-
-   "The problem with Lisp is that it makes you so damned smug.
-- Jesse Bowman"
 
    "Programs must be written for people to read, and only incidentally
 for machines to execute.
@@ -1700,86 +1797,6 @@ someone else already knew.
 thinking as you might hope. They just want to get a language done and
 start using it.
 - Dave Moon"
-
-   "Ah, but CL has a Dark Side, my young padewan, and you must take care
-not to give yourself over to it.
-
-CL's Force is the fact that it is a language-building language.  For any
-application domain, there may be a way of expressing that domain in such
-a way that it becomes natural to solve problems in that domain.  CL
-shows itself most worthy in building those language domains.
-
-But alas, many times a student of CL will become enamoured with his
-own domain, thinking it is the best or only domain and thus his little
-language that he has created is a better language than CL.  Thus starts
-the flirtation with the Dark Side: \"if my little language suits me better
-than just CL, then my little language must be better than CL and I should
-promote it\".
-
-Use the Force, young padewan; feel its power.  But beware the Dark Side;
-many strong Jedi have given themselves over to it...
-- Duane Rettig (on comp.lang.lisp)"
-
-   "...Please don't assume Lisp is only useful for Animation and Graphics,
-AI, Bioinformatics, B2B and E-Commerce, Data Mining, EDA/Semiconductor
-applications, Expert Systems, Finance, Intelligent Agents, Knowledge
-Management, Mechanical CAD, Modeling and Simulation, Natural Language,
-Optimization, Research, Risk Analysis, Scheduling, Telecom, and Web
-Authoring just because these are the only things they happened to
-list.
-- KMP"
-
-   "Did Lisp kill your father or something? Was your father driving along in his
-sports car along the sea cliff road when a pair of giant evil sweaty
-parentheses loomed up out of the rough dark sea and munched him, dragging his
-corpse back to their dark chasm beneath the waves? Will there be an ironic
-twist at the end of the movie when you eventually discover, after finally
-slaying them, that the evil parens from the depths were actually the ones Java
-programmers use to sort out their messy infix expressions?
-- David Golden on comp.lang.lisp"
-
-   "> Lisp is the red pill. -- John Fraser, comp.lang.lisp
-
-You know, the other day I was eating a juicy and delicious steak, and
-it made me think about your .sig.  It's getting close to twenty years
-since I first used Lisp, and some eleven of those years I've used
-ALGOL-style languages.  After nine years, you know what I realize?
-
-Lisp isn't always doing what the Man tells you, fighting unkillable
-bugs, being tired and cold, eating the same goddamn goop everyday...
-
-Lisp is bliss.  No more trying to make sense of C or Perl alphabet
-soup: all I see now is blonde, brunette, redhead.
-
-Lisp isn't the red pill.  It's the blue pill.
-
-Lisp. What a mind-job.
-- Peter Seibel on comp.lang.lisp"
-
-   "\[dan`b\] where do symbols come from?
-well, when a reader and a package love each other very much ..."
-
-   "> Can we quote you on that?
-
-A long time ago, someone in the Lisp industry told me it was poor form
-quote people; it suggests that they lack value.
-- Kent M Pitman <pitman@world.std.com> in comp.lang.lisp"
-
-   "Infrequently Asked Questions about Common Lisp
-
-Q: Is CDR coding useful?
-A: Programs written in CDR coding style may be faster, especially on hardware
-with CDR coding support."
-
-   "LISP has survived for 21 years because it is an approximate local optimum in
-the space of programming languages.
-- John McCarthy (1980)"
-
-   "I'm starting to see why so many Lisp users seem so damn smug.
-- Dave Fayram"
-
-   "Act from reason, and failure makes you rethink and study harder.
-Act from faith, and failure makes you blame someone and push harder."
 
    "Man did not weave the web of life;
 he is merely a strand in it.
@@ -1956,6 +1973,9 @@ for came from that piddling around with the wobbling plate.
    ]
   "Good and nice fortunes.")
 
+(defvar *fortunes*
+  (append *perlis-quotes*
+          *good-fortunes*))
 
 (defun fortune (fortune-source)
   "Return random fortune from FORTUNE-SOURCE sequence"
