@@ -127,7 +127,11 @@ i.e. names matching regexp \\*.*\\*."
            (group
             (or "scm-error"
                 "error"
-                "false-if-exception")
+                "false-if-exception"
+                "assert"
+                (seq "assert-"
+                     (+ (or (syntax word)
+                            (syntax symbol)))))
             symbol-end))
       (1 'font-lock-warning-face))
 

@@ -1970,6 +1970,8 @@ for came from that piddling around with the wobbling plate.
                                     Richard Feynman
                                     Surely You're Joking, Mr. Feynman, p 92"
 
+   "Coming back to where you started is not the same as never leaving.
+— Terry Pratchett"
    ]
   "Good and nice fortunes.")
 
