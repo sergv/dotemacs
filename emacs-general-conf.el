@@ -31,7 +31,7 @@
         (magit-status-mode . nil)
         (magit-log-mode . nil)))
 
-
+;;;; modeline
 (setq-default mode-line-format
               '(" %[%b%] "
                 ;; if buffer has assigned file and is modified
@@ -72,6 +72,7 @@
                 ;; global-mode-string
                 ))
 
+;;;; modes without much customization
 (setq-default frame-background-mode 'light)
 
 (global-auto-revert-mode t)
@@ -85,11 +86,12 @@
 (require 'undo-tree)
 (global-undo-tree-mode t)
 
-
-;; minor mode to remember positions in visited files
+;;;; saveplace - minor mode to remember positions in visited files
 (setq save-place-file (path-concat +prog-data-path+ "saveplace"))
 (setq-default save-place t)
 (require 'saveplace)
+
+;;;; bunch of standard customizations
 
 (setq-default indent-tabs-mode nil) ;;never use tabs for indentation
 (setq-default cursor-type 'box) ;'bar)
@@ -136,9 +138,22 @@
                 (when buffer
                   (kill-buffer buffer)))))
 
+;;;; character enconding
+(prefer-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+;; backwards compatibility as default-buffer-file-coding-system
+;; is deprecated in 23.2.
+(if (boundp buffer-file-coding-system)
+    (setq buffer-file-coding-system 'utf-8)
+  (setq default-buffer-file-coding-system 'utf-8))
+
+;; Treat clipboard input as UTF-8 string first; compound text next, etc.
+(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 
-;disable mouse scrolling
+;;;; disable mouse scrolling
 (mouse-wheel-mode -1)
 (global-unset-key (kbd "<mouse-1>"))
 (global-unset-key (kbd "<down-mouse-1>"))
@@ -156,6 +171,7 @@
 (global-unset-key (kbd "<drag-mouse-3>"))
 
 
+;;;; native emacs backup
 (setq make-backup-files   nil
       ;; kept-new-versions   100
       ;; kept-old-versions   100
@@ -164,18 +180,20 @@
       )
 (setq backup-directory-alist nil)
 
-;; nuke trailing whitespaces when writing to a file
-(add-hook 'write-file-hooks #'delete-trailing-whitespace+)
-
-(setq auto-save-list-file-prefix (path-concat +prog-data-path+
-                                              "auto-save-list/.save-"))
-
+;;;; desktops
 (setq desktop-save 'if-exists
       desktop-dirname +prog-data-path+
       desktop-base-file-name "emacs.session"
       desktop-path (list "." +prog-data-path+))
 (desktop-save-mode 1)
 
+;; nuke trailing whitespaces when writing to a file
+(add-hook 'write-file-hooks #'delete-trailing-whitespace+)
+
+(setq auto-save-list-file-prefix (path-concat +prog-data-path+
+                                              "auto-save-list/.save-"))
+
+;;;; color - themes, current line etc
 (global-hl-line-mode t)
 ;; (set-face-background 'hl-line "#000000")  ;330")
 
@@ -206,6 +224,8 @@
 
 (global-font-lock-mode 1)
 
+;;;; fonts
+
 (case +platform+
   ((asus-netbook home-linux)
    (set-frame-font
@@ -233,9 +253,12 @@
         (set-frame-font
          "-unknown-Anonymous Pro-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1"))))))
 
+;;;; key definitions
 
 (require 'keys-def)
 ;; (require 'ediff)
+
+;;;; customizations without dedicated setup file
 (eval-after-load "ediff"
   '(progn
     ;; don't spawn separate ediff frame
@@ -257,7 +280,6 @@
                ("<down>" ediff-next-difference)
                ("<up>"   ediff-previous-difference)))))))
 
-
 (eval-after-load "term" ;; ansi-term et al
                  '(progn
                    (setf ansi-term-color-vector
@@ -265,7 +287,6 @@
                                     "#268bd2" "#d33682" "#2aa198" "#839496"]
                          term-buffer-maximum-size 0 ;; don't truncate anything
                          )))
-
 
 (defadvice scroll-up (around
                       scroll-up-preserve-column
@@ -385,6 +406,8 @@ cache to be re-read."
 
 (eval-after-load "ring" '(require 'ring+))
 
+;;;; aliases
+
 (fset 'yes-or-no-p 'y-or-n-p)
 (defalias 'rm 'delete-file)
 (defalias 'mv 'rename-file-and-buffer)
@@ -399,6 +422,7 @@ cache to be re-read."
 (defalias 'unnarrow 'widen)
 (defalias 'align 'align-regexp)
 
+;;;; Epilogue
 
 ;; Local Variables:
 ;; lexical-binding: t
