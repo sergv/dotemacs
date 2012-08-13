@@ -562,6 +562,7 @@ This command assumes point is not in a string or comment."
                                                   "deftype"
                                                   "defun"
                                                   "defvar"
+                                                  "defconst"
 
                                                   "defadvice"
                                                   "defun*"
@@ -570,7 +571,12 @@ This command assumes point is not in a string or comment."
                                                   ;; don't really use this
                                                   ;; "lambda"
                                                   "define"
-                                                  "defconst")
+                                                  "define*"
+                                                  "define-macro"
+                                                  "define-syntax"
+                                                  "define-method"
+                                                  "define-generic"
+                                                  "define-constant")
                                               symbol-end))))
           (backward-up-list)
           (setf done-up-list t))
