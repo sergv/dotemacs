@@ -29,8 +29,13 @@
    (comment-fill-column nil))
 
   (:indentation
-   (define       (2 &body))
-   (define-macro (2 &body))))
+   (if             (4 4 4))
+   (define         (nil &body))
+   (define-macro   (as define))
+   (define-syntax  (as define))
+   (define-method  (as define))
+   (define-generic (as define))
+   (module         (nil nil 0))))
 
 
 (defconst +scheme-implementations+
@@ -40,8 +45,10 @@
            (when (executable-find "csi") ;; Chicken Scheme
              `(chicken
                (command
-                ;; case-insensitive, no banner, require full numeric tower
-                ,(concat "csi -i -q -R numbers -r5rs-syntax "
+                ;; case-sensitive, no banner,
+                ;; full numeric tower,
+                ;; suffix: keywords:
+                ,(concat "csi -q -R numbers -keyword-style suffix " ;; "-r5rs-syntax "
                          +prog-data-path+
                          "/chicken-init.scm"
                          " -:c "))))
