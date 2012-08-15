@@ -35,7 +35,8 @@
    (define-syntax  (as define))
    (define-method  (as define))
    (define-generic (as define))
-   (module         (nil nil 0))))
+   (module         (nil nil 0))
+   (syntax-rules   (as define))))
 
 
 (defconst +scheme-implementations+
