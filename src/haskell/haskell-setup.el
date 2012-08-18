@@ -47,9 +47,9 @@
 
   (init-common :use-yasnippet t :use-nxhtml-menu nil :use-comment t)
   (autopair-mode)
-
-  (turn-on-haskell-indentation)
-  (setf haskell-indentation-cycle-warn nil)
+  ;; (turn-on-haskell-indentation)
+  ;; (setf haskell-indentation-cycle-warn nil)
+  (turn-on-haskell-simple-indent)
 
   (turn-on-haskell-doc-mode)
   (setf haskell-doc-show-global-types t)
@@ -114,6 +114,13 @@
      ;; ("C-<left>"  paredit-forward-barf-sexp)
      ;; ("M-<up>"    paredit-splice-sexp-killing-backward)
      ))
+
+  (def-keys-for-map2 (vim:normal-mode-local-keymap
+                      vim:insert-mode-local-keymap)
+    ("<tab>"   haskell-simple-indent)
+    ("S-<tab>" haskell-simple-indent-backtab)
+    ("<S-iso-lefttab>" haskell-simple-indent-backtab))
+
 
   (def-keys-for-map2 vim:visual-mode-local-keymap
     ("g a"     nil)
