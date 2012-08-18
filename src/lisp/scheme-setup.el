@@ -36,12 +36,21 @@
    (define-method  (as define))
    (define-generic (as define))
    (module         (nil nil 0))
-   (syntax-rules   (as define))))
+   (syntax-rules   (as define))
+   ;; guile-specific
+   (lambda*        (as lambda))
+   (define*        (as define))))
 
 
 (defconst +scheme-implementations+
   (remove nil
           (list
+           (when (executable-find "guile")
+             `(guile
+               (command
+                ,(concat "guile -l "
+                         +prog-data-path+
+                         "/guile-init.scm"))))
 
            (when (executable-find "csi") ;; Chicken Scheme
              `(chicken
@@ -64,13 +73,6 @@
            (when (executable-find "scheme48")
              `(scheme48
                (command "scheme48")))
-
-           (when (executable-find "guile")
-             `(guile
-               (command
-                ,(concat "guile -l "
-                         +prog-data-path+
-                         "/guile-init.scm"))))
 
            ;; gauche
            (when (executable-find "gosh")
@@ -115,7 +117,16 @@
                    ,(concat "gsi"
                             command-args))))
                (else
-                nil)))))
+                nil)))
+
+           (when (executable-find "racket")
+             `(racket
+               (command
+                ,(mapconcat
+                  'identity
+                  (list "racket"
+                        "--repl")
+                  " "))))))
   "List of scheme implementation records providing name, command to run etc")
 
 

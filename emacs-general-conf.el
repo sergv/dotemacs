@@ -421,6 +421,7 @@ cache to be re-read."
 (defalias 'openo 'find-file-other-window)
 (defalias 'unnarrow 'widen)
 (defalias 'align 'align-regexp)
+(defalias 'toggle-wrap-lines 'toggle-truncate-lines)
 
 ;;;; Epilogue
 
