@@ -1185,8 +1185,10 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 
 (defun input-unicode ()
   (interactive)
-  (let ((symbs (mapcar 'char->string (extract-unicode))))
-    (insert (completing-read-vanilla "> " symbs))))
+  (let* ((symbs (mapcar 'char->string (extract-unicode)))
+         (symb (completing-read-vanilla "> " symbs)))
+    (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
+    (insert symb)))
 
 
 ;;;;
