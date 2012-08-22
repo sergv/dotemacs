@@ -270,7 +270,7 @@ confuse when point is not at the beginning of line"
          0)))
 
 (defsubst backward-line (count)
-  "Call `forward-line' in another direction"
+  "Call `forward-line' in the opposite direction"
   (forward-line (- count)))
 
 
