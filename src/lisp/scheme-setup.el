@@ -236,7 +236,6 @@
         (error "no information")))))
 
 
-
 (defun scheme-setup ()
   (lisp-setup)
   (scheme-highlight)
@@ -249,6 +248,22 @@
 
   (set (make-local-variable 'lisp-indent-function)
        #'common-lisp-indent-function)
+  ;; Fix this to recognize scheme keywords as well
+  (set (make-local-variable 'lisp-indent-lambda-list-keywords-regexp)
+       (rx (or "&"
+               "#:"
+               ":"
+               "#!")
+           (or "optional"
+               "rest"
+               "key"
+               "allow-other-keys"
+               "aux"
+               "whole"
+               "body"
+               "environment"
+               "more")
+           symbol-end))
 
   (def-keys-for-map1 vim:normal-mode-local-keymap
     '((", e"     scheme-send-last-sexp)
