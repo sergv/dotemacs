@@ -10,6 +10,7 @@ range [BEGIN, lines - END) if, of course, there's enough lines.
 DIRECTION may have value either 'forward or 'backward"
   (setq forward-func (or forward-func '#'forward-line))
   (setq backward-func (or backward-func '#'backward-line))
+  (assert (memq direction '(forward backward)))
   `(lambda (count)
      (let* ((lines-in-buf (count-lines1 (point-min) (point-max)))
             (range-end (- lines-in-buf ,end))

@@ -28,7 +28,14 @@
    (comment-fill-column nil))
 
   (:indentation
-   (define (2 &body))))
+   (if             (4 4 4))
+   (define         (nil &body))
+   (define-macro   (as define))
+   (define-syntax  (as define))
+   (define-method  (as define))
+   (define-generic (as define))
+   (module         (nil nil 0))
+   (syntax-rules   (as define))))
 
 
 (require 'scheme-complete)
@@ -55,7 +62,6 @@
     ("J"       slime-pprint-eval-last-expression)
 
     ("SPC SPC" switch-to-slime)
-    ("'"       slime-selector)
     ("S"       slime-selector)
 
     ("M-."     slime-edit-definition)

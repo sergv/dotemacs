@@ -824,6 +824,7 @@ This determines whether to insert a space after the # sign."
 
     ("g <tab>"  paredit-reindent-defun)
     ("M-p"      browse-kill-ring)
+    ("'"        input-unicode)
 
     ("g s"      paredit-split-sexp)
     ("g j"      paredit-join-sexps)
@@ -844,6 +845,7 @@ This determines whether to insert a space after the # sign."
     ("g c u"    comment-util-uncomment-region-simple))
 
   (def-keys-for-map2 vim:insert-mode-local-keymap
+    ("C-'"      input-unicode)
     ("<return>" paredit-newline))
 
   (def-keys-for-map2 (vim:normal-mode-local-keymap
