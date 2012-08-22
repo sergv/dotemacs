@@ -763,7 +763,7 @@ the offset and the new position."
         (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read-vanilla ":" ;;'vim:ex-complete
+      (let ((result (completing-read-vanilla ">" ;;'vim:ex-complete
                                              (mapcar #'car vim:ex-commands)
                                              nil
                                              nil

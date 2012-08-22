@@ -242,6 +242,30 @@ Basically swap current point with previous one."
 
 
 
+;;;; apply given ex command to all ibuffer-selected buffers
+
+(vim:defcmd vim:apply-to-selected-buffers
+    ((argument:text command) nonrepeatable)
+  (if (eq? major-mode 'ibuffer-mode)
+    (let ((selected-bufs (ibuffer-get-marked-buffers)))
+      (for-each
+       (lambda (buf)
+         (let ((window (or (get-buffer-window buf)
+                           (selected-window))))
+           (with-current-buffer buf
+             (with-selected-window window
+               ;; adapted from vim:ex-read-command
+               (let ((vim:ex-current-buffer buf)
+                     (vim:ex-current-window window)
+                     (cmd (trim-whitespaces-left command)))
+                 (if (and cmd
+                          (not (zero? (length cmd))))
+                   (vim:ex-execute-command cmd)
+                   (error "invalid command \"%s\"" cmd)))))))
+       selected-bufs))
+    (error "command works in ibuffer-mode only")))
+
+(vim:emap "in-bufs" 'vim:apply-to-selected-buffers)
 
 ;; Local Variables:
 ;; lexical-binding: t

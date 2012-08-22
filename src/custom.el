@@ -282,6 +282,20 @@ confuse when point is not at the beginning of line"
       (let ((s (if (symbolp str) (symbol-name str) str)))
         (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
 
+(defun trim-whitespaces-left (str)
+  "Trim leading whitespace from STR."
+  (when str
+    (save-match-data
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "^[[:space:]\n]*" "" s)))))
+
+(defun trim-whitespaces-right (str)
+  "Trim tailing whitespace from STR."
+  (when str
+    (save-match-data
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "[[:space:]\n]*$" "" s)))))
+
 
 (defsubst goto-line1 (line)
   "Set point at the beginning of line LINE counting from line 1 at
