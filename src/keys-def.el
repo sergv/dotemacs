@@ -42,6 +42,7 @@
     ("g C" remember-win-config-store-configuration)
     ("g x" smex)
     ("g X" smex-major-mode-commands)
+    ("M-x" smex-nohist)
     ("g f" find-file)
     ("g <" vim-mock:motion-go-to-first-non-blank-beg)
     ("g >" vim-mock:motion-go-to-first-non-blank-end)
