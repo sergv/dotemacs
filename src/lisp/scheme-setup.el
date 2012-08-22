@@ -9,7 +9,7 @@
 ;; Status:
 
 (require 'general-lisp-setup)
-(require 'slime-setup)
+(require 'slime-setup) ;; for indentation
 (require 'scheme-highlight)
 (require 'scheme-abbrev+)
 (require 'comint-setup)

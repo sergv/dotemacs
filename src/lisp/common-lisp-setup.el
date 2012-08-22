@@ -57,7 +57,6 @@
     ("J"       slime-pprint-eval-last-expression)
 
     ("SPC SPC" switch-to-slime)
-    ("'"       slime-selector)
     ("S"       slime-selector)
 
     ("M-."     slime-edit-definition)

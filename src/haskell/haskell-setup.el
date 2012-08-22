@@ -100,6 +100,7 @@
      (", y"     haskell-hayoo-at-point)
      (", c"     ghc-core-create-core)
 
+     ("'"        input-unicode)
      ;; check these out
      ;; (", f"     find-tag)
      ;; (", a"     tags-apropos)
@@ -132,10 +133,12 @@
     ("g a - -" haskell-align-on-comments)
     ("g a : :" haskell-align-on-double-colons))
 
-  ;; (def-keys-for-map2 vim:insert-mode-local-keymap
-  ;;   ("C-<right>" paredit-forward-slurp-sexp)
-  ;;   ("C-<left>"  paredit-forward-barf-sexp)
-  ;;   ("M-<up>"    paredit-splice-sexp-killing-backward))
+  (def-keys-for-map2 vim:insert-mode-local-keymap
+    ("C-'"       input-unicode)
+    ;; ("C-<right>" paredit-forward-slurp-sexp)
+    ;; ("C-<left>"  paredit-forward-barf-sexp)
+    ;; ("M-<up>"    paredit-splice-sexp-killing-backward)
+    )
 
   (haskell-setup-folding)
   (haskell-abbrev+-setup)
@@ -146,10 +149,9 @@
   ;; declaration scanning
   (imenu-add-menubar-index)
 
-  ;; (setup-outline-headers :header-symbol "-"
-  ;;                        :length-min 4
-  ;;                        :length-max 9)
-  )
+  (setup-outline-headers :header-symbol "-"
+                         :length-min 4
+                         :length-max 9))
 
 ;;;; set up inferior-haskell-mode
 

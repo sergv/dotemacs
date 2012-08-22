@@ -168,27 +168,27 @@ lines."
 
 ;;;###autoload
 (define-derived-mode gnuplot-mode nil "Gnuplot"
-                     "Major mode for editing gnuplot files"
-                     :syntax-table gnuplot-mode-syntax-table
-                     (define-key gnuplot-mode-map (kbd "<f9>") #'gnuplot-run)
+  "Major mode for editing gnuplot files"
+  :syntax-table gnuplot-mode-syntax-table
+  (define-key gnuplot-mode-map (kbd "<f9>") #'gnuplot-run)
 
-                     (set (make-local-variable 'comment-start) "# ")
-                     (set (make-local-variable 'comment-end) "")
-                     (set (make-local-variable 'comment-column) 32)
-                     (set (make-local-variable 'comment-start-skip) "#[ \t]*")
-                     (set (make-local-variable 'indent-line-function) 'gnuplot-indent-line)
+  (set (make-local-variable 'comment-start) "# ")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-column) 32)
+  (set (make-local-variable 'comment-start-skip) "#[ \t]*")
+  (set (make-local-variable 'indent-line-function) 'gnuplot-indent-line)
 
-                     (turn-on-font-lock)
+  (turn-on-font-lock)
 
-                     (set (make-local-variable 'font-lock-defaults)
-                          '(gnuplot-font-lock-keywords t t))
+  (set (make-local-variable 'font-lock-defaults)
+       '(gnuplot-font-lock-keywords t t))
 
-                     (set (make-local-variable 'compile-command)
-                          (if-buffer-has-file
-                              (concat gnuplot-program
-                                      " "
-                                      (shell-quote-argument
-                                       (buffer-file-name))))))
+  (set (make-local-variable 'compile-command)
+       (if-buffer-has-file
+        (concat gnuplot-program
+                " "
+                (shell-quote-argument
+                 (buffer-file-name))))))
 
 
 (provide 'gnuplot)

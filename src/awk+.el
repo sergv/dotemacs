@@ -61,7 +61,7 @@ in buffer from where `awk' was invoked.")
 
 (defun awk-on-region (begin end)
   "Initialize awk+ on selected region."
-  (setq awk-original-input          (buffer-substring-no-properties begin end)
+  (setq awk-original-input (buffer-substring-no-properties begin end)
         awk-window-config  (current-window-configuration)
         awk-output-begin   (copy-marker begin)
         awk-output-end-pos end

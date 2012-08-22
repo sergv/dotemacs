@@ -20,8 +20,12 @@
 (defun string->char (str)
   (string-to-char str))
 
+
 (defun string->list (str)
   (coerce str 'list))
+
+(defun list->string (items)
+  (coerce items 'string))
 
 (defmacro begin (&rest body)
   `(progn ,@body))
