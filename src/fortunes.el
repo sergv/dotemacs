@@ -1996,7 +1996,7 @@ Queue is just a list actually."
     (loop
       for i below (length vect)
       do (setf (aref vect i) i))
-    (random-shuffle vect (make-tausworthe-random-generator))
+    (random-shuffle vect *tausworthe-random-gen*)
     (loop
       for i across vect
       collect (aref vect i))))
