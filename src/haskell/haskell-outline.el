@@ -92,7 +92,6 @@
   ;;(hide-body)
 
   (def-keys-for-map2 vim:normal-mode-local-keymap
-    ("' b"     outline-up-heading)
     ("z C"     haskell-hide-all)
     ("z c"     hide-subtree)
     ("z O"     show-all)
