@@ -46,6 +46,7 @@ currently defined ex commands. Should be updated with
         (remap-interval a b begin end seed))))
 
 
+;; yeilds values in range [0..1)
 (defun make-tausworthe-random-gen (seed1 seed2 seed3)
   (let ((2-to-32 (expt 2 32)))
     (let ((tausworthe
@@ -58,7 +59,7 @@ currently defined ex commands. Should be updated with
           (a seed1)
           (b seed2)
           (c seed3))
-      #'(lambda (start end)
+      #'(lambda ()
           (setf a (funcall tausworthe
                            a
                            13
@@ -77,16 +78,7 @@ currently defined ex commands. Should be updated with
                            11
                            4294967280
                            17))
-          ;; (remap-interval 0
-          ;;                 (1- 2-to-32)
-          ;;                 0
-          ;;                 1
-          ;;                 (logxor a b c))
-          (round (remap-interval 0
-                                 (1- 2-to-32)
-                                 start
-                                 end
-                                 (logxor a b c)))))))
+          (/ (logxor a b c) (float 2-to-32))))))
 
 (defun make-tausworthe-random-generator ()
   "Return tausworthe random generator obtained
@@ -100,6 +92,10 @@ current time and"
        (+ (emacs-pid) 8)
        (+ (max c microsec) 16)))))
 
+(setf *tausworthe-random-gen* (make-tausworthe-random-generator))
+
+(defvar *tausworthe-random-gen* (make-tausworthe-random-generator)
+  "Global random generator")
 
 (defun random-shuffle (vect random-gen)
   "Randoly shuffle vector VECT inplace with supply
@@ -107,10 +103,33 @@ of random numbers from RANDOM-GEN."
   (typep vect 'vector)
   (loop
     for i downfrom (1- (length vect)) to 1
-    for j = (funcall random-gen 0 i)
+    ;; may yield i
+    for j = (round (* i (funcall random-gen)))
     do (psetf (aref vect i) (aref vect j)
               (aref vect j) (aref vect i)))
   vect)
+
+(defun shuffle-lines (begin end)
+  (interactive "r")
+  (save-excursion
+   (goto-char begin)
+   (setf begin (line-beginning-position))
+   (goto-char end)
+   (setf end (line-end-position))
+   (let ((lines (list->vector
+                 (split-string (buffer-substring-no-properties begin end)
+                               "\n"
+                               t))))
+
+     (delete-region begin end)
+     (when (= (char-after) ?\n)
+       (delete-char 1))
+     (random-shuffle lines *tausworthe-random-gen*)
+     (goto-char begin)
+     (loop
+       for line across lines
+       do  (insert line)
+           (insert "\n")))))
 
 
 (defun strip-trailing-slash (path)

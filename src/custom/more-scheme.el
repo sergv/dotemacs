@@ -27,6 +27,13 @@
 (defun list->string (items)
   (coerce items 'string))
 
+(defun vector->vector (str)
+  (coerce str 'list))
+
+(defun list->vector (items)
+  (coerce items 'vector))
+
+
 (defmacro begin (&rest body)
   `(progn ,@body))
 
