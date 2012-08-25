@@ -52,7 +52,12 @@ won't be confused by the same filename used for different images.")
                    ",leqno"
                    ""))
          "\\usepackage{amsmath}\n"
+         "\\usepackage{amssymb}\n"
          "\\usepackage{color}\n"
+         "\\renewcommand{\\emptyset}{\\varnothing}\n"
+         "\\newcommand{\\union}{\\cup}\n"
+         "\\newcommand{\\intersect}{\\cap}\n"
+         "\\newcommand{\\intersection}{\\cap}\n"
          "\\begin{document}\n"
          (apply 'format "\\pagecolor[rgb]{%f,%f,%f}\n"
                 bg-color)
