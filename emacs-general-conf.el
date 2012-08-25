@@ -29,7 +29,8 @@
         (doc-view-mode . nil)
         (browse-kill-ring-mode . nil)
         (magit-status-mode . nil)
-        (magit-log-mode . nil)))
+        (magit-log-mode . nil)
+        (magit-key-mode . nil)))
 
 ;;;; modeline
 (setq-default mode-line-format
