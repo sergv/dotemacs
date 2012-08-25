@@ -1182,12 +1182,7 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
     `(let ((,store buffer-undo-list)
            ;; this disables further undo recording
            (buffer-undo-list t))
-       ,@body
-       ;; (unwind-protect
-       ;;      (begin
-       ;;        ,@body)
-       ;;   (setf buffer-undo-list ,store))
-       )))
+       ,@body)))
 
 (defmacro with-preserved-buffer-modified-p (&rest body)
   "Execute BODY and restore `buffer-modified-p' flag after its done."

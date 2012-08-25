@@ -66,9 +66,11 @@ won't be confused by the same filename used for different images.")
          (concat (format "\\begin{%s}\n" font-size)
                  (apply 'format "\\color[rgb]{%f,%f,%f}\n"
                         fg-color)
-                 "\\begin{math}\\displaystyle\n"
-                 str
-                 "\\end{math}\n"
+                 (if (string-match-pure? "^\\\\begin{[^{}\n]+}" str)
+                   str
+                   (concat "\\begin{math}\\displaystyle\n"
+                           str
+                           "\\end{math}\n"))
                  (format "\\end{%s}\n" font-size))
 
          "\\end{document}\n")
@@ -156,7 +158,7 @@ displayed as images.")
             (add-text-properties
              (match-beginning 0)
              (match-end 0)
-             (list 'display (render-formula s)
+             (list 'display (render-formula (trim-whitespaces s))
                    'render-formula t
                    'intangible t
                    'read-only "Disable latex images first")))
