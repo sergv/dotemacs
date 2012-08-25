@@ -20,6 +20,9 @@
 
 (defconst +slime-path+ (concat +emacs-standalone-path+ "/slime" ;;"-2012-01-15"
                                ))
+(defconst +tmp-path+ (concat +prog-data-path+ "/tmp")
+  "Path to temporary directory, contents of which may be removed on
+system restars.")
 
 
 (require 'cl)
@@ -201,6 +204,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "maxima-setup")
 (load-library "d-mode-setup")
 (load-library "yaml-mode-setup")
+(load-library "doc-view-setup")
 
 (load-library "icicles-setup")
 (load-library "compilation-setup")
