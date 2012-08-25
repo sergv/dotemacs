@@ -32,6 +32,7 @@
                     ring-empty-p
                     random-state-p
                     processp
+                    bufferp
 
                     file-existp
                     file-executable-p

@@ -6,6 +6,7 @@
 ;; Created: Tuesday, 10 July 2012
 ;; Description:
 
+(require 'cl)
 (require 'custom-predicates)
 
 (defun string->symbol (str)
@@ -34,6 +35,9 @@
   (coerce items 'vector))
 
 
+(defun char=? (a b)
+  (char-equal a b))
+
 (defmacro begin (&rest body)
   `(progn ,@body))
 
@@ -42,6 +46,13 @@
 (defun for-each (func items)
   (dolist (item items)
     (funcall func item)))
+
+
+(defun any? (pred items)
+  (funcall #'some pred items))
+
+(defun all? (pred items)
+  (funcall #'every pred items))
 
 (provide 'more-scheme)
 

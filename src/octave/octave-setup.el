@@ -356,7 +356,7 @@ in GROUP-NUMS."
 ;;;;
 
 (defun octave-setup ()
-  (init-common :use-yasnippet t)
+  (init-common :use-yasnippet t :use-render-formula t)
   (autopair-mode)
   (hs-minor-mode 1)
 

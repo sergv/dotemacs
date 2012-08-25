@@ -183,7 +183,8 @@
 
 (defun python-setup ()
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
-  (init-common :use-yasnippet t)
+  (init-common :use-yasnippet t
+               :use-render-formula t)
   (setf highlight-indentation nil)
 
   ;; make ' a string delimiter

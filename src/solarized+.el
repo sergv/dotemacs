@@ -414,6 +414,7 @@ Futher modified by Sergey Vinokurov."
        (quack-threesemi-semi-face            ((t (:foreground ,base1))))
        (quack-threesemi-text-face            ((t (:foreground ,base1))))
        (query-replace                        ((t (:background ,light-pink-background))))
+       (render-formula-formula-face          ((t (:foreground ,violet))))
        (rng-error                            ((t (:inherit error))))
        (sh-heredoc                           ((t (:foreground ,cyan))))
        (sh-quoted-exec                       ((t (:foreground ,magenta))))

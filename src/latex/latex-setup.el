@@ -34,12 +34,9 @@
 (defun latex-toggle-preview ()
   "Toggle preview in current buffer."
   (if latex:preview
-      (progn
-        (setq latex:preview nil)
-        (preview-clearout-buffer))
-      (progn
-        (setq latex:preview t)
-        (preview-buffer))))
+    (preview-clearout-buffer)
+    (preview-buffer))
+  (setq latex:preview (not latex:preview)))
 
 
 (defvar-loc latex:russian-spellcheck nil
