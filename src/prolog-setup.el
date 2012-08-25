@@ -21,7 +21,7 @@
 
 
 (defun prolog-setup ()
-  (init-common :use-yasnippet nil)
+  (init-common :use-yasnippet nil :use-render-formula t)
   (autopair-mode)
 
   (setf ;; vim:insert-mode-local-keymap (make-keymap)

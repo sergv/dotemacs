@@ -27,7 +27,7 @@
                        :put-align-spaces-after-str t)
 
   (defun maxima-setup ()
-    (init-common :use-yasnippet nil)
+    (init-common :use-yasnippet nil :use-render-formula t)
     (autopair-mode)
 
     (setf vim:normal-mode-local-keymap (make-keymap)

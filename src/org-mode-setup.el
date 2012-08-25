@@ -217,7 +217,7 @@ which enable the original code blocks to be found."
   (org-toggle-pretty-entities))
 
 (defun org-mode-setup ()
-  (init-common :use-yasnippet t)
+  (init-common :use-yasnippet t :use-render-formula t)
   (set (make-local-variable 'yas/fallback-behavior)
        '(apply org-cycle '()))
 

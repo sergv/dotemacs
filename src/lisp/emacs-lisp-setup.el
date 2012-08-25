@@ -20,6 +20,7 @@
   (:inherit "my-style")
 
   (:indentation
+   (aif (as if))
    (condition-case (4 4 &body))
    (def-keys-for-map1 (&body))
    (def-keys-for-map2 (&body))
@@ -39,7 +40,10 @@
    (defstruct* (as defstruct))
    (sexpy-define-pattern-fontifier (4 &rest 1))
    (with-current-frame (as with-current-buffer))
-   (with-disabled-undo (&body))))
+   (with-disabled-undo (1))
+   (with-preserved-buffer-modified-p (1))
+   (with-inhibited-modification-hooks (1))
+   (with-inhibited-readonly (1))))
 
 
 

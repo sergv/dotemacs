@@ -12,7 +12,7 @@
 (add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
 
 (defun yaml-setup ()
-  (init-common))
+  (init-common :use-render-formula t))
 
 (add-hook 'yaml-mode-hook #'yaml-setup)
 

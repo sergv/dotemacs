@@ -45,7 +45,10 @@
   (set (make-local-variable 'yas/indent-line) 'fixed)
   (modify-syntax-entry ?\` "\"")
 
-  (init-common :use-yasnippet t :use-nxhtml-menu nil :use-comment t)
+  (init-common :use-yasnippet t
+               :use-nxhtml-menu nil
+               :use-comment t
+               :use-render-formula t)
   (autopair-mode)
   ;; (turn-on-haskell-indentation)
   ;; (setf haskell-indentation-cycle-warn nil)

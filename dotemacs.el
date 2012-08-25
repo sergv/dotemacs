@@ -147,10 +147,11 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (defun* init-common (&key (use-yasnippet t)
                           (use-nxhtml-menu nil)
                           (use-comment t)
-                          (use-whitespace t))
-  (linum-mode t)
+                          (use-whitespace t)
+                          (use-render-formula nil))
+  (linum-mode 1)
   (when use-comment
-    (comment-util-mode t))
+    (comment-util-mode 1))
 
   ;; (autopair-mode)
   ;; (set-buffer-file-coding-system 'utf-8-unix)
@@ -170,7 +171,10 @@ By default, version-control specific directories are omitted, e.g. .git etc."
      (if (member major-mode
                  *do-not-track-long-lines-modes*)
        -1
-       +1))))
+       +1)))
+
+  (when use-render-formula
+    (render-formula-mode 1)))
 
 (defun* init-repl (&key (show-directory nil))
   (use-repl-modeline)
@@ -226,15 +230,9 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "tabbar-buffer-groups")
 (load-library "visit-files")
 (load-library "hideshow-setup")
+(load-library "render-formula")
 
-(load-library "tabbar")
-(tabbar-mode t)
-
-(defun tabbar-dont-show ()
-  "Returns t whenever tabbar should not be showed."
-  nil
-  ;; (memq major-mode '(eshell-mode shell-mode compilation-mode))
-  )
+(load-library "tabbar-setup")
 
 
 
@@ -243,7 +241,6 @@ By default, version-control specific directories are omitted, e.g. .git etc."
           "MC-like two-pane commander."
           t)
 
-(require 'browse-kill-ring-setup)
 
 ;; load keys after everything to ensure that all is bound as expected
 (load-library "keys")

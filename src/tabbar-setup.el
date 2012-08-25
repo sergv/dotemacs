@@ -1,13 +1,15 @@
-;; tabbar-buffer-groups.el ---
+;; tabbar-setup.el ---
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
-;; Created: Friday, 27 April 2012
+;; Created: Saturday, 25 August 2012
 ;; Description:
 
+(require 'common)
 (require 'more-scheme)
 (require 'buffer-groups)
+(require 'tabbar)
 
 (defun tabbar-buffer-groups+ (buffer)
   "Return the list of group names BUFFER belongs to.
@@ -16,6 +18,8 @@ Return only one group for each buffer."
     (cond ((eq? major-mode 'slime-repl-mode)
            '("lisp" "slime"))
           ;; "interpret" +buffer-groups+
+          ((invisible-buffer? buffer)
+           '("#invisible#"))
           (else
            (let ((bufname (buffer-name)))
              (labels
@@ -45,11 +49,21 @@ Return only one group for each buffer."
                         (find-group (cdr groups)))))))
                (find-group +buffer-groups+)))))))
 
+(defun tabbar-buffer-list+ ()
+  (filter (lambda (buf)
+            (and (or (not (null? (buffer-file-name buf)))
+                     (not (char=? ?\s (aref (buffer-name buf) 0))))
+                 (not (invisible-buffer? buf))))
+          (buffer-list)))
 
-(provide 'tabbar-buffer-groups)
+(setf tabbar-buffer-groups-function 'tabbar-buffer-groups+
+      tabbar-buffer-list-function 'tabbar-buffer-list+)
+(tabbar-mode t)
+
+(provide 'tabbar-setup)
 
 ;; Local Variables:
 ;; lexical-binding: t
 ;; End:
 
-;; tabbar-buffer-groups.el ends here
+;; tabbar-setup.el ends here

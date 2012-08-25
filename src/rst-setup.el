@@ -9,7 +9,7 @@
 ;; Status:
 
 (defun rst-setup ()
-  (init-common))
+  (init-common :use-render-formula t))
 
 (add-hook 'rst-mode-hook #'rst-setup)
 
