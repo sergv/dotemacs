@@ -73,8 +73,9 @@ Contains single-line and region comments.")
     "Minor mode to handle comments in various languages"
   nil
   nil
-  nil ;no keymap to not confuse viper mode
+  nil ;; no keymap
   :group util
+  :global nil
   (unless *comment-util-current-format*
     (let* ((cformat-list (assoc major-mode +comment-util-comment-format-alist+))
            (one-line     (cadr (assoc 'one-line     cformat-list)))

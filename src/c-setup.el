@@ -61,7 +61,7 @@
 
 
 (defun c-setup ()
-  (init-common)
+  (init-common :use-render-formula t)
   (autopair-mode 1)
 
   (hs-minor-mode 1)

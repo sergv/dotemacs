@@ -92,8 +92,6 @@ current time and"
        (+ (emacs-pid) 8)
        (+ (max c microsec) 16)))))
 
-(setf *tausworthe-random-gen* (make-tausworthe-random-generator))
-
 (defvar *tausworthe-random-gen* (make-tausworthe-random-generator)
   "Global random generator")
 
@@ -1182,9 +1180,29 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 (defmacro with-disabled-undo (&rest body)
   `(begin
      (buffer-disable-undo)
-     (begin
-       ,@body)
-     (buffer-enable-undo)))
+     (unwind-protect
+          (begin
+            ,@body)
+       (buffer-enable-undo))))
+
+(defmacro with-preserved-buffer-modified-p (&rest body)
+  "Execute BODY and restore `buffer-modified-p' flag after its done."
+  (let ((store (gensym)))
+    `(let ((,store (buffer-modified-p)))
+       (unwind-protect
+            (begin
+              ,@body)
+         (set-buffer-modified-p ,store)))))
+
+(defmacro with-inhibited-modification-hooks (&rest body)
+  "Execute BODY and restore `inhibit-modification-hooks' after its done."
+  `(let ((inhibit-modification-hooks t))
+     ,@body))
+
+(defmacro with-inhibited-readonly (&rest body)
+  `(let ((inhibit-read-only t))
+     ,@body))
+
 
 ;;;;
 
@@ -1208,6 +1226,43 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
          (symb (completing-read-vanilla "> " symbs)))
     (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
     (insert symb)))
+
+;;;;
+
+(defmacro aif (condition if-branch &optional else-branch)
+  "Anaphoric if, binds evaluated condition to variable it."
+  `(let ((it ,condition))
+     (if it
+       ,if-branch
+       ,else-branch)))
+
+;;;;
+
+(defvar *invisible-buffers* '()
+  "List of buffer name regexps than should not be visible in e.g. ibuffer,
+tabbar, etc")
+
+(defun add-invisible-buffer (buf-re)
+  (assert (string? buf-re))
+  (add-to-list '*invisible-buffers* buf-re))
+
+(defun invisible-buffer? (buf)
+  "Returns t if buffer BUF should be regarded as invisible, see also
+`*invisible-buffers*'."
+  (cond ((string? buf)
+         (any? (lambda (re)
+                 (string-match-pure? re buf))
+               *invisible-buffers*))
+        ((buffer? buf)
+         (any? (lambda (re)
+                 (string-match-pure? re (buffer-name buf)))
+               *invisible-buffers*))
+        (else
+         (error "wrong argument type - not a string nor a buffer: %s"
+                buf))))
+
+(add-invisible-buffer "^\\*Completions\\*$")
+(add-invisible-buffer "^#.+#$")
 
 
 ;;;;

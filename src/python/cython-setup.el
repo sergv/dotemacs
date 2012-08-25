@@ -16,7 +16,8 @@
 (add-to-list 'auto-mode-alist '("\\.pxi\\'" . cython-mode))
 
 (defun cython-setup ()
-  (init-common :use-yasnippet t)
+  (init-common :use-yasnippet t
+               :use-render-formula t)
 
   ;; make ' a string delimiter
   (modify-syntax-entry ?' "\"")

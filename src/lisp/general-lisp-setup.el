@@ -747,7 +747,9 @@ This determines whether to insert a space after the # sign."
 ;;;; Actual setup functions
 
 (defun* lisp-setup (&key (use-whitespace t))
-  (init-common :use-yasnippet nil :use-whitespace use-whitespace)
+  (init-common :use-yasnippet nil
+               :use-whitespace use-whitespace
+               :use-render-formula t)
   ;; (autopair-mode) ;; don't need for lisp but useful for elisp
   (rainbow-delimiters-mode 1)
   (hs-minor-mode 1)

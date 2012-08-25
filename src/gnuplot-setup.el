@@ -18,8 +18,8 @@
                               auto-mode-alist))
 
 (defun gnuplot-setup ()
-  (init-common)
-  (autopair-mode))
+  (init-common :use-render-formula t)
+  (autopair-mode 1))
 
 (add-hook 'gnuplot-mode-hook #'gnuplot-setup)
 

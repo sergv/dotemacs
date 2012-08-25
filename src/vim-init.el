@@ -267,6 +267,18 @@ Basically swap current point with previous one."
 
 (vim:emap "in-bufs" 'vim:apply-to-selected-buffers)
 
+
+(autoload 'render-buffer "render-formula" "" t)
+
+(vim:defcmd vim:render-latex (nonrepeatable)
+  (if (memq major-mode '(latex-mode tex-mode LaTeX-mode))
+    (latex-toggle-preview)
+    (render-buffer)))
+
+(vim:emap "latex" 'vim:render-latex)
+
+;; $$ A x = f $$
+
 ;; Local Variables:
 ;; lexical-binding: t
 ;; End:

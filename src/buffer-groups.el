@@ -12,11 +12,10 @@
   (symbol-macrolet
       ((lisp-filter `(or (predicate
                           .
-                          (and (member* major-mode
-                                        '(cl-mode
-                                          lisp-mode
-                                          common-lisp-mode)
-                                        :test #'eq)
+                          (and (memq major-mode
+                                     '(cl-mode
+                                       lisp-mode
+                                       common-lisp-mode))
                                (not (string-match-pure? "^\\*.+\\*$"
                                                         (buffer-name)))))))
        (slime-filter `(or (mode . slime-repl-mode)
@@ -61,10 +60,9 @@
                                        ))))
        (emacs-lisp-filter `(or (predicate
                                 .
-                                (and (member* major-mode
-                                              '(emacs-lisp-mode
-                                                inferior-emacs-lisp-mode)
-                                              :test #'eq)
+                                (and (memq major-mode
+                                           '(emacs-lisp-mode
+                                             inferior-emacs-lisp-mode))
                                      (not (string-match-pure? "^\\*.+\\*$"
                                                               (buffer-name)))))))
        (scheme-filter `(or (mode . scheme-mode)
@@ -207,6 +205,7 @@
       ("common"     ,common-filter)))
   "Alist of (<group-name> <group-definition>) where <group-definition>
 is in format required by `ibuffer-saved-filter-groups'.")
+
 
 (provide 'buffer-groups)
 

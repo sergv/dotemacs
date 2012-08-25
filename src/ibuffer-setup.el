@@ -100,8 +100,6 @@ The value from `ibuffer-saved-filter-groups' is used."
      :reader (read-from-minibuffer "Filter by not matching (regexp): "))
     (not (string-match-pure? qualifier (buffer-name buf))))
 
-
-
    (setf ibuffer-saved-filter-groups
          `(("lisp"
             ,(assoc "lisp"       +buffer-groups+)
@@ -143,7 +141,7 @@ The value from `ibuffer-saved-filter-groups' is used."
 
 
    (setf ibuffer-never-show-predicates
-         (list "^\\*Completions\\*$"))
+         (list #'invisible-buffer?))
 
    (defun ibuffer-mark-using-mode (&optional by-regexp)
      (interactive (list current-prefix-arg))
