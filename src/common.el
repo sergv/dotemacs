@@ -1263,6 +1263,14 @@ tabbar, etc")
 (add-invisible-buffer "^\\*Completions\\*$")
 (add-invisible-buffer "^#.+#$")
 
+;;;;
+
+(defun for-buffers-with-mode (mode func)
+  (for-each func
+            (filter (lambda (buf)
+                      (with-current-buffer buf
+                        (eq? major-mode mode)))
+                    (buffer-list))))
 
 ;;;;
 
