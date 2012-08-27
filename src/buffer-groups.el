@@ -127,6 +127,14 @@
                             (mode . org-agenda-mode)
                             (mode . diary-mode)
                             (mode . calendar-mode)))
+       (book-filter    `(or (mode . doc-view-mode)
+                            (name . ,(rx bol
+                                         (+ anything)
+                                         (or ".pdf"
+                                             ".djvu"
+                                             ".ps"
+                                             ".dvi")
+                                         eol))))
        (latex-filter   `(or (mode . latex-mode)
                             (mode . tex-mode)
                             (mode . LaTeX-mode)))
@@ -196,6 +204,7 @@
       ("python"     ,python-filter)
       ("cython"     ,cython-filter)
       ("org"        ,org-filter)
+      ("books"      ,book-filter)
       ("latex"      ,latex-filter)
       ("web"        ,web-filter)
       ("vc"         ,vc-filter)

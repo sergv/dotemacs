@@ -130,6 +130,7 @@ The value from `ibuffer-saved-filter-groups' is used."
             ,(assoc "python"     +buffer-groups+)
             ,(assoc "cython"     +buffer-groups+)
             ,(assoc "org"        +buffer-groups+)
+            ,(assoc "books"      +buffer-groups+)
             ,(assoc "latex"      +buffer-groups+)
             ,(assoc "web"        +buffer-groups+)
             ,(assoc "vc"         +buffer-groups+)
