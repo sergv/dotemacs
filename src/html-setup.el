@@ -16,6 +16,8 @@
 
 (autoload 'hl-tags-mode "hl-tags-mode" nil t)
 
+(add-to-list 'magic-mode-alist '("<!DOCTYPE html .+DTD XHTML .+>" . nxhtml-mode))
+
 ;; (eval-after-load
 ;;  "rng-loc"
 ;;  '(progn
