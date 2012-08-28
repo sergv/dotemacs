@@ -45,13 +45,6 @@
 (defconst +scheme-implementations+
   (remove nil
           (list
-           (when (executable-find "guile")
-             `(guile
-               (command
-                ,(concat "guile -l "
-                         +prog-data-path+
-                         "/guile-init.scm"))))
-
            (when (executable-find "csi") ;; Chicken Scheme
              `(chicken
                (command
@@ -118,6 +111,13 @@
                             command-args))))
                (else
                 nil)))
+
+           (when (executable-find "guile")
+             `(guile
+               (command
+                ,(concat "guile -l "
+                         +prog-data-path+
+                         "/guile-init.scm"))))
 
            (when (executable-find "racket")
              `(racket
