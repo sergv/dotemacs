@@ -54,14 +54,17 @@ function than has correspondence to HELLO in this alist.")
 template files, data description may be found in
 `auto-insert-fields' alist."
   (save-excursion
-    (save-match-data
-      (mapc #'(lambda (x)
-                (goto-char (point-min))
-                (let ((pattern (concat "\\${" (first x) "}"))
-                      (new-data (funcall (second x))))
-                  (while (re-search-forward pattern nil t)
-                    (replace-match new-data t t))))
-            auto-insert-fields))))
+   (save-match-data
+    (with-disabled-undo
+     (with-preserved-buffer-modified-p
+      (with-inhibited-modification-hooks
+       (mapc #'(lambda (x)
+                 (goto-char (point-min))
+                 (let ((pattern (concat "\\${" (first x) "}"))
+                       (new-data (funcall (second x))))
+                   (while (re-search-forward pattern nil t)
+                     (replace-match new-data t t))))
+             auto-insert-fields)))))))
 
 
 

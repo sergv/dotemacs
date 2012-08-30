@@ -17,7 +17,7 @@
 (require 'common)
 
 (define-common-lisp-style "scheme"
-    "Custom indent style for scheme."
+  "Custom indent style for scheme."
   (:inherit "modern")
   (:variables
    (lisp-indent-maximum-backtracking 10)
@@ -39,7 +39,10 @@
    (syntax-rules   (as define))
    ;; guile-specific
    (lambda*        (as lambda))
-   (define*        (as define))))
+   (define*        (as define))
+   (letrec         (as let))
+   (let-values     (as let))
+   (let*-values    (as let))))
 
 
 (defconst +scheme-implementations+
