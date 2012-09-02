@@ -1972,6 +1972,29 @@ for came from that piddling around with the wobbling plate.
 
    "Coming back to where you started is not the same as never leaving.
 — Terry Pratchett"
+
+   "Q. Why Be Positive?
+
+A. It beats the alternative!"
+
+   "The Goal of a Teacher - To create an environment where learning happens.
+– Dr. George F. Corliss"
+
+   "Let us change our traditional attitude to the construction of programs:
+Instead of imagining that our main task is to instruct a computer what to do,
+let us concentrate rather on explaining to human beings what we want a
+computer to do.
+– Donald Knuth"
+
+   "Never, never, never give up.
+– Winston Churchill"
+
+   "Be kind, for everyone you meet is fighting a hard battle.
+– Plato"
+
+   "The aim of a programminglanguage - to turn ideas into software,
+quickly and faithfully
+– John Chambers"
    ]
   "Good and nice fortunes.")
 
