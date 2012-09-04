@@ -16,7 +16,7 @@
 ;; So, lets' do the business
 ;; Search has two major parts - initiating search with minibuffer prompting
 ;; for regexp and repeating searches with last regexp used
-;; All this stuff is complemented with matches highlighting
+;; All this stuff comes with matches highlighting
 ;;
 ;; Initiated search may be aborted in which case point is returned to
 ;; where the search was started. While at minibuffer keys S-<up> and S-<down>
@@ -56,6 +56,8 @@
 
 (defvar *search-minibuffer-history* nil
   "List of previously entered regexps.")
+(defvar *search-init-window* nil
+  "Window with buffer being searched in.")
 (defvar *search-init-buffer* nil
   "Buffer being searched in.")
 (defvar *search-direction* nil
@@ -68,12 +70,13 @@
                                  &key
                                  (save-position t)
                                  (case-sensetive t))
-  "Set up internal search variables for use of `search-next-impl', `search-prev-impl' etc
-for REGEX."
+  "Set up internal search variables for use of `search-next-impl',
+`search-prev-impl' etc for REGEX."
   (search-clean-overlays)
   (setf *search-current-regexp* regex
         *search-start-marker* (point-marker)
         *search-init-buffer* (current-buffer)
+        *search-init-window* (selected-window)
         *search-direction* direction
         *search-case-sensetive* case-sensetive)
   (when save-position
@@ -129,10 +132,12 @@ When not prompting in minibuffer then this variable is set to nil.")
   (not (string-match-p "\\\\$" regex)))
 
 (defun search-update (start end old-len)
-  (setf *search-current-regexp* (search-current-regexp))
+  (setf *search-current-regexp* (search-get-current-regexp))
   (condition-case nil
       (when (search-regex-valid-p *search-current-regexp*)
         (search-highlight-matches *search-current-regexp*)
+        ;; this forgets current locatin and jums to first match of
+        ;; updated regexp
         (search-with-initiated-buffer
          (goto-char *search-start-marker*)
          (search-next-from-minibuf)))
@@ -140,14 +145,14 @@ When not prompting in minibuffer then this variable is set to nil.")
     (error nil)))
 
 
-(defun search-current-regexp ()
+(defun search-get-current-regexp ()
   "Retrieve entered regexp from minibuffer."
   (search-with-prompt-buffer
    (minibuffer-contents-no-properties)))
 
 
 (defmacro search-with-initiated-buffer (&rest body)
-  `(with-selected-window (get-buffer-window *search-init-buffer*)
+  `(with-selected-window *search-init-window*
      (with-current-buffer *search-init-buffer*
        ,@body)))
 
@@ -167,8 +172,12 @@ When not prompting in minibuffer then this variable is set to nil.")
 
 
 (defun search-optionally-refresh-info ()
-  "Refresh search information in necessary and don't clutter vim position."
-  (unless (eq (current-buffer) *search-init-buffer*)
+  "Refresh search information if necessary and omit cluttering vim position."
+  ;; we could be in buffer that is different from where we initiated search,
+  ;; in which case regexp being searched for and search direction from the
+  ;; previous search are used to set up new search session in the current
+  ;; buffer
+  (unless (eq? (current-buffer) *search-init-buffer*)
     (search-setup-search-for *search-current-regexp*
                              *search-direction*
                              :save-position nil)))
