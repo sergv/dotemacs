@@ -30,6 +30,7 @@
 
   (:indentation
    (if             (4 4 4))
+   (aif            (as if))
    (define         (nil &body))
    (define-macro   (as define))
    (define-syntax  (as define))
