@@ -53,6 +53,7 @@ won't be confused by the same filename used for different images.")
                    ""))
          "\\usepackage{amsmath}\n"
          "\\usepackage{amssymb}\n"
+         "\\usepackage{mathrsfs}\n" ;; very calligraphic fonts
          "\\usepackage{color}\n"
          "\\renewcommand{\\emptyset}{\\varnothing}\n"
          "\\newcommand{\\union}{\\cup}\n"
