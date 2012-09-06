@@ -11,6 +11,7 @@
                     minusp
                     zerop
                     consp
+                    listp
                     integerp
                     integer-or-markerp
                     eobp

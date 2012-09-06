@@ -181,7 +181,7 @@
            vim:operator-pending-mode-local-keymap (make-keymap)
            vim:motion-mode-local-keymap           (make-keymap))
 
-     (def-keys-for-map2 vim:normal-mode-local-keymap
+     (def-keys-for-map vim:normal-mode-local-keymap
        ("C-<up>"   eshell-jump-to-prev-prompt)
        ("C-<down>" eshell-jump-to-next-prompt)
        ("S-<up>"   eshell-jump-to-prev-prompt)
@@ -196,12 +196,12 @@
        ;; ("S-SPC"   eshell/clear)
        )
 
-     ;; (def-keys-for-map2 (vim:normal-mode-local-keymap
+     ;; (def-keys-for-map (vim:normal-mode-local-keymap
      ;;                     vim:operator-pending-mode-local-keymap
      ;;                     vim:motion-mode-local-keymap)
      ;;   ("^" vim:eshell-bol))
 
-     (def-keys-for-map2 vim:insert-mode-local-keymap
+     (def-keys-for-map vim:insert-mode-local-keymap
        ("C-<up>"   eshell-jump-to-prev-prompt)
        ("C-<down>" eshell-jump-to-next-prompt)
        ("S-<up>"   eshell-jump-to-prev-prompt)
@@ -209,7 +209,7 @@
 
        ("C-SPC"   eshell/clear))
 
-     (def-keys-for-map2 eshell-mode-map
+     (def-keys-for-map eshell-mode-map
        ("C-<up>"   eshell-jump-to-prev-prompt)
        ("C-<down>" eshell-jump-to-next-prompt)
        ("S-<up>"   eshell-jump-to-prev-prompt)

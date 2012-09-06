@@ -26,8 +26,8 @@
          (list "^qimp\\(ort\\)?$"         "import qualified")
          ;(cons "##"                     "{-#  #-}")
          ))
-  (def-keys-for-map1 vim:insert-mode-local-keymap
-    (("SPC"   abbrev+-insert-space-or-expand-abbrev))))
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'haskell-abbrev+)
 

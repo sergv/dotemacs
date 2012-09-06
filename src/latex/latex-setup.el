@@ -21,14 +21,14 @@
 (defun TeX-fold-item-at-point ()
   (interactive)
   (cond
-   ((TeX-fold-item 'macro))
-   ((TeX-fold-item 'math))
-   ((TeX-fold-item 'env))
-   ((TeX-fold-comment))))
+    ((TeX-fold-item 'macro))
+    ((TeX-fold-item 'math))
+    ((TeX-fold-item 'env))
+    ((TeX-fold-comment))))
 
 
 (defvar-loc latex:preview nil
-    "Becomes t when latex buffer is being previewed and nil
+  "Becomes t when latex buffer is being previewed and nil
   otherwise.")
 
 (defun latex-toggle-preview ()
@@ -47,11 +47,11 @@
   (if latex:russian-spellcheck
     (progn
       (flyspell-mode-off)
-      (def-keys-for-map2 vim:normal-mode-local-keymap
+      (def-keys-for-map vim:normal-mode-local-keymap
         ("'"  nil)
         ("\"" nil)))
     (progn
-      (def-keys-for-map2 vim:normal-mode-local-keymap
+      (def-keys-for-map vim:normal-mode-local-keymap
         ("'"  ispell-word)
         ("\"" flyspell-goto-next-error))
       (flyspell-russian)
@@ -113,7 +113,7 @@
         vim:motion-mode-local-keymap           (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap (make-sparse-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("S-<f9>" latex-preview-in-okular)
     ("<f9>"   latex-compile)
     ("<f1>"   latex-toggle-preview-or-russian-spellcheck)
@@ -123,16 +123,16 @@
 
   ;; (define-key vim:insert-mode-local-keymap (kbd "<f3>") LaTeX-math-keymap)
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("z c" TeX-fold-region)
     ("z C" TeX-fold-region)
     ("z o" TeX-fold-clearout-region)
     ("z O" TeX-fold-clearout-region))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:visual-mode-local-keymap
-                      vim:motion-mode-local-keymap
-                      vim:operator-pending-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap
+                     vim:motion-mode-local-keymap
+                     vim:operator-pending-mode-local-keymap)
     ("%" vim:motion-end-of-line))
 
   (latex-set-up-document-start-marker)

@@ -27,12 +27,12 @@
   (setq vim:insert-mode-local-keymap (make-sparse-keymap)
         vim:normal-mode-local-keymap (make-sparse-keymap))
 
-  (def-keys-for-map1 vim:insert-mode-local-keymap
-      (("M-/" icicle-comint-dynamic-complete-filename)))
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("M-/" icicle-comint-dynamic-complete-filename))
 
-  (def-keys-for-map1 vim:normal-mode-local-keymap
-      (("<f9>"  shell-run-file)
-       ("M-/" icicle-comint-dynamic-complete-filename)))
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("<f9>"  shell-run-file)
+    ("M-/" icicle-comint-dynamic-complete-filename))
 
   (setq whitespace-line-column 80)
   (setq whitespace-style '(tabs lines-tail))
@@ -49,13 +49,13 @@
   (setq vim:normal-mode-local-keymap (make-keymap)
         vim:insert-mode-local-keymap (make-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output
     ("SPC SPC" comint-clear-prompt))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap
-                      shell-mode-map)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap
+                     shell-mode-map)
     ("C-SPC"   comint-clear-buffer-above-prompt)
     ("<tab>"   pcomplete)
     ("M-/"     pcomplete)

@@ -159,7 +159,7 @@
   (set (make-local-variable 'compilation-disable-input) t)
   (set (make-local-variable 'compilation-scroll-output) t)
 
-  (def-keys-for-map2 python-run-mode-map
+  (def-keys-for-map python-run-mode-map
     ("<up>"   compilation-jump-to-prev-error)
     ("<down>" compilation-jump-to-next-error)))
 
@@ -208,7 +208,7 @@
         vim:operator-pending-mode-local-keymap (make-sparse-keymap)
         vim:motion-mode-local-keymap           (make-sparse-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     (", d"     pylookup-lookup)
     ("<f1>"    py-execute-buffer-no-switch)
     ("<f9>"    python-run-script)
@@ -223,24 +223,24 @@
 
   ;; pabbrev isn't powerful enough
   ;; (pabbrev-mode 1)
-  ;; (def-keys-for-map2 (vim:normal-mode-local-keymap
+  ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                     vim:insert-mode-local-keymap)
   ;;   ("M-/"     pabbrev-show-menu ;; pabbrev-expand-maybe
   ;;              ))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("M-/"     ipython-complete))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
     ("g t" py-end-of-def-or-class)
     ("g n" py-beginning-of-def-or-class)
 
     ("*"   search-for-symbol-at-point-forward)
     ("#"   search-for-symbol-at-point-backward))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("<f1>"  py-execute-region-no-switch)
     ("j"     py-execute-region-no-switch)
     ("g a"   nil)
@@ -302,8 +302,8 @@
         ;; vim:motion-mode-local-keymap           (make-keymap)
         )
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("M-p"      browse-kill-ring)
     ("M-P"      browse-comint-input-history)
 
@@ -315,7 +315,7 @@
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)))
 
 (add-hook 'python-mode-hook #'python-setup)

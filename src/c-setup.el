@@ -109,7 +109,7 @@
         vim:visual-mode-local-keymap           (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap (make-sparse-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" ff-find-related-file)
     ("g TAB"   c-indent-defun)
 
@@ -122,7 +122,7 @@
     ("z C"     hs-hide-all)
     ("z O"     hs-show-all))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("g t" c-end-of-defun)
     ("g n" c-beginning-of-defun)))
 

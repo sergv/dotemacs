@@ -25,17 +25,17 @@
   (autopair-mode)
 
   (setf ;; vim:insert-mode-local-keymap (make-keymap)
-        ;; vim:visual-mode-local-keymap (make-keymap)
-        vim:normal-mode-local-keymap (make-keymap))
+   ;; vim:visual-mode-local-keymap (make-keymap)
+   vim:normal-mode-local-keymap (make-keymap))
 
-  (def-keys-for-map1 vim:normal-mode-local-keymap
-      (("g <tab>" prolog-indent-predicate)
-       (", e"     prolog-consult-predicate)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("g <tab>" prolog-indent-predicate)
+    (", e"     prolog-consult-predicate)
 
-       ("SPC SPC" switch-to-prolog)
+    ("SPC SPC" switch-to-prolog)
 
-       ("<f1>"    prolog-consult-file)
-       ("<f9>"    prolog-compile-file))))
+    ("<f1>"    prolog-consult-file)
+    ("<f9>"    prolog-compile-file)))
 
 (define-switch-to-interpreter
     switch-to-prolog
@@ -59,12 +59,12 @@
   (setf vim:normal-mode-local-keymap (make-keymap)
         vim:insert-mode-local-keymap (make-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap
-                      prolog-inferior-mode-map)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap
+                     prolog-inferior-mode-map)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)

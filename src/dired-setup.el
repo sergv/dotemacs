@@ -29,27 +29,27 @@
     (lambda ()
       (dired-omit-mode 1)))
 
-   (def-keys-for-map1 dired-mode-map +control-x-prefix+)
-   (def-keys-for-map1 dired-mode-map +vim-special-keys+)
-   (def-keys-for-map1 dired-mode-map
-     (("t"        dired-cycle-files-forward)
-      ("n"        dired-cycle-files-backward)
-      ("<down>"   dired-cycle-files-forward)
-      ("<up>"     dired-cycle-files-backward)
-      ("p"        nil)
-      ("q"        nil)
-      ("e"        dired-do-open-marked)
-      ("f"        dired-do-open-marked)
-      ("o"        dired-do-open-marked)
-      ("Q"        dired-prompt-and-do-query-replace-regexp)
-      ("<return>" dired-single-buffer)
-      ("^"        dired-single-up-directory)
-      ("r"        revert-buffer) ;; refresh
+   (def-keys-for-map dired-mode-map
+     +control-x-prefix+
+     +vim-special-keys+
+     ("t"        dired-cycle-files-forward)
+     ("n"        dired-cycle-files-backward)
+     ("<down>"   dired-cycle-files-forward)
+     ("<up>"     dired-cycle-files-backward)
+     ("p"        nil)
+     ("q"        nil)
+     ("e"        dired-do-open-marked)
+     ("f"        dired-do-open-marked)
+     ("o"        dired-do-open-marked)
+     ("Q"        dired-prompt-and-do-query-replace-regexp)
+     ("<return>" dired-single-buffer)
+     ("^"        dired-single-up-directory)
+     ("r"        revert-buffer) ;; refresh
 
-      ("/"        search-start-forward)
-      ;; ? is already used by dired
-      ;; ("?"        search-start-backward)
-      ))
+     ("/"        search-start-forward)
+     ;; ? is already used by dired
+     ;; ("?"        search-start-backward)
+     )
 
 
    (defun dired--open ()

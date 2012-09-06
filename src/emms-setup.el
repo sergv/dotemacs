@@ -17,10 +17,8 @@
 (emms-default-players)
 
 (defun emms-setup-mode ()
-  (def-keys-for-map1 emms-playlist-mode-map
-    +control-x-prefix+)
-
-  (def-keys-for-map2 emms-playlist-mode-map
+  (def-keys-for-map emms-playlist-mode-map
+    +control-x-prefix+
     ("u"        emms-playlist-mode-undo)
     ("t"        next-line)
     ("n"        previous-line)

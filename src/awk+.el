@@ -78,7 +78,7 @@ in buffer from where `awk' was invoked.")
   (awk-mode)
   ;; make these bindings very local
   (let ((map (copy-keymap awk-mode-map)))
-    (def-keys-for-map2 map
+    (def-keys-for-map map
       ("<f9>"   awk-send-input)
       ("S-<f9>" awk-restore-original-input)
       ("<f1>"   awk-exit)
@@ -190,25 +190,25 @@ with id value of `awk-program-id'."
   "Insert previous inputed awk program in buffer."
   (interactive)
   (if awk-program-ids
-      (progn
-        (when (= (car awk-program-ids) awk-program-id)
-          (awk-store-program))
-        (erase-buffer)
-        (rotate-entry-list 'awk-program-ids)
-        (insert (gethash (car awk-program-ids) awk-programs)))
-      (error "awk-previous-program: error: no programs inputed, aborting")))
+    (progn
+      (when (= (car awk-program-ids) awk-program-id)
+        (awk-store-program))
+      (erase-buffer)
+      (rotate-entry-list 'awk-program-ids)
+      (insert (gethash (car awk-program-ids) awk-programs)))
+    (error "awk-previous-program: error: no programs inputed, aborting")))
 
 (defun awk-next-program ()
   "Insert next inputed awk program in buffer."
   (interactive)
   (if awk-program-ids
-      (progn
-        (when (= (car awk-program-ids) awk-program-id)
-          (awk-store-program))
-        (erase-buffer)
-        (rotate-entry-list-backward 'awk-program-ids)
-        (insert (gethash (car awk-program-ids) awk-programs)))
-      (error "awk-next-program: error: no programs inputed, aborting")))
+    (progn
+      (when (= (car awk-program-ids) awk-program-id)
+        (awk-store-program))
+      (erase-buffer)
+      (rotate-entry-list-backward 'awk-program-ids)
+      (insert (gethash (car awk-program-ids) awk-programs)))
+    (error "awk-next-program: error: no programs inputed, aborting")))
 
 
 (defvar awk-window-config nil

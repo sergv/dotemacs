@@ -113,7 +113,7 @@
 
 
 
-(def-keys-for-map2 isearch-mode-map
+(def-keys-for-map isearch-mode-map
   ("<escape>" isearch-abort)
   ("<f5>"     isearch-del-char)
   ("<f6>"     isearch-yank-word-or-char)
@@ -137,7 +137,7 @@
   ("<next>"   isearch-repeat-forward)
   ("<prior>"  isearch-repeat-backward))
 
-(def-keys-for-map2 minibuffer-local-isearch-map
+(def-keys-for-map minibuffer-local-isearch-map
   ("<escape>"    isearch-abort)
   ("<up>"        next-history-element)
   ("<down>"      previous-history-element)

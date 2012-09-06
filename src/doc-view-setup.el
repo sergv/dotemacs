@@ -11,16 +11,16 @@
 (eval-after-load
  "doc-view"
  '(progn
-   (def-keys-for-map1 doc-view-mode-map +control-x-prefix+)
-   (def-keys-for-map1 doc-view-mode-map +vim-special-keys+)
    ;; don't bind nor vi-keys nor vim's word-motion keys here as the're useless
    ;; when navigating pdfs
-   (def-keys-for-map1 doc-view-mode-map
-     (("h" image-backward-hscroll)
-      ("t" doc-view-next-line-or-next-page)
-      ("n" doc-view-previous-line-or-previous-page)
-      ("s" image-forward-hscroll)
-      ("p" nil)))))
+   (def-keys-for-map doc-view-mode-map
+     +control-x-prefix+
+     +vim-special-keys+
+     ("h" image-backward-hscroll)
+     ("t" doc-view-next-line-or-next-page)
+     ("n" doc-view-previous-line-or-previous-page)
+     ("s" image-forward-hscroll)
+     ("p" nil))))
 
 (defun doc-view-save-page ()
   (if-buffer-has-file
