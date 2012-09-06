@@ -68,7 +68,7 @@
 
   (setf vim:normal-mode-local-keymap (make-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("="      nxml-backward-up-element)
 
     ("<up>"   sgml-skip-tag-backward)
@@ -87,7 +87,7 @@
 (defun html-setup ()
   (markup-setup)
   (setf *hl-tags-context-func* #'hl-tags-context-sgml-mode)
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("<f1>"   browse-url-of-buffer)
     ("<f9>"   browse-url-of-buffer)))
 
@@ -116,7 +116,7 @@
   (html-setup)
   (setf *hl-tags-context-func* #'hl-tags-context-nxml-mode)
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("g <tab>" nxhtml-reindent-enclosing-tag)))
 
 (defun nxml-setup ()

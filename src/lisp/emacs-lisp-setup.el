@@ -16,14 +16,13 @@
 (require 'elisp-slime-nav)
 
 (define-common-lisp-style "emacs"
-    "My custom indent style for emacs lisp."
+  "My custom indent style for emacs lisp."
   (:inherit "my-style")
 
   (:indentation
    (aif (as if))
    (condition-case (4 4 &body))
-   (def-keys-for-map1 (&body))
-   (def-keys-for-map2 (&body))
+   (def-keys-for-map (&body))
    (with-temp-buffer (&body))
    (while (4 &body))
    (rxx (as let))
@@ -79,7 +78,7 @@
   (eldoc-add-command 'paredit-backward-delete
                      'paredit-close-round)
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("j"     eval-last-sexp)
     ("J"     eval-print-last-sexp-unlimited-length)
     (", m"   expand-last-macro)
@@ -93,22 +92,22 @@
     ("<tab>" indent-for-tab-command)
     ("<f9>"  elisp-compile-and-move))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("j"   eval-region))
 
-  (def-keys-for-map2 vim:insert-mode-local-keymap
+  (def-keys-for-map vim:insert-mode-local-keymap
     ;; ("C-SPC" lisp-complete-symbol)
     ("<tab>" indent-for-tab-command)
     ("M-/"   lisp-complete-symbol))
 
-  (def-keys-for-map2 read-expression-map
+  (def-keys-for-map read-expression-map
     ("<tab>" lisp-complete-symbol)
     ("M-/"   lisp-complete-symbol)
     ("C-w"   backward-delete-word)
     ("C-S-w" backward-delete-word*))
 
   ;; handled by edebug-mode-map
-  ;; (def-keys-for-map2 emacs-lisp-mode-map
+  ;; (def-keys-for-map emacs-lisp-mode-map
   ;;   ("<f1>"  edebug-step-mode))
 
   ;; should use global after-save-hook because of
@@ -118,7 +117,7 @@
 
 (eval-after-load "edebug"
                  '(progn
-                   (def-keys-for-map2 edebug-mode-map
+                   (def-keys-for-map edebug-mode-map
                      ("<f1>"  edebug-step-mode))))
 
 (defun eval-print-last-sexp-unlimited-length ()
@@ -204,12 +203,12 @@
 
 
 (defun debugger-setup ()
-  (def-keys-for-map1 debugger-mode-map +vi-essential-keys+)
-  (def-keys-for-map1 debugger-mode-map +control-x-prefix+)
-  (def-keys-for-map1 debugger-mode-map +vim-special-keys+)
-  (def-keys-for-map1 debugger-mode-map +vim-word-motion-keys+)
-  (def-keys-for-map1 debugger-mode-map
-    (("<escape>" exit-recursive-edit))))
+  (def-keys-for-map debugger-mode-map
+    +vi-essential-keys+
+    +control-x-prefix+
+    +vim-special-keys+
+    +vim-word-motion-keys+
+    ("<escape>" exit-recursive-edit)))
 
 (add-hook 'debugger-mode-hook #'debugger-setup)
 

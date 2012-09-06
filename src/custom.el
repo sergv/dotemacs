@@ -44,51 +44,45 @@ in the same directory the current file is."
 
 
 
-(defmacro def-keys-for-map (mode-map key-command-list)
-  `(def-keys-for-map1 ,mode-map
-       ,(if (symbolp key-command-list)
-            key-command-list
-            (loop
-                for ((kbd key) command) in (eval key-command-list)
-                collect (list (eval key) command)))))
-
-(defun current-column ()
-  "Return current column - integer number."
-  (- (point) (line-beginning-position)))
-
-(defun quoted? (x)
-  (eq 'quote (car-safe x)))
-
-(defmacro def-keys-for-map1 (mode-map key-command-list)
+(defmacro def-keys-for-map (mode-map &rest key-command-list)
   (declare (indent nil))
   (labels ((def-key (map key command)
              `(define-key ,map
                   ,(eval `(kbd ,key))
                 ,(cond
-                  ((and (listp command)
-                        (or (eq 'function (car command))
-                            (eq 'quote (car command))))
-                   command)
-                  ((and (listp command)
-                        (eq 'lambda (car command)))
-                   (list 'function command))
-                  (t
-                   (list 'quote command))))))
+                   ((and (list? command)
+                         (or (eq? 'function (car command))
+                             (eq? 'quote (car command))))
+                    command)
+                   ((and (list? command)
+                         (eq? 'lambda (car command)))
+                    (list 'function command))
+                   (else
+                    (list 'quote command)))))
+           (process-key-command-list (map key-command-list)
+             (loop
+               for entry in key-command-list
+               if (symbol? entry)
+               for (key command) = (if (or (quoted? entry)
+                                           (symbol? entry))
+                                     (eval entry)
+                                     entry)
+               appending (if (symbol? entry)
+                           (process-key-command-list map (eval entry))
+                           (destructuring-bind (key command)
+                               (if (quoted? entry)
+                                 (eval entry)
+                                 entry)
+                             (list (def-key map key command)))))))
     (let ((bindings
-           (loop
-               for map in (cond
-                            ((quoted? mode-map)
-                             (eval mode-map))
-                            ((listp mode-map)
-                             mode-map)
-                            (t (list mode-map)))
-               append
-               (loop
-                   for (key command) in (if (or (quoted? key-command-list)
-                                                (symbolp key-command-list))
-                                            (eval key-command-list)
-                                            key-command-list)
-                   collect (def-key map key command)))))
+            (loop
+              for map in (cond
+                           ((quoted? mode-map)
+                            (eval mode-map))
+                           ((list? mode-map)
+                            mode-map)
+                           (else (list mode-map)))
+              appending (process-key-command-list map key-command-list))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
                mode-map
@@ -96,9 +90,12 @@ in the same directory the current file is."
       `(prog1 nil
          ,@bindings))))
 
-(defmacro def-keys-for-map2 (mode-map &rest key-command-list)
-  (declare (indent nil))
-  `(def-keys-for-map1 ,mode-map ,key-command-list))
+(defun current-column ()
+  "Return current column - integer number."
+  (- (point) (line-beginning-position)))
+
+(defun quoted? (x)
+  (eq 'quote (car-safe x)))
 
 (defun remove-buffer (&optional buffer-or-name)
   "Remove buffer completely bypassing all its prompt functions.
@@ -122,10 +119,10 @@ Save buffer if it has assigned file and this file exists on disk."
   "Make buffer file executable if it's a shell script."
   (and (not (file-executable-p buffer-file-name))
        (save-excursion
-         (save-restriction
-           (widen)
-           (goto-char (point-min))
-           (looking-at-p "^#!")))
+        (save-restriction
+         (widen)
+         (goto-char (point-min))
+         (looking-at-p "^#!")))
        (shell-command (concat "chmod u+x \"" buffer-file-name "\""))
        (message
         (concat "Saved as script: " buffer-file-name))))
@@ -266,8 +263,8 @@ lighter than `back-to-indentation'."
 confuse when point is not at the beginning of line"
   (+ (count-lines begin end)
      (if (equal (current-column) 0)
-         1
-         0)))
+       1
+       0)))
 
 (defsubst backward-line (count)
   "Call `forward-line' in the opposite direction"
@@ -279,22 +276,22 @@ confuse when point is not at the beginning of line"
   "Trim leading and tailing whitespace from STR."
   (when str
     (save-match-data
-      (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
+     (let ((s (if (symbolp str) (symbol-name str) str)))
+       (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
 
 (defun trim-whitespaces-left (str)
   "Trim leading whitespace from STR."
   (when str
     (save-match-data
-      (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "^[[:space:]\n]*" "" s)))))
+     (let ((s (if (symbolp str) (symbol-name str) str)))
+       (replace-regexp-in-string "^[[:space:]\n]*" "" s)))))
 
 (defun trim-whitespaces-right (str)
   "Trim tailing whitespace from STR."
   (when str
     (save-match-data
-      (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "[[:space:]\n]*$" "" s)))))
+     (let ((s (if (symbolp str) (symbol-name str) str)))
+       (replace-regexp-in-string "[[:space:]\n]*$" "" s)))))
 
 
 (defsubst goto-line1 (line)
@@ -317,8 +314,8 @@ current working directory at point."
   (interactive (list current-prefix-arg))
   (let ((dir (expand-file-name default-directory)))
     (if insert
-        (insert dir)
-        (message "Directory %s" dir))))
+      (insert dir)
+      (message "Directory %s" dir))))
 
 ;; abandon old and non-flexible pwd function
 ;; (fset 'pwd 'util:pwd)
@@ -327,11 +324,11 @@ current working directory at point."
   "Return t if file FILENAME exists and it contents matches RE."
   (when (file-exists-p filename)
     (save-match-data
-      (with-temp-buffer
-        (insert-file-contents filename)
-        (goto-char (point-min))
-        (when (search-forward-regexp re nil t)
-          t)))))
+     (with-temp-buffer
+       (insert-file-contents filename)
+       (goto-char (point-min))
+       (when (search-forward-regexp re nil t)
+         t)))))
 
 (defmacro run-if-fbound (func)
   `(and (fboundp (quote ,func))
@@ -342,8 +339,8 @@ current working directory at point."
   "Transform list XS that possibly consists of nested list
 into flat list"
   (if (listp xs)
-      (mapcan (lambda (x) (util:flatten x)) xs)
-      (list xs)))
+    (mapcan (lambda (x) (util:flatten x)) xs)
+    (list xs)))
 
 ;;;;
 
@@ -507,10 +504,10 @@ Of course directory names are also supported."
   "This function removes spaces and tabs on every line after
 last non-whitespace character."
   (save-excursion
-    (save-match-data
-      (goto-char (point-min))
-      (while (re-search-forward "[ \t]+$" nil t)
-        (replace-match "")))))
+   (save-match-data
+    (goto-char (point-min))
+    (while (re-search-forward "[ \t]+$" nil t)
+      (replace-match "")))))
 
 ;;;; tabbar stuff
 
@@ -519,16 +516,16 @@ last non-whitespace character."
   (if (or (null xs)
           (= 1 (length xs))
           (= i j))
-      xs
-      (if (< j i)
-          (swap-elements j i xs)
-          (when (and (< i (length xs))
-                     (< j (length xs)))
-              (nconc (subseq xs 0 i)
-                     (list (nth j xs))
-                     (subseq xs (1+ i) j)
-                     (list (nth i xs))
-                     (subseq xs (1+ j)))))))
+    xs
+    (if (< j i)
+      (swap-elements j i xs)
+      (when (and (< i (length xs))
+                 (< j (length xs)))
+        (nconc (subseq xs 0 i)
+               (list (nth j xs))
+               (subseq xs (1+ i) j)
+               (list (nth i xs))
+               (subseq xs (1+ j)))))))
 
 (defun init (xs)
   "Return all but last elements of XS."
@@ -538,22 +535,22 @@ last non-whitespace character."
   "Moves element on Ith position in list XS to I-1'th position, or
 appends it to XS tail if I = 0."
   (if (>= i (length xs))
-      nil
-      (if (= i 0)
-          (append (cdr xs)
-                  (list (car xs)))
-          (swap-elements (1- i) i xs))))
+    nil
+    (if (= i 0)
+      (append (cdr xs)
+              (list (car xs)))
+      (swap-elements (1- i) i xs))))
 
 (defun move-element-right (i xs)
   "Moves element on Ith position in list XS to I+1'th position, or
 appends it to XS head if I = (length XS) - 1."
   (if (>= i (length xs))
-      nil
-      (if (= i (1- (length xs)))
-          (cons (car (last xs))
-                (init xs))
-          (message "false")
-          (swap-elements (1+ i) i xs))))
+    nil
+    (if (= i (1- (length xs)))
+      (cons (car (last xs))
+            (init xs))
+      (message "false")
+      (swap-elements (1+ i) i xs))))
 
 (defun tabbar-move-selected-tab-left ()
   (interactive)

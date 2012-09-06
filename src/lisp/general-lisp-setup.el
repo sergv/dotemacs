@@ -97,11 +97,11 @@ If in a comment and if followed by invalid structure, call
             (if (paredit-space-for-delimiter-p t close)
               (insert " ")))))))
 
-   (def-keys-for-map1 paredit-mode-map
-     '(("C-k"         nil)
-       ("<return>"    nil)
-       ("C-S-<left>"  paredit-backward-slurp-sexp)
-       ("C-S-<right>" paredit-backward-barf-sexp)))
+   (def-keys-for-map paredit-mode-map
+     ("C-k"         nil)
+     ("<return>"    nil)
+     ("C-S-<left>"  paredit-backward-slurp-sexp)
+     ("C-S-<right>" paredit-backward-barf-sexp))
 
    (defadvice:auto-comment paredit-newline)))
 
@@ -533,7 +533,7 @@ This command assumes point is not in a string or comment."
   (interactive)
   (condition-case nil
       (backward-up-list)
-      (error (error "No enclosing list found"))))
+    (error (error "No enclosing list found"))))
 
 (add-to-list 'debug-ignored-errors "\\`No enclosing list found\\'")
 
@@ -654,8 +654,8 @@ This command assumes point is not in a string or comment."
   "Indent the current defun."
   (interactive)
   (save-excursion
-    (beginning-of-defun)
-    (indent-sexp)))
+   (beginning-of-defun)
+   (indent-sexp)))
 
 (defun lisp-indent-buffer ()
   (interactive)
@@ -784,12 +784,12 @@ This determines whether to insert a space after the # sign."
         vim:operator-pending-mode-local-keymap (make-keymap)
         vim:motion-mode-local-keymap           (make-keymap))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
     ("*" search-for-symbol-at-point-forward)
     ("#" search-for-symbol-at-point-backward))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("g c c"    lisp-comment-sexp)
     ("g c u"    lisp-uncomment-sexp)
     ("g c d"    lisp-delete-commented-part)
@@ -836,7 +836,7 @@ This determines whether to insert a space after the # sign."
     ("z C"      hs-hide-all)
     ("z O"      hs-show-all))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("g a"      nil)
     ("g a ;"    lisp-align-on-comments)
     ("="        backward-up-list)
@@ -846,14 +846,14 @@ This determines whether to insert a space after the # sign."
     ("g c c"    comment-util-comment-region)
     ("g c u"    comment-util-uncomment-region-simple))
 
-  (def-keys-for-map2 vim:insert-mode-local-keymap
+  (def-keys-for-map vim:insert-mode-local-keymap
     ("C-'"      input-unicode)
     ("<return>" paredit-newline))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:visual-mode-local-keymap
-                      vim:operator-pending-mode-local-keymap
-                      vim:motion-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap
+                     vim:operator-pending-mode-local-keymap
+                     vim:motion-mode-local-keymap)
     ("q"        cl:up-list)
     ("Q"        cl:backward-up-list)
     ("="        cl:backward-up-list)
@@ -881,11 +881,11 @@ This determines whether to insert a space after the # sign."
   (set (make-local-variable 'comint-prompt-regexp)
        "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)

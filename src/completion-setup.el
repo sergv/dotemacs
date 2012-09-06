@@ -71,14 +71,14 @@
 
 ;; (defun ido-setup ()
 ;;   ;; bind keys to ido-completion-map here, etc
-;;   (def-keys-for-map1 (;; ido-common-completion-map
-;;                       ;;ido-completion-map
-;;                       ido-file-completion-map
-;;                       )
-;;     (("C-w" ido-up-directory)))
+;;   (def-keys-for-map (;; ido-common-completion-map
+;;                      ;;ido-completion-map
+;;                      ido-file-completion-map
+;;                      )
+;;     ("C-w" ido-up-directory))
 ;;
-;;   (def-keys-for-map1 ido-completion-map
-;;     (("<f1>" ido-toggle-regexp))))
+;;   (def-keys-for-map ido-completion-map
+;;     ("<f1>" ido-toggle-regexp)))
 
 ;; (add-hook 'ido-setup-hook #'ido-setup)
 

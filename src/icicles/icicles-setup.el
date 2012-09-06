@@ -21,8 +21,8 @@
       (let ((candidates ()))
         (cond ((vectorp minibuffer-completion-table)
                (mapatoms (lambda (symb) (when (or (null minibuffer-completion-predicate)
-                                             (funcall minibuffer-completion-predicate symb))
-                                     (push (symbol-name symb) candidates)))
+                                                  (funcall minibuffer-completion-predicate symb))
+                                          (push (symbol-name symb) candidates)))
                          minibuffer-completion-table))
 
               ((and (consp minibuffer-completion-table)
@@ -130,7 +130,7 @@ MAP is `minibuffer-local-completion-map' or
 
   (icicle-define-cycling-keys map)
 
-  (def-keys-for-map2 map
+  (def-keys-for-map map
     ("M-<return>"   icicle-candidate-read-fn-invoke)
     ("C-M-m"        icicle-candidate-read-fn-invoke)
     ("C-S-<return>" icicle-candidate-alt-action)
@@ -146,7 +146,7 @@ MAP is `minibuffer-local-completion-map' or
 
   ;; In Emacs 22+, local is parent of local-completion
   (unless (eq minibuffer-local-map (keymap-parent minibuffer-local-completion-map))
-    (def-keys-for-map2 map
+    (def-keys-for-map map
       ("C-M-v"           icicle-scroll-forward)
       ("C-M-S-v"         icicle-scroll-backward)
       ("C-="             icicle-insert-string-from-variable)
@@ -157,13 +157,13 @@ MAP is `minibuffer-local-completion-map' or
       ("M-S-<backspace>" icicle-erase-minibuffer)
       ("M-S-<delete>"    icicle-erase-minibuffer))
     (when (fboundp 'yank-secondary)     ; In `second-sel.el'.
-      (def-keys-for-map2 map
+      (def-keys-for-map map
         ("C-M-y" 'icicle-yank-secondary)))
     (olist (key  icicle-completing-read+insert-keys)
            (define-key map key 'icicle-completing-read+insert)))
 
   ;; Need `C-g', even if `minibuffer-local-completion-map' inherits from `minibuffer-local-map'.
-  (def-keys-for-map2 map
+  (def-keys-for-map map
     ("C-,"   icicle-change-sort-order)
     ("M-,"   icicle-reverse-sort-order)
     ("C-g"   icicle-abort-recursive-edit)
@@ -179,7 +179,7 @@ MAP is `minibuffer-local-completion-map' or
     ("M-("   icicle-next-S-TAB-completion-method))
   (unless (eq minibuffer-local-map (keymap-parent minibuffer-local-completion-map))
     (define-key map (kbd "C-?")     'icicle-minibuffer-help))
-  (def-keys-for-map2 map
+  (def-keys-for-map map
     ("C-#"           icicle-toggle-incremental-completion)
     ("M-~"           icicle-toggle-~-for-home-dir)
     ("C-M-~"         icicle-toggle-search-complementing-domain)
@@ -196,7 +196,7 @@ MAP is `minibuffer-local-completion-map' or
   (define-key map (kbd "SPC")       'icicle-self-insert)
   ;; In Emacs 22+, local is parent of local-completion
   (unless (eq minibuffer-local-map (keymap-parent minibuffer-local-completion-map))
-    (def-keys-for-map2 map
+    (def-keys-for-map map
       ("C-j" 'icicle-insert-newline-in-minibuffer)))
 
   (icicles-util-bind-my-keys map))
@@ -204,7 +204,7 @@ MAP is `minibuffer-local-completion-map' or
 
 (defun icicles-util-bind-my-keys (map)
   "Utility function that binds my custom keys and is used in several places."
-  (def-keys-for-map2 map
+  (def-keys-for-map map
     ("<escape>"      abort-recursive-edit)
 
     ("C-w"           backward-delete-word)
@@ -283,14 +283,14 @@ MAP is `minibuffer-local-completion-map' or
                    icicle-read-expression-map))
   (icicles-util-bind-my-keys map))
 
-(def-keys-for-map2 icicle-read-expression-map
+(def-keys-for-map icicle-read-expression-map
   ("M-/" lisp-complete-symbol))
 
 
 
-(def-keys-for-map1 completion-list-mode-map +control-x-prefix+)
-(def-keys-for-map1 completion-list-mode-map +vim-special-keys+)
-(def-keys-for-map2 completion-list-mode-map
+(def-keys-for-map completion-list-mode-map
+  +control-x-prefix+
+  +vim-special-keys+
   ("<up>"     previous-completion)
   ("<down>"   next-completion)
   ("<escape>" remove-buffer)

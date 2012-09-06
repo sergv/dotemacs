@@ -62,10 +62,10 @@
                (list
                 #'scheme-debug-message-skeleton)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                          (not (lisp-pos-is-beginning-of-list? (point))))))))
+                               (not (lisp-pos-is-beginning-of-list? (point))))))))
 
-  (def-keys-for-map1 vim:insert-mode-local-keymap
-    (("SPC"   abbrev+-insert-space-or-expand-abbrev))))
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 
 (provide 'scheme-abbrev+)

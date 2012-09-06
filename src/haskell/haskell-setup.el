@@ -92,41 +92,41 @@
         vim:visual-mode-local-keymap (make-sparse-keymap)
         vim:insert-mode-local-keymap (make-sparse-keymap))
 
-  (def-keys-for-map1 vim:normal-mode-local-keymap
-    ((", t"     haskell-type)
-     (", i"     haskell-info)
-     (", h"     haskell-haddock-identifier)
-     (", m"     haskell-haddock-module)
-     (", ."     haskell-find-definition)
-     ("M-."     haskell-find-definition)
-     (", g"     haskell-hoogle-at-point)
-     (", y"     haskell-hayoo-at-point)
-     (", c"     ghc-core-create-core)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    (", t"     haskell-type)
+    (", i"     haskell-info)
+    (", h"     haskell-haddock-identifier)
+    (", m"     haskell-haddock-module)
+    (", ."     haskell-find-definition)
+    ("M-."     haskell-find-definition)
+    (", g"     haskell-hoogle-at-point)
+    (", y"     haskell-hayoo-at-point)
+    (", c"     ghc-core-create-core)
 
-     ("'"        input-unicode)
-     ;; check these out
-     ;; (", f"     find-tag)
-     ;; (", a"     tags-apropos)
-     ;; (", v"     visit-tags-table)
+    ("'"        input-unicode)
+    ;; check these out
+    ;; (", f"     find-tag)
+    ;; (", a"     tags-apropos)
+    ;; (", v"     visit-tags-table)
 
-     ("<f1>"    inferior-haskell-load-file)
-     ("SPC SPC" switch-to-haskell)
-     ("<f9>"    haskell-compile)
-     ("S-<f9>"  hs-lint)
+    ("<f1>"    inferior-haskell-load-file)
+    ("SPC SPC" switch-to-haskell)
+    ("<f9>"    haskell-compile)
+    ("S-<f9>"  hs-lint)
 
-     ;; ("C-<right>" paredit-forward-slurp-sexp)
-     ;; ("C-<left>"  paredit-forward-barf-sexp)
-     ;; ("M-<up>"    paredit-splice-sexp-killing-backward)
-     ))
+    ;; ("C-<right>" paredit-forward-slurp-sexp)
+    ;; ("C-<left>"  paredit-forward-barf-sexp)
+    ;; ("M-<up>"    paredit-splice-sexp-killing-backward)
+    )
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("<tab>"   haskell-simple-indent)
     ("S-<tab>" haskell-simple-indent-backtab)
     ("<S-iso-lefttab>" haskell-simple-indent-backtab))
 
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("g a"     nil)
     ("g a ="   haskell-align-on-equals)
     ("g a - >" haskell-align-on-arrows)
@@ -136,7 +136,7 @@
     ("g a - -" haskell-align-on-comments)
     ("g a : :" haskell-align-on-double-colons))
 
-  (def-keys-for-map2 vim:insert-mode-local-keymap
+  (def-keys-for-map vim:insert-mode-local-keymap
     ("C-'"       input-unicode)
     ;; ("C-<right>" paredit-forward-slurp-sexp)
     ;; ("C-<left>"  paredit-forward-barf-sexp)
@@ -170,7 +170,7 @@
   (setf vim:normal-mode-local-keymap (make-keymap)
         vim:insert-mode-local-keymap (make-sparse-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
     ("C-SPC"    comint-clear-buffer-above-prompt)
     ("C-w"      backward-delete-word)
@@ -192,13 +192,13 @@
     (", g"      haskell-hoogle-at-point)
     (", y"      haskell-hayoo-at-point))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap
-                      inferior-haskell-mode-map)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap
+                     inferior-haskell-mode-map)
     ("M-p" browse-kill-ring)
     ("M-P" browse-comint-input-history))
 
-  (def-keys-for-map2 inferior-haskell-mode-map
+  (def-keys-for-map inferior-haskell-mode-map
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)

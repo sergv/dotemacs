@@ -22,15 +22,15 @@
         vim:motion-mode-local-keymap           (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap (make-sparse-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-lockal-keymap
+  (def-keys-for-map vim:normal-mode-lockal-keymap
     ("<f9>" sql-send-buffer))
 
-  (def-keys-for-map2 (vim:normal-mode-lockal-keymap
-                      vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-lockal-keymap
+                     vim:visual-mode-local-keymap)
     ("g n" sql-beginning-of-statement)
     ("g t" sql-end-of-statement))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("<f1>" sql-send-region)
     ("<f9>" sql-send-region)))
 

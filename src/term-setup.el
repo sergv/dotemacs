@@ -39,19 +39,19 @@ on current line. See `term-bol'.")
            ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
            )
 
-     (def-keys-for-map2 vim:normal-mode-local-keymap
+     (def-keys-for-map vim:normal-mode-local-keymap
        ("^" vim:term-bol-motion)
        ;; ("<up>" term-previous-input)
        ;; ("<down>" term-next-input)
        )
 
-     (def-keys-for-map2 (vim:normal-mode-local-keymap
-                         vim:insert-mode-local-keymap)
+     (def-keys-for-map (vim:normal-mode-local-keymap
+                        vim:insert-mode-local-keymap)
        ("M-x"  execute-extended-command)
        ("M-:"  eval-expression)
        ("<f1>" term-paste))
 
-     (def-keys-for-map2 vim:insert-mode-local-keymap
+     (def-keys-for-map vim:insert-mode-local-keymap
        ("SPC" term-send-raw)))
 
    (add-hook 'term-mode-hook #'term-setup)))

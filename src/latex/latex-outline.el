@@ -18,8 +18,8 @@
 (defmacro latex:save-ex-save-re (&rest body)
   (declare (indent defun))
   `(save-excursion
-     (save-match-data
-       ,@body)))
+    (save-match-data
+     ,@body)))
 
 
 (defconst latex-preamble-start "\\\\documentclass\\[.*\\]{.*}")
@@ -168,8 +168,8 @@ possible values are 'part, 'chapter, 'section, 'subsection, 'subsubsection,
 'paragraph and 'subparagraph or nil if str doesn't denotes any type
 of section."
   (save-match-data
-    (when (string-match latex-sectioning-regexp str)
-      (intern (match-string 1 str)))))
+   (when (string-match latex-sectioning-regexp str)
+     (intern (match-string 1 str)))))
 
 
 (defvar latex:document-start nil
@@ -183,10 +183,10 @@ of section."
 for use in utility functions."
   (interactive)
   (latex:save-ex-save-re
-    (goto-char (point-min))
-    (let ((start (re-search-forward latex-document-start nil t)))
-      (when start
-        (setq latex:document-start (copy-marker start))))))
+   (goto-char (point-min))
+   (let ((start (re-search-forward latex-document-start nil t)))
+     (when start
+       (setq latex:document-start (copy-marker start))))))
 
 
 (require 'functional)
@@ -205,12 +205,12 @@ for use in utility functions."
   (latex:save-ex-save-re
    (let ((type-re (reduce #'(lambda (re x)
                               (if re
-                                  re
-                                  (when x
-                                    (goto-char (marker-position
-                                                latex:document-start))
-                                    (when (re-search-forward x nil t)
-                                      x))))
+                                re
+                                (when x
+                                  (goto-char (marker-position
+                                              latex:document-start))
+                                  (when (re-search-forward x nil t)
+                                    x))))
                           (list latex-part-regexp
                                 latex-chapter-regexp
                                 latex-section-regexp
@@ -222,7 +222,7 @@ for use in utility functions."
 
      (goto-char (marker-position latex:document-start))
      (while (search-forward-regexp type-re nil t)
-            (hide-subtree)))))
+       (hide-subtree)))))
 
 
 (defconst latex-outline-regexp
@@ -266,7 +266,7 @@ for use in utility functions."
   ;; initially hide all but the headers
   ;;(hide-body)
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"    outline-up-heading)
     ("="       outline-up-heading)
     ("<right>" outline-next-visible-heading)

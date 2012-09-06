@@ -17,23 +17,23 @@
 (eval-after-load
  "grep"
  '(progn
-   (def-keys-for-map1 grep-mode-map +control-x-prefix+)
-   (def-keys-for-map1 grep-mode-map +vi-keys+)
-   (def-keys-for-map1 grep-mode-map +vim-special-keys+)
-   (def-keys-for-map1 grep-mode-map +vim-word-motion-keys+)
-   (def-keys-for-map1 grep-mode-map
-     (("<down>"     compilation-next-error)
-      ("<up>"       compilation-previous-error)
-      ("t"          compilation-next-error)
-      ("n"          compilation-previous-error)
+   (def-keys-for-map grep-mode-map
+     +control-x-prefix+
+     +vi-keys+
+     +vim-special-keys+
+     +vim-word-motion-keys+
+     ("<down>"     compilation-next-error)
+     ("<up>"       compilation-previous-error)
+     ("t"          compilation-next-error)
+     ("n"          compilation-previous-error)
 
-      ("<escape>"   kill-grep)
-      ("C-c C-c"    kill-grep)
+     ("<escape>"   kill-grep)
+     ("C-c C-c"    kill-grep)
 
-      ("C-v"        set-mark-command)
-      ("C-y"        copy-region-as-kill)
-      ("v"          set-mark-command)
-      ("y"          copy-region-as-kill)))
+     ("C-v"        set-mark-command)
+     ("C-y"        copy-region-as-kill)
+     ("v"          set-mark-command)
+     ("y"          copy-region-as-kill))
 
    (defconst grep+-expand-keywords
      '(("<C>" . (and cf (isearch-no-upper-case-p regexp t) "-i"))
