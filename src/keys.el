@@ -2,7 +2,7 @@
 
 (require 'keys-def)
 
-(def-keys-for-map2 global-map
+(def-keys-for-map global-map
   ("<f1>"     abort-recursive-edit)
   ("<f2>"     universal-argument)
   ("<f3>"     #'(lambda () (interactive)
@@ -80,11 +80,11 @@
 
 (eval-after-load "compile"
                  '(progn
-                   (def-keys-for-map1 compilation-mode-map +control-x-prefix+)
-                   (def-keys-for-map1 compilation-mode-map +vi-keys+)
-                   (def-keys-for-map1 compilation-mode-map +vim-special-keys+)
-                   (def-keys-for-map1 compilation-mode-map +vim-word-motion-keys+)
-                   (def-keys-for-map2 compilation-mode-map
+                   (def-keys-for-map compilation-mode-map
+                     +control-x-prefix+
+                     +vi-keys+
+                     +vim-special-keys+
+                     +vim-word-motion-keys+
                      ("<up>"     compilation-jump-to-prev-error)
                      ("<down>"   compilation-jump-to-next-error)
                      ("M-p"      nil)
@@ -100,94 +100,94 @@
 
 (eval-after-load "help-mode"
                  '(progn
-                   (def-keys-for-map1 help-mode-map +vi-keys+)
-                   (def-keys-for-map1 help-mode-map +control-x-prefix+)
-                   (def-keys-for-map1 help-mode-map
-                     (("<escape>"   remove-buffer)
-                      ("<up>"       help-go-back)
-                      ("<down>"     help-go-forward)))))
+                   (def-keys-for-map help-mode-map
+                     +vi-keys+
+                     +control-x-prefix+
+                     ("<escape>"   remove-buffer)
+                     ("<up>"       help-go-back)
+                     ("<down>"     help-go-forward))))
 
 ;; view-mode
 (eval-after-load "view"
                  '(progn
-                   (def-keys-for-map1 view-mode-map +vi-keys+)
-                   (def-keys-for-map1 view-mode-map +control-x-prefix+)
-                   (def-keys-for-map1 view-mode-map
-                     (("<escape>"   remove-buffer)))))
+                   (def-keys-for-map view-mode-map
+                     +vi-keys+
+                     +control-x-prefix+
+                     ("<escape>"   remove-buffer))))
 
 (eval-after-load "undo-tree"
                  '(progn
-                   ;;(def-keys-for-map1 undo-tree-visualizer-map +vi-keys+)
-                   (def-keys-for-map1 undo-tree-visualizer-map
-                     (("t"        undo-tree-visualize-redo)
-                      ("n"        undo-tree-visualize-undo)
-                      ("h"        undo-tree-visualize-switch-branch-left)
-                      ("s"        undo-tree-visualize-switch-branch-right)
-                      ("SPC"      undo-tree-visualizer-toggle-timestamps)
-                      ("a"        undo-tree-visualizer-toggle-timestamps)
-                      ("<left>"   undo-tree-visualizer-scroll-left)
-                      ("<right>"  undo-tree-visualizer-scroll-right)
-                      ("<up>"     scroll-up)
-                      ("<down>"   scroll-down)
+                   ;;(def-keys-for-map undo-tree-visualizer-map +vi-keys+)
+                   (def-keys-for-map undo-tree-visualizer-map
+                     ("t"        undo-tree-visualize-redo)
+                     ("n"        undo-tree-visualize-undo)
+                     ("h"        undo-tree-visualize-switch-branch-left)
+                     ("s"        undo-tree-visualize-switch-branch-right)
+                     ("SPC"      undo-tree-visualizer-toggle-timestamps)
+                     ("a"        undo-tree-visualizer-toggle-timestamps)
+                     ("<left>"   undo-tree-visualizer-scroll-left)
+                     ("<right>"  undo-tree-visualizer-scroll-right)
+                     ("<up>"     scroll-up)
+                     ("<down>"   scroll-down)
 
-                      ("q"        undo-tree-visualizer-quit)
-                      ("<escape>" undo-tree-visualizer-quit)
-                      ("<return>" undo-tree-visualizer-quit)
-                      ("C-u"      undo-tree-visualizer-quit)))))
+                     ("q"        undo-tree-visualizer-quit)
+                     ("<escape>" undo-tree-visualizer-quit)
+                     ("<return>" undo-tree-visualizer-quit)
+                     ("C-u"      undo-tree-visualizer-quit))))
 
 (eval-after-load "cus-edit"
                  '(progn
-                   (def-keys-for-map1 custom-mode-map +vi-keys+)
-                   (def-keys-for-map1 custom-mode-map +control-x-prefix+)
-                   (def-keys-for-map1 custom-mode-map +vim-special-keys+)
-                   (def-keys-for-map1 custom-mode-map +vim-word-motion-keys+)
-                   (def-keys-for-map1 custom-mode-map
-                     ((", w"        customize-save-customized)
-                      ("w"          vim:motion-fwd-word)
-                      ("b"          vim:motion-bwd-word)
-                      ("e"          vim:motion-fwd-word-end)
+                   (def-keys-for-map custom-mode-map
+                     +control-x-prefix+
+                     +vi-keys+
+                     +vim-special-keys+
+                     +vim-word-motion-keys+
+                     (", w"        customize-save-customized)
+                     ("w"          vim:motion-fwd-word)
+                     ("b"          vim:motion-bwd-word)
+                     ("e"          vim:motion-fwd-word-end)
 
-                      ("<escape>"   remove-buffer)
-                      ("<down>"     widget-forward)
-                      ("<up>"       widget-backward)))
+                     ("<escape>"   remove-buffer)
+                     ("<down>"     widget-forward)
+                     ("<up>"       widget-backward))
 
-                   (def-keys-for-map1 Custom-mode-map +vi-keys+)
-                   (def-keys-for-map1 Custom-mode-map +control-x-prefix+)
-                   (def-keys-for-map1 Custom-mode-map +vim-special-keys+)
-                   (def-keys-for-map1 Custom-mode-map +vim-word-motion-keys+)
-                   (def-keys-for-map1 Custom-mode-map
-                     ((", w"        customize-save-customized)
-                      ("w"          vim:motion-fwd-word)
-                      ("b"          vim:motion-bwd-word)
-                      ("e"          vim:motion-fwd-word-end)
+                   (def-keys-for-map Custom-mode-map
+                     +control-x-prefix+
+                     +vi-keys+
+                     +vim-special-keys+
+                     +vim-word-motion-keys+
+                     (", w"        customize-save-customized)
+                     ("w"          vim:motion-fwd-word)
+                     ("b"          vim:motion-bwd-word)
+                     ("e"          vim:motion-fwd-word-end)
 
-                      ("<escape>"   remove-buffer)
-                      ("<down>"     widget-forward)
-                      ("<up>"       widget-backward)))))
+                     ("<escape>"   remove-buffer)
+                     ("<down>"     widget-forward)
+                     ("<up>"       widget-backward))))
 
 (eval-after-load "apropos"
                  '(progn
-                   (def-keys-for-map1 apropos-mode-map
-                     (("<f1>"       remove-buffer)
-                      ("<escape>"   remove-buffer)))))
+                   (def-keys-for-map apropos-mode-map
+                     ("<f1>"       remove-buffer)
+                     ("<escape>"   remove-buffer))))
 
 
 
-(def-keys-for-map1 occur-mode-map +control-x-prefix+)
-(def-keys-for-map1 occur-mode-map
-  (("<up>"   custom-occur-prev)
-   ("<down>" custom-occur-next)
-   ("n"      custom-occur-prev)
-   ("t"      custom-occur-next)
+(def-keys-for-map occur-mode-map
+  +control-x-prefix+
+  ("<up>"   custom-occur-prev)
+  ("<down>" custom-occur-next)
+  ("n"      custom-occur-prev)
+  ("t"      custom-occur-next)
 
-   ("k"      remove-buffer)
-   ("K"      remove-buffer-and-window)))
+  ("k"      remove-buffer)
+  ("K"      remove-buffer-and-window))
 
 (eval-after-load "doc-view"
                  '(progn
-                   (def-keys-for-map1 doc-view-mode-map
-                     (("S-<up>"   doc-view-previous-page)
-                      ("S-<down>" doc-view-next-page)))))
+                   (def-keys-for-map doc-view-mode-map
+                     ("S-<up>"   doc-view-previous-page)
+                     ("S-<down>" doc-view-next-page))))
 
 
 

@@ -171,7 +171,7 @@
   (lisp-indent-function indent-point state))
 
 (define-common-lisp-style "my-style"
-    "My custom indentation style, very similar to modern one."
+  "My custom indentation style, very similar to modern one."
   (:inherit "modern")
   (:variables
    (lisp-indent-maximum-backtracking 10)
@@ -194,7 +194,7 @@
    (labels ((&whole 2 &rest (&whole 1 (&whole 4 1 &rest 1) &body)) &body))))
 
 (define-common-lisp-style "clisp"
-    "Indentation style used in CLISP sources."
+  "Indentation style used in CLISP sources."
   (:inherit "modern")
   (:variables
    (lisp-indent-maximum-backtracking 10)
@@ -473,13 +473,13 @@ currently chosen lisp implementation."
   ;;
   ;; (setq slime-use-autodoc-mode nil)
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("<f1>" reload-slime)))
 
 (define-circular-jumps
     slime-repl-next-prompt+
-    slime-repl-prev-prompt+
+  slime-repl-prev-prompt+
   "^[^ \n\t\r\f\v]*>+ *")
 
 (defun slime-repl-setup ()
@@ -493,11 +493,11 @@ currently chosen lisp implementation."
   ;;
   ;; (setq slime-use-autodoc-mode nil)
 
-  (def-keys-for-map2 vim:insert-mode-local-keymap
+  (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC"      slime-space)
     (","        slime-handle-repl-shortcut))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  slime-repl-clear-prompt)
     ("'"        slime-selector)
     ("S"        slime-selector)
@@ -506,8 +506,8 @@ currently chosen lisp implementation."
     (", h"      slime-hyperspec-lookup)
     (", c"      cltl2-lookup))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("<f1>"        reload-slime)
     ("<return>"    slime-repl-return)
     ("M-."         slime-edit-definition)
@@ -525,7 +525,7 @@ currently chosen lisp implementation."
     ("C-<up>"      slime-repl-prev-prompt+)
     ("S-<up>"      slime-repl-prev-prompt+))
 
-  ;; (def-keys-for-map2 (vim:normal-mode-local-keymap
+  ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                     vim:operator-pending-mode-local-keymap
   ;;                     vim:motion-mode-local-keymap)
   ;;   ("^" vim:slime-repl-bol))
@@ -544,18 +544,16 @@ currently chosen lisp implementation."
   (setf truncate-lines nil)
 
   ;; vim-mode is disabled in sldb
-  (def-keys-for-map1 sldb-mode-map
-    +control-x-prefix+)
-
-  (def-keys-for-map1 sldb-mode-map
+  (def-keys-for-map sldb-mode-map
+    +control-x-prefix+
     +vim-special-keys+)
 
   (use-repl-modeline :show-column nil)
 
-  ;; (def-keys-for-map1 sldb-mode-map
+  ;; (def-keys-for-map sldb-mode-map
   ;;   +vim-word-motion-keys+)
 
-  (def-keys-for-map2 sldb-mode-map
+  (def-keys-for-map sldb-mode-map
     ("t"        sldb-down)
     ("n"        sldb-up)
 
@@ -574,15 +572,12 @@ currently chosen lisp implementation."
     ("<f6>"     sldb-invoke-restart-6)))
 
 (defun slime-inspector-setup ()
-  ;; vim mode is disabled here
-  (def-keys-for-map1 slime-inspector-mode-map
-    +control-x-prefix+)
-  (def-keys-for-map1 slime-inspector-mode-map
-    +vim-special-keys+)
-
   (use-repl-modeline :show-column nil)
 
-  (def-keys-for-map2 slime-inspector-mode-map
+  (def-keys-for-map slime-inspector-mode-map
+    ;; vim mode is disabled here
+    +control-x-prefix+
+    +vim-special-keys+
     ("h"       left-char)
     ("t"       next-line)
     ("n"       previous-line)
@@ -609,21 +604,18 @@ currently chosen lisp implementation."
     ("SPC"     slime-inspector-pop)))
 
 (defun slime-fuzzy-completions-setup ()
-  (def-keys-for-map1 slime-fuzzy-completions-map
-    +control-x-prefix+)
-  (def-keys-for-map1 slime-fuzzy-completions-map
-    +vim-special-keys+)
-
   (use-repl-modeline :show-column nil)
 
-  (def-keys-for-map2 slime-fuzzy-completions-map
+  (def-keys-for-map slime-fuzzy-completions-map
+    +control-x-prefix+
+    +vim-special-keys+
     ("<escape>" slime-fuzzy-abort)
     ("t"        slime-fuzzy-next)
     ("n"        slime-fuzzy-prev)
     ("["        slime-fuzzy-next)
     ("]"        slime-fuzzy-prev))
 
-  (def-keys-for-map2 slime-target-buffer-fuzzy-completions-map
+  (def-keys-for-map slime-target-buffer-fuzzy-completions-map
     ("<return>" slime-fuzzy-select)
     ("RET"      slime-fuzzy-select)
     ("<escape>" slime-fuzzy-abort)
@@ -654,19 +646,15 @@ currently chosen lisp implementation."
   (slime-fuzzy-update-keymap-override))
 
 (defun slime-xref-setup ()
-  ;; vim-mode is disabled in xref
-  (def-keys-for-map1 slime-xref-mode-map
-    +control-x-prefix+)
-
-  (def-keys-for-map1 slime-xref-mode-map
-    +vim-special-keys+)
-
   (use-repl-modeline :show-column nil)
 
-  ;; (def-keys-for-map1 sldb-mode-map
+  ;; (def-keys-for-map sldb-mode-map
   ;;   +vim-word-motion-keys+)
 
-  (def-keys-for-map2 slime-xref-mode-map
+  (def-keys-for-map slime-xref-mode-map
+    ;; vim-mode is disabled in xref
+    +control-x-prefix+
+    +vim-special-keys+
     ("ESC"      nil)
     ("M-."      slime-showxrev)
     ("C-v"      set-mark-command)

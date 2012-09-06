@@ -375,7 +375,7 @@ in GROUP-NUMS."
         vim:operator-pending-mode-local-keymap (make-sparse-keymap)
         ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
         )
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("<f1>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)
     ("g <tab>" octave-indent-defun)
@@ -394,11 +394,11 @@ in GROUP-NUMS."
     ("z C"     hs-hide-all)
     ("z O"     hs-show-all))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("g a ="   octave-align-on-equals)
     ("g a ,"   octave-align-on-commas))
 
-  ;; (def-keys-for-map2 (vim:normal-mode-local-keymap
+  ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                     vim:visual-mode-local-keymap
   ;;                     vim:operator-pending-mode-local-keymap
   ;;                     vim:motion-mode-local-keymap)
@@ -419,7 +419,7 @@ in GROUP-NUMS."
   (setf inferior-octave-prompt
         "^\\(octave\\(\\|.bin\\|.exe\\)\\(-[.0-9]+\\)?\\(:[0-9]+\\)?\\|^debug\\)?>+ ")
 
-  (def-keys-for-map2 inferior-octave-mode-map
+  (def-keys-for-map inferior-octave-mode-map
     ("M-/"      comint-dynamic-complete)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

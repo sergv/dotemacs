@@ -77,8 +77,8 @@ interactively prompting for variables/messages."
                "from __future__ import print_function"
                (lambda () (not (point-inside-string-or-comment?))))))
 
-  (def-keys-for-map1 vim:insert-mode-local-keymap
-    (("SPC"   abbrev+-insert-space-or-expand-abbrev))))
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'python-abbrev+)
 

@@ -47,12 +47,12 @@
   (slime-mode 1)
   (turn-on-cldoc-mode)
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
     ("*" search-for-slime-symbol-at-point-forward)
     ("#" search-for-slime-symbol-at-point-backward))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       slime-eval-last-expression)
     ("J"       slime-pprint-eval-last-expression)
 
@@ -69,15 +69,15 @@
     (", h"     slime-hyperspec-lookup)
     (", c"     cltl2-lookup))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("<f1>"  common-lisp-load-file)
     ("<f9>"  common-lisp-compile-and-load-file)
 
     ("M-/"   slime-complete-symbol)
     ("M-:"   slime-interactive-eval))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     (", m"     slime-macroexpand-1)
     (", M"     slime-macroexpand-all))
 

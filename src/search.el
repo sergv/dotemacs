@@ -34,7 +34,7 @@
 
 (defvar *search-minibuffer-keymap*
   (let ((map (make-keymap)))
-    (def-keys-for-map2 map
+    (def-keys-for-map map
       ("<enter>"   search-done)
       ("<return>"  search-done)
       ("RET"       search-done)
@@ -206,16 +206,16 @@ When not prompting in minibuffer then this variable is set to nil.")
 (defun search-next-impl ()
   "Move to the next match for `*search-current-regexp*'."
   (unless (member* *search-current-regexp* *search-ignore-regexps* :test #'string=)
-      (let ((p (point))
-            (minibuffer-message-timeout 1)
-            (case-fold-search (not *search-case-sensetive*)))
-        (unless (re-search-forward *search-current-regexp* nil t)
-          (goto-char (point-min))
-          (if (re-search-forward *search-current-regexp* nil t)
-            (message "Wrapped at bottom")
-            (progn
-              (message "Nothing found")
-              (goto-char p)))))))
+    (let ((p (point))
+          (minibuffer-message-timeout 1)
+          (case-fold-search (not *search-case-sensetive*)))
+      (unless (re-search-forward *search-current-regexp* nil t)
+        (goto-char (point-min))
+        (if (re-search-forward *search-current-regexp* nil t)
+          (message "Wrapped at bottom")
+          (progn
+            (message "Nothing found")
+            (goto-char p)))))))
 
 (defun search-prev-impl ()
   "Move to the previous match for `*search-current-regexp*'."

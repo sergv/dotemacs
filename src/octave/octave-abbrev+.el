@@ -76,8 +76,8 @@ while interactively prompting for variables/messages."
                 #'octave-debug-message-skeleton)
                (lambda () (not (point-inside-string-or-comment?))))))
 
-  (def-keys-for-map1 vim:insert-mode-local-keymap
-    (("SPC"   abbrev+-insert-space-or-expand-abbrev))))
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'octave-abbrev+)
 

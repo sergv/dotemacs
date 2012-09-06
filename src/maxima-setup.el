@@ -34,14 +34,14 @@
           vim:insert-mode-local-keymap (make-sparse-keymap)
           vim:visual-mode-local-keymap (make-sparse-keymap))
 
-    (def-keys-for-map2 vim:normal-mode-local-keymap
+    (def-keys-for-map vim:normal-mode-local-keymap
       ("SPC SPC" switch-to-maxima)
 
       ("j"       maxima-send-previous-form)
       ("J"       maxima-send-previous-form))
 
-    (def-keys-for-map2 (vim:normal-mode-local-keymap
-                        vim:insert-mode-local-keymap)
+    (def-keys-for-map (vim:normal-mode-local-keymap
+                       vim:insert-mode-local-keymap)
       ("M-/"     maxima-complete)
       ;; use load file instead of send buffer to be more consistent
       ;; with another similar modes, e.g. slime, octave, prolog etc
@@ -59,12 +59,12 @@
         (kbd ", h")
       maxima-help-map)
 
-    (def-keys-for-map2 vim:visual-mode-local-keymap
+    (def-keys-for-map vim:visual-mode-local-keymap
       ("j"     maxima-send-region)
       ("J"     maxima-send-region)
       ("g a ," maxima-align-matrix-commas))
 
-    (def-keys-for-map2 maxima-mode-map
+    (def-keys-for-map maxima-mode-map
       ("<f12>" nil)))
 
   (define-switch-to-interpreter
@@ -83,7 +83,7 @@
 
   (define-circular-jumps
       maxima-jump-to-next-prompt
-      maxima-jump-to-prev-prompt
+    maxima-jump-to-prev-prompt
     comint-prompt-regexp
     (unless (string-match-p "\\*i?maxima\\*" (buffer-name))
       (error "Not in the maxima buffer")))
@@ -95,11 +95,11 @@
     (setf vim:normal-mode-local-keymap (make-keymap)
           vim:insert-mode-local-keymap (make-keymap))
 
-    (def-keys-for-map2 vim:normal-mode-local-keymap
+    (def-keys-for-map vim:normal-mode-local-keymap
       ("SPC SPC" comint-clear-prompt))
 
-    (def-keys-for-map2 (vim:normal-mode-local-keymap
-                        vim:insert-mode-local-keymap)
+    (def-keys-for-map (vim:normal-mode-local-keymap
+                       vim:insert-mode-local-keymap)
       ("M-/"         inferior-maxima-input-complete)
       ("M-p"         browse-kill-ring)
       ("M-P"         browse-comint-input-history)

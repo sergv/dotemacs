@@ -44,11 +44,11 @@
 (defun magit-mode-setup ()
   ;; here we do have vim mode enabled
 
-  ;; (def-keys-for-map1 magit-mode-map
+  ;; (def-keys-for-map magit-mode-map
   ;;   +control-x-prefix+)
-  ;; (def-keys-for-map1 magit-mode-map
+  ;; (def-keys-for-map magit-mode-map
   ;;   +vim-special-keys+)
-  (def-keys-for-map2 magit-mode-map
+  (def-keys-for-map magit-mode-map
     ("r"        magit-refresh)
     ("R"        magit-refresh-all)))
 
@@ -57,11 +57,9 @@
 (defun magit-status-mode-setup ()
   ;; don't do (init-common) here since it's not so common mode
 
-  (def-keys-for-map1 magit-status-mode-map
-    +control-x-prefix+)
-  (def-keys-for-map1 magit-status-mode-map
-    +vim-special-keys+)
-  (def-keys-for-map2 magit-status-mode-map
+  (def-keys-for-map magit-status-mode-map
+    +control-x-prefix+
+    +vim-special-keys+
     ("r"        magit-refresh)
     ("R"        magit-refresh-all)
 
@@ -74,19 +72,17 @@
 (add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
 
 (defun magit-log-mode-setup ()
-  (def-keys-for-map1 magit-log-mode-map
-    +control-x-prefix+)
-  (def-keys-for-map1 magit-log-mode-map
-    +vim-special-keys+)
-  (def-keys-for-map2 magit-log-mode-map
-    ("r"        magit-refresh)
-    ("R"        magit-refresh-all)
+  (def-keys-for-map magit-log-mode-map
+    +control-x-prefix+
+    +vim-special-keys+
+    ("r"      magit-refresh)
+    ("R"      magit-refresh-all)
 
-    ("p"        nil)
-    ("<down>"   magit-goto-next-section)
-    ("<up>"     magit-goto-previous-section)
-    ("t"        vim-mock:motion-down)
-    ("n"        vim-mock:motion-up)))
+    ("p"      nil)
+    ("<down>" magit-goto-next-section)
+    ("<up>"   magit-goto-previous-section)
+    ("t"      vim-mock:motion-down)
+    ("n"      vim-mock:motion-up)))
 
 (add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 

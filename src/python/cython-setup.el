@@ -35,7 +35,7 @@
         vim:operator-pending-mode-local-keymap (make-sparse-keymap)
         vim:motion-mode-local-keymap           (make-sparse-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     (", d"     pylookup-lookup)
     ("<f9>"    cython-compile)
 
@@ -47,20 +47,20 @@
     ("z O"     hs-show-all))
 
   (pabbrev-mode 1)
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("M-/"     pabbrev-show-menu ;; pabbrev-expand-maybe
                ))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:visual-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
     ("g t" py-end-of-def-or-class)
     ("g n" py-beginning-of-def-or-class)
 
     ("*"   search-for-symbol-at-point-forward)
     ("#"   search-for-symbol-at-point-backward))
 
-  (def-keys-for-map2 vim:visual-mode-local-keymap
+  (def-keys-for-map vim:visual-mode-local-keymap
     ("<f1>"  py-execute-region-no-switch)
     ("j"     py-execute-region-no-switch)
     ("g a"   nil)

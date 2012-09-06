@@ -269,22 +269,22 @@
                "more")
            symbol-end))
 
-  (def-keys-for-map1 vim:normal-mode-local-keymap
-    '((", e"     scheme-send-last-sexp)
-      (", E"     scheme-send-last-sexp)
-      (", d"     scheme-describe-current-symbol)
-      ("SPC SPC" switch-to-scheme-repl)
-      ("j"       scheme-send-last-sexp)
-      ("J"       scheme-send-last-sexp)))
+  (def-keys-for-map vim:normal-mode-local-keymap
+    (", e"     scheme-send-last-sexp)
+    (", E"     scheme-send-last-sexp)
+    (", d"     scheme-describe-current-symbol)
+    ("SPC SPC" switch-to-scheme-repl)
+    ("j"       scheme-send-last-sexp)
+    ("J"       scheme-send-last-sexp))
 
-  (def-keys-for-map1 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
-    '(("<f1>"    scheme-load-current-file)
-      ("M-/"     scheme-smart-complete)))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<f1>"    scheme-load-current-file)
+    ("M-/"     scheme-smart-complete))
 
-  (def-keys-for-map1 vim:visual-mode-local-keymap
-    '(("j"       scheme-send-region)
-      ("J"       scheme-send-region)))
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("j"       scheme-send-region)
+    ("J"       scheme-send-region))
 
   (scheme-abbrev+-setup))
 
@@ -361,7 +361,7 @@
 
 (define-circular-jumps
     scheme-repl-next-prompt
-    scheme-repl-prev-prompt
+  scheme-repl-prev-prompt
   (concat "^" +scheme-prompt-regexp+)
   (unless (string= (buffer-name) "*scheme*")
     (error "Not in the scheme buffer")))
@@ -406,8 +406,8 @@
   ;; (set (make-local-variable 'face-remapping-alist)
   ;;      '((font-lock-comment-face)))
 
-  (def-keys-for-map2 (vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
     ("C-<up>"   scheme-repl-prev-prompt)
     ("C-<down>" scheme-repl-next-prompt)
     ("S-<up>"   scheme-repl-prev-prompt)

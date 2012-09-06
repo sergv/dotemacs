@@ -27,7 +27,7 @@ from \\label{...} and \\ref{...} constructs."
        :test #'string=)))))
 
 (define-skeleton latex-insert-reference-skeleton
-    "Insert \\ref{} construct and put prompt between angle brackets."
+  "Insert \\ref{} construct and put prompt between angle brackets."
   (completing-read-vanilla "Label: "
                            (latex-get-labels-in-buffer)
                            nil
@@ -54,8 +54,8 @@ from \\label{...} and \\ref{...} constructs."
                (list
                 #'latex-insert-reference-skeleton))))
 
-  (def-keys-for-map1 vim:insert-mode-local-keymap
-    (("SPC" abbrev+-insert-space-or-expand-abbrev))))
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
 (provide 'latex-abbrev+)
 

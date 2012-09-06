@@ -22,12 +22,12 @@
   (setq vim:insert-mode-local-keymap (make-sparse-keymap)
         vim:normal-mode-local-keymap (make-sparse-keymap))
 
-  (def-keys-for-map2 vim:normal-mode-local-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("C-SPC" icicle-comint-dynamic-complete-filename)
     ("g t"   c-awk-end-of-defun)
     ("g n"   c-awk-beginning-of-defun))
 
-  (def-keys-for-map2 vim:insert-mode-local-keymap
+  (def-keys-for-map vim:insert-mode-local-keymap
     ("C-SPC" icicle-comint-dynamic-complete-filename)))
 
 

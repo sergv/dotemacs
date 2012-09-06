@@ -34,8 +34,8 @@ simlifying encoding of several keys for one snippet."
   (let* ((name (and file
                     (file-name-nondirectory file)))
          (keys (unless yas/ignore-filenames-as-triggers
-                (and name
-                     (list (file-name-sans-extension name)))))
+                 (and name
+                      (list (file-name-sans-extension name)))))
          template
          bound
          condition
@@ -150,13 +150,13 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
           (t
            (call-interactively 'delete-backward-char)))))
 
-(def-keys-for-map1 yas/keymap
-  (("<backspace>"     yas/skip-and-clear-or-delete-backward-char)
-   ("<delete>"        yas/skip-and-clear-or-delete-char)
-   ("S-<backspace>"   yas/skip-and-clear-or-delete-char)
+(def-keys-for-map yas/keymap
+  ("<backspace>"     yas/skip-and-clear-or-delete-backward-char)
+  ("<delete>"        yas/skip-and-clear-or-delete-char)
+  ("S-<backspace>"   yas/skip-and-clear-or-delete-char)
 
-   ("<S-iso-lefttab>" yas/prev-field)
-   ("S-<tab>"         yas/prev-field)))
+  ("<S-iso-lefttab>" yas/prev-field)
+  ("S-<tab>"         yas/prev-field))
 
 
 (provide 'yasnippet-setup)

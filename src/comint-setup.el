@@ -32,7 +32,7 @@ Sentinels will always get the two parameters PROCESS and EVENT."
 
 
 (defun comint-setup ()
-  (def-keys-for-map2 comint-mode-map
+  (def-keys-for-map comint-mode-map
     ("<up>"   comint-previous-input)
     ("<down>" comint-next-input)
     ("C-<up>"   comint-previous-prompt)
