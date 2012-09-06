@@ -224,6 +224,7 @@ Futher modified by Sergey Vinokurov."
        (org-agenda-date-today        ((t (:foreground ,blue :bold t))))
        (org-agenda-date-weekend      ((t (:foreground ,blue :bold t))))
        (org-agenda-restriction-lock  ((t (:background ,light-yellow-background))))
+       (org-agenda-structure         ((t (:foreground ,violet))))
        (org-clock-overlay            ((t (:background ,light-yellow-background))))
        (org-document-info            ((t (:foreground ,violet))))
        (org-document-title           ((t (:foreground ,violet :bold t))))
@@ -235,6 +236,9 @@ Futher modified by Sergey Vinokurov."
        (org-sexp-date                ((t (:foreground ,magenta))))
        (org-table                    ((t (:foreground ,violet))))
        (org-time-grid                ((t (:foreground ,orange))))
+       (org-scheduled-today          ((t (:foreground ,cyan))))
+       (org-scheduled                ((t (:foreground ,cyan))))
+       (org-warning                  ((t (:foreground ,orange))))
        ;; outlines, inherited by org mode too
        (outline-1                    ((t (:foreground ,orange))))
        (outline-2                    ((t (:foreground ,yellow))))

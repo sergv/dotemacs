@@ -30,7 +30,8 @@
         (browse-kill-ring-mode . nil)
         (magit-status-mode . nil)
         (magit-log-mode . nil)
-        (magit-key-mode . nil)))
+        (magit-key-mode . nil)
+        (org-agenda-mode . nil)))
 
 ;;;; modeline
 (setq-default mode-line-format
