@@ -34,7 +34,7 @@
     (cmake-mode            (one-line "#")  (line-regexp "#+"))
     (gnuplot-mode          (one-line "#")  (line-regexp "#+"))
     (debsources-mode       (one-line "#")  (line-regexp "#+"))
-    (graphviz-dot-mode     (one-line "#")  (line-regexp "#+"))
+    (graphviz-dot-mode     (region-begin "/*") (region-end "*/"))
     (shell-script-mode     (one-line "#")  (line-regexp "#+"))
     (awk-mode              (one-line "#")  (line-regexp "#+"))
     (sh-mode               (one-line "#")  (line-regexp "#+"))

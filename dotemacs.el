@@ -231,7 +231,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "visit-files")
 (load-library "hideshow-setup")
 (load-library "render-formula")
-
+(load-library "image-mode-setup")
 (load-library "tabbar-setup")
 
 
