@@ -16,13 +16,12 @@
                                 "/org-7.8.11/contrib/lisp"))
 
 (load-library "org-install")
-;; (require 'org-install)
 ;; (require 'org-drill)
 
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
 (define-key global-map "\C-cl" 'org-store-link)
-(setf org-log-done t)
+(define-key global-map "\C-ca" 'org-agenda)
 
 ;; org mode customizations
 (setf org-agenda-ndays 7
@@ -31,6 +30,9 @@
       org-agenda-skip-deadline-if-done t
       org-agenda-skip-scheduled-if-done t
       org-agenda-start-on-weekday nil
+      org-agenda-files (list "/home/sergey/emacs/todo.org"
+                             "/home/sergey/projects/todo.org"
+                             "/home/sergey/university/todo.org")
       ;; notes are stored in descending date order - most recent always at top
       org-reverse-note-order t
       org-enforce-todo-dependencies t
@@ -43,7 +45,9 @@
       org-src-fontify-natively t
       ;; if block has an active edit buffer, it `org-edit-src'
       ;; will switch to that buffer immediately
-      org-src-ask-before-returning-to-edit-buffer nil)
+      org-src-ask-before-returning-to-edit-buffer nil
+
+      org-log-done 'time)
 
 (eval-after-load
  "org"
@@ -54,11 +58,36 @@
          org-todo-keyword-faces
          '(("WAITING"   . org-waiting)
            ("STARTED"   . org-started)
-           ("CANCELLED" . org-cancelled)))))
+           ("CANCELLED" . org-cancelled)))
+
+   ;; make use of completing-read-vanilla instead of plain completing read
+   (redefun org-icompleting-read (&rest args)
+     "Completing-read using `ido-mode' or `iswitchb' speedups if available."
+     (org-without-partial-completion
+      (if (and org-completion-use-ido
+               (fboundp 'ido-completing-read)
+               (boundp 'ido-mode) ido-mode
+               (listp (second args)))
+        (let ((ido-enter-matching-directory nil))
+          (apply 'ido-completing-read (concat (car args))
+                 (if (consp (car (nth 1 args)))
+                   (mapcar 'car (nth 1 args))
+                   (nth 1 args))
+                 (cddr args)))
+        (if (and org-completion-use-iswitchb
+                 (boundp 'iswitchb-mode) iswitchb-mode
+                 (listp (second args)))
+          (apply 'org-iswitchb-completing-read (concat (car args))
+                 (if (consp (car (nth 1 args)))
+                   (mapcar 'car (nth 1 args))
+                   (nth 1 args))
+                 (cddr args))
+          (apply 'completing-read-vanilla args)))))))
 
 (eval-after-load
  "org-comat"
  '(progn
+   ;; add handling of vim's region
    (redefun org-region-active-p ()
      "Is `transient-mark-mode' on and the region active?
 Works on both Emacs and XEmacs."
@@ -217,7 +246,7 @@ which enable the original code blocks to be found."
   (org-toggle-pretty-entities))
 
 (defun org-mode-setup ()
-  (init-common :use-yasnippet t :use-render-formula t)
+  (init-common :use-yasnippet t :use-render-formula nil)
   (set (make-local-variable 'yas/fallback-behavior)
        '(apply org-cycle '()))
 
@@ -232,6 +261,7 @@ which enable the original code blocks to be found."
     ("<tab>" org-cycle)
 
     ("M-."   org-open-at-point)
+    ("M-,"   org-mark-ring-goto)
     ("C-o"   org-open-at-point)
     ("g o"   org-open-at-point)
 
@@ -246,7 +276,10 @@ which enable the original code blocks to be found."
     ("z C"   hide-other)
 
     ("j"     eval-last-sexp)
-    ("J"     eval-print-last-sexp-unlimited-length))
+    ("J"     eval-print-last-sexp-unlimited-length)
+
+    ("T"     org-forward-same-level)
+    ("N"     org-backward-same-level))
 
   (def-keys-for-map2 vim:visual-mode-local-keymap
     ("j"   eval-region))
@@ -275,6 +308,19 @@ which enable the original code blocks to be found."
     ("SPC"   abbrev+-org-self-insert-or-expand-abbrev)))
 
 (add-hook 'org-mode-hook #'org-mode-setup)
+
+(defun org-agenda-mode-setup ()
+  (def-keys-for-map1 org-agenda-mode-map
+    +control-x-prefix+)
+  (def-keys-for-map1 org-agenda-mode-map
+    +vim-special-keys+)
+  (def-keys-for-map1 org-agenda-mode-map
+    (("t"   org-agenda-next-line)
+     ("n"   org-agenda-previous-line)
+
+     ("C-t" org-agenda-todo))))
+
+(add-hook 'org-agenda-mode-hook #'org-agenda-mode-setup)
 
 ;;;; epilogue
 
