@@ -17,7 +17,6 @@
       yas/skip-and-clear-key "DEL"
       yas/key-syntaxes (list "^ >" "w_." "w_" "w"))
 (yas/initialize)
-(yas/load-directory yas/root-directory)
 
 ;; so yasnippet is in loaded state here
 
@@ -54,17 +53,17 @@ simlifying encoding of several keys for one snippet."
           (let ((variable (match-string-no-properties 1))
                 (value    (match-string-no-properties 2)))
             (cond
-              ((string= "name" variable)
+              ((string=? "name" variable)
                (setq name value))
-              ((string= "condition" variable)
+              ((string=? "condition" variable)
                (setq condition value))
-              ((string= "group" variable)
+              ((string=? "group" variable)
                (setq group value))
-              ((string= "expand-env" variable)
+              ((string=? "expand-env" variable)
                (setq expand-env value))
-              ((string= "key" variable)
+              ((string=? "key" variable)
                (push value keys))
-              ((string= "binding" variable)
+              ((string=? "binding" variable)
                (setq binding value))))))
       (setq template
             (buffer-substring-no-properties (point-min) (point-max))))
@@ -94,7 +93,7 @@ simlifying encoding of several keys for one snippet."
                                making-groups-sym)
   "Recursively load snippet templates from DIRECTORY."
   ;; TODO: Rewrite this horrible, horrible monster I created
-  (unless (file-exists-p (concat directory "/" ".yas-skip"))
+  (unless (file-exist? (concat directory "/" ".yas-skip"))
     (let* ((major-mode-and-parents (unless making-groups-sym
                                      (yas/compute-major-mode-and-parents
                                       (concat directory "/dummy")
@@ -102,8 +101,8 @@ simlifying encoding of several keys for one snippet."
                                       no-hierarchy-parents)))
            (yas/ignore-filenames-as-triggers
              (or yas/ignore-filenames-as-triggers
-                 (file-exists-p (concat directory
-                                        "/.yas-ignore-filenames-as-triggers"))))
+                 (file-exist? (concat directory
+                                      "/.yas-ignore-filenames-as-triggers"))))
            (mode-sym (and major-mode-and-parents
                           (car major-mode-and-parents)))
            (parents (if making-groups-sym
@@ -112,7 +111,7 @@ simlifying encoding of several keys for one snippet."
            (snippet-defs nil)
            (make-groups-p
              (or making-groups-sym
-                 (file-exists-p (concat directory "/" ".yas-make-groups")))))
+                 (file-exist? (concat directory "/" ".yas-make-groups")))))
       (with-temp-buffer
         (dolist (file (yas/subdirs directory 'no-subdirs-just-files))
           (when (file-readable-p file)
@@ -130,7 +129,6 @@ simlifying encoding of several keys for one snippet."
           (yas/load-directory-1 subdir parents 't (or mode-sym
                                                       making-groups-sym))
           (yas/load-directory-1 subdir (list mode-sym)))))))
-
 
 
 (defun yas/skip-and-clear-or-delete-backward-char (&optional field)
@@ -157,6 +155,9 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
 
   ("<S-iso-lefttab>" yas/prev-field)
   ("S-<tab>"         yas/prev-field))
+
+;; now load snippets using enhanced functions (re)defined above
+(yas/load-directory yas/root-directory)
 
 
 (provide 'yasnippet-setup)
