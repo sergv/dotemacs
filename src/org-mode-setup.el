@@ -16,7 +16,7 @@
                                 "/org-7.8.11/contrib/lisp"))
 
 (load-library "org-install")
-;; (require 'org-drill)
+(require 'org-drill)
 
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
@@ -25,7 +25,7 @@
 
 ;; org mode customizations
 (setf org-agenda-ndays 7
-      org-deadline-warning-days 14
+      org-deadline-warning-days 7
       org-agenda-show-all-dates t
       org-agenda-skip-deadline-if-done t
       org-agenda-skip-scheduled-if-done t
@@ -47,14 +47,25 @@
       ;; will switch to that buffer immediately
       org-src-ask-before-returning-to-edit-buffer nil
 
-      org-log-done 'time)
+      org-use-fast-todo-selection t
+      org-log-done 'time
+
+      org-drill-leech-method 'warn
+      org-drill-use-visible-cloze-face-p t
+      org-drill-hide-item-headings-p t
+      org-drill-maximum-items-per-session 50
+      org-drill-maximum-duration 15 ;; minutes
+      org-drill-save-buffers-after-drill-sessions-p nil ;; don't prompt for save
+      ;; this may be useful when working with large amounts of items
+      ;; org-drill-add-random-noise-to-intervals-p t
+      )
 
 (eval-after-load
  "org"
  '(progn
    (setf org-todo-keywords
-         '((sequence "TODO(t)" "WAITING(w)" "STARTED(s)" "|" "DONE(d)")
-           (sequence "|" "CANCELLED(c)"))
+         '((sequence "TODO(t)" "WAITING(w!)" "STARTED(s!)" "|" "DONE(d!)")
+           (sequence "|" "CANCELLED(c@)"))
          org-todo-keyword-faces
          '(("WAITING"   . org-waiting)
            ("STARTED"   . org-started)
@@ -313,10 +324,10 @@ which enable the original code blocks to be found."
   (def-keys-for-map org-agenda-mode-map
     +control-x-prefix+
     +vim-special-keys+
-    (("t"   org-agenda-next-line)
-     ("n"   org-agenda-previous-line)
+    ("t"   org-agenda-next-line)
+    ("n"   org-agenda-previous-line)
 
-     ("C-t" org-agenda-todo))))
+    ("C-t" org-agenda-todo)))
 
 (add-hook 'org-agenda-mode-hook #'org-agenda-mode-setup)
 

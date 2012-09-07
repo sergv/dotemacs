@@ -239,6 +239,9 @@ Futher modified by Sergey Vinokurov."
        (org-scheduled-today          ((t (:foreground ,cyan))))
        (org-scheduled                ((t (:foreground ,cyan))))
        (org-warning                  ((t (:foreground ,orange))))
+       (org-drill-hidden-cloze-face  ((t (:foreground ,base1))))
+       (org-drill-visible-cloze-face ((t (:foreground ,green))))
+       (org-drill-visible-cloze-hint-face ((t (:foreground ,violet))))
        ;; outlines, inherited by org mode too
        (outline-1                    ((t (:foreground ,orange))))
        (outline-2                    ((t (:foreground ,yellow))))
