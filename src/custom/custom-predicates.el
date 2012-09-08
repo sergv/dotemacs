@@ -34,6 +34,7 @@
                     random-state-p
                     processp
                     bufferp
+                    characterp
 
                     file-existp
                     file-executable-p
