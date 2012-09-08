@@ -12,8 +12,8 @@
 (require 'abbrev+)
 
 
-(define-lisp-debug-print-skeleton
-    scheme-debug-message-skeleton
+(define-lisp-print-info-skeleton
+    scheme-print-info-skeleton
   :doc "Call to format to print some variables and messages."
   :print-begin "(format #t "
   :use-upcase nil
@@ -58,9 +58,8 @@
          (list (make-abbrev+-re-for-lisp-func-name
                 '(("lambda" 3)))
                "(lambda")
-         (list "\\_<de?bu?g\\_>"
-               (list
-                #'scheme-debug-message-skeleton)
+         (list "\\_<info\\_>"
+               (list #'scheme-print-info-skeleton)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))
                                (not (lisp-pos-is-beginning-of-list? (point))))))))
 
