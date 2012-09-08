@@ -355,6 +355,8 @@ Futher modified by Sergey Vinokurov."
        (csv-separator-face                   ((t (:foreground ,magenta))))
        (dired-directory                      ((t (:foreground ,blue))))
        (dired-warning                        ((t (:inherit warning :bold t))))
+       (ert-test-result-expected             ((t (:background ,light-green-background))))
+       (ert-test-result-unexpected           ((t (:background ,light-red-background))))
        (flyspell-duplicate                   ((t (:bold t :foreground ,green :underline t))))
        (flyspell-incorrect                   ((t (:bold t :foreground ,orange :underline t))))
        (font-latex-bold-face                 ((t (:inherit bold))))

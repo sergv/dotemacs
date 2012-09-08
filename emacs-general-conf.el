@@ -263,25 +263,20 @@
 
 ;;;; customizations without dedicated setup file
 (eval-after-load "ediff"
-  '(progn
-    ;; don't spawn separate ediff frame
-    (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-    (setq ediff-split-window-function 'split-window-vertically)
+                 '(progn
+                   ;; don't spawn separate ediff frame
+                   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+                   (setq ediff-split-window-function 'split-window-vertically)
 
-    (add-hook 'ediff-keymap-setup-hook
-     #'(lambda ()
-         (def-keys-for-map1 ediff-mode-map
-             '(("<up>"   ediff-previous-difference)
-               ("<down>" ediff-next-difference)))))
+                   (add-hook 'ediff-keymap-setup-hook
+                    #'(lambda ()
+                        (def-keys-for-map ediff-mode-map
+                          +control-x-prefix+
+                          ;;((kbd "n") ediff-previous-difference)
+                          ;;((kbd "t") ediff-next-difference)
+                          ("<down>" ediff-next-difference)
+                          ("<up>"   ediff-previous-difference))))))
 
-    (add-hook 'ediff-keymap-setup-hook
-     #'(lambda ()
-         (def-keys-for-map1 ediff-mode-map +control-x-prefix+)
-         (def-keys-for-map1 ediff-mode-map
-             '( ;;((kbd "n") ediff-previous-difference)
-               ;;((kbd "t") ediff-next-difference)
-               ("<down>" ediff-next-difference)
-               ("<up>"   ediff-previous-difference)))))))
 
 (eval-after-load "term" ;; ansi-term et al
                  '(progn

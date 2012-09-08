@@ -26,6 +26,12 @@
 ;;                        "/xhtml-transitional-in-nxml/schemas.xml")
 ;;                rng-schema-locating-files-default))))
 
+(setf load-path
+      (remove-if (lambda (path)
+                   (string-match-pure? "/nxhtml/tests/?$"
+                                       path))
+                 load-path))
+
 (setf auto-mode-alist
       (cons (cons "\\.html\\'" 'nxhtml-mode)
             (remove* "\\.html\\'"
@@ -33,6 +39,7 @@
                      :test #'string=
                      :key #'car)))
 
+;; hideshow special mode
 (setq hs-special-modes-alist (assq-delete-all 'nxhtml-mode hs-special-modes-alist))
 (add-to-list 'hs-special-modes-alist
              '(nxhtml-mode
