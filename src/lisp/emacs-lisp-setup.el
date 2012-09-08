@@ -42,7 +42,8 @@
    (with-disabled-undo (1))
    (with-preserved-buffer-modified-p (1))
    (with-inhibited-modification-hooks (1))
-   (with-inhibited-readonly (1))))
+   (with-inhibited-readonly (1))
+   (ert-deftest (as defun))))
 
 
 
