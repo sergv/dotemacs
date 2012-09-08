@@ -11,8 +11,8 @@
 (require 'general-lisp-setup)
 (require 'abbrev+)
 
-(define-lisp-debug-print-skeleton
-    common-lisp-debug-message-skeleton
+(define-lisp-print-info-skeleton
+    common-lisp-print-info-skeleton
   :doc "Call to format to print some variables and messages."
   :print-begin "(format t "
   :use-upcase t
@@ -47,9 +47,8 @@
                 '(("unwind"  2)
                   ("protecs" 2)))
                "(unwind-protect")
-         (list "\\_<dbg\\_>"
-               (list
-                #'common-lisp-debug-message-skeleton)
+         (list "\\_<info\\_>"
+               (list #'common-lisp-print-info-skeleton)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))
                                (not (lisp-pos-is-beginning-of-list? (point))))))))
 

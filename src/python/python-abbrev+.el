@@ -10,7 +10,7 @@
 
 (require 'common)
 
-(define-debug-print-skeleton
+(define-print-info-skeleton
     python-debug-message-skeleton
   :doc "Insert call to print statement to print some variables and messages while
 interactively prompting for variables/messages."
@@ -68,7 +68,7 @@ interactively prompting for variables/messages."
                 (lambda ()
                   (yas/expand-snippet "print(\"$1\".format($2))$0")))
                (lambda () (not (point-inside-string-or-comment?))))
-         (list "\\<de?bu?g\\>"
+         (list "\\<info\\>"
                (list
                 #'python-debug-message-skeleton)
                (lambda () (not (point-inside-string-or-comment?))))

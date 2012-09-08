@@ -6,7 +6,7 @@
 ;; Created: Wednesday, 11 April 2012
 ;; Description:
 
-(define-debug-print-skeleton
+(define-print-info-skeleton
     octave-debug-message-skeleton
   :doc "Insert call to printf statement to print some variables and messages
 while interactively prompting for variables/messages."
@@ -71,7 +71,7 @@ while interactively prompting for variables/messages."
                 (lambda ()
                   (yas/expand-snippet "printf(\"${1:$$(upcase yas/text)}\\n\");")))
                (lambda () (not (point-inside-string-or-comment?))))
-         (list "\\<de?bu?g\\>"
+         (list "\\<info\\>"
                (list
                 #'octave-debug-message-skeleton)
                (lambda () (not (point-inside-string-or-comment?))))))
