@@ -41,11 +41,12 @@
      (interactive "r")
      (save-excursion
       (goto-char begin)
-      (while (<= (point) end)
-        (forward-sexp 1)
+      (while (<= (progn (forward-sexp 1)
+                        (point))
+                 end)
         (backward-sexp 1)
-        (hs-hide-block t) ;; hide and reposition
-        (skip-syntax-forward ")" ;; close delimiters
+        (hs-hide-block t) ;; hide and reposition at the end
+        (skip-syntax-forward ")" ;; skip close delimiters
                              )))
      ;; turn visual mode off
      (when (or (region-active-p)
