@@ -456,7 +456,7 @@ current buffer. INIT form will be executed before performing any jumps."
 
 
 
-(defmacro* define-debug-print-skeleton
+(defmacro* define-print-info-skeleton
     (name
      &key
      (doc nil)
@@ -490,9 +490,8 @@ solve most debug print problems.
 
 I want to stress one point here: this macro does not and would never ever
 support debug printing for C++ using cout et al."
-
   `(define-skeleton ,name
-       ,doc
+     ,doc
      nil
      ;; store start of skeleton
      '(setq
@@ -506,7 +505,7 @@ support debug printing for C++ using cout et al."
      ,format-string-start
      ;; get name of function containing point
      ;; this form evaluates to string which would be function name
-     (funcall ,insert-entity-name-procedure v1)
+     (funcall #',insert-entity-name-procedure v1)
      ((let* ((x (read-string "Variable or message starting with space: "))
              (message-p (and (< 0 (length x))
                              (char= ?\s (aref x 0))))
@@ -550,7 +549,7 @@ support debug printing for C++ using cout et al."
      ,(when insert-newline-before-var-list
         ;; print \n only if there are any variable names
         '(when (cdr v2) '\n))
-     (funcall ,make-variable-list
+     (funcall #',make-variable-list
               (nreverse
                (remove-if (lambda (str)
                             (= 0 (length str)))
@@ -559,7 +558,7 @@ support debug printing for C++ using cout et al."
      ,(when indent-after-func
         `(save-excursion
           (goto-char v1)
-          (funcall ,indent-after-func)))))
+          (funcall #',indent-after-func)))))
 
 
 (defun re-group-matchedp (n)

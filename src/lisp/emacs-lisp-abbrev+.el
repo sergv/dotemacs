@@ -12,8 +12,8 @@
 (require 'abbrev+)
 
 
-(define-lisp-debug-print-skeleton
-    emacs-lisp-debug-message-skeleton
+(define-lisp-print-info-skeleton
+    emacs-lisp-print-info-skeleton
   :doc "Call to message to print some variables and messages."
   :print-begin "(message "
   :use-upcase t
@@ -61,7 +61,7 @@
          (list (make-abbrev+-re-for-lisp-func-name
                 '(("lambda" 3)))
                "(lambda")
-         (list "(mess?\\_>"
+         (list "(\\(?:mess?\\|msg\\)\\_>"
                "(message")
          (list (make-abbrev+-re-for-lisp-func-name
                 '(("condition" 3)
@@ -71,9 +71,8 @@
                 '(("unwind"  2)
                   ("protecs" 2)))
                "(unwind-protect")
-         (list "\\_<de?bu?g\\_>"
-               (list
-                #'emacs-lisp-debug-message-skeleton)
+         (list "\\_<info\\_>"
+               (list #'emacs-lisp-print-info-skeleton)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))
                                (not (lisp-pos-is-beginning-of-list? (point))))))))
 

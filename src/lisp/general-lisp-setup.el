@@ -598,20 +598,19 @@ This command assumes point is not in a string or comment."
 
 ;;; other
 
-(defmacro* define-lisp-debug-print-skeleton (name
-                                             &key
-                                             (doc nil)
-                                             (print-begin "(format t ")
-                                             (make-variable-list
-                                              (lambda (list)
-                                                (mapconcat #'identity list "\n")))
-                                             (use-upcase t)
-                                             (format-print-value "~a")
-                                             (format-string-start "\"")
-                                             (format-string-end "~%\"")
-                                             (insert-entity-name-procedure
-                                              nil))
-  `(define-debug-print-skeleton
+(defmacro* define-lisp-print-info-skeleton (name
+                                            &key
+                                            (doc nil)
+                                            (print-begin "(format t ")
+                                            (make-variable-list
+                                             (lambda (list)
+                                               (mapconcat #'identity list "\n")))
+                                            (use-upcase t)
+                                            (format-print-value "~a")
+                                            (format-string-start "\"")
+                                            (format-string-end "~%\"")
+                                            (insert-entity-name-procedure nil))
+  `(define-print-info-skeleton
        ,name
      :doc ,doc
      :insert-entity-name-procedure
@@ -620,27 +619,25 @@ This command assumes point is not in a string or comment."
         (lambda (beginning)
           (save-excursion
            (condition-case nil
-               (progn
-                 (goto-char beginning)
-                 (save-excursion
-                  ;; this throws error if no enclosing list found
-                  (backward-up-list))
-                 (beginning-of-defun)
-                 (vim:motion-fwd-WORD)
-                 (let ((symbol (symbol-at-point)))
-                   (if symbol
-                     (concat
-                      ,(if use-upcase
-                         '(upcase (symbol-name symbol))
-                         '(symbol-name symbol))
-                      ": ")
-                     "")))
+               (progn (goto-char beginning)
+                      (save-excursion
+                       ;; this throws error if no enclosing list found
+                       (backward-up-list))
+                      (beginning-of-defun)
+                      (vim:motion-fwd-WORD)
+                      (let ((symbol (symbol-at-point)))
+                        (if symbol
+                          (concat ,(if use-upcase
+                                     '(upcase (symbol-name symbol))
+                                     '(symbol-name symbol))
+                                  ": ")
+                          "")))
              ;; no enclosing list was found, so use no name here
              (error "")))))
      :print-begin ,print-begin
      :print-end ")"
 
-     :indent-after-func #'prog-indent-sexp
+     :indent-after-func prog-indent-sexp
      :make-variable-list ,make-variable-list
      :use-upcase ,use-upcase
 
