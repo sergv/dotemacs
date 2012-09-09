@@ -200,9 +200,9 @@ DEFINITIONS substituted by definition body. DEFINITIONS is list
 of the form of let-bindigs, (symbol body). No recursion is permitted -
 no defined symbol should show up in body of its definition or in
 body of any futher definition."
-  (when (some (lambda (def) (not (= 2 (length def)))) definitions)
+  (aif (find-if (lambda (def) (not (= 2 (length def)))) definitions)
     (error "rxx: every definition should consist of two elements: (name def), offending definition: %s"
-           (find-if (lambda (def) (not (= 2 (length def)))) definitions)))
+           it))
   `(rx ,@(reduce (lambda (def expr)
                    (subst (cadr def) (car def) expr
                           :test #'eq))
