@@ -49,6 +49,8 @@
 
       org-use-fast-todo-selection t
       org-log-done 'time
+      org-log-into-drawer nil
+      org-log-state-notes-insert-after-drawers nil
 
       org-drill-leech-method 'warn
       org-drill-use-visible-cloze-face-p t
