@@ -10,6 +10,7 @@
 ;; (load (concat +emacs-config-path+ "/src/haskell/haskell-mode/haskell-site-file.el"))
 
 (autoload 'haskell-setup "haskell-setup" "" nil nil)
+(autoload 'inferior-haskell-mode-setup "haskell-setup" "" nil nil)
 
 (add-to-list 'auto-mode-alist '("\\.hcr\\'" . ghc-core-mode))
 (add-to-list 'auto-mode-alist '("\\.hsc\\'" . haskell-c-mode))
