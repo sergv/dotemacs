@@ -71,7 +71,7 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
 
   (ansi-color-for-comint-mode-on))
 
-(def-keys-for-map2 python-repl-mode-map
+(def-keys-for-map python-repl-mode-map
   ("<tab>" ipython-complete)
   ("TAB"   ipython-complete))
 
