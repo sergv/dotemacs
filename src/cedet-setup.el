@@ -6,7 +6,26 @@
 ;; Created: Sunday, 22 April 2012
 ;; Description:
 
-;; (load-library "/home/sergey/emacs/src/cedet-1.1/common/cedet.el")
+
+(load-library (concat +emacs-standalone-path+
+                      "/cedet-1.1/common/cedet.el"))
+
+
+(defun wisent-grammar-mode-setup ()
+  (init-common :use-yasnippet nil)
+
+  (setf vim:normal-mode-local-keymap (make-keymap)
+        vim:insert-mode-local-keymap (make-keymap))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<f9>" semantic-grammar-create-package))
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("j"     eval-last-sexp)
+    ("J"     eval-print-last-sexp-unlimited-length)))
+
+(add-hook 'wisent-grammar-mode-hook #'wisent-grammar-mode-setup)
+
 ;;
 ;; (semantic-load-enable-gaudy-code-helpers)
 ;; ;; (global-srecode-minor-mode 1)
@@ -20,9 +39,11 @@
 ;;
 ;; (require 'semanticdb)
 ;; (global-semanticdb-minor-mode 1)
+;;
+;;
+;; ;; (semanticdb-create-ebrowse-database "/usr/include")
 
-
-;; (semanticdb-create-ebrowse-database "/usr/include")
+(provide 'cedet-setup)
 
 ;; Local Variables:
 ;; lexical-binding: t
