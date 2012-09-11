@@ -32,7 +32,8 @@
         (magit-log-mode . nil)
         (magit-key-mode . nil)
         (org-agenda-mode . nil)
-        (image-mode . nil)))
+        (image-mode . nil)
+        (calendar-mode . nil)))
 
 ;;;; modeline
 (setq-default mode-line-format
