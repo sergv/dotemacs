@@ -12,6 +12,16 @@
 (require 'vim-mock)
 (require 'magit)
 
+(setf magit-completing-read-function
+      (lambda (prompt collection
+               &optional predicate require-match initial-input hist def)
+        (completing-read-vanilla
+         (if (and def (> (length prompt) 2)
+                  (string-equal ": " (substring prompt -2)))
+           (format "%s (default %s): " (substring prompt 0 -2) def)
+           prompt)
+         collection predicate require-match initial-input hist def)))
+
 ;;;; gitignore
 
 (autoload 'gitignore-mode "gitignore-mode"
