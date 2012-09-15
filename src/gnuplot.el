@@ -1,4 +1,4 @@
-;;; gnuplot.el ---
+;; gnuplot.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -29,20 +29,20 @@
   (unless compile-command
     (setq compile-command
           (if-buffer-has-file
-            (concat gnuplot-program
-                    " "
-                    (shell-quote-argument
-                     (buffer-file-name))))))
+           (concat gnuplot-program
+                   " "
+                   (shell-quote-argument
+                    (buffer-file-name))))))
   ;; but if buffer is still fileless then signal error
   (if compile-command
-      (compilation-start compile-command
-                         #'gnuplot-run-mode)
-      (error "Buffer has no saved file to run")))
+    (compilation-start compile-command
+                       #'gnuplot-run-mode)
+    (error "Buffer has no saved file to run")))
 
 (define-compilation-mode gnuplot-run-mode "Gnuplot run"
   "Mode to run gnuplot scripts."
   ;; (set (make-local-variable 'compilation-process-setup-function)
-       ;; ',(intern (concat nm "-process-setup")))
+  ;; ',(intern (concat nm "-process-setup")))
 
   (set (make-local-variable 'compilation-error-regexp-alist)
        (list
@@ -55,7 +55,7 @@
   (set (make-local-variable 'compilation-scroll-output) nil)
 
   ;; (set (make-local-variable 'compilation-finish-functions)
-       ;; (list ',(intern (concat nm "-finish-hook"))))
+  ;; (list ',(intern (concat nm "-finish-hook"))))
   )
 
 
@@ -145,25 +145,25 @@ lines."
   (interactive)
   (let ((indent 0))
     (save-excursion
-      (save-excursion
-	(end-of-line 0)
-	(if (bobp) ()
-	  (re-search-backward "^[ \t]*." (point-min) "to_limit")
-	  (back-to-indentation)
-	  (setq indent (current-column))
-	  (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
-	      (let ((plus (1- (length (match-string 0)))))
-		(end-of-line)
-		(backward-char 1)
-		(if (looking-at (regexp-quote "\\"))
-		    (setq indent  (+ plus indent)))))))
-      (if (= (current-indentation) indent)
-	  ()
-	(beginning-of-line)
-	(delete-horizontal-space)
-	(insert (make-string indent ? ))))
+     (save-excursion
+      (end-of-line 0)
+      (if (bobp) ()
+        (re-search-backward "^[ \t]*." (point-min) "to_limit")
+        (back-to-indentation)
+        (setq indent (current-column))
+        (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
+          (let ((plus (1- (length (match-string 0)))))
+            (end-of-line)
+            (backward-char 1)
+            (if (looking-at (regexp-quote "\\"))
+              (setq indent  (+ plus indent)))))))
+     (if (= (current-indentation) indent)
+       ()
+       (beginning-of-line)
+       (delete-horizontal-space)
+       (insert (make-string indent ? ))))
     (if (looking-at "[ \t]+$")
-	(end-of-line))))
+      (end-of-line))))
 
 
 ;;;###autoload
@@ -193,9 +193,7 @@ lines."
 
 (provide 'gnuplot)
 
-
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; gnuplot.el ends here
+;; gnuplot.el ends here

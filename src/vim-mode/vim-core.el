@@ -1,4 +1,4 @@
-;;; vim-core.el - Core variables and functions.
+;; vim-core.el - Core variables and functions. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
@@ -537,7 +537,10 @@ command-specific transformations."
          #'vim:exit-to-normal-mode
          :keymap vim:override-keymap)
 
+
 (provide 'vim-core)
 
-;;; vim-core.el ends here
+;; Local Variables:
+;; End:
 
+;; vim-core.el ends here

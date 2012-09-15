@@ -1,4 +1,4 @@
-;;; scheme-abbrev+.el ---
+;; scheme-abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -70,7 +70,6 @@
 (provide 'scheme-abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; scheme-abbrev+.el ends here
+;; scheme-abbrev+.el ends here

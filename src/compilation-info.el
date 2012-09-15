@@ -1,4 +1,4 @@
-;;; compilation-info.el ---
+;; compilation-info.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -30,7 +30,6 @@ up by functions in compilation-finish-functions.")
 (provide 'compilation-info)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; compilation-info.el ends here
+;; compilation-info.el ends here

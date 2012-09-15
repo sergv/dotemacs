@@ -1,4 +1,4 @@
-;;; spell.el ---
+;; spell.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -76,11 +76,10 @@
       ;; flyspell-delay 1
       flyspell-always-use-popup t)
 
+
 (provide 'spell)
 
-
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; spell.el ends here
+;; spell.el ends here

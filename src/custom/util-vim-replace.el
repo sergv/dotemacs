@@ -1,3 +1,11 @@
+;; util-vim-replace.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 (require 'vim-core)
 
@@ -27,12 +35,12 @@
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
       (let ((optionally-add-global-flag
               #'(lambda (x) (save-match-data
-                        (cond
-                          (;; if something was specified
-                           (string-match-p "^.*[/|,;:!@#][^g]*$" x)
-                           x)
-                          (t
-                           (concat x "/g"))))))
+                             (cond
+                               (;; if something was specified
+                                (string-match-p "^.*[/|,;:!@#][^g]*$" x)
+                                x)
+                               (t
+                                (concat x "/g"))))))
             (result (completing-read ":"
                                      'vim:ex-complete
                                      nil
@@ -143,6 +151,6 @@ With prefix argument puts symbol at point also in substitute part"
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
+;; util-vim-replace.el ends here

@@ -1,4 +1,4 @@
-;; reasonable-elisp.el ---
+;; reasonable-elisp.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -9,10 +9,10 @@
 (defun filter (pred seq &rest args)
   (apply #'remove-if-not pred seq args))
 
+
 (provide 'reasonable-elisp)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; reasonable-elisp.el ends here

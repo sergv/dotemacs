@@ -1,7 +1,15 @@
+;; cycle-on-lines.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 (defmacro make-cycle-on-lines-in-region
     (begin end direction
-     &optional forward-func backward-func)
+           &optional forward-func backward-func)
   "Return function than will
 go to COUNTh next or previous line in range [BEGIN, lines - END) where
 lines is line count in the current buffer. Never leaves point not within
@@ -21,34 +29,34 @@ DIRECTION may have value either 'forward or 'backward"
                (< current ,begin)
                (> current range-end))
               ,@(if (eq direction 'forward)
-                    `((goto-char (point-min))
-                      (funcall ,forward-func ,begin))
-                    `((goto-char (point-max))
-                      (funcall ,backward-func ,end))))
+                  `((goto-char (point-min))
+                    (funcall ,forward-func ,begin))
+                  `((goto-char (point-max))
+                    (funcall ,backward-func ,end))))
 
              ,(append
                (list
                 (if (eq direction 'forward)
-                    `(>= (+ current count) range-end)
-                    `(<= (- current count) ,begin)))
+                  `(>= (+ current count) range-end)
+                  `(<= (- current count) ,begin)))
 
                (if (eq direction 'forward)
-                   `((incf count (- (- range-end current)))
+                 `((incf count (- (- range-end current)))
 
-                     (goto-char (point-min))
-                     (funcall ,forward-func ,begin)
-                     (dotimes (i count)
-                       (funcall ,forward-func +1)))
-                   `((incf count (- (- current ,begin)))
+                   (goto-char (point-min))
+                   (funcall ,forward-func ,begin)
+                   (dotimes (i count)
+                     (funcall ,forward-func +1)))
+                 `((incf count (- (- current ,begin)))
 
-                     (goto-char (point-max))
-                     (funcall ,backward-func ,(abs end))
-                     (dotimes (i count)
-                       (funcall ,backward-func -1)))))
+                   (goto-char (point-max))
+                   (funcall ,backward-func ,(abs end))
+                   (dotimes (i count)
+                     (funcall ,backward-func -1)))))
              (t
               (funcall ,(if (eq direction 'forward)
-                            forward-func
-                            backward-func)
+                          forward-func
+                          backward-func)
                        count))))))
 
 (defun ibuffer-cycle-buffers-forward (count)
@@ -100,13 +108,13 @@ DIRECTION may have value either 'forward or 'backward"
            (get-text-property r 'occur-match)
            (setq r (funcall search-func r 'occur-match)))
       (if r
-          (goto-char r)
-          (progn
-            (goto-char (case direction
-                         (forward (point-min))
-                         (backward (point-max))))
-            ;; we found nothing so this try doesn't actually counts
-            (incf n)))
+        (goto-char r)
+        (progn
+          (goto-char (case direction
+                       (forward (point-min))
+                       (backward (point-max))))
+          ;; we found nothing so this try doesn't actually counts
+          (incf n)))
       (incf n -1))))
 
 (defun custom-occur-next (&optional n)
@@ -121,6 +129,6 @@ DIRECTION may have value either 'forward or 'backward"
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
+;; cycle-on-lines.el ends here

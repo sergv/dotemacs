@@ -1,4 +1,4 @@
-;;; comint-setup.el ---
+;; comint-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -65,7 +65,6 @@ inclusively."
 (provide 'comint-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; comint-setup.el ends here
+;; comint-setup.el ends here

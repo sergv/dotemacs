@@ -1,4 +1,4 @@
-;; python-customizations.el ---
+;; python-customizations.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -111,7 +111,6 @@ python shell PYTHNO-NAME (e.g. IPython) doesn't like them."
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; python-customizations.el ends here

@@ -1,4 +1,4 @@
-;;; pabbrev.el --- Predictive abbreviation expansion
+;; pabbrev.el --- Predictive abbreviation expansion --- -*- lexical-binding: t; -*-
 
 ;; Version: 2.0
 
@@ -397,7 +397,7 @@ I'm not telling you which version, I prefer."
       "Face for displaying one suggestion."
       :group 'pabbrev)
     (defface pabbrev-suggestions-label-face
-        nil "Font lock mode face used to highlight suggestions"
+      nil "Font lock mode face used to highlight suggestions"
       :group 'pabbrev))
   (progn                                ; GNU Emacs
     (defface pabbrev-suggestions-face
@@ -622,7 +622,7 @@ it's ordering is part of the core data structures"
 ;; xemacs has synced to newest easy-mmode now
 ;;(if (not pabbrev-xemacs-p)
 (define-minor-mode pabbrev-mode
-    "Toggle pabbrev mode.
+  "Toggle pabbrev mode.
 With arg, turn on Predicative Abbreviation mode if and only if arg is
 positive.
 
@@ -1807,9 +1807,4 @@ to the dictionary."
 
 
 (provide 'pabbrev)
-;;; pabbrev.el ends here
-
-;; Local Variables:
-;; no-byte-compile: nil
-;; lexical-binding: t
-;; End:
+;; pabbrev.el ends here

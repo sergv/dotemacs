@@ -1,4 +1,4 @@
-;;; ibuffer-setup.el ---
+;; ibuffer-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -196,7 +196,6 @@ The value from `ibuffer-saved-filter-groups' is used."
 (provide 'ibuffer-setup)
 
 ;; Local Variables:
-;; lexical-binding: nil
 ;; End:
 
-;;; ibuffer-setup.el ends here
+;; ibuffer-setup.el ends here

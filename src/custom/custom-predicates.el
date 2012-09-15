@@ -1,4 +1,4 @@
-;; custom-predicates.el ---
+;; custom-predicates.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -84,7 +84,6 @@
 (provide 'custom-predicates)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;; predicates.el ends here
+;; custom-predicates.el ends here

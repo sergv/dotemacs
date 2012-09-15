@@ -1,4 +1,4 @@
-;;; shell-autoloads.el ---
+;; shell-autoloads.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -25,4 +25,7 @@
         conf-xdefaults-mode-hook))
 
 
-;;; shell-autoloads.el ends here
+;; Local Variables:
+;; End:
+
+;; shell-autoloads.el ends here

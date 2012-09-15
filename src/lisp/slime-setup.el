@@ -1,4 +1,4 @@
-;;; slime-setup.el ---
+;; slime-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -953,7 +953,6 @@ completions buffer."
 (provide 'slime-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; slime-setup.el ends here
+;; slime-setup.el ends here

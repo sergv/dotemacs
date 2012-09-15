@@ -1,4 +1,4 @@
-;;; vim-keymap.el - Basic keymapping for vim-mode
+;; vim-keymap.el - Basic keymapping for vim-mode --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -17,8 +17,8 @@
        (interactive "P")
        (execute-kbd-macro
         (if ,arg
-            (vconcat (number-to-string (prefix-numeric-value ,arg))
-                     ,events)
+          (vconcat (number-to-string (prefix-numeric-value ,arg))
+                   ,events)
           ,events)))))
 
 (defun* vim:map (keys command &key (keymap nil))
@@ -32,8 +32,8 @@ the variable where the keymap is stored. If the variable contains
     (setq keymap (symbol-value keymap)))
   (if (or (stringp command)
           (vectorp command))
-      (lexical-let ((kbdevents command))
-        (define-key keymap keys (vim:kbdmacro-to-command kbdevents)))
+    (lexical-let ((kbdevents command))
+                 (define-key keymap keys (vim:kbdmacro-to-command kbdevents)))
     (define-key keymap keys command)))
 
 (defun vim:make-keymap (&optional parent)
@@ -57,18 +57,18 @@ and vim:local-`map-command'."
        (vim:deflocalvar ,(intern lockeym) nil
          ,(concat "VIM buffer local keymap: " doc))
        ,@(when map-command
-          `((defsubst ,(intern (concat "vim:" (symbol-name map-command)))
-              (keys command)
-              ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
-                       glbkeym)
-              (vim:map keys command :keymap ',(intern glbkeym)))
-            (defsubst ,(intern (concat "vim:local-" (symbol-name map-command)))
-               (keys command)
+           `((defsubst ,(intern (concat "vim:" (symbol-name map-command)))
+                 (keys command)
+               ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
+                        glbkeym)
+               (vim:map keys command :keymap ',(intern glbkeym)))
+             (defsubst ,(intern (concat "vim:local-" (symbol-name map-command)))
+                 (keys command)
                ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
                         lockeym)
                (vim:map keys command :keymap ',(intern lockeym))))))))
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:define-keymap"))
-             
+
 
 ;; Interception of ESC event. The ESC event is intercepted. If not
 ;; followed by another key, i.e. not used as a prefix-key, the event
@@ -103,6 +103,10 @@ and vim:local-`map-command'."
   "Global parent keymap to override some Emacs default bindings.")
 (suppress-keymap vim:override-keymap)
 
+
 (provide 'vim-keymap)
 
-;;; vim-keymap.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-keymap.el ends here

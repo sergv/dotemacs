@@ -1,3 +1,11 @@
+;; custom.el --- -*- lexical-binding: nil; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago (since august inception)
+;; Description:
+
 
 ;; (eval-when-compile
 ;;  (require 'cl))
@@ -626,7 +634,8 @@ have 'forward or 'backward value."
 (require 'custom-predicates)
 
 ;; Local Variables:
-;; lexical-binding: nil
 ;; End:
 
 (provide 'custom)
+
+;; custom.el ends here

@@ -1,12 +1,10 @@
-;;; search.el ---
+;; search.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Monday, 16 January 2012
-;; Keywords:
-;; Requirements:
-;; Status:
+;; Description:
 
 ;; This package is indented to replace buggy isearch and even more
 ;; buggy vim-search. It's aim is simple and bugless interactive
@@ -408,7 +406,6 @@ obvious"
 (provide 'search)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; search.el ends here
+;; search.el ends here

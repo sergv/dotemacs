@@ -1,3 +1,12 @@
+;; completion-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago (since august inception)
+;; Description:
+
+
 ;; As of current time (Sat Aug 27 19:03:59 EEST 2011) I don't use
 ;; hippie-expand/pabbrev completion at all.
 ;; And I'm planning to try autocomplete/predictive completion (qbit)
@@ -167,3 +176,5 @@
 ;; and to pabbrev-expand-maybe for completion with popup
 
 (provide 'completion-setup)
+
+;; completion-setup.el ends here

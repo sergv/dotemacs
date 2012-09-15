@@ -1,4 +1,4 @@
-;;; cl-mode.el ---
+;; cl-mode.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -43,7 +43,6 @@
 (provide 'cl-mode)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; cl-mode.el ends here
+;; cl-mode.el ends here

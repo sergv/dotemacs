@@ -1,4 +1,4 @@
-;;; grep+.el ---
+;; grep+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -144,11 +144,10 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           ("hs"    . "*.hs *.hsc *.lhs")
           ("py"    . "*.py *.pyx *.pxd *.pxi"))))
 
+
 (provide 'grep+)
 
-
 ;; Local Variables:
-;; lexical-binding: nil
 ;; End:
 
-;;; grep+.el ends here
+;; grep+.el ends here

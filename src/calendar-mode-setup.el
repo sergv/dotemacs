@@ -1,4 +1,4 @@
-;; calendar-mode-setup.el ---
+;; calendar-mode-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -17,7 +17,6 @@
 (provide 'calendar-mode-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; calendar-mode-setup.el ends here

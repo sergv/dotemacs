@@ -1,4 +1,4 @@
-;;; lisp-utils.el ---
+;; lisp-utils.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -23,7 +23,6 @@
 (provide 'lisp-utils)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; lisp-utils.el ends here
+;; lisp-utils.el ends here

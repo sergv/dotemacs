@@ -1,4 +1,4 @@
-;;; scheme-setup.el ---
+;; scheme-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -417,7 +417,6 @@
 (provide 'scheme-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; scheme-setup.el ends here
+;; scheme-setup.el ends here

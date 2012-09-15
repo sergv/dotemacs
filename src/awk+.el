@@ -1,4 +1,4 @@
-;;; awk+.el ---
+;; awk+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -243,7 +243,6 @@ with id value of `awk-program-id'."
 (provide 'awk+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; awk+.el ends here
+;; awk+.el ends here

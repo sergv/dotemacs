@@ -1,3 +1,11 @@
+;; shell-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 ;; set up shell scripting files and shell interaction mode
 
@@ -77,3 +85,8 @@
 
 
 (provide 'shell-setup)
+
+;; Local Variables:
+;; End:
+
+;; shell-setup.el ends here

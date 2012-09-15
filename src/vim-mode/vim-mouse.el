@@ -1,4 +1,4 @@
-;; vim-mouse.el ---
+;; vim-mouse.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -105,7 +105,6 @@
 (provide 'vim-mouse)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; vim-mouse.el ends here

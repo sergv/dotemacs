@@ -1,4 +1,4 @@
-;;; maxima-setup.el ---
+;; maxima-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -132,7 +132,6 @@
 (provide 'maxima-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; maxima-setup.el ends here
+;; maxima-setup.el ends here

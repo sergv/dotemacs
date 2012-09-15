@@ -1,8 +1,12 @@
+;; render-formula.el --- -*- lexical-binding: t; -*-
 
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: Aug-Sep 2012
+;; Description:
 
 (require 'common)
-
-;; (frame-parameter nil 'alpha)
 
 (defvar *formula-images-cache* (make-hash-table :test 'equal))
 
@@ -198,15 +202,9 @@ displayed as images.")
           (1 'render-formula-formula-face t)))))))
 
 
-
-;; Local Variables:
-;; lexical-binding: t
-;; End:
-
 (provide 'render-formula)
 
+;; Local Variables:
+;; End:
 
-
-
-
-
+;; render-formula.el ends here

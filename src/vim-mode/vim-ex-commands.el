@@ -1,4 +1,4 @@
-;;; vim-ex-commands.el - Implementation of some ex-mode commands.
+;; vim-ex-commands.el - Implementation of some ex-mode commands. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -21,23 +21,23 @@
     (let (beg-pos end-pos)
       (when begin
         (setq beg-pos (save-excursion
-                        (goto-line1 begin)
-                        (line-beginning-position)))
+                       (goto-line1 begin)
+                       (line-beginning-position)))
         (setq end-pos (if end
-                          (save-excursion
-                            (goto-line1 end)
-                            (line-end-position))
+                        (save-excursion
+                         (goto-line1 end)
+                         (line-end-position))
                         beg-pos)))
 
       (cond
-       ((and (null beg-pos)
-             (string= file-name (buffer-file-name)))
-        (save-buffer))
-       ((and (null beg-pos)
-             (null (buffer-file-name)))
-        (write-file file-name (not force)))
-       (t
-        (write-region beg-pos end-pos file-name append nil nil (not force)))))))
+        ((and (null beg-pos)
+              (string= file-name (buffer-file-name)))
+         (save-buffer))
+        ((and (null beg-pos)
+              (null (buffer-file-name)))
+         (write-file file-name (not force)))
+        (t
+         (write-region beg-pos end-pos file-name append nil nil (not force)))))))
 
 
 (vim:defcmd vim:cmd-write (motion (argument:file file) force nonrepeatable)
@@ -61,7 +61,7 @@
 (vim:defcmd vim:cmd-edit ((argument:file file) nonrepeatable)
   "Visits a certain file."
   (if file
-      (find-file file)
+    (find-file file)
     (when (buffer-file-name)
       (find-file (buffer-file-name)))))
 
@@ -74,9 +74,9 @@
 (vim:defcmd vim:cmd-buffer ((argument:buffer buffer) nonrepeatable)
   "Switches to another buffer."
   (if buffer
-      (when (or (get-buffer buffer)
-                (y-or-n-p (format "No buffer with name \"%s\" exists. Create new buffer? " buffer)))
-        (switch-to-buffer buffer))
+    (when (or (get-buffer buffer)
+              (y-or-n-p (format "No buffer with name \"%s\" exists. Create new buffer? " buffer)))
+      (switch-to-buffer buffer))
     (switch-to-buffer (other-buffer))))
 
 (vim:defcmd vim:cmd-next-buffer (count nonrepeatable)
@@ -108,8 +108,8 @@
   "Deletes a buffer."
   (when force
     (if buffer
-        (with-current-buffer buffer
-          (set-buffer-modified-p nil))
+      (with-current-buffer buffer
+        (set-buffer-modified-p nil))
       (set-buffer-modified-p nil)))
   (kill-buffer buffer))
 
@@ -122,13 +122,13 @@
          (delete-frame)
        (error
         (if force
-            (kill-emacs)
+          (kill-emacs)
           (save-buffers-kill-emacs)))))))
 
 (vim:defcmd vim:cmd-quit-all (force nonrepeatable)
   "Exits Emacs, asking for saving."
   (if force
-      (kill-emacs)
+    (kill-emacs)
     (save-buffers-kill-emacs)))
 
 (vim:defcmd vim:cmd-save-and-quit (nonrepeatable)
@@ -147,12 +147,12 @@
     (let ((modes (mapcar #'cdr vim:mode-alist)))
       (with-current-buffer vim:ex-current-buffer
 	(case flag
-	  ((nil) (try-completion mode modes predicate))
-	  ((t) (all-completions mode modes predicate))
-	  ((lambda) (vim:test-completion mode modes predicate)))))))
+   ((nil) (try-completion mode modes predicate))
+   ((t) (all-completions mode modes predicate))
+   ((lambda) (vim:test-completion mode modes predicate)))))))
 
 (vim:define-arg-handler 'mode
-			:complete 'vim:ex-complete-mode-argument)
+  :complete 'vim:ex-complete-mode-argument)
 
 ;; (vim:defcmd vim:cmd-setmode ((argument:mode mode) nonrepeatable)
 ;;   "Changes the default start mode of the current major-mode."
@@ -180,4 +180,7 @@
 
 (provide 'vim-ex-commands)
 
-;;; vim-ex-commands.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-ex-commands.el ends here

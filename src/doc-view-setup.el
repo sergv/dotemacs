@@ -1,4 +1,4 @@
-;; doc-view-setup.el ---
+;; doc-view-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -56,7 +56,6 @@
 (provide 'doc-view-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; doc-view-setup.el ends here

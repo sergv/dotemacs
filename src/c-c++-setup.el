@@ -1,4 +1,4 @@
-;;; c-c++-setup.el ---
+;; c-c++-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -25,21 +25,21 @@
                (string-match-p (rx (* anything) ".h" eol)
                                ext))
       (save-excursion
-        (save-match-data
-          (re-search-forward (rx
-                              (or "class"
-                                  "namespace"
-                                  "::"
-                                  ;; it's quite rare to see other template
-                                  ;; open brace styles so lets accomodate
-                                  ;; only for frequently used ones
-                                  "template<"
-                                  "template <"
-                                  "public:"
-                                  "protected:"
-                                  "private:"))
-                             nil
-                             t))))))
+       (save-match-data
+        (re-search-forward (rx
+                            (or "class"
+                                "namespace"
+                                "::"
+                                ;; it's quite rare to see other template
+                                ;; open brace styles so lets accomodate
+                                ;; only for frequently used ones
+                                "template<"
+                                "template <"
+                                "public:"
+                                "protected:"
+                                "private:"))
+                           nil
+                           t))))))
 
 ;; this will make sure that *.h c++ header will be correctly handled
 (push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
@@ -47,7 +47,6 @@
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; c-c++-setup.el ends here
+;; c-c++-setup.el ends here

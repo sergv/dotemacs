@@ -1,4 +1,4 @@
-;;; cldoc.el --- show Common Lisp operators and variables information in echo area
+;; cldoc.el --- show Common Lisp operators and variables information in echo area
 
 ;; Copyright (C) 1996, 97, 98, 99, 2000 Free Software Foundation, Inc.
 ;; Copyright (C) 2004 Yuji Minejima
@@ -126,8 +126,8 @@ This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
 returns another string is acceptable."
   :type '(radio (function-item upcase)
-		(function-item downcase)
-                function)
+          (function-item downcase)
+          function)
   :group 'cldoc)
 
 (defcustom cldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
@@ -148,8 +148,8 @@ truncated to make more of the arglist or documentation string visible.
 Non-nil values for this variable have no effect unless
 `cldoc-echo-area-multiline-supported-p' is non-nil."
   :type '(radio (const :tag "Always" t)
-                (const :tag "Never" nil)
-                (const :tag "Yes, but truncate symbol names if it will\
+          (const :tag "Never" nil)
+          (const :tag "Yes, but truncate symbol names if it will\
  enable argument list to fit on one line" truncate-sym-name-if-fit))
   :group 'cldoc)
 
@@ -159,7 +159,7 @@ Non-nil values for this variable have no effect unless
 (defvar cldoc-echo-area-multiline-supported-p
   (and (string-lessp "21" emacs-version)
        (save-match-data
-         (numberp (string-match "^GNU Emacs" (emacs-version))))))
+        (numberp (string-match "^GNU Emacs" (emacs-version))))))
 
 ;; Commands after which it is appropriate to print in the echo area.
 ;; Cldoc does not try to print function arglists, etc. after just any command,
@@ -232,7 +232,7 @@ the mode, respectively."
          ;; 19.30; that is the first version in which it appeared, but it
          ;; was obsolesced by idle timers in Emacs 19.31.
          (add-hook (if (boundp 'post-command-idle-hook)
-                       'post-command-idle-hook
+                     'post-command-idle-hook
                      'post-command-hook)
                    'cldoc-print-current-symbol-info t t)
          ;; quick and dirty hack for seeing if this is XEmacs
@@ -240,11 +240,11 @@ the mode, respectively."
               (add-hook 'pre-command-hook
                         'cldoc-pre-command-refresh-echo-area t t))))
   (setq cldoc-mode (if prefix
-                       (>= (prefix-numeric-value prefix) 0)
+                     (>= (prefix-numeric-value prefix) 0)
                      (not cldoc-mode)))
   (and (interactive-p)
        (if cldoc-mode
-           (message "cldoc-mode is enabled")
+         (message "cldoc-mode is enabled")
          (message "cldoc-mode is disabled")))
   (when (and cldoc-mode (and (boundp 'slime-autodoc-mode) slime-autodoc-mode))
     (slime-autodoc-mode -1))
@@ -313,8 +313,8 @@ the mode, respectively."
 (defun cldoc-pre-command-refresh-echo-area ()
   (and cldoc-last-message
        (if (cldoc-display-message-no-interference-p)
-           (cldoc-message cldoc-last-message)
-           (setq cldoc-last-message nil))))
+         (cldoc-message cldoc-last-message)
+         (setq cldoc-last-message nil))))
 
 ;; Decide whether now is a good time to display a message.
 (defun cldoc-display-message-p ()
@@ -353,8 +353,8 @@ the mode, respectively."
 
        (if (and (fboundp 'run-with-idle-timer)
                 (> cldoc-idle-delay 0))
-           t
-           (sit-for cldoc-idle-delay))))
+         t
+         (sit-for cldoc-idle-delay))))
 
 
 (defun cldoc-print-current-symbol-info ()
@@ -375,17 +375,17 @@ the mode, respectively."
 (defun cldoc-get-fnsym-signature-from-lisp-process (sym)
   nil
   ;; (cond
-    ;; ((fboundp 'slime-space)
-     ;; ;; from slime.el
-     ;; (when (and slime-space-information-p
-                ;; (slime-connected-p)
-                ;; (or (not (slime-busy-p))))
-       ;; (let ((result (slime-eval
-                      ;; `(swank:arglist-for-echo-area '(,(symbol-name sym))))))
-         ;; (when (stringp result) (cdar (read-from-string result))))))
-    ;; ;;((fboundp 'ilisp-arglist-message-lisp-space)
-    ;; ;; (cldoc-ilisp-signature))
-    ;; (t nil))
+  ;; ((fboundp 'slime-space)
+  ;; ;; from slime.el
+  ;; (when (and slime-space-information-p
+  ;; (slime-connected-p)
+  ;; (or (not (slime-busy-p))))
+  ;; (let ((result (slime-eval
+  ;; `(swank:arglist-for-echo-area '(,(symbol-name sym))))))
+  ;; (when (stringp result) (cdar (read-from-string result))))))
+  ;; ;;((fboundp 'ilisp-arglist-message-lisp-space)
+  ;; ;; (cldoc-ilisp-signature))
+  ;; (t nil))
   )
 
 ;; Return a string containing the function parameter list, or 1-line
@@ -394,8 +394,8 @@ the mode, respectively."
 (defun cldoc-get-fnsym-args-string (sym)
   (let* ((entry (intern-soft (downcase (symbol-name sym)) cl-operator-signatures))
          (signature (if (and entry (boundp entry))
-                        (symbol-value entry)
-                        (cldoc-get-fnsym-signature-from-lisp-process sym))))
+                      (symbol-value entry)
+                      (cldoc-get-fnsym-signature-from-lisp-process sym))))
     (setq doc
           (cond
             ((null signature) nil)
@@ -417,8 +417,8 @@ the mode, respectively."
          ((endp results))
       (setq result (funcall cldoc-argument-case (symbol-name (car results))))
       (if str
-          (setq str (format "%s, %s" str result))
-          (setq str (format "%s" result))))
+        (setq str (format "%s, %s" str result))
+        (setq str (format "%s" result))))
     str))
 
 
@@ -448,39 +448,39 @@ the mode, respectively."
   (and (stringp doc)
        (substitute-command-keys
         (save-match-data
-          (let ((start (if (string-match "^\\*" doc) (match-end 0) 0)))
-            (cond ((string-match "\n" doc)
-                   (substring doc start (match-beginning 0)))
-                  ((zerop start) doc)
-                  (t (substring doc start))))))))
+         (let ((start (if (string-match "^\\*" doc) (match-end 0) 0)))
+           (cond ((string-match "\n" doc)
+                  (substring doc start (match-beginning 0)))
+                 ((zerop start) doc)
+                 (t (substring doc start))))))))
 
 ;; If the entire line cannot fit in the echo area, the symbol name may be
 ;; truncated or eliminated entirely from the output to make room for the
 ;; description.
 (defun cldoc-docstring-format-sym-doc (sym doc)
   (save-match-data
-    (let* ((name (symbol-name sym))
-           (ea-multi (and cldoc-echo-area-multiline-supported-p
-                          cldoc-echo-area-use-multiline-p))
-           ;; Subtract 1 from window width since emacs will not write
-           ;; any chars to the last column, or in later versions, will
-           ;; cause a wraparound and resize of the echo area.
-           (ea-width (1- (window-width (minibuffer-window))))
-           (strip (- (+ (length name) (length ": ") (length doc)) ea-width)))
-      (cond ((or (<= strip 0)
-                 (eq ea-multi t)
-                 (and ea-multi (> (length doc) ea-width)))
-             (format "%s: %s" sym doc))
-            ((> (length doc) ea-width)
-             (substring (format "%s" doc) 0 ea-width))
-            ((>= strip (length name))
-             (format "%s" doc))
-            (t
-             ;; Show the end of the partial symbol name, rather
-             ;; than the beginning, since the former is more likely
-             ;; to be unique given package namespace conventions.
-             (setq name (substring name strip))
-             (format "%s: %s" name doc))))))
+   (let* ((name (symbol-name sym))
+          (ea-multi (and cldoc-echo-area-multiline-supported-p
+                         cldoc-echo-area-use-multiline-p))
+          ;; Subtract 1 from window width since emacs will not write
+          ;; any chars to the last column, or in later versions, will
+          ;; cause a wraparound and resize of the echo area.
+          (ea-width (1- (window-width (minibuffer-window))))
+          (strip (- (+ (length name) (length ": ") (length doc)) ea-width)))
+     (cond ((or (<= strip 0)
+                (eq ea-multi t)
+                (and ea-multi (> (length doc) ea-width)))
+            (format "%s: %s" sym doc))
+           ((> (length doc) ea-width)
+            (substring (format "%s" doc) 0 ea-width))
+           ((>= strip (length name))
+            (format "%s" doc))
+           (t
+            ;; Show the end of the partial symbol name, rather
+            ;; than the beginning, since the former is more likely
+            ;; to be unique given package namespace conventions.
+            (setq name (substring name strip))
+            (format "%s: %s" name doc))))))
 
 
 (defun cldoc-fnsym-in-current-sexp ()
@@ -489,7 +489,7 @@ the mode, respectively."
     (prog1
         ;; Don't do anything if current word is inside a string.
         (if (= (or (char-after (1- (point))) 0) ?\")
-            nil
+          nil
           (cldoc-current-symbol))
       (goto-char p))))
 
@@ -521,7 +521,7 @@ the mode, respectively."
 (defun cldoc-function-arglist (fn)
   (let* ((prelim-def (cldoc-symbol-function fn))
          (def (if (eq (car-safe prelim-def) 'macro)
-                  (cdr prelim-def)
+                (cdr prelim-def)
                 prelim-def))
          (arglist (cond ((null def) nil)
                         ((byte-code-function-p def)
@@ -541,12 +541,12 @@ the mode, respectively."
   (typecase arg
     (symbol (if (memq arg '(&allow-other-keys &aux &body &environment &key &optional
                             &rest &whole))
-                (symbol-name arg)
-                (funcall cldoc-argument-case (symbol-name arg))))
+              (symbol-name arg)
+              (funcall cldoc-argument-case (symbol-name arg))))
     (string (if (member arg '("&allow-other-keys" "&aux" "&body" "&environment"
                               "&key" "&optional" "&rest" "&whole"))
-                arg
-                (funcall cldoc-argument-case (symbol-name arg))))
+              arg
+              (funcall cldoc-argument-case (symbol-name arg))))
     (cons (cldoc-function-argstring-format arg))
     (t (format "%s" arg))))
 
@@ -572,85 +572,85 @@ the mode, respectively."
    ;; Try first searching for args starting with symbol name.
    ;; This is to avoid matching parenthetical remarks in e.g. sit-for.
    (list (function (lambda (doc fn)
-                     (string-match (format "^(%s[^\n)]*)$" fn) doc)))
+           (string-match (format "^(%s[^\n)]*)$" fn) doc)))
          (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 0) 1)))
-                       (if (string-match " +" doc (match-beginning 0))
-                           (substring doc (match-end 0) end)
-                         "")))))
+           ;; end does not include trailing ")" sequence.
+           (let ((end (- (match-end 0) 1)))
+             (if (string-match " +" doc (match-beginning 0))
+               (substring doc (match-end 0) end)
+               "")))))
 
    ;; Try again not requiring this symbol name in the docstring.
    ;; This will be the case when looking up aliases.
    (list (function (lambda (doc fn)
-                     ;; save-restriction has a pathological docstring in
-                     ;; Emacs/XEmacs 19.
-                     (and (not (eq fn 'save-restriction))
-                          (string-match "^([^\n)]+)$" doc))))
+           ;; save-restriction has a pathological docstring in
+           ;; Emacs/XEmacs 19.
+           (and (not (eq fn 'save-restriction))
+                (string-match "^([^\n)]+)$" doc))))
          (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 0) 1)))
-                       (and (string-match " +" doc (match-beginning 0))
-                            (substring doc (match-end 0) end))))))
+           ;; end does not include trailing ")" sequence.
+           (let ((end (- (match-end 0) 1)))
+             (and (string-match " +" doc (match-beginning 0))
+                  (substring doc (match-end 0) end))))))
 
    ;; Emacs subr docstring style:
    ;;   (fn arg1 arg2 ...): description...
    (list (function (lambda (doc fn)
-                     (string-match "^([^\n)]+):" doc)))
+           (string-match "^([^\n)]+):" doc)))
          (function (lambda (doc)
-                     ;; end does not include trailing "):" sequence.
-                     (let ((end (- (match-end 0) 2)))
-                       (and (string-match " +" doc (match-beginning 0))
-                            (substring doc (match-end 0) end))))))
+           ;; end does not include trailing "):" sequence.
+           (let ((end (- (match-end 0) 2)))
+             (and (string-match " +" doc (match-beginning 0))
+                  (substring doc (match-end 0) end))))))
 
    ;; XEmacs subr docstring style:
    ;;   "arguments: (arg1 arg2 ...)
    (list (function (lambda (doc fn)
-                     (string-match "^arguments: (\\([^\n)]+\\))" doc)))
+           (string-match "^arguments: (\\([^\n)]+\\))" doc)))
          (function (lambda (doc)
-                     ;; also skip leading paren, but the first word is
-                     ;; actually an argument, not the function name.
-                     (substring doc (match-beginning 1) (match-end 1)))))
+           ;; also skip leading paren, but the first word is
+           ;; actually an argument, not the function name.
+           (substring doc (match-beginning 1) (match-end 1)))))
 
    ;; This finds the argstring for `condition-case'.  Any others?
    (list (function (lambda (doc fn)
-                     (string-match
-                      (format "^Usage looks like \\((%s[^\n)]*)\\)\\.$" fn)
-                      doc)))
+           (string-match
+            (format "^Usage looks like \\((%s[^\n)]*)\\)\\.$" fn)
+            doc)))
          (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 1) 1)))
-                       (and (string-match " +" doc (match-beginning 1))
-                            (substring doc (match-end 0) end))))))
+           ;; end does not include trailing ")" sequence.
+           (let ((end (- (match-end 1) 1)))
+             (and (string-match " +" doc (match-beginning 1))
+                  (substring doc (match-end 0) end))))))
 
    ;; This finds the argstring for `setq-default'.  Any others?
    (list (function (lambda (doc fn)
-                     (string-match (format "^[ \t]+\\((%s[^\n)]*)\\)$" fn)
-                                   doc)))
+           (string-match (format "^[ \t]+\\((%s[^\n)]*)\\)$" fn)
+                         doc)))
          (function (lambda (doc)
-                     ;; end does not include trailing ")" sequence.
-                     (let ((end (- (match-end 1) 1)))
-                       (and (string-match " +" doc (match-beginning 1))
-                            (substring doc (match-end 0) end))))))
+           ;; end does not include trailing ")" sequence.
+           (let ((end (- (match-end 1) 1)))
+             (and (string-match " +" doc (match-beginning 1))
+                  (substring doc (match-end 0) end))))))
 
    ;; This finds the argstring for `start-process'.  Any others?
    (list (function (lambda (doc fn)
-                     (string-match "^Args are +\\([^\n]+\\)$" doc)))
+           (string-match "^Args are +\\([^\n]+\\)$" doc)))
          (function (lambda (doc)
-                     (substring doc (match-beginning 1) (match-end 1)))))
+           (substring doc (match-beginning 1) (match-end 1)))))
 
    ;; These common subrs don't have arglists in their docstrings.  So cheat.
    (list (function (lambda (doc fn)
-                     (memq fn '(and or list + -))))
+           (memq fn '(and or list + -))))
          (function (lambda (doc)
-                     ;; The value nil is a placeholder; otherwise, the
-                     ;; following string may be compiled as a docstring,
-                     ;; and not a return value for the function.
-                     ;; In interpreted lisp form they are
-                     ;; indistinguishable; it only matters for compiled
-                     ;; forms.
-                     nil
-                     "&rest args")))
+           ;; The value nil is a placeholder; otherwise, the
+           ;; following string may be compiled as a docstring,
+           ;; and not a return value for the function.
+           ;; In interpreted lisp form they are
+           ;; indistinguishable; it only matters for compiled
+           ;; forms.
+           nil
+           "&rest args")))
    ))
 
 (defun cldoc-function-argstring-from-docstring (fn)
@@ -659,30 +659,30 @@ the mode, respectively."
         (doc nil)
         (doclist nil))
     (save-match-data
-      (while table
-        (cond ((funcall (car (car table)) docstring fn)
-               (setq doc (funcall (car (cdr (car table))) docstring))
-               (setq table nil))
-              (t
-               (setq table (cdr table)))))
+     (while table
+       (cond ((funcall (car (car table)) docstring fn)
+              (setq doc (funcall (car (cdr (car table))) docstring))
+              (setq table nil))
+             (t
+              (setq table (cdr table)))))
 
-      (cond ((not (stringp doc))
-             nil)
-            ((string-match "&" doc)
-             (let ((p 0)
-                   (l (length doc)))
-               (while (< p l)
-                 (cond ((string-match "[ \t\n]+" doc p)
-                        (setq doclist
-                              (cons (substring doc p (match-beginning 0))
-                                    doclist))
-                        (setq p (match-end 0)))
-                       (t
-                        (setq doclist (cons (substring doc p) doclist))
-                        (setq p l))))
-               (cldoc-function-argstring-format (nreverse doclist))))
-            (t
-             (concat "(" (funcall cldoc-argument-case doc) ")"))))))
+     (cond ((not (stringp doc))
+            nil)
+           ((string-match "&" doc)
+            (let ((p 0)
+                  (l (length doc)))
+              (while (< p l)
+                (cond ((string-match "[ \t\n]+" doc p)
+                       (setq doclist
+                             (cons (substring doc p (match-beginning 0))
+                                   doclist))
+                       (setq p (match-end 0)))
+                      (t
+                       (setq doclist (cons (substring doc p) doclist))
+                       (setq p l))))
+              (cldoc-function-argstring-format (nreverse doclist))))
+           (t
+            (concat "(" (funcall cldoc-argument-case doc) ")"))))))
 
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
@@ -713,9 +713,9 @@ the mode, respectively."
 
 (defun cldoc-add-command-completions (&rest names)
   (while names
-      (apply 'cldoc-add-command
-             (all-completions (car names) obarray 'fboundp))
-      (setq names (cdr names))))
+    (apply 'cldoc-add-command
+           (all-completions (car names) obarray 'fboundp))
+    (setq names (cdr names))))
 
 (defun cldoc-remove-command (&rest cmds)
   (let (name)
@@ -727,7 +727,7 @@ the mode, respectively."
            (setq name (symbol-name name)))
 
       (if (fboundp 'unintern)
-          (unintern name cldoc-message-commands)
+        (unintern name cldoc-message-commands)
         (let ((s (intern-soft name cldoc-message-commands)))
           (and s
                (makunbound s)))))))
@@ -1554,4 +1554,4 @@ option::= (:nicknames nickname*)* |
 
 (provide 'cldoc)
 
-;;; cldoc.el ends here
+;; cldoc.el ends here

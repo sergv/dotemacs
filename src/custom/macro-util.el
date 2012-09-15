@@ -1,3 +1,11 @@
+;; macro-util.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 
 (defmacro make-if-pred (pred error-msg &optional pred-name)
@@ -11,8 +19,8 @@
                `(progn ,@body)
                (list 'error
                      (format
-                           ,(concat (symbol-name name) ": " error-msg ": %s")
-                           ,arg-name)))
+                      ,(concat (symbol-name name) ": " error-msg ": %s")
+                      ,arg-name)))
          ;; `(if (funcall (function ,,pred) ,,arg-name)
          ;; (progn ,@body)
          ;; (error (concat
@@ -30,15 +38,15 @@
 
 (defun make-joined-name (orig-symbol suffix-str &optional prefix-str)
   (if-symbolp orig-symbol
-    (if-stringp suffix-str
-      (intern (concat prefix-str (symbol-name orig-symbol) suffix-str)))))
+              (if-stringp suffix-str
+                          (intern (concat prefix-str (symbol-name orig-symbol) suffix-str)))))
 
 
 (defmacro util:eval-if-symbol (x)
   "Evaluate x if it's symbos. Intended to be used inside defmacro."
   `(if (symbolp ,x)
-       (eval ,x)
-       ,x))
+     (eval ,x)
+     ,x))
 
 
 
@@ -58,6 +66,6 @@
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
+;; macro-util.el ends here

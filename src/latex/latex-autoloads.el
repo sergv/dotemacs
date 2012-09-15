@@ -1,4 +1,4 @@
-;;; latex-autoloads.el ---
+;; latex-autoloads.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -28,9 +28,9 @@
 (autoload 'latex-setup "latex-setup")
 
 (autoload 'latex-compile
-  "latex-compilation"
-  "Start compilation of LaTeX file."
-  t)
+          "latex-compilation"
+          "Start compilation of LaTeX file."
+          t)
 
 (add-hook 'latex-mode-hook #'latex-setup)
 (add-hook 'LaTeX-mode-hook #'latex-setup)
@@ -164,4 +164,7 @@
                 "verbatim.el"
                 "virtex.el")))
 
-;;; latex-autoloads.el ends here
+;; Local Variables:
+;; End:
+
+;; latex-autoloads.el ends here

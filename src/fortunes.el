@@ -1,3 +1,12 @@
+;; fortunes.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
+
 (require 'common)
 (require 'comment-util)
 (require 'persistent-store)
@@ -2007,8 +2016,8 @@ quickly and faithfully
   (let* ((i (random (length fortune-source)))
          (str (aref fortune-source i)))
     (if (called-interactively-p nil)
-        (message str)
-        str)))
+      (message str)
+      str)))
 
 (defun fortune-reschedule-queue ()
   "Return queue that with all indices of fortunes
@@ -2040,23 +2049,23 @@ make up new queue if persistent one is empty."
   "Put fortune into scratch buffer."
   (with-current-buffer (get-buffer "*scratch*")
     (with-disabled-undo
-      (emacs-lisp-mode)
-      (comment-util-mode 1)
-      (erase-buffer)
-      (insert (fortune-get-next-fortune))
-      (comment-util-comment-region (point-min) (point-max))
-      (save-match-data
-       (goto-char (point-min))
-       (while (re-search-forward "^[ \t]+" nil t)
-         (replace-match "")))
-      (set-buffer-modified-p nil)
-      (goto-char (point-max))
-      (insert "\n\n\n"))))
+     (emacs-lisp-mode)
+     (comment-util-mode 1)
+     (erase-buffer)
+     (insert (fortune-get-next-fortune))
+     (comment-util-comment-region (point-min) (point-max))
+     (save-match-data
+      (goto-char (point-min))
+      (while (re-search-forward "^[ \t]+" nil t)
+        (replace-match "")))
+     (set-buffer-modified-p nil)
+     (goto-char (point-max))
+     (insert "\n\n\n"))))
 
-
-
-;; Local Variables:
-;; lexical-binding: t
-;; End:
 
 (provide 'fortunes)
+
+;; Local Variables:
+;; End:
+
+;; fortunes.el ends here

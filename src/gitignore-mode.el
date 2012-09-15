@@ -1,4 +1,4 @@
-;; gitignore-mode.el ---
+;; gitignore-mode.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -21,7 +21,6 @@
 (provide 'gitignore-mode)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; gitignore-mode.el ends here

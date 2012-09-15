@@ -1,4 +1,4 @@
-;; haskell-abbrev+.el ---
+;; haskell-abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -32,7 +32,6 @@
 (provide 'haskell-abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; haskell-abbrev+.el ends here

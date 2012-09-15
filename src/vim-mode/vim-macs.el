@@ -1,4 +1,4 @@
-;;; vim-macs.el - Basic macros for vim-mode.
+;; vim-macs.el - Basic macros for vim-mode. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
@@ -303,6 +303,10 @@ look at vim-core.el."
  'emacs-lisp-mode
  '("vim:deflocalvar" "vim:defcmd" "vim:defmotion"))
 
+
 (provide 'vim-macs)
 
-;;; vim-macs.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-macs.el ends here

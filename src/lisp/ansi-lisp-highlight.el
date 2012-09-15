@@ -1,4 +1,4 @@
-;;; lisp-highlight.el ---
+;; ansi-lisp-highlight.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -74,7 +74,7 @@ i.e. names matching regexp \\*.*\\*."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-predicate-face
-  '((t (:inherit font-lock-function-name-face)))
+    '((t (:inherit font-lock-function-name-face)))
   "Face to highlight Scheme-like predicates: eq? and other ending with
 question mark"
   :group 'ansi-lisp)
@@ -105,7 +105,7 @@ or because the're uninterned yet."
 
 (defface ansi-lisp-defined-name-face
     '((t (:inherit font-lock-function-name-face)))
-    "Face to highlight names of entities that are being defined by form
+  "Face to highlight names of entities that are being defined by form
 such as defun, defmacro, etc."
   :group 'ansi-lisp)
 
@@ -1494,9 +1494,7 @@ defpackage."
 
 (provide 'ansi-lisp-highlight)
 
-
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; lisp-highlight.el ends here
+;; ansi-lisp-highlight.el ends here

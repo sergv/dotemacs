@@ -1,4 +1,4 @@
-;;; gnuplot-setup.el ---
+;; gnuplot-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -24,7 +24,6 @@
 (add-hook 'gnuplot-mode-hook #'gnuplot-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; gnuplot-setup.el ends here
+;; gnuplot-setup.el ends here

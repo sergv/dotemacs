@@ -1,4 +1,4 @@
-;; cython-setup.el ---
+;; cython-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -74,10 +74,10 @@
 
 (add-hook 'cython-mode-hook #'cython-setup)
 
+
 (provide 'cython-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; cython-setup.el ends here

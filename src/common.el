@@ -1,4 +1,4 @@
-;;; common.el ---
+;; common.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -1276,8 +1276,7 @@ tabbar, etc")
 (provide 'common)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 
-;;; common.el ends here
+;; common.el ends here

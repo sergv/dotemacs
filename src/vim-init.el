@@ -1,3 +1,11 @@
+;; vim-init.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 (require 'util-vim-replace)
 (require 'completion-setup)
@@ -277,11 +285,10 @@ Basically swap current point with previous one."
 
 (vim:emap "latex" 'vim:render-latex)
 
-;; $$ A x = f $$
-
-;; Local Variables:
-;; lexical-binding: t
-;; End:
 
 (provide 'vim-init)
 
+;; Local Variables:
+;; End:
+
+;; vim-init.el ends here

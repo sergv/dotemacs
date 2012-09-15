@@ -1,4 +1,4 @@
-;; python-repl-mode.el ---
+;; python-repl-mode.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -80,7 +80,6 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
 (provide 'python-repl-mode)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; python-repl-mode.el ends here

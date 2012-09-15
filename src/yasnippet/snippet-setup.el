@@ -1,3 +1,10 @@
+;; snippet-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
 
 
 (defun snippet-setup ()
@@ -25,3 +32,7 @@
 
 (provide 'snippet-setup)
 
+;; Local Variables:
+;; End:
+
+;; snippet-setup.el ends here

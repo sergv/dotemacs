@@ -1,3 +1,12 @@
+;; persistent-store.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
+
 (require 'common)
 (require 'cl)
 
@@ -92,5 +101,10 @@
              persistent-store-content)
     count))
 
+
 (provide 'persistent-store)
 
+;; Local Variables:
+;; End:
+
+;; persistent-store.el ends here

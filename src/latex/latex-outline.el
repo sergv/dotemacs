@@ -1,4 +1,4 @@
-;;; latex-outline.el ---
+;; latex-outline.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -278,5 +278,7 @@ for use in utility functions."
     ("z o"     show-subtree)))
 
 
+;; Local Variables:
+;; End:
 
-;;; latex-outline.el ends here
+;; latex-outline.el ends here

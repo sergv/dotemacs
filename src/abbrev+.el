@@ -1,12 +1,11 @@
-;;; abbrev+.el ---
+;; abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Tuesday,  1 November 2011
-;; Keywords:
-;; Requirements:
-;; Status:
+;; Description:
+
 
 (require 'custom)
 (eval-when-compile '(require 'cl))
@@ -204,8 +203,6 @@ recognition."
 (provide 'abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: nil
 ;; End:
 
-;;; abbrev+.el ends here
-
+;; abbrev+.el ends here

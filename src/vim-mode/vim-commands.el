@@ -1,4 +1,4 @@
-;;; vim-commands.el - Implementation of VIM commands.
+;; vim-commands.el - Implementation of VIM commands. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
@@ -808,6 +808,10 @@ block motions."
   (vim:reset-key-state)
   (execute-kbd-macro (vim:get-register reg) count))
 
+
 (provide 'vim-commands)
 
-;;; vim-commands.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-commands.el ends here

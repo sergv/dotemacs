@@ -1,3 +1,11 @@
+;; eshell-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 ;; eshell customization
 
@@ -226,4 +234,9 @@
 
    (add-hook 'eshell-mode-hook #'eshell-setup)))
 
+(provide 'eshell-setup)
 
+;; Local Variables:
+;; End:
+
+;; eshell-setup.el ends here

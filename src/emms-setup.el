@@ -1,4 +1,4 @@
-;;; emms-setup.el ---
+;; emms-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -110,7 +110,6 @@
                 "tq.el")))
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; emms-setup.el ends here
+;; emms-setup.el ends here

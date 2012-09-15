@@ -1,3 +1,11 @@
+;; auto-insert-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 (require 'custom)
 (require 'common)
 
@@ -70,3 +78,9 @@ template files, data description may be found in
 
 (add-hook 'find-file-hooks 'auto-insert)
 
+(provide 'auto-insert-setup)
+
+;; Local Variables:
+;; End:
+
+;; auto-insert-setup.el ends here

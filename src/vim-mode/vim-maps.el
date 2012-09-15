@@ -1,4 +1,4 @@
-;;; vim-maps.el
+;; vim-maps.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -459,6 +459,10 @@
 ;; (vim:nmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
 ;; (vim:vmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
 
+
 (provide 'vim-maps)
 
-;;; vim-maps.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-maps.el ends here

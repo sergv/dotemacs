@@ -1,3 +1,10 @@
+;; dotemacs.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
 
 
 (defconst +emacs-config-path+ "/home/sergey/emacs"
@@ -290,6 +297,6 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
+;; dotemacs.el ends here

@@ -1,4 +1,4 @@
-;; visit-files.el ---
+;; visit-files.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -58,11 +58,10 @@
                              "\\)\\'")
                      nil)))
 
+
 (provide 'visit-files)
 
-
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; visit-files.el ends here

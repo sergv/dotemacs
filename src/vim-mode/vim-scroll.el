@@ -1,4 +1,4 @@
-;;; vim-scroll.el - Implementation of scrolling commands
+;; vim-scroll.el - Implementation of scrolling commands --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -29,9 +29,9 @@
 (defun vim:max-scroll-down ()
   "Returns the maximal number of lines that can be scrolled down."
   (if (pos-visible-in-window-p (window-end))
-      0
-      (1+ (- (line-number-at-pos (point-max))
-             (line-number-at-pos (window-end))))))
+    0
+    (1+ (- (line-number-at-pos (point-max))
+           (line-number-at-pos (window-end))))))
 
 (vim:defcmd vim:scroll-line-up (count nonrepeatable keep-visual)
   "Scrolls the window `count' lines upwards."
@@ -51,7 +51,7 @@
   (let ((p (point))
         (c (or count (/ (vim:num-visible-lines) 2))))
     (save-excursion
-      (scroll-down (min (vim:max-scroll-up) c)))
+     (scroll-down (min (vim:max-scroll-up) c)))
     (forward-line (- c))
     (when (= (line-number-at-pos p)
              (line-number-at-pos (point)))
@@ -64,7 +64,7 @@
   (let ((p (point))
         (c (or count (/ (vim:num-visible-lines) 2))))
     (save-excursion
-      (scroll-up (min (vim:max-scroll-down) c)))
+     (scroll-up (min (vim:max-scroll-down) c)))
     (forward-line c)
     (when (= (line-number-at-pos p)
              (line-number-at-pos (point)))
@@ -113,7 +113,7 @@
 (vim:defcmd vim:scroll-bottom-line-to-top (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
-      (goto-line1 count)
+    (goto-line1 count)
     (goto-char (window-end))
     (unless (bobp) (backward-char)))
   (recenter 0)
@@ -123,11 +123,15 @@
 (vim:defcmd vim:scroll-top-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
-      (goto-line1 count)
+    (goto-line1 count)
     (goto-char (window-start)))
   (recenter -1)
   (vim:motion-first-non-blank))
 
+
 (provide 'vim-scroll)
 
-;;; vim-scroll.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-scroll.el ends here
