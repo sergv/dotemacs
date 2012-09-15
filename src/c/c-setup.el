@@ -6,6 +6,7 @@
 (require 'c-eldoc)
 (require 'ctypes)
 (require 'find-file)
+(require 'c-abbrev+)
 
 ;; (defun c-c++-get-dual-file (file)
 ;;   (let* ((header-suffix-re "[Hh]\\(?:[Hh]\\|\\+\\+\\|[Pp][Pp]\\|[Xx][Xx]\\)?")
@@ -124,7 +125,9 @@
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g t" c-end-of-defun)
-    ("g n" c-beginning-of-defun)))
+    ("g n" c-beginning-of-defun))
+
+  (c-abbrev+-setup))
 
 
 

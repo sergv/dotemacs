@@ -105,6 +105,20 @@
 
 (add-hook 'magit-log-edit-mode-hook #'magit-log-edit-mode-setup)
 
+(defun magit-show-branches-mode-setup ()
+  (def-keys-for-map magit-show-branches-mode-map
+    +control-x-prefix+
+    +vim-special-keys+
+    ("r"      magit-refresh)
+    ("R"      magit-refresh-all)
+
+    ("p"      nil)
+    ("<down>" magit-goto-next-section)
+    ("<up>"   magit-goto-previous-section)
+    ("t"      vim-mock:motion-down)
+    ("n"      vim-mock:motion-up)))
+
+(add-hook 'magit-show-branches-mode-hook #'magit-show-branches-mode-setup)
 
 ;; this mode has no hook
 (eval-after-load
