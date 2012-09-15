@@ -1,12 +1,10 @@
-;;; sql-setup.el ---
+;; sql-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Friday, 20 January 2012
-;; Keywords:
-;; Requirements:
-;; Status:
+;; Description:
 
 
 (eval-after-load "sql"
@@ -36,10 +34,10 @@
 
 (add-hook 'sql-mode-hook #'sql-setup)
 
+
 (provide 'sql-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; sql-setup.el ends here
+;; sql-setup.el ends here

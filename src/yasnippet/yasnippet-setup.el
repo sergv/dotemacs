@@ -1,4 +1,4 @@
-;; yasnippet-setup.el ---
+;; yasnippet-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -163,7 +163,6 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
 (provide 'yasnippet-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; yasnippet-setup.el ends here

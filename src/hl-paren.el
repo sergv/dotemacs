@@ -1,4 +1,4 @@
-;;; hl-paren.el ---
+;;; hl-paren.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -90,5 +90,8 @@ Turn off highlighting if character at point is not parentheses."
 (add-hook 'post-command-hook #'hl-paren-do-highlight)
 
 (provide 'hl-paren)
+
+;; Local Variables:
+;; End:
 
 ;;; hl-paren.el ends here

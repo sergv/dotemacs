@@ -1,4 +1,4 @@
-;;; scheme-highlight.el ---
+;; scheme-highlight.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -155,7 +155,6 @@ i.e. names matching regexp \\*.*\\*."
 (provide 'scheme-highlight)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; scheme-highlight.el ends here
+;; scheme-highlight.el ends here

@@ -1,4 +1,4 @@
-;;; latex-compilation.el ---
+;; latex-compilation.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -34,4 +34,7 @@
   (set (make-local-variable '*compilation-jump-error-regexp*)
        latex-compile-error-regexp))
 
-;;; latex-compilation.el ends here
+;; Local Variables:
+;; End:
+
+;; latex-compilation.el ends here

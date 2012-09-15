@@ -1,4 +1,4 @@
-;;; prolog-setup.el ---
+;; prolog-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -89,8 +89,9 @@
 (add-hook 'prolog-mode-hook #'prolog-setup)
 (add-hook 'prolog-inferior-mode-hook #'prolog-inferior-setup)
 
+(provide 'prolog-setup)
+
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; prolog-setup.el ends here
+;; prolog-setup.el ends here

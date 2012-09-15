@@ -1,3 +1,11 @@
+;; emacs-general-conf.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 (require 'common)
 (require 'custom-predicates)
@@ -134,7 +142,7 @@
       system-time-locale "C"
 
       visible-bell nil ;; any kind of bell is annoying
-      )
+      read-buffer-function #'completing-read-vanilla)
 
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook
@@ -151,7 +159,7 @@
 ;; backwards compatibility as default-buffer-file-coding-system
 ;; is deprecated in 23.2.
 (if (boundp buffer-file-coding-system)
-    (setq buffer-file-coding-system 'utf-8)
+  (setq buffer-file-coding-system 'utf-8)
   (setq default-buffer-file-coding-system 'utf-8))
 
 ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
@@ -426,6 +434,6 @@ cache to be re-read."
 ;;;; Epilogue
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
+;; emacs-general-conf.el ends here

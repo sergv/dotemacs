@@ -1,4 +1,4 @@
-;;; html-setup.el ---
+;; html-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -137,4 +137,7 @@
 
 (provide 'html-setup)
 
-;;; html-setup.el ends here
+;; Local Variables:
+;; End:
+
+;; html-setup.el ends here

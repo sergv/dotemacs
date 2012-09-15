@@ -1,4 +1,4 @@
-;;; vim-ex.el - Ex-mode.
+;; vim-ex.el - Ex-mode. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -122,14 +122,14 @@ except for the info message."
   "Maps an ex-command to some function."
   (let ((binding (assoc keys vim:ex-commands)))
     (if binding
-    (setcdr binding command)
+      (setcdr binding command)
       (add-to-list 'vim:ex-commands (cons keys command)))))
 
 (defun vim:local-emap (keys command)
   "Maps an ex-command to some function buffer-local."
   (let ((binding (assoc keys vim:ex-local-commands)))
     (if binding
-    (setcdr binding command)
+      (setcdr binding command)
       (add-to-list 'vim:ex-local-commands (cons keys command)))))
 
 (defun vim:ex-binding (cmd)
@@ -138,25 +138,25 @@ binding exists then nil is returned. If no such binding exists
 but `cmd' is the beginning of more than one possible completion
 the symbol 'incomplete is returned."
   (cond
-   ((not (stringp cmd)) cmd)
-   ((zerop (length cmd)) nil)
-   (t
-    (with-current-buffer vim:ex-current-buffer
-      (let* ((cmds (vim:ex-complete-command cmd nil t))
-         (c (cond
-         ;; no command found
-         ((null cmds) nil)
-         ;; exactly one completion found
-         ((null (cdr cmds)) (car cmds))
-         ;; one exact completion found
-         ((member cmd cmds) cmd)
-         ;; more than one inexact completion found
-         (t 'incomplete))))
+    ((not (stringp cmd)) cmd)
+    ((zerop (length cmd)) nil)
+    (t
+     (with-current-buffer vim:ex-current-buffer
+       (let* ((cmds (vim:ex-complete-command cmd nil t))
+              (c (cond
+                   ;; no command found
+                   ((null cmds) nil)
+                   ;; exactly one completion found
+                   ((null (cdr cmds)) (car cmds))
+                   ;; one exact completion found
+                   ((member cmd cmds) cmd)
+                   ;; more than one inexact completion found
+                   (t 'incomplete))))
 
-    (while (and c (stringp c))
-      (setq c (or (cdr-safe (assoc c vim:ex-local-commands))
-              (cdr-safe (assoc c vim:ex-commands)))))
-    c)))))
+         (while (and c (stringp c))
+           (setq c (or (cdr-safe (assoc c vim:ex-local-commands))
+                       (cdr-safe (assoc c vim:ex-commands)))))
+         c)))))
 
 (defsubst vim:ex-binding-p (binding)
   "Returns t iff the given binding non-nil and not 'incomplete."
@@ -168,7 +168,7 @@ cancel ex-mode."
   (interactive "p")
   (if (and (>= n 1)
            (zerop (length (minibuffer-contents))))
-      (exit-minibuffer))
+    (exit-minibuffer))
   (delete-backward-char n))
 
 
@@ -189,18 +189,18 @@ cancel ex-mode."
   )
 
 (defun* vim:define-arg-handler (arg-type &key
-                     complete
-                     activate
-                     deactivate
-                     update)
+                                         complete
+                                         activate
+                                         deactivate
+                                         update)
   "Defines a new argument handler `arg-type'."
   (let ((newah (vim:make-arg-handler :complete complete
-                     :activate activate
-                     :deactivate deactivate
-                     :update update))
-    (ah (assoc arg-type vim:argument-handlers-alist)))
+                                     :activate activate
+                                     :deactivate deactivate
+                                     :update update))
+        (ah (assoc arg-type vim:argument-handlers-alist)))
     (if ah
-    (setcdr ah newah)
+      (setcdr ah newah)
       (push (cons arg-type newah) vim:argument-handlers-alist))))
 
 
@@ -208,10 +208,10 @@ cancel ex-mode."
   "Returns the argument handler of command `cmd'."
   (let ((cmd (vim:ex-binding cmd)))
     (if (not (vim:ex-binding-p cmd))
-    (ding)
+      (ding)
       (let* ((arg-type (vim:cmd-arg cmd))
-         (arg-handler (assoc arg-type vim:argument-handlers-alist)))
-    (if arg-handler (cdr arg-handler))))))
+             (arg-handler (assoc arg-type vim:argument-handlers-alist)))
+        (if arg-handler (cdr arg-handler))))))
 
 (defun vim:ex-setup ()
   "Initializes the minibuffer for an ex-like mode.
@@ -326,13 +326,13 @@ beg end force) with the following meanings.
   `force' is t iff the command was followed by an exclamation mark"
   (multiple-value-bind (cmd-region beg end force) (vim:ex-parse cmdline)
     (if (null cmd-region)
-        (values cmdline "" cmdline "" beg end nil)
+      (values cmdline "" cmdline "" beg end nil)
       (let ((range (substring cmdline 0 (car cmd-region)))
             (cmd (substring cmdline (car cmd-region) (cdr cmd-region)))
             (spaces "")
             (arg (substring cmdline (if force
-                    (1+ (cdr cmd-region))
-                      (cdr cmd-region)))))
+                                      (1+ (cdr cmd-region))
+                                      (cdr cmd-region)))))
 
         ;; skip whitespaces
         (when (string-match "\\`\\s-*" arg)
@@ -353,11 +353,11 @@ has been pressed."
       (when (and (= (point) (point-max))
                  (zerop (length spaces))
                  (zerop (length arg)))
-    (setq cmd (vim:ex-binding cmd))
-    (if (not (vim:ex-binding-p cmd)) (ding)
-      (setq vim:ex-cmd cmd)
-      (let ((result (vim:ex-complete-argument nil nil nil)))
-        (when result (insert result))))))))
+        (setq cmd (vim:ex-binding cmd))
+        (if (not (vim:ex-binding-p cmd)) (ding)
+          (setq vim:ex-cmd cmd)
+          (let ((result (vim:ex-complete-argument nil nil nil)))
+            (when result (insert result))))))))
 
 
 (defun vim:ex-complete (cmdline predicate flag)
@@ -367,32 +367,32 @@ has been pressed."
     (setq vim:ex-cmd cmd)
 
     (cond
-     ;; only complete at the end of the command
-     ((< (point) (point-max)) nil)
+      ;; only complete at the end of the command
+      ((< (point) (point-max)) nil)
 
-     ;; if at the end of a command, complete the command
-     ((and (zerop (length spaces)) (zerop (length arg)))
+      ;; if at the end of a command, complete the command
+      ((and (zerop (length spaces)) (zerop (length arg)))
 
-      ;; We need to take care of the potential force argument `!'.
-      ;; If a ! is given only commands which can be forced are
-      ;; considered as completion. Furthermore the result has to be
-      ;; modified if no `!' has been given in order to show the possible
-      ;; `!' completions.
-      (lexical-let*
-      ((precicate predicate)
-       (pred
-        (cond
-         ((not force) predicate)
-         ((not predicate)
-          #'(lambda (x)
-          (vim:cmd-force-p (vim:ex-binding (car x)))))
-         (t
-          #'(lambda (x)
-          (and (funcall predicate x)
-               (vim:cmd-force-p (vim:ex-binding (car x))))))))
-       (result (vim:ex-complete-command cmd pred flag)))
+       ;; We need to take care of the potential force argument `!'.
+       ;; If a ! is given only commands which can be forced are
+       ;; considered as completion. Furthermore the result has to be
+       ;; modified if no `!' has been given in order to show the possible
+       ;; `!' completions.
+       (lexical-let*
+        ((precicate predicate)
+         (pred
+          (cond
+            ((not force) predicate)
+            ((not predicate)
+             #'(lambda (x)
+                 (vim:cmd-force-p (vim:ex-binding (car x)))))
+            (t
+             #'(lambda (x)
+                 (and (funcall predicate x)
+                      (vim:cmd-force-p (vim:ex-binding (car x))))))))
+         (result (vim:ex-complete-command cmd pred flag)))
 
-    (case flag
+        (case flag
           ;; try-completion, take case of a unique match which
           ;; may take a force argument
           ((nil)
@@ -400,13 +400,13 @@ has been pressed."
              ((nil) nil)
              ((t) (if (and (not force)
                            (vim:cmd-force-p (vim:ex-binding cmd)))
-                      cmd
+                    cmd
                     t))
              (t (if force (concat result "!") result))))
           ;; all-completions, append exclamation marks
           ((t)
            (if force
-               (mapcar #'(lambda (x) (concat x "!")) result)
+             (mapcar #'(lambda (x) (concat x "!")) result)
              (let (newresult)
                (dolist (r result)
                  (push r newresult)
@@ -420,63 +420,63 @@ has been pressed."
                 (or force
                     (not (vim:cmd-force-p (vim:ex-binding cmd)))))))))
 
-     ;; otherwise complete the argument
-     (t
-      (let ((result (vim:ex-complete-argument arg predicate flag)))
-        (cond
-         ((null result) nil)
-         ((eq t result) t)
-         ((stringp result) (if flag result (concat range cmd spaces result)))
-         ((listp result) (if flag result (mapcar #'(lambda (x) (concat range cmd spaces x)) result)))
-         (t (error "Completion returned unexpected value"))))))))
+      ;; otherwise complete the argument
+      (t
+       (let ((result (vim:ex-complete-argument arg predicate flag)))
+         (cond
+           ((null result) nil)
+           ((eq t result) t)
+           ((stringp result) (if flag result (concat range cmd spaces result)))
+           ((listp result) (if flag result (mapcar #'(lambda (x) (concat range cmd spaces x)) result)))
+           (t (error "Completion returned unexpected value"))))))))
 
 
 (defun vim:ex-complete-command (cmd predicate flag)
   "Called to complete the current command."
   (with-current-buffer vim:ex-current-buffer
     (cond
-     ((null flag) (or (try-completion cmd vim:ex-local-commands predicate)
-              (try-completion cmd vim:ex-commands predicate)))
+      ((null flag) (or (try-completion cmd vim:ex-local-commands predicate)
+                       (try-completion cmd vim:ex-commands predicate)))
 
-     ((eq t flag) (append (all-completions cmd vim:ex-local-commands predicate)
-              (all-completions cmd vim:ex-commands predicate)))
+      ((eq t flag) (append (all-completions cmd vim:ex-local-commands predicate)
+                           (all-completions cmd vim:ex-commands predicate)))
 
-     ((eq 'lambda flag) (or (vim:test-completion cmd vim:ex-local-commands predicate)
-                (vim:test-completion cmd vim:ex-commands predicate))))))
+      ((eq 'lambda flag) (or (vim:test-completion cmd vim:ex-local-commands predicate)
+                             (vim:test-completion cmd vim:ex-commands predicate))))))
 
 
 (defun vim:ex-complete-argument (arg predicate flag)
   "Called to complete the current argument w.r.t. the current command."
   (let* ((cmd vim:ex-cmd)
-     (arg-handler (vim:ex-get-arg-handler cmd)))
+         (arg-handler (vim:ex-get-arg-handler cmd)))
     (if arg-handler
-    (funcall (or (vim:arg-handler-complete arg-handler)
-             #'vim:ex-complete-text-argument)
-         arg predicate flag)
+      (funcall (or (vim:arg-handler-complete arg-handler)
+                   #'vim:ex-complete-text-argument)
+               arg predicate flag)
       (vim:ex-complete-text-argument arg predicate flag))))
 
 
 (defun vim:ex-complete-file-argument (arg predicate flag)
   "Called to complete a file argument."
   (if (null arg)
-      default-directory
+    default-directory
     (let ((dir (or (file-name-directory arg)
                    (with-current-buffer vim:ex-current-buffer default-directory)))
           (fname (file-name-nondirectory arg)))
       (cond
-       ((null dir) (ding))
-       ((null flag)
-        (let ((result (file-name-completion fname dir)))
-      (case result
-        ((nil) nil)
-        ((t) t)
-        (t (concat dir result)))))
+        ((null dir) (ding))
+        ((null flag)
+         (let ((result (file-name-completion fname dir)))
+           (case result
+             ((nil) nil)
+             ((t) t)
+             (t (concat dir result)))))
 
-       ((eq t flag)
-        (file-name-all-completions fname dir))
+        ((eq t flag)
+         (file-name-all-completions fname dir))
 
-       ((eq 'lambda flag)
-        (eq (file-name-completion fname dir) t))))))
+        ((eq 'lambda flag)
+         (eq (file-name-completion fname dir) t))))))
 
 
 (defun vim:ex-complete-buffer-argument (arg predicate flag)
@@ -484,12 +484,12 @@ has been pressed."
   (when arg
     (let ((buffers (mapcar #'(lambda (buffer) (cons (buffer-name buffer) nil)) (buffer-list t))))
       (cond
-       ((null flag)
-        (try-completion arg buffers predicate))
-       ((eq t flag)
-        (all-completions arg buffers predicate))
-       ((eq 'lambda flag)
-        (vim:test-completion arg buffers predicate))))))
+        ((null flag)
+         (try-completion arg buffers predicate))
+        ((eq t flag)
+         (all-completions arg buffers predicate))
+        ((eq 'lambda flag)
+         (vim:test-completion arg buffers predicate))))))
 
 
 (defun vim:ex-complete-text-argument (arg predicate flag)
@@ -587,12 +587,12 @@ Returns four values: (cmd beg end force) where
   `end' is the last line of the index range
   `force' is non-nil iff an exclamation mark followed the command."
   (let (begin
-        (begin-off 0)
-        sep
-        end
-        (end-off 0)
-        (pos 0)
-        (cmd nil))
+         (begin-off 0)
+         sep
+         end
+         (end-off 0)
+         (pos 0)
+         (cmd nil))
 
     (multiple-value-bind (beg npos) (vim:ex-parse-address text pos)
       (when npos
@@ -613,13 +613,13 @@ Returns four values: (cmd beg end force) where
       (multiple-value-bind (e npos) (vim:ex-parse-address text pos)
         (when npos
           (setq end e
-          pos npos)))
+                pos npos)))
 
       (multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
         (when npos
           (unless end (setq end 'current-line))
           (setq end-off off
-          pos npos))))
+                pos npos))))
 
     ;; handle the special '%' range
     (when (or (eq begin 'all) (eq end 'all))
@@ -635,9 +635,9 @@ Returns four values: (cmd beg end force) where
       (setq cmd (cons (match-beginning 1) (match-end 1))))
 
     (multiple-value-bind (start end)
-    (vim:ex-get-range (and begin (cons begin begin-off))
-              sep
-              (and end (cons end end-off)))
+        (vim:ex-get-range (and begin (cons begin begin-off))
+                          sep
+                          (and end (cons end end-off)))
       (values cmd start end (match-beginning 2)))))
 
 
@@ -645,46 +645,46 @@ Returns four values: (cmd beg end force) where
   "Parses `text' starting at `pos' for an address, returning a two values,
 the range and the new position."
   (cond
-   ((>= pos (length text)) nil)
+    ((>= pos (length text)) nil)
 
-   ((= pos (or (string-match "[0-9]+" text pos) -1))
-    (values (cons 'abs (string-to-number (match-string 0 text)))
-            (match-end 0)))
+    ((= pos (or (string-match "[0-9]+" text pos) -1))
+     (values (cons 'abs (string-to-number (match-string 0 text)))
+             (match-end 0)))
 
-   ((= (aref text pos) ?$)
-    (values 'last-line (1+ pos)))
+    ((= (aref text pos) ?$)
+     (values 'last-line (1+ pos)))
 
-   ((= (aref text pos) ?\%)
-    (values 'all (1+ pos)))
+    ((= (aref text pos) ?\%)
+     (values 'all (1+ pos)))
 
-   ((= (aref text pos) ?.)
-    (values 'current-line (1+ pos)))
+    ((= (aref text pos) ?.)
+     (values 'current-line (1+ pos)))
 
-   ((= (aref text pos) ?')
-    (if (>= (1+ pos) (length text))
-        nil
-      (values `(mark ,(aref text (1+ pos))) (+ 2 pos))))
+    ((= (aref text pos) ?')
+     (if (>= (1+ pos) (length text))
+       nil
+       (values `(mark ,(aref text (1+ pos))) (+ 2 pos))))
 
-   ((= (aref text pos) ?/)
-    (when (string-match "\\([^/]+\\|\\\\.\\)\\(?:/\\|$\\)"
-                        text (1+ pos))
-      (values (cons 're-fwd (match-string 1 text))
-              (match-end 0))))
+    ((= (aref text pos) ?/)
+     (when (string-match "\\([^/]+\\|\\\\.\\)\\(?:/\\|$\\)"
+                         text (1+ pos))
+       (values (cons 're-fwd (match-string 1 text))
+               (match-end 0))))
 
-   ((= (aref text pos) ??)
-    (when (string-match "\\([^?]+\\|\\\\.\\)\\(?:?\\|$\\)"
-                        text (1+ pos))
-      (values (cons 're-bwd (match-string 1 text))
-              (match-end 0))))
+    ((= (aref text pos) ??)
+     (when (string-match "\\([^?]+\\|\\\\.\\)\\(?:?\\|$\\)"
+                         text (1+ pos))
+       (values (cons 're-bwd (match-string 1 text))
+               (match-end 0))))
 
-   ((and (= (aref text pos) ?\\)
-         (< pos (1- (length text))))
-    (case (aref text (1+ pos))
-      (?/ (values 'next-of-prev-search (1+ pos)))
-      (?? (values 'prev-of-prev-search (1+ pos)))
-      (?& (values 'next-of-prev-subst (1+ pos)))))
+    ((and (= (aref text pos) ?\\)
+          (< pos (1- (length text))))
+     (case (aref text (1+ pos))
+       (?/ (values 'next-of-prev-search (1+ pos)))
+       (?? (values 'prev-of-prev-search (1+ pos)))
+       (?& (values 'next-of-prev-subst (1+ pos)))))
 
-   (t nil)))
+    (t nil)))
 
 
 (defun vim:ex-parse-offset (text pos)
@@ -693,12 +693,12 @@ the offset and the new position."
   (let ((off nil))
     (while (= pos (or (string-match "\\([-+]\\)\\([0-9]+\\)?" text pos) -1))
       (if (string= (match-string 1 text) "+")
-          (setq off (+ (or off 0) (if (match-beginning 2)
-                                      (string-to-number (match-string 2 text))
-                                    1)))
+        (setq off (+ (or off 0) (if (match-beginning 2)
+                                  (string-to-number (match-string 2 text))
+                                  1)))
 
         (setq off (- (or off 0) (if (match-beginning 2)
-                                    (string-to-number (match-string 2 text))
+                                  (string-to-number (match-string 2 text))
                                   1))))
       (setq pos (match-end 0)))
     (and off (values off pos))))
@@ -711,8 +711,8 @@ the offset and the new position."
 
     (when (and sep end)
       (save-excursion
-        (when (= sep ?\;) (goto-line1 start))
-        (setq end (vim:ex-get-line end))))
+       (when (= sep ?\;) (goto-line1 start))
+       (setq end (vim:ex-get-line end))))
 
     (values start end)))
 
@@ -722,38 +722,38 @@ the offset and the new position."
         (offset (cdr address)))
 
     (cond
-     ((null base) nil)
-     ((consp offset)
-      (let ((line (vim:ex-get-line (car address))))
-        (when line
-        (save-excursion
-          (goto-line1 line)
-          (vim:ex-get-line (cdr address))))))
+      ((null base) nil)
+      ((consp offset)
+       (let ((line (vim:ex-get-line (car address))))
+         (when line
+           (save-excursion
+            (goto-line1 line)
+            (vim:ex-get-line (cdr address))))))
 
-     (t
-      (+ offset
-         (case (or (car-safe base) base)
-         (abs (cdr base))
+      (t
+       (+ offset
+          (case (or (car-safe base) base)
+            (abs (cdr base))
 
-         ;; TODO: (1- ...) may be wrong if the match is the empty string
-         (re-fwd (save-excursion
-                   (beginning-of-line 2)
-                   (and (re-search-forward (cdr base))
-                        (line-number-at-pos (1- (match-end 0))))))
+            ;; TODO: (1- ...) may be wrong if the match is the empty string
+            (re-fwd (save-excursion
+                     (beginning-of-line 2)
+                     (and (re-search-forward (cdr base))
+                          (line-number-at-pos (1- (match-end 0))))))
 
-         (re-bwd (save-excursion
-                   (beginning-of-line 0)
-                   (and (re-search-backward (cdr base))
-                        (line-number-at-pos (match-beginning 0)))))
+            (re-bwd (save-excursion
+                     (beginning-of-line 0)
+                     (and (re-search-backward (cdr base))
+                          (line-number-at-pos (match-beginning 0)))))
 
-         (current-line (line-number-at-pos (point)))
-         (first-line (line-number-at-pos (point-min)))
-         (last-line (line-number-at-pos (point-max)))
-         (mark (line-number-at-pos (vim:get-local-mark (cadr base))))
-         (next-of-prev-search (error "Next-of-prev-search not yet implemented"))
-         (prev-of-prev-search (error "Prev-of-prev-search not yet implemented"))
-         (next-of-prev-subst (error "Next-of-prev-subst not yet implemented"))
-         (t (error "Invalid address: %s" address))))))))
+            (current-line (line-number-at-pos (point)))
+            (first-line (line-number-at-pos (point-min)))
+            (last-line (line-number-at-pos (point-max)))
+            (mark (line-number-at-pos (vim:get-local-mark (cadr base))))
+            (next-of-prev-search (error "Next-of-prev-search not yet implemented"))
+            (prev-of-prev-search (error "Prev-of-prev-search not yet implemented"))
+            (next-of-prev-subst (error "Next-of-prev-subst not yet implemented"))
+            (t (error "Invalid address: %s" address))))))))
 
 
 (defun vim:ex-read-command (&optional initial-input)
@@ -773,6 +773,10 @@ the offset and the new position."
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))
 
+
 (provide 'vim-ex)
 
-;;; vim-ex.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-ex.el ends here

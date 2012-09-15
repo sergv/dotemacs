@@ -1,4 +1,4 @@
-;;; org-mode-setup.el ---
+;; org-mode-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -638,10 +638,10 @@ which enable the original code blocks to be found."
                 "ob-fortran.el"
                 "ob-picolisp.el")))
 
+
 (provide 'org-mode-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; org-mode-setup.el ends here
+;; org-mode-setup.el ends here

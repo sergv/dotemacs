@@ -1,14 +1,16 @@
-;;; Author: Ethan Schoonover, Solarized; Greg Pfeil, Emacs adaptation
-;;; URL: http://ethanschoonover.com/solarized
+;; solarived+.el --- -*- lexical-binding: t; -*-
 
-;;; This file is not (YET) part of GNU Emacs.
+;; Author: Ethan Schoonover, Solarized; Greg Pfeil, Emacs adaptation
+;; URL: http://ethanschoonover.com/solarized
 
-;;; # Usage
+;; This file is not (YET) part of GNU Emacs.
 
-;;; 1. Install the color-theme package
-;;;   (http://www.emacswiki.org/cgi-bin/wiki/ColorTheme)
-;;; 2. Load this file
-;;; 3. M-x color-theme-solarized-[dark|light]
+;; # Usage
+
+;; 1. Install the color-theme package
+;;   (http://www.emacswiki.org/cgi-bin/wiki/ColorTheme)
+;; 2. Load this file
+;; 3. M-x color-theme-solarized-[dark|light]
 
 (require 'color-theme)
 
@@ -909,4 +911,10 @@ Futher modified by Sergey Vinokurov."
 ;;
 ;; (global-set-key (kbd "C-<f1>") 'my-theme-cycle)
 
+
 (provide 'solarized+)
+
+;; Local Variables:
+;; End:
+
+;; solarized+.el ends here

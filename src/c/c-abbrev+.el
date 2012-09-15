@@ -1,4 +1,4 @@
-;; c-abbrev+.el ---
+;; c-abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -15,7 +15,7 @@
          (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet "printf(\"$1\\n\")$0")))
+                  (yas/expand-snippet "printf(\"$1\\n\"$2);$0")))
                (lambda () (not (point-inside-string-or-comment?))))))
 
   (def-keys-for-map vim:insert-mode-local-keymap
@@ -24,7 +24,6 @@
 (provide 'c-abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; c-abbrev+.el ends here

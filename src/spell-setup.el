@@ -1,4 +1,4 @@
-;;; spell-setup.el ---
+;; spell-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -19,8 +19,6 @@
           "Check english spelling."
           t)
 
-(provide 'spell-setup)
-
 ;; (global-set-key [f1] 'ispell-word)
 ;; (global-set-key [f7] 'ispell-buffer); проверить орфографию в текущем буфере
 ;; (global-set-key [f8] 'ispell-region)
@@ -29,10 +27,10 @@
 ;; (global-set-key [f11] 'flyspell-russian)
 ;; (global-set-key [f12] 'flyspell-mode); вкл/выкл проверки орфографии "на ходу"
 
-;;============================================================================
+
+(provide 'spell-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; spell-setup.el ends here
+;; spell-setup.el ends here

@@ -1,4 +1,4 @@
-;;; awk-setup.el ---
+;; awk-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -33,9 +33,7 @@
 
 (add-hook 'awk-mode-hook #'awk-setup)
 
-;;
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; awk-setup.el ends here
+;; awk-setup.el ends here

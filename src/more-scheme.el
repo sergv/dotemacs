@@ -1,4 +1,4 @@
-;; more-scheme.el ---
+;; more-scheme.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -54,10 +54,10 @@
 (defun all? (pred items)
   (funcall #'every pred items))
 
+
 (provide 'more-scheme)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; more-scheme.el ends here

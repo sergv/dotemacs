@@ -1,4 +1,4 @@
-;;; latex-setup.el ---
+;; latex-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -10,7 +10,6 @@
 
 (require 'preview)
 (require 'preview-latex)
-;; (require 'vim-rus)
 (require 'latex-abbrev+)
 
 (setq TeX-auto-save t
@@ -142,4 +141,7 @@
 
 (provide 'latex-setup)
 
-;;; latex-setup.el ends here
+;; Local Variables:
+;; End:
+
+;; latex-setup.el ends here

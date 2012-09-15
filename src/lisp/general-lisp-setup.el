@@ -1,4 +1,4 @@
-;;; general-lisp-setup.el ---
+;; general-lisp-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -904,7 +904,6 @@ This determines whether to insert a space after the # sign."
 (provide 'general-lisp-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; general-lisp-setup.el ends here
+;; general-lisp-setup.el ends here

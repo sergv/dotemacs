@@ -231,7 +231,6 @@ MAP is `minibuffer-local-completion-map' or
 
     ("M-SPC"         toggle-icicle-hiding-common-match)
     ("C-M-SPC"       icicle-retrieve-previous-input)
-    ("S-SPC"         icicle-retrieve-previous-input)
     ("C-SPC"         icicle-erase-minibuffer)
 
     ("<backspace>"   delete-backward-char)

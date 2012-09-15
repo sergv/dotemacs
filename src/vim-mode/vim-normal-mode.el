@@ -1,4 +1,4 @@
-;;; vim-insert-mode.el - VIM normal mode.
+;; vim-insert-mode.el - VIM normal mode. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -27,9 +27,9 @@
 (vim:define-keymap motion-mode "motion mode" :map-command mmap)
 
 (vim:define-mode motion "VIM motion mode"
-                 :ident "M"
-                 :keymaps '(vim:motion-mode-keymap)
-                 :command-function 'vim:normal-mode-command)
+  :ident "M"
+  :keymaps '(vim:motion-mode-keymap)
+  :command-function 'vim:normal-mode-command)
 
 ;; Basic keymap for window commands.
 ;; (vim:define-keymap window-mode "window mode" :map-command wmap)
@@ -48,30 +48,30 @@
 like 'dd', 'yy',... .")
 
 (vim:define-keymap operator-pending-mode
-                   "operator pending mode"
-                   :map-command omap)
+  "operator pending mode"
+  :map-command omap)
 
 (vim:define-mode operator-pending "VIM operator-pending mode"
-                 :ident "O"
-                 :keymaps '(vim:operator-pending-mode-keymap
-                            vim:motion-mode-keymap
-                            vim:operator-repeat-keymap
-                            vim:override-keymap)
-                 :command-function 'vim:operator-pending-mode-command)
+  :ident "O"
+  :keymaps '(vim:operator-pending-mode-keymap
+             vim:motion-mode-keymap
+             vim:operator-repeat-keymap
+             vim:override-keymap)
+  :command-function 'vim:operator-pending-mode-command)
 
 (add-hook 'vim:operator-pending-mode-hook 'vim:operator-pending-activate)
 (add-hook 'vim:operator-pending-mode-off-hook 'vim:operator-pending-deactivate)
 
 (defun vim:operator-pending-activate ()
   (cond
-   (vim:operator-pending-mode
-    (setq vim:operator-repeat-last-event (vector last-command-event))
-    (vim:map vim:operator-repeat-last-event 'vim:motion-lines
-	     :keymap vim:operator-repeat-keymap)
-    (add-hook 'post-command-hook 'vim:operator-pending-mode-exit))
+    (vim:operator-pending-mode
+     (setq vim:operator-repeat-last-event (vector last-command-event))
+     (vim:map vim:operator-repeat-last-event 'vim:motion-lines
+              :keymap vim:operator-repeat-keymap)
+     (add-hook 'post-command-hook 'vim:operator-pending-mode-exit))
 
-   (vim:operator-repeat-last-event
-    (vim:map vim:operator-repeat-last-event nil :keymap vim:operator-repeat-keymap))))
+    (vim:operator-repeat-last-event
+     (vim:map vim:operator-repeat-last-event nil :keymap vim:operator-repeat-keymap))))
 
 
 (defun vim:operator-pending-deactivate ()
@@ -91,15 +91,15 @@ like 'dd', 'yy',... .")
   (if (memq command '(vim:cmd-force-charwise
 		      vim:cmd-force-linewise
 		      vim:cmd-force-blockwise))
-      (progn
-	(setq vim:current-key-sequence
-	      (vconcat vim:current-key-sequence (vim:this-command-keys)))
-	(funcall command))
+    (progn
+      (setq vim:current-key-sequence
+            (vconcat vim:current-key-sequence (vim:this-command-keys)))
+      (funcall command))
     (unwind-protect
-	(case (vim:cmd-type command)
-	  ('simple (error "No simple-commands allowed in operator-pending mode"))
-	  ('complex (error "No complex-commands allowed in operator-pending mode"))
-	  (t (vim:normal-execute-complex-command command)))
+         (case (vim:cmd-type command)
+           ('simple (error "No simple-commands allowed in operator-pending mode"))
+           ('complex (error "No complex-commands allowed in operator-pending mode"))
+           (t (vim:normal-execute-complex-command command)))
 
       (when (vim:operator-pending-mode-p)
 	(vim:activate-normal-mode)))))
@@ -125,13 +125,13 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 (vim:define-keymap normal-mode "normal mode" &map-command nmap)
 
 (vim:define-mode normal "VIM normal mode"
-                 :ident "N"
-                 ; :message "-- NORMAL --"
-                 :keymaps '(vim:normal-mode-keymap
-                            vim:operator-pending-mode-keymap
-                            vim:motion-mode-keymap
-                            vim:override-keymap)
-                 :command-function 'vim:normal-mode-command)
+  :ident "N"
+  ; :message "-- NORMAL --"
+  :keymaps '(vim:normal-mode-keymap
+             vim:operator-pending-mode-keymap
+             vim:motion-mode-keymap
+             vim:override-keymap)
+  :command-function 'vim:normal-mode-command)
 
 (defun vim:normal-mode-command (command)
   "Executes a motion or simple-command or prepares a complex command."
@@ -216,9 +216,9 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
   (let ((vim:last-undo buffer-undo-list))
     (if (and (vim:cmd-register-p vim:current-cmd) vim:current-register)
-        (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
-                                 :motion (vim:get-current-cmd-motion)
-                                 :register vim:current-register)
+      (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                               :motion (vim:get-current-cmd-motion)
+                               :register vim:current-register)
       (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
                                :motion (vim:get-current-cmd-motion)))
     (when (vim:cmd-repeatable-p vim:current-cmd)
@@ -230,6 +230,10 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   (vim:clear-key-sequence)
   (vim:adjust-point))
 
+
 (provide 'vim-normal-mode)
 
-;;; vim-normal-mode.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-normal-mode.el ends here

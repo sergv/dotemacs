@@ -1,3 +1,12 @@
+;; haskell-outline.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
+
 ;;;; outline for folding
 
 (require 'haskell-misc)
@@ -23,11 +32,11 @@
          (is-special (string-match-pure? +haskell-special-line-regexp+ line))
          (level (let (buffer-invisibility-spec)
                   (save-excursion
-                    (skip-chars-forward "\t ")
-                    (current-column)))))
+                   (skip-chars-forward "\t ")
+                   (current-column)))))
     (if is-special
-        level
-        (1+ level))))
+      level
+      (1+ level))))
 
 (defun haskell-hide-all ()
   (interactive)
@@ -92,7 +101,7 @@
   ;;(hide-body)
 
   (def-keys-for-map2 vim:normal-mode-local-keymap
-    ("z C"     haskell-hide-all)
+      ("z C"     haskell-hide-all)
     ("z c"     hide-subtree)
     ("z O"     show-all)
     ("z o"     show-subtree)
@@ -103,6 +112,10 @@
     ("<up>"    outline-backward-same-level)
     ("="       outline-backward-same-level)))
 
+
 (provide 'haskell-outline)
 
+;; Local Variables:
+;; End:
 
+;; haskell-outline.el ends here

@@ -1,4 +1,4 @@
-;; latex-snippets.el ---
+;; latex-snippets.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -61,7 +61,7 @@
         "\begin{eqnarray*} ... \end{eqnarray*}")
 
       (def-snips '("frac" "\\frac")
-          "\frac{${1:numerator}}{${2:denominator}}$0"
+        "\frac{${1:numerator}}{${2:denominator}}$0"
         "\frac{}{}")
 
       (def-snips '("figure")
@@ -90,7 +90,6 @@
 (provide 'latex-snippets)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; latex-snippets.el ends here

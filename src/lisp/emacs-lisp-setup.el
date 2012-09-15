@@ -1,4 +1,4 @@
-;;; emacs-lisp-setup.el ---
+;; emacs-lisp-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -216,7 +216,6 @@
 (provide 'emacs-lisp-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; emacs-lisp-setup.el ends here
+;; emacs-lisp-setup.el ends here

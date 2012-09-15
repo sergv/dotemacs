@@ -1,4 +1,4 @@
-;; image-mode-setup.el ---
+;; image-mode-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -26,7 +26,6 @@
 (provide 'image-mode-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; image-mode-setup.el ends here

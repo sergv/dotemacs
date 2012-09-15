@@ -1,4 +1,4 @@
-;;; vim-compat.el - Layer for interfacing different Emacsen
+;; vim-compat.el - Layer for interfacing different Emacsen --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -20,7 +20,7 @@
 
 (defconst vim:default-region-face (if vim:xemacs-p 'zmacs-region 'region))
 (defconst vim:deactivate-region-hook (if vim:xemacs-p
-					 'zmacs-deactivate-region-hook
+                                       'zmacs-deactivate-region-hook
 				       'deactivate-mark-hook))
 
 (defmacro vim:emacsen (&rest impls)
@@ -61,14 +61,14 @@
   (vim:emacsen
    (vim:emacs-p
     (if (sit-for vim:intercept-ESC-timeout t)
-        (push vim:ESC-event unread-command-events)
+      (push vim:ESC-event unread-command-events)
       (add-hook 'pre-command-hook 'vim:enable-intercept-ESC)
       (vim:intercept-ESC-mode -1)
       (push last-command-event unread-command-events)))
 
    (vim:xemacs-p
     (if (sit-for vim:intercept-ESC-timeout t)
-        (push vim:ESC-event unread-command-events)
+      (push vim:ESC-event unread-command-events)
       (add-hook 'pre-command-hook 'vim:enable-intercept-ESC)
       (vim:intercept-ESC-mode -1)
       (push (copy-event last-command-event) unread-command-events)))))
@@ -79,7 +79,7 @@
    (vim:emacs-p
     ;; TODO: perhaps (interactive-p) is enough?
     (if (not (fboundp 'called-interactively-p))
-        '(interactive-p)
+      '(interactive-p)
       ;; Else, it is defined, but perhaps too old?
       (case (car-safe (subr-arity (symbol-function 'called-interactively-p)))
         (0 '(called-interactively-p))
@@ -101,7 +101,7 @@
     ;; this way.
     (let ((keys (this-command-keys)))
       (if (zerop (length keys))
-          (vector (copy-event last-command-event))
+        (vector (copy-event last-command-event))
         keys)))))
 
 
@@ -135,13 +135,13 @@
     (let ((time (posn-timestamp event)))
       (setq vim:mouse-click-count
             (cond
-             ((or (memq 'double (event-modifiers event))
-		  (memq 'triple (event-modifiers event)))
-              (event-click-count event))
-             ((and vim:mouse-click-last-time
-                   (< (- time vim:mouse-click-last-time) double-click-time))
-              (1+ vim:mouse-click-count))
-             (t 1)))
+              ((or (memq 'double (event-modifiers event))
+                   (memq 'triple (event-modifiers event)))
+               (event-click-count event))
+              ((and vim:mouse-click-last-time
+                    (< (- time vim:mouse-click-last-time) double-click-time))
+               (1+ vim:mouse-click-count))
+              (t 1)))
       (setq vim:mouse-click-last-time time)
       vim:mouse-click-count))
   )
@@ -166,7 +166,7 @@
       (setq vim:mouse-click-count
             (if (and vim:mouse-click-last-time
                      (< (- time vim:mouse-click-last-time) vim:visual-double-click-time))
-                (1+ vim:mouse-click-count)
+              (1+ vim:mouse-click-count)
               1))
       (setq vim:mouse-click-last-time time)
       (message "CLICK: %s" vim:mouse-click-count)
@@ -188,7 +188,7 @@
                         (button-release-event-p event)
                         (motion-event-p event)
                         (menu-event-p event))))
-           (dispatch-event event))
+        (dispatch-event event))
       event))))
 
 
@@ -205,15 +205,15 @@
   (defun vim:perform-replace (from-string replacements query-flag regexp-flag delimited-flag
                               &optional repeat-count map beg end)
     (if (or beg end)
-        (progn
-          (push-mark (or beg (point-min)))
-          (goto-char (or end (point-max)))
-          (zmacs-activate-region)
-          (let ((result
-                 (perform-replace from-string replacements query-flag regexp-flag delimited-flag
-                                  repeat-count map)))
-            (pop-mark)
-            result))
+      (progn
+        (push-mark (or beg (point-min)))
+        (goto-char (or end (point-max)))
+        (zmacs-activate-region)
+        (let ((result
+                (perform-replace from-string replacements query-flag regexp-flag delimited-flag
+                                 repeat-count map)))
+          (pop-mark)
+          result))
       (perform-replace from-string replacements query-flag regexp-flag delimited-flag
                        repeat-count map)))))
 
@@ -232,7 +232,7 @@
 
 
 (if (fboundp 'match-substitute-replacement)
-    (defalias 'vim:match-substitute-replacement 'match-substitute-replacement)
+  (defalias 'vim:match-substitute-replacement 'match-substitute-replacement)
   ;; A simple definition I found somewhere in the web.
   (defun vim:match-substitute-replacement (replacement
 					   &optional fixedcase literal string subexp)
@@ -243,12 +243,12 @@ Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
 meaning as for `replace-match'."
     (let ((match (match-string 0 string)))
       (save-match-data
-	(set-match-data (mapcar (lambda (x)
-				  (if (numberp x)
-				      (- x (match-beginning 0))
-				    x))
-				(match-data t)))
-	(replace-match replacement fixedcase literal match subexp)))))
+       (set-match-data (mapcar (lambda (x)
+                                 (if (numberp x)
+                                   (- x (match-beginning 0))
+                                   x))
+                               (match-data t)))
+       (replace-match replacement fixedcase literal match subexp)))))
 
 
 (defun vim:looking-back (regexp &optional limit greedy)
@@ -266,21 +266,21 @@ of a match for REGEXP."
    (vim:xemacs-p
     (let ((start (point))
           (pos
-           (save-excursion
+            (save-excursion
              (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
                   (point)))))
       (if (and greedy pos)
-          (save-restriction
-            (narrow-to-region (point-min) start)
-            (while (and (> pos (point-min))
-                        (save-excursion
-                          (goto-char pos)
-                          (backward-char 1)
-                          (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
-              (setq pos (1- pos)))
-            (save-excursion
-              (goto-char pos)
-              (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
+        (save-restriction
+         (narrow-to-region (point-min) start)
+         (while (and (> pos (point-min))
+                     (save-excursion
+                      (goto-char pos)
+                      (backward-char 1)
+                      (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
+           (setq pos (1- pos)))
+         (save-excursion
+          (goto-char pos)
+          (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
       (not (null pos))))))
 
 
@@ -289,18 +289,18 @@ of a match for REGEXP."
   (vim:emacsen
    (vim:emacs-p
     (if enable
-        (add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist t)
-        (setq emulation-mode-map-alists
-              (delq 'vim:emulation-mode-alist emulation-mode-map-alists))))
+      (add-to-list 'emulation-mode-map-alists 'vim:emulation-mode-alist t)
+      (setq emulation-mode-map-alists
+            (delq 'vim:emulation-mode-alist emulation-mode-map-alists))))
 
    (vim:xemacs-p
     (if enable
-	(vim:normalize-minor-mode-map-alist)
-        (setq minor-mode-map-alist
-              (remq nil
-                    (mapcar #'(lambda (x)
-                                (unless (assq (car x) vim:emulation-mode-alist) x))
-                            minor-mode-map-alist)))))))
+      (vim:normalize-minor-mode-map-alist)
+      (setq minor-mode-map-alist
+            (remq nil
+                  (mapcar #'(lambda (x)
+                              (unless (assq (car x) vim:emulation-mode-alist) x))
+                          minor-mode-map-alist)))))))
 
 
 (when vim:xemacs-p
@@ -312,15 +312,15 @@ of a match for REGEXP."
     (make-local-variable 'minor-mode-map-alist)
     (setq minor-mode-map-alist
 	  (apply #'append
-		 vim:emulation-mode-alist
-		 (mapcar #'(lambda (x)
-			     (unless (assq (car x) vim:emulation-mode-alist)
-			       (list x)))
-			 minor-mode-map-alist))))
+          vim:emulation-mode-alist
+          (mapcar #'(lambda (x)
+                      (unless (assq (car x) vim:emulation-mode-alist)
+                        (list x)))
+                  minor-mode-map-alist))))
 
   (defadvice add-minor-mode (after vim:add-minor-mode
-                             (toggle name &optional keymap after toggle-fun)
-                             activate)
+                                   (toggle name &optional keymap after toggle-fun)
+                                   activate)
     "Run vim:normalize-minor-mode-map-alist after adding a minor mode."
     (vim:normalize-minor-mode-map-alist))
 
@@ -328,7 +328,7 @@ of a match for REGEXP."
     (let* ((yank-handler (and text
                               (get-text-property 0 'yank-handler text))))
       (if (or (null yank-handler) (null (car yank-handler)))
-          (insert text)
+        (insert text)
         (funcall (car yank-handler)
                  (or (nth 1 yank-handler) text)))))
 
@@ -343,7 +343,7 @@ of a match for REGEXP."
            (yank-handler (and text
                               (get-text-property 0 'yank-handler text))))
       (if (or (null yank-handler) (null (car yank-handler)))
-          ad-do-it
+        ad-do-it
         (funcall (car yank-handler)
                  (or (nth 1 yank-handler) text)))))
 
@@ -375,9 +375,9 @@ call another major mode in their body."
 	   (extra-keywords nil)
 	   (MODE-buffers (intern (concat global-mode-name "-buffers")))
 	   (MODE-enable-in-buffers
-	    (intern (concat global-mode-name "-enable-in-buffers")))
+      (intern (concat global-mode-name "-enable-in-buffers")))
 	   (MODE-check-buffers
-	    (intern (concat global-mode-name "-check-buffers")))
+      (intern (concat global-mode-name "-check-buffers")))
 	   (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
 	   (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
 	   keyw)
@@ -386,36 +386,36 @@ call another major mode in their body."
       (while (keywordp (setq keyw (car keys)))
 	(setq keys (cdr keys))
 	(case keyw
-	  (:group (setq group (nconc group (list :group (pop keys)))))
-	  (:global (setq keys (cdr keys)))
-	  (t (push keyw extra-keywords) (push (pop keys) extra-keywords))))
+   (:group (setq group (nconc group (list :group (pop keys)))))
+   (:global (setq keys (cdr keys)))
+   (t (push keyw extra-keywords) (push (pop keys) extra-keywords))))
 
       (unless group
-	;; We might as well provide a best-guess default group.
+        ;; We might as well provide a best-guess default group.
 	(setq group
-	      `(:group ',(intern (replace-regexp-in-string
-				  "-mode\\'" "" (symbol-name mode))))))
+       `(:group ',(intern (replace-regexp-in-string
+                           "-mode\\'" "" (symbol-name mode))))))
 
       `(progn
          (defvar ,MODE-major-mode nil)
          (make-variable-buffer-local ',MODE-major-mode)
          ;; The actual global minor-mode
          (define-minor-mode ,global-mode
-           ,(format "Toggle %s in every possible buffer.
+             ,(format "Toggle %s in every possible buffer.
 With prefix ARG, turn %s on if and only if ARG is positive.
 %s is enabled in all buffers where `%s' would do it.
 See `%s' for more information on %s."
-                    pretty-name pretty-global-name pretty-name turn-on
-                    mode pretty-name)
+                      pretty-name pretty-global-name pretty-name turn-on
+                      mode pretty-name)
            :global t ,@group ,@(nreverse extra-keywords)
 
            ;; Setup hook to handle future mode changes and new buffers.
            (if ,global-mode
-               (progn
-                 (add-hook 'after-change-major-mode-hook
-                           ',MODE-enable-in-buffers)
-                 (add-hook 'find-file-hook ',MODE-check-buffers)
-                 (add-hook 'change-major-mode-hook ',MODE-cmhh))
+             (progn
+               (add-hook 'after-change-major-mode-hook
+                         ',MODE-enable-in-buffers)
+               (add-hook 'find-file-hook ',MODE-check-buffers)
+               (add-hook 'change-major-mode-hook ',MODE-cmhh))
              (remove-hook 'after-change-major-mode-hook ',MODE-enable-in-buffers)
              (remove-hook 'find-file-hook ',MODE-check-buffers)
              (remove-hook 'change-major-mode-hook ',MODE-cmhh))
@@ -438,10 +438,10 @@ See `%s' for more information on %s."
              (when (buffer-live-p buf)
                (with-current-buffer buf
                  (if ,mode
-                     (unless (eq ,MODE-major-mode major-mode)
-                       (,mode -1)
-                       (,turn-on)
-                       (setq ,MODE-major-mode major-mode))
+                   (unless (eq ,MODE-major-mode major-mode)
+                     (,mode -1)
+                     (,turn-on)
+                     (setq ,MODE-major-mode major-mode))
                    (,turn-on)
                    (setq ,MODE-major-mode major-mode))))))
          (put ',MODE-enable-in-buffers 'definition-name ',global-mode)
@@ -480,51 +480,51 @@ See `%s' for more information on %s."
   ;; simulate `window-at' with `walk-windows'
   (defun window-at (x y &optional frame)
     (let ((f (if (null frame)
-		 (selected-frame)
+               (selected-frame)
 	       frame)))
       (let ((guess-wind nil))
 	(walk-windows (function (lambda (w)
-				  (let ((w-edges (window-edges w)))
-				    (when (and (eq f (window-frame w))
-					       (<= (nth 0 w-edges) x)
-					       (>= (nth 2 w-edges) x)
-					       (<= (nth 1 w-edges) y)
-					       (>= (nth 3 w-edges) y))
-				      (setq guess-wind w)))))
-		      t ; walk minibuffers
-		      t) ; walk all frames
+                 (let ((w-edges (window-edges w)))
+                   (when (and (eq f (window-frame w))
+                              (<= (nth 0 w-edges) x)
+                              (>= (nth 2 w-edges) x)
+                              (<= (nth 1 w-edges) y)
+                              (>= (nth 3 w-edges) y))
+                     (setq guess-wind w)))))
+               t ; walk minibuffers
+               t) ; walk all frames
 	guess-wind)))
 
   ;; redo `windmove-coordinates-of-position' without compute-motion
   (defun walk-screen-lines (lines goal)
     (cond
-     ((< (window-point) goal) (1- lines))
-     ((= (window-point) goal) lines)
-     (t (vertical-motion 1)
-	(walk-screen-lines (1+ lines) goal))))
+      ((< (window-point) goal) (1- lines))
+      ((= (window-point) goal) lines)
+      (t (vertical-motion 1)
+         (walk-screen-lines (1+ lines) goal))))
 
   (defun windmove-coordinates-of-position (pos &optional window)
     (let* ((w (if (null window)
-		  (selected-window)
+                (selected-window)
 		window))
 	   (b (window-buffer w)))
       (save-selected-window
-	(select-window w)
-	(save-excursion
-	  (let* ((y (progn (goto-char (window-start))
-			   (walk-screen-lines 0 pos)))
-		 (x (- (progn (goto-char pos)
-			      (current-column))
-		       (progn (goto-char (window-start))
-			      (vertical-motion y)
-			      (current-column)))))
-	    (cons x y))))))
+       (select-window w)
+       (save-excursion
+        (let* ((y (progn (goto-char (window-start))
+                         (walk-screen-lines 0 pos)))
+               (x (- (progn (goto-char pos)
+                            (current-column))
+                     (progn (goto-char (window-start))
+                            (vertical-motion y)
+                            (current-column)))))
+          (cons x y))))))
 
   ;; for some reason, XEmacs is more conservative in reporting `frame-width'
   ;; and `frame-height'; we apparently need to get rid of the 1- in each.
   (defun windmove-frame-edges (window)
     (let ((frame (if window
-		     (window-frame window)
+                   (window-frame window)
 		   (selected-frame))))
       (let ((x-min 0)
 	    (y-min 0)
@@ -539,30 +539,33 @@ See `%s' for more information on %s."
     (let ((root (frame-root-window frame))
 	  (mini (minibuffer-window frame)))
       (labels
-	  ((subwindows (win)
-	     (cond
-	      ((window-first-hchild win)
-	       (let (w-list
-		     (child (window-first-vchild win)))
-		 (while child
-		   (push child w-list)
-		   (setq child (window-next-child child)))
-		 (cons t
-		       (cons (window-edges win)
-			     (mapcar #'subwindows (reverse w-list))))))
-	      ((window-first-vchild win)
-	       (let (w-list
-		     (child (window-first-vchild win)))
-		 (while child
-		   (push child w-list)
-		   (setq child (window-next-child child)))
-		 (cons nil
-		       (cons (window-edges win)
-			     (mapcar #'subwindows (reverse w-list))))))
-	      (t win))))
-	(list (subwindows root) mini))))
-  )
+        ((subwindows (win)
+           (cond
+             ((window-first-hchild win)
+              (let (w-list
+                    (child (window-first-vchild win)))
+                (while child
+                  (push child w-list)
+                  (setq child (window-next-child child)))
+                (cons t
+                      (cons (window-edges win)
+                            (mapcar #'subwindows (reverse w-list))))))
+             ((window-first-vchild win)
+              (let (w-list
+                    (child (window-first-vchild win)))
+                (while child
+                  (push child w-list)
+                  (setq child (window-next-child child)))
+                (cons nil
+                      (cons (window-edges win)
+                            (mapcar #'subwindows (reverse w-list))))))
+             (t win))))
+	(list (subwindows root) mini)))))
+
 
 (provide 'vim-compat)
 
-;;; vim-compat.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-compat.el ends here

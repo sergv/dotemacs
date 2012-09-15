@@ -1,4 +1,4 @@
-;;; vim-search.el - Search und substitute commands for ex-mode.
+;; vim-search.el - Search und substitute commands for ex-mode. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -20,23 +20,23 @@
 (defcustom vim:interactive-search-highlight 'selected-window
   "Determine in which windows the interactive highlighting should be shown."
   :type '(radio (const :tag "All windows." all-windows)
-                (const :tag "Selected window." selected-window)
-                (const :tag "Disable highlighting." nil))
+          (const :tag "Selected window." selected-window)
+          (const :tag "Disable highlighting." nil))
   :group 'vim-ex-mode)
 
 (defcustom vim:search-case 'sensitive
   "The case behaviour of the search command."
   :type '(radio (const :tag "Case sensitive." 'sensitive)
-                (const :tag "Case insensitive." 'insensitive)
-                (const :tag "Smart case." 'smart))
+          (const :tag "Case insensitive." 'insensitive)
+          (const :tag "Smart case." 'smart))
   :group 'vim-ex-mode)
 
 (defcustom vim:substitute-case 'sensitive
   "The case behaviour of the search command."
   :type '(radio (const :tag "Same as interactive search." nil)
-                (const :tag "Case sensitive." 'sensitive)
-                (const :tag "Case insensitive." 'insensitive)
-                (const :tag "Smart case." 'smart))
+          (const :tag "Case sensitive." 'sensitive)
+          (const :tag "Case insensitive." 'insensitive)
+          (const :tag "Smart case." 'smart))
   :group 'vim-ex-mode)
 
 (defcustom vim:search-interactive t
@@ -122,15 +122,15 @@ highlighted."
 (defstruct (vim:pattern
             (:constructor nil)
             (:constructor vim:make-pattern
-                          (&key ((:regex re))
-                                ((:case-fold ca) nil)
-                                (whole-line t)
-                           &aux (regex (vim:regex-without-case re))
-                                (case-fold (vim:regex-case re ca)))))
+                (&key ((:regex re))
+                      ((:case-fold ca) nil)
+                      (whole-line t)
+                 &aux (regex (vim:regex-without-case re))
+                      (case-fold (vim:regex-case re ca)))))
   regex      ;; The pattern itself.
   case-fold  ;; The case for this pattern.
   whole-line ;; If non-nil the pattern matches the whole line,
-             ;; otherwise only the first occurrence.
+  ;; otherwise only the first occurrence.
   )
 
 (defun vim:regex-without-case (re)
@@ -139,7 +139,7 @@ highlighted."
    "\\\\."
    #'(lambda (txt)
        (if (member (aref txt 1) '(?c ?C))
-           ""
+         ""
          txt))
    re t t))
 
@@ -237,7 +237,7 @@ name `name' to `new-regex'."
     (when hl
       (setf (vim:hl-pattern hl)
             (if (zerop (length new-pattern))
-                nil
+              nil
               new-pattern))
       (vim:hl-idle-update))))
 
@@ -263,7 +263,7 @@ name `name' to `new-regex'."
           (progn
             (when pattern
               (dolist (win (if (eq vim:interactive-search-highlight 'all-windows)
-                               (get-buffer-window-list (current-buffer) nil t)
+                             (get-buffer-window-list (current-buffer) nil t)
                              (list (vim:hl-window hl))))
                 (let ((begin (max (window-start win)
                                   (or (vim:hl-beg hl) (point-min))))
@@ -272,42 +272,42 @@ name `name' to `new-regex'."
                       last-line)
                   (when (< begin end)
                     (save-excursion
-                      (goto-char begin)
-                      ;; set the overlays for the current highlight, reusing old overlays
-                      ;; (if possible)
-                      (while (and (vim:search-find-next-pattern pattern)
-                                  (< (match-beginning 0) (match-end 0))
-                                  (<= (match-end 0) end))
-                        (when (or (vim:pattern-whole-line pattern)
-                                  (not (equal (line-number-at-pos (match-beginning 0)) last-line)))
-                          (setq last-line (line-number-at-pos (match-beginning 0)))
-                          (push (if old-ovs
-                                    (progn
-                                      (move-overlay (car old-ovs)
-                                                    (match-beginning 0)
-                                                    (match-end 0))
-                                      (overlay-put (car old-ovs) 'face face)
-                                      (pop old-ovs))
-                                  (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
-                                    (overlay-put ov 'face face)
-                                    (overlay-put ov 'vim:hl (vim:hl-name hl))
-                                    (overlay-put ov 'priority 1000)
-                                    ov))
-                                new-ovs)
-                          (when match-hook (funcall match-hook (car new-ovs)))
-                          )))))))
+                     (goto-char begin)
+                     ;; set the overlays for the current highlight, reusing old overlays
+                     ;; (if possible)
+                     (while (and (vim:search-find-next-pattern pattern)
+                                 (< (match-beginning 0) (match-end 0))
+                                 (<= (match-end 0) end))
+                       (when (or (vim:pattern-whole-line pattern)
+                                 (not (equal (line-number-at-pos (match-beginning 0)) last-line)))
+                         (setq last-line (line-number-at-pos (match-beginning 0)))
+                         (push (if old-ovs
+                                 (progn
+                                   (move-overlay (car old-ovs)
+                                                 (match-beginning 0)
+                                                 (match-end 0))
+                                   (overlay-put (car old-ovs) 'face face)
+                                   (pop old-ovs))
+                                 (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+                                   (overlay-put ov 'face face)
+                                   (overlay-put ov 'vim:hl (vim:hl-name hl))
+                                   (overlay-put ov 'priority 1000)
+                                   ov))
+                               new-ovs)
+                         (when match-hook (funcall match-hook (car new-ovs)))
+                         )))))))
 
             (mapc #'delete-overlay old-ovs)
             (setf (vim:hl-overlays hl) new-ovs)
             (if (or (null pattern) new-ovs)
-                (setq result t)
+              (setq result t)
               ;; maybe the match could just not be found somewhere else?
               (save-excursion
-                (goto-char (vim:hl-beg hl))
-                (if (and (vim:search-find-next-pattern pattern)
-                         (< (match-end 0) (vim:hl-end hl)))
-                    (setq result (format "Match in line %d" (line-number-at-pos (match-beginning 0))))
-                  (setq result "No match")))))
+               (goto-char (vim:hl-beg hl))
+               (if (and (vim:search-find-next-pattern pattern)
+                        (< (match-end 0) (vim:hl-end hl)))
+                 (setq result (format "Match in line %d" (line-number-at-pos (match-beginning 0))))
+                 (setq result "No match")))))
 
         (invalid-regexp
          (setq result (cadr lossage)))
@@ -403,35 +403,35 @@ name `name' to `new-regex'."
   "Searches the next occurrence w.r.t. actual search data,
 possibly wrapping and eob or bob."
   (if (not (zerop (length (vim:pattern-regex vim:search-pattern))))
-      (let (wrapped
-            result
-            (retry t))
-        (save-excursion
-          (while retry
-            (setq retry (not wrapped))
-            (cond
-             ;; normal search
-             ((vim:search-find-next-pattern vim:search-pattern
-                                            vim:search-direction)
-              (setq vim:search-match-beg (match-beginning 0)
-                    vim:search-match-end (match-end 0)
-                    result (if wrapped 1 t)
-                    retry nil))
+    (let (wrapped
+          result
+          (retry t))
+      (save-excursion
+       (while retry
+         (setq retry (not wrapped))
+         (cond
+           ;; normal search
+           ((vim:search-find-next-pattern vim:search-pattern
+                                          vim:search-direction)
+            (setq vim:search-match-beg (match-beginning 0)
+                  vim:search-match-end (match-end 0)
+                  result (if wrapped 1 t)
+                  retry nil))
 
-             ;; wrap and eob and bob
-             ((not wrapped)
-              (goto-char (case vim:search-direction
-                           ('forward (point-min))
-                           ('backward (point-max))))
-              (setq wrapped t))
+           ;; wrap and eob and bob
+           ((not wrapped)
+            (goto-char (case vim:search-direction
+                         ('forward (point-min))
+                         ('backward (point-max))))
+            (setq wrapped t))
 
-             ;; already wrapped, search failed
-             (t
-              (setq vim:search-match-beg nil vim:search-match-end nil
-                    result nil
-                    retry nil))))
-          result))
-      t))
+           ;; already wrapped, search failed
+           (t
+            (setq vim:search-match-beg nil vim:search-match-end nil
+                  result nil
+                  retry nil))))
+       result))
+    t))
 
 
 (defun* vim:search-find-next-pattern (pattern &optional
@@ -585,13 +585,13 @@ possibly wrapping and eob or bob."
       (t (forward-char)))
     (vim:search-next)
     (if isearch-success
-        (progn
-          (when (and vim:search-highlight-all
-                     (not (vim:hl-active-p 'vim:search)))
-            (vim:make-hl 'vim:search)
-            (vim:hl-change 'vim:search vim:search-pattern))
-          (goto-char vim:search-match-beg))
-        (goto-char vim:search-start-point))
+      (progn
+        (when (and vim:search-highlight-all
+                   (not (vim:hl-active-p 'vim:search)))
+          (vim:make-hl 'vim:search)
+          (vim:hl-change 'vim:search vim:search-pattern))
+        (goto-char vim:search-match-beg))
+      (goto-char vim:search-start-point))
     (when (or isearch-error isearch-wrapped) (ding))
     (when isearch-message
       (let (message-log-max)
@@ -600,7 +600,7 @@ possibly wrapping and eob or bob."
 (vim:defmotion vim:motion-search-next-reverse (exclusive count)
   "Goes the the previous occurrence."
   (let ((vim:search-direction
-         (if (eq vim:search-direction 'backward) 'forward 'backward)))
+          (if (eq vim:search-direction 'backward) 'forward 'backward)))
     (vim:motion-search-next :count count)))
 
 ;; (vim:defmotion vim:motion-search-fwd (exclusive count)
@@ -699,16 +699,16 @@ possibly wrapping and eob or bob."
           (vim:hl-set-region 'vim:substitute
                              ;; first line
                              (if (car-safe vim:ex-range)
-                                 (save-excursion
-                                   (goto-line1 (car vim:ex-range))
-                                   (line-beginning-position))
+                               (save-excursion
+                                (goto-line1 (car vim:ex-range))
+                                (line-beginning-position))
                                (line-beginning-position))
                              ;; last line
                              (if (car-safe vim:ex-range)
-                                 (save-excursion
-                                   (goto-line1 (or (cdr vim:ex-range)
-                                                  (car vim:ex-range)))
-                                   (line-end-position))
+                               (save-excursion
+                                (goto-line1 (or (cdr vim:ex-range)
+                                                (car vim:ex-range)))
+                                (line-end-position))
                                (line-end-position)))
           (vim:hl-change 'vim:substitute vim:substitute-pattern))))))
 
@@ -728,9 +728,9 @@ possibly wrapping and eob or bob."
 
 
 (vim:define-arg-handler 'substitute
-                        :activate 'vim:ex-pattern-argument-activate
-                        :deactivate 'vim:ex-pattern-argument-deactivate
-                        :update 'vim:ex-pattern-argument-update)
+  :activate 'vim:ex-pattern-argument-activate
+  :deactivate 'vim:ex-pattern-argument-deactivate
+  :update 'vim:ex-pattern-argument-update)
 
 
 (vim:defcmd vim:cmd-substitute (motion argument:substitute nonrepeatable)
@@ -984,4 +984,7 @@ regular expressions."
 
 (provide 'vim-search)
 
-;;; vim-search.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-search.el ends here

@@ -1,4 +1,4 @@
-;;; csv-setup.el ---
+;; csv-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -12,7 +12,7 @@
 (autoload 'csv-mode "csv-mode" nil t)
 
 (defun csv-setup ()
-  )
+  nil)
 
 (add-to-list 'auto-mode-alist '("\\.[Cc][Ss][Vv]\\'" . csv-mode))
 (add-hook 'csv-mode-hook #'csv-setup)
@@ -20,7 +20,6 @@
 (provide 'csv-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; csv-setup.el ends here
+;; csv-setup.el ends here

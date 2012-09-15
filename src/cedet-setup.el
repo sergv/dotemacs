@@ -1,4 +1,4 @@
-;; cedet-setup.el ---
+;; cedet-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -46,7 +46,6 @@
 (provide 'cedet-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; cedet-setup.el ends here

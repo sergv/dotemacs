@@ -1,4 +1,4 @@
-;;; graphviz-setup.el ---
+;; graphviz-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -24,7 +24,6 @@
 (provide 'graphviz-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; graphviz-setup.el ends here
+;; graphviz-setup.el ends here

@@ -1,4 +1,4 @@
-;;; isearch-setup.el ---
+;; isearch-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -144,13 +144,9 @@
   ("<backspace>" nil))
 
 
-
-
-
 (provide 'isearch-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; isearch-setup.el ends here
+;; isearch-setup.el ends here

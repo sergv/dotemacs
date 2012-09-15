@@ -1,4 +1,4 @@
-;;; emacs-lisp-abbrev+.el ---
+;; common-lisp-abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -59,7 +59,6 @@
 (provide 'common-lisp-abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; emacs-lisp-abbrev+.el ends here
+;; emacs-lisp-abbrev+.el ends here

@@ -1,4 +1,4 @@
-;; d-setup.el ---
+;; d-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -22,7 +22,6 @@
 (provide 'd-mode-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; d-setup.el ends here

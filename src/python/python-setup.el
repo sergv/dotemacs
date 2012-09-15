@@ -1,4 +1,4 @@
-;;; python-setup.el ---
+;; python-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -328,7 +328,6 @@
 (provide 'python-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; python-setup.el ends here
+;; python-setup.el ends here

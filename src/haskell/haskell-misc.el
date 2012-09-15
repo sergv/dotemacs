@@ -1,4 +1,4 @@
-;;; haskell-misc.el ---
+;; haskell-misc.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -72,12 +72,12 @@ in haskell-font-lock.el")
   "Removes hierarchihal modules qualification (e.g. Data.Map.null -> null,
  Prelude.++ -> ++, etc)"
   (save-match-data
-    (if (string-match (concat "^\\("
-                              haskell-module-quantification-regexp
-                              "\\)")
-                      name)
-        (replace-match "" t t name 1)
-        name)))
+   (if (string-match (concat "^\\("
+                             haskell-module-quantification-regexp
+                             "\\)")
+                     name)
+     (replace-match "" t t name 1)
+     name)))
 
 
 (defconst +haskell-compile-error-regexp+
@@ -165,7 +165,7 @@ in haskell-font-lock.el")
         (compile-goto-error)))))
 
 (defvar-loc haskell-has-makefile? nil
-    "Is set to t by `haskell-setup' when current haskell file has
+  "Is set to t by `haskell-setup' when current haskell file has
 entry in makefile and should be build with make.")
 
 (defun haskell-compile (&optional optimize)
@@ -302,7 +302,9 @@ we load it."
 
 
 
-
 (provide 'haskell-misc)
 
-;;; haskell-misc.el ends here
+;; Local Variables:
+;; End:
+
+;; haskell-misc.el ends here

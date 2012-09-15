@@ -1,4 +1,4 @@
-;;; vim-motions.el - Implementation of VIM motions.
+;; vim-motions.el - Implementation of VIM motions. --- -*- lexical-binding: nil; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -520,7 +520,7 @@ counted."
 (defun vim:boundary-symbol (direction)
   "A boundary selector for words."
   (funcall (vim:union-boundary #'(lambda (dir) (vim:boundary-syntax dir
-                                                               "w_"))
+                                                                    "w_"))
                                ;; #'(lambda (dir) (vim:boundary-syntax dir
                                ;;                                 "^w_"))
                                #'(lambda (dir) (vim:boundary-empty-line dir)))
@@ -574,18 +574,18 @@ of bounds."
 previous) object described by one of the given `boundaries'."
   (lexical-let ((boundaries boundaries))
                (labels
-                   ((find-best (get-object first-better)
-                      (let (obj1)
-                        (dolist (obj2 (mapcar get-object boundaries))
-                          (multiple-value-bind (b1 e1) obj1
-                            (multiple-value-bind (b2 e2) obj2
-                              (setq obj1
-                                    (cond
-                                      ((null obj1) obj2)
-                                      ((null obj2) obj1)
-                                      ((funcall first-better b1 e1 b2 e2) obj1)
-                                      (t obj2))))))
-                        obj1)))
+                 ((find-best (get-object first-better)
+                    (let (obj1)
+                      (dolist (obj2 (mapcar get-object boundaries))
+                        (multiple-value-bind (b1 e1) obj1
+                          (multiple-value-bind (b2 e2) obj2
+                            (setq obj1
+                                  (cond
+                                    ((null obj1) obj2)
+                                    ((null obj2) obj1)
+                                    ((funcall first-better b1 e1 b2 e2) obj1)
+                                    (t obj2))))))
+                      obj1)))
                  #'(lambda (direction)
                      (case direction
                        (fwd (find-best #'(lambda (bnd)
@@ -862,31 +862,31 @@ text-object before or at point."
 (defun vim:block-select (open-re close-re match-test open-pos close-pos n)
   "Returns the position of an enclosing block."
   (labels
-      ((find-at-point (re pos begin)
-         (goto-char pos)
-         ;; start searching the object in the current
-         ;; line to see if it's at point
-         (forward-line 0)
-         (while (and (re-search-forward re
-                                        (line-end-position) t)
-                     (< (match-end 0) pos)))
-         (if (and (match-beginning 0)
-                  (<= (match-beginning 0) open-pos)
-                  (>= (match-end 0) open-pos))
-           ;; found object at cursor
-           (if begin
-             (goto-char (match-beginning 0))
-             (goto-char (match-end 0)))
-           (goto-char pos)))
+    ((find-at-point (re pos begin)
+       (goto-char pos)
+       ;; start searching the object in the current
+       ;; line to see if it's at point
+       (forward-line 0)
+       (while (and (re-search-forward re
+                                      (line-end-position) t)
+                   (< (match-end 0) pos)))
+       (if (and (match-beginning 0)
+                (<= (match-beginning 0) open-pos)
+                (>= (match-end 0) open-pos))
+         ;; found object at cursor
+         (if begin
+           (goto-char (match-beginning 0))
+           (goto-char (match-end 0)))
+         (goto-char pos)))
 
-       ;; splits the match-data into parts belonging to the
-       ;; open-regexp and the close-regexp
-       (split-match-data (n-open)
-         (let* ((open-md (cddr (match-data)))
-                (split-cdr (nthcdr (1+ (* 2 n-open)) open-md))
-                (close-md (cdr split-cdr)))
-           (setcdr split-cdr nil)
-           (values open-md close-md))))
+     ;; splits the match-data into parts belonging to the
+     ;; open-regexp and the close-regexp
+     (split-match-data (n-open)
+       (let* ((open-md (cddr (match-data)))
+              (split-cdr (nthcdr (1+ (* 2 n-open)) open-md))
+              (close-md (cdr split-cdr)))
+         (setcdr split-cdr nil)
+         (values open-md close-md))))
     (catch 'end
       (save-excursion
        (let ((combined-re (concat "\\("
@@ -1621,6 +1621,10 @@ jumps to the corresponding one."
     (vim:save-position pos)
     t))
 
+
 (provide 'vim-motions)
 
-;;; vim-motions.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-motions.el ends here

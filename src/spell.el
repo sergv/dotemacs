@@ -1,4 +1,4 @@
-;;; spell.el ---
+;; spell.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -74,11 +74,10 @@
 (setf ispell-have-new-look t
       ispell-enable-tex-parser t)
 
+
 (provide 'spell)
 
-
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; spell.el ends here
+;; spell.el ends here

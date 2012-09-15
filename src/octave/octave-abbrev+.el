@@ -1,4 +1,4 @@
-;; octave-abbrev+.el ---
+;; octave-abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -79,10 +79,10 @@ while interactively prompting for variables/messages."
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
+
 (provide 'octave-abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; octave-abbrev+.el ends here

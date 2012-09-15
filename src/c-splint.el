@@ -1,4 +1,4 @@
-;;; c-splint.el ---
+;; c-splint.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -38,7 +38,6 @@
 (provide 'c-splint)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; c-splint.el ends here
+;; c-splint.el ends here

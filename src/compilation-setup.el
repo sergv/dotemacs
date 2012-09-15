@@ -1,4 +1,4 @@
-;;; compilation-setup.el ---
+;; compilation-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -47,7 +47,6 @@ up by functions in compilation-finish-functions.")
 (provide 'compilation-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; compilation-setup.el ends here
+;; compilation-setup.el ends here

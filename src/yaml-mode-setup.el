@@ -1,4 +1,4 @@
-;; yaml-mode-setup.el ---
+;; yaml-mode-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -16,10 +16,10 @@
 
 (add-hook 'yaml-mode-hook #'yaml-setup)
 
+
 (provide 'yaml-mode-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; yaml-mode-setup.el ends here

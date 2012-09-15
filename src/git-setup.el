@@ -1,4 +1,4 @@
-;; magit-setup.el ---
+;; magit-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -181,7 +181,6 @@ put it in magit-key-mode-key-maps for fast lookup."
 (provide 'magit-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; magit-setup.el ends here

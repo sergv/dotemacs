@@ -1,3 +1,12 @@
+;; haskell-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
+
 (require 'custom)
 (require 'common)
 (require 'custom-predicates)
@@ -213,5 +222,10 @@
 
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 
+
 (provide 'haskell-setup)
 
+;; Local Variables:
+;; End:
+
+;; haskell-setup.el ends here

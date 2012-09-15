@@ -1,4 +1,4 @@
-;;; octave-setup.el ---
+;; octave-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -453,10 +453,10 @@ run `inferior-octave-on-output-hook'."
             (set-process-filter inferior-octave-process
                                 'inferior-octave-custom-output-filter)))
 
+
 (provide 'octave-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; octave-setup.el ends here
+;; octave-setup.el ends here

@@ -1,12 +1,10 @@
-;;; term-setup.el ---
+;; term-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Tuesday, 10 January 2012
-;; Keywords:
-;; Requirements:
-;; Status:
+;; Description:
 
 
 (eval-after-load
@@ -61,7 +59,6 @@ on current line. See `term-bol'.")
 (provide 'term-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; term-setup.el ends here
+;; term-setup.el ends here

@@ -1,12 +1,10 @@
-;;; python-highlight.el ---
+;; python-highlight.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Saturday,  4 February 2012
-;; Keywords:
-;; Requirements:
-;; Status:
+;; Description:
 
 (require 'common)
 
@@ -496,10 +494,10 @@ find parts to highlight.")
               ;; +python-pretty-symbols+
               ))
 
+
 (provide 'python-highlight)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; python-highlight.el ends here
+;; python-highlight.el ends here
