@@ -1,4 +1,4 @@
-;; setup-outline.el ---
+;; setup-outline.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -174,7 +174,7 @@ headings."
 ;;;;; clash with original outline.el
 ;;;;;
 ;;;;; Emacs already has 41k symbols defined and this is just another nail
-;;;;; in it's coffin...
+;;;;; to it's coffin...
 
 ;;; &&hdr-outline.el --- &&hdr-outline mode commands for Emacs
 
@@ -1297,14 +1297,10 @@ convenient way to make a table of contents of the buffer."
 
 ;;;;; end of *horrors*
 
+
 (provide 'outline-headers)
 
-
-
-
-
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; setup-outline.el ends here

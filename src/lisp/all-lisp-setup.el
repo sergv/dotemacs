@@ -1,3 +1,11 @@
+;; all-lisp-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 ;;;
 
@@ -94,12 +102,11 @@
    (when scheme-use-slime?
      (add-to-list 'slime-lisp-modes 'scheme-mode))))
 
-;;;
+
+
 (provide 'lisp-setup)
 
-
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-
+;; all-lisp-setup.el ends here

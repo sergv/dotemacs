@@ -1,7 +1,8 @@
-;;; hl-tags-mode --- Highlight the current SGML tag context
+;;; hl-tags-mode.el --- Highlight the current SGML tag context --- -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2011 Mike Spindel <deactivated@gmail.com>
 ;; Modified by Amit J Patel <amitp@cs.stanford.edu> for nxml-mode
+;; Further modified by Sergey Vinokurov <serg.foo@gmail.com> (fiddling with context)
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -128,7 +129,7 @@ boundaries of the current start and end tag , or nil."
     (delete-overlay hl-tags-end-overlay)))
 
 (define-minor-mode hl-tags-mode
-    "Toggle hl-tags-mode."
+  "Toggle hl-tags-mode."
   nil "" nil
   (if hl-tags-mode
     (progn
@@ -140,3 +141,5 @@ boundaries of the current start and end tag , or nil."
 
 
 (provide 'hl-tags-mode)
+;;; hl-tags-mode.el --- ends here
+

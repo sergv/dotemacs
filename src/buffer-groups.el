@@ -1,4 +1,4 @@
-;; buffer-groups.el ---
+;; buffer-groups.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -219,7 +219,6 @@ is in format required by `ibuffer-saved-filter-groups'.")
 (provide 'buffer-groups)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; buffer-groups.el ends here

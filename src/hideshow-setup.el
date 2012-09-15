@@ -1,4 +1,4 @@
-;; hideshow-setup.el ---
+;; hideshow-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -107,7 +107,6 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
 (provide 'hideshow-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; hideshow-setup.el ends here

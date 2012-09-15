@@ -1,4 +1,4 @@
-;;; common-lisp-setup.el ---
+;; common-lisp-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -158,7 +158,6 @@ then it's content will be evaluated by SLIME."
 (provide 'common-lisp-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; common-lisp-setup.el ends here
+;; common-lisp-setup.el ends here

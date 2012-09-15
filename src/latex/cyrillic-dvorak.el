@@ -1,4 +1,4 @@
-;;;; $Id: cyrillic-dvorak.el,v 1.3 2005/07/07 07:06:31 kirill Exp $
+;; $Id: cyrillic-dvorak.el,v 1.3 2005/07/07 07:06:31 kirill Exp $
 ;;;; $Author: kirill $
 ;;;; Distributed under the GPL
 
@@ -76,7 +76,7 @@
  ("&" ??)
  ("*" ?*)
  ("(" ?()
- (")" ?))
+      (")" ?))
  ("{" ?_)
  ("}" ?+)
  ("~" ?Ё)

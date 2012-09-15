@@ -1,3 +1,12 @@
+;; keys.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago (almost since the august inception)
+;; Description:
+
+
 (require 'custom)
 
 (require 'keys-def)
@@ -230,6 +239,6 @@
 (provide 'keys)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
+;; keys.el ends here

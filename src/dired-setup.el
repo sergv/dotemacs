@@ -1,4 +1,4 @@
-;;; dired-setup.el ---
+;; dired-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -77,7 +77,6 @@
 (provide 'dired-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; dired-setup.el ends here
+;; dired-setup.el ends here

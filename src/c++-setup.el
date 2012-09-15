@@ -1,3 +1,11 @@
+;; c++-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 (defun c++-setup ()
   (init-common :use-render-formula t)
@@ -66,3 +74,4 @@
 
 (provide 'c++-setup)
 
+;; c++-setup.el ends here

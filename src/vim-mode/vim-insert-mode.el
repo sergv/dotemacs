@@ -1,4 +1,4 @@
-;;; vim-insert-mode.el - VIM insert-mode.
+;; vim-insert-mode.el - VIM insert-mode. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
@@ -33,11 +33,11 @@
 (vim:define-keymap insert-mode "insert-mode" :map-command imap)
 
 (vim:define-mode insert "VIM insert-mode"
-                 :ident "I"
-                 ; :message "-- INSERT --"
-                 :keymaps '(vim:insert-mode-keymap)
-                 :command-function 'vim:insert-mode-command
-                 :cursor 'bar)
+  :ident "I"
+  ; :message "-- INSERT --"
+  :keymaps '(vim:insert-mode-keymap)
+  :command-function 'vim:insert-mode-command
+  :cursor 'bar)
 (add-hook 'vim:insert-mode-on-hook 'vim:insert-mode-activated)
 (add-hook 'vim:insert-mode-off-hook 'vim:insert-mode-deactivated)
 
@@ -47,10 +47,10 @@
     (error "Toggling overwrite-mode only allowed in insert-mode"))
   (overwrite-mode nil)
   (if overwrite-mode
-      (progn
-        (let (message-log-max) (message "-- REPLACE --"))
-        (setq cursor-type vim:insert-mode-replace-cursor)
-        (vim:update-mode-line "R"))
+    (progn
+      (let (message-log-max) (message "-- REPLACE --"))
+      (setq cursor-type vim:insert-mode-replace-cursor)
+      (vim:update-mode-line "R"))
     (progn
       (let (message-log-max) (message "-- INSERT --"))
       (setq cursor-type vim:insert-mode-cursor)
@@ -79,7 +79,7 @@ where to insert a newline."
   (when (eq vim:insert-newline 'above)
     (setq vim:insert-newline 'below))
   (if (eobp)
-      (setq vim:insert-marker 'eob)
+    (setq vim:insert-marker 'eob)
     (setq vim:insert-marker (make-marker))
     (move-marker vim:insert-marker (1+ (point))))
   (vim:activate-insert-mode))
@@ -111,7 +111,7 @@ where to insert a newline."
   ;; repeat insertion
   (dotimes (i (1- (or vim:insert-count 1)))
     (goto-char (if (eq vim:insert-marker 'eob)
-		   (point-max)
+                 (point-max)
 		 (1- vim:insert-marker)))
     (vim:insert-mode-insert-newline)
     (execute-kbd-macro vim:current-key-sequence))
@@ -129,6 +129,10 @@ where to insert a newline."
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
                                             (vim:this-command-keys)))))
 
+
 (provide 'vim-insert-mode)
 
-;;; vim-insert-mode.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-insert-mode.el ends here

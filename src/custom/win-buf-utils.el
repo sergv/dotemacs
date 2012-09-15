@@ -1,3 +1,11 @@
+;; win-buf-utils.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 (defun next-buffer (n)
   "Go to the buffer which is at the end of buffer list."
@@ -31,7 +39,7 @@ the current buffer."
          (current-buf (current-buffer))
          (next-win (next-window current-win 0))
          (next-buffer
-          (save-selected-window
+           (save-selected-window
             (select-window next-win t)
             (current-buffer))))
     (switch-to-buffer next-buffer)
@@ -45,7 +53,7 @@ the current buffer."
          (current-buf (current-buffer))
          (prev-win (previous-window current-win 0))
          (prev-buffer
-          (save-selected-window
+           (save-selected-window
             (select-window prev-win t)
             (current-buffer))))
     (switch-to-buffer prev-buffer)
@@ -54,5 +62,6 @@ the current buffer."
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
+
+;; win-buf-utils.el ends here

@@ -1,4 +1,4 @@
-;;; rst-setup.el ---
+;; rst-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -13,10 +13,10 @@
 
 (add-hook 'rst-mode-hook #'rst-setup)
 
+
 (provide 'rst-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; rst-setup.el ends here
+;; rst-setup.el ends here

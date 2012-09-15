@@ -1,4 +1,4 @@
-;;; vim-undo.el - Undo/Redo for VIM.
+;; vim-undo.el - Undo/Redo for VIM. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -32,25 +32,24 @@
 ;; try loading redo+, then redo
 (or (condition-case nil (require 'redo+ nil t) (error nil))
     (condition-case nil (require 'redo nil t) (error nil)
-    (message "vim-mode: Could not load 'redo+' or 'redo', redo-command not available.")))
+      (message "vim-mode: Could not load 'redo+' or 'redo', redo-command not available.")))
 
 (defvar vim:last-undo nil
   "The last item in the undo list.")
 
 ;; undo stuff
 (defun vim:connect-undos (last-undo)
-  (labels
-      ((find-mark (lst)
-                  (while (not (or (null lst)
-                                  (eq lst last-undo)))
-                    (setq lst (cdr lst)))
-                  (not (null lst))))
-                   
+  (let ((find-mark (lambda (lst)
+                     (while (not (or (null lst)
+                                     (eq lst last-undo)))
+                       (setq lst (cdr lst)))
+                     (not (null lst)))))
+
     ;; ensure last-undo is still in the undo list
     (when (and last-undo
                (not (eq last-undo buffer-undo-list))
-               (find-mark buffer-undo-list))
-      
+               (funcall find-mark buffer-undo-list))
+
       ;; add the end-of-command mark if not already there
       (unless (null (car buffer-undo-list))
         (push nil buffer-undo-list))
@@ -60,7 +59,7 @@
         (while (and lst
                     (not (eq (cdr lst) last-undo)))
           (if (null (cadr lst))
-              (setcdr lst (cddr lst))
+            (setcdr lst (cddr lst))
             (setq lst (cdr lst))))))))
 
 
@@ -68,11 +67,15 @@
   (setq vim:last-undo nil)
   (dotimes (i (or count 1))
     (undo)))
-    
+
 (vim:defcmd vim:cmd-redo (count nonrepeatable)
   (setq vim:last-undo nil)
   (redo (or count 1)))
 
+
 (provide 'vim-undo)
 
-;;; vim-undo.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-undo.el ends here

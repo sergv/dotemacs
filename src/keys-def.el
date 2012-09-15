@@ -1,3 +1,11 @@
+;; keys-def.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago (almost since the august inception)
+;; Description:
+
 
 (require 'vim-mock)
 
@@ -65,6 +73,6 @@
 (provide 'keys-def)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
+;; keys-def.el ends here

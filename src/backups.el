@@ -1,4 +1,4 @@
-;;; backups.el ---
+;; backups.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -12,7 +12,7 @@
 ;; backup on emacs exit
 
 (eval-when-compile
-  (require 'cl))
+ (require 'cl))
 ;; (require 'cl)
 (require 'custom)
 (require 'common)
@@ -88,11 +88,11 @@
 by `b/backup-interval'."
   (if (or (not b/last-backup-time)
           (< b/backup-interval (- (b/get-time) b/last-backup-time)))
-      (progn
-        (make-backup)
-        (setq b/last-backup-time (b/get-time)
-              b/has-unbackupped-changes nil))
-      (setq b/has-unbackupped-changes t)))
+    (progn
+      (make-backup)
+      (setq b/last-backup-time (b/get-time)
+            b/has-unbackupped-changes nil))
+    (setq b/has-unbackupped-changes t)))
 
 (defun backup-on-kill ()
   "Backup buffer if it has unsaved changes."
@@ -116,9 +116,9 @@ by `b/backup-interval'."
 (add-hook 'kill-buffer-hook #'backup-on-kill)
 (add-hook 'kill-emacs-hook #'backup-all-buffers)
 
+(provide 'backups)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; backups.el ends here
+;; backups.el ends here

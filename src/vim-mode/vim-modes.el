@@ -1,4 +1,4 @@
-;;; vim-modes.el - Implementation of VIM submodes.
+;; vim-modes.el - Implementation of VIM submodes. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
@@ -64,9 +64,9 @@
                                                          "mode-keymap" "mode-local-keymap"
                                                          (symbol-name keym)))))
                                  (if (eq localname keym)
-                                     (list `(cons ',mode-name ,keym))
-                                     (list `(cons ',mode-name ,localname)
-                                           `(cons ',mode-name ,keym)))))
+                                   (list `(cons ',mode-name ,keym))
+                                   (list `(cons ',mode-name ,localname)
+                                         `(cons ',mode-name ,keym)))))
                            keymaps)))))
 
 
@@ -104,7 +104,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
            (setq vim:active-mode ',mode-name)
            (setq vim:active-command-function
                  ,(if command-function
-                      command-function
+                    command-function
                     'vim:default-command-function))
            (vim:set-cursor ,cursor-name)
            (,update-keymaps-func-name)
@@ -129,7 +129,10 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
 
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:define-mode"))
 
+
 (provide 'vim-modes)
 
-;;; vim-modes.el ends here
+;; Local Variables:
+;; End:
 
+;; vim-modes.el ends here

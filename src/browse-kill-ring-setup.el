@@ -1,4 +1,4 @@
-;;; kill-ring-setup.el ---
+;; kill-ring-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -61,7 +61,6 @@
 (provide 'browse-kill-ring-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; kill-ring-setup.el ends here
+;; kill-ring-setup.el ends here

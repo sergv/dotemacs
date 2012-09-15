@@ -1,3 +1,11 @@
+;; c-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Description:
+
 
 ;; this whole file will be loaded on demand using c-c++-setup.el
 
@@ -107,6 +115,7 @@
   ;; (subword-mode t)
 
   (setq vim:normal-mode-local-keymap           (make-keymap)
+        vim:insert-mode-local-keymap           (make-sparse-keymap)
         vim:visual-mode-local-keymap           (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap (make-sparse-keymap))
 
@@ -129,6 +138,9 @@
 
   (c-abbrev+-setup))
 
-
-
 (provide 'c-setup)
+
+;; Local Variables:
+;; End:
+
+;; c-setup.el ends here

@@ -1,4 +1,4 @@
-;;; python-abbrev+.el ---
+;; python-abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -80,10 +80,10 @@ interactively prompting for variables/messages."
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
+
 (provide 'python-abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; python-abbrev+.el ends here
+;; python-abbrev+.el ends here

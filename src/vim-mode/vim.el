@@ -1,4 +1,4 @@
-;;; vim.el --- a VIM-emulation for Emacs
+;; vim.el --- a VIM-emulation for Emacs --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
@@ -112,16 +112,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+ (require 'cl))
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
-  ;; (eval-when-compile
-  ;;   (load "vim-core")
-  ;;   (load "vim-compat")
-  ;;   (load "vim-normal-mode")
-  ;;   (load "vim-keymap")
-  ;;   (load "vim-maps"))
-
   (require 'vim-core)
   (require 'vim-compat)
   (require 'vim-normal-mode)
@@ -164,9 +157,9 @@ given major-mode is created."
   :global nil
 
   (if vim-local-mode
-      (progn
-        (make-local-variable 'vim:emulation-mode-alist)
-        (vim:initialize-keymaps t))
+    (progn
+      (make-local-variable 'vim:emulation-mode-alist)
+      (vim:initialize-keymaps t))
     (progn
       (vim:initialize-keymaps nil)
       (setq global-mode-string
@@ -197,8 +190,9 @@ causes the parenthesis to be highlighted."
   :group 'vim-mode-general)
 
 
-;; (require 'vimrc)
-
 (provide 'vim)
 
-;;; vim.el ends here
+;; Local Variables:
+;; End:
+
+;; vim.el ends here

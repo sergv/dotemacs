@@ -1,4 +1,4 @@
-;; ${filename} ---
+;; ${filename} --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -9,7 +9,6 @@
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; ${filename} ends here

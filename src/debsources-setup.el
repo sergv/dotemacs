@@ -1,4 +1,4 @@
-;;; debsources-setup.el ---
+;; debsources-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -20,5 +20,6 @@
 
 (add-hook 'debsources-mode-hook #'debsources-setup)
 
+(provide 'debsources-setup)
 
-;;; debsources-setup.el ends here
+;; debsources-setup.el ends here

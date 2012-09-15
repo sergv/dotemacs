@@ -1,4 +1,4 @@
-;;; elisp-slime-nav.el --- Make M-. and M-, work in elisp like they do in slime
+;; elisp-slime-nav.el --- Make M-. and M-, work in elisp like they do in slime
 ;;
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: navigation slime elisp emacs-lisp
@@ -51,25 +51,25 @@ Argument SYM-NAME thing to find."
     (let* ((sym-at-point (symbol-at-point))
            (at-point (and sym-at-point (symbol-name sym-at-point))))
       (if current-prefix-arg
-          (completing-read "Symbol: "
-                           (elisp-slime-nav--all-navigable-symbol-names)
-                           nil t at-point)
+        (completing-read "Symbol: "
+                         (elisp-slime-nav--all-navigable-symbol-names)
+                         nil t at-point)
         at-point))))
   (when sym-name
     (let ((sym (intern sym-name)))
       (message "search for %s" (pp-to-string sym))
       (ring-insert find-tag-marker-ring (point-marker))
       (cond
-       ((fboundp sym) (find-function sym))
-       ((boundp sym) (find-variable sym))
-       ((or (featurep sym) (locate-library sym-name))
-        (find-library sym-name))
-       ((facep sym)
-        (find-face-definition sym))
-       (:else
-        (progn
-          (pop-tag-mark)
-          (error "Don't know how to find '%s'" sym)))))))
+        ((fboundp sym) (find-function sym))
+        ((boundp sym) (find-variable sym))
+        ((or (featurep sym) (locate-library sym-name))
+         (find-library sym-name))
+        ((facep sym)
+         (find-face-definition sym))
+        (:else
+         (progn
+           (pop-tag-mark)
+           (error "Don't know how to find '%s'" sym)))))))
 
 
 (define-key elisp-slime-nav-mode-map (kbd "M-.") 'elisp-slime-nav-find-elisp-thing-at-point)
@@ -77,4 +77,4 @@ Argument SYM-NAME thing to find."
 
 
 (provide 'elisp-slime-nav)
-;;; elisp-slime-nav.el ends here
+;; elisp-slime-nav.el ends here

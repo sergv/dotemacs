@@ -1,4 +1,4 @@
-;;; latex-abbrev+.el ---
+;; latex-abbrev+.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -60,7 +60,6 @@ from \\label{...} and \\ref{...} constructs."
 (provide 'latex-abbrev+)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; latex-abbrev+.el ends here
+;; latex-abbrev+.el ends here

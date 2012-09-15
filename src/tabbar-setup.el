@@ -1,4 +1,4 @@
-;; tabbar-setup.el ---
+;; tabbar-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -60,10 +60,10 @@ Return only one group for each buffer."
       tabbar-buffer-list-function 'tabbar-buffer-list+)
 (tabbar-mode t)
 
+
 (provide 'tabbar-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; tabbar-setup.el ends here

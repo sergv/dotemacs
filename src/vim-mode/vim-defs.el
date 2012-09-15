@@ -1,4 +1,4 @@
-;;; vim-defs.el - Core variables.
+;; vim-defs.el - Core variables. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010, 2011 Frank Fischer
 
@@ -48,4 +48,7 @@
 
 (provide 'vim-defs)
 
-;;; vim-defs.el ends here
+;; Local Variables:
+;; End:
+
+;; vim-defs.el ends here

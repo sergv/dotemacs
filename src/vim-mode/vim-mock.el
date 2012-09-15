@@ -1,12 +1,11 @@
-;;; vim-mock.el ---
+;; vim-mock.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Sunday,  1 January 2012
-;; Keywords:
-;; Requirements:
-;; Status:
+;; Description:
+
 
 (defun vim-mock:motion-go-to-first-non-blank-beg (&optional count)
   (interactive "p")
@@ -120,10 +119,10 @@
    (min (line-end-position)
         (+ (point) (or count 1)))))
 
+
 (provide 'vim-mock)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-;;; vim-mock.el ends here
+;; vim-mock.el ends here

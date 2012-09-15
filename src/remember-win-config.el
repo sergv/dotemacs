@@ -1,4 +1,4 @@
-;; remember-win-config.el ---
+;; remember-win-config.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -43,10 +43,10 @@
       (set-window-configuration (cadr entry))
       (error "CONFIGURATION %s IS UNDEFINED" (char-to-string c)))))
 
+
 (provide 'remember-win-config)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; remember-win-config.el ends here

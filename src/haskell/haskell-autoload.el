@@ -1,4 +1,4 @@
-;; haskell-autoload.el ---
+;; haskell-autoload.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -27,7 +27,6 @@
 
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
 ;; haskell-autoload.el ends here
