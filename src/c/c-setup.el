@@ -68,6 +68,31 @@
 ;;       (find-file other-file))))
 ;;
 
+(eval-after-load
+ "c-eldoc"
+ '(progn
+   ;; make cache buffer names start with a space to make them invisible
+   (redefun c-eldoc-get-buffer (function-name)
+     "Call the preprocessor on the current file"
+     ;; run the first time for macros
+     (let ((output-buffer (cache-gethash (current-buffer) c-eldoc-buffers)))
+       (if output-buffer output-buffer
+         (let* ((this-name (concat " *" buffer-file-name "-preprocessed*"))
+                (preprocessor-command (concat c-eldoc-cpp-command " "
+                                              c-eldoc-cpp-macro-arguments " "
+                                              c-eldoc-includes " "
+                                              buffer-file-name))
+                (cur-buffer (current-buffer))
+                (output-buffer (generate-new-buffer this-name)))
+           (call-process-shell-command preprocessor-command nil output-buffer nil)
+           ;; run the second time for normal functions
+           (setq preprocessor-command (concat c-eldoc-cpp-command " "
+                                              c-eldoc-cpp-normal-arguments " "
+                                              c-eldoc-includes " "
+                                              buffer-file-name))
+           (call-process-shell-command preprocessor-command nil output-buffer nil)
+           (cache-puthash cur-buffer output-buffer c-eldoc-buffers)
+           output-buffer))))))
 
 (defun c-setup ()
   (init-common :use-render-formula t)
@@ -84,6 +109,7 @@
         tab-width 4)
 
   (set (make-variable-buffer-local 'vim:shift-width) 8)
+  (set (make-variable-buffer-local 'eldoc-idle-delay) 0.2)
 
   (if-buffer-has-file
    (set (make-local-variable 'compile-command)
