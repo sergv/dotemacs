@@ -35,32 +35,30 @@
      ("v"          set-mark-command)
      ("y"          copy-region-as-kill))
 
-   (defconst grep+-expand-keywords
-     '(("<C>" . (and cf (isearch-no-upper-case-p regexp t) "-i"))
-       ("<D>" . dir)
-       ("<F>" . files)
-       ("<N>" . null-device)
-       ("<X>" . excl)
-       ("<R>" . (or regexp "")))
-     "List of substitutions performed by `grep-expand-template'.
-If car of an element matches, the cdr is evalled in to get the
-substitution string.  Note dynamic scoping of variables.")
+   (defvar *grep-latest-dir* nil
+     "Latest directory used for `rgrep', `rzgrep' or alike.")
 
+   ;; make use of inlined grep-expand-keywords and set *grep-latest-dir*
    (redefun grep-expand-template (template &optional regexp files dir excl)
      "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>.
 Fixed version."
-     (let ((command template)
-           (cf case-fold-search)
-           (case-fold-search nil))
-       (dolist (kw grep+-expand-keywords command)
-         (when (string-match (car kw) command)
-           (setq command
-                 (replace-match
-                  (or (if (symbolp (cdr kw))
-                        (symbol-value (cdr kw))
-                        (save-match-data (eval (cdr kw))))
-                      "")
-                  t t command))))))
+     (setf *grep-latest-dir* dir)
+     (let* ((command template)
+            (case-fold-search nil)
+            (func (lambda (token text)
+                    (when (string-match token command)
+                      (setq command
+                            (replace-match (or text "") t t command))))))
+       (save-match-data
+        (funcall func "<C>" (and case-fold-search
+                                 (isearch-no-upper-case-p regexp t)
+                                 "-i"))
+        (funcall func "<D>" dir)
+        (funcall func "<F>" files)
+        (funcall func "<N>" null-device)
+        (funcall func "<X>" excl)
+        (funcall func "<R>" regexp))
+       command))
 
    (redefun zrgrep (regexp &optional files dir confirm grep-find-template)
      "Recursively grep for REGEXP in gzipped FILES in tree rooted at DIR.
@@ -103,7 +101,27 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
        ;; `rgrep' uses the dynamically bound value `grep-find-template'
        ;; from the argument `grep-find-template' whose value is computed
        ;; in the `interactive' spec.
-       (rgrep regexp files dir confirm)))))
+       (rgrep regexp files dir confirm)))
+
+   (defadvice grep-filter (before grep-filter-make-relative-filename-advice
+                           activate
+                           compile)
+    "This advice is simply AWESOME!"
+    (save-match-data
+     (save-excursion
+      (let ((end (line-beginning-position))
+            (beg (progn
+                   (goto-char compilation-filter-start)
+                   (line-beginning-position)))
+            (dir (when *grep-latest-dir*
+                   (if (char=? ?/ (aref *grep-latest-dir*
+                                        (- (length *grep-latest-dir*) 1)))
+                     (subseq *grep-latest-dir* 0 -1)
+                     *grep-latest-dir*))))
+        (goto-char beg)
+        (when dir
+          (while (re-search-forward (concat "^" (regexp-quote dir)) end t)
+            (replace-match ".")))))))))
 
 (setq grep-command "grep -nHE -e "
       grep-template
