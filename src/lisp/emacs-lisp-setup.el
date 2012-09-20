@@ -43,7 +43,10 @@
    (with-preserved-buffer-modified-p (1))
    (with-inhibited-modification-hooks (1))
    (with-inhibited-readonly (1))
-   (ert-deftest (as defun))))
+   (ert-deftest (as defun))
+   (with-hidden-comments (1))
+   (with-hidden-cloze-hints (1))
+   (with-hidden-cloze-text (1))))
 
 
 
