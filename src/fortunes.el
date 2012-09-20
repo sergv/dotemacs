@@ -2004,6 +2004,12 @@ computer to do.
    "The aim of a programminglanguage - to turn ideas into software,
 quickly and faithfully
 – John Chambers"
+
+   "Никто не должен быть жертвой собственной биографии
+- Джордж Келли"
+
+   "Я не то, что со мной случилось, я — то, чем я решил стать
+- Карл Густав Юнг"
    ]
   "Good and nice fortunes.")
 
