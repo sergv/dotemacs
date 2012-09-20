@@ -153,6 +153,7 @@
  '(lisp-loop-keyword-indentation 4)
  '(lisp-simple-loop-indentation 3)
  '(lisp-tag-body-indentation 2)
+ '(major-mode (quote text-mode))
  '(maxima-args (quote ("-q" "--disable-readline" "--preload-lisp=/home/sergey/emacs/third-party/maxima/maxima-tex.lisp")))
  '(maxima-input-history-file "~/emacs/prog-data/.maxima_history")
  '(maxima-input-history-length 65536)

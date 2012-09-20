@@ -41,15 +41,12 @@
 
 ;;;; magit
 
-(eval-after-load
- "magit.el"
- '(progn
-   (redefun magit-log-edit-cleanup ()
-     (delete-trailing-whitespace+)
-     (save-excursion
-      (goto-char (point-min))
-      (if (re-search-forward "[ \t\n]*\\'" nil t)
-        (replace-match "\n" nil nil))))))
+(defadvice magit-log-edit-cleanup
+    (before
+     magit-log-edit-cleanup-clean-trailing-whitespace
+     activate
+     compile)
+     (delete-trailing-whitespace+))
 
 (defun magit-mode-setup ()
   ;; here we do have vim mode enabled
@@ -73,7 +70,7 @@
     ("r"        magit-refresh)
     ("R"        magit-refresh-all)
 
-    ("p"        nil)
+    ("p"        magit-key-mode-popup-stashing)
     ("<down>"   magit-goto-next-section)
     ("<up>"     magit-goto-previous-section)
     ("t"        magit-goto-next-section)
