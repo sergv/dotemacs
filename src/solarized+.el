@@ -416,6 +416,7 @@ Futher modified by Sergey Vinokurov."
        (lazy-highlight                       ((t (:background ,light-cyan-green-background))))
        (link                                 ((t (:foreground ,violet :underline t))))
        (match                                ((t (:background ,light-cyan-green-background))))
+       (magit-log-graph                      ((t (:foreground ,magenta))))
        (minibuffer-prompt                    ((t (:foreground ,violet))))
        (navigation-node-face                 ((t (:foreground ,magenta))))
        (paren-face-no-match                  ((t (:underline ,yellow))))
@@ -462,7 +463,11 @@ Futher modified by Sergey Vinokurov."
     (setf imaxima-equation-color base0
           imaxima-label-color cyan
           frame-background-mode mode
-          *color-theme-solarized-type* mode)))
+          *color-theme-solarized-type* mode
+          org-drill-new-count-color blue
+          org-drill-done-count-color green
+          org-drill-failed-count-color magenta
+          org-drill-mature-count-color orange)))
 
 ;; version 1.0
 ;; (defun color-theme-solarized+ (mode)

@@ -35,6 +35,7 @@
       org-reverse-note-order t
       org-enforce-todo-dependencies t
       org-enforce-todo-checkbox-dependencies t
+      org-use-property-inheritance nil ;; '("DRILL_CARD_TYPE")
 
       org-highlight-latex-fragments-and-specials t
       org-pretty-entities t
@@ -60,6 +61,58 @@
       ;; this may be useful when working with large amounts of items
       ;; org-drill-add-random-noise-to-intervals-p t
       )
+
+;;;; common org-drills' question cards with math rendering
+
+(defun org-drill-present-common-card ()
+  "Similar to `org-drill-present-simple-card' but also expands latex formulas
+into images."
+  (with-hidden-comments
+   (with-hidden-cloze-hints
+    (with-hidden-cloze-text
+     (render-buffer-off)
+     (org-drill-hide-all-subheadings-except nil)
+     (ignore-errors
+      (org-display-inline-images t))
+     (org-cycle-hide-drawers 'all)
+     (render-buffer-on)
+     (prog1 (org-drill-presentation-prompt)
+       (render-buffer-off)
+       (org-drill-hide-subheadings-if 'org-drill-entry-p))))))
+
+(defun org-drill-present-common-answer (reschedule-fn)
+  "If `org-drill-present-common-card' is yin then this is yang - this function
+handles formula rendering during answer showing and restores original text
+when question is rated."
+  (org-drill-hide-subheadings-if 'org-drill-entry-p)
+  (org-drill-unhide-clozed-text)
+  (ignore-errors
+    (org-display-inline-images t))
+  (render-buffer-on)
+  (prog1 (with-hidden-cloze-hints
+          (funcall reschedule-fn))
+    (render-buffer-off)))
+
+(defadvice org-drill-reschedule (before
+                                 org-drill-reschedule-hide-drawers
+                                 activate
+                                 compile)
+  (org-cycle-hide-drawers 'all))
+
+(setf org-drill-card-type-alist
+      (cons (list "common"
+                  #'org-drill-present-common-card
+                  #'org-drill-present-common-answer)
+            (cons (list nil
+                        #'org-drill-present-common-card
+                        #'org-drill-present-common-answer)
+                  (remove-if (lambda (x)
+                               (member* (car x) '(nil "common")
+                                        :test (lambda (a b)
+                                                (or (eq? a b) (string=? a b)))))
+                             org-drill-card-type-alist))))
+
+;;;; eval-after-load's
 
 (eval-after-load
  "org"
@@ -434,6 +487,8 @@ which enable the original code blocks to be found."
             (setq counter (+ 1 counter)))
           (goto-char end))
         (prog1 counter (message "detangled %d code blocks" counter)))))))
+
+;;;; other functions
 
 (defun org-mode-up-heading ()
   "Move to the the beginning of heading or one level up in heading hierarchy."

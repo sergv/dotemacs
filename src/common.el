@@ -1273,6 +1273,14 @@ tabbar, etc")
 
 ;;;;
 
+(defun hash-table->alist (table)
+  "Translate hash table into alist of (<key> . <value>) pairs."
+  (let ((result '()))
+    (maphash (lambda (k v) (push (cons k v) result)) table)
+    result))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:
