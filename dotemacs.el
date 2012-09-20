@@ -232,7 +232,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "dired-setup")
 (load-library "remember-win-config")
 (load-library "yasnippet-setup")
-(load-library "cedet-setup")
+;; (load-library "cedet-setup")
 (load-library "git-setup")
 (load-library "tabbar-buffer-groups")
 (load-library "visit-files")
