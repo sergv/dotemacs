@@ -510,7 +510,7 @@ which enable the original code blocks to be found."
 (defun org-mode-setup ()
   (init-common :use-yasnippet t :use-render-formula nil)
   (set (make-local-variable 'yas/fallback-behavior)
-       '(apply org-cycle '()))
+       '(apply org-cycle))
 
   (setf vim:insert-mode-local-keymap           (make-keymap)
         vim:visual-mode-local-keymap           (make-keymap)
