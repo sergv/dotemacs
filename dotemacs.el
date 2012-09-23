@@ -216,6 +216,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "d-mode-setup")
 (load-library "yaml-mode-setup")
 (load-library "doc-view-setup")
+(load-library "lua-setup")
 
 (load-library "icicles-setup")
 (load-library "compilation-setup")

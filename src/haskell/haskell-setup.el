@@ -58,7 +58,7 @@
                :use-nxhtml-menu nil
                :use-comment t
                :use-render-formula t)
-  (autopair-mode)
+  (autopair-mode t)
   ;; (turn-on-haskell-indentation)
   ;; (setf haskell-indentation-cycle-warn nil)
   (turn-on-haskell-simple-indent)
@@ -174,7 +174,7 @@
   ;; (undo-tree-mode -1)
   (init-repl)
   (init-common :use-comment nil :use-yasnippet nil)
-  (autopair-mode)
+  (autopair-mode t)
 
   (setf vim:normal-mode-local-keymap (make-keymap)
         vim:insert-mode-local-keymap (make-sparse-keymap))

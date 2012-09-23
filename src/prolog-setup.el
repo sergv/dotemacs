@@ -22,7 +22,7 @@
 
 (defun prolog-setup ()
   (init-common :use-yasnippet nil :use-render-formula t)
-  (autopair-mode)
+  (autopair-mode t)
 
   (setf ;; vim:insert-mode-local-keymap (make-keymap)
    ;; vim:visual-mode-local-keymap (make-keymap)
@@ -51,7 +51,7 @@
 (defun prolog-inferior-setup ()
   (init-common :use-yasnippet nil :use-nxhtml-menu nil :use-comment nil)
   (init-repl)
-  (autopair-mode)
+  (autopair-mode t)
 
   ;; changed in prolog.el itself
   ;; (modify-syntax-entry ?_ "_" prolog-mode-syntax-table)

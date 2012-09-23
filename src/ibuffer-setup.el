@@ -134,10 +134,11 @@ The value from `ibuffer-saved-filter-groups' is used."
             ,(assoc "latex"      +buffer-groups+)
             ,(assoc "web"        +buffer-groups+)
             ,(assoc "vc"         +buffer-groups+)
+            ,(assoc "other programming" +buffer-groups+)
 
             ,(assoc "utility"    +buffer-groups+)
             ,(assoc "dired"      +buffer-groups+)
-            ,(assoc "common"     +buffer-groups+))
+            ,(assoc "other"      +buffer-groups+))
            ("all")))
 
 

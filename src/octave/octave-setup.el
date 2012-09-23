@@ -357,8 +357,8 @@ in GROUP-NUMS."
 
 (defun octave-setup ()
   (init-common :use-yasnippet t :use-render-formula t)
-  (autopair-mode)
-  (hs-minor-mode 1)
+  (autopair-mode t)
+  (hs-minor-mode t)
 
   (set (make-local-variable 'yas/indent-line) 'fixed)
   (set (make-local-variable 'hs-set-up-overlay)
@@ -435,7 +435,7 @@ in GROUP-NUMS."
     ("C-SPC"    comint-clear-buffer-above-prompt))
 
   ;; this modifies binding of <return> so it must come at the end
-  (autopair-mode))
+  (autopair-mode t))
 
 
 (add-hook 'inferior-octave-mode-hook #'inferior-octave-setup)

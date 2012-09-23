@@ -9,7 +9,6 @@
 ;; Status:
 
 (autoload 'shell-setup "shell-setup")
-
 (add-hook 'shell-mode-hook #'shell-setup)
 
 (autoload 'shell-script-setup "shell-setup")

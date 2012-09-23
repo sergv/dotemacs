@@ -73,7 +73,7 @@
           ((?` . ?'))
           :string
           ((?` . ?'))))
-  (autopair-mode)
+  (autopair-mode t)
 
   ;; (setf common-lisp-style "emacs")
   (common-lisp-set-style "emacs")
