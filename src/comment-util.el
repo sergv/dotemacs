@@ -67,7 +67,8 @@
     (html-mode             (region-begin "<!--") (region-end "-->"))
     (sgml-mode             (region-begin "<!--") (region-end "-->"))
     (rnc-mode              (one-line "#") (line-regexp "#+"))
-    (gitignore-mode        (one-line "#") (line-regexp "#+")))
+    (gitignore-mode        (one-line "#") (line-regexp "#+"))
+    (lua-mode              (one-line "--") (line-regexp "--+")))
   "List of per-mode specifications of comments.
 Contains single-line and region comments.")
 
@@ -367,7 +368,7 @@ be used only for vim-visual-mode of the vim-mode package"
 (defun lisp-comment-sexp (&optional count)
   "If point is at the beginning of the sexp then comment it, else
 move one comment up using `backward-up-list' and comment resulting
-sexp. With argument COUNT greatern than 0 move that many sexps
+sexp. With argument COUNT greater than 0 move that many sexps
 up and then comment the result."
   (interactive "p")
   (setq count (or count 1))
@@ -460,7 +461,7 @@ commented parts and leave point unchanged."
       (flet
           ((clear-comment ()
              (cond
-               ((looking-at-p "^\\s-*;+.*$")
+               ((looking-at-pure? "^\\s-*;+.*$")
                 (delete-current-line))
                ((re-search-forward ";+.*$" (line-end-position) t)
                 (replace-match "")))))

@@ -161,14 +161,27 @@
                             (mode . magit-wazzup-mode)
                             (mode . gitignore-mode)
                             (name . ,(rx bol "*magit" (* nonl) "*" eol))))
-       (utility-filter `(or (name . ,(rx bol
-                                         (or "*Tags List*"
-                                             "makefile"
-                                             "Makefile"
-                                             "GNUMakefile")
-                                         eol))
-                            (predicate . (get-buffer-process
-                                          (current-buffer)))
+       (other-prog-filter `(or (name . ,(rx bol
+                                            (or "makefile"
+                                                "Makefile"
+                                                "GNUMakefile")
+                                            eol))
+                               (mode . makefile-mode)
+                               (mode . makefile-automake-mode)
+                               (mode . makefile-gmake-mode)
+                               (mode . makefile-makepp-mode)
+                               (mode . makefile-bsdmake-mode)
+                               (mode . makefile-imake-mode)
+                               (mode . cmake-mode)
+                               (mode . shell-script-mode)
+                               (mode . sh-mode)
+                               (mode . sh-script-mode)
+                               (mode . conf-space-mode)
+                               (mode . conf-mode)
+                               (mode . conf-xdefaults-mode)
+                               (mode . lua-mode)))
+       (utility-filter `(or (name . ,(rx bol (or "*Tags List*") eol))
+                            (predicate . (get-buffer-process (current-buffer)))
                             (mode . comint-mode)
                             (mode . compilation-mode)
                             (mode . grep-mode)
@@ -180,16 +193,16 @@
                             (mode . eshell-mode)
                             (mode . shell-mode)))
        (dired-filter `(or (mode . dired-mode)))
-       (common-filter `(or (name . ,(rx "*scratch*"))
-                           (name . ,(rx "*Messages*"))
-                           (name . ,(rx "*Pp Eval Output*"))
-                           (mode . help-mode)
-                           (mode . apropos-mode)
-                           (mode . Info-mode)
-                           (mode . Man-mode)
-                           (mode . ibuffer-mode)
-                           ;; handle everything
-                           (predicate . t))))
+       (other-filter `(or (name . ,(rx "*scratch*"))
+                          (name . ,(rx "*Messages*"))
+                          (name . ,(rx "*Pp Eval Output*"))
+                          (mode . help-mode)
+                          (mode . apropos-mode)
+                          (mode . Info-mode)
+                          (mode . Man-mode)
+                          (mode . ibuffer-mode)
+                          ;; handle everything
+                          (predicate . t))))
     `(("lisp"       ,lisp-filter)
       ("slime"      ,slime-filter)
       ("emacs lisp" ,emacs-lisp-filter)
@@ -208,10 +221,11 @@
       ("latex"      ,latex-filter)
       ("web"        ,web-filter)
       ("vc"         ,vc-filter)
+      ("other programming" ,other-prog-filter)
 
       ("utility"    ,utility-filter)
       ("dired"      ,dired-filter)
-      ("common"     ,common-filter)))
+      ("other"      ,other-filter)))
   "Alist of (<group-name> <group-definition>) where <group-definition>
 is in format required by `ibuffer-saved-filter-groups'.")
 

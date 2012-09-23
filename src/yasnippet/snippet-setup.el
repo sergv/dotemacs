@@ -11,7 +11,7 @@
   ;; don't use init-common here ;; upd: why?
   (linum-mode t)
   (comment-util-mode t)
-  (autopair-mode)
+  (autopair-mode t)
 
   (setq undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t)

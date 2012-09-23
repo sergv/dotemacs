@@ -28,8 +28,10 @@
 (defun shell-script-setup ()
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
-  (init-common)
-  (autopair-mode)
+  (setq whitespace-line-column 80)
+  (setq whitespace-style '(tabs lines-tail))
+  (init-common :use-yasnippet nil :use-whitespace t)
+  (autopair-mode t)
   (which-function-mode -1)
 
   (setq vim:insert-mode-local-keymap (make-sparse-keymap)
@@ -40,11 +42,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>"  shell-run-file)
-    ("M-/" icicle-comint-dynamic-complete-filename))
-
-  (setq whitespace-line-column 80)
-  (setq whitespace-style '(tabs lines-tail))
-  (whitespace-mode t))
+    ("M-/" icicle-comint-dynamic-complete-filename)))
 
 
 (defun shell-setup ()
