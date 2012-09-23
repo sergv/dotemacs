@@ -1669,20 +1669,6 @@ when you go out to the junk food machine and start wondering how to
 make it give you the CADR of Item H so you can get that yummie
 chocolate cupcake that's stuck behind the disgusting vanilla one."
 
-   "We don't need no indirection            We don't need no compilation
-We don't need no flow control           We don't need no load control
-No data typing or declarations          No link edit for external bindings
-Hey! did you leave the lists alone?     Hey! did you leave that source alone?
-Chorus:                                 (Chorus)
-        Oh No. It's just a pure LISP function call.
-
-We don't need no side-effecting         We don't need no allocation
-We don't need no flow control           We don't need no special-nodes
-No global variables for execution       No dark bit-flipping for debugging
-Hey! did you leave the args alone?      Hey! did you leave those bits alone?
-(Chorus)                                (Chorus)
-- \"Another Glitch in the Call\", a la Pink Floyd"
-
    "If your thesis is utter vacuous
 Use first-order predicate calculus.
         With sufficient formality
