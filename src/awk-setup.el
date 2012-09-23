@@ -14,8 +14,8 @@
 ;; (defalias 'awk 'awk-start)
 
 (defun awk-setup ()
-  (init-common)
-  (autopair-mode)
+  (init-common :use-yasnippet nil)
+  (autopair-mode t)
   (modify-syntax-entry ?\/ "\"")
   (add-hook 'after-save-hook #'make-script-file-exec)
 

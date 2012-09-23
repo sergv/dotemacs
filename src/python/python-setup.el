@@ -291,7 +291,7 @@
   ;; (setf autopair-handle-action-fns
   ;;       (list #'autopair-default-handle-action
   ;;             #'autopair-python-triple-quote-action))
-  (autopair-mode)
+  (autopair-mode t)
 
   (setf tab-width 4)
 

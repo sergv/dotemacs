@@ -15,8 +15,8 @@
       auto-mode-alist)
 
 (defun debsources-setup ()
-  (init-common)
-  (autopair-mode))
+  (init-common :use-yasnippet nil)
+  (autopair-mode t))
 
 (add-hook 'debsources-mode-hook #'debsources-setup)
 
