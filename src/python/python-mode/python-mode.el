@@ -5571,7 +5571,7 @@ the next line."
           (progn
             (shell-command "type ipython" t)
             (switch-to-buffer (current-buffer))
-            (when (looking-at-pure? "[^/\n\r]+")
+            (when (looking-at "[^/\n\r]+")
               (replace-match "#! ")))
         (insert (concat py-shebang-startstring " " erg "\n"))))
     (end-of-line)
