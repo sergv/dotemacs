@@ -57,7 +57,7 @@
   (c-toggle-auto-newline -1)
   ;; (subword-mode t)
 
-  (setq vim:normal-mode-local-keymap (make-keymap))
+  (setq vim:normal-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" ff-find-related-file)

@@ -520,20 +520,29 @@ This command assumes point is not in a string or comment."
 
 ;;; navigation
 
-(defun cl:up-list ()
-  (interactive)
-  (condition-case nil
-      (progn
-        (when (looking-at-start-of-sexp?)
-          (move-by-char 'forward))
-        (up-list 1))
-    (error (error "No enclosing list found"))))
+(vimmize-motion (condition-case nil
+                    (progn
+                      (when (looking-at-start-of-sexp?)
+                        (forward-char 1))
+                      (up-list 1))
+                  (error (error "No enclosing list found")))
+                :name vim:lisp-up-list
+                :exclusive t
+                :do-not-adjust-point t)
 
 (defun cl:backward-up-list ()
   (interactive)
   (condition-case nil
       (backward-up-list)
     (error (error "No enclosing list found"))))
+
+(vimmize-motion cl:backward-up-list
+                :name vim:lisp-backward-up-list
+                :exclusive t
+                :do-not-adjust-point t)
+
+
+
 
 (add-to-list 'debug-ignored-errors "\\`No enclosing list found\\'")
 
@@ -776,10 +785,10 @@ This determines whether to insert a space after the # sign."
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
   (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-keymap)
-        vim:insert-mode-local-keymap           (make-keymap)
-        vim:operator-pending-mode-local-keymap (make-keymap)
-        vim:motion-mode-local-keymap           (make-keymap))
+        vim:visual-mode-local-keymap           (make-sparse-keymap)
+        vim:insert-mode-local-keymap           (make-sparse-keymap)
+        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
+        vim:motion-mode-local-keymap           (make-sparse-keymap))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
@@ -851,9 +860,9 @@ This determines whether to insert a space after the # sign."
                      vim:visual-mode-local-keymap
                      vim:operator-pending-mode-local-keymap
                      vim:motion-mode-local-keymap)
-    ("q"        cl:up-list)
-    ("Q"        cl:backward-up-list)
-    ("="        cl:backward-up-list)
+    ("q"        vim:lisp-up-list)
+    ("Q"        vim:lisp-backward-up-list)
+    ("="        vim:lisp-backward-up-list)
 
     ("<up>"     vim:motion-bwd-paragraph)
     ("<down>"   vim:motion-fwd-paragraph)

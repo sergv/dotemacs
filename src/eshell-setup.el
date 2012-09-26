@@ -185,9 +185,9 @@
      (linum-mode t)
 
      (setf vim:normal-mode-local-keymap           (make-keymap)
-           vim:insert-mode-local-keymap           (make-keymap)
-           vim:operator-pending-mode-local-keymap (make-keymap)
-           vim:motion-mode-local-keymap           (make-keymap))
+           vim:insert-mode-local-keymap           (make-sparse-keymap)
+           vim:operator-pending-mode-local-keymap (make-sparse-keymap)
+           vim:motion-mode-local-keymap           (make-sparse-keymap))
 
      (def-keys-for-map vim:normal-mode-local-keymap
        ("C-<up>"   eshell-jump-to-prev-prompt)

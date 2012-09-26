@@ -608,7 +608,7 @@ it's ordering is part of the core data structures"
 
 ;; This code provides the minor mode which displays, and accepts
 ;; abbreviations.
-(defvar pabbrev-mode-map (make-keymap)
+(defvar pabbrev-mode-map (make-sparse-keymap)
   "Keymap for pabbrev-minor-mode.")
 
 ;; I don't understand this. I thought that this were equivalent. But

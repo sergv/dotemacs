@@ -236,7 +236,8 @@ body of any futher definition."
                            &key
                            (name nil)
                            (exclusive t)
-                           (doc nil))
+                           (doc nil)
+                           (do-not-adjust-point nil))
   "Embed FUNC into vim framework of motions. FUNC may be symbol or
 actual call to function."
   (let* ((func-name
@@ -251,7 +252,10 @@ actual call to function."
          (motion-name (if name
                         name
                         (intern (concat "vim:" func-name)))))
-    `(vim:defmotion ,motion-name (,(if exclusive 'exclusive 'inclusive))
+    `(vim:defmotion ,motion-name (,(if exclusive 'exclusive 'inclusive)
+                                  ,@(if do-not-adjust-point
+                                      '(do-not-adjust-point)
+                                      '()))
        ,(if doc doc (concat "See `" func-name "'."))
        ,(if (listp func)
           func
