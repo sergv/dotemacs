@@ -299,11 +299,9 @@ be used only for vim-visual-mode of the vim-mode package"
      (save-excursion
       (skip-to-indentation)
       (let ((begin (point)))
-        (dotimes (i
-                  ;; somewhat hackish but we're already in special case of
-                  ;; dealing with region comments
-                  (1- lines))
-          (move-by-line 'forward))
+        ;; somewhat hackish but we're already in special case of
+        ;; dealing with region comments
+        (forward-line (- lines 1))
         (comment-util-comment-chunk-region begin (line-end-position)))))))
 
 (defun end-of-whitespace-prefix ()
@@ -315,8 +313,7 @@ be used only for vim-visual-mode of the vim-mode package"
 (defun comment-util-comment-n-lines-starting-at-col (comment-str lines column)
   (labels ((skip-to-column ()
              (beginning-of-line)
-             (dotimes (_ column)
-               (move-by-char 'forward)))
+             (forward-char column))
            (update-column ()
              (let ((new-col (end-of-whitespace-prefix)))
                (when (< new-col column)
@@ -443,7 +440,7 @@ commented parts and leave point unchanged."
           start
           end)
       (save-excursion
-       (move-by-line 'backward)
+       (forward-line -1)
        (move-while-commented 'backward)
        (setf start (line-beginning-position))
 
@@ -470,7 +467,7 @@ commented parts and leave point unchanged."
                     (not (bobp)))
           (beginning-of-line)
           (clear-comment)
-          (move-by-line 'backward))
+          (forward-line -1))
         (when (bobp)
           (clear-comment)))))))
 
