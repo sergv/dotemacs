@@ -217,6 +217,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "yaml-mode-setup")
 (load-library "doc-view-setup")
 (load-library "lua-setup")
+(load-library "other-setup")
 
 (load-library "icicles-setup")
 (load-library "compilation-setup")
@@ -243,11 +244,6 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "tabbar-setup")
 (load-library "calendar-mode-setup")
 
-
-(autoload 'sunrise
-          "sunrise-commander"
-          "MC-like two-pane commander."
-          t)
 
 
 ;; load keys after everything to ensure that all is bound as expected
