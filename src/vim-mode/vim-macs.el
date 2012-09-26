@@ -214,9 +214,14 @@ For more information about the vim:motion struct look at vim-core.el."
 Similar to commands motions have several keyword-like optional
 parameters and a view attributes. The general form is as follows.
 
-  (vim:defmotion motion-name ((count [count-name])
-                              (argument [argument-name])
-                              {inclusive,exclusive,linewise,block})
+ (vim:defmotion motion-name ((count [count-name])
+                             (argument [argument-name])
+                             { inclusive
+                             | exclusive
+                             | linewise
+                             | block
+                             | do-not-adjust-point
+                             }*)
     body ...)
 
 The count and argument parameters are optional and can have a
@@ -231,6 +236,10 @@ argument: An extra character argument to be given after the motion
 
 inclusive, exclusive, linewise, block: This is the default motion
                                        type of this motion command.
+
+do-not-adjust-point: if specified then after executing this motion
+                     point located at the end of line would not
+                     be adjusted, see also `vim:adjust-point'
 
 Each motion command should return an object of type vim:motion \(see
 below\). If the function does not return such an object explicitly,
@@ -247,7 +256,8 @@ look at vim-core.el."
         (argument nil)
         (params nil)
         (named-params nil)
-        (doc nil))
+        (doc nil)
+        (do-not-adjust-point nil))
 
     ;; extract documentation string
     (if (and (consp body)
@@ -262,6 +272,9 @@ look at vim-core.el."
       (case (if (consp arg) (car arg) arg)
         ((inclusive exclusive linewise block)
          (setq type arg))
+
+        ('do-not-adjust-point
+          (setf do-not-adjust-point t))
 
         ('count
          (setq count t)
@@ -295,9 +308,12 @@ look at vim-core.el."
        (defun* ,name (&rest args)
          ,doc
          (interactive)
-         (if (vim:called-interactively-p)
-           (vim:execute-command ',name)
-           (apply (get ',name 'function) args))))))
+         (let (,(if do-not-adjust-point
+                  '(*vim:do-not-adjust-point* t)
+                  '()))
+           (if (vim:called-interactively-p)
+             (vim:execute-command ',name)
+             (apply (get ',name 'function) args)))))))
 
 (font-lock-add-keywords
  'emacs-lisp-mode

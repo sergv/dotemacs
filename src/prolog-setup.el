@@ -24,9 +24,9 @@
   (init-common :use-yasnippet nil :use-render-formula t)
   (autopair-mode t)
 
-  (setf ;; vim:insert-mode-local-keymap (make-keymap)
-   ;; vim:visual-mode-local-keymap (make-keymap)
-   vim:normal-mode-local-keymap (make-keymap))
+  (setf ;; vim:insert-mode-local-keymap (make-sparse-keymap)
+   ;; vim:visual-mode-local-keymap (make-sparse-keymap)
+   vim:normal-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g <tab>" prolog-indent-predicate)

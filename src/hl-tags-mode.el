@@ -37,23 +37,18 @@
 
 (defvar-loc hl-tags-end-overlay nil)
 
-(defvar-loc *hl-tags-context-func*
-    (lambda ()
-      (error "NO hl-tags-context-func FUNCTION SPECIFIED FOR %S MODE"
-             major-mode))
-  "Function that should return a pair ((start . end) . (start . end))
-containing the boundaries of the current start and end tag , or nil.")
 
 (defun hl-tags-sgml-get-context ()
   (save-excursion (car (last (sgml-get-context)))))
 
 (defun hl-tags-sgml-pair (ctx)
-  (if ctx (cons (sgml-tag-start ctx) (sgml-tag-end ctx))
+  (if ctx
+    (cons (sgml-tag-start ctx) (sgml-tag-end ctx))
     '(1 . 1)))
 
 (defun hl-tags-context-sgml-mode ()
   (save-excursion
-   (when (looking-at "<") (forward-char 1))
+   (when (looking-at-pure? "<") (forward-char 1))
    (let* ((ctx (hl-tags-sgml-get-context))
           (boundaries
             (and ctx (case (sgml-tag-type ctx)
@@ -74,7 +69,7 @@ containing the boundaries of the current start and end tag , or nil.")
   (ignore-errors
    (save-excursion
     (let (start1 end1 start2 end2)
-      (when (looking-at-p "<") (forward-char))
+      (when (looking-at-pure? "<") (forward-char))
       (nxml-up-element 1)
       (setq end2 (point))
 
@@ -92,17 +87,7 @@ containing the boundaries of the current start and end tag , or nil.")
 (defsubst hl-tags-context ()
   "Return a pair ((start . end) . (start . end)) containing the
 boundaries of the current start and end tag , or nil."
-  (funcall *hl-tags-context-func*)
-  ;; (case major-mode
-  ;;   (nxml-mode
-  ;;    (hl-tags-context-nxml-mode))
-  ;;   (nxhtml-mode
-  ;;    (hl-tags-context-sgml-mode))
-  ;;   (html-mode
-  ;;    (hl-tags-context-sgml-mode))
-  ;;   (sgml-mode
-  ;;    (hl-tags-context-sgml-mode)))
-  )
+  (funcall *markup-tags-context-func*))
 
 (defun hl-tags-update ()
   (ignore-errors

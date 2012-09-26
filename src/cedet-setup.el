@@ -14,8 +14,8 @@
 (defun wisent-grammar-mode-setup ()
   (init-common :use-yasnippet nil)
 
-  (setf vim:normal-mode-local-keymap (make-keymap)
-        vim:insert-mode-local-keymap (make-keymap))
+  (setf vim:normal-mode-local-keymap (make-sparse-keymap)
+        vim:insert-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

@@ -622,12 +622,6 @@ have 'forward or 'backward value."
 have 'forward or 'backward value."
   (backward-line (* count (direction-to-num direction))))
 
-(defun* move-by-char (direction &optional (count 1))
-  (forward-char (* count (direction-to-num direction))))
-
-(defun* move-by-char-backward (direction &optional (count 1))
-  (backward-char (* count (direction-to-num direction))))
-
 (defsubst char= (a b)
   (char-equal a b))
 

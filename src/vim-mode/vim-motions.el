@@ -104,7 +104,7 @@
     (?}  . vim:motion-fwd-paragraph))
   "Assocative list for special marks to corresponding functions.")
 
-; my function
+;; my function
 (defsubst vim:save-position (&optional pos)
   "Save position to ' mark register."
   ;; (vim:set-mark ?g pos)
@@ -176,7 +176,7 @@
               ;; (remove-hook 'find-file-hook #'vim:add-file-jump)
               ))
 
-(defcustom vim:max-jumplist 10
+(defcustom vim:max-jumplist 100
   "Maximal number of jumps in the jumplist."
   :group 'vim-motions)
 
@@ -1480,10 +1480,9 @@ but only on the current line."
 jumps to the corresponding one."
   (vim:add-jump)
   (let ((next-open
-          (condition-case err
+          (condition-case nil
               (1- (scan-lists (point) 1 -1))
-            (error
-             (point-max))))
+            (error (point-max))))
         (next-close
           (condition-case nil
               (1- (scan-lists (point) 1 +1))

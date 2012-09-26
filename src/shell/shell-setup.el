@@ -53,7 +53,7 @@
   (ansi-color-for-comint-mode-on)
 
   (setq vim:normal-mode-local-keymap (make-keymap)
-        vim:insert-mode-local-keymap (make-keymap))
+        vim:insert-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output
