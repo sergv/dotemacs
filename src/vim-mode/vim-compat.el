@@ -81,9 +81,11 @@
     (if (not (fboundp 'called-interactively-p))
       '(interactive-p)
       ;; Else, it is defined, but perhaps too old?
-      (case (car-safe (subr-arity (symbol-function 'called-interactively-p)))
-        (0 '(called-interactively-p))
-        (1 '(called-interactively-p 'interactive)))))
+      (let ((arity (subr-arity (symbol-function 'called-interactively-p))))
+        (case (max (or (car-safe arity) 0)
+                   (or (cdr-safe arity) 0))
+          (0 '(called-interactively-p))
+          (1 '(called-interactively-p 'interactive))))))
    (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
 (vim:emacsen
