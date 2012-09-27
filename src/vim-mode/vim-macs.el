@@ -308,9 +308,9 @@ look at vim-core.el."
        (defun* ,name (&rest args)
          ,doc
          (interactive)
-         (let (,(if do-not-adjust-point
-                  '(*vim:do-not-adjust-point* t)
-                  '()))
+         (let ,(if do-not-adjust-point
+                 '((*vim:do-not-adjust-point* t))
+                 '())
            (if (vim:called-interactively-p)
              (vim:execute-command ',name)
              (apply (get ',name 'function) args)))))))
