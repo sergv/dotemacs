@@ -1,4 +1,4 @@
-;; vim-motions.el - Implementation of VIM motions. --- -*- lexical-binding: nil; -*-
+;; vim-motions.el - Implementation of VIM motions. --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009, 2010 Frank Fischer
 
