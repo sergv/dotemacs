@@ -87,8 +87,9 @@ if such tag can be found."
 of the matching tag, else fallback to `vim:motion-jump-item'."
   (macrolet ((inside? (x low high)
                `(and (<= ,low ,x) (< ,x ,high))))
-    (if (or (char=? (char-syntax (char-after)) ?\()
-            (char=? (char-syntax (char-after)) ?\)))
+    (if (let ((synt (char-syntax (char-after))))
+          (or (char=? synt ?\()
+              (char=? synt ?\))))
       (vim:motion-jump-item)
       (let ((tag-start (point))
             (type nil)
