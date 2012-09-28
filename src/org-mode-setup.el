@@ -575,6 +575,7 @@ which enable the original code blocks to be found."
   (def-keys-for-map org-agenda-mode-map
     +control-x-prefix+
     +vim-special-keys+
+    +vi-search-keys+
     ("t"   org-agenda-next-line)
     ("n"   org-agenda-previous-line)
 
