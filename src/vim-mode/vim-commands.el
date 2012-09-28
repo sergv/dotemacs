@@ -112,6 +112,7 @@
   "Switches to insert-mode before point."
   (vim:start-insert-mode count))
 
+
 (vim:defcmd vim:cmd-append (count)
   "Switches to insert-mode after point."
   (unless (eolp) (forward-char))
@@ -217,9 +218,10 @@ and switches to insert-mode."
                           :register register))
 
     ('block
-        (let ((insert-info (vim:make-visual-insert-info :first-line (vim:motion-first-line motion)
-                                                        :last-line (vim:motion-last-line motion)
-                                                        :column (vim:motion-first-col motion))))
+        (let ((insert-info (vim:make-visual-insert-info
+                            :first-line (vim:motion-first-line motion)
+                            :last-line (vim:motion-last-line motion)
+                            :column (vim:motion-first-col motion))))
           (vim:cmd-delete :motion motion :register register)
           (vim:visual-start-insert insert-info)))
 

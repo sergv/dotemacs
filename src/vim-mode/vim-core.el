@@ -232,25 +232,25 @@ positions within (point-min) and (point-max) and not at
   (unless type
     (setq type (if (<= begin end) 'inclusive 'exclusive)))
 
-  (labels
-    ((shrink-to (pos lower upper)
-       (max lower (min upper pos)))
+  (letrec
+   ((shrink-to (lambda (pos lower upper)
+                 (max lower (min upper pos))))
 
-     (normalize-pos (pos)
-       (let ((pos (shrink-to pos (point-min) (point-max))))
-         (shrink-to pos
-                    (save-excursion
-                     (goto-char pos)
-                     (line-beginning-position))
-                    (save-excursion
-                     (goto-char pos)
-                     (- (line-end-position)
-                        (if (eq type 'inclusive) 1 0)))))))
+    (normalize-pos (lambda (pos)
+                     (let ((pos (funcall shrink-to pos (point-min) (point-max))))
+                       (funcall shrink-to pos
+                                (save-excursion
+                                 (goto-char pos)
+                                 (line-beginning-position))
+                                (save-excursion
+                                 (goto-char pos)
+                                 (- (line-end-position)
+                                    (if (eq type 'inclusive) 1 0))))))))
 
-    (vim:make-motion-struct :has-begin has-begin
-                            :begin (normalize-pos begin)
-                            :end (normalize-pos end)
-                            :type type)))
+   (vim:make-motion-struct :has-begin has-begin
+                           :begin (funcall normalize-pos begin)
+                           :end (funcall normalize-pos end)
+                           :type type)))
 
 
 (defun vim:motion-line-count (motion)
@@ -402,6 +402,9 @@ but with nil, point will be repositioned at r:
 If an error occures, this function switches back to normal-mode.
 Since all vim-mode commands go through this function, this is
 the perfect point to do some house-keeping."
+  ;; note: this is for brief debugging only since vim's visual mode
+  ;; depends on the version with condition-case (if you dare to figure
+  ;; that out then you may change this function whatever you like)
   ;; (unwind-protect
   ;;      (funcall vim:active-command-function cmd)
   ;;   (vim:reset-key-state)

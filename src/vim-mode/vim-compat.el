@@ -85,7 +85,8 @@
         (case (max (or (car-safe arity) 0)
                    (or (cdr-safe arity) 0))
           (0 '(called-interactively-p))
-          (1 '(called-interactively-p 'interactive))))))
+          ;; handle calls in macro as well
+          (1 '(called-interactively-p 'any))))))
    (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
 (vim:emacsen
@@ -540,29 +541,29 @@ See `%s' for more information on %s."
     "Return the window tree for frame `frame'."
     (let ((root (frame-root-window frame))
 	  (mini (minibuffer-window frame)))
-      (labels
-        ((subwindows (win)
-           (cond
-             ((window-first-hchild win)
-              (let (w-list
-                    (child (window-first-vchild win)))
-                (while child
-                  (push child w-list)
-                  (setq child (window-next-child child)))
-                (cons t
-                      (cons (window-edges win)
-                            (mapcar #'subwindows (reverse w-list))))))
-             ((window-first-vchild win)
-              (let (w-list
-                    (child (window-first-vchild win)))
-                (while child
-                  (push child w-list)
-                  (setq child (window-next-child child)))
-                (cons nil
-                      (cons (window-edges win)
-                            (mapcar #'subwindows (reverse w-list))))))
-             (t win))))
-	(list (subwindows root) mini)))))
+      (letrec ((subwindows
+                (lambda (win)
+                  (cond
+                    ((window-first-hchild win)
+                     (let (w-list
+                           (child (window-first-vchild win)))
+                       (while child
+                         (push child w-list)
+                         (setq child (window-next-child child)))
+                       (cons t
+                             (cons (window-edges win)
+                                   (mapcar subwindows (reverse w-list))))))
+                    ((window-first-vchild win)
+                     (let (w-list
+                           (child (window-first-vchild win)))
+                       (while child
+                         (push child w-list)
+                         (setq child (window-next-child child)))
+                       (cons nil
+                             (cons (window-edges win)
+                                   (mapcar subwindows (reverse w-list))))))
+                    (t win))))))
+      (list (funcall subwindows root) mini))))
 
 
 (provide 'vim-compat)
