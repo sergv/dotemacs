@@ -555,58 +555,59 @@ A paragraph is a non-empty sequence of non-empty lines."
 (defun vim:union-boundary (&rest boundaries)
   "A boundary selector returning the nearest bound out of a set
 of bounds."
-  (lexical-let ((boundaries boundaries))
-               #'(lambda (direction)
-                   (let ((positions
-                           (mapcan #'(lambda (bnd)
-                                       (let ((pos (funcall bnd direction)))
-                                         (when pos (list pos))))
-                                   boundaries)))
-                     (when positions
-                       (apply (case direction
-                                (fwd #'min)
-                                (bwd #'max))
-                              positions))))))
+  (let ((boundaries-loc boundaries))
+    #'(lambda (direction)
+        (let ((positions
+                (mapcan #'(lambda (bnd)
+                            (let ((pos (funcall bnd direction)))
+                              (when pos (list pos))))
+                        boundaries-loc)))
+          (when positions
+            (apply (case direction
+                     (fwd #'min)
+                     (bwd #'max))
+                   positions))))))
 
 
 (defun vim:union-selector (&rest boundaries)
   "A selector returns a pair of coordinates of the next (or
 previous) object described by one of the given `boundaries'."
-  (lexical-let ((boundaries boundaries))
-               (labels
-                 ((find-best (get-object first-better)
-                    (let (obj1)
-                      (dolist (obj2 (mapcar get-object boundaries))
-                        (multiple-value-bind (b1 e1) obj1
-                          (multiple-value-bind (b2 e2) obj2
-                            (setq obj1
-                                  (cond
-                                    ((null obj1) obj2)
-                                    ((null obj2) obj1)
-                                    ((funcall first-better b1 e1 b2 e2) obj1)
-                                    (t obj2))))))
-                      obj1)))
-                 #'(lambda (direction)
-                     (case direction
-                       (fwd (find-best #'(lambda (bnd)
-                                           (let ((end (funcall bnd 'fwd)))
-                                             (when end
-                                               (let ((beg (save-excursion
-                                                           (goto-char end)
-                                                           (funcall bnd 'bwd))))
-                                                 (values beg end)))))
-                                       #'(lambda (b1 e1 b2 e2)
-                                           (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
+  (let ((boundaries-loc boundaries))
+    (let ((find-best (lambda (get-object first-better)
+                       (let (obj1)
+                         (dolist (obj2 (mapcar get-object boundaries-loc))
+                           (multiple-value-bind (b1 e1) obj1
+                             (multiple-value-bind (b2 e2) obj2
+                               (setq obj1
+                                     (cond
+                                       ((null obj1) obj2)
+                                       ((null obj2) obj1)
+                                       ((funcall first-better b1 e1 b2 e2) obj1)
+                                       (t obj2))))))
+                         obj1))))
+      #'(lambda (direction)
+          (case direction
+            (fwd (funcall find-best
+                          #'(lambda (bnd)
+                              (let ((end (funcall bnd 'fwd)))
+                                (when end
+                                  (let ((beg (save-excursion
+                                              (goto-char end)
+                                              (funcall bnd 'bwd))))
+                                    (values beg end)))))
+                          #'(lambda (b1 e1 b2 e2)
+                              (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
 
-                       (bwd (find-best #'(lambda (bnd)
-                                           (let ((beg (funcall bnd 'bwd)))
-                                             (when beg
-                                               (let ((end (save-excursion
-                                                           (goto-char beg)
-                                                           (funcall bnd 'fwd))))
-                                                 (values beg end)))))
-                                       #'(lambda (b1 e1 b2 e2)
-                                           (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
+            (bwd (funcall find-best
+                          #'(lambda (bnd)
+                              (let ((beg (funcall bnd 'bwd)))
+                                (when beg
+                                  (let ((end (save-excursion
+                                              (goto-char beg)
+                                              (funcall bnd 'fwd))))
+                                    (values beg end)))))
+                          #'(lambda (b1 e1 b2 e2)
+                              (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
 
 
 (defun vim:move-fwd-beg (n boundary &optional linewise)
@@ -861,32 +862,31 @@ text-object before or at point."
 
 (defun vim:block-select (open-re close-re match-test open-pos close-pos n)
   "Returns the position of an enclosing block."
-  (labels
-    ((find-at-point (re pos begin)
-       (goto-char pos)
-       ;; start searching the object in the current
-       ;; line to see if it's at point
-       (forward-line 0)
-       (while (and (re-search-forward re
-                                      (line-end-position) t)
-                   (< (match-end 0) pos)))
-       (if (and (match-beginning 0)
-                (<= (match-beginning 0) open-pos)
-                (>= (match-end 0) open-pos))
-         ;; found object at cursor
-         (if begin
-           (goto-char (match-beginning 0))
-           (goto-char (match-end 0)))
-         (goto-char pos)))
+  (let ((find-at-point (lambda (re pos begin)
+                         (goto-char pos)
+                         ;; start searching the object in the current
+                         ;; line to see if it's at point
+                         (forward-line 0)
+                         (while (and (re-search-forward re
+                                                        (line-end-position) t)
+                                     (< (match-end 0) pos)))
+                         (if (and (match-beginning 0)
+                                  (<= (match-beginning 0) open-pos)
+                                  (>= (match-end 0) open-pos))
+                           ;; found object at cursor
+                           (if begin
+                             (goto-char (match-beginning 0))
+                             (goto-char (match-end 0)))
+                           (goto-char pos))))
 
-     ;; splits the match-data into parts belonging to the
-     ;; open-regexp and the close-regexp
-     (split-match-data (n-open)
-       (let* ((open-md (cddr (match-data)))
-              (split-cdr (nthcdr (1+ (* 2 n-open)) open-md))
-              (close-md (cdr split-cdr)))
-         (setcdr split-cdr nil)
-         (values open-md close-md))))
+        ;; splits the match-data into parts belonging to the
+        ;; open-regexp and the close-regexp
+        (split-match-data (lambda (n-open)
+                            (let* ((open-md (cddr (match-data)))
+                                   (split-cdr (nthcdr (1+ (* 2 n-open)) open-md))
+                                   (close-md (cdr split-cdr)))
+                              (setcdr split-cdr nil)
+                              (values open-md close-md)))))
     (catch 'end
       (save-excursion
        (let ((combined-re (concat "\\("
@@ -901,12 +901,12 @@ text-object before or at point."
          ;; set default match-test
          (unless match-test (setq match-test #'(lambda (a b) t)))
          ;; search the opening object
-         (find-at-point open-re open-pos nil)
+         (funcall find-at-point open-re open-pos nil)
          (while (> cnt 0)
            (unless (re-search-backward combined-re nil t) (throw 'end nil))
            ;; split match data for open and close regexp
            (multiple-value-bind (open-md close-md)
-               (split-match-data n-open-groups)
+               (funcall split-match-data n-open-groups)
              (if (car open-md)
                ;; match opening regexp
                (if found-stack
@@ -933,7 +933,7 @@ text-object before or at point."
          (while found-stack
            (unless (re-search-forward combined-re nil t) (throw 'end nil))
            (multiple-value-bind (open-md close-md)
-               (split-match-data n-open-groups)
+               (funcall split-match-data n-open-groups)
              (if (car close-md)
                ;; match closing regexp
                (if (funcall match-test (car found-stack) close-md)

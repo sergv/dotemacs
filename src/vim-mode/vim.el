@@ -158,12 +158,11 @@ given major-mode is created."
 
   (if vim-local-mode
     (progn
-      (make-local-variable 'vim:emulation-mode-alist)
       (vim:initialize-keymaps t))
     (progn
       (vim:initialize-keymaps nil)
       (setq global-mode-string
-            (delq 'vim:mode-string global-mode-string ))
+            (delq 'vim:mode-string global-mode-string))
       (vim:activate-mode nil))))
 
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
