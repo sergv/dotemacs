@@ -210,6 +210,7 @@ MAP is `minibuffer-local-completion-map' or
     ("C-w"           backward-delete-word)
     ("C-S-w"         backward-delete-word*)
     ("C-p"           vim:cmd-paste-before)
+    ("M-p"           browse-kill-ring)
 
     ("C-v"           set-mark-command)
     ("C-y"           copy-region-as-kill)
@@ -218,7 +219,6 @@ MAP is `minibuffer-local-completion-map' or
 
     ("M-<tab>"       icicle-narrow-candidates)
     ("C-<tab>"       icicle-apropos-complete-and-narrow)
-    ("<f1>"          icicle-apropos-complete-and-narrow)
 
     ("<delete>"      delete-char)
     ("<home>"        beginning-of-line)
