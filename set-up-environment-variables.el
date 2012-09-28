@@ -18,11 +18,12 @@
       for value in (split-string values "\n")
       do (setenv var value))))
 
-(defun env-var-into-list (env-var list)
-  (for-each (lambda (dir) (add-to-list list dir))
-   (split-string (getenv env-var) ":")))
+(defun* env-var-into-list (env-var list &key (append t))
+  (for-each (lambda (dir)
+              (add-to-list list dir append))
+            (parse-colon-path (getenv env-var))))
 
-(env-var-into-list "PATH" 'exec-path)
+(env-var-into-list "PATH" 'exec-path :append t)
 
 
 (provide 'set-up-environment-variables)
