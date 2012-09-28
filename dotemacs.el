@@ -243,6 +243,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "image-mode-setup")
 (load-library "tabbar-setup")
 (load-library "calendar-mode-setup")
+(load-library "telnet-mode-setup")
 
 
 
