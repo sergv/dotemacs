@@ -8,6 +8,8 @@
 ;; Requirements:
 ;; Status:
 
+(add-to-list 'auto-mode-alist '("\\.xbindkeysrc$" . shell-script-mode))
+
 (autoload 'shell-setup "shell-setup")
 (add-hook 'shell-mode-hook #'shell-setup)
 
