@@ -25,9 +25,18 @@
 
 (defconst +vi-keys+
   (append +vi-essential-keys+
-          '(("/" isearch-forward-regexp)
-            ("?" isearch-backward-regexp)))
+          '(("/" search-start-forward)
+            ("?" search-start-backward)))
   "Essential vi movement keys plus search keys")
+
+(defconst +vi-search-keys+
+  '(("/"   search-start-forward)
+    ("?"   search-start-backward)
+    ("k"   search-next)
+    ("K"   search-prev)
+    ("C-h" search-toggle-highlighting))
+  "Vi key for searching from search.el, probably should not be used without
+`+vim-special-keys+'.")
 
 (defconst +control-x-prefix+
   '((","   nil)

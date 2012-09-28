@@ -11,6 +11,7 @@
 
 (require 'vim-mock)
 (require 'magit)
+(require 'search)
 
 (setf magit-completing-read-function
       (lambda (prompt collection
@@ -67,6 +68,7 @@
   (def-keys-for-map magit-status-mode-map
     +control-x-prefix+
     +vim-special-keys+
+    +vi-search-keys+
     ("r"        magit-refresh)
     ("R"        magit-refresh-all)
 
@@ -82,6 +84,7 @@
   (def-keys-for-map magit-log-mode-map
     +control-x-prefix+
     +vim-special-keys+
+    +vi-search-keys+
     ("r"      magit-refresh)
     ("R"      magit-refresh-all)
 
@@ -106,6 +109,7 @@
   (def-keys-for-map magit-show-branches-mode-map
     +control-x-prefix+
     +vim-special-keys+
+    +vi-search-keys+
     ("r"      magit-refresh)
     ("R"      magit-refresh-all)
 
