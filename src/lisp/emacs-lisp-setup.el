@@ -187,7 +187,13 @@
 
           (let* ((compiled-file (byte-compile-dest-file file))
                  (dest-file (path-concat +bytecode-lib+
-                                         (file-name-nondirectory compiled-file))))
+                                         (file-name-nondirectory compiled-file)))
+                 (byte-compile-error-on-warn t)
+                 (byte-compile-warning-types
+                   (remove-if (lambda (x)
+                                (memq x '(absolete
+                                          cl-functions)))
+                              byte-compile-warning-types)))
             (cond
               ((byte-compile-file file)
                (cond
