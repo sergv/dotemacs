@@ -51,23 +51,25 @@
 
 
 ;; This function sets up the keymaps for the current mode.
-(defmacro vim:set-keymaps (mode-name keymaps)
-  (when (eq (car-safe mode-name) 'quote)
-    (setq mode-name (cadr mode-name)))
+(defmacro vim:set-keymaps (vim-mode-name keymaps)
+  (when (eq (car-safe vim-mode-name) 'quote)
+    (setq vim-mode-name (cadr vim-mode-name)))
   (when (eq (car-safe keymaps) 'quote)
     (setq keymaps (cadr keymaps)))
   `(setq vim:emulation-mode-alist
          (list
-          ,@(apply #'append '((cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap))
-                   (mapcar #'(lambda (keym)
-                               (let ((localname (intern (replace-regexp-in-string
-                                                         "mode-keymap" "mode-local-keymap"
-                                                         (symbol-name keym)))))
-                                 (if (eq localname keym)
-                                   (list `(cons ',mode-name ,keym))
-                                   (list `(cons ',mode-name ,localname)
-                                         `(cons ',mode-name ,keym)))))
-                           keymaps)))))
+          ,@(cons '(cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap)
+                  (mapcan #'(lambda (keym)
+                              (let ((localname
+                                      (string->symbol
+                                       (replace-regexp-in-string
+                                        "mode-keymap" "mode-local-keymap"
+                                        (symbol->string keym)))))
+                                (if (eq localname keym)
+                                  (list `(cons ',vim-mode-name ,keym))
+                                  (list `(cons ',vim-mode-name ,localname)
+                                        `(cons ',vim-mode-name ,keym)))))
+                          keymaps)))))
 
 
 (defmacro* vim:define-mode (name doc

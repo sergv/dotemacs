@@ -891,27 +891,29 @@ regular expressions."
                                   :test #'char=))
                (incf i)))
            (pattern-expand-newlines (pat)
-             (labels ((expand (pos result-pat)
-                        (cond
-                          ((= pos (length pat))
-                           result-pat)
-                          ((and (char= (aref pat pos) ?\\)
-                                (< (1+ pos) (length pat))
-                                (member* (aref pat (1+ pos))
-                                         (string-to-list
-                                          "nt")
-                                         :test #'char=))
-                           (let ((next-c (aref pat (1+ pos))))
-                             (expand (+ pos 2)
-                                     (cons (cond
-                                             ((char= next-c ?n) ?\n)
-                                             ((char= next-c ?t) ?\t))
-                                           result-pat))))
-                          (t
-                           (expand (1+ pos) (cons (aref pat pos)
-                                                  result-pat))))))
-               (concatenate 'string
-                            (nreverse (expand 0 '()))))))
+             (letrec ((expand
+                       (lambda (pos result-pat)
+                         (cond
+                           ((= pos (length pat))
+                            result-pat)
+                           ((and (char= (aref pat pos) ?\\)
+                                 (< (1+ pos) (length pat))
+                                 (member* (aref pat (1+ pos))
+                                          (string-to-list
+                                           "nt")
+                                          :test #'char=))
+                            (let ((next-c (aref pat (1+ pos))))
+                              (funcall expand
+                                       (+ pos 2)
+                                       (cons (cond
+                                               ((char= next-c ?n) ?\n)
+                                               ((char= next-c ?t) ?\t))
+                                             result-pat))))
+                           (t
+                            (funcall expand (1+ pos) (cons (aref pat pos)
+                                                           result-pat)))))))
+                     (concatenate 'string
+                                  (nreverse (funcall expand 0 '()))))))
       (while (and (< i len)
                   (not (member* (aref str i)
                                 delimiters
