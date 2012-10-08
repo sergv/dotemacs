@@ -39,7 +39,7 @@ Toggle buffer local status via `M-x highlight-indentation' during session. "
 (setq-default highlight-indent-offset 4)
 
 (defvar ruby-indent-level nil)
-(defvar nxml-child-indent nil)
+(require 'nxml-mode)
 
 (defun highlight-indentation-on ()
   "Make sure `highlight-indentation' is on. "
