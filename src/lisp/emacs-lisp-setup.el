@@ -26,6 +26,7 @@
    (with-temp-buffer (&body))
    (while (4 &body))
    (rxx (as let))
+   (letrec (as let))
    (redefun (as defun))
    (edefun (as defun))
    (define-print-info-skeleton (4 &body))
