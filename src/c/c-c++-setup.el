@@ -1,0 +1,141 @@
+;; c-c++-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: Monday, 12 December 2011
+;; Keywords:
+;; Requirements:
+;; Status:
+
+(autoload 'c-turn-on-eldoc-mode "c-eldoc" nil t)
+
+(eval-after-load
+ "c-eldoc"
+ '(progn
+   ;; make cache buffer names start with a space to make them invisible
+   ;; quote buffer-file-name when sending it to shell
+   (redefun c-eldoc-get-buffer (function-name)
+     "Call the preprocessor on the current file"
+     ;; run the first time for macros
+     (let ((output-buffer (cache-gethash (current-buffer) c-eldoc-buffers)))
+       (if output-buffer output-buffer
+         (let* ((this-name (concat " *" buffer-file-name "-preprocessed*"))
+                (cur-buffer (current-buffer))
+                (output-buffer (generate-new-buffer this-name)))
+           (dolist (cpp-arguments (list c-eldoc-cpp-macro-arguments
+                                        c-eldoc-cpp-normal-arguments))
+             (call-process-shell-command (concat c-eldoc-cpp-command " "
+                                                 cpp-arguments " "
+                                                 c-eldoc-includes " "
+                                                 (shell-quote-argument buffer-file-name))
+                                         nil
+                                         output-buffer
+                                         nil))
+           (cache-puthash cur-buffer output-buffer c-eldoc-buffers)
+           output-buffer))))
+
+   (defun c-eldoc-show-current-symbol-declaration ()
+     "Shows declaration of function/macro at point."
+     (interactive)
+     (let* ((current-function (symbol->string (symbol-at-point)))
+            (current-function-regexp (concat "[ \t\n]*[0-9a-zA-Z]+[ \t\n*]+" current-function "[ \t\n]*("))
+            (current-macro-regexp (concat "#define[ \t\n]+" current-function "[ \t\n]*("))
+            (current-buffer (current-buffer))
+            (tag-buffer)
+            (function-name-point)
+            (arguments)
+            (type-face 'font-lock-type-face))
+       (when (and current-function
+                  (not (member current-function c-eldoc-reserved-words))
+                  (setq tag-buffer (c-eldoc-get-buffer current-function)))
+         (save-match-data
+          (with-current-buffer tag-buffer
+            ;; setup the buffer
+            (goto-char (point-min))
+            ;; protected regexp search
+            (condition-case nil
+                (progn
+                  (if (not (re-search-forward current-macro-regexp (point-max) t))
+                    (re-search-forward current-function-regexp))
+                  t)
+              (error (error "Cannot find function declaration")))
+            ;; move outside arguments list
+            (search-backward "(")
+            (c-skip-ws-backward)
+            (setq function-name-point (point))
+            (forward-sexp)
+            (setq arguments (buffer-substring-no-properties function-name-point
+                                                            (point)))
+            (goto-char function-name-point)
+            (backward-char (length current-function))
+            (c-skip-ws-backward)
+            (setq function-name-point (point))
+            (search-backward-regexp "[};/#]" (point-min) t)
+            ;; check for macros
+            (if (= (char-after) ?#)
+              (let ((is-define (looking-at-p "#[[:space:]]*define"))
+                    (preprocessor-point (point)))
+                (while (prog2 (end-of-line)
+                           (= (char-before) ?\\)
+                         (forward-char)))
+                (when (and is-define (> (point) function-name-point))
+                  (goto-char preprocessor-point)
+                  (setq type-face 'font-lock-preprocessor-face)))
+              (forward-char)
+              (when (looking-back "//")
+                (end-of-line)))
+            (c-skip-ws-forward)
+            ;; colorize
+            (message (concat (propertize (buffer-substring-no-properties
+                                          (point)
+                                          function-name-point)
+                                         'face type-face)
+                             " "
+                             (propertize current-function
+                                         'face 'font-lock-function-name-face)
+                             (replace-regexp-in-string " *\\([()]\\) *"
+                                                       "\\1"
+                                                       arguments))))))))))
+
+;; (autoload 'c-c++-switch-header-and-source "c-setup" nil t)
+(autoload 'c-setup "c-setup")
+(add-hook 'c-mode-hook #'c-setup)
+
+(autoload 'c++-setup "c++-setup")
+(add-hook 'c++-mode-hook #'c++-setup)
+
+
+(defun c++-file-magic-function ()
+  (interactive)
+  (let ((ext (file-name-extension (buffer-file-name))))
+    ;; check for null since .emacs doesn't have extension
+    (when (and ext
+               (string-match-pure? (rx (* anything) ".h" eol)
+                                   ext))
+      (save-excursion
+       (save-match-data
+        (re-search-forward (rx
+                            (or "class"
+                                "namespace"
+                                "::"
+                                ;; it's quite rare to see other template
+                                ;; open brace styles so lets accomodate
+                                ;; only for frequently used ones
+                                "template<"
+                                "template <"
+                                "public:"
+                                "protected:"
+                                "private:"))
+                           nil
+                           t))))))
+
+;; this will make sure that *.h c++ header will be correctly handled
+(push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
+
+
+
+;; Local Variables:
+;; End:
+
+;; c-c++-setup.el ends here
