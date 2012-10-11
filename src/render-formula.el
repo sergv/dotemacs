@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'solarized+)
 
 (defvar *formula-images-cache* (make-hash-table :test 'equal))
 
@@ -14,6 +15,9 @@
   (setf *formula-images-cache* (make-hash-table :test 'equal)
         *formula-index* 0)
   (clear-image-cache))
+
+(add-hook 'color-theme-solarized+-theme-changed-hook
+          #'render-buffer-flush-cache)
 
 
 (defvar *formula-index* 0
