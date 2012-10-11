@@ -210,14 +210,15 @@
 (global-hl-line-mode t)
 ;; (set-face-background 'hl-line "#000000")  ;330")
 
-(setq color-theme-libraries
-      (directory-files +color-themes-path+ t "^color-theme"))
-(require 'solarized+)
-
 ;; primarily used by the theme-changer
 (setf calendar-location-name "Nikolaev Ukraine"
       calendar-latitude 46.967
       calendar-longitude 32)
+
+(setq color-theme-libraries
+      (directory-files +color-themes-path+ t "^color-theme"))
+(require 'solarized+)
+
 
 (setf font-lock-maximum-decoration
       ;; there are three decoration levels, 1 being the minimum

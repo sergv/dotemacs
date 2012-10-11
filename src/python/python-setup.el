@@ -14,6 +14,7 @@
 (require 'browse-kill-ring-setup)
 (require 'common)
 (require 'outline-headers)
+(require 'compile)
 
 (autoload 'python-mode "python-mode" "Pythom mode." t)
 

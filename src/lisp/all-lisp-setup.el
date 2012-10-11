@@ -10,7 +10,7 @@
 ;;;
 
 (require 'cl)
-(require 'cl-mode)
+;; (require 'cl-mode)
 
 (defconst +common-lisp-file-extensions+
   '("l" "cl" "asd" "lsp" "lisp" "clisp")

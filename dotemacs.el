@@ -37,7 +37,7 @@ system restars.")
 ;; (setf debug-on-error t)
 
 (defun strip-trailing-slash (path)
-  (if (char= ?\/ (aref path (1- (length path))))
+  (if (char-equal ?\/ (aref path (1- (length path))))
     (subseq path 0 -1)
     path))
 
@@ -236,7 +236,6 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "yasnippet-setup")
 ;; (load-library "cedet-setup")
 (load-library "git-setup")
-(load-library "tabbar-buffer-groups")
 (load-library "visit-files")
 (load-library "hideshow-setup")
 (load-library "render-formula")
