@@ -211,21 +211,13 @@
 ;; (set-face-background 'hl-line "#000000")  ;330")
 
 (setq color-theme-libraries
-      (directory-files
-       +color-themes-path+
-       t
-       "^color-theme"))
-;; (require 'color-theme-darkspectrum)
-;; (require 'color-theme-github)
+      (directory-files +color-themes-path+ t "^color-theme"))
 (require 'solarized+)
 
+;; primarily used by the theme-changer
 (setf calendar-location-name "Nikolaev Ukraine"
       calendar-latitude 46.967
       calendar-longitude 32)
-(require 'theme-changer)
-(change-theme #'color-theme-solarized+-light
-              #'color-theme-solarized+-dark)
-;; (color-theme-solarized+-light)
 
 (setf font-lock-maximum-decoration
       ;; there are three decoration levels, 1 being the minimum
