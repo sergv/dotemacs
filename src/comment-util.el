@@ -56,6 +56,7 @@
     (snippet-mode          (one-line "#")  (line-regexp "#+"))
     (sql-mode              (one-line "--") (line-regexp "--+"))
     (c++-mode              (one-line "//") (line-regexp "//+"))
+    (glsl-mode             (one-line "//") (line-regexp "//+"))
     (python-mode           (one-line "#")  (line-regexp "#+"))
     (cython-mode           (one-line "#")  (line-regexp "#+"))
     (comint-mode           (one-line nil))

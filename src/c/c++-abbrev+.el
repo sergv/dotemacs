@@ -22,6 +22,18 @@
                 (lambda ()
                   (yas/expand-snippet
                    "std::cout << \"$1: \" << $1 << std::endl;$2")))
+               (lambda () (not (point-inside-string-or-comment?))))
+         (list "\\<cout\\>"
+               (list
+                (lambda ()
+                  (yas/expand-snippet
+                   "std::cout << $1 << std::endl;$2")))
+               (lambda () (not (point-inside-string-or-comment?))))
+         (list "\\<cerr\\>"
+               (list
+                (lambda ()
+                  (yas/expand-snippet
+                   "std::cerr << $1 << std::endl;$2")))
                (lambda () (not (point-inside-string-or-comment?))))))
 
   (def-keys-for-map vim:insert-mode-local-keymap

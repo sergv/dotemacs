@@ -6,11 +6,11 @@
 ;; Created: long ago
 ;; Description:
 
-(require 'c-like-setup)
+(require 'cc-setup)
 (require 'c++-abbrev+)
 
 (defun c++-setup ()
-  (c-like-setup)
+  (cc-setup :define-special-keys t)
 
   (if-buffer-has-file
    (set (make-local-variable 'compile-command)
