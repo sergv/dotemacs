@@ -33,59 +33,70 @@
    (push "iotop" eshell-visual-commands)
    ;; (add-to-list 'eshell-visual-commands "tail")
 
-   (labels ((define-programs (programs regexp)
-              (loop
-                for p in programs
-                appending (list (cons p regexp)
-                                (cons (concat (char->string
-                                               eshell-explicit-command-char)
-                                              p)
-                                      regexp)))))
+   (let ((define-programs
+           (lambda (programs regexp)
+             (loop
+               for p in programs
+               appending (list (cons p regexp)
+                               (cons (concat (char->string
+                                              eshell-explicit-command-char)
+                                             p)
+                                     regexp))))))
      (setf eshell-command-completions-alist
-           (append (list
-                    '("ar" . "\\.[ao]\\'"))
+           (append (funcall define-programs '("acroread" "pdf")
+                            "\\.pdf\\'")
+                   (funcall define-programs '("okular")
+                            "\\.\\(?:pdf\\|djvu\\|ps\\)\\'")
 
-                   (define-programs '("acroread" " pdf")
-                     "\\.pdf\\'")
-                   (define-programs '("okular")
-                     "\\.\\(?:pdf\\|djvu\\|ps\\)\\'")
+                   (funcall define-programs '("gcc" "g++" "cc" "CC" "acc" "bcc" "tcc")
+                            (rx "."
+                                (or (seq
+                                     (regexp "[CcHh]")
+                                     (? (or (regexp "[CcHh]")
+                                            (= 2 (regexp "[Pp]"))
+                                            (= 2 (regexp "[Xx]"))
+                                            (= 2 "+"))))
+                                    "o"
+                                    "a"
+                                    "so")
+                                eot))
 
-                   (define-programs '("gcc" "g++" "cc" "CC" "acc" "bcc")
-                       (rx "."
-                           (regexp "[CcHh]")
-                           (? (or (regexp "[CcHh]")
-                                  (= 2 (regexp "[Pp]"))
-                                  (= 2 (regexp "[Xx]"))
-                                  (= 2 "+")))
-                           eot))
+                   (funcall define-programs '("readelf" "objdump" "nm")
+                            "\\(?:\\`[^.]*\\|\\.\\(?:[ao]\\|so\\)\\)\\'")
 
-                   (define-programs '("readelf" "objdump" "nm")
-                     "\\(?:\\`[^.]*\\|\\.\\(?:[ao]\\|so\\)\\)\\'")
+                   (funcall define-programs '("gdb" "dbx" "sdb" "adb")
+                            "\\`\\(?:[^.]*\\|a\\.out\\)\\'")
 
-                   (define-programs '("gdb" "dbx" "sdb" "adb")
-                     "\\`\\(?:[^.]*\\|a\\.out\\)\\'")
+                   (funcall define-programs '("tar" "untar")
+                            (rx (or ".tgz"
+                                    ".t7z"
+                                    (seq ".tbz"
+                                         (? "2"))
+                                    (seq ".tar"
+                                         (? "."
+                                            (or "gz"
+                                                "bz2"
+                                                "7z"))))
+                                eos))
 
+                   (funcall define-programs '("ghc" "ghci")
+                            "\\(?:\\.hs\\|\\.lhs\\|\\.hsc\\)\\'")
 
-                   (define-programs '("tar" "untar")
-                     "\\(?:\\.tar\\|\\.tgz\\|\\.tar\\.\\(?:gz\\|bz2\\)\\)\\'")
+                   (funcall define-programs '("sbcl" "clisp" "ecl" "ccl")
+                            (eval `(rx "." (or ,@+common-lisp-file-extensions+) eot)))
 
-                   (define-programs '("ghc" "ghci")
-                     "\\(?:\\.hs\\|\\.lhs\\|\\.hsc\\)\\'")
+                   (funcall define-programs '("stalin" "guile" "csi" "csc" "scheme48" "bigloo")
+                            (eval `(rx "." (or ,@+scheme-file-extensions+) eot)))
 
-                   (define-programs '("sbcl" "clisp" "ecl" "ccl")
-                       (eval `(rx (or ,@+common-lisp-file-extensions+)
-                                  eot)))
+                   (funcall define-programs '("python" "pypy" "python2.7" "python3" "ipython")
+                            "\\.py\\'")
 
-                   (define-programs '("stalin" "guile" "csi" "csc" "scheme48" "bigloo")
-                       (eval `(rx (or ,@+scheme-file-extensions+) eot)))
+                   (funcall define-programs '("makeinfo" "texi2dvi" "texi2pdf")
+                            "\\.texi\\'")
 
-                   (define-programs '("python" "pypy" "python2.7" "python3" "ipython")
-                     "py\\'")
+                   `(("gunzip" . "\\.gz\\'")
 
-                   (define-programs '("makeinfo" "texi2dvi" "texi2pdf")
-                     "texi\\'")
-
-                   '(("gunzip" . "gz\\'")))))
+                     ("ar" . "\\.[ao]\\'")))))
 
    ;; redefine some eshell functions
 
@@ -169,14 +180,6 @@
     (unless (string-match-p "*eshell*\\(?:<[0-9]+>\\)?" (buffer-name))
       (error "Not in the eshell buffer"))
     :move-to-property-end t)
-
-   ;; plain regex jumps
-   ;; (define-circular-jumps
-   ;;  eshell-jump-to-next-prompt
-   ;;  eshell-jump-to-prev-prompt
-   ;;  eshell-prompt-regexp
-   ;;  (unless (string-match-p "*eshell*\\(?:<[0-9]+>\\)?" (buffer-name))
-   ;;    (error "Not in the eshell buffer")))
 
    (defun eshell-setup ()
      (init-repl :show-directory t)
