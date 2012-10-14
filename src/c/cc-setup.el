@@ -1,4 +1,4 @@
-;; c-like-setup.el --- -*- lexical-binding: t; -*-
+;; cc-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -13,12 +13,14 @@
 (require 'find-file)
 
 
-(defun c-like-setup ()
+(defun* cc-setup (&key (define-special-keys t) (use-c-eldoc t))
   (init-common :use-render-formula t)
   (autopair-mode 1)
-
   (hs-minor-mode 1)
-  (c-turn-on-eldoc-mode)
+  (which-function-mode -1)
+  (when use-c-eldoc
+    (c-turn-on-eldoc-mode)
+    (set (make-variable-buffer-local 'eldoc-idle-delay) 0.2))
 
   (modify-syntax-entry ?_ "_")
 
@@ -28,15 +30,11 @@
         tab-width 4)
 
   (set (make-variable-buffer-local 'vim:shift-width) 8)
-  (set (make-variable-buffer-local 'eldoc-idle-delay) 0.2)
 
-  (which-function-mode -1)
-
-  (setq c-tab-always-indent t)
+  (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)
   (c-toggle-electric-state -1)
   (c-toggle-auto-newline -1)
-  ;; (subword-mode t)
 
   (setq vim:normal-mode-local-keymap           (make-keymap)
         vim:insert-mode-local-keymap           (make-sparse-keymap)
@@ -44,27 +42,31 @@
         vim:operator-pending-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC" ff-find-related-file)
-    ("g TAB"   c-indent-defun)
+    ("g TAB" c-indent-defun)
 
-    ("g t"     c-end-of-defun)
-    ("g n"     c-beginning-of-defun)
+    ("g t"   c-end-of-defun)
+    ("g n"   c-beginning-of-defun)
 
-    ("z o"     hs-show-block)
-    ("z v"     hs-show-block)
-    ("z c"     hs-hide-block)
-    ("z C"     hs-hide-all)
-    ("z O"     hs-show-all)
-
-    (", ?"     c-eldoc-show-current-symbol-declaration))
+    ("z o"   hs-show-block)
+    ("z v"   hs-show-block)
+    ("z c"   hs-hide-block)
+    ("z C"   hs-hide-all)
+    ("z O"   hs-show-all))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g t" c-end-of-defun)
-    ("g n" c-beginning-of-defun)))
+    ("g t"   c-end-of-defun)
+    ("g n"   c-beginning-of-defun))
 
-(provide 'c-like-setup)
+  (when define-special-keys
+    (def-keys-for-map vim:normal-mode-local-keymap
+      ("SPC SPC" ff-find-related-file)))
+  (when use-c-eldoc
+    (def-keys-for-map vim:normal-mode-local-keymap
+      (", ?"     c-eldoc-show-current-symbol-declaration))))
+
+(provide 'cc-setup)
 
 ;; Local Variables:
 ;; End:
 
-;; c-family-setup.el ends here
+;; cc-setup.el ends here
