@@ -220,7 +220,6 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "glsl-setup")
 (load-library "other-setup")
 
-(load-library "icicles-setup")
 (load-library "compilation-setup")
 (load-library "completion-setup")
 (load-library "auto-insert-setup")

@@ -30,16 +30,25 @@
 ;; Upgraded Icicles seems to work OK
 
 
+(require 'common)
+(require 'icicles-setup)
 
-(setf completion-styles '(partial-completion ;; quite like regex one
-                          ;; poverful acronyms and initialisms
-                          ;; barely usable :(
-                          ;; initials
-                          ;; substring ;; handy but weak
-                          ))
+
+(defun completing-read-buffer (prompt &optional default require-match)
+  (completing-read-vanilla prompt
+                           (buffer-list)
+                           nil
+                           require-match
+                           nil
+                           nil
+                           default))
+
+(setf completion-styles '(partial-completion)
+      completion-category-overrides '()
+      read-buffer-function #'completing-read-buffer)
+
 
 ;; convenient buffer switcher
-(iswitchb-mode 1)
 
 
 (require 'smex)
