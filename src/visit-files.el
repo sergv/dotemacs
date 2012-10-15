@@ -32,7 +32,7 @@
 
 (defun visit-files ()
   (interactive)
-  (let* ((group (completing-read-vanilla
+  (let* ((group (completing-read
                  "File extension alias or extension regexp: "
                  (mapcar #'car *visit-files-extension-aliases*)
                  nil ;; predicate

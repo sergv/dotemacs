@@ -1212,15 +1212,16 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
   ;; note - every single bit of this function is made to let this function
   ;; work as fast as it can an as large buffers as possible
   ;; (on 2k lines performance is acceptable)
-  (flet ((filter* (pred items)
-           (let ((result nil))
-             (dolist (item items)
-               (if (funcall pred item)
-                 (push item result)))
-             result)))
+  (let ((filter*
+          (lambda (pred items)
+            (let ((result nil))
+              (dolist (item items)
+                (if (funcall pred item)
+                  (push item result)))
+              result))))
     (let ((chars (string->list (buffer-substring-no-properties (point-min)
                                                                (point-max)))))
-      (sort (remove-duplicates (filter* (lambda (c) (< 127 c)) chars)) '<))))
+      (sort (remove-duplicates (funcall filter* (lambda (c) (< 127 c)) chars)) '<))))
 
 (defun input-unicode ()
   (interactive)

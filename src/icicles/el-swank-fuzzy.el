@@ -313,9 +313,12 @@ match should be performed before the fuzzy match."
 
 ;;; Alternative to el-swank-fuzzy-completions, return
 ;; list of candidates only
-(defun* el-swank-fuzzy-matches
-    (string candidates
-            &key (timeout 1500) (filter #'(lambda (x) t)) (prefix-length 1))
+(defun* el-swank-fuzzy-matches (string
+                                candidates
+                                &key
+                                (timeout 1500)
+                                (filter #'(lambda (x) t))
+                                (prefix-length 1))
   (car
    (el-swank-fuzzy-completions string
                                candidates
