@@ -31,8 +31,8 @@ from \\label{...} and \\ref{...} constructs."
   (completing-read-vanilla "Label: "
                            (latex-get-labels-in-buffer)
                            nil
-                           ;; I deliberately do not require match here to account for
-                           ;; not-yet entered labels
+                           ;; I deliberately do not require match here to
+                           ;; enable not-yet-entered labels
                            nil)
   "\\ref{" str "}")
 

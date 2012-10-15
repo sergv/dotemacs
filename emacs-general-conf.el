@@ -142,7 +142,7 @@
       system-time-locale "C"
 
       visible-bell nil ;; any kind of bell is annoying
-      read-buffer-function #'completing-read-vanilla)
+      )
 
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook

@@ -11,6 +11,7 @@
 (require 'c-eldoc)
 (require 'ctypes)
 (require 'find-file)
+(require 'etags)
 
 
 (defun* cc-setup (&key (define-special-keys t) (use-c-eldoc t))
@@ -51,9 +52,13 @@
     ("z v"   hs-show-block)
     ("z c"   hs-hide-block)
     ("z C"   hs-hide-all)
-    ("z O"   hs-show-all))
+    ("z O"   hs-show-all)
+
+    ("M-."   find-tag)
+    ("M-,"   pop-tag-mark))
 
   (def-keys-for-map vim:visual-mode-local-keymap
+    ("g a"   align)
     ("g t"   c-end-of-defun)
     ("g n"   c-beginning-of-defun))
 

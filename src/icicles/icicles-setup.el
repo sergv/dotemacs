@@ -1,3 +1,12 @@
+;; icicles-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: long ago
+;; Keywords:
+;; Requirements:
+;; Status:
 
 ;; Huh, now (Thu Dec 15 18:26:37 FET 2011) icicles proved itself completely
 ;; inadequate as vehicle for carrying out completions for me -
@@ -153,9 +162,7 @@ MAP is `minibuffer-local-completion-map' or
       ("M-i"             icicle-clear-current-history)
       ("M-k"             icicle-erase-minibuffer-or-history-element)
       ("M-."             icicle-insert-string-at-point)
-      ("M-:"             icicle-pp-eval-expression-in-minibuffer)
-      ("M-S-<backspace>" icicle-erase-minibuffer)
-      ("M-S-<delete>"    icicle-erase-minibuffer))
+      ("M-:"             icicle-pp-eval-expression-in-minibuffer))
     (when (fboundp 'yank-secondary)     ; In `second-sel.el'.
       (def-keys-for-map map
         ("C-M-y" 'icicle-yank-secondary)))
@@ -223,8 +230,13 @@ MAP is `minibuffer-local-completion-map' or
     ("<delete>"      delete-char)
     ("<home>"        beginning-of-line)
     ("<end>"         end-of-line)
-    ("S-<next>"      icicle-next-prefix-candidate)
-    ("S-<prior>"     icicle-previous-prefix-candidate)
+    ("<next>"        icicle-next-prefix-candidate)
+    ("<prior>"       icicle-previous-prefix-candidate)
+    ("S-<next>"      icicle-next-apropos-candidate)
+    ("S-<prior>"     icicle-previous-apropos-candidate)
+
+    ("C-n"           icicle-next-TAB-completion-method)
+    ("C-p"           icicle-narrow-candidates-with-predicate)
 
     ("S-M-<tab>"         icicle-candidate-set-complement)
     ("<M-S-iso-lefttab>" icicle-candidate-set-complement)
@@ -247,9 +259,8 @@ MAP is `minibuffer-local-completion-map' or
 (defadvice:icicle-do-not-insert-default-value icicle-buffer)
 
 
-
-(setf icicle-TAB-completion-methods '(swank
-                                      ;; vanilla
+(setf icicle-TAB-completion-methods '(vanilla
+                                      swank
                                       ;; fuzzy
                                       )
 
@@ -258,20 +269,18 @@ MAP is `minibuffer-local-completion-map' or
 
       ;; tweak vanilla emacs-23 completion to make
       ;; it more powerful
-      completion-styles '(partial-completion)
 
       icicle-dot-string "." ;; icicle-anychar-regexp
-      icicle-reverse-sort-p t
-      )
+      icicle-reverse-sort-p t)
 
 
-(let ((method '(("apropos" . string-match)
-                ;; scatter doesn't work well, don't use it
-                ;;("scatter" . icicle-scatter-match)
-                )))
-  (icicle-set-S-TAB-methods-for-command 'icicle-file method)
-  (icicle-set-S-TAB-methods-for-command 'icicle-locate-file method)
-  (icicle-set-S-TAB-methods-for-command 'icicle-locate-file-other-window method))
+(icicle-set-S-TAB-methods-for-command 'icicle-file
+                                      icicle-S-TAB-completion-methods-alist)
+(icicle-set-S-TAB-methods-for-command 'icicle-locate-file
+                                      icicle-S-TAB-completion-methods-alist)
+(icicle-set-S-TAB-methods-for-command 'icicle-locate-file-other-window
+                                      icicle-S-TAB-completion-methods-alist)
+
 
 (dolist (map (list minibuffer-local-map
                    minibuffer-local-completion-map
@@ -292,11 +301,7 @@ MAP is `minibuffer-local-completion-map' or
   +vim-special-keys+
   ("<up>"     previous-completion)
   ("<down>"   next-completion)
-  ("<escape>" remove-buffer)
-
-  ;; ("q"        remove-buffer)
-  ;; ("Q"        remove-buffer-and-window)
-  )
+  ("<escape>" remove-buffer))
 
 (defun completion-list-setup ()
   (setq autopair-dont-activate t))
@@ -307,8 +312,6 @@ MAP is `minibuffer-local-completion-map' or
 (provide 'icicles-setup)
 
 ;; Local Variables:
-;; lexical-binding: t
 ;; End:
 
-
-
+;; icicles-setup.el ends here
