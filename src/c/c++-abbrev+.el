@@ -23,17 +23,35 @@
                   (yas/expand-snippet
                    "std::cout << \"$1: \" << $1 << std::endl;$2")))
                (lambda () (not (point-inside-string-or-comment?))))
-         (list "\\<cout\\>"
+         (list "\\(?:std::?\\)?\\<cout\\>"
                (list
                 (lambda ()
                   (yas/expand-snippet
                    "std::cout << $1 << std::endl;$2")))
                (lambda () (not (point-inside-string-or-comment?))))
-         (list "\\<cerr\\>"
+         (list "\\(?:std::?\\)?\\<endl\\>"
+               ;; note: use lambda to avoid trailing space
+               (list (lambda () (insert "std::cout << std::endl;")))
+               (lambda () (not (point-inside-string-or-comment?))))
+         (list "\\(?:std::?\\)?\\<cerr\\>"
                (list
                 (lambda ()
                   (yas/expand-snippet
                    "std::cerr << $1 << std::endl;$2")))
+               (lambda () (not (point-inside-string-or-comment?))))
+         (list (rx bow
+                   "s"
+                   (? "t"
+                      (? "a"
+                         (? "t"
+                            (? "i"
+                               (? "c")))))
+                   (? "_")
+                   "cast"
+                   eow)
+               (list
+                (lambda ()
+                  (yas/expand-snippet "static_cast<$1>($2)$3")))
                (lambda () (not (point-inside-string-or-comment?))))))
 
   (def-keys-for-map vim:insert-mode-local-keymap
