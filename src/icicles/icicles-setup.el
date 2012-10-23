@@ -236,7 +236,7 @@ MAP is `minibuffer-local-completion-map' or
     ("S-<prior>"     icicle-previous-apropos-candidate)
 
     ("C-n"           icicle-next-TAB-completion-method)
-    ("C-p"           icicle-narrow-candidates-with-predicate)
+    ;; ("C-p"           icicle-narrow-candidates-with-predicate)
 
     ("S-M-<tab>"         icicle-candidate-set-complement)
     ("<M-S-iso-lefttab>" icicle-candidate-set-complement)

@@ -36,6 +36,17 @@
                                           nil)))))))
 
 (defun doc-view-setup ()
+  (setf mode-line-format
+        '(" %[%b%] "
+          ;; if buffer has assigned file and is modified
+          ("("
+           mode-name
+           mode-line-process
+           ")")
+          " "
+          (:eval
+           (when vc-mode
+             (concat vc-mode " ")))))
   (if-buffer-has-file
    (aif (assoc (file-name-nondirectory (buffer-file-name))
                (persistent-store-get 'doc-view-documents nil))
