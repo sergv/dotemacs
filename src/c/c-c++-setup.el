@@ -183,12 +183,10 @@
 
 
 (defun c++-file-magic-function ()
-  (interactive)
   (let ((ext (file-name-extension (buffer-file-name))))
     ;; check for null since .emacs doesn't have extension
     (when (and ext
-               (string-match-pure? (rx (* anything) ".h" eol)
-                                   ext))
+               (string= ext "h"))
       (save-excursion
        (save-match-data
         (re-search-forward (rx
