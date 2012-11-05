@@ -396,7 +396,8 @@ in GROUP-NUMS."
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g a ="   octave-align-on-equals)
-    ("g a ,"   octave-align-on-commas))
+    ("g a ,"   octave-align-on-commas)
+    ("j"       octave-send-region))
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                     vim:visual-mode-local-keymap
