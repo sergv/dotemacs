@@ -299,7 +299,8 @@
 
 ;; define scheme-load-current-file
 (cond
-  ((eq? +platform+ 'netbook-linux)
+  ((and (platform-os-type? 'linux)
+        (platform-use? 'netbook))
    (defvar *scheme-tmp-file* (format "/tmp/scheme%s.scm" (emacs-pid))
      "Temporary file to save Scheme buffers for futher loading.")
 
@@ -318,7 +319,8 @@
                                         "\"\)\n"))
        (unless noswitch
          (switch-to-scheme-repl)))))
-  ((eq? +platform+ 'asus-netbook)
+  ((and (platform-os-type? 'linux)
+        (platform-use? 'asus-netbook))
    (defun scheme-load-current-file (&optional switch)
      (interactive "P")
      (when (buffer-modified-p)
@@ -334,7 +336,8 @@
                                         "\"\)\n"))
        (when switch
          (switch-to-scheme-repl)))))
-  ((eq? +platform+ 'home-linux)
+  ((and (platform-os-type? 'linux)
+        (platform-use? 'home))
    (defun scheme-load-current-file (&optional noswitch)
      (interactive "P")
      (when (buffer-modified-p)

@@ -6,108 +6,16 @@
 ;; Created: long ago
 ;; Description:
 
-
-(defconst +emacs-config-path+ "/home/sergey/emacs"
-  "Path to folder which is the root for emacs configuration.")
-
-(defconst +emacs-standalone-path+ "/home/sergey/emacs/standalone"
-  "Path to folder which is the root for emacs configuration.")
-
-(defconst +emacs-documentation-path+ "/home/sergey/emacs/doc"
-  "Path to folder which is the root for emacs configuration.")
-
-(defconst +prog-data-path+ (concat +emacs-config-path+ "/prog-data")
-  "Path to folder where programs can store their auxiliary files")
-
-(defconst +bytecode-lib+ (concat +emacs-config-path+ "/lib")
-  "Path to *.elc files")
-
-(defconst +color-themes-path+ (concat +prog-data-path+ "/themes")
-  "Path to color themes")
-
-(defconst +slime-path+ (concat +emacs-standalone-path+ "/slime" ;;"-2012-01-15"
-                               ))
-(defconst +tmp-path+ (concat +prog-data-path+ "/tmp")
-  "Path to temporary directory, contents of which may be removed on
-system restars.")
-
-
-(require 'cl)
-
 ;; (setf debug-on-error t)
 
-(defun strip-trailing-slash (path)
-  (if (char-equal ?\/ (aref path (1- (length path))))
-    (subseq path 0 -1)
-    path))
+(load-library "set-up-platform")
+(load-library "set-up-environment-variables")
+(load-library "set-up-paths")
+(load-library "set-up-font")
 
-(defun get-directory-contents (dir)
-  (remove-if #'(lambda (x) (member (file-name-nondirectory x) '("." "..")))
-             (directory-files dir t)))
-
-(defun* find-rec-special (path
-                          &key
-                          (filep #'(lambda (p) t))
-                          (dirp  #'(lambda (p) nil))
-                          (do-not-visitp
-                              #'(lambda (p)
-                                  (member* (file-name-nondirectory (strip-trailing-slash p))
-                                           '("SCCS" "RCS" "CVS" "MCVS" ".svn"
-                                             ".git" ".hg" ".bzr" "_MTN" "_darcs"
-                                             "{arch}")
-                                           :test #'string=))))
-  "Collect files and/or directories under PATH recursively.
-
-Collect files and directories which satisfy FILEP and
-DIRP respectively in directories which don't satisfy DO-NOT-VISITP.
-By default, version-control specific directories are omitted, e.g. .git etc."
-  (when (stringp filep)
-    (setf filep
-          (lexical-let ((regular-expression filep))
-                       #'(lambda (p) (string-match-p regular-expression p)))))
-  (when (stringp dirp)
-    (setf dirp
-          (lexical-let ((regular-expression dirp))
-                       #'(lambda (p) (string-match-p regular-expression p)))))
-  (when (stringp do-not-visitp)
-    (setf do-not-visitp
-          (lexical-let ((regular-expression do-no-visitp))
-                       #'(lambda (p) (string-match-p regular-expression p)))))
-
-  (labels ((collect-rec (path accum)
-             (cond
-               ((and (file-directory-p path)
-                     (not (funcall do-not-visitp path)))
-                (reduce #'(lambda (acc p)
-                            (collect-rec p acc))
-                        (get-directory-contents path)
-                        :initial-value (if (funcall dirp path)
-                                         (cons path accum)
-                                         accum)))
-               ((funcall filep path)
-                (cons path accum))
-               (t
-                accum))))
-    (collect-rec path nil)))
-
-
-(setf load-path
-      (remove-duplicates
-       (append (find-rec-special (concat +emacs-config-path+ "/src")
-                                 :filep #'(lambda (x) nil)
-                                 :dirp #'(lambda (x) t))
-               (find-rec-special (concat +emacs-config-path+ "/third-party")
-                                 :filep #'(lambda (x) nil)
-                                 :dirp #'(lambda (x) t))
-               load-path)
-       :test #'string=))
-
-;; (add-to-list 'load-path +bytecode-lib+)
 (load-library "reasonable-elisp")
 (load-library "more-scheme")
 (load-library "custom")
-
-(add-to-list 'load-path +color-themes-path+)
 
 ;; ******************************************************************
 
@@ -120,11 +28,8 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "persistent-store")
 (persistent-store-init)
 
-(load-library "set-up-platform")
-(load-library "set-up-environment-variables")
 (load-library "backups")
 (load-library "emacs-general-conf")
-
 
 ;; ******************************************************************
 
@@ -133,7 +38,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
       whitespace-line-column 81
       whitespace-style '(face lines-tail tabs))
 
-(defconst *do-not-track-long-lines-modes*
+(defconst +do-not-track-long-lines-modes+
   '(lisp-interaction-mode
     inferior-scheme-mode
     prolog-inferior-mode
@@ -176,7 +81,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
   (when use-whitespace
     (whitespace-mode
      (if (member major-mode
-                 *do-not-track-long-lines-modes*)
+                 +do-not-track-long-lines-modes+)
        -1
        +1)))
 
@@ -219,6 +124,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
 (load-library "lua-setup")
 (load-library "glsl-setup")
 (load-library "other-setup")
+(load-library "cmake-setup")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
