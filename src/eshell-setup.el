@@ -6,8 +6,12 @@
 ;; Created: long ago
 ;; Description:
 
-
 ;; eshell customization
+
+(eval-when-compile
+ (require 'cl))
+
+(setf eshell-aliases-file (concat +prog-data-path+ "/eshell/alias"))
 
 (eval-after-load
  "eshell"

@@ -39,7 +39,8 @@
               "100"
               ;; limit heap usage to 2Gb
               "--dynamic-space-size"
-              ,(if (eq +platform+ 'home-linux)
+              ,(if (and (platform-os-type? 'linux)
+                        (platform-use? 'home))
                  "2048"
                  "1024")
               "--core"
@@ -58,7 +59,8 @@
               "100"
               ;; limit heap usage to 2Gb
               "--dynamic-space-size"
-              ,(if (eq +platform+ 'home-linux)
+              ,(if (and (platform-os-type? 'linux)
+                        (platform-use? 'home))
                  "2048"
                  "1024")
               "--core"
@@ -351,10 +353,12 @@
 
 ;; if we're using netbook linux then it's desirable to use harddrive less,
 ;; so store our tmp contet it /tmp dir
-(when (eq +platform+ 'netbook-linux)
+(when (and (platform-os-type? 'linux)
+           (platform-use? 'netbook))
   (make-directory "/tmp/slime-fasls/" t)
   (setf slime-compile-file-options
         '(:fasl-directory "/tmp/slime-fasls/")))
+
 
 (setf common-lisp-style-default "my-style"
       slime-net-coding-system 'utf-8-unix
@@ -828,8 +832,8 @@ completions buffer."
 ;; netbook optimizations to make use of /tmp mapped to RAM memory
 ;; for loading and compiling files
 
-(when (eq +platform+ 'netbook-linux)
-
+(when (and (platform-os-type? 'linux)
+           (platform-use? 'netbook))
   (defvar *cl-tmp-file* (format "/tmp/cl%s.lisp" (emacs-pid))
     "Temporary file to save Common Lisp buffers for futher loading.")
 

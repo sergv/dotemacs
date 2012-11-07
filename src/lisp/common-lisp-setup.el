@@ -84,7 +84,8 @@
   (common-lisp-abbrev+-setup))
 
 (cond
-  ((eq? +platform+ 'netbook-linux)
+  ((and (platform-os-type? 'linux)
+        (platform-use? 'netbook))
    (defun common-lisp-load-file (&optional switch)
      "Load buffers' current file into SLIME. If buffer happens to have no file
 then it's content will be evaluated by SLIME."
@@ -95,7 +96,8 @@ then it's content will be evaluated by SLIME."
      (slime-load-file *cl-tmp-file*)
      (when switch
        (switch-to-slime))))
-  ((eq? +platform+ 'asus-netbook)
+  ((and (platform-os-type? 'linux)
+        (platform-use? 'asus-netbook))
    (defun common-lisp-load-file (&optional noswitch)
      "Load buffers' current file into SLIME. If buffer happens to have no file
 then it's content will be evaluated by SLIME."
@@ -110,7 +112,8 @@ then it's content will be evaluated by SLIME."
 
      (when switch
        (switch-to-slime))))
-  ((eq? +platform+ 'home-linux)
+  ((and (platform-os-type? 'linux)
+        (platform-use? 'home))
    (defun common-lisp-load-file (&optional switch)
      "Load buffers' current file into SLIME. If buffer happens to have no file
 then it's content will be evaluated by SLIME."
@@ -142,7 +145,8 @@ then it's content will be evaluated by SLIME."
                (t
                 (sleep-for 1)
                 (switch-to-compilation-results (1- tries))))))
-    (unless (eq +platform+ 'netbook-linux)
+    (unless (and (platform-os-type? 'linux)
+                 (platform-use? 'netbook))
       (when (buffer-modified-p)
         (save-buffer)))
     (slime-compile-and-load-file policy)

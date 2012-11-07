@@ -87,38 +87,35 @@
   (scheme-abbrev+-setup))
 
 ;; define scheme-load-current-file
-(cond
-  ((eq? +platform+ 'asus-netbook)
-   (defun scheme-load-current-file (&optional switch)
-     "Load buffers' current file into SLIME. If buffer happens to have no file
+(if (and (platform-os-type? 'linux)
+         (platform-use? 'asus-netbook))
+  (defun scheme-load-current-file (&optional switch)
+    "Load buffers' current file into SLIME. If buffer happens to have no file
 then it's content will be evaluated by SLIME."
-     (interactive "P")
-     ;; if buffer has file
-     (if (buffer-file-name)
-       (progn
-         (when (buffer-modified-p)
-           (save-buffer))
-         (slime-load-file (buffer-file-name)))
-       (slime-eval-buffer))
-     (when switch
-       (switch-to-slime))))
-  ((or (eq? +platform+ 'home-linux)
-       (eq? +platform+ 'netbook-linux))
-   (defun scheme-load-current-file (&optional noswitch)
-     "Load buffers' current file into SLIME. If buffer happens to have no file
+    (interactive "P")
+    ;; if buffer has file
+    (if (buffer-file-name)
+      (progn
+        (when (buffer-modified-p)
+          (save-buffer))
+        (slime-load-file (buffer-file-name)))
+      (slime-eval-buffer))
+    (when switch
+      (switch-to-slime)))
+
+  (defun scheme-load-current-file (&optional noswitch)
+    "Load buffers' current file into SLIME. If buffer happens to have no file
 then it's content will be evaluated by SLIME."
-     (interactive "P")
-     ;; if buffer has file
-     (if (buffer-file-name)
-       (progn
-         (when (buffer-modified-p)
-           (save-buffer))
-         (slime-load-file (buffer-file-name)))
-       (slime-eval-buffer))
-     (unless noswitch
-       (switch-to-slime))))
-  (else
-   (error "invalid +platform+: %s" +platform+)))
+    (interactive "P")
+    ;; if buffer has file
+    (if (buffer-file-name)
+      (progn
+        (when (buffer-modified-p)
+          (save-buffer))
+        (slime-load-file (buffer-file-name)))
+      (slime-eval-buffer))
+    (unless noswitch
+      (switch-to-slime))))
 
 (provide 'scheme-setup)
 

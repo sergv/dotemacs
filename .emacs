@@ -76,7 +76,6 @@
  '(emms-source-playlist-default-format (quote native))
  '(enable-local-variables :all)
  '(enable-recursive-minibuffers t)
- '(eshell-aliases-file "/home/sergey/emacs/prog-data/eshell/alias")
  '(eshell-buffer-maximum-lines 65536)
  '(eshell-buffer-shorthand t)
  '(eshell-cmpl-expand-before-complete t)

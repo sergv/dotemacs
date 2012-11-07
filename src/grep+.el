@@ -123,13 +123,20 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           (while (re-search-forward (concat "^" (regexp-quote dir)) end t)
             (replace-match ".")))))))))
 
+(if (and (platform-os-type? 'windows)
+         (platform-use? 'work))
+  (setf find-program "unixfind")
+  (setf find-program "find"))
+
 (setq grep-command "grep -nHE -e "
       grep-template
       "grep <X> <C> -nHE -e '<R>' <F>"
       grep-find-command
-      "find . -type f -print0 | xargs -0 -e grep -nHE -e "
+      (format "%s . -type f -print0 | xargs -0 -e grep -nHE -e "
+              find-program)
       grep-find-template
-      "find \"<D>\" <X> -type f <F> -print0 | xargs -0 -e grep <C> -nHE -e \"<R>\""
+      (format "%s \"<D>\" <X> -type f <F> -print0 | xargs -0 -e grep <C> -nHE -e \"<R>\""
+              find-program)
 
       grep-files-aliases
       (let ((cl-extensions
@@ -144,10 +151,10 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           ("el"    . "*.el")
           ("c"     . "*.c")
           ("h"     . "*.h")
-          ("ch"    . "*.c *.C *.h *.H")
-          ("hh"    . "*.hxx *.hpp *.H *.h *.HH *.h++")
-          ("cc"    . "*.cc *.cxx *.cpp *.C *.CC *.c++")
-          ("cchh"  . "*.cc *.CC *.cxx *.CXX *.hxx *.HXX *.cpp *.CPP *.hpp *.HPP *.C *.H *.h *.hh *.HH *.c++ *.C++ *.h++ *.H++")
+          ("ch"    . "*.c *.h")
+          ("hh"    . "*.hh *.hxx *.hpp *.h *.h++")
+          ("cc"    . "*.cc *.cxx *.cpp *.c *.c++")
+          ("cchh"   . "*.cc *.cxx *.cpp *.c *.c++ *.hh *.hxx *.hpp *.h *.h++  *.inl *.inc *.incl")
           ("l"     . ,cl-extensions)
           ("cl"    . ,cl-extensions)
           ("lsp"   . ,cl-extensions)
