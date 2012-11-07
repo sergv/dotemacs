@@ -181,6 +181,10 @@
 (autoload 'c++-setup "c++-setup")
 (add-hook 'c++-mode-hook #'c++-setup)
 
+(when (and (platform-os-type? 'windows)
+           (platform-use? 'work))
+  (add-to-list 'auto-mode-alist '("\\.inl\\'" . c++-mode)))
+
 
 (defun c++-file-magic-function ()
   (let ((ext (file-name-extension (buffer-file-name))))

@@ -81,6 +81,11 @@
 
   (setq comint-scroll-to-bottom-on-input t))
 
+(when (and (platform-os-type? 'windows)
+           (platform-use? 'work)
+           (file-exist? "C:/GnuWin32/bin/bash.exe"))
+  (setf shell-file-name "C:/GnuWin32/bin/bash.exe")
+  (setenv "SHELL" shell-file-name))
 
 (provide 'shell-setup)
 

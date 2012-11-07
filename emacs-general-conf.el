@@ -121,7 +121,10 @@
 (column-number-mode t)
 
 (setq x-select-enable-clipboard t
-      interprogram-paste-function #'x-cut-buffer-or-selection-value
+      interprogram-paste-function
+      (if (platform-os-type? 'linux)
+        #'x-cut-buffer-or-selection-value
+        #'x-get-selection)
       query-replace-highlight t
       query-replace-interactive nil ;do not use last search string as initial regexp
       search-highlight t
@@ -230,39 +233,9 @@
 
 (global-font-lock-mode 1)
 
-;;;; fonts
-
-(case +platform+
-  ((asus-netbook home-linux)
-   (set-frame-font
-    "-unknown-Anonymous Pro-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1")
-
-   (add-hook
-    'after-make-frame-functions
-    (lambda (new-frame)
-      (with-current-frame new-frame
-        (set-frame-font
-         "-unknown-Anonymous Pro-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1"))))
-   ;; (set-frame-font
-   ;;  "-unknown-Inconsolata-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1")
-   )
-  (netbook-linux
-   ;; (set-frame-font
-   ;;  "-unknown-DejaVu Sans Mono-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1")
-   (set-frame-font
-    "-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1")
-
-   (add-hook
-    'after-make-frame-functions
-    (lambda (new-frame)
-      (with-current-frame new-frame
-        (set-frame-font
-         "-unknown-Anonymous Pro-normal-normal-normal-*-19-*-*-*-m-0-iso10646-1"))))))
-
 ;;;; key definitions
 
 (require 'keys-def)
-;; (require 'ediff)
 
 ;;;; customizations without dedicated setup file
 (eval-after-load "ediff"
