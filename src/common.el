@@ -144,9 +144,9 @@ of random numbers from RANDOM-GEN."
 
 
 
-(defun get-directory-contents (dir)
+(defun* get-directory-contents (dir &key (full t))
   (remove-if #'(lambda (x) (member (file-name-nondirectory x) '("." "..")))
-             (directory-files dir t)))
+             (directory-files dir full)))
 
 (defun* find-rec (path
                   &key
@@ -183,7 +183,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
                      (not (funcall do-not-visitp path)))
                 (reduce #'(lambda (acc p)
                             (collect-rec p acc))
-                        (get-directory-contents path)
+                        (get-directory-contents path :full t)
                         :initial-value (if (funcall dirp path)
                                          (cons path accum)
                                          accum)))

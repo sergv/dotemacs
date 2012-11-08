@@ -49,7 +49,7 @@
    (list "date year" (apply-partially #'format-time-string
                                       "%Y"))
    (list "author" (lambda () "Sergey Vinokurov"))
-   (list "email" (lambda () "serg-foo@gmail.com"))
+   (list "email" (lambda () "serg.foo@gmail.com"))
    (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.
 When auto-insert file template contains entry of form ${HELLO} then

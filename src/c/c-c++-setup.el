@@ -190,7 +190,8 @@
   (let ((ext (file-name-extension (buffer-file-name))))
     ;; check for null since .emacs doesn't have extension
     (when (and ext
-               (string= ext "h"))
+               (or (string= ext "h")
+                   (string= ext "inl")))
       (save-excursion
        (save-match-data
         (re-search-forward (rx

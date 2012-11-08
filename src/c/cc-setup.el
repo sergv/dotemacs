@@ -14,7 +14,9 @@
 (require 'etags)
 
 
-(defun* cc-setup (&key (define-special-keys t) (use-c-eldoc t))
+(defun* cc-setup (&key (define-special-keys t)
+                       (use-c-eldoc (not (and (platform-os-type? 'windows)
+                                              (platform-use? 'work)))))
   (init-common :use-render-formula t)
   (autopair-mode 1)
   (hs-minor-mode 1)
@@ -30,7 +32,11 @@
         ;; affects only tab display
         tab-width 4)
 
-  (set (make-variable-buffer-local 'vim:shift-width) 8)
+  (set (make-variable-buffer-local 'vim:shift-width)
+       (if (and (platform-os-type? 'windows)
+                (platform-use? 'work))
+         4
+         8))
 
   (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)
