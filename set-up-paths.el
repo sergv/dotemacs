@@ -74,16 +74,16 @@ DIRP respectively in directories which don't satisfy DO-NOT-VISITP.
 By default, version-control specific directories are omitted, e.g. .git etc."
   (when (stringp filep)
     (setf filep
-          (lexical-let ((regular-expression filep))
-                       #'(lambda (p) (string-match-p regular-expression p)))))
+          (let ((regular-expression filep))
+            #'(lambda (p) (string-match-p regular-expression p)))))
   (when (stringp dirp)
     (setf dirp
-          (lexical-let ((regular-expression dirp))
-                       #'(lambda (p) (string-match-p regular-expression p)))))
+          (let ((regular-expression dirp))
+            #'(lambda (p) (string-match-p regular-expression p)))))
   (when (stringp do-not-visitp)
     (setf do-not-visitp
-          (lexical-let ((regular-expression do-no-visitp))
-                       #'(lambda (p) (string-match-p regular-expression p)))))
+          (let ((regular-expression do-no-visitp))
+            #'(lambda (p) (string-match-p regular-expression p)))))
 
   (letrec ((collect-rec
              (lambda (path accum)
