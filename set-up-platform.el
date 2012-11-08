@@ -42,7 +42,7 @@ Range of platforms may be expanded (extended?) in the future.")
                           (buffer-substring-no-properties (point-min)
                                                           (point-max)))))))
     ((eq system-type 'windows-nt)
-     (setf +platform+ '(windows nil)))
+     (setf +platform+ '(windows work)))
     (t
      (setf +platform+ '(linux home)))))
 
