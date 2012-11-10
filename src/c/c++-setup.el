@@ -19,8 +19,9 @@
     (let* ((filename (buffer-file-name (current-buffer)))
            (path (split-string filename "/"))
            (ext (file-name-extension filename))
-           (file-nodir (file-name-nondirectory (last path))))
-      (aif (gethash *c++-related-file-cache* filename nil)
+           (file-dir (file-name-directory filename))
+           (file-nodir (file-name-nondirectory (car (last path)))))
+      (aif (gethash filename *c++-related-file-cache* nil)
         (find-file it)
         (letrec ((path-join (lambda (path)
                               (mapconcat #'identity path "/")))
@@ -31,8 +32,8 @@
                                                  (list look-for-dir)))))
                        (cond ((null path)
                               (error "No %s subdirectory found while moving upward starting from %s"
-                                     (file-name-directory filename)))
-                             ((file-exists? dir)
+                                     file-dir))
+                             ((file-exist? dir)
                               path)
                              (t
                               (funcall find-subroot
@@ -40,11 +41,12 @@
                                        look-for-dir)))))))
           ;; note: subroot - root of some git submodule
 
-          (let* ((subroot (find-subroot path
-                                        (cond ((string= ext "h") "src")
-                                              ((string= ext "inc")
-                                               (file-name-directory (last path)))
-                                              ((string= ext "cpp") "include"))))
+          (let* ((subroot (funcall find-subroot
+                                   path
+                                   (cond ((string= ext "h") "src")
+                                         ((string= ext "inc")
+                                          (file-name-directory (car (last path))))
+                                         ((string= ext "cpp") "include"))))
                  (alt-ext (cond ((string= ext "h") "cpp")
                                 ((string= ext "inc") "h")
                                 ((string= ext "cpp") "h")))
@@ -52,15 +54,22 @@
                    (concat (file-name-sans-extension file-nodir)
                            "."
                            alt-ext))
-                 (aif (find-rec subroot-dir
-                                :filep (lambda (p)
-                                         (string= alternative-name
-                                                  (file-name-nondirectory p))))
-                   (progn
-                     (assert (= 1 (length it)))
-                     (puthash filename (car it) *c++-related-file-cache*)
-                     (find-file (car it)))
-                   (error "No *.%s file found for %s" alt-ext filename)))))))))
+                 (alt-name-in-same-dir (concat file-dir "/" alternative-name)))
+            (if (file-exist? alt-name-in-same-dir)
+              (progn
+                (puthash filename alt-name-in-same-dir *c++-related-file-cache*)
+                (puthash alt-name-in-same-dir filename *c++-related-file-cache*)
+                (find-file alt-name-in-same-dir))
+              (aif (find-rec (funcall path-join subroot)
+                             :filep (lambda (p)
+                                      (string= alternative-name
+                                               (file-name-nondirectory p))))
+                (progn
+                  (assert (= 1 (length it)))
+                  (puthash filename (car it) *c++-related-file-cache*)
+                  (puthash (car it) filename *c++-related-file-cache*)
+                  (find-file (car it)))
+                (error "No *.%s file found for %s" alt-ext filename)))))))))
 
 
 
