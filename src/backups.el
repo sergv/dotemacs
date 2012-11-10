@@ -70,7 +70,7 @@
   "Make backup of specified buffer or current buffer if BUF is nil."
   ;; ensure that destination directory exists
   (unless (file-exists-p b/backup-directory)
-    (make-directory b/backup-directory))
+    (make-directory b/backup-directory t))
 
   (setq buf (or buf (current-buffer)))
   (with-current-buffer buf
