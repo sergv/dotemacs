@@ -35,7 +35,7 @@
                ((font-exist? win-courier-new)
                 (setf *emacs-font* win-courier-new))))))
 
-(when *emacs-font*
+(unless (null *emacs-font*)
   (set-frame-font *emacs-font*)
 
   (add-hook
