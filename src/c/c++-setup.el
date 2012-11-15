@@ -10,7 +10,7 @@
 (require 'c++-abbrev+)
 
 
-(when (platform-os-type? 'windows)
+(when (platform-use? 'work)
   (defvar *c++-related-file-cache*
     (make-hash-table :test 'equal))
 
@@ -44,11 +44,16 @@
           (let* ((subroot (funcall find-subroot
                                    path
                                    (cond ((string= ext "h") "src")
-                                         ((string= ext "inc")
+                                         ((or (string= ext "inc")
+                                              (string= ext "inl")
+                                              (string= ext "incl"))
                                           (file-name-directory (car (last path))))
                                          ((string= ext "cpp") "include"))))
                  (alt-ext (cond ((string= ext "h") "cpp")
-                                ((string= ext "inc") "h")
+                                ((or (string= ext "inc")
+                                     (string= ext "inl")
+                                     (string= ext "incl"))
+                                 "h")
                                 ((string= ext "cpp") "h")))
                  (alternative-name
                    (concat (file-name-sans-extension file-nodir)
@@ -105,7 +110,7 @@
         (concat "make " (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name)))))
 
-  (when (platform-os-type? 'windows)
+  (when (platform-use? 'work)
     (def-keys-for-map vim:normal-mode-local-keymap
       ("SPC SPC" c++-find-related-file)))
 
