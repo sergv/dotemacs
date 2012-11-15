@@ -162,6 +162,7 @@
                             (mode . magit-wazzup-mode)
                             (mode . gitignore-mode)
                             (name . ,(rx bol "*magit" (* nonl) "*" eol))))
+       (lowlevel-prog-filter `(or (mode . asm-mode)))
        (other-prog-filter `(or (name . ,(rx bol
                                             (or "makefile"
                                                 "Makefile"
@@ -222,6 +223,7 @@
       ("latex"      ,latex-filter)
       ("web"        ,web-filter)
       ("vc"         ,vc-filter)
+      ("lowlevel programming" ,lowlevel-prog-filter)
       ("other programming" ,other-prog-filter)
 
       ("utility"    ,utility-filter)
