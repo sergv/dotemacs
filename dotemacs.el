@@ -125,6 +125,7 @@
 (load-library "glsl-setup")
 (load-library "other-setup")
 (load-library "cmake-setup")
+(load-library "asm-setup")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
