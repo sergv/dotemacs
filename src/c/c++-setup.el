@@ -79,7 +79,9 @@
 
 
 (defun c++-setup ()
-  (cc-setup :define-special-keys t)
+  (cc-setup :define-special-keys t
+            :use-c-eldoc nil ;; c-eldoc is too unreliable and too slow for C++
+            )
 
   (if-buffer-has-file
    (set (make-local-variable 'compile-command)

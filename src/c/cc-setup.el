@@ -13,13 +13,17 @@
 (require 'find-file)
 (require 'etags)
 
+(require 'dtrt-indent) ;; indent offset guesser
+
+(setf dtrt-indent-verbosity 2
+      dtrt-indent-max-relevant-lines 10000)
 
 (defun* cc-setup (&key (define-special-keys t)
-                       (use-c-eldoc (not (and (platform-os-type? 'windows)
-                                              (platform-use? 'work)))))
+                       (use-c-eldoc (not (platform-use? 'work))))
   (init-common :use-render-formula t)
   (autopair-mode 1)
   (hs-minor-mode 1)
+  (dtrt-indent-mode 1)
   (which-function-mode -1)
   (when use-c-eldoc
     (c-turn-on-eldoc-mode)
@@ -32,11 +36,16 @@
         ;; affects only tab display
         tab-width 4)
 
-  (set (make-variable-buffer-local 'vim:shift-width)
-       (if (and (platform-os-type? 'windows)
-                (platform-use? 'work))
-         4
-         8))
+  (let ((dtrt-indent-verbosity 0))
+    (unless (dtrt-indent-try-set-offset)
+      (when (platform-use? 'work)
+        (set (make-variable-buffer-local 'c-basic-offset) 4))
+
+      (set (make-variable-buffer-local 'vim:shift-width)
+           (cond ((integer? c-basic-offset) c-basic-offset)
+                 ((platform-use? 'work)     4)
+                 (t                         8)))))
+
 
   (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)

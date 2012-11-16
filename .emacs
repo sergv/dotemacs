@@ -39,7 +39,6 @@
  '(browse-url-generic-program nil)
  '(byte-optimize-log nil)
  '(c-comment-only-line-offset 2)
- '(c-default-style (quote ((java-mode . "java") (awk-mode . "awk") (other . "linux"))))
  '(c-hanging-semi&comma-criteria (quote set-from-style))
  '(c-syntactic-indentation t)
  '(case-fold-search nil)
