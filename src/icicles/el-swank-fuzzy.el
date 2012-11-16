@@ -219,44 +219,53 @@ previous letter's value, it will use that percentage instead.
 
 Finally, a small scaling factor is applied to favor shorter
 matches, all other things being equal."
-  (labels ((at-beginning-p (pos)
-             (= pos 0))
-           (after-prefix-p (pos)
-             (and (= pos 1)
-                  (find (aref full 0)
-                        el-swank-fuzzy-completion-symbol-prefixes)))
-           (word-separator-p (pos)
-             (find (aref full pos) el-swank-fuzzy-completion-word-separators))
-           (after-word-separator-p (pos)
-             (find (aref full (1- pos))
-                   el-swank-fuzzy-completion-word-separators))
-           (at-end-p (pos)
-             (= pos (1- (length full))))
-           (before-suffix-p (pos)
-             (and (= pos (- (length full) 2))
-                  (find (aref full (1- (length full)))
-                        el-swank-fuzzy-completion-symbol-suffixes)))
-           (score-or-percentage-of-previous (base-score pos chunk-pos)
-             (if (zerop chunk-pos)
+  (letrec ((at-beginning-p
+             (lambda (pos)
+               (= pos 0)))
+           (after-prefix-p
+             (lambda (pos)
+               (and (= pos 1)
+                    (find (aref full 0)
+                          el-swank-fuzzy-completion-symbol-prefixes))))
+           (word-separator-p
+             (lambda (pos)
+               (find (aref full pos) el-swank-fuzzy-completion-word-separators)))
+           (after-word-separator-p
+             (lambda (pos)
+               (find (aref full (1- pos))
+                     el-swank-fuzzy-completion-word-separators)))
+           (at-end-p
+             (lambda (pos)
+               (= pos (1- (length full)))))
+           (before-suffix-p
+             (lambda (pos)
+               (and (= pos (- (length full) 2))
+                    (find (aref full (1- (length full)))
+                          el-swank-fuzzy-completion-symbol-suffixes))))
+           (score-or-percentage-of-previous
+             (lambda (base-score pos chunk-pos)
+               (if (zerop chunk-pos)
                  base-score
-               (max base-score
-                    (+ (* (score-char (1- pos) (1- chunk-pos)) 0.85)
-                       (expt 1.2 chunk-pos)))))
-           (score-char (pos chunk-pos)
-             (score-or-percentage-of-previous
-              (cond ((at-beginning-p pos)         10)
-                    ((after-prefix-p pos)         10)
-                    ((word-separator-p pos)       1)
-                    ((after-word-separator-p pos) 8)
-                    ((at-end-p pos)               6)
-                    ((before-suffix-p pos)        6)
-                    (t                            1))
-              pos chunk-pos))
-           (score-chunk (chunk)
-             (loop for chunk-pos below (length (second chunk))
-                   for pos from (first chunk)
-                   summing (score-char pos chunk-pos))))
-    (let* ((chunk-scores (mapcar #'score-chunk completion))
+                 (max base-score
+                      (+ (* (funcall score-char (1- pos) (1- chunk-pos)) 0.85)
+                         (expt 1.2 chunk-pos))))))
+           (score-char
+             (lambda (pos chunk-pos)
+               (funcall score-or-percentage-of-previous
+                        (cond ((funcall at-beginning-p pos)         10)
+                              ((funcall after-prefix-p pos)         10)
+                              ((funcall word-separator-p pos)       1)
+                              ((funcall after-word-separator-p pos) 8)
+                              ((funcall at-end-p pos)               6)
+                              ((funcall before-suffix-p pos)        6)
+                              (t                                    1))
+                        pos chunk-pos)))
+           (score-chunk
+             (lambda (chunk)
+               (loop for chunk-pos below (length (second chunk))
+                     for pos from (first chunk)
+                     summing (funcall score-char pos chunk-pos)))))
+    (let* ((chunk-scores (mapcar score-chunk completion))
            (length-score (/ 10.0 (1+ (- (length full) (length short))))))
       (values
        (+ (reduce #'+ chunk-scores) length-score)
