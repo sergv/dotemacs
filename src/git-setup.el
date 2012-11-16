@@ -99,9 +99,10 @@
 (defun magit-log-edit-mode-setup ()
   (init-common :use-yasnippet nil :use-comment nil)
 
-  (define-key magit-log-edit-mode-map
-      (kbd "C-c C-q")
-    'magit-log-edit-cancel-log-message))
+  (def-keys-for-map magit-log-edit-mode-map
+    ("C-c C-q" magit-log-edit-cancel-log-message)
+    ("<up>"    log-edit-previous-comment)
+    ("<down>"  log-edit-next-comment)))
 
 (add-hook 'magit-log-edit-mode-hook #'magit-log-edit-mode-setup)
 
