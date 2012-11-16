@@ -17,37 +17,39 @@ Return only one group for each buffer."
   (with-current-buffer (get-buffer buffer)
     (cond ((eq? major-mode 'slime-repl-mode)
            '("lisp" "slime"))
-          ;; "interpret" +buffer-groups+
           ((invisible-buffer? buffer)
            '("#invisible#"))
+          ;; "interpret" +buffer-groups+
           (else
            (let ((bufname (buffer-name)))
-             (labels
-               ((matches-definition? (definition)
-                  (cond ((null? definition)
-                         nil)
-                        ((eq? (car definition) 'or)
-                         (matches-definition? (cdr definition)))
-                        ((eq? (caar definition) 'predicate)
-                         ;; eval predicate body
-                         (or (eval (cdar definition))
-                             (matches-definition? (cdr definition))))
-                        ((eq? (caar definition) 'mode)
-                         (or (eq? major-mode (cdar definition))
-                             (matches-definition? (cdr definition))))
-                        ((eq? (caar definition) 'name)
-                         (or (string-match-pure? (cdar definition) bufname)
-                             (matches-definition? (cdr definition))))))
-                (find-group (groups)
-                  (if (null? groups)
-                    '("text")
-                    (let ((group (caar groups))
-                          (definition (cadar groups)))
-                      (if (matches-definition? definition)
-                        ;; tabbar expects group to be a list
-                        (list group)
-                        (find-group (cdr groups)))))))
-               (find-group +buffer-groups+)))))))
+             (letrec
+                 ((matches-definition?
+                    (lambda (definition)
+                      (cond ((null? definition)
+                             nil)
+                            ((eq? (car definition) 'or)
+                             (funcall matches-definition? (cdr definition)))
+                            ((eq? (caar definition) 'predicate)
+                             ;; eval predicate body
+                             (or (eval (cdar definition))
+                                 (funcall matches-definition? (cdr definition))))
+                            ((eq? (caar definition) 'mode)
+                             (or (eq? major-mode (cdar definition))
+                                 (funcall matches-definition? (cdr definition))))
+                            ((eq? (caar definition) 'name)
+                             (or (string-match-pure? (cdar definition) bufname)
+                                 (funcall matches-definition? (cdr definition)))))))
+                  (find-group
+                    (lambda (groups)
+                      (if (null? groups)
+                        '("text")
+                        (let ((group (caar groups))
+                              (definition (cadar groups)))
+                          (if (funcall matches-definition? definition)
+                            ;; tabbar expects group to be a list
+                            (list group)
+                            (funcall find-group (cdr groups))))))))
+               (funcall find-group +buffer-groups+)))))))
 
 (defun tabbar-buffer-list+ ()
   (filter (lambda (buf)

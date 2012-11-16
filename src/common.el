@@ -177,21 +177,22 @@ By default, version-control specific directories are omitted, e.g. .git etc."
           (let ((regexp-local do-not-visitp))
             #'(lambda (p) (string-match-p regexp-local p)))))
 
-  (labels ((collect-rec (path accum)
-             (cond
-               ((and (file-directory-p path)
-                     (not (funcall do-not-visitp path)))
-                (reduce #'(lambda (acc p)
-                            (collect-rec p acc))
-                        (get-directory-contents path :full t)
-                        :initial-value (if (funcall dirp path)
-                                         (cons path accum)
-                                         accum)))
-               ((funcall filep path)
-                (cons path accum))
-               (t
-                accum))))
-    (nreverse (collect-rec path nil))))
+  (letrec ((collect-rec
+             (lambda (path accum)
+               (cond
+                 ((and (file-directory-p path)
+                       (not (funcall do-not-visitp path)))
+                  (reduce #'(lambda (acc p)
+                              (funcall collect-rec p acc))
+                          (get-directory-contents path :full t)
+                          :initial-value (if (funcall dirp path)
+                                           (cons path accum)
+                                           accum)))
+                 ((funcall filep path)
+                  (cons path accum))
+                 (t
+                  accum)))))
+    (nreverse (funcall collect-rec path nil))))
 
 
 (defmacro rxx (definitions &rest main-expr)
@@ -1083,16 +1084,17 @@ value, that slot cannot be set via `setf'.
  / n \\
  \\ k /
 combinations"
-  (labels ((collect (start end)
-             (if (< start 0)
-               (list ())
-               (loop
-                 for i from start to end
-                 nconcing
-                    (mapcar (lambda (rest)
-                              (cons i rest))
-                            (collect (1- start) (1- i)))))))
-    (collect (1- k) (1- n))))
+  (letrec ((collect
+             (lambda (start end)
+               (if (< start 0)
+                 (list ())
+                 (loop
+                   for i from start to end
+                   nconcing
+                      (mapcar (lambda (rest)
+                                (cons i rest))
+                              (funcall collect (1- start) (1- i))))))))
+    (funcall collect (1- k) (1- n))))
 
 
 (defmacro bind (bindings &rest body)

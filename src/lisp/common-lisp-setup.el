@@ -135,16 +135,17 @@ then it's content will be evaluated by SLIME."
 (defun common-lisp-compile-and-load-file (&optional policy)
   "This functions saves current buffer and calls `slime-compile-and-load-file'."
   (interactive "P")
-  (labels ((switch-to-compilation-results (tries)
-             (cond
-               ((= tries 0)
-                (error "Can't switch to compilation buffer"))
-               ;; slime repl buffer, one of extensions
-               ((buffer-live-p (get-buffer "*slime-compilation*"))
-                (pop-to-buffer (get-buffer "*slime-compilation*") t))
-               (t
-                (sleep-for 1)
-                (switch-to-compilation-results (1- tries))))))
+  (let ((switch-to-compilation-results
+          (lambda (tries)
+            (cond
+              ((= tries 0)
+               (error "Can't switch to compilation buffer"))
+              ;; slime repl buffer, one of extensions
+              ((buffer-live-p (get-buffer "*slime-compilation*"))
+               (pop-to-buffer (get-buffer "*slime-compilation*") t))
+              (t
+               (sleep-for 1)
+               (funcall switch-to-compilation-results (1- tries)))))))
     (unless (and (platform-os-type? 'linux)
                  (platform-use? 'netbook))
       (when (buffer-modified-p)
@@ -152,7 +153,7 @@ then it's content will be evaluated by SLIME."
     (slime-compile-and-load-file policy)
     ;; switch only if there're any notes
     (if (slime-compiler-notes)
-      (switch-to-compilation-results 100)
+      (funcall witch-to-compilation-results 100)
       (message "No notes produced."))))
 
 

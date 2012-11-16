@@ -1393,44 +1393,47 @@ defpackage."
 
 ;; some safety compile-time checks
 (eval-when-compile
- (labels ((check-font-lock-keywords (keywords)
-            (unless (every #'listp keywords)
-              (error "Non-list entry: %s"
-                     (find-if-not #'listp keywords)))
-            (mapc (lambda (entry)
-                    (unless (or (stringp (car entry))
-                                (symbolp (car entry)))
-                      (error "Neither string nor symbol first value %s of entry: %s"
-                             (car entry)
-                             entry))
-                    (cond
-                      ((highlight-entryp (cdr entry))
-                       (check-highlight-entry (cdr entry)))
-                      ((every #'highlight-entryp (cdr entry))
-                       (mapc #'check-highlight-entry (cdr entry)))
-                      (t
-                       (error "Non-highlight directive(s) found: %s" (cdr entry)))))
-                  keywords)
-            (values))
+ (letrec ((check-font-lock-keywords
+            (lambda (keywords)
+              (unless (every #'listp keywords)
+                (error "Non-list entry: %s"
+                       (find-if-not #'listp keywords)))
+              (mapc (lambda (entry)
+                      (unless (or (stringp (car entry))
+                                  (symbolp (car entry)))
+                        (error "Neither string nor symbol first value %s of entry: %s"
+                               (car entry)
+                               entry))
+                      (cond
+                        ((funcall highlight-entryp (cdr entry))
+                         (funcall check-highlight-entry (cdr entry)))
+                        ((every highlight-entryp (cdr entry))
+                         (mapc check-highlight-entry (cdr entry)))
+                        (t
+                         (error "Non-highlight directive(s) found: %s" (cdr entry)))))
+                    keywords)
+              (values)))
 
-          (check-highlight-entry (entry)
-            (let ((face-entry (cadr entry)))
-              (when (and (listp face-entry)
-                         (symbolp (cadr face-entry))
-                         (= 2 (length face-entry))
-                         (not (eq 'quote (car face-entry))))
-                (error "Unquoted face: %s" face-entry))
-              (when (symbolp face-entry)
-                (error "Unquoted face: %s" face-entry))))
+          (check-highlight-entry
+            (lambda (entry)
+              (let ((face-entry (cadr entry)))
+                (when (and (listp face-entry)
+                           (symbolp (cadr face-entry))
+                           (= 2 (length face-entry))
+                           (not (eq 'quote (car face-entry))))
+                  (error "Unquoted face: %s" face-entry))
+                (when (symbolp face-entry)
+                  (error "Unquoted face: %s" face-entry)))))
 
-          (highlight-entryp (form)
-            (and (listp form)
-                 (numberp (car form))
-                 (<= 2 (length form)))))
+          (highlight-entryp
+            (lambda (form)
+              (and (listp form)
+                   (numberp (car form))
+                   (<= 2 (length form))))))
 
-   (check-font-lock-keywords +ansi-lisp-basic-keywords+)
-   (check-font-lock-keywords +ansi-lisp-advanced-keywords+)
-   (check-font-lock-keywords +ansi-lisp-special-forms+)))
+   (funcall check-font-lock-keywords +ansi-lisp-basic-keywords+)
+   (funcall check-font-lock-keywords +ansi-lisp-advanced-keywords+)
+   (funcall check-font-lock-keywords +ansi-lisp-special-forms+)))
 
 
 

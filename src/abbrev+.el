@@ -169,24 +169,25 @@ and second being actual substituted text."
     (org-self-insert-command 1)))
 
 (defun make-re-with-optional-suffix (str suffix-len)
-  (labels ((make-suffix (list)
-             (if (null list)
-               (list ??)
-               (nconc
-                (list ?\\
-                      ?\(
-                      ??
-                      ?:
-                      (car list))
-                (make-suffix (cdr list))
-                (list ?\\
-                      ?\)
-                      ??)))))
+  (letrec ((make-suffix
+             (lambda (list)
+               (if (null list)
+                 (list ??)
+                 (nconc
+                  (list ?\\
+                        ?\(
+                        ??
+                        ?:
+                        (car list))
+                  (funcall make-suffix (cdr list))
+                  (list ?\\
+                        ?\)
+                        ??))))))
     (concat (subseq str 0 suffix-len)
             (apply #'string
-                   (make-suffix
-                    (string-to-list
-                     (subseq str suffix-len)))))))
+                   (funcall make-suffix
+                            (string-to-list
+                             (subseq str suffix-len)))))))
 
 (defun make-abbrev+-re-for-lisp-func-name (name-parts)
   "Return re that matches emacs lisp function name, NAME-PARTS is

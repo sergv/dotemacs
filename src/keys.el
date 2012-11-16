@@ -203,17 +203,17 @@
 
 (defun define-cyrillic-keys ()
   ;; just all choices from set, 2**n, n - sets' power
-  (labels ((choices (list)
-             (cond
-               ((null list)
-                '(nil))
-               (t
-                (let ((p (choices (cdr list))))
-                  (append p
-                          (mapcar (lambda (x) (cons (car list) x))
-                                  p)))))))
+  (letrec ((choices (lambda (list)
+                      (cond
+                        ((null list)
+                         '(nil))
+                        (t
+                         (let ((p (funcall choices (cdr list))))
+                           (append p
+                                   (mapcar (lambda (x) (cons (car list) x))
+                                           p))))))))
     (let ((modifiers (remove nil
-                             (choices '(control meta super hyper)))))
+                             (funcall choices '(control meta super hyper)))))
       (mapcar*
        (lambda (r e) ;; R and E are matching Russian and English keysyms
          ;; iterate over modifiers
