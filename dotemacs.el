@@ -97,7 +97,7 @@
 (load-library "all-lisp-setup")
 (load-library "org-mode-setup")
 
-(load-library "c-c++-setup")
+(load-library "c-like-setup")
 (load-library "haskell-autoload")
 (load-library "awk-setup")
 (load-library "shell-autoloads")
