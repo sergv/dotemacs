@@ -209,24 +209,23 @@ be used only for vim-visual-mode of the vim-mode package"
   "Uncomment region that was commented with line comments"
   (skip-to-indentation)
   (let* ((comment (comment-format-one-line *comment-util-current-format*))
-         (pos (point)))
-    (labels ((del-comments
-               (d) ;;d for direction
-               (skip-to-indentation)
-               (while (looking-at-p comment)
-                 (comment-util-delete-comment)
-                 (forward-line d)
-                 (skip-to-indentation))))
-      (unless (looking-at-p comment)
-        (error "not in commented region"))
-      ;;delete comments on lines that are below than current line
-      (del-comments 1)
+         (pos (point))
+         (del-comments (lambda (d) ;;d for direction
+                         (skip-to-indentation)
+                         (while (looking-at-p comment)
+                           (comment-util-delete-comment)
+                           (forward-line d)
+                           (skip-to-indentation)))))
+    (unless (looking-at-p comment)
+      (error "not in commented region"))
+    ;;delete comments on lines that are below than current line
+    (funcall del-comments 1)
 
-      ;;delete comments on lines that are above than current line
-      (goto-char pos)
-      (unless (bobp)
-        (forward-line -1)
-        (del-comments -1)))))
+    ;;delete comments on lines that are above than current line
+    (goto-char pos)
+    (unless (bobp)
+      (forward-line -1)
+      (funcall del-comments -1))))
 
 
 (defun comment-util-comment-chunk-region (begin end)
@@ -313,37 +312,41 @@ be used only for vim-visual-mode of the vim-mode package"
    (current-column)))
 
 (defun comment-util-comment-n-lines-starting-at-col (comment-str lines column)
-  (labels ((skip-to-column ()
-             (beginning-of-line)
-             (forward-char column))
-           (update-column ()
-             (let ((new-col (end-of-whitespace-prefix)))
-               (when (< new-col column)
-                 (setf column new-col))))
-           (empty-linep ()
-             (= (line-beginning-position)
-                (line-end-position))
-             ;; (save-excursion
-             ;;  (beginning-of-line)
-             ;;  (looking-at-p "^$"))
-             ))
+  (let ((skip-to-column (lambda ()
+                          (beginning-of-line)
+                          (while (and (< (current-column) column)
+                                      (not (or (char=? ?\n (char-after))
+                                               (char=? ?\r (char-after))
+                                               (eob?))))
+                            (forward-char 1))))
+        (update-column (lambda ()
+                         (let ((new-col (end-of-whitespace-prefix)))
+                           (when (< new-col column)
+                             (setf column new-col)))))
+        (empty-line? (lambda ()
+                       (= (line-beginning-position)
+                          (line-end-position))
+                       ;; (save-excursion
+                       ;;  (beginning-of-line)
+                       ;;  (looking-at-p "^$"))
+                       )))
 
     (when (> lines 0)
       ;; this is the zeroth iteration at which we shouldn't
       ;; update column and use supplied one
-      (skip-to-column)
+      (funcall skip-to-column)
       (insert comment-str)
       (forward-line 1)
       (incf lines -1)
 
       (while (> lines 0)
         (cond
-          ((empty-linep)
+          ((funcall empty-line?)
            (insert (make-string column ?\s)
                    (concat comment-str)))
           (t
-           (update-column)
-           (skip-to-column)
+           (funcall update-column)
+           (funcall skip-to-column)
            (insert comment-str)))
         (forward-line 1)
         (incf lines -1))))
@@ -415,39 +418,40 @@ up and then comment the result."
 commented parts and leave point unchanged."
   (unless (lisp-commented-linep)
     (error "Not on line with commented part(s)"))
-  (labels (;; return position of the beginning of the last line
-           ;; in direction that is still has commented parts
-           (move-while-commented (dir)
-             (beginning-of-line)
-             (while (and (lisp-commented-linep)
-                         (if (eq dir 'backward)
-                           (not (bobp))
-                           (not (eobp))))
-               (move-by-line dir))
-             (unless (if (eq dir 'backward)
-                       (bobp)
-                       (eobp))
-               (move-by-line-backward dir)
-               ;; I've returned backwards onto line with comments
-               ;; which is a known fact
-               (assert (lisp-commented-linep)
-                       nil
-                       "LINE NUMBER: %S;\nLINE: %S;\nPREVIOUS LINE: %S"
-                       (count-lines1 (point-min) (point))
-                       (current-line)
-                       (save-excursion
-                        (move-by-line dir)
-                        (current-line))))))
+  (let ((move-while-commented
+          ;; return position of the beginning of the last line in direction
+          ;; that is still has commented parts
+          (lambda (dir)
+            (beginning-of-line)
+            (while (and (lisp-commented-linep)
+                        (if (eq dir 'backward)
+                          (not (bobp))
+                          (not (eobp))))
+              (move-by-line dir))
+            (unless (if (eq dir 'backward)
+                      (bobp)
+                      (eobp))
+              (move-by-line-backward dir)
+              ;; I've returned backwards onto line with comments
+              ;; which is a known fact
+              (assert (lisp-commented-linep)
+                      nil
+                      "LINE NUMBER: %S;\nLINE: %S;\nPREVIOUS LINE: %S"
+                      (count-lines1 (point-min) (point))
+                      (current-line)
+                      (save-excursion
+                       (move-by-line dir)
+                       (current-line)))))))
     (let ((pos (line-beginning-position))
           start
           end)
       (save-excursion
        (forward-line -1)
-       (move-while-commented 'backward)
+       (funcall move-while-commented 'backward)
        (setf start (line-beginning-position))
 
        (goto-char pos)
-       (move-while-commented 'forward)
+       (funcall move-while-commented 'forward)
        (setf end (line-end-position)))
       (values start end))))
 
@@ -458,20 +462,19 @@ commented parts and leave point unchanged."
     (save-excursion
      (save-match-data
       (goto-char end)
-      (flet
-          ((clear-comment ()
-             (cond
-               ((looking-at-pure? "^\\s-*;+.*$")
-                (delete-current-line))
-               ((re-search-forward ";+.*$" (line-end-position) t)
-                (replace-match "")))))
+      (let ((clear-comment (lambda ()
+                             (cond
+                               ((looking-at-pure? "^\\s-*;+.*$")
+                                (delete-current-line))
+                               ((re-search-forward ";+.*$" (line-end-position) t)
+                                (replace-match ""))))))
         (while (and (<= start (point))
                     (not (bobp)))
           (beginning-of-line)
-          (clear-comment)
+          (funcall clear-comment)
           (forward-line -1))
         (when (bobp)
-          (clear-comment)))))))
+          (funcall clear-comment)))))))
 
 (defun* lisp-uncomment-sexp ()
   (interactive)

@@ -10,61 +10,62 @@
 
 
 (defun yas/define-latex-snippets ()
-  (labels ((def-snips (keys body &optional description)
-             (loop
-               for k in keys
-               collect (list k
-                             (if (listp body)
-                               (mapconcat #'identity
-                                          body
-                                          "\n")
-                               body)
-                             description
-                             nil
-                             nil
-                             nil
-                             "latex-snippets.el"))))
+  (let ((def-snips
+          (lambda (keys body &optional description)
+            (loop
+              for k in keys
+              collect (list k
+                            (if (listp body)
+                              (mapconcat #'identity
+                                         body
+                                         "\n")
+                              body)
+                            description
+                            nil
+                            nil
+                            nil
+                            "latex-snippets.el")))))
     (yas/define-snippets
      major-mode
      (append
-      (def-snips '("\\b" "beg" "\\beg" "begin" "\\begin")
+      (funcall def-snips '("\\b" "beg" "\\beg" "begin" "\\begin")
           '("\\begin{${1:env}}"
             "    $0"
             "\\end{$1}")
         "\begin{...} ... \end{...}")
-      (def-snips '("enum")
+      (funcall def-snips '("enum")
           '("\\begin{enumerate}"
             "  \\item $0"
             "\\end{enumerate}")
         "\begin{enumerate} ... \end{enumerate}")
 
-      (def-snips '("eq")
+      (funcall def-snips '("eq")
           '("\\begin{equation}"
             "    $0"
             "\\end{equation}")
         "\begin{equation} ... \end{equation}")
-      (def-snips '("eqn" "eq*")
+      (funcall def-snips '("eqn" "eq*")
           '("\\begin{equation*}"
             "    $0"
             "\\end{equation*}")
         "\begin{equation*} ... \end{equation*}")
 
-      (def-snips '("eqa")
+      (funcall def-snips '("eqa")
           '("\\begin{eqnarray}"
             "    $1 & $2 & $0"
             "\\end{eqnarray}")
         "\begin{eqnarray} ... \end{eqnarray}")
-      (def-snips '("eqa*" "eqn")
+      (funcall def-snips '("eqa*" "eqn")
           '("\\begin{eqnarray*}"
             "    $1 & $2 & $0"
             "\\end{eqnarray*}")
         "\begin{eqnarray*} ... \end{eqnarray*}")
 
-      (def-snips '("frac" "\\frac")
+      (funcall def-snips '("frac" "\\frac")
         "\frac{${1:numerator}}{${2:denominator}}$0"
         "\frac{}{}")
 
-      (def-snips '("figure")
+      (funcall def-snips '("figure")
           '("\\begin{figure}[htbp]"
             "  \\begin{center}"
             "    \\includegraphics[keepaspectratio=true,scale=${4:0.5}]{${1:filename}}"
@@ -75,7 +76,7 @@
             "$0")
         "figure")
 
-      (def-snips '("inline-listing")
+      (funcall def-snips '("inline-listing")
           '("\\begin{flushleft}"
             "  Листинг \\ref{lst:${2:label}} -- ${1:name}"
             "\\end{flushleft}"

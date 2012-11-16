@@ -54,34 +54,36 @@ in the same directory the current file is."
 
 (defmacro def-keys-for-map (mode-map &rest key-command-list)
   (declare (indent nil))
-  (labels ((def-key (map key command)
-             `(define-key ,map
-                  ,(eval `(kbd ,key))
-                ,(cond
-                   ((and (list? command)
-                         (or (eq? 'function (car command))
-                             (eq? 'quote (car command))))
-                    command)
-                   ((and (list? command)
-                         (eq? 'lambda (car command)))
-                    (list 'function command))
-                   (else
-                    (list 'quote command)))))
-           (process-key-command-list (map key-command-list)
-             (loop
-               for entry in key-command-list
-               if (symbol? entry)
-               for (key command) = (if (or (quoted? entry)
-                                           (symbol? entry))
-                                     (eval entry)
-                                     entry)
-               appending (if (symbol? entry)
-                           (process-key-command-list map (eval entry))
-                           (destructuring-bind (key command)
-                               (if (quoted? entry)
-                                 (eval entry)
-                                 entry)
-                             (list (def-key map key command)))))))
+  (letrec ((def-key
+             (lambda (map key command)
+               `(define-key ,map
+                    ,(eval `(kbd ,key))
+                  ,(cond
+                     ((and (list? command)
+                           (or (eq? 'function (car command))
+                               (eq? 'quote (car command))))
+                      command)
+                     ((and (list? command)
+                           (eq? 'lambda (car command)))
+                      (list 'function command))
+                     (else
+                      (list 'quote command))))))
+           (process-key-command-list
+             (lambda (map key-command-list)
+               (loop
+                 for entry in key-command-list
+                 if (symbol? entry)
+                 for (key command) = (if (or (quoted? entry)
+                                             (symbol? entry))
+                                       (eval entry)
+                                       entry)
+                 appending (if (symbol? entry)
+                             (funcall process-key-command-list map (eval entry))
+                             (destructuring-bind (key command)
+                                 (if (quoted? entry)
+                                   (eval entry)
+                                   entry)
+                               (list (funcall def-key map key command))))))))
     (let ((bindings
             (loop
               for map in (cond
@@ -90,7 +92,7 @@ in the same directory the current file is."
                            ((list? mode-map)
                             mode-map)
                            (else (list mode-map)))
-              appending (process-key-command-list map key-command-list))))
+              appending (funcall process-key-command-list map key-command-list))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
                mode-map
