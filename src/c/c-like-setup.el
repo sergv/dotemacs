@@ -8,10 +8,41 @@
 ;; Requirements:
 ;; Status:
 
+(require 'custom-predicates)
+(eval-when-compile
+ (require 'cl))
+
 (autoload 'c-turn-on-eldoc-mode "c-eldoc" nil t)
 
+
+(unless (assoc* "my-style" c-style-alist :test #'string=?)
+  ;; inherited from linux style
+  (push '("my-style"
+          (c-basic-offset  . 8)
+          (indent-tabs-mode . nil)
+          (c-comment-only-line-offset . 0)
+          (c-hanging-braces-alist . ((brace-list-open)
+                                     (brace-entry-open)
+                                     (substatement-open after)
+                                     (block-close . c-snug-do-while)
+                                     (arglist-cont-nonempty)))
+          (c-cleanup-list . (brace-else-brace))
+          (c-offsets-alist . ((statement-block-intro . +)
+                              (knr-argdecl-intro     . 0)
+                              (substatement-open     . 0)
+                              (substatement-label    . 0)
+                              (label                 . 0)
+                              (statement-cont        . +)
+                              (innamespace           . 0))))
+        c-style-alist))
+
 (setf c-default-style
-      '((java-mode . "java") (awk-mode . "awk") (other . "linux")))
+      `((java-mode . "java")
+        (awk-mode . "awk")
+        (other . ,(cond ((assoc* "my-style" c-style-alist :test #'string=?)
+                         "my-style")
+                        (t
+                         "linux")))))
 (setq-default c-basic-offset 8)
 
 (eval-after-load
