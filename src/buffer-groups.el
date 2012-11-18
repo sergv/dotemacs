@@ -162,7 +162,9 @@
                             (mode . magit-wazzup-mode)
                             (mode . gitignore-mode)
                             (name . ,(rx bol "*magit" (* nonl) "*" eol))))
-       (lowlevel-prog-filter `(or (mode . asm-mode)))
+       (lowlevel-prog-filter `(or (mode . asm-mode)
+                                  (mode . llvm-mode)
+                                  (mode . tablegen-mode)))
        (other-prog-filter `(or (name . ,(rx bol
                                             (or "makefile"
                                                 "Makefile"
@@ -181,7 +183,13 @@
                                (mode . conf-space-mode)
                                (mode . conf-mode)
                                (mode . conf-xdefaults-mode)
-                               (mode . lua-mode)))
+                               (mode . conf-unix-mode)
+                               (mode . conf-colon-mode)
+                               (mode . conf-javaprop-mode)
+                               (mode . conf-ppd-mode)
+                               (mode . conf-windows-mode)
+                               (mode . lua-mode)
+                               (mode . autoconf-mode)))
        (utility-filter `(or (name . ,(rx bol (or "*Tags List*") eol))
                             (predicate . (get-buffer-process (current-buffer)))
                             (mode . comint-mode)
