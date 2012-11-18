@@ -71,7 +71,9 @@
     (gitignore-mode        (one-line "#") (line-regexp "#+"))
     (lua-mode              (one-line "--") (line-regexp "--+"))
     (xmodmap-mode          (one-line "!") (line-regexp "!+"))
-    (asm-mode              (one-line ";") (line-regexp ";+")))
+    (asm-mode              (one-line ";") (line-regexp ";+"))
+    (llvm-mode             (one-line ";") (line-regexp ";+"))
+    (tablegen-mode         (one-line "//") (line-regexp "//+")))
   "List of per-mode specifications of comments.
 Contains single-line and region comments.")
 
