@@ -7,6 +7,7 @@
 ;; Description:
 
 
+(require 'set-up-paths)
 (require 'common)
 (require 'custom-predicates)
 (require 'more-scheme)
@@ -105,6 +106,10 @@
 (require 'saveplace)
 
 ;;;; bunch of standard customizations
+
+(setf temporary-file-directory (concat +prog-data-path+ "/tmp")
+      tramp-auto-save-directory (concat +prog-data-path+ "/tramp"))
+
 
 (setq-default indent-tabs-mode nil) ;;never use tabs for indentation
 (setq-default cursor-type 'box) ;'bar)
@@ -219,7 +224,11 @@
       calendar-longitude 32)
 
 (setq color-theme-libraries
-      (directory-files +color-themes-path+ t "^color-theme"))
+      (directory-files +color-themes-path+ t "^color-theme")
+      color-theme-directory (concat +emacs-config-path+ "/src/color-theme-6.6.0/themes/")
+      color-theme-libraries (list (concat +emacs-config-path+
+                                          "/src/color-theme-6.6.0/themes/color-theme-library.el"))
+      color-theme-load-all-themes nil)
 (require 'solarized+)
 
 

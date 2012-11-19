@@ -22,29 +22,34 @@
 Use may be 'home, 'asus-netbook, 'netbook, 'work or something other
 Range of platforms may be expanded (extended?) in the future.")
 
-(let ((system-type-file (concat (cond ((eq system-type 'windows-nt)
-                                       "~")
-                                      ((memq system-type
-                                             '(gnu gnu/linux gnu/kfreebsd darwin))
-                                       "/home/sergey")
-                                      (t
-                                       "~"))
-                                "/system_type.sh")))
-  (cond
-    ((and (file-exists-p system-type-file)
-          (file-executable-p system-type-file))
-     (setf +platform+ (read
-                       (with-temp-buffer
-                         (call-process system-type-file
-                                       nil
-                                       (current-buffer))
-                         (%emacs-boot--string-trim-whitespace
-                          (buffer-substring-no-properties (point-min)
-                                                          (point-max)))))))
-    ((eq system-type 'windows-nt)
-     (setf +platform+ '(windows work)))
-    (t
-     (setf +platform+ '(linux home)))))
+(let* ((system-type-file-dirs (cond ((eq system-type 'windows-nt)
+                                     '("~"))
+                                    ((memq system-type
+                                           '(gnu gnu/linux gnu/kfreebsd darwin))
+                                     '("/home/sergey" "~"))
+                                    (t
+                                     '("~"))))
+       (system-type-file (find (lambda (file)
+                                 (and (file-exists-p file)
+                                      (file-executable-p file)))
+                               (mapcar (lambda (prefix)
+                                         (concat prefix "/system_type.sh"))
+                                       system-type-file-dirs))))
+  (setf +platform+
+        (cond
+          ((not (null system-type-file))
+           (read
+            (with-temp-buffer
+              (call-process system-type-file
+                            nil
+                            (current-buffer))
+              (%emacs-boot--string-trim-whitespace
+               (buffer-substring-no-properties (point-min)
+                                               (point-max))))))
+          ((eq system-type 'windows-nt)
+           '(windows work))
+          (t
+           '(linux home)))))
 
 (unless (and (listp +platform+)
              (memq (car +platform+)

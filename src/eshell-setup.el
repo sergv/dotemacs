@@ -11,7 +11,26 @@
 (eval-when-compile
  (require 'cl))
 
-(setf eshell-aliases-file (concat +prog-data-path+ "/eshell/alias"))
+
+
+(setf eshell-directory-name "~/emacs/prog-data/eshell/"
+      eshell-aliases-file (concat eshell-directory-name "/alias")
+      eshell-buffer-maximum-lines 65536
+      eshell-buffer-shorthand t
+      eshell-cmpl-expand-before-complete t
+      eshell-cmpl-ignore-case t
+      eshell-command-interpreter-max-length 1024
+      eshell-error-if-no-glob t
+      eshell-glob-include-dot-dot nil
+      eshell-hist-ignoredups t
+      eshell-history-size 65536
+      eshell-password-prompt-regexp "[Pp]ass\\(?:word\\|phrase\\).*:\\s *\\'"
+      eshell-prefer-lisp-functions t
+      eshell-scroll-show-maximum-output nil
+      eshell-scroll-to-bottom-on-input nil
+      eshell-scroll-to-bottom-on-output nil
+      eshell-send-direct-to-subprocesses nil
+      eshell-tar-regexp "\\.t\\(?:ar\\(?:\\.\\(?:gz\\|bz2\\|Z\\|7z\\)\\)?\\|gz\\|a[zZ]\\|z2\\|7z\\)\\'")
 
 (eval-after-load
  "eshell"

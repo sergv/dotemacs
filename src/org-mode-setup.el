@@ -8,6 +8,7 @@
 ;; Requirements:
 ;; Status:
 
+(require 'set-up-paths)
 (require 'common)
 
 (add-to-list 'load-path (concat +emacs-standalone-path+
@@ -28,9 +29,10 @@
       org-agenda-skip-deadline-if-done t
       org-agenda-skip-scheduled-if-done t
       org-agenda-start-on-weekday nil
-      org-agenda-files (list "/home/sergey/emacs/todo.org"
-                             "/home/sergey/projects/todo.org"
-                             "/home/sergey/university/todo.org")
+      org-agenda-files (filter #'file-exist?
+                               (list (concat +emacs-config-path+ "/todo.org")
+                                     "/home/sergey/projects/todo.org"
+                                     "/home/sergey/university/todo.org"))
       ;; notes are stored in descending date order - most recent always at top
       org-reverse-note-order t
       org-enforce-todo-dependencies t
