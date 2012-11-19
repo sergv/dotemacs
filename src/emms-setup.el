@@ -8,9 +8,13 @@
 ;; Requirements:
 ;; Status:
 
+(require 'set-up-paths)
 (add-to-list 'load-path (path-concat +emacs-standalone-path+
                                      "emms"
                                      "lisp"))
+
+(setf emms-cache-file (concat +prog-data-path+ "/emms/cache")
+      emms-directory (concat +prog-data-path+ "/emms"))
 
 (require 'emms-setup)
 (emms-standard)

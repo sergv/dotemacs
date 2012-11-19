@@ -8,8 +8,28 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+ (require 'cl))
+
 (when (executable-find "maxima")
   (require 'browse-kill-ring-setup)
+  (setf imaxima-fnt-size "huge"
+        imaxima-label-color "#dc322f"
+        imaxima-latex-preamble ""
+        imaxima-maxima-options (format "-q --disable-readline --preload-lisp='%s/third-party/maxima/imaxima.lisp'"
+                                       +emacs-config-path+)
+        imaxima-pt-size 12
+        imaxima-scale-factor 1.0
+        imaxima-tmp-dir (concat +prog-data-path+ "/imaxima-tmp/")
+        maxima-args (list "-q"
+                          "--disable-readline"
+                          (format "--preload-lisp=%s/third-party/maxima/maxima-tex.lisp"
+                                  +emacs-config-path+))
+        maxima-input-history-file (concat +prog-data-path+
+                                          "/.maxima_history")
+        maxima-input-history-length 65536
+        maxima-save-input-history t
+        maxima-use-full-color-in-process-buffer t)
 
   (autoload 'maxima-mode "maxima" "Maxima mode" t)
   (autoload 'imaxima "imaxima" "Frontend for maxima with Image support" t)
