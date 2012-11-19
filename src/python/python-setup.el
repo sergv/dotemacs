@@ -16,6 +16,8 @@
 (require 'outline-headers)
 (require 'compile)
 
+(setf py-temp-directory (concat +prog-data-path+ "/python-tmp"))
+
 (autoload 'python-mode "python-mode" "Pythom mode." t)
 
 (autoload 'ipython "ipython" "Ipython repl." t)
@@ -48,7 +50,7 @@
             "/home/sergey/projects/python/modules/"
             "/home/sergey/projects/python/webcam/collect-data/local/lib/python2.7/site-packages")
            ":"))
-  (setenv "IPYTHONDIR" "/home/sergey/emacs/prog-data/ipython")
+  (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
 
   ;; pymacs
   ;; (setf pymacs-load-path (list ;; (concat

@@ -27,7 +27,8 @@
 ;;                                 "/gambit-scheme"))
 ;; (require 'gambit-scheme-slime)
 
-(setq inferior-lisp-program "sbcl")
+(setf inferior-lisp-program "sbcl"
+      slime-repl-history-file (concat +prog-data-path+ "/slime-repl-history"))
 
 (defvar *slime-registered-lisps*
   `((sbcl
