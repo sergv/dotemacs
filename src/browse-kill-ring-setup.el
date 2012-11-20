@@ -39,6 +39,8 @@
 
     ("t"        browse-kill-ring-forward)
     ("n"        browse-kill-ring-previous)
+    ("<down>"   browse-kill-ring-forward)
+    ("<up>"     browse-kill-ring-previous)
     ("r"        browse-kill-ring-update)
     ;; ("p"        browse-kill-ring-insert-move-and-quit)
     ;; ("a"        browse-kill-ring-insert-move-and-quit)
