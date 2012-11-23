@@ -12,6 +12,9 @@
 
 (require 'common)
 
+(eval-when-compile
+ (require 'cl))
+
 (defconst awk-init-content
   (concat
    "# Keybindings:\n"
@@ -61,7 +64,7 @@ in buffer from where `awk' was invoked.")
 
 (defun awk-on-region (begin end)
   "Initialize awk+ on selected region."
-  (setq awk-original-input (buffer-substring-no-properties begin end)
+  (setf awk-original-input (buffer-substring-no-properties begin end)
         awk-window-config  (current-window-configuration)
         awk-output-begin   (copy-marker begin)
         awk-output-end-pos end
@@ -103,7 +106,7 @@ in buffer from where `awk' was invoked.")
                    awk-output-end-pos)
     (goto-char (marker-position awk-output-begin))
     (insert awk-original-input)
-    (setq awk-output-end-pos (point))
+    (setf awk-output-end-pos (point))
     (move-overlay awk-overlay
                   (marker-position awk-output-begin)
                   awk-output-end-pos)))
@@ -126,7 +129,7 @@ in place of input."
       (when awk-output-end-pos
         (delete-region (marker-position awk-output-begin)
                        awk-output-end-pos)
-        (setq awk-output-end-pos nil))
+        (setf awk-output-end-pos nil))
 
       (goto-char (marker-position awk-output-begin))
       (let ((out-buf (current-buffer))
@@ -145,7 +148,7 @@ in place of input."
                                ;; arguments to awk-bin
                                awk-program))
         (setenv "LC_ALL" locale-old))
-      (setq awk-output-end-pos (point))
+      (setf awk-output-end-pos (point))
       (move-overlay awk-overlay
                     (marker-position awk-output-begin)
                     awk-output-end-pos))))
@@ -179,9 +182,9 @@ with id value of `awk-program-id'."
   (awk-restore-window-config)
   (goto-char (marker-position awk-output-begin))
   (delete-overlay awk-overlay)
-  (setq awk-overlay nil)
+  (setf awk-overlay nil)
 
-  (setq awk-original-input nil
+  (setf awk-original-input nil
         awk-output-begin   nil
         awk-output-end-pos nil
         awk-program-id     (1+ awk-program-id)))
@@ -218,7 +221,7 @@ with id value of `awk-program-id'."
   "Restore window configuration to the state before awk invokation."
   (when awk-window-config
     (set-window-configuration awk-window-config)
-    (setq awk-window-config nil)))
+    (setf awk-window-config nil)))
 
 
 ;;; user functions

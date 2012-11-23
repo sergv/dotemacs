@@ -57,7 +57,7 @@
       org-drill-leech-method 'warn
       org-drill-use-visible-cloze-face-p t
       org-drill-hide-item-headings-p t
-      org-drill-maximum-items-per-session 100
+      org-drill-maximum-items-per-session 15
       org-drill-maximum-duration 15 ;; minutes
       org-drill-save-buffers-after-drill-sessions-p nil ;; don't prompt for save
       ;; this may be useful when working with large amounts of items
