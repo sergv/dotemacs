@@ -18,6 +18,10 @@
 (setf dtrt-indent-verbosity 2
       dtrt-indent-max-relevant-lines 10000)
 
+(make-align-function c-align-on-equals
+                     "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
+                     :require-one-or-more-spaces t)
+
 (defun* cc-setup (&key (define-special-keys t)
                        (use-c-eldoc (not (platform-use? 'work))))
   (init-common :use-render-formula t)
@@ -73,7 +77,8 @@
     ("M-,"   pop-tag-mark))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g a"   align)
+    ("g a a" align)
+    ("g a =" c-align-on-equals)
     ("g t"   c-end-of-defun)
     ("g n"   c-beginning-of-defun))
 

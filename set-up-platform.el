@@ -29,12 +29,12 @@ Range of platforms may be expanded (extended?) in the future.")
                                      '("/home/sergey" "~"))
                                     (t
                                      '("~"))))
-       (system-type-file (find (lambda (file)
-                                 (and (file-exists-p file)
-                                      (file-executable-p file)))
-                               (mapcar (lambda (prefix)
-                                         (concat prefix "/system_type.sh"))
-                                       system-type-file-dirs))))
+       (system-type-file (find-if (lambda (file)
+                                    (and (file-exists-p file)
+                                         (file-executable-p file)))
+                                  (mapcar (lambda (prefix)
+                                            (concat prefix "/system_type.sh"))
+                                          system-type-file-dirs))))
   (setf +platform+
         (cond
           ((not (null system-type-file))
