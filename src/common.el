@@ -1351,6 +1351,28 @@ tabbar, etc")
 
 ;;;;
 
+(defun bisect (item items start end eq? less?)
+  "Binary search. Returns index into vector ITEMS.
+LESS? is predicate on elements of ITEMS."
+  (let ((orig-start start)
+        (orig-end end))
+    (while (< start end)
+      (let* ((mid (/ (+ end start) 2))
+             (mid-item (aref items mid)))
+        (cond ((funcall less? item mid-item)
+               (setf end mid))
+              ((funcall eq? item mid-item)
+               (setf start mid
+                     end mid))
+              (t
+               (setf start (+ mid 1))))))
+    (if (and (<= orig-start start)
+             (< start orig-end))
+      start
+      nil)))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:

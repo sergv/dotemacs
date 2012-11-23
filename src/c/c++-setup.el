@@ -8,6 +8,7 @@
 
 (require 'cc-setup)
 (require 'c++-abbrev+)
+(require 'select-mode)
 
 
 (when (platform-use? 'work)
@@ -69,11 +70,37 @@
                              :filep (lambda (p)
                                       (string= alternative-name
                                                (file-name-nondirectory p))))
-                (progn
-                  (assert (= 1 (length it)))
-                  (puthash filename (car it) *c++-related-file-cache*)
-                  (puthash (car it) filename *c++-related-file-cache*)
-                  (find-file (car it)))
+                (if (= 1 (length it))
+                  (progn
+                    (puthash filename (car it) *c++-related-file-cache*)
+                    (puthash (car it) filename *c++-related-file-cache*)
+                    (find-file (car it)))
+                  (let ((choices it))
+                    (select-start-selection
+                     choices
+                     :buffer-name "select file"
+                     :on-selection
+                     (lambda (idx)
+                       (let ((alt-file (elt choices idx)))
+                         (select-exit)
+                         (puthash filename alt-file *c++-related-file-cache*)
+                         (puthash alt-file filename *c++-related-file-cache*)
+                         (find-file alt-file)))
+                     :after-init
+                     (lambda ()
+                       (select-extend-keymap
+                        (let ((map (make-sparse-keymap)))
+                          (def-keys-for-map
+                            ("n" select-move-selection-up)
+                            ("t" select-move-selection-down))
+                          map)))
+                     :predisplay-function
+                     (lambda (x) (concat x "\n"))
+                     :preamble-function
+                     (lambda () (concat "Select desired alternative file\n"))
+                     :use-separators nil))
+
+                  (error "not-implemented: provide a way to choose among multiple found files"))
                 (error "No *.%s file found for %s" alt-ext filename)))))))))
 
 
