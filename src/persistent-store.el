@@ -14,21 +14,30 @@
 ;;; for dealing with multiple files are provided
 
 (defvar persistent-store-content nil ;; (make-hash-table :test #'equal :size 1024)
-  "Current content of the database")
+  "Current contents of the database")
 
 (defvar persistent-store-store-file
   (path-concat +prog-data-path+ "persistent-store")
   "Filename of database store file")
 
+(defvar persistent-store-backup-file
+  (concat persistent-store-store-file ".bak")
+  "Filename of backup database store file")
+
 (defvar persistent-store-flush-hook nil
-  "Functions that will be called before flush of content to disc will take place")
+  "Functions that will be called before flush of contents to disc will take place")
+
+(defvar persistent-store-loaded-content nil
+  "Contents of `persistent-store-store-file' than was used to set up
+`persistent-store-content'.")
+
 
 (defun persistent-store-init ()
   "Initialize database."
   (unless persistent-store-content
     (add-hook 'kill-emacs-hook #'persistent-store-flush-database)
     (setf persistent-store-content (make-hash-table :test #'equal :size 1024))
-    (persistent-store-load-content persistent-store-store-file)))
+    (persistent-store-load-contents)))
 
 (defsubst persistent-store-put (key value)
   "Store entry in database."
@@ -54,33 +63,96 @@
 ;;              persistent-store-content)
 ;;     result))
 
+(defun persistent-store-load-file (filename)
+  (with-temp-buffer
+    (insert-file-contents-literally filename)
+    (buffer-substring-no-properties (point-min) (point-max))))
+
 (defun persistent-store-flush-database ()
-  "Function to flush db content to file."
+  "Function to flush db contents to file."
   (run-hooks persistent-store-flush-hook)
-  (let ((content-list nil))
+  (let ((content-list nil)
+        (current-file-content
+          (persistent-store-load-file persistent-store-store-file)))
     (maphash #'(lambda (key value)
                  ;; store nil values too
                  (push (cons key value) content-list))
              persistent-store-content)
-    (persistent-store-write-alist persistent-store-store-file content-list)))
 
-(defun persistent-store-load-content (filename)
-  "Load database content from file."
-  (with-temp-buffer
-    (insert-file-contents-literally filename)
-    (goto-char (point-min))
-    (mapc #'(lambda (entry)
-              (puthash (car entry) (cdr entry) persistent-store-content))
-          (read (current-buffer)))))
+    (with-temp-buffer
+      (goto-char (point-min))
+      (let ((print-level nil)
+            (print-length nil))
+        ;; (print content-list (current-buffer))
+        (pp content-list (current-buffer)))
 
-(defun persistent-store-write-alist (filename content-list)
-  "Write content in form of list to file."
-  (with-temp-buffer
-    (goto-char (point-min))
-    (let ((print-level nil)
-          (print-length nil))
-      (print content-list (current-buffer)))
-    (write-region (point-min) (point-max) filename)))
+      (if (string= current-file-content
+                   persistent-store-loaded-content)
+        ;; file was not changed since we loaded data from it
+        (write-region (point-min) (point-max) persistent-store-store-file)
+        ;; file was changed since we loaded data from it
+        (let ((done nil))
+          (while (not done)
+            (let ((ch nil))
+              (while (not (member ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
+                (setf ch (read-key (format "Store file changed since last load, store anyway? [?hyYnNdDbB]: "))))
+              (cond
+                ((or (= ch 7)  ;; C-g, abort
+                     (= ch 27) ;; <escape>
+                     (char=? ch ?q)
+                     (char=? ch ?Q))
+                 (error "Store file not saved, *your data may get lost*"))
+                ((or (char=? ch ?y)
+                     (char=? ch ?Y))
+                 (write-region (point-min) (point-max) persistent-store-store-file)
+                 (setf persistent-store-loaded-content
+                       (buffer-substring-no-properties (point-min) (point-max))
+                       done t))
+                ((or (char=? ch ?n)
+                     (char=? ch ?N))
+                 (setf done t)
+                 ;; unwind stack, prevent emacs exit if any
+                 ;; by all means, let the user know, that he may loose data!
+                 (message "Store file not saved, *your data may get lost*")
+                 (sit-for 0.5))
+                ((or (char=? ch ?d)
+                     (char=? ch ?D))
+                 (ediff-diff-texts-recursive-edit
+                  persistent-store-loaded-content
+                  current-file-content
+                  :a-buf-name "Loaded contents (original file)"
+                  :b-buf-name "Current file contents")
+                 (sit-for 0.1))
+                ((or (char=? ch ?b)
+                     (char=? ch ?B))
+                 (write-region (point-min) (point-max)
+                               (read-file-name "Backup file name: "
+                                               (file-name-directory persistent-store-store-file)
+                                               persistent-store-backup-file))
+                 (setf done t))
+                ((or (char=? ch ?h)
+                     (char=? ch ?H)
+                     (char=? ch ?\?))
+                 (read-key
+                  (mapconcat
+                   #'identity
+                   '("yY  - write your data to store file, nevermind that someone wrote something there"
+                     "nN  - do not write data, *your data may get lost*"
+                     "dD  - view diff between contents of store file loaded by you and current one"
+                     "bB  - write to backup file"
+                     "?hH - show this message"
+                     ""
+                     "Press any key to continue")
+                   "\n"))
+                 (sit-for 0.1))))))))))
+
+(defun persistent-store-load-contents ()
+  "Load database contents from file."
+  (setf persistent-store-loaded-content
+        (persistent-store-load-file persistent-store-store-file))
+  (mapc #'(lambda (entry)
+            (puthash (car entry) (cdr entry) persistent-store-content))
+        (read persistent-store-loaded-content)))
 
 
 (defun persistent-store-debug-print-content ()

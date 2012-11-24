@@ -153,6 +153,7 @@
 (load-library "telnet-mode-setup")
 (load-library "ediff-setup")
 
+(load-library "select-mode")
 
 
 ;; load keys after everything to ensure that all is bound as expected
