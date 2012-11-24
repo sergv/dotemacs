@@ -248,21 +248,6 @@
 (require 'keys-def)
 
 ;;;; customizations without dedicated setup file
-(eval-after-load "ediff"
-                 '(progn
-                   ;; don't spawn separate ediff frame
-                   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-                   (setq ediff-split-window-function 'split-window-vertically)
-
-                   (add-hook 'ediff-keymap-setup-hook
-                    #'(lambda ()
-                        (def-keys-for-map ediff-mode-map
-                          +control-x-prefix+
-                          ;;((kbd "n") ediff-previous-difference)
-                          ;;((kbd "t") ediff-next-difference)
-                          ("<down>" ediff-next-difference)
-                          ("<up>"   ediff-previous-difference))))))
-
 
 (eval-after-load "term" ;; ansi-term et al
                  '(progn
@@ -287,83 +272,6 @@
   (let ((col (current-column)))
     ad-do-it
     (move-to-column col)))
-
-(eval-after-load
- "woman"
- '(progn
-   ;; change to completing-read-vanilla
-   (redefun woman-file-name (topic &optional re-cache)
-     "Get the name of the UN*X man-page file describing a chosen TOPIC.
-When `woman' is called interactively, the word at point may be
-automatically used as the topic, if the value of the user option
-`woman-use-topic-at-point' is non-nil.  Return nil if no file can
-be found.  Optional argument RE-CACHE, if non-nil, forces the
-cache to be re-read."
-     ;; Handle the caching of the directory and topic lists:
-     (unless (and (not re-cache)
-                  (or
-                   (and woman-expanded-directory-path woman-topic-all-completions)
-                   (woman-read-directory-cache)))
-       (message "Building list of manual directory expansions...")
-       (setq woman-expanded-directory-path
-             (woman-expand-directory-path woman-manpath woman-path))
-       (message "Building completion list of all manual topics...")
-       (setq woman-topic-all-completions
-             (woman-topic-all-completions woman-expanded-directory-path))
-       (woman-write-directory-cache))
-     ;; There is a problem in that I want to offer case-insensitive
-     ;; completions, but to return only a case-sensitive match.  This
-     ;; does not seem to work properly by default, so I re-do the
-     ;; completion if necessary.
-     (let (files)
-       (or (stringp topic)
-           (and (if (boundp 'woman-use-topic-at-point)
-                  woman-use-topic-at-point
-                  ;; Was let-bound when file loaded, so ...
-                  (setq woman-use-topic-at-point woman-use-topic-at-point-default))
-                (setq topic (or (current-word t) "")) ; only within or adjacent to word
-                (test-completion topic woman-topic-all-completions))
-           (setq topic
-                 (let* ((word-at-point (current-word))
-                        (default
-                          (when (and word-at-point
-                                     (test-completion
-                                      word-at-point woman-topic-all-completions))
-                            word-at-point)))
-                   (completing-read-vanilla
-                    (if default
-                      (format "Manual entry (default %s): " default)
-                      "Manual entry: ")
-                    woman-topic-all-completions nil 1
-                    nil
-                    'woman-topic-history
-                    default))))
-       ;; Note that completing-read always returns a string.
-       (unless (= (length topic) 0)
-         (cond
-           ((setq files (woman-file-name-all-completions topic)))
-           ;; Complete topic more carefully, i.e. use the completion
-           ;; rather than the string entered by the user:
-           ((setq files (all-completions topic woman-topic-all-completions))
-            (while (/= (length topic) (length (car files)))
-              (setq files (cdr files)))
-            (setq files (woman-file-name-all-completions (car files)))))
-         (cond
-           ((null files) nil)		; no file found for topic.
-           ((null (cdr files)) (car (car files))) ; only 1 file for topic.
-           (t
-            ;; Multiple files for topic, so must select 1.
-            ;; Unread the command event (TAB = ?\t = 9) that runs the command
-            ;; `minibuffer-complete' in order to automatically complete the
-            ;; minibuffer contents as far as possible.
-            (setq unread-command-events '(9)) ; and delete any type-ahead!
-            (completing-read-vanilla
-             "Manual file: "
-             files
-             nil
-             1
-             (try-completion "" files)
-             'woman-file-history))))))))
 
 ;; (unless noninteractive
 ;;
