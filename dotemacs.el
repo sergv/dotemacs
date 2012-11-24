@@ -151,6 +151,7 @@
 (load-library "tabbar-setup")
 (load-library "calendar-mode-setup")
 (load-library "telnet-mode-setup")
+(load-library "ediff-setup")
 
 
 

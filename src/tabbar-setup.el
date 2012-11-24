@@ -11,6 +11,16 @@
 (require 'buffer-groups)
 (require 'tabbar)
 
+(setf tabbar-cycling-scope (quote tabs)
+      tabbar-home-function nil
+      tabbar-home-help-function nil
+      tabbar-inhibit-functions '(tabbar-default-inhibit-function)
+      tabbar-scroll-left-function nil
+      tabbar-scroll-left-help-function nil
+      tabbar-scroll-right-function nil
+      tabbar-scroll-right-help-function nil)
+
+
 (defun tabbar-buffer-groups+ (buffer)
   "Return the list of group names BUFFER belongs to.
 Return only one group for each buffer."
