@@ -16,6 +16,16 @@
 (eval-when-compile
  (require 'cl))
 
+
+(when (or (require 'tabbar-setup nil t)
+          (require 'tabbar nil t))
+  (defun select-inhibit-tabbar ()
+    (eq major-mode 'select-mode))
+
+  (add-to-list 'tabbar-inhibit-functions
+               #'select-inhibit-tabbar))
+
+
 (defvar select:init-window-config nil)
 (defvar select:init-window nil
   "Window from which select-mode's instance was invoked")
@@ -65,6 +75,8 @@ Items will be passed to this function before insertion into buffer.")
 (define-derived-mode select-mode text-mode "Selection"
   "Major mode for queries in auxiliary buffer"
   (setf mode-line-format '(" %[%b%] "
+                           (:eval (when buffer-read-only
+                                    "(RO)"))
                            ("("
                             mode-name
                             (:eval (format "[%s/%s]"
@@ -152,7 +164,9 @@ Items will be passed to this function before insertion into buffer.")
        (select-setup-items items :selected-item 0)
        (select-refresh-items)
        (funcall after-init)
-       (set-buffer-modified-p nil)))))
+
+       (set-buffer-modified-p nil)
+       (setf buffer-read-only t)))))
 
 (defun* select-setup-items (items &key (selected-item 0))
   (setf select:selected-item (or selected-item 0)
@@ -160,7 +174,9 @@ Items will be passed to this function before insertion into buffer.")
         select:item-positions (make-vector (length items) nil)))
 
 (defconst select-separator
-  "--------\n")
+  (propertize "--------\n"
+              'face 'bold
+              'font-lock-face 'bold))
 
 (defun* select:move-selection-to (idx &key (move-point t))
   (assert (and (<= 0 idx)
@@ -182,23 +198,25 @@ Items will be passed to this function before insertion into buffer.")
               (values start (point))))))
     (with-current-buffer select:selection-buffer
       (with-disabled-undo
-       (erase-buffer)
-       (goto-char (point-min))
-       (insert (funcall select:preamble-function))
+       (with-preserved-buffer-modified-p
+        (with-inhibited-readonly
+         (erase-buffer)
+         (goto-char (point-min))
+         (insert (funcall select:preamble-function))
 
-       (multiple-value-bind (start end)
-           (funcall insert-item (car select:items))
-         (setf (aref select:item-positions 0) (cons start end)))
-       (loop
-         for i from 1
-         for item in (cdr select:items)
-         do (when select:use-separators
-              (insert select-separator))
-            (multiple-value-bind (start end)
-                (funcall insert-item item)
-              (setf (aref select:item-positions i) (cons start end))))
-       (insert (funcall select:epilogue-function))
-       (select:move-selection-to select:selected-item)))))
+         (multiple-value-bind (start end)
+             (funcall insert-item (car select:items))
+           (setf (aref select:item-positions 0) (cons start end)))
+         (loop
+           for i from 1
+           for item in (cdr select:items)
+           do (when select:use-separators
+                (insert select-separator))
+              (multiple-value-bind (start end)
+                  (funcall insert-item item)
+                (setf (aref select:item-positions i) (cons start end))))
+         (insert (funcall select:epilogue-function))
+         (select:move-selection-to select:selected-item)))))))
 
 
 (defun select:update-selected-item ()
