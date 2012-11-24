@@ -1203,7 +1203,7 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
   `(let ((inhibit-modification-hooks t))
      ,@body))
 
-(defmacro with-inhibited-readonly (&rest body)
+(defmacro with-inhibited-read-only (&rest body)
   `(let ((inhibit-read-only t))
      ,@body))
 
