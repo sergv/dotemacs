@@ -61,8 +61,7 @@
       org-drill-maximum-duration 15 ;; minutes
       org-drill-save-buffers-after-drill-sessions-p nil ;; don't prompt for save
       ;; this may be useful when working with large amounts of items
-      ;; org-drill-add-random-noise-to-intervals-p t
-      )
+      org-drill-add-random-noise-to-intervals-p t)
 
 ;;;; eval-after-load's
 
@@ -419,6 +418,18 @@ which enable the original code blocks to be found."
 ;;;; common org-drill's question cards with math rendering
 ;;;; and other setup
 
+(defvar *org-drill-hint-tags* '("reveal" "hint" "example")
+  "Subheadings with these tags will be shown revealed during question.
+These tags will be inherited by all subheadings. Use like this:
+
+** foo question         :drill:
+   foo is [bar]
+
+*** Example             :hint:
+**** baz
+**** quux
+")
+
 (defun org-drill-present-common-card ()
   "Similar to `org-drill-present-simple-card' but also expands latex formulas
 into images."
@@ -426,7 +437,14 @@ into images."
    (with-hidden-cloze-hints
     (with-hidden-cloze-text
      (render-buffer-off)
-     (org-drill-hide-all-subheadings-except nil)
+     (let ((org-use-tag-inheritance (or org-use-tag-inheritance
+                                        *org-drill-hint-tags*)))
+       (org-drill-hide-subheadings-if
+        ;; return nil if subheading is to be revealed
+        (lambda ()
+          (not (any? (lambda (tag)
+                       (member tag *org-drill-hint-tags*))
+                     (org-get-tags-at))))))
      (ignore-errors
       (org-display-inline-images t))
      (org-cycle-hide-drawers 'all)
@@ -477,10 +495,30 @@ when question is rated."
    (redefun org-drill-save-optimal-factor-matrix ()
      (message "Saving optimal factor matrix...")
      (persistent-store-put 'org-drill-optimal-factor-matrix
-                           org-drill-optimal-factor-matrix)
-     ;; (customize-save-variable 'org-drill-optimal-factor-matrix
-     ;;                          org-drill-optimal-factor-matrix)
-     )))
+                           org-drill-optimal-factor-matrix))
+
+   ;; remove unconditional hiding of sub-sublevels
+   (redefun org-drill-hide-subheadings-if (test)
+     "TEST is a function taking no arguments. TEST will be called for each
+of the immediate subheadings of the current drill item, with the point
+on the relevant subheading. TEST should return nil if the subheading is
+to be revealed, non-nil if it is to be hidden.
+Returns a list containing the position of each immediate subheading of
+the current topic."
+     (let ((drill-entry-level (org-current-level))
+           (drill-sections nil))
+       (org-show-subtree)
+       (save-excursion
+        (org-map-entries
+         (lambda ()
+           (when (and (not (outline-invisible-p))
+                      (> (org-current-level) drill-entry-level))
+             (when (funcall test)
+               (hide-subtree))
+             (push (point) drill-sections)))
+         ""
+         'tree))
+       (reverse drill-sections)))))
 
 ;;;; other functions
 
