@@ -79,6 +79,10 @@
                  (push (cons key value) content-list))
              persistent-store-content)
 
+    (setf content-list (sort (copy-list content-list)
+                             (lambda (a b)
+                               (string< (symbol->string (car a))
+                                        (symbol->string (car b))))))
     (with-temp-buffer
       (goto-char (point-min))
       (let ((print-level nil)
