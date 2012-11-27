@@ -44,15 +44,15 @@ Futher modified by Sergey Vinokurov."
          (magenta "#d33682")
 
          ;; highlight backgrounds
-         (light-orange-background "#652700")
-         (light-yellow-background light-orange-background)
-         (light-green-background "#004800")
-         (light-cyan-background "#0059e9")
-         (light-blue-background "#0000ea")
-         (light-violet-background "#dd00eb")
+         (light-orange-background     "#652700")
+         (light-yellow-background     light-orange-background)
+         (light-green-background      "#004800")
+         (light-cyan-background       "#0059e9")
+         (light-blue-background       "#0000ea")
+         (light-violet-background     "#dd00eb")
          (light-cyan-green-background "#006152")
-         (light-pink-background "#e70000")
-         (light-red-background "#910000"))
+         (light-pink-background       "#e70000")
+         (light-red-background        "#910000"))
     (when (eq 'light mode)
       (rotatef base03 base3)
       (rotatef base02 base2)
@@ -70,51 +70,51 @@ Futher modified by Sergey Vinokurov."
             light-red-background        light-pink-background))
 
     (when (= (display-color-cells) 8)
-      (setf base03 "black"
-            base02 "black"
-            base2 "white"
-            base3 "white"
-            red "red"
-            orange "red"
-            yellow "yellow"
-            green "green"
-            cyan "cyan"
-            blue "blue"
-            violet "magenta"
+      (setf base03  "black"
+            base02  "black"
+            base2   "white"
+            base3   "white"
+            red     "red"
+            orange  "red"
+            yellow  "yellow"
+            green   "green"
+            cyan    "cyan"
+            blue    "blue"
+            violet  "magenta"
             magenta "magenta")
       (if (eq 'light mode)
-        (setf base01 "black"
-              base00 "black"
-              base0 "black"
-              base1 "black"
-              light-orange-background "white"
-              light-yellow-background "white"
-              light-green-background "white"
-              light-cyan-background "white"
-              light-blue-background "white"
-              light-violet-background "white"
+        (setf base01                      "black"
+              base00                      "black"
+              base0                       "black"
+              base1                       "black"
+              light-orange-background     "white"
+              light-yellow-background     "white"
+              light-green-background      "white"
+              light-cyan-background       "white"
+              light-blue-background       "white"
+              light-violet-background     "white"
               light-cyan-green-background "white"
-              light-pink-background "white"
-              light-red-background "white")
-        (setf base01 "white"
-              base00 "white"
-              base0 "white"
-              base1 "white"
-              light-orange-background "black"
-              light-yellow-background "black"
-              light-green-background "black"
-              light-cyan-background "black"
-              light-blue-background "black"
-              light-violet-background "black"
+              light-pink-background       "white"
+              light-red-background        "white")
+        (setf base01                      "white"
+              base00                      "white"
+              base0                       "white"
+              base1                       "white"
+              light-orange-background     "black"
+              light-yellow-background     "black"
+              light-green-background      "black"
+              light-cyan-background       "black"
+              light-blue-background       "black"
+              light-violet-background     "black"
               light-cyan-green-background "black"
-              light-pink-background "black"
-              light-red-background "black")))
+              light-pink-background       "black"
+              light-red-background        "black")))
     (color-theme-install
      `(color-theme-solarized+
        ((foreground-color . ,base0)
         (background-color . ,base03)
-        (background-mode . ,mode)
-        (cursor-color . ,base0))
+        (background-mode  . ,mode)
+        (cursor-color     . ,base0))
        ;; basic
        (default                      ((t (:foreground ,base0))))
        (cursor                       ((t (:foreground ,base03 :background ,base0))))
@@ -417,6 +417,15 @@ Futher modified by Sergey Vinokurov."
        (link                                 ((t (:foreground ,violet :underline t))))
        (match                                ((t (:background ,light-cyan-green-background))))
        (magit-log-graph                      ((t (:foreground ,magenta))))
+       (magit-log-sha1                       ((t (:foreground ,orange))))
+
+       (magit-log-head-label-bisect-bad      ((t (:foreground ,red))))
+       (magit-log-head-label-bisect-good     ((t (:foreground ,green))))
+       (magit-log-head-label-default         ((t (:foreground ,base01 :box t))))
+       (magit-log-head-label-local           ((t (:foreground ,blue :box t))))
+       (magit-log-head-label-remote          ((t (:foreground ,yellow :box t))))
+       (magit-log-head-label-tags            ((t (:foreground ,cyan :box t))))
+
        (minibuffer-prompt                    ((t (:foreground ,violet))))
        (navigation-node-face                 ((t (:foreground ,magenta))))
        (paren-face-no-match                  ((t (:underline ,yellow))))

@@ -106,7 +106,7 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
    (defadvice grep-filter (before grep-filter-make-relative-filename-advice
                            activate
                            compile)
-    "This advice is simply AWESOME!"
+    "This advice is simply AWESOME! It replaces common long filename prefixes with \".\"."
     (save-match-data
      (save-excursion
       (let ((end (line-beginning-position))
@@ -123,10 +123,12 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           (while (re-search-forward (concat "^" (regexp-quote dir)) end t)
             (replace-match ".")))))))))
 
-(if (and (platform-os-type? 'windows)
-         (platform-use? 'work))
-  (setf find-program "unixfind")
-  (setf find-program "find"))
+(setf find-program
+      (if (and (platform-os-type? 'windows)
+               (platform-use? 'work)
+               (executable-find "unixfind"))
+        "unixfind"
+        "find"))
 
 (setq grep-command "grep -nHE -e "
       grep-template
@@ -154,18 +156,19 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           ("ch"    . "*.c *.h")
           ("hh"    . "*.hh *.hxx *.hpp *.h *.h++")
           ("cc"    . "*.cc *.cxx *.cpp *.c *.c++")
-          ("cchh"   . "*.cc *.cxx *.cpp *.c *.c++ *.hh *.hxx *.hpp *.h *.h++  *.inl *.inc *.incl")
+          ("cchh"  . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++  *.inl *.inc *.incl")
           ("l"     . ,cl-extensions)
           ("cl"    . ,cl-extensions)
           ("lsp"   . ,cl-extensions)
           ("lisp"  . ,cl-extensions)
           ("clisp" . ,cl-extensions)
           ("scm"   . ,scheme-extensions)
-          ("m"     . "[Mm]akefile*")
-          ("make"  . "[Mm]akefile*")
+          ("m"     . "[Mm]akefile* *.mk")
+          ("make"  . "[Mm]akefile* *.mk")
           ("tex"   . "*.tex")
           ("texi"  . "*.texi")
-          ("asm"   . "*.[sS]")
+          ("asm"   . "*.s")
+          ("llvm"  . "*.ll")
           ("hs"    . "*.hs *.hsc *.lhs")
           ("py"    . "*.py *.pyx *.pxd *.pxi"))))
 

@@ -86,21 +86,12 @@
                          (puthash filename alt-file *c++-related-file-cache*)
                          (puthash alt-file filename *c++-related-file-cache*)
                          (find-file alt-file)))
-                     :after-init
-                     (lambda ()
-                       (select-extend-keymap
-                        (let ((map (make-sparse-keymap)))
-                          (def-keys-for-map
-                            ("n" select-move-selection-up)
-                            ("t" select-move-selection-down))
-                          map)))
                      :predisplay-function
                      (lambda (x) (concat x "\n"))
                      :preamble-function
                      (lambda () (concat "Select desired alternative file\n"))
-                     :use-separators nil))
-
-                  (error "not-implemented: provide a way to choose among multiple found files"))
+                     :separator-function
+                     (apply-partially #'select-make-bold-separator "--------\n"))))
                 (error "No *.%s file found for %s" alt-ext filename)))))))))
 
 

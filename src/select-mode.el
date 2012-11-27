@@ -37,15 +37,6 @@
   "Index (number) of selected item")
 (defvar select:items nil
   "List of possible selections")
-(defvar select:use-separators nil
-  "Indicates whether to separate displayed items, like this
-<...>
-foo
----------------
-bar
----------------
-baz
-<...>")
 (defvar select:selection-overlay nil
   "Overlay that displays ")
 (defvar select:selection-buffer nil
@@ -58,6 +49,17 @@ baz
 ;;   "Face to highlight currently selected item")
 
 
+(defvar select:separator-function (lambda () "")
+  "Function of no arguments that returns current separator to use.
+
+Separator is used like this
+<...>
+foo
+---------------
+bar
+---------------
+baz
+<...>")
 (defvar select:predisplay-function #'identity
   "This should be a function of one item to be displayed.
 
@@ -108,6 +110,8 @@ Items will be passed to this function before insertion into buffer.")
           +vim-word-motion-keys+
           +vim-special-keys+
 
+          ("n"        select-move-selection-up)
+          ("t"        select-move-selection-down)
           ("<up>"     select-move-selection-up)
           ("<down>"   select-move-selection-down)
           ("<return>" select-do-select)
@@ -115,10 +119,6 @@ Items will be passed to this function before insertion into buffer.")
           ("<escape>" select-exit)
           ("<f1>"     select-exit))
         map))
-
-(defun select-extend-keymap (new-keymap)
-  (use-local-map
-   (make-composed-keymap new-keymap select-mode-map)))
 
 
 (defun* select-start-selection (items
@@ -130,7 +130,10 @@ Items will be passed to this function before insertion into buffer.")
                                  (lambda (x) (concat x "\n")))
                                 (preamble-function (lambda () ""))
                                 (epilogue-function (lambda () ""))
-                                (use-separators t))
+                                (separator-function
+                                 (lambda ()
+                                   (select-make-bold-separator "--------\n"))))
+  "Initiate select session"
   (assert (< 0 (length items)))
   (let ((win-config (current-window-configuration))
         (init-win (selected-window))
@@ -152,7 +155,7 @@ Items will be passed to this function before insertion into buffer.")
        (when epilogue-function
          (setf select:epilogue-function epilogue-function))
 
-       (setf select:use-separators use-separators
+       (setf select:separator-function separator-function
              select:on-selection-function on-selection
              select:selection-overlay (make-overlay (point-min) (point-min)))
        (overlay-put select:selection-overlay
@@ -173,10 +176,6 @@ Items will be passed to this function before insertion into buffer.")
         select:items items
         select:item-positions (make-vector (length items) nil)))
 
-(defconst select-separator
-  (propertize "--------\n"
-              'face 'bold
-              'font-lock-face 'bold))
 
 (defun* select:move-selection-to (idx &key (move-point t))
   (assert (and (<= 0 idx)
@@ -207,14 +206,15 @@ Items will be passed to this function before insertion into buffer.")
          (multiple-value-bind (start end)
              (funcall insert-item (car select:items))
            (setf (aref select:item-positions 0) (cons start end)))
-         (loop
-           for i from 1
-           for item in (cdr select:items)
-           do (when select:use-separators
-                (insert select-separator))
-              (multiple-value-bind (start end)
-                  (funcall insert-item item)
-                (setf (aref select:item-positions i) (cons start end))))
+         (let ((sep (when select:separator-function
+                      (funcall select:separator-function))))
+           (loop
+             for i from 1
+             for item in (cdr select:items)
+             do (when sep (insert sep))
+                (multiple-value-bind (start end)
+                    (funcall insert-item item)
+                  (setf (aref select:item-positions i) (cons start end)))))
          (insert (funcall select:epilogue-function))
          (select:move-selection-to select:selected-item)))))))
 
@@ -279,16 +279,34 @@ Items will be passed to this function before insertion into buffer.")
     (when select:selection-overlay
       (delete-overlay select:selection-overlay)
       (setf select:selection-overlay nil))
-    (setf select:init-buffer nil
-          select:selected-item nil
-          select:items nil
-          select:use-separators nil
-          select:selection-buffer nil)))
+    (let ((err (lambda (&rest args)
+                 (error "some function unset, check your use of select-mode"))))
+      (setf select:init-buffer           nil
+            select:selected-item         nil
+            select:items                 nil
+            select:selection-buffer      nil
+
+            select:separator-function    err
+            select:predisplay-function   err
+            select:on-selection-function err
+            select:preamble-function     err
+            select:epilogue-function     err))))
 
 (defun select-exit ()
   (interactive)
   (kill-buffer select:selection-buffer)
   (select-finish-selection))
+
+;;;; this is for invokers of select-mode
+
+(defun select-extend-keymap (new-keymap)
+  (use-local-map
+   (make-composed-keymap new-keymap select-mode-map)))
+
+(defun select-make-bold-separator (base)
+  (propertize base
+              'face 'bold
+              'font-lock-face 'bold))
 
 (provide 'select-mode)
 
