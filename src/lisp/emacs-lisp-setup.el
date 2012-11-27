@@ -21,6 +21,7 @@
 
   (:indentation
    (aif (as if))
+   (begin (as progn))
    (condition-case (4 4 &body))
    (def-keys-for-map (&body))
    (with-temp-buffer (&body))

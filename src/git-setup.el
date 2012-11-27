@@ -1,4 +1,4 @@
-;; magit-setup.el --- -*- lexical-binding: t; -*-
+;; git-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -7,7 +7,7 @@
 ;; Description:
 
 (add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/magit-1.1.1"))
+                                "/magit"))
 
 (require 'vim-mock)
 (require 'magit)
@@ -180,9 +180,9 @@ put it in magit-key-mode-key-maps for fast lookup."
        map))))
 
 
-(provide 'magit-setup)
+(provide 'git-setup)
 
 ;; Local Variables:
 ;; End:
 
-;; magit-setup.el ends here
+;; git-setup.el ends here
