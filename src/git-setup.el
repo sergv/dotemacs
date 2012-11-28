@@ -11,6 +11,7 @@
 
 (require 'vim-mock)
 (require 'magit)
+(require 'magit-blame)
 (require 'search)
 
 (setf magit-completing-read-function
@@ -50,33 +51,37 @@
      (delete-trailing-whitespace+))
 
 (defun magit-mode-setup ()
-  ;; here we do have vim mode enabled
+  (setf truncate-lines nil)
 
+  ;; here we do have vim mode enabled
   ;; (def-keys-for-map magit-mode-map
   ;;   +control-x-prefix+)
   ;; (def-keys-for-map magit-mode-map
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
-    ("r"        magit-refresh)
-    ("R"        magit-refresh-all)))
+    ("r" magit-refresh)
+    ("R" magit-refresh-all)
+    ("T" magit-key-mode-popup-tagging)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
 
 (defun magit-status-mode-setup ()
+  "`magit-status' switches to window with this mode"
   ;; don't do (init-common) here since it's not so common mode
 
   (def-keys-for-map magit-status-mode-map
     +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
-    ("r"        magit-refresh)
-    ("R"        magit-refresh-all)
+    ("r"      magit-refresh)
+    ("R"      magit-refresh-all)
 
-    ("p"        magit-key-mode-popup-stashing)
-    ("<down>"   magit-goto-next-section)
-    ("<up>"     magit-goto-previous-section)
-    ("t"        magit-goto-next-section)
-    ("n"        magit-goto-previous-section)))
+    ("p"      magit-key-mode-popup-stashing)
+    ("T"      magit-key-mode-popup-tagging)
+    ("<down>" magit-goto-next-section)
+    ("<up>"   magit-goto-previous-section)
+    ("t"      magit-goto-next-section)
+    ("n"      magit-goto-previous-section)))
 
 (add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
 
@@ -89,6 +94,7 @@
     ("R"      magit-refresh-all)
 
     ("p"      nil)
+    ("T"      magit-key-mode-popup-tagging)
     ("<down>" magit-goto-next-section)
     ("<up>"   magit-goto-previous-section)
     ("t"      vim-mock:motion-down)
@@ -97,6 +103,7 @@
 (add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 
 (defun magit-log-edit-mode-setup ()
+  "Mode for editing commit message."
   (init-common :use-yasnippet nil :use-comment nil)
 
   (def-keys-for-map magit-log-edit-mode-map
@@ -106,8 +113,9 @@
 
 (add-hook 'magit-log-edit-mode-hook #'magit-log-edit-mode-setup)
 
-(defun magit-show-branches-mode-setup ()
-  (def-keys-for-map magit-show-branches-mode-map
+(defun magit-commit-mode-setup ()
+  "Mode for browsing commits."
+  (def-keys-for-map magit-commit-mode-map
     +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
@@ -115,12 +123,43 @@
     ("R"      magit-refresh-all)
 
     ("p"      nil)
+    ("T"      magit-key-mode-popup-tagging)
     ("<down>" magit-goto-next-section)
     ("<up>"   magit-goto-previous-section)
     ("t"      vim-mock:motion-down)
     ("n"      vim-mock:motion-up)))
 
+(add-hook 'magit-commit-mode-hook #'magit-commit-mode-setup)
+
+
+
+(defun magit-define-key-for-branches-mode (map)
+  (def-keys-for-map map
+    +control-x-prefix+
+    +vim-special-keys+
+    +vi-search-keys+
+    ("r"      magit-refresh)
+    ("R"      magit-refresh-all)
+
+    ("p"      nil)
+    ("T"      magit-key-mode-popup-tagging)
+    ("<down>" magit-goto-next-section)
+    ("<up>"   magit-goto-previous-section)
+    ("t"      vim-mock:motion-down)
+    ("n"      vim-mock:motion-up)))
+
+
+(defun magit-show-branches-mode-setup ()
+  (magit-define-key-for-branches-mode magit-show-branches-mode-map))
+
 (add-hook 'magit-show-branches-mode-hook #'magit-show-branches-mode-setup)
+
+
+(defun magit-branch-manager-mode-setup ()
+  (magit-define-key-for-branches-mode magit-branch-manager-mode-map))
+
+
+(add-hook 'magit-branch-manager-mode-hook #'magit-branch-manager-mode-setup)
 
 ;; this mode has no hook
 (eval-after-load
