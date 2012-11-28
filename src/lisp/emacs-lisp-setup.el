@@ -48,7 +48,8 @@
    (ert-deftest (as defun))
    (with-hidden-comments (1))
    (with-hidden-cloze-hints (1))
-   (with-hidden-cloze-text (1))))
+   (with-hidden-cloze-text (1))
+   (magit-define-command (as defun))))
 
 
 
