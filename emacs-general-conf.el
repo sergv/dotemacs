@@ -41,6 +41,8 @@
         (magit-log-mode . nil)
         (magit-key-mode . nil)
         (magit-show-branches-mode . nil)
+        (magit-branch-manager-mode . nil)
+        (magit-commit-mode . nil)
         (org-agenda-mode . nil)
         (image-mode . nil)
         (calendar-mode . nil)
