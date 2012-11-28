@@ -35,6 +35,7 @@
                     processp
                     bufferp
                     characterp
+                    string-prefix-p
 
                     file-existp
                     file-executable-p

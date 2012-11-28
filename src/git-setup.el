@@ -219,6 +219,52 @@ put it in magit-key-mode-key-maps for fast lookup."
        map))))
 
 
+
+(defvar *have-git?* (executable-find "git")
+  "Becomes t when git executable is accessible")
+
+(when *have-git?*
+  (defvar-loc git-repository nil
+    "Path to root of git repository this buffer's file is member of, if any.")
+
+  (defun git-update-file-repository ()
+    (if-buffer-has-file
+     (when (or (not git-repository)
+               (not (string-prefix? (expand-file-name git-repository)
+                                    (expand-file-name buffer-file-name))))
+       (let* ((filename (buffer-file-name))
+              (repository
+                (with-temp-buffer
+                  (cd (file-name-directory filename))
+                  (when (= 0 (call-process "git"
+                                           nil
+                                           t
+                                           nil
+                                           "rev-parse"
+                                           "--show-toplevel"))
+                    (string-trim-whitespace
+                     (buffer-substring-no-properties (point-min)
+                                                     (point-max)))))))
+         (when repository
+           (let ((tracked-file? (save-match-data
+                                 (with-temp-buffer
+                                   (cd repository)
+                                   (call-process "git"
+                                                 nil
+                                                 t
+                                                 nil
+                                                 "ls-files"
+                                                 ;; cached
+                                                 "-c")
+                                   (goto-char (point-min))
+                                   (re-search-forward (regexp-quote
+                                                       (file-name-nondirectory filename))
+                                                      nil
+                                                      t)))))
+             (when tracked-file?
+               (setf git-repository repository)))))))))
+
+
 (provide 'git-setup)
 
 ;; Local Variables:
