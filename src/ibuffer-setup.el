@@ -34,6 +34,57 @@
      :reader (read-from-minibuffer "Filter by not matching (regexp): "))
     (not (string-match-pure? qualifier (buffer-name buf))))
 
+
+   (define-ibuffer-filter git-repository-root
+    "Toggle current view to buffers with git repository equal to QUALIFIER."
+    (:description "git repository root"
+     :reader (read-from-minibuffer "Filter by git repository root: "))
+    (with-current-buffer buf
+      (git-update-file-repository)
+      (when git-repository
+        (string=? qualifier git-repository))))
+
+   (defun ibuffer-generate-filter-group-by-git-repository-root ()
+     "Create ibuffer buffer-group specification based on each buffer's
+git repository root"
+     (if *have-git?*
+       (let ((roots (ibuffer-remove-duplicates
+                     (delq nil
+                           (mapcar (lambda (buf)
+                                     (with-current-buffer buf
+                                       (git-update-file-repository)
+                                       git-repository))
+                                   (buffer-list))))))
+         (mapcar (lambda (repo-root)
+                   (cons (format "git:%s" repo-root)
+                         `((git-repository-root . ,repo-root))))
+                 roots))
+       (error "No git installed on the system")))
+
+   ;; make it handle ibuffer-aux-fliter-groups and use case-insensetive completion
+   (redefun ibuffer-switch-to-saved-filter-groups (name)
+     "Set this buffer's filter groups to saved version with NAME.
+The value from `ibuffer-saved-filter-groups' is used."
+     (interactive
+      (list
+       (if (null ibuffer-saved-filter-groups)
+         (error "No saved filters")
+         (let ((completion-ignore-case t))
+           (completing-read "Switch to saved filter group: "
+                            (append (mapcar #'car ibuffer-saved-filter-groups)
+                                    (mapcar #'car ibuffer-aux-filter-groups))
+                            nil
+                            t)))))
+     (let ((group (cdr (assoc name ibuffer-saved-filter-groups))))
+       (if group
+         (setq ibuffer-filter-groups group)
+         (let ((aux-group (cdr (assoc name ibuffer-aux-filter-groups))))
+           (setq ibuffer-filter-groups (if (functionp aux-group)
+                                         (funcall aux-group)
+                                         aux-group))))
+       (setq ibuffer-hidden-filter-groups nil)
+       (ibuffer-update nil t)))
+
    (setf ibuffer-saved-filter-groups
          `(("lisp"
             ,(assoc "lisp"       +buffer-groups+)
@@ -60,7 +111,7 @@
             ,(assoc "octave"     +buffer-groups+)
             ,(assoc "maxima"     +buffer-groups+)
 
-            ,(assoc "c/cpp"      +buffer-groups+)
+            ,(assoc "c/c++"      +buffer-groups+)
             ,(assoc "python"     +buffer-groups+)
             ,(assoc "cython"     +buffer-groups+)
             ,(assoc "org"        +buffer-groups+)
@@ -68,12 +119,18 @@
             ,(assoc "latex"      +buffer-groups+)
             ,(assoc "web"        +buffer-groups+)
             ,(assoc "vc"         +buffer-groups+)
-            ,(assoc "other programming" +buffer-groups+)
+            ,(assoc "lowlevel programming" +buffer-groups+)
+            ,(assoc "other programming"    +buffer-groups+)
 
             ,(assoc "utility"    +buffer-groups+)
             ,(assoc "dired"      +buffer-groups+)
-            ,(assoc "other"      +buffer-groups+))
-           ("all")))
+            ,(assoc "other"      +buffer-groups+))))
+
+   (defvar ibuffer-aux-filter-groups
+     `(("git repo" . ,#'ibuffer-generate-filter-group-by-git-repository-root))
+     "List of auxiliary filter groups than can have default filter-group format
+used by ibuffer or can be functions of no arguments that will be called to
+generate actual filter group.")
 
 
    (setf ibuffer-never-show-predicates
@@ -143,7 +200,6 @@ a prefix argument reverses the meaning of that variable."
            (error "No buffer with name %s" name)
            (goto-char buf-point)))))
 
-   ;; (def-keys-for-map ibuffer-mode-map +vi-essential-keys+)
    (def-keys-for-map ibuffer-mode-map
      +control-x-prefix+
      +vim-special-keys+
