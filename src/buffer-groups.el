@@ -223,7 +223,7 @@
       ("octave"     ,octave-filter)
       ("maxima"     ,maxima-filter)
 
-      ("c/cpp"      ,c-c++-filter)
+      ("c/c++"      ,c-c++-filter)
       ("python"     ,python-filter)
       ("cython"     ,cython-filter)
       ("org"        ,org-filter)
@@ -232,7 +232,7 @@
       ("web"        ,web-filter)
       ("vc"         ,vc-filter)
       ("lowlevel programming" ,lowlevel-prog-filter)
-      ("other programming" ,other-prog-filter)
+      ("other programming"    ,other-prog-filter)
 
       ("utility"    ,utility-filter)
       ("dired"      ,dired-filter)
