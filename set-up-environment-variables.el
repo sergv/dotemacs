@@ -29,6 +29,8 @@
 
 (env-var-into-list "PATH" 'exec-path :append t)
 
+(when (executable-find "cat")
+  (setenv "PAGER" "cat"))
 
 (provide 'set-up-environment-variables)
 
