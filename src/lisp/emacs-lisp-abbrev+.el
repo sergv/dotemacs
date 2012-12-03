@@ -16,7 +16,7 @@
     emacs-lisp-print-info-skeleton
   :doc "Call to message to print some variables and messages."
   :print-begin "(message "
-  :use-upcase t
+  :use-upcase nil
 
   :format-print-value "%s"
   :format-string-start "\""
