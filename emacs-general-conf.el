@@ -153,7 +153,7 @@
       system-time-locale "C"
 
       visible-bell nil ;; any kind of bell is annoying
-      )
+      message-log-max t)
 
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook
