@@ -136,6 +136,7 @@
   (", s s"    vim:replace-symbol-at-point)
 
   ("g f"      find-file)
+  ("g g f"    find-filename-in-tree-recursive)
   ("g c c"    comment-util-comment-lines)
   ("g c u"    comment-util-uncomment-region)
 
