@@ -194,8 +194,10 @@ For more information about the vim:motion struct look at vim-core.el."
        (put ',name 'repeatable ,repeatable)
        (put ',name 'force ,force)
        (put ',name 'function
-            (function* (lambda (,@(when params `(&key ,@params))
-                                ,@(when named-params `(&aux ,@named-params)))
+            (function*
+             (lambda
+                 (,@(when params `(&key ,@params))
+                  ,@(when named-params `(&aux ,@named-params)))
               ,@body)))
        (defun* ,name (&rest args)
          ,doc
