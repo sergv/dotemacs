@@ -148,7 +148,7 @@ displayed as images.")
    (with-disabled-undo
     (with-preserved-buffer-modified-p
      (with-inhibited-modification-hooks
-      (with-inhibited-readonly
+      (with-inhibited-read-only
        (goto-char (point-min))
        (while (re-search-forward +render-buffer-latex-re+ nil t)
          (when (get-char-property (match-beginning 0) 'render-formula)
