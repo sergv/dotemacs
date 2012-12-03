@@ -43,6 +43,7 @@
         (magit-show-branches-mode . nil)
         (magit-branch-manager-mode . nil)
         (magit-commit-mode . nil)
+        (magit-diff-mode . nil)
         (org-agenda-mode . nil)
         (image-mode . nil)
         (calendar-mode . nil)
