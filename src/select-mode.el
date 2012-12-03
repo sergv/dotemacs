@@ -66,9 +66,7 @@ baz
 Items will be passed to this function before insertion into buffer.")
 
 (defvar select:on-selection-function #'ignore
-  "This should be a function of one item to be displayed.
-
-Items will be passed to this function before insertion into buffer.")
+  "This should be a function of one argument - index of currently selected item.")
 (defvar select:preamble-function (lambda () "")
   "Function that returns contents at the top of the buffer")
 (defvar select:epilogue-function (lambda () "")
@@ -121,6 +119,7 @@ Items will be passed to this function before insertion into buffer.")
         map))
 
 
+;; TODO: add option to use recursive edit?
 (defun* select-start-selection (items
                                 &key
                                 (buffer-name "Selection")
@@ -198,7 +197,7 @@ Items will be passed to this function before insertion into buffer.")
     (with-current-buffer select:selection-buffer
       (with-disabled-undo
        (with-preserved-buffer-modified-p
-        (with-inhibited-readonly
+        (with-inhibited-read-only
          (erase-buffer)
          (goto-char (point-min))
          (insert (funcall select:preamble-function))
