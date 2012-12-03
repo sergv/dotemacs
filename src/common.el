@@ -130,6 +130,8 @@ of random numbers from RANDOM-GEN."
            (insert "\n")))))
 
 
+;;;; file utilities
+
 (defun strip-trailing-slash (path)
   (if (char= ?\/ (aref path (1- (length path))))
     (subseq path 0 -1)
@@ -148,17 +150,29 @@ of random numbers from RANDOM-GEN."
   (remove-if #'(lambda (x) (member (file-name-nondirectory x) '("." "..")))
              (directory-files dir full)))
 
+(defun version-control-directory? (filename)
+  (string-match-pure? (rx (or "SCCS"
+                              "RCS"
+                              "CVS"
+                              "MCVS"
+                              ".svn"
+                              ".git"
+                              ".hg"
+                              ".bzr"
+                              "_MTN"
+                              "_darcs"
+                              "{arch}")
+                          (? "/"))
+                      filename))
+
 (defun* find-rec (path
                   &key
                   (filep #'(lambda (p) t))
                   (dirp  #'(lambda (p) nil))
                   (do-not-visitp
-                      #'(lambda (p)
-                          (member* (file-name-nondirectory (strip-trailing-slash p))
-                                   '("SCCS" "RCS" "CVS" "MCVS" ".svn"
-                                     ".git" ".hg" ".bzr" "_MTN" "_darcs"
-                                     "{arch}")
-                                   :test #'string=))))
+                      (lambda (p)
+                        (version-control-directory?
+                         (file-name-nondirectory p)))))
   "Collect files and/or directories under PATH recursively.
 
 Collect files and directories which satisfy FILEP and
@@ -194,6 +208,75 @@ By default, version-control specific directories are omitted, e.g. .git etc."
                   accum)))))
     (nreverse (funcall collect-rec path nil))))
 
+(defun read-and-insert-filename ()
+  "Read filename with completion from user and insert it at point.
+Of course directory names are also supported."
+  (interactive)
+  (if (and (eq major-mode 'org-mode)
+           (y-or-n-p "Insert link? "))
+    (insert "[[file:"
+            (expand-file-name (read-file-name "" nil ""))
+            "][]]")
+    (insert (expand-file-name (read-file-name "" nil "")))))
+
+(defun find-filename-in-tree-recursive ()
+  "Read filename regexp and try to find it in current dir's tree or in trees
+obtained by following upward in filesystem"
+  (interactive)
+  (let* ((filename-re (read-string "filename regexp: " ""))
+         (path (reverse (split-string (file-name-directory
+                                       (buffer-file-name (current-buffer)))
+                                      "/"
+                                      t)))
+         (subdirs-visited '())
+         (found? nil)
+         (files nil) ;; found files
+         )
+    (letrec ((path-join (lambda (path)
+                          (concat "/" (mapconcat #'identity (reverse path) "/")))))
+      (while (and (not found?)
+                  (not (null? path)))
+        (let ((subdir (funcall path-join path)))
+          (message "searching in %s" subdir)
+          (setf files
+                (find-rec subdir
+                          :filep
+                          (lambda (p)
+                            (string-match-pure? filename-re
+                                                (file-name-nondirectory p)))
+                          :do-not-visitp
+                          (lambda (p)
+                            (or (version-control-directory?
+                                 (file-name-nondirectory p))
+                                (any? (lambda (subdir)
+                                        (string-prefix? subdir p))
+                                      subdirs-visited)))))
+          (when (not (null? files))
+            (setf found? t))
+          (push subdir subdirs-visited)
+          (setf path (cdr path))))
+      (if found?
+        (progn
+          (assert (not (null? files)))
+          (if (= 1 (length files))
+            (find-file (car files))
+            (select-start-selection files
+                                    :on-selection
+                                    (lambda (idx)
+                                      (select-exit)
+                                      (find-file (nth idx files)))
+                                    :predisplay-function
+                                    (lambda (x)
+                                      (concat "file: " (file-name-nondirectory x) "\n"
+                                              x "\n"))
+                                    :preamble-function
+                                    (lambda ()
+                                      "Multiple files found\n\n")
+                                    :separator-function
+                                    (lambda () ""))))
+        (error "No file found for %s regexp" filename-re)))))
+
+;;;;
 
 (defmacro rxx (definitions &rest main-expr)
   "Return `rx' invokation of main-expr that has symbols defined in

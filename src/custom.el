@@ -497,19 +497,6 @@ up by functions in compilation-finish-functions.")
 
 ;;;;
 
-(defun read-and-insert-filename ()
-  "Read filename with completion from user and insert it at point.
-Of course directory names are also supported."
-  (interactive)
-  (if (and (eq major-mode 'org-mode)
-           (y-or-n-p "Insert link? "))
-    (insert "[[file:"
-            (expand-file-name (read-file-name "" nil ""))
-            "][]]")
-    (insert (expand-file-name (read-file-name "" nil "")))))
-
-;;;;
-
 (defun delete-trailing-whitespace+ ()
   "This function removes spaces and tabs on every line after
 last non-whitespace character."
