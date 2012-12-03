@@ -213,6 +213,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     (", d"     pylookup-lookup)
+    (", ?"     pylookup-lookup)
     ("<f1>"    py-execute-buffer-no-switch)
     ("<f9>"    python-run-script)
 
