@@ -81,7 +81,11 @@
     (if (not (fboundp 'called-interactively-p))
       '(interactive-p)
       ;; Else, it is defined, but perhaps too old?
-      (let ((arity (subr-arity (symbol-function 'called-interactively-p))))
+      (let* ((func-obj (symbol-function 'called-interactively-p))
+             (arity (cond ((subrp func-obj) (subr-arity func-obj))
+                          ((functionp func-obj) (function-arity func-obj))
+                          (t
+                           (error "called-interactively-p is not a function or subr")))))
         (case (max (or (car-safe arity) 0)
                    (or (cdr-safe arity) 0))
           (0 '(called-interactively-p))
