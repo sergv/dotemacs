@@ -1268,6 +1268,7 @@ tabbar, etc")
 
 (add-invisible-buffer "^\\*Completions\\*$")
 (add-invisible-buffer "^#.+#$")
+(add-invisible-buffer "^\\*Ibuffer\\*$")
 
 ;;;;
 

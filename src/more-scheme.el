@@ -55,6 +55,13 @@
   (funcall #'every pred items))
 
 
+(defun list-ref (i list)
+  (nth i list))
+
+(defun vector-ref (i vect)
+  (aref i vect))
+
+
 (provide 'more-scheme)
 
 ;; Local Variables:
