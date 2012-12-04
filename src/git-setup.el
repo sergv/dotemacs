@@ -31,7 +31,11 @@
           t)
 
 (add-to-list 'auto-mode-alist
-             '("\\.gitignore$" . gitignore-mode))
+             (cons (rx (or ".gitignore"
+                           ".git/info/exclude")
+                       eol)
+                   'gitignore-mode))
+
 
 (defun gitignore-setup ()
   (init-common :use-yasnippet  nil
@@ -88,7 +92,10 @@
 (add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
 
 (defun magit-log-mode-setup ()
-  (magit-bind-common-vimless-mode-keymap magit-log-mode-map))
+  (magit-bind-common-vimless-mode-keymap magit-log-mode-map)
+  (def-keys-for-map magit-log-mode-map
+    ("t" vim-mock:motion-down)
+    ("n" vim-mock:motion-up)))
 
 (add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 
@@ -99,7 +106,13 @@
   (def-keys-for-map magit-log-edit-mode-map
     ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    log-edit-previous-comment)
-    ("<down>"  log-edit-next-comment)))
+    ("<down>"  log-edit-next-comment))
+
+  (add-hook 'kill-buffer-hook
+            #'magit-log-edit-cancel-log-message
+            t ;; append
+            t ;; local
+            ))
 
 (add-hook 'magit-log-edit-mode-hook #'magit-log-edit-mode-setup)
 
