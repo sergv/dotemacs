@@ -47,7 +47,8 @@
         (org-agenda-mode . nil)
         (image-mode . nil)
         (calendar-mode . nil)
-        (select-mode . nil)))
+        (select-mode . nil)
+        (minimap-mode . nil)))
 
 ;;;; modeline
 (setq-default mode-line-format
