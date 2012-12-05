@@ -10,6 +10,7 @@
 (require 'util-vim-replace)
 (require 'completion-setup)
 (require 'search)
+(require 'minimap-setup)
 
 (defun vimrc-redefine-motions (keymap)
   (def-keys-for-map keymap
@@ -117,6 +118,7 @@
 (def-keys-for-map vim:normal-mode-keymap
   ("C-y"      nil)
   (";"        vim:ex-read-command)
+  ("`"        minimap-toggle)
 
   ("<insert>" vim:scroll-line-up)
   ("<delete>" vim:scroll-line-down)

@@ -152,7 +152,7 @@
 (load-library "calendar-mode-setup")
 (load-library "telnet-mode-setup")
 (load-library "ediff-setup")
-
+(load-library "minimap-setup")
 (load-library "select-mode")
 
 
