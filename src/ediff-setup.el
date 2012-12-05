@@ -38,6 +38,7 @@
 (defun* ediff-diff-texts-recursive-edit (text-a
                                          text-b
                                          &key
+                                         (read-only t)
                                          (a-buf-name "text A")
                                          (b-buf-name "text B"))
   "Quickly show difference between two texts TEXT-A and TEXT-B using ediff.
@@ -55,7 +56,7 @@ Register quick exit function and show difference in recursive edit."
           ;;   (append ediff-quit-hook
           ;;           (list (lambda ()
           ;;                   (exit-recursive-edit)))))
-          (ediff-make-buffers-readonly-at-startup t)
+          (ediff-make-buffers-readonly-at-startup read-only)
           (orig-ediff-quit (symbol-function #'ediff-quit))
           (new-ediff-quit
             (lambda (reverse-default-keep-variants)
@@ -72,6 +73,34 @@ Register quick exit function and show difference in recursive edit."
         (set-window-configuration win-conf)
         (kill-buffer buf-a)
         (kill-buffer buf-b)
+        (fset 'ediff-quit orig-ediff-quit)))))
+
+(defun* ediff-diff-files-recursive-edit (file-a
+                                         file-b
+                                         &key
+                                         (read-only t))
+  "Run `ediff' on a pair of files. Also register quick exit function and restore
+window configuration on end of ediff session."
+  (let ((win-conf (current-window-configuration)))
+    (let (;; (ediff-quit-hook
+          ;;   (append ediff-quit-hook
+          ;;           (list (lambda ()
+          ;;                   (exit-recursive-edit)))))
+          (ediff-make-buffers-readonly-at-startup read-only)
+          (orig-ediff-quit (symbol-function #'ediff-quit))
+          (new-ediff-quit
+            (lambda (reverse-default-keep-variants)
+              (interactive "P")
+              (ediff-barf-if-not-control-buffer)
+              (let ((minibuffer-auto-raise t))
+                (ediff-really-quit reverse-default-keep-variants)
+                (exit-recursive-edit)))))
+      (fset 'ediff-quit new-ediff-quit)
+      (ediff file-a file-b)
+      ;; protect in case of abort-recursive-edit
+      (unwind-protect
+           (recursive-edit)
+        (set-window-configuration win-conf)
         (fset 'ediff-quit orig-ediff-quit)))))
 
 (provide 'ediff-setup)
