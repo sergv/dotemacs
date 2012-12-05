@@ -1192,7 +1192,7 @@ combinations"
         (bind ,(cdr bindings) ,@body)))
     (t
      (multiple-value-bind (symbol-bindings other-bindings)
-         (split-with-pred (fn (b) (symbolp (car b)))
+         (split-with-pred (lambda (b) (symbolp (car b)))
                           bindings)
        `(cl:let ,symbol-bindings
           (bind ,other-bindings ,@body))))))
@@ -1465,6 +1465,54 @@ LESS? is predicate on elements of ITEMS."
        (eq t (compare-strings string1 0 nil
                               string2 (- (length string2) (length string1)) nil
                               ignore-case))))
+
+;;;;
+
+(defun merge-emacs-configs (new-config-dir curr-config-dir)
+  "Merge changes from NEW-CONFIG-DIR into CURR-CONFIG-DIR by successively calling
+ediff on files that differ and saving files in CURR-CONFIG-DIR that were updated
+while executing ediff.
+
+Use like this to pick changes that will go into CURR-CONFIG-DIR:
+\(merge-emacs-configs \"/home/sergey/emacs.new\" \"/home/sergey/emacs\"\)
+"
+  (dolist (p (mapcar (lambda (p)
+                       (file-relative-name p new-config-dir))
+                     (find-rec new-config-dir
+                               :filep
+                               (lambda (p)
+                                 (let ((fname (file-name-nondirectory p)))
+                                   (and (string-match-pure? ".*\\.el$"
+                                                            fname)
+                                        ;; emacs locks?
+                                        (not (string-match-pure? "^\\.#.*"
+                                                                 fname))))))))
+    (let* ((new      (concat new-config-dir "/" p))
+           (new-buf  (find-file-noselect new))
+           (curr     (concat curr-config-dir "/" p))
+           (curr-buf (find-file-noselect curr)))
+      (message "Files %s and %s" new curr)
+      (assert (file-exist? new))
+      (if (file-exist? curr)
+        (if (string=?
+             (with-current-buffer new-buf
+               (buffer-substring-no-properties (point-min) (point-max)))
+             (with-current-buffer curr-buf
+               (buffer-substring-no-properties (point-min) (point-max))))
+          (progn
+            (message "Files %s and %s are the same, skipping" new curr)
+            (kill-buffer new-buf)
+            (kill-buffer curr-buf))
+          (progn
+            (ediff-diff-files-recursive-edit new curr :read-only nil)
+            (kill-buffer new-buf)
+            (with-current-buffer curr-buf
+              (save-buffer))
+            (redisplay t)))
+        (when (y-or-n? (format "Copy %s to %s?" new curr))
+          (copy-file new curr nil t t t))))))
+
+;;;;
 
 
 (provide 'common)
