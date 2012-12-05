@@ -124,7 +124,7 @@
 
 (defun magit-diff-mode-setup ()
   "Mode for browsing diffs."
-  (magit-bind-common-vimless-mode-keymap magit-commit-mode-map))
+  (magit-bind-common-vimless-mode-keymap magit-diff-mode-map))
 
 (add-hook 'magit-diff-mode-hook #'magit-diff-mode-setup)
 
@@ -224,21 +224,25 @@ put it in magit-key-mode-key-maps for fast lookup."
                      (buffer-substring-no-properties (point-min)
                                                      (point-max)))))))
          (when repository
-           (let ((tracked-file? (save-match-data
-                                 (with-temp-buffer
-                                   (cd repository)
-                                   (call-process "git"
-                                                 nil
-                                                 t
-                                                 nil
-                                                 "ls-files"
-                                                 ;; cached
-                                                 "-c")
-                                   (goto-char (point-min))
-                                   (re-search-forward (regexp-quote
-                                                       (file-name-nondirectory filename))
-                                                      nil
-                                                      t)))))
+           (let* ((tracked-files
+                    (with-temp-buffer
+                      (cd repository)
+                      (call-process "git"
+                                    nil
+                                    t
+                                    nil
+                                    "ls-files"
+                                    ;; cached
+                                    "-c"
+                                    ;; null-separated
+                                    "-z")
+                      (split-string (buffer-substring-no-properties (point-min)
+                                                                    (point-max))
+                                    "\0"
+                                    t)))
+                  (tracked-file? (any? (lambda (path)
+                                         (string-suffix? path filename))
+                                       tracked-files)))
              (when tracked-file?
                (setf git-repository repository)))))))))
 
