@@ -177,7 +177,9 @@ of random numbers from RANDOM-GEN."
 
 Collect files and directories which satisfy FILEP and
 DIRP respectively in directories which don't satisfy DO-NOT-VISITP.
-By default, version-control specific directories are omitted, e.g. .git etc."
+By default, version-control specific directories are omitted, e.g. .git etc.
+
+All predicates are called with full absolute paths."
   (when (stringp filep)
     (setf filep
           (let ((regexp-local filep))
@@ -274,7 +276,7 @@ obtained by following upward in filesystem"
                                       "Multiple files found\n\n")
                                     :separator-function
                                     (lambda () ""))))
-        (error "No file found for %s regexp" filename-re)))))
+        (error "No file found for \"%s\" regexp" filename-re)))))
 
 ;;;;
 
