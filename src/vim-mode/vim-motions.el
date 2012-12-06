@@ -282,17 +282,17 @@ windows. The reason is that Emacs does not have window-local variables.")
   "Move the cursor count lines up."
   (vim:use-last-column)
   (let ((line-move-visual nil))
-    (forward-line (- (or count 1)))
-    ;; (previous-line (- (or count 1)))
-    ))
+    ;; don't use `forward-line' because `previous-line' skips invisible parts
+    ;; of buffer while `forward-line' doesn't
+    (previous-line (or count 1))))
 
 (vim:defmotion vim:motion-down (linewise count)
   "Move the cursor count lines down."
   (vim:use-last-column)
   (let ((line-move-visual nil))
-    (forward-line (or count 1))
-    ;; (next-line (or count 1))
-    ))
+    ;; don't use `forward-line' because `next-line' skips invisible parts
+    ;; of buffer while `forward-line' doesn't
+    (next-line (or count 1))))
 
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
