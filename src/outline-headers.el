@@ -1,4 +1,4 @@
-;; setup-outline.el --- -*- lexical-binding: t; -*-
+;; outline-headers.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -1303,4 +1303,4 @@ convenient way to make a table of contents of the buffer."
 ;; Local Variables:
 ;; End:
 
-;; setup-outline.el ends here
+;; outline-headers.el ends here
