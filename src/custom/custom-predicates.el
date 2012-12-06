@@ -46,7 +46,8 @@
                     file-newer-than-file-p
                     file-symlink-p
                     file-directory-p
-                    file-regular-p))
+                    file-regular-p
+                    local-variable-p))
    (let ((old-name (symbol-name command)))
      (assert (= (aref old-name (1- (length old-name)))
                 (string-to-char "p")))

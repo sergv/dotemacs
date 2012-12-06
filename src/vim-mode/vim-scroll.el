@@ -36,17 +36,13 @@
 (vim:defcmd vim:scroll-line-up (count nonrepeatable keep-visual)
   "Scrolls the window `count' lines upwards."
   (vim:use-last-column)
-  (scroll-down (or count 1))
-  (when (minimap-enabled?)
-    (minimap-update)))
+  (scroll-down (or count 1)))
 
 
 (vim:defcmd vim:scroll-line-down (count nonrepeatable keep-visual)
   "Scrolls the window `count' lines downwards."
   (vim:use-last-column)
-  (scroll-up (or count 1))
-  (when (minimap-enabled?)
-    (minimap-update)))
+  (scroll-up (or count 1)))
 
 
 (vim:defcmd vim:scroll-up (count nonrepeatable keep-visual)
