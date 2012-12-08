@@ -24,15 +24,15 @@
                      #'latex-compilation-mode))
 
 (define-compilation-mode latex-compilation-mode "LaTeX"
-  (set (make-local-variable 'compilation-scroll-output) 'first-error)
+  (setq-local compilation-scroll-output 'first-error)
 
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       (list
-        (list latex-compile-warning-regexp nil)
-        (list latex-compile-error-regexp 1 2)))
+  (setq-local compilation-error-regexp-alist
+              (list
+               (list latex-compile-warning-regexp nil)
+               (list latex-compile-error-regexp 1 2)))
 
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       latex-compile-error-regexp))
+  (setq-local *compilation-jump-error-regexp*
+              latex-compile-error-regexp))
 
 ;; Local Variables:
 ;; End:

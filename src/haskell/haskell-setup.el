@@ -46,12 +46,12 @@
 
   ;; note: do not include underscore into vim:word as this would cause
   ;; inefficiencies while navigating haskell identifiers
-  (set (make-local-variable 'vim:word) "[:word:]'")
+  (setq-local vim:word "[:word:]'")
   (modify-syntax-entry ?_ "_")
 
-  ;; (set (make-local-variable 'vim:word) "[:word:]_'")
+  ;; (setq-local vim:word "[:word:]_'")
 
-  (set (make-local-variable 'yas/indent-line) 'fixed)
+  (setq-local yas/indent-line 'fixed)
   (modify-syntax-entry ?\` "\"")
 
   (init-common :use-yasnippet t
@@ -86,12 +86,12 @@
      (setf haskell-has-makefile? t))
 
    ;; don't ask - just compile
-   (set (make-local-variable 'compilation-read-command) nil)
+   (setq-local compilation-read-command nil)
    ;; don't ask - just save
-   (set (make-local-variable 'compilation-ask-about-save) nil)
-   (set (make-local-variable 'compilation-auto-jump-to-first-error) nil)
+   (setq-local compilation-ask-about-save nil)
+   (setq-local compilation-auto-jump-to-first-error nil)
    ;; don't skip any messages
-   (set (make-local-variable 'compilation-skip-threshold) 0)
+   (setq-local compilation-skip-threshold 0)
 
    ;; (add-hook 'compilation-finish-functions
    ;;           #'haskell-reload-on-successful-compilation)

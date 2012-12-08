@@ -439,26 +439,26 @@ currently chosen lisp implementation."
          (slime-redirect-inferior-output)
          (ansi-lisp-highlight-keywords)
          ;; cl has packages and it's useful to track them in prompt
-         (set (make-local-variable 'slime-repl-track-package-in-prompt) t))
+         (setq-local slime-repl-track-package-in-prompt t))
         (scheme
          ;; copied from scheme.el
-         (set (make-local-variable 'font-lock-defaults)
-              '((scheme-font-lock-keywords
-                 scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-                nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
-                beginning-of-defun
-                (font-lock-mark-block-function . mark-defun)
-                (font-lock-syntactic-face-function
-                 . scheme-font-lock-syntactic-face-function)
-                (parse-sexp-lookup-properties . t)
-                (font-lock-extra-managed-props syntax-table)))
+         (setq-local font-lock-defaults
+                     '((scheme-font-lock-keywords
+                        scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
+                       nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
+                       beginning-of-defun
+                       (font-lock-mark-block-function . mark-defun)
+                       (font-lock-syntactic-face-function
+                        . scheme-font-lock-syntactic-face-function)
+                       (parse-sexp-lookup-properties . t)
+                       (font-lock-extra-managed-props syntax-table)))
          (set-syntax-table scheme-mode-syntax-table)
 
          ;; new things, not in scheme.el
          (scheme-highlight)
          ;; scheme has no packages and nothing at the moment that may
          ;; take their place here, so do not track
-         (set (make-local-variable 'slime-repl-track-package-in-prompt) nil)
+         (setq-local slime-repl-track-package-in-prompt nil)
          (setf mode-name "Scheme REPL")
          (when (eq? current-implementation 'mit-scheme)
            (setq slime-find-buffer-package-function

@@ -245,29 +245,29 @@
   (scheme-highlight)
   (common-lisp-set-style "scheme")
 
-  ;; (set (make-local-variable 'eldoc-documentation-function)
+  ;; (setq-local eldoc-documentation-function
   ;;      'scheme-get-current-symbol-info)
   ;; (eldoc-mode 1)
-  ;; (set (make-local-variable 'eldoc-idle-delay) 0.01)
+  ;; (setq-local eldoc-idle-delay 0.01)
 
-  (set (make-local-variable 'lisp-indent-function)
-       #'common-lisp-indent-function)
+  (setq-local lisp-indent-function
+              #'common-lisp-indent-function)
   ;; Fix this to recognize scheme keywords as well
-  (set (make-local-variable 'lisp-indent-lambda-list-keywords-regexp)
-       (rx (or "&"
-               "#:"
-               ":"
-               "#!")
-           (or "optional"
-               "rest"
-               "key"
-               "allow-other-keys"
-               "aux"
-               "whole"
-               "body"
-               "environment"
-               "more")
-           symbol-end))
+  (setq-local lisp-indent-lambda-list-keywords-regexp
+              (rx (or "&"
+                      "#:"
+                      ":"
+                      "#!")
+                  (or "optional"
+                      "rest"
+                      "key"
+                      "allow-other-keys"
+                      "aux"
+                      "whole"
+                      "body"
+                      "environment"
+                      "more")
+                  symbol-end))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     (", e"     scheme-send-last-sexp)
@@ -406,8 +406,8 @@
 
   ;; this is a dirty hack to avoid unpleasant fontification of
   ;; interaction history
-  ;; (set (make-local-variable 'face-remapping-alist)
-  ;;      '((font-lock-comment-face)))
+  ;; (setq-local face-remapping-alist
+  ;;             '((font-lock-comment-face)))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

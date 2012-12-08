@@ -26,16 +26,16 @@
 ;;           t ;; keywords-only
 ;;           nil ;; case-fold
 ;;           ))
-;;   (set (make-local-variable 'parse-sexp-lookup-properties) t)
-;;   (set (make-local-variable 'parse-sexp-ignore-comments) t)
-;;   (set (make-local-variable 'comment-start) "# ")
-;;   (set (make-local-variable 'comment-start-skip) "^[ \t]*#+ *")
-;;   (set (make-local-variable 'comment-column) 40)
-;;   (set (make-local-variable 'comment-indent-function) #'py-comment-indent-function)
-;;   (set (make-local-variable 'indent-region-function) 'py-indent-region)
-;;   (set (make-local-variable 'indent-line-function) 'py-indent-line)
-;;   (set (make-local-variable 'comint-prompt-regexp)
-;;        "\\(^>>? \\|^In \\[[0-9]+\\]: *\\|^   [.][.][.]+: *\\|\\(?:\nIn \\[[0-9]+\\]: *.*\n----+> \\(.*\n\\)[\n]?\\)\\|\\(?:\nIn \\[[0-9]+\\]: *\\(.*\n\\)\\)\\|^[ ]\\{3\\}[.]\\{3,\\}: *\\(.*\n\\)\\|^Out\\[[0-9]+\\]: \\|\n[(<]*[Ii]?[Pp]y?db[>)]+ \\|^[(]*ipydb[>)]+ \\)")
+;;   (setq-local parse-sexp-lookup-properties t)
+;;   (setq-local parse-sexp-ignore-comments t)
+;;   (setq-local comment-start "# ")
+;;   (setq-local comment-start-skip "^[ \t]*#+ *")
+;;   (setq-local comment-column 40)
+;;   (setq-local comment-indent-function #'py-comment-indent-function)
+;;   (setq-local indent-region-function 'py-indent-region)
+;;   (setq-local indent-line-function 'py-indent-line)
+;;   (setq-local comint-prompt-regexp
+;;               "\\(^>>? \\|^In \\[[0-9]+\\]: *\\|^   [.][.][.]+: *\\|\\(?:\nIn \\[[0-9]+\\]: *.*\n----+> \\(.*\n\\)[\n]?\\)\\|\\(?:\nIn \\[[0-9]+\\]: *\\(.*\n\\)\\)\\|^[ ]\\{3\\}[.]\\{3,\\}: *\\(.*\n\\)\\|^Out\\[[0-9]+\\]: \\|\n[(<]*[Ii]?[Pp]y?db[>)]+ \\|^[(]*ipydb[>)]+ \\)")
 ;;
 ;;
 ;;   (add-hook 'comint-output-filter-functions
