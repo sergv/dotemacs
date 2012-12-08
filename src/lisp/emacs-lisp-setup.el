@@ -30,6 +30,7 @@
    (letrec (as let))
    (redefun (as defun))
    (edefun (as defun))
+   (defvar-local (as defvar))
    (define-print-info-skeleton (4 &body))
    (define-lisp-print-info-skeleton (as define-print-info-skeleton))
    (define-repeated-function (4 &body))
@@ -52,7 +53,8 @@
    (magit-define-command (as defun))))
 
 
-
+(font-lock-add-keywords 'emacs-lisp-mode
+                        '("defvar-local"))
 
 
 (defun expand-last-macro ()

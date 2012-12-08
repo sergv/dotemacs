@@ -26,7 +26,7 @@
     ((TeX-fold-comment))))
 
 
-(defvar-loc latex:preview nil
+(defvar-local latex:preview nil
   "Becomes t when latex buffer is being previewed and nil
   otherwise.")
 
@@ -38,7 +38,7 @@
   (setq latex:preview (not latex:preview)))
 
 
-(defvar-loc latex:russian-spellcheck nil
+(defvar-local latex:russian-spellcheck nil
   "Becomes t when latex buffer has russian spellcheck enabled.")
 
 (defun latex-toggle-russian-spell-check ()

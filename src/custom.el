@@ -35,20 +35,20 @@ in the same directory the current file is."
      (make-variable-buffer-local ',var)
      (set-default ',var ,default)))
 
-(defmacro* defvar-loc (var
-                       &optional
-                       (default nil)
-                       (doc "Defined using `defvar-loc'"))
-  "Just like `defvar' but makes VAR buffer-local."
-  `(progn
-     (defvar ,var nil
-       ,doc)
-     (make-variable-buffer-local ',var)
-     (set-default ',var ,default)))
-
-;; doc string highlighting
-(put 'defvar-loc 'doc-string-elt 3)
-(font-lock-add-keywords 'emacs-lisp-mode '("defvar-loc"))
+;; (defmacro* defvar-loc (var
+;;                        &optional
+;;                        (default nil)
+;;                        (doc "Defined using `defvar-loc'"))
+;;   "Just like `defvar' but makes VAR buffer-local."
+;;   `(progn
+;;      (defvar ,var nil
+;;        ,doc)
+;;      (make-variable-buffer-local ',var)
+;;      (set-default ',var ,default)))
+;;
+;; ;; doc string highlighting
+;; (put 'defvar-loc 'doc-string-elt 3)
+;; (font-lock-add-keywords 'emacs-lisp-mode '("defvar-loc\\(?:al\\)?"))
 
 
 

@@ -14,6 +14,7 @@
 ;; paredit-newline's advice is defined in
 ;; general-lisp-setup.el
 (defadvice:auto-comment vim:cmd-insert-line-below)
+
 (defadvice:auto-comment vim:cmd-insert-line-above)
 
 
@@ -81,7 +82,8 @@ Contains single-line and region comments.")
 (defvar *comment-util-space-count* 1
   "Amount of spaces to put after comment markers")
 
-(defvar-loc *comment-util-current-format*)
+(defvar-local *comment-util-current-format* nil
+  "comment format for current buffer")
 
 (define-minor-mode comment-util-mode
   "Minor mode to handle comments in various languages"
