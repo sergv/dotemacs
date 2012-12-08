@@ -20,9 +20,9 @@
 (define-derived-mode cl-mode prog-mode "Lisp"
   (lisp-mode-variables t t)
 
-  (set (make-local-variable 'find-tag-default-function) 'lisp-find-tag-default)
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (setq-local find-tag-default-function 'lisp-find-tag-default)
+  (setq-local comment-start-skip
+              "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t)
 
   (sexpy-set-up-fontification)

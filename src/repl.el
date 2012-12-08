@@ -25,10 +25,10 @@
   (let ((proc (get-buffer-process (current-buffer))))
     (when proc
       (save-excursion
-        (goto-char (process-mark proc))
-        (if (re-search-backward comint-prompt-regexp
-                                (line-beginning-position) t)
-            (setq repl-seen-prompt t))))))
+       (goto-char (process-mark proc))
+       (if (re-search-backward comint-prompt-regexp
+                               (line-beginning-position) t)
+         (setq repl-seen-prompt t))))))
 
 (defun repl-wait-for-prompt (proc &optional timeout)
   "Wait until PROC sends us a prompt.
@@ -46,42 +46,42 @@ The process PROC should be associated to a comint buffer."
 
 
 (define-derived-mode repl-mode comint-mode "REPL"
-                     "Major mode for interacting with any REPL."
-                     (set (make-local-variable 'comint-prompt-regexp)
-                          ;; Whay the backslash in [\\._[:alnum:]]?
-                          "^> \\|^\\*?[[:upper:]][\\._[:alnum:]]*\\(?: \\*?[[:upper:]][\\._[:alnum:]]*\\)*> ")
-                     (set (make-local-variable 'comint-input-autoexpand) nil)
-                     (add-hook 'comint-output-filter-functions 'repl-spot-prompt nil t)
+  "Major mode for interacting with any REPL."
+  (setq-local comint-prompt-regexp
+              ;; Whay the backslash in [\\._[:alnum:]]?
+              "^> \\|^\\*?[[:upper:]][\\._[:alnum:]]*\\(?: \\*?[[:upper:]][\\._[:alnum:]]*\\)*> ")
+  (setq-local comint-input-autoexpand nil)
+  (add-hook 'comint-output-filter-functions 'repl-spot-prompt nil t)
 
-                     ;; Setup directory tracking.
-                     (set (make-local-variable 'shell-cd-regexp) nil) ;; ???
+  ;; Setup directory tracking.
+  (setq-local shell-cd-regexp nil) ;; ???
 
-                     (condition-case nil
-                         (shell-dirtrack-mode 1)
-                       (error      ;The minor mode function may not exist or not accept an arg.
-                        (set (make-local-variable 'shell-dirtrackp) t)
-                        (add-hook 'comint-input-filter-functions 'shell-directory-tracker
-                                  nil 'local)))
+  (condition-case nil
+      (shell-dirtrack-mode 1)
+    (error      ;The minor mode function may not exist or not accept an arg.
+     (setq-local shell-dirtrackp t)
+     (add-hook 'comint-input-filter-functions 'shell-directory-tracker
+               nil 'local)))
 
-                     ;; Setup `compile' support so you can just use C-x ` and friends.
-                     (set (make-local-variable 'compilation-error-regexp-alist)
-                          repl-error-regexp-alist)
-                     (set (make-local-variable 'compilation-first-column) 1) ;GHCI counts from 0. ; upd: ghci counts from 1
-                     (if (and (not (boundp 'minor-mode-overriding-map-alist))
-                              (fboundp 'compilation-shell-minor-mode))
-                         ;; If we can't remove compilation-minor-mode bindings, at least try to
-                         ;; use compilation-shell-minor-mode, so there are fewer
-                         ;; annoying bindings.
-                         (compilation-shell-minor-mode 1)
-                         ;; Else just use compilation-minor-mode but without its bindings because
-                         ;; things like mouse-2 are simply too annoying.
-                         (compilation-minor-mode 1)
-                         (let ((map (make-sparse-keymap)))
-                           (dolist (keys '([menu-bar] [follow-link]))
-                             ;; Preserve some of the bindings.
-                             (define-key map keys (lookup-key compilation-minor-mode-map keys)))
-                           (add-to-list 'minor-mode-overriding-map-alist
-                                        (cons 'compilation-minor-mode map)))))
+  ;; Setup `compile' support so you can just use C-x ` and friends.
+  (setq-local compilation-error-regexp-alist
+              repl-error-regexp-alist)
+  (setq-local compilation-first-column 1) ;GHCI counts from 0. ; upd: ghci counts from 1
+  (if (and (not (boundp 'minor-mode-overriding-map-alist))
+           (fboundp 'compilation-shell-minor-mode))
+    ;; If we can't remove compilation-minor-mode bindings, at least try to
+    ;; use compilation-shell-minor-mode, so there are fewer
+    ;; annoying bindings.
+    (compilation-shell-minor-mode 1)
+    ;; Else just use compilation-minor-mode but without its bindings because
+    ;; things like mouse-2 are simply too annoying.
+    (compilation-minor-mode 1)
+    (let ((map (make-sparse-keymap)))
+      (dolist (keys '([menu-bar] [follow-link]))
+        ;; Preserve some of the bindings.
+        (define-key map keys (lookup-key compilation-minor-mode-map keys)))
+      (add-to-list 'minor-mode-overriding-map-alist
+                   (cons 'compilation-minor-mode map)))))
 
 (defun repl-start-process (command)
   "Start an inferior haskell process.
@@ -99,10 +99,10 @@ setting up the inferior-haskell buffer."
 
 (defun repl-process (&optional arg)
   (or (if (buffer-live-p repl-buffer)
-	  (get-buffer-process repl-buffer))
+        (get-buffer-process repl-buffer))
       (progn
 	(let ((current-prefix-arg arg))
-	  (call-interactively 'repl-start-process))
+   (call-interactively 'repl-start-process))
 	;; Try again.
 	(repl-process arg))))
 

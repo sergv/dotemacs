@@ -22,17 +22,17 @@
 (define-compilation-mode haskell-compilation-mode "Splint"
   "Mode for splint checks."
 
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       (list
-        (list haskell-compile-warning-regexp 1 2 3 1)
-        (list haskell-compile-error-regexp   1 2 3 2)))
+  (setq-local compilation-error-regexp-alist
+              (list
+               (list haskell-compile-warning-regexp 1 2 3 1)
+               (list haskell-compile-error-regexp   1 2 3 2)))
 
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       haskell-compile-error-regexp)
+  (setq-local *compilation-jump-error-regexp*
+              haskell-compile-error-regexp)
 
-  (set (make-local-variable 'compilation-first-column) 1) ;GHC counts from 1.
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-scroll-output) nil))
+  (setq-local compilation-first-column 1) ;GHC counts from 1.
+  (setq-local compilation-disable-input t)
+  (setq-local compilation-scroll-output nil))
 
 
 (provide 'c-splint)

@@ -760,22 +760,21 @@ This determines whether to insert a space after the # sign."
   (rainbow-delimiters-mode 1)
   (hs-minor-mode 1)
   ;; hiding of comments is rather annoying feature when working with lisps
-  (set (make-local-variable 'hs-hide-comments-when-hiding-all)
-       nil)
+  (setq-local hs-hide-comments-when-hiding-all nil)
   (enable-paredit-mode)
-  (set (make-variable-buffer-local 'paredit-space-for-delimiter-predicates)
-       (list
-        #'paredit-insert-space-after-reader-sharp?))
-  ;; (set (make-local-variable 'whitespace-line-column) 81)
-  ;; (set (make-local-variable 'whitespace-style) '(face lines-tail tabs))
+  (setq-local paredit-space-for-delimiter-predicates
+              (list
+               #'paredit-insert-space-after-reader-sharp?))
+  ;; (setq-local whitespace-line-column 81)
+  ;; (setq-local whitespace-style '(face lines-tail tabs))
   ;; (whitespace-mode 1)
 
   (el-swank-set-completion-syntax 'lisp)
 
-  (set (make-local-variable 'comment-style) 'indent)
-  (set (make-local-variable 'comment-start) ";")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-padding) " ")
+  (setq-local comment-style 'indent)
+  (setq-local comment-start ";")
+  (setq-local comment-end "")
+  (setq-local comment-padding " ")
 
   (setf lisp-indent-function #'common-lisp-indent-function)
   ;; just in case someone will want to use standard #'lisp-indent-function
@@ -883,9 +882,8 @@ This determines whether to insert a space after the # sign."
   (whitespace-mode -1)
 
   ;; don't use prompt regexp to make comint use special field property
-  (set (make-local-variable 'comint-use-prompt-regexp) nil)
-  (set (make-local-variable 'comint-prompt-regexp)
-       "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
+  (setq-local comint-use-prompt-regexp nil)
+  (setq-local comint-prompt-regexp "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))

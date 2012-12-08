@@ -360,13 +360,13 @@ in GROUP-NUMS."
   (autopair-mode t)
   (hs-minor-mode t)
 
-  (set (make-local-variable 'yas/indent-line) 'fixed)
-  (set (make-local-variable 'hs-set-up-overlay)
-       (lambda (ov)
-         (when (eq 'code (overlay-get ov 'hs))
-           (overlay-put ov
-                        'display
-                        " ... "))))
+  (setq-local yas/indent-line 'fixed)
+  (setq-local hs-set-up-overlay
+              (lambda (ov)
+                (when (eq 'code (overlay-get ov 'hs))
+                  (overlay-put ov
+                               'display
+                               " ... "))))
 
 
   (setf vim:normal-mode-local-keymap           (make-keymap)

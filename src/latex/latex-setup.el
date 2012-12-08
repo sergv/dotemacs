@@ -89,22 +89,22 @@
   ;; (menu-bar-mode 1)
   (setq latex:preview nil)
 
-  (set (make-local-variable 'yas/key-syntaxes) '("^ >"))
+  (setq-local yas/key-syntaxes '("^ >"))
   (modify-syntax-entry ?$ "\"")
 
   ;; compilation setup
   (if-buffer-has-file
-   (set (make-local-variable 'compile-command)
-        (concat "pdflatex -halt-on-error -shell-escape --file-line-error "
-                (shell-quote-argument (buffer-file-name))))
+   (setq-local compile-command
+               (concat "pdflatex -halt-on-error -shell-escape --file-line-error "
+                       (shell-quote-argument (buffer-file-name))))
 
    ;; don't ask - just compile
-   (set (make-local-variable 'compilation-read-command) nil)
+   (setq-local compilation-read-command nil)
    ;; don't ask - just save
-   (set (make-local-variable 'compilation-ask-about-save) nil)
-   (set (make-local-variable 'compilation-auto-jump-to-first-error) nil)
+   (setq-local compilation-ask-about-save nil)
+   (setq-local compilation-auto-jump-to-first-error nil)
    ;; don't skip any messages
-   (set (make-local-variable 'compilation-skip-threshold) 0))
+   (setq-local compilation-skip-threshold 0))
 
   (setf vim:normal-mode-local-keymap           (make-keymap)
         vim:visual-mode-local-keymap           (make-keymap)

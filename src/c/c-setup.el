@@ -13,26 +13,28 @@
   (cc-setup :define-special-keys t)
 
   (if-buffer-has-file
-   (set (make-local-variable 'compile-command)
-        (let* ((fname  (file-name-nondirectory buffer-file-name))
-               (target (file-name-sans-extension fname)))
-          (setq compile-command
-                (mapconcat #'identity
-                           (list "gcc"
-                                 "-W"
-                                 "-Wall"
-                                 "-O2"
-                                 "-I."
-                                 "-o"
-                                 target
-                                 fname)
-                           " ")))))
+   (setq-local compile-command
+               (let* ((fname  (file-name-nondirectory buffer-file-name))
+                      (target (file-name-sans-extension fname)))
+                 (setq compile-command
+                       (mapconcat #'identity
+                                  (list "gcc"
+                                        "-W"
+                                        "-Wall"
+                                        "-O2"
+                                        "-I."
+                                        "-o"
+                                        target
+                                        fname)
+                                  " ")))))
 
   (if-has-makefile-command
-   (set (make-local-variable 'compile-command)
-        (concat "make " (file-name-sans-extension
-                         (file-name-nondirectory buffer-file-name)))))
+   (setq-local compile-command
+               (concat "make " (file-name-sans-extension
+                                (file-name-nondirectory buffer-file-name)))))
 
+  (def-keys-for-map vim:visual-mode-local-keymap
+    (", m" c-macro-expand))
   (c-abbrev+-setup))
 
 (provide 'c-setup)

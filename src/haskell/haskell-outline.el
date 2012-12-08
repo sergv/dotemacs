@@ -74,24 +74,24 @@
   ;; outline uses this regexp to find headers.
   ;; I match lines with no indent and indented
   ;; some lines, such as "--" ... "class"
-  (set (make-local-variable 'outline-regexp)
-       ;; in case of problems with comments
-       ;; try to remove everything before first \\| inclusively
-       ;; "^[ \t]*-- \\|"
-       (concat haskell-commented-line-regexp
-               "\\|"
-               "^[ \t]*[^-\n]\\{2\\}.*"
-               (concat "\\(?:"
-                       "[^:\n]::\\(?:[^:\n]\\|$\\)"
-                       "\\|"
-                       "[^=\n]=\\(?:[^=\n]\\|$\\|[ \t]+do\\>\\)"
-                       "\\|"
-                       "[^|]|[^|]+="
-                       "\\)")
-               "\\|"
-               "^[ \t]*\\<\\(?:where\\|let\\|in\\|if\\|then\\|else\\|data\\|class\\|instance\\)\\>"))
-  (set (make-local-variable 'outline-heading-end-regexp)
-       "\\(?:[ \t]*[^ \t\n]+\\(?:[ \t]*\\(?:->\\)\\(?:[ \t]*--.*$\\)?\n\\)?\\)+\n")
+  (setq-local outline-regexp
+              ;; in case of problems with comments
+              ;; try to remove everything before first \\| inclusively
+              ;; "^[ \t]*-- \\|"
+              (concat haskell-commented-line-regexp
+                      "\\|"
+                      "^[ \t]*[^-\n]\\{2\\}.*"
+                      (concat "\\(?:"
+                              "[^:\n]::\\(?:[^:\n]\\|$\\)"
+                              "\\|"
+                              "[^=\n]=\\(?:[^=\n]\\|$\\|[ \t]+do\\>\\)"
+                              "\\|"
+                              "[^|]|[^|]+="
+                              "\\)")
+                      "\\|"
+                      "^[ \t]*\\<\\(?:where\\|let\\|in\\|if\\|then\\|else\\|data\\|class\\|instance\\)\\>"))
+  (setq-local outline-heading-end-regexp
+              "\\(?:[ \t]*[^ \t\n]+\\(?:[ \t]*\\(?:->\\)\\(?:[ \t]*--.*$\\)?\n\\)?\\)+\n")
 
   ;; enable our level computation
   (setq outline-level 'haskell-outline-level)

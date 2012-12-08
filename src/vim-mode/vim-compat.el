@@ -546,27 +546,27 @@ See `%s' for more information on %s."
     (let ((root (frame-root-window frame))
 	  (mini (minibuffer-window frame)))
       (letrec ((subwindows
-                (lambda (win)
-                  (cond
-                    ((window-first-hchild win)
-                     (let (w-list
-                           (child (window-first-vchild win)))
-                       (while child
-                         (push child w-list)
-                         (setq child (window-next-child child)))
-                       (cons t
-                             (cons (window-edges win)
-                                   (mapcar subwindows (reverse w-list))))))
-                    ((window-first-vchild win)
-                     (let (w-list
-                           (child (window-first-vchild win)))
-                       (while child
-                         (push child w-list)
-                         (setq child (window-next-child child)))
-                       (cons nil
-                             (cons (window-edges win)
-                                   (mapcar subwindows (reverse w-list))))))
-                    (t win))))))
+                 (lambda (win)
+                   (cond
+                     ((window-first-hchild win)
+                      (let (w-list
+                            (child (window-first-vchild win)))
+                        (while child
+                          (push child w-list)
+                          (setq child (window-next-child child)))
+                        (cons t
+                              (cons (window-edges win)
+                                    (mapcar subwindows (reverse w-list))))))
+                     ((window-first-vchild win)
+                      (let (w-list
+                            (child (window-first-vchild win)))
+                        (while child
+                          (push child w-list)
+                          (setq child (window-next-child child)))
+                        (cons nil
+                              (cons (window-edges win)
+                                    (mapcar subwindows (reverse w-list))))))
+                     (t win))))))
       (list (funcall subwindows root) mini))))
 
 

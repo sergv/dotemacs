@@ -13,9 +13,8 @@
 (defun d-mode-setup ()
   (init-common :use-yasnippet nil)
   ;; turn off jit-lock
-  (set (make-local-variable 'font-lock-support-mode)
-       nil)
-  )
+  (setq-local font-lock-support-mode
+              nil))
 
 (add-hook 'd-mode-hook #'d-mode-setup)
 

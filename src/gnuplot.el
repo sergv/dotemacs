@@ -41,20 +41,20 @@
 
 (define-compilation-mode gnuplot-run-mode "Gnuplot run"
   "Mode to run gnuplot scripts."
-  ;; (set (make-local-variable 'compilation-process-setup-function)
+  ;; (setq-local compilation-process-setup-function
   ;; ',(intern (concat nm "-process-setup")))
 
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       (list
-        (list gnuplot-error-regexp 1 2 nil 2)))
+  (setq-local compilation-error-regexp-alist
+              (list
+               (list gnuplot-error-regexp 1 2 nil 2)))
 
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       gnuplot-error-regexp)
+  (setq-local *compilation-jump-error-regexp*
+              gnuplot-error-regexp)
 
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-scroll-output) nil)
+  (setq-local compilation-disable-input t)
+  (setq-local compilation-scroll-output nil)
 
-  ;; (set (make-local-variable 'compilation-finish-functions)
+  ;; (setq-local compilation-finish-functions
   ;; (list ',(intern (concat nm "-finish-hook"))))
   )
 

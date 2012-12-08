@@ -8,9 +8,13 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+ (require 'cl))
+
 (require 'common)
 (require 'compile)
 
+(setf compilation-always-kill t)
 
 (defconst *compilation-jump-error-regexp*
   "^\\(\\(?:\\(?:\\.\\.?\\)?/[^/\n\t]+\\)*?\\)/?[^/\n\t]+:\\([0-9]+\\):\\([0-9]+\\):"
