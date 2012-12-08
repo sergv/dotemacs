@@ -8,11 +8,11 @@
 
 (define-derived-mode gitignore-mode text-mode "Gitignore"
   "Simple mode to edit .gitignore files"
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-start-skip) "#+ *")
-  (set (make-local-variable 'indent-tabs-mode) nil)
-  (set (make-local-variable 'font-lock-defaults)
-       '(gitignore-font-lock-keywords)))
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip "#+ *")
+  (setq-local indent-tabs-mode nil)
+  (setq-local font-lock-defaults
+              '(gitignore-font-lock-keywords)))
 
 (defvar gitignore-font-lock-keywords
   `(("\\(?:^\\|\\s-+\\)\\(#.*\\)$"

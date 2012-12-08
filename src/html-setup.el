@@ -184,7 +184,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (foldit-mode -1)
 
   (hs-minor-mode t)
-  (set (make-local-variable 'hs-set-up-overlay) 'nxhtml-hs-set-up-overlay)
+  (setq-local hs-set-up-overlay 'nxhtml-hs-set-up-overlay)
   (put 'hs-set-up-overlay 'permanent-local t)
 
   (modify-syntax-entry ?\" "\"")

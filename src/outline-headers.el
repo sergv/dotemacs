@@ -146,8 +146,8 @@ headings."
                           'selective-display
                           (string-to-vector " ..."))
 
-  (set (make-local-variable '&&hdr-outline-regexp)
-       +outline-headers-header-re+)
+  (setq-local &&hdr-outline-regexp
+              +outline-headers-header-re+)
   ;; (set (make-local-variable 'outline-heading-end-regexp)
   ;;      "\n")
   (set (make-local-variable '&&hdr-outline-heading-end-regexp)

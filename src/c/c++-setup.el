@@ -102,28 +102,28 @@
             )
 
   (if-buffer-has-file
-   (set (make-local-variable 'compile-command)
-        (let* ((fname  (file-name-nondirectory buffer-file-name))
-               (target (file-name-sans-extension fname)))
-          (mapconcat #'identity
-                     (list "g++"
-                           ;; "-std=c++0x"
-                           "-W"
-                           "-Wall"
-                           "-Wextra"
-                           "-Weffc++"
-                           "-Wold-style-cast"
-                           "-Woverloaded-virtual"
-                           "-Wconversion"
-                           "-Wuninitialized"
-                           "-Wshadow"
-                           "-pedantic"
-                           "-O2"
-                           "-I."
-                           "-o"
-                           target
-                           fname)
-                     " "))))
+   (setq-local compile-command
+               (let* ((fname  (file-name-nondirectory buffer-file-name))
+                      (target (file-name-sans-extension fname)))
+                 (mapconcat #'identity
+                            (list "g++"
+                                  ;; "-std=c++0x"
+                                  "-W"
+                                  "-Wall"
+                                  "-Wextra"
+                                  "-Weffc++"
+                                  "-Wold-style-cast"
+                                  "-Woverloaded-virtual"
+                                  "-Wconversion"
+                                  "-Wuninitialized"
+                                  "-Wshadow"
+                                  "-pedantic"
+                                  "-O2"
+                                  "-I."
+                                  "-o"
+                                  target
+                                  fname)
+                            " "))))
 
   (if-has-makefile-command
    (set (make-local-variable 'compile-command)

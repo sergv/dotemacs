@@ -460,7 +460,7 @@ when question is rated."
   (org-drill-hide-subheadings-if 'org-drill-entry-p)
   (org-drill-unhide-clozed-text)
   (ignore-errors
-    (org-display-inline-images t))
+   (org-display-inline-images t))
   (render-buffer-on)
   (prog1 (with-hidden-cloze-hints
           (funcall reschedule-fn))

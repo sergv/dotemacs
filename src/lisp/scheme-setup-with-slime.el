@@ -46,11 +46,11 @@
   (common-lisp-set-style "scheme")
 
   (slime-mode 1)
-  (set (make-local-variable 'slime-default-lisp)
-       'chicken)
+  (setq-local slime-default-lisp
+              'chicken)
 
-  (set (make-local-variable 'lisp-indent-function)
-       #'common-lisp-indent-function)
+  (setq-local lisp-indent-function
+              #'common-lisp-indent-function)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)

@@ -148,21 +148,21 @@
 (define-compilation-mode python-run-mode "Python run"
   "Mode for running python scripts."
 
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       (list
-        (list +python-run-error-regexp+
-              1 ;; FILE
-              2 ;; LINE
-              nil ;; COLUMN - no column present
-              nil ;; TYPE - error
-              )))
+  (setq-local compilation-error-regexp-alist
+              (list
+               (list +python-run-error-regexp+
+                     1 ;; FILE
+                     2 ;; LINE
+                     nil ;; COLUMN - no column present
+                     nil ;; TYPE - error
+                     )))
 
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       +python-run-error-regexp+)
+  (setq-local *compilation-jump-error-regexp*
+              +python-run-error-regexp+)
 
-  (set (make-local-variable 'compilation-first-column) t)
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-scroll-output) t)
+  (setq-local compilation-first-column t)
+  (setq-local compilation-disable-input t)
+  (setq-local compilation-scroll-output t)
 
   (def-keys-for-map python-run-mode-map
     ("<up>"   compilation-jump-to-prev-error)
@@ -203,9 +203,9 @@
   (autopair-mode 1)
   (hs-minor-mode 1)
 
-  ;; (set (make-local-variable 'hs-set-up-overlay)
-  ;;      (lambda (overlay)
-  ;;        (overlay-put ov 'display "...")))
+  ;; (setq-local hs-set-up-overlay
+  ;;             (lambda (overlay)
+  ;;               (overlay-put ov 'display "...")))
 
   (setf vim:normal-mode-local-keymap           (make-keymap)
         vim:visual-mode-local-keymap           (make-sparse-keymap)

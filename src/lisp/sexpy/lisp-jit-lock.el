@@ -43,7 +43,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
    ;; (declare (debug t))
    `(let ((inhibit-point-motion-hooks t))
       (with-silent-modifications
-          ,@body))))
+        ,@body))))
 
 ;;; Customization.
 
@@ -272,7 +272,7 @@ that needs to be (re)fontified.
 If non-nil, CONTEXTUAL means that a contextual fontification would be useful."
   (add-hook 'lisp-jit-lock-functions fun nil t)
   (when (and contextual lisp-jit-lock-contextually)
-    (set (make-local-variable 'lisp-jit-lock-contextually) t))
+    (setq-local lisp-jit-lock-contextually t))
   (lisp-jit-lock-mode t))
 
 (defun lisp-jit-lock-unregister (fun)
@@ -678,10 +678,10 @@ range of changed text."
         ;; Prepare for jit-lock
         (remove-hook 'after-change-functions
                      'font-lock-after-change-function t)
-        (set (make-local-variable 'font-lock-fontify-buffer-function)
-             'jit-lock-refontify)
+        (setq-local font-lock-fontify-buffer-function
+                    'jit-lock-refontify)
         ;; Don't fontify eagerly (and don't abort if the buffer is large).
-        (set (make-local-variable 'font-lock-fontified) t)
+        (setq-local font-lock-fontified t)
         ;; Use jit-lock.
         (jit-lock-register 'font-lock-fontify-region
                            (not font-lock-keywords-only))
@@ -693,10 +693,10 @@ range of changed text."
         ;; Prepare for jit-lock
         (remove-hook 'after-change-functions
                      'font-lock-after-change-function t)
-        (set (make-local-variable 'font-lock-fontify-buffer-function)
-             'lisp-jit-lock-refontify)
+        (setq-local font-lock-fontify-buffer-function
+                    'lisp-jit-lock-refontify)
         ;; Don't fontify eagerly (and don't abort if the buffer is large).
-        (set (make-local-variable 'font-lock-fontified) t)
+        (setq-local font-lock-fontified t)
         ;; Use jit-lock.
         (lisp-jit-lock-register 'font-lock-fontify-region
                                 (not font-lock-keywords-only))
