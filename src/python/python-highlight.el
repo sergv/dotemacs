@@ -125,7 +125,7 @@
 
 
 (defconst +python-standard-keywords+
-  `((,(rx word-start
+  `((,(rx symbol-start
           (or
            "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
            "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
@@ -141,7 +141,7 @@
            "nonlocal"
            ;; Extra:
            "self")
-          word-end)
+          symbol-end)
      0 'python-keyword-face)
     ;; what was this?
     ;; (,(rx symbol-start
