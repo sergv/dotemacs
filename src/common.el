@@ -305,17 +305,20 @@ body of any futher definition."
                                           hist-m@%=!$+&^*z
                                           def
                                           inherit-input-method)
-  "Perform `completing-read' of icicles using vanilla completion."
+  "Perform `completing-read' of icicles using vanilla completion and remove any text
+properties from the result."
   (let ((icicle-TAB-completion-methods '(vanilla))
         (icicle-hide-common-match-in-Completions-flag nil))
-    (completing-read prompt
-                     collection
-                     predicate
-                     require-match
-                     initial-input
-                     hist-m@%=!$+&^*z
-                     def
-                     inherit-input-method)))
+    (let ((result (completing-read prompt
+                                   collection
+                                   predicate
+                                   require-match
+                                   initial-input
+                                   hist-m@%=!$+&^*z
+                                   def
+                                   inherit-input-method)))
+      (set-text-properties 0 (length result) nil result)
+      result)))
 
 
 (defmacro* vimmize-motion (func
