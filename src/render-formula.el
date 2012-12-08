@@ -128,7 +128,7 @@ won't be confused by the same filename used for different images.")
 
 
 
-(defvar-loc render-buffer-rendered? nil
+(defvar-local render-buffer-rendered? nil
   "Is set to t by `render-buffer' when latex code in buffer is
 displayed as images.")
 

@@ -7,28 +7,28 @@
 ;; Description:
 
 
-(defvar-loc +outline-headers-min-header-length+ nil
+(defvar-local +outline-headers-min-header-length+ nil
   "Minimum number of `+outline-headers-section-symbol+''s allowed in header.")
 
-(defvar-loc +outline-headers-max-header-length+ nil
+(defvar-local +outline-headers-max-header-length+ nil
   "Maximum number of `+outline-headers-section-symbol+''s allowed in header.")
 
 
-(defvar-loc +outline-headers-section-start+
+(defvar-local +outline-headers-section-start+
   "^"
   "Beginning part of `+outline-headers-header-re+'.")
 
-(defvar-loc +outline-headers-section-symbol+
+(defvar-local +outline-headers-section-symbol+
   nil
   "Main part of `+outline-headers-header-re+' that defines headers of different length.")
 
-(defvar-loc +outline-headers-section-end+
+(defvar-local +outline-headers-section-end+
   "\\(?: \\|$\\)"
   "End part of `+outline-headers-header-re+'.")
 
 
 
-(defvar-loc +outline-headers-header-re+
+(defvar-local +outline-headers-header-re+
   nil
   "Regular expression that defines headers")
 

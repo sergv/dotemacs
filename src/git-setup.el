@@ -202,7 +202,7 @@ put it in magit-key-mode-key-maps for fast lookup."
   "Becomes t when git executable is accessible")
 
 (when *have-git?*
-  (defvar-loc git-repository nil
+  (defvar-local git-repository nil
     "Path to root of git repository this buffer's file is member of, if any.")
 
   (defun git-update-file-repository ()

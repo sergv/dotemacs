@@ -10,7 +10,7 @@
 (require 'custom)
 (eval-when-compile '(require 'cl))
 
-(defvar-loc abbrev+-abbreviations
+(defvar-local abbrev+-abbreviations
     (list
      (list "^pwd" #'(lambda () (expand-file-name default-directory))))
   "Alist of list triples (REGEX ACTION [PREDICATE]), PREDICATE being
@@ -31,7 +31,7 @@ If t is returned then ACTION would be performed.
 Functions could make use of variable `abbrev+-text-to-substitute' that
 will have the value of text matched by the regular expression.")
 
-(defvar-loc abbrev+-skip-syntax
+(defvar-local abbrev+-skip-syntax
     '("w" "w_" "w_." "^->")
   "List of syntaxes that will be tried one after the other
 to find match for car-element in `abbrev+-abbreviations'")

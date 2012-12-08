@@ -26,7 +26,7 @@
 (defvar vim:mode-alist nil
   "Assocative list of all registered submodes, (mode-symbol . mode-text).")
 
-(defvar-loc vim:emulation-mode-alist nil
+(defvar-local vim:emulation-mode-alist nil
   "List of all keymaps used by some modes.")
 
 
