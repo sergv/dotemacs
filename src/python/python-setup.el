@@ -16,61 +16,63 @@
 (require 'outline-headers)
 (require 'compile)
 
-(setf py-temp-directory (concat +prog-data-path+ "/python-tmp"))
-
-(autoload 'python-mode "python-mode" "Pythom mode." t)
-
-(autoload 'ipython "ipython" "Ipython repl." t)
 
 (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
 (add-to-list 'interpreter-mode-alist '("python" . python-mode))
 
-(defun python-initialize-vars ()
-  (setf py-use-number-face-p nil
-        py-underscore-word-syntax-p nil)
 
-  (setf py-install-directory (concat +emacs-config-path+
-                                     "/third-party/python/python-mode")
-
-        python-python-command "ipython"
-        python-python-command-args
-        (append python-python-command
-                '("--pprint"
-                  "--color-info"
-                  "--colors"
-                  "Linux"
-                  "--nosep"
-                  "--no-confirm-exit"
-                  "--deep-reload")))
-
-  (setenv "PYTHONPATH"
-          (mapconcat
-           #'identity
-           (list
-            "/home/sergey/projects/python/modules/"
-            "/home/sergey/projects/python/webcam/collect-data/local/lib/python2.7/site-packages")
-           ":"))
-  (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
-
-  ;; pymacs
-  ;; (setf pymacs-load-path (list ;; (concat
-  ;;                         ;;  py-install-directory
-  ;;                         ;;  "/Pymacs")
-  ;;                         (concat +emacs-config-path+
-  ;;                                 "/src/python/modules")))
-  ;; (add-to-list 'load-path (concat +emacs-config-path+
-  ;;                                 "/src/python/pymacs"))
-  ;; (setenv "PYMACS_PYTHON" "python2.7")
-  ;; (setenv "PYMACS_INSTALL_DIR" py-install-directory)
-  )
-
-(python-initialize-vars)
-
-(eval-after-load
- "python-mode"
- '(progn
-   (load-library "python-highlight")
-   (load-library "python-customizations")))
+;; (setf py-temp-directory (concat +prog-data-path+ "/python-tmp"))
+;;
+;; (autoload 'python-mode "python-mode" "Pythom mode." t)
+;;
+;; (autoload 'ipython "ipython" "Ipython repl." t)
+;;
+;; (defun python-initialize-vars ()
+;;   (setf py-use-number-face-p nil
+;;         py-underscore-word-syntax-p nil)
+;;
+;;   (setf py-install-directory (concat +emacs-config-path+
+;;                                      "/third-party/python/python-mode")
+;;
+;;         python-python-command "ipython"
+;;         python-python-command-args
+;;         (append python-python-command
+;;                 '("--pprint"
+;;                   "--color-info"
+;;                   "--colors"
+;;                   "Linux"
+;;                   "--nosep"
+;;                   "--no-confirm-exit"
+;;                   "--deep-reload")))
+;;
+;;   (setenv "PYTHONPATH"
+;;           (mapconcat
+;;            #'identity
+;;            (list
+;;             "/home/sergey/projects/python/modules/"
+;;             "/home/sergey/projects/python/webcam/collect-data/local/lib/python2.7/site-packages")
+;;            ":"))
+;;   (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
+;;
+;;   ;; pymacs
+;;   ;; (setf pymacs-load-path (list ;; (concat
+;;   ;;                         ;;  py-install-directory
+;;   ;;                         ;;  "/Pymacs")
+;;   ;;                         (concat +emacs-config-path+
+;;   ;;                                 "/src/python/modules")))
+;;   ;; (add-to-list 'load-path (concat +emacs-config-path+
+;;   ;;                                 "/src/python/pymacs"))
+;;   ;; (setenv "PYMACS_PYTHON" "python2.7")
+;;   ;; (setenv "PYMACS_INSTALL_DIR" py-install-directory)
+;;   )
+;;
+;; (python-initialize-vars)
+;;
+;; (eval-after-load
+;;  "python-mode"
+;;  '(progn
+;;    (load-library "python-highlight")
+;;    (load-library "python-customizations")))
 
 ;;;; pylookup
 (add-to-list 'load-path (concat +emacs-config-path+
@@ -190,10 +192,10 @@
                :use-render-formula t)
   (setf highlight-indentation nil)
 
-  ;; make ' a string delimiter
-  (modify-syntax-entry ?' "\"")
-  ;; make _ a symbol constituent
-  (modify-syntax-entry ?_ "_")
+  ;; ;; make ' a string delimiter
+  ;; (modify-syntax-entry ?' "\"")
+  ;; ;; make _ a symbol constituent
+  ;; (modify-syntax-entry ?_ "_")
 
   (setf autopair-handle-action-fns
         (list #'autopair-default-handle-action
@@ -322,8 +324,9 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)))
 
-(add-hook 'python-mode-hook #'python-setup)
-(add-hook 'py-shell-hook #'python-interpreter-setup)
+;; (add-hook 'python-mode-hook #'python-setup)
+;; (add-hook 'py-shell-hook #'python-interpreter-setup)
+
 ;; this would be run in py-shell-hook anyway
 ;; (add-hook 'python-repl-mode-hook #'python-interpreter-setup)
 

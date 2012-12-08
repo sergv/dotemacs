@@ -1292,6 +1292,10 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
   `(let ((inhibit-read-only t))
      ,@body))
 
+(defmacro with-inhibited-redisplay (&rest body)
+  `(let ((inhibit-redisplay t))
+     ,@body))
+
 
 ;;;;
 

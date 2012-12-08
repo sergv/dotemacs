@@ -1,4 +1,4 @@
-;; comment-util.el --- -*- lexical-binding: nil; -*-
+;; comment-util.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
