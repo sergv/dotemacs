@@ -120,25 +120,28 @@
 
 
 
-(defvar python-font-lock-keywords nil
+(defvar *python-font-lock-keywords* nil
   "Additional expressions to highlight in Python mode.")
 
 
 (defconst +python-standard-keywords+
-  `((,(rx symbol-start
-          (or "and"      "assert"   "break"
-              "continue" "del"      "elif"
-              "else"     "for"      "from"
-              "global"   "if"       "import"    "in"
-              "is"       "lambda"   "not"       "or"
-              "pass"     "as"       "return"
-              "while"    "with"     "yield"
-
-              "try" "finally" "except"
-
-              ;; some pseudo-keywords
-              "self" "Ellipsis")
-          symbol-end)
+  `((,(rx word-start
+          (or
+           "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
+           "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
+           "in" "raise" "continue" "finally" "is" "return" "def" "for" "lambda"
+           "try"
+           ;; Python 2:
+           "print" "exec"
+           ;; Python 3:
+           ;; False, None, and True are listed as keywords on the Python 3
+           ;; documentation, but since they also qualify as constants they are
+           ;; fontified like that in order to keep font-lock consistent between
+           ;; Python versions.
+           "nonlocal"
+           ;; Extra:
+           "self")
+          word-end)
      0 'python-keyword-face)
     ;; what was this?
     ;; (,(rx symbol-start
@@ -238,7 +241,20 @@
               "format"
               "memoryview"
               "next"
-              "print")
+              "print"
+
+
+              ;; python 3
+              "ascii"
+              "bytearray"
+              "bytes"
+              "exec"
+
+              ;; extra
+              "__all__"
+              "__doc__"
+              "__name__"
+              "__package__")
           symbol-end)
      0 'python-builtin-face)
     (,(rx symbol-start
@@ -350,7 +366,16 @@
         symbol-end)
      0 'python-constant-face)
 
-    ("\\_<\\(?:True\\|False\\|None\\)\\_>" 0 'python-constant-face))
+    (,(rx symbol-start
+          (or
+           "Ellipsis" "False" "None" "True"
+           ;; copyright, license, credits, quit and exit are added by the site
+           ;; module and they are not intended to be used in programs
+           "copyright" "credits" "exit" "license" "quit")
+          symbol-end)
+     0 'python-constant-face)
+    ;; ("\\_<\\(?:True\\|False\\|None\\)\\_>" 0 'python-constant-face)
+    )
   "Numbers, booleans, etc highligthed with regexps.")
 
 (defconst +python-highlight-procedures+
@@ -471,7 +496,7 @@ find parts to highlight.")
                        nil)))))
   "Pretty symbols for various keywords, e.g. λ for lambda.")
 
-;; small test suit
+;; small test suite
 ;; x = int(n)
 ;; int(b)
 ;; nt
@@ -484,7 +509,7 @@ find parts to highlight.")
 ;; for a in b:
 ;;     pass
 
-(setq python-font-lock-keywords
+(setq *python-font-lock-keywords*
       (append +python-standard-keywords+
               +python-highlight-constants+
               +python-highlight-procedures+
