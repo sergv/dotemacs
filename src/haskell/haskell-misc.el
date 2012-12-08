@@ -164,7 +164,7 @@ in haskell-font-lock.el")
         (setq *compile-caller-info* nil)
         (compile-goto-error)))))
 
-(defvar-loc haskell-has-makefile? nil
+(defvar-local haskell-has-makefile? nil
   "Is set to t by `haskell-setup' when current haskell file has
 entry in makefile and should be build with make.")
 

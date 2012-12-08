@@ -62,10 +62,10 @@
                 (match-string-no-properties 0)))))))
 
 
-(defvar-loc *markup-tags-context-func*
-    (lambda ()
-      (error "no `*markup-tags-context-func*' function specified for %s mode"
-             major-mode))
+(defvar-local *markup-tags-context-func*
+  (lambda ()
+    (error "no `*markup-tags-context-func*' function specified for %s mode"
+           major-mode))
   "Function that should return a pair ((start1 . end1) . (start2 . end2))
 containing the boundaries of the current start and end tag, or nil. Note that
 end1 and end2 should be exclusive ends of tags.")

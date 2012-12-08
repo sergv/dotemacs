@@ -55,7 +55,7 @@ find all the ways it can match.
 
 Most natural language searches and symbols do not have this
 problem -- this is only here as a safeguard.")
-(declaim (fixnum el-swank-fuzzy-recursion-soft-limit))
+;; (declaim (fixnum el-swank-fuzzy-recursion-soft-limit))
 
 (defsubst swfy-compute-highest-scoring-completion (short full)
   "Finds the highest scoring way to complete the abbreviation
@@ -158,15 +158,15 @@ onto the special variable *ALL-CHUNKS* and the function returns."
 
 ;;;;; Fuzzy completion scoring
 
-(defvar-loc el-swank-fuzzy-completion-symbol-prefixes "*+-%&?<"
+(defvar-local el-swank-fuzzy-completion-symbol-prefixes "*+-%&?<"
   "Letters that are likely to be at the beginning of a symbol.
 Letters found after one of these prefixes will be scored as if
 they were at the beginning of ths symbol.")
-(defvar-loc el-swank-fuzzy-completion-symbol-suffixes "*+->"
+(defvar-local el-swank-fuzzy-completion-symbol-suffixes "*+->"
   "Letters that are likely to be at the end of a symbol.
 Letters found before one of these suffixes will be scored as if
 they were at the end of the symbol.")
-(defvar-loc el-swank-fuzzy-completion-word-separators "-/."
+(defvar-local el-swank-fuzzy-completion-word-separators "-/."
   "Letters that separate different words in symbols.  Letters
 after one of these symbols will be scores more highly than other
 letters.")

@@ -33,9 +33,8 @@
 (eval-when-compile (require 'cl))
 
 
-(defvar-loc hl-tags-start-overlay nil)
-
-(defvar-loc hl-tags-end-overlay nil)
+(defvar-local hl-tags-start-overlay nil)
+(defvar-local hl-tags-end-overlay nil)
 
 
 (defun hl-tags-sgml-get-context ()
