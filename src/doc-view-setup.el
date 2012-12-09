@@ -46,7 +46,11 @@
           " "
           (:eval
            (when vc-mode
-             (concat vc-mode " ")))))
+             (concat vc-mode " ")))
+          " "
+          (:eval (number-to-string (doc-view-current-page)))
+          "/"
+          (:eval (number-to-string (doc-view-last-page-number)))))
   (if-buffer-has-file
    (aif (assoc (file-name-nondirectory (buffer-file-name))
                (persistent-store-get 'doc-view-documents nil))

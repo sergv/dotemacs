@@ -270,7 +270,7 @@ in the current *Python* session."
   ;; make _ a symbol constituent, mostly for me
   (modify-syntax-entry ?_ "_")
   ;; make . a symbol constituent, mostly for me too
-  (modify-syntax-entry ?. "_")
+  (modify-syntax-entry ?. ".")
 
   (setf autopair-handle-action-fns
         (list #'autopair-default-handle-action
