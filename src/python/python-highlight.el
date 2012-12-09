@@ -386,6 +386,20 @@
   "Routines that use user-defined procedures rather than regexps to
 find parts to highlight.")
 
+
+(defun python-highlight-disable-pretty-symbols? (&optional position)
+  "For use in `font-lock-keywords'."
+  (save-excursion
+   (when position
+     (goto-char position))
+   (and (not python-point-inside-string-or-comment?)
+        (not (memq (get-text-property (or position (point))
+                                      'face)
+                   '(font-lock-comment-face
+                     font-lock-string-face)))
+        (not (get-text-property (or position (point))
+                                'disable-pretty-symbols)))))
+
 (defconst +python-pretty-symbols+
   (append (list (list (rx (or (seq
                                (group symbol-start

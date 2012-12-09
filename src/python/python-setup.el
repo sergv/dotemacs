@@ -163,24 +163,21 @@ in the current *Python* session."
 (defun python-point-inside-string-or-comment? ()
   "Return t if point is positioned inside a string."
   (save-excursion
-   (save-match-data
-    (let* ((end (point))
-           (begin (line-beginning-position)))
-      (when begin
-        (let ((state (parse-partial-sexp begin end)))
-          (or (elt state 3)
-              (elt state 4))))))))
+   (let* ((end (point))
+          (begin (line-beginning-position)))
+     (when begin
+       (let ((state (parse-partial-sexp begin end)))
+         (or (elt state 3)
+             (elt state 4)))))))
 
 (defun python-point-inside-string? ()
   "Return t if point is positioned inside a string."
   (save-excursion
-   (save-match-data
-    (let* ((end (point))
-           (begin (line-beginning-position)))
-      (when begin
-        (elt (parse-partial-sexp begin
-                                 end)
-             3))))))
+   (let* ((end (point))
+          (begin (line-beginning-position)))
+     (when begin
+       (elt (parse-partial-sexp begin end)
+            3)))))
 
 (defun python-point-inside-string-and-not-comment? ()
   "Return t if point is positioned inside a string."
