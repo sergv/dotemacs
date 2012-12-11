@@ -280,6 +280,13 @@ in the current *Python* session."
   (autopair-mode 1)
   (hs-minor-mode 1)
 
+  ;; autopair relies on default `forward-sexp' to be accessible, but
+  ;; python sets it to `python-nav-forward-sexp' which
+  ;; a. also navigates python statements as "sexps"
+  ;; b. somewhat heavy and causes noticeable delay on inserting (, " or """
+  ;; => bad alternative for `forward-sexp', but nice function on its own right
+  (setq-local forward-sexp-function nil)
+
   (setf vim:normal-mode-local-keymap           (make-keymap)
         vim:visual-mode-local-keymap           (make-sparse-keymap)
         vim:insert-mode-local-keymap           (make-sparse-keymap)
