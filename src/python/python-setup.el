@@ -192,7 +192,9 @@ in the current *Python* session."
                (null (elt state 4)))))))))
 
 (make-align-function python-align-on-equals
-                     "\\(\\+\\|-\\|/\\|\\*\\*?\\)?=[^=]"
+                     (rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
+                             ">>=" "<<=" "&=" "^=" "|=")
+                         (regexp "[^=]"))
                      :require-one-or-more-spaces t)
 
 (defun python-backward-sexp (&optional count)
