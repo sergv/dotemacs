@@ -773,9 +773,11 @@ of code may be called more than once."
                              "+"
                              "*")
                            "\\)"))
-        (align-re (concat "\\(?:"
-                          align-str
-                          "\\)")))
+        (align-re (if (string? align-str)
+                    (concat "\\(?:"
+                            align-str
+                            "\\)")
+                    (macroexpand-all align-str))))
     `(defun ,func ()
        (interactive)
        (when (or (region-active-p)
