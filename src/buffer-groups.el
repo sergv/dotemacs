@@ -10,7 +10,8 @@
 
 (defconst +buffer-groups+
   (symbol-macrolet
-      ((lisp-filter `(or (predicate
+      ((blueprint-filter `(or (mode . blueprint-mode)))
+       (lisp-filter `(or (predicate
                           .
                           (and (memq major-mode
                                      '(cl-mode
@@ -213,7 +214,8 @@
                           (mode . ibuffer-mode)
                           ;; handle everything
                           (predicate . t))))
-    `(("lisp"       ,lisp-filter)
+    `(("blueprint"  ,blueprint-filter)
+      ("lisp"       ,lisp-filter)
       ("slime"      ,slime-filter)
       ("emacs lisp" ,emacs-lisp-filter)
       ("scheme"     ,scheme-filter)
