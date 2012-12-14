@@ -93,7 +93,7 @@ in the current *Python* session."
            (beg (save-excursion (skip-chars-backward "a-z0-9A-Z_./" (point-at-bol))
                                 (point)))
            (end (point))
-           (pattern (buffer-substring-no-properties prompt-beg end))
+           (pattern (buffer-substring-no-properties beg end))
            (completions nil)
            completion
            (comint-preoutput-filter-functions
