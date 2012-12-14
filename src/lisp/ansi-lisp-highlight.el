@@ -22,7 +22,7 @@ i.e. names matching regexp \\+.*\\+., self-evaluating symbols, numbers."
 
 (defface ansi-lisp-keyword-face
     '((t (:inherit font-lock-keyword-face)))
-  "Face to highlight both :keywodrs and function calls to standard functions."
+  "Face to highlight both :keywords and function calls to standard functions."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-warning-face
@@ -426,7 +426,7 @@ defpackage."
 
      ;; ("\\_<&\\(?:\\s_\\|\\sw\\)+\\_>" (0 'ansi-lisp-declaration-face))
 
-     ;;make pretty lambdas
+     ;; make pretty lambdas
      ("(\\(lambda\\)\\_>"
       (0 (prog1 nil
            (compose-region (match-beginning 1)

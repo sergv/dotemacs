@@ -169,6 +169,9 @@ Futher modified by Sergey Vinokurov."
        (font-lock-type-face          ((t (:foreground ,cyan))))
        (font-lock-variable-name-face ((t (:foreground ,orange))))
 
+       (blueprint-predicate-face     ((t (:foreground ,blue))))
+       (blueprint-mutating-op-face   ((t (:foreground ,blue))))
+
        (ansi-lisp-constant-face      ((t (:inherit font-lock-constant-face))))
        (ansi-lisp-keyword-face       ((t (:inherit font-lock-keyword-face))))
        (ansi-lisp-warning-face       ((t (:inherit font-lock-warning-face))))
