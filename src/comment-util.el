@@ -19,7 +19,8 @@
 
 
 (defconst +comment-util-comment-format-alist+
-  '((cl-mode               (one-line ";;") (line-regexp ";+"))
+  '((blueprint-mode        (one-line ";;") (line-regexp ";+"))
+    (cl-mode               (one-line ";;") (line-regexp ";+"))
     (lisp-mode             (one-line ";;") (line-regexp ";+"))
     (emacs-lisp-mode       (one-line ";;") (line-regexp ";+"))
     (inferior-emacs-lisp-mode (one-line ";;") (line-regexp ";+"))

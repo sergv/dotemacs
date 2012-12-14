@@ -87,6 +87,7 @@ The value from `ibuffer-saved-filter-groups' is used."
 
    (setf ibuffer-saved-filter-groups
          `(("lisp"
+            ,(assoc "blueprint"  +buffer-groups+)
             ,(assoc "lisp"       +buffer-groups+)
             ,(assoc "slime"      +buffer-groups+)
             ,(assoc "emacs lisp" +buffer-groups+)
@@ -94,6 +95,7 @@ The value from `ibuffer-saved-filter-groups' is used."
             ,(assoc "org"        +buffer-groups+))
 
            ("math"
+            ,(assoc "blueprint"  +buffer-groups+)
             ,(assoc "haskell"    +buffer-groups+)
             ,(assoc "prolog"     +buffer-groups+)
             ,(assoc "octave"     +buffer-groups+)
@@ -101,6 +103,7 @@ The value from `ibuffer-saved-filter-groups' is used."
             ,(assoc "org"        +buffer-groups+))
 
            ("default"
+            ,(assoc "blueprint"  +buffer-groups+)
             ,(assoc "lisp"       +buffer-groups+)
             ,(assoc "slime"      +buffer-groups+)
             ,(assoc "emacs lisp" +buffer-groups+)
