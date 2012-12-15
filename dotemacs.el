@@ -96,6 +96,7 @@
 
 (load-library "all-lisp-setup")
 (load-library "org-mode-setup")
+(load-library "blueprint-setup")
 
 (load-library "c-like-setup")
 (load-library "haskell-autoload")
