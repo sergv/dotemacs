@@ -1,4 +1,4 @@
-;; blueprint-mode-setup.el --- -*- lexical-binding: t; -*-
+;; blueprint-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -44,4 +44,4 @@
 ;; Local Variables:
 ;; End:
 
-;; blueprint-mode-setup.el ends here
+;; blueprint-setup.el ends here
