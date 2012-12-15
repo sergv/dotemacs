@@ -125,6 +125,10 @@
           (+ (or (syntax word) (syntax symbol))) "!"
           symbol-end)
      (0 'blueprint-mutating-op-face))
+    (,(rx symbol-start
+          (+ (or (syntax word) (syntax symbol))) ":"
+          symbol-end)
+     (0 'blueprint-keyword-face))
 
     ;; make pretty lambdas
     ("(\\(lambda\\)\\_>"
