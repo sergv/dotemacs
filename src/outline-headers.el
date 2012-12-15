@@ -108,21 +108,21 @@ headings."
                         +comment-util-comment-format-alist+)))
     (when (< 1 (length header-symbol))
       (error "setup-outline-headers: error: fetched header-symbol from comment-util but it's length is greater than 1: \"%s\" and no other header-symbol was provided" header-symbol)))
-  (assert (and (stringp header-symbol)
+  (assert (and (string? header-symbol)
                (= 1 (length header-symbol)))
           nil
           "header-symbol must be string of length 1")
-  (assert (stringp header-start)
+  (assert (string? header-start)
           nil
           "header-start must me a string")
-  (assert (stringp header-end)
+  (assert (string? header-end)
           nil
           "header-end must me a string")
-  (assert (and (integerp length-min)
+  (assert (and (integer? length-min)
                (>= length-min 1))
           nil
           "length-min must be integer >= 1")
-  (assert (and (integerp length-max)
+  (assert (and (integer? length-max)
                (>= length-max length-min))
           nil
           "length-max must be integer >= length-min")
@@ -148,14 +148,15 @@ headings."
 
   (setq-local &&hdr-outline-regexp
               +outline-headers-header-re+)
-  ;; (set (make-local-variable 'outline-heading-end-regexp)
-  ;;      "\n")
-  (set (make-local-variable '&&hdr-outline-heading-end-regexp)
-       (concat "\\(?:"
-               +outline-headers-header-re+
-               ".*\n\\)+"))
+  (setq-local &&hdr-outline-heading-end-regexp
+              (concat "\\(?:"
+                      +outline-headers-header-re+
+                      ".*?"
+                      "\\(?:\\\\\n.*\\)?"
+                      "\n"
+                      "\\)+"))
 
-  (set (make-local-variable '&&hdr-outline-level) #'outline-headers-outline-level)
+  (setq-local &&hdr-outline-level #'outline-headers-outline-level)
   (&&hdr-outline-minor-mode)
 
   (def-keys-for-map vim:normal-mode-local-keymap
