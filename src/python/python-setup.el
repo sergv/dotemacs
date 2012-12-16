@@ -142,6 +142,32 @@ in the current *Python* session."
          ":"))
 (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
 
+(setf hs-special-modes-alist
+      (cons `(python-mode ,(rx line-start
+                               (* (syntax whitespace))
+                               symbol-start
+                               (or "def"
+                                   "class"
+                                   "for"
+                                   "if"
+                                   "elif"
+                                   "else"
+                                   "while"
+                                   "try"
+                                   "except"
+                                   "finally")
+                               symbol-end)
+                          nil
+                          "#"
+                          ,(lambda (arg)
+                             (python-forward-indentation-level))
+                          nil)
+            (remove* 'python-mode
+                     hs-special-modes-alist
+                     :key #'car
+                     :test #'eq?)))
+
+
 ;;;; pylookup
 (add-to-list 'load-path (concat +emacs-config-path+
                                 "/third-party/python/pylookup/"))
@@ -204,6 +230,25 @@ in the current *Python* session."
 (defun python-forward-sexp (&optional count)
   (interactive "p")
   (python-nav-forward-sexp (or count 1)))
+
+(defun python-forward-indentation-level ()
+  "Move forward to the end of indentation block that has the same or
+greater indenation as current line."
+  (interactive)
+  (beginning-of-line)
+  (let ((start-column
+          (lambda ()
+            (save-excursion
+             (beginning-of-line)
+             (skip-syntax-forward "-")
+             (current-column)))))
+    (let ((c (funcall start-column)))
+      (forward-line)
+      (while (and (not (eob?))
+                  (< c (funcall start-column)))
+        (forward-line))
+      (backward-line)
+      (end-of-line))))
 
 ;;;; run scripts compilation mode
 
@@ -279,6 +324,7 @@ in the current *Python* session."
               #'autopair-python-triple-quote-action))
   (autopair-mode 1)
   (hs-minor-mode 1)
+  (setf hs-block-end-regexp nil)
 
   ;; autopair relies on default `forward-sexp' to be accessible, but
   ;; python sets it to `python-nav-forward-sexp' which
