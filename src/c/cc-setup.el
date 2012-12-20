@@ -36,7 +36,7 @@
   (modify-syntax-entry ?_ "_")
 
   (setf whitespace-line-column 80
-        whitespace-style '(tabs lines-tail)
+        whitespace-style '(face tabs lines-tail)
         ;; affects only tab display
         tab-width 4)
 
