@@ -103,9 +103,11 @@ in the current *Python* session."
                           (setq completion-accum (concat completion-accum string))
                           ""))))
            (completion-command-template
-             "';'.join(get_ipython().Completer.complete('''%s''')[1]) #PYTHON-MODE SILENT\n"))
+             (concat "sys.stdout.write("
+                     "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
+                     ") #PYTHON-MODE SILENT\n")))
       (process-send-string python-process
-                           (format completion-command-template pattern))
+                           (format completion-command-template sep pattern))
       (accept-process-output python-process)
       (setq completions
             (split-string (substring completion-accum
@@ -130,7 +132,7 @@ in the current *Python* session."
         (error "No completions found for \"%s\"" pattern)
         (progn
           (delete-region beg end)
-          (insert completion))))))
+          (insert (string-trim-whitespace completion)))))))
 
 
 (setenv "PYTHONPATH"
