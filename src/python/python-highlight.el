@@ -388,7 +388,9 @@ find parts to highlight.")
 
 
 (defun python-highlight-disable-pretty-symbols? (&optional position)
-  "For use in `font-lock-keywords'."
+  "Predicate that determines, if POSITION is eligible to be part (beginning) of
+pretty symbol. Intended for use in `font-lock-keywords' and
+`+python-pretty-symbols+'."
   (save-excursion
    (when position
      (goto-char position))
@@ -421,10 +423,8 @@ find parts to highlight.")
                                           "in"
                                           symbol-end))))
 
-                      '(0 (unless (memq (get-text-property (match-beginning 0)
-                                                           'face)
-                                        '(font-lock-comment-face
-                                          font-lock-string-face))
+                      '(0 (unless (python-highlight-disable-pretty-symbols?
+                                   (match-beginning 0))
                             (let ((match-1 (re-group-matched? 1))
                                   (match-2 (re-group-matched? 2))
                                   (match-3 (re-group-matched? 3))
@@ -461,10 +461,8 @@ find parts to highlight.")
                     (let ((re (car entry))
                           (char (cadr entry)))
                       `(,re
-                        (0 (unless (memq (get-text-property (match-beginning 0)
-                                                            'face)
-                                         '(font-lock-comment-face
-                                           font-lock-string-face))
+                        (0 (unless (python-highlight-disable-pretty-symbols?
+                                    (match-beginning 0))
                              (compose-region (match-beginning 0)
                                              (match-end 0)
                                              ,char)
@@ -501,10 +499,8 @@ find parts to highlight.")
                          "\\)[a-zA-Z_0-9]\\)"
                          "\\|"
                          "\\(?:in[^t \t\n\r]\\)")
-                 '(0 (unless (memq (get-text-property (match-beginning 0)
-                                                      'face)
-                                   '(font-lock-comment-face
-                                     font-lock-string-face))
+                 '(0 (unless (python-highlight-disable-pretty-symbols?
+                              (match-beginning 0))
                        (decompose-region (match-beginning 0)
                                          (match-end 0))
                        nil)))))
@@ -539,4 +535,4 @@ find parts to highlight.")
 ;; Local Variables:
 ;; End:
 
-;; python-highlight.el ends here
+;; python-highlight.el ends her

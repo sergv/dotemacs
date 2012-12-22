@@ -55,6 +55,11 @@
   "Face to highlight documentation."
   :group 'blueprint-faces)
 
+(defface blueprint-warning-face
+    '((t (:inherit font-lock-warning-face)))
+  "Face to highlight warnings like error, assert."
+  :group 'blueprint-faces)
+
 (defconst +blueprint-mode-font-lock-keywords+
   `((,(rxx ((int (seq (? (regexp "[+-]"))
                       (+ digit)))
@@ -77,7 +82,7 @@
                              ;; hexadecimal
                              )
                          symbol-end)))
-           number)
+        number)
      (0 'blueprint-constant-face))
 
     (,(rx symbol-start
@@ -108,6 +113,14 @@
           symbol-end)
      (1 'blueprint-keyword-face)
      (2 'blueprint-variable-face))
+
+    (,(rx "("
+          symbol-start
+          (group
+           (or "assert"
+               "error"))
+          symbol-end)
+     (1 'blueprint-warning-face))
 
     (,(rx symbol-start
           "+" (+ (or (syntax word) (syntax symbol))) "+"
