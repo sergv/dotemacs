@@ -12,11 +12,11 @@
 (define-common-lisp-style "blueprint"
   "My custom indent style for blueprint."
   (:indentation
-   (if (4 2 2))
+   (if (4 4 4))
    (aif (as if))
    (begin (2 &body))
    (define (4 &rest 2))
-   (cond (&rest (&whole 2 &body)))
+   (cond (&rest (&whole 1 &rest)))
    (set! nil)
    (let ((&whole 4 &rest (&whole 1 2 2)) &body))
    (let* (as let))
