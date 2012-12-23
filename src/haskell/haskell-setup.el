@@ -51,13 +51,13 @@
 
   ;; (setq-local vim:word "[:word:]_'")
 
-  (setq-local yas/indent-line 'fixed)
   (modify-syntax-entry ?\` "\"")
 
   (init-common :use-yasnippet t
                :use-nxhtml-menu nil
                :use-comment t
                :use-render-formula t)
+  (setq-local yas/indent-line 'fixed)
   (autopair-mode t)
   ;; (turn-on-haskell-indentation)
   ;; (setf haskell-indentation-cycle-warn nil)
