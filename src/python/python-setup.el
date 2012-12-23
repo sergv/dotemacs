@@ -105,6 +105,7 @@ in the current *Python* session."
            (completion-command-template
              (concat "sys.stdout.write("
                      "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
+                     "+ \"\\x00\\n\""
                      ") #PYTHON-MODE SILENT\n")))
       (process-send-string python-process
                            (format completion-command-template sep pattern))
@@ -112,7 +113,7 @@ in the current *Python* session."
       (setq completions
             (split-string (substring completion-accum
                                      0
-                                     (position ?\n completion-accum))
+                                     (position ?\0 completion-accum))
                           sep))
 
       (cond
