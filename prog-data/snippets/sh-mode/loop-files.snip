@@ -1,0 +1,7 @@
+# key: loop-files
+# name: loop over files/directories
+# --
+while IFS= read -d $'\0' -r ${1:var} ; do
+    $0
+done < <(find ${2:dir} ${3:find-options} -print0)
+

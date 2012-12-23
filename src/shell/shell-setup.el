@@ -30,7 +30,8 @@
 
   (setq whitespace-line-column 80)
   (setq whitespace-style '(tabs lines-tail))
-  (init-common :use-yasnippet nil :use-whitespace t)
+  (init-common :use-yasnippet t :use-whitespace t)
+  (setq-local yas/indent-line 'fixed)
   (autopair-mode t)
   (which-function-mode -1)
 
