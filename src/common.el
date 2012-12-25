@@ -1523,6 +1523,19 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
 
 ;;;;
 
+(defun remove-tabs (start end)
+  "Replace all tab characters in region between START and END with
+number of spaces equal to `tab-width'."
+  (interactive "r")
+  (save-excursion
+   (save-match-data
+    (goto-char end)
+    (let ((str (make-string tab-width ?\s)))
+      (while (re-search-backward "\t" start t)
+        (replace-match str))))))
+
+;;;;
+
 
 (provide 'common)
 
