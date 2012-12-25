@@ -289,6 +289,18 @@ Basically swap current point with previous one."
 (vim:emap "latex" 'vim:render-latex)
 
 
+
+(vim:defcmd vim:remove-tabs (motion nonrepeatable)
+  (remove-tabs (if motion
+                 (vim:motion-begin motion)
+                 (line-beginning-position))
+               (if motion
+                 (vim:motion-end motion)
+                 (line-end-position))))
+
+(vim:emap "no-tabs" 'vim:remove-tabs)
+
+
 (provide 'vim-init)
 
 ;; Local Variables:
