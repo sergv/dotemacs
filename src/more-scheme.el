@@ -22,6 +22,13 @@
   (string-to-char str))
 
 
+(defun number->string (n)
+  (number-to-string n))
+
+(defun string->number (str)
+  (string-to-number str))
+
+
 (defun string->list (str)
   (coerce str 'list))
 

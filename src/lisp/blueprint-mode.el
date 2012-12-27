@@ -195,7 +195,7 @@
 
 (define-derived-mode blueprint-mode prog-mode "Blueprint"
   "Major mode for Blueprint files"
-  :syntax-tabel blueprint-mode-syntax-table
+  :syntax-table blueprint-mode-syntax-table
   (setq-local comment-style 'indent)
   (setq-local comment-start ";")
   (setq-local comment-end "")

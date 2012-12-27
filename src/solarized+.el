@@ -14,6 +14,16 @@
 
 (require 'color-theme)
 
+(defconst +solarized-red+     "#dc322f")
+(defconst +solarized-orange+  "#cb4b16")
+(defconst +solarized-yellow+  "#b58900")
+(defconst +solarized-green+   "#859900")
+(defconst +solarized-cyan+    "#2aa198")
+(defconst +solarized-blue+    "#268bd2")
+(defconst +solarized-violet+  "#6c71c4")
+(defconst +solarized-magenta+ "#d33682")
+
+
 (defun color-theme-solarized+ (mode)
   "Color theme by Ethan Schoonover, created 2011-03-24.
 Ported to Emacs by Greg Pfeil, http://ethanschoonover.com/solarized.
