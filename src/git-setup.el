@@ -201,9 +201,27 @@ put it in magit-key-mode-key-maps for fast lookup."
 (defvar *have-git?* (executable-find "git")
   "Becomes t when git executable is accessible")
 
-(when *have-git?*
-  (defvar-local git-repository nil
+(defvar-local git-repository nil
     "Path to root of git repository this buffer's file is member of, if any.")
+
+(when *have-git?*
+  (defun git-get-tracked-files (repo-path)
+    "Returns list of tracked files in repository located at REPO-PATH"
+    (with-temp-buffer
+      (cd repo-path)
+      (call-process "git"
+                    nil
+                    (current-buffer)
+                    nil
+                    "ls-files"
+                    ;; cached
+                    "-c"
+                    ;; null-separated
+                    "-z")
+      (split-string (buffer-substring-no-properties (point-min)
+                                                    (point-max))
+                    "\0"
+                    t)))
 
   (defun git-update-file-repository ()
     (if-buffer-has-file
@@ -224,22 +242,7 @@ put it in magit-key-mode-key-maps for fast lookup."
                      (buffer-substring-no-properties (point-min)
                                                      (point-max)))))))
          (when repository
-           (let* ((tracked-files
-                    (with-temp-buffer
-                      (cd repository)
-                      (call-process "git"
-                                    nil
-                                    t
-                                    nil
-                                    "ls-files"
-                                    ;; cached
-                                    "-c"
-                                    ;; null-separated
-                                    "-z")
-                      (split-string (buffer-substring-no-properties (point-min)
-                                                                    (point-max))
-                                    "\0"
-                                    t)))
+           (let* ((tracked-files (git-get-tracked-files repository))
                   (tracked-file? (any? (lambda (path)
                                          (string-suffix? path filename))
                                        tracked-files)))
