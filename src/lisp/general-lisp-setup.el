@@ -745,7 +745,7 @@ This determines whether to insert a space after the # sign."
       ;; if we're just after reader macro start
       ;; then return nil as sign that we don't want a space
       (not (looking-at-pure? "#"))))
-    (double
+    (else
      ;; delimiter is not double quote so don't handle it
      t)))
 
