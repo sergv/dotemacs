@@ -14,29 +14,31 @@
   ;; (concat +emacs-config-path+ "/tmp/python/ctags-5.8/ctags")
   )
 
-(setf +ctags-language-flags+
-  '(("c"
+(defvar *ctags-language-flags*
+  '((c-mode
      "--language-force=c"
      "--c-kinds=-cdefgmnpstuv"
      "--c-kinds=+sv"
-     "--fields=+iaSzkK"
+     "--fields=+SzkK"
      "--extra=+q")
-    ("c++"
+    (c++-mode
      "--c++-kinds=+cdefgmnpstuv"
      "--fields=+iaSzkK"
      "--extra=+q")
-    ("python"
+    (python-mode
      "--language-force=python"
      "--python-kinds=+cfmvi"
      "--fields=+SzkK")))
 
-(defconst +ctags-language-extensions+
-  `(("c"
+(defvar *ctags-language-extensions*
+  `((c-mode
      "\\.[ch]\\'")
-    ("c++"
+    (c++-mode
      "\\.\\(?:c\\|cc\\|cxx\\|cpp\\|c++\\|h\\|hh\\|hxx\\|hpp\\|h++\\|inl\\|inc\\|incl\\)\\'")
-    ("python"
+    (python-mode
      "\\.\\(?:py\\|pyx\\|pxd\\|pxi\\)\\'")))
+
+
 
 (defconst +ctags-line-re+
   (rx bol
@@ -56,14 +58,32 @@
       (or ";\""
           eol)))
 
+(defconst +ctags-aux-fields+
+  '("kind"
+    "access"
+    "class"
+    "file"
+    "signature"
+    "namespace"
+    "struct"
+    "enum"
+    "union"
+    "inherits"
+    "typeref"
+    "function"))
+
+(defconst +ctags-aux-fields-re+
+  (eval-when-compile
+    (macroexpand
+     `(rx (or ,@+ctags-aux-fields+)))))
 
 
-(defun run-ctags-on-files (language root-dir files out-buffer)
+(defun run-ctags-on-files (mjr-mode root-dir files out-buffer)
   (with-current-buffer out-buffer
     (goto-char (point-max))
     (unless (looking-at-pure? "^$")
       (insert "\n"))
-    (let ((ext-re (cadr (assoc language +ctags-language-extensions+))))
+    (let ((ext-re (cadr (assq mjr-mode *ctags-language-extensions*))))
       (with-temp-buffer
         (cd root-dir)
         (dolist (file (filter (lambda (f)
@@ -82,8 +102,9 @@
                "-L"
                "-"
                "--excmd=number"
-               (cdr (assoc language +ctags-language-flags+)))))))
+               (cdr (assq mjr-mode *ctags-language-flags*)))))))
 
+;; hash table of (project-root . names) bindings
 (defvar *ctags-projects*
   (make-hash-table :test #'equal))
 
@@ -92,106 +113,98 @@
   file
   line
   kind
-  aux-fields ;; alist of ({access|class|signature|namespace} . <value>)
+  aux-fields ;; alist of cons pairs
   )
 
-(defun c++-load-ctags-project ()
-
-  (interactive)
-  (unless *have-git?*
-    (error "git is not available => no support for projects"))
+(defun proj-get-project-root ()
   (when *have-git?*
     (git-update-file-repository))
-  (let ((ctags-buf (aif git-repository
-                     (with-current-buffer (get-buffer-create (concat "*"
-                                                                     it
-                                                                     "-ctags*"))
-                       (cd it)
-                       (current-buffer))
-                     (get-buffer-create (concat "*"
-                                                (buffer-file-name)
-                                                "-ctags*")))))
-    (aif git-repository
-      (run-ctags-on-files "c++"
-                          it
-                          (git-get-tracked-files it)
-                          ctags-buf)
-      (run-ctags-on-files "c++"
-                          (file-name-directory (buffer-file-name))
-                          (list (buffer-file-name))
-                          ctags-buf))
+  (or git-repository
+      (and (buffer-file-name) (file-name-directory (buffer-file-name)))
+      default-directory))
+
+(defun proj-get-project-ctags-symbols (load-symbols-func)
+  (let ((root (proj-get-project-root)))
+    (aif (gethash root
+                  *ctags-projects*
+                  nil)
+      it
+      (begin
+        (funcall load-symbols-func)
+        (aif (gethash root
+                  *ctags-projects*
+                  nil)
+          it
+          (error "Cannot load ctags symbols for %s project" root))))))
+
+(defun proj-load-ctags-project (project-root lang)
+  "Exctract ctags names from C++ project current buffer's file is part of."
+  (let ((ctags-buf (get-buffer-create (concat "*"
+                                              (if git-repository
+                                                git-repository
+                                                (buffer-file-name))
+                                              "-ctags*"))))
+    (with-current-buffer ctags-buf
+      (cd project-root)
+      (erase-buffer))
+    (run-ctags-on-files lang
+                        project-root
+                        (if git-repository
+                          (git-get-tracked-files git-repository)
+                          (list (buffer-file-name)))
+                        ctags-buf)
     (pop-to-buffer ctags-buf)
     (ctags-mode)
     (save-excursion
-     (goto-char (point-min))
-     (while (not (eob?))
-       (when (looking-at +ctags-line-re+)
-         (let ((symbol (match-string-no-properties 1))
-               (file (match-string-no-properties 2))
-               (line (match-string-no-properties (string->number 3))))
-           (goto-char (match-end 0))
-           ))
-       (forward-line 1)))))
+     (save-match-data
+      (goto-char (point-min))
+      (let ((tags-table (make-hash-table :test #'equal)))
+        (while (not (eob?))
+          (when (looking-at +ctags-line-re+)
+            (let ((symbol (match-string-no-properties 1))
+                  (file (match-string-no-properties 2))
+                  (line (string->number (match-string-no-properties 3))))
+              (goto-char (match-end 0))
+              ;; now we're past ;"
+
+              (let ((fields
+                      (delq
+                       nil
+                       (mapcar (lambda (entry)
+                                 (if (string-match? (concat "^\\("
+                                                            +ctags-aux-fields-re+
+                                                            "\\):\\(.*\\)$")
+                                                    entry)
+                                   (aif (< 0 (length (match-string-no-properties 2 entry)))
+                                     (cons (string->symbol
+                                            (match-string-no-properties 1 entry))
+                                           (match-string-no-properties 2 entry))
+                                     nil)
+                                   (error "invalid entry: %s" entry)))
+                               (split-string (buffer-substring-no-properties
+                                              (point)
+                                              (line-end-position))
+                                             "\t"
+                                             t)))))
+                (puthash symbol
+                         (cons (make-ctags-tag
+                                :symbol symbol
+                                :file file
+                                :line line
+                                :kind (cdr (assoc* 'kind fields))
+                                :aux-fields (filter (lambda (x)
+                                                      (not (eq? 'kind (car x))))
+                                                    fields))
+                               (gethash symbol
+                                        tags-table
+                                        nil))
+                         tags-table))))
+          (forward-line 1))
+        (puthash project-root
+                 tags-table
+                 *ctags-projects*))))))
 
 
-;; (require 'more-scheme)
-;;
-;; (defstruct ctags-tag
-;;   name
-;;   file
-;;   line
-;;   kind)
-;;
-;; (let ((tags-buf (get-buffer-create "*python-tags*"))
-;;       (tags '()))
-;;   (with-temp-buffer
-;;     (dolist (file '("/home/sergey/projects/python/misc/fractal/fractal.py"))
-;;       (insert file "\n"))
-;;     (with-current-buffer tags-buf
-;;       (erase-buffer))
-;;     (call-process-region (point-min)
-;;
-;;                          (point-max)
-;;                          "/home/sergey/emacs/tmp/python/ctags-5.8/ctags"
-;;                          nil
-;;                          tags-buf
-;;                          nil
-;;                          "-f"
-;;                          "-"
-;;                          "-L"
-;;                          "-"
-;;                          "--excmd=number"
-;;                          "--language-force=python"
-;;                          ;; "--python-kinds=-fmv"
-;;                          ;; "--python-kinds=+ci"
-;;                          "--python-kinds=+cfmvi"
-;;                          ;; "--fields=+iaSzkKn"
-;;                          "--fields=+SzKn"
-;; n"
-;;                          "--fields=+KSz"
-;;                          "--extra=+q")
-;;     (with-current-buffer tags-buf
-;;       ;; (delete-non-matching-lines "kind:namespace" (point-min) (point-max))
-;;       (goto-char (point-min))
-;;       (while (re-search-forward "^\\([^\t]+\\)\t\\([^\t]+\\)\t\\([0-9]+\\);\"\tkind:\\([^\t\n ]+\\)$"
-;;                                 nil
-;;                                 t)
-;;         (push (make-ctags-tag :name (match-string-no-properties 1)
-;;                               :file (match-string-no-properties 2)
-;;                               :line (string->number (match-string-no-properties 3))
-;;                               :kind (string->symbol (match-string-no-properties 4)))
-;;               tags)))
-;;     tags))
-;;
-;;
-;; (defun get-python-includes (source)
-;;   "Get list of imported modules in SOURCE file."
-;;   (let ((imports '()))
-;;     (with-temp-buffer
-;;       (insert-file-contents source)
-;;       (goto-char (point-min))
-;;       (while (re-search-forward "import[ \t]+")))))
-;;
 
 (defface ctags-symbol-face
     `((t (:foreground ,+solarized-blue+)))
@@ -214,19 +227,15 @@
   :group 'ctags-mode-faces)
 
 (defconst +ctags-mode-font-lock-keywords+
-  `((,+ctags-line-re+
-     (1 'ctags-symbol-face)
-     (2 'ctags-file-face)
-     (3 'ctags-regexp-face))
-    (,(rx (group bow
-                 (or "kind"
-                     "access"
-                     "class"
-                     "file"
-                     "signature"
-                     "namespace"))
-          ":")
-     (1 'ctags-aux-face))))
+  (eval-when-compile
+    `((,+ctags-line-re+
+       (1 'ctags-symbol-face)
+       (2 'ctags-file-face)
+       (3 'ctags-regexp-face))
+      (,(eval `(rx (group bow
+                          (or ,@+ctags-aux-fields+))
+                   ":"))
+       (1 'ctags-aux-face)))))
 
 
 (defun ctags-go-to-name-at-point ()
