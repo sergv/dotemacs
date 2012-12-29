@@ -226,8 +226,9 @@ Of course directory names are also supported."
 obtained by following upward in filesystem"
   (interactive)
   (let* ((filename-re (read-string "filename regexp: " ""))
-         (path (reverse (split-string (file-name-directory
-                                       (buffer-file-name (current-buffer)))
+         (path (reverse (split-string (aif (buffer-file-name (current-buffer))
+                                        (file-name-directory it)
+                                        default-directory)
                                       "/"
                                       t)))
          (subdirs-visited '())
