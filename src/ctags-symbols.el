@@ -9,6 +9,7 @@
 (eval-when-compile
   (require 'cl))
 
+(require 'eproj)
 (require 'select-mode)
 (require 'ctags-mode)
 
@@ -31,55 +32,73 @@
 
 (defun ctags-symbols-go-to-symbol-home ()
   (interactive)
-  (let* ((sym (ctags-symbols-identifier-at-point))
-         (proj-root (proj-get-project-root))
-         (symbols (proj-get-project-ctags-symbols
-                   (lambda ()
-                     (proj-load-ctags-project (proj-get-project-root)
-                                              major-mode))))
-         (entries (gethash sym symbols nil))
-         (stack-entry (list (current-buffer) (point)))
-         (jump-to-home
-           (lambda (entry)
-             (aif (ctags-tag-file entry)
-               (begin
-                 (push stack-entry ctags-symbols-go-to-symbol-home-stack)
-                 (find-file (concat proj-root "/" it))
-                 (goto-line (ctags-tag-line entry)))
-               (error "Identifier %s is not defined in file" sym)))))
-    (cond ((null? entries)
-           (error "No entries for identifier %s" sym))
-          ((null? (cdr entries))
-           (funcall jump-to-home (car entries)))
-          (else
-           (select-start-selection
-            entries
-            :buffer-name "Symbol homes"
-            :after-init #'ignore
-            :on-selection
-            (lambda (idx)
-              (funcall jump-to-home (elt entries idx)))
-            :predisplay-function
-            (lambda (entry)
-              (format "%s\n%s:%s\n%s%s%s\n"
-                      (ctags-tag-kind entry)
-                      (ctags-tag-file entry)
-                      (ctags-tag-line entry)
-                      (aif (or (assoc 'class (ctags-tag-aux-fields entry))
-                               (assoc 'struct (ctags-tag-aux-fields entry))
-                               (assoc 'union (ctags-tag-aux-fields entry))
-                               (assoc 'enum (ctags-tag-aux-fields entry)))
-                        (concat (cdr it)
-                                (cdr (assq major-mode
-                                           *ctags-symbols-name-delimiter-alist*)))
-                        "")
-                      (ctags-tag-symbol entry)
-                      (aif (assoc 'signature (ctags-tag-aux-fields entry))
-                        (cdr it)
-                        "")))
-            :preamble-function
-            (lambda ()
-              "Choose symbol\n\n"))))))
+  (let ((sym (ctags-symbols-identifier-at-point))
+        (proj (eproj-get-project-for-buf (current-buffer))))
+    (unless (or (eproj-project-names proj)
+                (assq major-mode (eproj-project-names proj)))
+      (eproj-load-ctags-project (current-buffer))
+      (unless (eproj-project-names proj)
+        (error "Project %s is not loaded" (eproj-project-root proj)))
+      (unless (assq major-mode (eproj-project-names proj))
+        (error "No names in project %s for language %s"
+               (eproj-project-root proj)
+               major-mode)))
+    (let* ((entries (reduce #'append
+                            (mapcar (lambda (root)
+                                      (aif (assq major-mode
+                                                 (eproj-project-names
+                                                  (eproj-get-project root)))
+                                        (gethash sym (cdr it) nil)
+                                        nil))
+                                    (cons (eproj-project-root proj)
+                                          (eproj-get-all-related-projects
+                                           (eproj-project-root proj))))))
+           (stack-entry (list (current-buffer) (point)))
+           (jump-to-home
+             (lambda (entry)
+               (aif (ctags-tag-file entry)
+                 (begin
+                   (push stack-entry ctags-symbols-go-to-symbol-home-stack)
+                   (unless (file-exists? it)
+                     (error "file %s does not exist" it))
+                   (find-file it)
+                   (goto-line (ctags-tag-line entry)))
+                 (error "Identifier %s is not defined in file" sym)))))
+      (cond ((null? entries)
+             (error "No entries for identifier %s" sym))
+            ((null? (cdr entries))
+             (funcall jump-to-home (car entries)))
+            (else
+             (select-start-selection
+              entries
+              :buffer-name "Symbol homes"
+              :after-init #'ignore
+              :on-selection
+              (lambda (idx)
+                (funcall jump-to-home (elt entries idx)))
+              :predisplay-function
+              (lambda (entry)
+                (format "%s %s%s%s\n%s:%s\n%s:%s\n"
+                        (ctags-tag-kind entry)
+                        (aif (or (assoc 'class (ctags-tag-aux-fields entry))
+                                 (assoc 'struct (ctags-tag-aux-fields entry))
+                                 (assoc 'union (ctags-tag-aux-fields entry))
+                                 (assoc 'enum (ctags-tag-aux-fields entry)))
+                          (concat (cdr it)
+                                  (cdr (assq major-mode
+                                             *ctags-symbols-name-delimiter-alist*)))
+                          "")
+                        (ctags-tag-symbol entry)
+                        (aif (assoc 'signature (ctags-tag-aux-fields entry))
+                          (cdr it)
+                          "")
+                        (file-name-nondirectory (ctags-tag-file entry))
+                        (ctags-tag-line entry)
+                        (ctags-tag-file entry)
+                        (ctags-tag-line entry)))
+              :preamble-function
+              (lambda ()
+                "Choose symbol\n\n")))))))
 
 (defun ctags-symbols-go-back ()
   (interactive)

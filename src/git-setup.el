@@ -223,6 +223,21 @@ put it in magit-key-mode-key-maps for fast lookup."
                     "\0"
                     t)))
 
+  (defun git-get-repository-root (root)
+    "Returns root of git repository ROOT is part of or nil if it's not
+under git version control."
+    (with-temp-buffer
+      (cd root)
+      (when (= 0 (call-process "git"
+                               nil
+                               t
+                               nil
+                               "rev-parse"
+                               "--show-toplevel"))
+        (string-trim-whitespace
+         (buffer-substring-no-properties (point-min)
+                                         (point-max))))))
+
   (defun git-update-file-repository ()
     (if-buffer-has-file
      (when (or (not git-repository)
@@ -230,17 +245,7 @@ put it in magit-key-mode-key-maps for fast lookup."
                                     (expand-file-name buffer-file-name))))
        (let* ((filename (buffer-file-name))
               (repository
-                (with-temp-buffer
-                  (cd (file-name-directory filename))
-                  (when (= 0 (call-process "git"
-                                           nil
-                                           t
-                                           nil
-                                           "rev-parse"
-                                           "--show-toplevel"))
-                    (string-trim-whitespace
-                     (buffer-substring-no-properties (point-min)
-                                                     (point-max)))))))
+                (git-get-repository-root (file-name-directory filename))))
          (when repository
            (let* ((tracked-files (git-get-tracked-files repository))
                   (tracked-file? (any? (lambda (path)
