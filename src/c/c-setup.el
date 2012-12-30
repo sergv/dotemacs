@@ -9,6 +9,35 @@
 (require 'cc-setup)
 (require 'c-abbrev+)
 
+(defun c-indent-buffer ()
+  (interactive)
+  (unless (executable-find "astyle")
+    (error "Command astyle is not available"))
+  (let ((file (make-temp-file "c-indent")))
+    (write-region (point-min) (point-max) file)
+    (erase-buffer)
+    (shell-command
+     (mapconcat #'identity
+                (list "astyle"
+                      "--style=linux"
+                      "--indent=spaces=8"
+                      "--brackets=linux"
+                      "--pad-oper"
+                      "--pad-header"
+                      "--unpad-paren"
+                      "--keep-one-line-statements"
+                      "--keep-one-line-blocks"
+                      "--convert-tabs"
+                      "--align-pointer=name"
+                      "--mode=c"
+                      "--suffix=none"
+                      "--lineend=linux"
+                      (format "<%s" file))
+                " ")
+     (current-buffer))))
+
+(push (cons 'c-mode #'c-indent-buffer) *mode-buffer-indent-function-alist*)
+
 (defun c-hideshow-forward-sexp (&optional arg)
   "Special version of `forward-sexp' for hideshow in c-mode."
   (if (looking-at-pure? "{")
