@@ -38,6 +38,7 @@
                     string-prefix-p
 
                     file-existp
+                    file-exists-p
                     file-executable-p
                     file-readable-p
                     file-writable-p

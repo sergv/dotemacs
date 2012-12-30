@@ -9,10 +9,10 @@
 (eval-when-compile
   (require 'cl))
 (require 'solarized+)
+(require 'eproj)
 
-(defvar *ctags-exec* "ctags-exuberant"
-  ;; (concat +emacs-config-path+ "/tmp/python/ctags-5.8/ctags")
-  )
+(defvar *ctags-exec* ;; "ctags-exuberant"
+  (concat +emacs-config-path+ "/tmp/python/ctags-5.8/ctags"))
 
 (defvar *ctags-language-flags*
   '((c-mode
@@ -116,93 +116,84 @@
   aux-fields ;; alist of cons pairs
   )
 
-(defun proj-get-project-root ()
-  (when *have-git?*
-    (git-update-file-repository))
-  (or git-repository
-      (and (buffer-file-name) (file-name-directory (buffer-file-name)))
-      default-directory))
+(defun ctags-get-tags-from-buffer (buffer &optional root)
+  "Returns hash-table of (tag . ctags-tag) bindings parsed from buffer BUFFER."
+  (with-current-buffer buffer
+    (save-match-data
+     (goto-char (point-min))
+     (let ((tags-table (make-hash-table :test #'equal)))
+       (while (not (eob?))
+         (when (looking-at +ctags-line-re+)
+           (let ((symbol (match-string-no-properties 1))
+                 (file (concat (when root (concat root "/"))
+                               (match-string-no-properties 2)))
+                 (line (string->number (match-string-no-properties 3))))
+             (goto-char (match-end 0))
+             ;; now we're past ;"
+             (let ((fields
+                     (delq
+                      nil
+                      (mapcar (lambda (entry)
+                                (if (string-match? (concat "^\\("
+                                                           +ctags-aux-fields-re+
+                                                           "\\):\\(.*\\)$")
+                                                   entry)
+                                  (when (< 0 (length (match-string-no-properties 2 entry)))
+                                    (cons (string->symbol
+                                           (match-string-no-properties 1 entry))
+                                          (match-string-no-properties 2 entry)))
+                                  (error "invalid entry: %s" entry)))
+                              (split-string (buffer-substring-no-properties
+                                             (point)
+                                             (line-end-position))
+                                            "\t"
+                                            t)))))
+               (puthash symbol
+                        (cons (make-ctags-tag
+                               :symbol symbol
+                               :file file
+                               :line line
+                               :kind (cdr (assoc* 'kind fields))
+                               :aux-fields (filter (lambda (x)
+                                                     (not (eq? 'kind (car x))))
+                                                   fields))
+                              (gethash symbol
+                                       tags-table
+                                       nil))
+                        tags-table))))
+         (forward-line 1))
+       tags-table))))
 
-(defun proj-get-project-ctags-symbols (load-symbols-func)
-  (let ((root (proj-get-project-root)))
-    (aif (gethash root
-                  *ctags-projects*
-                  nil)
-      it
-      (begin
-        (funcall load-symbols-func)
-        (aif (gethash root
-                  *ctags-projects*
-                  nil)
-          it
-          (error "Cannot load ctags symbols for %s project" root))))))
+(defun eproj-load-single-ctags-project (root get-proj-files-func)
+  (let* ((proj (eproj-get-project root)))
+    (setf (eproj-project-names proj) nil)
+    (dolist (lang (eproj-project-languages proj))
+      (let ((ctags-buf (get-buffer-create (concat " *"
+                                                  (eproj-project-root proj)
+                                                  "-ctags-"
+                                                  (symbol->string lang)
+                                                  "*"))))
+        (with-current-buffer ctags-buf
+          (cd root)
+          (erase-buffer)
+          ;; (ctags-mode)
+          )
+        (run-ctags-on-files lang
+                            (eproj-project-root proj)
+                            (funcall get-proj-files-func proj)
+                            ctags-buf)
 
-(defun proj-load-ctags-project (project-root lang)
-  "Exctract ctags names from C++ project current buffer's file is part of."
-  (let ((ctags-buf (get-buffer-create (concat "*"
-                                              (if git-repository
-                                                git-repository
-                                                (buffer-file-name))
-                                              "-ctags*"))))
-    (with-current-buffer ctags-buf
-      (cd project-root)
-      (erase-buffer))
-    (run-ctags-on-files lang
-                        project-root
-                        (if git-repository
-                          (git-get-tracked-files git-repository)
-                          (list (buffer-file-name)))
-                        ctags-buf)
-    (pop-to-buffer ctags-buf)
-    (ctags-mode)
-    (save-excursion
-     (save-match-data
-      (goto-char (point-min))
-      (let ((tags-table (make-hash-table :test #'equal)))
-        (while (not (eob?))
-          (when (looking-at +ctags-line-re+)
-            (let ((symbol (match-string-no-properties 1))
-                  (file (match-string-no-properties 2))
-                  (line (string->number (match-string-no-properties 3))))
-              (goto-char (match-end 0))
-              ;; now we're past ;"
+        (push (cons lang (ctags-get-tags-from-buffer ctags-buf root))
+              (eproj-project-names proj))))))
 
-              (let ((fields
-                      (delq
-                       nil
-                       (mapcar (lambda (entry)
-                                 (if (string-match? (concat "^\\("
-                                                            +ctags-aux-fields-re+
-                                                            "\\):\\(.*\\)$")
-                                                    entry)
-                                   (aif (< 0 (length (match-string-no-properties 2 entry)))
-                                     (cons (string->symbol
-                                            (match-string-no-properties 1 entry))
-                                           (match-string-no-properties 2 entry))
-                                     nil)
-                                   (error "invalid entry: %s" entry)))
-                               (split-string (buffer-substring-no-properties
-                                              (point)
-                                              (line-end-position))
-                                             "\t"
-                                             t)))))
-                (puthash symbol
-                         (cons (make-ctags-tag
-                                :symbol symbol
-                                :file file
-                                :line line
-                                :kind (cdr (assoc* 'kind fields))
-                                :aux-fields (filter (lambda (x)
-                                                      (not (eq? 'kind (car x))))
-                                                    fields))
-                               (gethash symbol
-                                        tags-table
-                                        nil))
-                         tags-table))))
-          (forward-line 1))
-        (puthash project-root
-                 tags-table
-                 *ctags-projects*))))))
+(defun eproj-load-ctags-project (buffer)
+  "Reload project and all it's related projects current buffer's file is part of."
+  (let* ((proj (eproj-get-project-for-buf buffer)))
+    (mapcar (lambda (root)
+              (eproj-load-single-ctags-project root
+                                               #'eproj-get-project-files))
+            (cons (eproj-project-root proj)
+                  (eproj-get-all-related-projects (eproj-project-root proj))))))
 
 
 
