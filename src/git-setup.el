@@ -234,9 +234,10 @@ under git version control."
                                nil
                                "rev-parse"
                                "--show-toplevel"))
-        (string-trim-whitespace
-         (buffer-substring-no-properties (point-min)
-                                         (point-max))))))
+        (strip-trailing-slash
+         (string-trim-whitespace
+          (buffer-substring-no-properties (point-min)
+                                          (point-max)))))))
 
   (defun git-update-file-repository ()
     (if-buffer-has-file

@@ -132,11 +132,7 @@ of random numbers from RANDOM-GEN."
 
 ;;;; file utilities
 
-(defun strip-trailing-slash (path)
-  (if (char= ?\/ (aref path (1- (length path))))
-    (subseq path 0 -1)
-    path))
-
+(defalias 'strip-trailing-slash 'directory-file-name)
 
 (defun path-concat (&rest args)
   "Connect paths with standard delimiter"
