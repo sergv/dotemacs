@@ -68,10 +68,27 @@
       "from IPython.core.completerlib import module_completion"
       python-shell-completion-module-string-code
       "';'.join(module_completion('''%s'''))\n"
+
       python-shell-completion-string-code
+      (concat "sys.stdout.write("
+                     "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
+                     "+ \"\\x00\\n\""
+                     ") #PYTHON-MODE SILENT\n")
       ;; "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
-      "';'.join(get_ipython().Completer.complete('''%s''')[1]) #PYTHON-MODE SILENT\n"
+      ;; "';'.join(get_ipython().Completer.complete('''%s''')[1]) #PYTHON-MODE SILENT\n"
       )
+
+(defvar python-setup-shell-completion-code
+  "import sys #PYTHON-MODE SILENT")
+(defvar python-setup-numpy-code
+  "try:
+    import numpy as np
+except ImportError:
+    print(\"Numpy is not accessible\")")
+(add-to-list 'python-shell-setup-codes
+             'python-setup-shell-completion-code)
+(add-to-list 'python-shell-setup-codes
+             'python-setup-numpy-code)
 
 (defun python-complete ()
   "Try to complete the python symbol before point. Only knows about the stuff
@@ -101,14 +118,9 @@ in the current *Python* session."
                      `(ansi-color-filter-apply
                        ,(lambda (string)
                           (setq completion-accum (concat completion-accum string))
-                          ""))))
-           (completion-command-template
-             (concat "sys.stdout.write("
-                     "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
-                     "+ \"\\x00\\n\""
-                     ") #PYTHON-MODE SILENT\n")))
+                          "")))))
       (process-send-string python-process
-                           (format completion-command-template sep pattern))
+                           (format python-shell-completion-string-code sep pattern))
       (accept-process-output python-process)
       (setq completions
             (split-string (substring completion-accum
