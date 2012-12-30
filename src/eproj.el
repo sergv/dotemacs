@@ -8,6 +8,7 @@
 
 (eval-when-compile
   (require 'cl))
+(require 'custom-predicates)
 
 (defstruct eproj-project
   type ;; one of symbols: git, single-file
@@ -55,13 +56,22 @@
     (git-get-tracked-files (eproj-project-root project))))
 
 (defun eproj-get-related-projects (root)
-  (let ((related-files-source (concat root "/.eproj_related")))
+  (let ((related-files-source (concat (strip-trailing-slash root)
+                                      "/.eproj_related")))
     (when (file-exists? related-files-source)
       (with-temp-buffer
         (insert-file-contents-literally related-files-source)
-        (split-string (buffer-substring-no-properties (point-min) (point-max))
-                      "[\n\0]+"
-                      t)))))
+        (mapcar (lambda (path)
+                  (cond ((file-directory? path)
+                         path)
+                        ((file-directory? (expand-file-name path root))
+                         (expand-file-name path root))
+                        (else
+                         (error "invalid related-project entry: not existing absolute nor relative directory: %s"
+                                path))))
+                (split-string (buffer-substring-no-properties (point-min) (point-max))
+                              "[\n\0]+"
+                              t))))))
 
 
 
