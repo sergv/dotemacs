@@ -1537,6 +1537,11 @@ number of spaces equal to `tab-width'."
 
 ;;;;
 
+(defvar *mode-buffer-indent-function-alist* nil
+  "Alist of (major-mode . function) pairs, where functions should take 0
+arguments and indent current buffer.")
+
+;;;;
 
 (provide 'common)
 
