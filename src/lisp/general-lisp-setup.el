@@ -676,6 +676,14 @@ This command assumes point is not in a string or comment."
      (unless (eobp)
        (backward-sexp)))))
 
+(dolist (mode '(emacs-lisp-mode
+                common-lisp-mode
+                scheme-mode
+                blueprint-mode
+                lisp-mode))
+  (push (cons mode #'lisp-indent-buffer)
+        *mode-buffer-indent-function-alist*))
+
 
 ;;;; this is useful for all lisps
 

@@ -11,6 +11,7 @@
 (require 'completion-setup)
 (require 'search)
 (require 'minimap-setup)
+(require 'common)
 
 (defun vimrc-redefine-motions (keymap)
   (def-keys-for-map keymap
@@ -299,6 +300,16 @@ Basically swap current point with previous one."
                  (line-end-position))))
 
 (vim:emap "no-tabs" 'vim:remove-tabs)
+
+
+
+(vim:defcmd vim:indent (nonrepeatable)
+  (aif (assq major-mode *mode-buffer-indent-function-alist*)
+    (funcall (cdr it))
+    (error "No indentation function defined for %s" major-mode)))
+
+(vim:emap "indent" 'vim:indent)
+
 
 
 (provide 'vim-init)
