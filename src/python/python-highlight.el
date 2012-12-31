@@ -394,13 +394,11 @@ pretty symbol. Intended for use in `font-lock-keywords' and
   (save-excursion
    (when position
      (goto-char position))
-   (and (not python-point-inside-string-or-comment?)
-        (not (memq (get-text-property (or position (point))
-                                      'face)
-                   '(font-lock-comment-face
-                     font-lock-string-face)))
-        (not (get-text-property (or position (point))
-                                'disable-pretty-symbols)))))
+   (or (python-point-inside-string-or-comment?)
+       (memq (get-text-property (point) 'face)
+             '(font-lock-comment-face
+               font-lock-string-face))
+       (get-text-property (point) 'disable-pretty-symbols))))
 
 (defconst +python-pretty-symbols+
   (append (list (list (rx (or (seq
@@ -467,17 +465,17 @@ pretty symbol. Intended for use in `font-lock-keywords' and
                                              (match-end 0)
                                              ,char)
                              nil)))))
-                  '(("\\_<lambda\\_>"  ?λ)
-                    ("\\_<for\\_>"     ?∀)
-                    ("\\_<int\\_>"     ?ℤ)
-                    ("\\_<float\\_>"   ?ℝ)
-                    ("\\_<complex\\_>" ?ℂ)
-                    ("\\*\\*2\\>"      ?²)
-                    ("\\_<and\\_>"     ?∧)
-                    ("\\_<or\\_>"      ?∨)
-                    ("<="              ?≤)
-                    (">="              ?≥)
-                    ("\\_<sum\\_>"     ?∑)))
+                  '(("\\_<lambda\\_>"         ?λ)
+                    ("\\_<for\\_>"            ?∀)
+                    ("\\_<int\\_>"            ?ℤ)
+                    ("\\_<float\\_>"          ?ℝ)
+                    ("\\_<complex\\_>"        ?ℂ)
+                    ("[ \t]*\\*\\*[ \t]*2\\>" ?²)
+                    ("\\_<and\\_>"            ?∧)
+                    ("\\_<or\\_>"             ?∨)
+                    ("<="                     ?≤)
+                    (">="                     ?≥)
+                    ("\\_<sum\\_>"            ?∑)))
 
           ;; ensure that pretty symbols go away as soon as we type something after any of them
           (list
@@ -492,7 +490,7 @@ pretty symbol. Intended for use in `font-lock-keywords' and
                                       "and"
                                       "or"
                                       "not"
-                                      "\\*\\*2"
+                                      "[ \t]*\\*\\*[ \t]*2"
                                       "is"
                                       "sum")
                                     "\\|")
@@ -518,13 +516,15 @@ pretty symbol. Intended for use in `font-lock-keywords' and
 ;;
 ;; for a in b:
 ;;     pass
+;; x ** 2 + y**2 + z **2 - w** 2
+;;
 
 (setq *python-font-lock-keywords*
       (append +python-standard-keywords+
               +python-highlight-constants+
               +python-highlight-procedures+
               +python-pretty-symbols+)
-      python-repl-font-lock-keywords
+      *python-repl-font-lock-keywords*
       (append +python-highlight-constants+
               ;; +python-pretty-symbols+
               ))
