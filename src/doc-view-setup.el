@@ -22,6 +22,7 @@
      ("s" image-forward-hscroll)
      ("p" nil))))
 
+(autoload 'doc-view-current-page "doc-view" "" nil 'macro)
 (defun doc-view-save-page ()
   (if-buffer-has-file
    (let ((fname (file-name-nondirectory (buffer-file-name))))
