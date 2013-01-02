@@ -8,14 +8,15 @@
 ;; Requirements:
 ;; Status:
 
-(require 'python-abbrev+)
+(eval-when-compile
+  (require 'cl))
 (require 'macro-util)
 (require 'comint-setup)
 (require 'browse-kill-ring-setup)
 (require 'common)
-(require 'outline-headers)
 (require 'compile)
 
+(require 'python-common)
 (require 'python-highlight)
 (require 'python)
 
@@ -157,30 +158,7 @@ in the current *Python* session."
          ":"))
 (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
 
-(setf hs-special-modes-alist
-      (cons `(python-mode ,(rx line-start
-                               (* (syntax whitespace))
-                               symbol-start
-                               (or "def"
-                                   "class"
-                                   "for"
-                                   "if"
-                                   "elif"
-                                   "else"
-                                   "while"
-                                   "try"
-                                   "except"
-                                   "finally")
-                               symbol-end)
-                          nil
-                          "#"
-                          ,(lambda (arg)
-                             (python-forward-indentation-level))
-                          nil)
-            (remove* 'python-mode
-                     hs-special-modes-alist
-                     :key #'car
-                     :test #'eq?)))
+(register-python-hideshow 'python-mode)
 
 
 ;;;; pylookup
@@ -198,72 +176,6 @@ in the current *Python* session."
 (autoload 'pylookup-update "pylookup"
           "Run pylookup-update and create the database at `pylookup-db-file'."
           t)
-
-;;;; helper functions, inside-string?, inside-comment?, aligns etc
-
-(defun python-point-inside-string-or-comment? ()
-  "Return t if point is positioned inside a string."
-  (save-excursion
-   (let* ((end (point))
-          (begin (line-beginning-position)))
-     (when begin
-       (let ((state (parse-partial-sexp begin end)))
-         (or (elt state 3)
-             (elt state 4)))))))
-
-(defun python-point-inside-string? ()
-  "Return t if point is positioned inside a string."
-  (save-excursion
-   (let* ((end (point))
-          (begin (line-beginning-position)))
-     (when begin
-       (elt (parse-partial-sexp begin end)
-            3)))))
-
-(defun python-point-inside-string-and-not-comment? ()
-  "Return t if point is positioned inside a string."
-  (save-excursion
-   (save-match-data
-    (let* ((end (point))
-           (begin (line-beginning-position)))
-      (when begin
-        (let ((state (parse-partial-sexp begin
-                                         end)))
-          (and (elt state 3)
-               (null (elt state 4)))))))))
-
-(make-align-function python-align-on-equals
-                     (rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
-                             ">>=" "<<=" "&=" "^=" "|=")
-                         (regexp "[^=]"))
-                     :require-one-or-more-spaces t)
-
-(defun python-backward-sexp (&optional count)
-  (interactive "p")
-  (python-nav-forward-sexp (- (or count 1))))
-
-(defun python-forward-sexp (&optional count)
-  (interactive "p")
-  (python-nav-forward-sexp (or count 1)))
-
-(defun python-forward-indentation-level ()
-  "Move forward to the end of indentation block that has the same or
-greater indenation as current line."
-  (interactive)
-  (beginning-of-line)
-  (let ((start-column
-          (lambda ()
-            (save-excursion
-             (beginning-of-line)
-             (skip-syntax-forward "-")
-             (current-column)))))
-    (let ((c (funcall start-column)))
-      (forward-line)
-      (while (and (not (eob?))
-                  (< c (funcall start-column)))
-        (forward-line))
-      (backward-line)
-      (end-of-line))))
 
 ;;;; run scripts compilation mode
 
@@ -303,119 +215,11 @@ greater indenation as current line."
     ("<up>"   compilation-jump-to-prev-error)
     ("<down>" compilation-jump-to-next-error)))
 
-(defun python-hide-all ()
-  (interactive)
-  (save-excursion
-   (goto-char (point-min))
-   (while (re-search-forward (rx bol
-                                 (* whitespace)
-                                 "def"
-                                 (+ whitespace)
-                                 (* not-newline)
-                                 eol)
-                             nil
-                             t)
-     (goto-char (match-end 0))
-     (hs-hide-block)
-     (forward-line 1))))
-
 ;;;; actual setups
 
 (defun python-setup ()
-  (add-hook 'after-save-hook #'make-script-file-exec nil t)
-  (init-common :use-yasnippet t
-               :use-render-formula t)
-
-  ;; ;; make ' a string delimiter
-  ;; (modify-syntax-entry ?' "\"")
-
-  ;; make _ a symbol constituent, mostly for me
-  (modify-syntax-entry ?_ "_")
-  ;; make . a symbol constituent, mostly for me too
-  (modify-syntax-entry ?. ".")
-
-  (setf autopair-handle-action-fns
-        (list #'autopair-default-handle-action
-              #'autopair-python-triple-quote-action))
-  (autopair-mode 1)
-  (hs-minor-mode 1)
-  (setf hs-block-end-regexp nil)
-
-  ;; autopair relies on default `forward-sexp' to be accessible, but
-  ;; python sets it to `python-nav-forward-sexp' which
-  ;; a. also navigates python statements as "sexps"
-  ;; b. somewhat heavy and causes noticeable delay on inserting (, " or """
-  ;; => bad alternative for `forward-sexp', but nice function on its own right
-  (setq-local forward-sexp-function nil)
-
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap))
-
-  (def-keys-for-map vim:normal-mode-local-keymap
-    (", d"     pylookup-lookup)
-    (", ?"     pylookup-lookup)
-    ("<f1>"    python-shell-send-buffer)
-    ("<f9>"    python-run-script)
-    ("S-<f9>"  python-check)
-
-    ("j"       python-shell-send-defun)
-
-    ("SPC SPC" switch-to-python)
-    (", s s"   vim:replace-symbol-at-point)
-
-    ("z o"     hs-show-block)
-    ("z c"     hs-hide-block)
-    ("z C"     python-hide-all)
-    ("z O"     hs-show-all))
-
-  (def-keys-for-map vim:visual-mode-local-keymap
-    ("<f1>"  python-shell-send-region)
-    ("j"     python-shell-send-region)
-    ("g a"   nil)
-    ("g a =" python-align-on-equals))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
-    ("g t"    end-of-defun)
-    ("g n"    beginning-of-defun)
-    ("<up>"   python-nav-backward-block)
-    ("<down>" python-nav-forward-block)
-
-    ("="      python-nav-backward-up-list)
-    ("q"      python-nav-up-list)
-    ("<home>" python-backward-sexp)
-    ("<end>"  python-forward-sexp)
-
-    ("*"      search-for-symbol-at-point-forward)
-    ("#"      search-for-symbol-at-point-backward))
-
-  (python-abbrev+-setup)
-
-  ;; pabbrev isn't powerful enough
-  ;; (pabbrev-mode 1)
-  ;; (def-keys-for-map (vim:normal-mode-local-keymap
-  ;;                     vim:insert-mode-local-keymap)
-  ;;   ("M-/"     pabbrev-show-menu ;; pabbrev-expand-maybe
-  ;;              ))
-  ;; (when pabbrev-mode
-  ;;   (pabbrev-scavenge-buffer))
-
-  (setup-outline-headers :header-start "^[ \t]*"
-                         :header-symbol "#"
-                         :length-min 3
-                         :length-max 9))
-
-;; (define-switch-to-interpreter
-;;     switch-to-python
-;;   ("*IPython*")
-;;   (ipython)
-;;   :doc "Pop to ipython repl."
-;;   :save-buffer t
-;;   :error-msg "Can't switch to IPython repl"
-;;   :try-count 2)
+  (python-common-setup)
+  (add-hook 'after-save-hook #'make-script-file-exec nil t))
 
 (define-switch-to-interpreter
     switch-to-python
@@ -427,15 +231,6 @@ greater indenation as current line."
   :try-count 2)
 
 
-;; (define-switch-to-interpreter
-;;     switch-to-python
-;;   ("*Python*")
-;;   (py-shell)
-;;   :doc "Pop to python repl."
-;;   :save-buffer t
-;;   :error-msg "Can't switch to Python repl"
-;;   :try-count 2)
-
 (defun inferior-python-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
@@ -444,9 +239,10 @@ greater indenation as current line."
   (comint-setup)
   (comint-read-input-ring t)
 
-  ;; make ' a string delimiter
+  ;; make ' a string delimiter ;; is this necessary?
   (modify-syntax-entry ?' "\"")
   (modify-syntax-entry ?_ "_")
+  (modify-syntax-entry ?. ".")
 
   ;; these triple-quotes greatly confuse autopair when run in
   ;; python repl so it's best to avoid them altogether
@@ -458,6 +254,7 @@ greater indenation as current line."
   (autopair-mode 1)
 
   (setf tab-width 4)
+  (setq-local forward-sexp-function nil)
 
   (setf vim:normal-mode-local-keymap           (make-keymap)
         ;; vim:visual-mode-local-keymap           (make-keymap)
@@ -486,10 +283,6 @@ greater indenation as current line."
 
 (add-hook 'python-mode-hook #'python-setup)
 (add-hook 'inferior-python-mode-hook #'inferior-python-setup)
-;; (add-hook 'py-shell-hook #'python-interpreter-setup)
-
-;; this would be run in py-shell-hook anyway
-;; (add-hook 'python-repl-mode-hook #'python-interpreter-setup)
 
 ;;;; end
 
