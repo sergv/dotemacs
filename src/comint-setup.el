@@ -9,7 +9,7 @@
 ;; Status:
 
 (eval-after-load
- "shell"
+    "shell"
  '(progn
    ;; this calls `comint-write-input-ring' from the repl buffer so that it
    ;; will see correct value of `comint-write-input-ring' which is permamently
@@ -28,9 +28,11 @@ Sentinels will always get the two parameters PROCESS and EVENT."
          (with-current-buffer buf
            ;; Write history.
            (comint-write-input-ring)
-           (insert (format "\nProcess %s %s\n" process event))))))
+           (insert (format "\nProcess %s %s\n" process event))))))))
 
-
+(eval-after-load
+    "comint"
+ '(progn
    ;; NOTE: this should be updated regularly
    ;; rework agressive bolding of comint input so that it doesn't replace
    ;; original face of input, but makes it bolded instead
