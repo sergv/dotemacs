@@ -160,7 +160,8 @@
 
   ("SPC SPC"  exchange-point-and-mark)
 
-  (", s"      vim:replace-selected))
+  (", s"      vim:replace-selected)
+  ("\""       vim:quote-region))
 
 
 (def-keys-for-map vim:insert-mode-keymap

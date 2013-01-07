@@ -58,13 +58,13 @@
 
 (defun vim:insert-mode-insert-newline ()
   "Inserts a newline according to current insert-mode direction."
-  (case vim:insert-newline
-    (above
+  (pcase vim:insert-newline
+    (`above
      (vim:motion-beginning-of-line)
      (newline)
      (forward-line -1)
      (indent-according-to-mode))
-    (below
+    (`below
      (vim:motion-end-of-line)
      (newline)
      (indent-according-to-mode))))
@@ -86,10 +86,10 @@ where to insert a newline."
 
 (defun vim:insert-mode-command (command)
   "Executes a simple command in insert mode."
-  (case (vim:cmd-type command)
-    ('simple (vim:normal-execute-simple-command command))
-    ('complex (error "No complex command allowed in insert-mode"))
-    (t (vim:normal-execute-motion command))))
+  (pcase (vim:cmd-type command)
+    (`simple  (vim:normal-execute-simple-command command))
+    (`complex (error "No complex command allowed in insert-mode"))
+    (_        (vim:normal-execute-motion command))))
 
 (defun vim:insert-mode-activated ()
   "Called when insert-mode is activated."

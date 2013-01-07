@@ -102,11 +102,11 @@
       (setq vim:visual-mode-type type)
       (vim:visual-highlight-region)
       (let (message-log-max)
-        (case vim:visual-mode-type
-          ('normal (message "-- VISUAL --"))
-          ('linewise (message "-- VISUAL LINE --"))
-          ('block (message "-- VISUAL BLOCK --"))
-          (t (error "Unknown visual mode type: %s"
+        (pcase vim:visual-mode-type
+          (`normal (message "-- VISUAL --"))
+          (`linewise (message "-- VISUAL LINE --"))
+          (`block (message "-- VISUAL BLOCK --"))
+          (_ (error "Unknown visual mode type: %s"
                     vim:visual-mode-type)))))
     (setq vim:visual-mode-type type)
     (vim:activate-visual-mode)))
@@ -183,11 +183,11 @@
     (set-mark (point)))
 
   (let (message-log-max)
-    (case vim:visual-mode-type
-      ('normal (message "-- VISUAL --"))
-      ('linewise (message "-- VISUAL LINE --"))
-      ('block (message "-- VISUAL BLOCK --"))
-      (t (error "Unknown visual mode type: %s"
+    (pcase vim:visual-mode-type
+      (`normal (message "-- VISUAL --"))
+      (`linewise (message "-- VISUAL LINE --"))
+      (`block (message "-- VISUAL BLOCK --"))
+      (_ (error "Unknown visual mode type: %s"
                 vim:visual-mode-type))))
 
   (setq vim:visual-overlays nil
@@ -195,7 +195,7 @@
                                                 transient-mark-mode)
         vim:visual-old-global-variables
         ;; Remember which system variables weren't buffer local
-	(remq nil (mapcar #'(lambda (variable)
+        (remq nil (mapcar #'(lambda (variable)
                        (and (local-variable-p variable) variable))
                    vim:visual-temporary-local-variables)))
 
@@ -228,11 +228,11 @@
 
 (defun vim:visual-mode-command (command)
   "Executes a command in visual mode."
-  (case (vim:cmd-type command)
-    ('simple (vim:visual-execute-command command))
-    ('complex (vim:visual-execute-command command))
-    ('special (error "no special so far"))
-    (t (vim:visual-execute-motion command))))
+  (pcase (vim:cmd-type command)
+    (`simple  (vim:visual-execute-command command))
+    (`complex (vim:visual-execute-command command))
+    (`special (error "no special so far"))
+    (_        (vim:visual-execute-motion command))))
 
 
 (defun vim:visual-execute-command (command)
@@ -324,11 +324,11 @@ This function is also responsible for setting the X-selection."
 
   (let ((start (min (point) (mark t)))
         (end (max (point) (mark t))))
-    (case vim:visual-mode-type
-      ('normal (vim:visual-highlight-normal start end))
-      ('linewise (vim:visual-highlight-linewise start end))
-      ('block (vim:visual-highlight-block start end))
-      (t (error "Unknown visual mode %s" vim:visual-mode-type))))
+    (pcase vim:visual-mode-type
+      (`normal   (vim:visual-highlight-normal start end))
+      (`linewise (vim:visual-highlight-linewise start end))
+      (`block    (vim:visual-highlight-block start end))
+      (_         (error "Unknown visual mode %s" vim:visual-mode-type))))
 
   (cond
     ((not (eq window-system 'x)) nil)
@@ -480,10 +480,10 @@ This function is also responsible for setting the X-selection."
 
 (defun vim:visual-current-motion ()
   "Returns a motion representing the current region."
-  (case vim:visual-mode-type
-    ('normal (vim:visual-current-normal-motion))
-    ('linewise (vim:visual-current-linewise-motion))
-    ('block (vim:visual-current-block-motion))))
+  (pcase vim:visual-mode-type
+    (`normal   (vim:visual-current-normal-motion))
+    (`linewise (vim:visual-current-linewise-motion))
+    (`block    (vim:visual-current-block-motion))))
 
 (defun vim:visual-current-normal-motion ()
   "Returns a motion representing the current normal region."
@@ -496,26 +496,26 @@ This function is also responsible for setting the X-selection."
 (defun vim:visual-current-linewise-motion ()
   "Returns a motion representing the current linewise region."
   (vim:make-motion :has-begin t
-                   :begin (min (point) (mark t))
-                   :end (max (point) (mark t))
-                   :type 'linewise))
+                   :begin     (min (point) (mark t))
+                   :end       (max (point) (mark t))
+                   :type      'linewise))
 
 
 (defun vim:visual-current-block-motion ()
   "Returns a motion representing the current block region."
   (vim:make-motion :has-begin t
-                   :begin (region-beginning) ;; (min (point) (mark t))
-                   :end (region-end) ;; (max (point) (mark t))
-                   :type 'block))
+                   :begin     (region-beginning) ;; (min (point) (mark t))
+                   :end       (region-end)       ;; (max (point) (mark t))
+                   :type      'block))
 
 
 (defun vim:visual-adjust-region (motion)
   "Adjusts the region according to a certain motion."
   (when (vim:motion-has-begin motion)
-    (vim:activate-visual (case (vim:motion-type motion)
-                           ('linewise 'linewise)
-                           ('block 'block)
-                           (t 'normal)))
+    (vim:activate-visual (pcase (vim:motion-type motion)
+                           (`linewise 'linewise)
+                           (`block    'block)
+                           (_         'normal)))
     (let ((beg (min (vim:motion-begin motion) (vim:motion-end motion)))
           (end (max (vim:motion-begin motion) (vim:motion-end motion))))
       (if (>= (point) end)
@@ -541,15 +541,15 @@ This function is also responsible for setting the X-selection."
   (goto-line1 (vim:visual-insert-info-first-line insert-info))
   (move-to-column (vim:visual-insert-info-column insert-info) t)
 
-  (case vim:visual-mode-type
-    ('block
+  (pcase vim:visual-mode-type
+    (`block
         ;; TODO: ensure the right command is run on repetition.
         ;; this is really a dirty hack
         (setq vim:current-key-sequence "i")
       (vim:cmd-insert :count 1)
       (add-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies))
 
-    ('linewise
+    (`linewise
      ;; TODO: ensure the right command is run on repetition.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "I")
@@ -605,15 +605,15 @@ This function is also responsible for setting the X-selection."
   (goto-line1 (vim:visual-insert-info-first-line insert-info))
   (move-to-column (vim:visual-insert-info-column insert-info) t)
 
-  (case vim:visual-mode-type
-    ('block
+  (pcase vim:visual-mode-type
+    (`block
         ;; TODO: ensure the right command is run on repeation.
         ;; this is really a dirty hack
         (setq vim:current-key-sequence "a")
       (vim:cmd-append :count 1)
       (add-hook 'vim:normal-mode-on-hook 'vim:append-block-copies))
 
-    ('linewise
+    (`linewise
      ;; TODO: ensure the right command is run on repeation.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "A")
@@ -649,20 +649,20 @@ This function is also responsible for setting the X-selection."
 `vim:visual-exchange-point-and-mark'.  In block visual-mode the
 cursor jumps to the other corner of the selected region in the
 current line."
-  (case vim:visual-mode-type
-    ((normal linewise)
+  (pcase vim:visual-mode-type
+    ((or `normal `linewise)
      (vim:visual-exchange-point-and-mark))
-    ('block
-	(let ((mark-col (save-excursion
+    (`block
+     (let ((mark-col (save-excursion
+                      (goto-char (mark t))
+                      (current-column)))
+           (point-col (current-column)))
+       (set-mark (save-excursion
                   (goto-char (mark t))
-                  (current-column)))
-       (point-col (current-column)))
-   (set-mark (save-excursion
-              (goto-char (mark t))
-              (move-to-column point-col t)
-              (point)))
-   (move-to-column mark-col t)))
-    (t (error "Not in visual mode"))))
+                  (move-to-column point-col t)
+                  (point)))
+       (move-to-column mark-col t)))
+    (_ (error "Not in visual mode"))))
 
 
 (vim:defcmd vim:visual-ex-read-command (nonrepeatable)
@@ -685,11 +685,11 @@ current line."
       (when use-region
         (setq vim:visual-last-point (point)
               vim:visual-last-mark (mark))
-        (case vim:visual-mode-type
-          (normal
+        (pcase vim:visual-mode-type
+          (`normal
            (if (> (point) (mark)) (forward-char) (set-mark (1+ (mark)))))
 
-          (linewise
+          (`linewise
            (if (> (point) (mark))
              (progn
                (end-of-line)
@@ -702,7 +702,7 @@ current line."
                         (goto-char (mark))
                         (1+ (line-end-position))))))
 
-          ('block))
+          (`block))
         (setq vim:visual-new-point (point))))))
 
 (defun vim:visual-denormalize-region()
@@ -718,11 +718,11 @@ current line."
 (defun vim:visual-mouse-clicked (event)
   "Dispatches singe, double, triple or quad clicks."
   (interactive "e")
-  (case (vim:mouse-click-count event)
+  (pcase (vim:mouse-click-count event)
     (2 (vim:visual-drag-mouse-region event 'word))
     (3 (vim:visual-drag-mouse-region event 'linewise))
     (4 (vim:visual-drag-mouse-region event 'block))
-    (t (vim:visual-drag-mouse-region event 'char))))
+    (_ (vim:visual-drag-mouse-region event 'char))))
 
 (defun vim:visual-drag-mouse-region (event mode)
   "Update visual-region during mouse-motion."
@@ -732,17 +732,17 @@ current line."
     (when start-pos
       (goto-char start-pos)
 
-      (case mode
-        ('word
+      (pcase mode
+        (`word
          (vim:visual-toggle-normal)
          (multiple-value-bind (p m) (vim:visual-get-word-region start-pos start-pos)
            (set-mark m)
            (goto-char p))
          (vim:visual-highlight-region))
-        ('linewise
+        (`linewise
          (vim:visual-toggle-linewise)
          (vim:visual-highlight-region))
-        ('block
+        (`block
             (vim:visual-toggle-block)
           (vim:visual-highlight-region)))
 
@@ -790,6 +790,22 @@ current line."
               (vim:motion-end mark-motion))
       (values (vim:motion-end point-motion)
               (vim:motion-begin mark-motion)))))
+
+
+(vim:defcmd vim:quote-region (nonrepeatable)
+  (let ((reg-motion (vim:visual-current-motion)))
+    (save-excursion
+     (pcase (vim:motion-type reg-motion)
+       ((or `inclusive `normal)
+        (goto-char (+ 1 (vim:motion-end reg-motion)))
+        (insert "\"")
+        (goto-char (vim:motion-begin reg-motion))
+        (insert "\""))
+       (`linewise
+        (error "linewise mode is not supported yet"))
+       (`block
+        (error "block mode is not supported yet"))))))
+
 
 
 (provide 'vim-visual-mode)

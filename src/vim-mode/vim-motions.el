@@ -407,11 +407,11 @@ windows. The reason is that Emacs does not have window-local variables.")
 (defun vim:boundary-chars (direction chars)
   "A boundary selector for a sequence of `chars'."
   (save-excursion
-   (case direction
-     (fwd
+   (pcase direction
+     (`fwd
       (when (re-search-forward (concat "[" chars "]+") nil t)
         (1- (match-end 0))))
-     (bwd
+     (`bwd
       (unless (looking-at-p (concat "[" chars "]"))
         (skip-chars-backward (if (= (aref chars 0) ?^)
                                (substring chars 1)
@@ -423,11 +423,11 @@ windows. The reason is that Emacs does not have window-local variables.")
 (defun vim:boundary-syntax (direction syntax)
   "A boundary selector for a set of syntax."
   (save-excursion
-   (case direction
-     (fwd
+   (pcase direction
+     (`fwd
       (skip-syntax-forward syntax)
       (1- (point)))
-     (bwd
+     (`bwd
       (skip-syntax-backward syntax)
       (point)))))
 
@@ -437,9 +437,9 @@ The begin-boundary is placed at the first character of the first
 line, the end-boundary is placed at the last character before the
 newline character of the last line."
   (save-excursion
-   (let ((dir (case direction
-                (fwd +1)
-                (bwd -1))))
+   (let ((dir (pcase direction
+                (`fwd +1)
+                (`bwd -1))))
      ;; The last newline on a non-empty line does not count as part
      ;; of the current line.
      (when (and (not (bolp)) (looking-at "\n")) (forward-char))
@@ -452,20 +452,20 @@ newline character of the last line."
                (and (zerop (forward-line dir))
                     (funcall predicate)))
          (forward-line dir))
-       (case direction
-         (fwd (end-of-line)
+       (pcase direction
+         (`fwd (end-of-line)
           (when (and (not (bolp)) (looking-at "\n"))
             (backward-char)))
-         (bwd (forward-line 0)))
+         (`bwd (forward-line 0)))
        (point)))))
 
 
 (defun vim:boundary-empty-line (direction)
   "A boundary selector for a single empty line."
   (save-excursion
-   (let ((dir (case direction
-                (fwd +1)
-                (bwd -1))))
+   (let ((dir (pcase direction
+                (`fwd +1)
+                (`bwd -1))))
      (while (and (not (and (bolp) (eolp))) (zerop (forward-line dir))))
      (when (and (bolp) (eolp))
        (point)))))
@@ -487,24 +487,24 @@ beginning or end of the object (except empty lines) is not
 counted."
   (save-excursion
    (catch 'end
-     (case direction
-       (fwd (while (let ((pos (vim:boundary-chars 'fwd " \t\r\n")))
-                     (unless pos (throw 'end nil))
-                     (goto-char pos)
-                     (when (and (not (bolp))
-                                (looking-at "\n")
-                                (not (looking-back "[ \t\r\n]")))
-                       (forward-char) t))))
-       (bwd (let ((start (point)))
-              (while (let ((pos (vim:boundary-chars 'bwd " \t\r\n")))
-                       (unless pos (throw 'end nil))
-                       (goto-char pos)
-                       (when (and (not (bolp))
-                                  (looking-at "\n"))
-                         (if (and (looking-at "\n[ \t\r\n]")
-                                  (< (point) start))
-                           (progn (forward-char) nil)
-                           (backward-char) t)))))))
+     (pcase direction
+       (`fwd (while (let ((pos (vim:boundary-chars 'fwd " \t\r\n")))
+                      (unless pos (throw 'end nil))
+                      (goto-char pos)
+                      (when (and (not (bolp))
+                                 (looking-at "\n")
+                                 (not (looking-back "[ \t\r\n]")))
+                        (forward-char) t))))
+       (`bwd (let ((start (point)))
+               (while (let ((pos (vim:boundary-chars 'bwd " \t\r\n")))
+                        (unless pos (throw 'end nil))
+                        (goto-char pos)
+                        (when (and (not (bolp))
+                                   (looking-at "\n"))
+                          (if (and (looking-at "\n[ \t\r\n]")
+                                   (< (point) start))
+                            (progn (forward-char) nil)
+                            (backward-char) t)))))))
      (point))))
 
 
@@ -533,21 +533,21 @@ counted."
 (defun vim:boundary-sentence (direction)
   "A boundary selector for sentences."
   (save-excursion
-   (case direction
-     (fwd (when (re-search-forward "\\([.!?][])\"']*\\)\\(?:[ \t\r\n]+\\|\\'\\)" nil t)
-            (1- (match-end 1))))
-     (bwd (let ((start (point))
-                dot)
-            ;; search the final char of the previous sentence, check
-            ;; if it is really the end of a sentence up to the
-            ;; beginning of the next sentence, and ensure that this
-            ;; beginning is not behind the start position
-            (while (and (setq dot (re-search-backward "[.!?]" nil t))
-                        (not (bobp))
-                        (or (not (re-search-forward "\\=[.!?][])\"']*[ \t\r\n]+" nil t))
-                            (> (match-end 0) start)))
-              (goto-char (1- dot)))
-            (when dot (point)))))))
+   (pcase direction
+     (`fwd (when (re-search-forward "\\([.!?][])\"']*\\)\\(?:[ \t\r\n]+\\|\\'\\)" nil t)
+             (1- (match-end 1))))
+     (`bwd (let ((start (point))
+                 dot)
+             ;; search the final char of the previous sentence, check
+             ;; if it is really the end of a sentence up to the
+             ;; beginning of the next sentence, and ensure that this
+             ;; beginning is not behind the start position
+             (while (and (setq dot (re-search-backward "[.!?]" nil t))
+                         (not (bobp))
+                         (or (not (re-search-forward "\\=[.!?][])\"']*[ \t\r\n]+" nil t))
+                             (> (match-end 0) start)))
+               (goto-char (1- dot)))
+             (when dot (point)))))))
 
 
 (defun vim:boundary-paragraph (direction)
@@ -567,9 +567,9 @@ of bounds."
                               (when pos (list pos))))
                         boundaries-loc)))
           (when positions
-            (apply (case direction
-                     (fwd #'min)
-                     (bwd #'max))
+            (apply (pcase direction
+                     (`fwd #'min)
+                     (`bwd #'max))
                    positions))))))
 
 
@@ -590,28 +590,28 @@ previous) object described by one of the given `boundaries'."
                                        (t obj2))))))
                          obj1))))
       #'(lambda (direction)
-          (case direction
-            (fwd (funcall find-best
-                          #'(lambda (bnd)
-                              (let ((end (funcall bnd 'fwd)))
-                                (when end
-                                  (let ((beg (save-excursion
-                                              (goto-char end)
-                                              (funcall bnd 'bwd))))
-                                    (values beg end)))))
-                          #'(lambda (b1 e1 b2 e2)
-                              (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
+          (pcase direction
+            (`fwd (funcall find-best
+                           #'(lambda (bnd)
+                               (let ((end (funcall bnd 'fwd)))
+                                 (when end
+                                   (let ((beg (save-excursion
+                                               (goto-char end)
+                                               (funcall bnd 'bwd))))
+                                     (values beg end)))))
+                           #'(lambda (b1 e1 b2 e2)
+                               (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
 
-            (bwd (funcall find-best
-                          #'(lambda (bnd)
-                              (let ((beg (funcall bnd 'bwd)))
-                                (when beg
-                                  (let ((end (save-excursion
-                                              (goto-char beg)
-                                              (funcall bnd 'fwd))))
-                                    (values beg end)))))
-                          #'(lambda (b1 e1 b2 e2)
-                              (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
+            (`bwd (funcall find-best
+                           #'(lambda (bnd)
+                               (let ((beg (funcall bnd 'bwd)))
+                                 (when beg
+                                   (let ((end (save-excursion
+                                               (goto-char beg)
+                                               (funcall bnd 'fwd))))
+                                     (values beg end)))))
+                           #'(lambda (b1 e1 b2 e2)
+                               (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
 
 
 (defun vim:move-fwd-beg (n boundary &optional linewise)
@@ -1278,16 +1278,16 @@ but only on the current line."
      (while retry
        (if (not (re-search-forward re end t))
          (setq retry nil)
-         (case side
-           ((nil)
+         (pcase side
+           (`nil
             (when (> (match-end 0) p)
               (setq retry nil)
               (setq md (match-data))))
-           (before
+           (`before
             (if (>= (match-beginning 0) p)
               (setq retry nil)
               (setq md (match-data))))
-           (after
+           (`after
             (when (> (match-end 0) (1+ p))
               (setq retry nil
                     md (match-data)))))))
@@ -1467,13 +1467,14 @@ but only on the current line."
   "Repeats the last find command."
   (unless vim:last-find
     (error "No previous find command"))
-  (let ((func (case (car vim:last-find)
-                ('vim:motion-find 'vim:motion-find-back)
-                ('vim:motion-find-back 'vim:motion-find)
-                ('vim:motion-find-to 'vim:motion-find-back-to)
-                ('vim:motion-find-back-to 'vim:motion-find-to)
-                (t (error (format "Unexpected find command %s"
-                                  (car vim:last-find))))))
+  (let ((func
+          (pcase (car vim:last-find)
+            (`vim:motion-find         'vim:motion-find-back)
+            (`vim:motion-find-back    'vim:motion-find)
+            (`vim:motion-find-to      'vim:motion-find-back-to)
+            (`vim:motion-find-back-to 'vim:motion-find-to)
+            (_                        (error (format "Unexpected find command %s"
+                                                     (car vim:last-find))))))
         (arg (cdr vim:last-find)))
     (let ((vim:last-find nil))
       (funcall func :count count :argument arg))))

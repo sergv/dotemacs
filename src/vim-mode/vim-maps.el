@@ -360,7 +360,7 @@
 (vim:vmap "v" 'vim:visual-toggle-normal)
 (vim:vmap "V" 'vim:visual-toggle-linewise)
 (vim:vmap (kbd "C-v") 'vim:visual-toggle-block)
-(vim:vmap "\"" 'vim:select-register)
+;; (vim:vmap "\"" 'vim:select-register)
 
 (vim:vmap "d" 'vim:cmd-delete)
 (vim:vmap "D" 'vim:cmd-delete)

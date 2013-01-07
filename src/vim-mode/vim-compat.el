@@ -21,7 +21,7 @@
 (defconst vim:default-region-face (if vim:xemacs-p 'zmacs-region 'region))
 (defconst vim:deactivate-region-hook (if vim:xemacs-p
                                        'zmacs-deactivate-region-hook
-				       'deactivate-mark-hook))
+                                       'deactivate-mark-hook))
 
 (defmacro vim:emacsen (&rest impls)
   "Defines some body depending in emacs version."
@@ -35,11 +35,9 @@
   (vim:emacsen
    (vim:emacs-p (setq cursor-type cursor))
    (vim:xemacs-p
-    (case cursor
-      (bar
-       (setq bar-cursor 2))
-      (t
-       (setq bar-cursor nil))))))
+    (pcase cursor
+      (`bar (setq bar-cursor 2))
+      (_    (setq bar-cursor nil))))))
 
 
 (defun vim:set-keymap-default-binding (keymap command)
@@ -86,8 +84,8 @@
                           ((functionp func-obj) (function-arity func-obj))
                           (t
                            (error "called-interactively-p is not a function or subr")))))
-        (case (max (or (car-safe arity) 0)
-                   (or (cdr-safe arity) 0))
+        (pcase (max (or (car-safe arity) 0)
+                    (or (cdr-safe arity) 0))
           (0 '(called-interactively-p))
           ;; handle calls in macro as well
           (1 '(called-interactively-p 'any))))))
@@ -242,7 +240,7 @@
   (defalias 'vim:match-substitute-replacement 'match-substitute-replacement)
   ;; A simple definition I found somewhere in the web.
   (defun vim:match-substitute-replacement (replacement
-					   &optional fixedcase literal string subexp)
+                                           &optional fixedcase literal string subexp)
     "Return REPLACEMENT as it will be inserted by `replace-match'.
 In other words, all back-references in the form `\\&' and `\\N'
 are substituted with actual strings matched by the last search.
@@ -318,12 +316,12 @@ of a match for REGEXP."
   (defun vim:normalize-minor-mode-map-alist ()
     (make-local-variable 'minor-mode-map-alist)
     (setq minor-mode-map-alist
-	  (apply #'append
-          vim:emulation-mode-alist
-          (mapcar #'(lambda (x)
-                      (unless (assq (car x) vim:emulation-mode-alist)
-                        (list x)))
-                  minor-mode-map-alist))))
+          (apply #'append
+                 vim:emulation-mode-alist
+                 (mapcar #'(lambda (x)
+                             (unless (assq (car x) vim:emulation-mode-alist)
+                               (list x)))
+                         minor-mode-map-alist))))
 
   (defadvice add-minor-mode (after vim:add-minor-mode
                                    (toggle name &optional keymap after toggle-fun)
@@ -376,32 +374,32 @@ prevent problems with derived modes, that is, major modes that
 call another major mode in their body."
 
     (let* ((global-mode-name (symbol-name global-mode))
-	   (pretty-name (easy-mmode-pretty-mode-name mode))
-	   (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
-	   (group nil)
-	   (extra-keywords nil)
-	   (MODE-buffers (intern (concat global-mode-name "-buffers")))
-	   (MODE-enable-in-buffers
-      (intern (concat global-mode-name "-enable-in-buffers")))
-	   (MODE-check-buffers
-      (intern (concat global-mode-name "-check-buffers")))
-	   (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
-	   (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
-	   keyw)
+           (pretty-name (easy-mmode-pretty-mode-name mode))
+           (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
+           (group nil)
+           (extra-keywords nil)
+           (MODE-buffers (intern (concat global-mode-name "-buffers")))
+           (MODE-enable-in-buffers
+             (intern (concat global-mode-name "-enable-in-buffers")))
+           (MODE-check-buffers
+             (intern (concat global-mode-name "-check-buffers")))
+           (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
+           (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
+           keyw)
 
       ;; Check keys.
       (while (keywordp (setq keyw (car keys)))
-	(setq keys (cdr keys))
-	(case keyw
-   (:group (setq group (nconc group (list :group (pop keys)))))
-   (:global (setq keys (cdr keys)))
-   (t (push keyw extra-keywords) (push (pop keys) extra-keywords))))
+        (setq keys (cdr keys))
+        (pcase keyw
+          (`:group  (setq group (nconc group (list :group (pop keys)))))
+          (`:global (setq keys (cdr keys)))
+          (_        (push keyw extra-keywords) (push (pop keys) extra-keywords))))
 
       (unless group
         ;; We might as well provide a best-guess default group.
-	(setq group
-       `(:group ',(intern (replace-regexp-in-string
-                           "-mode\\'" "" (symbol-name mode))))))
+        (setq group
+              `(:group ',(intern (replace-regexp-in-string
+                                  "-mode\\'" "" (symbol-name mode))))))
 
       `(progn
          (defvar ,MODE-major-mode nil)
@@ -473,7 +471,7 @@ See `%s' for more information on %s."
   ;; Nix , based on tapestry.el.
   (defun window-edges (&optional window)
     (let ((edges (window-pixel-edges window))
-	  tmp)
+          tmp)
       (setq tmp edges)
       (setcar tmp (/ (car tmp) (face-width 'default)))
       (setq tmp (cdr tmp))
@@ -488,19 +486,19 @@ See `%s' for more information on %s."
   (defun window-at (x y &optional frame)
     (let ((f (if (null frame)
                (selected-frame)
-	       frame)))
+               frame)))
       (let ((guess-wind nil))
-	(walk-windows (function (lambda (w)
-                 (let ((w-edges (window-edges w)))
-                   (when (and (eq f (window-frame w))
-                              (<= (nth 0 w-edges) x)
-                              (>= (nth 2 w-edges) x)
-                              (<= (nth 1 w-edges) y)
-                              (>= (nth 3 w-edges) y))
-                     (setq guess-wind w)))))
-               t ; walk minibuffers
-               t) ; walk all frames
-	guess-wind)))
+        (walk-windows (function (lambda (w)
+                        (let ((w-edges (window-edges w)))
+                          (when (and (eq f (window-frame w))
+                                     (<= (nth 0 w-edges) x)
+                                     (>= (nth 2 w-edges) x)
+                                     (<= (nth 1 w-edges) y)
+                                     (>= (nth 3 w-edges) y))
+                            (setq guess-wind w)))))
+                      t ; walk minibuffers
+                      t) ; walk all frames
+        guess-wind)))
 
   ;; redo `windmove-coordinates-of-position' without compute-motion
   (defun walk-screen-lines (lines goal)
@@ -513,8 +511,8 @@ See `%s' for more information on %s."
   (defun windmove-coordinates-of-position (pos &optional window)
     (let* ((w (if (null window)
                 (selected-window)
-		window))
-	   (b (window-buffer w)))
+                window))
+           (b (window-buffer w)))
       (save-selected-window
        (select-window w)
        (save-excursion
@@ -532,19 +530,19 @@ See `%s' for more information on %s."
   (defun windmove-frame-edges (window)
     (let ((frame (if window
                    (window-frame window)
-		   (selected-frame))))
+                   (selected-frame))))
       (let ((x-min 0)
-	    (y-min 0)
-	    (x-max (frame-width frame))
-	    (y-max (frame-height frame)))
-	(list x-min y-min x-max y-max))))
+            (y-min 0)
+            (x-max (frame-width frame))
+            (y-max (frame-height frame)))
+        (list x-min y-min x-max y-max))))
 
   ;; --- end hack ---
 
   (defun window-tree (&optional frame)
     "Return the window tree for frame `frame'."
     (let ((root (frame-root-window frame))
-	  (mini (minibuffer-window frame)))
+          (mini (minibuffer-window frame)))
       (letrec ((subwindows
                  (lambda (win)
                    (cond
