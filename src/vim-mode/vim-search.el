@@ -162,10 +162,10 @@ will be case-insensitive."
         (?C (setq recase 'sensitive))
         (t (setq start (match-end 0)))))
     (or recase
-        (case default-case
-          ((sensitive insensitive) default-case)
-          (smart (if (isearch-no-upper-case-p re t) 'insensitive 'sensitive))
-          (t nil)))))
+        (pcase default-case
+          ((or `sensitive `insensitive) default-case)
+          (`smart (if (isearch-no-upper-case-p re t) 'insensitive 'sensitive))
+          (_ nil)))))
 
 ;; The lazy-highlighting framework.
 (vim:deflocalvar vim:active-highlights-alist nil
@@ -367,14 +367,14 @@ name `name' to `new-regex'."
   (condition-case lossage
       (progn
         (let ((search-result (vim:find-next)))
-          (case search-result
-            ((t)
+          (pcase search-result
+            (`t
              (setq isearch-success t
                    isearch-wrapped nil))
-            ((nil)
+            (`nil
              (setq isearch-success nil
                    isearch-wrapped nil))
-            (t
+            (_
              (setq isearch-success t
                    isearch-wrapped t))))
         (setq isearch-just-started nil))
@@ -420,9 +420,9 @@ possibly wrapping and eob or bob."
 
            ;; wrap and eob and bob
            ((not wrapped)
-            (goto-char (case vim:search-direction
-                         ('forward (point-min))
-                         ('backward (point-max))))
+            (goto-char (pcase vim:search-direction
+                         (`forward (point-min))
+                         (`backward (point-max))))
             (setq wrapped t))
 
            ;; already wrapped, search failed
@@ -438,10 +438,10 @@ possibly wrapping and eob or bob."
                                               (direction 'forward))
   "Looks for the next occurrence of pattern in a certain direction."
   (let ((case-fold-search (eq (vim:pattern-case-fold pattern) 'insensitive)))
-    (case direction
-      ('forward (re-search-forward (vim:pattern-regex pattern) nil t))
-      ('backward (re-search-backward (vim:pattern-regex pattern) nil t))
-      (t (error "Unknown search direction: %s" direction)))))
+    (pcase direction
+      (`forward  (re-search-forward (vim:pattern-regex pattern) nil t))
+      (`backward (re-search-backward (vim:pattern-regex pattern) nil t))
+      (_         (error "Unknown search direction: %s" direction)))))
 
 
 (defun vim:search-update ()
@@ -580,9 +580,9 @@ possibly wrapping and eob or bob."
   (setq vim:search-start-point (point))
   (vim:add-jump)
   (dotimes (i (or count 1))
-    (case vim:search-direction
-      ('backward (backward-char))
-      (t (forward-char)))
+    (pcase vim:search-direction
+      (`backward (backward-char))
+      (_         (forward-char)))
     (vim:search-next)
     (if isearch-success
       (progn
@@ -714,9 +714,9 @@ possibly wrapping and eob or bob."
 
 (defun vim:ex-pattern-update-ex-info (result)
   "Updates the ex-info string."
-  (vim:ex-set-info (case result
-                     ((t nil) nil)
-                     (t result))))
+  (vim:ex-set-info (pcase result
+                     ((or `t `nil) nil)
+                     (_            result))))
 
 (defun vim:ex-pattern-update-replacement (overlay)
   "Updates the replacement display."

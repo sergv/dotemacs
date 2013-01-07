@@ -123,22 +123,22 @@ For more information about the vim:motion struct look at vim-core.el."
 
     ;; collect parameters
     (dolist (arg args)
-      (case (if (consp arg) (car arg) arg)
-        ('count
+      (pcase (if (consp arg) (car arg) arg)
+        (`count
          (setq count t)
          (push '(count nil) params)
          (when (and (consp arg)
                     (not (eq (cadr arg) 'count)))
            (push `(,(cadr arg) count) named-params)))
 
-        ('register
+        (`register
          (setq register t)
          (push '(register nil) params)
          (when (and (consp arg)
                     (not (eq (cadr arg) 'register)))
            (push `(,(cadr arg) register) named-params)))
 
-        ('motion
+        (`motion
          (when motion
            (error "%s: only one motion argument may be specified: %s" 'vim:defcmd arg))
          (setq motion t)
@@ -147,7 +147,7 @@ For more information about the vim:motion struct look at vim-core.el."
                     (not (eq (cadr arg) 'motion)))
            (push `(,(cadr arg) motion) named-params)))
 
-        ('motion:optional
+        (`motion:optional
          (when motion
            (error "%s: only one motion argument may be specified: %s" 'vim:defcmd arg))
          (setq motion ''optional)
@@ -156,11 +156,11 @@ For more information about the vim:motion struct look at vim-core.el."
                     (not (eq (cadr arg) 'motion)))
            (push `(,(cadr arg) motion) named-params)))
 
-        ('keep-visual (setq keep-visual t))
-        ('do-not-keep-visual (setq keep-visual nil))
-        ('repeatable (setq repeatable t))
-        ('nonrepeatable (setq repeatable nil))
-        ('force
+        (`keep-visual (setq keep-visual t))
+        (`do-not-keep-visual (setq keep-visual nil))
+        (`repeatable (setq repeatable t))
+        (`nonrepeatable (setq repeatable nil))
+        (`force
          (when force
            (error "%s: only one force argument may be specified: %s" 'vim:defcmd arg))
          (setq force t)
@@ -169,7 +169,7 @@ For more information about the vim:motion struct look at vim-core.el."
                     (not (eq (cadr arg) 'force)))
            (push `(,(cadr arg) force) named-params)))
 
-        (t
+        (_
          (let ((arg-name (symbol-name (if (consp arg) (car arg) arg))))
            (unless (string-match "^argument\\(?::\\([[:word:]]+\\)\\)?$" arg-name)
              (error "%s: Unexpected argument: %s" 'vim:defcmd arg))
@@ -271,21 +271,21 @@ look at vim-core.el."
 
     ;; collect parameters
     (dolist (arg args)
-      (case (if (consp arg) (car arg) arg)
-        ((inclusive exclusive linewise block)
+      (pcase (if (cons? arg) (car arg) arg)
+        ((or `inclusive `exclusive `linewise `block)
          (setq type arg))
 
-        ('do-not-adjust-point
+        (`do-not-adjust-point
           (setf do-not-adjust-point t))
 
-        ('count
+        (`count
          (setq count t)
          (push '(count nil) params)
          (when (and (consp arg)
                     (not (eq (cadr arg) 'count)))
            (push `(,(cadr arg) count) named-params)))
 
-        ((argument argument:char)
+        ((or `argument `argument:char)
          (when argument
            (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
          (setq argument ''char)
@@ -294,7 +294,7 @@ look at vim-core.el."
                     (not (eq (cadr arg) 'argument)))
            (push `(,(cadr arg) argument) named-params)))
 
-        (t (error "%s: Unexpected argument: %s" 'vim:defmotion arg))))
+        (_ (error "%s: Unexpected argument: %s" 'vim:defmotion arg))))
 
     (unless type
       (error "%s: Motion type must be specified" 'vim:defmotion))
