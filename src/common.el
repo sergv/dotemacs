@@ -1539,6 +1539,13 @@ arguments and indent current buffer.")
 
 ;;;;
 
+(defun to-linux-line-endings ()
+  "Convert line endings in current buffer to linux ones (\\n)."
+  (interactive)
+  (set-buffer-file-coding-system 'utf-8-unix nil))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:
