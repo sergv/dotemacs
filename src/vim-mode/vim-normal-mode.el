@@ -89,20 +89,20 @@ like 'dd', 'yy',... .")
 (defun vim:operator-pending-mode-command (command)
   "Executes a complex command in operator-pending mode."
   (if (memq command '(vim:cmd-force-charwise
-		      vim:cmd-force-linewise
-		      vim:cmd-force-blockwise))
+                      vim:cmd-force-linewise
+                      vim:cmd-force-blockwise))
     (progn
       (setq vim:current-key-sequence
             (vconcat vim:current-key-sequence (vim:this-command-keys)))
       (funcall command))
     (unwind-protect
-         (case (vim:cmd-type command)
-           ('simple (error "No simple-commands allowed in operator-pending mode"))
-           ('complex (error "No complex-commands allowed in operator-pending mode"))
-           (t (vim:normal-execute-complex-command command)))
+         (pcase (vim:cmd-type command)
+           (`simple  (error "No simple-commands allowed in operator-pending mode"))
+           (`complex (error "No complex-commands allowed in operator-pending mode"))
+           (_        (vim:normal-execute-complex-command command)))
 
       (when (vim:operator-pending-mode-p)
-	(vim:activate-normal-mode)))))
+        (vim:activate-normal-mode)))))
 
 
 (vim:defcmd vim:cmd-force-charwise (nonrepeatable)
@@ -135,11 +135,11 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
 (defun vim:normal-mode-command (command)
   "Executes a motion or simple-command or prepares a complex command."
-  (case (vim:cmd-type command)
-    ('simple (vim:normal-execute-simple-command command))
-    ('complex (vim:normal-prepare-complex-command command))
-    ('special (error "no special so far"))
-    (t (vim:normal-execute-motion command))))
+  (pcase (vim:cmd-type command)
+    (`simple  (vim:normal-execute-simple-command command))
+    (`complex (vim:normal-prepare-complex-command command))
+    (`special (error "no special so far"))
+    (_        (vim:normal-execute-motion command))))
 
 
 (defun vim:normal-execute-motion (command)

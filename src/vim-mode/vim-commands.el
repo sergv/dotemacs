@@ -181,19 +181,19 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-delete (motion register)
   "Deletes the characters defined by motion."
-  (case (vim:motion-type motion)
-    ('linewise
+  (pcase (vim:motion-type motion)
+    (`linewise
      ;; use custom goto-line to avoid Scan error: "Unbalanced parentheses"
      (goto-line1 (vim:motion-first-line motion))
      (vim:cmd-delete-line :count (vim:motion-line-count motion)
                           :register register))
 
-    ('block
-        (vim:cmd-yank :motion motion :register register)
-      (delete-rectangle (vim:motion-begin-pos motion)
-                        (vim:motion-end-pos motion)))
+    (`block
+     (vim:cmd-yank :motion motion :register register)
+     (delete-rectangle (vim:motion-begin-pos motion)
+                       (vim:motion-end-pos motion)))
 
-    (t
+    (_
      (vim:cmd-yank :motion motion :register register)
      (delete-region (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-begin-pos motion)))))
@@ -211,30 +211,30 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-change (motion register)
   "Deletes the characters defined by motion and goes to insert mode."
-  (case (vim:motion-type motion)
-    ('linewise
+  (pcase (vim:motion-type motion)
+    (`linewise
      (goto-line1 (vim:motion-first-line motion))
      (vim:cmd-change-line :count (vim:motion-line-count motion)
                           :register register))
 
-    ('block
-        (let ((insert-info (vim:make-visual-insert-info
-                            :first-line (vim:motion-first-line motion)
-                            :last-line (vim:motion-last-line motion)
-                            :column (vim:motion-first-col motion))))
-          (vim:cmd-delete :motion motion :register register)
-          (vim:visual-start-insert insert-info)))
+    (`block
+     (let ((insert-info (vim:make-visual-insert-info
+                         :first-line (vim:motion-first-line motion)
+                         :last-line (vim:motion-last-line motion)
+                         :column (vim:motion-first-col motion))))
+       (vim:cmd-delete :motion motion :register register)
+       (vim:visual-start-insert insert-info)))
 
-    (t
+    (_
      ;; deal with cw and cW
      (when (and vim:current-motion
                 (not (member (char-after) '(?  ?\r ?\n ?\t))))
        (let ((cnt (* (or vim:current-cmd-count 1)
                      (or vim:current-motion-count 1))))
-         (case vim:current-motion
-           (vim:motion-fwd-word
+         (pcase vim:current-motion
+           (`vim:motion-fwd-word
             (setq motion (vim:motion-fwd-word-end :count cnt)))
-           (vim:motion-fwd-WORD
+           (`vim:motion-fwd-WORD
             (setq motion (vim:motion-fwd-WORD-end :count cnt))))))
 
      (vim:cmd-delete :motion motion :register register)
@@ -305,12 +305,12 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-yank (motion register nonrepeatable)
   "Saves the characters in motion into the kill-ring."
-  (case (vim:motion-type motion)
-    ('block (vim:cmd-yank-rectangle :motion motion :register register))
-    ('linewise (goto-line1 (vim:motion-first-line motion))
+  (pcase (vim:motion-type motion)
+    (`block (vim:cmd-yank-rectangle :motion motion :register register))
+    (`linewise (goto-line1 (vim:motion-first-line motion))
      (vim:cmd-yank-line :count (vim:motion-line-count motion)
                         :register register))
-    (t
+    (_
      (let ((text (buffer-substring
                   (vim:motion-begin-pos motion)
                   (vim:motion-end-pos motion))))
@@ -495,8 +495,8 @@ and switches to insert-mode."
       (error "Kill-ring empty"))
     (let ((yhandler (get-text-property 0 'yank-handler txt))
           (pos (point)))
-      (case (car-safe yhandler)
-        (vim:yank-line-handler
+      (pcase (car-safe yhandler)
+        (`vim:yank-line-handler
          (let ((at-eob (= (line-end-position) (point-max))))
            ;; We have to take care of the special case where we cannot
            ;; go to the next line because we reached eob.
@@ -517,12 +517,12 @@ and switches to insert-mode."
                    t))
            (vim:motion-first-non-blank)))
 
-        (vim:yank-block-handler
+        (`vim:yank-block-handler
          (forward-char)
          (vim:cmd-paste-before :count count :register register))
 
-        (t
-         (unless (eobp) (forward-char))
+        (_
+         (unless (eob?) (forward-char))
          (vim:cmd-paste-before :count count :register register)
          ;; goto end of paste
          (goto-char (1- (vim:paste-info-end vim:last-paste)))))
@@ -657,8 +657,8 @@ position of a region on which it should be applied. Note that
 `func' can be called more than once of motion covers a
 non-continuous region. This usually happens for linewise and
 block motions."
-  (case (vim:motion-type motion)
-    ('block
+  (pcase (vim:motion-type motion)
+    (`block
         (save-excursion
          (let ((begrow (vim:motion-first-line motion))
                (begcol (vim:motion-first-col motion))
@@ -674,13 +674,13 @@ block motions."
                          (point))))
                (funcall func beg end))
              (forward-line)))))
-    ('linewise
+    (`linewise
      (save-excursion
       (goto-char (vim:motion-begin-pos motion))
       (dotimes (i (vim:motion-line-count motion))
         (funcall func (line-beginning-position) (line-end-position))
         (forward-line))))
-    (t
+    (_
      (funcall func (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-end-pos motion)))))
 

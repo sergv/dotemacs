@@ -199,7 +199,7 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   (interactive)
   (setq vim:current-register (read-char-exclusive))
   (setq vim:current-key-sequence (vconcat vim:current-key-sequence
-					  (vim:this-command-keys))))
+                                          (vim:this-command-keys))))
 
 (defun vim:get-register (register)
   "Returns the content of `register', signals error on fail."
@@ -214,10 +214,10 @@ of the command handling code the buffer in vim:new-buffer is made current.")
 ;; motion like text object selections.
 (defstruct (vim:motion
             (:constructor vim:make-motion-struct))
-  has-begin                         ; t iff the motion defined an explicit begin
-  begin                             ; first point in this motion
-  end                               ; last point in this motion
-  type                              ; 'inclusive, 'exclusive, 'linewise
+  has-begin ;; t iff the motion defined an explicit begin
+  begin     ;; first point in this motion
+  end       ;; last point in this motion
+  type      ;; 'inclusive, 'exclusive, 'linewise
   )
 
 
@@ -256,7 +256,7 @@ positions within (point-min) and (point-max) and not at
 (defun vim:motion-line-count (motion)
   "Returns the number of lines the `motion' covers."
   (1+ (- (vim:motion-last-line motion)
-	 (vim:motion-first-line motion))))
+         (vim:motion-first-line motion))))
 
 (defun vim:motion-first-line (motion)
   "Returns the first line covered by `motion'."
@@ -294,19 +294,19 @@ return the correct start-position of emacs-ranges, i.e.
   - if motion is line-wise, is always bol of the first line in the motion,
   - if motion is block 1 is added if and only if the begin column
     is larget than the end column."
-  (case (vim:motion-type motion)
-    (linewise
+  (pcase (vim:motion-type motion)
+    (`linewise
      (save-excursion
       (goto-line1 (vim:motion-first-line motion))
       (line-beginning-position)))
-    ('block
+    (`block
         (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
               (e (max (vim:motion-begin motion) (vim:motion-end motion))))
           (if (> (save-excursion (goto-char b) (current-column))
                  (save-excursion (goto-char e) (current-column)))
             (1+ b)
             b)))
-    (t (min (vim:motion-begin motion) (vim:motion-end motion)))))
+    (_ (min (vim:motion-begin motion) (vim:motion-end motion)))))
 
 (defun vim:motion-end-pos (motion)
   "Returns the larger position covered by `motion'.
@@ -318,12 +318,12 @@ return the correct end-position of emacs-ranges, i.e.
   - if motion is block 1 is added if and only if the end column
     is larger than or equal to the begin column and char at the end is not
     newline."
-  (case (vim:motion-type motion)
-    (linewise
+  (pcase (vim:motion-type motion)
+    (`linewise
      (save-excursion
       (goto-line1 (vim:motion-last-line motion))
       (line-end-position)))
-    ('block
+    (`block
         (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
               (e (max (vim:motion-begin motion) (vim:motion-end motion))))
           (if (and (>= (save-excursion (goto-char e) (current-column))
@@ -331,9 +331,9 @@ return the correct end-position of emacs-ranges, i.e.
                    (not (char=? (char-after e) ?\n)))
             (1+ e)
             e)))
-    (inclusive
+    (`inclusive
      (1+ (max (vim:motion-begin motion) (vim:motion-end motion))))
-    (t (max (vim:motion-begin motion) (vim:motion-end motion)))))
+    (_ (max (vim:motion-begin motion) (vim:motion-end motion)))))
 
 (defmacro vim:do-motion (type expression)
   "Executes a motion body, ensuring the return of a valid vim:motion object.
@@ -455,9 +455,9 @@ command-specific transformations."
     (when vim:current-force-motion-type
       (setf (vim:motion-type motion)
             (if (eq vim:current-force-motion-type 'char)
-              (case (vim:motion-type motion)
-                (exclusive 'inclusive)
-                (t 'exclusive))
+              (pcase (vim:motion-type motion)
+                (`exclusive 'inclusive)
+                (_ 'exclusive))
               vim:current-force-motion-type)))
 
     (when (and (eq (vim:motion-type motion) 'exclusive)

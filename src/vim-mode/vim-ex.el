@@ -392,10 +392,10 @@ has been pressed."
                       (vim:cmd-force-p (vim:ex-binding (car x))))))))
          (result (vim:ex-complete-command cmd pred flag)))
 
-        (case flag
+        (pcase flag
           ;; try-completion, take case of a unique match which
           ;; may take a force argument
-          ((nil)
+          (`nil
            (case result
              ((nil) nil)
              ((t) (if (and (not force)
@@ -404,7 +404,7 @@ has been pressed."
                     t))
              (t (if force (concat result "!") result))))
           ;; all-completions, append exclamation marks
-          ((t)
+          (`t
            (if force
              (mapcar #'(lambda (x) (concat x "!")) result)
              (let (newresult)
@@ -415,7 +415,7 @@ has been pressed."
                newresult)))
           ;; test-completion, handle non-unique case if no force
           ;; argument is given but possible for the command
-          (t
+          (_
            (and result
                 (or force
                     (not (vim:cmd-force-p (vim:ex-binding cmd)))))))))
@@ -467,10 +467,10 @@ has been pressed."
         ((null dir) (ding))
         ((null flag)
          (let ((result (file-name-completion fname dir)))
-           (case result
-             ((nil) nil)
-             ((t) t)
-             (t (concat dir result)))))
+           (pcase result
+             (`nil nil)
+             (`t   t)
+             (_    (concat dir result)))))
 
         ((eq t flag)
          (file-name-all-completions fname dir))
@@ -495,10 +495,10 @@ has been pressed."
 (defun vim:ex-complete-text-argument (arg predicate flag)
   "Called to complete standard argument, therefore does nothing."
   (when arg
-    (case flag
-      ((nil) t)
-      ((t) (list arg))
-      ('lambda t))))
+    (pcase flag
+      (`nil    t)
+      (`t      (list arg))
+      (`lambda t))))
 
 
 (defun vim:ex-execute-command (cmdline)
@@ -553,11 +553,11 @@ has been pressed."
                (if (vim:cmd-force-p cmd)
                  (setq parameters (cons :force (cons t parameters)))
                  (error "Command cannot be forced '!'")))
-             (case (vim:cmd-type cmd)
-               ('complex (setq parameters
+             (pcase (vim:cmd-type cmd)
+               (`complex (setq parameters
                                (cons :motion (cons motion parameters))))
 
-               ('simple
+               (`simple
                 (when end
                   (error "Command does not take a range: %s" vim:ex-cmd))
                 (when (vim:cmd-count-p cmd)
@@ -568,7 +568,7 @@ has been pressed."
                                                     (string-to-number arg)))
                                            parameters)))))
 
-               (t (error "Unexpected command-type bound to %s" vim:ex-cmd)))
+               (_ (error "Unexpected command-type bound to %s" vim:ex-cmd)))
              (apply cmd parameters))
 
             (beg
@@ -732,28 +732,28 @@ the offset and the new position."
 
       (t
        (+ offset
-          (case (or (car-safe base) base)
-            (abs (cdr base))
+          (pcase (or (car-safe base) base)
+            (`abs (cdr base))
 
             ;; TODO: (1- ...) may be wrong if the match is the empty string
-            (re-fwd (save-excursion
+            (`re-fwd (save-excursion
                      (beginning-of-line 2)
                      (and (re-search-forward (cdr base))
                           (line-number-at-pos (1- (match-end 0))))))
 
-            (re-bwd (save-excursion
+            (`re-bwd (save-excursion
                      (beginning-of-line 0)
                      (and (re-search-backward (cdr base))
                           (line-number-at-pos (match-beginning 0)))))
 
-            (current-line (line-number-at-pos (point)))
-            (first-line (line-number-at-pos (point-min)))
-            (last-line (line-number-at-pos (point-max)))
-            (mark (line-number-at-pos (vim:get-local-mark (cadr base))))
-            (next-of-prev-search (error "Next-of-prev-search not yet implemented"))
-            (prev-of-prev-search (error "Prev-of-prev-search not yet implemented"))
-            (next-of-prev-subst (error "Next-of-prev-subst not yet implemented"))
-            (t (error "Invalid address: %s" address))))))))
+            (`current-line        (line-number-at-pos (point)))
+            (`first-line          (line-number-at-pos (point-min)))
+            (`last-line           (line-number-at-pos (point-max)))
+            (`mark                (line-number-at-pos (vim:get-local-mark (cadr base))))
+            (`next-of-prev-search (error "Next-of-prev-search not yet implemented"))
+            (`prev-of-prev-search (error "Prev-of-prev-search not yet implemented"))
+            (`next-of-prev-subst  (error "Next-of-prev-subst not yet implemented"))
+            (_                    (error "Invalid address: %s" address))))))))
 
 
 (defun vim:ex-read-command (&optional initial-input)
