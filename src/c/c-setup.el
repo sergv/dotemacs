@@ -8,6 +8,7 @@
 
 (require 'cc-setup)
 (require 'c-abbrev+)
+(require 'ctags-setup)
 
 (defun c-indent-buffer ()
   (interactive)
@@ -101,7 +102,8 @@
 
   (def-keys-for-map vim:visual-mode-local-keymap
     (", m" c-macro-expand))
-  (c-abbrev+-setup))
+  (c-abbrev+-setup)
+  (setup-ctags-symbols))
 
 (provide 'c-setup)
 
