@@ -9,6 +9,7 @@
 (require 'cc-setup)
 (require 'c++-abbrev+)
 (require 'select-mode)
+(require 'ctags-setup)
 
 
 (when (platform-use? 'work)
@@ -134,7 +135,8 @@
     (def-keys-for-map vim:normal-mode-local-keymap
       ("SPC SPC" c++-find-related-file)))
 
-  (c++-abbrev+-setup))
+  (c++-abbrev+-setup)
+  (setup-ctags-symbols))
 
 
 (provide 'c++-setup)

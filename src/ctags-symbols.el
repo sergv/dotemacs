@@ -33,6 +33,7 @@
 (defun ctags-symbols-go-to-symbol-home ()
   (interactive)
   (let ((sym (ctags-symbols-identifier-at-point))
+        (orig-major-mode major-mode)
         (proj (eproj-get-project-for-buf (current-buffer))))
     (unless (or (eproj-project-names proj)
                 (assq major-mode (eproj-project-names proj)))
@@ -78,15 +79,20 @@
                 (funcall jump-to-home (elt entries idx)))
               :predisplay-function
               (lambda (entry)
+                (message "entry: %s"
+                         (pp-to-string entry))
                 (format "%s %s%s%s\n%s:%s\n%s:%s\n"
                         (ctags-tag-kind entry)
-                        (aif (or (assoc 'class (ctags-tag-aux-fields entry))
-                                 (assoc 'struct (ctags-tag-aux-fields entry))
-                                 (assoc 'union (ctags-tag-aux-fields entry))
-                                 (assoc 'enum (ctags-tag-aux-fields entry)))
+                        (aif (find-if (lambda (entry)
+                                        (memq (car entry)
+                                              '(class
+                                                struct
+                                                union
+                                                enum)))
+                                      (ctags-tag-aux-fields entry))
                           (concat (cdr it)
-                                  (cdr (assq major-mode
-                                             *ctags-symbols-name-delimiter-alist*)))
+                                  (cadr (assq orig-major-mode
+                                              *ctags-symbols-name-delimiter-alist*)))
                           "")
                         (ctags-tag-symbol entry)
                         (aif (assoc 'signature (ctags-tag-aux-fields entry))
@@ -109,8 +115,11 @@
     (error "no more previous go-to-definition entries")))
 
 (defun setup-ctags-symbols ()
-  (def-keys-for-map ((current-local-map)
-                     vim:normal-mode-local-keymap)
+  (aif (current-local-map)
+    (def-keys-for-map it
+      ("M-." ctags-symbols-go-to-symbol-home)
+      ("M-," ctags-symbols-go-back)))
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("M-." ctags-symbols-go-to-symbol-home)
     ("M-," ctags-symbols-go-back)))
 

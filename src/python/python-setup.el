@@ -15,6 +15,7 @@
 (require 'browse-kill-ring-setup)
 (require 'common)
 (require 'compile)
+(require 'ctags-setup)
 
 (require 'python-common)
 (require 'python-highlight)
@@ -219,7 +220,8 @@ in the current *Python* session."
 
 (defun python-setup ()
   (python-common-setup)
-  (add-hook 'after-save-hook #'make-script-file-exec nil t))
+  (add-hook 'after-save-hook #'make-script-file-exec nil t)
+  (setup-ctags-symbols))
 
 (define-switch-to-interpreter
     switch-to-python
