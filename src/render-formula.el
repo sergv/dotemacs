@@ -129,7 +129,7 @@ won't be confused by the same filename used for different images.")
 
 
 (defvar-local render-buffer-rendered? nil
-  "Is set to t by `render-buffer' when latex code in buffer is
+  "Is set to t by `render-formula-toggle-formulas' when latex code in buffer is
 displayed as images.")
 
 (defvar +render-buffer-latex-re+ "\\$\\$\\(\\(?:.\\|\n\\)+?\\)\\$\\$")
@@ -173,7 +173,7 @@ displayed as images.")
                    'read-only "Disable latex images first")))
           (goto-char (match-end 0)))))))))
 
-(defun render-buffer ()
+(defun render-formula-toggle-formulae ()
   (interactive)
   (if render-buffer-rendered?
     (render-buffer-off)
