@@ -8,8 +8,11 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'cl))
 (require 'set-up-paths)
 (require 'common)
+(require 'render-formula)
 
 (add-to-list 'load-path (concat +emacs-standalone-path+
                                 "/org-mode"))
@@ -66,7 +69,7 @@
 ;;;; eval-after-load's
 
 (eval-after-load
- "org"
+    "org"
  '(progn
    (setf org-todo-keywords
          '((sequence "TODO(t)" "WAITING(w!)" "STARTED(s!)" "|" "DONE(d!)")
@@ -269,7 +272,70 @@ user."
            (format "%04d-%02d-%02d %02d:%02d"
                    (nth 5 final) (nth 4 final) (nth 3 final)
                    (nth 2 final) (nth 1 final))
-           (format "%04d-%02d-%02d" (nth 5 final) (nth 4 final) (nth 3 final))))))))
+           (format "%04d-%02d-%02d" (nth 5 final) (nth 4 final) (nth 3 final))))))
+
+   ;; customize it to receive width and height arguments of inline image
+   (redefun org-display-inline-images (&optional include-linked refresh beg end)
+     "Display inline images.
+Normally only links without a description part are inlined, because this
+is how it will work for export.  When INCLUDE-LINKED is set, also links
+with a description part will be inlined.  This can be nice for a quick
+look at those images, but it does not reflect what exported files will look
+like.
+When REFRESH is set, refresh existing images between BEG and END.
+This will create new image displays only if necessary.
+BEG and END default to the buffer boundaries."
+     (interactive "P")
+     (unless refresh
+       (org-remove-inline-images)
+       (if (fboundp 'clear-image-cache) (clear-image-cache)))
+     (save-excursion
+      (save-restriction
+       (widen)
+       (setq beg (or beg (point-min)) end (or end (point-max)))
+       (goto-char beg)
+       (let ((re (concat "\\(?:#+[+ ]*INLINE:[ \t]*\\(.*\\)[ \t]*\n[ \t]*\\(?:#.*\n[ \t]*\\)*\\)?\\[\\[\\(\\(file:\\)\\|\\([./~]\\)\\)\\([^\]\n]+?"
+                         (substring (org-image-file-name-regexp) 0 -2)
+                         "\\)\\]" (if include-linked "" "\\]")))
+             options old file ov img)
+         (while (re-search-forward re end t)
+           (when (image-type-available-p 'imagemagick)
+             (setq options (match-string-no-properties 1)))
+           (setq old (get-char-property-and-overlay (match-beginning 2)
+                                                    'org-image-overlay))
+           (setq file (expand-file-name
+                       (concat (or (match-string 4) "") (match-string 5))))
+           (when (file-exists-p file)
+             (if (and (car-safe old) refresh)
+               (image-refresh (overlay-get (cdr old) 'display))
+               (setq img (save-match-data (create-image file)))
+               (when (and options
+                          (image-type-available-p 'imagemagick))
+                 (save-match-data
+                  (let ((scaled? nil))
+                    (when (string-match? "width\s*=\s*\\([0-9]+\\)" options)
+                      (setf img (append img
+                                        (list ':width
+                                              (read
+                                               (match-string-no-properties 1 options))))
+                            scaled? t)
+                      (setf (getf (cdr img) :type) 'imagemagick))
+                    (when (string-match? "height\s*=\s*\\([0-9]+\\)" options)
+                      (setf img (append img
+                                        (list ':height
+                                              (read
+                                               (match-string-no-properties 1 options))))
+                            scaled? t))
+                    (when scaled?
+                      (setf (getf (cdr img) :type) 'imagemagick)))))
+               (when img
+                 (setq ov (make-overlay (match-beginning 0) (match-end 0)))
+                 (overlay-put ov 'display img)
+                 (overlay-put ov 'face 'default)
+                 (overlay-put ov 'org-image-overlay t)
+                 (overlay-put ov 'modification-hooks
+                              (list 'org-display-inline-modification-hook))
+                 (push ov org-inline-image-overlays)))))))))))
 
 (eval-after-load
  "org-comat"
@@ -539,6 +605,11 @@ the current topic."
   ;; pretty display of \[a-z]+ latex-like entries
   (org-toggle-pretty-entities))
 
+(defun org-toggle-inline-images-and-formulae ()
+  (interactive)
+  (org-toggle-inline-images)
+  (render-formula-toggle-formulae))
+
 (defun org-mode-setup ()
   (init-common :use-yasnippet t :use-render-formula nil)
   (set (make-local-variable 'yas/fallback-behavior)
@@ -553,6 +624,7 @@ the current topic."
   (def-keys-for-map vim:normal-mode-local-keymap
     ("TAB"   org-cycle)
     ("<tab>" org-cycle)
+    ("SPC SPC" org-toggle-inline-images-and-formulae)
 
     ("M-."   org-open-at-point)
     ("M-,"   org-mark-ring-goto)
