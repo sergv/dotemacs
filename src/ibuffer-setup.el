@@ -210,6 +210,7 @@ a prefix argument reverses the meaning of that variable."
      ("C-k"      remove-buffer)
      ("C-S-k"    remove-buffer-and-window)
 
+     ("s r"      ibuffer-do-sort-by-recency)
      ("f"        nil)
      ("f m"      ibuffer-filter-by-mode)
      ("f n"      ibuffer-filter-by-name)
