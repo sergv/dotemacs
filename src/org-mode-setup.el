@@ -17,7 +17,6 @@
 (add-to-list 'load-path (concat +emacs-standalone-path+
                                 "/org-mode"))
 
-(load-library "org-install")
 (require 'org-drill)
 
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
