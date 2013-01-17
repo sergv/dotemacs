@@ -57,14 +57,12 @@
            (stack-entry (list (current-buffer) (point)))
            (jump-to-home
              (lambda (entry)
-               (aif (ctags-tag-file entry)
-                 (begin
+               (let ((file (ctags-tag-file entry)))
                    (push stack-entry ctags-symbols-go-to-symbol-home-stack)
-                   (unless (file-exists? it)
-                     (error "file %s does not exist" it))
-                   (find-file it)
-                   (goto-line (ctags-tag-line entry)))
-                 (error "Identifier %s is not defined in file" sym)))))
+                 (unless (file-exists? file)
+                   (error "file %s does not exist" file))
+                 (find-file file)
+                 (goto-line (ctags-tag-line entry))))))
       (cond ((null? entries)
              (error "No entries for identifier %s" sym))
             ((null? (cdr entries))
@@ -76,6 +74,7 @@
               :after-init #'ignore
               :on-selection
               (lambda (idx)
+                (select-exit)
                 (funcall jump-to-home (elt entries idx)))
               :predisplay-function
               (lambda (entry)
@@ -98,7 +97,8 @@
                         (aif (assoc 'signature (ctags-tag-aux-fields entry))
                           (cdr it)
                           "")
-                        (file-name-nondirectory (ctags-tag-file entry))
+                        (file-name-nondirectory (aref *ctags-file-sequence*
+                                                      (ctags-tag-file-idx entry)))
                         (ctags-tag-line entry)
                         (ctags-tag-file entry)
                         (ctags-tag-line entry)))
