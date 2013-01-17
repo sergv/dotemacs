@@ -311,6 +311,21 @@ Basically swap current point with previous one."
 
 (vim:emap "indent" 'vim:indent)
 
+(vim:defcmd vim:magit (nonrepeatable)
+  "Show git status for current file's repository."
+  (if (buffer-file-name)
+    (magit-status)
+    (error "Current buffer has no associated file")))
+
+(vim:emap "magit" 'vim:magit)
+
+
+(vim:defcmd vim:blame (nonrepeatable)
+  "Run `magit-blame-mode'."
+  (magit-blame-mode))
+
+(vim:emap "blame" 'vim:blame)
+
 
 
 (provide 'vim-init)
