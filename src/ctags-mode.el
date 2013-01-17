@@ -108,9 +108,43 @@
 (defvar *ctags-projects*
   (make-hash-table :test #'equal))
 
+;; vector of filenames
+(defvar *ctags-file-sequence*
+  (make-vector 2 nil)
+  "Vector if filenames read from tags")
+;; hash table of (filename . id) bindings
+(defvar *ctags-file-idxs*
+  (make-hash-table :test #'equal)
+  "Mapping from filenames to their respective indices in `*ctags-file-sequence*'.")
+
+(defun ctags/latest-defined-index (vect)
+  (let ((i 0))
+    (while (and (< i (length vect))
+                (aref vect i))
+      (setf i (+ i 1)))
+    (- i 1)))
+
+(defun ctags/grow-vector (vect idx item)
+  (if (<= (length vect) idx)
+    (let ((v (make-vector (length vect) nil)))
+      (setf (aref v 0) item)
+      (vconcat vect v))
+    (begin
+      (setf (aref vect idx) item)
+      vect)))
+
+(defun ctags-file->id (file)
+  "Get id for FILE."
+  (gethash file *ctags-file-idxs*))
+
+(defun ctags-tag-file (tag)
+  "Fetch file where TAG is supposedly defined."
+  (aref *ctags-file-sequence* (ctags-tag-file-idx tag)))
+
+
 (defstruct ctags-tag
   symbol
-  file
+  file-idx
   line
   kind
   aux-fields ;; alist of cons pairs
@@ -148,19 +182,27 @@
                                              (line-end-position))
                                             "\t"
                                             t)))))
-               (puthash symbol
-                        (cons (make-ctags-tag
-                               :symbol symbol
-                               :file file
-                               :line line
-                               :kind (cdr (assoc* 'kind fields))
+               (unless (ctags-file->id file)
+                 (let ((file-idx (+ (ctags/latest-defined-index *ctags-file-sequence*)
+                                    1)))
+                   (setf *ctags-file-sequence* (ctags/grow-vector *ctags-file-sequence*
+                                                                  file-idx
+                                                                  file))
+                   (puthash file file-idx *ctags-file-idxs*)))
+               (let ((new-tag (make-ctags-tag
+                               :symbol     symbol
+                               :file-idx   (ctags-file->id file)
+                               :line       line
+                               :kind       (cdr (assoc* 'kind fields))
                                :aux-fields (filter (lambda (x)
                                                      (not (eq? 'kind (car x))))
-                                                   fields))
-                              (gethash symbol
-                                       tags-table
-                                       nil))
-                        tags-table))))
+                                                   fields))))
+                 (puthash symbol
+                          (cons new-tag
+                                (gethash symbol
+                                         tags-table
+                                         nil))
+                          tags-table)))))
          (forward-line 1))
        tags-table))))
 
@@ -235,19 +277,16 @@
   (save-excursion
    (save-match-data
     (beginning-of-line)
-    (if (looking-at +ctags-line-re+)
-      (begin
-        (message "(match-string-no-properties 3): %s"
-                 (pp-to-string (match-string-no-properties 3)))
-        (let ((line (aif (match-string-no-properties 3)
-                      (string->number it)
-                      nil))
-              (buf (find-file-noselect (match-string-no-properties 2))))
-          (pop-to-buffer buf)
-          (with-current-buffer buf
-            (if line
-              (goto-line line)
-              (error "cannot use ctags format with regexps")))))
+    (if (looking-at? +ctags-line-re+)
+      (let ((line (aif (match-string-no-properties 3)
+                    (string->number it)
+                    nil))
+            (buf (find-file-noselect (match-string-no-properties 2))))
+        (pop-to-buffer buf)
+        (with-current-buffer buf
+          (if line
+            (goto-line line)
+            (error "cannot use ctags format with regexps"))))
       (error "not on ctags line")))))
 
 (defvar ctags-mode-map
