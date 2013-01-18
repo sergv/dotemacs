@@ -20,6 +20,9 @@
 
 (defconst +comment-util-comment-format-alist+
   '((blueprint-mode        (one-line ";;") (line-regexp ";+"))
+    (python-mode           (one-line "#")  (line-regexp "#+"))
+    (cython-mode           (one-line "#")  (line-regexp "#+"))
+    (comint-mode           (one-line nil))
     (cl-mode               (one-line ";;") (line-regexp ";+"))
     (lisp-mode             (one-line ";;") (line-regexp ";+"))
     (emacs-lisp-mode       (one-line ";;") (line-regexp ";+"))
@@ -58,10 +61,8 @@
     (snippet-mode          (one-line "#")  (line-regexp "#+"))
     (sql-mode              (one-line "--") (line-regexp "--+"))
     (c++-mode              (one-line "//") (line-regexp "//+"))
+    (java-mode             (one-line "//") (line-regexp "//+"))
     (glsl-mode             (one-line "//") (line-regexp "//+"))
-    (python-mode           (one-line "#")  (line-regexp "#+"))
-    (cython-mode           (one-line "#")  (line-regexp "#+"))
-    (comint-mode           (one-line nil))
     (texinfo-mode          (one-line "@comment") (line-regexp "@c\\(?:o\\(?:m\\(?:m\\(?:e\\(?:n\\(?:t?\\)?\\)?\\)?\\)?\\)?\\)?"))
     (bison-mode            (region-begin "/*") (region-end "*/"))
     (flex-mode             (region-begin "/*") (region-end "*/"))

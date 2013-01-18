@@ -224,7 +224,7 @@ obtained by following upward in filesystem"
   (let* ((filename-re (read-string "filename regexp: " ""))
          (path (reverse (split-string (aif (buffer-file-name (current-buffer))
                                         (file-name-directory it)
-                                        default-directory)
+                                        (expand-file-name default-directory))
                                       "/"
                                       t)))
          (subdirs-visited '())
