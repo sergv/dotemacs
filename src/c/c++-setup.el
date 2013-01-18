@@ -93,7 +93,37 @@
                      (lambda () (concat "Select desired alternative file\n"))
                      :separator-function
                      (apply-partially #'select-make-bold-separator "--------\n"))))
-                (error "No *.%s file found for %s" alt-ext filename)))))))))
+                (error "No *.%s file found for %s" alt-ext filename))))))))
+
+  (defun c++-indent-buffer ()
+    (interactive)
+    (unless (executable-find "astyle")
+      (error "Command astyle is not available"))
+    (let ((file (make-temp-file "c-indent")))
+      (write-region (point-min) (point-max) file)
+      (erase-buffer)
+      (shell-command
+       (mapconcat #'identity
+                  (list "astyle"
+                        "--style=java"           ;; -A2
+                        "--indent=spaces=4"
+                        "--brackets=break"       ;; -b
+                        "--align-pointer=middle" ;; -k2
+                        "--formatted"            ;; -Q
+                        "--pad-oper"
+                        "--pad-header"
+                        "--unpad-paren"
+                        "--keep-one-line-statements"
+                        "--keep-one-line-blocks"
+                        "--convert-tabs"
+                        "--mode=c"
+                        "--suffix=none"
+                        "--lineend=linux"
+                        (format "<%s" file))
+                  " ")
+       (current-buffer))))
+
+  (push (cons 'c++-mode #'c++-indent-buffer) *mode-buffer-indent-function-alist*))
 
 
 

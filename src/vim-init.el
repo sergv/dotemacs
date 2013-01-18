@@ -313,16 +313,20 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
-  (if (buffer-file-name)
-    (magit-status)
-    (error "Current buffer has no associated file")))
+  (aif (buffer-file-name)
+    (if *have-git?*
+      (magit-status git-repository)
+      (magit-status (file-name-nondirectory it)))
+    (begin
+      (message "Warning: current buffer has no associated file")
+      (magit-status default-directory))))
 
 (vim:emap "magit" 'vim:magit)
 
 
 (vim:defcmd vim:blame (nonrepeatable)
   "Run `magit-blame-mode'."
-  (magit-blame-mode))
+  (magit-blame-mode 'toggle))
 
 (vim:emap "blame" 'vim:blame)
 
