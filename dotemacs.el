@@ -128,6 +128,7 @@
 (load-library "cmake-setup")
 (load-library "asm-setup")
 (load-library "llvm-setup")
+(load-library "java-setup")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
