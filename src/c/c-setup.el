@@ -39,41 +39,6 @@
 
 (push (cons 'c-mode #'c-indent-buffer) *mode-buffer-indent-function-alist*)
 
-(defun c-hideshow-forward-sexp (&optional arg)
-  "Special version of `forward-sexp' for hideshow in c-mode."
-  (if (looking-at-pure? "{")
-    (forward-sexp arg)
-    (let ((on-start? (looking-at-pure? (rx (seq "#"
-                                                (* (syntax whitespace))
-                                                symbol-start
-                                                (or "ifdef"
-                                                    "ifndef"
-                                                    "if")
-                                                symbol-end)))))
-      (c-forward-conditional (or arg 1))
-      (when on-start?
-        (forward-char -1)))))
-
-(setf hs-special-modes-alist
-      (cons `(c-mode ,(rx (or (seq "#"
-                                   (* (syntax whitespace))
-                                   symbol-start
-                                   (or "ifdef"
-                                       "ifndef"
-                                       "if"
-                                       "endif"
-                                       "else")
-                                   symbol-end)
-                              "{"))
-                     nil
-                     "/[*/]"
-                     c-hideshow-forward-sexp
-                     nil)
-            (remove* 'c-mode
-                     hs-special-modes-alist
-                     :key #'car
-                     :test #'eq?)))
-
 
 
 (defun c-setup ()

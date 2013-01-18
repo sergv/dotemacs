@@ -22,6 +22,44 @@
                      "\\([+*|&/!%]\\|-\\|\\^\\)?=[^=]"
                      :require-one-or-more-spaces t)
 
+(defun c-hideshow-forward-sexp (&optional arg)
+  "Special version of `forward-sexp' for hideshow in c-mode."
+  (if (looking-at-pure? "{")
+    (forward-sexp arg)
+    (let ((on-start? (looking-at-pure? (rx (seq "#"
+                                                (* (syntax whitespace))
+                                                symbol-start
+                                                (or "ifdef"
+                                                    "ifndef"
+                                                    "if")
+                                                symbol-end)))))
+      (c-forward-conditional (or arg 1))
+      (when on-start?
+        (forward-char -1)))))
+
+(let ((hs-spec (list (rx (or (seq "#"
+                                  (* (syntax whitespace))
+                                  symbol-start
+                                  (or "ifdef"
+                                      "ifndef"
+                                      "if"
+                                      "endif"
+                                      "else")
+                                  symbol-end)
+                             "{"))
+                     nil
+                     "/[*/]"
+                     #'c-hideshow-forward-sexp
+                     nil)))
+  (setf hs-special-modes-alist
+        (cons `(c-mode ,hs-spec)
+              (cons `(c++-mode ,hs-spec)
+                    (remove-if (lambda (entry)
+                                 (memq (car entry) '(c-mode c++-mode)))
+                               hs-special-modes-alist)))))
+
+
+
 (defun* cc-setup (&key (define-special-keys t)
                        (use-c-eldoc (not (platform-use? 'work))))
   (init-common :use-render-formula t)
