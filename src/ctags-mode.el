@@ -104,10 +104,6 @@
                "--excmd=number"
                (cdr (assq mjr-mode *ctags-language-flags*)))))))
 
-;; hash table of (project-root . names) bindings
-(defvar *ctags-projects*
-  (make-hash-table :test #'equal))
-
 ;; vector of filenames
 (defvar *ctags-file-sequence*
   (make-vector 2 nil)
@@ -237,6 +233,12 @@
             (cons (eproj-project-root proj)
                   (eproj-get-all-related-projects (eproj-project-root proj))))))
 
+(defun eproj-reload-projects ()
+  (interactive)
+  (maphash (lambda (root proj)
+             (eproj-load-single-ctags-project root
+                                              #'eproj-get-project-files))
+           *eproj-projects*))
 
 
 (defface ctags-symbol-face

@@ -7,7 +7,8 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  (setf lexical-binding t))
 
 (require 'eproj)
 (require 'select-mode)
@@ -78,8 +79,6 @@
                 (funcall jump-to-home (elt entries idx)))
               :predisplay-function
               (lambda (entry)
-                (message "entry: %s"
-                         (pp-to-string entry))
                 (format "%s %s%s%s\n%s:%s\n%s:%s\n"
                         (ctags-tag-kind entry)
                         (aif (find-if (lambda (entry)
