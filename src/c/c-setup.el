@@ -43,6 +43,7 @@
 
 (defun c-setup ()
   (cc-setup :define-special-keys t)
+  (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
 
   (if-buffer-has-file
    (setq-local compile-command

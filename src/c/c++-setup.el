@@ -99,7 +99,8 @@
     (interactive)
     (unless (executable-find "astyle")
       (error "Command astyle is not available"))
-    (let ((file (make-temp-file "c-indent")))
+    (let ((file (make-temp-file "c-indent"))
+          (p (point)))
       (write-region (point-min) (point-max) file)
       (erase-buffer)
       (shell-command
@@ -121,7 +122,8 @@
                         "--lineend=linux"
                         (format "<%s" file))
                   " ")
-       (current-buffer))))
+       (current-buffer))
+      (goto-char p)))
 
   (push (cons 'c++-mode #'c++-indent-buffer) *mode-buffer-indent-function-alist*))
 
@@ -131,7 +133,7 @@
   (cc-setup :define-special-keys t
             :use-c-eldoc nil ;; c-eldoc is too unreliable and too slow for C++
             )
-
+  (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (if-buffer-has-file
    (setq-local compile-command
                (let* ((fname  (file-name-nondirectory buffer-file-name))
