@@ -24,7 +24,7 @@
 
 (defun c-hideshow-forward-sexp (&optional arg)
   "Special version of `forward-sexp' for hideshow in c-mode."
-  (if (looking-at-pure? "{")
+  (if (char=? (char-after) ?\{)
     (forward-sexp arg)
     (let ((on-start? (looking-at-pure? (rx (seq "#"
                                                 (* (syntax whitespace))

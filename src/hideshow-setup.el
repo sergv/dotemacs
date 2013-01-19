@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-after-load
- "hideshow"
+    "hideshow"
  '(begin
    (defadvice byte-compile-file (around
                                  byte-compile-file-hideshow-off
@@ -101,7 +101,17 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
            (progress-reporter-update spew (point)))
          (progress-reporter-done spew)))
       (beginning-of-line)
-      (run-hooks 'hs-hide-hook)))))
+      (run-hooks 'hs-hide-hook)))
+
+   ;; add check hs-block-start-mdata-select
+   (redefun hs-forward-sexp (match-data arg)
+     "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
+Original match data is restored upon return."
+     (save-match-data
+      (set-match-data match-data)
+      (when hs-block-start-mdata-select
+        (goto-char (match-beginning hs-block-start-mdata-select)))
+      (funcall hs-forward-sexp-func arg)))))
 
 
 (provide 'hideshow-setup)
