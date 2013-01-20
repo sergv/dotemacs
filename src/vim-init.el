@@ -315,7 +315,9 @@ Basically swap current point with previous one."
   "Show git status for current file's repository."
   (aif (buffer-file-name)
     (if *have-git?*
-      (magit-status git-repository)
+      (begin
+        (git-update-file-repository)
+        (magit-status git-repository))
       (magit-status (file-name-nondirectory it)))
     (begin
       (message "Warning: current buffer has no associated file")
