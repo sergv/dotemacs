@@ -103,31 +103,7 @@ The value from `ibuffer-saved-filter-groups' is used."
             ,(assoc "org"        +buffer-groups+))
 
            ("default"
-            ,(assoc "blueprint"  +buffer-groups+)
-            ,(assoc "lisp"       +buffer-groups+)
-            ,(assoc "slime"      +buffer-groups+)
-            ,(assoc "emacs lisp" +buffer-groups+)
-            ,(assoc "scheme"     +buffer-groups+)
-
-            ,(assoc "haskell"    +buffer-groups+)
-            ,(assoc "prolog"     +buffer-groups+)
-            ,(assoc "octave"     +buffer-groups+)
-            ,(assoc "maxima"     +buffer-groups+)
-
-            ,(assoc "c/c++"      +buffer-groups+)
-            ,(assoc "python"     +buffer-groups+)
-            ,(assoc "cython"     +buffer-groups+)
-            ,(assoc "org"        +buffer-groups+)
-            ,(assoc "books"      +buffer-groups+)
-            ,(assoc "latex"      +buffer-groups+)
-            ,(assoc "web"        +buffer-groups+)
-            ,(assoc "vc"         +buffer-groups+)
-            ,(assoc "lowlevel programming" +buffer-groups+)
-            ,(assoc "other programming"    +buffer-groups+)
-
-            ,(assoc "utility"    +buffer-groups+)
-            ,(assoc "dired"      +buffer-groups+)
-            ,(assoc "other"      +buffer-groups+))))
+            ,@+buffer-groups+)))
 
    (defvar ibuffer-aux-filter-groups
      `(("git repo" . ,#'ibuffer-generate-filter-group-by-git-repository-root))
