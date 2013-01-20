@@ -101,7 +101,7 @@
  '(icicle-word-completion-keys nil)
  '(ielm-noisy nil)
  '(ielm-prompt "> ")
- '(inferior-lisp-program "sbcl")
+ '(inferior-lisp-program "sbcl" t)
  '(inferior-octave-buffer "*Octave*")
  '(inferior-octave-startup-args (quote ("--no-line-editing")))
  '(inferior-octave-startup-file "~/.octaverc")

@@ -17,9 +17,9 @@
       eshell-aliases-file (concat eshell-directory-name "/alias")
       eshell-buffer-maximum-lines 65536
       eshell-buffer-shorthand t
-      eshell-cmpl-expand-before-complete t
+      eshell-cmpl-expand-before-complete nil
       eshell-cmpl-ignore-case t
-      eshell-command-interpreter-max-length 1024
+      eshell-command-interpreter-max-length 4096
       eshell-error-if-no-glob t
       eshell-glob-include-dot-dot nil
       eshell-hist-ignoredups t
@@ -30,7 +30,10 @@
       eshell-scroll-to-bottom-on-input nil
       eshell-scroll-to-bottom-on-output nil
       eshell-send-direct-to-subprocesses nil
-      eshell-tar-regexp "\\.t\\(?:ar\\(?:\\.\\(?:gz\\|bz2\\|Z\\|7z\\)\\)?\\|gz\\|a[zZ]\\|z2\\|7z\\)\\'")
+      eshell-tar-regexp "\\.t\\(?:ar\\(?:\\.\\(?:gz\\|bz2\\|Z\\|7z\\)\\)?\\|gz\\|a[zZ]\\|z2\\|7z\\)\\'"
+      eshell-cmpl-autolist t
+      eshell-cmpl-cycle-cutoff-length 3
+      eshell-cmpl-file-ignore "~\\'\\|\\`\\.#")
 
 (eval-after-load
  "eshell"
