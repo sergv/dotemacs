@@ -10,7 +10,9 @@
 (require 'ctags-setup)
 
 (defun java-setup ()
-  (cc-setup :define-special-keys nil))
+  (cc-setup :define-special-keys nil)
+  (setf c-basic-offset 4
+        vim:shift-width 4))
 
 (add-hook 'java-mode-hook #'java-setup)
 
