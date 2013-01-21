@@ -12,7 +12,7 @@
  (require 'cl))
 
 (when (file-exists-p (concat (platform-dependent-root) "/.bash_env"))
-  (let* ((variables "PATH LD_LIBRARY_PATH PYTHONPATH EDITOR INFOPATH MANPATH PKG_CONFIG_PATH")
+  (let* ((variables "PATH LD_LIBRARY_PATH PYTHONPATH EDITOR INFOPATH MANPATH PKG_CONFIG_PATH JAVA_HOME")
          (values (shell-command-to-string
                   (format ". %s/.bash_env; printenv %s;"
                           (platform-dependent-root)

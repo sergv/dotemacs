@@ -51,7 +51,8 @@
    (with-hidden-comments (1))
    (with-hidden-cloze-hints (1))
    (with-hidden-cloze-text (1))
-   (magit-define-command (as defun))))
+   (magit-define-command (as defun))
+   (magit-section-action (4 2))))
 
 
 (font-lock-add-keywords 'emacs-lisp-mode
