@@ -207,6 +207,7 @@ a prefix argument reverses the meaning of that variable."
      ("G"        ibuffer-switch-to-saved-filter-groups)
 
      ("C-z"      nil)
+     ("v"        nil)
      ("/"        ibuffer-jump-to-buffer)
 
      ("<tab>"           ibuffer-forward-filter-group)

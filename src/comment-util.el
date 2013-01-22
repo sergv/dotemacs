@@ -70,6 +70,7 @@
     (nxml-mode             (region-begin "<!--") (region-end "-->"))
     (html-mode             (region-begin "<!--") (region-end "-->"))
     (sgml-mode             (region-begin "<!--") (region-end "-->"))
+    (markdown-mode         (region-begin "<!--") (region-end "-->"))
     (rnc-mode              (one-line "#") (line-regexp "#+"))
     (gitignore-mode        (one-line "#") (line-regexp "#+"))
     (lua-mode              (one-line "--") (line-regexp "--+"))
