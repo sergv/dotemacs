@@ -8,6 +8,8 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile
+  (require 'cl))
 
 (autoload 'markdown-mode "markdown-mode"
           "Major mode for editing Markdown files" t)
@@ -15,6 +17,10 @@
 (add-to-list 'auto-mode-alist '("\\.text" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md" . markdown-mode))
 
+(defun markdown-setup ()
+  (init-common :use-yasnippet nil))
+
+(add-hook 'markdown-mode-hook #'markdown-setup)
 
 (provide 'markdown-setup)
 
