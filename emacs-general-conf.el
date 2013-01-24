@@ -120,9 +120,10 @@
 (setq-default cursor-type 'box) ;'bar)
 (setq cursor-type 'box
       ;; default-major-mode 'text-mode ;'lisp-interaction-mode
-      major-mode 'text-mode
       tab-width 4
       tab-always-indent t)
+
+(setq-default major-mode 'text-mode)
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
