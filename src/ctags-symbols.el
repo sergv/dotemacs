@@ -16,8 +16,24 @@
 
 
 
-(defvar ctags-symbols-go-to-symbol-home-stack nil
-  "Stack of locations from which `ctags-symbols-go-to-symbol-home' was invoked.")
+(defvar ctags-symbols-homes-zipper (list nil nil)
+  "Two stacks of locations (previous next) from which
+`ctags-symbols-go-to-symbol-home' was invoked.")
+
+(defun ctags-symbols/previous-homes (zipper)
+  (car zipper))
+(defsetf ctags-symbols/previous-homes (zipper) (value)
+  `(setf (car ,zipper) ,value))
+
+(defun ctags-symbols/next-homes (zipper)
+  (cadr zipper))
+(defsetf ctags-symbols/next-homes (zipper) (value)
+  `(setf (cadr ,zipper) ,value))
+
+(defun ctags-symbols/next-home (zipper)
+  (car-safe (ctags-symbols/next-homes zipper)))
+
+
 
 (defun ctags-symbols-identifier-at-point ()
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
@@ -28,14 +44,42 @@
 (defvar *ctags-symbols-name-delimiter-alist*
   '((c-mode ".")
     (c++-mode "::")
-    (python-mode ".")))
+    (python-mode ".")
+    (java-mode ".")))
 
+
+(defstruct ctags-home-entry
+  buffer
+  point
+  symbol)
+
+(defun ctags-switch-to-home-entry (home-entry)
+  (switch-to-buffer (ctags-home-entry-buffer home-entry))
+  (goto-char (ctags-home-entry-point home-entry)))
 
 (defun ctags-symbols-go-to-symbol-home ()
   (interactive)
-  (let ((sym (ctags-symbols-identifier-at-point))
-        (orig-major-mode major-mode)
-        (proj (eproj-get-project-for-buf (current-buffer))))
+  (let* ((sym (ctags-symbols-identifier-at-point))
+         (orig-major-mode major-mode)
+         (proj (eproj-get-project-for-buf (current-buffer)))
+         (current-home-entry (make-ctags-home-entry :buffer (current-buffer)
+                                                    :point (point)
+                                                    :symbol sym))
+         (jump-to-home
+           (lambda (entry)
+             (let ((file (ctags-tag-file entry)))
+               (push current-home-entry (ctags-symbols/previous-homes ctags-symbols-homes-zipper))
+               (setf (ctags-symbols/next-homes ctags-symbols-homes-zipper) nil)
+               (unless (file-exists? file)
+                 (error "file %s does not exist" file))
+               (find-file file)
+               (goto-line (ctags-tag-line entry))
+               (save-match-data
+                (when (re-search-forward (regexp-quote (ctags-tag-symbol entry))
+                                         (line-end-position)
+                                         t)
+                  (goto-char (match-beginning 0)))))))
+         (next-home-entry (ctags-symbols/next-home ctags-symbols-homes-zipper)))
     (unless (or (eproj-project-names proj)
                 (assq major-mode (eproj-project-names proj)))
       (eproj-load-ctags-project (current-buffer))
@@ -45,73 +89,80 @@
         (error "No names in project %s for language %s"
                (eproj-project-root proj)
                major-mode)))
-    (let* ((entries (reduce #'append
-                            (mapcar (lambda (root)
-                                      (aif (assq major-mode
-                                                 (eproj-project-names
-                                                  (eproj-get-project root)))
-                                        (gethash sym (cdr it) nil)
-                                        nil))
-                                    (cons (eproj-project-root proj)
-                                          (eproj-get-all-related-projects
-                                           (eproj-project-root proj))))))
-           (stack-entry (list (current-buffer) (point)))
-           (jump-to-home
-             (lambda (entry)
-               (let ((file (ctags-tag-file entry)))
-                   (push stack-entry ctags-symbols-go-to-symbol-home-stack)
-                 (unless (file-exists? file)
-                   (error "file %s does not exist" file))
-                 (find-file file)
-                 (goto-line (ctags-tag-line entry))))))
-      (cond ((null? entries)
-             (error "No entries for identifier %s" sym))
-            ((null? (cdr entries))
-             (funcall jump-to-home (car entries)))
-            (else
-             (select-start-selection
-              entries
-              :buffer-name "Symbol homes"
-              :after-init #'ignore
-              :on-selection
-              (lambda (idx)
-                (select-exit)
-                (funcall jump-to-home (elt entries idx)))
-              :predisplay-function
-              (lambda (entry)
-                (format "%s %s%s%s\n%s:%s\n%s:%s\n"
-                        (ctags-tag-kind entry)
-                        (aif (find-if (lambda (entry)
-                                        (memq (car entry)
-                                              '(class
-                                                struct
-                                                union
-                                                enum)))
-                                      (ctags-tag-aux-fields entry))
-                          (concat (cdr it)
-                                  (cadr (assq orig-major-mode
-                                              *ctags-symbols-name-delimiter-alist*)))
-                          "")
-                        (ctags-tag-symbol entry)
-                        (aif (assoc 'signature (ctags-tag-aux-fields entry))
-                          (cdr it)
-                          "")
-                        (file-name-nondirectory (aref *ctags-file-sequence*
-                                                      (ctags-tag-file-idx entry)))
-                        (ctags-tag-line entry)
-                        (ctags-tag-file entry)
-                        (ctags-tag-line entry)))
-              :preamble-function
-              (lambda ()
-                "Choose symbol\n\n")))))))
+    (if (and next-home-entry
+             (string=? sym
+                       (ctags-home-entry-symbol next-home-entry)))
+      (begin
+        (ctags-switch-to-home-entry next-home-entry)
+        (push (pop (ctags-symbols/next-homes ctags-symbols-homes-zipper))
+              (ctags-symbols/previous-homes ctags-symbols-homes-zipper)))
+      (let* ((entry->string
+               (lambda (entry)
+                 (let ((delim (cadr (assq orig-major-mode
+                                          *ctags-symbols-name-delimiter-alist*))))
+                   (format "%s %s%s%s\n%s:%s\n%s:%s\n"
+                           (ctags-tag-kind entry)
+                           (aif (find-if (lambda (entry)
+                                           (memq (car entry)
+                                                 '(class
+                                                   struct
+                                                   union
+                                                   enum)))
+                                         (ctags-tag-aux-fields entry))
+                             (concat (cdr it) delim)
+                             "")
+                           (ctags-tag-symbol entry)
+                           (aif (assoc 'signature (ctags-tag-aux-fields entry))
+                             (cdr it)
+                             "")
+                           (file-name-nondirectory (ctags-tag-file entry))
+                           (ctags-tag-line entry)
+                           (ctags-tag-file entry)
+                           (ctags-tag-line entry)))))
+             (entries
+               (sort (reduce #'append
+                             (mapcar (lambda (root)
+                                       (aif (assq major-mode
+                                                  (eproj-project-names
+                                                   (eproj-get-project root)))
+                                         (gethash sym (cdr it) nil)
+                                         nil))
+                                     (cons (eproj-project-root proj)
+                                           (eproj-get-all-related-projects
+                                            (eproj-project-root proj)))))
+                     (lambda (a b)
+                       (string< (funcall entry->string a)
+                                (funcall entry->string b))))))
+        (cond ((null? entries)
+               (error "No entries for identifier %s" sym))
+              ((null? (cdr entries))
+               (funcall jump-to-home (car entries)))
+              (else
+               (select-start-selection
+                entries
+                :buffer-name "Symbol homes"
+                :after-init #'ignore
+                :on-selection
+                (lambda (idx)
+                  (select-exit)
+                  (funcall jump-to-home (elt entries idx)))
+                :predisplay-function
+                entry->string
+                :preamble-function
+                (lambda ()
+                  "Choose symbol\n\n"))))))))
 
 (defun ctags-symbols-go-back ()
   (interactive)
-  (if ctags-symbols-go-to-symbol-home-stack
-    (let ((top (pop ctags-symbols-go-to-symbol-home-stack)))
-      (switch-to-buffer (car top))
-      (goto-char (cadr top)))
-    (error "no more previous go-to-definition entries")))
+  (if (null? (ctags-symbols/previous-homes ctags-symbols-homes-zipper))
+    (error "no more previous go-to-definition entries")
+    (let ((current-home (make-ctags-home-entry
+                         :buffer (current-buffer)
+                         :point (point)
+                         :symbol (ctags-symbols-identifier-at-point))))
+      (push current-home (ctags-symbols/next-homes ctags-symbols-homes-zipper))
+      (ctags-switch-to-home-entry
+       (pop (ctags-symbols/previous-homes ctags-symbols-homes-zipper))))))
 
 (defun setup-ctags-symbols ()
   (aif (current-local-map)
