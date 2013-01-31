@@ -35,11 +35,14 @@
 
 
 
-(defun ctags-symbols-identifier-at-point ()
+(defun ctags-symbols-identifier-at-point (&optional noerror)
   (let ((bounds (bounds-of-thing-at-point 'symbol)))
-    (if bounds
-      (buffer-substring-no-properties (car bounds) (cdr bounds))
-      (error "No identifier at point found"))))
+    (cond ((not (null? bounds))
+           (buffer-substring-no-properties (car bounds) (cdr bounds)))
+          ((null? noerror)
+           (error "No identifier at point found"))
+          (else
+           nil))))
 
 (defvar *ctags-symbols-name-delimiter-alist*
   '((c-mode ".")
@@ -59,7 +62,7 @@
 
 (defun ctags-symbols-go-to-symbol-home ()
   (interactive)
-  (let* ((sym (ctags-symbols-identifier-at-point))
+  (let* ((sym (ctags-symbols-identifier-at-point nil))
          (orig-major-mode major-mode)
          (proj (eproj-get-project-for-buf (current-buffer)))
          (current-home-entry (make-ctags-home-entry :buffer (current-buffer)
@@ -68,7 +71,8 @@
          (jump-to-home
            (lambda (entry)
              (let ((file (ctags-tag-file entry)))
-               (push current-home-entry (ctags-symbols/previous-homes ctags-symbols-homes-zipper))
+               (push current-home-entry
+                     (ctags-symbols/previous-homes ctags-symbols-homes-zipper))
                (setf (ctags-symbols/next-homes ctags-symbols-homes-zipper) nil)
                (unless (file-exists? file)
                  (error "file %s does not exist" file))
@@ -94,7 +98,8 @@
                        (ctags-home-entry-symbol next-home-entry)))
       (begin
         (ctags-switch-to-home-entry next-home-entry)
-        (push (pop (ctags-symbols/next-homes ctags-symbols-homes-zipper))
+        (pop (ctags-symbols/next-homes ctags-symbols-homes-zipper))
+        (push current-home-entry
               (ctags-symbols/previous-homes ctags-symbols-homes-zipper)))
       (let* ((entry->string
                (lambda (entry)
@@ -156,11 +161,12 @@
   (interactive)
   (if (null? (ctags-symbols/previous-homes ctags-symbols-homes-zipper))
     (error "no more previous go-to-definition entries")
-    (let ((current-home (make-ctags-home-entry
-                         :buffer (current-buffer)
-                         :point (point)
-                         :symbol (ctags-symbols-identifier-at-point))))
-      (push current-home (ctags-symbols/next-homes ctags-symbols-homes-zipper))
+    (let ((sym (ctags-symbols-identifier-at-point t)))
+      (when sym
+        (push (make-ctags-home-entry :buffer (current-buffer)
+                                     :point (point)
+                                     :symbol sym)
+              (ctags-symbols/next-homes ctags-symbols-homes-zipper)))
       (ctags-switch-to-home-entry
        (pop (ctags-symbols/previous-homes ctags-symbols-homes-zipper))))))
 
