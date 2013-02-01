@@ -286,7 +286,7 @@ Basically swap current point with previous one."
 (vim:defcmd vim:render-latex (nonrepeatable)
   (if (memq major-mode '(latex-mode tex-mode LaTeX-mode))
     (latex-toggle-preview)
-    (render-buffer)))
+    (render-formula-toggle-formulae)))
 
 (vim:emap "latex" 'vim:render-latex)
 
