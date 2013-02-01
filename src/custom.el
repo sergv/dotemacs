@@ -614,6 +614,14 @@ have 'forward or 'backward value."
 (defsubst char= (a b)
   (char-equal a b))
 
+(defun cadr-safe (x)
+  (car-safe (cdr-safe x)))
+
+(defun cddr-safe (x)
+  (cdr-safe (cdr-safe x)))
+
+;;;;
+
 (require 'custom-predicates)
 
 ;; Local Variables:

@@ -8,14 +8,16 @@
 
 (eval-when-compile
   (require 'cl))
+(require 'custom)
 (require 'custom-predicates)
 
 (defstruct eproj-project
-  type ;; one of symbols: git, single-file
+  type             ;; one of symbols: git, single-file
   root
   names
   related-projects ;; list of other project roots
-  languages ;; list of symbols - major-modes for related languages
+  aux-files        ;; list of other files or function that yields such list
+  languages        ;; list of symbols - major-modes for related languages
   )
 
 (defvar *eproj-projects*
@@ -30,6 +32,8 @@
                                       :names nil
                                       :related-projects
                                       (eproj-get-related-projects it)
+                                      :aux-files
+                                      (eproj-construct-aux-files it)
                                       :languages (list major-mode))))
         (puthash it
                  proj
@@ -53,15 +57,27 @@
 (defun eproj-get-project-files (project)
   "Retrieve project files for PROJECT depending on it's type."
   (when (eq? (eproj-project-type project) 'git)
-    (git-get-tracked-files (eproj-project-root project))))
+    (append (git-get-tracked-files (eproj-project-root project))
+            (aif (eproj-project-aux-files project)
+              (cond ((or (functionp it)
+                         (byte-code-function-p it))
+                     (funcall it))
+                    ((list? it)
+                     it)
+                    (else
+                     nil))
+              nil))))
 
 (defun eproj-get-related-projects (root)
-  (let ((related-files-source (concat (strip-trailing-slash root)
-                                      "/.eproj_related")))
-    (when (file-exists? related-files-source)
+  (let ((eproj-info-file (concat (strip-trailing-slash root)
+                                 "/.eproj-info")))
+    (when (file-exists? eproj-info-file)
       (with-temp-buffer
-        (insert-file-contents-literally related-files-source)
+        (insert-file-contents-literally eproj-info-file)
         (mapcar (lambda (path)
+                  (assert (string? path) nil
+                          "invalid entry under related clause, string expected %s"
+                          path)
                   (cond ((file-directory? path)
                          path)
                         ((file-directory? (expand-file-name path root))
@@ -69,9 +85,55 @@
                         (else
                          (error "invalid related-project entry: not existing absolute nor relative directory: %s"
                                 path))))
-                (split-string (buffer-substring-no-properties (point-min) (point-max))
-                              "[\n\0]+"
-                              t))))))
+                (cdr-safe
+                 (assoc 'related
+                        (read (buffer-substring-no-properties (point-min) (point-max))))))))))
+
+(defun eproj-construct-aux-files (root)
+  (let ((eproj-info-file (concat (strip-trailing-slash root)
+                                 "/.eproj-info"))
+        (project-root root))
+    (when (file-exists? eproj-info-file)
+      (with-temp-buffer
+        (cd root)
+        (insert-file-contents-literally eproj-info-file)
+        (let ((entry (cdr-safe
+                      (assoc 'aux-files
+                             (read (buffer-substring-no-properties (point-min)
+                                                                   (point-max)))))))
+          (when entry
+            (lambda ()
+              (with-temp-buffer
+                (cd project-root)
+                (mapcan (lambda (item)
+                          (assert (list? item) nil
+                                  "invalid entry under aux-files clause, list expected: %s"
+                                  item)
+                          (cond ((eq? (car-safe item) 'tree)
+                                 (let ((tree-root (cadr-safe item))
+                                       (patterns (cddr-safe item)))
+                                   (assert (and (not (null? tree-root))
+                                                (file-exist? tree-root)
+                                                (file-directory? tree-root))
+                                           nil
+                                           "Invalid tree root under aux-files/tree clause: %s"
+                                           tree-root)
+                                   (assert (and (list? patterns)
+                                                (not (null? patterns)))
+                                           nil
+                                           "Invalid patterns under aux-files/tree clause: %s"
+                                           patterns)
+                                   (mapcar (lambda (path)
+                                             (file-relative-name path project-root))
+                                           (find-rec tree-root
+                                                     :filep
+                                                     (lambda (path)
+                                                       (any? (lambda (regexp)
+                                                               (string-match-pure? regexp path))
+                                                             patterns))))))
+                                (else
+                                 nil)))
+                        entry)))))))))
 
 
 

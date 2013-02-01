@@ -36,7 +36,9 @@
     (c++-mode
      "\\.\\(?:c\\|cc\\|cxx\\|cpp\\|c++\\|h\\|hh\\|hxx\\|hpp\\|h++\\|inl\\|inc\\|incl\\)\\'")
     (python-mode
-     "\\.\\(?:py\\|pyx\\|pxd\\|pxi\\)\\'")))
+     "\\.\\(?:py\\|pyx\\|pxd\\|pxi\\)\\'")
+    (java-mode
+     "\\.\\(?:java\\)\\'")))
 
 
 
@@ -86,10 +88,9 @@
     (let ((ext-re (cadr (assq mjr-mode *ctags-language-extensions*))))
       (with-temp-buffer
         (cd root-dir)
-        (dolist (file (filter (lambda (f)
-                                (string-match-pure? ext-re f))
-                              files))
-          (insert file "\n"))
+        (dolist (file files)
+          (when (string-match-pure? ext-re file)
+            (insert file "\n")))
         (apply #'call-process-region
                (point-min)
                (point-max)
@@ -202,7 +203,7 @@
          (forward-line 1))
        tags-table))))
 
-(defun eproj-load-single-ctags-project (root get-proj-files-func)
+(defun eproj-load-single-ctags-project (root)
   (let* ((proj (eproj-get-project root)))
     (setf (eproj-project-names proj) nil)
     (dolist (lang (eproj-project-languages proj))
@@ -218,7 +219,7 @@
           )
         (run-ctags-on-files lang
                             (eproj-project-root proj)
-                            (funcall get-proj-files-func proj)
+                            (eproj-get-project-files proj)
                             ctags-buf)
 
         (push (cons lang (ctags-get-tags-from-buffer ctags-buf root))
@@ -228,17 +229,19 @@
   "Reload project and all it's related projects current buffer's file is part of."
   (let* ((proj (eproj-get-project-for-buf buffer)))
     (mapcar (lambda (root)
-              (eproj-load-single-ctags-project root
-                                               #'eproj-get-project-files))
+              (eproj-load-single-ctags-project root))
             (cons (eproj-project-root proj)
                   (eproj-get-all-related-projects (eproj-project-root proj))))))
 
 (defun eproj-reload-projects ()
   (interactive)
   (maphash (lambda (root proj)
-             (eproj-load-single-ctags-project root
-                                              #'eproj-get-project-files))
+             (eproj-load-single-ctags-project root))
            *eproj-projects*))
+
+(defun eproj-reset-projects ()
+  (interactive)
+  (setf *eproj-projects* (make-hash-table :test #'equal)))
 
 
 (defface ctags-symbol-face
