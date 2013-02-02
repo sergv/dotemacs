@@ -44,14 +44,17 @@
 
 ;; hideshow special mode
 (setq hs-special-modes-alist
-      (assq-delete-all 'nxhtml-mode hs-special-modes-alist))
-(add-to-list 'hs-special-modes-alist
-             '(nxhtml-mode
-               "<[^/>]>\\|<[^>]*"
-               "</"
-               "<!--" ;; won't work on its own; uses syntax table
-               nxhtml-hs-forward-sexp-func
-               nil))
+      (assq-delete-all 'nxml-mode
+                       (assq-delete-all 'nxhtml-mode
+                                        hs-special-modes-alist)))
+(dolist (mode '(nxml-mode nxhtml-mode))
+  (add-to-list 'hs-special-modes-alist
+               `(,mode
+                 "<[^/>]>\\|<[^>]*"
+                 "</"
+                 "<!--" ;; won't work on its own; uses syntax table
+                 nxhtml-hs-forward-sexp-func
+                 nil)))
 
 
 (defvar *hexcolour-keywords*
