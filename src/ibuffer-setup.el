@@ -67,7 +67,7 @@ git repository root"
 The value from `ibuffer-saved-filter-groups' is used."
      (interactive
       (list
-       (if (null ibuffer-saved-filter-groups)
+       (if (null? ibuffer-saved-filter-groups)
          (error "No saved filters")
          (let ((completion-ignore-case t))
            (completing-read "Switch to saved filter group: "
@@ -75,15 +75,15 @@ The value from `ibuffer-saved-filter-groups' is used."
                                     (mapcar #'car ibuffer-aux-filter-groups))
                             nil
                             t)))))
-     (let ((group (cdr (assoc name ibuffer-saved-filter-groups))))
-       (if group
-         (setq ibuffer-filter-groups group)
-         (let ((aux-group (cdr (assoc name ibuffer-aux-filter-groups))))
-           (setq ibuffer-filter-groups (if (functionp aux-group)
-                                         (funcall aux-group)
-                                         aux-group))))
-       (setq ibuffer-hidden-filter-groups nil)
-       (ibuffer-update nil t)))
+     (aif (cdr (assoc name ibuffer-saved-filter-groups))
+       (setq ibuffer-filter-groups it)
+       (aif (cdr (assoc name ibuffer-aux-filter-groups))
+         (setq ibuffer-filter-groups (if (functionp it)
+                                       (funcall it)
+                                       it))
+         (error "definition for group %s not found" name)))
+     (setq ibuffer-hidden-filter-groups nil)
+     (ibuffer-update nil t))
 
    (setf ibuffer-saved-filter-groups
          `(("lisp"
