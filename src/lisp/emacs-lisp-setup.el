@@ -9,7 +9,7 @@
 ;; Status:
 
 (require 'general-lisp-setup)
-(require 'slime-setup)
+(require 'slime-setup-lite)
 (require 'find-func)
 (require 'emacs-lisp-abbrev+)
 (require 'ansi-lisp-highlight)
@@ -52,7 +52,8 @@
    (with-hidden-cloze-hints (1))
    (with-hidden-cloze-text (1))
    (magit-define-command (as defun))
-   (magit-section-action (4 2))))
+   (magit-section-action (4 2))
+   (make-buf-tag-pred (&rest 1))))
 
 
 (font-lock-add-keywords 'emacs-lisp-mode
@@ -129,7 +130,7 @@
 (eval-after-load "edebug"
                  '(progn
                    (def-keys-for-map edebug-mode-map
-                     ("<f1>"  edebug-step-mode))))
+                     ("<f1>" edebug-step-mode))))
 
 (defun eval-print-last-sexp-unlimited-length ()
   (interactive)
@@ -140,84 +141,22 @@
 
 ;;;;
 
-(defconst elisp-do-not-compile-files
-  '("profile-dotemacs.el"
-    "recompile.el"
-    "color-theme-darkspectrum.el"
-    "color-theme-example.el"
-    "color-theme-github.el"
-    "color-theme-library.el"
-    "color-theme-solarized.el")
-  "List of file names that should not be compiled into bytecode.")
-
-(defun elisp-compile-filep (filename)
-  "Return T if file FILENAME should be bytecompiled."
-  (let ((file (file-name-nondirectory filename)))
-    (not (some #'(lambda (x)
-                   (string= x file))
-               elisp-do-not-compile-files))))
-
-
-(defun elisp-move-filep (filename)
-  "Return T if file FILENAME should be moved to `+bytecode-lib+'."
-  ;; (let ((file (file-name-nondirectory filename)))
-  ;;   (not (some #'(lambda (x)
-  ;;                  (string= x file))
-  ;;              *elisp-do-not-move-files*)))
-
-  ;; do not move any files while I'm using /src directory
-  ;; for loading
-  nil)
-
 (defun elisp-compile-and-move ()
   (interactive)
   (when (buffer-modified-p)
     (save-buffer))
   (when (and (eq major-mode 'emacs-lisp-mode)
              (not no-byte-compile))
-    (save-excursion
-     (let ((file (buffer-file-name))
-           (window-config (current-window-configuration)))
-       (cond
-         ((not (elisp-compile-filep file))
-          nil)
-         ((not (elisp-move-filep file))
-          (if (byte-compile-file file)
-            (progn
-              (kill-buffer "*Compile-Log*")
-              ;; restore window config
-              (set-window-configuration window-config))
-            (message "Compilation errors, check out *Compile-log*")))
+    (let ((file (buffer-file-name))
+          (window-config (current-window-configuration)))
+      (if (byte-compile-file file)
+        (progn
+          (kill-buffer "*Compile-Log*")
+          ;; restore window config
+          (set-window-configuration window-config))
+        (message "Compilation errors, check out *Compile-log*")))))
 
-         ((string= "el"
-                   (file-name-extension file))
-
-          (let* ((compiled-file (byte-compile-dest-file file))
-                 (dest-file (path-concat +bytecode-lib+
-                                         (file-name-nondirectory compiled-file)))
-                 (byte-compile-error-on-warn t)
-                 (byte-compile-warning-types
-                   (remove-if (lambda (x)
-                                (memq x '(absolete
-                                          cl-functions)))
-                              byte-compile-warning-types)))
-            (cond
-              ((byte-compile-file file)
-               (cond
-                 ((file-exists-p +bytecode-lib+)
-                  (when (file-exists-p dest-file)
-                    (delete-file dest-file))
-                  (message "Moving compiled file to %s" dest-file)
-                  (rename-file compiled-file dest-file))
-                 (t
-                  ;; can't reach dest-file so remove
-                  ;; currently produced file to reduce garbage
-                  (delete-file compiled-file)))
-               (kill-buffer "*Compile-Log*")
-               (set-window-configuration window-config))
-              (t
-               (message "Compilation errors, check out *Compile-log*"))))))))))
-
+;;;; elisp debugger
 
 (defun debugger-setup ()
   (def-keys-for-map debugger-mode-map

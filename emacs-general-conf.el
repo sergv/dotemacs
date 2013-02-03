@@ -139,7 +139,8 @@
       query-replace-highlight t
       query-replace-interactive nil ;do not use last search string as initial regexp
       search-highlight t
-      undo-limit 65536
+      undo-limit 1000000
+      undo-strong-limit (* 10 undo-limit)
 
       require-final-newline t
       inhibit-startup-message t

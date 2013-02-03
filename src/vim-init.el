@@ -143,6 +143,7 @@
   ("g c c"    comment-util-comment-lines)
   ("g c u"    comment-util-uncomment-region)
 
+  ("g r"      rgrep)
   ("g TAB"    nil)
   ("g n"      nil)
   ("g t"      nil)
