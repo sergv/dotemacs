@@ -205,6 +205,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:cmd-close (nonrepeatable keep-visual)
   "Close current window, just like C-x 0."
+  (message "You can run vim:cmd-close with M-k")
   (icicle-delete-window nil))
 
 (vim:emap "close" 'vim:cmd-close)

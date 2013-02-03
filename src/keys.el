@@ -80,6 +80,7 @@
   ("C-x f"    find-file)
   ("C-x k"    remove-buffer)
   ("C-k"      remove-buffer)
+  ("M-k"      icicle-delete-window)
   ("C-x K"    remove-buffer-and-window)
   ("C-S-k"    remove-buffer-and-window)
   ("C-x u"    undo-tree-visualize)
