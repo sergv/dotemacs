@@ -21,6 +21,7 @@
 (defconst +comment-util-comment-format-alist+
   '((blueprint-mode        (one-line ";;") (line-regexp ";+"))
     (clojure-mode          (one-line ";;") (line-regexp ";+"))
+    (nrepl-mode            (one-line ";;") (line-regexp ";+"))
     (python-mode           (one-line "#")  (line-regexp "#+"))
     (cython-mode           (one-line "#")  (line-regexp "#+"))
     (comint-mode           (one-line nil))
