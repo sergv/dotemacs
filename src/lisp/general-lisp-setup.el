@@ -123,9 +123,9 @@ Returns t if char at loc meets one of the following conditions:
        (or (nth 3 parse-state)                ; inside string?
            (nth 4 parse-state)                ; inside comment?
            ;; check for ?\(, ?\), #\(, #\) etc
-           (and (eq? (char-before loc) ?\\)
-                (or (eq (char-before (- loc 1)) ?\?)
-                    (eq (char-before (- loc 1)) ?\#))))))))
+           (and (char= (char-before loc) ?\\)
+                (or (char= (char-before (- loc 1)) ?\?)
+                    (char= (char-before (- loc 1)) ?\#))))))))
 
 (eval-after-load
  'lisp-mode
@@ -331,7 +331,7 @@ of line."
 ;;    (let* ((end (point))
 ;;           (begin
 ;;             ;; if this proves itself too slow then use line-beginning-position
-;;             (if (cl:backward-up-list)
+;;             (if (glisp/backward-up-list)
 ;;               (point)
 ;;               (line-beginning-position)))
 ;;           (state (parse-partial-sexp begin
@@ -514,7 +514,7 @@ This command assumes point is not in a string or comment."
    (condition-case nil
        (progn
          (align-let)
-         (cl:backward-up-list)
+         (glisp/backward-up-list)
          (indent-sexp))
      (error nil))))
 
@@ -530,13 +530,13 @@ This command assumes point is not in a string or comment."
                 :exclusive t
                 :do-not-adjust-point t)
 
-(defun cl:backward-up-list ()
+(defun glisp/backward-up-list ()
   (interactive)
   (condition-case nil
       (backward-up-list)
     (error (error "No enclosing list found"))))
 
-(vimmize-motion cl:backward-up-list
+(vimmize-motion glisp/backward-up-list
                 :name vim:lisp-backward-up-list
                 :exclusive t
                 :do-not-adjust-point t)
@@ -546,7 +546,7 @@ This command assumes point is not in a string or comment."
 
 (add-to-list 'debug-ignored-errors "\\`No enclosing list found\\'")
 
-(defun cl:find-beginning-of-defun (if-nothing-was-done)
+(defun glisp/find-beginning-of-defun (if-nothing-was-done)
   (let ((done-up-list nil))
     (condition-case nil
         (while (or (not done-up-list)
@@ -594,15 +594,15 @@ This command assumes point is not in a string or comment."
     (unless done-up-list
       (funcall if-nothing-was-done))))
 
-(defun cl:beginning-of-defun ()
+(defun glisp/beginning-of-defun ()
   (interactive)
   (vim:save-in-function-position)
-  (cl:find-beginning-of-defun #'backward-sexp))
+  (glisp/find-beginning-of-defun #'backward-sexp))
 
-(defun cl:end-of-defun ()
+(defun glisp/end-of-defun ()
   (interactive)
   (vim:save-in-function-position)
-  (cl:find-beginning-of-defun #'ignore)
+  (glisp/find-beginning-of-defun #'ignore)
   (forward-sexp))
 
 ;;; other
@@ -633,7 +633,8 @@ This command assumes point is not in a string or comment."
                        ;; this throws error if no enclosing list found
                        (backward-up-list))
                       (beginning-of-defun)
-                      (vim:motion-fwd-WORD)
+                      (forward-symbol 1)
+                      (paredit-skip-whitespace t)
                       (let ((symbol (symbol-at-point)))
                         (if symbol
                           (concat ,(if use-upcase
@@ -680,6 +681,7 @@ This command assumes point is not in a string or comment."
                 common-lisp-mode
                 scheme-mode
                 blueprint-mode
+                clojure-mode
                 lisp-mode))
   (push (cons mode #'lisp-indent-buffer)
         *mode-buffer-indent-function-alist*))
@@ -693,7 +695,7 @@ This command assumes point is not in a string or comment."
     (hs-show-block))
   (when (outline-invisible-p)
     (show-subtree)))
- (cl-mode lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
+ (lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
 
 
 (vimmize-function paredit-splice-sexp-killing-backward
@@ -760,7 +762,8 @@ This determines whether to insert a space after the # sign."
 
 ;;;; Actual setup functions
 
-(defun* lisp-setup (&key (use-whitespace t))
+(defun* lisp-setup (&key (use-whitespace t)
+                         (use-cl-indent t))
   (init-common :use-yasnippet nil
                :use-whitespace use-whitespace
                :use-render-formula t)
@@ -770,9 +773,9 @@ This determines whether to insert a space after the # sign."
   ;; hiding of comments is rather annoying feature when working with lisps
   (setq-local hs-hide-comments-when-hiding-all nil)
   (enable-paredit-mode)
-  (setq-local paredit-space-for-delimiter-predicates
-              (list
-               #'paredit-insert-space-after-reader-sharp?))
+  ;; (setq-local paredit-space-for-delimiter-predicates
+  ;;             (list #'paredit-insert-space-after-reader-sharp?))
+
   ;; (setq-local whitespace-line-column 81)
   ;; (setq-local whitespace-style '(face lines-tail tabs))
   ;; (whitespace-mode 1)
@@ -784,10 +787,11 @@ This determines whether to insert a space after the # sign."
   (setq-local comment-end "")
   (setq-local comment-padding " ")
 
-  (setf lisp-indent-function #'common-lisp-indent-function)
+  (when use-cl-indent
+    (setf lisp-indent-function #'common-lisp-indent-function))
   ;; just in case someone will want to use standard #'lisp-indent-function
   ;; put information for this case
-  (put 'if 'lisp-indent-function nil)
+  ;; (put 'if 'lisp-indent-function nil)
 
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
@@ -874,8 +878,8 @@ This determines whether to insert a space after the # sign."
     ("<up>"     vim:motion-bwd-paragraph)
     ("<down>"   vim:motion-fwd-paragraph)
 
-    ("g n"      cl:beginning-of-defun)
-    ("g t"      cl:end-of-defun)
+    ("g n"      glisp/beginning-of-defun)
+    ("g t"      glisp/end-of-defun)
     ("<home>"   paredit-backward)
     ("<end>"    paredit-forward))
 

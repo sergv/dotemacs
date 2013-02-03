@@ -50,6 +50,12 @@
                   ("properties" 0)))
                "(buffer-substring-no-properties")
          (list (make-abbrev+-re-for-lisp-func-name
+                '(("def"      1)
+                  ("keys"     1)
+                  ("for"      1)
+                  ("map"      1)))
+               "(def-keys-for-map")
+         (list (make-abbrev+-re-for-lisp-func-name
                 '(("multiple" 1)
                   ("value"    1)
                   ("bind"     1)))
@@ -64,13 +70,41 @@
          (list "(\\(?:mess?\\|msg\\)\\_>"
                "(message")
          (list (make-abbrev+-re-for-lisp-func-name
-                '(("condition" 3)
-                  ("case"      1)))
+                '(("condition" 2)
+                  ("case"      3)))
                "(condition-case")
          (list (make-abbrev+-re-for-lisp-func-name
+                '(("point" 1)
+                  ("min"   2)))
+               "(point-min")
+         (list (make-abbrev+-re-for-lisp-func-name
+                '(("point" 1)
+                  ("max"   2)))
+               "(point-max")
+         (list (make-abbrev+-re-for-lisp-func-name
                 '(("unwind"  2)
-                  ("protecs" 2)))
+                  ("protect" 2)))
                "(unwind-protect")
+         (list (make-abbrev+-re-for-lisp-func-name
+                '(("beginning"  2)
+                  ("of"         1)
+                  ("line"       1)))
+               "(beginning-of-line")
+         (list (make-abbrev+-re-for-lisp-func-name
+                '(("end"  2)
+                  ("of"   1)
+                  ("line" 1)))
+               "(end-of-line")
+         (list (make-abbrev+-re-for-lisp-func-name
+                '(("line"      1)
+                  ("beginning" 1)
+                  ("position"  3)))
+               "(line-beginning-position")
+         (list (make-abbrev+-re-for-lisp-func-name
+                '(("line"     1)
+                  ("end"      1)
+                  ("position" 3)))
+               "(line-end-position")
          (list "\\_<info\\_>"
                (list #'emacs-lisp-print-info-skeleton)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))

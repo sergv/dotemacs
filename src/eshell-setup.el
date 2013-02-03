@@ -108,9 +108,6 @@
                    (funcall define-programs '("ghc" "ghci")
                             "\\(?:\\.hs\\|\\.lhs\\|\\.hsc\\)\\'")
 
-                   (funcall define-programs '("sbcl" "clisp" "ecl" "ccl")
-                            (eval `(rx "." (or ,@+common-lisp-file-extensions+) eot)))
-
                    (funcall define-programs '("stalin" "guile" "csi" "csc" "scheme48" "bigloo")
                             (eval `(rx "." (or ,@+scheme-file-extensions+) eot)))
 
@@ -121,7 +118,6 @@
                             "\\.texi\\'")
 
                    `(("gunzip" . "\\.gz\\'")
-
                      ("ar" . "\\.[ao]\\'")))))
 
    ;; redefine some eshell functions

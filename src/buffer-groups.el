@@ -11,6 +11,12 @@
 (defconst +buffer-groups+
   (symbol-macrolet
       ((blueprint-filter `(or (mode . blueprint-mode)))
+       (clojure-filter `(or (mode . clojure-mode)
+                            (mode . nrepl-mode)
+                            (mode . nrepl-popup-buffer-mode)
+                            (mode . nrepl-macroexpansion-minor-mode)
+                            (mode . nrepl-interaction-mode)
+                            (mode . nrepl-popup-buffer-mode)))
        (lisp-filter `(or (predicate
                           .
                           (and (memq major-mode
@@ -216,6 +222,7 @@
                           ;; handle everything
                           (predicate . t))))
     `(("blueprint"  ,blueprint-filter)
+      ("clojure"    ,clojure-filter)
       ("lisp"       ,lisp-filter)
       ("slime"      ,slime-filter)
       ("emacs lisp" ,emacs-lisp-filter)
@@ -243,7 +250,6 @@
       ("other"      ,other-filter)))
   "Alist of (<group-name> <group-definition>) where <group-definition>
 is in format required by `ibuffer-saved-filter-groups'.")
-
 
 (provide 'buffer-groups)
 
