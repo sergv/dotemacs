@@ -17,7 +17,7 @@
 
 ; set up modes where vim-mode shold be (partially) disabled
 (setf vim:initial-modes
-      '((fundamental-mode . normal)
+      '((fundamental-mode . nil)
         (text-mode . normal)
         (slime-repl-mode . normal)
         (sldb-mode . nil)
@@ -48,7 +48,11 @@
         (image-mode . nil)
         (calendar-mode . nil)
         (select-mode . nil)
-        (minimap-mode . nil)))
+        (minimap-mode . nil)
+
+        (nrepl-popup-buffer-mode . nil)
+        (nrepl-macroexpansion-minor-mode . nil)
+        (nrepl-interaction-mode . nil)))
 
 ;;;; modeline
 (setq-default mode-line-format

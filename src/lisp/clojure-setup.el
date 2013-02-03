@@ -28,12 +28,6 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" nrepl-switch-to-repl-buffer)
-    ("M-/"     complete-symbol)
-    ("<f1>"    nrepl-load-current-buffer ;; clojure-load-file
-               )
-
-    ("M-."     nrepl-jump)
-    ("M-,"     nrepl-jump-back)
 
     (", j d"   nrepl-javadoc)
     (", d"     nrepl-doc)
@@ -41,6 +35,14 @@
     (", M"     nrepl-macroexpand-all)
 
     ("j"       nrepl-eval-last-expression))
+  (def-keys-for-map (vim:insert-mode-local-keymap
+                     vim:normal-mode-local-keymap)
+    ("M-/"     complete-symbol)
+    ("<f1>"    nrepl-load-current-buffer ;; clojure-load-file
+               )
+
+    ("M-."     nrepl-jump)
+    ("M-,"     nrepl-jump-back))
   (clojure-abbrev+-setup))
 
 (add-hook 'clojure-mode-hook #'clojure-setup)
@@ -52,9 +54,10 @@
                :use-render-formula nil)
   (init-repl)
 
+  (clojure-mode-font-lock-setup)
+
   (rainbow-delimiters-mode 1)
-  (hs-minor-mode 1)
-  (setq-local hs-hide-comments-when-hiding-all nil)
+  (hs-minor-mode -1)
   (enable-paredit-mode)
 
   (setq-local comment-style 'indent)
@@ -69,7 +72,27 @@
         vim:visual-mode-local-keymap           (make-sparse-keymap)
         vim:insert-mode-local-keymap           (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap)))
+        vim:motion-mode-local-keymap           (make-sparse-keymap))
+
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC"  nrepl-delete-current-input)
+
+    (", j d"    nrepl-javadoc)
+    (", d"      nrepl-doc)
+    (", m"      nrepl-macroexpand-1)
+    (", M"      nrepl-macroexpand-all)
+
+    ("j"        nrepl-eval-last-expression))
+  (def-keys-for-map (vim:insert-mode-local-keymap
+                     vim:normal-mode-local-keymap)
+    ("M-/"     complete-symbol)
+    ("<up>"     nrepl-previous-input)
+    ("<down>"   nrepl-next-input)
+    ("S-<up>"   nrepl-previous-prompt)
+    ("S-<down>" nrepl-next-prompt)
+
+    ("M-."     nrepl-jump)
+    ("M-,"     nrepl-jump-back)))
 
 (add-hook 'nrepl-mode-hook #'nrepl-setup)
 

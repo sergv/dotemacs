@@ -16,7 +16,12 @@
                             (mode . nrepl-popup-buffer-mode)
                             (mode . nrepl-macroexpansion-minor-mode)
                             (mode . nrepl-interaction-mode)
-                            (mode . nrepl-popup-buffer-mode)))
+                            (mode . nrepl-popup-buffer-mode)
+                            (predicate
+                             .
+                             (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
+                                  (memq major-mode '(text-mode
+                                                     fundamental-mode))))))
        (lisp-filter `(or (predicate
                           .
                           (and (memq major-mode
