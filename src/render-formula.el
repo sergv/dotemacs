@@ -132,7 +132,19 @@ won't be confused by the same filename used for different images.")
   "Is set to t by `render-formula-toggle-formulas' when latex code in buffer is
 displayed as images.")
 
-(defvar +render-buffer-latex-re+ "\\$\\$\\(\\(?:.\\|\n\\)+?\\)\\$\\$")
+(defvar +render-buffer-latex-re+
+  (rx "\$\$"
+      (? "[["
+         (group
+          (+? (or anything
+                  "\\]]"
+                  "]\\]"
+                  "\\]\\]")))
+         "]]")
+      (group
+       (+? anything))
+      "\$\$")
+  "Occurrences of regexp in brackets will be removed from formula")
 
 (defun render-buffer-disable-formula (start end)
   (remove-list-of-text-properties start
@@ -142,6 +154,16 @@ displayed as images.")
                                     intangible
                                     read-only)))
 
+(defun render-buffer-clean-string (regexp str)
+  (if regexp
+    (save-match-data
+     (with-temp-buffer
+       (insert str)
+       (goto-char (point-min))
+       (while (re-search-forward regexp nil t)
+         (replace-match ""))
+       (buffer-substring-no-properties (point-min) (point-max))))
+    str))
 
 (defun render-buffer-off ()
   (save-excursion
@@ -163,7 +185,9 @@ displayed as images.")
       (goto-char (point-min))
       (while (re-search-forward +render-buffer-latex-re+ nil t)
         (unless (get-char-property (match-beginning 0) 'display)
-          (let ((s (substring-no-properties (match-string 1) 0)))
+          (let ((s (render-buffer-clean-string
+                    (match-string-no-properties 1)
+                    (match-string-no-properties 2))))
             (add-text-properties
              (match-beginning 0)
              (match-end 0)
@@ -180,10 +204,13 @@ displayed as images.")
     (render-buffer-on))
   (setf render-buffer-rendered? (not render-buffer-rendered?)))
 
+(defface render-formula-regexp-face
+    '((t (:foreground "blue")))
+  "Face to highlight regexp after \$\$.")
 
 (defface render-formula-formula-face
     '((t (:foreground "blue")))
-  "Face to highlight latex code between $$'s.")
+  "Face to highlight latex code between \$\$'s.")
 
 (define-minor-mode render-formula-mode
   "Minor mode for rendering latex formulas in buffer as images."
@@ -197,13 +224,16 @@ displayed as images.")
       (font-lock-add-keywords
        nil
        `((,+render-buffer-latex-re+
-          (1 'render-formula-formula-face t ;; do override
+          (1 'render-formula-regexp-face t ;; do override
+             )
+          (2 'render-formula-formula-face t ;; do override
              )))))
     (progn
       (font-lock-remove-keywords
        nil
        `((,+render-buffer-latex-re+
-          (1 'render-formula-formula-face t)))))))
+          (1 'render-formula-formula-face t)
+          (2 'render-formula-formula-face t)))))))
 
 
 (provide 'render-formula)
