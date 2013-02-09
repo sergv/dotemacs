@@ -24,6 +24,8 @@
   "Global numbering of formulas to index filenames so that emacs
 won't be confused by the same filename used for different images.")
 
+(defvar render-formula-latex-input-buf "#latex-input#"
+  "Buffer with text that is fed to latex.")
 (defvar render-formula-latex-output-buf "#latex-output#"
   "Buffer for latex errors.")
 
@@ -51,8 +53,16 @@ won't be confused by the same filename used for different images.")
            (tmp-path (concat +tmp-path+ "/render-formula"))
            (tmp-file (concat tmp-path "/" tmp-filename ".tex"))
            (dvi-file (concat tmp-path "/" tmp-filename ".dvi"))
-           (img-file (concat tmp-path "/" tmp-filename ".png")))
-      (with-temp-buffer
+           (img-file (concat tmp-path "/" tmp-filename ".png"))
+           (latex-bufs (list (get-buffer-create
+                              render-formula-latex-input-buf)
+                             (get-buffer-create
+                              render-formula-latex-output-buf))))
+
+      (dolist (buf latex-bufs)
+        (with-current-buffer buf
+          (erase-buffer)))
+      (with-current-buffer (get-buffer-create render-formula-latex-input-buf)
         (insert
          (format "\\documentclass[%dpt%s]{article}\n"
                  point-size
@@ -85,10 +95,7 @@ won't be confused by the same filename used for different images.")
          "\\end{document}\n")
         ;; (buffer-substring-no-properties (point-min) (point-max))
 
-        (with-current-buffer (get-buffer-create
-                              render-formula-latex-output-buf)
-          (erase-buffer)
-          (text-mode))
+
         (if (= 0
                (call-process-region (point-min) (point-max)
                                     "latex"
@@ -101,9 +108,13 @@ won't be confused by the same filename used for different images.")
                                     "-shell-escape"
                                     "-output-directory" tmp-path
                                     "-jobname" tmp-filename))
-          (remove-buffer render-formula-latex-output-buf)
           (progn
-            (pop-to-buffer render-formula-latex-output-buf)
+            (mapc #'remove-buffer latex-bufs))
+          (progn
+            (dolist (buf latex-bufs)
+              (with-current-buffer buf
+                (text-mode)))
+            (mapc #'pop-to-buffer latex-bufs)
             (error "LaTeX error"))))
       ;; dvi is now at dvi-file
       (call-process "dvipng"
