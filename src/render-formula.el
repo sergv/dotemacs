@@ -136,10 +136,10 @@ displayed as images.")
   (rx "\$\$"
       (? "[["
          (group
-          (+? (or anything
-                  "\\]]"
+          (+? (or "\\]]"
                   "]\\]"
-                  "\\]\\]")))
+                  "\\]\\]"
+                  anything)))
          "]]")
       (group
        (+? anything))
