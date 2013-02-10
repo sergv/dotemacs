@@ -1533,9 +1533,14 @@ number of spaces equal to `tab-width'."
 
 ;;;;
 
+(defconst +buffer-indent-temporary-filename+
+  (concat temporary-file-directory "/indent-buffer.tmp")
+  "Path to temporary file reserved for buffer indentation puproses.
+See also `*mode-buffer-indent-function-alist*'.")
+
 (defvar *mode-buffer-indent-function-alist* nil
   "Alist of (major-mode . function) pairs, where functions should take 0
-arguments and indent current buffer.")
+arguments and indent current buffer. See also `+buffer-indent-temporary-filename+'.")
 
 ;;;;
 
@@ -1550,6 +1555,19 @@ arguments and indent current buffer.")
   "Insert today's date as \"<Day Name>, <day> <Month name> <Year>\""
   (interactive)
   (insert (format-time-string "%A, %e %B %Y" (current-time))))
+
+;;;;
+
+(defun* map-files (f file-list &key dont-write)
+  "For every file in FILE-LIST insert it's content into
+buffer, call function f with that buffer as argument and
+write buffer contents back into file if flag DONT-WRITE is nil."
+  (dolist (file file-list)
+    (with-temp-buffer
+      (insert-file-contents file)
+      (funcall f (current-buffer))
+      (unless dont-write
+        (write-region (point-min) (point-max) file)))))
 
 ;;;;
 
