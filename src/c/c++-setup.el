@@ -6,6 +6,7 @@
 ;; Created: long ago
 ;; Description:
 
+(require 'common)
 (require 'cc-setup)
 (require 'c++-abbrev+)
 (require 'select-mode)
@@ -99,7 +100,7 @@
     (interactive)
     (unless (executable-find "astyle")
       (error "Command astyle is not available"))
-    (let ((file (make-temp-file "c-indent"))
+    (let ((file +buffer-indent-temporary-filename+)
           (p (point)))
       (write-region (point-min) (point-max) file)
       (erase-buffer)
