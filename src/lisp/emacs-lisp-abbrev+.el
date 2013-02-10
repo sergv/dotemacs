@@ -105,6 +105,16 @@
                   ("end"      1)
                   ("position" 3)))
                "(line-end-position")
+         (list (make-abbrev+-re-for-lisp-func-name
+                '(("with"     1)
+                  ("current"  2)
+                  ("buffer"   2)))
+               "(with-current-buffer")
+         (list (make-abbrev+-re-for-lisp-func-name
+                '(("with"   1)
+                  ("temp"   2)
+                  ("buffer" 2)))
+               "(with-temp-buffer")
          (list "\\_<info\\_>"
                (list #'emacs-lisp-print-info-skeleton)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))

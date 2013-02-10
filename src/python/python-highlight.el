@@ -143,7 +143,7 @@
            ;; Extra:
            "self")
           symbol-end)
-     0 'python-keyword-face)
+     (0 'python-keyword-face))
     ;; what was this?
     ;; (,(rx symbol-start
     ;;       (group (or "else:" "except:" "finally:" "try:" "lambda:"))
@@ -257,7 +257,7 @@
               "__name__"
               "__package__")
           symbol-end)
-     0 'python-builtin-face)
+     (0 'python-builtin-face))
     (,(rx symbol-start
           (or "ArithmeticError"
               "AssertionError"
@@ -309,7 +309,7 @@
               "Warning"
               "ZeroDivisionError")
           symbol-end)
-     0 'python-warnings-and-errors-face)
+     (0 'python-warnings-and-errors-face))
 
     (,(rx symbol-start
           (group (or "class" "def"))
@@ -329,7 +329,7 @@
      (2 'python-warnings-and-errors-face))
 
     ("^[ \t]*\\(@[a-zA-Z_][a-zA-Z_0-9.]+\\)\\(?:(.+)\\)?"
-     1 'python-decorator-face))
+     (1 'python-decorator-face)))
   "Standard Python keywords and tokens highlighted with regexps")
 
 (defconst +python-highlight-constants+
@@ -365,7 +365,7 @@
                         float)))
         number
         symbol-end)
-     0 'python-constant-face)
+     (0 'python-constant-face))
 
     (,(rx symbol-start
           (or
@@ -374,9 +374,7 @@
            ;; module and they are not intended to be used in programs
            "copyright" "credits" "exit" "license" "quit")
           symbol-end)
-     0 'python-constant-face)
-    ;; ("\\_<\\(?:True\\|False\\|None\\)\\_>" 0 'python-constant-face)
-    )
+     (0 'python-constant-face)))
   "Numbers, booleans, etc highligthed with regexps.")
 
 (defconst +python-highlight-procedures+
