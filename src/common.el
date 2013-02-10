@@ -1546,6 +1546,13 @@ arguments and indent current buffer.")
 
 ;;;;
 
+(defun insert-my-formatted-date ()
+  "Insert today's date as \"<Day Name>, <day> <Month name> <Year>\""
+  (interactive)
+  (insert (format-time-string "%A, %e %B %Y" (current-time))))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:
