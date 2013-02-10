@@ -235,15 +235,19 @@ displayed as images.")
       (font-lock-add-keywords
        nil
        `((,+render-buffer-latex-re+
-          (1 'render-formula-regexp-face t ;; do override
-             )
+          (1 'render-formula-regexp-face
+             ;; do override
+             t
+             ;; use lax match since group 1 may not always match
+             t)
           (2 'render-formula-formula-face t ;; do override
-             )))))
+             ))))
+      (setq-local font-lock-multiline 'undecided))
     (progn
       (font-lock-remove-keywords
        nil
        `((,+render-buffer-latex-re+
-          (1 'render-formula-formula-face t)
+          (1 'render-formula-regexp-face t t)
           (2 'render-formula-formula-face t)))))))
 
 
