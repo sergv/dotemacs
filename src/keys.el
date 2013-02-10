@@ -84,7 +84,8 @@
   ("C-x K"    remove-buffer-and-window)
   ("C-S-k"    remove-buffer-and-window)
   ("C-x u"    undo-tree-visualize)
-  ("C-u"      undo-tree-visualize))
+  ("C-u"      undo-tree-visualize)
+  ("<print>"  render-formula-toggle-formulae))
 
 
 
