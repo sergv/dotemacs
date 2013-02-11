@@ -53,7 +53,8 @@
    (with-hidden-cloze-text (1))
    (magit-define-command (as defun))
    (magit-section-action (4 2))
-   (make-buf-tag-pred (&rest 1))))
+   (make-buf-tag-pred (&rest 1))
+   (pcase (4 &rest 2))))
 
 
 (font-lock-add-keywords 'emacs-lisp-mode

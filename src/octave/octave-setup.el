@@ -388,6 +388,8 @@ in GROUP-NUMS."
 
     ("g t"     end-of-defun)
     ("g n"     (lambda () (interactive) (octave-beginning-of-defun)))
+    ("g <up>"   (lambda () (interactive) (octave-beginning-of-defun)))
+    ("g <down>" end-of-defun)
 
     ("z o"     hs-show-block)
     ("z c"     hs-hide-block)

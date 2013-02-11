@@ -147,6 +147,8 @@
   ("g TAB"    nil)
   ("g n"      nil)
   ("g t"      nil)
+  ("g <up>"   nil)
+  ("g <down>" nil)
 
   ("g C"      remember-win-config-store-configuration)
   ("<f6>"     remember-win-config-restore-configuration))

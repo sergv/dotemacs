@@ -182,6 +182,9 @@ greater indenation as current line."
                      vim:visual-mode-local-keymap)
     ("g t"    end-of-defun)
     ("g n"    beginning-of-defun)
+    ("g <up>"   beginning-of-defun)
+    ("g <down>" end-of-defun)
+
     ("<up>"   python-nav-backward-block)
     ("<down>" python-nav-forward-block)
 

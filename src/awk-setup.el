@@ -25,7 +25,9 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-SPC" icicle-comint-dynamic-complete-filename)
     ("g t"   c-awk-end-of-defun)
-    ("g n"   c-awk-beginning-of-defun))
+    ("g n"   c-awk-beginning-of-defun)
+    ("g <up>"   c-awk-beginning-of-defun)
+    ("g <down>" c-awk-end-of-defun))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("C-SPC" icicle-comint-dynamic-complete-filename)))
