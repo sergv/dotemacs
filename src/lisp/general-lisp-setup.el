@@ -880,6 +880,8 @@ This determines whether to insert a space after the # sign."
 
     ("g n"      glisp/beginning-of-defun)
     ("g t"      glisp/end-of-defun)
+    ("g <up>"   glisp/beginning-of-defun)
+    ("g <down>" glisp/end-of-defun)
     ("<home>"   paredit-backward)
     ("<end>"    paredit-forward))
 

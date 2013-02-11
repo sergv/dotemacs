@@ -106,7 +106,8 @@
   (def-keys-for-map magit-log-edit-mode-map
     ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    log-edit-previous-comment)
-    ("<down>"  log-edit-next-comment))
+    ("<down>"  log-edit-next-comment)
+    ("M-p"     nil))
 
   (add-hook 'kill-buffer-hook
             #'magit-log-edit-cancel-log-message
