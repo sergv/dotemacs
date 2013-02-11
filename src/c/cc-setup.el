@@ -104,6 +104,8 @@
 
     ("g t"   c-end-of-defun)
     ("g n"   c-beginning-of-defun)
+    ("g <up>"   c-beginning-of-defun)
+    ("g <down>" c-end-of-defun)
 
     ("z o"   hs-show-block)
     ("z v"   hs-show-block)
