@@ -367,6 +367,7 @@ Futher modified by Sergey Vinokurov."
        (scheme-mutating-op-face              ((t (:foreground ,blue))))
 
        ;; other faces
+       (c-annotation-face                    ((t (:foreground ,violet))))
        (completions-common-part              ((t (:inherit match))))
        (csv-separator-face                   ((t (:foreground ,magenta))))
        (dired-directory                      ((t (:foreground ,blue))))
