@@ -753,9 +753,8 @@ possibly wrapping and eob or bob."
             (last-line (if motion
                          (vim:motion-last-line motion)
                          (line-number-at-pos (point))))
-            (whole-line (and flag-str (not (string-match-pure? "!g" flag-str))
-                             ;; (memq ?g flag-list)
-                             ))
+            (whole-line ;; (memq ?g flag-list)
+              (if flag-str (not (string-match-pure? "!g" flag-str)) t))
             (confirm (and flag-list (memq ?c flag-list)))
             (ignore-case (and flag-list (memq ?i flag-list)))
             (dont-ignore-case (and flag-list (memq ?I flag-list)))
