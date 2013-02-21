@@ -97,6 +97,7 @@
 (load-library "all-lisp-setup")
 (load-library "org-mode-setup")
 (load-library "clojure-setup")
+(load-library "persistent-sessions")
 
 (load-library "c-like-setup")
 (load-library "haskell-autoload")
@@ -156,7 +157,7 @@
 (load-library "ediff-setup")
 (load-library "minimap-setup")
 (load-library "select-mode")
-
+(load-library "revive-setup")
 
 ;; load keys after everything to ensure that all is bound as expected
 (load-library "keys")
@@ -191,10 +192,6 @@
 (put 'set-goal-column 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
-
-
-;; do it manually if need arises
-;; (desktop-read)
 
 
 (ex-commands-re-cache-update)

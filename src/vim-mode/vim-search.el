@@ -951,7 +951,7 @@ regular expressions."
               (when (and flags-start flags-end)
                 (subseq str flags-start (min len flags-end)))))))
 
-;; test cases for vim:parse-substitute-lowlevel
+;; ;; test cases for vim:parse-substitute-lowlevel
 ;; (loop
 ;;   for (str result) in
 ;;      '(("/foo/bar"          ("foo" "bar" nil))
@@ -972,7 +972,9 @@ regular expressions."
 ;;         ("" ;; do we need to expect nil here??? this is quite unclear
 ;;          nil nil))
 ;;        ("/[A-Z]/foo/g"
-;;         ("[A-Z]" "foo" "g")))
+;;         ("[A-Z]" "foo" "g"))
+;;        ("/hello/world\\/g"
+;;         ("hello" "world\\/g" nil)))
 ;;   unless (equal result (vim:parse-substitute-lowlevel str))
 ;;   do (error "FAIL AT CASE: STR: %S; EXPECTED: %S, RECEIVED: %S"
 ;;             str
