@@ -13,11 +13,11 @@
                                                (word nil)
                                                (symbol nil)
                                                (fill-replace nil))
-  (concat "%s/"
+  (concat "%s,"
           (cond (word "\\<") (symbol "\\_<"))
           (regexp-quote str)
           (cond (word "\\>") (symbol "\\_>"))
-          "/"
+          ","
           (when fill-replace
             str)))
 
@@ -33,15 +33,7 @@
         (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((optionally-add-global-flag
-              #'(lambda (x) (save-match-data
-                             (cond
-                               (;; if something was specified
-                                (string-match-p "^.*[/|,;:!@#][^g]*$" x)
-                                x)
-                               (t
-                                (concat x "/g"))))))
-            (result (completing-read ":"
+      (let ((result (completing-read ":"
                                      'vim:ex-complete
                                      nil
                                      nil
@@ -49,8 +41,7 @@
                                      'vim:ex-history)))
         (when (and result
                    (not (zerop (length result))))
-          (vim:ex-execute-command (funcall optionally-add-global-flag
-                                           result)))))))
+          (vim:ex-execute-command result))))))
 
 
 (vim:defcmd vim:replace-word (nonrepeatable)
