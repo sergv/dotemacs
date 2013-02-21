@@ -58,6 +58,7 @@
     (conf-unix-mode        (one-line "#")  (line-regexp "#+"))
     (conf-xdefaults-mode   (one-line "#")  (line-regexp "#+"))
     (conf-mode             (one-line "#")  (line-regexp "#+"))
+    (conf-javaprop-mode    (one-line "#")  (line-regexp "#+"))
     (wisent-grammar-mode   (one-line ";;") (line-regexp ";;+"))
     (bovine-grammar-mode   (one-line ";;") (line-regexp ";;+"))
     (snippet-mode          (one-line "#")  (line-regexp "#+"))
