@@ -20,7 +20,7 @@
       nrepl-history-file (concat +prog-data-path+ "/nrepl-history"))
 
 (defun clojure-setup ()
-  (lisp-setup :use-cl-indent nil)
+  (lisp-setup :use-cl-indent nil :use-whitespace t)
   (clojure-enable-nrepl)
 
   (set (make-local-variable 'forward-sexp-function)

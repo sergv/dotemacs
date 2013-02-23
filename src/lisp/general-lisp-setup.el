@@ -32,7 +32,7 @@
      paredit-forward-slurp-sexp-remove-initial-whitespace
      activate
      compile)
-    (when (and (char= ?\( (char-before))
+    (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
                (whitespace-charp (char-after)))
       (delete-whitespaces-forward)))
 
@@ -41,7 +41,7 @@
      paredit-backward-slurp-sexp-remove-initial-whitespace
      activate
      compile)
-    (when (and (char= ?\) (char-after))
+    (when (and (lisp-pos-is-end-of-sexp? (point))
                (whitespace-charp (char-before)))
       (delete-whitespaces-backward)))
 
@@ -365,10 +365,14 @@ if first value is t and nil otherwise."
 
 ;;; sexps
 
-(defun lisp-pos-is-beginning-of-sexp? (pos)
+;;;###autoload
+(defun lisp-pos-is-beginning-of-sexp? (&optional pos)
+  "Check if there's sexp starting at POS."
   (char= ?\( (char-syntax (char-after pos))))
 
-(defun lisp-pos-is-end-of-sexp? (pos)
+;;;###autoload
+(defun lisp-pos-is-end-of-sexp? (&optional pos)
+  "Check if there's sexp ending at POS."
   (char= ?\) (char-syntax (char-after pos))))
 
 (defun lisp-beginning-of-sexp-at-pos (pos)
@@ -490,7 +494,7 @@ This command assumes point is not in a string or comment."
               (not insidep)
               ;; if were're in string/comment then check if we
               ;; still have to do any moves
-              (not (char= (char-after) ?\()))
+              (not (lisp-pos-is-beginning-of-sexp? (point))))
          (setf arg (or arg 1))
          (let ((inc (if (> arg 0) 1 -1))
                pos)
@@ -618,7 +622,8 @@ This command assumes point is not in a string or comment."
                                             (format-print-value "~a")
                                             (format-string-start "\"")
                                             (format-string-end "~%\"")
-                                            (insert-entity-name-procedure nil))
+                                            (insert-entity-name-procedure nil)
+                                            (print-end ")"))
   `(define-print-info-skeleton
        ,name
      :doc ,doc
@@ -645,7 +650,7 @@ This command assumes point is not in a string or comment."
              ;; no enclosing list was found, so use no name here
              (error "")))))
      :print-begin ,print-begin
-     :print-end ")"
+     :print-end ,print-end
 
      :indent-after-func prog-indent-sexp
      :make-variable-list ,make-variable-list
@@ -776,8 +781,9 @@ This determines whether to insert a space after the # sign."
   ;; (setq-local paredit-space-for-delimiter-predicates
   ;;             (list #'paredit-insert-space-after-reader-sharp?))
 
-  ;; (setq-local whitespace-line-column 81)
-  ;; (setq-local whitespace-style '(face lines-tail tabs))
+  (when use-whitespace
+    (setq-local whitespace-line-column 81)
+    (setq-local whitespace-style '(face lines-tail tabs)))
   ;; (whitespace-mode 1)
 
   (el-swank-set-completion-syntax 'lisp)
