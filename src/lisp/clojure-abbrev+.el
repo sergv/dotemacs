@@ -9,14 +9,15 @@
 (require 'abbrev+)
 
 (define-lisp-print-info-skeleton
-    clojure-p-print-info-skeleton
+    clojure-print-info-skeleton
   :doc "Insert to printf to print some variables and messages."
-  :print-begin "(printf "
+  :print-begin "(print (format "
   :use-upcase nil
 
   :format-print-value "%s"
   :format-string-start "\""
   :format-string-end "\\n\""
+  :print-end "))"
 
   :make-variable-list (lambda (list)
                         (mapconcat #'identity list "\n")))
