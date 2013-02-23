@@ -9,6 +9,7 @@
 (eval-when-compile (require 'cl))
 (require 'custom)
 (require 'advices-util)
+(require 'all-lisp-setup)
 
 (defadvice:auto-comment autopair-newline)
 ;; paredit-newline's advice is defined in
@@ -86,13 +87,13 @@ Contains single-line and region comments.")
 
 
 (defvar *comment-util-space-count* 1
-  "Amount of spaces to put after comment markers")
+  "Amount of spaces to put after comment markers.")
 
 (defvar-local *comment-util-current-format* nil
-  "comment format for current buffer")
+  "Comment format for current buffer.")
 
 (define-minor-mode comment-util-mode
-  "Minor mode to handle comments in various languages"
+  "Minor mode to handle comments in various languages."
   nil
   nil
   nil ;; no keymap
@@ -130,7 +131,7 @@ Contains single-line and region comments.")
 ;; User-interface functions
 (defun comment-util-comment-lines (lines)
   "Comment LINES lines eiter up if argument LINES is positive
-or down if LINES is negative or comment whole region if region is active"
+or down if LINES is negative or comment whole region if region is active."
   (interactive "P")
   (if (or (region-active-p)
           (run-if-fbound vim:visual-mode-p))
@@ -170,7 +171,7 @@ they are defined for current mode or one-line comments otherwise."
 (defun comment-util-uncomment-region-simple (begin end)
   "Uncomment region between begin and end presumably commented with
 line comments. If that's not the case then do nothing. Should
-be used only for vim-visual-mode of the vim-mode package"
+be used only for vim-visual-mode of the vim-mode package."
   (interactive "r")
   (save-excursion
    (goto-char begin)
@@ -180,7 +181,7 @@ be used only for vim-visual-mode of the vim-mode package"
      (comment-util-uncomment-lines (count-lines begin end)))))
 
 (defun comment-util-uncomment-lines (lines)
-  "Uncomment lines eiter up if N is positive or down if N is negative"
+  "Uncomment lines eiter up if N is positive or down if N is negative."
   (if (> lines 0)
     (while (> lines 0)
       (skip-to-indentation)
@@ -211,12 +212,12 @@ be used only for vim-visual-mode of the vim-mode package"
 ;; Mid-level functions
 
 (defsubst comment-util-comment-lined-region (begin end)
-  "Comment region between BEGIN and END with one-line comments"
+  "Comment region between BEGIN and END with one-line comments."
   (goto-char begin)
   (comment-util-comment-next-n-lines (count-lines begin end)))
 
 (defun comment-util-uncomment-lined-region ()
-  "Uncomment region that was commented with line comments"
+  "Uncomment region that was commented with line comments."
   (skip-to-indentation)
   (let* ((comment (comment-format-one-line *comment-util-current-format*))
          (pos (point))
@@ -359,13 +360,11 @@ be used only for vim-visual-mode of the vim-mode package"
            (funcall skip-to-column)
            (insert comment-str)))
         (forward-line 1)
-        (incf lines -1))))
-
-  )
+        (incf lines -1)))))
 
 
 (defun comment-util-delete-comment ()
-  "Delete comments( // or ; or whatever) after point if any"
+  "Delete comments (e.g. //, ;) after point if any."
   (let* ((comment (comment-format-one-line *comment-util-current-format*))
          (n (length comment)))
     (when (looking-at-p comment)
@@ -385,7 +384,7 @@ sexp. With argument COUNT greater than 0 move that many sexps
 up and then comment the result."
   (interactive "p")
   (setq count (or count 1))
-  (when (char= ?\( (char-after))
+  (when (lisp-pos-is-beginning-of-sexp? (point))
     (setf count (1- count)))
   ;; if we're at top of file then don't break execution because of that
   (condition-case nil
@@ -396,21 +395,21 @@ up and then comment the result."
   (let ((sexp-end-exclusive (save-excursion
                              (forward-sexp)
                              (point))))
-    ;; skip to include into commented sexp quotes, reader syntax, etc.
+    ;; skip to include commented sexp quotes, reader syntax, etc.
     (skip-syntax-backward "^ >()")
     (save-excursion
      (goto-char sexp-end-exclusive)
-     (when (or (char= ?\) (char-after))
+     (when (or (lisp-pos-is-end-of-sexp? (point))
                (progn
                  ;; do not skip newlines!
                  (skip-syntax-forward " ")
-                 (char= ?\) (char-after))))
+                 (lisp-pos-is-end-of-sexp? (point))))
        ;; (insert "\n")
        (reindent-then-newline-and-indent)))
 
     (save-excursion
      (comment-util-comment-n-lines-starting-at-col
-      ";; " ;; bad hack, hard-coded lisp comment...
+      ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...
       (count-lines (point) sexp-end-exclusive)
       (current-column)))))
 
@@ -442,7 +441,7 @@ commented parts and leave point unchanged."
                       (bobp)
                       (eobp))
               (move-by-line-backward dir)
-              ;; I've returned backwards onto line with comments
+              ;; we're returned backwards onto line with comments
               ;; which is a known fact
               (assert (lisp-commented-linep)
                       nil
@@ -498,7 +497,7 @@ commented parts and leave point unchanged."
      (goto-char end)
      (skip-syntax-forward " >")
      (when (and (not (eobp))
-                (char= ?\) (char-after)))
+                (lisp-pos-is-end-of-sexp? (point)))
        (delete-whitespaces-backward))
 
      (uncomment-region start end)
@@ -506,7 +505,7 @@ commented parts and leave point unchanged."
      (goto-char start)
      (skip-syntax-backward " >")
      (when (and (not (bobp))
-                (char= ?\( (char-before)))
+                (lisp-pos-is-beginning-of-sexp? (point)))
        (delete-whitespaces-forward)))))
 
 
