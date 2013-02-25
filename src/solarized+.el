@@ -170,14 +170,14 @@ Futher modified by Sergey Vinokurov."
 
        (font-lock-builtin-face       ((t (:foreground ,cyan))))
        (font-lock-constant-face      ((t (:foreground ,yellow))))
-       (font-lock-doc-face           ((t (:foreground ,orange :bold t))))
-       (font-lock-function-name-face ((t (:foreground ,blue))))
+       (font-lock-doc-face           ((t (:foreground ,green))))
+       (font-lock-function-name-face ((t (:foreground ,blue :bold t))))
        (font-lock-keyword-face       ((t (:foreground ,cyan))))
        (font-lock-negation-char-face ((t (:foreground ,magenta))))
        (font-lock-preprocessor-face  ((t (:foreground ,orange))))
        (font-lock-string-face        ((t (:foreground ,orange))))
        (font-lock-type-face          ((t (:foreground ,yellow))))
-       (font-lock-variable-name-face ((t (:foreground ,blue))))
+       (font-lock-variable-name-face ((t (:foreground ,blue :bold t))))
 
        (clojure-constant-face        ((t (:foreground ,cyan))))
        (clojure-java-interop-face    ((t (:foreground ,yellow))))
