@@ -39,7 +39,7 @@
                  proj
                  *eproj-projects*)
         proj)
-      (error "only git projects are supported for now, trying to obtain project for %s rot"
+      (error "only git projects are supported for now, trying to obtain project for %s root"
              root))))
 
 (defun eproj-get-project-for-buf (buffer)
@@ -59,8 +59,7 @@
   (when (eq? (eproj-project-type project) 'git)
     (append (git-get-tracked-files (eproj-project-root project))
             (aif (eproj-project-aux-files project)
-              (cond ((or (functionp it)
-                         (byte-code-function-p it))
+              (cond ((functionp it)
                      (funcall it))
                     ((list? it)
                      it)
