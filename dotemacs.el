@@ -80,8 +80,8 @@
 
   (when use-whitespace
     (whitespace-mode
-     (if (member major-mode
-                 +do-not-track-long-lines-modes+)
+     (if (memq major-mode
+               +do-not-track-long-lines-modes+)
        -1
        +1)))
 

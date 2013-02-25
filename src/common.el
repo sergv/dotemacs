@@ -1474,6 +1474,31 @@ LESS? is predicate on elements of ITEMS."
 
 ;;;;
 
+(defsubst file-size (filename)
+  "Return size of file FILENAME."
+  (nth 7 (file-attributes filename 'integer)))
+
+(if (executable-find "cmp")
+  (defun different-files-fast? (file1 file2)
+    "Return t if content of FILE1 and FILE2 differs and try to yield answer
+faster than byte-by-byte comparison of respecfive file contents."
+    (if (= (file-size file1) (file-size file2))
+      (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
+      nil))
+  (defun different-files-fast? (file1 file2)
+    "Return t if content of FILE1 and FILE2 differs and try to yield answer
+faster than byte-by-byte comparison of respecfive file contents."
+    (if (= (file-size file1) (file-size file2))
+      (string=? (with-temp-buffer
+                  (insert-file-contents file1)
+                  (buffer-substring-no-properties (point-min) (point-max)))
+                (with-temp-buffer
+                  (insert-file-contents file2)
+                  (buffer-substring-no-properties (point-min) (point-max))))
+      nil)))
+
+;;;;
+
 (defun merge-emacs-configs (new-config-dir curr-config-dir)
   "Merge changes from NEW-CONFIG-DIR into CURR-CONFIG-DIR by successively calling
 ediff on files that differ and saving files in CURR-CONFIG-DIR that were updated
@@ -1482,6 +1507,8 @@ while executing ediff.
 Use like this to pick changes that will go into CURR-CONFIG-DIR:
 \(merge-emacs-configs \"/home/sergey/emacs.new\" \"/home/sergey/emacs\"\)
 "
+  (setf new-config-dir (strip-trailing-slash new-config-dir)
+        curr-config-dir (strip-trailing-slash curr-config-dir))
   (dolist (p (mapcar (lambda (p)
                        (file-relative-name p new-config-dir))
                      (find-rec new-config-dir
@@ -1493,28 +1520,21 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
                                         ;; emacs locks?
                                         (not (string-match-pure? "^\\.#.*"
                                                                  fname))))))))
-    (let* ((new      (concat new-config-dir "/" p))
-           (new-buf  (find-file-noselect new))
-           (curr     (concat curr-config-dir "/" p))
-           (curr-buf (find-file-noselect curr)))
+    (let* ((new  (concat new-config-dir "/" p))
+           (curr (concat curr-config-dir "/" p)))
       (message "Files %s and %s" new curr)
       (assert (file-exist? new))
       (if (file-exist? curr)
-        (if (string=?
-             (with-current-buffer new-buf
-               (buffer-substring-no-properties (point-min) (point-max)))
-             (with-current-buffer curr-buf
-               (buffer-substring-no-properties (point-min) (point-max))))
-          (progn
-            (message "Files %s and %s are the same, skipping" new curr)
-            (kill-buffer new-buf)
-            (kill-buffer curr-buf))
-          (progn
+        (if (different-files-fast? new curr)
+          (let ((new-buf  (find-file-noselect new))
+                (curr-buf (find-file-noselect curr)))
             (ediff-diff-files-recursive-edit new curr :read-only nil)
             (kill-buffer new-buf)
             (with-current-buffer curr-buf
               (save-buffer))
-            (redisplay t)))
+            (redisplay t))
+          (progn
+            (message "Files %s and %s are the same, skipping" new curr)))
         (when (y-or-n? (format "Copy %s to %s?" new curr))
           (copy-file new curr nil t t t))))))
 
