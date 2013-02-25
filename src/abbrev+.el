@@ -58,20 +58,6 @@ car's of `abbrev+-abbreviations' and returning corresponding element in cdr."
                        :key #'first)))
      res)))
 
-(defun abbrev+--funcall (f)
-  "Somewhat specialized funcall, may be totally redundant with respect
-to `funcall'. Anyway this should funcall either ordinary functions
-and quoted, #'-ed and byte-compiled functions too."
-  (cond
-    ((or (symbolp f)
-         (functionp f)
-         (byte-code-function-p f))
-     (funcall f))
-    ((and (listp f)
-          (or (eq 'function (car f))
-              (eq 'lambda (car f))))
-     (funcall (cdr f)))))
-
 (defun abbrev+-perform-substitution (action)
   "Perform actual substitution treating SUBST as cdr of entry
 in `abbrev+-abbreviations' whose car matched. Return two arguments:
@@ -90,11 +76,11 @@ and second being actual substituted text."
                       (byte-code-functino-p (car action))))
              ;; it's a list of functions so they should
              ;; be called sequentially
-             (mapc #'abbrev+--funcall
+             (mapc #'funcall
                    action)
              nil)
             (t
-             (insert (abbrev+--funcall action))
+             (insert (funcall action))
              t))))
     (values insert-spacep (buffer-substring-no-properties p (point)))))
 
@@ -124,7 +110,7 @@ and second being actual substituted text."
               (point-before-predicate-call (point)))
           (setf substitutep
                 (if predicate
-                  (abbrev+--funcall predicate)
+                  (funcall predicate)
                   ;; do substitution if no predicate supplied
                   t))
           (if substitutep

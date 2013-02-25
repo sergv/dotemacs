@@ -223,7 +223,8 @@
                             ctags-buf)
 
         (push (cons lang (ctags-get-tags-from-buffer ctags-buf root))
-              (eproj-project-names proj))))))
+              (eproj-project-names proj))
+        (kill-buffer ctags-buf)))))
 
 (defun eproj-load-ctags-project (buffer)
   "Reload project and all it's related projects current buffer's file is part of."
