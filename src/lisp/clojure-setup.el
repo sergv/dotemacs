@@ -10,6 +10,7 @@
                                 "/clojure-mode"))
 (add-to-list 'load-path (concat +emacs-standalone-path+
                                 "/nrepl.el"))
+(require 'general-lisp-setup)
 (require 'clojure-mode)
 (require 'clojure-test-mode)
 (require 'nrepl)
@@ -79,7 +80,11 @@
         vim:operator-pending-mode-local-keymap (make-sparse-keymap)
         vim:motion-mode-local-keymap           (make-sparse-keymap))
 
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
+    *lisp-search-keybindings*)
   (def-keys-for-map vim:normal-mode-local-keymap
+    *lisp-vim-normal-mode-keybindings*
     ("SPC SPC"  nrepl-delete-current-input)
 
     (", j d"    nrepl-javadoc)
@@ -98,7 +103,12 @@
 
     ("M-."     nrepl-jump)
     ("M-,"     nrepl-jump-back)
-    ("M-P"     browse-nrepl-input-history)))
+    ("M-P"     browse-nrepl-input-history))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap
+                     vim:operator-pending-mode-local-keymap
+                     vim:motion-mode-local-keymap)
+    *lisp-vim-movement-keybindings*))
 
 (add-hook 'nrepl-mode-hook #'nrepl-setup)
 
