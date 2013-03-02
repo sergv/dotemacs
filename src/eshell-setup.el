@@ -19,6 +19,7 @@
       eshell-buffer-shorthand t
       eshell-cmpl-expand-before-complete nil
       eshell-cmpl-ignore-case t
+      eshell-show-lisp-completions nil
       eshell-command-interpreter-max-length 4096
       eshell-error-if-no-glob t
       eshell-glob-include-dot-dot nil
@@ -50,7 +51,8 @@
 
    ;; try eshell-complex-commands if some command doesn't work
 
-   (setf eshell-cmpl-cycle-completions t
+   (setf eshell-cmpl-cycle-completions nil
+         eshell-cmpl-recexact t
          eshell-cmpl-dir-ignore
          "\\`\\(?:\\.\\.?\\|CVS\\|\\.svn\\|\\.git\\|\\.hg\\|_darcs\\|\\.bzr\\)/\\'")
 
