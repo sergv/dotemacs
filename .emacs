@@ -11,7 +11,7 @@
       max-specpdl-size    42000)
 
 ;; speeds up startup time considerably, worth to use
-(setq gc-cons-threshold (* 50 1024 1024)
+(setq gc-cons-threshold (* 60 1024 1024)
       gc-cons-percentage 0.25)
 
 
@@ -143,7 +143,7 @@
  '(quack-tabs-are-evil-p t)
  '(reb-re-syntax (quote read))
  '(regexp-search-ring-max 1024)
- '(rng-schema-locating-files (quote ("schemas.xml" "/home/sergey/emacs/standalone/nxhtml/xhtml-transitional-in-nxml/schemas.xml" "/usr/local/share/emacs/24.0.95/etc/schema/schemas.xml")))
+ '(rng-schema-locating-files (quote ("schemas.xml" "~/emacs/standalone/nxhtml/xhtml-transitional-in-nxml/schemas.xml" "/usr/local/share/emacs/24.0.95/etc/schema/schemas.xml")))
  '(save-completions-file-name "~/emacs/prog-data/completions")
  '(scheme-mit-dialect nil)
  '(search-ring-max 1024)
@@ -175,9 +175,6 @@
  '(tags-case-fold-search nil)
  '(tags-loop-revert-buffers t)
  '(tags-revert-without-query t)
- '(undo-limit 1000000)
- '(undo-outer-limit 32000000)
- '(undo-strong-limit 1000000)
  '(uniquify-buffer-name-style (quote post-forward) nil (uniquify))
  '(uniquify-strip-common-suffix nil)
  '(user-full-name "Sergey Vinokurov")

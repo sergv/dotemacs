@@ -6,6 +6,8 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile
+  (require 'cl))
 
 (require 'set-up-paths)
 (require 'common)
@@ -104,10 +106,15 @@
 ;; (autopair-global-mode)
 
 (require 'dired-single)
-(setq image-dired-dir (path-concat +prog-data-path+ "image-dired"))
+(setf image-dired-dir (path-concat +prog-data-path+ "image-dired"))
 
 (require 'undo-tree)
 (global-undo-tree-mode t)
+(setf undo-tree-visualizer-diff t
+      undo-tree-enable-undo-in-region nil
+      ;; display absolute timestamps
+      undo-tree-visualizer-relative-timestamps nil
+      undo-tree-visualizer-timestamps t)
 
 ;;;; saveplace - minor mode to remember positions in visited files
 (setq save-place-file (path-concat +prog-data-path+ "saveplace"))
@@ -122,7 +129,7 @@
 
 (setq-default indent-tabs-mode nil) ;;never use tabs for indentation
 (setq-default cursor-type 'box) ;'bar)
-(setq cursor-type 'box
+(setf cursor-type 'box
       ;; default-major-mode 'text-mode ;'lisp-interaction-mode
       tab-width 4
       tab-always-indent t)
@@ -135,7 +142,7 @@
 (line-number-mode t)
 (column-number-mode t)
 
-(setq x-select-enable-clipboard t
+(setf x-select-enable-clipboard t
       interprogram-paste-function
       (if (platform-os-type? 'linux)
         #'x-cut-buffer-or-selection-value
@@ -144,6 +151,7 @@
       query-replace-interactive nil ;do not use last search string as initial regexp
       search-highlight t
       undo-limit 1000000
+      undo-outer-limit 32000000
       undo-strong-limit (* 10 undo-limit)
 
       require-final-newline t
@@ -165,17 +173,16 @@
 
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook
-          #'(lambda ()
-              (let ((buffer (get-buffer "*Completions*")))
-                (when buffer
-                  (kill-buffer buffer)))))
+          (lambda ()
+            (aif (get-buffer "*Completions*")
+              (kill-buffer it))))
 
 ;;;; character enconding
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
-;; backwards compatibility as default-buffer-file-coding-system
+;; backwards compatibility since default-buffer-file-coding-system
 ;; is deprecated in 23.2.
 (if (boundp buffer-file-coding-system)
   (setq buffer-file-coding-system 'utf-8)
@@ -217,7 +224,7 @@
       desktop-dirname +prog-data-path+
       desktop-base-file-name "emacs.session"
       desktop-path (list "." +prog-data-path+))
-(desktop-save-mode 1)
+(desktop-save-mode -1)
 
 ;; nuke trailing whitespaces when writing to a file
 (add-hook 'write-file-hooks #'delete-trailing-whitespace+)
@@ -227,7 +234,6 @@
 
 ;;;; color - themes, current line etc
 (global-hl-line-mode t)
-;; (set-face-background 'hl-line "#000000")  ;330")
 
 ;; primarily used by the theme-changer
 (setf calendar-location-name "Nikolaev Ukraine"
@@ -236,7 +242,8 @@
 
 (setq color-theme-libraries
       (directory-files +color-themes-path+ t "^color-theme")
-      color-theme-directory (concat +emacs-config-path+ "/src/color-theme-6.6.0/themes/")
+      color-theme-directory (concat +emacs-config-path+
+                                    "/src/color-theme-6.6.0/themes/")
       color-theme-libraries (list (concat +emacs-config-path+
                                           "/src/color-theme-6.6.0/themes/color-theme-library.el"))
       color-theme-load-all-themes nil)
