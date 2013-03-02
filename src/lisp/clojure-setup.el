@@ -14,6 +14,7 @@
 (require 'clojure-test-mode)
 (require 'nrepl)
 (require 'clojure-abbrev+)
+(require 'browse-kill-ring-setup)
 
 (setf nrepl-tab-command 'indent-for-tab-command
       nrepl-history-size 100000
@@ -47,6 +48,10 @@
 
 (add-hook 'clojure-mode-hook #'clojure-setup)
 
+
+(def-keys-for-map nrepl-mode-map
+  ("M-p" nil)
+  ("M-n" nil))
 
 (defun nrepl-setup ()
   (init-common :use-yasnippet nil
@@ -85,14 +90,15 @@
     ("j"        nrepl-eval-last-expression))
   (def-keys-for-map (vim:insert-mode-local-keymap
                      vim:normal-mode-local-keymap)
-    ("M-/"     complete-symbol)
+    ("M-/"      complete-symbol)
     ("<up>"     nrepl-previous-input)
     ("<down>"   nrepl-next-input)
     ("S-<up>"   nrepl-previous-prompt)
     ("S-<down>" nrepl-next-prompt)
 
     ("M-."     nrepl-jump)
-    ("M-,"     nrepl-jump-back)))
+    ("M-,"     nrepl-jump-back)
+    ("M-P"     browse-nrepl-input-history)))
 
 (add-hook 'nrepl-mode-hook #'nrepl-setup)
 
