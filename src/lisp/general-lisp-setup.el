@@ -780,6 +780,50 @@ This determines whether to insert a space after the # sign."
      t)))
 
 
+(defvar *lisp-vim-normal-mode-keybindings*
+  '(("g c c"   lisp-comment-sexp)
+    ("g c u"   lisp-uncomment-sexp)
+    ("g c d"   lisp-delete-commented-part)
+
+    ("g ("     vim:splice-sexp-killing-backward)
+    ("g )"     vim:splice-sexp-killing-forward)
+
+    ;; paredit slurps/barfs
+    ("( l"     vim:backward-slurp-sexp)
+    ("( r"     vim:backward-barf-sexp)
+    (") l"     vim:forward-barf-sexp)
+    (") r"     vim:forward-slurp-sexp)
+
+    ("( ("     vim:backward-slurp-sexp)
+    ("( )"     vim:backward-barf-sexp)
+    (") ("     vim:forward-barf-sexp)
+    (") )"     vim:forward-slurp-sexp)
+
+    ("<left>"  paredit-backward)
+    ("<right>" paredit-forward)
+
+    ("g <tab>" paredit-reindent-defun)
+    ("M-p"     browse-kill-ring)
+    ("'"       input-unicode)
+
+    ("g s"     paredit-split-sexp)
+    ("g j"     paredit-join-sexps)))
+
+(defvar *lisp-vim-movement-keybindings*
+  '(("q"        vim:lisp-up-list)
+    ("Q"        vim:lisp-backward-up-list)
+    ("="        vim:lisp-backward-up-list)
+    ("g n"      glisp/beginning-of-defun)
+    ("g t"      glisp/end-of-defun)
+    ("g <up>"   glisp/beginning-of-defun)
+    ("g <down>" glisp/end-of-defun)
+    ("<home>"   paredit-backward)
+    ("<end>"    paredit-forward)))
+
+(defvar *lisp-search-keybindings*
+  '(("*" search-for-symbol-at-point-forward)
+    ("#" search-for-symbol-at-point-backward)))
+
 ;;;; Actual setup functions
 
 (defun* lisp-setup (&key (use-whitespace t)
@@ -824,30 +868,13 @@ This determines whether to insert a space after the # sign."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("*" search-for-symbol-at-point-forward)
-    ("#" search-for-symbol-at-point-backward))
+    *lisp-search-keybindings*)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g c c"    lisp-comment-sexp)
-    ("g c u"    lisp-uncomment-sexp)
-    ("g c d"    lisp-delete-commented-part)
+    *lisp-vim-normal-mode-keybindings*
 
     (", c c"    comment-util-comment-lines)
     (", c u"    comment-util-uncomment-region)
-
-    ("g ("      vim:splice-sexp-killing-backward)
-    ("g )"      vim:splice-sexp-killing-forward)
-
-    ;; paredit slurps/barfs
-    ("( l"      vim:backward-slurp-sexp)
-    ("( r"      vim:backward-barf-sexp)
-    (") l"      vim:forward-barf-sexp)
-    (") r"      vim:forward-slurp-sexp)
-
-    ("( ("      vim:backward-slurp-sexp)
-    ("( )"      vim:backward-barf-sexp)
-    (") ("      vim:forward-barf-sexp)
-    (") )"      vim:forward-slurp-sexp)
 
     ;; universal align, aligns everything
     ;; but currently only aligns lets', setqs' etc
@@ -857,17 +884,7 @@ This determines whether to insert a space after the # sign."
 
     (", s s"    vim:lisp-replace-symbol)
 
-    ("="        backward-up-list)
-    ("<left>"   paredit-backward)
-    ("<right>"  paredit-forward)
     ("<return>" paredit-newline)
-
-    ("g <tab>"  paredit-reindent-defun)
-    ("M-p"      browse-kill-ring)
-    ("'"        input-unicode)
-
-    ("g s"      paredit-split-sexp)
-    ("g j"      paredit-join-sexps)
 
     ("z o"      hs-show-block)
     ("z c"      hs-hide-block)
@@ -877,7 +894,6 @@ This determines whether to insert a space after the # sign."
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g a"      nil)
     ("g a ;"    lisp-align-on-comments)
-    ("="        backward-up-list)
 
     ("z c"      hs-hide-sexps-in-region)
     ("z o"      hs-show-sexps-in-region)
@@ -892,19 +908,10 @@ This determines whether to insert a space after the # sign."
                      vim:visual-mode-local-keymap
                      vim:operator-pending-mode-local-keymap
                      vim:motion-mode-local-keymap)
-    ("q"        vim:lisp-up-list)
-    ("Q"        vim:lisp-backward-up-list)
-    ("="        vim:lisp-backward-up-list)
+    *lisp-vim-movement-keybindings*
 
     ("<up>"     vim:motion-bwd-paragraph)
-    ("<down>"   vim:motion-fwd-paragraph)
-
-    ("g n"      glisp/beginning-of-defun)
-    ("g t"      glisp/end-of-defun)
-    ("g <up>"   glisp/beginning-of-defun)
-    ("g <down>" glisp/end-of-defun)
-    ("<home>"   paredit-backward)
-    ("<end>"    paredit-forward))
+    ("<down>"   vim:motion-fwd-paragraph))
 
   (setup-outline-headers :header-symbol ";"
                          :length-min 3
