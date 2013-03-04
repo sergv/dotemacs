@@ -499,51 +499,6 @@ Setting this variable to nil means no limit."
   :type 'boolean
   :group 'browse-kill-ring)
 
-;; (defadvice kill-new (around browse-kill-ring-no-kill-new-duplicates)
-;;   "An advice for not adding duplicate elements to `*browse-kill-ring-ring-var*'.
-;; Even after being \"activated\", this advice will only modify the
-;; behavior of `kill-new' when `browse-kill-ring-no-duplicates'
-;; is non-nil."
-;;   (if browse-kill-ring-no-duplicates
-;;     (setq kill-ring (delete (ad-get-arg 0) kill-ring)))
-;;   ad-do-it)
-
-(defcustom browse-kill-ring-no-duplicates nil
-  "If non-nil, then the `b-k-r-no-kill-new-duplicates' advice will operate.
-This means that duplicate entries won't be added to the `*browse-kill-ring-ring-var*'
-when you call `kill-new'.
-
-If you set this variable via customize, the advice will be activated
-or deactivated automatically.  Otherwise, to enable the advice, add
-
-B (ad-enable-advice 'kill-new 'around 'browse-kill-ring-no-kill-new-duplicates)
- (ad-activate 'kill-new)
-
-to your init file."
-  :type 'boolean
-  :set (lambda (symbol value)
-         (set symbol value)
-         (if value
-             (ad-enable-advice 'kill-new 'around
-                               'browse-kill-ring-no-kill-new-duplicates)
-           (ad-disable-advice 'kill-new 'around
-                              'browse-kill-ring-no-kill-new-duplicates))
-         (ad-activate 'kill-new))
-  :group 'browse-kill-ring)
-
-(defcustom browse-kill-ring-depropertize nil
-  "If non-nil, remove text properties from `*browse-kill-ring-ring-var*' items.
-This only changes the items for display and insertion from
-`browse-kill-ring'; if you call `yank' directly, the items will be
-inserted with properties."
-  :type 'boolean
-  :group 'browse-kill-ring)
-
-(defcustom browse-kill-ring-hook nil
-  "A list of functions to call after `browse-kill-ring'."
-  :type 'hook
-  :group 'browse-kill-ring)
-
 (defcustom browse-kill-ring-replace-yank t
   "If non-nil, browse-kill-ring will replace just-yanked items
 when it inserts its own. That is, if you call `yank', and then
