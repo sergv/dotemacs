@@ -1591,6 +1591,14 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 
 ;;;;
 
+(defun first-safe (x)
+  (car-safe x))
+
+(defun rest-safe (x)
+  (cdr-safe x))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:
