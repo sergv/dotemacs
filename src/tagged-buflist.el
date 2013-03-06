@@ -1,4 +1,4 @@
-;; tagged-buffers.el --- -*- lexical-binding: t; -*-
+;; tagged-buflist.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -568,12 +568,17 @@ treated as a list of tags; otherwise it should be list of plain tags."
 
 (defun collect-buffers-under-subtree ()
   (save-excursion
-   (org-map-entries
-    (lambda ()
-      )
-    t
-    nil
-    'tree)))
+   (let ((buffers))
+     (org-map-entries
+      (lambda ()
+        (tagged-buflist/with-tagged-entry-type-for-current-line
+         entry-value
+         (when (eq 'buffer-name (first-safe entry-value))
+           (push (first (rest entry-value)) buffers))))
+      t
+      nil
+      'tree)
+     buffers)))
 
 (defun collect-tags ()
   (save-excursion
@@ -590,9 +595,9 @@ treated as a list of tags; otherwise it should be list of plain tags."
 
 
 
-(provide 'tagged-buffers)
+(provide 'tagged-buflist)
 
 ;; Local Variables:
 ;; End:
 
-;; tagged-buffers.el ends here
+;; tagged-buflist.el ends here
