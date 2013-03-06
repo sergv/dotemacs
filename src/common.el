@@ -1484,7 +1484,7 @@ LESS? is predicate on elements of ITEMS."
 faster than byte-by-byte comparison of respecfive file contents."
     (if (= (file-size file1) (file-size file2))
       (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
-      nil))
+      t))
   (defun different-files-fast? (file1 file2)
     "Return t if content of FILE1 and FILE2 differs and try to yield answer
 faster than byte-by-byte comparison of respecfive file contents."
@@ -1495,7 +1495,7 @@ faster than byte-by-byte comparison of respecfive file contents."
                 (with-temp-buffer
                   (insert-file-contents file2)
                   (buffer-substring-no-properties (point-min) (point-max))))
-      nil)))
+      t)))
 
 ;;;;
 
