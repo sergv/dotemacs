@@ -55,39 +55,53 @@
   "Save all buffers that have physical file assigned into FILE."
   (interactive)
   (with-temp-buffer
-    (print ;; pp
-     (list (list 'buffers
-                 (remq nil
-                       (mapcar (lambda (buf)
-                                 (when (buffer-file-name buf)
-                                   (make-session-entry
-                                    (buffer-file-name buf)
-                                    (with-current-buffer buf
-                                      (point))
-                                    (sessions/get-buffer-variables buf))))
-                               (buffer-list))))
-           (list 'frames
-                 (window-configuration-printable)))
-     (current-buffer))
-    (write-region (point-min) (point-max) file)))
+    (insert ":;exec emacs --load \"$0\"\n\n")
+    (print '(require 'persistent-sessions) (current-buffer))
+    (let ((buffer-data
+            (remq nil
+                  (mapcar (lambda (buf)
+                            (when (buffer-file-name buf)
+                              (make-session-entry
+                               (buffer-file-name buf)
+                               (with-current-buffer buf
+                                 (point))
+                               (sessions/get-buffer-variables buf))))
+                          (buffer-list))))
+          (frame-data
+            (window-configuration-printable)))
+      (pp
+       (list 'sessions/load-from-data
+             (list 'quote
+                   (list (list 'buffers
+                               buffer-data)
+                         (list 'frames
+                               frame-data))))
+       (current-buffer)))
+    (write-region (point-min) (point-max) file)
+    (make-file-executable file)))
+
+(defun sessions/load-from-data (data)
+  "Load session from sexp structure DATA."
+  (let ((session-entries data))
+    (aif (assq 'buffers session-entries)
+      (mapc (lambda (entry)
+              (with-current-buffer (find-file-noselect
+                                    (session-entry/file-name entry))
+                (goto-char (session-entry/point entry))
+                (sessions/restore-buffer-variables (current-buffer)
+                                                   (session-entry/variables entry))))
+            (cadr it)))
+    (aif (assq 'frames session-entries)
+      (restore-window-configuration (cadr it)))))
 
 (defun sessions/load-buffers (file)
+  "Load session from FILE."
   (interactive)
   (if (file-exists? file)
-    (let ((session-entries
-            (with-temp-buffer
-              (insert-file-contents-literally file)
-              (read (buffer-substring-no-properties (point-min) (point-max))))))
-      (aif (assq 'buffers session-entries)
-        (mapc (lambda (entry)
-                (with-current-buffer (find-file-noselect
-                                      (session-entry/file-name entry))
-                  (goto-char (session-entry/point entry))
-                  (sessions/restore-buffer-variables (current-buffer)
-                                                     (session-entry/variables entry))))
-              (cadr it)))
-      (aif (assq 'frames session-entries)
-        (restore-window-configuration (cadr it))))
+    (sessions/load-from-data
+     (with-temp-buffer
+       (insert-file-contents-literally file)
+       (read (buffer-substring-no-properties (point-min) (point-max)))))
     (message "warning: file %s does not exist" file)))
 
 
