@@ -125,6 +125,10 @@ Save buffer if it has assigned file and this file exists on disk."
   (remove-buffer)
   (delete-window))
 
+(defun make-file-executable (file-name)
+  "Make file FILE-NAME executable by adding all the executable bits to it's mode."
+  (set-file-modes file-name (logior #o111 (file-modes file-name))))
+
 (defun make-script-file-exec ()
   "Make buffer file executable if it's a shell script."
   (and (not (file-executable-p buffer-file-name))
@@ -132,7 +136,10 @@ Save buffer if it has assigned file and this file exists on disk."
         (save-restriction
          (widen)
          (goto-char (point-min))
-         (looking-at-p "^#!")))
+         ;; first alternative - unix shell shebang
+         ;; second alternative - emacs "shebang"
+         (looking-at-pure? "^\\(?:#!\\|:;[ \t]*exec\\)")))
+       (make-file-executable buffer-file-name)
        (shell-command (concat "chmod u+x \"" buffer-file-name "\""))
        (message
         (concat "Saved as script: " buffer-file-name))))
