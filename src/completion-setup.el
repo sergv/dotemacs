@@ -32,7 +32,7 @@
 
 (require 'common)
 (require 'icicles-setup)
-
+(require 'pcomplete)
 
 (defun completing-read-buffer (prompt &optional default require-match)
   (completing-read-vanilla prompt
@@ -47,6 +47,9 @@
       completion-category-overrides '()
       read-buffer-function #'completing-read-buffer)
 
+(setf pcomplete-autolist nil
+      pcomplete-recexact nil
+      pcomplete-cycle-completions t)
 
 ;; convenient buffer switcher
 
@@ -66,6 +69,7 @@
 
 ;;;;
 
+;; note: ido is used my smex
 (require 'ido)
 
 ;; create new buffers if buffer with prompted name does not exist
