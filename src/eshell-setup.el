@@ -11,30 +11,29 @@
 (eval-when-compile
  (require 'cl))
 
-
-
-(setf eshell-directory-name "~/emacs/prog-data/eshell/"
+(setf eshell-directory-name (concat +prog-data-path+ "/eshell/")
       eshell-aliases-file (concat eshell-directory-name "/alias")
       eshell-buffer-maximum-lines 65536
       eshell-buffer-shorthand t
+      eshell-cmpl-autolist nil ;; this option is really harmful when set to t
+      eshell-cmpl-cycle-completions t
       eshell-cmpl-expand-before-complete nil
       eshell-cmpl-ignore-case t
+      eshell-cmpl-recexact nil
+      eshell-cmpl-cycle-cutoff-length 3
       eshell-show-lisp-completions nil
       eshell-command-interpreter-max-length 4096
       eshell-error-if-no-glob t
       eshell-glob-include-dot-dot nil
       eshell-hist-ignoredups t
-      eshell-history-size 65536
+      eshell-history-size 20000
       eshell-password-prompt-regexp "[Pp]ass\\(?:word\\|phrase\\).*:\\s *\\'"
       eshell-prefer-lisp-functions t
       eshell-scroll-show-maximum-output nil
       eshell-scroll-to-bottom-on-input nil
       eshell-scroll-to-bottom-on-output nil
       eshell-send-direct-to-subprocesses nil
-      eshell-tar-regexp "\\.t\\(?:ar\\(?:\\.\\(?:gz\\|bz2\\|Z\\|7z\\)\\)?\\|gz\\|a[zZ]\\|z2\\|7z\\)\\'"
-      eshell-cmpl-autolist t
-      eshell-cmpl-cycle-cutoff-length 3
-      eshell-cmpl-file-ignore "~\\'\\|\\`\\.#")
+      eshell-tar-regexp "\\.t\\(?:ar\\(?:\\.\\(?:gz\\|bz2\\|Z\\|7z\\)\\)?\\|gz\\|a[zZ]\\|z2\\|7z\\)\\'")
 
 (eval-after-load
  "eshell"
@@ -46,13 +45,13 @@
    (require 'common)
    (require 'more-scheme)
    (require 'browse-kill-ring-setup)
+   (require 'completion-setup)
    (require 'search-prop)
    ;; (setenv "PAGER" "cat")
 
    ;; try eshell-complex-commands if some command doesn't work
 
-   (setf eshell-cmpl-cycle-completions nil
-         eshell-cmpl-recexact t
+   (setf eshell-cmpl-file-ignore "~\\'\\|\\`\\.#"
          eshell-cmpl-dir-ignore
          "\\`\\(?:\\.\\.?\\|CVS\\|\\.svn\\|\\.git\\|\\.hg\\|_darcs\\|\\.bzr\\)/\\'")
 
