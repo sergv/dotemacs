@@ -9,13 +9,14 @@
 (require 'custom)
 (require 'common)
 
-(setf auto-insert-directory (path-concat +prog-data-path+ "auto-insert")
+(setf auto-insert-directory (concat +prog-data-path+ "/auto-insert")
       auto-insert 'other
       auto-insert-query nil)
 
 
 (setf auto-insert-alist
       '(("\\.sh$"      . ["insert.sh"    auto-insert-update])
+        ("\\.clj$"     . ["insert.clj"   auto-insert-update])
         ("\\.el$"      . ["insert.el"    auto-insert-update])
         ("\\.hs$"      . ["insert.hs"    auto-insert-update])
         ("\\.awk$"     . ["insert.awk"   auto-insert-update])
@@ -25,6 +26,13 @@
         ("\\.x?html?$" . ["insert.xhtml" auto-insert-update])
         ("\\.py$"      . ["insert.py"    auto-insert-update])
         ("\\.org$"     . ["insert.org"   auto-insert-update])
+
+        ("AndroidManifest.xml"       . ["insert-android-manifest.xml" auto-insert-update])
+        ("/res/drawable.*/.*\\.xml$" . ["insert-android-drawable.xml" auto-insert-update])
+        ("/res/layout.*/.*\\.xml$"   . ["insert-android-layout.xml"   auto-insert-update])
+        ("/res/menu.*/.*\\.xml$"     . ["insert-android-menu.xml"     auto-insert-update])
+        ("/res/values.*/.*\\.xml$"   . ["insert-android-values.xml"   auto-insert-update])
+
         ("\\.scm$"     . ["insert.scm"   auto-insert-update])
         ("\\.\\(?:l\\|cl\\|asd\\|lsp\\|lisp\\|clisp\\)$"
          . ["insert.lisp" auto-insert-update])))
@@ -50,6 +58,16 @@
                                       "%Y"))
    (list "author" (lambda () "Sergey Vinokurov"))
    (list "email" (lambda () "serg.foo@gmail.com"))
+   (list "clojure-path-to-ns"
+         (lambda ()
+           (save-match-data
+            (let ((name (buffer-file-name)))
+              (if (string-match "^.*/src\\(?:/clojure\\)?/\\(.*\\)\\.clj$" name)
+                (mapconcat #'identity
+                           (split-string (match-string-no-properties 1 name)
+                                         "/")
+                           ".")
+                "")))))
    (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.
 When auto-insert file template contains entry of form ${HELLO} then
