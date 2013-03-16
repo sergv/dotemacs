@@ -680,7 +680,9 @@ current line."
   (when (vim:visual-mode-p)
     (let* ((iform (interactive-form this-command))
            (use-region (or (eq this-command 'execute-extended-command)
-                           (and iform (cdr iform)
+                           (and iform
+                                (cdr iform)
+                                (string? (cadr iform))
                                 (string= (cadr iform) "r")))))
       (when use-region
         (setq vim:visual-last-point (point)
