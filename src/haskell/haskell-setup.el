@@ -112,7 +112,7 @@
     (", y"     haskell-hayoo-at-point)
     (", c"     ghc-core-create-core)
 
-    ("'"        input-unicode)
+    ("="        input-unicode)
     ;; check these out
     ;; (", f"     find-tag)
     ;; (", a"     tags-apropos)
@@ -146,7 +146,7 @@
     ("g a : :" haskell-align-on-double-colons))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("C-'"       input-unicode)
+    ("C-="       input-unicode)
     ;; ("C-<right>" paredit-forward-slurp-sexp)
     ;; ("C-<left>"  paredit-forward-barf-sexp)
     ;; ("M-<up>"    paredit-splice-sexp-killing-backward)

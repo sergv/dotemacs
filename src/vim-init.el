@@ -97,7 +97,7 @@
 
         ("g g"     nil)
         ("G"       vim:motion-mark)
-        ("<f5>"    vim:motion-mark)
+        ;; ("<f5>"    vim:motion-mark)
         ("g m"     vim:cmd-set-mark)
         ("g M"     vim:cmd-toggle-macro-recording)
         ("g J"     vim:cmd-join-lines)
