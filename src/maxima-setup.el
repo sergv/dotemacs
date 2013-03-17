@@ -78,6 +78,9 @@
     (define-key vim:normal-mode-local-keymap
         (kbd ", h")
       maxima-help-map)
+    (define-key vim:normal-mode-local-keymap
+        (kbd "<f1>")
+      maxima-help-map)
 
     (def-keys-for-map vim:visual-mode-local-keymap
       ("j"     maxima-send-region)
@@ -142,6 +145,9 @@
 
     (define-key vim:normal-mode-local-keymap
         (kbd ", h")
+      maxima-help-map)
+    (define-key vim:normal-mode-local-keymap
+        (kbd "<f1>")
       maxima-help-map))
 
   (add-hook 'maxima-mode-hook #'maxima-setup)

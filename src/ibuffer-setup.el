@@ -194,7 +194,7 @@ a prefix argument reverses the meaning of that variable."
      ("f f"      ibuffer-filter-by-filename)
      ("f p"      ibuffer-pop-filter)
      ("f o"      ibuffer-or-filter)
-     ("SPC"      ibuffer-filter-disable)
+     ("SPC"      ibuffer-visit-buffer)
      ("* m"      ibuffer-mark-using-mode)
      ("* M"      ibuffer-mark-modified-buffers)
      ("* d"      ibuffer-mark-dired-buffers)
