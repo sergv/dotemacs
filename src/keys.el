@@ -12,28 +12,33 @@
 (require 'keys-def)
 
 (def-keys-for-map global-map
-  ("<f1>"     abort-recursive-edit)
-  ("<f2>"     universal-argument)
-  ("<f3>"     #'(lambda () (interactive)
-                  (tabbar-scroll (tabbar-current-tabset) -1)))
-  ("<f4>"     #'(lambda () (interactive)
-                  (tabbar-scroll (tabbar-current-tabset) 1)))
+  ("<f1>"     help-command)
+  ("<f2>"     save-buffer)
+  ("<f3>"     prev-w)
+  ("<f4>"     next-w)
 
   ("<f6>"     remember-win-config-restore-configuration)
-  ("<f7>"     prev-w)
-  ("<f8>"     next-w)
+  ("<f7>"     (lambda () (interactive)
+                (tabbar-scroll (tabbar-current-tabset) -1)))
+  ("<f8>"     (lambda () (interactive)
+                (tabbar-scroll (tabbar-current-tabset) 1)))
 
   ("<f9>"     compile)
   ("<f10>"    eshell)
   ("<f11>"    tabbar-backward-tab)
   ("<f12>"    tabbar-forward-tab)
 
+  ("<XF86Back>"    tabbar-backward-tab)
+  ("<XF86Forward>" tabbar-forward-tab)
 
-  ("S-<f3>"   tabbar-forward-group)
-  ("S-<f4>"   tabbar-backward-group)
+  ("C-<f2>"   universal-argument)
 
-  ("S-<f7>"   swap-buffers-backward)
-  ("S-<f8>"   swap-buffers-forward)
+  ("S-<f3>"   swap-buffers-backward)
+  ("S-<f4>"   swap-buffers-forward)
+
+  ("S-<f7>"   tabbar-forward-group)
+  ("S-<f8>"   tabbar-backward-group)
+
   ("S-<f11>"  tabbar-move-selected-tab-left)
   ("S-<f12>"  tabbar-move-selected-tab-right)
 
@@ -73,10 +78,14 @@
   ("M-m"      nil)
   ("M-M"      nil)
 
+  ("M-x"      smex)
+  ("M-X"      smex-major-mode-commands)
   ("C-x <f1>" nil)
   ("C-z"      nil)
+  ("<XF86Favorites>" ibuffer)
   ("C-x b"    ibuffer)
-  ("C-b"      switch-to-buffer)
+  ("C-b"      ibuffer)
+  ("M-b"      ibuffer)
   ("C-x f"    find-file)
   ("C-x k"    remove-buffer)
   ("C-k"      remove-buffer)

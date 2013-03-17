@@ -127,10 +127,15 @@ Futher modified by Sergey Vinokurov."
         (cursor-color     . ,base0))
        ;; basic
        (default                      ((t (:foreground ,base0))))
-       (cursor                       ((t (:foreground ,base03 :background ,base0))))
+       (cursor                       ((((class color) (min-colors 16777216))
+                                       (:foreground ,base03 :background ,base0))
+                                      (t
+                                       (:inverse-video nil))))
        (escape-glyph-face            ((t (:foreground ,red))))
        (fringe                       ((t (:foreground ,base01 :background ,base02))))
-       (highlight                    ((t (:background ,base02))))
+       (highlight                    ((((class color) (min-colors 16777216))
+                                       (:background ,base02))
+                                      (t :inverse-video t)))
        (menu                         ((t (:foreground ,base0 :background ,base02))))
        (minibuffer-prompt            ((t (:foreground ,blue))))
        (mode-line                    ((t (:foreground ,base1 :background ,base02

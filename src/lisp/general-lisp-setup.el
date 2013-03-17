@@ -804,7 +804,7 @@ This determines whether to insert a space after the # sign."
 
     ("g <tab>" paredit-reindent-defun)
     ("M-p"     browse-kill-ring)
-    ("'"       input-unicode)
+    ("="       input-unicode)
 
     ("g s"     paredit-split-sexp)
     ("g j"     paredit-join-sexps)))
@@ -812,7 +812,7 @@ This determines whether to insert a space after the # sign."
 (defvar *lisp-vim-movement-keybindings*
   '(("q"        vim:lisp-up-list)
     ("Q"        vim:lisp-backward-up-list)
-    ("="        vim:lisp-backward-up-list)
+    ("'"        vim:lisp-backward-up-list)
     ("g n"      glisp/beginning-of-defun)
     ("g t"      glisp/end-of-defun)
     ("g <up>"   glisp/beginning-of-defun)
@@ -901,7 +901,7 @@ This determines whether to insert a space after the # sign."
     ("g c u"    comment-util-uncomment-region-simple))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("C-'"      input-unicode)
+    ("C-="      input-unicode)
     ("<return>" paredit-newline))
 
   (def-keys-for-map (vim:normal-mode-local-keymap

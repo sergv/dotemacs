@@ -41,8 +41,9 @@
 (defconst +control-x-prefix+
   '((","   nil)
     ("g"   nil)
-    ("g h" help-command)
-    ("g u" Control-X-prefix))
+    ;; ("g h" help-command)
+    ;; ("g u" Control-X-prefix)
+    )
   "Prefix to C-x")
 
 (defconst +vim-word-motion-keys+
