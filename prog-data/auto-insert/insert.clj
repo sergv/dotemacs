@@ -1,7 +1,7 @@
 
-;; date:   ${date
+;; date:   ${date}
 ;; author: ${author}
 ;; email:  ${email}
 
-${clojure-path-to-ns}
+(ns ${clojure-path-to-ns})
 
