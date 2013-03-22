@@ -113,11 +113,7 @@
 The content is the same as minibuffer-contents would return
 except for the info message."
   (with-current-buffer vim:ex-minibuffer
-    (buffer-substring-no-properties
-     (minibuffer-prompt-end)
-     (if vim:ex-info-length
-       (- (point-max) vim:ex-info-length)
-       (point-max)))))
+    (vim:strip-ex-info (buffer-substring (minibuffer-prompt-end) (point-max)))))
 
 (defun vim:emap (keys command)
   "Maps an ex-command to some function."
@@ -273,11 +269,12 @@ This function should be called whenever the minibuffer is exited."
 
 
 (defun vim:ex-change (beg end len)
-  "Checkes if the command or argument changed and informs the
-argument handler."
+  "Checks if the command or argument changed and informs the
+argument handler. Gets calledon every minibuffer change."
   (unless vim:ex-update-info
     (let ((cmdline (vim:ex-contents)))
-      (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
+      (multiple-value-bind (range cmd spaces arg beg end force)
+          (vim:ex-split-cmdline cmdline)
         (cond
           ((not (string= vim:ex-cmd cmd))
            ;; command changed, update argument handler ...
@@ -502,21 +499,24 @@ has been pressed."
       (`lambda t))))
 
 
+(defun vim:strip-ex-info (str)
+  "Remove info part from string STR."
+  (let ((info-start (text-property-any 0
+                                       (length str)
+                                       'ex-info
+                                       t
+                                       str)))
+    (if info-start
+      (subseq str 0 info-start)
+      str)))
+
 (defun vim:ex-execute-command (cmdline)
   "Called to execute the current command."
   (interactive)
   (multiple-value-bind (range cmd spaces arg beg end force)
       (vim:ex-split-cmdline cmdline)
     (setq vim:ex-cmd cmd)
-    ;; strip ex-info part out
-    (let ((arg-ex-info-part-start (text-property-any 0
-                                                     (length arg)
-                                                     'ex-info
-                                                     t
-                                                     arg)))
-      (when arg-ex-info-part-start
-        (setf arg (subseq arg 0 arg-ex-info-part-start))))
-
+    (setf arg (vim:strip-ex-info arg))
     (let ((cmd vim:ex-cmd)
           (motion (cond
                     ((and beg end)
