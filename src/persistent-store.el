@@ -57,9 +57,9 @@
 ;; (defun persistent-store-query (pred)
 ;;   "Return list of values for whose keys PRED returns t."
 ;;   (let ((result nil))
-;;     (maphash #'(lambda (key value)
-;;                  (if (funcall pred key)
-;;                      (push value result)))
+;;     (maphash (lambda (key value)
+;;                (if (funcall pred key)
+;;                  (push value result)))
 ;;              persistent-store-content)
 ;;     result))
 
@@ -74,9 +74,9 @@
   (let ((content-list nil)
         (current-file-content
           (persistent-store-load-file persistent-store-store-file)))
-    (maphash #'(lambda (key value)
-                 ;; store nil values too
-                 (push (cons key value) content-list))
+    (maphash (lambda (key value)
+               ;; store nil values too
+               (push (cons key value) content-list))
              persistent-store-content)
 
     (setf content-list (sort (copy-list content-list)
@@ -138,8 +138,7 @@
                      (char=? ch ?H)
                      (char=? ch ?\?))
                  (read-key
-                  (mapconcat
-                   #'identity
+                  (join-lines
                    '("yY  - write your data to store file, nevermind that someone wrote something there"
                      "nN  - do not write data, *your data may get lost*"
                      "dD  - view diff between contents of store file loaded by you and current one"
@@ -154,8 +153,8 @@
   "Load database contents from file."
   (setf persistent-store-loaded-content
         (persistent-store-load-file persistent-store-store-file))
-  (mapc #'(lambda (entry)
-            (puthash (car entry) (cdr entry) persistent-store-content))
+  (mapc (lambda (entry)
+          (puthash (car entry) (cdr entry) persistent-store-content))
         (read persistent-store-loaded-content)))
 
 
@@ -164,16 +163,16 @@
   (if (equal 0 (persistent-store-database-size))
     (message "database is empty")
     (let ((counter 0))
-      (maphash #'(lambda (key value)
-                   (message "#%d: %S:%S" counter key value)
-                   (incf counter))
+      (maphash (lambda (key value)
+                 (message "#%d: %S:%S" counter key value)
+                 (incf counter))
                persistent-store-content))))
 
 (defun persistent-store-database-size ()
   "Return number of entries in database."
   (let ((count 0))
-    (maphash #'(lambda (key value)
-                 (incf count))
+    (maphash (lambda (key value)
+               (incf count))
              persistent-store-content)
     count))
 

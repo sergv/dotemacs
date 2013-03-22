@@ -12,10 +12,9 @@
   "Run splint."
   (interactive (list current-prefix-arg))
   (let ((fname (file-name-nondirectory buffer-file-name)))
-    (compilation-start (mapconcat #'identity
-                                  (list "splint"
-                                        fname)
-                                  " ")
+    (compilation-start (join-lines (list "splint"
+                                         fname)
+                                   " ")
                        #'splint-mode)))
 
 

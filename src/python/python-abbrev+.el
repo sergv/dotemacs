@@ -44,7 +44,7 @@ interactively prompting for variables/messages."
   :make-variable-list
   (lambda (list)
     (concat ".format("
-            (mapconcat #'identity list ", ")
+            (join-lines list ", ")
             ")")))
 
 

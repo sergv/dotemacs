@@ -635,7 +635,7 @@ many things, but the hedgehog knows one great thing.\"  Scheme is a
 hedgehog.
 -- PC Scheme Tutorial, viii \(Texas Instruments\)"
 
-      "Send messages calling for fonts not available to the
+   "Send messages calling for fonts not available to the
 recipient\(s\).  This can \(in the case of Zmail\) totally disable
 the user's machine and mail system for up to a whole day in some
 circumstances.
@@ -2261,7 +2261,7 @@ experiment treacherous, judjment difficult
       (message str)
       str)))
 
-(defun fortune-reschedule-queue ()
+(defun fortune/reschedule-queue ()
   "Return queue that with all indices of fortunes
 in `*fortunes*' shuffled in random order.
 
@@ -2275,7 +2275,7 @@ Queue is just a list actually."
       for i across vect
       collect (aref vect i))))
 
-(defun fortune-get-next-fortune ()
+(defun fortune/get-next-fortune ()
   "Return next queued fortune using persistent queue and
 make up new queue if persistent one is empty."
   (let ((fortune-queue (persistent-store-get 'fortunes-fortune-queue)))
@@ -2283,7 +2283,7 @@ make up new queue if persistent one is empty."
                  (if fortune-queue
                    (car fortune-queue)
                    (progn
-                     (setq fortune-queue (fortune-reschedule-queue))
+                     (setq fortune-queue (fortune/reschedule-queue))
                      (car fortune-queue))))
       (persistent-store-put 'fortunes-fortune-queue (cdr fortune-queue)))))
 
@@ -2294,7 +2294,7 @@ make up new queue if persistent one is empty."
      (emacs-lisp-mode)
      (comment-util-mode 1)
      (erase-buffer)
-     (insert (fortune-get-next-fortune))
+     (insert (fortune/get-next-fortune))
      (comment-util-comment-region (point-min) (point-max))
      (save-match-data
       (goto-char (point-min))

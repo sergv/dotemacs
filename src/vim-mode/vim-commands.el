@@ -189,9 +189,9 @@ and switches to insert-mode."
                           :register register))
 
     (`block
-     (vim:cmd-yank :motion motion :register register)
-     (delete-rectangle (vim:motion-begin-pos motion)
-                       (vim:motion-end-pos motion)))
+        (vim:cmd-yank :motion motion :register register)
+      (delete-rectangle (vim:motion-begin-pos motion)
+                        (vim:motion-end-pos motion)))
 
     (_
      (vim:cmd-yank :motion motion :register register)
@@ -218,12 +218,12 @@ and switches to insert-mode."
                           :register register))
 
     (`block
-     (let ((insert-info (vim:make-visual-insert-info
-                         :first-line (vim:motion-first-line motion)
-                         :last-line (vim:motion-last-line motion)
-                         :column (vim:motion-first-col motion))))
-       (vim:cmd-delete :motion motion :register register)
-       (vim:visual-start-insert insert-info)))
+        (let ((insert-info (vim:make-visual-insert-info
+                            :first-line (vim:motion-first-line motion)
+                            :last-line (vim:motion-last-line motion)
+                            :column (vim:motion-first-col motion))))
+          (vim:cmd-delete :motion motion :register register)
+          (vim:visual-start-insert insert-info)))
 
     (_
      ;; deal with cw and cW
@@ -296,11 +296,11 @@ and switches to insert-mode."
   "Replace complete region with `arg'"
   (vim:apply-on-motion
    motion
-   #'(lambda (beg end)
-       (save-excursion
-        (goto-char beg)
-        (delete-region beg end)
-        (insert-char arg (- end beg))))))
+   (lambda (beg end)
+     (save-excursion
+      (goto-char beg)
+      (delete-region beg end)
+      (insert-char arg (- end beg))))))
 
 
 (vim:defcmd vim:cmd-yank (motion register nonrepeatable)
@@ -308,8 +308,8 @@ and switches to insert-mode."
   (pcase (vim:motion-type motion)
     (`block (vim:cmd-yank-rectangle :motion motion :register register))
     (`linewise (goto-line1 (vim:motion-first-line motion))
-     (vim:cmd-yank-line :count (vim:motion-line-count motion)
-                        :register register))
+               (vim:cmd-yank-line :count (vim:motion-line-count motion)
+                                  :register register))
     (_
      (let ((text (buffer-substring
                   (vim:motion-begin-pos motion)
@@ -630,14 +630,14 @@ indented according to the current mode."
   "Toggles the case of all characters defined by `motion'."
   (vim:apply-on-motion
    motion
-   #'(lambda (beg end)
-       (save-excursion
-        (goto-char beg)
-        (while (< beg end)
-          (let ((c (following-char)))
-            (delete-char 1 nil)
-            (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
-            (setq beg (1+ beg))))))))
+   (lambda (beg end)
+     (save-excursion
+      (goto-char beg)
+      (while (< beg end)
+        (let ((c (following-char)))
+          (delete-char 1 nil)
+          (insert-char (if (eq c (upcase c)) (downcase c) (upcase c)) 1)
+          (setq beg (1+ beg))))))))
 
 
 (vim:defcmd vim:cmd-make-upcase (motion)
@@ -719,24 +719,24 @@ block motions."
 (defun vim:print-mark-list (marks)
   "Prints information about the alist marks."
   (mapconcat
-   #'(lambda (mark)
-       (let ((show-buffer-name
-               (not (eq (current-buffer) (marker-buffer (cdr mark))))))
-         (with-current-buffer (marker-buffer (cdr mark))
-           (save-excursion
-            (goto-char (cdr mark))
-            (let ((file-or-text
-                    (if show-buffer-name (buffer-name)
-                      (let* ((beg (save-excursion
-                                   (vim:motion-first-non-blank)
-                                   (point)))
-                             (end (min (+ beg 60) (line-end-position))))
-                        (buffer-substring-no-properties beg end)))))
-              (format "%3s  %5d %3d %s"
-                      (car mark)
-                      (line-number-at-pos)
-                      (current-column)
-                      file-or-text))))))
+   (lambda (mark)
+     (let ((show-buffer-name
+             (not (eq (current-buffer) (marker-buffer (cdr mark))))))
+       (with-current-buffer (marker-buffer (cdr mark))
+         (save-excursion
+          (goto-char (cdr mark))
+          (let ((file-or-text
+                  (if show-buffer-name (buffer-name)
+                    (let* ((beg (save-excursion
+                                 (vim:motion-first-non-blank)
+                                 (point)))
+                           (end (min (+ beg 60) (line-end-position))))
+                      (buffer-substring-no-properties beg end)))))
+            (format "%3s  %5d %3d %s"
+                    (car mark)
+                    (line-number-at-pos)
+                    (current-column)
+                    file-or-text))))))
    marks "\n"))
 
 
@@ -747,13 +747,13 @@ block motions."
     (when marks
       (setq marks (append marks nil))
       (setq all-marks
-            (remq nil (mapcar #'(lambda (x) (and (memq (car x) marks) x)) all-marks))))
+            (remq nil (map (lambda (x) (and (memq (car x) marks) x)) all-marks))))
 
-    (setq all-marks (sort all-marks #'(lambda (x y) (< (car x) (car y)))))
+    (setq all-marks (sort all-marks (lambda (x y) (< (car x) (car y)))))
     (setq all-marks (vim:print-mark-list
-                     (mapcar #'(lambda (x)
-                                 (cons (char-to-string (car x)) (cdr x)))
-                             all-marks)))
+                     (map (lambda (x)
+                            (cons (char-to-string (car x)) (cdr x)))
+                          all-marks)))
     (let (message-truncate-lines message-log-max)
       (message "%4s %5s %3s %s\n%s" "Mark" "Line" "Col" "File/Text"
                all-marks))))
@@ -761,16 +761,16 @@ block motions."
 (vim:defcmd vim:cmd-show-jumps (nonrepeatable)
   "Shows the current jump-list."
   (let* ((cnt 0)
-         (pjumps (mapcar
-                  #'(lambda (x)
-                      (incf cnt)
-                      (cons (int-to-string cnt) x))
+         (pjumps (map
+                  (lambda (x)
+                    (incf cnt)
+                    (cons (int-to-string cnt) x))
                   (car vim:jumplist))))
     (setq cnt -1)
-    (let ((njumps (mapcar
-                   #'(lambda (x)
-                       (incf cnt)
-                       (cons (int-to-string cnt) x))
+    (let ((njumps (map
+                   (lambda (x)
+                     (incf cnt)
+                     (cons (int-to-string cnt) x))
                    (cdr vim:jumplist))))
       (let ((jumps (vim:print-mark-list (append (reverse pjumps) njumps)))
             message-truncate-lines message-log-max)

@@ -137,10 +137,10 @@ highlighted."
   "Returns the regular expression without all occurrences of \\c and \\C."
   (replace-regexp-in-string
    "\\\\."
-   #'(lambda (txt)
-       (if (member (aref txt 1) '(?c ?C))
-         ""
-         txt))
+   (lambda (txt)
+     (if (member (aref txt 1) '(?c ?C))
+       ""
+       txt))
    re t t))
 
 (defun vim:regex-case (re default-case)
@@ -252,7 +252,7 @@ name `name' to `new-regex'."
 
 (defun* vim:hl-update-highlights ()
   "Updates the overlays of all active highlights."
-  (dolist (hl (mapcar #'cdr vim:active-highlights-alist))
+  (dolist (hl (map #'cdr vim:active-highlights-alist))
     (let ((old-ovs (vim:hl-overlays hl))
           new-ovs
           (pattern (vim:hl-pattern hl))
@@ -353,7 +353,7 @@ name `name' to `new-regex'."
 
 (defun vim:hl-update-highlights-resize (frame)
   "Updates highlights after resizing a window."
-  (let ((buffers (delete-dups (mapcar #'window-buffer (window-list frame)))))
+  (let ((buffers (delete-dups (map #'window-buffer (window-list frame)))))
     (dolist (buf buffers)
       (with-current-buffer buf
         (vim:hl-idle-update)))))

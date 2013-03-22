@@ -19,8 +19,7 @@
   :format-string-end "\\n\""
   :print-end "))"
 
-  :make-variable-list (lambda (list)
-                        (mapconcat #'identity list "\n")))
+  :make-variable-list #'join-lines)
 
 (defun clojure-abbrev+-setup ()
   (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
