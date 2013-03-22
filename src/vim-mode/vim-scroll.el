@@ -37,14 +37,16 @@
   "Scrolls the window `count' lines upwards."
   (vim:use-last-column)
   (scroll-down (or count 1))
-  (vim:motion-up :count (or count 1)))
+  (when vim-scroll-move-point
+    (vim:motion-up :count (or count 1))))
 
 
 (vim:defcmd vim:scroll-line-down (count nonrepeatable keep-visual)
   "Scrolls the window `count' lines downwards."
   (vim:use-last-column)
   (scroll-up (or count 1))
-  (vim:motion-down :count (or count 1)))
+  (when vim-scroll-move-point
+    (vim:motion-down :count (or count 1))))
 
 
 (vim:defcmd vim:scroll-up (count nonrepeatable keep-visual)
