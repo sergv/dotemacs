@@ -28,12 +28,12 @@
  "ediff"
  '(progn
    (add-hook 'ediff-keymap-setup-hook
-    #'(lambda ()
-        (def-keys-for-map ediff-mode-map
-          +control-x-prefix+
-          ("<down>"   ediff-next-difference)
-          ("<up>"     ediff-previous-difference)
-          ("<escape>" ediff-quit))))))
+    (lambda ()
+      (def-keys-for-map ediff-mode-map
+        +control-x-prefix+
+        ("<down>"   ediff-next-difference)
+        ("<up>"     ediff-previous-difference)
+        ("<escape>" ediff-quit))))))
 
 (defun* ediff-diff-texts-recursive-edit (text-a
                                          text-b

@@ -24,7 +24,7 @@ currently defined ex commands. Should be updated with
   "Updates `*ex-commands-re-cache*' with current ex-commands."
   (setf *ex-commands-re-cache*
         (concat "\\("
-                (regexp-opt (mapcar #'car vim:ex-commands))
+                (regexp-opt (map #'car vim:ex-commands))
                 "\\)\\(!\\)?")))
 
 
@@ -40,45 +40,45 @@ currently defined ex commands. Should be updated with
   (let ((a 0)
         (b #x7fff)
         (seed init))
-    #'(lambda (begin end)
-        (setf seed (logand (1+ (* seed 69069))
-                           b))
-        (remap-interval a b begin end seed))))
+    (lambda (begin end)
+      (setf seed (logand (1+ (* seed 69069))
+                         b))
+      (remap-interval a b begin end seed))))
 
 
 ;; yeilds values in range [0..1)
 (defun make-tausworthe-random-gen (seed1 seed2 seed3)
   (let ((2-to-32 (expt 2 32)))
     (let ((tausworthe
-            #'(lambda (s a b c d)
-                (mod (logxor (ash (logand s c) (- d))
-                             (ash (logxor s
-                                          (ash s (- a)))
-                                  b))
-                     2-to-32)))
+            (lambda (s a b c d)
+              (mod (logxor (ash (logand s c) (- d))
+                           (ash (logxor s
+                                        (ash s (- a)))
+                                b))
+                   2-to-32)))
           (a seed1)
           (b seed2)
           (c seed3))
-      #'(lambda ()
-          (setf a (funcall tausworthe
-                           a
-                           13
-                           19
-                           4294967294
-                           12)
-                b (funcall tausworthe
-                           b
-                           2
-                           25
-                           4294967288
-                           4)
-                c (funcall tausworthe
-                           c
-                           3
-                           11
-                           4294967280
-                           17))
-          (/ (logxor a b c) (float 2-to-32))))))
+      (lambda ()
+        (setf a (funcall tausworthe
+                         a
+                         13
+                         19
+                         4294967294
+                         12)
+              b (funcall tausworthe
+                         b
+                         2
+                         25
+                         4294967288
+                         4)
+              c (funcall tausworthe
+                         c
+                         3
+                         11
+                         4294967280
+                         17))
+        (/ (logxor a b c) (float 2-to-32))))))
 
 (defun make-tausworthe-random-generator ()
   "Return tausworthe random generator obtained
@@ -143,7 +143,7 @@ of random numbers from RANDOM-GEN."
 
 
 (defun* get-directory-contents (dir &key (full t))
-  (remove-if #'(lambda (x) (member (file-name-nondirectory x) '("." "..")))
+  (remove-if (lambda (x) (member (file-name-nondirectory x) '("." "..")))
              (directory-files dir full)))
 
 (defun version-control-directory? (filename)
@@ -163,8 +163,8 @@ of random numbers from RANDOM-GEN."
 
 (defun* find-rec (path
                   &key
-                  (filep #'(lambda (p) t))
-                  (dirp  #'(lambda (p) nil))
+                  (filep (lambda (p) t))
+                  (dirp  (lambda (p) nil))
                   (do-not-visitp
                       (lambda (p)
                         (version-control-directory?
@@ -179,23 +179,23 @@ All predicates are called with full absolute paths."
   (when (stringp filep)
     (setf filep
           (let ((regexp-local filep))
-            #'(lambda (p) (string-match-p regexp-local p)))))
+            (lambda (p) (string-match-p regexp-local p)))))
   (when (stringp dirp)
     (setf dirp
           (let ((regexp-local dirp))
-            #'(lambda (p) (string-match-p regexp-local p)))))
+            (lambda (p) (string-match-p regexp-local p)))))
   (when (stringp do-not-visitp)
     (setf do-not-visitp
           (let ((regexp-local do-not-visitp))
-            #'(lambda (p) (string-match-p regexp-local p)))))
+            (lambda (p) (string-match-p regexp-local p)))))
 
   (letrec ((collect-rec
              (lambda (path accum)
                (cond
                  ((and (file-directory-p path)
                        (not (funcall do-not-visitp path)))
-                  (reduce #'(lambda (acc p)
-                              (funcall collect-rec p acc))
+                  (reduce (lambda (acc p)
+                            (funcall collect-rec p acc))
                           (get-directory-contents path :full t)
                           :initial-value (if (funcall dirp path)
                                            (cons path accum)
@@ -232,7 +232,7 @@ obtained by following upward in filesystem"
          (files nil) ;; found files
          )
     (letrec ((path-join (lambda (path)
-                          (concat "/" (mapconcat #'identity (reverse path) "/")))))
+                          (concat "/" (join-lines (reverse path) "/")))))
       (while (and (not found?)
                   (not (null? path)))
         (let ((subdir (funcall path-join path)))
@@ -568,8 +568,7 @@ current buffer. INIT form will be executed before performing any jumps."
      (print-begin "(format t ")
      (print-end ")")
      (indent-after-func #'prog-indent-sexp)
-     (make-variable-list (lambda (list)
-                           (mapconcat #'identity list "\n")))
+     (make-variable-list #'join-lines)
      (use-upcase t)
      (format-print-value "~a")
      (format-string-start "\"")
@@ -912,8 +911,8 @@ value, that slot cannot be set via `setf'.
       (push (list 'put (list 'quote name) '(quote structure-documentation)
                   (pop descs)) forms))
     (setq descs (cons '(cl-tag-slot)
-                      (mapcar (function (lambda (x) (if (consp x) x (list x))))
-                              descs)))
+                      (map (function (lambda (x) (if (consp x) x (list x))))
+                           descs)))
     (while opts
       (let ((opt (if (consp (car opts)) (caar opts) (car opts)))
             (args (cdr-safe (pop opts))))
@@ -939,10 +938,10 @@ value, that slot cannot be set via `setf'.
                (if args (setq predicate (car args))))
               ((eq opt :include)
                (setq include (car args)
-                     include-descs (mapcar (function
-                                            (lambda (x)
-                                             (if (consp x) x (list x))))
-                                           (cdr args))))
+                     include-descs (map (function
+                                         (lambda (x)
+                                          (if (consp x) x (list x))))
+                                        (cdr args))))
               ((eq opt :print-function)
                (setq print-func (car args)))
               ((eq opt :type)
@@ -1081,7 +1080,7 @@ value, that slot cannot be set via `setf'.
         (push (list 'defsubst* name
                     (list* '&cl-defs (list 'quote (cons nil descs)) args)
                     (cons type make)) forms)
-        (if (cl-safe-expr-p (cons 'progn (mapcar 'second descs)))
+        (if (cl-safe-expr-p (cons 'progn (map 'second descs)))
           (push (cons name t) side-eff))))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
     (if print-func
@@ -1102,11 +1101,11 @@ value, that slot cannot be set via `setf'.
                        (list 'quote include))
                  (list 'put (list 'quote name) '(quote cl-struct-print)
                        print-auto)
-                 (mapcar (function (lambda (x)
-                           (list 'put (list 'quote (car x))
-                                 '(quote side-effect-free)
-                                 (list 'quote (cdr x)))))
-                         side-eff))
+                 (map (function (lambda (x)
+                        (list 'put (list 'quote (car x))
+                              '(quote side-effect-free)
+                              (list 'quote (cdr x)))))
+                      side-eff))
           forms)
     (cons 'progn (nreverse (cons (list 'quote name) forms)))))
 
@@ -1160,9 +1159,9 @@ value, that slot cannot be set via `setf'.
   (if (null list)
     (list nil)
     (mapcan (lambda (item)
-              (mapcar (lambda (x)
-                        (cons item x))
-                      (permutations (remove item list))))
+              (map (lambda (x)
+                     (cons item x))
+                   (permutations (remove item list))))
             list)))
 
 
@@ -1178,9 +1177,9 @@ combinations"
                  (loop
                    for i from start to end
                    nconcing
-                      (mapcar (lambda (rest)
-                                (cons i rest))
-                              (funcall collect (1- start) (1- i))))))))
+                      (map (lambda (rest)
+                             (cons i rest))
+                           (funcall collect (1- start) (1- i))))))))
     (funcall collect (1- k) (1- n))))
 
 
@@ -1318,7 +1317,7 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 
 (defun input-unicode ()
   (interactive)
-  (let* ((symbs (mapcar 'char->string (extract-unicode)))
+  (let* ((symbs (map 'char->string (extract-unicode)))
          (symb (completing-read-vanilla "> " symbs)))
     (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
     (insert symb)))
@@ -1509,17 +1508,17 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
 "
   (setf new-config-dir (strip-trailing-slash new-config-dir)
         curr-config-dir (strip-trailing-slash curr-config-dir))
-  (dolist (p (mapcar (lambda (p)
-                       (file-relative-name p new-config-dir))
-                     (find-rec new-config-dir
-                               :filep
-                               (lambda (p)
-                                 (let ((fname (file-name-nondirectory p)))
-                                   (and (string-match-pure? ".*\\.el$"
-                                                            fname)
-                                        ;; emacs locks?
-                                        (not (string-match-pure? "^\\.#.*"
-                                                                 fname))))))))
+  (dolist (p (map (lambda (p)
+                    (file-relative-name p new-config-dir))
+                  (find-rec new-config-dir
+                            :filep
+                            (lambda (p)
+                              (let ((fname (file-name-nondirectory p)))
+                                (and (string-match-pure? ".*\\.el$"
+                                                         fname)
+                                     ;; emacs locks?
+                                     (not (string-match-pure? "^\\.#.*"
+                                                              fname))))))))
     (let* ((new  (concat new-config-dir "/" p))
            (curr (concat curr-config-dir "/" p)))
       (message "Files %s and %s" new curr)
@@ -1596,6 +1595,21 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 
 (defun rest-safe (x)
   (cdr-safe x))
+
+;;;;
+
+(defun join-lines (lines &optional str)
+  "Join list of strings with given STR that defaults to newline."
+  (mapconcat #'identity lines (or str "\n")))
+
+(defun* split-into-lines (str &optional (omit-nulls t))
+  "Split string into list of lines."
+  (split-string str "\n" omit-nulls))
+
+(defun map (func xs &rest sequences)
+  (if (null? sequences)
+    (mapcar func xs)
+    (apply cl-mapcar func xs sequences)))
 
 ;;;;
 

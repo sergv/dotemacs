@@ -52,7 +52,7 @@
      magit-log-edit-cleanup-clean-trailing-whitespace
      activate
      compile)
-     (delete-trailing-whitespace+))
+  (delete-trailing-whitespace+))
 
 (defun magit-mode-setup ()
   (setf truncate-lines nil)
@@ -203,7 +203,7 @@ put it in magit-key-mode-key-maps for fast lookup."
   "Becomes t when git executable is accessible")
 
 (defvar-local git-repository nil
-    "Path to root of git repository this buffer's file is member of, if any.")
+  "Path to root of git repository this buffer's file is member of, if any.")
 
 (when *have-git?*
   (defun git-get-tracked-files (repo-path)
@@ -227,18 +227,19 @@ put it in magit-key-mode-key-maps for fast lookup."
   (defun git-get-repository-root (root)
     "Returns root of git repository ROOT is part of or nil if it's not
 under git version control."
-    (with-temp-buffer
-      (cd root)
-      (when (= 0 (call-process "git"
-                               nil
-                               t
-                               nil
-                               "rev-parse"
-                               "--show-toplevel"))
-        (strip-trailing-slash
-         (string-trim-whitespace
-          (buffer-substring-no-properties (point-min)
-                                          (point-max)))))))
+    (when (file-directory? root)
+      (with-temp-buffer
+        (cd root)
+        (when (= 0 (call-process "git"
+                                 nil
+                                 t
+                                 nil
+                                 "rev-parse"
+                                 "--show-toplevel"))
+          (strip-trailing-slash
+           (string-trim-whitespace
+            (buffer-substring-no-properties (point-min)
+                                            (point-max))))))))
 
   (defun git-update-file-repository ()
     (if-buffer-has-file

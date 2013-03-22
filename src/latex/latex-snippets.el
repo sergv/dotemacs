@@ -16,9 +16,7 @@
               for k in keys
               collect (list k
                             (if (listp body)
-                              (mapconcat #'identity
-                                         body
-                                         "\n")
+                              (join-lines body)
                               body)
                             description
                             nil

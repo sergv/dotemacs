@@ -9,10 +9,10 @@
 ;;;; Preamble
 
 (setf ;; debug-on-error t
-      *sexpy-debug* nil
-      *sexpy-verbosity* 1
-      message-log-max t
-      )
+ *sexpy-debug* nil
+ *sexpy-verbosity* 1
+ message-log-max t
+ )
 
 (defun sexpy-trim-string (n str)
   (if (< n (length str))
@@ -20,12 +20,12 @@
     str))
 
 (eval-when-compile
- (require 'cl)
+  (require 'cl)
 
- (defmacro sexpy-dbg-message (verbosity &rest args)
-   (when (and *sexpy-debug*
-              (<= verbosity *sexpy-verbosity*))
-     `(message ,@args))))
+  (defmacro sexpy-dbg-message (verbosity &rest args)
+    (when (and *sexpy-debug*
+               (<= verbosity *sexpy-verbosity*))
+      `(message ,@args))))
 
 (require 'common)
 (require 'lisp-jit-lock)
@@ -148,7 +148,7 @@ and general malfunctions."
      (sexpy-check-pattern (sexpy-alt-sexp-case pattern)))
     ((or (sexpy-pattern-parenthesized? pattern)
          (sexpy-pattern-repeat? pattern))
-     (mapcar #'sexpy-check-pattern (sexpy-pattern-body pattern)))
+     (map #'sexpy-check-pattern (sexpy-pattern-body pattern)))
     ((sexpy-pattern-has-name? pattern)
      (sexpy-assert* (symbolp (sexpy-pattern-name pattern))
                     "NAME SHOULD BE A SYMBOL: %S"
@@ -269,11 +269,11 @@ is a feasible pattern."
 
 (defsetf sexpy-pattern-body (pattern) (new-body)
   `(cond
-    ((or (sexpy-pattern-repeat? ,pattern)
-         (sexpy-pattern-parenthesized? ,pattern))
-     (setf (cdr ,pattern) ,new-body))
-    (t
-     (error "PATTERN %S HAS NO SINGLE BODY" ,pattern))))
+     ((or (sexpy-pattern-repeat? ,pattern)
+          (sexpy-pattern-parenthesized? ,pattern))
+      (setf (cdr ,pattern) ,new-body))
+     (t
+      (error "PATTERN %S HAS NO SINGLE BODY" ,pattern))))
 
 
 (defun sexpy-scase-entries (pattern)
@@ -330,8 +330,8 @@ is a feasible pattern."
                 (reduce
                  (lambda (names pat)
                    (extract pat names))
-                 (mapcar #'cdr
-                         (sexpy-scase-entries pattern))
+                 (map #'cdr
+                      (sexpy-scase-entries pattern))
                  :initial-value names))
                ((sexpy-pattern-alt? pattern)
                 (extract (sexpy-alt-sexp-case pattern)
@@ -374,10 +374,10 @@ is a feasible pattern."
       ((sexpy-pattern-scase? pattern)
        (let ((x (copy-list pattern)))
          (setf (sexpy-scase-entries x)
-               (mapcar (lambda (entry)
-                         (cons (car entry)
-                               (transform-pattern (cdr entry))))
-                       (sexpy-scase-entries x)))
+               (map (lambda (entry)
+                      (cons (car entry)
+                            (transform-pattern (cdr entry))))
+                    (sexpy-scase-entries x)))
          x))
       ((sexpy-pattern-alt? pattern)
        (let ((x (copy-list pattern)))
@@ -1124,7 +1124,7 @@ FAILED?."
        (setf buffer-undo-list t)
        (unwind-protect
             (progn ,@body)
-        (setf buffer-undo-list ,hist-sym))
+         (setf buffer-undo-list ,hist-sym))
        (message "PRESERVE-BUFFER-UNDO-LIST: BUFFER-UNDO-LIST LENGTH AFTER: %s"
                 (length buffer-undo-list)))))
 
@@ -1246,7 +1246,7 @@ Every name should reference name from PATTERN.
 NAMES-TO-MARK - list of names that should be marked during fontification to prevent
 their fontification twice (or n times depending on your luck) by other pattern-based
 fontifiers."
-  (let ((names (mapcar #'car name-face-alist))
+  (let ((names (map #'car name-face-alist))
         (raw-pattern (sexpy-preprocess-pattern pattern)))
 
     ;; satefy checks
@@ -1270,16 +1270,16 @@ fontifiers."
           (sexpy-transform-pattern-to-numbers raw-pattern names)
 
         (let ((num-face-alist
-                (sort (mapcar (lambda (x)
-                                (let ((name (first x)))
-                                  (list (second (assoc* name name-num-alist
-                                                        :test #'eq))
-                                        (second x))))
-                              name-face-alist)
+                (sort (map (lambda (x)
+                             (let ((name (first x)))
+                               (list (second (assoc* name name-num-alist
+                                                     :test #'eq))
+                                     (second x))))
+                           name-face-alist)
                       (lambda (a b) (< (car a) (car b)))))
-              (nums-to-track (mapcar (lambda (name)
-                                       (cadr (assoc name name-num-alist)))
-                                     names-to-track)))
+              (nums-to-track (map (lambda (name)
+                                    (cadr (assoc name name-num-alist)))
+                                  names-to-track)))
           `(progn
              (defvar ,dict-name ,(sexpy-make-dict-for-pattern num-pattern))
 
@@ -1345,16 +1345,16 @@ sometimes does profiling with elp package."
                   (cond
                     ((and (listp head)
                           (every #'symbolp head))
-                     (regexp-opt (mapcar #'symbol-name head)))
+                     (regexp-opt (map #'symbol-name head)))
                     (t
                      (error "HEAD MUST BE LIST OF SYMBOLS")))
                   "\\)\\_>")))
     `(progn
-       ;; (when (intersection (mapcar #'symbol-name head)
+       ;; (when (intersection (map #'symbol-name head)
        ;;                     *sexpy-pattern-fontify-defined-heads*
        ;;                     :test #'string=)
        ;;   (error "SYMBOLS %s ARE ALREADY DEFINED"
-       ;;          (intersection (mapcar #'symbol-name head)
+       ;;          (intersection (map #'symbol-name head)
        ;;                        *sexpy-pattern-fontify-defined-heads*
        ;;                        :test #'string=)))
 
@@ -1377,7 +1377,7 @@ sometimes does profiling with elp package."
        ,(cond
           ((listp head)
            `(setf *sexpy-pattern-fontify-defined-heads*
-                  (append ',(mapcar #'symbol-name head)
+                  (append ',(map #'symbol-name head)
                           *sexpy-pattern-fontify-defined-heads*)))
           (t
            (error "BAD HEAD %S" head)))

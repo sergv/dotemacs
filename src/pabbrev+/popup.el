@@ -26,7 +26,7 @@
 ;;; Code:
 
 (eval-when-compile
- (require 'cl))
+  (require 'cl))
 
 
 
@@ -1030,14 +1030,14 @@ See also `popup-item-propertize'."
 (defun popup-cascade-menu (list &rest args)
   "Same to `popup-menu', but an element of `LIST' can be
 list of submenu."
-  (apply 'popup-menu*
-         (mapcar (lambda (item)
-                   (if (consp item)
-                     (popup-make-item (car item)
-                                      :sublist (cdr item)
-                                      :symbol ">")
-                     item))
-                 list)
+  (apply #'popup-menu*
+         (map (lambda (item)
+                (if (consp item)
+                  (popup-make-item (car item)
+                                   :sublist (cdr item)
+                                   :symbol ">")
+                  item))
+              list)
          :symbol t
          args))
 

@@ -151,8 +151,7 @@ in the current *Python* session."
 
 
 (setenv "PYTHONPATH"
-        (mapconcat
-         #'identity
+        (join-lines
          (list
           "/home/sergey/projects/python/modules/"
           "/home/sergey/projects/python/webcam/collect-data/local/lib/python2.7/site-packages")

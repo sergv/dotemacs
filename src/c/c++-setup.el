@@ -27,7 +27,7 @@
       (aif (gethash filename *c++-related-file-cache* nil)
         (find-file it)
         (letrec ((path-join (lambda (path)
-                              (mapconcat #'identity path "/")))
+                              (join-lines path "/")))
                  (find-subroot
                    (lambda (path look-for-dir)
                      (let ((dir (funcall path-join
@@ -105,24 +105,23 @@
       (write-region (point-min) (point-max) file)
       (erase-buffer)
       (shell-command
-       (mapconcat #'identity
-                  (list "astyle"
-                        "--style=java"           ;; -A2
-                        "--indent=spaces=4"
-                        "--brackets=break"       ;; -b
-                        "--align-pointer=middle" ;; -k2
-                        "--formatted"            ;; -Q
-                        "--pad-oper"
-                        "--pad-header"
-                        "--unpad-paren"
-                        "--keep-one-line-statements"
-                        "--keep-one-line-blocks"
-                        "--convert-tabs"
-                        "--mode=c"
-                        "--suffix=none"
-                        "--lineend=linux"
-                        (format "<%s" file))
-                  " ")
+       (join-lines (list "astyle"
+                         "--style=java"           ;; -A2
+                         "--indent=spaces=4"
+                         "--brackets=break"       ;; -b
+                         "--align-pointer=middle" ;; -k2
+                         "--formatted"            ;; -Q
+                         "--pad-oper"
+                         "--pad-header"
+                         "--unpad-paren"
+                         "--keep-one-line-statements"
+                         "--keep-one-line-blocks"
+                         "--convert-tabs"
+                         "--mode=c"
+                         "--suffix=none"
+                         "--lineend=linux"
+                         (format "<%s" file))
+                   " ")
        (current-buffer))
       (goto-char p)))
 
@@ -139,25 +138,24 @@
    (setq-local compile-command
                (let* ((fname  (file-name-nondirectory buffer-file-name))
                       (target (file-name-sans-extension fname)))
-                 (mapconcat #'identity
-                            (list "g++"
-                                  ;; "-std=c++0x"
-                                  "-W"
-                                  "-Wall"
-                                  "-Wextra"
-                                  "-Weffc++"
-                                  "-Wold-style-cast"
-                                  "-Woverloaded-virtual"
-                                  "-Wconversion"
-                                  "-Wuninitialized"
-                                  "-Wshadow"
-                                  "-pedantic"
-                                  "-O2"
-                                  "-I."
-                                  "-o"
-                                  target
-                                  fname)
-                            " "))))
+                 (join-lines (list "g++"
+                                   ;; "-std=c++0x"
+                                   "-W"
+                                   "-Wall"
+                                   "-Wextra"
+                                   "-Weffc++"
+                                   "-Wold-style-cast"
+                                   "-Woverloaded-virtual"
+                                   "-Wconversion"
+                                   "-Wuninitialized"
+                                   "-Wshadow"
+                                   "-pedantic"
+                                   "-O2"
+                                   "-I."
+                                   "-o"
+                                   target
+                                   fname)
+                             " "))))
 
   (if-has-makefile-command
    (set (make-local-variable 'compile-command)

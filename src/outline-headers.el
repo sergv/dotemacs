@@ -363,12 +363,12 @@ in the file it applies to."
                    (cdr
                     ;; Flatten the major mode's menus into a single menu.
                     (apply 'append
-                           (mapcar (lambda (x)
-                                     (if (consp x)
-                                       ;; Add a separator between each
-                                       ;; part of the unified menu.
-                                       (cons '(--- "---") (cdr x))))
-                                   &&hdr-outline-mode-menu-bar-map))))))
+                           (map (lambda (x)
+                                  (if (consp x)
+                                    ;; Add a separator between each
+                                    ;; part of the unified menu.
+                                    (cons '(--- "---") (cdr x))))
+                                &&hdr-outline-mode-menu-bar-map))))))
     map))
 
 

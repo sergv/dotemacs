@@ -40,18 +40,18 @@
 
 (defvar auto-insert-fields
   (list
-   (list "filename" #'(lambda ()
-                        (file-name-nondirectory
-                         (buffer-file-name))))
-   (list "filename no ext" #'(lambda ()
-                               (file-name-sans-extension
-                                (file-name-nondirectory
-                                 (buffer-file-name)))))
-   (list "filename no ext uppercase" #'(lambda ()
-                                         (upcase
-                                          (file-name-sans-extension
-                                           (file-name-nondirectory
-                                            (buffer-file-name))))))
+   (list "filename" (lambda ()
+                      (file-name-nondirectory
+                       (buffer-file-name))))
+   (list "filename no ext" (lambda ()
+                             (file-name-sans-extension
+                              (file-name-nondirectory
+                               (buffer-file-name)))))
+   (list "filename no ext uppercase" (lambda ()
+                                       (upcase
+                                        (file-name-sans-extension
+                                         (file-name-nondirectory
+                                          (buffer-file-name))))))
    (list "date"      (apply-partially #'format-time-string
                                       "%A, %e %B %Y"))
    (list "date year" (apply-partially #'format-time-string
@@ -63,10 +63,9 @@
            (save-match-data
             (let ((name (buffer-file-name)))
               (if (string-match "^.*/src\\(?:/clojure\\)?/\\(.*\\)\\.clj$" name)
-                (mapconcat #'identity
-                           (split-string (match-string-no-properties 1 name)
-                                         "/")
-                           ".")
+                (join-lines (split-string (match-string-no-properties 1 name)
+                                          "/")
+                            ".")
                 "")))))
    (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.
@@ -84,12 +83,12 @@ template files, data description may be found in
     (with-disabled-undo
      (with-preserved-buffer-modified-p
       (with-inhibited-modification-hooks
-       (mapc #'(lambda (x)
-                 (goto-char (point-min))
-                 (let ((pattern (concat "\\${" (first x) "}"))
-                       (new-data (funcall (second x))))
-                   (while (re-search-forward pattern nil t)
-                     (replace-match new-data t t))))
+       (mapc (lambda (x)
+               (goto-char (point-min))
+               (let ((pattern (concat "\\${" (first x) "}"))
+                     (new-data (funcall (second x))))
+                 (while (re-search-forward pattern nil t)
+                   (replace-match new-data t t))))
              auto-insert-fields)))))))
 
 

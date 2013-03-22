@@ -59,16 +59,16 @@
   `(setq vim:emulation-mode-alist
          (list
           ,@(cons '(cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap)
-                  (mapcan #'(lambda (keym)
-                              (let ((localname
-                                      (string->symbol
-                                       (replace-regexp-in-string
-                                        "mode-keymap" "mode-local-keymap"
-                                        (symbol->string keym)))))
-                                (if (eq localname keym)
-                                  (list `(cons ',vim-mode-name ,keym))
-                                  (list `(cons ',vim-mode-name ,localname)
-                                        `(cons ',vim-mode-name ,keym)))))
+                  (mapcan (lambda (keym)
+                            (let ((localname
+                                    (string->symbol
+                                     (replace-regexp-in-string
+                                      "mode-keymap" "mode-local-keymap"
+                                      (symbol->string keym)))))
+                              (if (eq localname keym)
+                                (list `(cons ',vim-mode-name ,keym))
+                                (list `(cons ',vim-mode-name ,localname)
+                                      `(cons ',vim-mode-name ,keym)))))
                           keymaps)))))
 
 

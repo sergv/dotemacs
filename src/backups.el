@@ -12,7 +12,7 @@
 ;; backup on emacs exit
 
 (eval-when-compile
- (require 'cl))
+  (require 'cl))
 ;; (require 'cl)
 (require 'custom)
 (require 'common)
@@ -108,11 +108,11 @@ by `b/backup-interval'."
 (defun backup-all-buffers ()
   "Make backup of files in all buffers that have files :)."
   (mapc #'make-backup
-        (remove-if-not #'(lambda (buf)
-                           (and (buffer-file-name buf)
-                                (buffer-local-value
-                                 'b/has-unbackupped-changes
-                                 buf)))
+        (remove-if-not (lambda (buf)
+                         (and (buffer-file-name buf)
+                              (buffer-local-value
+                               'b/has-unbackupped-changes
+                               buf)))
                        (buffer-list))))
 
 

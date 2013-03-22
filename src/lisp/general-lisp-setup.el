@@ -631,8 +631,7 @@ This command assumes point is not in a string or comment."
                                             (doc nil)
                                             (print-begin "(format t ")
                                             (make-variable-list
-                                             (lambda (list)
-                                               (mapconcat #'identity list "\n")))
+                                             #'join-lines)
                                             (use-upcase t)
                                             (format-print-value "~a")
                                             (format-string-start "\"")

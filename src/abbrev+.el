@@ -11,8 +11,8 @@
 (eval-when-compile '(require 'cl))
 
 (defvar-local abbrev+-abbreviations
-    (list
-     (list "^pwd" #'(lambda () (expand-file-name default-directory))))
+  (list
+   (list "^pwd" (lambda () (expand-file-name default-directory))))
   "Alist of list triples (REGEX ACTION [PREDICATE]), PREDICATE being
 optional.
 
@@ -32,7 +32,7 @@ Functions could make use of variable `abbrev+-text-to-substitute' that
 will have the value of text matched by the regular expression.")
 
 (defvar-local abbrev+-skip-syntax
-    '("w" "w_" "w_." "^->")
+  '("w" "w_" "w_." "^->")
   "List of syntaxes that will be tried one after the other
 to find match for car-element in `abbrev+-abbreviations'")
 
@@ -50,10 +50,10 @@ met then this hook would not run.")
   "Return substitution for STR obtained by matching STR against
 car's of `abbrev+-abbreviations' and returning corresponding element in cdr."
   (save-match-data
-   (let ((res (find-if #'(lambda (re)
-                           (and (string-match re str)
-                                (= (match-beginning 0) 0)
-                                (= (match-end 0) (length str))))
+   (let ((res (find-if (lambda (re)
+                         (and (string-match re str)
+                              (= (match-beginning 0) 0)
+                              (= (match-end 0) (length str))))
                        abbrev+-abbreviations
                        :key #'first)))
      res)))

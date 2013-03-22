@@ -73,20 +73,20 @@
     (when (file-exists? eproj-info-file)
       (with-temp-buffer
         (insert-file-contents-literally eproj-info-file)
-        (mapcar (lambda (path)
-                  (assert (string? path) nil
-                          "invalid entry under related clause, string expected %s"
-                          path)
-                  (cond ((file-directory? path)
-                         path)
-                        ((file-directory? (expand-file-name path root))
-                         (expand-file-name path root))
-                        (else
-                         (error "invalid related-project entry: not existing absolute nor relative directory: %s"
-                                path))))
-                (cdr-safe
-                 (assoc 'related
-                        (read (buffer-substring-no-properties (point-min) (point-max))))))))))
+        (map (lambda (path)
+               (assert (string? path) nil
+                       "invalid entry under related clause, string expected %s"
+                       path)
+               (cond ((file-directory? path)
+                      path)
+                     ((file-directory? (expand-file-name path root))
+                      (expand-file-name path root))
+                     (else
+                      (error "invalid related-project entry: not existing absolute nor relative directory: %s"
+                             path))))
+             (cdr-safe
+              (assoc 'related
+                     (read (buffer-substring-no-properties (point-min) (point-max))))))))))
 
 (defun eproj-construct-aux-files (root)
   (let ((eproj-info-file (concat (strip-trailing-slash root)
@@ -122,14 +122,14 @@
                                            nil
                                            "Invalid patterns under aux-files/tree clause: %s"
                                            patterns)
-                                   (mapcar (lambda (path)
-                                             (file-relative-name path project-root))
-                                           (find-rec tree-root
-                                                     :filep
-                                                     (lambda (path)
-                                                       (any? (lambda (regexp)
-                                                               (string-match-pure? regexp path))
-                                                             patterns))))))
+                                   (map (lambda (path)
+                                          (file-relative-name path project-root))
+                                        (find-rec tree-root
+                                                  :filep
+                                                  (lambda (path)
+                                                    (any? (lambda (regexp)
+                                                            (string-match-pure? regexp path))
+                                                          patterns))))))
                                 (else
                                  nil)))
                         entry)))))))))

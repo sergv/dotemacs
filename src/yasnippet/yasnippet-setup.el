@@ -67,9 +67,9 @@ simlifying encoding of several keys for one snippet."
                (setq binding value))))))
       (setq template
             (buffer-substring-no-properties (point-min) (point-max))))
-    (mapcar (lambda (key)
-              (list key template name condition group expand-env file binding))
-            keys)))
+    (map (lambda (key)
+           (list key template name condition group expand-env file binding))
+         keys)))
 
 ;; this causes yasnippet to consider only *.snip files
 (redefun yas/subdirs (directory &optional file?)

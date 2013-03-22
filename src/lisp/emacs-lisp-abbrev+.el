@@ -23,10 +23,10 @@
   :format-string-end "\""
 
   :make-variable-list (lambda (list)
-                        (mapconcat (lambda (var-name)
-                                     (concat "(pp-to-string " var-name ")"))
-                                   list
-                                   "\n")))
+                        (join-lines
+                         (map (lambda (var-name)
+                                (concat "(pp-to-string " var-name ")"))
+                              list))))
 
 
 (defun emacs-lisp-abbrev+-setup ()

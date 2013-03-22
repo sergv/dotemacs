@@ -18,31 +18,30 @@
 
 ;; put it at top of file since it sometimes needs refinement
 (defun make-ghc-command (filename optimize)
-  (mapconcat #'identity
-             (append
-              (list "ghc"
-                    "-W"
-                    "-Wall"
-                    "-fwarn-monomorphism-restriction"
-                    "-fno-warn-unused-do-bind"
-                    "-fno-warn-type-defaults"
-                    "-fno-warn-name-shadowing"
-                    "-fno-warn-wrong-do-bind"
-                    "--make"
-                    "-main-is"
-                    (file-name-sans-extension filename)
-                    filename
-                    "-rtsopts"
-                    ;; "-fforce-recomp"
-                    )
-              (when optimize
-                (append
-                 '("-O2")
-                 (when (y-or-n-p "Use LLVM? ")
-                   '("-fllvm"
-                     "-optlc-O3"
-                     "-optlo-O3")))))
-             " "))
+  (join-lines (append
+               (list "ghc"
+                     "-W"
+                     "-Wall"
+                     "-fwarn-monomorphism-restriction"
+                     "-fno-warn-unused-do-bind"
+                     "-fno-warn-type-defaults"
+                     "-fno-warn-name-shadowing"
+                     "-fno-warn-wrong-do-bind"
+                     "--make"
+                     "-main-is"
+                     (file-name-sans-extension filename)
+                     filename
+                     "-rtsopts"
+                     ;; "-fforce-recomp"
+                     )
+               (when optimize
+                 (append
+                  '("-O2")
+                  (when (y-or-n-p "Use LLVM? ")
+                    '("-fllvm"
+                      "-optlc-O3"
+                      "-optlo-O3")))))
+              " "))
 
 
 ;; outline stuff

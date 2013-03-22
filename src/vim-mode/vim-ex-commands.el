@@ -69,7 +69,7 @@
   "Shows the buffer-list."
   (let (message-truncate-lines message-log-max)
     (message "%s"
-             (mapconcat #'buffer-name (buffer-list) "\n"))))
+             (join-lines (map #'buffer-name (buffer-list))))))
 
 (vim:defcmd vim:cmd-buffer ((argument:buffer buffer) nonrepeatable)
   "Switches to another buffer."
@@ -144,7 +144,7 @@
 (defun vim:ex-complete-mode-argument (mode predicate flag)
   "Completes a registered vim-mode submode."
   (when mode
-    (let ((modes (mapcar #'cdr vim:mode-alist)))
+    (let ((modes (map #'cdr vim:mode-alist)))
       (with-current-buffer vim:ex-current-buffer
         (pcase flag
           (`nil    (try-completion mode modes predicate))

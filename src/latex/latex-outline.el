@@ -107,18 +107,18 @@ List will be in order of appearance of environments in region."
                   entry
                   table)))
 
-     (maphash #'(lambda (env-name v)
-                  ;; (unless (or (string= env-name "document")
-                  ;;             (>= (cdr v) 0))
-                  ;;   (error "have negative count of ends: %s on %s" v env-name))
-                  (when (> (cdr v) 0)
-                    (dotimes (i (cdr v))
-                      (push (cons env-name (car v)) result))))
+     (maphash (lambda (env-name v)
+                ;; (unless (or (string= env-name "document")
+                ;;             (>= (cdr v) 0))
+                ;;   (error "have negative count of ends: %s on %s" v env-name))
+                (when (> (cdr v) 0)
+                  (dotimes (i (cdr v))
+                    (push (cons env-name (car v)) result))))
               table)
-     (mapcar #'car
-             (sort result
-                   #'(lambda (a b)
-                       (< (cdr a) (cdr b))))))))
+     (map #'car
+          (sort result
+                (lambda (a b)
+                  (< (cdr a) (cdr b))))))))
 
 
 (defun latex-type-of-section-at-point ()
@@ -203,14 +203,14 @@ for use in utility functions."
   "Hide all sections in latex file."
   (interactive)
   (latex:save-ex-save-re
-   (let ((type-re (reduce #'(lambda (re x)
-                              (if re
-                                re
-                                (when x
-                                  (goto-char (marker-position
-                                              latex:document-start))
-                                  (when (re-search-forward x nil t)
-                                    x))))
+   (let ((type-re (reduce (lambda (re x)
+                            (if re
+                              re
+                              (when x
+                                (goto-char (marker-position
+                                            latex:document-start))
+                                (when (re-search-forward x nil t)
+                                  x))))
                           (list latex-part-regexp
                                 latex-chapter-regexp
                                 latex-section-regexp

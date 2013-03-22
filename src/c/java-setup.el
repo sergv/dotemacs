@@ -18,23 +18,22 @@
     (write-region (point-min) (point-max) file)
     (erase-buffer)
     (shell-command
-     (mapconcat #'identity
-                (list "astyle"
-                      "--style=java"
-                      "--indent=spaces=4"
-                      "--brackets=attach"
-                      "--pad-oper"
-                      "--pad-header"
-                      "--unpad-paren"
-                      "--keep-one-line-statements"
-                      "--keep-one-line-blocks"
-                      "--convert-tabs"
-                      "--align-pointer=name"
-                      "--mode=java"
-                      "--suffix=none"
-                      "--lineend=linux"
-                      (format "<%s" file))
-                " ")
+     (join-lines (list "astyle"
+                       "--style=java"
+                       "--indent=spaces=4"
+                       "--brackets=attach"
+                       "--pad-oper"
+                       "--pad-header"
+                       "--unpad-paren"
+                       "--keep-one-line-statements"
+                       "--keep-one-line-blocks"
+                       "--convert-tabs"
+                       "--align-pointer=name"
+                       "--mode=java"
+                       "--suffix=none"
+                       "--lineend=linux"
+                       (format "<%s" file))
+                 " ")
      (current-buffer))))
 
 (push (cons 'java-mode #'java-indent-buffer) *mode-buffer-indent-function-alist*)

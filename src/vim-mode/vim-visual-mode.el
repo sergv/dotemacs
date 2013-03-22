@@ -15,6 +15,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 'common)
 (require 'vim-macs)
 (require 'vim-modes)
 (require 'vim-normal-mode)
@@ -195,9 +196,9 @@
                                                 transient-mark-mode)
         vim:visual-old-global-variables
         ;; Remember which system variables weren't buffer local
-        (remq nil (mapcar #'(lambda (variable)
-                       (and (local-variable-p variable) variable))
-                   vim:visual-temporary-local-variables)))
+        (remq nil (map (lambda (variable)
+                         (and (local-variable-p variable) variable))
+                       vim:visual-temporary-local-variables)))
 
   ;; The make them all buffer local, too.
   (mapc #'make-local-variable vim:visual-temporary-local-variables)
@@ -335,12 +336,11 @@ This function is also responsible for setting the X-selection."
     ((= 1 (length vim:visual-overlays))
      (vim:x-set-selection nil (car vim:visual-overlays)))
     ((< 1 (length vim:visual-overlays))
-     (let ((text (apply #'concat
-                        (mapcar #'(lambda (ov)
-                                    (concat (buffer-substring-no-properties (overlay-start ov)
-                                                                            (overlay-end ov))
-                                            "\n"))
-                                vim:visual-overlays))))
+     (let ((text (join-lines
+                  (map (lambda (ov)
+                         (buffer-substring-no-properties (overlay-start ov)
+                                                         (overlay-end ov)))
+                       vim:visual-overlays))))
        (vim:x-set-selection nil text)))))
 
 
@@ -476,7 +476,7 @@ This function is also responsible for setting the X-selection."
 
 (defun vim:visual-delete-overlays (overlays)
   "Deletes all overlays in `overlays'."
-  (mapcar #'delete-overlay overlays))
+  (map #'delete-overlay overlays))
 
 (defun vim:visual-current-motion ()
   "Returns a motion representing the current region."
@@ -653,15 +653,15 @@ current line."
     ((or `normal `linewise)
      (vim:visual-exchange-point-and-mark))
     (`block
-     (let ((mark-col (save-excursion
-                      (goto-char (mark t))
-                      (current-column)))
-           (point-col (current-column)))
-       (set-mark (save-excursion
-                  (goto-char (mark t))
-                  (move-to-column point-col t)
-                  (point)))
-       (move-to-column mark-col t)))
+        (let ((mark-col (save-excursion
+                         (goto-char (mark t))
+                         (current-column)))
+              (point-col (current-column)))
+          (set-mark (save-excursion
+                     (goto-char (mark t))
+                     (move-to-column point-col t)
+                     (point)))
+          (move-to-column mark-col t)))
     (_ (error "Not in visual mode"))))
 
 
@@ -806,7 +806,7 @@ current line."
        (`linewise
         (error "linewise mode is not supported yet"))
        (`block
-        (error "block mode is not supported yet"))))))
+           (error "block mode is not supported yet"))))))
 
 
 

@@ -126,15 +126,15 @@
                            (ctags-tag-line entry)))))
              (entries
                (sort (reduce #'append
-                             (mapcar (lambda (root)
-                                       (aif (assq major-mode
-                                                  (eproj-project-names
-                                                   (eproj-get-project root)))
-                                         (gethash sym (cdr it) nil)
-                                         nil))
-                                     (cons (eproj-project-root proj)
-                                           (eproj-get-all-related-projects
-                                            (eproj-project-root proj)))))
+                             (map (lambda (root)
+                                    (aif (assq major-mode
+                                               (eproj-project-names
+                                                (eproj-get-project root)))
+                                      (gethash sym (cdr it) nil)
+                                      nil))
+                                  (cons (eproj-project-root proj)
+                                        (eproj-get-all-related-projects
+                                         (eproj-project-root proj)))))
                      (lambda (a b)
                        (string< (funcall entry->string a)
                                 (funcall entry->string b))))))
