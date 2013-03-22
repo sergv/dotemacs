@@ -163,18 +163,18 @@
   (vim:set-mark ?. beg))
 
 (add-hook 'vim-mode-on-hook
-          #'(lambda ()
-              (add-hook 'before-change-functions 'vim:set-change-mark)
-              ;; NOTE: I don't use jumps at all
-              ;; (add-hook 'find-file-hook #'vim:add-file-jump)
-              ))
+          (lambda ()
+            (add-hook 'before-change-functions 'vim:set-change-mark)
+            ;; NOTE: I don't use jumps at all
+            ;; (add-hook 'find-file-hook #'vim:add-file-jump)
+            ))
 
 (add-hook 'vim-mode-off-hook
-          #'(lambda ()
-              (remove-hook 'before-change-functions 'vim:set-change-mark)
-              ;; NOTE: I don't use jumps at all
-              ;; (remove-hook 'find-file-hook #'vim:add-file-jump)
-              ))
+          (lambda ()
+            (remove-hook 'before-change-functions 'vim:set-change-mark)
+            ;; NOTE: I don't use jumps at all
+            ;; (remove-hook 'find-file-hook #'vim:add-file-jump)
+            ))
 
 (defcustom vim:max-jumplist 100
   "Maximal number of jumps in the jumplist."
@@ -454,8 +454,8 @@ newline character of the last line."
          (forward-line dir))
        (pcase direction
          (`fwd (end-of-line)
-          (when (and (not (bolp)) (looking-at "\n"))
-            (backward-char)))
+               (when (and (not (bolp)) (looking-at "\n"))
+                 (backward-char)))
          (`bwd (forward-line 0)))
        (point)))))
 
@@ -478,7 +478,7 @@ newline character of the last line."
 
 (defun vim:boundary-wl (direction)
   "A boundary selector for whitespaces."
-  (vim:boundary-lines direction #'(lambda () (and (bolp) (eolp)))))
+  (vim:boundary-lines direction (lambda () (and (bolp) (eolp)))))
 
 
 (defun vim:boundary-wsnl (direction)
@@ -510,24 +510,24 @@ counted."
 
 (defun vim:boundary-word (direction)
   "A boundary selector for words."
-  (funcall (vim:union-boundary #'(lambda (dir) (vim:boundary-chars dir vim:word))
-                               #'(lambda (dir) (vim:boundary-chars dir (concat "^ \t\r\n" vim:word)))
-                               #'(lambda (dir) (vim:boundary-empty-line dir)))
+  (funcall (vim:union-boundary (lambda (dir) (vim:boundary-chars dir vim:word))
+                               (lambda (dir) (vim:boundary-chars dir (concat "^ \t\r\n" vim:word)))
+                               (lambda (dir) (vim:boundary-empty-line dir)))
            direction))
 
 (defun vim:boundary-WORD (direction)
   "A boundary selector for WORDs."
-  (funcall (vim:union-boundary #'(lambda (dir) (vim:boundary-chars dir "^ \t\r\n"))
-                               #'(lambda (dir) (vim:boundary-empty-line dir)))
+  (funcall (vim:union-boundary (lambda (dir) (vim:boundary-chars dir "^ \t\r\n"))
+                               (lambda (dir) (vim:boundary-empty-line dir)))
            direction))
 
 (defun vim:boundary-symbol (direction)
   "A boundary selector for words."
-  (funcall (vim:union-boundary #'(lambda (dir) (vim:boundary-syntax dir
-                                                                    "w_"))
-                               ;; #'(lambda (dir) (vim:boundary-syntax dir
+  (funcall (vim:union-boundary (lambda (dir) (vim:boundary-syntax dir
+                                                                  "w_"))
+                               ;; (lambda (dir) (vim:boundary-syntax dir
                                ;;                                 "^w_"))
-                               #'(lambda (dir) (vim:boundary-empty-line dir)))
+                               (lambda (dir) (vim:boundary-empty-line dir)))
            direction))
 
 (defun vim:boundary-sentence (direction)
@@ -553,24 +553,24 @@ counted."
 (defun vim:boundary-paragraph (direction)
   "A boundary selector for paragraphs.
 A paragraph is a non-empty sequence of non-empty lines."
-  (vim:boundary-lines direction #'(lambda () (not (and (bolp) (eolp))))))
+  (vim:boundary-lines direction (lambda () (not (and (bolp) (eolp))))))
 
 
 (defun vim:union-boundary (&rest boundaries)
   "A boundary selector returning the nearest bound out of a set
 of bounds."
   (let ((boundaries-loc boundaries))
-    #'(lambda (direction)
-        (let ((positions
-                (mapcan #'(lambda (bnd)
-                            (let ((pos (funcall bnd direction)))
-                              (when pos (list pos))))
-                        boundaries-loc)))
-          (when positions
-            (apply (pcase direction
-                     (`fwd #'min)
-                     (`bwd #'max))
-                   positions))))))
+    (lambda (direction)
+      (let ((positions
+              (mapcan (lambda (bnd)
+                        (let ((pos (funcall bnd direction)))
+                          (when pos (list pos))))
+                      boundaries-loc)))
+        (when positions
+          (apply (pcase direction
+                   (`fwd #'min)
+                   (`bwd #'max))
+                 positions))))))
 
 
 (defun vim:union-selector (&rest boundaries)
@@ -579,7 +579,7 @@ previous) object described by one of the given `boundaries'."
   (let ((boundaries-loc boundaries))
     (let ((find-best (lambda (get-object first-better)
                        (let (obj1)
-                         (dolist (obj2 (mapcar get-object boundaries-loc))
+                         (dolist (obj2 (map get-object boundaries-loc))
                            (multiple-value-bind (b1 e1) obj1
                              (multiple-value-bind (b2 e2) obj2
                                (setq obj1
@@ -589,29 +589,29 @@ previous) object described by one of the given `boundaries'."
                                        ((funcall first-better b1 e1 b2 e2) obj1)
                                        (t obj2))))))
                          obj1))))
-      #'(lambda (direction)
-          (pcase direction
-            (`fwd (funcall find-best
-                           #'(lambda (bnd)
-                               (let ((end (funcall bnd 'fwd)))
-                                 (when end
-                                   (let ((beg (save-excursion
-                                               (goto-char end)
-                                               (funcall bnd 'bwd))))
-                                     (values beg end)))))
-                           #'(lambda (b1 e1 b2 e2)
-                               (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
+      (lambda (direction)
+        (pcase direction
+          (`fwd (funcall find-best
+                         (lambda (bnd)
+                           (let ((end (funcall bnd 'fwd)))
+                             (when end
+                               (let ((beg (save-excursion
+                                           (goto-char end)
+                                           (funcall bnd 'bwd))))
+                                 (values beg end)))))
+                         (lambda (b1 e1 b2 e2)
+                           (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
 
-            (`bwd (funcall find-best
-                           #'(lambda (bnd)
-                               (let ((beg (funcall bnd 'bwd)))
-                                 (when beg
-                                   (let ((end (save-excursion
-                                               (goto-char beg)
-                                               (funcall bnd 'fwd))))
-                                     (values beg end)))))
-                           #'(lambda (b1 e1 b2 e2)
-                               (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
+          (`bwd (funcall find-best
+                         (lambda (bnd)
+                           (let ((beg (funcall bnd 'bwd)))
+                             (when beg
+                               (let ((end (save-excursion
+                                           (goto-char beg)
+                                           (funcall bnd 'fwd))))
+                                 (values beg end)))))
+                         (lambda (b1 e1 b2 e2)
+                           (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
 
 
 (defun vim:move-fwd-beg (n boundary &optional linewise)
@@ -903,7 +903,7 @@ text-object before or at point."
              (cnt n)
              found-stack)
          ;; set default match-test
-         (unless match-test (setq match-test #'(lambda (a b) t)))
+         (unless match-test (setq match-test (lambda (a b) t)))
          ;; search the opening object
          (funcall find-at-point open-re open-pos nil)
          (while (> cnt 0)

@@ -1102,8 +1102,8 @@ before the command gets run.")
         (car suggestions))
   (setq pabbrev-suggestions-done-suggestions
         (pabbrev-suggestions-sort suggestions))
-  (let* ((suggestion-list (mapcar #'car
-                                  pabbrev-suggestions-done-suggestions))
+  (let* ((suggestion-list (map #'car
+                               pabbrev-suggestions-done-suggestions))
          choosed-suggestion)
     (setq choosed-suggestion (popup-menu* suggestion-list
                                           :point (point)
@@ -1633,7 +1633,7 @@ This looks very ugly.  Note that this only shows newly added words.  Use
   "Kill all visible overlays from the current buffer. "
   (interactive)
   (pabbrev-debug-remove-properties)
-  (mapcar
+  (map
    (lambda(overlay)
      (if
          (eq 'pabbrev-debug-display-label-face
@@ -1723,7 +1723,7 @@ to the dictionary."
 (defun pabbrev-debug-clear-all-hashes()
   "Clear all hashes for all modes."
   (interactive)
-  (mapcar 'pabbrev-debug-clear-hashes pabbrev-prefix-hash-modes))
+  (map 'pabbrev-debug-clear-hashes pabbrev-prefix-hash-modes))
 
 (defun pabbrev-debug-print-hashes()
   "Print the hashes for the current mode."
@@ -1776,32 +1776,32 @@ to the dictionary."
 ;; Working.el hack. Use working.el if it's around, or don't if it's
 ;; not.
 (eval-when-compile
- (condition-case nil
-     (require 'working)
-   (error
-    (progn
-      (defmacro working-status-forms (message donestr &rest forms)
-        "Contain a block of code during which a working status is shown."
-        (list 'let (list (list 'msg message) (list 'dstr donestr)
-                         '(ref1 0))
-              (cons 'progn forms)))
+  (condition-case nil
+      (require 'working)
+    (error
+     (progn
+       (defmacro working-status-forms (message donestr &rest forms)
+         "Contain a block of code during which a working status is shown."
+         (list 'let (list (list 'msg message) (list 'dstr donestr)
+                          '(ref1 0))
+               (cons 'progn forms)))
 
-      (defun working-status (&optional percent &rest args)
-        "Called within the macro `working-status-forms', show the status."
-        (message "%s%s" (apply 'format msg args)
-                 (if (eq percent t) (concat "... " dstr)
-                   (format "... %3d%%"
-                           (or percent
-                               (floor (* 100.0 (/ (float (point))
-                                                  (point-max)))))))))
+       (defun working-status (&optional percent &rest args)
+         "Called within the macro `working-status-forms', show the status."
+         (message "%s%s" (apply 'format msg args)
+                  (if (eq percent t) (concat "... " dstr)
+                    (format "... %3d%%"
+                            (or percent
+                                (floor (* 100.0 (/ (float (point))
+                                                   (point-max)))))))))
 
-      (defun working-dynamic-status (&optional number &rest args)
-        "Called within the macro `working-status-forms', show the status."
-        (message "%s%s" (apply 'format msg args)
-                 (format "... %c" (aref [ ?- ?/ ?| ?\\ ] (% ref1 4))))
-        (setq ref1 (1+ ref1)))
+       (defun working-dynamic-status (&optional number &rest args)
+         "Called within the macro `working-status-forms', show the status."
+         (message "%s%s" (apply 'format msg args)
+                  (format "... %c" (aref [ ?- ?/ ?| ?\\ ] (% ref1 4))))
+         (setq ref1 (1+ ref1)))
 
-      (put 'working-status-forms 'lisp-indent-function 2)))))
+       (put 'working-status-forms 'lisp-indent-function 2)))))
 
 
 

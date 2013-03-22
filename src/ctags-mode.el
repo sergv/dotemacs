@@ -164,21 +164,21 @@
              (let ((fields
                      (delq
                       nil
-                      (mapcar (lambda (entry)
-                                (if (string-match? (concat "^\\("
-                                                           +ctags-aux-fields-re+
-                                                           "\\):\\(.*\\)$")
-                                                   entry)
-                                  (when (< 0 (length (match-string-no-properties 2 entry)))
-                                    (cons (string->symbol
-                                           (match-string-no-properties 1 entry))
-                                          (match-string-no-properties 2 entry)))
-                                  (error "invalid entry: %s" entry)))
-                              (split-string (buffer-substring-no-properties
-                                             (point)
-                                             (line-end-position))
-                                            "\t"
-                                            t)))))
+                      (map (lambda (entry)
+                             (if (string-match? (concat "^\\("
+                                                        +ctags-aux-fields-re+
+                                                        "\\):\\(.*\\)$")
+                                                entry)
+                               (when (< 0 (length (match-string-no-properties 2 entry)))
+                                 (cons (string->symbol
+                                        (match-string-no-properties 1 entry))
+                                       (match-string-no-properties 2 entry)))
+                               (error "invalid entry: %s" entry)))
+                           (split-string (buffer-substring-no-properties
+                                          (point)
+                                          (line-end-position))
+                                         "\t"
+                                         t)))))
                (unless (ctags-file->id file)
                  (let ((file-idx (+ (ctags/latest-defined-index *ctags-file-sequence*)
                                     1)))
@@ -229,10 +229,10 @@
 (defun eproj-load-ctags-project (buffer)
   "Reload project and all it's related projects current buffer's file is part of."
   (let* ((proj (eproj-get-project-for-buf buffer)))
-    (mapcar (lambda (root)
-              (eproj-load-single-ctags-project root))
-            (cons (eproj-project-root proj)
-                  (eproj-get-all-related-projects (eproj-project-root proj))))))
+    (map (lambda (root)
+           (eproj-load-single-ctags-project root))
+         (cons (eproj-project-root proj)
+               (eproj-get-all-related-projects (eproj-project-root proj))))))
 
 (defun eproj-reload-projects ()
   (interactive)

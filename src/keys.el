@@ -221,8 +221,8 @@
                         (t
                          (let ((p (funcall choices (cdr list))))
                            (append p
-                                   (mapcar (lambda (x) (cons (car list) x))
-                                           p))))))))
+                                   (map (lambda (x) (cons (car list) x))
+                                        p))))))))
     (let ((modifiers (remove nil
                              (funcall choices '(control meta super hyper)))))
       (mapcar*

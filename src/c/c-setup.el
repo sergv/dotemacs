@@ -19,23 +19,22 @@
     (write-region (point-min) (point-max) file)
     (erase-buffer)
     (shell-command
-     (mapconcat #'identity
-                (list "astyle"
-                      "--style=linux"
-                      "--indent=spaces=8"
-                      "--brackets=linux"
-                      "--pad-oper"
-                      "--pad-header"
-                      "--unpad-paren"
-                      "--keep-one-line-statements"
-                      "--keep-one-line-blocks"
-                      "--convert-tabs"
-                      "--align-pointer=name"
-                      "--mode=c"
-                      "--suffix=none"
-                      "--lineend=linux"
-                      (format "<%s" file))
-                " ")
+     (join-lines (list "astyle"
+                       "--style=linux"
+                       "--indent=spaces=8"
+                       "--brackets=linux"
+                       "--pad-oper"
+                       "--pad-header"
+                       "--unpad-paren"
+                       "--keep-one-line-statements"
+                       "--keep-one-line-blocks"
+                       "--convert-tabs"
+                       "--align-pointer=name"
+                       "--mode=c"
+                       "--suffix=none"
+                       "--lineend=linux"
+                       (format "<%s" file))
+                 " ")
      (current-buffer))))
 
 (push (cons 'c-mode #'c-indent-buffer) *mode-buffer-indent-function-alist*)
@@ -51,16 +50,15 @@
                (let* ((fname  (file-name-nondirectory buffer-file-name))
                       (target (file-name-sans-extension fname)))
                  (setq compile-command
-                       (mapconcat #'identity
-                                  (list "gcc"
-                                        "-W"
-                                        "-Wall"
-                                        "-O2"
-                                        "-I."
-                                        "-o"
-                                        target
-                                        fname)
-                                  " ")))))
+                       (join-lines (list "gcc"
+                                         "-W"
+                                         "-Wall"
+                                         "-O2"
+                                         "-I."
+                                         "-o"
+                                         target
+                                         fname)
+                                   " ")))))
 
   (if-has-makefile-command
    (setq-local compile-command

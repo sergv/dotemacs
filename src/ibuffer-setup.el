@@ -50,15 +50,15 @@ git repository root"
      (if *have-git?*
        (let ((roots (ibuffer-remove-duplicates
                      (delq nil
-                           (mapcar (lambda (buf)
-                                     (with-current-buffer buf
-                                       (git-update-file-repository)
-                                       git-repository))
-                                   (buffer-list))))))
-         (mapcar (lambda (repo-root)
-                   (cons (format "git:%s" repo-root)
-                         `((git-repository-root . ,repo-root))))
-                 roots))
+                           (map (lambda (buf)
+                                  (with-current-buffer buf
+                                    (git-update-file-repository)
+                                    git-repository))
+                                (buffer-list))))))
+         (map (lambda (repo-root)
+                (cons (format "git:%s" repo-root)
+                      `((git-repository-root . ,repo-root))))
+              roots))
        (error "No git installed on the system")))
 
    ;; make it handle ibuffer-aux-fliter-groups and use case-insensetive completion

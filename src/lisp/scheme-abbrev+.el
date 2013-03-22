@@ -22,8 +22,7 @@
   :format-string-start "\""
   :format-string-end "\\n\""
 
-  :make-variable-list (lambda (list)
-                        (mapconcat #'identity list "\n"))
+  :make-variable-list #'join-lines
 
   ;; Scheme differs from CL and Elisp in function definitions - function name is
   ;; enclosed in parens when using define

@@ -63,9 +63,9 @@ SHORT onto the string FULL, using CHAR= as a equality function for
 letters.  Returns two values:  The first being the completion
 chunks of the highest scorer, and the second being the score."
   (let* ((scored-results
-          (mapcar #'(lambda (result)
-                      (cons (swfy-score-completion result short full) result))
-                  (swfy-compute-most-completions short full)))
+           (map (lambda (result)
+                  (cons (swfy-score-completion result short full) result))
+                (swfy-compute-most-completions short full)))
          (winner (first (sort* scored-results #'> :key #'caar))))
     (values (rest winner) (caar winner))))
 
@@ -111,7 +111,7 @@ onto the special variable *ALL-CHUNKS* and the function returns."
            "Returns the next letter from the abbreviation, or NIL
             if all have been used."
            (if (= short-index (length short))
-               nil
+             nil
              (aref short short-index)))
          (add-to-chunk (char pos)
            "Adds the CHAR at POS in FULL to the current chunk,
@@ -136,22 +136,22 @@ onto the special variable *ALL-CHUNKS* and the function returns."
       (let ((cur-char (aref full pos)))
         (if (and (short-cur)
                  (char= cur-char (short-cur)))
-            (progn
-              (when recurse-p
-                ;; Try other possibilities, limiting insanely deep
-                ;; recursion somewhat.
-                (swfy-recursively-compute-most-completions
-                 short full short-index (1+ pos)
-                 chunks current-chunk current-chunk-pos
-                 (not (> (length *all-chunks*)
-                         el-swank-fuzzy-recursion-soft-limit))))
-              (incf short-index)
-              (add-to-chunk cur-char pos))
+          (progn
+            (when recurse-p
+              ;; Try other possibilities, limiting insanely deep
+              ;; recursion somewhat.
+              (swfy-recursively-compute-most-completions
+               short full short-index (1+ pos)
+               chunks current-chunk current-chunk-pos
+               (not (> (length *all-chunks*)
+                       el-swank-fuzzy-recursion-soft-limit))))
+            (incf short-index)
+            (add-to-chunk cur-char pos))
           (collect-chunk))))
     (collect-chunk)
     ;; If we've exhausted the short characters we have a match.
     (if (short-cur)
-        nil
+      nil
       (let ((rev-chunks (reverse chunks)))
         (push rev-chunks *all-chunks*)
         rev-chunks))))
@@ -265,7 +265,7 @@ matches, all other things being equal."
                (loop for chunk-pos below (length (second chunk))
                      for pos from (first chunk)
                      summing (funcall score-char pos chunk-pos)))))
-    (let* ((chunk-scores (mapcar score-chunk completion))
+    (let* ((chunk-scores (map score-chunk completion))
            (length-score (/ 10.0 (1+ (- (length full) (length short))))))
       (values
        (+ (reduce #'+ chunk-scores) length-score)
@@ -275,7 +275,7 @@ matches, all other things being equal."
 ;;;; Entry point.
 (defun* el-swank-fuzzy-completions
     (string candidates
-            &key (timeout 1500) (filter #'(lambda (x) t)) (prefix-length 2))
+            &key (timeout 1500) (filter (lambda (x) t)) (prefix-length 2))
   "Returns a list of two values:
 
   An list of fuzzy completions for a symbol designator STRING.
@@ -315,9 +315,9 @@ match should be performed before the fuzzy match."
                                                      candidates
                                                      filter
                                                      prefix-length)
-    (values (mapcar #'swfy-fuzzy-matching.candidate
-                    (sort matchings
-                          #'swfy-fuzzy-matching-greater))
+    (values (map #'swfy-fuzzy-matching.candidate
+                 (sort matchings
+                       #'swfy-fuzzy-matching-greater))
             (<= remaining-time 0))))
 
 ;;; Alternative to el-swank-fuzzy-completions, return
@@ -326,7 +326,7 @@ match should be performed before the fuzzy match."
                                 candidates
                                 &key
                                 (timeout 1500)
-                                (filter #'(lambda (x) t))
+                                (filter (lambda (x) t))
                                 (prefix-length 1))
   (car
    (el-swank-fuzzy-completions string

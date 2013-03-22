@@ -382,12 +382,12 @@ has been pressed."
           (cond
             ((not force) predicate)
             ((not predicate)
-             #'(lambda (x)
-                 (vim:cmd-force-p (vim:ex-binding (car x)))))
+             (lambda (x)
+               (vim:cmd-force-p (vim:ex-binding (car x)))))
             (t
-             #'(lambda (x)
-                 (and (funcall predicate x)
-                      (vim:cmd-force-p (vim:ex-binding (car x))))))))
+             (lambda (x)
+               (and (funcall predicate x)
+                    (vim:cmd-force-p (vim:ex-binding (car x))))))))
          (result (vim:ex-complete-command cmd pred flag)))
 
         (pcase flag
@@ -404,7 +404,7 @@ has been pressed."
           ;; all-completions, append exclamation marks
           (`t
            (if force
-             (mapcar #'(lambda (x) (concat x "!")) result)
+             (map (lambda (x) (concat x "!")) result)
              (let (newresult)
                (dolist (r result)
                  (push r newresult)
@@ -425,7 +425,10 @@ has been pressed."
            ((null result) nil)
            ((eq t result) t)
            ((stringp result) (if flag result (concat range cmd spaces result)))
-           ((listp result) (if flag result (mapcar #'(lambda (x) (concat range cmd spaces x)) result)))
+           ((listp result) (if flag
+                             result
+                             (map (lambda (x) (concat range cmd spaces x))
+                                  result)))
            (t (error "Completion returned unexpected value"))))))))
 
 
@@ -480,7 +483,8 @@ has been pressed."
 (defun vim:ex-complete-buffer-argument (arg predicate flag)
   "Called to complete a buffer name argument."
   (when arg
-    (let ((buffers (mapcar #'(lambda (buffer) (cons (buffer-name buffer) nil)) (buffer-list t))))
+    (let ((buffers (map (lambda (buffer) (cons (buffer-name buffer) nil))
+                        (buffer-list t))))
       (cond
         ((null flag)
          (try-completion arg buffers predicate))
@@ -738,14 +742,14 @@ the offset and the new position."
 
             ;; TODO: (1- ...) may be wrong if the match is the empty string
             (`re-fwd (save-excursion
-                     (beginning-of-line 2)
-                     (and (re-search-forward (cdr base))
-                          (line-number-at-pos (1- (match-end 0))))))
+                      (beginning-of-line 2)
+                      (and (re-search-forward (cdr base))
+                           (line-number-at-pos (1- (match-end 0))))))
 
             (`re-bwd (save-excursion
-                     (beginning-of-line 0)
-                     (and (re-search-backward (cdr base))
-                          (line-number-at-pos (match-beginning 0)))))
+                      (beginning-of-line 0)
+                      (and (re-search-backward (cdr base))
+                           (line-number-at-pos (match-beginning 0)))))
 
             (`current-line        (line-number-at-pos (point)))
             (`first-line          (line-number-at-pos (point-min)))
@@ -765,7 +769,7 @@ the offset and the new position."
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
       (let ((result (completing-read-vanilla ">" ;;'vim:ex-complete
-                                             (mapcar #'car vim:ex-commands)
+                                             (map #'car vim:ex-commands)
                                              nil
                                              nil
                                              initial-input

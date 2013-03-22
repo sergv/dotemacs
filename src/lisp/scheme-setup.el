@@ -126,11 +126,9 @@
            (when (executable-find "racket")
              `(racket
                (command
-                ,(mapconcat
-                  'identity
-                  (list "racket"
-                        "--repl")
-                  " "))))))
+                ,(join-lines (list "racket"
+                                   "--repl")
+                             " "))))))
   "List of scheme implementation records providing name, command to run etc")
 
 
