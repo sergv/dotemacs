@@ -90,13 +90,17 @@
 
 ;; Names of standard commands are swapped so there's no error here
 
-(defun vim-mock:scroll-line-up ()
-  (interactive)
-  (scroll-down 1))
+(defun vim-mock:scroll-line-up (&optional count)
+  (interactive "p")
+  (scroll-down (or count 1))
+  (when vim-scroll-move-point
+    (vim-mock:motion-up (or count 1))))
 
-(defun vim-mock:scroll-line-down ()
-  (interactive)
-  (scroll-up 1))
+(defun vim-mock:scroll-line-down (&optional count)
+  (interactive "p")
+  (scroll-up (or count 1))
+  (when vim-scroll-move-point
+    (vim-mock:motion-down (or count 1))))
 
 ;; motions
 

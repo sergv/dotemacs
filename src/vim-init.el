@@ -13,6 +13,15 @@
 (require 'minimap-setup)
 (require 'common)
 
+;;;; configuration variables
+
+(defcustom vim-scroll-move-point t
+  "Controlls whether scrolling functions like `vim:scroll-line-up' should
+move point to next/previous line."
+  :type 'boolean)
+
+;;;; keybindings
+
 (defun vimrc-redefine-motions (keymap)
   (def-keys-for-map keymap
     ("g g" nil)
@@ -93,7 +102,7 @@
         ("`"       nil)
 
         ("g u"     Control-X-prefix)
-        ("g h"     help-command)
+        ("g h"     nil)
 
         ("g g"     nil)
         ("G"       vim:motion-mark)
