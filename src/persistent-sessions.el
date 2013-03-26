@@ -27,8 +27,6 @@
 (defun session-entry/major-mode (entry)
   (first-safe (rest-safe (rest-safe (rest-safe entry)))))
 
-(setq-default test nil)
-(symbol-value 'test)
 
 (defvar *sessions-buffer-variables* nil
   "List of buffer-local variables to save in session file.")
@@ -47,11 +45,54 @@
          *sessions-buffer-variables*)))
 
 (defun sessions/restore-buffer-variables (buffer bindings)
-  "Get buffer's local variables that should be saved."
+  "Restore variables captured in BINDINGS for buffer BUFFER."
   (with-current-buffer buffer
     (dolist (bind bindings)
       (destructuring-bind (variable value) bind
         (set variable value)))))
+
+
+
+(defvar *sessions-global-variables* '(log-edit-comment-ring
+                                      vim:ex-history
+                                      read-expression-history
+                                      eshell-history-ring
+                                      *search-minibuffer-history*)
+  "List of global variables to save in session file.")
+
+(defun sessions/truncate-long-sequences (val)
+  "Truncate overly long sequences."
+  (let ((max-size 500))
+    (cond
+      ((ring? val)
+       (if (< max-size (ring-size val))
+         (foldr (lambda (r item)
+                  (ring-insert r item)
+                  r)
+                (make-ring max-size)
+                (subseq (ring-elements val) 0 (min max-size (ring-length val))))
+         val))
+      ((and (or (list? val)
+                (vector? val))
+            (< max-size (length val)))
+       (subseq val 0 (min max-size (length val))))
+      (else
+       val))))
+
+(defun sessions/get-global-variables ()
+  "Get global variables that should be saved in form of sequence of (var . value)
+entries."
+  (remq nil
+        (map (lambda (var)
+               (when (boundp var)
+                 (cons var (sessions/truncate-long-sequences (symbol-value var)))))
+             *sessions-global-variables*)))
+
+(defun sessions/restore-global-variables (bindings)
+  "Restore global variables from BINDINGS."
+  (dolist (bind bindings)
+    (destructuring-bind (var . value) bind
+      (set var value))))
 
 
 
@@ -85,13 +126,15 @@
                    (list (list 'buffers
                                buffer-data)
                          (list 'frames
-                               frame-data))))
+                               frame-data)
+                         (list 'global-variables
+                               (sessions/get-global-variables)))))
        (current-buffer)))
     (write-region (point-min) (point-max) file)
     (make-file-executable file)))
 
 (defun sessions/load-from-data (data)
-  "Load session from sexp structure DATA."
+  "Load session from DATA."
   (let ((session-entries data))
     (aif (assq 'buffers session-entries)
       (mapc (lambda (entry)
@@ -101,16 +144,20 @@
                 (aif (session-entry/major-mode entry)
                   (unless (eq? major-mode it)
                     (funcall (symbol-function it)))
-                  (message "warning: session entry without major mode: %s"
+                  (message "warning: session buffer entry without major mode: %s"
                            entry))
                 (sessions/restore-buffer-variables (current-buffer)
                                                    (session-entry/variables entry))))
             (cadr it)))
     (aif (assq 'frames session-entries)
-      (restore-window-configuration (cadr it)))))
+      (restore-window-configuration (first (rest it)))
+      (message "warning: session-entries without frame information"))
+    (aif (assq 'global-variables session-entries)
+      (sessions/restore-global-variables (first (rest it)))
+      (message "warning: session-entries without global variables information"))))
 
 (defun sessions/load-buffers (file)
-  "Load session from FILE."
+  "Load session from FILE's contents."
   (interactive "ffile to load session from: ")
   (if (file-exists? file)
     (sessions/load-from-data
