@@ -47,7 +47,7 @@ on current line. See `term-bol'.")
                         vim:insert-mode-local-keymap)
        ("M-x"  execute-extended-command)
        ("M-:"  eval-expression)
-       ("<f1>" term-paste))
+       ("<f6>" term-paste))
 
      (def-keys-for-map vim:insert-mode-local-keymap
        ("SPC" term-send-raw)))

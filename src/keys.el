@@ -17,7 +17,7 @@
   ("<f3>"     prev-w)
   ("<f4>"     next-w)
 
-  ("<f6>"     remember-win-config-restore-configuration)
+  ("<f6>"     nil)
   ("<f7>"     (lambda () (interactive)
                 (tabbar-scroll (tabbar-current-tabset) -1)))
   ("<f8>"     (lambda () (interactive)
@@ -30,6 +30,9 @@
 
   ("<XF86Back>"    tabbar-backward-tab)
   ("<XF86Forward>" tabbar-forward-tab)
+
+  ("S-<XF86Back>"    tabbar-move-selected-tab-left)
+  ("S-<XF86Forward>" tabbar-move-selected-tab-right)
 
   ("C-<f2>"   universal-argument)
 
@@ -188,7 +191,7 @@
 (eval-after-load "apropos"
                  '(progn
                    (def-keys-for-map apropos-mode-map
-                     ("<f1>"       remove-buffer)
+                     ("<f6>"       remove-buffer)
                      ("<escape>"   remove-buffer))))
 
 

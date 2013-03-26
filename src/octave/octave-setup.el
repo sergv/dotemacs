@@ -374,7 +374,7 @@ in GROUP-NUMS."
         ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
         )
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f1>"    octave-load-current-file)
+    ("<f6>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)
     ("g <tab>" octave-indent-defun)
     (", s s"   vim:replace-symbol-at-point)

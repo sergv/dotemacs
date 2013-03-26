@@ -38,7 +38,7 @@
       ("RET"       search-done)
       ("<escape>"  search-abort)
 
-      ("<f1>"      search-return-to-start)
+      ("<f6>"      search-return-to-start)
       ("C-p"       yank)
       ("C-w"       backward-delete-word)
       ("C-S-w"     backward-delete-word*)
