@@ -1611,6 +1611,30 @@ write buffer contents back into file if flag DONT-WRITE is nil."
     (mapcar func xs)
     (apply cl-mapcar func xs sequences)))
 
+(defun foldr (f init items)
+  (cl-reduce f
+             items
+             :from-end t
+             :initial-value init))
+
+;;;;
+
+(defun generic/length (item)
+  (cond ((ring? item)
+         (ring-length item))
+        ((or (list? item)
+             (vector? item)
+             (string? item))
+         (length item))))
+
+(defun* generic/member (item sequence &key (test #'equal))
+  (cond ((ring? sequence)
+         (ring-member item sequence :test test))
+        ((list? sequence)
+         (cl-member item sequence :test test))
+        (else
+         (error "Not implemented yet"))))
+
 ;;;;
 
 (provide 'common)
