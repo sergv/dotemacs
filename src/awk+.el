@@ -20,7 +20,7 @@
    "# Keybindings:\n"
    "# f9   - execute awk program\n"
    "# S-f9 - restore original input\n"
-   "# f1   - exit\n"
+   "# f6   - exit\n"
    "# up   - previous program\n"
    "# down - next program\n"
    "#\n"
@@ -84,7 +84,7 @@ in buffer from where `awk' was invoked.")
     (def-keys-for-map map
       ("<f9>"   awk-send-input)
       ("S-<f9>" awk-restore-original-input)
-      ("<f1>"   awk-exit)
+      ("<f6>"   awk-exit)
       ("<up>"   awk-previous-program)
       ("<down>" awk-next-program))
     (use-local-map map))

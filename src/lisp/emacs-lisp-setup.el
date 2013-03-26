@@ -119,10 +119,6 @@
     ("C-w"   backward-delete-word)
     ("C-S-w" backward-delete-word*))
 
-  ;; handled by edebug-mode-map
-  ;; (def-keys-for-map emacs-lisp-mode-map
-  ;;   ("<f1>"  edebug-step-mode))
-
   ;; should use global after-save-hook because of
   ;; backups
   (add-hook 'after-save-hook #'elisp-compile-and-move)
@@ -131,7 +127,7 @@
 (eval-after-load "edebug"
                  '(progn
                    (def-keys-for-map edebug-mode-map
-                     ("<f1>" edebug-step-mode))))
+                     ("<f6>" edebug-step-mode))))
 
 (defun eval-print-last-sexp-unlimited-length ()
   (interactive)

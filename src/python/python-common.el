@@ -158,7 +158,7 @@ greater indenation as current line."
   (def-keys-for-map vim:normal-mode-local-keymap
     (", d"     pylookup-lookup)
     (", ?"     pylookup-lookup)
-    ("<f1>"    python-shell-send-buffer)
+    ("<f6>"    python-shell-send-buffer)
     ("<f9>"    python-run-script)
     ("S-<f9>"  python-check)
 
@@ -173,7 +173,7 @@ greater indenation as current line."
     ("z O"     hs-show-all))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("<f1>"  python-shell-send-region)
+    ("<f6>"  python-shell-send-region)
     ("j"     python-shell-send-region)
     ("g a"   nil)
     ("g a =" python-align-on-equals))

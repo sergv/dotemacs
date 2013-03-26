@@ -62,13 +62,12 @@
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:insert-mode-local-keymap)
-      ("M-/"     maxima-complete)
+      ("M-/"         maxima-complete)
       ;; use load file instead of send buffer to be more consistent
       ;; with another similar modes, e.g. slime, octave, prolog etc
-      ;; upd: maxima denies to load file my files, says there's errors
+      ;; upd: maxima denies to load-file my files, says there're errors
       ;; and I have no clue about these errors. I'll just use send buffer
-      ("<f1>"    ;; maxima-load-current-file
-       maxima-send-buffer)
+      ("<f6>"        maxima-send-buffer)
 
       ("C-<right>"   paredit-forward-slurp-sexp)
       ("C-S-<right>" paredit-forward-barf-sexp)

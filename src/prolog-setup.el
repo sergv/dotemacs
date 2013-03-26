@@ -34,7 +34,7 @@
 
     ("SPC SPC" switch-to-prolog)
 
-    ("<f1>"    prolog-consult-file)
+    ("<f6>"    prolog-consult-file)
     ("<f9>"    prolog-compile-file)))
 
 (define-switch-to-interpreter

@@ -40,7 +40,7 @@
   (def-keys-for-map (vim:insert-mode-local-keymap
                      vim:normal-mode-local-keymap)
     ("M-/"     complete-symbol)
-    ("<f1>"    nrepl-load-current-buffer ;; clojure-load-file
+    ("<f6>"    nrepl-load-current-buffer ;; clojure-load-file
                )
 
     ("M-."     nrepl-jump)
