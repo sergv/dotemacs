@@ -29,7 +29,7 @@
     ("g t" sql-end-of-statement))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("<f1>" sql-send-region)
+    ("<f6>" sql-send-region)
     ("<f9>" sql-send-region)))
 
 (add-hook 'sql-mode-hook #'sql-setup)

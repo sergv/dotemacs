@@ -100,7 +100,7 @@
 ;;     ("C-w" ido-up-directory))
 ;;
 ;;   (def-keys-for-map ido-completion-map
-;;     ("<f1>" ido-toggle-regexp)))
+;;     ("<f6>" ido-toggle-regexp)))
 
 ;; (add-hook 'ido-setup-hook #'ido-setup)
 

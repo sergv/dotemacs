@@ -115,7 +115,7 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("S-<f9>" latex-preview-in-okular)
     ("<f9>"   latex-compile)
-    ("<f1>"   latex-toggle-preview-or-russian-spellcheck)
+    ("<f6>"   latex-toggle-preview-or-russian-spellcheck)
 
     ("<home>" vim:motion-bwd-paragraph)
     ("<end>"  vim:motion-fwd-paragraph))

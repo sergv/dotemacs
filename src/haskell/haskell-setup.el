@@ -118,7 +118,7 @@
     ;; (", a"     tags-apropos)
     ;; (", v"     visit-tags-table)
 
-    ("<f1>"    inferior-haskell-load-file)
+    ("<f6>"    inferior-haskell-load-file)
     ("SPC SPC" switch-to-haskell)
     ("<f9>"    haskell-compile)
     ("S-<f9>"  hs-lint)

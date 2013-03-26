@@ -633,7 +633,7 @@ the current topic."
     ("="     org-mode-up-heading)
     ("<up>"  org-mode-up-heading)
 
-    ("<f1>"  org-toggle-display-style)
+    ("<f6>"  org-toggle-display-style)
     ("z O"   show-all)
     ;; ("z o"   show-subtree)
     ("z c"   hide-subtree)

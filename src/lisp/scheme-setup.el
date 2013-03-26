@@ -277,7 +277,7 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<f1>"    scheme-load-current-file)
+    ("<f6>"    scheme-load-current-file)
     ("M-/"     scheme-smart-complete))
 
   (def-keys-for-map vim:visual-mode-local-keymap
