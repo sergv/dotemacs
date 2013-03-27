@@ -166,6 +166,11 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           ("py"      . "*.py *.pyx *.pxd *.pxi"))))
 
 
+(defun rgrep-region (begin end)
+  (interactive "r")
+  (call-interactively #'rgrep (buffer-substring-no-properties begin end)))
+
+
 (provide 'grep+)
 
 ;; Local Variables:
