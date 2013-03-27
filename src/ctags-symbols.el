@@ -86,9 +86,11 @@
          (next-home-entry (ctags-symbols/next-home ctags-symbols-homes-zipper)))
     (unless (or (eproj-project-names proj)
                 (assq major-mode (eproj-project-names proj)))
-      (eproj-load-ctags-project (current-buffer))
+      (eproj-load-ctags-project proj)
       (unless (eproj-project-names proj)
-        (error "Project %s is not loaded" (eproj-project-root proj)))
+        (error "Project %s loaded no names\nProject: %s"
+               (eproj-project-root proj)
+               proj))
       (unless (assq major-mode (eproj-project-names proj))
         (error "No names in project %s for language %s"
                (eproj-project-root proj)
