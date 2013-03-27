@@ -226,13 +226,12 @@
               (eproj-project-names proj))
         (kill-buffer ctags-buf)))))
 
-(defun eproj-load-ctags-project (buffer)
-  "Reload project and all it's related projects current buffer's file is part of."
-  (let* ((proj (eproj-get-project-for-buf buffer)))
+(defun eproj-load-ctags-project (proj)
+  "Reload project PROJ and all it's related projects."
     (map (lambda (root)
            (eproj-load-single-ctags-project root))
          (cons (eproj-project-root proj)
-               (eproj-get-all-related-projects (eproj-project-root proj))))))
+               (eproj-get-all-related-projects (eproj-project-root proj)))))
 
 (defun eproj-reload-projects ()
   (interactive)
