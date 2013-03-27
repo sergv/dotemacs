@@ -1522,20 +1522,27 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
     (let* ((new  (concat new-config-dir "/" p))
            (curr (concat curr-config-dir "/" p)))
       (message "Files %s and %s" new curr)
-      (assert (file-exist? new))
-      (if (file-exist? curr)
-        (if (different-files-fast? new curr)
-          (let ((new-buf  (find-file-noselect new))
-                (curr-buf (find-file-noselect curr)))
-            (ediff-diff-files-recursive-edit new curr :read-only nil)
-            (kill-buffer new-buf)
-            (with-current-buffer curr-buf
-              (save-buffer))
-            (redisplay t))
+      (condition-case err
           (progn
-            (message "Files %s and %s are the same, skipping" new curr)))
-        (when (y-or-n? (format "Copy %s to %s?" new curr))
-          (copy-file new curr nil t t t))))))
+            (assert (file-exist? new))
+            (if (file-exist? curr)
+              (if (different-files-fast? new curr)
+                (let ((new-buf  (find-file-noselect new))
+                      (curr-buf (find-file-noselect curr)))
+                  (ediff-diff-files-recursive-edit new curr :read-only nil)
+                  (kill-buffer new-buf)
+                  (with-current-buffer curr-buf
+                    (save-buffer))
+                  (redisplay t))
+                (progn
+                  (message "Files %s and %s are the same, skipping" new curr)))
+              (when (y-or-n? (format "Copy %s to %s?" new curr))
+                (copy-file new curr nil t t t))))
+        (error
+         (message "Error occurred while processing files %s and %s:\n%s"
+                  new
+                  curr
+                  err))))))
 
 ;;;;
 
