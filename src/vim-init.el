@@ -125,6 +125,8 @@ move point to next/previous line."
                    vim:visual-mode-keymap)
   +vimrc:normal&visual-keys+)
 
+;;;; normal mode keybindigs
+
 (def-keys-for-map vim:normal-mode-keymap
   ("C-y"      nil)
   (";"        vim:ex-read-command)
@@ -162,6 +164,8 @@ move point to next/previous line."
   ("g C"      remember-win-config-store-configuration)
   ("<f6>"     remember-win-config-restore-configuration))
 
+;;;; visual keybindings
+
 (def-keys-for-map vim:visual-mode-keymap
   ("TAB"      indent-region)
   ("<tab>"    indent-region)
@@ -172,9 +176,11 @@ move point to next/previous line."
 
   ("SPC SPC"  exchange-point-and-mark)
 
+  ("g r"      rgrep-region)
   (", s"      vim:replace-selected)
   ("\""       vim:quote-region))
 
+;;;; insert mode keybindings
 
 (def-keys-for-map vim:insert-mode-keymap
   ("S-<backspace>" delete-whitespaces-backward)
@@ -189,6 +195,8 @@ move point to next/previous line."
 
   ("<insert>"      vim:scroll-line-up))
 
+
+;;;; ex bindings and commands
 
 (def-keys-for-map vim:ex-keymap
   ("C-v" set-mark-command)
