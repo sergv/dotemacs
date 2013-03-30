@@ -445,7 +445,7 @@ Works on both Emacs and XEmacs."
          (cons (cons "scheme" 'scheme)
                (cons (cons "dot" 'graphviz-dot-mode)
                      (remove-if (lambda (entry)
-                                  (string= (car entry) "dot"))
+                                  (string=? (car entry) "dot"))
                                 org-src-lang-modes))))))
 
 (eval-after-load
@@ -630,7 +630,7 @@ the current topic."
     ("C-o"   org-open-at-point)
     ("g o"   org-open-at-point)
 
-    ("="     org-mode-up-heading)
+    ("'"     org-mode-up-heading)
     ("<up>"  org-mode-up-heading)
 
     ("<f6>"  org-toggle-display-style)
