@@ -340,7 +340,9 @@ Basically swap current point with previous one."
         (git-update-file-repository)
         (if git-repository
           (magit-status git-repository)
-          (error "File %s is not under git vcs" it)))
+          (progn
+            (message "File %s is not under git VCS" it)
+            (magit-status default-directory))))
       (magit-status (file-name-nondirectory it)))
     (begin
       (message "Warning: current buffer has no associated file")
