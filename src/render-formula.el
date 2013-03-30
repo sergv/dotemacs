@@ -29,8 +29,13 @@ won't be confused by the same filename used for different images.")
 (defvar render-formula-latex-output-buf "#latex-output#"
   "Buffer for latex errors.")
 
-(defun* render-formula (str &key (point-size 10) (font-size "normalsize"))
-  "Returns rendered image."
+(defun* render-formula (str &key
+                            (point-size 10)
+                            (font-size "normalsize")
+                            (foreground-color nil)
+                            (background-color nil)
+                            (dpi 150))
+  "Returns latex formula from STR rendered as image."
   (assert (member font-size
                   '("tiny"
                     "scriptsize"
@@ -46,9 +51,11 @@ won't be confused by the same filename used for different images.")
     it
     (let* ((left-eq-numbering? nil)
            (bg-color (color-name-to-rgb
-                      (frame-parameter nil 'background-color)))
+                      (or background-color
+                          (frame-parameter nil 'background-color))))
            (fg-color (color-name-to-rgb
-                      (frame-parameter nil 'foreground-color)))
+                      (or foreground-color
+                          (frame-parameter nil 'foreground-color))))
            (tmp-filename (format "formula%d" *formula-index*))
            (tmp-path (concat +tmp-path+ "/render-formula"))
            (tmp-file (concat tmp-path "/" tmp-filename ".tex"))
@@ -124,7 +131,7 @@ won't be confused by the same filename used for different images.")
                     "-T"
                     "tight"
                     "-D"
-                    "150"
+                    (number->string dpi)
                     dvi-file
                     "-o"
                     img-file)
