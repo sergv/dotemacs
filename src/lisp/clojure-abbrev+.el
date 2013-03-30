@@ -19,7 +19,7 @@
   :format-string-end "\\n\""
   :print-end "))"
 
-  :make-variable-list #'join-lines)
+  :make-variable-list join-lines)
 
 (defun clojure-abbrev+-setup ()
   (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
