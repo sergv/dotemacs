@@ -798,9 +798,6 @@ This determines whether to insert a space after the # sign."
     (") ("     vim:forward-barf-sexp)
     (") )"     vim:forward-slurp-sexp)
 
-    ("<left>"  paredit-backward)
-    ("<right>" paredit-forward)
-
     ("g <tab>" paredit-reindent-defun)
     ("M-p"     browse-kill-ring)
     ("="       input-unicode)
@@ -909,8 +906,10 @@ This determines whether to insert a space after the # sign."
                      vim:motion-mode-local-keymap)
     *lisp-vim-movement-keybindings*
 
-    ("<up>"     vim:motion-bwd-paragraph)
-    ("<down>"   vim:motion-fwd-paragraph))
+    ("<up>"    previous-line)
+    ("<down>"  next-line)
+    ("<left>"  backward-char)
+    ("<right>" forward-char))
 
   (setup-outline-headers :header-symbol ";"
                          :length-min 3
