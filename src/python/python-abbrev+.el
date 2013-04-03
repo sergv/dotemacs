@@ -19,7 +19,7 @@ interactively prompting for variables/messages."
 
   :indent-after-func nil
   :insert-newline-before-var-list nil
-  :use-upcase nil
+  :msg-transform nil
 
   :format-print-value "{}"
   :format-string-start "\""
