@@ -6,4 +6,4 @@
 
 
 
-#endif /* #define ${filename no ext uppercase}_H_ 1 */
+#endif /* #ifndef ${filename no ext uppercase}_H_ */
