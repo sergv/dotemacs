@@ -9,41 +9,12 @@
 ;; Status:
 
 (require 'general-lisp-setup)
-(require 'slime-setup-lite) ;; for indentation
+;; (require 'slime-setup-lite) ;; for indentation
 (require 'scheme-highlight)
 (require 'scheme-abbrev+)
 (require 'comint-setup)
 (require 'more-scheme)
 (require 'common)
-
-(define-common-lisp-style "scheme"
-  "Custom indent style for scheme."
-  (:inherit "modern")
-  (:variables
-   (lisp-indent-maximum-backtracking 10)
-   (lisp-align-keywords-in-calls t)
-   (lisp-loop-indent-subclauses nil)
-   (lisp-lambda-list-keyword-parameter-indentation 0)
-
-   (indent-tabs-mode nil)
-   (comment-fill-column nil))
-
-  (:indentation
-   (if             (4 4 4))
-   (aif            (as if))
-   (define         (nil &body))
-   (define-macro   (as define))
-   (define-syntax  (as define))
-   (define-method  (as define))
-   (define-generic (as define))
-   (module         (nil nil 0))
-   (syntax-rules   (as define))
-   ;; guile-specific
-   (lambda*        (as lambda))
-   (define*        (as define))
-   (letrec         (as let))
-   (let-values     (as let))
-   (let*-values    (as let))))
 
 
 (defconst +scheme-implementations+
@@ -239,33 +210,32 @@
 
 
 (defun scheme-setup ()
-  (lisp-setup)
+  (lisp-setup :use-cl-indent nil)
   (scheme-highlight)
-  (common-lisp-set-style "scheme")
+  ;; (common-lisp-set-style "scheme")
+  ;; (setq-local lisp-indent-function
+  ;;             #'common-lisp-indent-function)
+  ;; ;; Fix this to recognize scheme keywords as well
+  ;; (setq-local lisp-indent-lambda-list-keywords-regexp
+  ;;             (rx (or "&"
+  ;;                     "#:"
+  ;;                     ":"
+  ;;                     "#!")
+  ;;                 (or "optional"
+  ;;                     "rest"
+  ;;                     "key"
+  ;;                     "allow-other-keys"
+  ;;                     "aux"
+  ;;                     "whole"
+  ;;                     "body"
+  ;;                     "environment"
+  ;;                     "more")
+  ;;                 symbol-end))
 
   ;; (setq-local eldoc-documentation-function
   ;;      'scheme-get-current-symbol-info)
   ;; (eldoc-mode 1)
   ;; (setq-local eldoc-idle-delay 0.01)
-
-  (setq-local lisp-indent-function
-              #'common-lisp-indent-function)
-  ;; Fix this to recognize scheme keywords as well
-  (setq-local lisp-indent-lambda-list-keywords-regexp
-              (rx (or "&"
-                      "#:"
-                      ":"
-                      "#!")
-                  (or "optional"
-                      "rest"
-                      "key"
-                      "allow-other-keys"
-                      "aux"
-                      "whole"
-                      "body"
-                      "environment"
-                      "more")
-                  symbol-end))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     (", e"     scheme-send-last-sexp)
@@ -354,6 +324,9 @@
   (else
    (error "invalid +platform+: %s" +platform+)))
 
+;;;; some indentation rules
+
+(put 'if 'scheme-indent-function 1)
 
 ;;;;
 

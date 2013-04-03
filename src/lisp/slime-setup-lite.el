@@ -200,6 +200,78 @@
    (without-floating-point-underflow (&body))))
 
 
+(define-common-lisp-style "emacs"
+  "My custom indent style for emacs lisp."
+  (:inherit "my-style")
+
+  (:indentation
+   (aif (as if))
+   (eval-when-compile (2))
+   (begin (as progn))
+   (condition-case (4 4 &body))
+   (def-keys-for-map (&body))
+   (with-temp-buffer (&body))
+   (while (4 &body))
+   (rxx (as let))
+   (letrec (as let))
+   (redefun (as defun))
+   (edefun (as defun))
+   (defvar-local (as defvar))
+   (define-print-info-skeleton (4 &body))
+   (define-lisp-print-info-skeleton (as define-print-info-skeleton))
+   (define-repeated-function (4 &body))
+   (define-switch-to-interpreter (4 (&whole 2 &rest 1) &rest 2))
+   (check-for-stop (4 &rest 1))
+   (skip-and-check (as check-for-stop))
+   (moving-one-item-forward (4 4 &body))
+   (forward-sexp-with-bounds (4 4 &body))
+   (defstruct* (as defstruct))
+   (sexpy-define-pattern-fontifier (4 &rest 1))
+   (with-current-frame (as with-current-buffer))
+   (with-disabled-undo (1))
+   (with-preserved-buffer-modified-p (1))
+   (with-inhibited-modification-hooks (1))
+   (with-inhibited-read-only (1))
+   (ert-deftest (as defun))
+   (with-hidden-comments (1))
+   (with-hidden-cloze-hints (1))
+   (with-hidden-cloze-text (1))
+   (magit-define-command (as defun))
+   (magit-section-action (4 2))
+   (make-buf-tag-pred (&rest 1))
+   (pcase (4 &rest 2))))
+
+
+(define-common-lisp-style "scheme"
+  "Custom indent style for scheme."
+  (:inherit "modern")
+  (:variables
+   (lisp-indent-maximum-backtracking 10)
+   (lisp-align-keywords-in-calls t)
+   (lisp-loop-indent-subclauses nil)
+   (lisp-lambda-list-keyword-parameter-indentation 0)
+
+   (indent-tabs-mode nil)
+   (comment-fill-column nil))
+
+  (:indentation
+   (if             (4 4 4))
+   (aif            (as if))
+   (define         (nil &body))
+   (define-macro   (as define))
+   (define-syntax  (as define))
+   (define-method  (as define))
+   (define-generic (as define))
+   (module         (nil nil 0))
+   (syntax-rules   (as define))
+   ;; guile-specific
+   (lambda*        (as lambda))
+   (define*        (as define))
+   (letrec         (as let))
+   (let-values     (as let))
+   (let*-values    (as let))))
+
+
 (setf common-lisp-style-default "my-style")
 
 (provide 'slime-setup-lite)
