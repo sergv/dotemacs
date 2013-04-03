@@ -15,7 +15,7 @@ while interactively prompting for variables/messages."
 
   :indent-after-func nil
   :insert-newline-before-var-list nil
-  :use-upcase t
+  :msg-transform #'upcase
 
   :format-print-value "%s"
   :format-string-start "\""

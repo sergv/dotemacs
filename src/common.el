@@ -407,6 +407,7 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
   "Define two functions, FORWARD-NAME and BACKWARD-NAME to perform
 jumps on REGEX with wraparound in buffer. INIT form will be executed
 before performing any jumps."
+  (declare (indent 2))
   (symbol-macrolet ((forward-search `(re-search-forward
                                       ,regex
                                       nil
@@ -569,7 +570,7 @@ current buffer. INIT form will be executed before performing any jumps."
      (print-end ")")
      (indent-after-func #'prog-indent-sexp)
      (make-variable-list #'join-lines)
-     (use-upcase t)
+     (msg-transform nil)
      (format-print-value "~a")
      (format-string-start "\"")
      (format-string-end "~%\"")
@@ -578,76 +579,77 @@ current buffer. INIT form will be executed before performing any jumps."
 solve most debug print problems.
 
 I want to stress one point here: this macro does not and would never ever
-support debug printing for C++ using cout et al."
-  `(define-skeleton ,name
-     ,doc
-     nil
-     ;; store start of skeleton
-     '(setq
-       v1 (point)
-       ;; car - whether any messages were inserted and if so
-       ;; then becomes type of previously inserted message -
-       ;; either 'message or 'variable
-       ;; cdr - list of variable names to print
-       v2 (cons nil nil))
-     ,print-begin
-     ,format-string-start
-     ;; get name of function containing point
-     ;; this form evaluates to string which would be function name
-     (funcall #',insert-entity-name-procedure v1)
-     ((let* ((x (read-string "Variable or message starting with space: "))
-             (message-p (and (< 0 (length x))
-                             (char= ?\s (aref x 0))))
-             (result nil))
-        (if (< 0 (length x))
-          (progn
-            ;; so, if str starts with a space thes it's hardly a variable name or
-            ;; some other form with value. Therefore it's a message to print,
-            ;; without associated value
-            (if message-p
-              (setf result
-                    ,(if use-upcase
-                       '(upcase (replace-regexp-in-string "^[ \t]+" "" x))
-                       '(replace-regexp-in-string "^[ \t]+" "" x)))
-              (progn
-                (push x (cdr v2))
+support debug printing for C++ using cout et al.
+
+msg-transform - function to apply to entered text before inserting it into string"
+  (let ((initial-state `(list (point) nil nil))
+        (start-position 'car)
+        (previously-inserted-message 'cadr)
+        (variable-names 'caddr))
+    `(define-skeleton ,name
+       ,doc
+       nil
+       ;; store start of skeleton
+       '(setq v1 ,initial-state)
+
+       ,print-begin
+       ,format-string-start
+       ;; get name of function containing point
+       ;; this form evaluates to string which would be function name
+       (funcall #',insert-entity-name-procedure (,start-position v1))
+       ((let* ((x (read-string "Variable or message starting with space: "))
+               (message? (and (< 0 (length x))
+                              (char= ?\s (aref x 0))))
+               (result nil))
+          (if (< 0 (length x))
+            (progn
+              ;; so, if str starts with a space thes it's hardly a variable name or
+              ;; some other form with value. Therefore it's a message to print,
+              ;; without associated value
+              (if message?
                 (setf result
-                      (concat ,(if use-upcase '(upcase x) 'x) ": " ,format-print-value))))
-            ;; if anything was inserted previously then prepend
-            ;; ", " or "; " to result
-            (when (car v2)
-              (setf result (concat (case (car v2)
-                                     (message
-                                      (if message-p
-                                        ", "
-                                        "; "))
-                                     (variable
-                                      (if message-p
-                                        "; "
-                                        ", ")))
-                                   result)))
-            (setf (car v2) (if message-p 'message 'variable))
-            ;; made up format chunk, return in so that str reference can use it
-            result)
-          ;; done entering values - communicate that to skeleton mode
-          ""))
-      ;; reference to just prompted message/variable name, would be immediately
-      ;; inserted by skeleton into buffer
-      str)
-     ,format-string-end
-     ,(when insert-newline-before-var-list
-        ;; print \n only if there are any variable names
-        '(when (cdr v2) '\n))
-     (funcall #',make-variable-list
-              (nreverse
-               (remove-if (lambda (str)
-                            (= 0 (length str)))
-                          (cdr v2))))
-     ,print-end
-     ,(when indent-after-func
-        `(save-excursion
-          (goto-char v1)
-          (funcall #',indent-after-func)))))
+                      ,(if msg-transform
+                         '(funcall ,msg-transform (replace-regexp-in-string "^[ \t]+" "" x))
+                         '(replace-regexp-in-string "^[ \t]+" "" x)))
+                (progn
+                  (push x (,variable-names v1))
+                  (setf result
+                        (concat ,(if msg-transform `(funcall ,msg-transform x) 'x) ": " ,format-print-value))))
+              ;; if anything was inserted previously then prepend
+              ;; ", " or "; " to result
+              (when (,previously-inserted-message v1)
+                (setf result (concat (case (,previously-inserted-message v1)
+                                       (message
+                                        (if message?
+                                          ", "
+                                          "; "))
+                                       (variable
+                                        (if message?
+                                          "; "
+                                          ", ")))
+                                     result)))
+              (setf (,previously-inserted-message v1) (if message? 'message 'variable))
+              ;; made up format chunk, return it so that str reference can use it
+              result)
+            ;; done entering values - communicate that to skeleton mode
+            ""))
+        ;; reference to just prompted message/variable name, would be immediately
+        ;; inserted by skeleton into buffer
+        str)
+       ,format-string-end
+       ,(when insert-newline-before-var-list
+          ;; print \n only if there are any variable names
+          `(when (,variable-names v1) '\n))
+       (funcall #',make-variable-list
+                (nreverse
+                 (remove-if (lambda (str)
+                              (= 0 (length str)))
+                            (,variable-names v1))))
+       ,print-end
+       ,(when indent-after-func
+          `(save-excursion
+            (goto-char (,start-position v1))
+            (funcall #',indent-after-func))))))
 
 
 (defun re-group-matchedp (n)

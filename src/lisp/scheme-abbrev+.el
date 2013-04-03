@@ -16,7 +16,6 @@
     scheme-print-info-skeleton
   :doc "Call to format to print some variables and messages."
   :print-begin "(format #t "
-  :use-upcase nil
 
   :format-print-value "~a"
   :format-string-start "\""

@@ -632,7 +632,7 @@ This command assumes point is not in a string or comment."
                                             (print-begin "(format t ")
                                             (make-variable-list
                                              #'join-lines)
-                                            (use-upcase t)
+                                            (msg-transform nil)
                                             (format-print-value "~a")
                                             (format-string-start "\"")
                                             (format-string-end "~%\"")
@@ -656,8 +656,8 @@ This command assumes point is not in a string or comment."
                       (paredit-skip-whitespace t)
                       (let ((symbol (symbol-at-point)))
                         (if symbol
-                          (concat ,(if use-upcase
-                                     '(upcase (symbol-name symbol))
+                          (concat ,(if msg-transform
+                                     `(funcall ,msg-transform (symbol-name symbol))
                                      '(symbol-name symbol))
                                   ": ")
                           "")))
@@ -668,7 +668,7 @@ This command assumes point is not in a string or comment."
 
      :indent-after-func prog-indent-sexp
      :make-variable-list ,make-variable-list
-     :use-upcase ,use-upcase
+     :msg-transform ,msg-transform
 
      :format-print-value ,format-print-value
      :format-string-start ,format-string-start
