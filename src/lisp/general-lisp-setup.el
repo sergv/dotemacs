@@ -10,6 +10,9 @@
 
 ;;;; Generic setups for current module
 
+(eval-when-compile
+  (require 'cl))
+
 (require 'common)
 (require 'advices-util)
 (require 'macro-util)
@@ -873,7 +876,7 @@ This determines whether to insert a space after the # sign."
     (", c u"    comment-util-uncomment-region)
 
     ;; universal align, aligns everything
-    ;; but currently only aligns lets', setqs' etc
+    ;; but currently only aligns let's, setq's etc
     ("g a"      nil)
     ("g a a"    realign-let)
     ("g a l"    realign-let)

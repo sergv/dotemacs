@@ -9,7 +9,8 @@
 
 ;;;
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 ;; (require 'cl-mode)
 
 (defconst +scheme-file-extensions+
