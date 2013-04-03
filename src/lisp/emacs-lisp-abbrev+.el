@@ -28,6 +28,9 @@
                               list))))
 
 
+
+
+
 (defun emacs-lisp-abbrev+-setup ()
   (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
                               )
