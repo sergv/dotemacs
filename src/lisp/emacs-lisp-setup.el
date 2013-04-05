@@ -14,10 +14,44 @@
 (require 'ansi-lisp-highlight)
 (require 'elisp-slime-nav)
 
+;;;; elisp fontification and indentation
 
 (font-lock-add-keywords 'emacs-lisp-mode
-                        '("defvar-local"))
+                        '("aif"
+                          "def-keys-for-map"
+                          "defvar-local"
+                          "rxx"
+                          "with-disabled-undo"
+                          "with-current-frame"
+                          "with-preserved-buffer-modified-p"
+                          "with-inhibited-modification-hooks"
+                          "with-inhibited-read-only"
+                          "with-hidden-comments"
+                          "with-hidden-cloze-hints"
+                          "with-hidden-cloze-text"))
 
+(defvar *emacs-lisp-indent-specs*
+  '((if 1)
+    (aif 1)
+    (def-keys-for-map 2)
+    (rxx 1)
+    (define-print-info-skeleton 1)
+    (define-lisp-print-info-skeleton 1)
+    (with-disabled-undo nil)
+    (with-current-frame 1)
+    (with-preserved-buffer-modified-p nil)
+    (with-inhibited-modification-hooks nil)
+    (with-inhibited-read-only nil)
+    (with-hidden-comments nil)
+    (with-hidden-cloze-hints nil)
+    (with-hidden-cloze-text nil))
+  "Indentation specifications for emacs lisp.")
+
+(dolist (entry *emacs-lisp-indent-specs*)
+  (destructuring-bind (symb indent-spec) entry
+    (put symb 'lisp-indent-function indent-spec)))
+
+;;;;
 
 (defun expand-last-macro ()
   (interactive)

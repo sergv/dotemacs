@@ -116,6 +116,7 @@
                          "--unpad-paren"
                          "--keep-one-line-statements"
                          "--keep-one-line-blocks"
+                         "--add-brackets"
                          "--convert-tabs"
                          "--mode=c"
                          "--suffix=none"

@@ -31,7 +31,7 @@
   "Face to highlight matches for regexp being searched for.")
 
 (defvar *search-minibuffer-keymap*
-  (let ((map (make-keymap)))
+  (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
       ("<enter>"   search-done)
       ("<return>"  search-done)
@@ -49,7 +49,9 @@
       ("S-<down>"  search-prev-from-minibuf)
 
       ("<next>"    search-next-from-minibuf)
-      ("<prior>"   search-prev-from-minibuf))
+      ("<prior>"   search-prev-from-minibuf)
+
+      ("C-SPC"     delete-minibuffer-contents))
     map))
 
 (defvar *search-minibuffer-history* nil
