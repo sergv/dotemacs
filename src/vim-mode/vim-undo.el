@@ -23,7 +23,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'vim-macs)
 (require 'vim-defs)
 (require 'vim-compat)
@@ -61,17 +62,6 @@
           (if (null (cadr lst))
             (setcdr lst (cddr lst))
             (setq lst (cdr lst))))))))
-
-
-(vim:defcmd vim:cmd-undo (count nonrepeatable)
-  (setq vim:last-undo nil)
-  (dotimes (i (or count 1))
-    (undo)))
-
-(vim:defcmd vim:cmd-redo (count nonrepeatable)
-  (setq vim:last-undo nil)
-  (redo (or count 1)))
-
 
 (provide 'vim-undo)
 
