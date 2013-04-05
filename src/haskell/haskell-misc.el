@@ -128,9 +128,6 @@ in haskell-font-lock.el")
      (? "\n")
      (+ whitespace)
      "Warning:"))
-
-
-
   "Regexp which is used by `compile' to detect warnings.")
 
 

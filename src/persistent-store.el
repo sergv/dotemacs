@@ -6,9 +6,9 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile (require 'cl))
 
 (require 'common)
-(require 'cl)
 
 ;;; database stores all info in single file, but facilities
 ;;; for dealing with multiple files are provided

@@ -8,8 +8,8 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'set-up-paths)
 (require 'common)
 (require 'render-formula)

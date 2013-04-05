@@ -111,8 +111,7 @@
 
 ;;; Code:
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (let ((load-path (cons (expand-file-name ".") load-path)))
   (require 'vim-core)

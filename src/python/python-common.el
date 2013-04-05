@@ -6,8 +6,8 @@
 ;; Created: Wednesday,  2 January 2013
 ;; Description:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'comint-setup)
 (require 'common)
 (require 'outline-headers)

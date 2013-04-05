@@ -6,8 +6,7 @@
 ;; Created: Tuesday,  5 March 2013
 ;; Description:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;; persistent sorted sets
 

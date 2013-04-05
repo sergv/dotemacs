@@ -9,12 +9,11 @@
 ;; Utility mode that provides convenient interface for selecting among
 ;; multiple candidates
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'common)
 (require 'more-scheme)
 (require 'keys-def)
-
-(eval-when-compile
- (require 'cl))
 
 
 (when (or (require 'tabbar-setup nil t)
