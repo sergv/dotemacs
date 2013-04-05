@@ -8,8 +8,7 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (when (executable-find "maxima")
   (require 'browse-kill-ring-setup)

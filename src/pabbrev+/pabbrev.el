@@ -263,7 +263,8 @@
 ;; universal argument support and some bug fixes.
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'thingatpt)
 (require 'popup)
 

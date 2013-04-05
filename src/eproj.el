@@ -6,8 +6,8 @@
 ;; Created: Sunday, 30 December 2012
 ;; Description:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'custom)
 (require 'custom-predicates)
 

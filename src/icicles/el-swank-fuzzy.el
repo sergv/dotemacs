@@ -44,7 +44,8 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
+
 
 (defvar el-swank-fuzzy-recursion-soft-limit 30
   "This is a soft limit for recursion in

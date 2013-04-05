@@ -6,8 +6,8 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile (require 'cl))
 
-(require 'cl)
 
 (defun func:foldr (f init seq)
   (loop

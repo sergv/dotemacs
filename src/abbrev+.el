@@ -6,9 +6,9 @@
 ;; Created: Tuesday,  1 November 2011
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
 
 (require 'custom)
-(eval-when-compile '(require 'cl))
 
 (defvar-local abbrev+-abbreviations
   (list

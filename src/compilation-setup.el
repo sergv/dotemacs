@@ -8,8 +8,7 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'common)
 (require 'compile)

@@ -8,9 +8,9 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'custom-predicates)
-(eval-when-compile
- (require 'cl))
 
 (autoload 'c-turn-on-eldoc-mode "c-eldoc" nil t)
 

@@ -6,8 +6,8 @@
 ;; Created: Tuesday, 12 June 2012
 ;; Description:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'common)
 (require 'python-common)
 ;; (require 'python-setup)

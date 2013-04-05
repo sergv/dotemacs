@@ -6,7 +6,8 @@
 ;; Created: Tuesday, 10 July 2012
 ;; Description:
 
-(require 'cl)
+(eval-when-compile (require 'cl-lib))
+
 (require 'custom-predicates)
 
 (defun string->symbol (str)

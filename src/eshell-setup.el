@@ -8,8 +8,7 @@
 
 ;; eshell customization
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (setf eshell-directory-name (concat +prog-data-path+ "/eshell/")
       eshell-aliases-file (concat eshell-directory-name "/alias")
