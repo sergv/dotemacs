@@ -8,7 +8,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defmacro vim:deflocalvar (name &rest args)
   "Defines a buffer-local variable."

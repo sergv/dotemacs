@@ -6,11 +6,8 @@
 ;; Created: long ago (since august inception)
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
 
-;; (eval-when-compile
-;;  (require 'cl))
-
-(require 'cl)
 
 (defmacro if-buffer-has-file (&rest body)
   "Execute BODY if current buffer is assigned to file"

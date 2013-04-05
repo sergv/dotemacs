@@ -8,7 +8,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defmacro vim:kbdmacro-to-command (events)
   "Creates a command passing prefix-argument to given keyboard-macro `events'."

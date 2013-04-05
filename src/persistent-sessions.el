@@ -6,7 +6,7 @@
 ;; Created: Wednesday, 23 January 2013
 ;; Description:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'common)
 (require 'fortunes)

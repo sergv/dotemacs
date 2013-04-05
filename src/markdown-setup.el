@@ -8,8 +8,7 @@
 ;; Requirements:
 ;; Status:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'markdown-mode "markdown-mode"
           "Major mode for editing Markdown files" t)

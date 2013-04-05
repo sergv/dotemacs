@@ -8,7 +8,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'vim-macs)
 
 (defgroup vim-cursors nil

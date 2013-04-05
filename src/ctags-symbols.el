@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (setf lexical-binding t))
 
 (require 'eproj)
@@ -15,7 +15,7 @@
 (require 'ctags-mode)
 
 
-
+;; this is not quite zipper
 (defvar ctags-symbols-homes-zipper (list nil nil)
   "Two stacks of locations (previous next) from which
 `ctags-symbols-go-to-symbol-home' was invoked.")

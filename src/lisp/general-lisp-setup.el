@@ -10,15 +10,13 @@
 
 ;;;; Generic setups for current module
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'common)
 (require 'advices-util)
 (require 'macro-util)
 (require 'el-swank-fuzzy)
 (require 'lisp-utils)
-(require 'cl)
 
 (require 'eldoc)
 (require 'paredit)

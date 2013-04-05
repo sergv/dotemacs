@@ -20,7 +20,7 @@
     str))
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
 
   (defmacro sexpy-dbg-message (verbosity &rest args)
     (when (and *sexpy-debug*

@@ -10,10 +10,10 @@
 
 ;; Use awk or sed on current region in interactive manner
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'common)
 
-(eval-when-compile
- (require 'cl))
 
 (defconst awk-init-content
   (concat

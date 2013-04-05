@@ -6,7 +6,8 @@
 ;; Created: very long ago
 ;; Description:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'custom)
 (require 'advices-util)
 (require 'all-lisp-setup)

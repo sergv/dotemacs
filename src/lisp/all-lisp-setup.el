@@ -9,9 +9,7 @@
 
 ;;;
 
-(eval-when-compile
-  (require 'cl))
-;; (require 'cl-mode)
+(eval-when-compile (require 'cl-lib))
 
 (defconst +scheme-file-extensions+
   '("scm" "sc" "stk" "ss" "sch" "oak")

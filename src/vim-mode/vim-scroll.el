@@ -14,7 +14,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
+
 (require 'vim-macs)
 (require 'vim-motions)
 
