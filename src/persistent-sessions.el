@@ -113,7 +113,7 @@ entries."
                          (when (buffer-file-name buf)
                            (with-current-buffer buf
                              (make-session-entry
-                              (buffer-file-name buf)
+                              (abbreviate-file-name (buffer-file-name buf))
                               (point)
                               (sessions/get-buffer-variables buf)
                               major-mode))))
