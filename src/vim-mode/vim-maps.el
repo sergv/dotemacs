@@ -99,7 +99,7 @@
 (vim:omap "7" 'digit-argument)
 (vim:omap "8" 'digit-argument)
 (vim:omap "9" 'digit-argument)
-(vim:nmap "\"" 'vim:select-register)
+;; (vim:nmap "\"" 'vim:select-register)
 
 ;; (vim:nmap "ZZ" 'vim:cmd-write-and-close)
 
@@ -161,15 +161,15 @@
 (vim:omap "F" 'vim:motion-find-back)
 (vim:omap "t" 'vim:motion-find-to)
 (vim:omap "T" 'vim:motion-find-back-to)
-(vim:omap ";" 'vim:motion-repeat-last-find)
+(vim:omap ":" 'vim:motion-repeat-last-find)
 (vim:omap "," 'vim:motion-repeat-last-find-opposite)
 
 (vim:omap "%" 'vim:motion-jump-item)
 
-(vim:omap "gg" 'vim:motion-mark)
+;; (vim:omap "gg" 'vim:motion-mark)
 ;; (vim:omap (kbd "C-o") 'vim:cmd-prev-jump)
 ;; (vim:omap (kbd "C-i") 'vim:cmd-next-jump)
-(vim:omap [tab] 'indent-for-tab-command)
+;; (vim:omap [tab] 'indent-for-tab-command)
 
 (vim:omap "iw" 'vim:motion-inner-word)
 (vim:omap "aw" 'vim:motion-outer-word)
@@ -346,7 +346,7 @@
 
 (vim:nmap ":" 'vim:ex-read-command)
 (vim:mmap ":" 'vim:ex-read-command)
-(vim:omap ":" 'undefined)
+;; (vim:omap ":" 'undefined)
 ;; (vim:wmap (kbd "C-:") 'vim:ex-read-command)
 (vim:nmap "q" 'vim:cmd-toggle-macro-recording)
 (vim:nmap "@" 'vim:cmd-execute-macro)
