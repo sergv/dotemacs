@@ -29,7 +29,7 @@
   (while (and impls (not (eval (caar impls))))
     (pop impls))
   (if impls `(progn ,@(cdar impls))
-    (error "Not implemented for this Emacs version")))
+      (error "Not implemented for this Emacs version")))
 
 (defun vim:set-cursor (cursor)
   "Changes the cursor to type `cursor'."
@@ -51,7 +51,7 @@
     (set-keymap-default-binding keymap command))))
 
 (defconst vim:ESC-event (if vim:xemacs-p (make-event 'key-press '(key vim:escape))
-                          'escape))
+                            'escape))
 
 
 (defun vim:intercept-ESC ()
@@ -209,15 +209,15 @@
  (vim:emacs-p (defalias 'vim:perform-replace 'perform-replace))
  (vim:xemacs-p
   (defun vim:perform-replace (from-string replacements query-flag regexp-flag delimited-flag
-                              &optional repeat-count map beg end)
+                                          &optional repeat-count map beg end)
     (if (or beg end)
       (progn
         (push-mark (or beg (point-min)))
         (goto-char (or end (point-max)))
         (zmacs-activate-region)
         (let ((result
-                (perform-replace from-string replacements query-flag regexp-flag delimited-flag
-                                 repeat-count map)))
+               (perform-replace from-string replacements query-flag regexp-flag delimited-flag
+                                repeat-count map)))
           (pop-mark)
           result))
       (perform-replace from-string replacements query-flag regexp-flag delimited-flag
@@ -249,12 +249,12 @@ Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
 meaning as for `replace-match'."
     (let ((match (match-string 0 string)))
       (save-match-data
-       (set-match-data (map (lambda (x)
-                              (if (numberp x)
-                                (- x (match-beginning 0))
-                                x))
-                            (match-data t)))
-       (replace-match replacement fixedcase literal match subexp)))))
+        (set-match-data (map (lambda (x)
+                               (if (numberp x)
+                                 (- x (match-beginning 0))
+                                 x))
+                             (match-data t)))
+        (replace-match replacement fixedcase literal match subexp)))))
 
 
 (defun vim:looking-back (regexp &optional limit greedy)
@@ -272,21 +272,21 @@ of a match for REGEXP."
    (vim:xemacs-p
     (let ((start (point))
           (pos
-            (save-excursion
+           (save-excursion
              (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
                   (point)))))
       (if (and greedy pos)
         (save-restriction
-         (narrow-to-region (point-min) start)
-         (while (and (> pos (point-min))
-                     (save-excursion
-                      (goto-char pos)
-                      (backward-char 1)
-                      (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
-           (setq pos (1- pos)))
-         (save-excursion
-          (goto-char pos)
-          (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
+          (narrow-to-region (point-min) start)
+          (while (and (> pos (point-min))
+                      (save-excursion
+                        (goto-char pos)
+                        (backward-char 1)
+                        (looking-at (concat "\\(?:"  regexp "\\)\\'"))))
+            (setq pos (1- pos)))
+          (save-excursion
+            (goto-char pos)
+            (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
       (not (null pos))))))
 
 
@@ -381,9 +381,9 @@ call another major mode in their body."
            (extra-keywords nil)
            (MODE-buffers (intern (concat global-mode-name "-buffers")))
            (MODE-enable-in-buffers
-             (intern (concat global-mode-name "-enable-in-buffers")))
+            (intern (concat global-mode-name "-enable-in-buffers")))
            (MODE-check-buffers
-             (intern (concat global-mode-name "-check-buffers")))
+            (intern (concat global-mode-name "-check-buffers")))
            (MODE-cmhh (intern (concat global-mode-name "-cmhh")))
            (MODE-major-mode (intern (concat (symbol-name mode) "-major-mode")))
            keyw)
@@ -407,12 +407,12 @@ call another major mode in their body."
          (make-variable-buffer-local ',MODE-major-mode)
          ;; The actual global minor-mode
          (define-minor-mode ,global-mode
-             ,(format "Toggle %s in every possible buffer.
+           ,(format "Toggle %s in every possible buffer.
 With prefix ARG, turn %s on if and only if ARG is positive.
 %s is enabled in all buffers where `%s' would do it.
 See `%s' for more information on %s."
-                      pretty-name pretty-global-name pretty-name turn-on
-                      mode pretty-name)
+                    pretty-name pretty-global-name pretty-name turn-on
+                    mode pretty-name)
            :global t ,@group ,@(nreverse extra-keywords)
 
            ;; Setup hook to handle future mode changes and new buffers.
@@ -490,15 +490,15 @@ See `%s' for more information on %s."
                frame)))
       (let ((guess-wind nil))
         (walk-windows (function (lambda (w)
-                        (let ((w-edges (window-edges w)))
-                          (when (and (eq f (window-frame w))
-                                     (<= (nth 0 w-edges) x)
-                                     (>= (nth 2 w-edges) x)
-                                     (<= (nth 1 w-edges) y)
-                                     (>= (nth 3 w-edges) y))
-                            (setq guess-wind w)))))
-                      t ; walk minibuffers
-                      t) ; walk all frames
+                                  (let ((w-edges (window-edges w)))
+                                    (when (and (eq f (window-frame w))
+                                               (<= (nth 0 w-edges) x)
+                                               (>= (nth 2 w-edges) x)
+                                               (<= (nth 1 w-edges) y)
+                                               (>= (nth 3 w-edges) y))
+                                      (setq guess-wind w)))))
+                      t                 ; walk minibuffers
+                      t)                ; walk all frames
         guess-wind)))
 
   ;; redo `windmove-coordinates-of-position' without compute-motion
@@ -515,16 +515,16 @@ See `%s' for more information on %s."
                 window))
            (b (window-buffer w)))
       (save-selected-window
-       (select-window w)
-       (save-excursion
-        (let* ((y (progn (goto-char (window-start))
-                         (walk-screen-lines 0 pos)))
-               (x (- (progn (goto-char pos)
-                            (current-column))
-                     (progn (goto-char (window-start))
-                            (vertical-motion y)
-                            (current-column)))))
-          (cons x y))))))
+        (select-window w)
+        (save-excursion
+          (let* ((y (progn (goto-char (window-start))
+                           (walk-screen-lines 0 pos)))
+                 (x (- (progn (goto-char pos)
+                              (current-column))
+                       (progn (goto-char (window-start))
+                              (vertical-motion y)
+                              (current-column)))))
+            (cons x y))))))
 
   ;; for some reason, XEmacs is more conservative in reporting `frame-width'
   ;; and `frame-height'; we apparently need to get rid of the 1- in each.
@@ -545,27 +545,27 @@ See `%s' for more information on %s."
     (let ((root (frame-root-window frame))
           (mini (minibuffer-window frame)))
       (letrec ((subwindows
-                 (lambda (win)
-                   (cond
-                     ((window-first-hchild win)
-                      (let (w-list
-                            (child (window-first-vchild win)))
-                        (while child
-                          (push child w-list)
-                          (setq child (window-next-child child)))
-                        (cons t
-                              (cons (window-edges win)
-                                    (map subwindows (reverse w-list))))))
-                     ((window-first-vchild win)
-                      (let (w-list
-                            (child (window-first-vchild win)))
-                        (while child
-                          (push child w-list)
-                          (setq child (window-next-child child)))
-                        (cons nil
-                              (cons (window-edges win)
-                                    (map subwindows (reverse w-list))))))
-                     (t win))))))
+                (lambda (win)
+                  (cond
+                    ((window-first-hchild win)
+                     (let (w-list
+                           (child (window-first-vchild win)))
+                       (while child
+                         (push child w-list)
+                         (setq child (window-next-child child)))
+                       (cons t
+                             (cons (window-edges win)
+                                   (map subwindows (reverse w-list))))))
+                    ((window-first-vchild win)
+                     (let (w-list
+                           (child (window-first-vchild win)))
+                       (while child
+                         (push child w-list)
+                         (setq child (window-next-child child)))
+                       (cons nil
+                             (cons (window-edges win)
+                                   (map subwindows (reverse w-list))))))
+                    (t win))))))
       (list (funcall subwindows root) mini))))
 
 

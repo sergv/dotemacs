@@ -61,12 +61,12 @@
    (list "clojure-path-to-ns"
          (lambda ()
            (save-match-data
-            (let ((name (buffer-file-name)))
-              (if (string-match "^.*/src\\(?:/clojure\\)?/\\(.*\\)\\.clj$" name)
-                (join-lines (split-string (match-string-no-properties 1 name)
-                                          "/")
-                            ".")
-                "")))))
+             (let ((name (buffer-file-name)))
+               (if (string-match "^.*/src\\(?:/clojure\\)?/\\(.*\\)\\.clj$" name)
+                 (join-lines (split-string (match-string-no-properties 1 name)
+                                           "/")
+                             ".")
+                 "")))))
    (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.
 When auto-insert file template contains entry of form ${HELLO} then
@@ -79,17 +79,17 @@ function than has correspondence to HELLO in this alist.")
 template files, data description may be found in
 `auto-insert-fields' alist."
   (save-excursion
-   (save-match-data
-    (with-disabled-undo
-     (with-preserved-buffer-modified-p
-      (with-inhibited-modification-hooks
-       (mapc (lambda (x)
-               (goto-char (point-min))
-               (let ((pattern (concat "\\${" (first x) "}"))
-                     (new-data (funcall (second x))))
-                 (while (re-search-forward pattern nil t)
-                   (replace-match new-data t t))))
-             auto-insert-fields)))))))
+    (save-match-data
+      (with-disabled-undo
+       (with-preserved-buffer-modified-p
+        (with-inhibited-modification-hooks
+         (mapc (lambda (x)
+                 (goto-char (point-min))
+                 (let ((pattern (concat "\\${" (first x) "}"))
+                       (new-data (funcall (second x))))
+                   (while (re-search-forward pattern nil t)
+                     (replace-match new-data t t))))
+               auto-insert-fields)))))))
 
 
 

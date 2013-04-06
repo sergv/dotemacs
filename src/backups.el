@@ -74,16 +74,16 @@
   (setq buf (or buf (current-buffer)))
   (with-current-buffer buf
     (if-buffer-has-file
-     (let* ((file (buffer-file-name))
-            (dest (path-concat b/backup-directory
-                               (b/make-backup-name file))))
-       (when (file-exist-p file)
-         (copy-file file dest t t t)
-         ;; (if (file-exists-p dest)
-         ;; (error "make-backup: fatal error: backup file %s already exists"
-         ;; dest)
-         ;; (copy-file file dest t t t))
-         dest)))))
+      (let* ((file (buffer-file-name))
+             (dest (path-concat b/backup-directory
+                                (b/make-backup-name file))))
+        (when (file-exist-p file)
+          (copy-file file dest t t t)
+          ;; (if (file-exists-p dest)
+          ;; (error "make-backup: fatal error: backup file %s already exists"
+          ;; dest)
+          ;; (copy-file file dest t t t))
+          dest)))))
 
 
 (defun run-backup-as-needed ()

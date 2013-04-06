@@ -28,24 +28,24 @@
   :insert-entity-name-procedure
   (lambda (beginning)
     (save-excursion
-     (condition-case nil
-         (progn
-           (goto-char beginning)
-           (save-excursion
-            ;; this throws error if no enclosing list found
-            (backward-up-list))
-           (beginning-of-defun)
-           (forward-symbol 1)
-           (skip-syntax-forward " (>")
-           (let ((symbol (symbol-at-point)))
-             (if symbol
-               (concat
-                ;; do not use upcase in Scheme
-                (symbol-name symbol)
-                ": ")
-               "")))
-       ;; no enclosing list was found, so use no name here
-       (error "")))))
+      (condition-case nil
+          (progn
+            (goto-char beginning)
+            (save-excursion
+              ;; this throws error if no enclosing list found
+              (backward-up-list))
+            (beginning-of-defun)
+            (forward-symbol 1)
+            (skip-syntax-forward " (>")
+            (let ((symbol (symbol-at-point)))
+              (if symbol
+                (concat
+                 ;; do not use upcase in Scheme
+                 (symbol-name symbol)
+                 ": ")
+                "")))
+        ;; no enclosing list was found, so use no name here
+        (error "")))))
 
 
 (defun scheme-abbrev+-setup ()

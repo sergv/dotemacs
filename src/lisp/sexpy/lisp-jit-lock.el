@@ -35,15 +35,15 @@
 
 
 (eval-when-compile
- (require 'cl)
+  (require 'cl)
 
- (defmacro with-buffer-prepared-for-lisp-jit-lock (&rest body)
-   "Execute BODY in current buffer, overriding several variables.
+  (defmacro with-buffer-prepared-for-lisp-jit-lock (&rest body)
+    "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."
-   ;; (declare (debug t))
-   `(let ((inhibit-point-motion-hooks t))
-      (with-silent-modifications
-        ,@body))))
+    ;; (declare (debug t))
+    `(let ((inhibit-point-motion-hooks t))
+       (with-silent-modifications
+         ,@body))))
 
 ;;; Customization.
 
@@ -122,8 +122,8 @@ buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 
 The value of this variable is used when JIT Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
-          (const :tag "always" t)
-          (other :tag "syntax-driven" syntax-driven))
+                 (const :tag "always" t)
+                 (other :tag "syntax-driven" syntax-driven))
   :group 'lisp-jit-lock)
 
 (defcustom lisp-jit-lock-context-time 0.5
@@ -136,7 +136,7 @@ The value of this variable is used when JIT Lock mode is turned on."
 If nil, fontification is not deferred."
   :group 'lisp-jit-lock
   :type '(choice (const :tag "never" nil)
-          (number :tag "seconds")))
+                 (number :tag "seconds")))
 
 ;;; Variables that are not customizable.
 
@@ -203,7 +203,7 @@ If the system load rises above `lisp-jit-lock-stealth-load' percent, stealth
 fontification is suspended.  Stealth fontification intensity is controlled via
 the variable `lisp-jit-lock-stealth-nice'."
   (setq lisp-jit-lock-mode arg)
-  (cond (;; Turn Just-in-time Lock mode on.
+  (cond ( ;; Turn Just-in-time Lock mode on.
          lisp-jit-lock-mode
 
          ;; Mark the buffer for refontification.
@@ -288,10 +288,10 @@ Only applies to the current buffer."
 (defun lisp-jit-lock-refontify (&optional beg end)
   "Force refontification of the region BEG..END (default whole buffer)."
   (with-buffer-prepared-for-lisp-jit-lock
-      (save-restriction
-       (widen)
-       (put-text-property (or beg (point-min)) (or end (point-max))
-                          'fontified nil))))
+   (save-restriction
+     (widen)
+     (put-text-property (or beg (point-min)) (or end (point-max))
+                        'fontified nil))))
 
 ;;; On demand fontification.
 
@@ -360,83 +360,83 @@ is active."
   "Fontify current buffer from START to END.
 Defaults to the whole buffer.  END can be out of bounds."
   (with-buffer-prepared-for-lisp-jit-lock
-      (save-excursion
-       (unless start (setq start (point-min)))
-       (setq end (if end (min end (point-max)) (point-max)))
-       ;; This did bind `font-lock-beginning-of-syntax-function' to
-       ;; nil at some point, for an unknown reason.  Don't do this; it
-       ;; can make highlighting slow due to expensive calls to
-       ;; `parse-partial-sexp' in function
-       ;; `font-lock-fontify-syntactically-region'.  Example: paging
-       ;; from the end of a buffer to its start, can do repeated
-       ;; `parse-partial-sexp' starting from `point-min', which can
-       ;; take a long time in a large buffer.
-       (let ((orig-start start) next)
-         (save-match-data
-          ;; Fontify chunks beginning at START.  The end of a
-          ;; chunk is either `end', or the start of a region
-          ;; before `end' that has already been fontified.
-          (while (and start (< start end))
-            ;; Determine the end of this chunk.
-            (setq next (or (text-property-any start end 'fontified t)
-                           end))
+   (save-excursion
+     (unless start (setq start (point-min)))
+     (setq end (if end (min end (point-max)) (point-max)))
+     ;; This did bind `font-lock-beginning-of-syntax-function' to
+     ;; nil at some point, for an unknown reason.  Don't do this; it
+     ;; can make highlighting slow due to expensive calls to
+     ;; `parse-partial-sexp' in function
+     ;; `font-lock-fontify-syntactically-region'.  Example: paging
+     ;; from the end of a buffer to its start, can do repeated
+     ;; `parse-partial-sexp' starting from `point-min', which can
+     ;; take a long time in a large buffer.
+     (let ((orig-start start) next)
+       (save-match-data
+         ;; Fontify chunks beginning at START.  The end of a
+         ;; chunk is either `end', or the start of a region
+         ;; before `end' that has already been fontified.
+         (while (and start (< start end))
+           ;; Determine the end of this chunk.
+           (setq next (or (text-property-any start end 'fontified t)
+                          end))
 
-            ;; Decide which range of text should be fontified.
-            ;; The problem is that START and NEXT may be in the
-            ;; middle of something matched by a font-lock regexp.
-            ;; Until someone has a better idea, let's start
-            ;; at the start of the line containing START and
-            ;; stop at the start of the line following NEXT.
-            (goto-char next)  (setq next (line-beginning-position 2))
-            (goto-char start) (setq start (line-beginning-position))
+           ;; Decide which range of text should be fontified.
+           ;; The problem is that START and NEXT may be in the
+           ;; middle of something matched by a font-lock regexp.
+           ;; Until someone has a better idea, let's start
+           ;; at the start of the line containing START and
+           ;; stop at the start of the line following NEXT.
+           (goto-char next)  (setq next (line-beginning-position 2))
+           (goto-char start) (setq start (line-beginning-position))
 
-            ;; Make sure the contextual refontification doesn't re-refontify
-            ;; what's already been refontified.
-            (when (and lisp-jit-lock-context-unfontify-pos
-                       (< lisp-jit-lock-context-unfontify-pos next)
-                       (>= lisp-jit-lock-context-unfontify-pos start)
-                       ;; Don't move boundary forward if we have to
-                       ;; refontify previous text.  Otherwise, we risk moving
-                       ;; it past the end of the multiline property and thus
-                       ;; forget about this multiline region altogether.
-                       (not (get-text-property start 'lisp-jit-lock-defer-multiline)))
-              (setq lisp-jit-lock-context-unfontify-pos next))
+           ;; Make sure the contextual refontification doesn't re-refontify
+           ;; what's already been refontified.
+           (when (and lisp-jit-lock-context-unfontify-pos
+                      (< lisp-jit-lock-context-unfontify-pos next)
+                      (>= lisp-jit-lock-context-unfontify-pos start)
+                      ;; Don't move boundary forward if we have to
+                      ;; refontify previous text.  Otherwise, we risk moving
+                      ;; it past the end of the multiline property and thus
+                      ;; forget about this multiline region altogether.
+                      (not (get-text-property start 'lisp-jit-lock-defer-multiline)))
+             (setq lisp-jit-lock-context-unfontify-pos next))
 
-            ;; Fontify the chunk, and mark it as fontified.
-            ;; We mark it first, to make sure that we don't indefinitely
-            ;; re-execute this fontification if an error occurs.
-            (put-text-property start next 'fontified t)
-            (condition-case err
-                (run-hook-with-args 'lisp-jit-lock-functions start next)
-              ;; If the user quits (which shouldn't happen in normal on-the-fly
-              ;; lisp-jit-locking), make sure the fontification will be performed
-              ;; before displaying the block again.
-              (quit (put-text-property start next 'fontified nil)
-                    (funcall 'signal (car err) (cdr err))))
+           ;; Fontify the chunk, and mark it as fontified.
+           ;; We mark it first, to make sure that we don't indefinitely
+           ;; re-execute this fontification if an error occurs.
+           (put-text-property start next 'fontified t)
+           (condition-case err
+               (run-hook-with-args 'lisp-jit-lock-functions start next)
+             ;; If the user quits (which shouldn't happen in normal on-the-fly
+             ;; lisp-jit-locking), make sure the fontification will be performed
+             ;; before displaying the block again.
+             (quit (put-text-property start next 'fontified nil)
+                   (funcall 'signal (car err) (cdr err))))
 
-            ;; The redisplay engine has already rendered the buffer up-to
-            ;; `orig-start' and won't notice if the above lisp-jit-lock-functions
-            ;; changed the appearance of any part of the buffer prior
-            ;; to that.  So if `start' is before `orig-start', we need to
-            ;; cause a new redisplay cycle after this one so that any changes
-            ;; are properly reflected on screen.
-            ;; To make such repeated redisplay happen less often, we can
-            ;; eagerly extend the refontified region with
-            ;; lisp-jit-lock-after-change-extend-region-functions.
-            (when (< start orig-start)
-              (run-with-timer 0 nil 'lisp-jit-lock-force-redisplay
-                              (current-buffer) start orig-start))
+           ;; The redisplay engine has already rendered the buffer up-to
+           ;; `orig-start' and won't notice if the above lisp-jit-lock-functions
+           ;; changed the appearance of any part of the buffer prior
+           ;; to that.  So if `start' is before `orig-start', we need to
+           ;; cause a new redisplay cycle after this one so that any changes
+           ;; are properly reflected on screen.
+           ;; To make such repeated redisplay happen less often, we can
+           ;; eagerly extend the refontified region with
+           ;; lisp-jit-lock-after-change-extend-region-functions.
+           (when (< start orig-start)
+             (run-with-timer 0 nil 'lisp-jit-lock-force-redisplay
+                             (current-buffer) start orig-start))
 
-            ;; Find the start of the next chunk, if any.
-            (setq start (text-property-any next end 'fontified nil))))))))
+           ;; Find the start of the next chunk, if any.
+           (setq start (text-property-any next end 'fontified nil))))))))
 
 (defun lisp-jit-lock-force-redisplay (buf start end)
   "Force the display engine to re-render buffer BUF from START to END."
   (with-current-buffer buf
     (with-buffer-prepared-for-lisp-jit-lock
-        ;; Don't cause refontification (it's already been done), but just do
-        ;; some random buffer change, so as to force redisplay.
-        (put-text-property start end 'fontified t))))
+     ;; Don't cause refontification (it's already been done), but just do
+     ;; some random buffer change, so as to force redisplay.
+     (put-text-property start end 'fontified t))))
 
 
 
@@ -545,15 +545,15 @@ Defaults to the whole buffer.  END can be out of bounds."
         (with-current-buffer buffer
           ;; (message "Jit-Defer %s" (buffer-name))
           (with-buffer-prepared-for-lisp-jit-lock
-              (let ((pos (point-min)))
-                (while
-                    (progn
-                      (when (eq (get-text-property pos 'fontified) 'defer)
-                        (put-text-property
-                         pos (setq pos (next-single-property-change
-                                        pos 'fontified nil (point-max)))
-                         'fontified nil))
-                      (setq pos (next-single-property-change pos 'fontified)))))))))
+           (let ((pos (point-min)))
+             (while
+                 (progn
+                   (when (eq (get-text-property pos 'fontified) 'defer)
+                     (put-text-property
+                      pos (setq pos (next-single-property-change
+                                     pos 'fontified nil (point-max)))
+                      'fontified nil))
+                   (setq pos (next-single-property-change pos 'fontified)))))))))
     (setq lisp-jit-lock-defer-buffers nil)
     ;; Force fontification of the visible parts.
     (let ((lisp-jit-lock-defer-timer nil))
@@ -571,28 +571,28 @@ Defaults to the whole buffer.  END can be out of bounds."
         (when lisp-jit-lock-context-unfontify-pos
           ;; (message "Jit-Context %s" (buffer-name))
           (save-restriction
-           (widen)
-           (when (and (>= lisp-jit-lock-context-unfontify-pos (point-min))
-                      (< lisp-jit-lock-context-unfontify-pos (point-max)))
-             ;; If we're in text that matches a complex multi-line
-             ;; font-lock pattern, make sure the whole text will be
-             ;; redisplayed eventually.
-             ;; Despite its name, we treat lisp-jit-lock-defer-multiline here
-             ;; rather than in lisp-jit-lock-defer since it has to do with multiple
-             ;; lines, i.e. with context.
-             (when (get-text-property lisp-jit-lock-context-unfontify-pos
-                                      'lisp-jit-lock-defer-multiline)
-               (setq lisp-jit-lock-context-unfontify-pos
-                     (or (previous-single-property-change
-                          lisp-jit-lock-context-unfontify-pos
-                          'lisp-jit-lock-defer-multiline)
-                         (point-min))))
-             (with-buffer-prepared-for-lisp-jit-lock
-                 ;; Force contextual refontification.
-                 (remove-text-properties
-                  lisp-jit-lock-context-unfontify-pos (point-max)
-                  '(fontified nil lisp-jit-lock-defer-multiline nil)))
-             (setq lisp-jit-lock-context-unfontify-pos (point-max)))))))))
+            (widen)
+            (when (and (>= lisp-jit-lock-context-unfontify-pos (point-min))
+                       (< lisp-jit-lock-context-unfontify-pos (point-max)))
+              ;; If we're in text that matches a complex multi-line
+              ;; font-lock pattern, make sure the whole text will be
+              ;; redisplayed eventually.
+              ;; Despite its name, we treat lisp-jit-lock-defer-multiline here
+              ;; rather than in lisp-jit-lock-defer since it has to do with multiple
+              ;; lines, i.e. with context.
+              (when (get-text-property lisp-jit-lock-context-unfontify-pos
+                                       'lisp-jit-lock-defer-multiline)
+                (setq lisp-jit-lock-context-unfontify-pos
+                      (or (previous-single-property-change
+                           lisp-jit-lock-context-unfontify-pos
+                           'lisp-jit-lock-defer-multiline)
+                          (point-min))))
+              (with-buffer-prepared-for-lisp-jit-lock
+               ;; Force contextual refontification.
+               (remove-text-properties
+                lisp-jit-lock-context-unfontify-pos (point-max)
+                '(fontified nil lisp-jit-lock-defer-multiline nil)))
+              (setq lisp-jit-lock-context-unfontify-pos (point-max)))))))))
 
 (defvar lisp-jit-lock-start) (defvar lisp-jit-lock-end) ; Dynamically scoped variables.
 (defvar lisp-jit-lock-after-change-extend-region-functions nil
@@ -635,21 +635,21 @@ range of changed text."
           (lisp-jit-lock-end end)
           (inhibit-point-motion-hooks t))
       (with-silent-modifications
-          (save-excursion
-           (condition-case nil
-               (progn
-                 (backward-up-list)
-                 (let ((end-of-current-sexp (end-of-sexp-at-point)))
-                   (lisp-jit-lock-up-list-until-match *lisp-jit-lock-form-regexp*)
-                   (setf lisp-jit-lock-start (point)
-                         lisp-jit-lock-end (end-of-sexp-at-point)
-                         ;; end-of-current-sexp
-                         )
-                   (message "REFONTIFY: %S"
-                            (buffer-substring-no-properties
-                             lisp-jit-lock-start
-                             lisp-jit-lock-end))))
-             (error)))
+        (save-excursion
+          (condition-case nil
+              (progn
+                (backward-up-list)
+                (let ((end-of-current-sexp (end-of-sexp-at-point)))
+                  (lisp-jit-lock-up-list-until-match *lisp-jit-lock-form-regexp*)
+                  (setf lisp-jit-lock-start (point)
+                        lisp-jit-lock-end (end-of-sexp-at-point)
+                        ;; end-of-current-sexp
+                        )
+                  (message "REFONTIFY: %S"
+                           (buffer-substring-no-properties
+                            lisp-jit-lock-start
+                            lisp-jit-lock-end))))
+            (error)))
         ;; Make sure we change at least one char (in case of deletions).
         (setf lisp-jit-lock-end (min (max lisp-jit-lock-end (1+ start)) (point-max)))
         ;; Request refontification.
@@ -668,42 +668,42 @@ range of changed text."
 ;;;
 
 (eval-after-load
- "font-lock"
- '(progn
-   (redefun font-lock-turn-on-thing-lock ()
-     (case (font-lock-value-in-major-mode font-lock-support-mode)
-       (fast-lock-mode (fast-lock-mode t))
-       (lazy-lock-mode (lazy-lock-mode t))
-       (jit-lock-mode
-        ;; Prepare for jit-lock
-        (remove-hook 'after-change-functions
-                     'font-lock-after-change-function t)
-        (setq-local font-lock-fontify-buffer-function
-                    'jit-lock-refontify)
-        ;; Don't fontify eagerly (and don't abort if the buffer is large).
-        (setq-local font-lock-fontified t)
-        ;; Use jit-lock.
-        (jit-lock-register 'font-lock-fontify-region
-                           (not font-lock-keywords-only))
-        ;; Tell jit-lock how we extend the region to refontify.
-        (add-hook 'jit-lock-after-change-extend-region-functions
-                  'font-lock-extend-jit-lock-region-after-change
-                  nil t))
-       (lisp-jit-lock-mode
-        ;; Prepare for jit-lock
-        (remove-hook 'after-change-functions
-                     'font-lock-after-change-function t)
-        (setq-local font-lock-fontify-buffer-function
-                    'lisp-jit-lock-refontify)
-        ;; Don't fontify eagerly (and don't abort if the buffer is large).
-        (setq-local font-lock-fontified t)
-        ;; Use jit-lock.
-        (lisp-jit-lock-register 'font-lock-fontify-region
-                                (not font-lock-keywords-only))
-        ;; Tell jit-lock how we extend the region to refontify.
-        (add-hook 'lisp-jit-lock-after-change-extend-region-functions
-                  'font-lock-extend-jit-lock-region-after-change
-                  nil t))))))
+    "font-lock"
+  '(progn
+     (redefun font-lock-turn-on-thing-lock ()
+       (case (font-lock-value-in-major-mode font-lock-support-mode)
+         (fast-lock-mode (fast-lock-mode t))
+         (lazy-lock-mode (lazy-lock-mode t))
+         (jit-lock-mode
+          ;; Prepare for jit-lock
+          (remove-hook 'after-change-functions
+                       'font-lock-after-change-function t)
+          (setq-local font-lock-fontify-buffer-function
+                      'jit-lock-refontify)
+          ;; Don't fontify eagerly (and don't abort if the buffer is large).
+          (setq-local font-lock-fontified t)
+          ;; Use jit-lock.
+          (jit-lock-register 'font-lock-fontify-region
+                             (not font-lock-keywords-only))
+          ;; Tell jit-lock how we extend the region to refontify.
+          (add-hook 'jit-lock-after-change-extend-region-functions
+                    'font-lock-extend-jit-lock-region-after-change
+                    nil t))
+         (lisp-jit-lock-mode
+          ;; Prepare for jit-lock
+          (remove-hook 'after-change-functions
+                       'font-lock-after-change-function t)
+          (setq-local font-lock-fontify-buffer-function
+                      'lisp-jit-lock-refontify)
+          ;; Don't fontify eagerly (and don't abort if the buffer is large).
+          (setq-local font-lock-fontified t)
+          ;; Use jit-lock.
+          (lisp-jit-lock-register 'font-lock-fontify-region
+                                  (not font-lock-keywords-only))
+          ;; Tell jit-lock how we extend the region to refontify.
+          (add-hook 'lisp-jit-lock-after-change-extend-region-functions
+                    'font-lock-extend-jit-lock-region-after-change
+                    nil t))))))
 
 
 (provide 'lisp-jit-lock)

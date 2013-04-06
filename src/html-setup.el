@@ -60,9 +60,9 @@
 (defvar *hexcolour-keywords*
   '(("#[[:xdigit:]]\\{6\\}"
      (0 (put-text-property (match-beginning 0)
-         (match-end 0)
-         'face (list :background
-                (match-string-no-properties 0)))))))
+                           (match-end 0)
+                           'face (list :background
+                                       (match-string-no-properties 0)))))))
 
 
 (defvar-local *markup-tags-context-func*
@@ -89,7 +89,7 @@ if such tag can be found."
   "If point is positioned inside tag then jump to the beginning
 of the matching tag, else fallback to `vim:motion-jump-item'."
   (macrolet ((inside? (x low high)
-               `(and (<= ,low ,x) (< ,x ,high))))
+                      `(and (<= ,low ,x) (< ,x ,high))))
     (if (let ((synt (char-syntax (char-after))))
           (or (char=? synt ?\()
               (char=? synt ?\))))
@@ -97,41 +97,41 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
       (let ((tag-start (point))
             (type nil)
             ;; note: be and ee are exclusive ends
-            (bb nil) ;; beginning of beginning tag
-            (be nil) ;; end       of beginning tag
-            (eb nil) ;; beginning of end       tag
-            (ee nil) ;; end       of end       tag
+            (bb nil)   ;; beginning of beginning tag
+            (be nil)   ;; end       of beginning tag
+            (eb nil)   ;; beginning of end       tag
+            (ee nil)   ;; end       of end       tag
             )
         (save-excursion
-         ;; handle case when we're inside the tag (_|_ being the point):
-         ;; <foo_|_> or </foo_|_>
-         (with-html-tags-context pre-bb pre-be pre-eb pre-ee
-           (let ((p (point)))
-             (cond ((inside? p pre-bb pre-be)
-                    (setf type 'start-tag
-                          tag-start pre-bb))
-                   ((inside? p pre-eb pre-ee)
-                    (setf type 'end-tag
-                          tag-start pre-eb)))
-             (when type
-               (setf bb pre-bb
-                     be pre-be
-                     eb pre-eb
-                     ee pre-ee))))
-         ;; if prev step yielded nothing
-         (unless type
-           ;; scan one token at a time
-           (while (and (setf type (nxml-tokenize-forward))
-                       (not (memq type '(start-tag end-tag partial-end-tag))))
-             (setf tag-start (point)))
-           ;; if interesting tag was found
-           (when (memq type '(start-tag end-tag partial-end-tag))
-             (goto-char tag-start)
-             (with-html-tags-context pre-bb pre-be pre-eb pre-ee
-               (setf bb pre-bb
-                     be pre-be
-                     eb pre-eb
-                     ee pre-ee)))))
+          ;; handle case when we're inside the tag (_|_ being the point):
+          ;; <foo_|_> or </foo_|_>
+          (with-html-tags-context pre-bb pre-be pre-eb pre-ee
+                                  (let ((p (point)))
+                                    (cond ((inside? p pre-bb pre-be)
+                                           (setf type 'start-tag
+                                                 tag-start pre-bb))
+                                          ((inside? p pre-eb pre-ee)
+                                           (setf type 'end-tag
+                                                 tag-start pre-eb)))
+                                    (when type
+                                      (setf bb pre-bb
+                                            be pre-be
+                                            eb pre-eb
+                                            ee pre-ee))))
+          ;; if prev step yielded nothing
+          (unless type
+            ;; scan one token at a time
+            (while (and (setf type (nxml-tokenize-forward))
+                        (not (memq type '(start-tag end-tag partial-end-tag))))
+              (setf tag-start (point)))
+            ;; if interesting tag was found
+            (when (memq type '(start-tag end-tag partial-end-tag))
+              (goto-char tag-start)
+              (with-html-tags-context pre-bb pre-be pre-eb pre-ee
+                                      (setf bb pre-bb
+                                            be pre-be
+                                            eb pre-eb
+                                            ee pre-ee)))))
         (if (not (null? bb)) ;; if bb is non-nil then interesting type was found
           (progn
             ;; combined case of tag and open/closing paren
@@ -173,7 +173,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   "Similar to `vim:lisp-up-list' - jump to the end of enclosing tag exclusively."
   (interactive)
   (with-html-tags-context bb be eb ee
-    (goto-char ee)))
+                          (goto-char ee)))
 
 (vimmize-motion markup-forward-up-element
                 :name vim:markup-forward-up-element

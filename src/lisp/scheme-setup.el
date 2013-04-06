@@ -70,9 +70,9 @@
            ;;     -     - the REPL interaction channel will be standard
            ;;             input and standard output
            (let ((command-args
-                   (format " -:h1048576,S,daR1- -e \"(load \\\"%s\\\")\" -"
-                           (concat +prog-data-path+
-                                   "/gambit-init.scm"))))
+                  (format " -:h1048576,S,daR1- -e \"(load \\\"%s\\\")\" -"
+                          (concat +prog-data-path+
+                                  "/gambit-init.scm"))))
              (cond
                ((executable-find "gsc")
                 `(gambit
@@ -113,89 +113,89 @@
 (require 'scheme-complete)
 
 (eval-after-load
- 'quack
- '(begin
-   (redefun quack-run-scheme-prompt ()
-     (let* ((last    (car quack-run-scheme-prompt-history))
-            (default-implementation (caar +scheme-implementations+))
-            (default-name (symbol->string
-                           default-implementation))
-            (default (assoc-value 'command
-                                  (assq default-implementation
-                                        +scheme-implementations+))
-                     ;; (or (and quack-run-scheme-prompt-defaults-to-last-p
-                     ;;          last)
-                     ;;     quack-default-program
-                     ;;     scheme-program-name
-                     ;;     last
-                     ;;     "mzscheme")
-                     )
-            (program-name (let ((minibuffer-allow-text-properties nil))
-                            (completing-read-vanilla
-                             (concat "Scheme implementation "
-                                     (if default
-                                       (format "(default %S) "
-                                               default-name)
-                                       ""))
-                             (mapcar (lambda (entry)
-                                       (symbol->string
-                                        (car entry)))
-                                     +scheme-implementations+)
-                             nil                              ;; predicate
-                             nil                              ;; require-match
-                             nil                              ;; initial-input
-                             'quack-run-scheme-prompt-history ;; history
-                             default-name)))
-            (program (or (assoc-value 'command
-                                      (assoc (string->symbol program-name)
-                                             +scheme-implementations+))
-                         default)))
-       (quack-remember-program-maybe program)
-       program))
+    'quack
+  '(begin
+     (redefun quack-run-scheme-prompt ()
+       (let* ((last    (car quack-run-scheme-prompt-history))
+              (default-implementation (caar +scheme-implementations+))
+              (default-name (symbol->string
+                             default-implementation))
+              (default (assoc-value 'command
+                                    (assq default-implementation
+                                          +scheme-implementations+))
+                ;; (or (and quack-run-scheme-prompt-defaults-to-last-p
+                ;;          last)
+                ;;     quack-default-program
+                ;;     scheme-program-name
+                ;;     last
+                ;;     "mzscheme")
+                )
+              (program-name (let ((minibuffer-allow-text-properties nil))
+                              (completing-read-vanilla
+                               (concat "Scheme implementation "
+                                       (if default
+                                         (format "(default %S) "
+                                                 default-name)
+                                         ""))
+                               (mapcar (lambda (entry)
+                                         (symbol->string
+                                          (car entry)))
+                                       +scheme-implementations+)
+                               nil                             ;; predicate
+                               nil                             ;; require-match
+                               nil                             ;; initial-input
+                               'quack-run-scheme-prompt-history ;; history
+                               default-name)))
+              (program (or (assoc-value 'command
+                                        (assoc (string->symbol program-name)
+                                               +scheme-implementations+))
+                           default)))
+         (quack-remember-program-maybe program)
+         program))
 
-   ;; this just removes annoying quack warnings on scheme-mode startup
-   (redefun quack-shared-mode-hookfunc-stuff ()
-     ;; Install the Quack keymap and menu items.
-     (local-set-key quack-scheme-mode-keymap-prefix quack-scheme-mode-keymap)
-     (quack-when-xemacs
-      (when (featurep 'menubar)
-        ;;(set-buffer-menubar current-menubar)
-        ;; TODO: For XEmacs, we could have two versions of this menu -- the popup
-        ;;       one would have the Global submenu, but the menubar one would have
-        ;;       the Global submenu only if quack-global-menu-p were nil.
-        (add-submenu nil quack-scheme-mode-menuspec)
-        (set-menubar-dirty-flag)
-        (setq mode-popup-menu quack-scheme-mode-menuspec)))
+     ;; this just removes annoying quack warnings on scheme-mode startup
+     (redefun quack-shared-mode-hookfunc-stuff ()
+       ;; Install the Quack keymap and menu items.
+       (local-set-key quack-scheme-mode-keymap-prefix quack-scheme-mode-keymap)
+       (quack-when-xemacs
+        (when (featurep 'menubar)
+          ;;(set-buffer-menubar current-menubar)
+          ;; TODO: For XEmacs, we could have two versions of this menu -- the popup
+          ;;       one would have the Global submenu, but the menubar one would have
+          ;;       the Global submenu only if quack-global-menu-p were nil.
+          (add-submenu nil quack-scheme-mode-menuspec)
+          (set-menubar-dirty-flag)
+          (setq mode-popup-menu quack-scheme-mode-menuspec)))
 
-     ;; Bind the paren-matching keys.
-     (local-set-key ")" 'quack-insert-closing-paren)
-     (local-set-key "]" 'quack-insert-closing-bracket)
+       ;; Bind the paren-matching keys.
+       (local-set-key ")" 'quack-insert-closing-paren)
+       (local-set-key "]" 'quack-insert-closing-bracket)
 
-     (local-set-key "(" 'quack-insert-opening-paren)
-     (local-set-key "[" 'quack-insert-opening-bracket)
+       (local-set-key "(" 'quack-insert-opening-paren)
+       (local-set-key "[" 'quack-insert-opening-bracket)
 
-     ;; Steal any find-file bindings.
-     (when quack-remap-find-file-bindings-p
-       (quack-locally-steal-key-bindings 'find-file     'quack-find-file)
-       (quack-locally-steal-key-bindings 'ido-find-file 'quack-find-file))
+       ;; Steal any find-file bindings.
+       (when quack-remap-find-file-bindings-p
+         (quack-locally-steal-key-bindings 'find-file     'quack-find-file)
+         (quack-locally-steal-key-bindings 'ido-find-file 'quack-find-file))
 
-     ;; Fight against tabs.
-     (when quack-tabs-are-evil-p
-       (setq indent-tabs-mode nil))
+       ;; Fight against tabs.
+       (when quack-tabs-are-evil-p
+         (setq indent-tabs-mode nil))
 
-     ;; Remove character compositions, to get rid of any pretty-lambda.  (Note:
-     ;; This is bad, if it turns out compositions are used for other purposes in
-     ;; buffers that are edited with Scheme Mode.)
-     (when quack-pretty-lambda-supported-p
-       (eval '(decompose-region (point-min) (point-max))))
+       ;; Remove character compositions, to get rid of any pretty-lambda.  (Note:
+       ;; This is bad, if it turns out compositions are used for other purposes in
+       ;; buffers that are edited with Scheme Mode.)
+       (when quack-pretty-lambda-supported-p
+         (eval '(decompose-region (point-min) (point-max))))
 
-     ;; Install fontification
-     (when quack-fontify-style
-       (quack-install-fontification))
+       ;; Install fontification
+       (when quack-fontify-style
+         (quack-install-fontification))
 
-     ;; Die! Die! Die!
-     (quack-when-xemacs
-      (quack-install-global-menu)))))
+       ;; Die! Die! Die!
+       (quack-when-xemacs
+        (quack-install-global-menu)))))
 
 (defun scheme-describe-current-symbol ()
   "Give some help on symbol under point if possible."
@@ -258,7 +258,7 @@
 
 
 (define-switch-to-interpreter
-    switch-to-scheme-repl
+  switch-to-scheme-repl
   ("*scheme*")
   (run-scheme scheme-program-name)
   :doc "Pop to scheme repl."
@@ -335,7 +335,7 @@
 
 (define-circular-jumps
     scheme-repl-next-prompt
-  scheme-repl-prev-prompt
+    scheme-repl-prev-prompt
   (concat "^" +scheme-prompt-regexp+)
   (unless (string= (buffer-name) "*scheme*")
     (error "Not in the scheme buffer")))
@@ -353,22 +353,22 @@
             (let ((prev-output nil))
               (lambda (output)
                 (let ((new-output
-                        (if (and
-                             (not (= 0
-                                     (count-lines (point-min)
-                                                  (point-max))))
-                             (string-match-pure?
-                              (concat "\\`"
-                                      +scheme-prompt-regexp+
-                                      "\\'")
-                              output)
-                             (not (null? prev-output))
-                             ;; last character is not newline
-                             (not (char= (string->char "\n")
-                                         (aref prev-output
-                                               (- (length prev-output) 1)))))
-                          (concat "\n" output)
-                          output)))
+                       (if (and
+                            (not (= 0
+                                    (count-lines (point-min)
+                                                 (point-max))))
+                            (string-match-pure?
+                             (concat "\\`"
+                                     +scheme-prompt-regexp+
+                                     "\\'")
+                             output)
+                            (not (null? prev-output))
+                            ;; last character is not newline
+                            (not (char= (string->char "\n")
+                                        (aref prev-output
+                                              (- (length prev-output) 1)))))
+                         (concat "\n" output)
+                         output)))
                   (setf prev-output new-output)
                   new-output)))
             nil ;; put at the start

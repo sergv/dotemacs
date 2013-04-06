@@ -30,15 +30,15 @@
 
 
 (eval-after-load
- "minimap"
- '(progn
-   (add-hook '&&hdr-outline-view-change-hook (lambda ()
-                                               (when (minimap-enabled?)
-                                                 minimap-sync-overlays)))
+    "minimap"
+  '(progn
+     (add-hook '&&hdr-outline-view-change-hook (lambda ()
+                                                 (when (minimap-enabled?)
+                                                   minimap-sync-overlays)))
 
-   (def-keys-for-map minimap-mode-map
-     ("<escape>" remove-buffer-and-window)
-     ("q"        remove-buffer-and-window))))
+     (def-keys-for-map minimap-mode-map
+       ("<escape>" remove-buffer-and-window)
+       ("q"        remove-buffer-and-window))))
 
 
 (provide 'minimap-setup)

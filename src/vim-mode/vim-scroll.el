@@ -56,7 +56,7 @@
   (let ((p (point))
         (c (or count (/ (vim:num-visible-lines) 2))))
     (save-excursion
-     (scroll-down (min (vim:max-scroll-up) c)))
+      (scroll-down (min (vim:max-scroll-up) c)))
     (forward-line (- c))
     (when (= (line-number-at-pos p)
              (line-number-at-pos (point)))
@@ -69,7 +69,7 @@
   (let ((p (point))
         (c (or count (/ (vim:num-visible-lines) 2))))
     (save-excursion
-     (scroll-up (min (vim:max-scroll-down) c)))
+      (scroll-up (min (vim:max-scroll-down) c)))
     (forward-line c)
     (when (= (line-number-at-pos p)
              (line-number-at-pos (point)))

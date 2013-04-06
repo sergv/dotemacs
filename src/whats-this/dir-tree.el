@@ -29,10 +29,10 @@
 
 (defun dir-tree-divide-paths (paths)
   (loop
-      for p in paths
-      collect
-       (cons (file-name-nondirectory p)
-             p)))
+    for p in paths
+    collect
+    (cons (file-name-nondirectory p)
+          p)))
 
 
 (defun dir-tree-locate ()

@@ -159,7 +159,7 @@ Point is held in a marker in variable
 error exits."
   `(let ((align-let-save-point-marker (point-marker)))
      (unwind-protect
-          (progn ,@body)
+         (progn ,@body)
        (goto-char align-let-save-point-marker))))
 
 (defun align-let-looking-at-nest ()
@@ -170,12 +170,12 @@ There can be comments and whitespace between the two parens like
      ( ..."
 
   (save-excursion
-   (align-let-forward-comments)
-   (and (looking-at "\\s(")
-        (progn
-          (goto-char (match-end 0))
-          (align-let-forward-comments)
-          (looking-at "\\s(")))))
+    (align-let-forward-comments)
+    (and (looking-at "\\s(")
+         (progn
+           (goto-char (match-end 0))
+           (align-let-forward-comments)
+           (looking-at "\\s(")))))
 
 (defun align-let-backward-to-code ()
   "Move point back to the start of a preceding sexp form.
@@ -200,8 +200,8 @@ from `beginning-of-defun'.  If it finds nothing then just go to
 (defun align-let-same-line-p (point1 point2)
   "Return non-nil if positions POINT1 and POINT2 are on the same line."
   (save-excursion
-   (goto-char (min point1 point2))
-   (not (search-forward "\n" (max point1 point2) t))))
+    (goto-char (min point1 point2))
+    (not (search-forward "\n" (max point1 point2) t))))
 
 (defun align-let-forward-sexp-must (n)
   "Move `forward-sexp' N times or throw an error.
@@ -240,14 +240,14 @@ The return is t for a let, symbol setq for a setq, or nil if neither."
    (let (end name prop count)
      (and (progn
             (align-let-forward-comments)
-            (looking-at "\\s("))  ;; must be a "(..." form
+            (looking-at "\\s(")) ;; must be a "(..." form
 
           (condition-case nil
               (progn
                 (goto-char (1+ (point))) ;; past opening "("
                 (forward-sexp)
                 (setq end (point))
-                (backward-sexp)          ;; first contained sexp
+                (backward-sexp) ;; first contained sexp
                 t)
             (error nil))
 
@@ -345,53 +345,53 @@ variable and the value expression (where point is now) are on the
 same line."
 
   (save-excursion
-   (while (progn
-            (save-excursion
-             (when (or (eq type 'setq)
-                       (condition-case nil
-                           (progn (down-list 1) t)
-                         (error nil))) ;; ignore bare variables "var"
+    (while (progn
+             (save-excursion
+               (when (or (eq type 'setq)
+                         (condition-case nil
+                             (progn (down-list 1) t)
+                           (error nil))) ;; ignore bare variables "var"
 
-               ;; allow ( and var on diff lines, and skip white for `setq'
-               (align-let-forward-comments)
+                 ;; allow ( and var on diff lines, and skip white for `setq'
+                 (align-let-forward-comments)
 
-               (let ((var-point (point)) ;; after "(" of the element
-                     (var-col   (current-column)))
+                 (let ((var-point (point)) ;; after "(" of the element
+                       (var-col   (current-column)))
 
-                 (and (condition-case nil
-                          (progn (forward-sexp) t)
-                        (error nil)) ;; ignore empty "()"
+                   (and (condition-case nil
+                            (progn (forward-sexp) t)
+                          (error nil)) ;; ignore empty "()"
 
-                      ;; ignore incomplete "(var" at end of buffer
-                      (progn
-                        (align-let-forward-comments)
-                        (not (eobp)))
+                        ;; ignore incomplete "(var" at end of buffer
+                        (progn
+                          (align-let-forward-comments)
+                          (not (eobp)))
 
-                      ;; ignore var-only "(foo)" as found in scheme
-                      ;; `(and-let* ((foo) ...)'
-                      (condition-case nil
-                          (progn
-                            (forward-sexp)
-                            (backward-sexp)
-                            t)
-                        (error nil))
+                        ;; ignore var-only "(foo)" as found in scheme
+                        ;; `(and-let* ((foo) ...)'
+                        (condition-case nil
+                            (progn
+                              (forward-sexp)
+                              (backward-sexp)
+                              t)
+                          (error nil))
 
-                      ;; point now at start of VALUE part of (VAR VALUE)
+                        ;; point now at start of VALUE part of (VAR VALUE)
 
-                      ;; ignore VAR on a line of its own like
-                      ;;     (let ((my-long-variable-name
-                      ;;            "foo")
-                      (align-let-same-line-p (point) var-point)
+                        ;; ignore VAR on a line of its own like
+                        ;;     (let ((my-long-variable-name
+                        ;;            "foo")
+                        (align-let-same-line-p (point) var-point)
 
-                      ;; found two-element "(VAR VALUE ...)"
-                      (funcall func var-point var-col)))))
+                        ;; found two-element "(VAR VALUE ...)"
+                        (funcall func var-point var-col)))))
 
-            ;; step to next (VAR VALUE) elem
-            (align-let-forward-comments)
-            (and (not (eobp))
-                 (condition-case nil
-                     (progn (forward-sexp (if (eq type 'setq) 2 1)) t)
-                   (error nil)))))))
+             ;; step to next (VAR VALUE) elem
+             (align-let-forward-comments)
+             (and (not (eobp))
+                  (condition-case nil
+                      (progn (forward-sexp (if (eq type 'setq) 2 1)) t)
+                    (error nil)))))))
 
 ;;;###autoload
 (defun align-let ()
@@ -461,33 +461,33 @@ URL `http://user42.tuxfamily.org/align-let/index.html'"
   (interactive)
   (save-excursion
 
-   (let ((type  (align-let-find-let))
-         (width 0))
-     (align-let-doelems
-      type
-      (lambda (var-point var-col)
-        (backward-sexp) ;; start of variable
-        (forward-sexp)  ;; end of variable
-        ;; quietly impose a minimum 1 space, so as not to run the variable
-        ;; into the value (zero), nor to delete part of the variable name
-        ;; (negative)
-        (setq width (max width (+ (max 1 align-let-spaces)
-                                  (- (current-column) var-col))))))
-     (align-let-doelems
-      type
-      (lambda (var-point var-col)
-        (let ((this-width (- (current-column) var-col)))
-          (cond ((> this-width width)
-                 ;; reduce space
-                 (move-to-column (+ var-col width) t)
-                 (let ((beg (point)))
-                   (forward-sexp)
-                   (backward-sexp)
-                   (delete-region beg (point))))
-                ((< this-width width)
-                 ;; increase space
-                 (insert (make-string (- width this-width)
-                                      ? ))))))))))
+    (let ((type  (align-let-find-let))
+          (width 0))
+      (align-let-doelems
+       type
+       (lambda (var-point var-col)
+         (backward-sexp) ;; start of variable
+         (forward-sexp)  ;; end of variable
+         ;; quietly impose a minimum 1 space, so as not to run the variable
+         ;; into the value (zero), nor to delete part of the variable name
+         ;; (negative)
+         (setq width (max width (+ (max 1 align-let-spaces)
+                                   (- (current-column) var-col))))))
+      (align-let-doelems
+       type
+       (lambda (var-point var-col)
+         (let ((this-width (- (current-column) var-col)))
+           (cond ((> this-width width)
+                  ;; reduce space
+                  (move-to-column (+ var-col width) t)
+                  (let ((beg (point)))
+                    (forward-sexp)
+                    (backward-sexp)
+                    (delete-region beg (point))))
+                 ((< this-width width)
+                  ;; increase space
+                  (insert (make-string (- width this-width)
+                                       ? ))))))))))
 
 ;;;###autoload
 (defun align-let-keybinding ()
@@ -531,35 +531,35 @@ indent and align-let will both insert or delete characters."
 
   (interactive "r")
   (save-excursion
-   (goto-char start)
-   (setq end (copy-marker end t))
+    (goto-char start)
+    (setq end (copy-marker end t))
 
-   ;; actually want to go forward outside a string, but backward is good
-   ;; enough since if it is a string at START then it's not a `let' and
-   ;; will be skipped by the first loop iteration
-   (align-let-backward-to-code)
+    ;; actually want to go forward outside a string, but backward is good
+    ;; enough since if it is a string at START then it's not a `let' and
+    ;; will be skipped by the first loop iteration
+    (align-let-backward-to-code)
 
-   (while (progn
-            (align-let-forward-comments)
-            (< (point) end))
+    (while (progn
+             (align-let-forward-comments)
+             (< (point) end))
 
-     (cond ((looking-at "\\s)")
-            ;; end of "...)" form, up forward out of it
-            (goto-char (match-end 0)))
+      (cond ((looking-at "\\s)")
+             ;; end of "...)" form, up forward out of it
+             (goto-char (match-end 0)))
 
-           ((looking-at "\\s(")
-            ;; start of "(..." form, check for `let', and go down into it
-            (condition-case nil
-                (if (save-excursion (align-let-looking-at-let))
-                  (align-let))
-              (error nil))
-            (goto-char (1+ (point))))
+            ((looking-at "\\s(")
+             ;; start of "(..." form, check for `let', and go down into it
+             (condition-case nil
+                 (if (save-excursion (align-let-looking-at-let))
+                   (align-let))
+               (error nil))
+             (goto-char (1+ (point))))
 
-           (t
-            ;; something else, symbol, string, whatnot, skip forward over it
-            (condition-case nil
-                (forward-sexp)
-              (error (goto-char end))))))))
+            (t
+             ;; something else, symbol, string, whatnot, skip forward over it
+             (condition-case nil
+                 (forward-sexp)
+               (error (goto-char end))))))))
 
 (provide 'align-let)
 

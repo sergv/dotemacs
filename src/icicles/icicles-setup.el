@@ -30,8 +30,8 @@
       (let ((candidates ()))
         (cond ((vectorp minibuffer-completion-table)
                (mapatoms (lambda (symb) (when (or (null minibuffer-completion-predicate)
-                                                  (funcall minibuffer-completion-predicate symb))
-                                          (push (symbol-name symb) candidates)))
+                                             (funcall minibuffer-completion-predicate symb))
+                                     (push (symbol-name symb) candidates)))
                          minibuffer-completion-table))
 
               ((and (consp minibuffer-completion-table)
@@ -48,22 +48,22 @@
                                         :prefix-length icicle-swank-prefix-length)))
 
         (let ((icicle-extra-candidates
-                (icicle-remove-if-not
-                 (lambda (cand) (string-match-p input cand)) icicle-extra-candidates))
+               (icicle-remove-if-not
+                (lambda (cand) (string-match-p input cand)) icicle-extra-candidates))
               (icicle-proxy-candidates
-                (icicle-remove-if-not
-                 (lambda (cand) (string-match-p input cand)) icicle-proxy-candidates))
+               (icicle-remove-if-not
+                (lambda (cand) (string-match-p input cand)) icicle-proxy-candidates))
               (filtered-candidates
-                (icicle-transform-candidates
-                 (append icicle-extra-candidates icicle-proxy-candidates
-                         (icicle-remove-if-not
-                          (lambda (cand)
-                            (let ((case-fold-search
-                                    completion-ignore-case))
-                              (and (icicle-filter-wo-input cand)
-                                   (or (not icicle-must-pass-after-match-predicate)
-                                       (funcall icicle-must-pass-after-match-predicate cand)))))
-                          candidates)))))
+               (icicle-transform-candidates
+                (append icicle-extra-candidates icicle-proxy-candidates
+                        (icicle-remove-if-not
+                         (lambda (cand)
+                           (let ((case-fold-search
+                                  completion-ignore-case))
+                             (and (icicle-filter-wo-input cand)
+                                  (or (not icicle-must-pass-after-match-predicate)
+                                      (funcall icicle-must-pass-after-match-predicate cand)))))
+                         candidates)))))
           (when (consp filtered-candidates)
             (setq icicle-common-match-string  (icicle-expanded-common-match input filtered-candidates)))
           (unless filtered-candidates  (setq icicle-common-match-string  nil))

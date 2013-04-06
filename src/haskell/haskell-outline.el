@@ -32,8 +32,8 @@
          (is-special (string-match-pure? +haskell-special-line-regexp+ line))
          (level (let (buffer-invisibility-spec)
                   (save-excursion
-                   (skip-chars-forward "\t ")
-                   (current-column)))))
+                    (skip-chars-forward "\t ")
+                    (current-column)))))
     (if is-special
       level
       (1+ level))))
@@ -41,29 +41,29 @@
 (defun haskell-hide-all ()
   (interactive)
   (save-excursion
-   (save-match-data
-    (goto-char (point-min))
-    (let ((re (mapconcat (lambda (x)
-                           (concat "\\(?:" x "\\)"))
-                         (list haskell-toplevel-signature-regexp
-                               haskell-toplevel-data-declaration-regexp
-                               haskell-toplevel-class-declaration-regexp
-                               haskell-toplevel-instance-declaration-regexp
-                               haskell-main-function-regexp)
-                         "\\|")
+    (save-match-data
+      (goto-char (point-min))
+      (let ((re (mapconcat (lambda (x)
+                             (concat "\\(?:" x "\\)"))
+                           (list haskell-toplevel-signature-regexp
+                                 haskell-toplevel-data-declaration-regexp
+                                 haskell-toplevel-class-declaration-regexp
+                                 haskell-toplevel-instance-declaration-regexp
+                                 haskell-main-function-regexp)
+                           "\\|")
 
-              ;; (concat haskell-toplevel-signature-regexp
-              ;;         "\\|"
-              ;;         haskell-toplevel-data-declaration-regexp
-              ;;         "\\|"
-              ;;         haskell-toplevel-class-declaration-regexp
-              ;;         "\\|"
-              ;;         haskell-toplevel-instance-declaration-regexp
-              ;;         "\\|"
-              ;;         haskell-main-function-regexp)
-              ))
-      (while (re-search-forward re nil t)
-        (hide-subtree))))))
+                ;; (concat haskell-toplevel-signature-regexp
+                ;;         "\\|"
+                ;;         haskell-toplevel-data-declaration-regexp
+                ;;         "\\|"
+                ;;         haskell-toplevel-class-declaration-regexp
+                ;;         "\\|"
+                ;;         haskell-toplevel-instance-declaration-regexp
+                ;;         "\\|"
+                ;;         haskell-main-function-regexp)
+                ))
+        (while (re-search-forward re nil t)
+          (hide-subtree))))))
 
 (defun haskell-setup-folding ()
   (setq buffer-display-table (make-display-table))

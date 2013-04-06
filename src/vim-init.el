@@ -286,7 +286,7 @@ Basically swap current point with previous one."
 ;; apply given ex command to all ibuffer-selected buffers
 
 (vim:defcmd vim:apply-to-selected-buffers
-    ((argument:text command) nonrepeatable)
+  ((argument:text command) nonrepeatable)
   (if (eq? major-mode 'ibuffer-mode)
     (let ((selected-bufs (ibuffer-get-marked-buffers)))
       (for-each

@@ -8,8 +8,8 @@
 
 
 (defmacro make-cycle-on-lines-in-region
-    (begin end direction
-           &optional forward-func backward-func)
+  (begin end direction
+         &optional forward-func backward-func)
   "Return function than will
 go to COUNTh next or previous line in range [BEGIN, lines - END) where
 lines is line count in the current buffer. Never leaves point not within

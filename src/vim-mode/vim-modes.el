@@ -62,10 +62,10 @@
           ,@(cons '(cons 'vim:intercept-ESC-mode vim:intercept-ESC-keymap)
                   (mapcan (lambda (keym)
                             (let ((localname
-                                    (string->symbol
-                                     (replace-regexp-in-string
-                                      "mode-keymap" "mode-local-keymap"
-                                      (symbol->string keym)))))
+                                   (string->symbol
+                                    (replace-regexp-in-string
+                                     "mode-keymap" "mode-local-keymap"
+                                     (symbol->string keym)))))
                               (if (eq localname keym)
                                 (list `(cons ',vim-mode-name ,keym))
                                 (list `(cons ',vim-mode-name ,localname)
@@ -84,6 +84,7 @@
   "Defines a new VIM-mode with certain `name', mode-line-identifier `ident',
 activation `message', a `command-function' to be called when a
 vim-command should be executed, a `cursor' shape and a list of `keymaps'."
+  (declare (indent 2))
   (let* ((mode-name (vim:mode-name name))
          (pred-name (intern (concat (symbol-name mode-name) "-p")))
          (on-name (intern (concat "vim:activate-" (symbol-name name) "-mode")))

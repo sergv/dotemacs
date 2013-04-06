@@ -24,7 +24,7 @@
          (list "^imp\\(ort\\)?$"         "import")
          (list "^imp\\(ort\\)?q$"         "import qualified")
          (list "^qimp\\(ort\\)?$"         "import qualified")
-         ;(cons "##"                     "{-#  #-}")
+                                        ;(cons "##"                     "{-#  #-}")
          ))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))

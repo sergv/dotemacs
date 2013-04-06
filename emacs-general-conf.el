@@ -88,7 +88,7 @@
                  ("%l/"
                   (:eval (number-to-string
                           (count-lines (point-min)
-                           (point-max))))
+                                       (point-max))))
                   "(%p)"))
                 (column-number-mode
                  (2 " %c"))
@@ -128,10 +128,10 @@
       tramp-auto-save-directory (concat +prog-data-path+ "/tramp"))
 
 
-(setq-default indent-tabs-mode nil) ;;never use tabs for indentation
-(setq-default cursor-type 'box) ;'bar)
+(setq-default indent-tabs-mode nil) ;; never use tabs for indentation
+(setq-default cursor-type 'box)     ;; 'bar)
 (setf cursor-type 'box
-      ;; default-major-mode 'text-mode ;'lisp-interaction-mode
+      ;; default-major-mode 'text-mode ;;'lisp-interaction-mode
       tab-width 4
       tab-always-indent t)
 
@@ -146,10 +146,10 @@
 (setf x-select-enable-clipboard t
       interprogram-paste-function
       (if (platform-os-type? 'linux)
-        #'x-cut-buffer-or-selection-value
-        #'x-get-selection)
+          #'x-cut-buffer-or-selection-value
+          #'x-get-selection)
       query-replace-highlight t
-      query-replace-interactive nil ;do not use last search string as initial regexp
+      query-replace-interactive nil ;; do not use last search string as initial regexp
       search-highlight t
       undo-limit 1000000
       undo-outer-limit 32000000
@@ -159,7 +159,7 @@
       inhibit-startup-message t
       frame-title-format '("%f")
       scroll-step 1
-      case-fold-search nil   ;turn off ignorance of case during search
+      case-fold-search nil ;; turn off ignorance of case during search
       next-line-add-newlines nil
       read-file-name-completion-ignore-case t
 
@@ -186,8 +186,8 @@
 ;; backwards compatibility since default-buffer-file-coding-system
 ;; is deprecated in 23.2.
 (if (boundp buffer-file-coding-system)
-  (setq buffer-file-coding-system 'utf-8)
-  (setq default-buffer-file-coding-system 'utf-8))
+    (setq buffer-file-coding-system 'utf-8)
+    (setq default-buffer-file-coding-system 'utf-8))
 
 ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
@@ -268,12 +268,12 @@
 ;;;; customizations without dedicated setup file
 
 (eval-after-load "term" ;; ansi-term et al
-                 '(progn
-                   (setf ansi-term-color-vector
-                         ["#fdf6e3" "#586475" "#dc322f" "#859900" "#b58900"
-                                    "#268bd2" "#d33682" "#2aa198" "#839496"]
-                         term-buffer-maximum-size 0 ;; don't truncate anything
-                         )))
+  '(progn
+    (setf ansi-term-color-vector
+     ["#fdf6e3" "#586475" "#dc322f" "#859900" "#b58900"
+      "#268bd2" "#d33682" "#2aa198" "#839496"]
+     term-buffer-maximum-size 0 ;; don't truncate anything
+     )))
 
 (defadvice scroll-up (around
                       scroll-up-preserve-column

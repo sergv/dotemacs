@@ -6,8 +6,7 @@
 ;; Created: Wednesday, 25 July 2012
 ;; Description:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defun %emacs-boot--string-trim-whitespace (str)
   "Trim whitespaces from string"

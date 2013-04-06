@@ -71,24 +71,24 @@ in haskell-font-lock.el")
   "Removes hierarchihal modules qualification (e.g. Data.Map.null -> null,
  Prelude.++ -> ++, etc)"
   (save-match-data
-   (if (string-match (concat "^\\("
-                             haskell-module-quantification-regexp
-                             "\\)")
-                     name)
-     (replace-match "" t t name 1)
-     name)))
+    (if (string-match (concat "^\\("
+                              haskell-module-quantification-regexp
+                              "\\)")
+                      name)
+      (replace-match "" t t name 1)
+      name)))
 
 
 (defconst +haskell-compile-error-regexp+
   (rxx ((filename
-          (seq (*? "/"
-                   (+ (regex "[^/\n\t\r\f\v]")))
-               (? "/")
-               ;; that is, haskell filename should not contain spaces
-               (+? (regex "[^/\n\t\r\f\v ]"))
-               (or ".hs"
-                   ".lhs"
-                   ".hsc"))))
+         (seq (*? "/"
+                  (+ (regex "[^/\n\t\r\f\v]")))
+              (? "/")
+              ;; that is, haskell filename should not contain spaces
+              (+? (regex "[^/\n\t\r\f\v ]"))
+              (or ".hs"
+                  ".lhs"
+                  ".hsc"))))
     (group
      filename)
     ":"
@@ -150,13 +150,13 @@ in haskell-font-lock.el")
       (with-current-buffer buffer
         (goto-char (point-min))
         (save-match-data
-         (let ((continue t))
-           (while (and continue
-                       (re-search-forward +haskell-compile-error-regexp+ nil t))
-             (goto-char (match-beginning 0))
-             (if (looking-at-pure? +haskell-compile-warning-regexp+)
-               (forward-line 1)
-               (setq continue nil)))))
+          (let ((continue t))
+            (while (and continue
+                        (re-search-forward +haskell-compile-error-regexp+ nil t))
+              (goto-char (match-beginning 0))
+              (if (looking-at-pure? +haskell-compile-warning-regexp+)
+                (forward-line 1)
+                (setq continue nil)))))
         (setq *compile-caller-info* nil)
         (compile-goto-error)))))
 
@@ -183,10 +183,10 @@ entry in makefile and should be build with make.")
   (set (make-local-variable 'compilation-error-regexp-alist)
        (list
         (list +haskell-compile-warning-regexp+ ;; regex
-              2 ;; file-group
-              3 ;; line-group
-              4 ;; column-group
-              1 ;; type - 1 - warning
+              2                                ;; file-group
+              3                                ;; line-group
+              4                                ;; column-group
+              1                                ;; type - 1 - warning
               1 ;; hyperlink subexpression - this gets highlighted
               )
         (list +haskell-compile-error-regexp+

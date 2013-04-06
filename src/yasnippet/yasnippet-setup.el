@@ -100,9 +100,9 @@ simlifying encoding of several keys for one snippet."
                                       nil
                                       no-hierarchy-parents)))
            (yas/ignore-filenames-as-triggers
-             (or yas/ignore-filenames-as-triggers
-                 (file-exist? (concat directory
-                                      "/.yas-ignore-filenames-as-triggers"))))
+            (or yas/ignore-filenames-as-triggers
+                (file-exist? (concat directory
+                                     "/.yas-ignore-filenames-as-triggers"))))
            (mode-sym (and major-mode-and-parents
                           (car major-mode-and-parents)))
            (parents (if making-groups-sym
@@ -110,8 +110,8 @@ simlifying encoding of several keys for one snippet."
                       (rest major-mode-and-parents)))
            (snippet-defs nil)
            (make-groups-p
-             (or making-groups-sym
-                 (file-exist? (concat directory "/" ".yas-make-groups")))))
+            (or making-groups-sym
+                (file-exist? (concat directory "/" ".yas-make-groups")))))
       (with-temp-buffer
         (dolist (file (yas/subdirs directory 'no-subdirs-just-files))
           (when (file-readable-p file)

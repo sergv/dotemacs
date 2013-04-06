@@ -25,15 +25,15 @@
       ediff-patch-options "")
 
 (eval-after-load
- "ediff"
- '(progn
-   (add-hook 'ediff-keymap-setup-hook
-    (lambda ()
-      (def-keys-for-map ediff-mode-map
-        +control-x-prefix+
-        ("<down>"   ediff-next-difference)
-        ("<up>"     ediff-previous-difference)
-        ("<escape>" ediff-quit))))))
+    "ediff"
+  '(progn
+     (add-hook 'ediff-keymap-setup-hook
+               (lambda ()
+                 (def-keys-for-map ediff-mode-map
+                   +control-x-prefix+
+                   ("<down>"   ediff-next-difference)
+                   ("<up>"     ediff-previous-difference)
+                   ("<escape>" ediff-quit))))))
 
 (defun* ediff-diff-texts-recursive-edit (text-a
                                          text-b
@@ -52,24 +52,24 @@ Register quick exit function and show difference in recursive edit."
     (with-current-buffer buf-b
       (erase-buffer)
       (insert text-b))
-    (let (;; (ediff-quit-hook
+    (let ( ;; (ediff-quit-hook
           ;;   (append ediff-quit-hook
           ;;           (list (lambda ()
           ;;                   (exit-recursive-edit)))))
           (ediff-make-buffers-readonly-at-startup read-only)
           (orig-ediff-quit (symbol-function #'ediff-quit))
           (new-ediff-quit
-            (lambda (reverse-default-keep-variants)
-              (interactive "P")
-              (ediff-barf-if-not-control-buffer)
-              (let ((minibuffer-auto-raise t))
-                (ediff-really-quit reverse-default-keep-variants)
-                (exit-recursive-edit)))))
+           (lambda (reverse-default-keep-variants)
+             (interactive "P")
+             (ediff-barf-if-not-control-buffer)
+             (let ((minibuffer-auto-raise t))
+               (ediff-really-quit reverse-default-keep-variants)
+               (exit-recursive-edit)))))
       (fset 'ediff-quit new-ediff-quit)
       (ediff-buffers buf-a buf-b)
       ;; protect in case of abort-recursive-edit
       (unwind-protect
-           (recursive-edit)
+          (recursive-edit)
         (set-window-configuration win-conf)
         (kill-buffer buf-a)
         (kill-buffer buf-b)
@@ -82,24 +82,24 @@ Register quick exit function and show difference in recursive edit."
   "Run `ediff' on a pair of files. Also register quick exit function and restore
 window configuration on end of ediff session."
   (let ((win-conf (current-window-configuration)))
-    (let (;; (ediff-quit-hook
+    (let ( ;; (ediff-quit-hook
           ;;   (append ediff-quit-hook
           ;;           (list (lambda ()
           ;;                   (exit-recursive-edit)))))
           (ediff-make-buffers-readonly-at-startup read-only)
           (orig-ediff-quit (symbol-function #'ediff-quit))
           (new-ediff-quit
-            (lambda (reverse-default-keep-variants)
-              (interactive "P")
-              (ediff-barf-if-not-control-buffer)
-              (let ((minibuffer-auto-raise t))
-                (ediff-really-quit reverse-default-keep-variants)
-                (exit-recursive-edit)))))
+           (lambda (reverse-default-keep-variants)
+             (interactive "P")
+             (ediff-barf-if-not-control-buffer)
+             (let ((minibuffer-auto-raise t))
+               (ediff-really-quit reverse-default-keep-variants)
+               (exit-recursive-edit)))))
       (fset 'ediff-quit new-ediff-quit)
       (ediff file-a file-b)
       ;; protect in case of abort-recursive-edit
       (unwind-protect
-           (recursive-edit)
+          (recursive-edit)
         (set-window-configuration win-conf)
         (fset 'ediff-quit orig-ediff-quit)))))
 

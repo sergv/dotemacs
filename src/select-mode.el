@@ -84,8 +84,8 @@ Items will be passed to this function before insertion into buffer.")
                 ("("
                  mode-name
                  (:eval (format "[%s/%s]"
-                         select/selected-item
-                         (length select/items)))
+                                select/selected-item
+                                (length select/items)))
                  ")")
                 (:eval
                  (when (buffer-narrowed?)
@@ -184,10 +184,10 @@ Items will be passed to this function before insertion into buffer.")
 (defun select-refresh-items ()
   "It's assumed that this function is only called inside select buffer."
   (let ((insert-item
-          (lambda (item)
-            (let ((start (point)))
-              (insert (funcall select/predisplay-function item))
-              (values start (point))))))
+         (lambda (item)
+           (let ((start (point)))
+             (insert (funcall select/predisplay-function item))
+             (values start (point))))))
     (with-current-buffer select/selection-buffer
       (with-disabled-undo
        (with-preserved-buffer-modified-p
@@ -205,9 +205,9 @@ Items will be passed to this function before insertion into buffer.")
              for i from 1
              for item in (cdr select/items)
              do (when sep (insert sep))
-                (multiple-value-bind (start end)
-                    (funcall insert-item item)
-                  (setf (aref select/item-positions i) (cons start end)))))
+             (multiple-value-bind (start end)
+                 (funcall insert-item item)
+               (setf (aref select/item-positions i) (cons start end)))))
          (insert (funcall select/epilogue-function))
          (select/move-selection-to select/selected-item)))))))
 
@@ -216,19 +216,19 @@ Items will be passed to this function before insertion into buffer.")
   "Set selected item based on the point position inside buffer."
   (let* ((pos (point))
          (pos-inside-pos-pair
-           (lambda (pos pos-pair)
-             (assert (< (car pos-pair) (cdr pos-pair)))
-             (and (<= (car pos-pair) pos)
-                  (< pos (cdr pos-pair)))))
+          (lambda (pos pos-pair)
+            (assert (< (car pos-pair) (cdr pos-pair)))
+            (and (<= (car pos-pair) pos)
+                 (< pos (cdr pos-pair)))))
          (selection-idx
-           (bisect pos
-                   select/item-positions
-                   0
-                   (length select/item-positions)
-                   pos-inside-pos-pair
-                   (lambda (pos pos-pair)
-                     (assert (< (car pos-pair) (cdr pos-pair)))
-                     (< pos (car pos-pair))))))
+          (bisect pos
+                  select/item-positions
+                  0
+                  (length select/item-positions)
+                  pos-inside-pos-pair
+                  (lambda (pos pos-pair)
+                    (assert (< (car pos-pair) (cdr pos-pair)))
+                    (< pos (car pos-pair))))))
     (if (and selection-idx
              (funcall pos-inside-pos-pair pos
                       (aref select/item-positions selection-idx)))

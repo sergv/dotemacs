@@ -46,7 +46,7 @@
        (put ',name 'function
             (function*
              (lambda (,event-var)
-              ,@body)))
+               ,@body)))
        (defun* ,name (,event-receiver)
          ,doc
          (interactive "e")
@@ -98,7 +98,7 @@
              (error "No symbol found around point"))))))))
 
 (vim:defmousemotion vim:mouse-symbol/string/sexp (event)
-  (vim--mouse-symbol/string/sexp event 'exclusive))
+                    (vim--mouse-symbol/string/sexp event 'exclusive))
 
 
 

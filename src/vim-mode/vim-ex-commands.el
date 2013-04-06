@@ -21,12 +21,12 @@
     (let (beg-pos end-pos)
       (when begin
         (setq beg-pos (save-excursion
-                       (goto-line1 begin)
-                       (line-beginning-position)))
+                        (goto-line1 begin)
+                        (line-beginning-position)))
         (setq end-pos (if end
                         (save-excursion
-                         (goto-line1 end)
-                         (line-end-position))
+                          (goto-line1 end)
+                          (line-end-position))
                         beg-pos)))
 
       (cond

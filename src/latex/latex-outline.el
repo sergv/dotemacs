@@ -18,8 +18,8 @@
 (defmacro latex:save-ex-save-re (&rest body)
   (declare (indent defun))
   `(save-excursion
-    (save-match-data
-     ,@body)))
+     (save-match-data
+       ,@body)))
 
 
 (defconst latex-preamble-start "\\\\documentclass\\[.*\\]{.*}")
@@ -41,37 +41,37 @@
   (interactive)
   (latex-initialize
    (save-excursion
-    (end-of-line)
-    (if (< (point) (marker-position latex:document-start))
-      1
-      (let* ((line (current-line))
-             (type-of-section (or (case (latex-type-of-section-at-point)
-                                    (part 0)
-                                    (chapter 1)
-                                    (section 2)
-                                    (subsection 3)
-                                    (subsubsection 4)
-                                    (paragraph 5)
-                                    (subparagraph 6))
-                                  ;; we're in preamble or
-                                  ;; in space just after document start
-                                  0))
-             (sect-start (or (latex-begin-of-section-at-point)
-                             (marker-position latex:document-start)))
-             (whitespace-offset (loop
-                                  for i = 0 then (1+ i)
-                                  while (char= ?\s (aref line i))
-                                  count t)))
-        (+ whitespace-offset
-           ;; if line is some type of section
-           (if (latex:type-of-section line)
-             0
-             1)
-           type-of-section
-           (let ((y (length (latex:get-unmatched-environments-in-region
-                             sect-start
-                             (point)))))
-             (max 0 (1- y)))))))))
+     (end-of-line)
+     (if (< (point) (marker-position latex:document-start))
+       1
+       (let* ((line (current-line))
+              (type-of-section (or (case (latex-type-of-section-at-point)
+                                     (part 0)
+                                     (chapter 1)
+                                     (section 2)
+                                     (subsection 3)
+                                     (subsubsection 4)
+                                     (paragraph 5)
+                                     (subparagraph 6))
+                                   ;; we're in preamble or
+                                   ;; in space just after document start
+                                   0))
+              (sect-start (or (latex-begin-of-section-at-point)
+                              (marker-position latex:document-start)))
+              (whitespace-offset (loop
+                                   for i = 0 then (1+ i)
+                                   while (char= ?\s (aref line i))
+                                   count t)))
+         (+ whitespace-offset
+            ;; if line is some type of section
+            (if (latex:type-of-section line)
+              0
+              1)
+            type-of-section
+            (let ((y (length (latex:get-unmatched-environments-in-region
+                              sect-start
+                              (point)))))
+              (max 0 (1- y)))))))))
 
 (defconst latex-begin-environment "\\\\begin{\\([^{}]+\\)}")
 (defconst latex-end-environment "\\\\end{\\([^{}]+\\)}")
@@ -168,8 +168,8 @@ possible values are 'part, 'chapter, 'section, 'subsection, 'subsubsection,
 'paragraph and 'subparagraph or nil if str doesn't denotes any type
 of section."
   (save-match-data
-   (when (string-match latex-sectioning-regexp str)
-     (intern (match-string 1 str)))))
+    (when (string-match latex-sectioning-regexp str)
+      (intern (match-string 1 str)))))
 
 
 (defvar latex:document-start nil

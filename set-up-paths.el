@@ -9,8 +9,7 @@
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 
 (defconst +emacs-config-path+
@@ -53,20 +52,21 @@ system restars.")
     path))
 
 (defun %emacs-boot--get-directory-contents (dir)
-  (remove-if #'(lambda (x) (member (file-name-nondirectory x) '("." "..")))
+  (remove-if (lambda (x) (member (file-name-nondirectory x) '("." "..")))
              (directory-files dir t)))
 
-(defun* %emacs-boot--find-rec-special (path
-                                       &key
-                                       (filep #'(lambda (p) t))
-                                       (dirp  #'(lambda (p) nil))
-                                       (do-not-visitp
-                                           #'(lambda (p)
-                                               (member* (file-name-nondirectory (%emacs-boot--strip-trailing-slash p))
-                                                        '("SCCS" "RCS" "CVS" "MCVS" ".svn"
-                                                          ".git" ".hg" ".bzr" "_MTN" "_darcs"
-                                                          "{arch}")
-                                                        :test #'string=))))
+(defun* %emacs-boot--find-rec-special
+    (path
+     &key
+     (filep (lambda (p) t))
+     (dirp  (lambda (p) nil))
+     (do-not-visitp
+      (lambda (p)
+        (member* (file-name-nondirectory (%emacs-boot--strip-trailing-slash p))
+                 '("SCCS" "RCS" "CVS" "MCVS" ".svn"
+                   ".git" ".hg" ".bzr" "_MTN" "_darcs"
+                   "{arch}")
+                 :test #'string=))))
   "Collect files and/or directories under PATH recursively.
 
 Collect files and directories which satisfy FILEP and
@@ -75,7 +75,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
   (when (stringp filep)
     (setf filep
           (let ((regular-expression filep))
-            #'(lambda (p) (string-match-p regular-expression p)))))
+            (lambda (p) (string-match-p regular-expression p)))))
   (when (stringp dirp)
     (setf dirp
           (let ((regular-expression dirp))
@@ -86,20 +86,20 @@ By default, version-control specific directories are omitted, e.g. .git etc."
             #'(lambda (p) (string-match-p regular-expression p)))))
 
   (letrec ((collect-rec
-             (lambda (path accum)
-               (cond
-                 ((and (file-directory-p path)
-                       (not (funcall do-not-visitp path)))
-                  (reduce #'(lambda (acc p)
-                              (funcall collect-rec p acc))
-                          (%emacs-boot--get-directory-contents path)
-                          :initial-value (if (funcall dirp path)
-                                           (cons path accum)
-                                           accum)))
-                 ((funcall filep path)
-                  (cons path accum))
-                 (t
-                  accum)))))
+            (lambda (path accum)
+              (cond
+                ((and (file-directory-p path)
+                      (not (funcall do-not-visitp path)))
+                 (reduce #'(lambda (acc p)
+                             (funcall collect-rec p acc))
+                         (%emacs-boot--get-directory-contents path)
+                         :initial-value (if (funcall dirp path)
+                                          (cons path accum)
+                                          accum)))
+                ((funcall filep path)
+                 (cons path accum))
+                (t
+                 accum)))))
     (funcall collect-rec path nil)))
 
 (setf load-path

@@ -139,10 +139,10 @@ Futher modified by Sergey Vinokurov."
        (menu                         ((t (:foreground ,base0 :background ,base02))))
        (minibuffer-prompt            ((t (:foreground ,blue))))
        (mode-line                    ((t (:foreground ,base1 :background ,base02
-                                          :box (:line-width 1 :color ,base1)))))
+                                                      :box (:line-width 1 :color ,base1)))))
        (mode-line-buffer-id          ((t (:foreground ,base1))))
        (mode-line-inactive           ((t (:foreground ,base0  :background ,base02
-                                          :box (:line-width 1 :color ,base02)))))
+                                                      :box (:line-width 1 :color ,base02)))))
        (region                       ((t (:background ,base02 :underline t))))
        (secondary-selection          ((t (:background ,base02))))
        (trailing-whitespace          ((t (:background ,magenta))))
@@ -155,7 +155,7 @@ Futher modified by Sergey Vinokurov."
        (custom-button                ((t (:background ,base02 :box (:line-width 2 :style released-button)))))
        (custom-button-mouse          ((t (:inherit custom-button :foreground ,base1))))
        (custom-button-pressed        ((t (:inherit custom-button-mouse
-                                          :box (:line-width 2 :style pressed-button)))))
+                                                   :box (:line-width 2 :style pressed-button)))))
        (custom-comment-tag           ((t (:background ,base02))))
        (custom-comment-tag           ((t (:background ,base02))))
        (custom-documentation         ((t (:inherit default))))
@@ -351,7 +351,7 @@ Futher modified by Sergey Vinokurov."
        (mumamo-background-chunk-submode3     ((t (:underline ,light-yellow-background))))
        (mumamo-background-chunk-submode4     ((t (:underline ,light-cyan-background))))
        (nxml-glyph                           ((t (:foreground ,base0 :background ,base03
-                                                  :box (:line-width 1 :color ,base0)))))
+                                                              :box (:line-width 1 :color ,base0)))))
        ;; tags themselves
        (nxml-element-local-name              ((t (:foreground ,orange))))
        ;; tag attributes
@@ -466,17 +466,17 @@ Futher modified by Sergey Vinokurov."
        (show-paren-match-face                ((t (:inherit show-paren-match))))
        (show-paren-mismatch-face             ((t (:inherit rainbow-delimiters-unmatched-face))))
        (tabbar-button-face                   ((t (:inherit tabbar-default-face
-                                                  :box (:line-width 2
-                                                        :color "white"
-                                                        :style released-button)
-                                                  :foreground "dark red"))))
+                                                           :box (:line-width 2
+                                                                             :color "white"
+                                                                             :style released-button)
+                                                           :foreground "dark red"))))
        (tabbar-default-face                  ((t (:inherit variable-pitch
-                                                  :height 0.8
-                                                  :foreground ,base0
-                                                  :background ,base02))))
+                                                           :height 0.8
+                                                           :foreground ,base0
+                                                           :background ,base02))))
        (tabbar-selected-face                 ((t (:inherit tabbar-default-face
-                                                  :bold t ;; :foreground ,magenta
-                                                  ))))
+                                                           :bold t ;; :foreground ,magenta
+                                                           ))))
        (tabbar-separator-face                ((t (:inherit tabbar-default-face))))
        (tabbar-unselected-face               ((t (:inherit tabbar-default-face))))
        (table-cell                           ((t nil)))

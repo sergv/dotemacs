@@ -29,19 +29,19 @@
         (letrec ((path-join (lambda (path)
                               (join-lines path "/")))
                  (find-subroot
-                   (lambda (path look-for-dir)
-                     (let ((dir (funcall path-join
-                                         (append path
-                                                 (list look-for-dir)))))
-                       (cond ((null path)
-                              (error "No %s subdirectory found while moving upward starting from %s"
-                                     file-dir))
-                             ((file-exist? dir)
-                              path)
-                             (t
-                              (funcall find-subroot
-                                       (butlast path)
-                                       look-for-dir)))))))
+                  (lambda (path look-for-dir)
+                    (let ((dir (funcall path-join
+                                        (append path
+                                                (list look-for-dir)))))
+                      (cond ((null path)
+                             (error "No %s subdirectory found while moving upward starting from %s"
+                                    file-dir))
+                            ((file-exist? dir)
+                             path)
+                            (t
+                             (funcall find-subroot
+                                      (butlast path)
+                                      look-for-dir)))))))
           ;; note: subroot - root of some git submodule
 
           (let* ((subroot (funcall find-subroot
@@ -59,9 +59,9 @@
                                  "h")
                                 ((string= ext "cpp") "h")))
                  (alternative-name
-                   (concat (file-name-sans-extension file-nodir)
-                           "."
-                           alt-ext))
+                  (concat (file-name-sans-extension file-nodir)
+                          "."
+                          alt-ext))
                  (alt-name-in-same-dir (concat file-dir "/" alternative-name)))
             (if (file-exist? alt-name-in-same-dir)
               (progn
@@ -107,10 +107,10 @@
       (shell-command
        (join-lines (list "astyle"
                          "--style=java"           ;; -A2
-                         "--indent=spaces=4"
                          "--brackets=break"       ;; -b
                          "--align-pointer=middle" ;; -k2
                          "--formatted"            ;; -Q
+                         "--indent=spaces=4"
                          "--pad-oper"
                          "--pad-header"
                          "--unpad-paren"
@@ -136,27 +136,27 @@
             )
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (if-buffer-has-file
-   (setq-local compile-command
-               (let* ((fname  (file-name-nondirectory buffer-file-name))
-                      (target (file-name-sans-extension fname)))
-                 (join-lines (list "g++"
-                                   ;; "-std=c++0x"
-                                   "-W"
-                                   "-Wall"
-                                   "-Wextra"
-                                   "-Weffc++"
-                                   "-Wold-style-cast"
-                                   "-Woverloaded-virtual"
-                                   "-Wconversion"
-                                   "-Wuninitialized"
-                                   "-Wshadow"
-                                   "-pedantic"
-                                   "-O2"
-                                   "-I."
-                                   "-o"
-                                   target
-                                   fname)
-                             " "))))
+    (setq-local compile-command
+                (let* ((fname  (file-name-nondirectory buffer-file-name))
+                       (target (file-name-sans-extension fname)))
+                  (join-lines (list "g++"
+                                    ;; "-std=c++0x"
+                                    "-W"
+                                    "-Wall"
+                                    "-Wextra"
+                                    "-Weffc++"
+                                    "-Wold-style-cast"
+                                    "-Woverloaded-virtual"
+                                    "-Wconversion"
+                                    "-Wuninitialized"
+                                    "-Wshadow"
+                                    "-pedantic"
+                                    "-O2"
+                                    "-I."
+                                    "-o"
+                                    target
+                                    fname)
+                              " "))))
 
   (if-has-makefile-command
    (set (make-local-variable 'compile-command)

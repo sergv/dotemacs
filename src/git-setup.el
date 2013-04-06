@@ -16,7 +16,7 @@
 
 (setf magit-completing-read-function
       (lambda (prompt collection
-               &optional predicate require-match initial-input hist def)
+                 &optional predicate require-match initial-input hist def)
         (completing-read-vanilla
          (if (and def (> (length prompt) 2)
                   (string-equal ": " (substring prompt -2)))
@@ -48,10 +48,10 @@
 ;;;; magit
 
 (defadvice magit-log-edit-cleanup
-    (before
-     magit-log-edit-cleanup-clean-trailing-whitespace
-     activate
-     compile)
+  (before
+   magit-log-edit-cleanup-clean-trailing-whitespace
+   activate
+   compile)
   (delete-trailing-whitespace+))
 
 (defun magit-mode-setup ()
@@ -142,60 +142,60 @@
 
 ;; this mode has no hook
 (eval-after-load
- "magit-key-mode"
- '(progn
-   (redefun magit-key-mode-build-keymap (for-group)
-     "Construct a normal looking keymap for the key mode to use and
+    "magit-key-mode"
+  '(progn
+     (redefun magit-key-mode-build-keymap (for-group)
+       "Construct a normal looking keymap for the key mode to use and
 put it in magit-key-mode-key-maps for fast lookup."
-     (let* ((options (magit-key-mode-options-for-group for-group))
-            (actions (cdr (assoc 'actions options)))
-            (switches (cdr (assoc 'switches options)))
-            (arguments (cdr (assoc 'arguments options)))
-            (map (make-sparse-keymap)))
-       (suppress-keymap map 'nodigits)
-       ;; ret dwim
-       (define-key map (kbd "RET") 'magit-key-mode-exec-at-point)
+       (let* ((options (magit-key-mode-options-for-group for-group))
+              (actions (cdr (assoc 'actions options)))
+              (switches (cdr (assoc 'switches options)))
+              (arguments (cdr (assoc 'arguments options)))
+              (map (make-sparse-keymap)))
+         (suppress-keymap map 'nodigits)
+         ;; ret dwim
+         (define-key map (kbd "RET") 'magit-key-mode-exec-at-point)
 
-       ;; all maps should `quit' with `C-g' or `q' or `ESC'
-       (define-key map (kbd "ESC") `(lambda ()
+         ;; all maps should `quit' with `C-g' or `q' or `ESC'
+         (define-key map (kbd "ESC") `(lambda ()
+                                        (interactive)
+                                        (magit-key-mode-command nil)))
+         (define-key map (kbd "<escape>") `(lambda ()
+                                             (interactive)
+                                             (magit-key-mode-command nil)))
+         (define-key map (kbd "C-g") `(lambda ()
+                                        (interactive)
+                                        (magit-key-mode-command nil)))
+         (define-key map (kbd "q")   `(lambda ()
+                                        (interactive)
+                                        (magit-key-mode-command nil)))
+         ;; run help
+         (define-key map (kbd "?") `(lambda ()
                                       (interactive)
-                                      (magit-key-mode-command nil)))
-       (define-key map (kbd "<escape>") `(lambda ()
-                                           (interactive)
-                                           (magit-key-mode-command nil)))
-       (define-key map (kbd "C-g") `(lambda ()
-                                      (interactive)
-                                      (magit-key-mode-command nil)))
-       (define-key map (kbd "q")   `(lambda ()
-                                      (interactive)
-                                      (magit-key-mode-command nil)))
-       ;; run help
-       (define-key map (kbd "?") `(lambda ()
-                                    (interactive)
-                                    (magit-key-mode-help ',for-group)))
+                                      (magit-key-mode-help ',for-group)))
 
-       (flet ((defkey (k action)
-                (when (and (lookup-key map (car k))
-                           (not (numberp (lookup-key map (car k)))))
-                  (message "Warning: overriding binding for `%s' in %S"
-                           (car k) for-group)
-                  (ding)
-                  (sit-for 2))
-                (define-key map (car k)
-                  `(lambda () (interactive) ,action))))
-         (when actions
-           (dolist (k actions)
-             (defkey k `(magit-key-mode-command ',(nth 2 k)))))
-         (when switches
-           (dolist (k switches)
-             (defkey k `(magit-key-mode-add-option ',for-group ,(nth 2 k)))))
-         (when arguments
-           (dolist (k arguments)
-             (defkey k `(magit-key-mode-add-argument
-                         ',for-group ,(nth 2 k) ',(nth 3 k))))))
+         (flet ((defkey (k action)
+                  (when (and (lookup-key map (car k))
+                             (not (numberp (lookup-key map (car k)))))
+                    (message "Warning: overriding binding for `%s' in %S"
+                             (car k) for-group)
+                    (ding)
+                    (sit-for 2))
+                  (define-key map (car k)
+                    `(lambda () (interactive) ,action))))
+           (when actions
+             (dolist (k actions)
+               (defkey k `(magit-key-mode-command ',(nth 2 k)))))
+           (when switches
+             (dolist (k switches)
+               (defkey k `(magit-key-mode-add-option ',for-group ,(nth 2 k)))))
+           (when arguments
+             (dolist (k arguments)
+               (defkey k `(magit-key-mode-add-argument
+                           ',for-group ,(nth 2 k) ',(nth 3 k))))))
 
-       (aput 'magit-key-mode-key-maps for-group map)
-       map))))
+         (aput 'magit-key-mode-key-maps for-group map)
+         map))))
 
 
 
@@ -243,19 +243,19 @@ under git version control."
 
   (defun git-update-file-repository ()
     (if-buffer-has-file
-     (when (or (not git-repository)
-               (not (string-prefix? (expand-file-name git-repository)
-                                    (expand-file-name buffer-file-name))))
-       (let* ((filename (buffer-file-name))
-              (repository
+      (when (or (not git-repository)
+                (not (string-prefix? (expand-file-name git-repository)
+                                     (expand-file-name buffer-file-name))))
+        (let* ((filename (buffer-file-name))
+               (repository
                 (git-get-repository-root (file-name-directory filename))))
-         (when repository
-           (let* ((tracked-files (git-get-tracked-files repository))
-                  (tracked-file? (any? (lambda (path)
-                                         (string-suffix? path filename))
-                                       tracked-files)))
-             (when tracked-file?
-               (setf git-repository repository)))))))))
+          (when repository
+            (let* ((tracked-files (git-get-tracked-files repository))
+                   (tracked-file? (any? (lambda (path)
+                                          (string-suffix? path filename))
+                                        tracked-files)))
+              (when tracked-file?
+                (setf git-repository repository)))))))))
 
 
 (provide 'git-setup)
