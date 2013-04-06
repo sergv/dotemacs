@@ -893,8 +893,6 @@ This determines whether to insert a space after the # sign."
     ("g a a"    realign-let)
     ("g a l"    realign-let)
 
-    (", s s"    vim:lisp-replace-symbol)
-
     ("<return>" paredit-newline)
 
     ("S"        paredit-split-sexp)
