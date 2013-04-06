@@ -1333,6 +1333,21 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
        ,if-branch
        ,else-branch)))
 
+(defmacro if-let (condition if-branch &optional else-branch)
+  (assert (and (or (list? condition)
+                   (vector? condition))
+               (= 2 (length condition))))
+  (if (list? condition)
+    (let ((tmp-var (gensym))
+          (cond-var (first condition))
+          (expr (first (rest condition))))
+      `(let ((,tmp-var ,expr))
+         (if ,tmp-var
+           (let ((,cond-var ,tmp-var))
+             ,if-branch)
+           ,else-branch)))
+    (error "not implemented yet")))
+
 ;;;;
 
 (defvar *invisible-buffers* '()
