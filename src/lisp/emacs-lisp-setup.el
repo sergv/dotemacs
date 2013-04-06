@@ -18,6 +18,7 @@
 
 (font-lock-add-keywords 'emacs-lisp-mode
                         '("aif"
+                          "if-let"
                           "def-keys-for-map"
                           "defvar-local"
                           "rxx"
@@ -33,7 +34,9 @@
 (defvar *emacs-lisp-indent-specs*
   '((if 1)
     (aif 1)
-    (def-keys-for-map 2)
+    (if-let 1)
+    (def-keys-for-map 1)
+    (condition-case 2)
     (rxx 1)
     (define-print-info-skeleton 1)
     (define-lisp-print-info-skeleton 1)
