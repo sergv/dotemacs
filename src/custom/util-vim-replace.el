@@ -73,15 +73,6 @@
        (1+ (region-end)))
       :fill-replace current-prefix-arg))))
 
-(vim:defcmd vim:lisp-replace-symbol (nonrepeatable)
-  "Partially construct vim ex-replace command from symbol at point.
-With prefix argument puts symbol at point also in substitute part"
-  (util:ex-customized-substitute-command
-   (util:construct-ex-replace-command
-    (slime-symbol-at-point)
-    :symbol t
-    :fill-replace current-prefix-arg)))
-
 
 (vim:defcmd vim:replace-symbol-at-point (nonrepeatable)
   "Partially construct vim ex-replace command from symbol at point.
