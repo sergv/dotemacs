@@ -27,7 +27,7 @@
 ;; Basic keymap for motion/scroll commands.
 (vim:define-keymap motion-mode "motion mode" :map-command mmap)
 
-(vim:define-mode motion "VIM motion mode"
+(vim:define-mode motion "VIM motion mode\n\n\\{vim:motion-mode-keymap}"
   :ident "M"
   :keymaps '(vim:motion-mode-keymap)
   :command-function 'vim:normal-mode-command)
@@ -52,7 +52,8 @@ like 'dd', 'yy',... .")
     "operator pending mode"
   :map-command omap)
 
-(vim:define-mode operator-pending "VIM operator-pending mode"
+(vim:define-mode operator-pending
+    "VIM operator-pending mode\n\n\\{vim:operator-pending-mode-keymap}"
   :ident "O"
   :keymaps '(vim:operator-pending-mode-keymap
              vim:motion-mode-keymap
@@ -125,7 +126,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
 (vim:define-keymap normal-mode "normal mode" &map-command nmap)
 
-(vim:define-mode normal "VIM normal mode"
+(vim:define-mode normal "VIM normal mode\n\n\\{vim:normal-mode-keymap}"
   :ident "N"
                                         ; :message "-- NORMAL --"
   :keymaps '(vim:normal-mode-keymap

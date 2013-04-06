@@ -34,7 +34,7 @@
 
 (vim:define-keymap visual-mode "visual mode" :map-command vmap)
 
-(vim:define-mode visual "VIM visual mode"
+(vim:define-mode visual "VIM visual mode\n\n\\{vim:visual-mode-keymap}"
   :ident "V"
   :keymaps '(vim:visual-mode-keymap
              vim:operator-pending-mode-keymap
@@ -93,8 +93,7 @@
     open-rectangle
     string-rectangle
     yank-rectangle
-    keyboard-quit
-    ))
+    keyboard-quit))
 
 
 (defun vim:activate-visual (type)
@@ -105,11 +104,11 @@
       (vim:visual-highlight-region)
       (let (message-log-max)
         (pcase vim:visual-mode-type
-          (`normal (message "-- VISUAL --"))
+          (`normal   (message "-- VISUAL --"))
           (`linewise (message "-- VISUAL LINE --"))
-          (`block (message "-- VISUAL BLOCK --"))
-          (_ (error "Unknown visual mode type: %s"
-                    vim:visual-mode-type)))))
+          (`block    (message "-- VISUAL BLOCK --"))
+          (_         (error "Unknown visual mode type: %s"
+                            vim:visual-mode-type)))))
     (setq vim:visual-mode-type type)
     (vim:activate-visual-mode)))
 
