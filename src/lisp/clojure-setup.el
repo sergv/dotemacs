@@ -25,8 +25,8 @@
   (lisp-setup :use-cl-indent nil :use-whitespace t)
   (clojure-enable-nrepl)
 
-  (set (make-local-variable 'forward-sexp-function)
-       'clojure-forward-sexp)
+  (setq-local lisp-indent-function #'clojure-indent-function)
+  (setq-local forward-sexp-function #'clojure-forward-sexp)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" nrepl-switch-to-repl-buffer)
