@@ -138,26 +138,6 @@
        +control-x-prefix+
        ("<escape>"   remove-buffer))))
 
-(eval-after-load "undo-tree"
-  '(progn
-     ;;(def-keys-for-map undo-tree-visualizer-map +vi-keys+)
-     (def-keys-for-map undo-tree-visualizer-map
-       ("t"        undo-tree-visualize-redo)
-       ("n"        undo-tree-visualize-undo)
-       ("h"        undo-tree-visualize-switch-branch-left)
-       ("s"        undo-tree-visualize-switch-branch-right)
-       ("SPC"      undo-tree-visualizer-toggle-timestamps)
-       ("a"        undo-tree-visualizer-toggle-timestamps)
-       ("<left>"   undo-tree-visualizer-scroll-left)
-       ("<right>"  undo-tree-visualizer-scroll-right)
-       ("<up>"     scroll-up)
-       ("<down>"   scroll-down)
-
-       ("q"        undo-tree-visualizer-quit)
-       ("<escape>" undo-tree-visualizer-quit)
-       ("<return>" undo-tree-visualizer-quit)
-       ("C-u"      undo-tree-visualizer-quit))))
-
 (eval-after-load "cus-edit"
   '(progn
      (def-keys-for-map custom-mode-map

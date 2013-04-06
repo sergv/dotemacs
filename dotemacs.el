@@ -158,6 +158,7 @@
 (load-library "minimap-setup")
 (load-library "select-mode")
 (load-library "revive-setup")
+(load-library "undo-tree-setup")
 
 ;; load keys after everything to ensure that all is bound as expected
 (load-library "keys")
