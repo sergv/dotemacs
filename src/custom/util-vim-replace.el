@@ -50,7 +50,7 @@
    (util:construct-ex-replace-command
     (util:get-str-covered-by-vim-motion
      (save-excursion
-      (vim:motion-inner-word)))
+       (vim:motion-inner-word)))
     :word t
     :fill-replace current-prefix-arg)))
 
@@ -60,7 +60,7 @@
    (util:construct-ex-replace-command
     (util:get-str-covered-by-vim-motion
      (save-excursion
-      (vim:motion-inner-WORD))))
+       (vim:motion-inner-WORD))))
    :fill-replace current-prefix-arg))
 
 (vim:defcmd vim:replace-selected (nonrepeatable)

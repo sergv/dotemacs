@@ -60,8 +60,8 @@
 (require 'align)
 
 (eval-when-compile ;; required and optional libraries
-                   (require 'cc-mode)
-                   (require 'find-file))
+  (require 'cc-mode)
+  (require 'find-file))
 
 (defgroup glsl nil
   "OpenGL Shading Language Major Mode"
@@ -76,42 +76,42 @@
 
 (defvar glsl-type-face 'glsl-type-face)
 (defface glsl-type-face
-    '((t (:inherit 'font-lock-type-face))) "glsl: type face"
+  '((t (:inherit 'font-lock-type-face))) "glsl: type face"
   :group 'glsl)
 
 (defvar glsl-builtin-face 'glsl-builtin-face)
 (defface glsl-builtin-face
-    '((t (:inherit 'font-lock-builtin-face))) "glsl: builtin face"
+  '((t (:inherit 'font-lock-builtin-face))) "glsl: builtin face"
   :group 'glsl)
 
 (defvar glsl-deprecated-builtin-face 'glsl-deprecated-builtin-face)
 (defface glsl-deprecated-builtin-face
-    '((t (:inherit 'glsl-builtin-face))) "glsl: deprecated builtin face"
+  '((t (:inherit 'glsl-builtin-face))) "glsl: deprecated builtin face"
   :group 'glsl)
 
 (defvar glsl-keyword-face 'glsl-keyword-face)
 (defface glsl-keyword-face
-    '((t (:inherit 'font-lock-keyword-face))) "glsl: keyword face"
+  '((t (:inherit 'font-lock-keyword-face))) "glsl: keyword face"
   :group 'glsl)
 
 (defvar glsl-deprecated-keyword-face 'glsl-deprecated-keyword-face)
 (defface glsl-deprecated-keyword-face
-    '((t (:inherit 'glsl-keyword-face))) "glsl: deprecated keyword face"
+  '((t (:inherit 'glsl-keyword-face))) "glsl: deprecated keyword face"
   :group 'glsl)
 
 (defvar glsl-variable-name-face 'glsl-variable-name-face)
 (defface glsl-variable-name-face
-    '((t (:inherit 'font-lock-variable-name-face))) "glsl: variable face"
+  '((t (:inherit 'font-lock-variable-name-face))) "glsl: variable face"
   :group 'glsl)
 
 (defvar glsl-deprecated-variable-name-face 'glsl-deprecated-variable-name-face)
 (defface glsl-deprecated-variable-name-face
-    '((t (:inherit 'glsl-variable-name-face))) "glsl: deprecated variable face"
+  '((t (:inherit 'glsl-variable-name-face))) "glsl: deprecated variable face"
   :group 'glsl)
 
 (defvar glsl-preprocessor-face 'glsl-preprocessor-face)
 (defface glsl-preprocessor-face
-    '((t (:inherit 'font-lock-preprocessor-face))) "glsl: preprocessor face"
+  '((t (:inherit 'font-lock-preprocessor-face))) "glsl: preprocessor face"
   :group 'glsl)
 
 (defvar glsl-mode-hook nil)
@@ -164,7 +164,7 @@
     "filter" "sizeof" "cast" "namespace" "using" "row_major"))
 
 (defvar glsl-deprecated-modifier-list
-  '("varying" "attribute")) ; centroid is deprecated when used with varying
+  '("varying" "attribute"))      ; centroid is deprecated when used with varying
 
 (defvar glsl-builtin-list
   '("abs" "acos" "acosh" "all" "any" "asin" "asinh" "atan" "atanh"
@@ -223,18 +223,18 @@
 
 (defvar glsl-font-lock-keywords-1
   (eval-when-compile
-   (list
-    (cons (format "^\\W*#\\W*\\<\\(%s\\)\\>"
-                  (regexp-opt glsl-preprocessor-directive-list))
-          glsl-preprocessor-face)
-    (cons (glsl-ppre glsl-type-list) glsl-type-face)
-    (cons (glsl-ppre glsl-deprecated-modifier-list) glsl-deprecated-keyword-face)
-    (cons (glsl-ppre glsl-modifier-list) glsl-keyword-face)
-    (cons (glsl-ppre glsl-preprocessor-builtin-list) glsl-keyword-face)
-    (cons (glsl-ppre glsl-deprecated-builtin-list) glsl-deprecated-builtin-face)
-    (cons (glsl-ppre glsl-builtin-list) glsl-builtin-face)
-    (cons (glsl-ppre glsl-deprecated-variables-list) glsl-deprecated-variable-name-face)
-    (cons "gl_[A-Z][A-Za-z_]+" glsl-variable-name-face)))
+    (list
+     (cons (format "^\\W*#\\W*\\<\\(%s\\)\\>"
+                   (regexp-opt glsl-preprocessor-directive-list))
+           glsl-preprocessor-face)
+     (cons (glsl-ppre glsl-type-list) glsl-type-face)
+     (cons (glsl-ppre glsl-deprecated-modifier-list) glsl-deprecated-keyword-face)
+     (cons (glsl-ppre glsl-modifier-list) glsl-keyword-face)
+     (cons (glsl-ppre glsl-preprocessor-builtin-list) glsl-keyword-face)
+     (cons (glsl-ppre glsl-deprecated-builtin-list) glsl-deprecated-builtin-face)
+     (cons (glsl-ppre glsl-builtin-list) glsl-builtin-face)
+     (cons (glsl-ppre glsl-deprecated-variables-list) glsl-deprecated-variable-name-face)
+     (cons "gl_[A-Z][A-Za-z_]+" glsl-variable-name-face)))
   "Minimal highlighting expressions for GLSL mode")
 
 (defvar glsl-font-lock-keywords glsl-font-lock-keywords-1
@@ -275,8 +275,8 @@
            glsl-man-completion-list
            nil nil nil nil word))))))
   (save-excursion
-   (browse-url
-    (concat glsl-man-pages-base-url thing ".xml"))))
+    (browse-url
+     (concat glsl-man-pages-base-url thing ".xml"))))
 
 (define-derived-mode glsl-mode c-mode "GLSL"
   "Major mode for editing OpenGLSL shader files."

@@ -144,7 +144,7 @@
     ((vim:local-mark-p mark-char)
      (let ((m (cdr-safe (assoc mark-char vim:local-marks-alist))))
        (if m m
-         (error "No mark '%c' defined" mark-char))))
+           (error "No mark '%c' defined" mark-char))))
     ((vim:global-mark-p mark-char)
      (let ((m (cdr-safe (assoc mark-char vim:global-marks-alist))))
        (if m
@@ -154,8 +154,8 @@
          (error "No mark '%c' defined" mark-char))))
     ((vim:special-mark-p mark-char)
      (save-excursion
-      (funcall (cdr (assoc mark-char vim:special-mark-functions-alist)))
-      (point)))
+       (funcall (cdr (assoc mark-char vim:special-mark-functions-alist)))
+       (point)))
     (t
      (error "Unknown mark: '%c'" mark-char))))
 
@@ -362,10 +362,10 @@ windows. The reason is that Emacs does not have window-local variables.")
   "Move the cursor to the last non-blank charactor of the current line."
   (goto-char
    (save-excursion
-    (beginning-of-line count)
-    (re-search-forward "[ \t]*$")
-    (max (line-beginning-position)
-         (1- (match-beginning 0))))))
+     (beginning-of-line count)
+     (re-search-forward "[ \t]*$")
+     (max (line-beginning-position)
+          (1- (match-beginning 0))))))
 
 (vim:defmotion vim:motion-go-to-first-non-blank-beg (linewise count)
   "Moves the cursor to the first non-blank character of line count."
@@ -408,29 +408,29 @@ windows. The reason is that Emacs does not have window-local variables.")
 (defun vim:boundary-chars (direction chars)
   "A boundary selector for a sequence of `chars'."
   (save-excursion
-   (pcase direction
-     (`fwd
-      (when (re-search-forward (concat "[" chars "]+") nil t)
-        (1- (match-end 0))))
-     (`bwd
-      (unless (looking-at-p (concat "[" chars "]"))
-        (skip-chars-backward (if (= (aref chars 0) ?^)
-                               (substring chars 1)
-                               (concat "^" chars))))
-      (skip-chars-backward chars)
-      (when (looking-at-p (concat "[" chars "]"))
-        (point))))))
+    (pcase direction
+      (`fwd
+       (when (re-search-forward (concat "[" chars "]+") nil t)
+         (1- (match-end 0))))
+      (`bwd
+       (unless (looking-at-p (concat "[" chars "]"))
+         (skip-chars-backward (if (= (aref chars 0) ?^)
+                                (substring chars 1)
+                                (concat "^" chars))))
+       (skip-chars-backward chars)
+       (when (looking-at-p (concat "[" chars "]"))
+         (point))))))
 
 (defun vim:boundary-syntax (direction syntax)
   "A boundary selector for a set of syntax."
   (save-excursion
-   (pcase direction
-     (`fwd
-      (skip-syntax-forward syntax)
-      (1- (point)))
-     (`bwd
-      (skip-syntax-backward syntax)
-      (point)))))
+    (pcase direction
+      (`fwd
+       (skip-syntax-forward syntax)
+       (1- (point)))
+      (`bwd
+       (skip-syntax-backward syntax)
+       (point)))))
 
 (defun vim:boundary-lines (direction predicate)
   "A boundary selector for lines identified by an predicate.
@@ -438,38 +438,38 @@ The begin-boundary is placed at the first character of the first
 line, the end-boundary is placed at the last character before the
 newline character of the last line."
   (save-excursion
-   (let ((dir (pcase direction
-                (`fwd +1)
-                (`bwd -1))))
-     ;; The last newline on a non-empty line does not count as part
-     ;; of the current line.
-     (when (and (not (bolp)) (looking-at "\n")) (forward-char))
-     (forward-line 0)
-     ;; skip unmatched lines
-     (while (and (not (funcall predicate)) (zerop (forward-line dir))))
-     ;; skip matched lines
-     (when (funcall predicate)
-       (while (save-excursion
-               (and (zerop (forward-line dir))
-                    (funcall predicate)))
-         (forward-line dir))
-       (pcase direction
-         (`fwd (end-of-line)
-               (when (and (not (bolp)) (looking-at "\n"))
-                 (backward-char)))
-         (`bwd (forward-line 0)))
-       (point)))))
+    (let ((dir (pcase direction
+                 (`fwd +1)
+                 (`bwd -1))))
+      ;; The last newline on a non-empty line does not count as part
+      ;; of the current line.
+      (when (and (not (bolp)) (looking-at "\n")) (forward-char))
+      (forward-line 0)
+      ;; skip unmatched lines
+      (while (and (not (funcall predicate)) (zerop (forward-line dir))))
+      ;; skip matched lines
+      (when (funcall predicate)
+        (while (save-excursion
+                 (and (zerop (forward-line dir))
+                      (funcall predicate)))
+          (forward-line dir))
+        (pcase direction
+          (`fwd (end-of-line)
+                (when (and (not (bolp)) (looking-at "\n"))
+                  (backward-char)))
+          (`bwd (forward-line 0)))
+        (point)))))
 
 
 (defun vim:boundary-empty-line (direction)
   "A boundary selector for a single empty line."
   (save-excursion
-   (let ((dir (pcase direction
-                (`fwd +1)
-                (`bwd -1))))
-     (while (and (not (and (bolp) (eolp))) (zerop (forward-line dir))))
-     (when (and (bolp) (eolp))
-       (point)))))
+    (let ((dir (pcase direction
+                 (`fwd +1)
+                 (`bwd -1))))
+      (while (and (not (and (bolp) (eolp))) (zerop (forward-line dir))))
+      (when (and (bolp) (eolp))
+        (point)))))
 
 
 (defun vim:boundary-ws (direction)
@@ -487,26 +487,26 @@ newline character of the last line."
 beginning or end of the object (except empty lines) is not
 counted."
   (save-excursion
-   (catch 'end
-     (pcase direction
-       (`fwd (while (let ((pos (vim:boundary-chars 'fwd " \t\r\n")))
-                      (unless pos (throw 'end nil))
-                      (goto-char pos)
-                      (when (and (not (bolp))
-                                 (looking-at "\n")
-                                 (not (looking-back "[ \t\r\n]")))
-                        (forward-char) t))))
-       (`bwd (let ((start (point)))
-               (while (let ((pos (vim:boundary-chars 'bwd " \t\r\n")))
-                        (unless pos (throw 'end nil))
-                        (goto-char pos)
-                        (when (and (not (bolp))
-                                   (looking-at "\n"))
-                          (if (and (looking-at "\n[ \t\r\n]")
-                                   (< (point) start))
-                            (progn (forward-char) nil)
-                            (backward-char) t)))))))
-     (point))))
+    (catch 'end
+      (pcase direction
+        (`fwd (while (let ((pos (vim:boundary-chars 'fwd " \t\r\n")))
+                       (unless pos (throw 'end nil))
+                       (goto-char pos)
+                       (when (and (not (bolp))
+                                  (looking-at "\n")
+                                  (not (looking-back "[ \t\r\n]")))
+                         (forward-char) t))))
+        (`bwd (let ((start (point)))
+                (while (let ((pos (vim:boundary-chars 'bwd " \t\r\n")))
+                         (unless pos (throw 'end nil))
+                         (goto-char pos)
+                         (when (and (not (bolp))
+                                    (looking-at "\n"))
+                           (if (and (looking-at "\n[ \t\r\n]")
+                                    (< (point) start))
+                             (progn (forward-char) nil)
+                             (backward-char) t)))))))
+      (point))))
 
 
 (defun vim:boundary-word (direction)
@@ -534,21 +534,21 @@ counted."
 (defun vim:boundary-sentence (direction)
   "A boundary selector for sentences."
   (save-excursion
-   (pcase direction
-     (`fwd (when (re-search-forward "\\([.!?][])\"']*\\)\\(?:[ \t\r\n]+\\|\\'\\)" nil t)
-             (1- (match-end 1))))
-     (`bwd (let ((start (point))
-                 dot)
-             ;; search the final char of the previous sentence, check
-             ;; if it is really the end of a sentence up to the
-             ;; beginning of the next sentence, and ensure that this
-             ;; beginning is not behind the start position
-             (while (and (setq dot (re-search-backward "[.!?]" nil t))
-                         (not (bobp))
-                         (or (not (re-search-forward "\\=[.!?][])\"']*[ \t\r\n]+" nil t))
-                             (> (match-end 0) start)))
-               (goto-char (1- dot)))
-             (when dot (point)))))))
+    (pcase direction
+      (`fwd (when (re-search-forward "\\([.!?][])\"']*\\)\\(?:[ \t\r\n]+\\|\\'\\)" nil t)
+              (1- (match-end 1))))
+      (`bwd (let ((start (point))
+                  dot)
+              ;; search the final char of the previous sentence, check
+              ;; if it is really the end of a sentence up to the
+              ;; beginning of the next sentence, and ensure that this
+              ;; beginning is not behind the start position
+              (while (and (setq dot (re-search-backward "[.!?]" nil t))
+                          (not (bobp))
+                          (or (not (re-search-forward "\\=[.!?][])\"']*[ \t\r\n]+" nil t))
+                              (> (match-end 0) start)))
+                (goto-char (1- dot)))
+              (when dot (point)))))))
 
 
 (defun vim:boundary-paragraph (direction)
@@ -563,10 +563,10 @@ of bounds."
   (let ((boundaries-loc boundaries))
     (lambda (direction)
       (let ((positions
-              (mapcan (lambda (bnd)
-                        (let ((pos (funcall bnd direction)))
-                          (when pos (list pos))))
-                      boundaries-loc)))
+             (mapcan (lambda (bnd)
+                       (let ((pos (funcall bnd direction)))
+                         (when pos (list pos))))
+                     boundaries-loc)))
         (when positions
           (apply (pcase direction
                    (`fwd #'min)
@@ -597,8 +597,8 @@ previous) object described by one of the given `boundaries'."
                            (let ((end (funcall bnd 'fwd)))
                              (when end
                                (let ((beg (save-excursion
-                                           (goto-char end)
-                                           (funcall bnd 'bwd))))
+                                            (goto-char end)
+                                            (funcall bnd 'bwd))))
                                  (values beg end)))))
                          (lambda (b1 e1 b2 e2)
                            (or (< b1 b2) (and (= b1 b2) (> e1 e2))))))
@@ -608,8 +608,8 @@ previous) object described by one of the given `boundaries'."
                            (let ((beg (funcall bnd 'bwd)))
                              (when beg
                                (let ((end (save-excursion
-                                           (goto-char beg)
-                                           (funcall bnd 'fwd))))
+                                            (goto-char beg)
+                                            (funcall bnd 'fwd))))
                                  (values beg end)))))
                          (lambda (b1 e1 b2 e2)
                            (or (> e1 e2) (and (= e1 e2) (< b1 b2)))))))))))
@@ -633,9 +633,9 @@ contained in the first text-object before or at point."
         ;; go to the end of the (possibly) current object
         (let ((pos (funcall boundary 'fwd)))
           (if pos (goto-char pos)
-            ;; no such object
-            (goto-char (point-max))
-            (throw 'end nil)))
+              ;; no such object
+              (goto-char (point-max))
+              (throw 'end nil)))
         ;; check if this object is really the current one
         (when (< start (or (funcall boundary 'bwd) (point-min)))
           ;; if not, count this object
@@ -698,9 +698,9 @@ contained in the first text-object before or at point."
         ;; go to the beginning of the (possibly) current object
         (let ((pos (funcall boundary 'bwd)))
           (if pos (goto-char pos)
-            ;; no such object
-            (goto-char (point-min))
-            (throw 'end nil)))
+              ;; no such object
+              (goto-char (point-min))
+              (throw 'end nil)))
         ;; check if this object is really the current one
         (when (> start (or (funcall boundary 'fwd) (point-min)))
           ;; if not, count this object
@@ -793,13 +793,13 @@ text-object before or at point."
         (progn
           (dotimes (i n)
             (multiple-value-bind (wsb wse) (save-excursion
-                                            (funcall forward -1)
-                                            (funcall ws-sel 'bwd))
+                                             (funcall forward -1)
+                                             (funcall ws-sel 'bwd))
               (vim:move-bwd-beg 1 boundary linewise)
               (when (and wsb (< wsb (point))
                          (save-excursion
-                          (funcall forward -1)
-                          (>= wse (point))))
+                           (funcall forward -1)
+                           (>= wse (point))))
                 (goto-char wsb))))
           (setq end (point)
                 pnt (point)))
@@ -807,28 +807,28 @@ text-object before or at point."
         ;; extend forward
         (dotimes (i n)
           (multiple-value-bind (wsb wse) (save-excursion
-                                          (funcall forward +1)
-                                          (funcall ws-sel 'fwd))
+                                           (funcall forward +1)
+                                           (funcall ws-sel 'fwd))
             (vim:move-fwd-end 1 boundary linewise)
             (when (and wsb (> wse (point))
                        (save-excursion
-                        (funcall forward +1)
-                        (<= wsb (point))))
+                         (funcall forward +1)
+                         (<= wsb (point))))
               (goto-char wse))))
         (setq end (point)
               pnt (point)))
 
       ;; select current ...
       (save-excursion
-       (multiple-value-bind (b e) (funcall sel 'fwd)
-         (unless b (signal 'no-such-object nil))
-         (dotimes (i (1- n))
-           (goto-char e)
-           (funcall forward +1)
-           (multiple-value-bind (nb ne) (funcall sel 'fwd)
-             (when ne (setq e ne))))
-         (setq beg b
-               end e)))
+        (multiple-value-bind (b e) (funcall sel 'fwd)
+          (unless b (signal 'no-such-object nil))
+          (dotimes (i (1- n))
+            (goto-char e)
+            (funcall forward +1)
+            (multiple-value-bind (nb ne) (funcall sel 'fwd)
+              (when ne (setq e ne))))
+          (setq beg b
+                end e)))
 
       ;; check whitespace before object
       (cond
@@ -839,12 +839,12 @@ text-object before or at point."
 
         ;; whitespace behind
         ((save-excursion
-          (when (< end (point-max))
-            (goto-char end)
-            (funcall forward +1)
-            (multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
-              (if (and wsb (<= wsb (point)))
-                (setq end wse))))))
+           (when (< end (point-max))
+             (goto-char end)
+             (funcall forward +1)
+             (multiple-value-bind (wsb wse) (funcall ws-sel 'fwd)
+               (if (and wsb (<= wsb (point)))
+                 (setq end wse))))))
 
         ;; no whitespace behind
         ((> beg (point-min))
@@ -894,66 +894,66 @@ text-object before or at point."
                               (values open-md close-md)))))
     (catch 'end
       (save-excursion
-       (let ((combined-re (concat "\\("
-                                  open-re
-                                  "\\)\\|\\("
-                                  close-re
-                                  "\\)"))
-             (n-open-groups (regexp-opt-depth open-re))
-             op-beg op-end cl-beg cl-end
-             (cnt n)
-             found-stack)
-         ;; set default match-test
-         (unless match-test (setq match-test (lambda (a b) t)))
-         ;; search the opening object
-         (funcall find-at-point open-re open-pos nil)
-         (while (> cnt 0)
-           (unless (re-search-backward combined-re nil t) (throw 'end nil))
-           ;; split match data for open and close regexp
-           (multiple-value-bind (open-md close-md)
-               (funcall split-match-data n-open-groups)
-             (if (car open-md)
-               ;; match opening regexp
-               (if found-stack
-                 (if (funcall match-test open-md (car found-stack))
-                   ;; found matching opening object
-                   (pop found-stack)
-                   ;; found object does not match
-                   (throw 'end nil))
-                 ;; found enclosing opening object
-                 (decf cnt)
-                 (when (zerop cnt)
-                   ;; found the opening object we looked for, so
-                   ;; store it as the only object in the stack
-                   (push open-md found-stack)))
-               ;; match closing regexp, save it
-               (push close-md found-stack))))
+        (let ((combined-re (concat "\\("
+                                   open-re
+                                   "\\)\\|\\("
+                                   close-re
+                                   "\\)"))
+              (n-open-groups (regexp-opt-depth open-re))
+              op-beg op-end cl-beg cl-end
+              (cnt n)
+              found-stack)
+          ;; set default match-test
+          (unless match-test (setq match-test (lambda (a b) t)))
+          ;; search the opening object
+          (funcall find-at-point open-re open-pos nil)
+          (while (> cnt 0)
+            (unless (re-search-backward combined-re nil t) (throw 'end nil))
+            ;; split match data for open and close regexp
+            (multiple-value-bind (open-md close-md)
+                (funcall split-match-data n-open-groups)
+              (if (car open-md)
+                ;; match opening regexp
+                (if found-stack
+                  (if (funcall match-test open-md (car found-stack))
+                    ;; found matching opening object
+                    (pop found-stack)
+                    ;; found object does not match
+                    (throw 'end nil))
+                  ;; found enclosing opening object
+                  (decf cnt)
+                  (when (zerop cnt)
+                    ;; found the opening object we looked for, so
+                    ;; store it as the only object in the stack
+                    (push open-md found-stack)))
+                ;; match closing regexp, save it
+                (push close-md found-stack))))
 
-         ;; found the opening object
-         (setq op-beg (match-beginning 0)
-               op-end (1- (match-end 0)))
+          ;; found the opening object
+          (setq op-beg (match-beginning 0)
+                op-end (1- (match-end 0)))
 
-         ;; search the closing object
-         (goto-char (1+ op-end))
-         (while found-stack
-           (unless (re-search-forward combined-re nil t) (throw 'end nil))
-           (multiple-value-bind (open-md close-md)
-               (funcall split-match-data n-open-groups)
-             (if (car close-md)
-               ;; match closing regexp
-               (if (funcall match-test (car found-stack) close-md)
-                 ;; found matching closing object
-                 (pop found-stack)
-                 ;; found object does not match
-                 (throw 'end nil))
-               ;; found opening object
-               (push open-md found-stack))))
+          ;; search the closing object
+          (goto-char (1+ op-end))
+          (while found-stack
+            (unless (re-search-forward combined-re nil t) (throw 'end nil))
+            (multiple-value-bind (open-md close-md)
+                (funcall split-match-data n-open-groups)
+              (if (car close-md)
+                ;; match closing regexp
+                (if (funcall match-test (car found-stack) close-md)
+                  ;; found matching closing object
+                  (pop found-stack)
+                  ;; found object does not match
+                  (throw 'end nil))
+                ;; found opening object
+                (push open-md found-stack))))
 
-         ;; found the closing object
-         (setq cl-beg (match-beginning 0)
-               cl-end (1- (match-end 0)))
-         (when (>= cl-end close-pos)
-           (values op-beg op-end cl-beg cl-end)))))))
+          ;; found the closing object
+          (setq cl-beg (match-beginning 0)
+                cl-end (1- (match-end 0)))
+          (when (>= cl-end close-pos)
+            (values op-beg op-end cl-beg cl-end)))))))
 
 
 (defun vim:inner-block (open-re close-re match-test n)
@@ -972,21 +972,21 @@ text-object before or at point."
                  (or (= (1+ op-end) open-pos)
                      (and (= (+ 2 op-end) open-pos)
                           (save-excursion
-                           (goto-char (1+ op-end))
-                           (and (eolp) (not (bolp))))))
+                            (goto-char (1+ op-end))
+                            (and (eolp) (not (bolp))))))
                  (or (= (1- cl-beg) close-pos)
                      (and (= (- cl-beg 2) close-pos)
                           (save-excursion
-                           (goto-char cl-beg)
-                           (bolp)))))
+                            (goto-char cl-beg)
+                            (bolp)))))
         (incf n)))
 
     (multiple-value-bind (op-beg op-end cl-beg cl-end)
         (vim:block-select open-re close-re match-test open-pos close-pos n)
       (when op-beg
         (when (save-excursion
-               (goto-char (1+ op-end))
-               (and (eolp) (not (bolp))))
+                (goto-char (1+ op-end))
+                (and (eolp) (not (bolp))))
           ;; The opening tag ended right at eol, so skip the newline
           (incf op-end))
         ;; bug: mark ofter returns nil and causes problems
@@ -1039,8 +1039,8 @@ text-object before or at point."
                (< line (line-number-at-pos (point))) ; only if we skipped a newline
                (vim:looking-back "^[ \t]*")
                (not (save-excursion
-                     (forward-visible-line -1)
-                     (and (bolp) (eolp)))))
+                      (forward-visible-line -1)
+                      (and (bolp) (eolp)))))
       (forward-visible-line -1)
       (end-of-line))))
 
@@ -1082,8 +1082,8 @@ text-object before or at point."
                (< line (line-number-at-pos (point))) ; only if we skipped a newline
                (vim:looking-back "^[ \t]*")
                (not (save-excursion
-                     (forward-visible-line -1)
-                     (and (bolp) (eolp)))))
+                      (forward-visible-line -1)
+                      (and (bolp) (eolp)))))
       (forward-visible-line -1)
       (end-of-line))))
 
@@ -1136,11 +1136,11 @@ text-object before or at point."
   (vim:add-jump)
   (dotimes (i (or count 1))
     (goto-char (min (save-excursion
-                     (vim:move-fwd-beg 1 #'vim:boundary-sentence)
-                     (point))
+                      (vim:move-fwd-beg 1 #'vim:boundary-sentence)
+                      (point))
                     (save-excursion
-                     (vim:motion-fwd-paragraph)
-                     (point))))))
+                      (vim:motion-fwd-paragraph)
+                      (point))))))
 
 
 (vim:defmotion vim:motion-bwd-sentence (exclusive count)
@@ -1169,18 +1169,18 @@ text-object before or at point."
   "Move the cursor `count' paragraphs forward."
   (vim:add-jump)
   (if (eobp) (signal 'end-of-buffer nil)
-    (dotimes (i (or count 1))
-      (goto-char (or (vim:boundary-paragraph 'fwd) (point-max)))
-      (forward-line))))
+      (dotimes (i (or count 1))
+        (goto-char (or (vim:boundary-paragraph 'fwd) (point-max)))
+        (forward-line))))
 
 
 (vim:defmotion vim:motion-bwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs backward."
   (vim:add-jump)
   (if (bobp) (signal 'beginning-of-buffer nil)
-    (dotimes (i (or count 1))
-      (goto-char (or (vim:boundary-paragraph 'bwd) (point-min)))
-      (forward-line -1))))
+      (dotimes (i (or count 1))
+        (goto-char (or (vim:boundary-paragraph 'bwd) (point-min)))
+        (forward-line -1))))
 
 
 (vim:defmotion vim:motion-inner-paragraph (inclusive count)
@@ -1270,32 +1270,32 @@ matching xml tags. `block-function' should be either
   "Returns the start and end points of a text enclosed in some quotes,
 but only on the current line."
   (save-excursion
-   (let* ((p (point))
-          (end (line-end-position))
-          (re (concat open-qt "\\(?:[^\\\\]\\|\\\\.\\)*?" close-qt))
-          md
-          (retry t))
-     (beginning-of-line)
-     (while retry
-       (if (not (re-search-forward re end t))
-         (setq retry nil)
-         (pcase side
-           (`nil
-            (when (> (match-end 0) p)
-              (setq retry nil)
-              (setq md (match-data))))
-           (`before
-            (if (>= (match-beginning 0) p)
-              (setq retry nil)
-              (setq md (match-data))))
-           (`after
-            (when (> (match-end 0) (1+ p))
-              (setq retry nil
-                    md (match-data)))))))
+    (let* ((p (point))
+           (end (line-end-position))
+           (re (concat open-qt "\\(?:[^\\\\]\\|\\\\.\\)*?" close-qt))
+           md
+           (retry t))
+      (beginning-of-line)
+      (while retry
+        (if (not (re-search-forward re end t))
+          (setq retry nil)
+          (pcase side
+            (`nil
+             (when (> (match-end 0) p)
+               (setq retry nil)
+               (setq md (match-data))))
+            (`before
+             (if (>= (match-beginning 0) p)
+               (setq retry nil)
+               (setq md (match-data))))
+            (`after
+             (when (> (match-end 0) (1+ p))
+               (setq retry nil
+                     md (match-data)))))))
 
-     (when md
-       (set-match-data md)
-       (cons (match-beginning 0) (1- (match-end 0)))))))
+      (when md
+        (set-match-data md)
+        (cons (match-beginning 0) (1- (match-end 0)))))))
 
 
 (defun vim:inner-quote (count open-qt &optional close-qt)
@@ -1367,12 +1367,12 @@ but only on the current line."
         ((not bounds) (signal 'no-such-object nil))
         ;; extend whitespaces to the right
         ((save-excursion
-          (goto-char (1+ (cdr bounds)))
-          (looking-at "[ \t\r]"))
+           (goto-char (1+ (cdr bounds)))
+           (looking-at "[ \t\r]"))
          (let ((end (save-excursion
-                     (goto-char (1+ (cdr bounds)))
-                     (skip-chars-forward " \t\r")
-                     (1- (point)))))
+                      (goto-char (1+ (cdr bounds)))
+                      (skip-chars-forward " \t\r")
+                      (1- (point)))))
            (goto-char end)
            (vim:make-motion :has-begin t
                             :begin (car bounds)
@@ -1383,9 +1383,9 @@ but only on the current line."
          (goto-char (cdr bounds))
          (vim:make-motion :has-begin t
                           :begin (save-excursion
-                                  (goto-char (car bounds))
-                                  (skip-chars-backward " \t\r")
-                                  (point))
+                                   (goto-char (car bounds))
+                                   (skip-chars-backward " \t\r")
+                                   (point))
                           :end (cdr bounds)
                           :type 'inclusive))))))
 
@@ -1469,13 +1469,13 @@ but only on the current line."
   (unless vim:last-find
     (error "No previous find command"))
   (let ((func
-          (pcase (car vim:last-find)
-            (`vim:motion-find         'vim:motion-find-back)
-            (`vim:motion-find-back    'vim:motion-find)
-            (`vim:motion-find-to      'vim:motion-find-back-to)
-            (`vim:motion-find-back-to 'vim:motion-find-to)
-            (_                        (error (format "Unexpected find command %s"
-                                                     (car vim:last-find))))))
+         (pcase (car vim:last-find)
+           (`vim:motion-find         'vim:motion-find-back)
+           (`vim:motion-find-back    'vim:motion-find)
+           (`vim:motion-find-to      'vim:motion-find-back-to)
+           (`vim:motion-find-back-to 'vim:motion-find-to)
+           (_                        (error (format "Unexpected find command %s"
+                                                    (car vim:last-find))))))
         (arg (cdr vim:last-find)))
     (let ((vim:last-find nil))
       (funcall func :count count :argument arg))))
@@ -1486,13 +1486,13 @@ but only on the current line."
 jumps to the corresponding one."
   (vim:add-jump)
   (let ((next-open
-          (condition-case nil
-              (1- (scan-lists (point) 1 -1))
-            (error (point-max))))
+         (condition-case nil
+             (1- (scan-lists (point) 1 -1))
+           (error (point-max))))
         (next-close
-          (condition-case nil
-              (1- (scan-lists (point) 1 +1))
-            (error (point-max)))))
+         (condition-case nil
+             (1- (scan-lists (point) 1 +1))
+           (error (point-max)))))
     (let ((pos (min next-open next-close)))
       (when (>= pos (line-end-position))
         (error "No matching item found on the current line"))
@@ -1511,11 +1511,11 @@ jumps to the corresponding one."
   (let ((cnt (or count 1))
         (re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)")))
     (save-excursion
-     (while (and (> cnt 0)
-                 (re-search-forward re nil t))
-       (if (match-beginning 1)
-         (incf cnt)
-         (decf cnt))))
+      (while (and (> cnt 0)
+                  (re-search-forward re nil t))
+        (if (match-beginning 1)
+          (incf cnt)
+          (decf cnt))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
       (signal 'no-such-object (list "No closing of block found.")))))
@@ -1525,11 +1525,11 @@ jumps to the corresponding one."
   (let ((cnt (or count 1))
         (re (concat "\\(" open-re "\\)\\|\\(" close-re "\\)")))
     (save-excursion
-     (while (and (> cnt 0)
-                 (re-search-backward re nil t))
-       (if (match-beginning 1)
-         (decf cnt)
-         (incf cnt))))
+      (while (and (> cnt 0)
+                  (re-search-backward re nil t))
+        (if (match-beginning 1)
+          (decf cnt)
+          (incf cnt))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
       (signal 'no-such-object (list "No opening of block found.")))))
@@ -1564,16 +1564,16 @@ jumps to the corresponding one."
   (let ((cnt (or count 1))
         (re "\\(^[ \t]*#if\\)\\|\\(^[ \t]*#else\\)\\|\\(^[ \t]*#endif\\)"))
     (save-excursion
-     (while (and (> cnt 0)
-                 (re-search-forward re nil t))
-       (cond
-         ((match-beginning 1) ; found #if
-          (incf cnt)
-          (setq prev-was-endif nil))
-         ((match-beginning 2) ; found #else
-          (when (= 1 cnt) (decf cnt)))
-         (t ; found #endif
-          (decf cnt)))))
+      (while (and (> cnt 0)
+                  (re-search-forward re nil t))
+        (cond
+          ((match-beginning 1)          ; found #if
+           (incf cnt)
+           (setq prev-was-endif nil))
+          ((match-beginning 2)          ; found #else
+           (when (= 1 cnt) (decf cnt)))
+          (t                            ; found #endif
+           (decf cnt)))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
       (signal 'no-such-object (list "No closing of block found.")))))
@@ -1583,16 +1583,16 @@ jumps to the corresponding one."
   (let ((cnt (or count 1))
         (re "\\(^[ \t]*#if\\)\\|\\(^[ \t]*#else\\)\\|\\(^[ \t]*#endif\\)"))
     (save-excursion
-     (while (and (> cnt 0)
-                 (re-search-backward re nil t))
-       (cond
-         ((match-beginning 1) ; found #if
-          (decf cnt)
-          (setq prev-was-endif nil))
-         ((match-beginning 2) ; found #else
-          (when (= 1 cnt) (decf cnt)))
-         (t ; found #endif
-          (incf cnt)))))
+      (while (and (> cnt 0)
+                  (re-search-backward re nil t))
+        (cond
+          ((match-beginning 1)          ; found #if
+           (decf cnt)
+           (setq prev-was-endif nil))
+          ((match-beginning 2)          ; found #else
+           (when (= 1 cnt) (decf cnt)))
+          (t                            ; found #endif
+           (incf cnt)))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
       (signal 'no-such-object (list "No opening of block found.")))))
@@ -1600,13 +1600,13 @@ jumps to the corresponding one."
 (vim:defmotion vim:motion-backward-opening-comment (exclusive count)
   "Go to the `count'-th previous unmatched opening /*."
   (when (save-excursion
-         (re-search-backward "/\\*" nil t count))
+          (re-search-backward "/\\*" nil t count))
     (goto-char (match-beginning 0))))
 
 (vim:defmotion vim:motion-forward-closing-comment (exclusive count)
   "Go to the `count'-th next unmatched closing ]."
   (when (save-excursion
-         (re-search-forward "\\*/" nil t count))
+          (re-search-forward "\\*/" nil t count))
     (goto-char (match-beginning 0))))
 
 

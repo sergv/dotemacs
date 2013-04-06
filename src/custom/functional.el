@@ -12,7 +12,7 @@
 (defun func:foldr (f init seq)
   (loop
     for i from (1- (length seq)) downto 0 do
-       (setq init (funcall f (elt seq i) init))
+    (setq init (funcall f (elt seq i) init))
     finally return init))
 
 (defun func:foldr1 (f xs)
@@ -25,7 +25,7 @@
   (let ((len (1- (length seq))))
     (loop
       for i from 0 to len do
-         (setq init (funcall f init (elt seq i)))
+      (setq init (funcall f init (elt seq i)))
       finally return init)))
 
 (defun func:foldl1 (f xs)
@@ -45,7 +45,7 @@
   (let ((len (min (length xs) (length ys))))
     (do* ((i len (1- i))
           (z nil (cons (cons (elt xs i) (elt ys i)) z)))
-         ((eql i 0) z))))
+        ((eql i 0) z))))
 
 (defsubst func:concat (xs ys)
   (append xs ys))

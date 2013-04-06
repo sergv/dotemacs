@@ -55,8 +55,8 @@
                (< line (line-number-at-pos (point))) ; only if we skipped a newline
                (vim:looking-back "^[ \t]*")
                (not (save-excursion
-                     (forward-visible-line -1)
-                     (and (bolp) (eolp)))))
+                      (forward-visible-line -1)
+                      (and (bolp) (eolp)))))
       (forward-visible-line -1)
       (end-of-line))))
 
@@ -77,8 +77,8 @@
                (< line (line-number-at-pos (point))) ; only if we skipped a newline
                (vim:looking-back "^[ \t]*")
                (not (save-excursion
-                     (forward-visible-line -1)
-                     (and (bolp) (eolp)))))
+                      (forward-visible-line -1)
+                      (and (bolp) (eolp)))))
       (forward-visible-line -1)
       (end-of-line))))
 

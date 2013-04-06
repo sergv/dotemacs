@@ -64,9 +64,9 @@ SHORT onto the string FULL, using CHAR= as a equality function for
 letters.  Returns two values:  The first being the completion
 chunks of the highest scorer, and the second being the score."
   (let* ((scored-results
-           (map (lambda (result)
-                  (cons (swfy-score-completion result short full) result))
-                (swfy-compute-most-completions short full)))
+          (map (lambda (result)
+                 (cons (swfy-score-completion result short full) result))
+               (swfy-compute-most-completions short full)))
          (winner (first (sort* scored-results #'> :key #'caar))))
     (values (rest winner) (caar winner))))
 
@@ -81,10 +81,10 @@ how a completion matches."
     *all-chunks*))
 
 (defun swfy-recursively-compute-most-completions
-    (short full
-     short-index initial-full-index
-     chunks current-chunk current-chunk-pos
-     recurse-p)
+  (short full
+         short-index initial-full-index
+         chunks current-chunk current-chunk-pos
+         recurse-p)
   "Recursively (if RECURSE-P is true) find /most/ possible ways
 to fuzzily map the letters in SHORT onto FULL, using CHAR= to
 determine if two letters match.
@@ -103,31 +103,31 @@ this call will also recurse.
 
 Once a word has been completely matched, the chunks are pushed
 onto the special variable *ALL-CHUNKS* and the function returns."
-  (declare ;(optimize speed)
+  (declare                              ;(optimize speed)
    (fixnum short-index initial-full-index)
    (simple-string short full)
    (special *all-chunks*))
   (flet ((char= (c1 c2) (eq c1 c2))
          (short-cur ()
-           "Returns the next letter from the abbreviation, or NIL
+                    "Returns the next letter from the abbreviation, or NIL
             if all have been used."
-           (if (= short-index (length short))
-             nil
-             (aref short short-index)))
+                    (if (= short-index (length short))
+                      nil
+                      (aref short short-index)))
          (add-to-chunk (char pos)
-           "Adds the CHAR at POS in FULL to the current chunk,
+                       "Adds the CHAR at POS in FULL to the current chunk,
             marking the start position if it is empty."
-           (unless current-chunk
-             (setf current-chunk-pos pos))
-           (push char current-chunk))
+                       (unless current-chunk
+                         (setf current-chunk-pos pos))
+                       (push char current-chunk))
          (collect-chunk ()
-           "Collects the current chunk to CHUNKS and prepares for
+                        "Collects the current chunk to CHUNKS and prepares for
             a new chunk."
-           (when current-chunk
-             (push (list current-chunk-pos
-                         (coerce (reverse current-chunk) 'string)) chunks)
-             (setf current-chunk nil
-                   current-chunk-pos nil))))
+                        (when current-chunk
+                          (push (list current-chunk-pos
+                                      (coerce (reverse current-chunk) 'string)) chunks)
+                          (setf current-chunk nil
+                                current-chunk-pos nil))))
     ;; If there's an outstanding chunk coming in collect it.  Since
     ;; we're recursively called on skipping an input character, the
     ;; chunk can't possibly continue on.
@@ -221,51 +221,51 @@ previous letter's value, it will use that percentage instead.
 Finally, a small scaling factor is applied to favor shorter
 matches, all other things being equal."
   (letrec ((at-beginning-p
-             (lambda (pos)
-               (= pos 0)))
+            (lambda (pos)
+              (= pos 0)))
            (after-prefix-p
-             (lambda (pos)
-               (and (= pos 1)
-                    (find (aref full 0)
-                          el-swank-fuzzy-completion-symbol-prefixes))))
+            (lambda (pos)
+              (and (= pos 1)
+                   (find (aref full 0)
+                         el-swank-fuzzy-completion-symbol-prefixes))))
            (word-separator-p
-             (lambda (pos)
-               (find (aref full pos) el-swank-fuzzy-completion-word-separators)))
+            (lambda (pos)
+              (find (aref full pos) el-swank-fuzzy-completion-word-separators)))
            (after-word-separator-p
-             (lambda (pos)
-               (find (aref full (1- pos))
-                     el-swank-fuzzy-completion-word-separators)))
+            (lambda (pos)
+              (find (aref full (1- pos))
+                    el-swank-fuzzy-completion-word-separators)))
            (at-end-p
-             (lambda (pos)
-               (= pos (1- (length full)))))
+            (lambda (pos)
+              (= pos (1- (length full)))))
            (before-suffix-p
-             (lambda (pos)
-               (and (= pos (- (length full) 2))
-                    (find (aref full (1- (length full)))
-                          el-swank-fuzzy-completion-symbol-suffixes))))
+            (lambda (pos)
+              (and (= pos (- (length full) 2))
+                   (find (aref full (1- (length full)))
+                         el-swank-fuzzy-completion-symbol-suffixes))))
            (score-or-percentage-of-previous
-             (lambda (base-score pos chunk-pos)
-               (if (zerop chunk-pos)
-                 base-score
-                 (max base-score
-                      (+ (* (funcall score-char (1- pos) (1- chunk-pos)) 0.85)
-                         (expt 1.2 chunk-pos))))))
+            (lambda (base-score pos chunk-pos)
+              (if (zerop chunk-pos)
+                base-score
+                (max base-score
+                     (+ (* (funcall score-char (1- pos) (1- chunk-pos)) 0.85)
+                        (expt 1.2 chunk-pos))))))
            (score-char
-             (lambda (pos chunk-pos)
-               (funcall score-or-percentage-of-previous
-                        (cond ((funcall at-beginning-p pos)         10)
-                              ((funcall after-prefix-p pos)         10)
-                              ((funcall word-separator-p pos)       1)
-                              ((funcall after-word-separator-p pos) 8)
-                              ((funcall at-end-p pos)               6)
-                              ((funcall before-suffix-p pos)        6)
-                              (t                                    1))
-                        pos chunk-pos)))
+            (lambda (pos chunk-pos)
+              (funcall score-or-percentage-of-previous
+                       (cond ((funcall at-beginning-p pos)         10)
+                             ((funcall after-prefix-p pos)         10)
+                             ((funcall word-separator-p pos)       1)
+                             ((funcall after-word-separator-p pos) 8)
+                             ((funcall at-end-p pos)               6)
+                             ((funcall before-suffix-p pos)        6)
+                             (t                                    1))
+                       pos chunk-pos)))
            (score-chunk
-             (lambda (chunk)
-               (loop for chunk-pos below (length (second chunk))
-                     for pos from (first chunk)
-                     summing (funcall score-char pos chunk-pos)))))
+            (lambda (chunk)
+              (loop for chunk-pos below (length (second chunk))
+                    for pos from (first chunk)
+                    summing (funcall score-char pos chunk-pos)))))
     (let* ((chunk-scores (map score-chunk completion))
            (length-score (/ 10.0 (1+ (- (length full) (length short))))))
       (values
@@ -342,8 +342,8 @@ match should be performed before the fuzzy match."
 (defstruct (swfy-fuzzy-matching (:conc-name swfy-fuzzy-matching.)
                                 (:constructor swfy-make-fuzzy-matching)
                                 )
-  candidate      ; The candidate that has been found to match.
-  score          ; The higher the better SYMBOL is a match.
+  candidate                        ; The candidate that has been found to match.
+  score                            ; The higher the better SYMBOL is a match.
   )
 
 
@@ -366,10 +366,10 @@ match should be performed before the fuzzy match."
   (let ((started (gensym)))
     `(let ((,started (current-time)))
        (flet ((,name ()
-                (let* ((elapsed (current-time))
-                       (negated (swfy-negate-time elapsed ,started)))
-                  (values (< ,time-in-msec negated)
-                          (- ,time-in-msec negated)))))
+                     (let* ((elapsed (current-time))
+                            (negated (swfy-negate-time elapsed ,started)))
+                       (values (< ,time-in-msec negated)
+                               (- ,time-in-msec negated)))))
          (progn ,@body)))))
 
 (defun swfy-find-matching-symbols-with-prefix-length (string
@@ -380,27 +380,27 @@ match should be performed before the fuzzy match."
   (let ((regexp (format "^%s" (regexp-quote (substring string 0 length))))
         completions)
     (with-swfy-timedout (timedout2-p time-limit-in-msec)
-      (block loop
-        (mapc (lambda (candidate)
-                (when (and (funcall filter candidate)
-                           (string-match regexp candidate))
-                  (multiple-value-bind (timedout-p rest-time-limit)
-                      (timedout2-p)
-                    (cond
-                      (timedout-p (return-from loop))
-                      (t
-                       (multiple-value-bind (match-result score)
-                           (swfy-compute-highest-scoring-completion
-                            (substring string length)
-                            (substring candidate length))
-                         (when match-result
-                           (push
-                            (swfy-make-fuzzy-matching
-                             :candidate candidate
-                             :score score)
-                            completions))))))))
-              candidates))
-      (values completions (nth-value 1 (timedout2-p))))))
+                        (block loop
+                          (mapc (lambda (candidate)
+                                  (when (and (funcall filter candidate)
+                                             (string-match regexp candidate))
+                                    (multiple-value-bind (timedout-p rest-time-limit)
+                                        (timedout2-p)
+                                      (cond
+                                        (timedout-p (return-from loop))
+                                        (t
+                                         (multiple-value-bind (match-result score)
+                                             (swfy-compute-highest-scoring-completion
+                                              (substring string length)
+                                              (substring candidate length))
+                                           (when match-result
+                                             (push
+                                              (swfy-make-fuzzy-matching
+                                               :candidate candidate
+                                               :score score)
+                                              completions))))))))
+                                candidates))
+                        (values completions (nth-value 1 (timedout2-p))))))
 
 
 (provide 'el-swank-fuzzy)

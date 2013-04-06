@@ -94,17 +94,17 @@
 
   ;; compilation setup
   (if-buffer-has-file
-   (setq-local compile-command
-               (concat "pdflatex -halt-on-error -shell-escape --file-line-error "
-                       (shell-quote-argument (buffer-file-name))))
+    (setq-local compile-command
+                (concat "pdflatex -halt-on-error -shell-escape --file-line-error "
+                        (shell-quote-argument (buffer-file-name))))
 
-   ;; don't ask - just compile
-   (setq-local compilation-read-command nil)
-   ;; don't ask - just save
-   (setq-local compilation-ask-about-save nil)
-   (setq-local compilation-auto-jump-to-first-error nil)
-   ;; don't skip any messages
-   (setq-local compilation-skip-threshold 0))
+    ;; don't ask - just compile
+    (setq-local compilation-read-command nil)
+    ;; don't ask - just save
+    (setq-local compilation-ask-about-save nil)
+    (setq-local compilation-auto-jump-to-first-error nil)
+    ;; don't skip any messages
+    (setq-local compilation-skip-threshold 0))
 
   (setf vim:normal-mode-local-keymap           (make-keymap)
         vim:visual-mode-local-keymap           (make-keymap)

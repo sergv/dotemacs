@@ -57,13 +57,13 @@ with locking over LOCK-VAR"
 differs from indent-region with silent behavior( i.e. no messages)
 and possibly more rude behavior"
   (save-excursion
-   (let ((m (set-marker (make-marker) end)))
-     (indent-for-tab-command)
-     (goto-char start)
-     (while (< (point) (marker-position m))
-       (beginning-of-line)
-       (indent-for-tab-command)
-       (forward-line 1)))))
+    (let ((m (set-marker (make-marker) end)))
+      (indent-for-tab-command)
+      (goto-char start)
+      (while (< (point) (marker-position m))
+        (beginning-of-line)
+        (indent-for-tab-command)
+        (forward-line 1)))))
 
 (defvar *util:lisp:indent-advice-lock* nil
   "This variable becomes t whenever there's one of *-indent-advice's
@@ -78,13 +78,13 @@ Do nothing if MODES is empty."
         (mode-list (util:flatten
                     (util:eval-if-symbol modes))))
     (if-list-nonempty mode-list
-                      `(make-light-synchronizing-advice
-                        ,func
-                        ,adv-name
-                        *util:lisp:indent-advice-lock*
-                        (memq major-mode ',mode-list)
-                        (util:reindent-region (vim:paste-info-begin vim:last-paste)
-                                              (vim:paste-info-end   vim:last-paste))))))
+      `(make-light-synchronizing-advice
+        ,func
+        ,adv-name
+        *util:lisp:indent-advice-lock*
+        (memq major-mode ',mode-list)
+        (util:reindent-region (vim:paste-info-begin vim:last-paste)
+                              (vim:paste-info-end   vim:last-paste))))))
 
 ;;;;------------------------------------------------------------
 
@@ -101,12 +101,12 @@ will be possible."
         (mode-list (util:flatten
                     (util:eval-if-symbol modes))))
     (if-list-nonempty mode-list
-                      `(make-light-synchronizing-advice
-                        ,func
-                        ,adv-name
-                        *util:expand-on-search-advice-lock*
-                        (memq major-mode ',mode-list)
-                        ,expand-func))))
+      `(make-light-synchronizing-advice
+        ,func
+        ,adv-name
+        *util:expand-on-search-advice-lock*
+        (memq major-mode ',mode-list)
+        ,expand-func))))
 
 ;;;;------------------------------------------------------------
 
@@ -150,17 +150,17 @@ Intended to be used with comment-util-mode."
        ad-do-it
        (unless current-prefix-arg
          (save-match-data
-          (when (and comment-line-regexp
-                     (string-match? (concat "^\\(\\s-*\\(?:"
-                                            comment-line-regexp
-                                            "\\)\\)")
-                                    prev-line))
-            (skip-to-indentation)
-            (delete-region (line-beginning-position)
-                           (point))
-            (insert (concat (match-string 1 prev-line)
-                            (make-string *comment-util-space-count*
-                                         ?\s)))))))))
+           (when (and comment-line-regexp
+                      (string-match? (concat "^\\(\\s-*\\(?:"
+                                             comment-line-regexp
+                                             "\\)\\)")
+                                     prev-line))
+             (skip-to-indentation)
+             (delete-region (line-beginning-position)
+                            (point))
+             (insert (concat (match-string 1 prev-line)
+                             (make-string *comment-util-space-count*
+                                          ?\s)))))))))
 
 ;;;;------------------------------------------------------------
 

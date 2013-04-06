@@ -91,15 +91,15 @@
         (if info
           (let ((beg (point-max)))
             (save-excursion
-             (goto-char (point-max))
-             (insert (concat "   [" info "]"))
-             (setq vim:ex-info-length (- (point-max) beg))
-             (put-text-property beg (point-max)
-                                'point-entered
-                                #'vim:ex-info-point-entered)
-             (put-text-property beg (point-max) 'face #'vim:ex-info)
+              (goto-char (point-max))
+              (insert (concat "   [" info "]"))
+              (setq vim:ex-info-length (- (point-max) beg))
+              (put-text-property beg (point-max)
+                                 'point-entered
+                                 #'vim:ex-info-point-entered)
+              (put-text-property beg (point-max) 'face #'vim:ex-info)
 
-             (put-text-property beg (point-max) 'ex-info t)))
+              (put-text-property beg (point-max) 'ex-info t)))
           (setq vim:ex-info-length nil))))
     (setq vim:ex-info-string info)))
 
@@ -200,6 +200,8 @@ cancel ex-mode."
     (if ah
       (setcdr ah newah)
       (push (cons arg-type newah) vim:argument-handlers-alist))))
+
+(put 'vim:define-arg-handler 'lisp-indent-function 1)
 
 
 (defun vim:ex-get-arg-handler (cmd)
@@ -354,9 +356,9 @@ has been pressed."
                  (zerop (length arg)))
         (setq cmd (vim:ex-binding cmd))
         (if (not (vim:ex-binding-p cmd)) (ding)
-          (setq vim:ex-cmd cmd)
-          (let ((result (vim:ex-complete-argument nil nil nil)))
-            (when result (insert result))))))))
+            (setq vim:ex-cmd cmd)
+            (let ((result (vim:ex-complete-argument nil nil nil)))
+              (when result (insert result))))))))
 
 
 (defun vim:ex-complete (cmdline predicate flag)
@@ -378,46 +380,46 @@ has been pressed."
        ;; modified if no `!' has been given in order to show the possible
        ;; `!' completions.
        (lexical-let*
-        ((precicate predicate)
-         (pred
-          (cond
-            ((not force) predicate)
-            ((not predicate)
-             (lambda (x)
-               (vim:cmd-force-p (vim:ex-binding (car x)))))
-            (t
-             (lambda (x)
-               (and (funcall predicate x)
-                    (vim:cmd-force-p (vim:ex-binding (car x))))))))
-         (result (vim:ex-complete-command cmd pred flag)))
+           ((precicate predicate)
+            (pred
+             (cond
+               ((not force) predicate)
+               ((not predicate)
+                (lambda (x)
+                  (vim:cmd-force-p (vim:ex-binding (car x)))))
+               (t
+                (lambda (x)
+                  (and (funcall predicate x)
+                       (vim:cmd-force-p (vim:ex-binding (car x))))))))
+            (result (vim:ex-complete-command cmd pred flag)))
 
-        (pcase flag
-          ;; try-completion, take case of a unique match which
-          ;; may take a force argument
-          (`nil
-           (case result
-             ((nil) nil)
-             ((t) (if (and (not force)
-                           (vim:cmd-force-p (vim:ex-binding cmd)))
-                    cmd
-                    t))
-             (t (if force (concat result "!") result))))
-          ;; all-completions, append exclamation marks
-          (`t
-           (if force
-             (map (lambda (x) (concat x "!")) result)
-             (let (newresult)
-               (dolist (r result)
-                 (push r newresult)
-                 (when (vim:cmd-force-p (vim:ex-binding r))
-                   (push (concat r "!") newresult)))
-               newresult)))
-          ;; test-completion, handle non-unique case if no force
-          ;; argument is given but possible for the command
-          (_
-           (and result
-                (or force
-                    (not (vim:cmd-force-p (vim:ex-binding cmd)))))))))
+         (pcase flag
+           ;; try-completion, take case of a unique match which
+           ;; may take a force argument
+           (`nil
+            (case result
+              ((nil) nil)
+              ((t) (if (and (not force)
+                            (vim:cmd-force-p (vim:ex-binding cmd)))
+                     cmd
+                     t))
+              (t (if force (concat result "!") result))))
+           ;; all-completions, append exclamation marks
+           (`t
+            (if force
+              (map (lambda (x) (concat x "!")) result)
+              (let (newresult)
+                (dolist (r result)
+                  (push r newresult)
+                  (when (vim:cmd-force-p (vim:ex-binding r))
+                    (push (concat r "!") newresult)))
+                newresult)))
+           ;; test-completion, handle non-unique case if no force
+           ;; argument is given but possible for the command
+           (_
+            (and result
+                 (or force
+                     (not (vim:cmd-force-p (vim:ex-binding cmd)))))))))
 
       ;; otherwise complete the argument
       (t
@@ -526,20 +528,20 @@ has been pressed."
           (motion (cond
                     ((and beg end)
                      (vim:make-motion :begin (save-excursion
-                                              (goto-line1 beg)
-                                              (line-beginning-position))
+                                               (goto-line1 beg)
+                                               (line-beginning-position))
                                       :end (save-excursion
-                                            (goto-line1 end)
-                                            (line-beginning-position))
+                                             (goto-line1 end)
+                                             (line-beginning-position))
                                       :has-begin t
                                       :type 'linewise))
                     (beg
                      (vim:make-motion :begin (save-excursion
-                                              (goto-line1 beg)
-                                              (line-beginning-position))
+                                               (goto-line1 beg)
+                                               (line-beginning-position))
                                       :end (save-excursion
-                                            (goto-line1 beg)
-                                            (line-beginning-position))
+                                             (goto-line1 beg)
+                                             (line-beginning-position))
                                       :has-begin t
                                       :type 'linewise))))
           (count (and (not end) beg)))
@@ -717,8 +719,8 @@ the offset and the new position."
 
     (when (and sep end)
       (save-excursion
-       (when (= sep ?\;) (goto-line1 start))
-       (setq end (vim:ex-get-line end))))
+        (when (= sep ?\;) (goto-line1 start))
+        (setq end (vim:ex-get-line end))))
 
     (values start end)))
 
@@ -733,8 +735,8 @@ the offset and the new position."
        (let ((line (vim:ex-get-line (car address))))
          (when line
            (save-excursion
-            (goto-line1 line)
-            (vim:ex-get-line (cdr address))))))
+             (goto-line1 line)
+             (vim:ex-get-line (cdr address))))))
 
       (t
        (+ offset
@@ -743,14 +745,14 @@ the offset and the new position."
 
             ;; TODO: (1- ...) may be wrong if the match is the empty string
             (`re-fwd (save-excursion
-                      (beginning-of-line 2)
-                      (and (re-search-forward (cdr base))
-                           (line-number-at-pos (1- (match-end 0))))))
+                       (beginning-of-line 2)
+                       (and (re-search-forward (cdr base))
+                            (line-number-at-pos (1- (match-end 0))))))
 
             (`re-bwd (save-excursion
-                      (beginning-of-line 0)
-                      (and (re-search-backward (cdr base))
-                           (line-number-at-pos (match-beginning 0)))))
+                       (beginning-of-line 0)
+                       (and (re-search-backward (cdr base))
+                            (line-number-at-pos (match-beginning 0)))))
 
             (`current-line        (line-number-at-pos (point)))
             (`first-line          (line-number-at-pos (point-min)))

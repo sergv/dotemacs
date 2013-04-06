@@ -23,7 +23,7 @@ in compilation or related buffers")
 
 (define-circular-jumps
     compilation-jump-to-next-error
-  compilation-jump-to-prev-error
+    compilation-jump-to-prev-error
   *compilation-jump-error-regexp*
   (unless (compilation-buffer-p (current-buffer))
     (error "Not in a compilation buffer")))

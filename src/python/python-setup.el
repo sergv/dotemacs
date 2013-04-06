@@ -73,9 +73,9 @@
 
       python-shell-completion-string-code
       (concat "sys.stdout.write("
-                     "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
-                     "+ \"\\x00\\n\""
-                     ") #PYTHON-MODE SILENT\n")
+              "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
+              "+ \"\\x00\\n\""
+              ") #PYTHON-MODE SILENT\n")
       ;; "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
       ;; "';'.join(get_ipython().Completer.complete('''%s''')[1]) #PYTHON-MODE SILENT\n"
       )
@@ -116,11 +116,11 @@ in the current *Python* session."
            (completions nil)
            completion
            (comint-preoutput-filter-functions
-             (append comint-preoutput-filter-functions
-                     `(ansi-color-filter-apply
-                       ,(lambda (string)
-                          (setq completion-accum (concat completion-accum string))
-                          "")))))
+            (append comint-preoutput-filter-functions
+                    `(ansi-color-filter-apply
+                      ,(lambda (string)
+                         (setq completion-accum (concat completion-accum string))
+                         "")))))
       (process-send-string python-process
                            (format python-shell-completion-string-code sep pattern))
       (accept-process-output python-process)
@@ -198,8 +198,8 @@ in the current *Python* session."
   (setq-local compilation-error-regexp-alist
               (list
                (list +python-run-error-regexp+
-                     1 ;; FILE
-                     2 ;; LINE
+                     1   ;; FILE
+                     2   ;; LINE
                      nil ;; COLUMN - no column present
                      nil ;; TYPE - error
                      )))
@@ -223,7 +223,7 @@ in the current *Python* session."
   (setup-ctags-symbols))
 
 (define-switch-to-interpreter
-    switch-to-python
+  switch-to-python
   ((concat "*" python-shell-buffer-name "*"))
   (run-python (python-shell-assemble-command))
   :doc "Pop to python repl."

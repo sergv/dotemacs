@@ -9,8 +9,8 @@
 (defun asm-mode-setup ()
   (set (make-variable-buffer-local 'whitespace-style)
        '(face lines-tail
-         ;; tabs
-         ))
+              ;; tabs
+              ))
   (init-common :use-yasnippet nil
                :use-comment t
                :use-whitespace t

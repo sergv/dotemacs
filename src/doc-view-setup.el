@@ -9,32 +9,32 @@
 (require 'persistent-store)
 
 (eval-after-load
- "doc-view"
- '(progn
-   ;; don't bind nor vi-keys nor vim's word-motion keys here as the're useless
-   ;; when navigating pdfs
-   (def-keys-for-map doc-view-mode-map
-     +control-x-prefix+
-     +vim-special-keys+
-     ("h" image-backward-hscroll)
-     ("t" doc-view-next-line-or-next-page)
-     ("n" doc-view-previous-line-or-previous-page)
-     ("s" image-forward-hscroll)
-     ("p" nil))))
+    "doc-view"
+  '(progn
+     ;; don't bind nor vi-keys nor vim's word-motion keys here as the're useless
+     ;; when navigating pdfs
+     (def-keys-for-map doc-view-mode-map
+       +control-x-prefix+
+       +vim-special-keys+
+       ("h" image-backward-hscroll)
+       ("t" doc-view-next-line-or-next-page)
+       ("n" doc-view-previous-line-or-previous-page)
+       ("s" image-forward-hscroll)
+       ("p" nil))))
 
 (autoload 'doc-view-current-page "doc-view" "" nil 'macro)
 (defun doc-view-save-page ()
   (if-buffer-has-file
-   (let ((fname (file-name-nondirectory (buffer-file-name))))
-     (persistent-store-put
-      'doc-view-documents
-      (cons (cons fname
-                  (doc-view-current-page))
-            (filter (lambda (entry)
-                      (not (string=? fname
-                                     (car entry))))
-                    (persistent-store-get 'doc-view-documents
-                                          nil)))))))
+    (let ((fname (file-name-nondirectory (buffer-file-name))))
+      (persistent-store-put
+       'doc-view-documents
+       (cons (cons fname
+                   (doc-view-current-page))
+             (filter (lambda (entry)
+                       (not (string=? fname
+                                      (car entry))))
+                     (persistent-store-get 'doc-view-documents
+                                           nil)))))))
 
 (defun doc-view-setup ()
   (setf mode-line-format
@@ -53,9 +53,9 @@
           "/"
           (:eval (number-to-string (doc-view-last-page-number)))))
   (if-buffer-has-file
-   (aif (assoc (file-name-nondirectory (buffer-file-name))
-               (persistent-store-get 'doc-view-documents nil))
-     (doc-view-goto-page (cdr it))))
+    (aif (assoc (file-name-nondirectory (buffer-file-name))
+                (persistent-store-get 'doc-view-documents nil))
+      (doc-view-goto-page (cdr it))))
 
   (add-hook 'kill-buffer-hook 'doc-view-save-page nil t))
 ;; this hook actually exists in doc-view.el, albeit undeclared

@@ -79,23 +79,23 @@
         haskell-indentation-where-post-offset 2)
 
   (if-buffer-has-file ;; when visiting a file
-   (when (or (file-exist? "./makefile")
-             (file-exist? "./Makefile")
-             (file-exist? "./MAKEFILE")
-             (file-exist? "./GNUMakefile"))
-     (setf haskell-has-makefile? t))
+    (when (or (file-exist? "./makefile")
+              (file-exist? "./Makefile")
+              (file-exist? "./MAKEFILE")
+              (file-exist? "./GNUMakefile"))
+      (setf haskell-has-makefile? t))
 
-   ;; don't ask - just compile
-   (setq-local compilation-read-command nil)
-   ;; don't ask - just save
-   (setq-local compilation-ask-about-save nil)
-   (setq-local compilation-auto-jump-to-first-error nil)
-   ;; don't skip any messages
-   (setq-local compilation-skip-threshold 0)
+    ;; don't ask - just compile
+    (setq-local compilation-read-command nil)
+    ;; don't ask - just save
+    (setq-local compilation-ask-about-save nil)
+    (setq-local compilation-auto-jump-to-first-error nil)
+    ;; don't skip any messages
+    (setq-local compilation-skip-threshold 0)
 
-   ;; (add-hook 'compilation-finish-functions
-   ;;           #'haskell-reload-on-successful-compilation)
-   (add-hook 'compilation-finish-functions #'haskell-jump-to-error))
+    ;; (add-hook 'compilation-finish-functions
+    ;;           #'haskell-reload-on-successful-compilation)
+    (add-hook 'compilation-finish-functions #'haskell-jump-to-error))
 
   (setf vim:normal-mode-local-keymap (make-keymap)
         vim:visual-mode-local-keymap (make-sparse-keymap)

@@ -74,10 +74,10 @@
       ("C-S-<left>"  paredit-backward-barf-sexp))
 
     (define-key vim:normal-mode-local-keymap
-        (kbd ", h")
+      (kbd ", h")
       maxima-help-map)
     (define-key vim:normal-mode-local-keymap
-        (kbd "<f1>")
+      (kbd "<f1>")
       maxima-help-map)
 
     (def-keys-for-map vim:visual-mode-local-keymap
@@ -89,7 +89,7 @@
       ("<f12>" nil)))
 
   (define-switch-to-interpreter
-      switch-to-maxima
+    switch-to-maxima
     ((when (processp inferior-maxima-process)
        (process-buffer inferior-maxima-process))
      "*maxima*"
@@ -104,7 +104,7 @@
 
   (define-circular-jumps
       maxima-jump-to-next-prompt
-    maxima-jump-to-prev-prompt
+      maxima-jump-to-prev-prompt
     comint-prompt-regexp
     (unless (string-match-p "\\*i?maxima\\*" (buffer-name))
       (error "Not in the maxima buffer")))
@@ -142,10 +142,10 @@
       ("C-S-<left>"  paredit-backward-barf-sexp))
 
     (define-key vim:normal-mode-local-keymap
-        (kbd ", h")
+      (kbd ", h")
       maxima-help-map)
     (define-key vim:normal-mode-local-keymap
-        (kbd "<f1>")
+      (kbd "<f1>")
       maxima-help-map))
 
   (add-hook 'maxima-mode-hook #'maxima-setup)

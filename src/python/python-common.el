@@ -18,33 +18,33 @@
 (defun python-point-inside-string-or-comment? ()
   "Return t if point is positioned inside a string."
   (save-excursion
-   (let* ((end (point))
-          (begin (line-beginning-position)))
-     (when begin
-       (let ((state (parse-partial-sexp begin end)))
-         (or (elt state 3)
-             (elt state 4)))))))
+    (let* ((end (point))
+           (begin (line-beginning-position)))
+      (when begin
+        (let ((state (parse-partial-sexp begin end)))
+          (or (elt state 3)
+              (elt state 4)))))))
 
 (defun python-point-inside-string? ()
   "Return t if point is positioned inside a string."
   (save-excursion
-   (let* ((end (point))
-          (begin (line-beginning-position)))
-     (when begin
-       (elt (parse-partial-sexp begin end)
-            3)))))
+    (let* ((end (point))
+           (begin (line-beginning-position)))
+      (when begin
+        (elt (parse-partial-sexp begin end)
+             3)))))
 
 (defun python-point-inside-string-and-not-comment? ()
   "Return t if point is positioned inside a string."
   (save-excursion
-   (save-match-data
-    (let* ((end (point))
-           (begin (line-beginning-position)))
-      (when begin
-        (let ((state (parse-partial-sexp begin
-                                         end)))
-          (and (elt state 3)
-               (null (elt state 4)))))))))
+    (save-match-data
+      (let* ((end (point))
+             (begin (line-beginning-position)))
+        (when begin
+          (let ((state (parse-partial-sexp begin
+                                           end)))
+            (and (elt state 3)
+                 (null (elt state 4)))))))))
 
 (make-align-function python-align-on-equals
                      (rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
@@ -66,8 +66,8 @@ greater indenation as current line."
   (interactive)
   (beginning-of-line)
   (let ((start-column
-          (lambda ()
-            (save-excursion
+         (lambda ()
+           (save-excursion
              (beginning-of-line)
              (skip-syntax-forward "-")
              (current-column)))))
@@ -82,18 +82,18 @@ greater indenation as current line."
 (defun python-hide-all ()
   (interactive)
   (save-excursion
-   (goto-char (point-min))
-   (while (re-search-forward (rx bol
-                                 (* whitespace)
-                                 "def"
-                                 (+ whitespace)
-                                 (* not-newline)
-                                 eol)
-                             nil
-                             t)
-     (goto-char (match-end 0))
-     (hs-hide-block)
-     (forward-line 1))))
+    (goto-char (point-min))
+    (while (re-search-forward (rx bol
+                                  (* whitespace)
+                                  "def"
+                                  (+ whitespace)
+                                  (* not-newline)
+                                  eol)
+                              nil
+                              t)
+      (goto-char (match-end 0))
+      (hs-hide-block)
+      (forward-line 1))))
 
 ;;;; common setup parts
 

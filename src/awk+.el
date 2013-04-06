@@ -92,9 +92,9 @@ in buffer from where `awk' was invoked.")
 
   (insert awk-init-content)
   (save-match-data
-   (goto-char (point-min))
-   (re-search-forward "<_>")
-   (replace-match ""))
+    (goto-char (point-min))
+    (re-search-forward "<_>")
+    (replace-match ""))
   (set-buffer-modified-p nil))
 
 
@@ -144,7 +144,7 @@ in place of input."
                                nil           ;; don't delete from temp buffer
                                (list out-buf ;; mix stderr and stdout
                                      t)
-                               t             ;; do redisplay
+                               t ;; do redisplay
                                ;; arguments to awk-bin
                                awk-program))
         (setenv "LC_ALL" locale-old))

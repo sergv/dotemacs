@@ -52,8 +52,8 @@ Turn off highlighting if character at point is not parentheses."
            (member (char-after)
                    hl-paren-parentheses))
     (let ((matching-pos (save-excursion
-                         (vim:motion-jump-item)
-                         (point))))
+                          (vim:motion-jump-item)
+                          (point))))
       (if (and hl-paren-current-overlay
                hl-paren-corresponding-overlay)
         ;; move overlays if they already exist

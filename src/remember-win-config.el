@@ -20,8 +20,8 @@
 
 (defun remember-win-config-read-ascii-char ()
   (flet ((char-in-range? (c beg end)
-           (and (<= beg c)
-                (<= c end))))
+                         (and (<= beg c)
+                              (<= c end))))
     (let ((c (read-char-exclusive)))
       (if (or
            ;; [0-9]

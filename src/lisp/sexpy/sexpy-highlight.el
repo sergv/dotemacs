@@ -79,17 +79,17 @@ and general malfunctions."
                            (sexpy-scase-entries pattern))
                     "BAD SCASE PATTERN: %S" pattern)
      (flet ((get-pos (branch)
-              (position branch (sexpy-scase-entries pattern)
-                        :test #'eq
-                        :key #'car))
+                     (position branch (sexpy-scase-entries pattern)
+                               :test #'eq
+                               :key #'car))
             (count-branches (branch)
-              (count branch (sexpy-scase-entries pattern)
-                     :test #'eq
-                     :key #'car))
+                            (count branch (sexpy-scase-entries pattern)
+                                   :test #'eq
+                                   :key #'car))
             (has-branch? (branch)
-              (member* branch (sexpy-scase-entries pattern)
-                       :test #'eq
-                       :key #'car)))
+                         (member* branch (sexpy-scase-entries pattern)
+                                  :test #'eq
+                                  :key #'car)))
        (sexpy-assert* (not (and (has-branch? t) (has-branch? 'else)))
                       "ONLY ONE OF T OR ELSE CASES SHOULD BE PRESENT IN %S"
                       pattern)
@@ -314,41 +314,41 @@ is a feasible pattern."
 
 (defun sexpy-pattern-extract-names (pattern)
   (labels ((extract (pattern names)
-             (cond
-               ((sexpy-pattern-has-name? pattern)
-                (cons (sexpy-pattern-name pattern)
-                      names))
-               ((or (sexpy-pattern-repeat? pattern)
-                    (sexpy-pattern-parenthesized? pattern))
-                (reduce
-                 (lambda (names pat)
-                   (extract pat names))
-                 (sexpy-pattern-body pattern)
-                 :initial-value names))
-               ((sexpy-pattern-scase? pattern)
+                    (cond
+                      ((sexpy-pattern-has-name? pattern)
+                       (cons (sexpy-pattern-name pattern)
+                             names))
+                      ((or (sexpy-pattern-repeat? pattern)
+                           (sexpy-pattern-parenthesized? pattern))
+                       (reduce
+                        (lambda (names pat)
+                          (extract pat names))
+                        (sexpy-pattern-body pattern)
+                        :initial-value names))
+                      ((sexpy-pattern-scase? pattern)
 
-                (reduce
-                 (lambda (names pat)
-                   (extract pat names))
-                 (map #'cdr
-                      (sexpy-scase-entries pattern))
-                 :initial-value names))
-               ((sexpy-pattern-alt? pattern)
-                (extract (sexpy-alt-sexp-case pattern)
-                         (extract (sexpy-alt-atom-case pattern)
-                                  names)))
-               ((and (not (null pattern))
-                     (not (sexpy-single-pattern? pattern)))
-                (extract (cdr pattern)
-                         (extract (car pattern)
-                                  names)))
-               (t
-                names))))
+                       (reduce
+                        (lambda (names pat)
+                          (extract pat names))
+                        (map #'cdr
+                             (sexpy-scase-entries pattern))
+                        :initial-value names))
+                      ((sexpy-pattern-alt? pattern)
+                       (extract (sexpy-alt-sexp-case pattern)
+                                (extract (sexpy-alt-atom-case pattern)
+                                         names)))
+                      ((and (not (null pattern))
+                            (not (sexpy-single-pattern? pattern)))
+                       (extract (cdr pattern)
+                                (extract (car pattern)
+                                         names)))
+                      (t
+                       names))))
     (nreverse (extract pattern nil))))
 
 (defun sexpy-map-pattern-tree (pattern pred f)
   (flet ((transform-pattern (pat)
-           (sexpy-map-pattern-tree pat pred f)))
+                            (sexpy-map-pattern-tree pat pred f)))
     (cond
       ((funcall pred pattern)
        (funcall f pattern))
@@ -398,9 +398,9 @@ is a feasible pattern."
 (defun sexpy-map-tree-deep (tree pred f)
   "Don't stop after first substitution."
   (labels ((recur-subst (pat)
-             (sexpy-map-tree (funcall f pat)
-                             pred
-                             #'recur-subst)))
+                        (sexpy-map-tree (funcall f pat)
+                                        pred
+                                        #'recur-subst)))
     (sexpy-map-tree
      tree
      pred
@@ -447,7 +447,7 @@ USED-NAMES - list of names that will be actually used."
 
 (defstruct (sexpy-preproc-directive
             (:constructor make-sexpy-preproc-directive
-                (tag args-count subst-procedure)))
+                          (tag args-count subst-procedure)))
   tag
   args-count
   subst-procedure)
@@ -480,13 +480,13 @@ PREDICATE, SUBST-FUNC - functions of one arg - part of pattern."
 
 (defun sexpy-preprocess-pattern (pattern)
   (flet ((find-directive (pat)
-           (find-if (lambda (directive)
-                      (and (eq (car pat)
-                               (sexpy-preproc-directive-tag directive))
-                           (= (sexpy-preproc-directive-args-count
-                               directive)
-                              (length (cdr pat)))))
-                    *sexpy-preproc-registered-directives*)))
+                         (find-if (lambda (directive)
+                                    (and (eq (car pat)
+                                             (sexpy-preproc-directive-tag directive))
+                                         (= (sexpy-preproc-directive-args-count
+                                             directive)
+                                            (length (cdr pat)))))
+                                  *sexpy-preproc-registered-directives*)))
     (sexpy-map-tree-deep
      pattern
      (lambda (pat)
@@ -640,11 +640,11 @@ FAILED?."
 (defun sexpy-inside-string-or-comment? ()
   "Return t if point is positioned inside a string."
   (save-excursion
-   (let* ((end (point))
-          (begin (line-beginning-position))
-          (state (parse-partial-sexp begin end)))
-     (or (elt state 3)
-         (elt state 4)))))
+    (let* ((end (point))
+           (begin (line-beginning-position))
+           (state (parse-partial-sexp begin end)))
+      (or (elt state 3)
+          (elt state 4)))))
 
 (defun* sexpy-forward-sexp-safe (dict &optional (count 1))
   (condition-case err
@@ -752,30 +752,30 @@ FAILED?."
        (sexpy-dbg-message 3 "PATTERN SCASE %S" pattern)
        (sexpy-skip-whitespace)
        (labels ((iterate (entries)
-                  (cond
-                    ((null entries)
-                     (sexpy-mark-dict-as-failed dict))
-                    ((and (not (sexpy-at-end-of-sexp?))
-                          (not (sexpy-end-of-limit? limit))
-                          (or (and (eq 'atom? (caar entries))
-                                   (not (sexpy-at-beginning-of-sexp?)))
-                              (and (eq 'list? (caar entries))
-                                   (sexpy-at-beginning-of-sexp?))
-                              (and (eq 'string? (caar entries))
-                                   (sexpy-at-beginning-of-string?))
-                              (eq 'anything? (caar entries))))
-                     (sexpy-match (cdar entries) dict limit repeating))
-                    ((or (eq t (caar entries))
-                         (eq 'else (caar entries))
-                         (and (listp (caar entries))
-                              (looking-at-p (concat "\\(?:"
-                                                    (mapconcat #'symbol-name
-                                                               (caar entries)
-                                                               "\\|")
-                                                    "\\)\\_>"))))
-                     (sexpy-match (cdar entries) dict limit repeating))
-                    (t
-                     (iterate (cdr entries))))))
+                         (cond
+                           ((null entries)
+                            (sexpy-mark-dict-as-failed dict))
+                           ((and (not (sexpy-at-end-of-sexp?))
+                                 (not (sexpy-end-of-limit? limit))
+                                 (or (and (eq 'atom? (caar entries))
+                                          (not (sexpy-at-beginning-of-sexp?)))
+                                     (and (eq 'list? (caar entries))
+                                          (sexpy-at-beginning-of-sexp?))
+                                     (and (eq 'string? (caar entries))
+                                          (sexpy-at-beginning-of-string?))
+                                     (eq 'anything? (caar entries))))
+                            (sexpy-match (cdar entries) dict limit repeating))
+                           ((or (eq t (caar entries))
+                                (eq 'else (caar entries))
+                                (and (listp (caar entries))
+                                     (looking-at-p (concat "\\(?:"
+                                                           (mapconcat #'symbol-name
+                                                                      (caar entries)
+                                                                      "\\|")
+                                                           "\\)\\_>"))))
+                            (sexpy-match (cdar entries) dict limit repeating))
+                           (t
+                            (iterate (cdr entries))))))
          (iterate (sexpy-scase-entries pattern))))
       ((sexpy-pattern-alt? pattern)
        (sexpy-dbg-message 3 "PATTERN ALT %S" pattern)
@@ -790,45 +790,45 @@ FAILED?."
                                           "\\|")
                                "\\_>")))
          (labels ((traverse-tree (d)
-                    (sexpy-skip-whitespace)
-                    (cond
-                      ((sexpy-at-beginning-of-sexp?)
-                       (forward-char 1)
-                       (sexpy-dbg-message 4 "****OPENING PAREN****")
-                       (while (and (not (sexpy-at-end-of-sexp?))
-                                   (not (sexpy-end-of-limit? limit)))
-                         (setf d (traverse-tree d)))
-                       (when (sexpy-at-end-of-sexp?)
-                         (forward-char 1)
-                         (sexpy-dbg-message 4 "****CLOSING PAREN****"))
-                       d)
-                      ((looking-at-p atoms-re)
-                       (sexpy-forward-sexp-with-bounds
-                        d begin end
-                        (sexpy-add-to-dict d pattern begin end repeating)))
-                      (t
-                       (sexpy-forward-sexp-safe d 1)
-                       d))))
+                                 (sexpy-skip-whitespace)
+                                 (cond
+                                   ((sexpy-at-beginning-of-sexp?)
+                                    (forward-char 1)
+                                    (sexpy-dbg-message 4 "****OPENING PAREN****")
+                                    (while (and (not (sexpy-at-end-of-sexp?))
+                                                (not (sexpy-end-of-limit? limit)))
+                                      (setf d (traverse-tree d)))
+                                    (when (sexpy-at-end-of-sexp?)
+                                      (forward-char 1)
+                                      (sexpy-dbg-message 4 "****CLOSING PAREN****"))
+                                    d)
+                                   ((looking-at-p atoms-re)
+                                    (sexpy-forward-sexp-with-bounds
+                                     d begin end
+                                     (sexpy-add-to-dict d pattern begin end repeating)))
+                                   (t
+                                    (sexpy-forward-sexp-safe d 1)
+                                    d))))
            (traverse-tree dict))))
       ((sexpy-pattern-tree-atoms? pattern)
        (sexpy-dbg-message 3 "PATTERN TREE ATOMS %S" pattern)
        (labels ((traverse-tree (d)
-                  (sexpy-skip-whitespace)
-                  (cond
-                    ((sexpy-at-beginning-of-sexp?)
-                     (forward-char 1)
-                     (sexpy-dbg-message 4 "****OPENING PAREN****")
-                     (while (and (not (sexpy-at-end-of-sexp?))
-                                 (not (sexpy-end-of-limit? limit)))
-                       (setf d (traverse-tree d)))
-                     (when (sexpy-at-end-of-sexp?)
-                       (forward-char 1)
-                       (sexpy-dbg-message 4 "****CLOSING PAREN****"))
-                     d)
-                    (t
-                     (sexpy-forward-sexp-with-bounds
-                      d begin end
-                      (sexpy-add-to-dict d pattern begin end repeating))))))
+                               (sexpy-skip-whitespace)
+                               (cond
+                                 ((sexpy-at-beginning-of-sexp?)
+                                  (forward-char 1)
+                                  (sexpy-dbg-message 4 "****OPENING PAREN****")
+                                  (while (and (not (sexpy-at-end-of-sexp?))
+                                              (not (sexpy-end-of-limit? limit)))
+                                    (setf d (traverse-tree d)))
+                                  (when (sexpy-at-end-of-sexp?)
+                                    (forward-char 1)
+                                    (sexpy-dbg-message 4 "****CLOSING PAREN****"))
+                                  d)
+                                 (t
+                                  (sexpy-forward-sexp-with-bounds
+                                   d begin end
+                                   (sexpy-add-to-dict d pattern begin end repeating))))))
          (traverse-tree dict)))
 
       ;; it's combined pattern and it's first element is
@@ -1123,7 +1123,7 @@ FAILED?."
                 (length buffer-undo-list))
        (setf buffer-undo-list t)
        (unwind-protect
-            (progn ,@body)
+           (progn ,@body)
          (setf buffer-undo-list ,hist-sym))
        (message "PRESERVE-BUFFER-UNDO-LIST: BUFFER-UNDO-LIST LENGTH AFTER: %s"
                 (length buffer-undo-list)))))
@@ -1174,14 +1174,14 @@ found or nil otherwise."
   "CMP-PRED takes two entries and returns t if left value should go before
 right one in LIST. EQ-PRED is used to remove old value from list."
   (labels ((insert-new-entry (list)
-             (cond
-               ((null list)
-                (list new-entry))
-               ((funcall cmp-pred new-entry (car list))
-                (cons new-entry list))
-               (t
-                (cons (car list)
-                      (insert-new-entry (cdr list)))))))
+                             (cond
+                               ((null list)
+                                (list new-entry))
+                               ((funcall cmp-pred new-entry (car list))
+                                (cons new-entry list))
+                               (t
+                                (cons (car list)
+                                      (insert-new-entry (cdr list)))))))
     (insert-new-entry (remove* new-entry list :test eq-pred))))
 
 (defmacro sexpy-define-comparer (name cmp-func access-func)
@@ -1196,7 +1196,7 @@ right one in LIST. EQ-PRED is used to remove old value from list."
 
 (defstruct (sexpy-pattern-fontifier
             (:constructor make-sexpy-pattern-fontifier
-                (head-regexp function priority)))
+                          (head-regexp function priority)))
   head-regexp
   function ;; symbol for now
   priority)
@@ -1270,13 +1270,13 @@ fontifiers."
           (sexpy-transform-pattern-to-numbers raw-pattern names)
 
         (let ((num-face-alist
-                (sort (map (lambda (x)
-                             (let ((name (first x)))
-                               (list (second (assoc* name name-num-alist
-                                                     :test #'eq))
-                                     (second x))))
-                           name-face-alist)
-                      (lambda (a b) (< (car a) (car b)))))
+               (sort (map (lambda (x)
+                            (let ((name (first x)))
+                              (list (second (assoc* name name-num-alist
+                                                    :test #'eq))
+                                    (second x))))
+                          name-face-alist)
+                     (lambda (a b) (< (car a) (car b)))))
               (nums-to-track (map (lambda (name)
                                     (cadr (assoc name name-num-alist)))
                                   names-to-track)))
@@ -1285,37 +1285,37 @@ fontifiers."
 
              (defun ,fontifier-name (limit)
                (save-match-data
-                (while (sexpy-re-search-forward-beg-noerr-no-comments-no-case-tagged
-                        ,head-re
-                        limit
-                        ',fontifier-name)
-                  (when (dict-failed? ,dict-name)
-                    (sexpy-mark-dict-as-ok ,dict-name))
-                  ;; push limit somewhat futher
-                  (setf limit (max limit
-                                   (sexpy-end-of-sexp-at-point)))
-                  (setf ,dict-name (catch 'sexpy-match-done
-                                     (sexpy-match ',num-pattern
-                                                  ,dict-name
-                                                  limit)))
-                  (loop
-                    for num in ',nums-to-track
-                    do (dolist (val (sexpy-dict-get-values ,dict-name num))
-                         (put-text-property (sexpy-dict-entry-beg val)
-                                            (sexpy-dict-entry-end val)
-                                            'sexpy-tagged
-                                            ;; sign this word with unique fontifier
-                                            ',fontifier-name)))
-                  (loop
-                    for (num face) in ',num-face-alist
-                    do (dolist (val (sexpy-dict-pop-values ,dict-name num))
-                         (put-text-property (sexpy-dict-entry-beg val)
-                                            (sexpy-dict-entry-end val)
-                                            'font-lock-face
-                                            face)))
-                  (sexpy-clear-dict ,dict-name)
-                  (when (< limit (point))
-                    (goto-char limit)))))))))))
+                 (while (sexpy-re-search-forward-beg-noerr-no-comments-no-case-tagged
+                         ,head-re
+                         limit
+                         ',fontifier-name)
+                   (when (dict-failed? ,dict-name)
+                     (sexpy-mark-dict-as-ok ,dict-name))
+                   ;; push limit somewhat futher
+                   (setf limit (max limit
+                                    (sexpy-end-of-sexp-at-point)))
+                   (setf ,dict-name (catch 'sexpy-match-done
+                                      (sexpy-match ',num-pattern
+                                                   ,dict-name
+                                                   limit)))
+                   (loop
+                     for num in ',nums-to-track
+                     do (dolist (val (sexpy-dict-get-values ,dict-name num))
+                          (put-text-property (sexpy-dict-entry-beg val)
+                                             (sexpy-dict-entry-end val)
+                                             'sexpy-tagged
+                                             ;; sign this word with unique fontifier
+                                             ',fontifier-name)))
+                   (loop
+                     for (num face) in ',num-face-alist
+                     do (dolist (val (sexpy-dict-pop-values ,dict-name num))
+                          (put-text-property (sexpy-dict-entry-beg val)
+                                             (sexpy-dict-entry-end val)
+                                             'font-lock-face
+                                             face)))
+                   (sexpy-clear-dict ,dict-name)
+                   (when (< limit (point))
+                     (goto-char limit)))))))))))
 
 (defvar *sexpy-lisp-pattern-fontifiers* nil
   "List of either pattern-based or regexp based fontification procedures of
@@ -1388,12 +1388,12 @@ sometimes does profiling with elp package."
 
 (defun sexpy-extend-font-lock-region-after-change (beg end old-len)
   (save-excursion
-   (goto-char beg)
-   (condition-case nil
-       (when (sexpy-pattern-fontify-up-list 4)
-         (cons (point)
-               (sexpy-end-of-sexp-at-point)))
-     (error nil))))
+    (goto-char beg)
+    (condition-case nil
+        (when (sexpy-pattern-fontify-up-list 4)
+          (cons (point)
+                (sexpy-end-of-sexp-at-point)))
+      (error nil))))
 
 (defun sexpy-set-up-fontification ()
   (sexpy-refresh-pattern-fontify-re-cache)
@@ -1410,330 +1410,330 @@ sometimes does profiling with elp package."
           (inhibit-point-motion-hooks t)
           (inhibit-redisplay t))
       (save-excursion
-       (dolist (pat-fontifier *sexpy-lisp-pattern-fontifiers*)
-         (goto-char beg)
-         (funcall (sexpy-pattern-fontifier-function pat-fontifier)
-                  end))))
+        (dolist (pat-fontifier *sexpy-lisp-pattern-fontifiers*)
+          (goto-char beg)
+          (funcall (sexpy-pattern-fontifier-function pat-fontifier)
+                   end))))
     ;; restore flag and force redisplay
     (set-buffer-modified-p modification-flag)))
 
 ;;;;; fontification definitions
 
 (sexpy-define-pattern-fontifier (defpackage)
- (parenthesized
-  (atom? head)
-  (atom? package-name)
-  (repeat
-   (parenthesized
-    (scase
-     ((:shadow :export :intern)
-      (atom? section-type)
-      (repeat (atom? values)))
-     ((:nicknames :use)
-      (atom? section-type)
-      (repeat (atom? package-name)))
-     ((:documentation)
-      (atom? section-type)
-      (atom? doc))
-     ((:import-from :shadowing-import-from)
-      (atom? section-type)
-      (atom? package-name)
-      (repeat (atom? values)))
-     ((:size)
-      (atom? section-type)
-      (skip-everything))
-     (t
-      (skip-everything*))))))
- ((head         ansi-lisp-keyword-face)
-  (package-name ansi-lisp-defined-data-name-face)
-  (doc          ansi-lisp-doc-face)
-  (section-type ansi-lisp-keyword-face)
-  (values       ansi-lisp-exported-symbols-face))
- :priority 10)
+                                (parenthesized
+                                 (atom? head)
+                                 (atom? package-name)
+                                 (repeat
+                                  (parenthesized
+                                   (scase
+                                    ((:shadow :export :intern)
+                                     (atom? section-type)
+                                     (repeat (atom? values)))
+                                    ((:nicknames :use)
+                                     (atom? section-type)
+                                     (repeat (atom? package-name)))
+                                    ((:documentation)
+                                     (atom? section-type)
+                                     (atom? doc))
+                                    ((:import-from :shadowing-import-from)
+                                     (atom? section-type)
+                                     (atom? package-name)
+                                     (repeat (atom? values)))
+                                    ((:size)
+                                     (atom? section-type)
+                                     (skip-everything))
+                                    (t
+                                     (skip-everything*))))))
+                                ((head         ansi-lisp-keyword-face)
+                                 (package-name ansi-lisp-defined-data-name-face)
+                                 (doc          ansi-lisp-doc-face)
+                                 (section-type ansi-lisp-keyword-face)
+                                 (values       ansi-lisp-exported-symbols-face))
+                                :priority 10)
 
 (sexpy-define-pattern-fontifier (in-package)
- (parenthesized
-  (atom? head)
-  (atom? package-name))
- ((head         ansi-lisp-keyword-face)
-  (package-name ansi-lisp-defined-data-name-face)))
+                                (parenthesized
+                                 (atom? head)
+                                 (atom? package-name))
+                                ((head         ansi-lisp-keyword-face)
+                                 (package-name ansi-lisp-defined-data-name-face)))
 
 (sexpy-define-pattern-fontifier (use-package)
- (parenthesized
-  (atom? head)
-  (repeat
-   (atom? package-name)))
- ((head         ansi-lisp-keyword-face)
-  (package-name ansi-lisp-defined-data-name-face)))
+                                (parenthesized
+                                 (atom? head)
+                                 (repeat
+                                  (atom? package-name)))
+                                ((head         ansi-lisp-keyword-face)
+                                 (package-name ansi-lisp-defined-data-name-face)))
 
 (sexpy-define-pattern-fontifier (defun defmacro)
- (parenthesized
-  (atom? head)
-  (atom? name)
-  ;; lambda list
-  (lambda-args+specifiers arg arg-specifier)
-  (optional-doc doc)
-  (done))
- ((head ansi-lisp-keyword-face)
-  (name ansi-lisp-defined-name-face)
-  (arg-specifier ansi-lisp-constant-face)
-  (arg default)
-  (doc  ansi-lisp-doc-face))
- :priority 10
- :names-to-track (arg))
+                                (parenthesized
+                                 (atom? head)
+                                 (atom? name)
+                                 ;; lambda list
+                                 (lambda-args+specifiers arg arg-specifier)
+                                 (optional-doc doc)
+                                 (done))
+                                ((head ansi-lisp-keyword-face)
+                                 (name ansi-lisp-defined-name-face)
+                                 (arg-specifier ansi-lisp-constant-face)
+                                 (arg default)
+                                 (doc  ansi-lisp-doc-face))
+                                :priority 10
+                                :names-to-track (arg))
 
 (sexpy-define-pattern-fontifier (defparameter defvar)
- (parenthesized (atom? head)
-                (atom? name)
-                (skip-everything)
-                (optional-doc doc))
- ((head ansi-lisp-keyword-face)
-  (name ansi-lisp-defined-name-face)
-  (doc  ansi-lisp-doc-face)))
+                                (parenthesized (atom? head)
+                                               (atom? name)
+                                               (skip-everything)
+                                               (optional-doc doc))
+                                ((head ansi-lisp-keyword-face)
+                                 (name ansi-lisp-defined-name-face)
+                                 (doc  ansi-lisp-doc-face)))
 
 (sexpy-define-pattern-fontifier (defconstant)
- (parenthesized (atom? head)
-                (atom? name)
-                (skip-everything)
-                (optional-doc doc))
- ((head ansi-lisp-keyword-face)
-  (name ansi-lisp-constant-face)
-  (doc  ansi-lisp-doc-face)))
+                                (parenthesized (atom? head)
+                                               (atom? name)
+                                               (skip-everything)
+                                               (optional-doc doc))
+                                ((head ansi-lisp-keyword-face)
+                                 (name ansi-lisp-constant-face)
+                                 (doc  ansi-lisp-doc-face)))
 
 (sexpy-define-pattern-fontifier (defstruct)
- (parenthesized
-  (atom? head)
-  (alt (atom? structure-name)
-       (parenthesized
-        (atom? structure-name)
-        (repeat
-         ;; (alt (atom? option-keyword)
-         ;;      (parenthesized
-         ;;       (scase
-         ;;        ((:initial-offset)
-         ;;         (atom? option-keyword)
-         ;;         (skip-everything))
-         ;;        (atom?
-         ;;         ;; (:conc-name
-         ;;         ;;  :copier
-         ;;         ;;  :predicate
-         ;;         ;;  :print-object
-         ;;         ;;  :print-function
-         ;;         ;;  :constructor
-         ;;         ;;  :include)
-         ;;         (atom? option-keyword)
-         ;;         (scase
-         ;;          (atom? (atom? func-name))
-         ;;          (t))
-         ;;         (skip-everything*)))))
+                                (parenthesized
+                                 (atom? head)
+                                 (alt (atom? structure-name)
+                                      (parenthesized
+                                       (atom? structure-name)
+                                       (repeat
+                                        ;; (alt (atom? option-keyword)
+                                        ;;      (parenthesized
+                                        ;;       (scase
+                                        ;;        ((:initial-offset)
+                                        ;;         (atom? option-keyword)
+                                        ;;         (skip-everything))
+                                        ;;        (atom?
+                                        ;;         ;; (:conc-name
+                                        ;;         ;;  :copier
+                                        ;;         ;;  :predicate
+                                        ;;         ;;  :print-object
+                                        ;;         ;;  :print-function
+                                        ;;         ;;  :constructor
+                                        ;;         ;;  :include)
+                                        ;;         (atom? option-keyword)
+                                        ;;         (scase
+                                        ;;          (atom? (atom? func-name))
+                                        ;;          (t))
+                                        ;;         (skip-everything*)))))
 
-         (alt (atom? option-keyword)
-              (parenthesized
-               (scase
-                ;; options with 0 or 1 arguments
-                ;; moreover, this argument is a function
-                ((:conc-name
-                  :copier
-                  :predicate
-                  :print-object
-                  :print-function)
-                 (atom? option-keyword)
-                 (scase
-                  (atom? (atom? func-name))
-                  (t (skip-everything*))))
-                ;; options with 1 arguments
-                ((:initial-offset)
-                 (atom? option-keyword)
-                 (skip-everything))
-                ((:constructor)
-                 (atom? option-keyword)
-                 (scase
-                  (atom? (atom? func-name)
-                         ;; argument list
-                         (lambda-args constructor-arg))
-                  (t (skip-everything*))))
-                ((:include)
-                 (atom? option-keyword)
-                 (atom? structure-name)
-                 (repeat
-                  (alt (atom? slot-name)
-                       (parenthesized
-                        (atom? slot-name)
-                        (scase (atom?
-                                ;; skip default value
-                                (skip-everything)
-                                (repeat (scase
-                                         ((:type)
-                                          (atom? option-keyword)
-                                          (type slot-type))
-                                         ((:read-only)
-                                          (atom? option-keyword)
-                                          (skip-everything))
-                                         (t
-                                          (skip-everything)))))
-                               (t (skip-everything*)))))))
+                                        (alt (atom? option-keyword)
+                                             (parenthesized
+                                              (scase
+                                               ;; options with 0 or 1 arguments
+                                               ;; moreover, this argument is a function
+                                               ((:conc-name
+                                                 :copier
+                                                 :predicate
+                                                 :print-object
+                                                 :print-function)
+                                                (atom? option-keyword)
+                                                (scase
+                                                 (atom? (atom? func-name))
+                                                 (t (skip-everything*))))
+                                               ;; options with 1 arguments
+                                               ((:initial-offset)
+                                                (atom? option-keyword)
+                                                (skip-everything))
+                                               ((:constructor)
+                                                (atom? option-keyword)
+                                                (scase
+                                                 (atom? (atom? func-name)
+                                                        ;; argument list
+                                                        (lambda-args constructor-arg))
+                                                 (t (skip-everything*))))
+                                               ((:include)
+                                                (atom? option-keyword)
+                                                (atom? structure-name)
+                                                (repeat
+                                                 (alt (atom? slot-name)
+                                                      (parenthesized
+                                                       (atom? slot-name)
+                                                       (scase (atom?
+                                                               ;; skip default value
+                                                               (skip-everything)
+                                                               (repeat (scase
+                                                                        ((:type)
+                                                                         (atom? option-keyword)
+                                                                         (type slot-type))
+                                                                        ((:read-only)
+                                                                         (atom? option-keyword)
+                                                                         (skip-everything))
+                                                                        (t
+                                                                         (skip-everything)))))
+                                                              (t (skip-everything*)))))))
 
-                ;; just heuristic
-                (atom?
-                 (atom? option-keyword)
-                 (scase
-                  (atom? (atom? func-name)
-                         (skip-everything*))
-                  (t)))))))))
-  (optional-doc doc)
-  (repeat
-   (alt (atom? slot-name)
-        (parenthesized
-         (atom? slot-name)
-         (scase (atom?
-                 ;; skip default value
-                 (skip-everything)
-                 (repeat (scase
-                          ((:type)
-                           (atom? option-keyword)
-                           (type slot-type))
-                          ((:read-only)
-                           (atom? option-keyword)
-                           (skip-everything))
-                          (t
-                           (skip-everything)))))
-                (t (skip-everything*)))))))
- ((head            ansi-lisp-keyword-face)
-  (structure-name  ansi-lisp-defined-data-name-face)
-  (option-keyword  ansi-lisp-keyword-face)
-  (func-name       ansi-lisp-defined-name-face)
-  (constructor-arg default)
-  (doc             ansi-lisp-doc-face)
-  (slot-name       ansi-lisp-defined-data-name-face)
-  (slot-type       ansi-lisp-type-face))
- :priority 10
- :names-to-track (slot-name))
+                                               ;; just heuristic
+                                               (atom?
+                                                (atom? option-keyword)
+                                                (scase
+                                                 (atom? (atom? func-name)
+                                                        (skip-everything*))
+                                                 (t)))))))))
+                                 (optional-doc doc)
+                                 (repeat
+                                  (alt (atom? slot-name)
+                                       (parenthesized
+                                        (atom? slot-name)
+                                        (scase (atom?
+                                                ;; skip default value
+                                                (skip-everything)
+                                                (repeat (scase
+                                                         ((:type)
+                                                          (atom? option-keyword)
+                                                          (type slot-type))
+                                                         ((:read-only)
+                                                          (atom? option-keyword)
+                                                          (skip-everything))
+                                                         (t
+                                                          (skip-everything)))))
+                                               (t (skip-everything*)))))))
+                                ((head            ansi-lisp-keyword-face)
+                                 (structure-name  ansi-lisp-defined-data-name-face)
+                                 (option-keyword  ansi-lisp-keyword-face)
+                                 (func-name       ansi-lisp-defined-name-face)
+                                 (constructor-arg default)
+                                 (doc             ansi-lisp-doc-face)
+                                 (slot-name       ansi-lisp-defined-data-name-face)
+                                 (slot-type       ansi-lisp-type-face))
+                                :priority 10
+                                :names-to-track (slot-name))
 
 (sexpy-define-pattern-fontifier (let let* symbol-macrolet)
- (parenthesized (atom? head)
-                (parenthesized
-                 (repeat (parenthesized
-                          (atom? bound-name)
-                          (skip-everything))))
-                (done))
- ((head ansi-lisp-keyword-face)
-  ;; supress any fontification of names being defined
-  (bound-name default))
- :priority 10
- :names-to-track (bound-name))
+                                (parenthesized (atom? head)
+                                               (parenthesized
+                                                (repeat (parenthesized
+                                                         (atom? bound-name)
+                                                         (skip-everything))))
+                                               (done))
+                                ((head ansi-lisp-keyword-face)
+                                 ;; supress any fontification of names being defined
+                                 (bound-name default))
+                                :priority 10
+                                :names-to-track (bound-name))
 
 (sexpy-define-pattern-fontifier (bind bind*)
- (parenthesized (atom? head)
-                (parenthesized
-                 (repeat (parenthesized
-                          (alt (atom? bound-name)
-                               (parenthesized
-                                (repeat (atom? bound-name))))
-                          (skip-everything))))
-                (done))
- ((head ansi-lisp-keyword-face)
-  ;; supress any fontification of names being defined
-  (bound-name default))
- :priority 10
- :names-to-track (bound-name))
+                                (parenthesized (atom? head)
+                                               (parenthesized
+                                                (repeat (parenthesized
+                                                         (alt (atom? bound-name)
+                                                              (parenthesized
+                                                               (repeat (atom? bound-name))))
+                                                         (skip-everything))))
+                                               (done))
+                                ((head ansi-lisp-keyword-face)
+                                 ;; supress any fontification of names being defined
+                                 (bound-name default))
+                                :priority 10
+                                :names-to-track (bound-name))
 
 (sexpy-define-pattern-fontifier (multiple-value-bind destructuring-bind)
- (parenthesized (atom? head)
-                (tree-atoms bound-name)
-                (done))
- ((head ansi-lisp-keyword-face)
-  ;; supress any fontification of names being defined
-  (bound-name default))
- :priority 10
- :names-to-track (bound-name))
+                                (parenthesized (atom? head)
+                                               (tree-atoms bound-name)
+                                               (done))
+                                ((head ansi-lisp-keyword-face)
+                                 ;; supress any fontification of names being defined
+                                 (bound-name default))
+                                :priority 10
+                                :names-to-track (bound-name))
 
 
 (sexpy-define-pattern-fontifier (flet labels macrolet)
- (parenthesized (atom? head)
-                (parenthesized
-                 (repeat (parenthesized
-                          (atom? bound-name)
-                          (lambda-args+specifiers arg arg-specifier)
-                          (skip-everything))))
-                (done))
- ((head ansi-lisp-keyword-face)
-  ;; supress any fontification of names being defined
-  (bound-name default)
-  (arg default)
-  (arg-specifier ansi-lisp-constant-face))
- :priority 10
- :names-to-track (bound-name))
+                                (parenthesized (atom? head)
+                                               (parenthesized
+                                                (repeat (parenthesized
+                                                         (atom? bound-name)
+                                                         (lambda-args+specifiers arg arg-specifier)
+                                                         (skip-everything))))
+                                               (done))
+                                ((head ansi-lisp-keyword-face)
+                                 ;; supress any fontification of names being defined
+                                 (bound-name default)
+                                 (arg default)
+                                 (arg-specifier ansi-lisp-constant-face))
+                                :priority 10
+                                :names-to-track (bound-name))
 
 (sexpy-define-pattern-fontifier (fn lambda)
- (parenthesized (atom? head)
-                (lambda-args+specifiers arg arg-specifier)
-                (done))
- ((head ansi-lisp-keyword-face)
-  (arg default)
-  (arg-specifier ansi-lisp-constant-face))
- :priority 10
- :names-to-track (arg))
+                                (parenthesized (atom? head)
+                                               (lambda-args+specifiers arg arg-specifier)
+                                               (done))
+                                ((head ansi-lisp-keyword-face)
+                                 (arg default)
+                                 (arg-specifier ansi-lisp-constant-face))
+                                :priority 10
+                                :names-to-track (arg))
 
 
 (sexpy-define-pattern-fontifier (declare declaim)
- (parenthesized (atom? head)
-                (repeat
-                 (declaration-specifier decl-keyword affected-var type)))
- ((head         ansi-lisp-keyword-face)
-  (decl-keyword ansi-lisp-declaration-face)
-  (affected-var default)
-  (type         ansi-lisp-type-face)))
+                                (parenthesized (atom? head)
+                                               (repeat
+                                                (declaration-specifier decl-keyword affected-var type)))
+                                ((head         ansi-lisp-keyword-face)
+                                 (decl-keyword ansi-lisp-declaration-face)
+                                 (affected-var default)
+                                 (type         ansi-lisp-type-face)))
 
 (sexpy-define-pattern-fontifier (proclaim)
- (parenthesized (atom? head)
-                (declaration-specifier decl-keyword affected-var type))
- ((head         ansi-lisp-keyword-face)
-  (decl-keyword ansi-lisp-declaration-face)
-  (affected-var default)
-  (type         ansi-lisp-type-face)))
+                                (parenthesized (atom? head)
+                                               (declaration-specifier decl-keyword affected-var type))
+                                ((head         ansi-lisp-keyword-face)
+                                 (decl-keyword ansi-lisp-declaration-face)
+                                 (affected-var default)
+                                 (type         ansi-lisp-type-face)))
 
 
 (sexpy-define-pattern-fontifier (dolist dotimes)
- (parenthesized
-  (atom? head)
-  (parenthesized
-   (atom? iteration-variable)
-   (done)))
- ((head               ansi-lisp-keyword-face)
-  (iteration-variable default))
- :priority 10
- :names-to-track (iteration-variable))
+                                (parenthesized
+                                 (atom? head)
+                                 (parenthesized
+                                  (atom? iteration-variable)
+                                  (done)))
+                                ((head               ansi-lisp-keyword-face)
+                                 (iteration-variable default))
+                                :priority 10
+                                :names-to-track (iteration-variable))
 
 (sexpy-define-pattern-fontifier (do do*)
- (parenthesized
-  (atom? head)
-  (parenthesized
-   (repeat
-    (parenthesized
-     (atom? iteration-variable)
-     (skip-everything*))))
-  (done))
- ((head               ansi-lisp-keyword-face)
-  (iteration-variable default))
- :priority 10
- :names-to-track (iteration-variable))
+                                (parenthesized
+                                 (atom? head)
+                                 (parenthesized
+                                  (repeat
+                                   (parenthesized
+                                    (atom? iteration-variable)
+                                    (skip-everything*))))
+                                 (done))
+                                ((head               ansi-lisp-keyword-face)
+                                 (iteration-variable default))
+                                :priority 10
+                                :names-to-track (iteration-variable))
 
 (sexpy-define-pattern-fontifier (eval-when)
- (parenthesized
-  (atom? head)
-  (parenthesized
-   (repeat
-    (scase
-     ((compile
-       load
-       eval
-       :compile-toplevel
-       :load-toplevel
-       :execute)
-      (atom? situation)))))
-  (done))
- ((head      ansi-lisp-special-form-face)
-  (situation ansi-lisp-defined-data-name-face)))
+                                (parenthesized
+                                 (atom? head)
+                                 (parenthesized
+                                  (repeat
+                                   (scase
+                                    ((compile
+                                      load
+                                      eval
+                                      :compile-toplevel
+                                      :load-toplevel
+                                      :execute)
+                                     (atom? situation)))))
+                                 (done))
+                                ((head      ansi-lisp-special-form-face)
+                                 (situation ansi-lisp-defined-data-name-face)))
 
 (sexpy-define-pattern-fontifier (maximum
                                  minimum
@@ -1762,31 +1762,31 @@ sometimes does profiling with elp package."
                                  bitwise-not
                                  bitwise-shift-left
                                  bitwise-shift-right)
- (parenthesized
-  (atom? head)
-  (done))
- ((head ansi-lisp-keyword-face)))
+                                (parenthesized
+                                 (atom? head)
+                                 (done))
+                                ((head ansi-lisp-keyword-face)))
 
 (sexpy-define-pattern-fontifier (defsetf)
- (parenthesized
-  (atom? head)
-  (atom? access-func)
-  (scase
-   (atom? (atom? update-func)
-          (optional-doc doc))
-   (list? (lambda-args+specifiers arg arg-specifier)
-          (parenthesized
-           (repeat
-            (atom? store-variable)))
-          (optional-doc doc)))
-  (done))
- ((head           ansi-lisp-keyword-face)
-  (access-func    ansi-lisp-defined-name-face)
-  (update-func    ansi-lisp-defined-name-face)
-  (doc            ansi-lisp-doc-face)
-  (arg            default)
-  (arg-specifier  ansi-lisp-constant-face)
-  (store-variable default)))
+                                (parenthesized
+                                 (atom? head)
+                                 (atom? access-func)
+                                 (scase
+                                  (atom? (atom? update-func)
+                                         (optional-doc doc))
+                                  (list? (lambda-args+specifiers arg arg-specifier)
+                                         (parenthesized
+                                          (repeat
+                                           (atom? store-variable)))
+                                         (optional-doc doc)))
+                                 (done))
+                                ((head           ansi-lisp-keyword-face)
+                                 (access-func    ansi-lisp-defined-name-face)
+                                 (update-func    ansi-lisp-defined-name-face)
+                                 (doc            ansi-lisp-doc-face)
+                                 (arg            default)
+                                 (arg-specifier  ansi-lisp-constant-face)
+                                 (store-variable default)))
 
 ;; cond, defsetf
 

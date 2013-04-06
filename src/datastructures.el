@@ -55,17 +55,17 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
   "Construct sorted set from ITEMS list using LT-PRED predicate to sotr
 items and remove any duplicates."
   (let ((remove-duplicates
-          (lambda (items)
-            ;; items is sotred here
-            (let* ((result (cons (first items) nil))
-                   (tmp result))
-              (setf items (rest items))
-              (while items
-                (if (funcall lt-pred (first tmp) (first items))
-                  (setf (rest tmp) (cons (first items) nil)
-                        tmp (rest tmp)))
-                (setf items (rest items)))
-              result))))
+         (lambda (items)
+           ;; items is sotred here
+           (let* ((result (cons (first items) nil))
+                  (tmp result))
+             (setf items (rest items))
+             (while items
+               (if (funcall lt-pred (first tmp) (first items))
+                 (setf (rest tmp) (cons (first items) nil)
+                       tmp (rest tmp)))
+               (setf items (rest items)))
+             result))))
     (make-sorted-set :items (remove-duplicates (sort (copy-list items) lt-pred))
                      :lt-pred lt-pred)))
 

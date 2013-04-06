@@ -33,7 +33,7 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("M-/"     pabbrev-show-menu ;; pabbrev-expand-maybe
-               ))
+     ))
 
   (when pabbrev-mode
     (pabbrev-scavenge-buffer)))

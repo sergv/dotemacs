@@ -50,13 +50,13 @@ met then this hook would not run.")
   "Return substitution for STR obtained by matching STR against
 car's of `abbrev+-abbreviations' and returning corresponding element in cdr."
   (save-match-data
-   (let ((res (find-if (lambda (re)
-                         (and (string-match re str)
-                              (= (match-beginning 0) 0)
-                              (= (match-end 0) (length str))))
-                       abbrev+-abbreviations
-                       :key #'first)))
-     res)))
+    (let ((res (find-if (lambda (re)
+                          (and (string-match re str)
+                               (= (match-beginning 0) 0)
+                               (= (match-end 0) (length str))))
+                        abbrev+-abbreviations
+                        :key #'first)))
+      res)))
 
 (defun abbrev+-perform-substitution (action)
   "Perform actual substitution treating SUBST as cdr of entry
@@ -65,23 +65,23 @@ first being t if after substitution it may be desirable to insert space
 and second being actual substituted text."
   (let ((p (point))
         (insert-spacep
-          (cond
-            ((stringp action)
-             (insert action)
-             t)
-            ((and (listp action)
-                  (or (listp (car action))
-                      (symbolp (car action))
-                      (functionp (car action))
-                      (byte-code-functino-p (car action))))
-             ;; it's a list of functions so they should
-             ;; be called sequentially
-             (mapc #'funcall
-                   action)
-             nil)
-            (t
-             (insert (funcall action))
-             t))))
+         (cond
+           ((stringp action)
+            (insert action)
+            t)
+           ((and (listp action)
+                 (or (listp (car action))
+                     (symbolp (car action))
+                     (functionp (car action))
+                     (byte-code-functino-p (car action))))
+            ;; it's a list of functions so they should
+            ;; be called sequentially
+            (mapc #'funcall
+                  action)
+            nil)
+           (t
+            (insert (funcall action))
+            t))))
     (values insert-spacep (buffer-substring-no-properties p (point)))))
 
 
@@ -98,11 +98,11 @@ and second being actual substituted text."
         for syntax in abbrev+-skip-syntax
         until entry
         do
-           (goto-char p)
-           (skip-syntax-backward syntax)
-           (setf str (buffer-substring-no-properties (point) p))
-           (setf entry (abbrev+-get-substitution
-                        str)))
+        (goto-char p)
+        (skip-syntax-backward syntax)
+        (setf str (buffer-substring-no-properties (point) p))
+        (setf entry (abbrev+-get-substitution
+                     str)))
       (if entry
         (let ((action (second entry))
               (predicate (third entry))
@@ -156,19 +156,19 @@ and second being actual substituted text."
 
 (defun make-re-with-optional-suffix (str suffix-len)
   (letrec ((make-suffix
-             (lambda (list)
-               (if (null list)
-                 (list ??)
-                 (nconc
-                  (list ?\\
-                        ?\(
-                        ??
-                        ?:
-                        (car list))
-                  (funcall make-suffix (cdr list))
-                  (list ?\\
-                        ?\)
-                        ??))))))
+            (lambda (list)
+              (if (null list)
+                (list ??)
+                (nconc
+                 (list ?\\
+                       ?\(
+                       ??
+                       ?:
+                       (car list))
+                 (funcall make-suffix (cdr list))
+                 (list ?\\
+                       ?\)
+                       ??))))))
     (concat (subseq str 0 suffix-len)
             (apply #'string
                    (funcall make-suffix

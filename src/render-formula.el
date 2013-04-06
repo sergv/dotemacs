@@ -175,45 +175,45 @@ displayed as images.")
 (defun render-buffer-clean-string (regexp str)
   (if regexp
     (save-match-data
-     (with-temp-buffer
-       (insert str)
-       (goto-char (point-min))
-       (while (re-search-forward regexp nil t)
-         (replace-match ""))
-       (buffer-substring-no-properties (point-min) (point-max))))
+      (with-temp-buffer
+        (insert str)
+        (goto-char (point-min))
+        (while (re-search-forward regexp nil t)
+          (replace-match ""))
+        (buffer-substring-no-properties (point-min) (point-max))))
     str))
 
 (defun render-buffer-off ()
   (save-excursion
-   (with-disabled-undo
-    (with-preserved-buffer-modified-p
-     (with-inhibited-modification-hooks
-      (with-inhibited-read-only
-       (goto-char (point-min))
-       (while (re-search-forward +render-buffer-latex-re+ nil t)
-         (when (get-char-property (match-beginning 0) 'render-formula)
-           (render-buffer-disable-formula (match-beginning 0)
-                                          (match-end 0))))))))))
+    (with-disabled-undo
+     (with-preserved-buffer-modified-p
+      (with-inhibited-modification-hooks
+       (with-inhibited-read-only
+        (goto-char (point-min))
+        (while (re-search-forward +render-buffer-latex-re+ nil t)
+          (when (get-char-property (match-beginning 0) 'render-formula)
+            (render-buffer-disable-formula (match-beginning 0)
+                                           (match-end 0))))))))))
 
 (defun render-buffer-on ()
   (save-excursion
-   (with-disabled-undo
-    (with-preserved-buffer-modified-p
-     (with-inhibited-modification-hooks
-      (goto-char (point-min))
-      (while (re-search-forward +render-buffer-latex-re+ nil t)
-        (unless (get-char-property (match-beginning 0) 'display)
-          (let ((s (render-buffer-clean-string
-                    (match-string-no-properties 1)
-                    (match-string-no-properties 2))))
-            (add-text-properties
-             (match-beginning 0)
-             (match-end 0)
-             (list 'display (render-formula (trim-whitespaces s))
-                   'render-formula t
-                   'intangible t
-                   'read-only "Disable latex images first")))
-          (goto-char (match-end 0)))))))))
+    (with-disabled-undo
+     (with-preserved-buffer-modified-p
+      (with-inhibited-modification-hooks
+       (goto-char (point-min))
+       (while (re-search-forward +render-buffer-latex-re+ nil t)
+         (unless (get-char-property (match-beginning 0) 'display)
+           (let ((s (render-buffer-clean-string
+                     (match-string-no-properties 1)
+                     (match-string-no-properties 2))))
+             (add-text-properties
+              (match-beginning 0)
+              (match-end 0)
+              (list 'display (render-formula (trim-whitespaces s))
+                    'render-formula t
+                    'intangible t
+                    'read-only "Disable latex images first")))
+           (goto-char (match-end 0)))))))))
 
 (defun render-formula-toggle-formulae ()
   (interactive)
@@ -223,11 +223,11 @@ displayed as images.")
   (setf render-buffer-rendered? (not render-buffer-rendered?)))
 
 (defface render-formula-regexp-face
-    '((t (:foreground "blue")))
+  '((t (:foreground "blue")))
   "Face to highlight regexp after \$\$.")
 
 (defface render-formula-formula-face
-    '((t (:foreground "blue")))
+  '((t (:foreground "blue")))
   "Face to highlight latex code between \$\$'s.")
 
 (define-minor-mode render-formula-mode

@@ -38,7 +38,7 @@
     ("<f9>"    prolog-compile-file)))
 
 (define-switch-to-interpreter
-    switch-to-prolog
+  switch-to-prolog
   ("*prolog*")
   (run-prolog nil)
   :doc "Pop to prolog interpreter."

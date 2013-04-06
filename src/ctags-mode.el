@@ -151,17 +151,17 @@
   "Returns hash-table of (tag . ctags-tag) bindings parsed from buffer BUFFER."
   (with-current-buffer buffer
     (save-match-data
-     (goto-char (point-min))
-     (let ((tags-table (make-hash-table :test #'equal)))
-       (while (not (eob?))
-         (when (looking-at +ctags-line-re+)
-           (let ((symbol (match-string-no-properties 1))
-                 (file (concat (when root (concat root "/"))
-                               (match-string-no-properties 2)))
-                 (line (string->number (match-string-no-properties 3))))
-             (goto-char (match-end 0))
-             ;; now we're past ;"
-             (let ((fields
+      (goto-char (point-min))
+      (let ((tags-table (make-hash-table :test #'equal)))
+        (while (not (eob?))
+          (when (looking-at +ctags-line-re+)
+            (let ((symbol (match-string-no-properties 1))
+                  (file (concat (when root (concat root "/"))
+                                (match-string-no-properties 2)))
+                  (line (string->number (match-string-no-properties 3))))
+              (goto-char (match-end 0))
+              ;; now we're past ;"
+              (let ((fields
                      (delq
                       nil
                       (map (lambda (entry)
@@ -179,29 +179,29 @@
                                           (line-end-position))
                                          "\t"
                                          t)))))
-               (unless (ctags-file->id file)
-                 (let ((file-idx (+ (ctags/latest-defined-index *ctags-file-sequence*)
-                                    1)))
-                   (setf *ctags-file-sequence* (ctags/grow-vector *ctags-file-sequence*
-                                                                  file-idx
-                                                                  file))
-                   (puthash file file-idx *ctags-file-idxs*)))
-               (let ((new-tag (make-ctags-tag
-                               :symbol     symbol
-                               :file-idx   (ctags-file->id file)
-                               :line       line
-                               :kind       (cdr (assoc* 'kind fields))
-                               :aux-fields (filter (lambda (x)
-                                                     (not (eq? 'kind (car x))))
-                                                   fields))))
-                 (puthash symbol
-                          (cons new-tag
-                                (gethash symbol
-                                         tags-table
-                                         nil))
-                          tags-table)))))
-         (forward-line 1))
-       tags-table))))
+                (unless (ctags-file->id file)
+                  (let ((file-idx (+ (ctags/latest-defined-index *ctags-file-sequence*)
+                                     1)))
+                    (setf *ctags-file-sequence* (ctags/grow-vector *ctags-file-sequence*
+                                                                   file-idx
+                                                                   file))
+                    (puthash file file-idx *ctags-file-idxs*)))
+                (let ((new-tag (make-ctags-tag
+                                :symbol     symbol
+                                :file-idx   (ctags-file->id file)
+                                :line       line
+                                :kind       (cdr (assoc* 'kind fields))
+                                :aux-fields (filter (lambda (x)
+                                                      (not (eq? 'kind (car x))))
+                                                    fields))))
+                  (puthash symbol
+                           (cons new-tag
+                                 (gethash symbol
+                                          tags-table
+                                          nil))
+                           tags-table)))))
+          (forward-line 1))
+        tags-table))))
 
 (defun eproj-load-single-ctags-project (root)
   (let* ((proj (eproj-get-project root)))
@@ -228,10 +228,10 @@
 
 (defun eproj-load-ctags-project (proj)
   "Reload project PROJ and all it's related projects."
-    (map (lambda (root)
-           (eproj-load-single-ctags-project root))
-         (cons (eproj-project-root proj)
-               (eproj-get-all-related-projects (eproj-project-root proj)))))
+  (map (lambda (root)
+         (eproj-load-single-ctags-project root))
+       (cons (eproj-project-root proj)
+             (eproj-get-all-related-projects (eproj-project-root proj)))))
 
 (defun eproj-reload-projects ()
   (interactive)
@@ -245,22 +245,22 @@
 
 
 (defface ctags-symbol-face
-    `((t (:foreground ,+solarized-blue+)))
+  `((t (:foreground ,+solarized-blue+)))
   "Face to highlight warnings like error, assert."
   :group 'ctags-mode-faces)
 
 (defface ctags-file-face
-    `((t (:foreground ,+solarized-yellow+)))
+  `((t (:foreground ,+solarized-yellow+)))
   "Face to highlight warnings like error, assert."
   :group 'ctags-mode-faces)
 
 (defface ctags-regexp-face
-    `((t (:foreground ,+solarized-cyan+)))
+  `((t (:foreground ,+solarized-cyan+)))
   "Face to highlight warnings like error, assert."
   :group 'ctags-mode-faces)
 
 (defface ctags-aux-face
-    `((t (:foreground ,+solarized-orange+)))
+  `((t (:foreground ,+solarized-orange+)))
   "Face to highlight auxiliary words, like bind:, access: etc."
   :group 'ctags-mode-faces)
 
@@ -280,19 +280,19 @@
   "Jump to location pointed at by current ctags line."
   (interactive)
   (save-excursion
-   (save-match-data
-    (beginning-of-line)
-    (if (looking-at? +ctags-line-re+)
-      (let ((line (aif (match-string-no-properties 3)
-                    (string->number it)
-                    nil))
-            (buf (find-file-noselect (match-string-no-properties 2))))
-        (pop-to-buffer buf)
-        (with-current-buffer buf
-          (if line
-            (goto-line line)
-            (error "cannot use ctags format with regexps"))))
-      (error "not on ctags line")))))
+    (save-match-data
+      (beginning-of-line)
+      (if (looking-at? +ctags-line-re+)
+        (let ((line (aif (match-string-no-properties 3)
+                      (string->number it)
+                      nil))
+              (buf (find-file-noselect (match-string-no-properties 2))))
+          (pop-to-buffer buf)
+          (with-current-buffer buf
+            (if line
+              (goto-line line)
+              (error "cannot use ctags format with regexps"))))
+        (error "not on ctags line")))))
 
 (defvar ctags-mode-map
   (let ((map (make-sparse-keymap)))

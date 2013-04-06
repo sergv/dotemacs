@@ -8,8 +8,8 @@
 
 
 (eval-after-load "sql"
-                 '(progn
-                   (load-library "sql-indent")))
+  '(progn
+     (load-library "sql-indent")))
 
 (defun sql-setup ()
   (init-common)

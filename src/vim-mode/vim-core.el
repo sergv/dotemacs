@@ -181,9 +181,9 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   (let ((ret (make-symbol "ret")))
     `(progn
        (save-current-buffer
-        (let ((,ret (apply ,@args)))
-          (setq vim:new-buffer (current-buffer))
-          ,ret)))))
+         (let ((,ret (apply ,@args)))
+           (setq vim:new-buffer (current-buffer))
+           ,ret)))))
 
 
 (defmacro vim:funcall-save-buffer (&rest args)
@@ -191,9 +191,9 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   (let ((ret (make-symbol "ret")))
     `(progn
        (save-current-buffer
-        (let ((,ret (funcall ,@args)))
-          (setq vim:new-buffer (current-buffer))
-          ,ret)))))
+         (let ((,ret (funcall ,@args)))
+           (setq vim:new-buffer (current-buffer))
+           ,ret)))))
 
 (defun vim:select-register ()
   "Sets the register for the next command."
@@ -234,24 +234,24 @@ positions within (point-min) and (point-max) and not at
     (setq type (if (<= begin end) 'inclusive 'exclusive)))
 
   (letrec
-   ((shrink-to (lambda (pos lower upper)
-                 (max lower (min upper pos))))
+      ((shrink-to (lambda (pos lower upper)
+                    (max lower (min upper pos))))
 
-    (normalize-pos (lambda (pos)
-                     (let ((pos (funcall shrink-to pos (point-min) (point-max))))
-                       (funcall shrink-to pos
-                                (save-excursion
-                                 (goto-char pos)
-                                 (line-beginning-position))
-                                (save-excursion
-                                 (goto-char pos)
-                                 (- (line-end-position)
-                                    (if (eq type 'inclusive) 1 0))))))))
+       (normalize-pos (lambda (pos)
+                        (let ((pos (funcall shrink-to pos (point-min) (point-max))))
+                          (funcall shrink-to pos
+                                   (save-excursion
+                                     (goto-char pos)
+                                     (line-beginning-position))
+                                   (save-excursion
+                                     (goto-char pos)
+                                     (- (line-end-position)
+                                        (if (eq type 'inclusive) 1 0))))))))
 
-   (vim:make-motion-struct :has-begin has-begin
-                           :begin (funcall normalize-pos begin)
-                           :end (funcall normalize-pos end)
-                           :type type)))
+    (vim:make-motion-struct :has-begin has-begin
+                            :begin (funcall normalize-pos begin)
+                            :end (funcall normalize-pos end)
+                            :type type)))
 
 
 (defun vim:motion-line-count (motion)
@@ -272,20 +272,20 @@ positions within (point-min) and (point-max) and not at
 (defun vim:motion-first-col (motion)
   "Returns the first column covered by `motion'."
   (min (save-excursion
-        (goto-char (vim:motion-begin motion))
-        (current-column))
+         (goto-char (vim:motion-begin motion))
+         (current-column))
        (save-excursion
-        (goto-char (vim:motion-end motion))
-        (current-column))))
+         (goto-char (vim:motion-end motion))
+         (current-column))))
 
 (defun vim:motion-last-col (motion)
   "Returns the last column covered by `motion'."
   (max (save-excursion
-        (goto-char (vim:motion-begin motion))
-        (current-column))
+         (goto-char (vim:motion-begin motion))
+         (current-column))
        (save-excursion
-        (goto-char (vim:motion-end motion))
-        (current-column))))
+         (goto-char (vim:motion-end motion))
+         (current-column))))
 
 (defun vim:motion-begin-pos (motion)
   "Returns the smaller position covered by `motion'.
@@ -298,8 +298,8 @@ return the correct start-position of emacs-ranges, i.e.
   (pcase (vim:motion-type motion)
     (`linewise
      (save-excursion
-      (goto-line1 (vim:motion-first-line motion))
-      (line-beginning-position)))
+       (goto-line1 (vim:motion-first-line motion))
+       (line-beginning-position)))
     (`block
         (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
               (e (max (vim:motion-begin motion) (vim:motion-end motion))))
@@ -322,8 +322,8 @@ return the correct end-position of emacs-ranges, i.e.
   (pcase (vim:motion-type motion)
     (`linewise
      (save-excursion
-      (goto-line1 (vim:motion-last-line motion))
-      (line-end-position)))
+       (goto-line1 (vim:motion-last-line motion))
+       (line-end-position)))
     (`block
         (let ((b (min (vim:motion-begin motion) (vim:motion-end motion)))
               (e (max (vim:motion-begin motion) (vim:motion-end motion))))
@@ -362,9 +362,9 @@ and the (default) type of the motion."
 (defun vim:adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
   (save-excursion
-   (goto-char pos)
-   (max (line-beginning-position)
-        (min (1- (line-end-position)) pos))))
+    (goto-char pos)
+    (max (line-beginning-position)
+         (min (1- (line-end-position)) pos))))
 
 
 (defvar-local *vim:do-not-adjust-point* nil
@@ -467,8 +467,8 @@ command-specific transformations."
 
     (when (and (eq (vim:motion-type motion) 'exclusive)
                (save-excursion
-                (goto-char (vim:motion-end-pos motion))
-                (bolp)))
+                 (goto-char (vim:motion-end-pos motion))
+                 (bolp)))
 
       ;; exclusive motions may be modified
       (let ((end (vim:adjust-end-of-line-position (1- (vim:motion-end-pos motion)))))
@@ -478,8 +478,8 @@ command-specific transformations."
           (setf (vim:motion-begin motion) end)))
 
       (if (save-excursion
-           (goto-char (vim:motion-begin-pos motion))
-           (vim:looking-back "^\\s-*"))
+            (goto-char (vim:motion-begin-pos motion))
+            (vim:looking-back "^\\s-*"))
         ;; motion becomes linewise(-exclusive)
         (setf (vim:motion-type motion) 'linewise)
 

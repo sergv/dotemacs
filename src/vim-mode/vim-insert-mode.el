@@ -35,7 +35,7 @@
 
 (vim:define-mode insert "VIM insert-mode"
   :ident "I"
-  ; :message "-- INSERT --"
+                                        ; :message "-- INSERT --"
   :keymaps '(vim:insert-mode-keymap)
   :command-function 'vim:insert-mode-command
   :cursor 'bar)
@@ -113,7 +113,7 @@ where to insert a newline."
   (dotimes (i (1- (or vim:insert-count 1)))
     (goto-char (if (eq vim:insert-marker 'eob)
                  (point-max)
-		 (1- vim:insert-marker)))
+                 (1- vim:insert-marker)))
     (vim:insert-mode-insert-newline)
     (execute-kbd-macro vim:current-key-sequence))
   (when (and vim:insert-marker

@@ -118,7 +118,7 @@ If the ring is full, behavior depends on GROW-P:
                (setcar ring hd))
               (t (aset vec (mod (+ hd ringlen) veclen) item)))
       (if (= ringlen veclen)
-          (setcar ring (ring-plus1 hd veclen))
+        (setcar ring (ring-plus1 hd veclen))
         (setcar (cdr ring) (1+ ringlen))))))
 
 (defun ring-remove+insert+extend (ring item &optional grow-p)
@@ -136,14 +136,14 @@ If the RING is full, behavior depends on GROW-P:
   "Convert sequence SEQ to a ring.  Return the ring.
 If SEQ is already a ring, return it."
   (if (ring-p seq)
-      seq
+    seq
     (let* ((size (length seq))
            (ring (make-ring size))
            (count 0))
       (while (< count size)
         (if (or (ring-empty-p ring)
                 (not (equal (ring-ref ring 0) (elt seq count))))
-            (ring-insert-at-beginning ring (elt seq count)))
+          (ring-insert-at-beginning ring (elt seq count)))
         (setq count (1+ count)))
       ring)))
 

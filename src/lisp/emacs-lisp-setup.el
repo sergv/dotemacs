@@ -18,10 +18,12 @@
 
 (font-lock-add-keywords 'emacs-lisp-mode
                         '("aif"
+                          "begin"
                           "if-let"
                           "def-keys-for-map"
                           "defvar-local"
                           "rxx"
+                          "redefun"
                           "with-disabled-undo"
                           "with-current-frame"
                           "with-preserved-buffer-modified-p"
@@ -31,8 +33,14 @@
                           "with-hidden-cloze-hints"
                           "with-hidden-cloze-text"))
 
+(put 'redefun 'doc-string-elt 3)
+
 (defvar *emacs-lisp-indent-specs*
-  '((if 1)
+  '((autoload nil)
+    (begin 0)
+    (if 1)
+    (loop 0)
+    (cond 0)
     (aif 1)
     (if-let 1)
     (def-keys-for-map 1)
@@ -40,6 +48,8 @@
     (rxx 1)
     (define-print-info-skeleton 1)
     (define-lisp-print-info-skeleton 1)
+    (define-derived-mode 3)
+    (redefun defun)
     (with-disabled-undo nil)
     (with-current-frame 1)
     (with-preserved-buffer-modified-p nil)
@@ -125,9 +135,9 @@
   (emacs-lisp-abbrev+-setup))
 
 (eval-after-load "edebug"
-                 '(progn
-                   (def-keys-for-map edebug-mode-map
-                     ("<f6>" edebug-step-mode))))
+  '(progn
+     (def-keys-for-map edebug-mode-map
+       ("<f6>" edebug-step-mode))))
 
 (defun eval-print-last-sexp-unlimited-length ()
   (interactive)

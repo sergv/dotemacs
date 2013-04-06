@@ -2297,9 +2297,9 @@ make up new queue if persistent one is empty."
      (insert (fortune/get-next-fortune))
      (comment-util-comment-region (point-min) (point-max))
      (save-match-data
-      (goto-char (point-min))
-      (while (re-search-forward "^[ \t]+" nil t)
-        (replace-match "")))
+       (goto-char (point-min))
+       (while (re-search-forward "^[ \t]+" nil t)
+         (replace-match "")))
      (set-buffer-modified-p nil)
      (goto-char (point-max))
      (insert "\n\n\n"))))
