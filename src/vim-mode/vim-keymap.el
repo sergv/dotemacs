@@ -32,8 +32,8 @@ the variable where the keymap is stored. If the variable contains
     (setq keymap (symbol-value keymap)))
   (if (or (stringp command)
           (vectorp command))
-    (lexical-let ((kbdevents command))
-                 (define-key keymap keys (vim:kbdmacro-to-command kbdevents)))
+    (let ((kbdevents command))
+      (define-key keymap keys (vim:kbdmacro-to-command kbdevents)))
     (define-key keymap keys command)))
 
 (defun vim:make-keymap (&optional parent)
