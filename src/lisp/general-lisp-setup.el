@@ -24,88 +24,8 @@
 (require 'align-let)
 (require 'outline-headers)
 (require 'rainbow-delimiters)
+(require 'paredit-setup)
 
-
-(eval-after-load
-    'paredit
-  '(progn
-    (defadvice paredit-forward-slurp-sexp
-     (after
-      paredit-forward-slurp-sexp-remove-initial-whitespace
-      activate
-      compile)
-     (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
-                (whitespace-charp (char-after)))
-       (delete-whitespaces-forward)))
-
-    (defadvice paredit-backward-slurp-sexp
-     (after
-      paredit-backward-slurp-sexp-remove-initial-whitespace
-      activate
-      compile)
-     (when (and (lisp-pos-is-end-of-sexp? (point))
-                (whitespace-charp (char-before)))
-       (delete-whitespaces-backward)))
-
-    ;; fix work in comments
-    (redefun paredit-newline ()
-      "Insert a newline and indent it.
-This is like `newline-and-indent', but it not only indents the line
-that the point is on but also the S-expression following the point,
-if there is one.
-Move forward one character first if on an escaped character.
-If in a string, just insert a literal newline.
-If in a comment and if followed by invalid structure, call
-  `indent-new-comment-line' to keep the invalid structure in a
-  comment."
-      (interactive)
-      (cond ((paredit-in-string-p)
-             (newline))
-            ((paredit-in-comment-p)
-             (newline-and-indent)
-             ;; Indent the following S-expression, but don't signal an
-             ;; error if there's only a closing delimiter after the point.
-             (paredit-ignore-sexp-errors
-               (indent-sexp)))
-            (t
-             (if (paredit-in-char-p)
-                 (forward-char))
-             (newline-and-indent)
-             ;; Indent the following S-expression, but don't signal an
-             ;; error if there's only a closing delimiter after the point.
-             (paredit-ignore-sexp-errors (indent-sexp)))))
-
-    ;; inhibit modification hooks
-    (redefun paredit-insert-pair (n open close forward)
-      (let ((inhibit-modification-hooks t))
-        (let* ((regionp
-                (and (paredit-region-active-p)
-                     (paredit-region-safe-for-insert-p)))
-               (end
-                (and regionp
-                     (not n)
-                     (prog1 (region-end) (goto-char (region-beginning))))))
-          (let ((spacep (paredit-space-for-delimiter-p nil open)))
-            (if spacep (insert " "))
-            (insert open)
-            (save-excursion
-              ;; Move past the desired region.
-              (cond (n (funcall forward
-                                (save-excursion
-                                  (forward-sexp (prefix-numeric-value n))
-                                  (point))))
-                    (regionp (funcall forward (+ end (if spacep 2 1)))))
-              (insert close)
-              (if (paredit-space-for-delimiter-p t close)
-                  (insert " ")))))))
-
-    (def-keys-for-map paredit-mode-map
-      ("C-k"         nil)
-      ("<return>"    nil)
-      ("C-S-<left>"  paredit-backward-slurp-sexp)
-      ("C-S-<right>" paredit-backward-barf-sexp))
-
-    (defadvice:auto-comment paredit-newline)))
 
 (eval-after-load
     'rainbow-delimiters
@@ -729,87 +649,15 @@ This command assumes point is not in a string or comment."
      (show-subtree)))
  (lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
 
-
-(vimmize-function paredit-splice-sexp-killing-backward
-                  :name vim:splice-sexp-killing-backward
-                  :call-n-times t)
-(vimmize-function paredit-splice-sexp-killing-forward
-                  :name vim:splice-sexp-killing-forward
-                  :call-n-times t)
-
-
-(vimmize-function paredit-backward-slurp-sexp
-                  :name vim:backward-slurp-sexp
-                  :call-n-times t)
-(vimmize-function paredit-backward-barf-sexp
-                  :name vim:backward-barf-sexp
-                  :call-n-times t)
-(vimmize-function paredit-forward-barf-sexp
-                  :name vim:forward-barf-sexp
-                  :call-n-times t)
-(vimmize-function paredit-forward-slurp-sexp
-                  :name vim:forward-slurp-sexp
-                  :call-n-times t)
-
-(vimmize-function paredit-forward-slurp-sexp
-                  :name vim:forward-slurp-sexp
-                  :call-n-times t)
-
-(vimmize-function paredit-forward-delete
-                  :name vim:paredit-forward-delete
-                  :call-n-times nil)
-(vimmize-function paredit-backward-delete
-                  :name vim:paredit-backward-delete
-                  :call-n-times nil)
-
-(defun paredit-insert-space-after-reader-sharp? (end? delim)
-  "This is mostly a workaround to make various reader macro
-(e.g. vectors, cl-interpol, etc) more convenient to type.
-
-This determines whether to insert a space after the # sign."
-  (cond
-    (end?
-     ;; if end? is t then
-     ;; question was about inserting a space after delimiter,
-     ;; we're not handling it
-     t)
-    ;; common lisp
-    ((memq major-mode '(common-lisp-mode lisp-mode cl-mode))
-     ;; this is done with cl-interpol in mind, #"foo", #/bar/
-     (cond
-       ((and (member* delim '(?\" ?\/) :test #'char=))
-        (save-excursion
-          (skip-syntax-backward "^ >")
-          ;; if we're just after reader macro start
-          ;; then return nil as sign that we don't want a space
-          (not (looking-at-pure? "#"))))
-       ;; this is done with vectors, arrays and complex numbers in mind
-       ((char= ?\( delim)
-        (save-excursion
-          (skip-syntax-backward "^ >")
-          ;; if we're just after reader macro start
-          ;; then return nil as sign that we don't want a space
-          (not (looking-at-pure? "#[Ac]?"))))))
-
-    ;; this is for vectors
-    ((char= ?\( delim)
-     (save-excursion
-       (skip-syntax-backward "^ >")
-       ;; if we're just after reader macro start
-       ;; then return nil as sign that we don't want a space
-       (not (looking-at-pure? "#"))))
-    (else
-     ;; delimiter is not double quote so don't handle it
-     t)))
-
+;;; keybindings as variables
 
 (defvar *lisp-vim-normal-mode-keybindings*
   '(("g c c"   lisp-comment-sexp)
     ("g c u"   lisp-uncomment-sexp)
     ("g c d"   lisp-delete-commented-part)
 
-    ("x"       paredit-forward-delete)
-    ("X"       paredit-backward-delete)
+    ("x"       vim:paredit-forward-delete)
+    ("X"       vim:paredit-backward-delete)
 
     ("g ("     vim:splice-sexp-killing-backward)
     ("g )"     vim:splice-sexp-killing-forward)
@@ -938,6 +786,24 @@ This determines whether to insert a space after the # sign."
     ("<down>"  next-line)
     ("<left>"  backward-char)
     ("<right>" forward-char))
+
+  (def-keys-for-map (vim:motion-mode-local-keymap
+                     vim:operator-pending-mode-local-keymap)
+    ("w" vim:paredit-forward-word)
+    ("e" vim:paredit-forward-word-end)
+    ("b" vim:paredit-backward-word)
+    ("W" vim:paredit-forward-WORD)
+    ("E" vim:paredit-forward-WORD-end)
+    ("B" vim:paredit-backward-WORD)
+    ("s"   vim:paredit-inner-symbol)
+    ("i s" vim:paredit-inner-symbol)
+    ("a s" vim:paredit-outer-symbol)
+    ("S"   vim:paredit-backward-symbol))
+
+  ;; (def-keys-for-map vim:complex-command-override-local-keymap
+  ;;   ("d w" vim:paredit-forward-kill-word)
+  ;;   ("d e" vim:paredit-forward-kill-word)
+  ;;   ("d b" vim:paredit-backward-kill-word))
 
   (setup-outline-headers :header-symbol ";"
                          :length-min 3

@@ -126,7 +126,7 @@ With prefix argument puts symbol at point also in substitute part"
 ;;   "Partially construct vim ex-replace command from symbol at point."
 ;;   (util:ex-customized-substitute-command
 ;;    (util:construct-convenient-ex-replace-command
-;;     (slime-symbol-at-point)
+;;     (symbol-at-point)
 ;;     :symbol t)))
 
 (provide 'util-vim-replace)
