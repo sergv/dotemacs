@@ -287,25 +287,26 @@ look at vim-core.el."
 
         ((or `argument `argument:char)
          (when argument
-           (error "%s: only one argument may be specified: %s" 'vim:defcmd arg))
+           (error "vim:defcmd: only one argument may be specified: %s" arg))
          (setq argument ''char)
          (push 'argument params)
          (when (and (consp arg)
                     (not (eq (cadr arg) 'argument)))
            (push `(,(cadr arg) argument) named-params)))
 
-        (_ (error "%s: Unexpected argument: %s" 'vim:defmotion arg))))
+        (_ (error "vim:defmotion: Unexpected argument: %s" arg))))
 
     (unless type
-      (error "%s: Motion type must be specified" 'vim:defmotion))
+      (error "vim:defmotion: Motion type must be specified"))
 
     `(progn
        (put ',name 'type ',type)
        (put ',name 'count ,count)
        (put ',name 'argument ,argument)
        (put ',name 'function
-            (function* (lambda (,@(when params `(&key ,@params))
-                                ,@(when named-params `(&aux ,@named-params)))
+            (function* (lambda
+                         (,@(when params `(&key ,@params))
+                          ,@(when named-params `(&aux ,@named-params)))
                          (vim:do-motion ',type (progn ,@body)))))
        (defun* ,name (&rest args)
          ,doc
