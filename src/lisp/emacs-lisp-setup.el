@@ -129,11 +129,6 @@
     ("C-w"   backward-delete-word)
     ("C-S-w" backward-delete-word*))
 
-  (def-keys-for-map vim:complex-command-override-local-keymap
-    ("d w" paredit-forward-kill-word)
-    ("d e" paredit-forward-kill-word)
-    ("d b" paredit-backward-kill-word))
-
   ;; should use global after-save-hook because of
   ;; backups
   (add-hook 'after-save-hook #'elisp-compile-and-move)

@@ -508,7 +508,6 @@ counted."
                              (backward-char) t)))))))
       (point))))
 
-
 (defun vim:boundary-word (direction)
   "A boundary selector for words."
   (funcall (vim:union-boundary (lambda (dir) (vim:boundary-chars dir vim:word))
@@ -524,10 +523,8 @@ counted."
 
 (defun vim:boundary-symbol (direction)
   "A boundary selector for words."
-  (funcall (vim:union-boundary (lambda (dir) (vim:boundary-syntax dir
-                                                                  "w_"))
-                               ;; (lambda (dir) (vim:boundary-syntax dir
-                               ;;                                 "^w_"))
+  (funcall (vim:union-boundary (lambda (dir) (vim:boundary-syntax dir "w_"))
+                               ;; (lambda (dir) (vim:boundary-syntax dir "^w_"))
                                (lambda (dir) (vim:boundary-empty-line dir)))
            direction))
 
@@ -1113,6 +1110,16 @@ text-object before or at point."
   (vim:outer-motion (or count 1) #'vim:boundary-WORD #'vim:boundary-ws 'inclusive))
 
 ;;; motion symbol
+
+(vim:defmotion vim:motion-fwd-symbol (inclusive count)
+  (vim:move-fwd-beg (or count 1) #'vim:boundary-symbol))
+
+(vim:defmotion vim:motion-fwd-symbol-end (inclusive count)
+  (vim:move-fwd-end (or count 1) #'vim:boundary-symbol))
+
+(vim:defmotion vim:motion-bwd-symbol (inclusive count)
+  (vim:move-bwd-beg (or count 1) #'vim:boundary-symbol))
+
 
 (vim:defmotion vim:motion-inner-symbol (inclusive count)
   "Select `count' inner symbol."
