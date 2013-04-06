@@ -12,7 +12,7 @@
 (require 'custom-predicates)
 
 (defstruct eproj-project
-  type             ;; one of symbols: git, single-file
+  type ;; one of symbols: git, single-file
   root
   names
   related-projects ;; list of other project roots
@@ -139,16 +139,16 @@
 (defun eproj-get-all-related-projects (root)
   "Return all roots of projects realted to PROJ except PROJ itself."
   (letrec ((collect
-             (lambda (projs visited items)
-               (if projs
-                 (if (member (car projs) visited)
-                   (funcall collect (cdr projs) visited items)
-                   (funcall collect
-                            (append (eproj-get-related-projects (car projs))
-                                    (cdr projs))
-                            (cons (car projs) visited)
-                            (cons (car projs) items)))
-                 items))))
+            (lambda (projs visited items)
+              (if projs
+                (if (member (car projs) visited)
+                  (funcall collect (cdr projs) visited items)
+                  (funcall collect
+                           (append (eproj-get-related-projects (car projs))
+                                   (cdr projs))
+                           (cons (car projs) visited)
+                           (cons (car projs) items)))
+                items))))
     (funcall collect
              (eproj-get-related-projects root)
              (list root)

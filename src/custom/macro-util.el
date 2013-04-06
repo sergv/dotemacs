@@ -38,8 +38,8 @@
 
 (defun make-joined-name (orig-symbol suffix-str &optional prefix-str)
   (if-symbolp orig-symbol
-              (if-stringp suffix-str
-                          (intern (concat prefix-str (symbol-name orig-symbol) suffix-str)))))
+    (if-stringp suffix-str
+      (intern (concat prefix-str (symbol-name orig-symbol) suffix-str)))))
 
 
 (defmacro util:eval-if-symbol (x)

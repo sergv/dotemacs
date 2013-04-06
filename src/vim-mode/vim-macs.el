@@ -196,9 +196,9 @@ For more information about the vim:motion struct look at vim-core.el."
        (put ',name 'function
             (function*
              (lambda
-                 (,@(when params `(&key ,@params))
-                  ,@(when named-params `(&aux ,@named-params)))
-              ,@body)))
+               (,@(when params `(&key ,@params))
+                ,@(when named-params `(&aux ,@named-params)))
+               ,@body)))
        (defun* ,name (&rest args)
          ,doc
          (interactive)
@@ -276,7 +276,7 @@ look at vim-core.el."
          (setq type arg))
 
         (`do-not-adjust-point
-          (setf do-not-adjust-point t))
+         (setf do-not-adjust-point t))
 
         (`count
          (setq count t)
@@ -306,7 +306,7 @@ look at vim-core.el."
        (put ',name 'function
             (function* (lambda (,@(when params `(&key ,@params))
                                 ,@(when named-params `(&aux ,@named-params)))
-              (vim:do-motion ',type (progn ,@body)))))
+                         (vim:do-motion ',type (progn ,@body)))))
        (defun* ,name (&rest args)
          ,doc
          (interactive)

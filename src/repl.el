@@ -25,10 +25,10 @@
   (let ((proc (get-buffer-process (current-buffer))))
     (when proc
       (save-excursion
-       (goto-char (process-mark proc))
-       (if (re-search-backward comint-prompt-regexp
-                               (line-beginning-position) t)
-         (setq repl-seen-prompt t))))))
+        (goto-char (process-mark proc))
+        (if (re-search-backward comint-prompt-regexp
+                                (line-beginning-position) t)
+          (setq repl-seen-prompt t))))))
 
 (defun repl-wait-for-prompt (proc &optional timeout)
   "Wait until PROC sends us a prompt.
@@ -58,7 +58,7 @@ The process PROC should be associated to a comint buffer."
 
   (condition-case nil
       (shell-dirtrack-mode 1)
-    (error      ;The minor mode function may not exist or not accept an arg.
+    (error          ;The minor mode function may not exist or not accept an arg.
      (setq-local shell-dirtrackp t)
      (add-hook 'comint-input-filter-functions 'shell-directory-tracker
                nil 'local)))
@@ -102,8 +102,8 @@ setting up the inferior-haskell buffer."
         (get-buffer-process repl-buffer))
       (progn
 	(let ((current-prefix-arg arg))
-   (call-interactively 'repl-start-process))
-	;; Try again.
+          (call-interactively 'repl-start-process))
+        ;; Try again.
 	(repl-process arg))))
 
 

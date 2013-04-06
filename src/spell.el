@@ -16,7 +16,7 @@
 
       ;; my dictionary-alist, using for redefinition russian dictionary
       ispell-dictionary-alist
-      '(("english"                       ;; English
+      '(("english" ;; English
          "[a-zA-Z]"
          "[^a-zA-Z]"
          "['-]"
@@ -26,7 +26,7 @@
          utf-8
          ;;iso-8859-1
          )
-        ("russian"                       ;; Russian
+        ("russian" ;; Russian
          "[АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
          "[^АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя]"
          "[`'-]"
@@ -34,7 +34,7 @@
          ("-C" "-d" "ru")
          nil
          utf-8)
-        (nil                             ;; Default
+        (nil ;; Default
          "[A-Za-z]"
          "[^A-Za-z]"
          "[']"

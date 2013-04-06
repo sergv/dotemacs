@@ -69,16 +69,16 @@
                                                     :point (point)
                                                     :symbol sym))
          (jump-to-home
-           (lambda (entry)
-             (let ((file (ctags-tag-file entry)))
-               (push current-home-entry
-                     (ctags-symbols/previous-homes ctags-symbols-homes-zipper))
-               (setf (ctags-symbols/next-homes ctags-symbols-homes-zipper) nil)
-               (unless (file-exists? file)
-                 (error "file %s does not exist" file))
-               (find-file file)
-               (goto-line (ctags-tag-line entry))
-               (save-match-data
+          (lambda (entry)
+            (let ((file (ctags-tag-file entry)))
+              (push current-home-entry
+                    (ctags-symbols/previous-homes ctags-symbols-homes-zipper))
+              (setf (ctags-symbols/next-homes ctags-symbols-homes-zipper) nil)
+              (unless (file-exists? file)
+                (error "file %s does not exist" file))
+              (find-file file)
+              (goto-line (ctags-tag-line entry))
+              (save-match-data
                 (when (re-search-forward (regexp-quote (ctags-tag-symbol entry))
                                          (line-end-position)
                                          t)
@@ -104,42 +104,42 @@
         (push current-home-entry
               (ctags-symbols/previous-homes ctags-symbols-homes-zipper)))
       (let* ((entry->string
-               (lambda (entry)
-                 (let ((delim (cadr (assq orig-major-mode
-                                          *ctags-symbols-name-delimiter-alist*))))
-                   (format "%s %s%s%s\n%s:%s\n%s:%s\n"
-                           (ctags-tag-kind entry)
-                           (aif (find-if (lambda (entry)
-                                           (memq (car entry)
-                                                 '(class
-                                                   struct
-                                                   union
-                                                   enum)))
-                                         (ctags-tag-aux-fields entry))
-                             (concat (cdr it) delim)
-                             "")
-                           (ctags-tag-symbol entry)
-                           (aif (assoc 'signature (ctags-tag-aux-fields entry))
-                             (cdr it)
-                             "")
-                           (file-name-nondirectory (ctags-tag-file entry))
-                           (ctags-tag-line entry)
-                           (ctags-tag-file entry)
-                           (ctags-tag-line entry)))))
+              (lambda (entry)
+                (let ((delim (cadr (assq orig-major-mode
+                                         *ctags-symbols-name-delimiter-alist*))))
+                  (format "%s %s%s%s\n%s:%s\n%s:%s\n"
+                          (ctags-tag-kind entry)
+                          (aif (find-if (lambda (entry)
+                                          (memq (car entry)
+                                                '(class
+                                                  struct
+                                                  union
+                                                  enum)))
+                                        (ctags-tag-aux-fields entry))
+                            (concat (cdr it) delim)
+                            "")
+                          (ctags-tag-symbol entry)
+                          (aif (assoc 'signature (ctags-tag-aux-fields entry))
+                            (cdr it)
+                            "")
+                          (file-name-nondirectory (ctags-tag-file entry))
+                          (ctags-tag-line entry)
+                          (ctags-tag-file entry)
+                          (ctags-tag-line entry)))))
              (entries
-               (sort (reduce #'append
-                             (map (lambda (root)
-                                    (aif (assq major-mode
-                                               (eproj-project-names
-                                                (eproj-get-project root)))
-                                      (gethash sym (cdr it) nil)
-                                      nil))
-                                  (cons (eproj-project-root proj)
-                                        (eproj-get-all-related-projects
-                                         (eproj-project-root proj)))))
-                     (lambda (a b)
-                       (string< (funcall entry->string a)
-                                (funcall entry->string b))))))
+              (sort (reduce #'append
+                            (map (lambda (root)
+                                   (aif (assq major-mode
+                                              (eproj-project-names
+                                               (eproj-get-project root)))
+                                     (gethash sym (cdr it) nil)
+                                     nil))
+                                 (cons (eproj-project-root proj)
+                                       (eproj-get-all-related-projects
+                                        (eproj-project-root proj)))))
+                    (lambda (a b)
+                      (string< (funcall entry->string a)
+                               (funcall entry->string b))))))
         (cond ((null? entries)
                (error "No entries for identifier %s" sym))
               ((null? (cdr entries))

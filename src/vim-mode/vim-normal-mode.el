@@ -49,7 +49,7 @@
 like 'dd', 'yy',... .")
 
 (vim:define-keymap operator-pending-mode
-  "operator pending mode"
+    "operator pending mode"
   :map-command omap)
 
 (vim:define-mode operator-pending "VIM operator-pending mode"
@@ -97,10 +97,10 @@ like 'dd', 'yy',... .")
             (vconcat vim:current-key-sequence (vim:this-command-keys)))
       (funcall command))
     (unwind-protect
-         (pcase (vim:cmd-type command)
-           (`simple  (error "No simple-commands allowed in operator-pending mode"))
-           (`complex (error "No complex-commands allowed in operator-pending mode"))
-           (_        (vim:normal-execute-complex-command command)))
+        (pcase (vim:cmd-type command)
+          (`simple  (error "No simple-commands allowed in operator-pending mode"))
+          (`complex (error "No complex-commands allowed in operator-pending mode"))
+          (_        (vim:normal-execute-complex-command command)))
 
       (when (vim:operator-pending-mode-p)
         (vim:activate-normal-mode)))))
@@ -127,7 +127,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
 (vim:define-mode normal "VIM normal mode"
   :ident "N"
-  ; :message "-- NORMAL --"
+                                        ; :message "-- NORMAL --"
   :keymaps '(vim:normal-mode-keymap
              vim:operator-pending-mode-keymap
              vim:motion-mode-keymap

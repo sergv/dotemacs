@@ -34,13 +34,13 @@
                  nil ;; require match
                  ))
          (extension-re
-           (let ((extensions
-                   (assoc group *visit-files-extension-aliases*)))
-             (if extensions
-               (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
-                          (cdr extensions)
-                          "\\|")
-               group))))
+          (let ((extensions
+                 (assoc group *visit-files-extension-aliases*)))
+            (if extensions
+              (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
+                         (cdr extensions)
+                         "\\|")
+              group))))
     (directory-files "."
                      nil
                      (concat "\\."

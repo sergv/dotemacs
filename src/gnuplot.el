@@ -22,17 +22,17 @@
 (defun gnuplot-run ()
   (interactive)
   (if-buffer-has-file
-   (when (buffer-modified-p)
-     (save-buffer)))
+    (when (buffer-modified-p)
+      (save-buffer)))
   ;; if on moment of gnuplot-mode invokation buffer was fileless
   ;; but now it has file then set command...
   (unless compile-command
     (setq compile-command
           (if-buffer-has-file
-           (concat gnuplot-program
-                   " "
-                   (shell-quote-argument
-                    (buffer-file-name))))))
+            (concat gnuplot-program
+                    " "
+                    (shell-quote-argument
+                     (buffer-file-name))))))
   ;; but if buffer is still fileless then signal error
   (if compile-command
     (compilation-start compile-command
@@ -145,23 +145,23 @@ lines."
   (interactive)
   (let ((indent 0))
     (save-excursion
-     (save-excursion
-      (end-of-line 0)
-      (if (bobp) ()
-        (re-search-backward "^[ \t]*." (point-min) "to_limit")
-        (back-to-indentation)
-        (setq indent (current-column))
-        (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
-          (let ((plus (1- (length (match-string 0)))))
-            (end-of-line)
-            (backward-char 1)
-            (if (looking-at (regexp-quote "\\"))
-              (setq indent  (+ plus indent)))))))
-     (if (= (current-indentation) indent)
-       ()
-       (beginning-of-line)
-       (delete-horizontal-space)
-       (insert (make-string indent ? ))))
+      (save-excursion
+        (end-of-line 0)
+        (if (bobp) ()
+            (re-search-backward "^[ \t]*." (point-min) "to_limit")
+            (back-to-indentation)
+            (setq indent (current-column))
+            (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
+              (let ((plus (1- (length (match-string 0)))))
+                (end-of-line)
+                (backward-char 1)
+                (if (looking-at (regexp-quote "\\"))
+                  (setq indent  (+ plus indent)))))))
+      (if (= (current-indentation) indent)
+        ()
+        (beginning-of-line)
+        (delete-horizontal-space)
+        (insert (make-string indent ? ))))
     (if (looking-at "[ \t]+$")
       (end-of-line))))
 
@@ -185,10 +185,10 @@ lines."
 
   (set (make-local-variable 'compile-command)
        (if-buffer-has-file
-        (concat gnuplot-program
-                " "
-                (shell-quote-argument
-                 (buffer-file-name))))))
+         (concat gnuplot-program
+                 " "
+                 (shell-quote-argument
+                  (buffer-file-name))))))
 
 
 (provide 'gnuplot)

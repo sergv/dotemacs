@@ -176,9 +176,9 @@
   (if vim:visual-reactivate-last-region
     (progn
       (set-mark (save-excursion
-                 (goto-line1 (car vim:visual-last-begin))
-                 (move-to-column (cdr vim:visual-last-begin))
-                 (point)))
+                  (goto-line1 (car vim:visual-last-begin))
+                  (move-to-column (cdr vim:visual-last-begin))
+                  (point)))
       (goto-line1 (car vim:visual-last-end))
       (move-to-column (cdr vim:visual-last-end))
       (setq vim:visual-reactivate-last-region nil))
@@ -242,18 +242,18 @@
   ;; save the last region
   (setq vim:visual-last-begin (cons (line-number-at-pos (mark t))
                                     (save-excursion
-                                     (goto-char (mark t))
-                                     (current-column))))
+                                      (goto-char (mark t))
+                                      (current-column))))
   (setq vim:visual-last-end (cons (line-number-at-pos (point))
                                   (current-column)))
   (vim:set-mark ?< (save-excursion
-                    (goto-line1 (car vim:visual-last-begin))
-                    (move-to-column (cdr vim:visual-last-begin))
-                    (point)))
+                     (goto-line1 (car vim:visual-last-begin))
+                     (move-to-column (cdr vim:visual-last-begin))
+                     (point)))
   (vim:set-mark ?> (save-excursion
-                    (goto-line1 (car vim:visual-last-end))
-                    (move-to-column (cdr vim:visual-last-end))
-                    (point)))
+                     (goto-line1 (car vim:visual-last-end))
+                     (move-to-column (cdr vim:visual-last-end))
+                     (point)))
 
   (when (vim:cmd-char-arg-p command)
     (setq vim:current-cmd-arg (read-char-exclusive)))
@@ -359,11 +359,11 @@ This function is also responsible for setting the X-selection."
 (defun vim:visual-highlight-linewise (start end)
   "Adjusts the linewise region between `start' and `end'."
   (let ((start-line (save-excursion
-                     (goto-char start)
-                     (line-beginning-position)))
+                      (goto-char start)
+                      (line-beginning-position)))
         (end-line (save-excursion
-                   (goto-char end)
-                   (line-end-position))))
+                    (goto-char end)
+                    (line-end-position))))
 
     (if vim:visual-overlays
       (vim:visual-delete-overlays (cdr vim:visual-overlays))
@@ -385,73 +385,73 @@ This function is also responsible for setting the X-selection."
   ;; possible because this is more efficient and results in less
   ;; flicker.
   (save-excursion
-   ;; Calculate the rectangular region represented by point and mark,
-   ;; putting start in the north-west corner and end in the
-   ;; south-east corner.
-   (let ((start-col (save-excursion
-                     (goto-char start)
-                     (current-column)))
-         (end-col (save-excursion
-                   (goto-char end)
-                   (current-column))))
-     (if (> start-col end-col)
-       (setq start-col (prog1
-                           end-col
-                         (setq end-col start-col))
-             start (save-excursion
-                    (goto-char start)
-                    (move-to-column start-col nil)
-                    (point))
-             end (save-excursion
-                  (goto-char end)
-                  (move-to-column end-col nil)
-                  (point))))
-     ;; Force a redisplay so we can do reliable window start/end
-     ;; calculations.
-     (sit-for 0)
-     (let* ((old vim:visual-overlays)
-            (new nil)
-            overlay
-            (window-start (max (window-start) start))
-            (window-end (min (window-end) end))
-            (nlines (count-lines window-start
-                                 (min (1+ window-end)
-                                      (point-max)))))
-       ;; Iterate over those lines of the rectangle which are visible
-       ;; in the currently selected window.
-       (goto-char window-start)
-       (dotimes (i nlines)
-         (let ((row-start (progn
-                            (move-to-column start-col nil)
-                            (point)))
-               (row-end (progn
-                          (move-to-column end-col nil)
-                          (min (1+ (point))
-                               (line-end-position)))))
-           ;; Trim old leading overlays.
-           (while (and old
-                       (setq overlay (car old))
-                       (< (overlay-start overlay) row-start)
-                       (/= (overlay-end overlay) row-end))
-             (delete-overlay overlay)
-             (setq old (cdr old)))
-           ;; Reuse an overlay if possible, otherwise create one.
-           (if (and old
-                    (setq overlay (car old))
-                    (or (= (overlay-start overlay) row-start)
-                        (= (overlay-end overlay) row-end)))
-             (progn
-               (move-overlay overlay row-start row-end)
-               (setq new (cons overlay new)
-                     old (cdr old)))
-             (setq overlay (make-overlay row-start row-end))
-             (overlay-put overlay 'face 'vim:visual-region)
-             (overlay-put overlay 'priority 99)
-             (setq new (cons overlay new))))
-         (forward-line 1))
-       ;; Trim old trailing overlays.
-       (vim:visual-delete-overlays old)
-       (setq vim:visual-overlays (nreverse new))))))
+    ;; Calculate the rectangular region represented by point and mark,
+    ;; putting start in the north-west corner and end in the
+    ;; south-east corner.
+    (let ((start-col (save-excursion
+                       (goto-char start)
+                       (current-column)))
+          (end-col (save-excursion
+                     (goto-char end)
+                     (current-column))))
+      (if (> start-col end-col)
+        (setq start-col (prog1
+                            end-col
+                          (setq end-col start-col))
+              start (save-excursion
+                      (goto-char start)
+                      (move-to-column start-col nil)
+                      (point))
+              end (save-excursion
+                    (goto-char end)
+                    (move-to-column end-col nil)
+                    (point))))
+      ;; Force a redisplay so we can do reliable window start/end
+      ;; calculations.
+      (sit-for 0)
+      (let* ((old vim:visual-overlays)
+             (new nil)
+             overlay
+             (window-start (max (window-start) start))
+             (window-end (min (window-end) end))
+             (nlines (count-lines window-start
+                                  (min (1+ window-end)
+                                       (point-max)))))
+        ;; Iterate over those lines of the rectangle which are visible
+        ;; in the currently selected window.
+        (goto-char window-start)
+        (dotimes (i nlines)
+          (let ((row-start (progn
+                             (move-to-column start-col nil)
+                             (point)))
+                (row-end (progn
+                           (move-to-column end-col nil)
+                           (min (1+ (point))
+                                (line-end-position)))))
+            ;; Trim old leading overlays.
+            (while (and old
+                        (setq overlay (car old))
+                        (< (overlay-start overlay) row-start)
+                        (/= (overlay-end overlay) row-end))
+              (delete-overlay overlay)
+              (setq old (cdr old)))
+            ;; Reuse an overlay if possible, otherwise create one.
+            (if (and old
+                     (setq overlay (car old))
+                     (or (= (overlay-start overlay) row-start)
+                         (= (overlay-end overlay) row-end)))
+              (progn
+                (move-overlay overlay row-start row-end)
+                (setq new (cons overlay new)
+                      old (cdr old)))
+              (setq overlay (make-overlay row-start row-end))
+              (overlay-put overlay 'face 'vim:visual-region)
+              (overlay-put overlay 'priority 99)
+              (setq new (cons overlay new))))
+          (forward-line 1))
+        ;; Trim old trailing overlays.
+        (vim:visual-delete-overlays old)
+        (setq vim:visual-overlays (nreverse new))))))
 
 
 (defun vim:visual-create-or-update-overlay (ov start end)
@@ -566,15 +566,15 @@ This function is also responsible for setting the X-selection."
         (begcol (vim:visual-insert-info-column vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
-     (dotimes (i (- endrow begrow))
-       (goto-line1 (+ begrow i 1))
-       (when (>= (save-excursion
-                  (end-of-line)
-                  (current-column))
-                 begcol)
-         (move-to-column begcol t)
-         (vim:cmd-repeat)))
-     (setq vim:last-undo vim:visual-last-insert-undo))))
+      (dotimes (i (- endrow begrow))
+        (goto-line1 (+ begrow i 1))
+        (when (>= (save-excursion
+                    (end-of-line)
+                    (current-column))
+                  begcol)
+          (move-to-column begcol t)
+          (vim:cmd-repeat)))
+      (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
 (defun vim:insert-linewise-copies ()
@@ -583,11 +583,11 @@ This function is also responsible for setting the X-selection."
   (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
-     (goto-line1 (1+ begrow))
-     (dotimes (i (- endrow begrow))
-       (goto-line1 (+ begrow i 1))
-       (vim:cmd-repeat))
-     (setq vim:last-undo vim:visual-last-insert-undo))))
+      (goto-line1 (1+ begrow))
+      (dotimes (i (- endrow begrow))
+        (goto-line1 (+ begrow i 1))
+        (vim:cmd-repeat))
+      (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
 (vim:defcmd vim:visual-append (motion)
@@ -631,13 +631,13 @@ This function is also responsible for setting the X-selection."
         (endcol (vim:visual-insert-info-column vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
-     (goto-line1 (1+ begrow))
-     (dotimes (i (- endrow begrow))
-       (move-to-column (1+ endcol) t) ; extend the newline at the end
-       (move-to-column endcol t)
-       (vim:cmd-repeat)
-       (forward-line 1))
-     (setq vim:last-undo vim:visual-last-insert-undo))))
+      (goto-line1 (1+ begrow))
+      (dotimes (i (- endrow begrow))
+        (move-to-column (1+ endcol) t)  ; extend the newline at the end
+        (move-to-column endcol t)
+        (vim:cmd-repeat)
+        (forward-line 1))
+      (setq vim:last-undo vim:visual-last-insert-undo))))
 
 
 (vim:defcmd vim:visual-exchange-point-and-mark (nonrepeatable keep-visual)
@@ -655,13 +655,13 @@ current line."
      (vim:visual-exchange-point-and-mark))
     (`block
         (let ((mark-col (save-excursion
-                         (goto-char (mark t))
-                         (current-column)))
+                          (goto-char (mark t))
+                          (current-column)))
               (point-col (current-column)))
           (set-mark (save-excursion
-                     (goto-char (mark t))
-                     (move-to-column point-col t)
-                     (point)))
+                      (goto-char (mark t))
+                      (move-to-column point-col t)
+                      (point)))
           (move-to-column mark-col t)))
     (_ (error "Not in visual mode"))))
 
@@ -698,12 +698,12 @@ current line."
                (end-of-line)
                (forward-char)
                (set-mark (save-excursion
-                          (goto-char (mark))
-                          (line-beginning-position))))
+                           (goto-char (mark))
+                           (line-beginning-position))))
              (beginning-of-line)
              (set-mark (save-excursion
-                        (goto-char (mark))
-                        (1+ (line-end-position))))))
+                         (goto-char (mark))
+                         (1+ (line-end-position))))))
 
           (`block))
         (setq vim:visual-new-point (point))))))
@@ -798,16 +798,16 @@ current line."
 (vim:defcmd vim:quote-region (nonrepeatable)
   (let ((reg-motion (vim:visual-current-motion)))
     (save-excursion
-     (pcase (vim:motion-type reg-motion)
-       ((or `inclusive `normal)
-        (goto-char (+ 1 (vim:motion-end reg-motion)))
-        (insert "\"")
-        (goto-char (vim:motion-begin reg-motion))
-        (insert "\""))
-       (`linewise
-        (error "linewise mode is not supported yet"))
-       (`block
-           (error "block mode is not supported yet"))))))
+      (pcase (vim:motion-type reg-motion)
+        ((or `inclusive `normal)
+         (goto-char (+ 1 (vim:motion-end reg-motion)))
+         (insert "\"")
+         (goto-char (vim:motion-begin reg-motion))
+         (insert "\""))
+        (`linewise
+         (error "linewise mode is not supported yet"))
+        (`block
+            (error "block mode is not supported yet"))))))
 
 
 

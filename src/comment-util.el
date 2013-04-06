@@ -145,23 +145,23 @@ or down if LINES is negative or comment whole region if region is active."
 they are defined for current mode or one-line comments otherwise."
   (interactive "r")
   (save-excursion
-   (if (comment-util-region-comments-defined?)
-     (comment-util-comment-chunk-region begin end)
-     (comment-util-comment-lined-region begin end))))
+    (if (comment-util-region-comments-defined?)
+      (comment-util-comment-chunk-region begin end)
+      (comment-util-comment-lined-region begin end))))
 
 (defun comment-util-uncomment-region ()
   "Uncomment region at point commented either with line comments or block comments."
   (interactive)
   (save-excursion
-   (if (or (and (comment-format-one-line *comment-util-current-format*)
-                (save-excursion
-                 (skip-to-indentation)
-                 (looking-at-p
-                  (comment-format-one-line *comment-util-current-format*))))
-           (not (comment-util-region-comments-defined?)))
-     ;;if no region comments are defined then use line comments
-     (comment-util-uncomment-lined-region)
-     (comment-util-uncomment-chunk-region))))
+    (if (or (and (comment-format-one-line *comment-util-current-format*)
+                 (save-excursion
+                   (skip-to-indentation)
+                   (looking-at-p
+                    (comment-format-one-line *comment-util-current-format*))))
+            (not (comment-util-region-comments-defined?)))
+      ;;if no region comments are defined then use line comments
+      (comment-util-uncomment-lined-region)
+      (comment-util-uncomment-chunk-region))))
 
 (defun comment-util-region-comments-defined? ()
   (and (comment-format-region-begin *comment-util-current-format*)
@@ -176,11 +176,11 @@ line comments. If that's not the case then do nothing. Should
 be used only for vim-visual-mode of the vim-mode package."
   (interactive "r")
   (save-excursion
-   (goto-char begin)
-   (skip-to-indentation)
-   (when (looking-at-p
-          (comment-format-one-line *comment-util-current-format*))
-     (comment-util-uncomment-lines (count-lines begin end)))))
+    (goto-char begin)
+    (skip-to-indentation)
+    (when (looking-at-p
+           (comment-format-one-line *comment-util-current-format*))
+      (comment-util-uncomment-lines (count-lines begin end)))))
 
 (defun comment-util-uncomment-lines (lines)
   "Uncomment lines eiter up if N is positive or down if N is negative."
@@ -206,8 +206,8 @@ be used only for vim-visual-mode of the vim-mode package."
   (let ((one-line-comm (comment-format-one-line *comment-util-current-format*)))
     (when one-line-comm
       (save-excursion
-       (skip-to-indentation)
-       (looking-at-p one-line-comm)))))
+        (skip-to-indentation)
+        (looking-at-p one-line-comm)))))
 
 ;;; core functionality, not for interactive use
 
@@ -243,23 +243,23 @@ be used only for vim-visual-mode of the vim-mode package."
 
 (defun comment-util-comment-chunk-region (begin end)
   (save-excursion
-   (let ((has-open (progn (goto-char begin)
-                          (search-forward (comment-format-region-begin
-                                           *comment-util-current-format*)
-                                          end
-                                          t)))
-         (has-close (progn (goto-char begin)
-                           (search-forward (comment-format-region-end
+    (let ((has-open (progn (goto-char begin)
+                           (search-forward (comment-format-region-begin
                                             *comment-util-current-format*)
                                            end
-                                           t))))
-     (cond
-       ((and has-open has-close)
-        (error "Specified region already contains commented part"))
-       (has-open
-        (error "Specified region already contains open comment"))
-       (has-close
-        (error "Specified region already contains close comment")))))
+                                           t)))
+          (has-close (progn (goto-char begin)
+                            (search-forward (comment-format-region-end
+                                             *comment-util-current-format*)
+                                            end
+                                            t))))
+      (cond
+        ((and has-open has-close)
+         (error "Specified region already contains commented part"))
+        (has-open
+         (error "Specified region already contains open comment"))
+        (has-close
+         (error "Specified region already contains close comment")))))
   (goto-char end)
   (insert (make-string *comment-util-space-count* ?\s)
           (comment-format-region-end *comment-util-current-format*))
@@ -311,18 +311,18 @@ be used only for vim-visual-mode of the vim-mode package."
       (end-of-whitespace-prefix)))
     ((comment-util-region-comments-defined?)
      (save-excursion
-      (skip-to-indentation)
-      (let ((begin (point)))
-        ;; somewhat hackish but we're already in special case of
-        ;; dealing with region comments
-        (forward-line (- lines 1))
-        (comment-util-comment-chunk-region begin (line-end-position)))))))
+       (skip-to-indentation)
+       (let ((begin (point)))
+         ;; somewhat hackish but we're already in special case of
+         ;; dealing with region comments
+         (forward-line (- lines 1))
+         (comment-util-comment-chunk-region begin (line-end-position)))))))
 
 (defun end-of-whitespace-prefix ()
   (save-excursion
-   (beginning-of-line)
-   (skip-syntax-forward " ")
-   (current-column)))
+    (beginning-of-line)
+    (skip-syntax-forward " ")
+    (current-column)))
 
 (defun comment-util-comment-n-lines-starting-at-col (comment-str lines column)
   (let ((skip-to-column (lambda ()
@@ -395,34 +395,34 @@ up and then comment the result."
   (indent-for-tab-command)
   (indent-sexp)
   (let ((sexp-end-exclusive (save-excursion
-                             (forward-sexp)
-                             (point))))
+                              (forward-sexp)
+                              (point))))
     ;; skip to include commented sexp quotes, reader syntax, etc.
     (skip-syntax-backward "^ >()")
     (save-excursion
-     (goto-char sexp-end-exclusive)
-     (when (or (lisp-pos-is-end-of-sexp? (point))
-               (progn
-                 ;; do not skip newlines!
-                 (skip-syntax-forward " ")
-                 (lisp-pos-is-end-of-sexp? (point))))
-       ;; (insert "\n")
-       (reindent-then-newline-and-indent)))
+      (goto-char sexp-end-exclusive)
+      (when (or (lisp-pos-is-end-of-sexp? (point))
+                (progn
+                  ;; do not skip newlines!
+                  (skip-syntax-forward " ")
+                  (lisp-pos-is-end-of-sexp? (point))))
+        ;; (insert "\n")
+        (reindent-then-newline-and-indent)))
 
     (save-excursion
-     (comment-util-comment-n-lines-starting-at-col
-      ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...
-      (count-lines (point) sexp-end-exclusive)
-      (current-column)))))
+      (comment-util-comment-n-lines-starting-at-col
+       ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...
+       (count-lines (point) sexp-end-exclusive)
+       (current-column)))))
 
 (defun* lisp-commented-linep ()
   "Return t if current line contains commented parts."
   (save-excursion
-   (let* ((state (parse-partial-sexp (line-beginning-position)
-                                     (line-end-position)))
-          (inside-commentp (elt state 4)))
-     ;; if parse end up inside comment then current line has ;-comments
-     inside-commentp)))
+    (let* ((state (parse-partial-sexp (line-beginning-position)
+                                      (line-end-position)))
+           (inside-commentp (elt state 4)))
+      ;; if parse end up inside comment then current line has ;-comments
+      inside-commentp)))
 
 (defun* lisp-get-region-with-commented-parts ()
   "Return begin and end of region surrounding point that has
@@ -430,40 +430,40 @@ commented parts and leave point unchanged."
   (unless (lisp-commented-linep)
     (error "Not on line with commented part(s)"))
   (let ((move-while-commented
-          ;; return position of the beginning of the last line in direction
-          ;; that is still has commented parts
-          (lambda (dir)
-            (beginning-of-line)
-            (while (and (lisp-commented-linep)
-                        (if (eq dir 'backward)
-                          (not (bobp))
-                          (not (eobp))))
-              (move-by-line dir))
-            (unless (if (eq dir 'backward)
-                      (bobp)
-                      (eobp))
-              (move-by-line-backward dir)
-              ;; we're returned backwards onto line with comments
-              ;; which is a known fact
-              (assert (lisp-commented-linep)
-                      nil
-                      "LINE NUMBER: %S;\nLINE: %S;\nPREVIOUS LINE: %S"
-                      (count-lines1 (point-min) (point))
-                      (current-line)
-                      (save-excursion
+         ;; return position of the beginning of the last line in direction
+         ;; that is still has commented parts
+         (lambda (dir)
+           (beginning-of-line)
+           (while (and (lisp-commented-linep)
+                       (if (eq dir 'backward)
+                         (not (bobp))
+                         (not (eobp))))
+             (move-by-line dir))
+           (unless (if (eq dir 'backward)
+                     (bobp)
+                     (eobp))
+             (move-by-line-backward dir)
+             ;; we're returned backwards onto line with comments
+             ;; which is a known fact
+             (assert (lisp-commented-linep)
+                     nil
+                     "line number: %s;\nline: %s;\nprevious line: %s"
+                     (count-lines1 (point-min) (point))
+                     (current-line)
+                     (save-excursion
                        (move-by-line dir)
                        (current-line)))))))
     (let ((pos (line-beginning-position))
           start
           end)
       (save-excursion
-       (forward-line -1)
-       (funcall move-while-commented 'backward)
-       (setf start (line-beginning-position))
+        (forward-line -1)
+        (funcall move-while-commented 'backward)
+        (setf start (line-beginning-position))
 
-       (goto-char pos)
-       (funcall move-while-commented 'forward)
-       (setf end (line-end-position)))
+        (goto-char pos)
+        (funcall move-while-commented 'forward)
+        (setf end (line-end-position)))
       (values start end))))
 
 (defun lisp-delete-commented-part ()
@@ -471,44 +471,44 @@ commented parts and leave point unchanged."
   (multiple-value-bind (start end)
       (lisp-get-region-with-commented-parts)
     (save-excursion
-     (save-match-data
-      (goto-char end)
-      (let ((clear-comment (lambda ()
-                             (cond
-                               ((looking-at-pure? "^\\s-*;+.*$")
-                                (delete-current-line))
-                               ((re-search-forward ";+.*$" (line-end-position) t)
-                                (replace-match ""))))))
-        (while (and (<= start (point))
-                    (not (bobp)))
-          (beginning-of-line)
-          (funcall clear-comment)
-          (forward-line -1))
-        (when (bobp)
-          (funcall clear-comment)))))))
+      (save-match-data
+        (goto-char end)
+        (let ((clear-comment (lambda ()
+                               (cond
+                                 ((looking-at-pure? "^\\s-*;+.*$")
+                                  (delete-current-line))
+                                 ((re-search-forward ";+.*$" (line-end-position) t)
+                                  (replace-match ""))))))
+          (while (and (<= start (point))
+                      (not (bobp)))
+            (beginning-of-line)
+            (funcall clear-comment)
+            (forward-line -1))
+          (when (bobp)
+            (funcall clear-comment)))))))
 
 (defun* lisp-uncomment-sexp ()
   (interactive)
   (multiple-value-bind (start end)
       (lisp-get-region-with-commented-parts)
     (save-excursion
-     ;; now skip all whitespace characters and see if next char
-     ;; is the close paren which would mean that sexp to be
-     ;; uncommented in nested in some other and end of that
-     ;; other one shoudl be combined with it
-     (goto-char end)
-     (skip-syntax-forward " >")
-     (when (and (not (eobp))
-                (lisp-pos-is-end-of-sexp? (point)))
-       (delete-whitespaces-backward))
+      ;; now skip all whitespace characters and see if next char
+      ;; is the close paren which would mean that sexp to be
+      ;; uncommented in nested in some other and end of that
+      ;; other one shoudl be combined with it
+      (goto-char end)
+      (skip-syntax-forward " >")
+      (when (and (not (eobp))
+                 (lisp-pos-is-end-of-sexp? (point)))
+        (delete-whitespaces-backward))
 
-     (uncomment-region start end)
+      (uncomment-region start end)
 
-     (goto-char start)
-     (skip-syntax-backward " >")
-     (when (and (not (bobp))
-                (lisp-pos-is-beginning-of-sexp? (point)))
-       (delete-whitespaces-forward)))))
+      (goto-char start)
+      (skip-syntax-backward " >")
+      (when (and (not (bobp))
+                 (lisp-pos-is-beginning-of-sexp? (point)))
+        (delete-whitespaces-forward)))))
 
 
 (provide 'comment-util)

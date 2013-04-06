@@ -18,13 +18,13 @@ from \\label{...} and \\ref{...} constructs."
                       (group (*? (regexp "[^ \t\n{}]")))
                       "}")))
     (save-excursion
-     (save-match-data
-      (goto-char (point-min))
-      (remove-duplicates
-       (loop
-         while (re-search-forward label-re nil t)
-         collect (match-string-no-properties 1))
-       :test #'string=)))))
+      (save-match-data
+        (goto-char (point-min))
+        (remove-duplicates
+         (loop
+           while (re-search-forward label-re nil t)
+           collect (match-string-no-properties 1))
+         :test #'string=)))))
 
 (define-skeleton latex-insert-reference-skeleton
   "Insert \\ref{} construct and put prompt between angle brackets."

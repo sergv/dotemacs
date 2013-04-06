@@ -12,29 +12,29 @@
 
 
 (defface scheme-constant-face
-    '((t (:inherit font-lock-constant-face)))
+  '((t (:inherit font-lock-constant-face)))
   "Face to highlight conventional constants,
 i.e. names matching regexp \\+.*\\+."
   :group 'scheme-faces)
 
 (defface scheme-global-variable-face
-    '((t (:inherit font-lock-variable-name-face)))
+  '((t (:inherit font-lock-variable-name-face)))
   "Face to highlight conventional global variables,
 i.e. names matching regexp \\*.*\\*."
   :group 'scheme-faces)
 
 (defface scheme-declaration-face
-    '((t (:inherit font-lock-constant-face)))
+  '((t (:inherit font-lock-constant-face)))
   "Face to highlight ansi cl declarations."
   :group 'scheme-faces)
 
 (defface scheme-predicate-face
-    '((t (:inherit font-lock-function-name-face)))
+  '((t (:inherit font-lock-function-name-face)))
   "Face to highlight ansi cl declarations."
   :group 'scheme-faces)
 
 (defface scheme-mutating-op-face
-    '((t (:inherit font-lock-function-name-face)))
+  '((t (:inherit font-lock-function-name-face)))
   "Face to highlight ansi cl declarations."
   :group 'scheme-faces)
 
@@ -49,7 +49,7 @@ i.e. names matching regexp \\*.*\\*."
 
   (font-lock-add-keywords
    mode
-   `(;; support nearly full numeric tower
+   `( ;; support nearly full numeric tower
      (,(rxx ((int-or-rat (seq (? (regexp "[+-]"))
                               (+ digit)
                               ;; now rationals go here
@@ -111,7 +111,7 @@ i.e. names matching regexp \\*.*\\*."
      ("\\_<<\\(?:\\sw\\|\\s_\\)+>\\_>"
       (0 'font-lock-type-face))
      (,(rxx ((symbol-regexp
-               (regexp "\\(?:\\sw\\|\\s_\\)+"))
+              (regexp "\\(?:\\sw\\|\\s_\\)+"))
              (keyword-prefix (regexp "\\(?:#?:\\)"))
              (keyword-suffix ":"))
          symbol-start

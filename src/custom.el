@@ -19,12 +19,12 @@
   "Execute BODY if current file is listed in some makefile
 in the same directory the current file is."
   `(if-buffer-has-file
-    (let* ((fname (file-name-nondirectory buffer-file-name))
-           (fname-re (concat "\\<" fname)))
-      (when (some #'(lambda (makefile)
-                      (file-contents-matches-re makefile fname-re))
-                  '("makefile" "Makefile" "MAKEFILE"))
-        ,@body))))
+     (let* ((fname (file-name-nondirectory buffer-file-name))
+            (fname-re (concat "\\<" fname)))
+       (when (some #'(lambda (makefile)
+                       (file-contents-matches-re makefile fname-re))
+                   '("makefile" "Makefile" "MAKEFILE"))
+         ,@body))))
 
 (defmacro defvar-buffer-local (var &optional default)
   `(progn
@@ -54,7 +54,7 @@ in the same directory the current file is."
   (letrec ((def-key
              (lambda (map key command)
                `(define-key ,map
-                    ,(eval `(kbd ,key))
+                  ,(eval `(kbd ,key))
                   ,(cond
                      ((and (list? command)
                            (or (eq? 'function (car command))
@@ -66,30 +66,30 @@ in the same directory the current file is."
                      (else
                       (list 'quote command))))))
            (process-key-command-list
-             (lambda (map key-command-list)
-               (loop
-                 for entry in key-command-list
-                 if (symbol? entry)
-                 for (key command) = (if (or (quoted? entry)
-                                             (symbol? entry))
-                                       (eval entry)
-                                       entry)
-                 appending (if (symbol? entry)
-                             (funcall process-key-command-list map (eval entry))
-                             (destructuring-bind (key command)
-                                 (if (quoted? entry)
-                                   (eval entry)
-                                   entry)
-                               (list (funcall def-key map key command))))))))
+            (lambda (map key-command-list)
+              (loop
+                for entry in key-command-list
+                if (symbol? entry)
+                for (key command) = (if (or (quoted? entry)
+                                            (symbol? entry))
+                                      (eval entry)
+                                      entry)
+                appending (if (symbol? entry)
+                            (funcall process-key-command-list map (eval entry))
+                            (destructuring-bind (key command)
+                                (if (quoted? entry)
+                                  (eval entry)
+                                  entry)
+                              (list (funcall def-key map key command))))))))
     (let ((bindings
-            (loop
-              for map in (cond
-                           ((quoted? mode-map)
-                            (eval mode-map))
-                           ((list? mode-map)
-                            mode-map)
-                           (else (list mode-map)))
-              appending (funcall process-key-command-list map key-command-list))))
+           (loop
+             for map in (cond
+                          ((quoted? mode-map)
+                           (eval mode-map))
+                          ((list? mode-map)
+                           mode-map)
+                          (else (list mode-map)))
+             appending (funcall process-key-command-list map key-command-list))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
                mode-map
@@ -111,8 +111,8 @@ Save buffer if it has assigned file and this file exists on disk."
   (let ((old-functions kill-buffer-query-functions)
         (kill-buffer-query-functions nil))
     (if-buffer-has-file
-     (when (file-existp (buffer-file-name))
-       (save-buffer)))
+      (when (file-existp (buffer-file-name))
+        (save-buffer)))
     (kill-buffer buffer-or-name)
     (setq kill-buffer-query-functions old-functions)))
 
@@ -130,12 +130,12 @@ Save buffer if it has assigned file and this file exists on disk."
   "Make buffer file executable if it's a shell script."
   (and (not (file-executable-p buffer-file-name))
        (save-excursion
-        (save-restriction
-         (widen)
-         (goto-char (point-min))
-         ;; first alternative - unix shell shebang
-         ;; second alternative - emacs "shebang"
-         (looking-at-pure? "^\\(?:#!\\|:;[ \t]*exec\\)")))
+         (save-restriction
+           (widen)
+           (goto-char (point-min))
+           ;; first alternative - unix shell shebang
+           ;; second alternative - emacs "shebang"
+           (looking-at-pure? "^\\(?:#!\\|:;[ \t]*exec\\)")))
        (make-file-executable buffer-file-name)
        (shell-command (concat "chmod u+x \"" buffer-file-name "\""))
        (message
@@ -150,13 +150,13 @@ Save buffer if it has assigned file and this file exists on disk."
   "custom function that reindents region, differs from indent-region
  with silent behavior( i.e. no messages)"
   (save-excursion
-   (let ((lnum 0)
-         (lines (count-lines start end)))
-     (goto-char start)
-     (while (< lnum lines)
-       (incf lnum)
-       (indent-for-tab-command)
-       (forward-line 1)))))
+    (let ((lnum 0)
+          (lines (count-lines start end)))
+      (goto-char start)
+      (while (< lnum lines)
+        (incf lnum)
+        (indent-for-tab-command)
+        (forward-line 1)))))
 
 (defun yank-and-reindent ()
   "Function pastes most recently yanked or killed text
@@ -290,22 +290,22 @@ confuse when point is not at the beginning of line"
   "Trim leading and tailing whitespace from STR."
   (when str
     (save-match-data
-     (let ((s (if (symbolp str) (symbol-name str) str)))
-       (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
 
 (defun trim-whitespaces-left (str)
   "Trim leading whitespace from STR."
   (when str
     (save-match-data
-     (let ((s (if (symbolp str) (symbol-name str) str)))
-       (replace-regexp-in-string "^[[:space:]\n]*" "" s)))))
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "^[[:space:]\n]*" "" s)))))
 
 (defun trim-whitespaces-right (str)
   "Trim tailing whitespace from STR."
   (when str
     (save-match-data
-     (let ((s (if (symbolp str) (symbol-name str) str)))
-       (replace-regexp-in-string "[[:space:]\n]*$" "" s)))))
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "[[:space:]\n]*$" "" s)))))
 
 
 (defsubst goto-line1 (line)
@@ -338,11 +338,11 @@ current working directory at point."
   "Return t if file FILENAME exists and it contents matches RE."
   (when (file-exists-p filename)
     (save-match-data
-     (with-temp-buffer
-       (insert-file-contents filename)
-       (goto-char (point-min))
-       (when (search-forward-regexp re nil t)
-         t)))))
+      (with-temp-buffer
+        (insert-file-contents filename)
+        (goto-char (point-min))
+        (when (search-forward-regexp re nil t)
+          t)))))
 
 (defmacro run-if-fbound (func)
   `(and (fboundp (quote ,func))
@@ -505,10 +505,10 @@ up by functions in compilation-finish-functions.")
   "This function removes spaces and tabs on every line after
 last non-whitespace character."
   (save-excursion
-   (save-match-data
-    (goto-char (point-min))
-    (while (re-search-forward "[ \t]+$" nil t)
-      (replace-match "")))))
+    (save-match-data
+      (goto-char (point-min))
+      (while (re-search-forward "[ \t]+$" nil t)
+        (replace-match "")))))
 
 ;;;; tabbar stuff
 

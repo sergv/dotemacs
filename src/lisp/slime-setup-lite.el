@@ -59,9 +59,9 @@
    (and (&rest 2))
    (appease-cerrors (&rest 2))
    (assert (&rest 2))
-   (block (4 &rest 2))                                    ;; default
+   (block (4 &rest 2)) ;; default
    (case (4 &rest (&whole 2 2 2 2 2 2 2 2 2 2 2)))
-   (catch (4 &rest 2))                                    ;; default
+   (catch (4 &rest 2)) ;; default
    (ccase (4 &rest (&whole 2 2 2 2 2 2 2 2 2 2 2)))
    (check-type (2 2 &rest 2))
    (compiler-let ((&whole 4 &rest (&whole 1 1 2)) &body)) ;; default
@@ -73,7 +73,7 @@
    (def-c-enum (4 &rest 2))
    (def-c-struct (4 &rest 2))
    (defclass (10 (&whole 10 1 &rest 1) &rest (&whole 2 &rest 1)))
-   (defconstant (4 2 2))                                  ;; default
+   (defconstant (4 2 2)) ;; default
    (defgeneric (4 (&whole 4 1 &rest 1) &body))
    (define-condition (18 (&whole 18 1 &rest 1) &rest (&whole 2 &rest 1)))
    (define-modify-macro (4 (&whole 4 1 &rest 1) 4 &body))
@@ -84,20 +84,20 @@
    (deflanguage (4))
    (deflocalized (4 4 &body))
    (defmacro (4 (&whole 4 1 &rest 1) &body))
-   (defmethod lisp-indent-defmethod)                      ;; default
+   (defmethod lisp-indent-defmethod) ;; default
    (defpackage (4 &rest 2))
-   (defparameter (4 2 2))                                 ;; default
+   (defparameter (4 2 2)) ;; default
    ;; FIXME: How to deal with both short and long forms of defsetf?
    ;;(defsetf (4 (&whole 4 1 &rest 1) 2 &body))
    ;;(defsetf (14 (&whole 14 1 &rest 1) (&whole 14 1 &rest 1) &body))
    (defstruct ((&whole 4 &rest (&whole 2 &rest 1)) &rest (&whole 2 &rest 1))) ;; default
    (deftype (9 (&whole 9 1 &rest 1) &body))
    (defun (7 (&whole 7 1 &rest 1) &body))
-   (defvar (4 2 2))                                       ;; default
+   (defvar (4 2 2)) ;; default
    (destructuring-bind ((&whole 6 1 &rest 1) 4 &body))
    (deutsch (2 1 2 1 2))
-   (do lisp-indent-do)                                    ;; default
-   (do* lisp-indent-do)                                   ;; default
+   (do lisp-indent-do)  ;; default
+   (do* lisp-indent-do) ;; default
    (do-all-symbols ((&whole 4 1 &rest 1) &body))
    (do-external-symbols ((&whole 4 1 &rest 1) &body))
    (do-symbols ((&whole 4 1 &rest 1) &body))
@@ -108,7 +108,7 @@
    (ecase (4 &rest (&whole 2 2 2 2 2 2 2 2 2 2 2)))
    (english (2 1 2 1 2))
    (etypecase (4 &rest (&whole 2 2 2 2 2 2 2 2 2 2 2)))
-   (eval-when (4 &body))                                  ;; default
+   (eval-when (4 &body)) ;; default
    (exit-on-error (&body))
    (fcase '(6 4 &rest (&whole 2 &rest 1)))
    (flet ((&whole 4 &rest (&whole 1 (&whole 4 1 &rest 1) &body)) &body))
@@ -136,13 +136,13 @@
    (loop (&body))
    (loop-finish ())
    (macrolet ((&whole 4 &rest (&whole 1 (&whole 4 1 &rest 1) &body)) &body))
-   (:method ((&whole 4 1 &rest 1) &body))          ; for defgeneric etc.
+   (:method ((&whole 4 1 &rest 1) &body)) ; for defgeneric etc.
    (muffle-cerrors (&rest 2))
    (multiple-value-bind ((&whole 6 &rest 1) 4 2 &rest 2))
    (multiple-value-call (4 2 &rest 2))
    (multiple-value-list (2))
    (multiple-value-prog1 (2 &rest 2))
-   (multiple-value-setq (4 2))                            ;; default
+   (multiple-value-setq (4 2)) ;; default
    (nth-value (2 2))
    (optimize (&rest 2))
    (or (&rest 2))
@@ -152,8 +152,8 @@
    (prog* ((&whole 4 1 &rest 1) &rest lisp-indent-tagbody))
    (prog1 (2 &body))
    (prog2 (2 2 &body))
-   (progn (&body))                                        ;; default
-   (progv (4 4 &body))                                    ;; default
+   (progn (&body))     ;; default
+   (progv (4 4 &body)) ;; default
    (psetf (7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7))
    (psetq (7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7))
    (push (&body))
@@ -162,7 +162,7 @@
    (remf (2 2))
    (restart-bind ((&whole 4 &rest 1) &body))
    (restart-case (4 &rest (&whole 2 (&whole 4 1 &rest 1) &body)))
-   (return (&body))                                       ;; default
+   (return (&body)) ;; default
    (return-from (2 &body))
    (rotatef (&body))
    (setf (6 8 6 8 6 8 6 8 6 8 6 8 6 8 6 8 6 8 6 8 6))
@@ -172,17 +172,17 @@
    (space (2))
    (step (2))
    (symbol-macrolet ((&whole 4 &rest (&whole 1 2 &rest 2)) &body))
-   (tagbody lisp-indent-tagbody)                          ;; default
+   (tagbody lisp-indent-tagbody) ;; default
    (the (4 2))
    (the-environment ())
-   (throw (4 &body))                                      ;; default
+   (throw (4 &body)) ;; default
    (time (2))
    (trace (&body))
    (typecase (4 &rest (&whole 2 2 2 2 2 2 2 2 2 2 2)))
-   (unless (4 &body))                                     ;; default
+   (unless (4 &body)) ;; default
    (untrace (&body))
    (unwind-protect (2 &body))
-   (when (4 &body))                                       ;; default
+   (when (4 &body)) ;; default
    (with-accessors ((&whole 4 1 &rest 1) 4 &body))
    (with-condition-restarts (4 4 &body))
    (with-hash-table-iterator (4 &body))

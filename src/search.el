@@ -252,24 +252,24 @@ Highlighting starts at the beginning of buffer")
    (when (and (<= 1 (length regexp))
               (not (member* regexp *search-ignore-regexps* :test #'string=)))
      (save-excursion
-      (goto-char (point-min))
-      (let ((i 0)
-            (case-fold-search (not *search-case-sensetive*)))
-        (while (and (< i *search-highlight-limit*)
-                    (re-search-forward regexp nil t))
-          (let* ((text-length (- (match-end 0) (match-beginning 0)))
-                 (overlay (when (< text-length *search-maximum-highlight-length*)
-                            (make-overlay (match-beginning 0)
-                                          (match-end 0)))))
-            (overlay-put overlay 'face 'search-highlight-face)
-            (push overlay *search-match-overlays*)
-            (incf i))))))))
+       (goto-char (point-min))
+       (let ((i 0)
+             (case-fold-search (not *search-case-sensetive*)))
+         (while (and (< i *search-highlight-limit*)
+                     (re-search-forward regexp nil t))
+           (let* ((text-length (- (match-end 0) (match-beginning 0)))
+                  (overlay (when (< text-length *search-maximum-highlight-length*)
+                             (make-overlay (match-beginning 0)
+                                           (match-end 0)))))
+             (overlay-put overlay 'face 'search-highlight-face)
+             (push overlay *search-match-overlays*)
+             (incf i))))))))
 
 (defun search-clean-overlays ()
   (save-excursion
-   (dolist (o *search-match-overlays*)
-     (delete-overlay o))
-   (setf *search-match-overlays* nil)))
+    (dolist (o *search-match-overlays*)
+      (delete-overlay o))
+    (setf *search-match-overlays* nil)))
 
 
 (defun search-return-to-start ()
@@ -379,7 +379,7 @@ obvious"
 
 (defsubst util:get-bounds-covered-by-vim-motion (motion)
   (let ((m (save-excursion
-            (funcall motion))))
+             (funcall motion))))
     (cons (vim:motion-begin-pos m)
           (vim:motion-end-pos m))))
 

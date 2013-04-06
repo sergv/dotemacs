@@ -60,7 +60,7 @@
       org-drill-use-visible-cloze-face-p t
       org-drill-hide-item-headings-p t
       org-drill-maximum-items-per-session 15
-      org-drill-maximum-duration 15 ;; minutes
+      org-drill-maximum-duration 15                     ;; minutes
       org-drill-save-buffers-after-drill-sessions-p nil ;; don't prompt for save
       ;; this may be useful when working with large amounts of items
       org-drill-add-random-noise-to-intervals-p t)
@@ -69,19 +69,19 @@
 
 (eval-after-load
     "org"
- '(progn
-   (setf org-todo-keywords
-         '((sequence "TODO(t)" "WAITING(w!)" "STARTED(s!)" "|" "DONE(d!)")
-           (sequence "|" "CANCELLED(c@)"))
-         org-todo-keyword-faces
-         '(("WAITING"   . org-waiting)
-           ("STARTED"   . org-started)
-           ("CANCELLED" . org-cancelled)))
+  '(progn
+     (setf org-todo-keywords
+           '((sequence "TODO(t)" "WAITING(w!)" "STARTED(s!)" "|" "DONE(d!)")
+             (sequence "|" "CANCELLED(c@)"))
+           org-todo-keyword-faces
+           '(("WAITING"   . org-waiting)
+             ("STARTED"   . org-started)
+             ("CANCELLED" . org-cancelled)))
 
-   ;; change cursor used in calendar from empty to filled box
-   (redefun org-read-date (&optional org-with-time to-time from-string prompt
-                                     default-time default-input inactive)
-     "Read a date, possibly a time, and make things smooth for the user.
+     ;; change cursor used in calendar from empty to filled box
+     (redefun org-read-date (&optional org-with-time to-time from-string prompt
+                                       default-time default-input inactive)
+       "Read a date, possibly a time, and make things smooth for the user.
 The prompt will suggest to enter an ISO date, but you can also enter anything
 which will at least partially be understood by `parse-time-string'.
 Unrecognized parts of the date will default to the current day, month, year,
@@ -131,151 +131,151 @@ With optional argument FROM-STRING, read from this string instead from
 the user.  PROMPT can overwrite the default prompt.  DEFAULT-TIME is
 the time/date that is used for everything that is not specified by the
 user."
-     (require 'parse-time)
-     (let* ((org-time-stamp-rounding-minutes
-              (if (equal org-with-time '(16)) '(0 0) org-time-stamp-rounding-minutes))
-            (org-dcst org-display-custom-times)
-            (ct (org-current-time))
-            (org-def (or org-overriding-default-time default-time ct))
-            (org-defdecode (decode-time org-def))
-            (dummy (progn
-                     (when (< (nth 2 org-defdecode) org-extend-today-until)
-                       (setcar (nthcdr 2 org-defdecode) -1)
-                       (setcar (nthcdr 1 org-defdecode) 59)
-                       (setq org-def (apply 'encode-time org-defdecode)
-                             org-defdecode (decode-time org-def)))))
-            (calendar-frame-setup nil)
-            (calendar-setup nil)
-            (calendar-move-hook nil)
-            (calendar-view-diary-initially-flag nil)
-            (calendar-view-holidays-initially-flag nil)
-            (timestr (format-time-string
-                      (if org-with-time "%Y-%m-%d %H:%M" "%Y-%m-%d") org-def))
-            (prompt (concat (if prompt (concat prompt " ") "")
-                            (format "Date+time [%s]: " timestr)))
-            ans (org-ans0 "") org-ans1 org-ans2 final)
+       (require 'parse-time)
+       (let* ((org-time-stamp-rounding-minutes
+               (if (equal org-with-time '(16)) '(0 0) org-time-stamp-rounding-minutes))
+              (org-dcst org-display-custom-times)
+              (ct (org-current-time))
+              (org-def (or org-overriding-default-time default-time ct))
+              (org-defdecode (decode-time org-def))
+              (dummy (progn
+                       (when (< (nth 2 org-defdecode) org-extend-today-until)
+                         (setcar (nthcdr 2 org-defdecode) -1)
+                         (setcar (nthcdr 1 org-defdecode) 59)
+                         (setq org-def (apply 'encode-time org-defdecode)
+                               org-defdecode (decode-time org-def)))))
+              (calendar-frame-setup nil)
+              (calendar-setup nil)
+              (calendar-move-hook nil)
+              (calendar-view-diary-initially-flag nil)
+              (calendar-view-holidays-initially-flag nil)
+              (timestr (format-time-string
+                        (if org-with-time "%Y-%m-%d %H:%M" "%Y-%m-%d") org-def))
+              (prompt (concat (if prompt (concat prompt " ") "")
+                              (format "Date+time [%s]: " timestr)))
+              ans (org-ans0 "") org-ans1 org-ans2 final)
 
-       (cond
-         (from-string (setq ans from-string))
-         (org-read-date-popup-calendar
-          (save-excursion
-           (save-window-excursion
-            (calendar)
-            (org-eval-in-calendar '(setq cursor-type 'box) t)
+         (cond
+           (from-string (setq ans from-string))
+           (org-read-date-popup-calendar
+            (save-excursion
+              (save-window-excursion
+                (calendar)
+                (org-eval-in-calendar '(setq cursor-type 'box) t)
+                (unwind-protect
+                    (progn
+                      (calendar-forward-day (- (time-to-days org-def)
+                                               (calendar-absolute-from-gregorian
+                                                (calendar-current-date))))
+                      (org-eval-in-calendar nil t)
+                      (let* ((old-map (current-local-map))
+                             (map (copy-keymap calendar-mode-map))
+                             (minibuffer-local-map (copy-keymap minibuffer-local-map)))
+                        (org-defkey map (kbd "RET") 'org-calendar-select)
+                        (org-defkey map [mouse-1] 'org-calendar-select-mouse)
+                        (org-defkey map [mouse-2] 'org-calendar-select-mouse)
+                        (org-defkey minibuffer-local-map [(meta shift left)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-backward-month 1))))
+                        (org-defkey minibuffer-local-map [(meta shift right)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-forward-month 1))))
+                        (org-defkey minibuffer-local-map [(meta shift up)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-backward-year 1))))
+                        (org-defkey minibuffer-local-map [(meta shift down)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-forward-year 1))))
+                        (org-defkey minibuffer-local-map [?\e (shift left)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-backward-month 1))))
+                        (org-defkey minibuffer-local-map [?\e (shift right)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-forward-month 1))))
+                        (org-defkey minibuffer-local-map [?\e (shift up)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-backward-year 1))))
+                        (org-defkey minibuffer-local-map [?\e (shift down)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-forward-year 1))))
+                        (org-defkey minibuffer-local-map [(shift up)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-backward-week 1))))
+                        (org-defkey minibuffer-local-map [(shift down)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-forward-week 1))))
+                        (org-defkey minibuffer-local-map [(shift left)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-backward-day 1))))
+                        (org-defkey minibuffer-local-map [(shift right)]
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(calendar-forward-day 1))))
+                        (org-defkey minibuffer-local-map ">"
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(scroll-calendar-left 1))))
+                        (org-defkey minibuffer-local-map "<"
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar '(scroll-calendar-right 1))))
+                        (org-defkey minibuffer-local-map "\C-v"
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar
+                                       '(calendar-scroll-left-three-months 1))))
+                        (org-defkey minibuffer-local-map "\M-v"
+                                    (lambda () (interactive)
+                                      (org-eval-in-calendar
+                                       '(calendar-scroll-right-three-months 1))))
+                        (run-hooks 'org-read-date-minibuffer-setup-hook)
+                        (unwind-protect
+                            (progn
+                              (use-local-map map)
+                              (setq org-read-date-inactive inactive)
+                              (add-hook 'post-command-hook 'org-read-date-display)
+                              (setq org-ans0 (read-string prompt default-input
+                                                          'org-read-date-history nil))
+                              ;; org-ans0: from prompt
+                              ;; org-ans1: from mouse click
+                              ;; org-ans2: from calendar motion
+                              (setq ans (concat org-ans0 " " (or org-ans1 org-ans2))))
+                          (remove-hook 'post-command-hook 'org-read-date-display)
+                          (use-local-map old-map)
+                          (when org-read-date-overlay
+                            (delete-overlay org-read-date-overlay)
+                            (setq org-read-date-overlay nil)))))
+                  (bury-buffer "*Calendar*")))))
+
+           (t                           ; Naked prompt only
             (unwind-protect
-                 (progn
-                   (calendar-forward-day (- (time-to-days org-def)
-                                            (calendar-absolute-from-gregorian
-                                             (calendar-current-date))))
-                   (org-eval-in-calendar nil t)
-                   (let* ((old-map (current-local-map))
-                          (map (copy-keymap calendar-mode-map))
-                          (minibuffer-local-map (copy-keymap minibuffer-local-map)))
-                     (org-defkey map (kbd "RET") 'org-calendar-select)
-                     (org-defkey map [mouse-1] 'org-calendar-select-mouse)
-                     (org-defkey map [mouse-2] 'org-calendar-select-mouse)
-                     (org-defkey minibuffer-local-map [(meta shift left)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-backward-month 1))))
-                     (org-defkey minibuffer-local-map [(meta shift right)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-forward-month 1))))
-                     (org-defkey minibuffer-local-map [(meta shift up)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-backward-year 1))))
-                     (org-defkey minibuffer-local-map [(meta shift down)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-forward-year 1))))
-                     (org-defkey minibuffer-local-map [?\e (shift left)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-backward-month 1))))
-                     (org-defkey minibuffer-local-map [?\e (shift right)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-forward-month 1))))
-                     (org-defkey minibuffer-local-map [?\e (shift up)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-backward-year 1))))
-                     (org-defkey minibuffer-local-map [?\e (shift down)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-forward-year 1))))
-                     (org-defkey minibuffer-local-map [(shift up)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-backward-week 1))))
-                     (org-defkey minibuffer-local-map [(shift down)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-forward-week 1))))
-                     (org-defkey minibuffer-local-map [(shift left)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-backward-day 1))))
-                     (org-defkey minibuffer-local-map [(shift right)]
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(calendar-forward-day 1))))
-                     (org-defkey minibuffer-local-map ">"
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(scroll-calendar-left 1))))
-                     (org-defkey minibuffer-local-map "<"
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar '(scroll-calendar-right 1))))
-                     (org-defkey minibuffer-local-map "\C-v"
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar
-                                    '(calendar-scroll-left-three-months 1))))
-                     (org-defkey minibuffer-local-map "\M-v"
-                                 (lambda () (interactive)
-                                   (org-eval-in-calendar
-                                    '(calendar-scroll-right-three-months 1))))
-                     (run-hooks 'org-read-date-minibuffer-setup-hook)
-                     (unwind-protect
-                          (progn
-                            (use-local-map map)
-                            (setq org-read-date-inactive inactive)
-                            (add-hook 'post-command-hook 'org-read-date-display)
-                            (setq org-ans0 (read-string prompt default-input
-                                                        'org-read-date-history nil))
-                            ;; org-ans0: from prompt
-                            ;; org-ans1: from mouse click
-                            ;; org-ans2: from calendar motion
-                            (setq ans (concat org-ans0 " " (or org-ans1 org-ans2))))
-                       (remove-hook 'post-command-hook 'org-read-date-display)
-                       (use-local-map old-map)
-                       (when org-read-date-overlay
-                         (delete-overlay org-read-date-overlay)
-                         (setq org-read-date-overlay nil)))))
-              (bury-buffer "*Calendar*")))))
+                (setq ans (read-string prompt default-input
+                                       'org-read-date-history timestr))
+              (when org-read-date-overlay
+                (delete-overlay org-read-date-overlay)
+                (setq org-read-date-overlay nil)))))
 
-         (t ; Naked prompt only
-          (unwind-protect
-               (setq ans (read-string prompt default-input
-                                      'org-read-date-history timestr))
-            (when org-read-date-overlay
-              (delete-overlay org-read-date-overlay)
-              (setq org-read-date-overlay nil)))))
+         (setq final (org-read-date-analyze ans org-def org-defdecode))
 
-       (setq final (org-read-date-analyze ans org-def org-defdecode))
+         (when org-read-date-analyze-forced-year
+           (message "Year was forced into %s"
+                    (if org-read-date-force-compatible-dates
+                      "compatible range (1970-2037)"
+                      "range representable on this machine"))
+           (ding))
 
-       (when org-read-date-analyze-forced-year
-         (message "Year was forced into %s"
-                  (if org-read-date-force-compatible-dates
-                    "compatible range (1970-2037)"
-                    "range representable on this machine"))
-         (ding))
+         ;; One round trip to get rid of 34th of August and stuff like that....
+         (setq final (decode-time (apply 'encode-time final)))
 
-       ;; One round trip to get rid of 34th of August and stuff like that....
-       (setq final (decode-time (apply 'encode-time final)))
+         (setq org-read-date-final-answer ans)
 
-       (setq org-read-date-final-answer ans)
+         (if to-time
+           (apply 'encode-time final)
+           (if (and (boundp 'org-time-was-given) org-time-was-given)
+             (format "%04d-%02d-%02d %02d:%02d"
+                     (nth 5 final) (nth 4 final) (nth 3 final)
+                     (nth 2 final) (nth 1 final))
+             (format "%04d-%02d-%02d" (nth 5 final) (nth 4 final) (nth 3 final))))))
 
-       (if to-time
-         (apply 'encode-time final)
-         (if (and (boundp 'org-time-was-given) org-time-was-given)
-           (format "%04d-%02d-%02d %02d:%02d"
-                   (nth 5 final) (nth 4 final) (nth 3 final)
-                   (nth 2 final) (nth 1 final))
-           (format "%04d-%02d-%02d" (nth 5 final) (nth 4 final) (nth 3 final))))))
-
-   ;; customize it to receive width and height arguments of inline image
-   (redefun org-display-inline-images (&optional include-linked refresh beg end)
-     "Display inline images.
+     ;; customize it to receive width and height arguments of inline image
+     (redefun org-display-inline-images (&optional include-linked refresh beg end)
+       "Display inline images.
 Normally only links without a description part are inlined, because this
 is how it will work for export.  When INCLUDE-LINKED is set, also links
 with a description part will be inlined.  This can be nice for a quick
@@ -284,138 +284,138 @@ like.
 When REFRESH is set, refresh existing images between BEG and END.
 This will create new image displays only if necessary.
 BEG and END default to the buffer boundaries."
-     (interactive "P")
-     (unless refresh
-       (org-remove-inline-images)
-       (if (fboundp 'clear-image-cache) (clear-image-cache)))
-     (save-excursion
-      (save-restriction
-       (widen)
-       (setq beg (or beg (point-min)) end (or end (point-max)))
-       (goto-char beg)
-       (let ((re (concat "\\(?:#+[+ ]*INLINE:[ \t]*\\(.*\\)[ \t]*\n[ \t]*\\(?:#.*\n[ \t]*\\)*\\)?\\[\\[\\(\\(file:\\)\\|\\([./~]\\)\\)\\([^\]\n]+?"
-                         (substring (org-image-file-name-regexp) 0 -2)
-                         "\\)\\]" (if include-linked "" "\\]")))
-             options old file ov img)
-         (while (re-search-forward re end t)
-           (when (image-type-available-p 'imagemagick)
-             (setq options (match-string-no-properties 1)))
-           (setq old (get-char-property-and-overlay (match-beginning 2)
-                                                    'org-image-overlay))
-           (setq file (expand-file-name
-                       (concat (or (match-string 4) "") (match-string 5))))
-           (when (file-exists-p file)
-             (if (and (car-safe old) refresh)
-               (image-refresh (overlay-get (cdr old) 'display))
-               (setq img (save-match-data (create-image file)))
-               (when (and options
-                          (image-type-available-p 'imagemagick))
-                 (save-match-data
-                  (let ((scaled? nil))
-                    (when (string-match? "width\s*=\s*\\([0-9]+\\)" options)
-                      (setf img (append img
-                                        (list ':width
-                                              (read
-                                               (match-string-no-properties 1 options))))
-                            scaled? t)
-                      (setf (getf (cdr img) :type) 'imagemagick))
-                    (when (string-match? "height\s*=\s*\\([0-9]+\\)" options)
-                      (setf img (append img
-                                        (list ':height
-                                              (read
-                                               (match-string-no-properties 1 options))))
-                            scaled? t))
-                    (when scaled?
-                      (setf (getf (cdr img) :type) 'imagemagick)))))
-               (when img
-                 (setq ov (make-overlay (match-beginning 0) (match-end 0)))
-                 (overlay-put ov 'display img)
-                 (overlay-put ov 'face 'default)
-                 (overlay-put ov 'org-image-overlay t)
-                 (overlay-put ov 'modification-hooks
-                              (list 'org-display-inline-modification-hook))
-                 (push ov org-inline-image-overlays)))))))))))
+       (interactive "P")
+       (unless refresh
+         (org-remove-inline-images)
+         (if (fboundp 'clear-image-cache) (clear-image-cache)))
+       (save-excursion
+         (save-restriction
+           (widen)
+           (setq beg (or beg (point-min)) end (or end (point-max)))
+           (goto-char beg)
+           (let ((re (concat "\\(?:#+[+ ]*INLINE:[ \t]*\\(.*\\)[ \t]*\n[ \t]*\\(?:#.*\n[ \t]*\\)*\\)?\\[\\[\\(\\(file:\\)\\|\\([./~]\\)\\)\\([^\]\n]+?"
+                             (substring (org-image-file-name-regexp) 0 -2)
+                             "\\)\\]" (if include-linked "" "\\]")))
+                 options old file ov img)
+             (while (re-search-forward re end t)
+               (when (image-type-available-p 'imagemagick)
+                 (setq options (match-string-no-properties 1)))
+               (setq old (get-char-property-and-overlay (match-beginning 2)
+                                                        'org-image-overlay))
+               (setq file (expand-file-name
+                           (concat (or (match-string 4) "") (match-string 5))))
+               (when (file-exists-p file)
+                 (if (and (car-safe old) refresh)
+                   (image-refresh (overlay-get (cdr old) 'display))
+                   (setq img (save-match-data (create-image file)))
+                   (when (and options
+                              (image-type-available-p 'imagemagick))
+                     (save-match-data
+                       (let ((scaled? nil))
+                         (when (string-match? "width\s*=\s*\\([0-9]+\\)" options)
+                           (setf img (append img
+                                             (list ':width
+                                                   (read
+                                                    (match-string-no-properties 1 options))))
+                                 scaled? t)
+                           (setf (getf (cdr img) :type) 'imagemagick))
+                         (when (string-match? "height\s*=\s*\\([0-9]+\\)" options)
+                           (setf img (append img
+                                             (list ':height
+                                                   (read
+                                                    (match-string-no-properties 1 options))))
+                                 scaled? t))
+                         (when scaled?
+                           (setf (getf (cdr img) :type) 'imagemagick)))))
+                   (when img
+                     (setq ov (make-overlay (match-beginning 0) (match-end 0)))
+                     (overlay-put ov 'display img)
+                     (overlay-put ov 'face 'default)
+                     (overlay-put ov 'org-image-overlay t)
+                     (overlay-put ov 'modification-hooks
+                                  (list 'org-display-inline-modification-hook))
+                     (push ov org-inline-image-overlays)))))))))))
 
 (eval-after-load
- "org-comat"
- '(progn
-   ;; add handling of vim's region
-   (redefun org-region-active-p ()
-     "Is `transient-mark-mode' on and the region active?
+    "org-comat"
+  '(progn
+     ;; add handling of vim's region
+     (redefun org-region-active-p ()
+       "Is `transient-mark-mode' on and the region active?
 Works on both Emacs and XEmacs."
-     (unless org-ignore-region
-       (cond
-         ((featurep 'xemacs)
-          (and zmacs-regions (region-active-p)))
+       (unless org-ignore-region
+         (cond
+           ((featurep 'xemacs)
+            (and zmacs-regions (region-active-p)))
 
-         ((region-active-p)
-          t)
-         ((run-if-fbound vim:visual-mode-p)
-          t)
-         ((fboundp 'use-region-p)
-          (use-region-p))
-         (transient-mark-mode
-          mark-active))))))
+           ((region-active-p)
+            t)
+           ((run-if-fbound vim:visual-mode-p)
+            t)
+           ((fboundp 'use-region-p)
+            (use-region-p))
+           (transient-mark-mode
+            mark-active))))))
 
 (eval-after-load
- "org-list"
- '(progn
-   ;; (redefun org-update-checkbox-count (&optional all)
-   ;;   "Update the checkbox statistics in the current section.
-   ;; This will find all statistic cookies like [57%] and [6/12] and update
-   ;; them with the current numbers.  With optional prefix argument ALL,
-   ;; do this for the whole buffer."
-   ;;      (interactive "P")
-   ;;      (save-excursion
-   ;;       (let* ((buffer-invisibility-spec (org-inhibit-invisibility))
-   ;;              (beg (condition-case nil
-   ;;                       (progn (outline-back-to-heading) (point))
-   ;;                     (error (point-min))))
-   ;;              (end (move-marker
-   ;;                    (make-marker)
-   ;;                    (progn (or (outline-get-next-sibling) ;; (1)
-   ;;                               (goto-char (point-max)))
-   ;;                           (point))))
-   ;;              (re "\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)")
-   ;;              (re-box
-   ;;                "^[ \t]*\\(*+\\|[-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)")
-   ;;              b1 e1 f1 c-on c-off lim (cstat 0))
-   ;;         (when all
-   ;;           (goto-char (point-min))
-   ;;           (or (outline-get-next-sibling) (goto-char (point-max))) ;; (2)
-   ;;           (setq beg (point) end (point-max)))
-   ;;         (goto-char beg)
-   ;;         (while (re-search-forward re end t)
-   ;;           (setq cstat (1+ cstat)
-   ;;                 b1 (match-beginning 0)
-   ;;                 e1 (match-end 0)
-   ;;                 f1 (match-beginning 1)
-   ;;                 lim (cond
-   ;;                       ((org-on-heading-p)
-   ;;                        (or (outline-get-next-sibling) ;; (3)
-   ;;                            (goto-char (point-max)))
-   ;;                        (point))
-   ;;                       ((org-at-item-p) (org-end-of-item) (point))
-   ;;                       (t nil))
-   ;;                 c-on 0 c-off 0)
-   ;;           (goto-char e1)
-   ;;           (when lim
-   ;;             (while (re-search-forward re-box lim t)
-   ;;               (if (member (match-string 2) '("[ ]" "[-]"))
-   ;;                 (setq c-off (1+ c-off))
-   ;;                 (setq c-on (1+ c-on))))
-   ;;             (goto-char b1)
-   ;;             (insert (if f1
-   ;;                       (format "[%d%%]" (/ (* 100 c-on)
-   ;;                                           (max 1 (+ c-on c-off))))
-   ;;                       (format "[%d/%d]" c-on (+ c-on c-off))))
-   ;;             (and (looking-at "\\[.*?\\]")
-   ;;                  (replace-match ""))))
-   ;;         (when (interactive-p)
-   ;;           (message "Checkbox statistics updated %s (%d places)"
-   ;;                    (if all "in entire file" "in current outline entry")
-   ;;                    cstat)))))
-   ))
+    "org-list"
+  '(progn
+     ;; (redefun org-update-checkbox-count (&optional all)
+     ;;   "Update the checkbox statistics in the current section.
+     ;; This will find all statistic cookies like [57%] and [6/12] and update
+     ;; them with the current numbers.  With optional prefix argument ALL,
+     ;; do this for the whole buffer."
+     ;;      (interactive "P")
+     ;;      (save-excursion
+     ;;       (let* ((buffer-invisibility-spec (org-inhibit-invisibility))
+     ;;              (beg (condition-case nil
+     ;;                       (progn (outline-back-to-heading) (point))
+     ;;                     (error (point-min))))
+     ;;              (end (move-marker
+     ;;                    (make-marker)
+     ;;                    (progn (or (outline-get-next-sibling) ;; (1)
+     ;;                               (goto-char (point-max)))
+     ;;                           (point))))
+     ;;              (re "\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)")
+     ;;              (re-box
+     ;;                "^[ \t]*\\(*+\\|[-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)")
+     ;;              b1 e1 f1 c-on c-off lim (cstat 0))
+     ;;         (when all
+     ;;           (goto-char (point-min))
+     ;;           (or (outline-get-next-sibling) (goto-char (point-max))) ;; (2)
+     ;;           (setq beg (point) end (point-max)))
+     ;;         (goto-char beg)
+     ;;         (while (re-search-forward re end t)
+     ;;           (setq cstat (1+ cstat)
+     ;;                 b1 (match-beginning 0)
+     ;;                 e1 (match-end 0)
+     ;;                 f1 (match-beginning 1)
+     ;;                 lim (cond
+     ;;                       ((org-on-heading-p)
+     ;;                        (or (outline-get-next-sibling) ;; (3)
+     ;;                            (goto-char (point-max)))
+     ;;                        (point))
+     ;;                       ((org-at-item-p) (org-end-of-item) (point))
+     ;;                       (t nil))
+     ;;                 c-on 0 c-off 0)
+     ;;           (goto-char e1)
+     ;;           (when lim
+     ;;             (while (re-search-forward re-box lim t)
+     ;;               (if (member (match-string 2) '("[ ]" "[-]"))
+     ;;                 (setq c-off (1+ c-off))
+     ;;                 (setq c-on (1+ c-on))))
+     ;;             (goto-char b1)
+     ;;             (insert (if f1
+     ;;                       (format "[%d%%]" (/ (* 100 c-on)
+     ;;                                           (max 1 (+ c-on c-off))))
+     ;;                       (format "[%d/%d]" c-on (+ c-on c-off))))
+     ;;             (and (looking-at "\\[.*?\\]")
+     ;;                  (replace-match ""))))
+     ;;         (when (interactive-p)
+     ;;           (message "Checkbox statistics updated %s (%d places)"
+     ;;                    (if all "in entire file" "in current outline entry")
+     ;;                    cstat)))))
+     ))
 
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -439,46 +439,46 @@ Works on both Emacs and XEmacs."
    (sqlite     . nil)))
 
 (eval-after-load
- "org-src"
- '(progn
-   (setf org-src-lang-modes
-         (cons (cons "scheme" 'scheme)
-               (cons (cons "dot" 'graphviz-dot-mode)
-                     (remove-if (lambda (entry)
-                                  (string=? (car entry) "dot"))
-                                org-src-lang-modes))))))
+    "org-src"
+  '(progn
+     (setf org-src-lang-modes
+           (cons (cons "scheme" 'scheme)
+                 (cons (cons "dot" 'graphviz-dot-mode)
+                       (remove-if (lambda (entry)
+                                    (string=? (car entry) "dot"))
+                                  org-src-lang-modes))))))
 
 (eval-after-load
- "ob-tangle"
- '(progn
-   (setf org-babel-tangle-lang-exts
-         (cons (cons "scheme" "scm")
-               org-babel-tangle-lang-exts))
+    "ob-tangle"
+  '(progn
+     (setf org-babel-tangle-lang-exts
+           (cons (cons "scheme" "scm")
+                 org-babel-tangle-lang-exts))
 
-   ;; fix case when org-bracket-link-analytic-regexp matches ordinary link
-   ;; so that (match-string 5) - which is supposed to be the source name -
-   ;; becomes nil
-   (redefun org-babel-detangle (&optional source-code-file)
-     "Propagate changes in source file back original to Org-mode file.
+     ;; fix case when org-bracket-link-analytic-regexp matches ordinary link
+     ;; so that (match-string 5) - which is supposed to be the source name -
+     ;; becomes nil
+     (redefun org-babel-detangle (&optional source-code-file)
+       "Propagate changes in source file back original to Org-mode file.
 This requires that code blocks were tangled with link comments
 which enable the original code blocks to be found."
-     (interactive)
-     (save-excursion
-      (when source-code-file (find-file source-code-file))
-      (goto-char (point-min))
-      (let ((counter 0) new-body end)
-        (while (re-search-forward org-bracket-link-analytic-regexp nil t)
-          (when (and (not (null? (match-string 5)))
-                     (re-search-forward
-                      (concat " " (regexp-quote (match-string 5)) " ends here")))
-            (setq end (match-end 0))
-            (forward-line -1)
-            (save-excursion
-             (when (setq new-body (org-babel-tangle-jump-to-org))
-               (org-babel-update-block-body new-body)))
-            (setq counter (+ 1 counter)))
-          (goto-char end))
-        (prog1 counter (message "detangled %d code blocks" counter)))))))
+       (interactive)
+       (save-excursion
+         (when source-code-file (find-file source-code-file))
+         (goto-char (point-min))
+         (let ((counter 0) new-body end)
+           (while (re-search-forward org-bracket-link-analytic-regexp nil t)
+             (when (and (not (null? (match-string 5)))
+                        (re-search-forward
+                         (concat " " (regexp-quote (match-string 5)) " ends here")))
+               (setq end (match-end 0))
+               (forward-line -1)
+               (save-excursion
+                 (when (setq new-body (org-babel-tangle-jump-to-org))
+                   (org-babel-update-block-body new-body)))
+               (setq counter (+ 1 counter)))
+             (goto-char end))
+           (prog1 counter (message "detangled %d code blocks" counter)))))))
 
 ;;;; common org-drill's question cards with math rendering
 ;;;; and other setup
@@ -511,7 +511,7 @@ into images."
                        (member tag *org-drill-hint-tags*))
                      (org-get-tags-at))))))
      (ignore-errors
-      (org-display-inline-images t))
+       (org-display-inline-images t))
      (org-cycle-hide-drawers 'all)
      (render-buffer-on)
      (prog1 (org-drill-presentation-prompt)
@@ -525,7 +525,7 @@ when question is rated."
   (org-drill-hide-subheadings-if 'org-drill-entry-p)
   (org-drill-unhide-clozed-text)
   (ignore-errors
-   (org-display-inline-images t))
+    (org-display-inline-images t))
   (render-buffer-on)
   (prog1 (with-hidden-cloze-hints
           (funcall reschedule-fn))
@@ -552,38 +552,38 @@ when question is rated."
 
 
 (eval-after-load
- "org-drill"
- '(progn
-   (setf org-drill-optimal-factor-matrix
-         (persistent-store-get 'org-drill-optimal-factor-matrix))
+    "org-drill"
+  '(progn
+     (setf org-drill-optimal-factor-matrix
+           (persistent-store-get 'org-drill-optimal-factor-matrix))
 
-   (redefun org-drill-save-optimal-factor-matrix ()
-     (message "Saving optimal factor matrix...")
-     (persistent-store-put 'org-drill-optimal-factor-matrix
-                           org-drill-optimal-factor-matrix))
+     (redefun org-drill-save-optimal-factor-matrix ()
+       (message "Saving optimal factor matrix...")
+       (persistent-store-put 'org-drill-optimal-factor-matrix
+                             org-drill-optimal-factor-matrix))
 
-   ;; remove unconditional hiding of sub-sublevels
-   (redefun org-drill-hide-subheadings-if (test)
-     "TEST is a function taking no arguments. TEST will be called for each
+     ;; remove unconditional hiding of sub-sublevels
+     (redefun org-drill-hide-subheadings-if (test)
+       "TEST is a function taking no arguments. TEST will be called for each
 of the immediate subheadings of the current drill item, with the point
 on the relevant subheading. TEST should return nil if the subheading is
 to be revealed, non-nil if it is to be hidden.
 Returns a list containing the position of each immediate subheading of
 the current topic."
-     (let ((drill-entry-level (org-current-level))
-           (drill-sections nil))
-       (org-show-subtree)
-       (save-excursion
-        (org-map-entries
-         (lambda ()
-           (when (and (not (outline-invisible-p))
-                      (> (org-current-level) drill-entry-level))
-             (when (funcall test)
-               (hide-subtree))
-             (push (point) drill-sections)))
-         ""
-         'tree))
-       (reverse drill-sections)))))
+       (let ((drill-entry-level (org-current-level))
+             (drill-sections nil))
+         (org-show-subtree)
+         (save-excursion
+           (org-map-entries
+            (lambda ()
+              (when (and (not (outline-invisible-p))
+                         (> (org-current-level) drill-entry-level))
+                (when (funcall test)
+                  (hide-subtree))
+                (push (point) drill-sections)))
+            ""
+            'tree))
+         (reverse drill-sections)))))
 
 ;;;; other functions
 

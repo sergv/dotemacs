@@ -10,31 +10,31 @@
 (require 'python-common)
 
 (defface python-keyword-face
-    '((t (:inherit font-lock-keyword-face)))
+  '((t (:inherit font-lock-keyword-face)))
   "Face to highlight python keywords.")
 
 (defface python-builtin-face
-    '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit font-lock-builtin-face)))
   "Face to highlight python builtin functions.")
 
 (defface python-warnings-and-errors-face
-    '((t (:foreground "#cb4b16")))
+  '((t (:foreground "#cb4b16")))
   "Face to highlight warious python runtime warning and error objects.")
 
 (defface python-decorator-face
-    '((t (:inherit font-lock-preprocessor-face)))
+  '((t (:inherit font-lock-preprocessor-face)))
   "Face to highlight python decorators.")
 
 (defface python-function-name-face
-    '((t (:inherit font-lock-function-name-face)))
+  '((t (:inherit font-lock-function-name-face)))
   "Face to highlight python function names.")
 
 (defface python-constant-face
-    '((t (:inherit font-lock-constant-face)))
+  '((t (:inherit font-lock-constant-face)))
   "Face to highlight python constants.")
 
 (defface python-format-directive-face
-    '((t (:inherit font-lock-negation-char-face)))
+  '((t (:inherit font-lock-negation-char-face)))
   "Face to highlight python format directives")
 
 
@@ -391,13 +391,13 @@ find parts to highlight.")
 pretty symbol. Intended for use in `font-lock-keywords' and
 `+python-pretty-symbols+'."
   (save-excursion
-   (when position
-     (goto-char position))
-   (or (python-point-inside-string-or-comment?)
-       (memq (get-text-property (point) 'face)
-             '(font-lock-comment-face
-               font-lock-string-face))
-       (get-text-property (point) 'disable-pretty-symbols))))
+    (when position
+      (goto-char position))
+    (or (python-point-inside-string-or-comment?)
+        (memq (get-text-property (point) 'face)
+              '(font-lock-comment-face
+                font-lock-string-face))
+        (get-text-property (point) 'disable-pretty-symbols))))
 
 (defconst +python-pretty-symbols+
   (append (list (list (rx (or (seq

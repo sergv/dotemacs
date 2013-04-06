@@ -108,18 +108,18 @@ entries."
                           (split-into-lines (fortune *fortunes*))))))
     (print '(require 'persistent-sessions) (current-buffer))
     (let ((buffer-data
-            (remq nil
-                  (map (lambda (buf)
-                         (when (buffer-file-name buf)
-                           (with-current-buffer buf
-                             (make-session-entry
-                              (abbreviate-file-name (buffer-file-name buf))
-                              (point)
-                              (sessions/get-buffer-variables buf)
-                              major-mode))))
-                       (buffer-list))))
+           (remq nil
+                 (map (lambda (buf)
+                        (when (buffer-file-name buf)
+                          (with-current-buffer buf
+                            (make-session-entry
+                             (abbreviate-file-name (buffer-file-name buf))
+                             (point)
+                             (sessions/get-buffer-variables buf)
+                             major-mode))))
+                      (buffer-list))))
           (frame-data
-            (window-configuration-printable)))
+           (window-configuration-printable)))
       (pp
        (list 'sessions/load-from-data
              (list 'quote

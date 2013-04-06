@@ -28,18 +28,18 @@ interactively prompting for variables/messages."
   :insert-entity-name-procedure
   (lambda (beginning)
     (save-excursion
-     (save-match-data
-      (goto-char beginning)
-      (if (= 0 (current-column))
-        ""
-        (condition-case nil
-            (progn
-              (beginning-of-defun)
-              (when (looking-at "def[ \t]+\\([a-zA-Z_][a-zA-Z0-9_]*\\)")
-                (concat
-                 (upcase (match-string 1))
-                 ": ")))
-          (error ""))))))
+      (save-match-data
+        (goto-char beginning)
+        (if (= 0 (current-column))
+          ""
+          (condition-case nil
+              (progn
+                (beginning-of-defun)
+                (when (looking-at "def[ \t]+\\([a-zA-Z_][a-zA-Z0-9_]*\\)")
+                  (concat
+                   (upcase (match-string 1))
+                   ": ")))
+            (error ""))))))
 
   :make-variable-list
   (lambda (list)

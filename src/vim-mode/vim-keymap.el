@@ -49,6 +49,7 @@ the variable where the keymap is stored. If the variable contains
   "Defines global and local keymaps for a mode with name
 vim:`name'-[local-]keymap and a map command vim:`map-command'
 and vim:local-`map-command'."
+  (declare (indent 2))
   (let ((glbkeym (concat "vim:" (symbol-name name) "-keymap"))
         (lockeym (concat "vim:" (symbol-name name) "-local-keymap")))
     `(progn
@@ -58,12 +59,12 @@ and vim:local-`map-command'."
          ,(concat "VIM buffer local keymap: " doc))
        ,@(when map-command
            `((defsubst ,(intern (concat "vim:" (symbol-name map-command)))
-                 (keys command)
+               (keys command)
                ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
                         glbkeym)
                (vim:map keys command :keymap ',(intern glbkeym)))
              (defsubst ,(intern (concat "vim:local-" (symbol-name map-command)))
-                 (keys command)
+               (keys command)
                ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
                         lockeym)
                (vim:map keys command :keymap ',(intern lockeym))))))))

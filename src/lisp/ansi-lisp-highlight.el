@@ -15,102 +15,102 @@
   :group 'faces)
 
 (defface ansi-lisp-constant-face
-    '((t (:inherit font-lock-constant-face)))
+  '((t (:inherit font-lock-constant-face)))
   "Face to highlight conventional and other constants,
 i.e. names matching regexp \\+.*\\+., self-evaluating symbols, numbers."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-keyword-face
-    '((t (:inherit font-lock-keyword-face)))
+  '((t (:inherit font-lock-keyword-face)))
   "Face to highlight both :keywords and function calls to standard functions."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-warning-face
-    '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit font-lock-warning-face)))
   "Face to highlight e.g. error, signal, assert."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-global-variable-face
-    '((t (:inherit font-lock-variable-name-face)))
+  '((t (:inherit font-lock-variable-name-face)))
   "Face to highlight conventional global variables,
 i.e. names matching regexp \\*.*\\*."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-declaration-face
-    '((t (:foreground "#6c71c4")))
+  '((t (:foreground "#6c71c4")))
   "Face to highlight ansi cl declarations."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-type-face
-    '((t (:inherit font-lock-type-face)))
+  '((t (:inherit font-lock-type-face)))
   "Face to highlight ansi cl types."
   :group 'ansi-lisp)
 
 
 (defface ansi-lisp-expression-face
-    '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl expressions
 \(I'm wrong or is declare is the only expression defined?\)."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-special-form-face
-    '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl special forms."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-macro-face
-    '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl builtin macro."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-generic-function-face
-    '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl builtin generic functions."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-function-face
-    '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl builtin functions."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-predicate-face
-    '((t (:inherit font-lock-function-name-face)))
+  '((t (:inherit font-lock-function-name-face)))
   "Face to highlight Scheme-like predicates: eq? and other ending with
 question mark"
   :group 'ansi-lisp)
 
 (defface ansi-lisp-mutating-op-face
-    '((t (:inherit font-lock-function-name-face)))
+  '((t (:inherit font-lock-function-name-face)))
   "Face to highlight Scheme-like mutating operations: set! and other ending
 with exclamation mark"
   :group 'ansi-lisp)
 
 
 (defface ansi-lisp-format-directive-face
-    '((t (:inherit font-lock-negation-char-face)))
+  '((t (:inherit font-lock-negation-char-face)))
   "Face to highlight ansi cl builtin functions."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-loop-keyword-face
-    '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl loop keywords."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-symbols-without-home-package-face
-    '((t (:inherit ansi-lisp-constant-face)))
+  '((t (:inherit ansi-lisp-constant-face)))
   "Face to highlight #:symbols which have to home package deliberately
 or because the're uninterned yet."
   :group 'ansi-lisp)
 
 
 (defface ansi-lisp-defined-name-face
-    '((t (:inherit font-lock-function-name-face)))
+  '((t (:inherit font-lock-function-name-face)))
   "Face to highlight names of entities that are being defined by form
 such as defun, defmacro, etc."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-defined-data-name-face
-    '((t (:foreground "#cb4b16")))
+  '((t (:foreground "#cb4b16")))
   "Face to highlight names of data entities being defined, e.g. by defstruct,
 defclass etc."
   :group 'ansi-lisp)
@@ -123,12 +123,12 @@ defclass etc."
 ;;   :group 'ansi-lisp)
 
 (defface ansi-lisp-doc-face
-    '((t (:inherit font-lock-doc-face)))
+  '((t (:inherit font-lock-doc-face)))
   "Face to highlight documentation."
   :group 'ansi-lisp)
 
 (defface ansi-lisp-exported-symbols-face
-    '((t (:foreground "#2aa198")))
+  '((t (:foreground "#2aa198")))
   "Face to highlight exported, shadowed, interned, imported etc names in
 defpackage."
   :group 'ansi-lisp)
@@ -147,52 +147,52 @@ defpackage."
                       ":"))
         ;; ~C takes to parameters but may take modifiers
         (character-directive
-          (seq (* modifier)
-               (or "c" "C")))
+         (seq (* modifier)
+              (or "c" "C")))
         (integer-directive
-          (seq
-           (? (or digit-argument other-argument))
-           (? ","
-              (? (or char-argument other-argument))
-              (? ","
-                 (? (or char-argument other-argument))
-                 (? ","
-                    (? (or digit-argument other-argument))
-                    )))
-           (* modifier)
-           (regexp "[dDxXoObB]")))
+         (seq
+          (? (or digit-argument other-argument))
+          (? ","
+             (? (or char-argument other-argument))
+             (? ","
+                (? (or char-argument other-argument))
+                (? ","
+                   (? (or digit-argument other-argument))
+                   )))
+          (* modifier)
+          (regexp "[dDxXoObB]")))
         (number-between-2-and-36
-          (or "2" "3" "4" "5" "6" "7" "8" "9" "10"
-              "11" "12" "13" "14" "15" "16" "17" "18" "19" "20"
-              "21" "22" "23" "24" "25" "26" "27" "28" "29" "30"
-              "31" "32" "33" "34" "35" "36"))
+         (or "2" "3" "4" "5" "6" "7" "8" "9" "10"
+             "11" "12" "13" "14" "15" "16" "17" "18" "19" "20"
+             "21" "22" "23" "24" "25" "26" "27" "28" "29" "30"
+             "31" "32" "33" "34" "35" "36"))
         (radix-directive
-          (seq
-           (? number-between-2-and-36)
-           (? ","
-              (? (or digit-argument other-argument))
-              (? ","
-                 (? (or char-argument other-argument))
-                 (? ","
-                    (? (or char-argument other-argument))
-                    (? ","
-                       (? (or digit-argument other-argument))
-                       ))))
-           (* modifier)
-           (regexp "[rR]")))
+         (seq
+          (? number-between-2-and-36)
+          (? ","
+             (? (or digit-argument other-argument))
+             (? ","
+                (? (or char-argument other-argument))
+                (? ","
+                   (? (or char-argument other-argument))
+                   (? ","
+                      (? (or digit-argument other-argument))
+                      ))))
+          (* modifier)
+          (regexp "[rR]")))
         (conditional-formatting-directive
-          (seq (? (or digit-argument other-argument))
-               (* modifier)
-               (or "[" "]" ";")))
+         (seq (? (or digit-argument other-argument))
+              (* modifier)
+              (or "[" "]" ";")))
         (iteration-directive
-          (seq (* modifier)
-               (or "{" "}" "^")))
+         (seq (* modifier)
+              (or "{" "}" "^")))
         (general-directive
-          (seq (? prefix-param)
-               (* ","
-                  (? prefix-param))
-               (* modifier)
-               (regexp "[aAsSfFeEgG$pP()%&~*?/\n]"))))
+         (seq (? prefix-param)
+              (* ","
+                 (? prefix-param))
+              (* modifier)
+              (regexp "[aAsSfFeEgG$pP()%&~*?/\n]"))))
     "~"
     (or character-directive
         integer-directive
@@ -361,7 +361,7 @@ defpackage."
 
 (defconst +ansi-lisp-basic-keywords+
   (eval-when-compile
-    `(;; support nearly full numeric tower
+    `( ;; support nearly full numeric tower
       ;; upd: full numeric tower is supported (? needs tests)
       ;; upd upd: rationals were not handled properly, merged with integers
       ;; - everything else seems to work fine
@@ -463,7 +463,7 @@ defpackage."
        (1 'ansi-lisp-keyword-face)
        (2 'ansi-lisp-constant-face t t))
 
-     ;;;
+;;;
       ;; (,(rx "("
       ;;       (group "defpackage")
       ;;       (+ (regexp "[ \t\n]"))
@@ -480,7 +480,7 @@ defpackage."
                  ;; "defstruct"
                  "deftype"))
             (+ (regexp "[ \t\n]"))
-            (? (? "(") ; imho for defstruct only
+            (? (? "(")                  ; imho for defstruct only
                symbol-start
                (group
                 (+ (or (syntax word) (syntax symbol))))
@@ -524,7 +524,7 @@ defpackage."
                  'ansi-lisp-defined-name-face))))
 
 
-     ;;;
+;;;
 
 
       (,(rx "("
@@ -1394,42 +1394,42 @@ defpackage."
 ;; some safety compile-time checks
 (eval-when-compile
   (letrec ((check-font-lock-keywords
-             (lambda (keywords)
-               (unless (every #'listp keywords)
-                 (error "Non-list entry: %s"
-                        (find-if-not #'listp keywords)))
-               (mapc (lambda (entry)
-                       (unless (or (stringp (car entry))
-                                   (symbolp (car entry)))
-                         (error "Neither string nor symbol first value %s of entry: %s"
-                                (car entry)
-                                entry))
-                       (cond
-                         ((funcall highlight-entryp (cdr entry))
-                          (funcall check-highlight-entry (cdr entry)))
-                         ((every highlight-entryp (cdr entry))
-                          (mapc check-highlight-entry (cdr entry)))
-                         (t
-                          (error "Non-highlight directive(s) found: %s" (cdr entry)))))
-                     keywords)
-               (values)))
+            (lambda (keywords)
+              (unless (every #'listp keywords)
+                (error "Non-list entry: %s"
+                       (find-if-not #'listp keywords)))
+              (mapc (lambda (entry)
+                      (unless (or (stringp (car entry))
+                                  (symbolp (car entry)))
+                        (error "Neither string nor symbol first value %s of entry: %s"
+                               (car entry)
+                               entry))
+                      (cond
+                        ((funcall highlight-entryp (cdr entry))
+                         (funcall check-highlight-entry (cdr entry)))
+                        ((every highlight-entryp (cdr entry))
+                         (mapc check-highlight-entry (cdr entry)))
+                        (t
+                         (error "Non-highlight directive(s) found: %s" (cdr entry)))))
+                    keywords)
+              (values)))
 
            (check-highlight-entry
-             (lambda (entry)
-               (let ((face-entry (cadr entry)))
-                 (when (and (listp face-entry)
-                            (symbolp (cadr face-entry))
-                            (= 2 (length face-entry))
-                            (not (eq 'quote (car face-entry))))
-                   (error "Unquoted face: %s" face-entry))
-                 (when (symbolp face-entry)
-                   (error "Unquoted face: %s" face-entry)))))
+            (lambda (entry)
+              (let ((face-entry (cadr entry)))
+                (when (and (listp face-entry)
+                           (symbolp (cadr face-entry))
+                           (= 2 (length face-entry))
+                           (not (eq 'quote (car face-entry))))
+                  (error "Unquoted face: %s" face-entry))
+                (when (symbolp face-entry)
+                  (error "Unquoted face: %s" face-entry)))))
 
            (highlight-entryp
-             (lambda (form)
-               (and (listp form)
-                    (numberp (car form))
-                    (<= 2 (length form))))))
+            (lambda (form)
+              (and (listp form)
+                   (numberp (car form))
+                   (<= 2 (length form))))))
 
     (funcall check-font-lock-keywords +ansi-lisp-basic-keywords+)
     (funcall check-font-lock-keywords +ansi-lisp-advanced-keywords+)

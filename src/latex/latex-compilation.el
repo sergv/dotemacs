@@ -18,8 +18,8 @@
   "Start compilation of LaTeX file."
   (interactive)
   (if-buffer-has-file
-   (when (buffer-modified-p)
-     (save-buffer)))
+    (when (buffer-modified-p)
+      (save-buffer)))
   (compilation-start compile-command
                      #'latex-compilation-mode))
 

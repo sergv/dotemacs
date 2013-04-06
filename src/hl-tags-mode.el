@@ -47,9 +47,9 @@
 
 (defun hl-tags-context-sgml-mode ()
   (save-excursion
-   (when (looking-at-pure? "<") (forward-char 1))
-   (let* ((ctx (hl-tags-sgml-get-context))
-          (boundaries
+    (when (looking-at-pure? "<") (forward-char 1))
+    (let* ((ctx (hl-tags-sgml-get-context))
+           (boundaries
             (and ctx (case (sgml-tag-type ctx)
                        ('empty (cons ctx nil))
                        ('close
@@ -60,28 +60,28 @@
                         (sgml-skip-tag-forward 1)
                         (backward-char 1)
                         (cons ctx (hl-tags-sgml-get-context)))))))
-     (when boundaries
-       (cons (hl-tags-sgml-pair (car boundaries))
-             (hl-tags-sgml-pair (cdr boundaries)))))))
+      (when boundaries
+        (cons (hl-tags-sgml-pair (car boundaries))
+              (hl-tags-sgml-pair (cdr boundaries)))))))
 
 (defun hl-tags-context-nxml-mode ()
   (ignore-errors
-   (save-excursion
-    (let (start1 end1 start2 end2)
-      (when (looking-at-pure? "<") (forward-char))
-      (nxml-up-element 1)
-      (setq end2 (point))
+    (save-excursion
+      (let (start1 end1 start2 end2)
+        (when (looking-at-pure? "<") (forward-char))
+        (nxml-up-element 1)
+        (setq end2 (point))
 
-      (nxml-backward-single-balanced-item)
-      (setq start2 (point))
+        (nxml-backward-single-balanced-item)
+        (setq start2 (point))
 
-      (nxml-up-element -1)
-      (setq start1 (point))
+        (nxml-up-element -1)
+        (setq start1 (point))
 
-      (nxml-forward-single-balanced-item)
-      (setq end1 (point))
+        (nxml-forward-single-balanced-item)
+        (setq end1 (point))
 
-      (cons (cons start1 end1) (cons start2 end2))))))
+        (cons (cons start1 end1) (cons start2 end2))))))
 
 (defsubst hl-tags-context ()
   "Return a pair ((start . end) . (start . end)) containing the
@@ -90,13 +90,13 @@ boundaries of the current start and end tag , or nil."
 
 (defun hl-tags-update ()
   (ignore-errors
-   (let ((ctx (hl-tags-context)))
-     (if (null ctx)
-       (hl-tags-hide)
-       (progn
-         (hl-tags-show)
-         (move-overlay hl-tags-start-overlay (caar ctx) (cdar ctx))
-         (move-overlay hl-tags-end-overlay (cadr ctx) (cddr ctx)))))))
+    (let ((ctx (hl-tags-context)))
+      (if (null ctx)
+        (hl-tags-hide)
+        (progn
+          (hl-tags-show)
+          (move-overlay hl-tags-start-overlay (caar ctx) (cdar ctx))
+          (move-overlay hl-tags-end-overlay (cadr ctx) (cddr ctx)))))))
 
 (defun hl-tags-show ()
   (unless hl-tags-start-overlay
