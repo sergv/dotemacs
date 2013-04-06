@@ -739,6 +739,17 @@ This command assumes point is not in a string or comment."
                   :name vim:forward-slurp-sexp
                   :call-n-times t)
 
+(vimmize-function paredit-forward-slurp-sexp
+                  :name vim:forward-slurp-sexp
+                  :call-n-times t)
+
+(vimmize-function paredit-forward-delete
+                  :name vim:paredit-forward-delete
+                  :call-n-times nil)
+(vimmize-function paredit-backward-delete
+                  :name vim:paredit-backward-delete
+                  :call-n-times nil)
+
 (defun paredit-insert-space-after-reader-sharp? (end? delim)
   "This is mostly a workaround to make various reader macro
 (e.g. vectors, cl-interpol, etc) more convenient to type.
@@ -785,6 +796,9 @@ This determines whether to insert a space after the # sign."
     ("g c u"   lisp-uncomment-sexp)
     ("g c d"   lisp-delete-commented-part)
 
+    ("x"       paredit-forward-delete)
+    ("X"       paredit-backward-delete)
+
     ("g ("     vim:splice-sexp-killing-backward)
     ("g )"     vim:splice-sexp-killing-forward)
 
@@ -801,10 +815,7 @@ This determines whether to insert a space after the # sign."
 
     ("g <tab>" paredit-reindent-defun)
     ("M-p"     browse-kill-ring)
-    ("="       input-unicode)
-
-    ("g s"     paredit-split-sexp)
-    ("g j"     paredit-join-sexps)))
+    ("="       input-unicode)))
 
 (defvar *lisp-vim-movement-keybindings*
   '(("q"        vim:lisp-up-list)
@@ -849,8 +860,10 @@ This determines whether to insert a space after the # sign."
   (setq-local comment-end "")
   (setq-local comment-padding " ")
 
-  (when use-cl-indent
-    (setf lisp-indent-function #'common-lisp-indent-function))
+  (if use-cl-indent
+    (setf lisp-indent-function #'common-lisp-indent-function)
+    ;; somehow setf does not work here
+    (setq-local lisp-indent-function #'lisp-indent-function))
   ;; just in case someone will want to use standard #'lisp-indent-function
   ;; put information for this case
   ;; (put 'if 'lisp-indent-function nil)
@@ -861,7 +874,8 @@ This determines whether to insert a space after the # sign."
         vim:visual-mode-local-keymap           (make-sparse-keymap)
         vim:insert-mode-local-keymap           (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap))
+        vim:motion-mode-local-keymap           (make-sparse-keymap)
+        vim:complex-command-override-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
@@ -882,6 +896,9 @@ This determines whether to insert a space after the # sign."
     (", s s"    vim:lisp-replace-symbol)
 
     ("<return>" paredit-newline)
+
+    ("S"        paredit-split-sexp)
+    ("J"        paredit-join-sexps)
 
     ("z o"      hs-show-block)
     ("z c"      hs-hide-block)

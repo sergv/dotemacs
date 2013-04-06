@@ -20,6 +20,12 @@
 move point to next/previous line."
   :type 'boolean)
 
+;;;; overriding keymap
+
+(defvar-local vim:complex-command-override-local-keymap nil
+  "Keymap for buffer-local overriding of commands that take motions,
+like \"d w\".")
+
 ;;;; keybindings
 
 (defun vimrc-redefine-motions (keymap)
@@ -29,7 +35,6 @@ move point to next/previous line."
     ("g >" vim:motion-go-to-first-non-blank-end)
     ("G"   nil)
     ("j"   nil)
-    ("J"   nil)
 
     ("%"   nil)
     ;; short for matching
@@ -86,6 +91,8 @@ move point to next/previous line."
         ("+"       vim:cmd-paste-pop-next)
         ("X"       vim:cmd-delete-char-backward)
         ("M"       vim:jump-to-prev-saved-position)
+        ("J"       vim:cmd-join-lines)
+
 
         ("C-u"     undo-tree-visualize)
         ("C-b"     switch-to-buffer)
@@ -276,7 +283,7 @@ Basically swap current point with previous one."
 
 
 
-;;;; apply given ex command to all ibuffer-selected buffers
+;; apply given ex command to all ibuffer-selected buffers
 
 (vim:defcmd vim:apply-to-selected-buffers
     ((argument:text command) nonrepeatable)

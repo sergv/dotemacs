@@ -215,13 +215,22 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   (when (vim:cmd-char-arg-p motion-command)
     (setq vim:current-motion-arg (read-char-exclusive)))
 
-  (let ((vim:last-undo buffer-undo-list))
-    (if (and (vim:cmd-register-p vim:current-cmd) vim:current-register)
-      (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
-                               :motion (vim:get-current-cmd-motion)
-                               :register vim:current-register)
-      (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
-                               :motion (vim:get-current-cmd-motion)))
+  (let* ((vim:last-undo buffer-undo-list)
+         (key (concat vim:current-key-sequence (vim:this-command-keys)))
+         (entry (and vim:complex-command-override-local-keymap
+                     (lookup-key vim:complex-command-override-local-keymap
+                                 key))))
+    (if (and entry
+             (or (symbol? entry)
+                 (functionp entry)))
+      (funcall entry)
+
+      (if (and (vim:cmd-register-p vim:current-cmd) vim:current-register)
+        (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                                 :motion (vim:get-current-cmd-motion)
+                                 :register vim:current-register)
+        (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                                 :motion (vim:get-current-cmd-motion))))
     (when (vim:cmd-repeatable-p vim:current-cmd)
       (setq vim:repeat-events (vconcat vim:current-key-sequence
                                        (vim:this-command-keys))))
