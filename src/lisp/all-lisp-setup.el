@@ -15,6 +15,15 @@
   '("scm" "sc" "stk" "ss" "sch" "oak")
   "List of scheme file extensions")
 
+(defconst +lisp-modes+
+  '(emacs-lisp-mode
+    common-lisp-mode
+    scheme-mode
+    blueprint-mode
+    clojure-mode
+    lisp-mode)
+  "List of modes that are considered to be lisp.")
+
 (setf auto-mode-alist
       (cons (cons (eval `(rx "." (or ,@+scheme-file-extensions+) eot))
                   'scheme-mode)
@@ -26,6 +35,7 @@
 
 (autoload 'lisp-setup "general-lisp-setup")
 (autoload 'lisp-repl-setup "general-lisp-setup")
+
 
 (autoload 'scheme-setup "scheme-setup")
 (autoload 'scheme-repl-setup "scheme-setup")
