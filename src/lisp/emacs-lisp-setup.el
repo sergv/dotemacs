@@ -82,7 +82,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"     eval-last-sexp)
-    ("J"     eval-print-last-sexp-unlimited-length)
+    ("g J"   vim:cmd-join-lines)
     (", m"   expand-last-macro)
     (", M"   expand-last-macro-all)
 
@@ -100,13 +100,21 @@
   (def-keys-for-map vim:insert-mode-local-keymap
     ;; ("C-SPC" lisp-complete-symbol)
     ("<tab>" indent-for-tab-command)
-    ("M-/"   lisp-complete-symbol))
+    ("M-/"   lisp-complete-symbol)
+    ("["     paredit-open-square)
+    ("]"     paredit-close-square)
+    ("\""    paredit-doublequote))
 
   (def-keys-for-map read-expression-map
     ("<tab>" lisp-complete-symbol)
     ("M-/"   lisp-complete-symbol)
     ("C-w"   backward-delete-word)
     ("C-S-w" backward-delete-word*))
+
+  (def-keys-for-map vim:complex-command-override-local-keymap
+    ("d w" paredit-forward-kill-word)
+    ("d e" paredit-forward-kill-word)
+    ("d b" paredit-backward-kill-word))
 
   ;; should use global after-save-hook because of
   ;; backups

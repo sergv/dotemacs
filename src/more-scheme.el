@@ -10,40 +10,43 @@
 
 (require 'custom-predicates)
 
-(defun string->symbol (str)
+(defsubst string->symbol (str)
   (intern str))
 
-(defun symbol->string (sym)
+(defsubst symbol->string (sym)
   (symbol-name sym))
 
-(defun char->string (char)
+(defsubst char->string (char)
   (char-to-string char))
 
-(defun string->char (str)
+(defsubst string->char (str)
   (string-to-char str))
 
 
-(defun number->string (n)
+(defsubst number->string (n)
   (number-to-string n))
 
-(defun string->number (str)
+(defsubst string->number (str)
   (string-to-number str))
 
 
-(defun string->list (str)
+(defsubst string->list (str)
   (coerce str 'list))
 
-(defun list->string (items)
+(defsubst list->string (items)
   (coerce items 'string))
 
-(defun vector->vector (str)
+(defsubst vector->list (str)
   (coerce str 'list))
 
-(defun list->vector (items)
+(defsubst list->vector (items)
   (coerce items 'vector))
 
+(defsubst int-vector->string (v)
+  "Convernt vector of integers to string."
+  (coerce v 'string))
 
-(defun char=? (a b)
+(defsubst char=? (a b)
   (char-equal a b))
 
 (defmacro begin (&rest body)

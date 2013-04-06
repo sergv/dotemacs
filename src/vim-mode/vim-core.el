@@ -419,6 +419,10 @@ the perfect point to do some house-keeping."
      (vim:clear-key-sequence)
      (vim:adjust-point)
      (vim:activate-normal-mode)
+     (message "vim:execute-command: error: %s\nvim:active-command-function: %s\ncmd: %s"
+              err
+              vim:active-command-function
+              cmd)
      (signal (car err) (cdr err)))))
 
 
