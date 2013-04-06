@@ -12,6 +12,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'all-lisp-setup)
 (require 'common)
 (require 'advices-util)
 (require 'macro-util)
@@ -178,7 +179,8 @@ rigidly along with this one."
 (make-align-function lisp-align-on-comments ";+")
 
 
-
+(setq-default lisp-indent-function #'lisp-indent-function)
+(setf lisp-indent-function #'lisp-indent-function)
 
 ;;;; Utility functions covering broad range of topics
 ;;;; These may be useful in any succeeding lisp setups
@@ -309,7 +311,6 @@ But nesting of more than one sexp is not supported yet
            (inside-commentp (elt state 4)))
       (or inside-stringp inside-commentp))))
 
-
 (defun lisp-point-inside-comment? ()
   "Return t if point is inside comment starting at nearest defun or beginning
 of line."
@@ -340,15 +341,30 @@ of line."
 ;;           (inside-stringp (elt state 3)))
 ;;      inside-stringp)))
 
-
-
-(defun lisp-position-inside-string-or-comment ()
-  "Return pair of values that determine if point is positioned
-inside a string or comment and beginning of this string/comment if any.
-First value is t if point is inside string or comment. Second value is
-character address of start of the string or comment
-if first value is t and nil otherwise."
+(defun lisp-position-inside-string (p)
+  "Return beginnig of a string point P is positioned in and return nil
+if it's not in string."
   (save-excursion
+    (goto-char p)
+    (let* ((end (point))
+           (begin
+             ;; if this proves itself too slow then use line-beginning-position
+             (if (beginning-of-defun)
+                 (point)
+                 (line-beginning-position)))
+           (state (parse-partial-sexp begin
+                                      end))
+           (inside-stringp (elt state 3))
+           (start (elt state 8)))
+      (when inside-stringp
+        start))))
+
+(defun lisp-position-inside-string-or-comment (p)
+  "Return character address of beginning of a string or comment
+point P is positioned in, and nil if not positioned in string
+nor comment."
+  (save-excursion
+    (goto-char p)
     (let* ((end (point))
            (begin
              ;; if this proves itself too slow then use line-beginning-position
@@ -360,9 +376,8 @@ if first value is t and nil otherwise."
            (inside-stringp (elt state 3))
            (inside-commentp (elt state 4))
            (start (elt state 8)))
-      (values (or inside-stringp inside-commentp) start))))
-
-
+      (when (or inside-stringp inside-commentp)
+        start))))
 
 ;;; sexps
 
@@ -475,42 +490,41 @@ if first value is t and nil otherwise."
 (eval-after-load
     "lisp"
   '(progn
-    ;; once this was and advice, but it's cleaner to redefine this up-list thing
-    ;; since backward-up-list uses up-list to achieve it's goal
-    ;; only one advice is necessary
-    (redefun up-list (&optional arg)
-      "Move forward out of one level of parentheses.
+     ;; once this was an advice, but it's cleaner to redefine this up-list thing
+     ;; since backward-up-list uses up-list to do it's job
+     ;; only one advice is necessary
+     (redefun up-list (&optional arg)
+       "Move forward out of one level of parentheses.
 With ARG, do this that many times.
 A negative argument means move backward but still to a less deep spot.
 This command assumes point is not in a string or comment."
-      (interactive "^p")
-      (multiple-value-bind (insidep str-or-comm-start)
-          (lisp-position-inside-string-or-comment)
-        (when insidep
-          ;; jump out of string/comment
-          (goto-char (max (point-min) (1- str-or-comm-start))))
-        ;; unless we're moved to correct destination, perform move
-        (when (or
-               ;; if we're not in string/comment then move is necessary
-               (not insidep)
-               ;; if were're in string/comment then check if we
-               ;; still have to do any moves
-               (not (lisp-pos-is-beginning-of-sexp? (point))))
-          (setf arg (or arg 1))
-          (let ((inc (if (> arg 0) 1 -1))
-                pos)
-            (while (/= arg 0)
-              (if (null forward-sexp-function)
-                  (goto-char (or (scan-lists (point) inc 1) (buffer-end arg)))
-                  (condition-case err
-                      (while (progn (setq pos (point))
-                                    (forward-sexp inc)
-                                    (/= (point) pos)))
-                    (scan-error (goto-char (nth (if (> arg 0) 3 2) err))))
-                  (if (= (point) pos)
-                      (signal 'scan-error
-                              (list "Unbalanced parentheses" (point) (point)))))
-              (setq arg (- arg inc)))))))))
+       (interactive "^p")
+       (let ((str-or-comm-start (lisp-position-inside-string-or-comment (point))))
+         (when str-or-comm-start
+           ;; jump out of string/comment
+           (goto-char (max (point-min) (1- str-or-comm-start))))
+         ;; unless we're moved to correct destination, perform move
+         (when (or
+                ;; if we're not in string/comment then move is necessary
+                (not str-or-comm-start)
+                ;; if were're in string/comment then check if we
+                ;; still have to do any moves
+                (not (lisp-pos-is-beginning-of-sexp? (point))))
+           (setf arg (or arg 1))
+           (let ((inc (if (> arg 0) 1 -1))
+                 pos)
+             (while (/= arg 0)
+               (if (null forward-sexp-function)
+                 (goto-char (or (scan-lists (point) inc 1) (buffer-end arg)))
+                 (condition-case err
+                     (while (progn (setq pos (point))
+                                   (forward-sexp inc)
+                                   (/= (point) pos)))
+                   (scan-error (goto-char (nth (if (> arg 0) 3 2) err))))
+                 (if (= (point) pos)
+                   (signal 'scan-error
+                           (list "Unbalanced parentheses" (point) (point)))))
+               (setq arg (- arg inc)))))))))
 
 (defun realign-let ()
   "Realign let/setq/setf/etc form at point."
@@ -536,9 +550,12 @@ This command assumes point is not in a string or comment."
                 :do-not-adjust-point t)
 
 (defun glisp/backward-up-list ()
+  "Move one out level of parenthesis or string quotes."
   (interactive)
   (condition-case nil
-      (backward-up-list)
+      (aif (lisp-position-inside-string (point))
+        (goto-char it)
+        (backward-up-list))
     (error (error "No enclosing list found"))))
 
 (vimmize-motion glisp/backward-up-list
@@ -697,17 +714,12 @@ This command assumes point is not in a string or comment."
       (unless (eobp)
         (backward-sexp)))))
 
-(dolist (mode '(emacs-lisp-mode
-                common-lisp-mode
-                scheme-mode
-                blueprint-mode
-                clojure-mode
-                lisp-mode))
-  (push (cons mode #'lisp-indent-buffer)
-        *mode-buffer-indent-function-alist*))
+(dolist (mode +lisp-modes+)
+  (add-to-list '*mode-buffer-indent-function-alist*
+               (cons mode #'lisp-indent-buffer)))
 
 
-;;;; this is useful for all lisps
+;;; this is useful for all lisps
 
 (search-def-autoexpand-advices
  (save-excursion
@@ -835,7 +847,7 @@ This determines whether to insert a space after the # sign."
 ;;;; Actual setup functions
 
 (defun* lisp-setup (&key (use-whitespace t)
-                         (use-cl-indent t))
+                         (use-cl-indent nil))
   (init-common :use-yasnippet nil
                :use-whitespace use-whitespace
                :use-render-formula t)
@@ -861,9 +873,9 @@ This determines whether to insert a space after the # sign."
   (setq-local comment-padding " ")
 
   (if use-cl-indent
-      (setf lisp-indent-function #'common-lisp-indent-function)
-      ;; somehow setf does not work here
-      (setq-local lisp-indent-function #'lisp-indent-function))
+    (setf lisp-indent-function #'common-lisp-indent-function)
+    ;; somehow setf does not work here
+    (setq-local lisp-indent-function #'lisp-indent-function))
   ;; just in case someone will want to use standard #'lisp-indent-function
   ;; put information for this case
   ;; (put 'if 'lisp-indent-function nil)
