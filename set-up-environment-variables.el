@@ -15,6 +15,7 @@
           (concat "PATH LD_LIBRARY_PATH PYTHONPATH EDITOR "
                   "INFOPATH MANPATH PKG_CONFIG_PATH "
                   "JAVA_HOME ANDROID_HOME ANDROID_SDK SDK_ROOT SDK_HOME NDK_HOME ANDROID_NDK "
+                  "LEIN_JAVA_CMD "
                   "CCACHE_BASEDIR CCACHE_COMPRESS CCACHE_DIR"))
          (values (shell-command-to-string
                   (format ". %s/.bash_env; printenv %s;"

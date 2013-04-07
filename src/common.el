@@ -1500,6 +1500,10 @@ LESS? is predicate on elements of ITEMS."
 
 ;;;;
 
+(defsubst file-modification-time (filename)
+  "Return latest modification time of file FILENAME."
+  (nth 5 (file-attributes filename 'integer)))
+
 (defsubst file-size (filename)
   "Return size of file FILENAME."
   (nth 7 (file-attributes filename 'integer)))
