@@ -68,7 +68,11 @@
   (def-keys-for-map vim:visual-mode-local-keymap
     (", m" c-macro-expand))
   (c-abbrev+-setup)
-  (setup-ctags-symbols))
+  (setup-ctags-symbols)
+  (setup-outline-headers :header-start "/"
+                         :header-symbol "*"
+                         :length-min 3
+                         :length-max 9))
 
 (provide 'c-setup)
 
