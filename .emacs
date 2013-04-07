@@ -65,7 +65,7 @@
  '(elp-reset-after-results nil)
  '(emms-source-file-exclude-regexp "\\`\\(#.*#\\|.*,v\\|.*~\\|\\.\\.?\\|\\.#.*\\|,.*\\)\\'\\|/\\(CVS\\|RCS\\|\\.arch-ids\\|{arch}\\|,.*\\|\\.git\\|\\.svn\\|_darcs\\)\\(/\\|\\'\\)")
  '(emms-source-playlist-default-format (quote native))
- '(enable-local-variables :all)
+ '(enable-local-variables :safe)
  '(enable-recursive-minibuffers t)
  '(eval-expression-debug-on-error t)
  '(ex-cycle-other-window nil)
