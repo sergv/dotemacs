@@ -53,6 +53,7 @@
         (minimap-mode . nil)
         (tagged-buflist-mode . nil)
 
+        (clojure-compilation . nil)
         (nrepl-popup-buffer-mode . nil)
         (nrepl-macroexpansion-minor-mode . nil)
         (nrepl-interaction-mode . nil)))

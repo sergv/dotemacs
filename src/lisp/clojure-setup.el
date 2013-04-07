@@ -15,6 +15,7 @@
 (require 'clojure-test-mode)
 (require 'nrepl)
 (require 'clojure-abbrev+)
+(require 'clojure-compile)
 (require 'browse-kill-ring-setup)
 
 (setf nrepl-tab-command 'indent-for-tab-command
@@ -44,7 +45,9 @@
                )
 
     ("M-."     nrepl-jump)
-    ("M-,"     nrepl-jump-back))
+    ("M-,"     nrepl-jump-back)
+
+    ("<f9>"    clojure-compile))
   (clojure-abbrev+-setup))
 
 (add-hook 'clojure-mode-hook #'clojure-setup)
