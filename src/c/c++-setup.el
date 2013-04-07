@@ -168,7 +168,12 @@
       ("SPC SPC" c++-find-related-file)))
 
   (c++-abbrev+-setup)
-  (setup-ctags-symbols))
+  (setup-ctags-symbols)
+
+  (setup-outline-headers :header-start "/"
+                         :header-symbol "*"
+                         :length-min 3
+                         :length-max 9))
 
 
 (provide 'c++-setup)
