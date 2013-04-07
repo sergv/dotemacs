@@ -41,7 +41,12 @@
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
   (setf c-basic-offset 4
-        vim:shift-width 4))
+        vim:shift-width 4)
+
+  (setup-outline-headers :header-start "/"
+                         :header-symbol "*"
+                         :length-min 3
+                         :length-max 9))
 
 (add-hook 'java-mode-hook #'java-setup)
 
