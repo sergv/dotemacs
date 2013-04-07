@@ -23,10 +23,11 @@
           "Display items in the `comint-input-ring' in another buffer."
           t)
 
-(autoload 'browse-slime-repl-input-history
+(autoload 'browse-nrepl-input-history
           "browse-kill-ring"
-          "Display items in the `slime-repl-input-history' in another buffer."
+          "Display items in the `nrepl-input-history' in another buffer."
           t)
+
 
 
 (defun browse-kill-ring-mode-setup ()
