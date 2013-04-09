@@ -168,8 +168,9 @@ like \"d w\".")
   ("g <up>"   nil)
   ("g <down>" nil)
 
-  ("g C"      remember-win-config-store-configuration)
-  ("<f6>"     remember-win-config-restore-configuration))
+  ("g c s"    remember-win-config-store-configuration)
+  ("g c l"    remember-win-config-restore-configuration)
+  ("g c r"    remember-win-config-restore-configuration))
 
 ;;;; visual keybindings
 

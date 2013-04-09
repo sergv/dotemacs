@@ -1383,6 +1383,12 @@ tabbar, etc")
          (error "wrong argument type - not a string nor a buffer: %s"
                 buf))))
 
+(defun visible-buffers ()
+  "Get list of buffers that are not invisible."
+  (filter (lambda (buf)
+            (not (invisible-buffer? buf)))
+          (buffer-list)))
+
 (add-invisible-buffer "^\\*Completions\\*$")
 (add-invisible-buffer "^#.+#$")
 (add-invisible-buffer "^\\*Ibuffer\\*$")
