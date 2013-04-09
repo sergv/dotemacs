@@ -235,9 +235,11 @@
 
 (defun eproj-reload-projects ()
   (interactive)
+  (if (= 0 (hash-table-count *eproj-projects*))
+    (eproj-load-ctags-project (eproj-get-project-for-buf (current-buffer)))
   (maphash (lambda (root proj)
              (eproj-load-single-ctags-project root))
-           *eproj-projects*))
+             *eproj-projects*)))
 
 (defun eproj-reset-projects ()
   (interactive)
