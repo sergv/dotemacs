@@ -24,6 +24,9 @@
   (first-safe (rest-safe entry)))
 (defun session-entry/variables (entry)
   (first-safe (rest-safe (rest-safe entry))))
+;; Major mode is remembered because there're cases when emacs infers wrong
+;; mode for otherwise normal buffer. Also modes may be changed by hand, so
+;; it is preserved for every buffer.
 (defun session-entry/major-mode (entry)
   (first-safe (rest-safe (rest-safe (rest-safe entry)))))
 
