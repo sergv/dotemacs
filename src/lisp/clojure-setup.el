@@ -22,9 +22,17 @@
       nrepl-history-size 100000
       nrepl-history-file (concat +prog-data-path+ "/nrepl-history"))
 
+(put 'nrepl-server-command 'safe-local-variable #'string?)
+(make-variable-buffer-local 'nrepl-server-command)
+
+
+
 (defun clojure-setup ()
   (lisp-setup :use-cl-indent nil :use-whitespace t)
   (clojure-enable-nrepl)
+
+  (aif (clojure-find-ns)
+    (setf nrepl-buffer-ns it))
 
   (setq-local lisp-indent-function #'clojure-indent-function)
   (setq-local forward-sexp-function #'clojure-forward-sexp)
