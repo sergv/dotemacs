@@ -74,10 +74,10 @@ and possibly more rude behavior"
   "Define indent-after-yank advice around FUNC that will
 reindent text after yanking in major modes from list MODES.
 Do nothing if MODES is empty."
-  (let ((adv-name (make-joined-name func "-indent-advice"))
+  (let ((adv-name (util/make-joined-name func "-indent-advice"))
         (mode-list (util:flatten
-                    (util:eval-if-symbol modes))))
-    (if-list-nonempty mode-list
+                    (util/eval-if-symbol modes))))
+    (when (not (null? mode-list))
       `(make-light-synchronizing-advice
         ,func
         ,adv-name
@@ -97,10 +97,10 @@ via `defadvice:expand-on-search' becomes active")
 returns in major modes from list MODES. Do nothing if MODES is empty.
 Also perform synchronization such that no retursive calls of EXPAND-FUNC
 will be possible."
-  (let ((adv-name (make-joined-name func "-expand-on-search"))
+  (let ((adv-name (util/make-joined-name func "-expand-on-search"))
         (mode-list (util:flatten
-                    (util:eval-if-symbol modes))))
-    (if-list-nonempty mode-list
+                    (util/eval-if-symbol modes))))
+    (when (not (null? mode-list))
       `(make-light-synchronizing-advice
         ,func
         ,adv-name
@@ -113,7 +113,7 @@ will be possible."
 ;; don't used anywhere
 ;; (defmacro defadvice:icicle-on-sole-completion (func)
   ;; `(defadvice ,func (around
-                     ;; ,(make-joined-name func "-on-sole-completion")
+                     ;; ,(util/make-joined-name func "-on-sole-completion")
                      ;; activate
                      ;; compile)
      ;; (let ((icicle-top-level-when-sole-completion-flag nil))
@@ -121,7 +121,7 @@ will be possible."
 
 (defmacro defadvice:icicle-do-not-insert-default-value (func)
   `(defadvice ,func (around
-                     ,(make-joined-name func "-do-not-insert-default-value")
+                     ,(util/make-joined-name func "-do-not-insert-default-value")
                      activate
                      compile)
      (let ((icicle-default-value nil))
@@ -136,7 +136,7 @@ But if prefix-arg is not nil then comment would not be inserted.
 
 Intended to be used with comment-util-mode."
   `(defadvice ,func (around
-                     ,(make-joined-name func "-auto-comment")
+                     ,(util/make-joined-name func "-auto-comment")
                      activate
                      compile)
      (let ((prev-line (buffer-substring-no-properties
@@ -168,8 +168,8 @@ Intended to be used with comment-util-mode."
   "Make vim-like remembering position when query is made
 to find Haskell function."
   `(defadvice ,func (around
-                     ,(make-joined-name func
-                                        "-remember-prev-pos")
+                     ,(util/make-joined-name func
+                                             "-remember-prev-pos")
                      activate
                      compile)
      (let ((buf (current-buffer))
