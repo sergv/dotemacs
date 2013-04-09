@@ -1677,6 +1677,12 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 
 ;;;;
 
+(defun indent-whole-buffer ()
+  "Indent whole buffer with `indent-region'."
+  (indent-region (point-min) (point-max)))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:

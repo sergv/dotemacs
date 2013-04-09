@@ -178,10 +178,10 @@
      (defun eshell/clear ()
        (interactive)
        (save-excursion
-         (let ((inhibit-read-only t))
-           (forward-line -1)
-           (delete-region (point-min) (line-end-position))
-           (delete-char 1))))
+         (with-inhibited-read-only
+          (forward-line -1)
+          (delete-region (point-min) (line-end-position))
+          (delete-char 1))))
 
      ;; convenient commands
      (defun eshell-clear-prompt ()
