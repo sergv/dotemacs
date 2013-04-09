@@ -1545,8 +1545,10 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
                             :filep
                             (lambda (p)
                               (let ((fname (file-name-nondirectory p)))
-                                (and (string-match-pure? ".*\\.el$"
-                                                         fname)
+                                (and (or (string-match-pure? "^.*\\.el$"
+                                                             fname)
+                                         (string-match-pure? "^.*/?scripts/.*$"
+                                                             p))
                                      ;; emacs locks?
                                      (not (string-match-pure? "^\\.#.*"
                                                               fname))))))))
