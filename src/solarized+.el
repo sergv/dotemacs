@@ -372,6 +372,14 @@ Futher modified by Sergey Vinokurov."
        (scheme-predicate-face                ((t (:foreground ,blue))))
        (scheme-mutating-op-face              ((t (:foreground ,blue))))
 
+       ;; ocaml
+       (tuareg-font-lock-error-face              ((t (:inherit error))))
+       (tuareg-font-lock-interactive-error-face  ((t (:inherit error))))
+       (tuareg-font-lock-interactive-output-face ((t (:inherit default))))
+       (tuareg-font-lock-governing-face          ((t (:foreground ,yellow))))
+       (tuareg-font-lock-operator-face           ((t (:foreground ,cyan))))
+       (tuareg-font-lock-multistage-face         ((t (:foreground ,blue :bold t))))
+
        ;; other faces
        (c-annotation-face                    ((t (:foreground ,violet))))
        (completions-common-part              ((t (:inherit match))))
