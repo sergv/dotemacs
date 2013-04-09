@@ -34,7 +34,7 @@
 
 (vim:define-keymap visual-mode "visual mode" :map-command vmap)
 
-(vim:define-mode visual "VIM visual mode\n\n\\{vim:visual-mode-keymap}"
+(vim:define-mode visual "VIM visual mode\n\nVisual mode keymap:\n\\{vim:visual-mode-keymap}\n\nOperator pending mode keymap:\n\\{vim:operator-pending-mode-keymap}\n\nMotion mode keymap:\n\\{vim:motion-mode-keymap}"
   :ident "V"
   :keymaps '(vim:visual-mode-keymap
              vim:operator-pending-mode-keymap
