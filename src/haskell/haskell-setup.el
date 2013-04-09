@@ -30,7 +30,7 @@
 ;;                 ))
 ;;   (eval
 ;;    `(defadvice ,func (around
-;;                       ,(make-joined-name func "-block-haskell-indentation")
+;;                       ,(util/make-joined-name func "-block-haskell-indentation")
 ;;                       activate
 ;;                       compile)
 ;;       (unless (eq major-mode 'haskell-mode)
