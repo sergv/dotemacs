@@ -101,6 +101,7 @@
 
 (load-library "c-like-setup")
 (load-library "haskell-autoload")
+(load-library "ocaml-setup")
 (load-library "awk-setup")
 (load-library "shell-autoloads")
 (load-library "snippet-autoloads")

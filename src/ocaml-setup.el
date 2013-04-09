@@ -1,0 +1,77 @@
+;; ocaml-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: Tuesday,  9 April 2013
+;; Description:
+
+(eval-when-compile (require 'cl-lib))
+
+(require 'common)
+
+;;;; Prelude
+
+(add-to-list 'load-path (concat +emacs-standalone-path+ "/tuareg"))
+(load "tuareg-site-file")
+
+;;;; Helper function
+
+(define-switch-to-interpreter
+  switch-to-ocaml-repl
+  ("*ocaml-toplevel*")
+  (tuareg-run-ocaml)
+  :doc "Pop to ocaml repl."
+  :save-buffer t
+  :error-msg "Can't switch to ocaml repl")
+
+
+(defun ocaml-indent-buffer ()
+  (interactive)
+  (save-excursion
+    (indent-whole-buffer)))
+
+(add-to-list '*mode-buffer-indent-function-alist*
+             (cons 'tuareg-mode #'ocaml-indent-buffer))
+
+;;;; ocaml-setup
+
+(defun ocaml-setup ()
+  (init-common :use-yasnippet t
+               :use-comment t
+               :use-render-formula t
+               :use-whitespace t)
+  (def-keys-for-map tuareg-mode-map
+    ("SPC SPC" switch-to-ocaml-repl)
+    ("<f6>"    tuareg-eval-buffer)))
+
+(add-hook 'tuareg-mode-hook #'ocaml-setup)
+
+;;;; ocaml repl
+
+(defun ocaml-repl-clear ()
+  (interactive)
+  (save-excursion
+    (with-inhibited-read-only
+     (forward-line -1)
+     (delete-region (point-min) (line-end-position))
+     (delete-char 1))))
+
+(defun ocaml-interactive-setup ()
+  (init-repl)
+  (linum-mode)
+  (def-keys-for-map tuareg-interactive-mode-map
+    ("SPC SPC" comint-clear-prompt)
+    ("C-SPC"   ocaml-repl-clear)
+    ("<f6>"    tuareg-interrupt-ocaml)))
+
+(add-hook 'tuareg-interactive-mode-hook #'ocaml-interactive-setup)
+
+;;;; end
+
+(provide 'ocaml-setup)
+
+;; Local Variables:
+;; End:
+
+;; ocaml-setup.el ends here

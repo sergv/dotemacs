@@ -95,6 +95,8 @@
        (c-c++-filter `(or (mode . c-mode)
                           (mode . c++-mode)
                           (mode . glsl-mode)))
+       (ocaml-filter `(or (mode . tuareg-mode)
+                          (mode . tuareg-interactive-mode)))
        (haskell-filter `(or (mode . haskell-mode)
                             (mode . inferior-haskell-mode)
                             (mode . inferior-hugs-mode)
@@ -236,6 +238,7 @@
       ("emacs lisp" ,emacs-lisp-filter)
       ("scheme"     ,scheme-filter)
 
+      ("ocaml"      ,ocaml-filter)
       ("haskell"    ,haskell-filter)
       ("prolog"     ,prolog-filter)
       ("octave"     ,octave-filter)
