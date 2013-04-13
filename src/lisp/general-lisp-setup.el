@@ -470,13 +470,15 @@ This command assumes point is not in a string or comment."
                 :do-not-adjust-point t)
 
 (defun glisp/backward-up-list ()
-  "Move one out level of parenthesis or string quotes."
+  "Move out one level of parenthesis or string quotes."
   (interactive)
-  (condition-case nil
-      (aif (lisp-position-inside-string (point))
-        (goto-char it)
-        (backward-up-list))
-    (error (error "No enclosing list found"))))
+  (let ((start (point)))
+    (condition-case err
+        (aif (lisp-position-inside-string (point))
+          (goto-char it)
+          (backward-up-list))
+      (error (goto-char start)
+             (error "No enclosing list found\n%s" err)))))
 
 (vimmize-motion glisp/backward-up-list
                 :name vim:lisp-backward-up-list
@@ -546,7 +548,7 @@ This command assumes point is not in a string or comment."
                                                   "define-generic"
                                                   "define-constant")
                                               symbol-end))))
-          (backward-up-list)
+          (glisp/backward-up-list)
           (setf done-up-list t))
       ;; outermost list met, full stop then
       (error))
