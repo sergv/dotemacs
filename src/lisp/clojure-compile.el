@@ -26,7 +26,9 @@
 
 (defconst +clojure-compile-error-regexp+
   (rx (? bol "Exception in thread \"main\" ")
-      (? "java.lang.")
+      (? "java."
+         (or "lang" "io")
+         ".")
       (* (regexp "[^ \n\r\t]"))
       (or "exception"
           "Exception")
@@ -35,7 +37,7 @@
       ", compiling:("
       (group
        (? "/")
-       (+ (+ (regexp "[^/\n]"))
+       (* (+ (regexp "[^/\n]"))
           "/")
        (+ (regexp "[^/\n]"))
        "\.clj")
@@ -188,7 +190,7 @@ With prefix argument allows to select different profile."
                     clojure-compile/lein-command
                     (clojure-lein/read-variable-from-project-clj
                      (buffer-file-name)
-                     clojure-compile/lein-command)))
+                     'clojure-compile/lein-command)))
     (assert (not (null? command)))
     (compilation-start (format command
                                clojure-compile/current-profile)
