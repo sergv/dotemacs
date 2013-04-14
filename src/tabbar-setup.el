@@ -6,6 +6,9 @@
 ;; Created: Saturday, 25 August 2012
 ;; Description:
 
+(eval-when-compile (requile 'cl-lib))
+
+(require 'custom)
 (require 'common)
 (require 'more-scheme)
 (require 'buffer-groups)
@@ -20,6 +23,30 @@
       tabbar-scroll-right-function nil
       tabbar-scroll-right-help-function nil)
 
+
+(defun tabbar-move-selected-tab-left ()
+  (interactive)
+  (let* ((tabset    (tabbar-current-tabset t))
+         (selected  (tabbar-selected-tab tabset))
+         (tabs      (tabbar-tabs tabset))
+         (len       (1- (length tabs)))
+         (sel-index (position selected tabs))
+         (tabs1     (move-element-left sel-index tabs)))
+    (set tabset tabs1)
+    (tabbar-set-template tabset nil)
+    (tabbar-click-on-tab selected)))
+
+(defun tabbar-move-selected-tab-right ()
+  (interactive)
+  (let* ((tabset    (tabbar-current-tabset t))
+         (selected  (tabbar-selected-tab tabset))
+         (tabs      (tabbar-tabs tabset))
+         (len       (1- (length tabs)))
+         (sel-index (position selected tabs))
+         (tabs1     (move-element-right sel-index tabs)))
+    (set tabset tabs1)
+    (tabbar-set-template tabset nil)
+    (tabbar-click-on-tab selected)))
 
 (defun tabbar-buffer-groups+ (buffer)
   "Return the list of group names BUFFER belongs to.
