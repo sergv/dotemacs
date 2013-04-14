@@ -553,32 +553,6 @@ appends it to XS head if I = (length XS) - 1."
       (message "false")
       (swap-elements (1+ i) i xs))))
 
-(defun tabbar-move-selected-tab-left ()
-  (interactive)
-  (let* ((tabset    (tabbar-current-tabset t))
-         (selected  (tabbar-selected-tab tabset))
-         (tabs      (tabbar-tabs tabset))
-         (len       (1- (length tabs)))
-         (sel-index (position selected tabs))
-         (tabs1     (move-element-left sel-index tabs)))
-    (set tabset tabs1)
-    (tabbar-set-template tabset nil)
-    (tabbar-click-on-tab selected)))
-
-(defun tabbar-move-selected-tab-right ()
-  (interactive)
-  (let* ((tabset    (tabbar-current-tabset t))
-         (selected  (tabbar-selected-tab tabset))
-         (tabs      (tabbar-tabs tabset))
-         (len       (1- (length tabs)))
-         (sel-index (position selected tabs))
-         (tabs1     (move-element-right sel-index tabs)))
-    (set tabset tabs1)
-    (tabbar-set-template tabset nil)
-    (tabbar-click-on-tab selected)))
-
-
-
 
 (defun vector-member (elem vec)
   (let ((found nil)
