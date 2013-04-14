@@ -106,6 +106,8 @@
     ("j"        nrepl-eval-last-expression))
   (def-keys-for-map (vim:insert-mode-local-keymap
                      vim:normal-mode-local-keymap)
+    ("C-SPC"    comint-clear-buffer-above-prompt)
+
     ("M-/"      complete-symbol)
     ("<up>"     nrepl-previous-input)
     ("<down>"   nrepl-next-input)
