@@ -234,6 +234,79 @@ current buffer. INIT form will be executed before performing any jumps."
 
 ;;;; other functions
 
+(defmacro if-buffer-has-file (&rest body)
+  "Execute BODY if current buffer is assigned to file"
+  (declare (indent 0))
+  `(when (buffer-file-name)
+     ,@body))
+
+(defmacro if-has-makefile-command (&rest body)
+  "Execute BODY if current file is listed in some makefile
+in the same directory the current file is."
+  (let ((fname-var (gensym))
+        (fname-re-var (gensym)))
+    `(if-buffer-has-file
+       (let* ((,fname-var (file-name-nondirectory buffer-file-name))
+              (,fname-re-var (concat "\\<" ,fname-var)))
+         (when (some (lambda (makefile)
+                       (file-contents-matches-re makefile ,fname-re-var))
+                     '("makefile" "Makefile" "MAKEFILE"))
+           ,@body)))))
+
+
+(defmacro def-keys-for-map (mode-map &rest key-command-list)
+  (declare (indent nil))
+  (letrec ((def-key
+             (lambda (map key command)
+               `(define-key ,map
+                  ,(eval `(kbd ,key))
+                  ,(cond
+                     ((and (list? command)
+                           (or (eq? 'function (car command))
+                               (eq? 'quote (car command))))
+                      command)
+                     ((and (list? command)
+                           (eq? 'lambda (car command)))
+                      (list 'function command))
+                     (else
+                      (list 'quote command))))))
+           (process-key-command-list
+            (lambda (map key-command-list)
+              (loop
+                for entry in key-command-list
+                if (symbol? entry)
+                for (key command) = (if (or (quoted? entry)
+                                            (symbol? entry))
+                                      (eval entry)
+                                      entry)
+                appending (if (symbol? entry)
+                            (funcall process-key-command-list map (eval entry))
+                            (destructuring-bind (key command)
+                                (if (quoted? entry)
+                                  (eval entry)
+                                  entry)
+                              (list (funcall def-key map key command))))))))
+    (let ((bindings
+           (loop
+             for map in (cond
+                          ((quoted? mode-map)
+                           (eval mode-map))
+                          ((list? mode-map)
+                           mode-map)
+                          (else (list mode-map)))
+             appending (funcall process-key-command-list map key-command-list))))
+      (unless bindings
+        (error "No keys bound for %S using following key-command-list %S"
+               mode-map
+               key-command-list))
+      `(prog1 nil
+         ,@bindings))))
+
+(defmacro run-if-fbound (func)
+  `(and (fboundp (quote ,func))
+        (,func)))
+
+
 (defmacro make-highlight-procedure (name regexp after-found-predicate)
   `(defun ,name (limit)
      (let (match-data-to-set)
