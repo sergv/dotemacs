@@ -123,7 +123,7 @@ path, in which case filename with suffix equal to FILENAME will be tried."
 (defvar clojure-compilation-mode-map
   (let ((m (make-sparse-keymap)))
     (def-keys-for-map m
-      ("SPC"      clojure-compile/goto-error)
+      ("SPC"      clojure-compile/goto-error-other-window)
       ("<return>" clojure-compile/goto-error)
       ("o"        clojure-compile/goto-error-other-window))
     m))
@@ -161,15 +161,18 @@ path, in which case filename with suffix equal to FILENAME will be tried."
 (defvar clojure-compile/current-profile "dev"
   "Leiningen profile to compile with.")
 
-(defvar-local clojure-compile/lein-command "lein with-profiles %s compile"
+(defvar-local clojure-compile/lein-command nil
   "Template for leiningen compilation command. Should contain %s placeholder
-for profile. May be set either via file-local variable in source *.clj file
-or via file-local variable in project.clj for current project. Values in
-individual source files override values in project.clj")
+for profile, e.g. \"lein with-profiles %s compile\". May be set either via
+file-local variable in source *.clj file or via file-local variable in
+project.clj for current project. Values in individual source files
+override values in project.clj")
 
 (put 'clojure-compile/lein-command 'safe-local-variable #'string?)
 
 
+
+(defconst clojure-compilation/buffer-name "*clojure-compilation*")
 
 (defun clojure-compile (&optional switch-profile)
   "Start clojure compilation with profile `clojure-compile/current-profile'.
@@ -195,9 +198,10 @@ With prefix argument allows to select different profile."
     (compilation-start (format command
                                clojure-compile/current-profile)
                        #'clojure-compilation-mode
-                       ;; (lambda (_)
-                       ;;   ("*clojure compilation*"))
-                       )))
+                       (lambda (_)
+                         clojure-compilation/buffer-name))
+    (with-current-buffer (get-buffer clojure-compilation/buffer-name)
+      (goto-char (point-max)))))
 
 (provide 'clojure-compile)
 
