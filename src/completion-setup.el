@@ -29,14 +29,17 @@
 ;;
 ;; Upgraded Icicles seems to work OK
 
+(eval-when-compile (require 'cl-lib))
 
 (require 'common)
 (require 'icicles-setup)
 (require 'pcomplete)
 
+(setf read-buffer-completion-ignore-case t)
+
 (defun completing-read-buffer (prompt &optional default require-match)
   (completing-read-vanilla prompt
-                           (buffer-list)
+                           (map #'buffer-name (visible-buffers))
                            nil
                            require-match
                            nil
@@ -51,7 +54,7 @@
       pcomplete-recexact nil
       pcomplete-cycle-completions t)
 
-;; convenient buffer switcher
+;; convenient command completer
 
 
 (require 'smex)
