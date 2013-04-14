@@ -625,6 +625,7 @@ tabbar, etc")
 (add-invisible-buffer "^\\*Completions\\*$")
 (add-invisible-buffer "^#.+#$")
 (add-invisible-buffer "^\\*Ibuffer\\*$")
+(add-invisible-buffer "^ .*$")
 
 ;;;;
 
@@ -949,6 +950,17 @@ integer list B."
 (defsubst list= (a b)
   "Check whether list of integers A is equal to integer list B."
   (equal a b))
+
+;;;;
+
+(defun text-between-lines (start-line end-line)
+  "Return string of text with properties between beginning of START-LINE and
+end of END-LINE in current buffer."
+  (save-excursion
+    (buffer-substring (progn (goto-line1 start-line)
+                             (line-beginning-position))
+                      (progn (goto-line1 end-line)
+                             (line-end-position)))))
 
 ;;;;
 
