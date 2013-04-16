@@ -54,23 +54,26 @@
 
 
 (defconst +vim-special-keys+
-  '((", b" ibuffer)
-    (";"   vim:ex-read-command)
+  '((", b"   ibuffer)
+    (";"     vim:ex-read-command)
 
-    ("g C" remember-win-config-store-configuration)
-    ("g x" smex)
-    ("g X" smex-major-mode-commands)
-    ("M-x" smex-nohist)
-    ("g f" find-file)
-    ("g <" vim-mock:motion-go-to-first-non-blank-beg)
-    ("g >" vim-mock:motion-go-to-first-non-blank-end)
+    ("g C"   remember-win-config-store-configuration)
+    ("g x"   smex)
+    ("g X"   smex-major-mode-commands)
+    ("M-x"   smex-nohist)
+    ("g f"   find-file)
+    ("g g f" find-filename-in-tree-recursive)
+    ("g r"   rgrep)
 
-    ("z"   nil)
-    ;; we're not always have vim mode enabled
+    ("g <"   vim-mock:motion-go-to-first-non-blank-beg)
+    ("g >"   vim-mock:motion-go-to-first-non-blank-end)
+
+    ("z"     nil)
+    ;; we do not always have vim mode enabled
     ;; and these scrolling commands are completely independent of vim mode
-    ("z t" vim-mock:scroll-line-to-top)
-    ("z z" vim-mock:scroll-line-to-center)
-    ("z b" vim-mock:scroll-line-to-bottom)
+    ("z t"   vim-mock:scroll-line-to-top)
+    ("z z"   vim-mock:scroll-line-to-center)
+    ("z b"   vim-mock:scroll-line-to-bottom)
 
     ("<insert>" vim-mock:scroll-line-up)
     ("<delete>" vim-mock:scroll-line-down)

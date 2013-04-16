@@ -46,6 +46,27 @@ up by functions in compilation-finish-functions.")
                                 (buffer . ,(current-buffer)))))
 
 
+(eval-after-load "compile"
+  '(progn
+     (def-keys-for-map compilation-mode-map
+       +control-x-prefix+
+       +vi-keys+
+       +vim-special-keys+
+       +vim-word-motion-keys+
+       ("<up>"     compilation-jump-to-prev-error)
+       ("<down>"   compilation-jump-to-next-error)
+       ("M-p"      nil)
+       ("<escape>" remove-buffer)
+
+       ("C-v"      set-mark-command)
+       ("C-y"      copy-region-as-kill)
+       ("v"        set-mark-command)
+       ("y"        copy-region-as-kill)
+
+       ("<f9>"     recompile)
+       ("SPC"      compile-goto-error)
+       ("o"        compile-goto-error))))
+
 
 (provide 'compilation-setup)
 
