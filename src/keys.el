@@ -11,6 +11,9 @@
 
 (require 'keys-def)
 
+(autoload 'tabbar-move-selected-tab-left "tabbal-setup" "" t)
+(autoload 'tabbar-move-selected-tab-right "tabbal-setup" "" t)
+
 (def-keys-for-map global-map
   ("<f1>"     help-command)
   ("<f2>"     save-buffer)

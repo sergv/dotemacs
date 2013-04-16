@@ -1,6 +1,5 @@
 
-(eval-when-compile
- (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; 1e4   recursion depth is quite safe since:
 ;; 1.6e4 still works
@@ -187,7 +186,7 @@
  '(which-func-maxout 1000000)
  '(yas/prompt-functions (quote (yas/completing-prompt))))
 
-(dolist (path (remove-duplicates
+(dolist (path (cl-remove-duplicates
                (list "/home/sergey/emacs"
                      (expand-file-name "~/emacs")
                      "C:\\emacs"
