@@ -64,7 +64,6 @@
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
     ("r" magit-refresh)
-    ("R" magit-refresh-all)
     ("T" magit-key-mode-popup-tagging)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
@@ -75,7 +74,6 @@
     +vim-special-keys+
     +vi-search-keys+
     ("r"      magit-refresh)
-    ("R"      magit-refresh-all)
 
     ("p"      magit-key-mode-popup-stashing)
     ("T"      magit-key-mode-popup-tagging)
