@@ -6,9 +6,10 @@
 ;; Created: Friday, 27 July 2012
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'set-up-platform)
 
-(eval-when-compile (require 'cl-lib))
 
 (when (file-exists-p (concat (platform-dependent-root) "/.bash_env"))
   (let* ((variables
@@ -22,9 +23,9 @@
                           (platform-dependent-root)
                           variables))))
     (loop
-        for var in (split-string variables " ")
-        for value in (split-string values "\n")
-        do (setenv var value))))
+      for var in (split-string variables " ")
+      for value in (split-string values "\n")
+      do (setenv var value))))
 
 
 (defun* env-var-into-list (env-var list &key (append t))

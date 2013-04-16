@@ -6,10 +6,10 @@
 ;; Created: Tuesday,  6 November 2012
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
-
-(eval-when-compile (require 'cl-lib))
 
 
 (defconst +emacs-config-path+
@@ -79,19 +79,19 @@ By default, version-control specific directories are omitted, e.g. .git etc."
   (when (stringp dirp)
     (setf dirp
           (let ((regular-expression dirp))
-            #'(lambda (p) (string-match-p regular-expression p)))))
+            (lambda (p) (string-match-p regular-expression p)))))
   (when (stringp do-not-visitp)
     (setf do-not-visitp
           (let ((regular-expression do-no-visitp))
-            #'(lambda (p) (string-match-p regular-expression p)))))
+            (lambda (p) (string-match-p regular-expression p)))))
 
   (letrec ((collect-rec
             (lambda (path accum)
               (cond
                 ((and (file-directory-p path)
                       (not (funcall do-not-visitp path)))
-                 (reduce #'(lambda (acc p)
-                             (funcall collect-rec p acc))
+                 (reduce (lambda (acc p)
+                           (funcall collect-rec p acc))
                          (%emacs-boot--get-directory-contents path)
                          :initial-value (if (funcall dirp path)
                                           (cons path accum)
