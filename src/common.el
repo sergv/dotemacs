@@ -775,47 +775,57 @@ ediff on files that differ and saving files in CURR-CONFIG-DIR that were updated
 while executing ediff.
 
 Use like this to pick changes that will go into CURR-CONFIG-DIR:
-\(merge-emacs-configs \"/home/sergey/emacs.new\" \"/home/sergey/emacs\"\)
-"
+\(merge-emacs-configs \"/home/sergey/emacs.new\" \"/home/sergey/emacs\"\)."
   (setf new-config-dir (strip-trailing-slash new-config-dir)
         curr-config-dir (strip-trailing-slash curr-config-dir))
-  (dolist (p (map (lambda (p)
-                    (file-relative-name p new-config-dir))
-                  (find-rec new-config-dir
-                            :filep
-                            (lambda (p)
-                              (let ((fname (file-name-nondirectory p)))
-                                (and (or (string-match-pure? "^.*\\.el$"
-                                                             fname)
-                                         (string-match-pure? "^.*/?scripts/.*$"
-                                                             p))
-                                     ;; emacs locks?
-                                     (not (string-match-pure? "^\\.#.*"
-                                                              fname))))))))
-    (let* ((new  (concat new-config-dir "/" p))
-           (curr (concat curr-config-dir "/" p)))
-      (message "Files %s and %s" new curr)
-      (condition-case err
-          (progn
-            (assert (file-exist? new))
-            (if (file-exist? curr)
+  (let ((ignored-files-re (concat "^.*"
+                                  (regexp-opt *ignored-file-name-endings*)
+                                  "$"))
+        (ignored-dirs-re (concat "\\(?:^\\|/\\)"
+                                 (regexp-opt *ignored-directories*)
+                                 "/.*$")))
+    (dolist (p (map (lambda (p)
+                      (file-relative-name p new-config-dir))
+                    (find-rec new-config-dir
+                              :filep
+                              (lambda (p)
+                                (let ((fname (file-name-nondirectory p)))
+                                  (and (or (string-match-pure? "^.*\\.el$"
+                                                               fname)
+                                           (string-match-pure? "^.*/?scripts/.*$"
+                                                               p))
+                                       ;; emacs locks?
+                                       (not (string-match-pure? "^\\.#.*"
+                                                                fname))
+                                       ;; various binary files
+                                       (not (string-match-pure? ignored-files-re
+                                                                fname))
+                                       (not (string-match-pure? ignored-dirs-re
+                                                                fname))))))))
+      (let* ((new  (concat new-config-dir "/" p))
+             (curr (concat curr-config-dir "/" p)))
+        (message "Files %s and %s" new curr)
+        (condition-case err
+            (progn
+              (assert (file-exist? new))
+              (if (file-exist? curr)
                 (if (different-files-fast? new curr)
-                    (let ((new-buf  (find-file-noselect new))
-                          (curr-buf (find-file-noselect curr)))
-                      (ediff-diff-files-recursive-edit new curr :read-only nil)
-                      (kill-buffer new-buf)
-                      (with-current-buffer curr-buf
-                        (save-buffer))
-                      (redisplay t))
-                    (progn
-                      (message "Files %s and %s are the same, skipping" new curr)))
+                  (let ((new-buf  (find-file-noselect new))
+                        (curr-buf (find-file-noselect curr)))
+                    (ediff-diff-files-recursive-edit new curr :read-only nil)
+                    (kill-buffer new-buf)
+                    (with-current-buffer curr-buf
+                      (save-buffer))
+                    (redisplay t))
+                  (progn
+                    (message "Files %s and %s are the same, skipping" new curr)))
                 (when (y-or-n? (format "Copy %s to %s?" new curr))
                   (copy-file new curr nil t t t))))
-        (error
-         (message "Error occurred while processing files %s and %s:\n%s"
-                  new
-                  curr
-                  err))))))
+          (error
+           (message "Error occurred while processing files %s and %s:\n%s"
+                    new
+                    curr
+                    err)))))))
 
 ;;;;
 
@@ -961,6 +971,21 @@ end of END-LINE in current buffer."
                              (line-beginning-position))
                       (progn (goto-line1 end-line)
                              (line-end-position)))))
+
+;;;;
+
+(defvar *ignored-file-name-endings*
+  '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" "~" ".bin" ".out" ".exe" ".prof" ".lbin" ".so" ".a" ".ln" ".blg" ".bbl" ".elc" ".lof" ".glo" ".idx" ".lot" ".fmt" ".tfm" ".class" ".fas" ".lib" ".mem" ".x86f" ".sparcf" ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl" ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl" ".sx32fsl" ".wx64fsl" ".wx32fsl" ".fasl" ".ufsl" ".fsl" ".dxl" ".lo" ".la" ".gmo" ".mo" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".hi")
+  "List of file name endings to generally ignore.")
+
+
+(defvar *ignored-directories*
+  '(".svn" ".hg" ".git" ".bzr" "CVS" "_darcs" "_MTN")
+  "List of directory names to generally ignore.")
+
+(setf completion-ignored-extensions
+      (append (map (lambda (x) (concat x "/")) *ignored-directories*)
+              *ignored-file-name-endings*))
 
 ;;;;
 
