@@ -16,11 +16,11 @@
 (defface hl-paren-selection-face '((t (:underline "#d33682")))
   "Face to highlight parentheses.")
 
-;; (defvar-buffer-local hl-paren-overlay nil)
+;; (defvar-local hl-paren-overlay nil)
 
 ;; overlays for current and its' corresponding paren
-(defvar-buffer-local hl-paren-current-overlay nil)
-(defvar-buffer-local hl-paren-corresponding-overlay nil)
+(defvar-local hl-paren-current-overlay nil)
+(defvar-local hl-paren-corresponding-overlay nil)
 
 (defsubst hl-paren-move-overlay-to (overlay pos)
   (move-overlay overlay pos (1+ pos)))

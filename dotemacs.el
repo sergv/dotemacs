@@ -148,7 +148,6 @@
 (load-library "yasnippet-setup")
 ;; (load-library "cedet-setup")
 (load-library "git-setup")
-(load-library "visit-files")
 (load-library "hideshow-setup")
 (load-library "render-formula")
 (load-library "image-mode-setup")
@@ -161,6 +160,7 @@
 (load-library "revive-setup")
 (load-library "paredit-setup")
 (load-library "undo-tree-setup")
+(load-library "recentf-setup")
 
 ;; load keys after everything to ensure that all is bound as expected
 (load-library "keys")
