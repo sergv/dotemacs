@@ -6,8 +6,7 @@
 ;; Created: long ago
 ;; Description:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'set-up-paths)
 (require 'common)
@@ -141,8 +140,8 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-(line-number-mode t)
-(column-number-mode t)
+(line-number-mode +1)
+(column-number-mode +1)
 
 (setf x-select-enable-clipboard t
       interprogram-paste-function
