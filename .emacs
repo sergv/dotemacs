@@ -1,6 +1,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'cl)
+
 ;; 1e4   recursion depth is quite safe since:
 ;; 1.6e4 still works
 ;; 2e4   makes emacs crash
