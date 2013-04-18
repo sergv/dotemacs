@@ -54,6 +54,27 @@
    compile)
   (delete-trailing-whitespace+))
 
+(defun magit-cycle-sections-visibility (section)
+  "Cycle visibility of childrens of SECTION in folling manner: if the're in the
+same state (e.g. all collapsed or shown) then cycle all to next state, and hide
+all otherwise."
+  (let* ((children (magit-section-children section))
+         (all-equal (= 1
+                       (length (remove-duplicates (map #'magit-section-hidden children)
+                                                  :test #'equal?)))))
+    (save-excursion
+      (dolist (child children)
+        (goto-char (magit-section-beginning child))
+        (if all-equal
+          (magit-cycle-section)
+          (magit-hide-section))))))
+
+(defun magit-cycle-top-sections-visibility ()
+  "Cycle visibility of sections across all buffer."
+  (interactive)
+  (magit-cycle-sections-visibility magit-top-section))
+
+
 (defun magit-mode-setup ()
   (setf truncate-lines nil)
 
@@ -63,8 +84,13 @@
   ;; (def-keys-for-map magit-mode-map
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
-    ("r" magit-refresh)
-    ("T" magit-key-mode-popup-tagging)))
+    ("r"               magit-refresh)
+    ("T"               magit-key-mode-popup-tagging)
+    ("S-TAB"           magit-cycle-top-sections-visibility)
+    ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
+    ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
+    ("C-TAB"           magit-cycle-section)
+    ("C-<tab>"         magit-cycle-section)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
 
@@ -80,7 +106,13 @@
     ("<down>" magit-goto-next-section)
     ("<up>"   magit-goto-previous-section)
     ("t"      magit-goto-next-section)
-    ("n"      magit-goto-previous-section)))
+    ("n"      magit-goto-previous-section)
+
+    ("S-TAB"           magit-cycle-top-sections-visibility)
+    ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
+    ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
+    ("C-TAB"           magit-cycle-section)
+    ("C-<tab>"         magit-cycle-section)))
 
 (defun magit-status-mode-setup ()
   "`magit-status' switches to window with this mode"

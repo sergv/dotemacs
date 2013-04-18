@@ -104,6 +104,7 @@ entries."
   (interactive "Ffile to save session in: ")
   (with-temp-buffer
     (insert ":;exec emacs --load \"$0\"\n\n")
+    (insert ";:;exec gdb -ex \"run\" --args emacs --load \"$0\"\n\n")
     (insert (format ";; this session was created on %s\n;; Today's quote is\n%s\n"
                     (format-time-string "%A, %e %B %Y")
                     (join-lines
