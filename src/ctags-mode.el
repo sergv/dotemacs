@@ -108,7 +108,7 @@
 ;; vector of filenames
 (defvar *ctags-file-sequence*
   (make-vector 2 nil)
-  "Vector if filenames read from tags")
+  "Vector of filenames read from tags")
 ;; hash table of (filename . id) bindings
 (defvar *ctags-file-idxs*
   (make-hash-table :test #'equal)
