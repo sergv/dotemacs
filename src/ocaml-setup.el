@@ -9,6 +9,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
+(require 'comint-setup)
 
 ;;;; Prelude
 
@@ -49,20 +50,12 @@
 
 ;;;; ocaml repl
 
-(defun ocaml-repl-clear ()
-  (interactive)
-  (save-excursion
-    (with-inhibited-read-only
-     (forward-line -1)
-     (delete-region (point-min) (line-end-position))
-     (delete-char 1))))
-
 (defun ocaml-interactive-setup ()
   (init-repl)
   (linum-mode)
   (def-keys-for-map tuareg-interactive-mode-map
     ("SPC SPC" comint-clear-prompt)
-    ("C-SPC"   ocaml-repl-clear)
+    ("C-SPC"   comint-clear-buffer-above-prompt)
     ("<f6>"    tuareg-interrupt-ocaml)))
 
 (add-hook 'tuareg-interactive-mode-hook #'ocaml-interactive-setup)
