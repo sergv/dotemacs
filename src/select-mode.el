@@ -73,10 +73,7 @@ Items will be passed to this function before insertion into buffer.")
 
 (define-derived-mode select-mode text-mode "Selection"
   "Major mode for queries in auxiliary buffer."
-  ;; fringe line tracking
-  (linum-mode -1)
-  ;; modeline line tracking
-  (column-number-mode -1)
+  (linum-mode -1) ;; fringe line tracking
   (setq-local mode-line-format
               '(" %[%b%] "
                 (:eval (when buffer-read-only
