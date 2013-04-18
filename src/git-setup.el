@@ -170,6 +170,13 @@ all otherwise."
 
 (add-hook 'magit-branch-manager-mode-hook #'magit-branch-manager-mode-setup)
 
+(defun magit-reflog-mode-setup ()
+  (magit-bind-common-vimless-mode-keymap magit-reflog-mode-map))
+
+(add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
+
+
+
 ;; this mode has no hook
 (eval-after-load
     "magit-key-mode"
