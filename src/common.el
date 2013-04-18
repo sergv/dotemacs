@@ -827,6 +827,16 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
                     curr
                     err)))))))
 
+(defun merge-emacs-configs-default ()
+  "Merge from +emacs-config-path+/tmp/emacs into `+emacs-config-path+'."
+  (interactive)
+  (let ((current-conf-dir +emacs-config-path+)
+        (new-conf-dir (concat +emacs-config-path+ "/tmp/emacs")))
+    (assert (file-directory? current-conf-dir))
+    (if (not (file-directory? new-conf-dir))
+      (error "Config under %s not found" new-conf-dir)
+      (merge-emacs-configs new-conf-dir current-conf-dir))))
+
 ;;;;
 
 (defun remove-tabs (start end)
