@@ -1444,27 +1444,27 @@ sometimes does profiling with elp package."
                                      (skip-everything))
                                     (t
                                      (skip-everything*))))))
-                                ((head         ansi-lisp-keyword-face)
-                                 (package-name ansi-lisp-defined-data-name-face)
-                                 (doc          ansi-lisp-doc-face)
-                                 (section-type ansi-lisp-keyword-face)
-                                 (values       ansi-lisp-exported-symbols-face))
+                                ((head         emacs-lisp-keyword-face)
+                                 (package-name emacs-lisp-defined-data-name-face)
+                                 (doc          emacs-lisp-doc-face)
+                                 (section-type emacs-lisp-keyword-face)
+                                 (values       emacs-lisp-exported-symbols-face))
                                 :priority 10)
 
 (sexpy-define-pattern-fontifier (in-package)
                                 (parenthesized
                                  (atom? head)
                                  (atom? package-name))
-                                ((head         ansi-lisp-keyword-face)
-                                 (package-name ansi-lisp-defined-data-name-face)))
+                                ((head         emacs-lisp-keyword-face)
+                                 (package-name emacs-lisp-defined-data-name-face)))
 
 (sexpy-define-pattern-fontifier (use-package)
                                 (parenthesized
                                  (atom? head)
                                  (repeat
                                   (atom? package-name)))
-                                ((head         ansi-lisp-keyword-face)
-                                 (package-name ansi-lisp-defined-data-name-face)))
+                                ((head         emacs-lisp-keyword-face)
+                                 (package-name emacs-lisp-defined-data-name-face)))
 
 (sexpy-define-pattern-fontifier (defun defmacro)
                                 (parenthesized
@@ -1474,11 +1474,11 @@ sometimes does profiling with elp package."
                                  (lambda-args+specifiers arg arg-specifier)
                                  (optional-doc doc)
                                  (done))
-                                ((head ansi-lisp-keyword-face)
-                                 (name ansi-lisp-defined-name-face)
-                                 (arg-specifier ansi-lisp-constant-face)
+                                ((head emacs-lisp-keyword-face)
+                                 (name emacs-lisp-defined-name-face)
+                                 (arg-specifier emacs-lisp-constant-face)
                                  (arg default)
-                                 (doc  ansi-lisp-doc-face))
+                                 (doc  emacs-lisp-doc-face))
                                 :priority 10
                                 :names-to-track (arg))
 
@@ -1487,18 +1487,18 @@ sometimes does profiling with elp package."
                                                (atom? name)
                                                (skip-everything)
                                                (optional-doc doc))
-                                ((head ansi-lisp-keyword-face)
-                                 (name ansi-lisp-defined-name-face)
-                                 (doc  ansi-lisp-doc-face)))
+                                ((head emacs-lisp-keyword-face)
+                                 (name emacs-lisp-defined-name-face)
+                                 (doc  emacs-lisp-doc-face)))
 
 (sexpy-define-pattern-fontifier (defconstant)
                                 (parenthesized (atom? head)
                                                (atom? name)
                                                (skip-everything)
                                                (optional-doc doc))
-                                ((head ansi-lisp-keyword-face)
-                                 (name ansi-lisp-constant-face)
-                                 (doc  ansi-lisp-doc-face)))
+                                ((head emacs-lisp-keyword-face)
+                                 (name emacs-lisp-constant-face)
+                                 (doc  emacs-lisp-doc-face)))
 
 (sexpy-define-pattern-fontifier (defstruct)
                                 (parenthesized
@@ -1598,14 +1598,14 @@ sometimes does profiling with elp package."
                                                          (t
                                                           (skip-everything)))))
                                                (t (skip-everything*)))))))
-                                ((head            ansi-lisp-keyword-face)
-                                 (structure-name  ansi-lisp-defined-data-name-face)
-                                 (option-keyword  ansi-lisp-keyword-face)
-                                 (func-name       ansi-lisp-defined-name-face)
+                                ((head            emacs-lisp-keyword-face)
+                                 (structure-name  emacs-lisp-defined-data-name-face)
+                                 (option-keyword  emacs-lisp-keyword-face)
+                                 (func-name       emacs-lisp-defined-name-face)
                                  (constructor-arg default)
-                                 (doc             ansi-lisp-doc-face)
-                                 (slot-name       ansi-lisp-defined-data-name-face)
-                                 (slot-type       ansi-lisp-type-face))
+                                 (doc             emacs-lisp-doc-face)
+                                 (slot-name       emacs-lisp-defined-data-name-face)
+                                 (slot-type       emacs-lisp-type-face))
                                 :priority 10
                                 :names-to-track (slot-name))
 
@@ -1616,7 +1616,7 @@ sometimes does profiling with elp package."
                                                          (atom? bound-name)
                                                          (skip-everything))))
                                                (done))
-                                ((head ansi-lisp-keyword-face)
+                                ((head emacs-lisp-keyword-face)
                                  ;; supress any fontification of names being defined
                                  (bound-name default))
                                 :priority 10
@@ -1631,7 +1631,7 @@ sometimes does profiling with elp package."
                                                                (repeat (atom? bound-name))))
                                                          (skip-everything))))
                                                (done))
-                                ((head ansi-lisp-keyword-face)
+                                ((head emacs-lisp-keyword-face)
                                  ;; supress any fontification of names being defined
                                  (bound-name default))
                                 :priority 10
@@ -1641,7 +1641,7 @@ sometimes does profiling with elp package."
                                 (parenthesized (atom? head)
                                                (tree-atoms bound-name)
                                                (done))
-                                ((head ansi-lisp-keyword-face)
+                                ((head emacs-lisp-keyword-face)
                                  ;; supress any fontification of names being defined
                                  (bound-name default))
                                 :priority 10
@@ -1656,11 +1656,11 @@ sometimes does profiling with elp package."
                                                          (lambda-args+specifiers arg arg-specifier)
                                                          (skip-everything))))
                                                (done))
-                                ((head ansi-lisp-keyword-face)
+                                ((head emacs-lisp-keyword-face)
                                  ;; supress any fontification of names being defined
                                  (bound-name default)
                                  (arg default)
-                                 (arg-specifier ansi-lisp-constant-face))
+                                 (arg-specifier emacs-lisp-constant-face))
                                 :priority 10
                                 :names-to-track (bound-name))
 
@@ -1668,9 +1668,9 @@ sometimes does profiling with elp package."
                                 (parenthesized (atom? head)
                                                (lambda-args+specifiers arg arg-specifier)
                                                (done))
-                                ((head ansi-lisp-keyword-face)
+                                ((head emacs-lisp-keyword-face)
                                  (arg default)
-                                 (arg-specifier ansi-lisp-constant-face))
+                                 (arg-specifier emacs-lisp-constant-face))
                                 :priority 10
                                 :names-to-track (arg))
 
@@ -1679,18 +1679,18 @@ sometimes does profiling with elp package."
                                 (parenthesized (atom? head)
                                                (repeat
                                                 (declaration-specifier decl-keyword affected-var type)))
-                                ((head         ansi-lisp-keyword-face)
-                                 (decl-keyword ansi-lisp-declaration-face)
+                                ((head         emacs-lisp-keyword-face)
+                                 (decl-keyword emacs-lisp-declaration-face)
                                  (affected-var default)
-                                 (type         ansi-lisp-type-face)))
+                                 (type         emacs-lisp-type-face)))
 
 (sexpy-define-pattern-fontifier (proclaim)
                                 (parenthesized (atom? head)
                                                (declaration-specifier decl-keyword affected-var type))
-                                ((head         ansi-lisp-keyword-face)
-                                 (decl-keyword ansi-lisp-declaration-face)
+                                ((head         emacs-lisp-keyword-face)
+                                 (decl-keyword emacs-lisp-declaration-face)
                                  (affected-var default)
-                                 (type         ansi-lisp-type-face)))
+                                 (type         emacs-lisp-type-face)))
 
 
 (sexpy-define-pattern-fontifier (dolist dotimes)
@@ -1699,7 +1699,7 @@ sometimes does profiling with elp package."
                                  (parenthesized
                                   (atom? iteration-variable)
                                   (done)))
-                                ((head               ansi-lisp-keyword-face)
+                                ((head               emacs-lisp-keyword-face)
                                  (iteration-variable default))
                                 :priority 10
                                 :names-to-track (iteration-variable))
@@ -1713,7 +1713,7 @@ sometimes does profiling with elp package."
                                     (atom? iteration-variable)
                                     (skip-everything*))))
                                  (done))
-                                ((head               ansi-lisp-keyword-face)
+                                ((head               emacs-lisp-keyword-face)
                                  (iteration-variable default))
                                 :priority 10
                                 :names-to-track (iteration-variable))
@@ -1732,8 +1732,8 @@ sometimes does profiling with elp package."
                                       :execute)
                                      (atom? situation)))))
                                  (done))
-                                ((head      ansi-lisp-special-form-face)
-                                 (situation ansi-lisp-defined-data-name-face)))
+                                ((head      emacs-lisp-special-form-face)
+                                 (situation emacs-lisp-defined-data-name-face)))
 
 (sexpy-define-pattern-fontifier (maximum
                                  minimum
@@ -1765,7 +1765,7 @@ sometimes does profiling with elp package."
                                 (parenthesized
                                  (atom? head)
                                  (done))
-                                ((head ansi-lisp-keyword-face)))
+                                ((head emacs-lisp-keyword-face)))
 
 (sexpy-define-pattern-fontifier (defsetf)
                                 (parenthesized
@@ -1780,12 +1780,12 @@ sometimes does profiling with elp package."
                                            (atom? store-variable)))
                                          (optional-doc doc)))
                                  (done))
-                                ((head           ansi-lisp-keyword-face)
-                                 (access-func    ansi-lisp-defined-name-face)
-                                 (update-func    ansi-lisp-defined-name-face)
-                                 (doc            ansi-lisp-doc-face)
+                                ((head           emacs-lisp-keyword-face)
+                                 (access-func    emacs-lisp-defined-name-face)
+                                 (update-func    emacs-lisp-defined-name-face)
+                                 (doc            emacs-lisp-doc-face)
                                  (arg            default)
-                                 (arg-specifier  ansi-lisp-constant-face)
+                                 (arg-specifier  emacs-lisp-constant-face)
                                  (store-variable default)))
 
 ;; cond, defsetf

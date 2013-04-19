@@ -1,4 +1,4 @@
-;; ansi-lisp-highlight.el --- -*- lexical-binding: t; -*-
+;; emacs-lisp-highlight.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -10,204 +10,125 @@
 
 (require 'common)
 
-(defgroup ansi-lisp nil
+(defgroup emacs-lisp nil
   "Ansi Common Lisp highlighting."
   :group 'faces)
 
-(defface ansi-lisp-constant-face
+(defface emacs-lisp-constant-face
   '((t (:inherit font-lock-constant-face)))
   "Face to highlight conventional and other constants,
 i.e. names matching regexp \\+.*\\+., self-evaluating symbols, numbers."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-keyword-face
+(defface emacs-lisp-keyword-face
   '((t (:inherit font-lock-keyword-face)))
   "Face to highlight both :keywords and function calls to standard functions."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-warning-face
+(defface emacs-lisp-warning-face
   '((t (:inherit font-lock-warning-face)))
   "Face to highlight e.g. error, signal, assert."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-global-variable-face
+(defface emacs-lisp-global-variable-face
   '((t (:inherit font-lock-variable-name-face)))
   "Face to highlight conventional global variables,
 i.e. names matching regexp \\*.*\\*."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-declaration-face
+(defface emacs-lisp-declaration-face
   '((t (:foreground "#6c71c4")))
   "Face to highlight ansi cl declarations."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-type-face
+(defface emacs-lisp-type-face
   '((t (:inherit font-lock-type-face)))
   "Face to highlight ansi cl types."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
 
-(defface ansi-lisp-expression-face
+(defface emacs-lisp-expression-face
   '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl expressions
 \(I'm wrong or is declare is the only expression defined?\)."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-special-form-face
+(defface emacs-lisp-special-form-face
   '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl special forms."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-macro-face
+(defface emacs-lisp-macro-face
   '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl builtin macro."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-generic-function-face
+(defface emacs-lisp-generic-function-face
   '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl builtin generic functions."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-function-face
+(defface emacs-lisp-function-face
   '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl builtin functions."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-predicate-face
+(defface emacs-lisp-predicate-face
   '((t (:inherit font-lock-function-name-face)))
   "Face to highlight Scheme-like predicates: eq? and other ending with
 question mark"
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-mutating-op-face
+(defface emacs-lisp-mutating-op-face
   '((t (:inherit font-lock-function-name-face)))
   "Face to highlight Scheme-like mutating operations: set! and other ending
 with exclamation mark"
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
 
-(defface ansi-lisp-format-directive-face
+(defface emacs-lisp-format-directive-face
   '((t (:inherit font-lock-negation-char-face)))
   "Face to highlight ansi cl builtin functions."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-loop-keyword-face
+(defface emacs-lisp-loop-keyword-face
   '((t (:inherit font-lock-builtin-face)))
   "Face to highlight ansi cl loop keywords."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-symbols-without-home-package-face
-  '((t (:inherit ansi-lisp-constant-face)))
+(defface emacs-lisp-symbols-without-home-package-face
+  '((t (:inherit emacs-lisp-constant-face)))
   "Face to highlight #:symbols which have to home package deliberately
 or because the're uninterned yet."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
 
-(defface ansi-lisp-defined-name-face
+(defface emacs-lisp-defined-name-face
   '((t (:inherit font-lock-function-name-face)))
   "Face to highlight names of entities that are being defined by form
 such as defun, defmacro, etc."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-defined-data-name-face
+(defface emacs-lisp-defined-data-name-face
   '((t (:foreground "#cb4b16")))
   "Face to highlight names of data entities being defined, e.g. by defstruct,
 defclass etc."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-
-
-;; (defface ansi-lisp-package-name-face
-;;     '((t (:foreground "#cb4b16")))
-;;   "Face to highlight package names."
-;;   :group 'ansi-lisp)
-
-(defface ansi-lisp-doc-face
+(defface emacs-lisp-doc-face
   '((t (:inherit font-lock-doc-face)))
   "Face to highlight documentation."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
-(defface ansi-lisp-exported-symbols-face
+(defface emacs-lisp-exported-symbols-face
   '((t (:foreground "#2aa198")))
   "Face to highlight exported, shadowed, interned, imported etc names in
 defpackage."
-  :group 'ansi-lisp)
+  :group 'emacs-lisp)
 
 ;;;;
 
-(defconst +ansi-lisp-format-directive-regexp+
-  (rxx ((digit-argument (+ digit))
-        (char-argument (seq "'"
-                            (in graph print alnum)))
-        (other-argument (regexp "[v#]"))
-        (prefix-param (or digit-argument
-                          char-argument
-                          other-argument))
-        (modifier (or "@"
-                      ":"))
-        ;; ~C takes to parameters but may take modifiers
-        (character-directive
-         (seq (* modifier)
-              (or "c" "C")))
-        (integer-directive
-         (seq
-          (? (or digit-argument other-argument))
-          (? ","
-             (? (or char-argument other-argument))
-             (? ","
-                (? (or char-argument other-argument))
-                (? ","
-                   (? (or digit-argument other-argument))
-                   )))
-          (* modifier)
-          (regexp "[dDxXoObB]")))
-        (number-between-2-and-36
-         (or "2" "3" "4" "5" "6" "7" "8" "9" "10"
-             "11" "12" "13" "14" "15" "16" "17" "18" "19" "20"
-             "21" "22" "23" "24" "25" "26" "27" "28" "29" "30"
-             "31" "32" "33" "34" "35" "36"))
-        (radix-directive
-         (seq
-          (? number-between-2-and-36)
-          (? ","
-             (? (or digit-argument other-argument))
-             (? ","
-                (? (or char-argument other-argument))
-                (? ","
-                   (? (or char-argument other-argument))
-                   (? ","
-                      (? (or digit-argument other-argument))
-                      ))))
-          (* modifier)
-          (regexp "[rR]")))
-        (conditional-formatting-directive
-         (seq (? (or digit-argument other-argument))
-              (* modifier)
-              (or "[" "]" ";")))
-        (iteration-directive
-         (seq (* modifier)
-              (or "{" "}" "^")))
-        (general-directive
-         (seq (? prefix-param)
-              (* ","
-                 (? prefix-param))
-              (* modifier)
-              (regexp "[aAsSfFeEgG$pP()%&~*?/\n]"))))
-    "~"
-    (or character-directive
-        integer-directive
-        radix-directive
-        conditional-formatting-directive
-        iteration-directive
-        general-directive)))
-
-(make-highlight-procedure
- ansi-lisp-highlight-format-directives
- +ansi-lisp-format-directive-regexp+
- #'lisp-point-inside-format-or-error-stringp)
-
-
-(defconst +ansi-lisp-loop-keywords+
+(defconst +emacs-lisp-loop-keywords+
   (rx symbol-start
       (? ":")
       (or "above"
@@ -262,104 +183,18 @@ defpackage."
       symbol-end))
 
 (make-highlight-procedure
- ansi-lisp-highlight-loop-keywords
- +ansi-lisp-loop-keywords+
- #'lisp-point-inside-loop-formp)
+ emacs-lisp-highlight-loop-keywords
+ +emacs-lisp-loop-keywords+
+ #'lisp-point-inside-loop-form?)
+
+(defun lisp-point-inside-loop-form? ()
+  "Return t if point is positioned inside a loop form."
+  (and (lisp-point-inside-form "( *loop\\_>")
+       (not (lisp-point-inside-string-or-comment?))))
 
 
-;; (defconst +ansi-lisp-declarations+
-;;   (rx "("
-;;       symbol-start
-;;       (group
-;;        (or "type"
-;;            "compilation-speed"
-;;            "debug"
-;;            "declaration"
-;;            "dynamic-extent"
-;;            "ftype"
-;;            "ignorable"
-;;            "ignore"
-;;            "inline"
-;;            "notinline"
-;;            "optimize"
-;;            "safety"
-;;            "space"
-;;            "special"
-;;            "speed"))
-;;       symbol-end))
 
-;; (make-highlight-procedure
-;;  ansi-lisp-highlight-declarations
-;;  +ansi-lisp-declarations+
-;;  #'lisp-point-nested-inside-declaration-formp)
-
-
-;;; Type handling
-
-(defconst +ansi-lisp-types+
-  (rx symbol-start
-      (or "array"
-          "base-char"
-          "base-string"
-          "bignum"
-          "bit-vector"
-          "boolean"
-          "broadcast-stream"
-          "built-in-class"
-          "class"
-          "compiled-function"
-          "concatenated-stream"
-          "double-float"
-          "echo-stream"
-          "extended-char"
-          "file-stream"
-          "fixnum"
-          "generic-function"
-          "hash-table"
-          "integer"
-          "keyword"
-          "long-float"
-          "method"
-          "number"
-          "package"
-          "random-state"
-          "ratio"
-          "readtable"
-          "real"
-          "restart"
-          "satisfies"
-          "sequence"
-          "short-float"
-          "signed-byte"
-          "simple-array"
-          "simple-base-string"
-          "simple-bit-vector"
-          "simple-string"
-          "simple-vector"
-          "single-float"
-          "standard-char"
-          "standard-class"
-          "standard-generic-function"
-          "standard-method"
-          "standard-object"
-          "stream"
-          "string-stream"
-          "structure-class"
-          "structure-object"
-          "symbol"
-          "synonym-stream"
-          "two-way-stream"
-          "unsigned-byte")
-      symbol-end))
-
-(make-highlight-procedure
- ansi-lisp-highlight-types
- +ansi-lisp-types+
- #'lisp-point-nested-inside-type-using-formp)
-
-;;;;
-
-(defconst +ansi-lisp-basic-keywords+
+(defconst +emacs-lisp-basic-keywords+
   (eval-when-compile
     `( ;; support nearly full numeric tower
       ;; upd: full numeric tower is supported (? needs tests)
@@ -405,26 +240,26 @@ defpackage."
                             ")")))
           (or number
               complex))
-       (0 'ansi-lisp-constant-face))
+       (0 'emacs-lisp-constant-face))
 
       ("\\_<\\(?:\\(?:[^: \t\n\r]+:\\)?\\(\\+[^+ \n\t\r\f]+\\+\\)\\)\\_>"
-       (1 'ansi-lisp-constant-face))
+       (1 'emacs-lisp-constant-face))
       ("\\_<\\(?:\\(?:[^: \t\n\r]+:\\)?\\(\\*[^* \n\t\r\f]+\\*\\)\\)\\_>"
-       (1 'ansi-lisp-global-variable-face))
+       (1 'emacs-lisp-global-variable-face))
 
       ;; handle both :keywords and #:sybols-without-home-package
       ("\\(#\\)?\\_<\\(\\:\\(?:\\s_\\|\\sw\\)+\\)\\_>"
        ;; symbols without home package, as special kind of constant
        (0 (when (re-group-matchedp 1)
-            'ansi-lisp-symbols-without-home-package-face))
+            'emacs-lisp-symbols-without-home-package-face))
        ;; keywords
        (2 (unless (re-group-matchedp 1)
-            'ansi-lisp-keyword-face)))
+            'emacs-lisp-keyword-face)))
 
-      ("\\_<\\(?:[^ \n\t]+\\)\\?\\_>" 0 'ansi-lisp-predicate-face)
-      ("\\_<\\(?:[^ \n\t]+\\)!\\_>"   0 'ansi-lisp-mutating-op-face)
+      ("\\_<\\(?:[^ \n\t]+\\)\\?\\_>" 0 'emacs-lisp-predicate-face)
+      ("\\_<\\(?:[^ \n\t]+\\)!\\_>"   0 'emacs-lisp-mutating-op-face)
 
-      ;; ("\\_<&\\(?:\\s_\\|\\sw\\)+\\_>" (0 'ansi-lisp-declaration-face))
+      ;; ("\\_<&\\(?:\\s_\\|\\sw\\)+\\_>" (0 'emacs-lisp-declaration-face))
 
       ;; make pretty lambdas
       ("(\\(lambda\\)\\_>"
@@ -443,10 +278,9 @@ defpackage."
                               (match-end 0))
             nil)))
 
-      ("\\_<\\(?:t\\|nil\\)\\_>" (0 'ansi-lisp-constant-face)))))
+      ("\\_<\\(?:t\\|nil\\)\\_>" (0 'emacs-lisp-constant-face)))))
 
-
-(defconst +ansi-lisp-advanced-keywords+
+(defconst +emacs-lisp-advanced-keywords+
   (eval-when-compile
     `((,(rx "("
             (group
@@ -460,8 +294,8 @@ defpackage."
             (? (group symbol-start
                       (+ (or (syntax word) (syntax symbol)))
                       symbol-end)))
-       (1 'ansi-lisp-keyword-face)
-       (2 'ansi-lisp-constant-face t t))
+       (1 'emacs-lisp-keyword-face)
+       (2 'emacs-lisp-constant-face t t))
 
 ;;;
       ;; (,(rx "("
@@ -471,8 +305,8 @@ defpackage."
       ;;          (group
       ;;           (+ (or (syntax word) (syntax symbol))))
       ;;          symbol-end))
-      ;;  (1 'ansi-lisp-keyword-face)
-      ;;  (2 'ansi-lisp-defined-data-name-face t))
+      ;;  (1 'emacs-lisp-keyword-face)
+      ;;  (2 'emacs-lisp-defined-data-name-face t))
 
       (,(rx "("
             (group
@@ -485,13 +319,13 @@ defpackage."
                (group
                 (+ (or (syntax word) (syntax symbol))))
                symbol-end))
-       (1 'ansi-lisp-keyword-face)
-       (2 'ansi-lisp-defined-data-name-face))
+       (1 'emacs-lisp-keyword-face)
+       (2 'emacs-lisp-defined-data-name-face))
 
       (,(rx "("
             (group
              (or (group
-                  ;; note: delte this group and fix group referencec below
+                  ;; note: delete this group and fix group references below
                   "foobar"
                   ;; (or "defconstant"
                   ;;     "defparameter"
@@ -515,13 +349,13 @@ defpackage."
                (group (+ (or (syntax word) (syntax symbol))))
                symbol-end))
 
-       (1 'ansi-lisp-keyword-face)
+       (1 'emacs-lisp-keyword-face)
        (4 (cond ((re-group-matchedp 2)
                  ;; here variables should go
-                 'ansi-lisp-defined-name-face)
+                 'emacs-lisp-defined-name-face)
                 ((re-group-matchedp 3)
                  ;; here function face ought to be
-                 'ansi-lisp-defined-name-face))))
+                 'emacs-lisp-defined-name-face))))
 
 
 ;;;
@@ -537,7 +371,7 @@ defpackage."
                  "error"
                  "signal"))
             symbol-end)
-       (1 'ansi-lisp-warning-face))
+       (1 'emacs-lisp-warning-face))
 
       (,(rx "("
             (group
@@ -566,7 +400,7 @@ defpackage."
                  "throw"
                  "unwind-protect"))
             symbol-end)
-       (1 'ansi-lisp-special-form-face))
+       (1 'emacs-lisp-special-form-face))
 
       ;; (,(rx "("
       ;;       (group
@@ -585,9 +419,9 @@ defpackage."
       ;;               symbol-end
       ;;               (* whitespace)))
       ;;       ")")
-      ;;  (1 'ansi-lisp-special-form-face)
-      ;;  ;; I like here to be orange, not blue as in ansi-lisp-declaration-face
-      ;;  (2 'ansi-lisp-defined-data-name-face t))
+      ;;  (1 'emacs-lisp-special-form-face)
+      ;;  ;; I like here to be orange, not blue as in emacs-lisp-declaration-face
+      ;;  (2 'emacs-lisp-defined-data-name-face t))
 
       (,(rx "("
             symbol-start
@@ -665,7 +499,7 @@ defpackage."
                  "with-slots"
                  "with-standard-io-syntax")
              symbol-end))
-       (1 'ansi-lisp-macro-face))
+       (1 'emacs-lisp-macro-face))
 
       (,(rx "("
             symbol-start
@@ -692,7 +526,7 @@ defpackage."
                  "update-instance-for-different-class"
                  "update-instance-for-redefined-class"))
             symbol-end)
-       (1 'ansi-lisp-generic-function-face))
+       (1 'emacs-lisp-generic-function-face))
 
 
       (,(rx (or "(" "#'")
@@ -1314,29 +1148,9 @@ defpackage."
                  "yes-or-no-p"
                  "zerop"))
             symbol-end)
-       (1 'ansi-lisp-function-face)))))
+       (1 'emacs-lisp-function-face)))))
 
-
-(defconst +ansi-lisp-special-forms+
-  '((ansi-lisp-highlight-format-directives
-     (0 'ansi-lisp-format-directive-face prepend))
-    (ansi-lisp-highlight-loop-keywords
-     (0 'ansi-lisp-loop-keyword-face))
-    ;; (ansi-lisp-highlight-declarations
-    ;;  (1 'ansi-lisp-declaration-face))
-    ;; (ansi-lisp-highlight-types
-    ;;  (0 'ansi-lisp-type-face))
-    ))
-
-(defvar cl-font-lock-keywords
-  ;; +ansi-lisp-basic-keywords+
-  (append +ansi-lisp-special-forms+
-          +ansi-lisp-basic-keywords+
-          ;; +ansi-lisp-advanced-keywords+
-          ))
-
-
-(defun ansi-lisp-highlight-keywords (&optional mode)
+(defun emacs-lisp-highlight-keywords (&optional mode)
   (font-lock-remove-keywords
    mode
    `(("\\<:\\sw+\\>"
@@ -1350,46 +1164,11 @@ defpackage."
 
   (font-lock-add-keywords
    mode
-   (append cl-font-lock-keywords)))
-
-(defun ansi-lisp-highlight-minimum (&optional mode)
-  (font-lock-remove-keywords
-   mode
-   `(("\\<:\\sw+\\>"
-      (0 font-lock-builtin-face))
-     ("\\<:\\sw+\\>"
-      0 font-lock-builtin-face)
-     ("\\<\\&\\sw+\\>"
-      (0 font-lock-type-face))
-     ("\\<\\&\\sw+\\>"
-      0 font-lock-type-face)))
-
-  (font-lock-add-keywords
-   mode
-   (append +ansi-lisp-basic-keywords+
-           +ansi-lisp-special-forms+)))
-
-(defun ansi-lisp-highlight-emacs-keywords (&optional mode)
-  (font-lock-remove-keywords
-   mode
-   `(("\\<:\\sw+\\>"
-      (0 font-lock-builtin-face))
-     ("\\<:\\sw+\\>"
-      0 font-lock-builtin-face)
-     ("\\<\\&\\sw+\\>"
-      (0 font-lock-type-face))
-     ("\\<\\&\\sw+\\>"
-      0 font-lock-type-face)))
-
-  (font-lock-add-keywords
-   mode
-   (append +ansi-lisp-basic-keywords+
+   (append +emacs-lisp-basic-keywords+
            (list
             ;; loop highlighting is nice to have in Emacs
-            '(ansi-lisp-highlight-loop-keywords
-              0 'ansi-lisp-loop-keyword-face)))))
-
-
+            '(emacs-lisp-highlight-loop-keywords
+              0 'emacs-lisp-loop-keyword-face)))))
 
 ;; some safety compile-time checks
 (eval-when-compile
@@ -1431,73 +1210,13 @@ defpackage."
                    (numberp (car form))
                    (<= 2 (length form))))))
 
-    (funcall check-font-lock-keywords +ansi-lisp-basic-keywords+)
-    (funcall check-font-lock-keywords +ansi-lisp-advanced-keywords+)
-    (funcall check-font-lock-keywords +ansi-lisp-special-forms+)))
+    (funcall check-font-lock-keywords +emacs-lisp-basic-keywords+)
+    (funcall check-font-lock-keywords +emacs-lisp-advanced-keywords+)))
 
 
-
-;; (,(rx symbol-start
-;;       (or "//"
-;;           "///"
-;;           "**"
-;;           "***"
-;;           "*break-on-signals*"
-;;           "*compile-file-pathname*"
-;;           "*compile-file-truename*"
-;;           "*compile-print*"
-;;           "*compile-verbose*"
-;;           "*debug-io*"
-;;           "*debugger-hook*"
-;;           "*default-pathname-defaults*"
-;;           "*error-output*"
-;;           "*features*"
-;;           "*gensym-counter*"
-;;           "*load-pathname*"
-;;           "*load-print*"
-;;           "*load-truename*"
-;;           "*load-verbose*"
-;;           "*macroexpand-hook*"
-;;           "*modules*"
-;;           "*package*"
-;;           "*print-array*"
-;;           "*print-base*"
-;;           "*print-case*"
-;;           "*print-circle*"
-;;           "*print-escape*"
-;;           "*print-gensym*"
-;;           "*print-length*"
-;;           "*print-level*"
-;;           "*print-lines*"
-;;           "*print-miser-width*"
-;;           "*print-pprint-dispatch*"
-;;           "*print-pretty*"
-;;           "*print-radix*"
-;;           "*print-readably*"
-;;           "*print-right-margin*"
-;;           "*query-io*"
-;;           "*random-state*"
-;;           "*read-base*"
-;;           "*read-default-float-format*"
-;;           "*read-eval*"
-;;           "*read-suppress*"
-;;           "*readtable*"
-;;           "*standard-input*"
-;;           "*standard-output*"
-;;           "*terminal-io*"
-;;           "*trace-output*"
-;;           "++"
-;;           "+++")
-;;       symbol-end)
-;;  0
-;;  'ansi-lisp-global-variable-face t
-;;  t)
-
-
-
-(provide 'ansi-lisp-highlight)
+(provide 'emacs-lisp-highlight)
 
 ;; Local Variables:
 ;; End:
 
-;; ansi-lisp-highlight.el ends here
+;; emacs-lisp-highlight.el ends here

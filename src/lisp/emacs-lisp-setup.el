@@ -11,7 +11,7 @@
 (require 'general-lisp-setup)
 (require 'find-func)
 (require 'emacs-lisp-abbrev+)
-(require 'ansi-lisp-highlight)
+(require 'emacs-lisp-highlight)
 (require 'elisp-slime-nav)
 
 ;;;; elisp fontification and indentation
@@ -85,7 +85,7 @@
 (defun emacs-lisp-setup ()
   (lisp-setup)
 
-  (ansi-lisp-highlight-emacs-keywords)
+  (emacs-lisp-highlight-keywords)
 
   (setf autopair-extra-pairs
         '(:comment
@@ -119,6 +119,8 @@
     ;; ("C-SPC" lisp-complete-symbol)
     ("<tab>" indent-for-tab-command)
     ("M-/"   lisp-complete-symbol)
+    ("("     paredit-open-square)
+    (")"     paredit-close-square)
     ("["     paredit-open-square)
     ("]"     paredit-close-square)
     ("\""    paredit-doublequote))

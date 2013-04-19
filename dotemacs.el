@@ -15,6 +15,7 @@
 
 (load-library "reasonable-elisp")
 (load-library "more-scheme")
+(load-library "more-clojure")
 (load-library "custom")
 
 ;; ******************************************************************
