@@ -14,6 +14,7 @@
 (require 'clojure-mode)
 (require 'clojure-test-mode)
 (require 'nrepl)
+(require 'kibit)
 (require 'clojure-abbrev+)
 (require 'clojure-compile)
 (require 'browse-kill-ring-setup)
@@ -55,7 +56,8 @@
     ("M-."     nrepl-jump)
     ("M-,"     nrepl-jump-back)
 
-    ("<f9>"    clojure-compile))
+    ("<f9>"    clojure-compile)
+    ("S-<f9>"  kibit))
   (clojure-abbrev+-setup))
 
 (add-hook 'clojure-mode-hook #'clojure-setup)

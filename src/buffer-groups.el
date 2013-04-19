@@ -17,6 +17,8 @@
                             (mode . nrepl-macroexpansion-minor-mode)
                             (mode . nrepl-interaction-mode)
                             (mode . nrepl-popup-buffer-mode)
+                            (mode . clojure-compilation-mode)
+                            (mode . kibit-check-mode)
                             (predicate
                              .
                              (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
