@@ -100,9 +100,8 @@ and second being actual substituted text."
         do
         (goto-char p)
         (skip-syntax-backward syntax)
-        (setf str (buffer-substring-no-properties (point) p))
-        (setf entry (abbrev+-get-substitution
-                     str)))
+        (setf str (buffer-substring-no-properties (point) p)
+              entry (abbrev+-get-substitution str)))
       (if entry
         (let ((action (second entry))
               (predicate (third entry))
@@ -159,7 +158,7 @@ and second being actual substituted text."
             (lambda (list)
               (if (null list)
                 (list ??)
-                (nconc
+                (append
                  (list ?\\
                        ?\(
                        ??

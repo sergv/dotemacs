@@ -846,6 +846,9 @@ number of spaces equal to `tab-width'."
   (save-excursion
     (save-match-data
       (goto-char end)
+      (save-excursion
+        (unless (re-search-backward "\t" start t)
+          (error "No tabs found")))
       (let ((str (make-string tab-width ?\s)))
         (while (re-search-backward "\t" start t)
           (replace-match str))))))
@@ -887,14 +890,6 @@ write buffer contents back into file if flag DONT-WRITE is nil."
       (funcall f (current-buffer))
       (unless dont-write
         (write-region (point-min) (point-max) file)))))
-
-;;;;
-
-(defun first-safe (x)
-  (car-safe x))
-
-(defun rest-safe (x)
-  (cdr-safe x))
 
 ;;;;
 
