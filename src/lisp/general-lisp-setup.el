@@ -136,11 +136,6 @@ whose start (including open paren) matches FORM-RE."
       (error nil))))
 
 
-(defun lisp-point-inside-loop-formp ()
-  "Return t if point is positioned inside a loop form."
-  (and (lisp-point-inside-form "( *loop\\_>")
-       (not (lisp-point-inside-string-or-comment?))))
-
 (defun lisp-point-inside-format-or-error-stringp ()
   "Return t if point is positioned inside a format string."
   (and (lisp-point-inside-form "( *\\(?:format\\|error\\)\\_>")
