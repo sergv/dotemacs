@@ -11,38 +11,59 @@
 (require 'set-up-paths)
 
 (defun font-exist? (font)
+  "Test whethef FONT is avaliable on the system."
   (condition-case nil
       (if (null (x-list-fonts font)) nil t)
     (error nil)))
 
 (defvar *emacs-font* nil
-  "Font currently being used")
+  "Default font for use everywhere or nil if nothing suitable found.")
 
-(cond ((and (platform-os-type? 'linux)
-            (platform-use? '(home asus-netbook)))
-       (setf *emacs-font*
-             "-unknown-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
+(defun set-up-fonts/set-emacs-font-if-exists (font)
+  (if (font-exist? font)
+    (progn
+      (setf *emacs-font* font)
+      t)
+    nil))
+
+
+(defconst +emacs-fonts+
+  (remove-if-not
+   #'font-exist?
+   (append
+    (cond
+      ((and (platform-os-type? 'linux)
+            (platform-use? '(home asus-netbook work)))
+       '("-unknown-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'linux)
             (platform-use? 'netbook))
-       (setf *emacs-font*
-             "-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
+       '("-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'windows)
             (platform-use? 'work))
-       (let ((win-anonymous-pro "-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1")
-             (win-courier-new "-outline-Courier New-normal-normal-normal-mono-17-*-*-*-c-*-iso8859-1"))
-         (cond ((font-exist? win-anonymous-pro)
-                (setf *emacs-font* win-anonymous-pro))
-               ((font-exist? win-courier-new)
-                (setf *emacs-font* win-courier-new))))))
+       '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1")))
+    '("-unknown-Droid Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
+      "-unknown-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
+      "-unknown-Inconsolata-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
+      "-unknown-Liberation Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
+      "-unknown-FreeMono-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
+      "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")
+    ;; this is not the best font and therefore it comes latest
+    (when (and (platform-os-type? 'windows)
+               (platform-use? 'work))
+      '("-outline-Courier New-normal-normal-normal-mono-17-*-*-*-c-*-iso8859-1"))))
+  "List of fonts from best to worst availabse on the system.")
 
-(unless (null *emacs-font*)
+(when (and (not *emacs-font*)
+           (not (null +emacs-fonts+)))
+  (set-up-fonts/set-emacs-font-if-exists (first +emacs-fonts+)))
+
+(when *emacs-font*
   (set-frame-font *emacs-font*)
 
-  (add-hook
-   'after-make-frame-functions
-   (lambda (new-frame)
-     (with-current-frame new-frame
-       (set-frame-font *emacs-font*)))))
+  (add-hook 'after-make-frame-functions
+            (lambda (new-frame)
+              (with-current-frame new-frame
+                (set-frame-font *emacs-font*)))))
 
 
 (provide 'set-up-font)
