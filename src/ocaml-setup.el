@@ -50,13 +50,23 @@
 
 ;;;; ocaml repl
 
+(defun ocaml-interactive-send-input ()
+  "Send current line, appending ;; if necessary."
+  (interactive)
+  (unless (tuareg-interactive-end-of-phrase)
+    (insert ";;"))
+  (comint-send-input)
+  (goto-char (point-max)))
+
 (defun ocaml-interactive-setup ()
   (init-repl)
   (linum-mode)
   (def-keys-for-map tuareg-interactive-mode-map
-    ("SPC SPC" comint-clear-prompt)
-    ("C-SPC"   comint-clear-buffer-above-prompt)
-    ("<f6>"    tuareg-interrupt-ocaml)))
+    ("RET"      ocaml-interactive-send-input)
+    ("<return>" ocaml-interactive-send-input)
+    ("SPC SPC"  comint-clear-prompt)
+    ("C-SPC"    comint-clear-buffer-above-prompt)
+    ("<f6>"     tuareg-interrupt-ocaml)))
 
 (add-hook 'tuareg-interactive-mode-hook #'ocaml-interactive-setup)
 
