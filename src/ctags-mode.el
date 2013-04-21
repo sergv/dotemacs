@@ -287,13 +287,11 @@
       (if (looking-at? +ctags-line-re+)
         (let ((line (aif (match-string-no-properties 3)
                       (string->number it)
-                      nil))
+                      (error "cannot use ctags format with regexps")))
               (buf (find-file-noselect (match-string-no-properties 2))))
           (pop-to-buffer buf)
           (with-current-buffer buf
-            (if line
-              (goto-line line)
-              (error "cannot use ctags format with regexps"))))
+            (goto-line line)))
         (error "not on ctags line")))))
 
 (defvar ctags-mode-map

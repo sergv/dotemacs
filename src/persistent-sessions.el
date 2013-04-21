@@ -141,7 +141,7 @@ entries."
 (defun sessions/load-from-data (data)
   "Load session from DATA."
   (let ((session-entries data))
-    (aif (assq 'buffers session-entries)
+    (awhen (assq 'buffers session-entries)
       (mapc (lambda (entry)
               (with-current-buffer (find-file-noselect
                                     (session-entry/file-name entry))

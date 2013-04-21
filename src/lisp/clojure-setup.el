@@ -32,7 +32,7 @@
   (lisp-setup :use-cl-indent nil :use-whitespace t)
   (clojure-enable-nrepl)
 
-  (aif (clojure-find-ns)
+  (awhen (clojure-find-ns)
     (setf nrepl-buffer-ns it))
 
   (setq-local lisp-indent-function #'clojure-indent-function)
@@ -51,7 +51,7 @@
                      vim:normal-mode-local-keymap)
     ("M-/"     complete-symbol)
     ("<f6>"    nrepl-load-current-buffer ;; clojure-load-file
-               )
+     )
 
     ("M-."     nrepl-jump)
     ("M-,"     nrepl-jump-back)
