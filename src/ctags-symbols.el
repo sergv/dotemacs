@@ -173,7 +173,7 @@
        (pop (ctags-symbols/previous-homes ctags-symbols-homes-zipper))))))
 
 (defun setup-ctags-symbols ()
-  (aif (current-local-map)
+  (awhen (current-local-map)
     (def-keys-for-map it
       ("M-." ctags-symbols-go-to-symbol-home)
       ("M-," ctags-symbols-go-back)))

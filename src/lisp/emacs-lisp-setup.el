@@ -22,6 +22,7 @@
                                      1
                                      'font-lock-keyword-face))
                              '("aif"
+                               "awhen"
                                "begin"
                                "if-let"
                                "def-keys-for-map"
@@ -47,6 +48,7 @@
     (loop 0)
     (cond 0)
     (aif 1)
+    (awhen 1)
     (if-let 1)
     (def-keys-for-map 1)
     (condition-case 2)

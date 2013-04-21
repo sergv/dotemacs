@@ -53,8 +53,8 @@
           "/"
           (:eval (number-to-string (doc-view-last-page-number)))))
   (if-buffer-has-file
-    (aif (assoc (file-name-nondirectory (buffer-file-name))
-                (persistent-store-get 'doc-view-documents nil))
+    (awhen (assoc (file-name-nondirectory (buffer-file-name))
+                  (persistent-store-get 'doc-view-documents nil))
       (doc-view-goto-page (cdr it))))
 
   (add-hook 'kill-buffer-hook 'doc-view-save-page nil t))

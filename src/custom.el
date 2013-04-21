@@ -177,6 +177,11 @@ trailing newline"
   (buffer-substring-no-properties (line-beginning-position)
                                   (line-end-position)))
 
+(defsubst current-line-with-properties ()
+  "Return line point is currently on."
+  (buffer-substring (line-beginning-position)
+                    (line-end-position)))
+
 (defsubst skip-to-indentation ()
   "Move point to first non-whitespace character of line,
 lighter than `back-to-indentation'."

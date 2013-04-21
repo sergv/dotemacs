@@ -76,7 +76,10 @@ Range of platforms may be expanded (extended?) in the future.")
         ((platform-os-type? 'linux)
          (if (platform-use? '(home netbook asus-netbook))
            "/home/sergey"
-           "~"))))
+           "~"))
+        (t
+         ;; fallback to make it work in unaccounted scenarios
+         (expand-file-name "~"))))
 
 
 (provide 'set-up-platform)

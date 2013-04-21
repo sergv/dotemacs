@@ -907,12 +907,14 @@ write buffer contents back into file if flag DONT-WRITE is nil."
       (apply cl-mapcar func xs sequences)))
 
 (defun foldr (f init items)
+  "F should take two arguments (item accum)."
   (cl-reduce f
              items
              :from-end t
              :initial-value init))
 
 (defun foldl (f init items)
+  "F should take two arguments (accum item)."
   (cl-reduce f
              items
              :initial-value init))
