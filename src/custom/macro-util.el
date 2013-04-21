@@ -35,7 +35,7 @@ DEFINITIONS substituted by definition body. DEFINITIONS is list
 of the form of let-bindigs, (symbol body). No recursion is permitted -
 no defined symbol should show up in body of its definition or in
 body of any futher definition."
-  (aif (find-if (lambda (def) (not (= 2 (length def)))) definitions)
+  (awhen (find-if (lambda (def) (not (= 2 (length def)))) definitions)
     (error "rxx: every definition should consist of two elements: (name def), offending definition: %s"
            it))
   `(rx ,@(reduce (lambda (def expr)
@@ -64,16 +64,16 @@ actual call to function."
              (error "FUNC should be call to function (list) or symbol: %s"
                     func))))
          (motion-name (if name
-                          name
-                          (intern (concat "vim:" func-name)))))
+                        name
+                        (intern (concat "vim:" func-name)))))
     `(vim:defmotion ,motion-name (,(if exclusive 'exclusive 'inclusive)
-                                   ,@(if do-not-adjust-point
-                                         '(do-not-adjust-point)
-                                         '()))
+                                  ,@(if do-not-adjust-point
+                                      '(do-not-adjust-point)
+                                      '()))
        ,(if doc doc (concat "See `" func-name "'."))
        ,(if (listp func)
-            func
-            (list func)))))
+          func
+          (list func)))))
 
 (defmacro* vimmize-function (func
                              &key
@@ -102,20 +102,20 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
          (action-name (if name name (intern (concat "vim:" func-name)))))
     `(vim:defcmd ,action-name ,(append '(count)
                                        (if repeatable
-                                           '()
-                                           '(nonrepeatable)))
+                                         '()
+                                         '(nonrepeatable)))
        ,(if doc doc (format "See `%s'." func-name))
        ,(cond
-         ((not (null? call-n-times))
-          (let ((counter (gensym)))
-            `(dotimes (,counter (or count 1))
-               ,(if (symbolp func)
-                    `(funcall #',func)
-                    func))))
-         ((symbolp func)
-          `(funcall #',func count))
-         (t
-          func)))))
+          ((not (null? call-n-times))
+           (let ((counter (gensym)))
+             `(dotimes (,counter (or count 1))
+                ,(if (symbolp func)
+                   `(funcall #',func)
+                   func))))
+          ((symbolp func)
+           `(funcall #',func count))
+          (t
+           func)))))
 
 
 
@@ -201,14 +201,14 @@ current buffer. INIT form will be executed before performing any jumps."
                                 'cycle
                                 t)
        ,(when move-to-property-end
-              '(let ((change-pos (next-single-property-change
-                                  (point)
-                                  'field
-                                  (current-buffer)
-                                  (point-max))))
-                (if change-pos
-                    (goto-char change-pos)
-                    (goto-char (point-max))))))
+          '(let ((change-pos (next-single-property-change
+                              (point)
+                              'field
+                              (current-buffer)
+                              (point-max))))
+             (if change-pos
+               (goto-char change-pos)
+               (goto-char (point-max))))))
 
      (defun ,backward-name ()
        "Jump backward between prompts with wraparound."
@@ -223,14 +223,14 @@ current buffer. INIT form will be executed before performing any jumps."
        ;;                  ,property
        ;;                  ,value)
        ,(when move-to-property-end
-              '(let ((change-pos (next-single-property-change
-                                  (point)
-                                  'field
-                                  (current-buffer)
-                                  (point-max))))
-                (if change-pos
-                    (goto-char change-pos)
-                    (goto-char (point-max))))))))
+          '(let ((change-pos (next-single-property-change
+                              (point)
+                              'field
+                              (current-buffer)
+                              (point-max))))
+             (if change-pos
+               (goto-char change-pos)
+               (goto-char (point-max))))))))
 
 ;;;; other functions
 
@@ -431,7 +431,7 @@ msg-transform - function to apply to entered text before inserting it into strin
                                      (default-count 1))
   `(defun ,(make-symbol (concat (symbol-name orig-func)
                                 prefix))
-       (&optional count)
+     (&optional count)
      ,(format "This function applies `%s' COUNT times."
               (symbol-name orig-func))
      (interactive "p")
@@ -470,52 +470,52 @@ of code may be called more than once."
        ,doc
        (interactive)
        ,(when save-buffer
-              '(if-buffer-has-file
-                (when (buffer-modified-p)
-                  (save-buffer))))
+          '(if-buffer-has-file
+             (when (buffer-modified-p)
+               (save-buffer))))
        (let ((,runned nil))
          (block ,done-block
 
            (dotimes (,tries ,try-count)
              (cond
                ,@(loop
-                     for buf in buffer-names
-                     collecting
-                      (if (listp buf)
-                          `((let ((,tmp ,buf))
-                              (and ,tmp
-                                   (buffer-live-p (get-buffer ,tmp))))
-                            (pop-to-buffer (get-buffer ,buf) t)
-                            (return-from ,done-block))
-                          `((buffer-live-p (get-buffer ,buf))
-                            (pop-to-buffer (get-buffer ,buf) t)
-                            (return-from ,done-block))))
+                   for buf in buffer-names
+                   collecting
+                   (if (listp buf)
+                     `((let ((,tmp ,buf))
+                         (and ,tmp
+                              (buffer-live-p (get-buffer ,tmp))))
+                       (pop-to-buffer (get-buffer ,buf) t)
+                       (return-from ,done-block))
+                     `((buffer-live-p (get-buffer ,buf))
+                       (pop-to-buffer (get-buffer ,buf) t)
+                       (return-from ,done-block))))
 
                ((not ,runned)
                 (save-window-excursion
                   (save-excursion
                     ,(if (not (null test-if-already-running))
-                         `(unless ,test-if-already-running
-                            ,run-interpreter-command
-                            (setf ,runned t))
-                         `(progn
-                            ,run-interpreter-command
-                            (setf ,runned t))))))
+                       `(unless ,test-if-already-running
+                          ,run-interpreter-command
+                          (setf ,runned t))
+                       `(progn
+                          ,run-interpreter-command
+                          (setf ,runned t))))))
 
                ,(when (and (not (null sleep-time))
                            (< 0 sleep-time))
-                      `(t
-                        (sleep-for ,sleep-time)))))
+                  `(t
+                    (sleep-for ,sleep-time)))))
 
            (error ,(if error-msg
-                       error-msg
-                       `(format "Can't switch to any buffer of %s"
-                                ,(mapconcat (lambda (name)
-                                              (if (symbolp name)
-                                                  (symbol-name name)
-                                                  name))
-                                            buffer-names
-                                            ", ")))))))))
+                     error-msg
+                     `(format "Can't switch to any buffer of %s"
+                              ,(mapconcat (lambda (name)
+                                            (if (symbolp name)
+                                              (symbol-name name)
+                                              name))
+                                          buffer-names
+                                          ", ")))))))))
 
 
 
@@ -527,14 +527,14 @@ of code may be called more than once."
                                 (put-align-spaces-after-str nil))
   (let ((spaces-re (concat "\\([ \t]"
                            (if require-one-or-more-spaces
-                               "+"
-                               "*")
+                             "+"
+                             "*")
                            "\\)"))
         (align-re (if (string? align-str)
-                      (concat "\\(?:"
-                              align-str
-                              "\\)")
-                      (macroexpand-all align-str))))
+                    (concat "\\(?:"
+                            align-str
+                            "\\)")
+                    (macroexpand-all align-str))))
     `(defun ,func ()
        (interactive)
        (when (or (region-active-p)
@@ -542,8 +542,8 @@ of code may be called more than once."
          (align-regexp (region-beginning)
                        (region-end)
                        ,(if put-align-spaces-after-str
-                            (concat align-re spaces-re)
-                            (concat spaces-re align-re))
+                          (concat align-re spaces-re)
+                          (concat spaces-re align-re))
                        1
                        1
                        ,repeat)))))
@@ -588,8 +588,8 @@ value, that slot cannot be set via `setf'.
          (forms nil)
          pred-form pred-check)
     (if (stringp (car descs))
-        (push (list 'put (list 'quote name) '(quote structure-documentation)
-                    (pop descs)) forms))
+      (push (list 'put (list 'quote name) '(quote structure-documentation)
+                  (pop descs)) forms))
     (setq descs (cons '(cl-tag-slot)
                       (map (function (lambda (x) (if (consp x) x (list x))))
                            descs)))
@@ -598,20 +598,20 @@ value, that slot cannot be set via `setf'.
             (args (cdr-safe (pop opts))))
         (cond ((eq opt :conc-name)
                (if args
-                   (setq conc-name (if (car args)
-                                       (symbol-name (car args)) ""))))
+                 (setq conc-name (if (car args)
+                                   (symbol-name (car args)) ""))))
               ((eq opt :constructor)
                (if (cdr args)
-                   (progn
-                     (setq constructor nil)
-                     (push args constrs)
-                     ;; If this defines a constructor of the same name as
-                     ;; the default one, don't define the default.
-                     ;; (if (eq (car args) constructor)
-                     ;;   (setq constructor nil))
-                     ;; (push args constrs)
-                     )
-                   (if args (setq constructor (car args)))))
+                 (progn
+                   (setq constructor nil)
+                   (push args constrs)
+                   ;; If this defines a constructor of the same name as
+                   ;; the default one, don't define the default.
+                   ;; (if (eq (car args) constructor)
+                   ;;   (setq constructor nil))
+                   ;; (push args constrs)
+                   )
+                 (if args (setq constructor (car args)))))
               ((eq opt :copier)
                (if args (setq copier (car args))))
               ((eq opt :predicate)
@@ -620,7 +620,7 @@ value, that slot cannot be set via `setf'.
                (setq include (car args)
                      include-descs (map (function
                                          (lambda (x)
-                                          (if (consp x) x (list x))))
+                                           (if (consp x) x (list x))))
                                         (cdr args))))
               ((eq opt :print-function)
                (setq print-func (car args)))
@@ -634,43 +634,43 @@ value, that slot cannot be set via `setf'.
               (t
                (error "Slot option %s unrecognized" opt)))))
     (if print-func
-        (setq print-func (list 'progn
-                               (list 'funcall (list 'function print-func)
-                                     'cl-x 'cl-s 'cl-n) t))
-        (or type (and include (not (get include 'cl-struct-print)))
-            (setq print-auto t
-                  print-func (and (or (not (or include type)) (null print-func))
-                                  (list 'progn
-                                        (list 'princ (format "#S(%s" name)
-                                              'cl-s))))))
+      (setq print-func (list 'progn
+                             (list 'funcall (list 'function print-func)
+                                   'cl-x 'cl-s 'cl-n) t))
+      (or type (and include (not (get include 'cl-struct-print)))
+          (setq print-auto t
+                print-func (and (or (not (or include type)) (null print-func))
+                                (list 'progn
+                                      (list 'princ (format "#S(%s" name)
+                                            'cl-s))))))
     (if include
-        (let ((inc-type (get include 'cl-struct-type))
-              (old-descs (get include 'cl-struct-slots)))
-          (or inc-type (error "%s is not a struct name" include))
-          (and type (not (eq (car inc-type) type))
-               (error ":type disagrees with :include for %s" name))
-          (while include-descs
-            (setcar (memq (or (assq (caar include-descs) old-descs)
-                              (error "No slot %s in included struct %s"
-                                     (caar include-descs) include))
-                          old-descs)
-                    (pop include-descs)))
-          (setq descs (append old-descs (delq (assq 'cl-tag-slot descs) descs))
-                type (car inc-type)
-                named (assq 'cl-tag-slot descs))
-          (if (cadr inc-type) (setq tag name named t))
-          (let ((incl include))
-            (while incl
-              (push (list 'pushnew (list 'quote tag)
-                          (intern (format "cl-struct-%s-tags" incl)))
-                    forms)
-              (setq incl (get incl 'cl-struct-include)))))
-        (if type
-            (progn
-              (or (memq type '(vector list))
-                  (error "Invalid :type specifier: %s" type))
-              (if named (setq tag name)))
-            (setq type 'vector named 'true)))
+      (let ((inc-type (get include 'cl-struct-type))
+            (old-descs (get include 'cl-struct-slots)))
+        (or inc-type (error "%s is not a struct name" include))
+        (and type (not (eq (car inc-type) type))
+             (error ":type disagrees with :include for %s" name))
+        (while include-descs
+          (setcar (memq (or (assq (caar include-descs) old-descs)
+                            (error "No slot %s in included struct %s"
+                                   (caar include-descs) include))
+                        old-descs)
+                  (pop include-descs)))
+        (setq descs (append old-descs (delq (assq 'cl-tag-slot descs) descs))
+              type (car inc-type)
+              named (assq 'cl-tag-slot descs))
+        (if (cadr inc-type) (setq tag name named t))
+        (let ((incl include))
+          (while incl
+            (push (list 'pushnew (list 'quote tag)
+                        (intern (format "cl-struct-%s-tags" incl)))
+                  forms)
+            (setq incl (get incl 'cl-struct-include)))))
+      (if type
+        (progn
+          (or (memq type '(vector list))
+              (error "Invalid :type specifier: %s" type))
+          (if named (setq tag name)))
+        (setq type 'vector named 'true)))
     (or named (setq descs (delq (assq 'cl-tag-slot descs) descs)))
     (push (list 'defvar tag-symbol) forms)
     (setq pred-form (and named
@@ -678,79 +678,79 @@ value, that slot cannot be set via `setf'.
                                        (length (memq (assq 'cl-tag-slot descs)
                                                      descs)))))
                            (if (eq type 'vector)
-                               (list 'and '(vectorp cl-x)
-                                     (list '>= '(length cl-x) (length descs))
-                                     (list 'memq (list 'aref 'cl-x pos)
-                                           tag-symbol))
-                               (if (= pos 0)
-                                   (list 'memq '(car-safe cl-x) tag-symbol)
-                                   (list 'and '(consp cl-x)
-                                         (list 'memq (list 'nth pos 'cl-x)
-                                               tag-symbol))))))
+                             (list 'and '(vectorp cl-x)
+                                   (list '>= '(length cl-x) (length descs))
+                                   (list 'memq (list 'aref 'cl-x pos)
+                                         tag-symbol))
+                             (if (= pos 0)
+                               (list 'memq '(car-safe cl-x) tag-symbol)
+                               (list 'and '(consp cl-x)
+                                     (list 'memq (list 'nth pos 'cl-x)
+                                           tag-symbol))))))
           pred-check (and pred-form (> safety 0)
                           (if (and (eq (caadr pred-form) 'vectorp)
                                    (= safety 1))
-                              (cons 'and (cdddr pred-form)) pred-form)))
+                            (cons 'and (cdddr pred-form)) pred-form)))
     (let ((pos 0) (descp descs))
       (while descp
         (let* ((desc (pop descp))
                (slot (car desc)))
           (if (memq slot '(cl-tag-slot cl-skip-slot))
-              (progn
-                (push nil slots)
-                (push (and (eq slot 'cl-tag-slot) (list 'quote tag))
-                      defaults))
-              (if (assq slot descp)
-                  (error "Duplicate slots named %s in %s" slot name))
-              (let ((accessor (intern (format "%s%s" conc-name slot))))
-                (push slot slots)
-                (push (nth 1 desc) defaults)
-                (push (list*
-                       'defsubst* accessor '(cl-x)
-                       (append
-                        (and pred-check
-                             (list (list 'or pred-check
-                                         `(error "%s accessing a non-%s"
-                                                 ',accessor ',name))))
-                        (list (if (eq type 'vector) (list 'aref 'cl-x pos)
-                                  (if (= pos 0) '(car cl-x)
-                                      (list 'nth pos 'cl-x)))))) forms)
-                (push (cons accessor t) side-eff)
-                (push (list 'define-setf-method accessor '(cl-x)
-                            (if (cadr (memq :read-only (cddr desc)))
-                                (list 'progn '(ignore cl-x)
-                                      `(error "%s is a read-only slot"
-                                              ',accessor))
-                                ;; If cl is loaded only for compilation,
-                                ;; the call to cl-struct-setf-expander would
-                                ;; cause a warning because it may not be
-                                ;; defined at run time.  Suppress that warning.
-                                (list 'with-no-warnings
-                                      (list 'cl-struct-setf-expander 'cl-x
-                                            (list 'quote name) (list 'quote accessor)
-                                            (and pred-check (list 'quote pred-check))
-                                            pos))))
-                      forms)
-                (if print-auto
-                    (nconc print-func
-                           (list (list 'princ (format " %s" slot) 'cl-s)
-                                 (list 'prin1 (list accessor 'cl-x) 'cl-s)))))))
+            (progn
+              (push nil slots)
+              (push (and (eq slot 'cl-tag-slot) (list 'quote tag))
+                    defaults))
+            (if (assq slot descp)
+              (error "Duplicate slots named %s in %s" slot name))
+            (let ((accessor (intern (format "%s%s" conc-name slot))))
+              (push slot slots)
+              (push (nth 1 desc) defaults)
+              (push (list*
+                     'defsubst* accessor '(cl-x)
+                     (append
+                      (and pred-check
+                           (list (list 'or pred-check
+                                       `(error "%s accessing a non-%s"
+                                               ',accessor ',name))))
+                      (list (if (eq type 'vector) (list 'aref 'cl-x pos)
+                                (if (= pos 0) '(car cl-x)
+                                    (list 'nth pos 'cl-x)))))) forms)
+              (push (cons accessor t) side-eff)
+              (push (list 'define-setf-method accessor '(cl-x)
+                          (if (cadr (memq :read-only (cddr desc)))
+                            (list 'progn '(ignore cl-x)
+                                  `(error "%s is a read-only slot"
+                                          ',accessor))
+                            ;; If cl is loaded only for compilation,
+                            ;; the call to cl-struct-setf-expander would
+                            ;; cause a warning because it may not be
+                            ;; defined at run time.  Suppress that warning.
+                            (list 'with-no-warnings
+                                  (list 'cl-struct-setf-expander 'cl-x
+                                        (list 'quote name) (list 'quote accessor)
+                                        (and pred-check (list 'quote pred-check))
+                                        pos))))
+                    forms)
+              (if print-auto
+                (nconc print-func
+                       (list (list 'princ (format " %s" slot) 'cl-s)
+                             (list 'prin1 (list accessor 'cl-x) 'cl-s)))))))
         (setq pos (1+ pos))))
     (setq slots (nreverse slots)
           defaults (nreverse defaults))
     (and predicate pred-form
          (progn (push (list 'defsubst* predicate '(cl-x)
                             (if (eq (car pred-form) 'and)
-                                (append pred-form '(t))
-                                (list 'and pred-form t))) forms)
+                              (append pred-form '(t))
+                              (list 'and pred-form t))) forms)
                 (push (cons predicate 'error-free) side-eff)))
     (and copier
          (progn (push (list 'defun copier '(x) '(copy-sequence x)) forms)
                 (push (cons copier t) side-eff)))
     (if constructor
-        (push (list constructor
-                    (cons '&key (delq nil (copy-sequence slots))))
-              constrs))
+      (push (list constructor
+                  (cons '&key (delq nil (copy-sequence slots))))
+            constrs))
     (while constrs
       (let* ((name (caar constrs))
              (args (cadr (pop constrs)))
@@ -761,16 +761,16 @@ value, that slot cannot be set via `setf'.
                     (list* '&cl-defs (list 'quote (cons nil descs)) args)
                     (cons type make)) forms)
         (if (cl-safe-expr-p (cons 'progn (map 'second descs)))
-            (push (cons name t) side-eff))))
+          (push (cons name t) side-eff))))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
     (if print-func
-        (push `(push
-                ;; The auto-generated function does not pay attention to
-                ;; the depth argument cl-n.
-                (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
-                  (and ,pred-form ,print-func))
-                custom-print-functions)
-              forms))
+      (push `(push
+              ;; The auto-generated function does not pay attention to
+              ;; the depth argument cl-n.
+              (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
+                (and ,pred-form ,print-func))
+              custom-print-functions)
+            forms))
     (push (list 'setq tag-symbol (list 'list (list 'quote tag))) forms)
     (push (list* 'eval-when '(compile load eval)
                  (list 'put (list 'quote name) '(quote cl-struct-slots)
@@ -782,9 +782,9 @@ value, that slot cannot be set via `setf'.
                  (list 'put (list 'quote name) '(quote cl-struct-print)
                        print-auto)
                  (map (function (lambda (x)
-                        (list 'put (list 'quote (car x))
-                              '(quote side-effect-free)
-                              (list 'quote (cdr x)))))
+                                  (list 'put (list 'quote (car x))
+                                        '(quote side-effect-free)
+                                        (list 'quote (cdr x)))))
                       side-eff))
           forms)
     (cons 'progn (nreverse (cons (list 'quote name) forms)))))
@@ -802,21 +802,23 @@ value, that slot cannot be set via `setf'.
          (split-with-pred (lambda (b) (symbolp (car b)))
                           bindings)
        `(cl:let ,symbol-bindings
-          (bind ,other-bindings ,@body))))))
+                (bind ,other-bindings ,@body))))))
 
 
 ;;;; with-* macro
 
 (defmacro with-current-frame (frame &rest body)
+  (declare (indent 1))
   (let ((selected (gensym)))
     `(let ((,selected ,frame))
        (select-frame ,frame)
        (unwind-protect
-            (progn
-              ,@body)
+           (progn
+             ,@body)
          (select-frame ,selected)))))
 
 (defmacro with-disabled-undo (&rest body)
+  (declare (indent 0))
   (let ((store (gensym)))
     `(let ((,store buffer-undo-list)
            ;; this disables further undo recording
@@ -825,49 +827,59 @@ value, that slot cannot be set via `setf'.
 
 (defmacro with-preserved-buffer-modified-p (&rest body)
   "Execute BODY and restore `buffer-modified-p' flag after its done."
+  (declare (indent 0))
   (let ((store (gensym)))
     `(let ((,store (buffer-modified-p)))
        (unwind-protect
-            (begin
-              ,@body)
+           (begin
+             ,@body)
          (set-buffer-modified-p ,store)))))
 
 (defmacro with-inhibited-modification-hooks (&rest body)
   "Execute BODY and restore `inhibit-modification-hooks' after its done."
+  (declare (indent 0))
   `(let ((inhibit-modification-hooks t))
      ,@body))
 
 (defmacro with-inhibited-read-only (&rest body)
+  (declare (indent 0))
   `(let ((inhibit-read-only t))
      ,@body))
 
 (defmacro with-inhibited-redisplay (&rest body)
+  (declare (indent 0))
   `(let ((inhibit-redisplay t))
      ,@body))
 
-;;;; aif & if-let
+;;;; aif, awhen, if-let
 
 (defmacro aif (condition if-branch &optional else-branch)
   "Anaphoric if, binds evaluated condition to variable it."
   `(let ((it ,condition))
      (if it
-         ,if-branch
-         ,else-branch)))
+       ,if-branch
+       ,else-branch)))
+
+(defmacro awhen (condition &rest body)
+  "Anaphoric if, binds evaluated condition to variable it."
+  `(let ((it ,condition))
+     (when it
+       ,@body)))
 
 (defmacro if-let (condition if-branch &optional else-branch)
   (assert (and (or (list? condition)
                    (vector? condition))
                (= 2 (length condition))))
   (if (list? condition)
-      (let ((tmp-var (gensym))
-            (cond-var (first condition))
-            (expr (first (rest condition))))
-        `(let ((,tmp-var ,expr))
-           (if ,tmp-var
-               (let ((,cond-var ,tmp-var))
-                 ,if-branch)
-               ,else-branch)))
-      (error "not implemented yet")))
+    (let ((tmp-var (gensym))
+          (cond-var (first condition))
+          (expr (first (rest condition))))
+      `(let ((,tmp-var ,expr))
+         (if ,tmp-var
+           (let ((,cond-var ,tmp-var))
+             ,if-branch)
+           ,else-branch)))
+    (error "not implemented yet")))
 
 ;;;; end
 
