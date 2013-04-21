@@ -256,6 +256,7 @@ of line."
 ;;           (inside-stringp (elt state 3)))
 ;;      inside-stringp)))
 
+
 (defun lisp-position-inside-string (p)
   "Return beginnig of a string point P is positioned in and return nil
 if it's not in string."
