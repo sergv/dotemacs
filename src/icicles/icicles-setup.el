@@ -22,7 +22,7 @@
 (require 'common)
 
 
-(icy-mode 1)
+(icy-mode +1)
 
 (redefun icicle-fuzzy-candidates (input)
   "Return fuzzy matches for INPUT.  Handles also swank fuzzy symbol match."
@@ -246,7 +246,12 @@ MAP is `minibuffer-local-completion-map' or
     ("C-SPC"         icicle-erase-minibuffer)
 
     ("<backspace>"   delete-backward-char)
-    ("S-<backspace>" backward-delete-word)))
+    ("S-<backspace>" backward-delete-word)
+
+    ("("             paredit-open-round)
+    (")"             paredit-close-round)
+
+    ("\""            paredit-doublequote)))
 
 ;; (fset 'read-shell-command 'icicle-read-shell-command-completing)
 

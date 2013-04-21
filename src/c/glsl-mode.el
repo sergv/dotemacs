@@ -261,7 +261,7 @@
 (defun glsl-find-man-page (thing)
   (interactive
    (let ((result nil))
-     (aif (current-word t)
+     (awhen (current-word t)
        ;; we're right on some word
        (when (member* it glsl-man-completion-list :test #'string=)
          ;; and this word has man entity
