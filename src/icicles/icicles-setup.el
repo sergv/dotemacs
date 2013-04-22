@@ -250,8 +250,18 @@ MAP is `minibuffer-local-completion-map' or
 
     ("("             paredit-open-round)
     (")"             paredit-close-round)
-
-    ("\""            paredit-doublequote)))
+    ("["             paredit-open-square)
+    ("]"             paredit-close-square)
+    ("\""            paredit-doublequote)
+    ("\\"            paredit-backslash)
+    ("M-<up>"        paredit-splice-sexp-killing-backward)
+    ("M-<down>"      paredit-splice-sexp-killing-forward)
+    ("C-)"           paredit-forward-slurp-sexp)
+    ("C-<right>"     paredit-forward-slurp-sexp)
+    ("C-<left>"      paredit-forward-barf-sexp)
+    ("C-("           paredit-backward-slurp-sexp)
+    ("M-<left>"      paredit-backward-slurp-sexp)
+    ("M-<right>"     paredit-backward-barf-sexp)))
 
 ;; (fset 'read-shell-command 'icicle-read-shell-command-completing)
 
