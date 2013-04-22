@@ -6,6 +6,8 @@
 ;; Created: Sunday,  3 February 2013
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
+
 (add-to-list 'load-path (concat +emacs-standalone-path+
                                 "/clojure-mode"))
 (add-to-list 'load-path (concat +emacs-standalone-path+

@@ -656,8 +656,8 @@ This command assumes point is not in a string or comment."
     ("g c u"   lisp-uncomment-sexp)
     ("g c d"   lisp-delete-commented-part)
 
-    ("x"       vim:paredit-forward-delete)
-    ("X"       vim:paredit-backward-delete)
+    ("x"       vim:paredit-forward-kill)
+    ("X"       vim:paredit-backward-kill)
 
     ("g ("     vim:splice-sexp-killing-backward)
     ("g )"     vim:splice-sexp-killing-forward)

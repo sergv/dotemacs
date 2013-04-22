@@ -121,11 +121,11 @@ If in a comment and if followed by invalid structure, call
                   :call-n-times t)
 
 ;; :call-n-times nil because these two handle numeric arguments themselves
-(vimmize-function paredit-forward-delete
-                  :name vim:paredit-forward-delete
+(vimmize-function paredit-forward-kill
+                  :name vim:paredit-forward-kill
                   :call-n-times nil)
-(vimmize-function paredit-backward-delete
-                  :name vim:paredit-backward-delete
+(vimmize-function paredit-backward-kill
+                  :name vim:paredit-backward-kill
                   :call-n-times nil)
 
 (vimmize-function paredit-forward-kill-word
