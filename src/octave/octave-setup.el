@@ -170,7 +170,7 @@ Returns t unless search stops at the beginning or end of the buffer."
 
 ;;;;
 
-     (defconstant +octave-repl-error-regexp+
+     (defconst +octave-repl-error-regexp+
        (rx bol
            (or (seq "error:"
                     (+ whitespace)
