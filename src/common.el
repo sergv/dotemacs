@@ -709,7 +709,11 @@ tabbar, etc")
 
 (defun bisect (item items start end eq? less?)
   "Binary search. Returns index into vector ITEMS.
-LESS? is predicate on elements of ITEMS."
+LESS? is predicate on items and element of ITEMS.
+
+START is inclusive and END is exclusive in ITEMS."
+  ;; if you doubt the implementation and want to improve it make sure
+  ;; tests do pass
   (let ((orig-start start)
         (orig-end end))
     (while (< start end)
@@ -722,10 +726,16 @@ LESS? is predicate on elements of ITEMS."
                      end mid))
               (t
                (setf start (+ mid 1))))))
-    (if (and (<= orig-start start)
-             (< start orig-end))
-        start
-        nil)))
+    start))
+
+(defun bisect-leftmost (item items start end eq? less?)
+  "Similar to `bisect' but returns smallest index, idx, in ITEMS for which
+\(funcall eq? item (aref items idx)) is true."
+  (let ((idx (bisect item items start end eq? less?)))
+    (while (and (> idx 0)
+                (funcall eq? item (aref items (- idx 1))))
+      (setf idx (- idx 1)))
+    idx))
 
 ;;;;
 
