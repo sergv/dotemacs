@@ -13,8 +13,6 @@
 (require 'more-scheme)
 (require 'macro-util)
 
-(defalias 'defconstant 'defconst)
-
 (defvar *ex-commands-re-cache* nil
   "This variable contains optimized regexp that matches
 currently defined ex commands. Should be updated with
@@ -995,6 +993,51 @@ end of END-LINE in current buffer."
               *ignored-file-name-endings*))
 
 ;;;;
+
+;; may be useful someday
+;; (defun search-property-change-with-cycling (direction start-pos prop prop-predicate)
+;;   "DIRECTION should be either 'forward or 'backward
+;; PROP-PREDICATE - predicate over property value"
+;;   (let ((p (min (point-max)
+;;                 (max (point-min)
+;;                      (+ start-pos (if (eq? direction 'forward) +1 -1)))))
+;;         (done nil))
+;;     (while (not done)
+;;       (setf p (funcall (if (eq? direction 'forward)
+;;                          #'next-single-property-change
+;;                          #'previous-single-property-change)
+;;                        p
+;;                        prop
+;;                        (current-buffer)
+;;                        (if (eq? direction 'forward)
+;;                          (if (< p start-pos)
+;;                            start-pos
+;;                            nil)
+;;                          (if (< p start-pos)
+;;                            nil
+;;                            start-pos))))
+;;       (when (and p
+;;                  (= p start-pos)
+;;                  (not (= (point-min) start-pos))
+;;                  (not (= (point-max) start-pos)))
+;;         (error "Property %s satisfying predicate %s not found"
+;;                prop
+;;                prop-predicate))
+;;       (cond
+;;         ((and (eq? direction 'backward)
+;;               (or (not p)
+;;                   (<= p (point-min))))
+;;          (setf p (point-max)))
+;;         ((and (eq? direction 'forward)
+;;               (or (not p)
+;;                   (>= p (point-max))))
+;;          (setf p (point-min)))
+;;         (else
+;;          (setf done (funcall prop-predicate (get-text-property
+;;                                              p
+;;                                              prop))))))
+;;     p))
+
 
 (provide 'common)
 

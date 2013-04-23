@@ -193,42 +193,42 @@ windows. The reason is that Emacs does not have window-local variables.")
 (defmacro vim:add-jump (&optional pos))
 
 ;; (defun vim:add-file-jump ()
-  ;; "Add a jump into the previous buffer when a new file is
+;; "Add a jump into the previous buffer when a new file is
 ;; visited."
-  ;; (let ((b (car (buffer-list))))
-    ;; (with-current-buffer b
-      ;; (vim:add-jump))))
+;; (let ((b (car (buffer-list))))
+;; (with-current-buffer b
+;; (vim:add-jump))))
 
 ;; (defun vim:add-jump (&optional pos)
-  ;; "Adds a position or (point) to the jump list."
-  ;; ;; put everything on the before list
-  ;; (dolist (next (cdr vim:jumplist))
-    ;; (push next (car vim:jumplist)))
-  ;; ;; use (point) as default
-  ;; (unless pos (setq pos (point)))
-  ;; ;; filter all old jumps at the same line
-  ;; (let ((line (line-number-at-pos pos))
-        ;; old-jumps new-jumps
-        ;; (size 0))
-    ;; (dolist (j (car vim:jumplist))
-      ;; (if (and (eq (marker-buffer j) (current-buffer))
-               ;; (= line (line-number-at-pos j)))
-          ;; (push j old-jumps)
-        ;; (push j new-jumps)
-        ;; (incf size)))
+;; "Adds a position or (point) to the jump list."
+;; ;; put everything on the before list
+;; (dolist (next (cdr vim:jumplist))
+;; (push next (car vim:jumplist)))
+;; ;; use (point) as default
+;; (unless pos (setq pos (point)))
+;; ;; filter all old jumps at the same line
+;; (let ((line (line-number-at-pos pos))
+;; old-jumps new-jumps
+;; (size 0))
+;; (dolist (j (car vim:jumplist))
+;; (if (and (eq (marker-buffer j) (current-buffer))
+;; (= line (line-number-at-pos j)))
+;; (push j old-jumps)
+;; (push j new-jumps)
+;; (incf size)))
 ;;
-    ;; ;; remove markers above maximum
-    ;; (while (> size vim:max-jumplist)
-      ;; (push (pop new-jumps) old-jumps)
-      ;; (decf size))
-    ;; ;; create new marker or reuse old one
-    ;; (let ((m (or (pop old-jumps) (make-marker))))
-      ;; (set-marker m pos)
-      ;; (setcar vim:jumplist (cons m (nreverse new-jumps)))
-      ;; (setcdr vim:jumplist nil))
-    ;; ;; delete old markers
-    ;; (dolist (j old-jumps)
-      ;; (set-marker j nil))))
+;; ;; remove markers above maximum
+;; (while (> size vim:max-jumplist)
+;; (push (pop new-jumps) old-jumps)
+;; (decf size))
+;; ;; create new marker or reuse old one
+;; (let ((m (or (pop old-jumps) (make-marker))))
+;; (set-marker m pos)
+;; (setcar vim:jumplist (cons m (nreverse new-jumps)))
+;; (setcdr vim:jumplist nil))
+;; ;; delete old markers
+;; (dolist (j old-jumps)
+;; (set-marker j nil))))
 
 
 (vim:defcmd vim:cmd-prev-jump (nonrepeatable count)
@@ -550,13 +550,13 @@ counted."
 
 (defun vim:boundary-paragraph (direction)
   "A boundary selector for paragraphs.
-A paragraph is a non-empty sequence of non-empty lines."
+      A paragraph is a non-empty sequence of non-empty lines."
   (vim:boundary-lines direction (lambda () (not (and (bolp) (eolp))))))
 
 
 (defun vim:union-boundary (&rest boundaries)
   "A boundary selector returning the nearest bound out of a set
-of bounds."
+      of bounds."
   (let ((boundaries-loc boundaries))
     (lambda (direction)
       (let ((positions
@@ -573,7 +573,7 @@ of bounds."
 
 (defun vim:union-selector (&rest boundaries)
   "A selector returns a pair of coordinates of the next (or
-previous) object described by one of the given `boundaries'."
+                                                         previous) object described by one of the given `boundaries'."
   (let ((boundaries-loc boundaries))
     (let ((find-best (lambda (get-object first-better)
                        (let (obj1)
@@ -1342,7 +1342,6 @@ but only on the current line."
                         :begin (1+ (car bounds))
                         :end (1- (cdr bounds))
                         :type 'inclusive)))))
-
 
 (defun vim:outer-quote (count open-qt &optional close-qt)
   "Select text between two quotes including the quotes."
