@@ -15,20 +15,13 @@
 (defun rest-safe (x)
   (cdr-safe x))
 
-(defun more-clojure/comp (f g &rest funcs)
-  "Fallback function composition routine."
-  (let ((functions (reverse (cons f (cons g funcs)))))
-    (lambda (&rest args)
-      (let ((result (apply (first functions) args)))
-        (dolist (func (rest functions))
-          (setf result (funcall func result)))
-        result))))
-
-(defmacro comp (f g &rest funcs)
+(defmacro more-clojure/comp-impl (functions
+                                  fallback-function
+                                  use-apply-for-last-func)
   "Optimization trick to expand chains of composed functions instead of
 using loop as in `more-clojure/comp'. But if expansion could not be done (e.g.
-F, G, or some of FUNCS is an expression that is expected to be evaluated right
-where comp is called) then `more-clojure/comp' will be used."
+some of FUNCTIONSS is an expression that is expected to be evaluated right
+where comp is called) then FALLBACK-FUNCTION will be used."
   (block cannot-optimize
     (let* ((args-var (gensym))
            (strip-quotation
@@ -47,13 +40,13 @@ where comp is called) then `more-clojure/comp' will be used."
                             (symbol? func))
                      `(,func ,last-arg)
                      `(,call-form ,expr ,last-arg)))
-                  (`(,(or `partial `apply-partially) . (,func . ,args))
+                  (`(,(or `partial `apply-partially) ,func . ,args)
                    (let ((f (funcall strip-quotation func)))
                      (if (and (not use-apply)
                               (symbol? f))
                        `(,f ,@args ,last-arg)
                        `(,call-form ,func ,@args ,last-arg))))
-                  (`(partial-first . (,func . ,args))
+                  (`(partial-first ,func . ,args)
                    (let ((f (funcall strip-quotation func)))
                      (if (and (not use-apply)
                               (symbol? f))
@@ -61,7 +54,10 @@ where comp is called) then `more-clojure/comp' will be used."
                        `(,call-form ,func ,last-arg ,@args))))
                   (some-expr
                    (cl-return-from cannot-optimize
-                     `(more-clojure/comp ,f ,g ,@funcs))))))))
+                     `(,(funcall strip-quotation fallback-function)
+                       ,f
+                       ,g
+                       ,@funcs))))))))
       (letrec ((iter
                 (lambda (funcs)
                   (funcall make-call
@@ -69,13 +65,40 @@ where comp is called) then `more-clojure/comp' will be used."
                            (if (not (null? (rest funcs)))
                              (funcall iter (rest funcs))
                              args-var)
-                           (null? (rest funcs))))))
-        `(lambda (&rest ,args-var)
-           ,(funcall iter (cons f (cons g funcs))))))))
+                           (and (null? (rest funcs))
+                                use-apply-for-last-func)))))
+        `(lambda ,(if use-apply-for-last-func
+               (list &rest ,args-var)
+               (list args-var))
+           ,(funcall iter functions))))))
 
-(comp (partial f a b)
-      (partial-first p x y z)
-      #'h)
+(defun more-clojure/comp (f g &rest funcs)
+  "Fallback function composition routine."
+  (let ((functions (reverse (cons f (cons g funcs)))))
+    (lambda (arg)
+      (let ((result (funcall (first functions) arg)))
+        (dolist (func (rest functions))
+          (setf result (funcall func result)))
+        result))))
+
+(defmacro comp (f g &rest funcs)
+  `(more-clojure/comp-impl ,(cons f (cons g funcs))
+                           more-clojure/comp
+                           nil))
+
+(defun more-clojure/comp* (f g &rest funcs)
+  "Fallback function composition routine."
+  (let ((functions (reverse (cons f (cons g funcs)))))
+    (lambda (arg)
+      (let ((result (apply (first functions) arg)))
+        (dolist (func (rest functions))
+          (setf result (funcall func result)))
+        result))))
+
+(defmacro comp* (f g &rest funcs)
+  `(more-clojure/comp-impl ,(cons f (cons g funcs))
+                           more-clojure/comp*
+                           t))
 
 
 (defalias 'partial #'apply-partially)
