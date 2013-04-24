@@ -1,8 +1,0 @@
-#key: foritr
-#name: for with iterator
-# --
-for( ${1:type} first = ${2:var}.begin(), last = $2.end();
-     first != last; ++first)
-{
-  $0
-}

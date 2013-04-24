@@ -1,4 +1,0 @@
-#key: vccitr
-#name: std::vector const iterator
-# --
-std::vector<$1>::const_iterator $0

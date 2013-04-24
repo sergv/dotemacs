@@ -1,4 +1,0 @@
-#key: copy
-#name: copy algorithm
-# --
-std::copy( ${1:src}.begin(), $1.end(), ${0:dest});
