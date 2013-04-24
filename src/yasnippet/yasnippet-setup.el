@@ -76,8 +76,8 @@ simlifying encoding of several keys for one snippet."
                     (setq binding value))))))
       (setq template
             (buffer-substring-no-properties (point-min) (point-max))))
-    (unless (or key binding)
-      (setq key (and file (file-name-nondirectory file))))
+    (unless (or keys binding)
+      (setq keys (list (and file (file-name-nondirectory file)))))
     (when (eq type 'command)
       (setq template (yas--read-lisp (concat "(progn" template ")"))))
     (when group
