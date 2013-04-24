@@ -1,0 +1,36 @@
+#key: class
+#name: class with full set of functions
+# --
+class ${1:myclass}
+{
+public:
+        $1();
+        $1(const $1& rhs);
+        ~$1();
+        $1& operator=(const $1& rhs);
+
+        $0
+
+private:
+
+};
+
+$1::$1()
+{
+
+}
+
+$1::$1(const $1& rhs)
+{
+
+}
+
+$1::~$1()
+{
+
+}
+
+$1& $1::operator=(const $1& rhs)
+{
+
+}
