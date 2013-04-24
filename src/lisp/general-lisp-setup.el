@@ -275,6 +275,24 @@ if it's not in string."
       (when inside-stringp
         start))))
 
+(defun lisp-position-inside-comment (p)
+  "Return beginnig of a comment point P is positioned in and return nil
+if it's not in comment."
+  (save-excursion
+    (goto-char p)
+    (let* ((end (point))
+           (begin
+             ;; if this proves itself too slow then use line-beginning-position
+             (if (beginning-of-defun)
+               (point)
+               (line-beginning-position)))
+           (state (parse-partial-sexp begin
+                                      end))
+           (inside-commentp (elt state 4))
+           (start (elt state 8)))
+      (when inside-commentp
+        start))))
+
 (defun lisp-position-inside-string-or-comment (p)
   "Return character address of beginning of a string or comment
 point P is positioned in, and nil if not positioned in string
