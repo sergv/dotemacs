@@ -17,8 +17,8 @@
   (setq-local compilation-error-regexp-alist
               (list
                (list +kibit-error-regexp+
-                     1 ;; file-group
-                     2 ;; line-group
+                     1   ;; file-group
+                     2   ;; line-group
                      nil ;; column-group
                      0   ;; type - 0 - info
                      )))

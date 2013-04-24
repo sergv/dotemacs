@@ -48,12 +48,14 @@
         (list
          (list "\\_<info\\_>"
                (list #'clojure-print-info-skeleton)
-               (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                          (not (lisp-pos-is-beginning-of-list? (point))))))
+               (lambda ()
+                 (and (not (lisp-point-inside-string-or-comment?))
+                      (not (lisp-pos-is-beginning-of-list? (point))))))
          (list "\\_<log\\_>"
                (list #'clojure-android-log-skeleton)
-               (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                          (not (lisp-pos-is-beginning-of-list? (point))))))))
+               (lambda ()
+                 (and (not (lisp-point-inside-string-or-comment?))
+                      (not (lisp-pos-is-beginning-of-list? (point))))))))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))

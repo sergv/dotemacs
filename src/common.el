@@ -99,11 +99,11 @@ current time and"
 of random numbers from RANDOM-GEN."
   (typep vect 'vector)
   (loop
-      for i downfrom (1- (length vect)) to 1
-      ;; may yield i
-      for j = (round (* i (funcall random-gen)))
-      do (psetf (aref vect i) (aref vect j)
-                (aref vect j) (aref vect i)))
+    for i downfrom (1- (length vect)) to 1
+    ;; may yield i
+    for j = (round (* i (funcall random-gen)))
+    do (psetf (aref vect i) (aref vect j)
+              (aref vect j) (aref vect i)))
   vect)
 
 (defun shuffle-lines (begin end)
@@ -124,10 +124,10 @@ of random numbers from RANDOM-GEN."
       (random-shuffle lines *tausworthe-random-gen*)
       (goto-char begin)
       (loop
-          for line across lines
-          do
-           (insert line)
-           (insert "\n")))))
+        for line across lines
+        do
+        (insert line)
+        (insert "\n")))))
 
 
 ;;;; file utilities
@@ -166,9 +166,9 @@ of random numbers from RANDOM-GEN."
                   (filep (lambda (p) t))
                   (dirp  (lambda (p) nil))
                   (do-not-visitp
-                      (lambda (p)
-                        (version-control-directory?
-                         (file-name-nondirectory p)))))
+                   (lambda (p)
+                     (version-control-directory?
+                      (file-name-nondirectory p)))))
   "Collect files and/or directories under PATH recursively.
 
 Collect files and directories which satisfy FILEP and
@@ -198,8 +198,8 @@ All predicates are called with full absolute paths."
                            (funcall collect-rec p acc))
                          (get-directory-contents path :full t)
                          :initial-value (if (funcall dirp path)
-                                            (cons path accum)
-                                            accum)))
+                                          (cons path accum)
+                                          accum)))
                 ((funcall filep path)
                  (cons path accum))
                 (t
@@ -212,10 +212,10 @@ Of course directory names are also supported."
   (interactive)
   (if (and (eq major-mode 'org-mode)
            (y-or-n-p "Insert link? "))
-      (insert "[[file:"
-              (expand-file-name (read-file-name "" nil ""))
-              "][]]")
-      (insert (expand-file-name (read-file-name "" nil "")))))
+    (insert "[[file:"
+            (expand-file-name (read-file-name "" nil ""))
+            "][]]")
+    (insert (expand-file-name (read-file-name "" nil "")))))
 
 (defun find-filename-in-tree-recursive ()
   "Read filename regexp and try to find it in current dir's tree or in trees
@@ -255,25 +255,25 @@ obtained by following upward in filesystem"
           (push subdir subdirs-visited)
           (setf path (cdr path))))
       (if found?
-          (progn
-            (assert (not (null? files)))
-            (if (= 1 (length files))
-                (find-file (car files))
-                (select-start-selection files
-                                        :on-selection
-                                        (lambda (idx)
-                                          (select-exit)
-                                          (find-file (nth idx files)))
-                                        :predisplay-function
-                                        (lambda (x)
-                                          (concat "file: " (file-name-nondirectory x) "\n"
-                                                  x "\n"))
-                                        :preamble-function
-                                        (lambda ()
-                                          "Multiple files found\n\n")
-                                        :separator-function
-                                        (lambda () ""))))
-          (error "No file found for \"%s\" regexp" filename-re)))))
+        (progn
+          (assert (not (null? files)))
+          (if (= 1 (length files))
+            (find-file (car files))
+            (select-start-selection files
+                                    :on-selection
+                                    (lambda (idx)
+                                      (select-exit)
+                                      (find-file (nth idx files)))
+                                    :predisplay-function
+                                    (lambda (x)
+                                      (concat "file: " (file-name-nondirectory x) "\n"
+                                              x "\n"))
+                                    :preamble-function
+                                    (lambda ()
+                                      "Multiple files found\n\n")
+                                    :separator-function
+                                    (lambda () ""))))
+        (error "No file found for \"%s\" regexp" filename-re)))))
 
 ;;;;
 
@@ -329,8 +329,8 @@ properties from the result."
           (column-number-mode
            (2 " %c"))
           ,@(when show-directory
-                  '("  "
-                    (:eval default-directory))))))
+              '("  "
+                (:eval default-directory))))))
 
 (defun re-group-matchedp (n)
   "Return non-nil if Nth group matched."
@@ -364,71 +364,71 @@ Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
   (with-local-quit
     (if confirm
-        (let (success)
-          (while (not success)
-            (let ((first (read-passwd prompt nil default))
-                  (second (read-passwd "Confirm password: " nil default)))
-              (if (equal first second)
-                  (progn
-                    (and (arrayp second) (clear-string second))
-                    (setq success first))
-                  (and (arrayp first) (clear-string first))
-                  (and (arrayp second) (clear-string second))
-                  (message "Password not repeated accurately; please start over")
-                  (sit-for 1))))
-          success)
-        (let ((pass nil)
-              ;; Copy it so that add-text-properties won't modify
-              ;; the object that was passed in by the caller.
-              (prompt (copy-sequence prompt))
-              (c 0)
-              (echo-keystrokes 0)
-              (cursor-in-echo-area t)
-              (message-log-max nil)
-              (stop-keys (list 'return ?\r ?\n ?\e))
-              (rubout-keys (list 'backspace ?\b ?\177)))
-          (add-text-properties 0 (length prompt)
-                               minibuffer-prompt-properties prompt)
-          (while (progn (message "%s%s"
-                                 prompt
-                                 (make-string (length pass) ?.))
-                        (setq c (read-key))
-                        (not (memq c stop-keys)))
-            (clear-this-command-keys)
-            (cond ((memq c rubout-keys) ; rubout
-                   (when (> (length pass) 0)
-                     (let ((new-pass (substring pass 0 -1)))
-                       (and (arrayp pass) (clear-string pass))
-                       (setq pass new-pass))))
-                  ((eq c ?\C-g) (keyboard-quit))
-                  ((not (numberp c)))
-                  ((= c ?\C-u)          ; kill line
-                   (and (arrayp pass) (clear-string pass))
-                   (setq pass ""))
-                  ((or (= c ?\C-y)
-                       (= c ?\M-y)
-                       (= c ?\C-p)
-                       (= c ?\M-p))     ; yank
-                   (let* ((str (condition-case nil
-                                   (current-kill 0)
-                                 (error nil)))
-                          new-pass)
-                     (when str
-                       (setq new-pass
-                             (concat pass
-                                     (substring-no-properties str)))
-                       (and (arrayp pass) (clear-string pass))
-                       (setq c ?\0)
-                       (setq pass new-pass))))
-                  ((characterp c)       ; insert char
-                   (let* ((new-char (char-to-string c))
-                          (new-pass (concat pass new-char)))
+      (let (success)
+        (while (not success)
+          (let ((first (read-passwd prompt nil default))
+                (second (read-passwd "Confirm password: " nil default)))
+            (if (equal first second)
+              (progn
+                (and (arrayp second) (clear-string second))
+                (setq success first))
+              (and (arrayp first) (clear-string first))
+              (and (arrayp second) (clear-string second))
+              (message "Password not repeated accurately; please start over")
+              (sit-for 1))))
+        success)
+      (let ((pass nil)
+            ;; Copy it so that add-text-properties won't modify
+            ;; the object that was passed in by the caller.
+            (prompt (copy-sequence prompt))
+            (c 0)
+            (echo-keystrokes 0)
+            (cursor-in-echo-area t)
+            (message-log-max nil)
+            (stop-keys (list 'return ?\r ?\n ?\e))
+            (rubout-keys (list 'backspace ?\b ?\177)))
+        (add-text-properties 0 (length prompt)
+                             minibuffer-prompt-properties prompt)
+        (while (progn (message "%s%s"
+                               prompt
+                               (make-string (length pass) ?.))
+                      (setq c (read-key))
+                      (not (memq c stop-keys)))
+          (clear-this-command-keys)
+          (cond ((memq c rubout-keys)   ; rubout
+                 (when (> (length pass) 0)
+                   (let ((new-pass (substring pass 0 -1)))
                      (and (arrayp pass) (clear-string pass))
-                     (clear-string new-char)
+                     (setq pass new-pass))))
+                ((eq c ?\C-g) (keyboard-quit))
+                ((not (numberp c)))
+                ((= c ?\C-u)            ; kill line
+                 (and (arrayp pass) (clear-string pass))
+                 (setq pass ""))
+                ((or (= c ?\C-y)
+                     (= c ?\M-y)
+                     (= c ?\C-p)
+                     (= c ?\M-p))       ; yank
+                 (let* ((str (condition-case nil
+                                 (current-kill 0)
+                               (error nil)))
+                        new-pass)
+                   (when str
+                     (setq new-pass
+                           (concat pass
+                                   (substring-no-properties str)))
+                     (and (arrayp pass) (clear-string pass))
                      (setq c ?\0)
-                     (setq pass new-pass)))))
-          (message nil)
-          (or pass default "")))))
+                     (setq pass new-pass))))
+                ((characterp c)         ; insert char
+                 (let* ((new-char (char-to-string c))
+                        (new-pass (concat pass new-char)))
+                   (and (arrayp pass) (clear-string pass))
+                   (clear-string new-char)
+                   (setq c ?\0)
+                   (setq pass new-pass)))))
+        (message nil)
+        (or pass default "")))))
 
 ;;;; some ring functions
 
@@ -455,8 +455,8 @@ by doing (clear-string STRING)."
 
 (defun factorial (x)
   (if (= 0 x)
-      1
-      (* x (factorial (1- x)))))
+    1
+    (* x (factorial (1- x)))))
 
 (defun choose (n k)
   "Compute binomial coefficient."
@@ -465,12 +465,12 @@ by doing (clear-string STRING)."
 
 (defun permutations (list)
   (if (null list)
-      (list nil)
-      (mapcan (lambda (item)
-                (map (lambda (x)
-                       (cons item x))
-                     (permutations (remove item list))))
-              list)))
+    (list nil)
+    (mapcan (lambda (item)
+              (map (lambda (x)
+                     (cons item x))
+                   (permutations (remove item list))))
+            list)))
 
 
 (defun combinations (n k)
@@ -481,13 +481,13 @@ combinations"
   (letrec ((collect
             (lambda (start end)
               (if (< start 0)
-                  (list ())
-                  (loop
-                      for i from start to end
-                      nconcing
-                       (map (lambda (rest)
-                              (cons i rest))
-                            (funcall collect (1- start) (1- i))))))))
+                (list ())
+                (loop
+                  for i from start to end
+                  nconcing
+                  (map (lambda (rest)
+                         (cons i rest))
+                       (funcall collect (1- start) (1- i))))))))
     (funcall collect (1- k) (1- n))))
 
 
@@ -556,8 +556,8 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
     (let ((start (funcall find-bound nil))
           (end (funcall find-bound t)))
       (if start
-          (subseq str start (1+ end))
-          ""))))
+        (subseq str start (1+ end))
+        ""))))
 
 ;;;;
 
@@ -570,7 +570,7 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
            (let ((result nil))
              (dolist (item items)
                (if (funcall pred item)
-                   (push item result)))
+                 (push item result)))
              result))))
     (let ((chars (string->list (buffer-substring-no-properties (point-min)
                                                                (point-max)))))
@@ -600,8 +600,8 @@ tabbar, etc")
              (buffer? buf))
          (string-match-pure? (join-lines *invisible-buffers* "\\|")
                              (if (string? buf)
-                                 buf
-                                 (buffer-name buf))))
+                               buf
+                               (buffer-name buf))))
         ;; ((string? buf)
         ;;  (any? (lambda (re)
         ;;          (string-match-pure? re buf))
@@ -767,23 +767,23 @@ START is inclusive and END is exclusive in ITEMS."
   (nth 7 (file-attributes filename 'integer)))
 
 (if (executable-find "cmp")
-    (defun different-files-fast? (file1 file2)
-      "Return t if content of FILE1 and FILE2 differs and try to yield answer
+  (defun different-files-fast? (file1 file2)
+    "Return t if content of FILE1 and FILE2 differs and try to yield answer
 faster than byte-by-byte comparison of respecfive file contents."
-      (if (= (file-size file1) (file-size file2))
-          (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
-          t))
-    (defun different-files-fast? (file1 file2)
-      "Return t if content of FILE1 and FILE2 differs and try to yield answer
+    (if (= (file-size file1) (file-size file2))
+      (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
+      t))
+  (defun different-files-fast? (file1 file2)
+    "Return t if content of FILE1 and FILE2 differs and try to yield answer
 faster than byte-by-byte comparison of respecfive file contents."
-      (if (= (file-size file1) (file-size file2))
-          (string=? (with-temp-buffer
-                      (insert-file-contents file1)
-                      (buffer-substring-no-properties (point-min) (point-max)))
-                    (with-temp-buffer
-                      (insert-file-contents file2)
-                      (buffer-substring-no-properties (point-min) (point-max))))
-          t)))
+    (if (= (file-size file1) (file-size file2))
+      (string=? (with-temp-buffer
+                  (insert-file-contents file1)
+                  (buffer-substring-no-properties (point-min) (point-max)))
+                (with-temp-buffer
+                  (insert-file-contents file2)
+                  (buffer-substring-no-properties (point-min) (point-max))))
+      t)))
 
 ;;;;
 
@@ -921,8 +921,8 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 
 (defun map (func xs &rest sequences)
   (if (null? sequences)
-      (mapcar func xs)
-      (apply cl-mapcar func xs sequences)))
+    (mapcar func xs)
+    (apply #'cl-mapcar func xs sequences)))
 
 (defun foldr (f init items)
   "F should take two arguments (item accum)."

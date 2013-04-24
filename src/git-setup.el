@@ -16,7 +16,7 @@
 
 (setf magit-completing-read-function
       (lambda (prompt collection
-                 &optional predicate require-match initial-input hist def)
+                      &optional predicate require-match initial-input hist def)
         (completing-read-vanilla
          (if (and def (> (length prompt) 2)
                   (string-equal ": " (substring prompt -2)))

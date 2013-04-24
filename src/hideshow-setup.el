@@ -28,7 +28,7 @@
          (while (<= (point) end)
            (forward-sexp 1)
            (backward-sexp 1)
-           (hs-show-block t)       ;; show and reposition
+           (hs-show-block t)        ;; show and reposition
            (skip-syntax-forward ")" ;; close delimiters
                                 )))
        ;; turn visual mode off
@@ -45,7 +45,7 @@
                            (point))
                     end)
            (backward-sexp 1)
-           (hs-hide-block t)       ;; hide and reposition at the end
+           (hs-hide-block t)        ;; hide and reposition at the end
            (skip-syntax-forward ")" ;; skip close delimiters
                                 )))
        ;; turn visual mode off
