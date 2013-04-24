@@ -10,6 +10,18 @@
 
 (require 'ert)
 
+;; note: use of #'equal? as equality predicate is
+;; inconsistent with lesser-than predicate (i.e. common-tests/pair<)
+(defun common-tests/pair= (a b)
+  (= (first a) (first b)))
+
+(defun common-tests/pair< (a b)
+  (< (first a) (first b)))
+
+(defconst common-tests/pairs-test-array
+  [(1 . b) (1 . c) (1 . a) (2 . x) (2 . y)])
+
+
 (ert-deftest common-tests/test-bisect1 ()
   (let ((items [0 1 2 4 5 6]))
     (dotimes (i (length items))
@@ -20,7 +32,8 @@
                          #'=
                          #'<)))
         (should-not (null? res))
-        (should (= i res))))))
+        (should (= i res))
+        (should (= (aref items i) (aref items res)))))))
 
 (ert-deftest common-tests/test-bisect2 ()
   (let ((items [0 1 2 4 5 6]))
@@ -31,38 +44,68 @@
                        #'=
                        #'<)))
       (should-not (null? res))
-      (should (= res 3)))))
+      (should (= res 3))
+      (should (= (aref items 3) (aref items res))))))
 
 (ert-deftest common-tests/test-bisect-leftmost1 ()
-  (let ((items [(1 . b) (1 . c) (1 . a) (2 . x) (2 . y)]))
-    (let ((res (bisect-leftmost (cons 2 'x)
+  (let ((items common-tests/pairs-test-array)
+        (target-value (cons 2 'x)))
+    (let ((res (bisect-leftmost target-value
                                 items
                                 0
                                 (length items)
-                                ;; note: use of #'equal? as equality predicate is
-                                ;; inconsistent with lesser-than predicate
-                                (lambda (a b) (= (first a) (first b)))
-                                (lambda (a b) (< (first a) (first b))))))
+                                #'common-tests/pair=
+                                #'common-tests/pair<)))
       (should-not (null? res))
-      (should (= res 3)))))
+      (should (= res 3))
+      (should (common-tests/pair= target-value (aref items res))))))
 
 (ert-deftest common-tests/test-bisect-leftmost2 ()
-  (let ((items [(1 . b) (1 . c) (1 . a) (2 . x) (2 . y)]))
+  (let ((items common-tests/pairs-test-array))
     (dotimes (i (length items))
-      (let ((res (bisect-leftmost (aref items i)
-                                  items
-                                  0
-                                  (length items)
-                                  ;; note: use of #'equal? as equality predicate is
-                                  ;; inconsistent with lesser-than predicate
-                                  (lambda (a b) (= (first a) (first b)))
-                                  (lambda (a b) (< (first a) (first b))))))
+      (let* ((target-value (aref items i))
+             (res (bisect-leftmost target-value
+                                   items
+                                   0
+                                   (length items)
+                                   #'common-tests/pair=
+                                   #'common-tests/pair<)))
+        (should-not (null? res))
+        (if (= (first target-value) 1)
+          (should (= res 0))
+          (should (= res 3)))
+        (should (common-tests/pair= target-value (aref items res)))))))
+
+(ert-deftest common-tests/test-bisect-rightmost1 ()
+  (let ((items common-tests/pairs-test-array)
+        (target-value (cons 2 'x)))
+    (let ((res (bisect-rightmost target-value
+                                 items
+                                 0
+                                 (length items)
+                                 #'common-tests/pair=
+                                 #'common-tests/pair<)))
+      (should-not (null? res))
+      (should (= res 4))
+      (should (common-tests/pair= target-value (aref items res))))))
+
+(ert-deftest common-tests/test-bisect-rightmost2 ()
+  (let ((items common-tests/pairs-test-array))
+    (dotimes (i (length items))
+      (let* ((target-value (aref items i))
+             (res (bisect-rightmost target-value
+                                    items
+                                    0
+                                    (length items)
+                                    #'common-tests/pair=
+                                    #'common-tests/pair<)))
         (should-not (null? res))
         (if (= (first (aref items i)) 1)
-          (should (= res 0))
-          (should (= res 3)))))))
+          (should (= res 2))
+          (should (= res 4)))
+        (should (common-tests/pair= target-value (aref items res)))))))
 
-(ert "common-tests/\\(?:test-bisect\\(?:-leftmost\\)?\\)[12]")
+(ert "common-tests/.*")
 
 (provide 'common-tests)
 
