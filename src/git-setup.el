@@ -181,9 +181,10 @@ all otherwise."
 (eval-after-load
     "magit-key-mode"
   '(progn
+     ;; add quitting with <escape>
      (redefun magit-key-mode-build-keymap (for-group)
-       "Construct a normal looking keymap for the key mode to use and
-put it in magit-key-mode-key-maps for fast lookup."
+       "Construct a normal looking keymap for the key mode to use.
+Put it in `magit-key-mode-key-maps' for fast lookup."
        (let* ((options (magit-key-mode-options-for-group for-group))
               (actions (cdr (assoc 'actions options)))
               (switches (cdr (assoc 'switches options)))
@@ -192,8 +193,10 @@ put it in magit-key-mode-key-maps for fast lookup."
          (suppress-keymap map 'nodigits)
          ;; ret dwim
          (define-key map (kbd "RET") 'magit-key-mode-exec-at-point)
+         ;; tab jumps to the next "button"
+         (define-key map (kbd "TAB") 'magit-key-mode-jump-to-next-exec)
 
-         ;; all maps should `quit' with `C-g' or `q' or `ESC'
+         ;; all maps should `quit' with `C-g' or `q'
          (define-key map (kbd "ESC") `(lambda ()
                                         (interactive)
                                         (magit-key-mode-command nil)))
@@ -211,27 +214,24 @@ put it in magit-key-mode-key-maps for fast lookup."
                                       (interactive)
                                       (magit-key-mode-help ',for-group)))
 
-         (flet ((defkey (k action)
-                  (when (and (lookup-key map (car k))
-                             (not (numberp (lookup-key map (car k)))))
-                    (message "Warning: overriding binding for `%s' in %S"
-                             (car k) for-group)
-                    (ding)
-                    (sit-for 2))
-                  (define-key map (car k)
-                    `(lambda () (interactive) ,action))))
-           (when actions
-             (dolist (k actions)
-               (defkey k `(magit-key-mode-command ',(nth 2 k)))))
-           (when switches
-             (dolist (k switches)
-               (defkey k `(magit-key-mode-add-option ',for-group ,(nth 2 k)))))
-           (when arguments
-             (dolist (k arguments)
-               (defkey k `(magit-key-mode-add-argument
-                           ',for-group ,(nth 2 k) ',(nth 3 k))))))
+         (let ((defkey (lambda (k action)
+                         (when (and (lookup-key map (car k))
+                                    (not (numberp (lookup-key map (car k)))))
+                           (message "Warning: overriding binding for `%s' in %S"
+                                    (car k) for-group)
+                           (ding)
+                           (sit-for 2))
+                         (define-key map (car k)
+                           `(lambda () (interactive) ,action)))))
+           (dolist (k actions)
+             (funcall defkey k `(magit-key-mode-command ',(nth 2 k))))
+           (dolist (k switches)
+             (funcall defkey k `(magit-key-mode-add-option ',for-group ,(nth 2 k))))
+           (dolist (k arguments)
+             (funcall defkey k `(magit-key-mode-add-argument
+                                 ',for-group ,(nth 2 k) ',(nth 3 k)))))
 
-         (aput 'magit-key-mode-key-maps for-group map)
+         (push (cons for-group map) magit-key-mode-key-maps)
          map))))
 
 
