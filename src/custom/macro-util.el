@@ -881,6 +881,20 @@ value, that slot cannot be set via `setf'.
            ,else-branch)))
     (error "not implemented yet")))
 
+(defmacro when-let (condition &rest body)
+  (assert (and (or (list? condition)
+                   (vector? condition))
+               (= 2 (length condition))))
+  (if (list? condition)
+    (let ((tmp-var (gensym))
+          (cond-var (first condition))
+          (expr (first (rest condition))))
+      `(let ((,tmp-var ,expr))
+         (when ,tmp-var
+           (let ((,cond-var ,tmp-var))
+             ,@body))))
+    (error "not implemented yet")))
+
 ;;;; end
 
 (provide 'macro-util)
