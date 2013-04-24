@@ -25,6 +25,7 @@
                                "awhen"
                                "begin"
                                "if-let"
+                               "when-let"
                                "def-keys-for-map"
                                "defvar-local"
                                "rxx"
@@ -50,6 +51,7 @@
     (aif 1)
     (awhen 1)
     (if-let 1)
+    (when-let 1)
     (def-keys-for-map 1)
     (condition-case 2)
     (rxx 1)
