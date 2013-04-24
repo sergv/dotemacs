@@ -15,7 +15,7 @@
 (require 'render-formula)
 
 (add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/org-mode"))
+                                "/local"))
 
 (require 'org-drill)
 

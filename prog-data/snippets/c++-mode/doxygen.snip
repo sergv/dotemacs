@@ -1,0 +1,22 @@
+#name: doxygen
+#key: dox
+#type: command
+# --
+(let* ((next-func-alist (doxymacs-find-next-func))
+       (func-name (cdr (assoc 'func next-func-alist)))
+       (params-list (cdr (assoc 'args next-func-alist)))
+       (return-name (cdr (assoc 'return next-func-alist)))
+       (snippet-text "")
+       (idx 1))
+  (setq snippet-text (format "/** @brief ${%s:%s}\n" idx func-name))
+  (incf idx)
+  (dolist (param params-list)
+    (unless (string= param "this")
+      (setq snippet-text (concat snippet-text
+                                 (format " * @param %s ${%d:}\n" param idx)))
+      (incf idx)))
+  (when (and return-name (not (string= return-name "void")))
+    (setq snippet-text (concat snippet-text
+                               (format " * @return ${%d:%s}\n" idx return-name))))
+  (setq snippet-text (concat snippet-text " */"))
+  (yas/expand-snippet snippet-text))

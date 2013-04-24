@@ -12,6 +12,12 @@
 (require 'select-mode)
 (require 'ctags-setup)
 
+;; doxymacs is there
+(add-to-list 'load-path (concat +emacs-standalone-path+
+                                "/local"))
+
+(require 'doxymacs)
+
 
 (when (platform-use? 'work)
   (defvar *c++-related-file-cache*
@@ -134,6 +140,8 @@
   (cc-setup :define-special-keys t
             :use-c-eldoc nil ;; c-eldoc is too unreliable and too slow for C++
             )
+  (doxymacs-mode +1)
+  (doxymacs-font-lock)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (if-buffer-has-file
     (setq-local compile-command
