@@ -70,9 +70,6 @@
                           ((= depth +1)
                            (setq dchange -1)))
                     (when dchange
-                      (message "dchange: %s, target-depth: %s"
-                               (pp-to-string dchange)
-                               (pp-to-string target-depth))
                       (setq depth (+ depth dchange))
                       ;; If we are trying to move across, and we find an
                       ;; end before we find a beginning, get an error.
@@ -91,9 +88,7 @@
                     (if (and dchange (= depth target-depth))
                       (setq found (point))))
                   ;; else
-                  (if forward (forward-line 1)))
-                (message "after: depth: %s"
-                         (pp-to-string depth))))
+                  (if forward (forward-line 1)))))
             (or found
                 (error "No containing preprocessor conditional"))
             (goto-char (setq new found)))
@@ -136,7 +131,7 @@
                                  "elif"
                                  "else")
                              symbol-end)
-                        "}"))
+                        "{"))
                      nil
                      "/[*/]"
                      #'c-hideshow-forward-sexp
