@@ -709,7 +709,7 @@ tabbar, etc")
 
 (defun bisect (item items start end eq? less?)
   "Binary search. Returns index into vector ITEMS.
-LESS? is predicate on items and element of ITEMS.
+LESS? is predicate on items and elements of ITEMS.
 
 START is inclusive and END is exclusive in ITEMS."
   ;; if you doubt the implementation and want to improve it make sure
@@ -735,6 +735,16 @@ START is inclusive and END is exclusive in ITEMS."
     (while (and (> idx 0)
                 (funcall eq? item (aref items (- idx 1))))
       (setf idx (- idx 1)))
+    idx))
+
+(defun bisect-rightmost (item items start end eq? less?)
+  "Similar to `bisect' but returns largest index, idx, in ITEMS for which
+\(funcall eq? item (aref items idx)) is true."
+  (let ((idx (bisect item items start end eq? less?))
+        (max-idx (- (length items) 1)))
+    (while (and (< idx max-idx)
+                (funcall eq? item (aref items (+ idx 1))))
+      (setf idx (+ idx 1)))
     idx))
 
 ;;;;
