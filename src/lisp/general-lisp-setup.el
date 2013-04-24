@@ -30,71 +30,71 @@
 (eval-after-load
     'rainbow-delimiters
   '(progn
-    ;; added handling of #\(, #\), etc in addition to ?\(, ?\), etc
-    (redefun rainbow-delimiters-char-ineligible-p (loc)
-      "Return t if char at LOC should be skipped, e.g. if inside a comment.
+     ;; added handling of #\(, #\), etc in addition to ?\(, ?\), etc
+     (redefun rainbow-delimiters-char-ineligible-p (loc)
+       "Return t if char at LOC should be skipped, e.g. if inside a comment.
 
 Returns t if char at loc meets one of the following conditions:
 - Inside a string.
 - Inside a comment.
 - Is an escaped char, e.g. ?\)"
-      (let ((parse-state (save-excursion
-                           (beginning-of-defun)
-                           ;; (point) is at beg-of-defun; loc is the char location
-                           (parse-partial-sexp (point) loc))))
-        (or (nth 3 parse-state)         ; inside string?
-            (nth 4 parse-state)         ; inside comment?
-            ;; check for ?\(, ?\), #\(, #\) etc
-            (and (char= (char-before loc) ?\\)
-                 (or (char= (char-before (- loc 1)) ?\?)
-                     (char= (char-before (- loc 1)) ?\#))))))))
+       (let ((parse-state (save-excursion
+                            (beginning-of-defun)
+                            ;; (point) is at beg-of-defun; loc is the char location
+                            (parse-partial-sexp (point) loc))))
+         (or (nth 3 parse-state)        ; inside string?
+             (nth 4 parse-state)        ; inside comment?
+             ;; check for ?\(, ?\), #\(, #\) etc
+             (and (char= (char-before loc) ?\\)
+                  (or (char= (char-before (- loc 1)) ?\?)
+                      (char= (char-before (- loc 1)) ?\#))))))))
 
 (eval-after-load
     'lisp-mode
   '(progn
-    ;; this function contained what I'm considering a bug - and it turned out to
-    ;; be so - it treated single-semicolon comments as special and tried to
-    ;; indent them as comment lines (i.e. to the fill-column) which turned out
-    ;; to lead to infinite loop as delegate functions would end up
-    ;; calling lisp-indent-line again and again
-    ;; So the single-semicolon comments are treated just as double-semicolon ones
-    (defun lisp-indent-line (&optional whole-exp)
-      "Indent current line as Lisp code.
+     ;; this function contained what I'm considering a bug - and it turned out to
+     ;; be so - it treated single-semicolon comments as special and tried to
+     ;; indent them as comment lines (i.e. to the fill-column) which turned out
+     ;; to lead to infinite loop as delegate functions would end up
+     ;; calling lisp-indent-line again and again
+     ;; So the single-semicolon comments are treated just as double-semicolon ones
+     (defun lisp-indent-line (&optional whole-exp)
+       "Indent current line as Lisp code.
 With argument, indent any additional lines of the same expression
 rigidly along with this one."
-      (interactive "P")
-      (let ((indent (calculate-lisp-indent)) shift-amt end
-            (pos (- (point-max) (point)))
-            (beg (progn (beginning-of-line) (point))))
-        (skip-chars-forward " \t")
-        (if (or (null indent) (looking-at-pure? "\\s<\\s<\\s<"))
-            ;; Don't alter indentation of a ;;; comment line
-            ;; or a line that starts in a string.
-            (goto-char (- (point-max) pos))
-            ;; Single-semicolon comment lines should *not* be indented
-            ;; as comment lines, but should be indented as code
-            (progn
-              (when (listp indent)
-                (setq indent (car indent)))
-              (setq shift-amt (- indent (current-column)))
-              (unless (zerop shift-amt)
-                (delete-region beg (point))
-                (indent-to indent))
-              ;; If initial point was within line's indentation,
-              ;; position after the indentation.  Else stay at same point in text.
-              (when (> (- (point-max) pos) (point))
-                (goto-char (- (point-max) pos)))
-              ;; If desired, shift remaining lines of expression the same amount.
-              (and whole-exp (not (zerop shift-amt))
-                   (save-excursion
-                     (goto-char beg)
-                     (forward-sexp 1)
-                     (setq end (point))
-                     (goto-char beg)
-                     (forward-line 1)
-                     (setq beg (point))
-                     (> end beg))
-                   (indent-code-rigidly beg end shift-amt))))))))
+       (interactive "P")
+       (let ((indent (calculate-lisp-indent)) shift-amt end
+             (pos (- (point-max) (point)))
+             (beg (progn (beginning-of-line) (point))))
+         (skip-chars-forward " \t")
+         (if (or (null indent) (looking-at-pure? "\\s<\\s<\\s<"))
+           ;; Don't alter indentation of a ;;; comment line
+           ;; or a line that starts in a string.
+           (goto-char (- (point-max) pos))
+           ;; Single-semicolon comment lines should *not* be indented
+           ;; as comment lines, but should be indented as code
+           (progn
+             (when (listp indent)
+               (setq indent (car indent)))
+             (setq shift-amt (- indent (current-column)))
+             (unless (zerop shift-amt)
+               (delete-region beg (point))
+               (indent-to indent))
+             ;; If initial point was within line's indentation,
+             ;; position after the indentation.  Else stay at same point in text.
+             (when (> (- (point-max) pos) (point))
+               (goto-char (- (point-max) pos)))
+             ;; If desired, shift remaining lines of expression the same amount.
+             (and whole-exp (not (zerop shift-amt))
+                  (save-excursion
+                    (goto-char beg)
+                    (forward-sexp 1)
+                    (setq end (point))
+                    (goto-char beg)
+                    (forward-line 1)
+                    (setq beg (point))
+                    (> end beg))
+                  (indent-code-rigidly beg end shift-amt))))))))
 
 (make-align-function lisp-align-on-comments ";+")
 
@@ -127,12 +127,12 @@ whose start (including open paren) matches FORM-RE."
           ;;   (backward-up-list))
           ;; (looking-at-p form-re)
           (loop
-              for i below n
-              for result = (progn
-                             (backward-up-list)
-                             (looking-at-pure? form-re))
-              if result
-              return t))
+            for i below n
+            for result = (progn
+                           (backward-up-list)
+                           (looking-at-pure? form-re))
+            if result
+            return t))
       (error nil))))
 
 
@@ -206,8 +206,8 @@ But nesting of more than one sexp is not supported yet
            (begin
              ;; if this proves itself too slow then use line-beginning-position
              (if (beginning-of-defun)
-                 (point)
-                 (line-beginning-position)))
+               (point)
+               (line-beginning-position)))
            (state (parse-partial-sexp begin end)))
       (elt state 3))))
 
@@ -218,8 +218,8 @@ But nesting of more than one sexp is not supported yet
            (begin
              ;; if this proves itself too slow then use line-beginning-position
              (if (beginning-of-defun)
-                 (point)
-                 (line-beginning-position)))
+               (point)
+               (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end))
            (inside-stringp (elt state 3))
@@ -234,8 +234,8 @@ of line."
            (begin
              ;; if this proves itself too slow then use line-beginning-position
              (if (beginning-of-defun)
-                 (point)
-                 (line-beginning-position)))
+               (point)
+               (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end)))
       (elt state 4))))
@@ -266,8 +266,8 @@ if it's not in string."
            (begin
              ;; if this proves itself too slow then use line-beginning-position
              (if (beginning-of-defun)
-                 (point)
-                 (line-beginning-position)))
+               (point)
+               (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end))
            (inside-stringp (elt state 3))
@@ -285,8 +285,8 @@ nor comment."
            (begin
              ;; if this proves itself too slow then use line-beginning-position
              (if (beginning-of-defun)
-                 (point)
-                 (line-beginning-position)))
+               (point)
+               (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end))
            (inside-stringp (elt state 3))
@@ -581,26 +581,26 @@ This command assumes point is not in a string or comment."
      :doc ,doc
      :insert-entity-name-procedure
      ,(if insert-entity-name-procedure
-          insert-entity-name-procedure
-          (lambda (beginning)
-            (save-excursion
-              (condition-case nil
-                  (progn (goto-char beginning)
-                         (save-excursion
-                           ;; this throws error if no enclosing list found
-                           (backward-up-list))
-                         (beginning-of-defun)
-                         (forward-symbol 1)
-                         (paredit-skip-whitespace t)
-                         (let ((symbol (symbol-at-point)))
-                           (if symbol
-                               (concat ,(if msg-transform
-                                            `(funcall ,msg-transform (symbol-name symbol))
-                                            '(symbol-name symbol))
-                                       ": ")
-                               "")))
-                ;; no enclosing list was found, so use no name here
-                (error "")))))
+        insert-entity-name-procedure
+        (lambda (beginning)
+          (save-excursion
+            (condition-case nil
+                (progn (goto-char beginning)
+                       (save-excursion
+                         ;; this throws error if no enclosing list found
+                         (backward-up-list))
+                       (beginning-of-defun)
+                       (forward-symbol 1)
+                       (paredit-skip-whitespace t)
+                       (let ((symbol (symbol-at-point)))
+                         (if symbol
+                           (concat ,(if msg-transform
+                                      `(funcall ,msg-transform (symbol-name symbol))
+                                      '(symbol-name symbol))
+                                   ": ")
+                           "")))
+              ;; no enclosing list was found, so use no name here
+              (error "")))))
      :print-begin ,print-begin
      :print-end ,print-end
 

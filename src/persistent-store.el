@@ -101,8 +101,8 @@
               (while (not (member ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
                 (setf ch (read-key (format "Store file changed since last load, store anyway? [?hyYnNdDbB]: "))))
               (cond
-                ((or (= ch 7)    ;; C-g, abort
-                     (= ch 27)   ;; <escape>
+                ((or (= ch 7)  ;; C-g, abort
+                     (= ch 27) ;; <escape>
                      (char=? ch ?q)
                      (char=? ch ?Q))
                  (error "Store file not saved, *your data may get lost*"))

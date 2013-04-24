@@ -146,8 +146,8 @@
 (setf x-select-enable-clipboard t
       interprogram-paste-function
       (if (platform-os-type? 'linux)
-          #'x-cut-buffer-or-selection-value
-          #'x-get-selection)
+        #'x-cut-buffer-or-selection-value
+        #'x-get-selection)
       query-replace-highlight t
       query-replace-interactive nil ;; do not use last search string as initial regexp
       search-highlight t
@@ -186,8 +186,8 @@
 ;; backwards compatibility since default-buffer-file-coding-system
 ;; is deprecated in 23.2.
 (if (boundp buffer-file-coding-system)
-    (setq buffer-file-coding-system 'utf-8)
-    (setq default-buffer-file-coding-system 'utf-8))
+  (setq buffer-file-coding-system 'utf-8)
+  (setq default-buffer-file-coding-system 'utf-8))
 
 ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
@@ -269,11 +269,11 @@
 
 (eval-after-load "term" ;; ansi-term et al
   '(progn
-    (setf ansi-term-color-vector
-     ["#fdf6e3" "#586475" "#dc322f" "#859900" "#b58900"
-      "#268bd2" "#d33682" "#2aa198" "#839496"]
-     term-buffer-maximum-size 0 ;; don't truncate anything
-     )))
+     (setf ansi-term-color-vector
+           ["#fdf6e3" "#586475" "#dc322f" "#859900" "#b58900"
+            "#268bd2" "#d33682" "#2aa198" "#839496"]
+           term-buffer-maximum-size 0 ;; don't truncate anything
+           )))
 
 (defadvice scroll-up (around
                       scroll-up-preserve-column

@@ -827,8 +827,8 @@ See also `popup-item-propertize'."
                           :parent-offset parent-offset))
 
   (unwind-protect
-      (when (> (popup-width tip) 0)                    ; not to be corrupted
-        (when (and (not (eq width (popup-width tip)))  ; truncated
+      (when (> (popup-width tip) 0)                   ; not to be corrupted
+        (when (and (not (eq width (popup-width tip))) ; truncated
                    (not truncate))
           ;; Refill once again to lines be fitted to popup width
           (setq width (popup-width tip))

@@ -67,9 +67,10 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                              args-var)
                            (and (null? (rest funcs))
                                 use-apply-for-last-func)))))
-        `(lambda ,(if use-apply-for-last-func
-               (list &rest ,args-var)
-               (list args-var))
+        `(lambda
+           ,(if use-apply-for-last-func
+              (list &rest ,args-var)
+              (list args-var))
            ,(funcall iter functions))))))
 
 (defun more-clojure/comp (f g &rest funcs)
