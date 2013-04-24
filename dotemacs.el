@@ -13,7 +13,6 @@
 (load-library "set-up-paths")
 (load-library "set-up-font")
 
-(load-library "reasonable-elisp")
 (load-library "more-scheme")
 (load-library "more-clojure")
 (load-library "custom")
