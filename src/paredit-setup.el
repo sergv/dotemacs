@@ -15,27 +15,27 @@
 (eval-after-load
     'paredit
   '(progn
-    (defadvice paredit-forward-slurp-sexp
-     (after
-      paredit-forward-slurp-sexp-remove-initial-whitespace
-      activate
-      compile)
-     (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
-                (whitespace-charp (char-after)))
-       (delete-whitespaces-forward)))
+     (defadvice paredit-forward-slurp-sexp
+       (after
+        paredit-forward-slurp-sexp-remove-initial-whitespace
+        activate
+        compile)
+       (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
+                  (whitespace-charp (char-after)))
+         (delete-whitespaces-forward)))
 
-    (defadvice paredit-backward-slurp-sexp
-     (after
-      paredit-backward-slurp-sexp-remove-initial-whitespace
-      activate
-      compile)
-     (when (and (lisp-pos-is-end-of-sexp? (point))
-                (whitespace-charp (char-before)))
-       (delete-whitespaces-backward)))
+     (defadvice paredit-backward-slurp-sexp
+       (after
+        paredit-backward-slurp-sexp-remove-initial-whitespace
+        activate
+        compile)
+       (when (and (lisp-pos-is-end-of-sexp? (point))
+                  (whitespace-charp (char-before)))
+         (delete-whitespaces-backward)))
 
-    ;; fix work in comments
-    (redefun paredit-newline ()
-      "Insert a newline and indent it.
+     ;; fix work in comments
+     (redefun paredit-newline ()
+       "Insert a newline and indent it.
 This is like `newline-and-indent', but it not only indents the line
 that the point is on but also the S-expression following the point,
 if there is one.
@@ -44,54 +44,54 @@ If in a string, just insert a literal newline.
 If in a comment and if followed by invalid structure, call
   `indent-new-comment-line' to keep the invalid structure in a
   comment."
-      (interactive)
-      (cond ((paredit-in-string-p)
-             (newline))
-            ((paredit-in-comment-p)
-             (newline-and-indent)
-             ;; Indent the following S-expression, but don't signal an
-             ;; error if there's only a closing delimiter after the point.
-             (paredit-ignore-sexp-errors
-               (indent-sexp)))
-            (t
-             (if (paredit-in-char-p)
-                 (forward-char))
-             (newline-and-indent)
-             ;; Indent the following S-expression, but don't signal an
-             ;; error if there's only a closing delimiter after the point.
-             (paredit-ignore-sexp-errors (indent-sexp)))))
+       (interactive)
+       (cond ((paredit-in-string-p)
+              (newline))
+             ((paredit-in-comment-p)
+              (newline-and-indent)
+              ;; Indent the following S-expression, but don't signal an
+              ;; error if there's only a closing delimiter after the point.
+              (paredit-ignore-sexp-errors
+                (indent-sexp)))
+             (t
+              (if (paredit-in-char-p)
+                (forward-char))
+              (newline-and-indent)
+              ;; Indent the following S-expression, but don't signal an
+              ;; error if there's only a closing delimiter after the point.
+              (paredit-ignore-sexp-errors (indent-sexp)))))
 
-    ;; inhibit modification hooks
-    (redefun paredit-insert-pair (n open close forward)
-      (let ((inhibit-modification-hooks t))
-        (let* ((regionp
-                (and (paredit-region-active-p)
-                     (paredit-region-safe-for-insert-p)))
-               (end
-                (and regionp
-                     (not n)
-                     (prog1 (region-end) (goto-char (region-beginning))))))
-          (let ((spacep (paredit-space-for-delimiter-p nil open)))
-            (if spacep (insert " "))
-            (insert open)
-            (save-excursion
-              ;; Move past the desired region.
-              (cond (n (funcall forward
-                                (save-excursion
-                                  (forward-sexp (prefix-numeric-value n))
-                                  (point))))
-                    (regionp (funcall forward (+ end (if spacep 2 1)))))
-              (insert close)
-              (if (paredit-space-for-delimiter-p t close)
-                  (insert " ")))))))
+     ;; inhibit modification hooks
+     (redefun paredit-insert-pair (n open close forward)
+       (let ((inhibit-modification-hooks t))
+         (let* ((regionp
+                 (and (paredit-region-active-p)
+                      (paredit-region-safe-for-insert-p)))
+                (end
+                 (and regionp
+                      (not n)
+                      (prog1 (region-end) (goto-char (region-beginning))))))
+           (let ((spacep (paredit-space-for-delimiter-p nil open)))
+             (if spacep (insert " "))
+             (insert open)
+             (save-excursion
+               ;; Move past the desired region.
+               (cond (n (funcall forward
+                                 (save-excursion
+                                   (forward-sexp (prefix-numeric-value n))
+                                   (point))))
+                     (regionp (funcall forward (+ end (if spacep 2 1)))))
+               (insert close)
+               (if (paredit-space-for-delimiter-p t close)
+                 (insert " ")))))))
 
-    (def-keys-for-map paredit-mode-map
-      ("C-k"         nil)
-      ("<return>"    nil)
-      ("C-S-<left>"  paredit-backward-slurp-sexp)
-      ("C-S-<right>" paredit-backward-barf-sexp))
+     (def-keys-for-map paredit-mode-map
+       ("C-k"         nil)
+       ("<return>"    nil)
+       ("C-S-<left>"  paredit-backward-slurp-sexp)
+       ("C-S-<right>" paredit-backward-barf-sexp))
 
-    (defadvice:auto-comment paredit-newline)))
+     (defadvice:auto-comment paredit-newline)))
 
 ;;;; vimmized functions
 

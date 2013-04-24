@@ -97,10 +97,10 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
       (let ((tag-start (point))
             (type nil)
             ;; note: be and ee are exclusive ends
-            (bb nil)   ;; beginning of beginning tag
-            (be nil)   ;; end       of beginning tag
-            (eb nil)   ;; beginning of end       tag
-            (ee nil)   ;; end       of end       tag
+            (bb nil) ;; beginning of beginning tag
+            (be nil) ;; end       of beginning tag
+            (eb nil) ;; beginning of end       tag
+            (ee nil) ;; end       of end       tag
             )
         (save-excursion
           ;; handle case when we're inside the tag (_|_ being the point):

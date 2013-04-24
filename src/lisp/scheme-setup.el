@@ -141,9 +141,9 @@
                                          (symbol->string
                                           (car entry)))
                                        +scheme-implementations+)
-                               nil                             ;; predicate
-                               nil                             ;; require-match
-                               nil                             ;; initial-input
+                               nil                              ;; predicate
+                               nil                              ;; require-match
+                               nil                              ;; initial-input
                                'quack-run-scheme-prompt-history ;; history
                                default-name)))
               (program (or (assoc-value 'command

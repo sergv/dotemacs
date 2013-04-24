@@ -30,8 +30,8 @@
       (let ((candidates ()))
         (cond ((vectorp minibuffer-completion-table)
                (mapatoms (lambda (symb) (when (or (null minibuffer-completion-predicate)
-                                             (funcall minibuffer-completion-predicate symb))
-                                     (push (symbol-name symb) candidates)))
+                                                  (funcall minibuffer-completion-predicate symb))
+                                          (push (symbol-name symb) candidates)))
                          minibuffer-completion-table))
 
               ((and (consp minibuffer-completion-table)

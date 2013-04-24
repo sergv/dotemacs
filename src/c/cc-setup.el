@@ -132,10 +132,10 @@
                                  "else")
                              symbol-end)
                         "{"))
-                     nil
-                     "/[*/]"
-                     #'c-hideshow-forward-sexp
-                     nil)))
+                nil
+                "/[*/]"
+                #'c-hideshow-forward-sexp
+                nil)))
   (setf hs-special-modes-alist
         (cons `(c-mode ,hs-spec)
               (cons `(c++-mode ,hs-spec)
