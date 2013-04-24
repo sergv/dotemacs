@@ -15,6 +15,10 @@
 (defun rest-safe (x)
   (cdr-safe x))
 
+(defun filter (pred seq &rest args)
+  (apply #'remove-if-not pred seq args))
+
+
 (defmacro more-clojure/comp-impl (functions
                                   fallback-function
                                   use-apply-for-last-func)
