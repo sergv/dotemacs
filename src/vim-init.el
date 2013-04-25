@@ -357,6 +357,7 @@ Basically swap current point with previous one."
       (magit-status default-directory))))
 
 (vim:emap "magit" 'vim:magit)
+(vim:emap "mg" "magit")
 
 
 (vim:defcmd vim:blame (nonrepeatable)
