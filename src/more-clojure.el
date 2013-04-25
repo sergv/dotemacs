@@ -27,7 +27,7 @@ using loop as in `more-clojure/comp'. But if expansion could not be done (e.g.
 some of FUNCTIONSS is an expression that is expected to be evaluated right
 where comp is called) then FALLBACK-FUNCTION will be used."
   (block cannot-optimize
-    (let* ((args-var (gensym))
+    (let* ((args-var (gensym "args-var"))
            (strip-quotation
             (lambda (x)
               (if (and (list? x)
@@ -36,7 +36,7 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                 (first (rest x))
                 x)))
            (make-call
-            (lambda (expr last-arg use-apply)
+            (lambda (expr last-arg use-apply funcs)
               (let ((call-form (if use-apply 'apply 'funcall)))
                 (pcase expr
                   (`(,(or `function `quote) ,func)
@@ -60,7 +60,6 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                    (cl-return-from cannot-optimize
                      `(,(funcall strip-quotation fallback-function)
                        ,f
-                       ,g
                        ,@funcs))))))))
       (letrec ((iter
                 (lambda (funcs)
@@ -70,38 +69,41 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                              (funcall iter (rest funcs))
                              args-var)
                            (and (null? (rest funcs))
-                                use-apply-for-last-func)))))
+                                use-apply-for-last-func)
+                           funcs))))
         `(lambda
            ,(if use-apply-for-last-func
               (list &rest ,args-var)
               (list args-var))
            ,(funcall iter functions))))))
 
-(defun more-clojure/comp (f g &rest funcs)
+(defun more-clojure/comp (f &rest funcs)
   "Fallback function composition routine."
-  (let ((functions (reverse (cons f (cons g funcs)))))
+  (let ((functions (reverse (cons f funcs))))
     (lambda (arg)
       (let ((result (funcall (first functions) arg)))
         (dolist (func (rest functions))
           (setf result (funcall func result)))
         result))))
 
-(defmacro comp (f g &rest funcs)
-  `(more-clojure/comp-impl ,(cons f (cons g funcs))
+(defmacro comp (f &rest funcs)
+  "More or less intelligent creator of function compositions that can
+optimize away common use cases."
+  `(more-clojure/comp-impl ,(cons f funcs)
                            more-clojure/comp
                            nil))
 
-(defun more-clojure/comp* (f g &rest funcs)
+(defun more-clojure/comp* (f &rest funcs)
   "Fallback function composition routine."
-  (let ((functions (reverse (cons f (cons g funcs)))))
+  (let ((functions (reverse (cons f funcs))))
     (lambda (arg)
       (let ((result (apply (first functions) arg)))
         (dolist (func (rest functions))
           (setf result (funcall func result)))
         result))))
 
-(defmacro comp* (f g &rest funcs)
-  `(more-clojure/comp-impl ,(cons f (cons g funcs))
+(defmacro comp* (f &rest funcs)
+  `(more-clojure/comp-impl ,(cons f funcs)
                            more-clojure/comp*
                            t))
 

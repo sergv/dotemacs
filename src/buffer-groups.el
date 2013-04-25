@@ -10,7 +10,19 @@
 
 (defconst +buffer-groups+
   (symbol-macrolet
-      ((blueprint-filter `(or (mode . blueprint-mode)))
+      ((vc-filter      `(or (mode . magit-mode)
+                            (mode . magit-commit-mode)
+                            (mode . magit-diff-mode)
+                            (mode . magit-key-mode)
+                            (mode . magit-log-edit-mode)
+                            (mode . magit-log-mode)
+                            (mode . magit-reflog-mode)
+                            (mode . magit-show-branches-mode)
+                            (mode . magit-stash-mode)
+                            (mode . magit-status-mode)
+                            (mode . magit-wazzup-mode)
+                            (mode . gitignore-mode)
+                            (name . ,(rx bol "*magit" (* nonl) "*" eol))))
        (clojure-filter `(or (mode . clojure-mode)
                             (mode . nrepl-mode)
                             (mode . nrepl-popup-buffer-mode)
@@ -24,6 +36,37 @@
                              (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
                                   (memq major-mode '(text-mode
                                                      fundamental-mode))))))
+       (emacs-lisp-filter `(or (predicate
+                                .
+                                (and (memq major-mode
+                                           '(emacs-lisp-mode
+                                             inferior-emacs-lisp-mode))
+                                     (not (string-match-pure? "^\\*.+\\*$"
+                                                              (buffer-name)))))))
+       (c-c++-filter `(or (mode . c-mode)
+                          (mode . c++-mode)
+                          (mode . glsl-mode)))
+       (ocaml-filter `(or (mode . tuareg-mode)
+                          (mode . tuareg-interactive-mode)))
+       (octave-filter `(or (mode . octave-mode)
+                           (mode . inferiro-octave-mode)
+                           (name . ,(rx "*Octave*"
+                                        (? "<"
+                                           (+ digit)
+                                           ">")))))
+       (python-filter `(or (mode . python-mode)
+                           (mode . python-repl-mode)
+                           (mode . inferior-python-mode)
+                           (mode . python-run-mode)
+                           (name . ,(rx (or "*Python*"
+                                            "*IPython*"
+                                            "*Python Output*")
+                                        (? "<"
+                                           (+ digit)
+                                           ">")))))
+       (cython-filter `(or (mode . cython-mode)
+                           (mode . cython-compilation-mode)))
+
        (lisp-filter `(or (predicate
                           .
                           (and (memq major-mode
@@ -72,13 +115,6 @@
                                        ;;    (+ digit)
                                        ;;    ">")
                                        ))))
-       (emacs-lisp-filter `(or (predicate
-                                .
-                                (and (memq major-mode
-                                           '(emacs-lisp-mode
-                                             inferior-emacs-lisp-mode))
-                                     (not (string-match-pure? "^\\*.+\\*$"
-                                                              (buffer-name)))))))
        (scheme-filter `(or (mode . scheme-mode)
                            (name . ,(rx (or (seq "*"
                                                  (? (or "chicken"
@@ -94,11 +130,6 @@
                                         (? "<"
                                            (+ digit)
                                            ">")))))
-       (c-c++-filter `(or (mode . c-mode)
-                          (mode . c++-mode)
-                          (mode . glsl-mode)))
-       (ocaml-filter `(or (mode . tuareg-mode)
-                          (mode . tuareg-interactive-mode)))
        (haskell-filter `(or (mode . haskell-mode)
                             (mode . inferior-haskell-mode)
                             (mode . inferior-hugs-mode)
@@ -114,24 +145,6 @@
                                         (? "<"
                                            (+ digit)
                                            ">")))))
-       (octave-filter `(or (mode . octave-mode)
-                           (mode . inferiro-octave-mode)
-                           (name . ,(rx "*Octave*"
-                                        (? "<"
-                                           (+ digit)
-                                           ">")))))
-       (python-filter `(or (mode . python-mode)
-                           (mode . python-repl-mode)
-                           (mode . inferior-python-mode)
-                           (mode . python-run-mode)
-                           (name . ,(rx (or "*Python*"
-                                            "*IPython*"
-                                            "*Python Output*")
-                                        (? "<"
-                                           (+ digit)
-                                           ">")))))
-       (cython-filter `(or (mode . cython-mode)
-                           (mode . cython-compilation-mode)))
        (maxima-filter `(or (mode . maxima-mode)
                            (mode . maxima-noweb-mode)
                            (mode . inferior-maxima-mode)
@@ -155,6 +168,7 @@
        (latex-filter   `(or (mode . latex-mode)
                             (mode . tex-mode)
                             (mode . LaTeX-mode)))
+       (java-filter    `(or (mode . java-mode)))
        (web-filter     `(or (mode . html-mode)
                             (mode . sgml-mode)
                             (mode . nxhtml-mode)
@@ -168,20 +182,6 @@
                             (mode . markdown-mode)
                             (mode . yaml-mode)
                             (mode . rst-mode)))
-       (java-filter    `(or (mode . java-mode)))
-       (vc-filter      `(or (mode . magit-mode)
-                            (mode . magit-commit-mode)
-                            (mode . magit-diff-mode)
-                            (mode . magit-key-mode)
-                            (mode . magit-log-edit-mode)
-                            (mode . magit-log-mode)
-                            (mode . magit-reflog-mode)
-                            (mode . magit-show-branches-mode)
-                            (mode . magit-stash-mode)
-                            (mode . magit-status-mode)
-                            (mode . magit-wazzup-mode)
-                            (mode . gitignore-mode)
-                            (name . ,(rx bol "*magit" (* nonl) "*" eol))))
        (lowlevel-prog-filter `(or (mode . asm-mode)
                                   (mode . llvm-mode)
                                   (mode . tablegen-mode)))
@@ -233,29 +233,29 @@
                           (mode . ibuffer-mode)
                           ;; handle everything
                           (predicate . t))))
-    `(("blueprint"  ,blueprint-filter)
+    `(("vc"         ,vc-filter)
       ("clojure"    ,clojure-filter)
-      ("lisp"       ,lisp-filter)
-      ("slime"      ,slime-filter)
       ("emacs lisp" ,emacs-lisp-filter)
-      ("scheme"     ,scheme-filter)
-
-      ("ocaml"      ,ocaml-filter)
-      ("haskell"    ,haskell-filter)
-      ("prolog"     ,prolog-filter)
-      ("octave"     ,octave-filter)
-      ("maxima"     ,maxima-filter)
-
       ("c/c++"      ,c-c++-filter)
+      ("ocaml"      ,ocaml-filter)
+      ("octave"     ,octave-filter)
       ("python"     ,python-filter)
       ("cython"     ,cython-filter)
+
+      ("lisp"       ,lisp-filter)
+      ("slime"      ,slime-filter)
+      ("scheme"     ,scheme-filter)
+
+      ("haskell"    ,haskell-filter)
+      ("prolog"     ,prolog-filter)
+      ("maxima"     ,maxima-filter)
+
       ("org"        ,org-filter)
       ("books"      ,book-filter)
       ("latex"      ,latex-filter)
+      ("java"       ,java-filter)
       ("web"        ,web-filter)
       ("markup"     ,markup-filter)
-      ("java"       ,java-filter)
-      ("vc"         ,vc-filter)
       ("lowlevel programming" ,lowlevel-prog-filter)
       ("other programming"    ,other-prog-filter)
 
