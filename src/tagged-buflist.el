@@ -663,7 +663,9 @@ could be obtained with tagged-buflist/expand-tag-definitions."
              tag-hierarchy-def
              (sorted-set/empty #'tagged-buflist/buffer-tag<)
              0
-             tagged-buflist)))
+             tagged-buflist)
+    (while (char= (char-before) ?\n)
+      (delete-backward-char 1))))
 
 ;;;; internal functions
 
@@ -998,14 +1000,18 @@ section closest to START-IDX in direction depending on DELTA."
   "Jump to next visibe section with wrapping around in buffer."
   (interactive)
   (tagged-buflist/with-section-for-line section
-    (let* ((visible-sections tagged-buflist/group-sections)
-           (group-sections-len (length visible-sections))
-           (section-idx (bisect-rightmost section
-                                          visible-sections
-                                          0
-                                          group-sections-len
-                                          #'tagged-section/start=
-                                          #'tagged-section/start<))
+    (let* ((group-sections-len (length tagged-buflist/group-sections))
+           (normalize-idx
+            (lambda (idx)
+              (cl-rem idx group-sections-len)))
+           (section-idx
+            ;; rightmost index may be equal to group-sections-len
+            (funcall normalize-idx (bisect-rightmost section
+                                                     tagged-buflist/group-sections
+                                                     0
+                                                     group-sections-len
+                                                     #'tagged-section/start=
+                                                     #'tagged-section/start<)))
            (next-idx
             (pcase (tagged-section/type section)
               (`group
@@ -1014,22 +1020,20 @@ section closest to START-IDX in direction depending on DELTA."
                 +1))
               (`buffer
                section-idx))))
-      (tagged-buflist/goto-section (aref visible-sections next-idx)))))
+      (tagged-buflist/goto-section (aref tagged-buflist/group-sections next-idx)))))
 
 (defun tagged-buflist/select-backward ()
   "Jump to previous visibe section with wrapping around in buffer."
   (interactive)
   (tagged-buflist/with-section-for-line section
-    (let* ((visible-sections
-            tagged-buflist/group-sections)
-           (group-sections-len (length visible-sections))
+    (let* ((group-sections-len (length tagged-buflist/group-sections))
            (normalize-idx
             (lambda (idx)
               (if (< idx 0)
                 (- group-sections-len 1)
                 idx)))
            (section-idx (bisect-leftmost section
-                                         visible-sections
+                                         tagged-buflist/group-sections
                                          0
                                          group-sections-len
                                          #'tagged-section/start=
@@ -1038,14 +1042,14 @@ section closest to START-IDX in direction depending on DELTA."
             (pcase (tagged-section/type section)
               (`group
                ;; In this case approximate index is okay because
-               ;; all sections in this "group" share the same
+               ;; all sections in this "group" share the same beginning
                (tagged-buflist/find-visible-section
                 (funcall normalize-idx
                          (cl-rem (- section-idx 1) group-sections-len))
                 -1))
               (`buffer
                (- section-idx 1)))))
-      (tagged-buflist/goto-section (aref visible-sections prev-idx)))))
+      (tagged-buflist/goto-section (aref tagged-buflist/group-sections prev-idx)))))
 
 ;;; buffer marking and operations on marked buffers
 
@@ -1158,6 +1162,8 @@ tagged bufer list.")
 
 (defvar tagged-buflist-mode-map
   (let ((map (make-sparse-keymap)))
+    (dotimes (k 128)
+      (define-key map [k] nil))
     (def-keys-for-map map
       ("t"               next-line)
       ("n"               previous-line)
