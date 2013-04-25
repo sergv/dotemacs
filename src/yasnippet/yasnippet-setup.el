@@ -126,30 +126,30 @@ simlifying encoding of several keys for one snippet."
                              mode-sym))))
 
 
-(defun yas/skip-and-clear-or-delete-backward-char (&optional field)
+(defun yas-skip-and-clear-or-delete-backward-char (&optional field)
   "Clears unmodified field if at field start, skips to next tab.
 
 Otherwise deletes a character normally by calling `delete-backward-char'."
   (interactive)
   (let ((field (or field
-                   (and yas/active-field-overlay
-                        (overlay-buffer yas/active-field-overlay)
-                        (overlay-get yas/active-field-overlay 'yas/field)))))
+                   (and yas--active-field-overlay
+                        (overlay-buffer yas--active-field-overlay)
+                        (overlay-get yas--active-field-overlay 'yas--field)))))
     (cond ((and field
-                (not (yas/field-modified-p field))
-                (eq (point) (marker-position (yas/field-start field))))
-           (yas/skip-and-clear field)
-           (yas/next-field 1))
+                (not (yas--field-modified-p field))
+                (eq (point) (marker-position (yas--field-start field))))
+           (yas--skip-and-clear field)
+           (yas-next-field 1))
           (t
            (call-interactively 'delete-backward-char)))))
 
 (def-keys-for-map yas/keymap
-  ("<backspace>"     yas/skip-and-clear-or-delete-backward-char)
-  ("<delete>"        yas/skip-and-clear-or-delete-char)
-  ("S-<backspace>"   yas/skip-and-clear-or-delete-char)
+  ("<backspace>"     yas-skip-and-clear-or-delete-backward-char)
+  ("<delete>"        yas-skip-and-clear-or-delete-char)
+  ("S-<backspace>"   yas-skip-and-clear-or-delete-char)
 
-  ("<S-iso-lefttab>" yas/prev-field)
-  ("S-<tab>"         yas/prev-field))
+  ("<S-iso-lefttab>" yas-prev-field)
+  ("S-<tab>"         yas-prev-field))
 
 ;; now load snippets using enhanced functions (re)defined above
 (yas/load-directory yas/root-directory)
