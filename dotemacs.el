@@ -137,6 +137,7 @@
 (load-library "auto-insert-setup")
 (load-library "emms-setup")
 (load-library "ibuffer-setup")
+(load-library "tagged-buflist-setup")
 (load-library "hl-paren")
 (load-library "spell-setup")
 (load-library "abbrev+")
