@@ -331,8 +331,13 @@ treated as a list of tags; otherwise it should be list of plain tags."
               :predicate
               (make-buf-tag-pred
                :or-expr-in-buffer
-               (progn (git-update-file-repository)
-                      (string= repo-root git-repository)))))
+               (progn
+                 (string= repo-root
+                          (if (eq? major-mode 'magit-status-mode)
+                            (strip-trailing-slash default-directory)
+                            (progn
+                              (git-update-file-repository)
+                              git-repository)))))))
            roots)
       #'tagged-buflist/buffer-tag<)
      (list (make-buffer-tag
@@ -417,12 +422,14 @@ cover buffer's name, for groups it would not cover section's name."
                 (list child))))
 
 (defun tagged-section/put-prop (section key value)
+  "Assign VALUE to property KEY in SECTION."
   (assert (symbol? key))
   (puthash key value (tagged-section/properties section)))
 
 (defun tagged-section/get-prop (section key)
+  "Get property KEY from SECTION or nil if not fonud."
   (assert (symbol? key))
-  (gethash key (tagged-section/properties section)))
+  (gethash key (tagged-section/properties section) nil))
 
 (defmacro tagged-buflist/with-new-section (name type section-var &rest body)
   (declare (indent 3))
@@ -495,6 +502,16 @@ cover buffer's name, for groups it would not cover section's name."
   (< (tagged-section/beg section-a)
      (tagged-section/beg section-b)))
 
+(defun tagged-section/hash (section)
+  (let ((name-chain nil))
+    (while section
+      (push (tagged-section/name section) name-chain)
+      (setf section (tagged-section/parent section)))
+    (sxhash (nreverse name-chain))))
+
+(define-hash-table-test 'tagged-section-hash-test
+  #'tagged-section=
+  #'tagged-section/hash)
 
 ;;;; tagged buffers
 
@@ -701,8 +718,7 @@ could be obtained with tagged-buflist/expand-tag-definitions."
          (when ,selected-section-var
            (tagged-buflist/for-single-section (comp (partial #'tagged-section=
                                                              ,selected-section-var))
-                                              (comp #'goto-char
-                                                    #'tagged-section/beg)))))))
+                                              #'tagged-buflist/goto-section))))))
 
 (defmacro tagged-buflist/with-preserved-invisible-sections (&rest body)
   "Remember hidden sections, execute body and restore hidden sections."
@@ -722,13 +738,20 @@ could be obtained with tagged-buflist/expand-tag-definitions."
        (unwind-protect
            (progn
              ,@body)
-         (tagged-buflist/for-multiple-sections
-          (comp (partial-first #'member* ,invisible-sections-var
-                               :test #'tagged-section=))
+         (dolist (sec ,invisible-sections-var)
+           (tagged-buflist/change-group-visibility
+            (gethash sec
+                     tagged-buflist/tagged-sections-store)
+            'invisible))))))
 
-          (lambda (section)
-            (tagged-buflist/change-group-visibility section 'invisible)))))))
-
+(defun tagged-buflist/clear-variables ()
+  "Clear all tagged-buflist internal variables."
+  (clrhash tagged-buflist/tagged-sections-store)
+  (setf tagged-buflist/group-sections nil
+        tagged-buflist/marked-buffers nil
+        tagged-buflist/toplevel-section nil
+        tagged-buflist/current-section nil
+        tagged-buflist/buffers nil))
 
 ;;; functions operating of current line's section
 
@@ -838,9 +861,9 @@ could be obtained with tagged-buflist/expand-tag-definitions."
 
 ;;; group sections
 
-(defvar tagged-buflist/name-to-tagged-sections-map
-  (make-hash-table :test #'equal)
-  "Hash table of section names mappend to tagged sections")
+(defvar tagged-buflist/tagged-sections-store
+  (make-hash-table :test #'tagged-section-hash-test)
+  "Hash table of sections as keys and themselves as values.")
 
 (defvar tagged-buflist/group-sections nil
   "Vector of tagged sections sorted by their beginning positions within
@@ -849,14 +872,14 @@ could be obtained with tagged-buflist/expand-tag-definitions."
 (defun tagged-buflist/refresh-section-stores ()
   "Fill `tagged-buflist/group-sections' with tagged group-sections starting from
 the `tagged-buflist/toplevel-section'.
-Populate `tagged-buflist/name-to-tagged-sections-map' with sections in buffer."
+Populate `tagged-buflist/tagged-sections-store' with sections in buffer."
   (let ((sections nil))
-    (clrhash tagged-buflist/name-to-tagged-sections-map)
+    (clrhash tagged-buflist/tagged-sections-store)
     (letrec ((iter
               (lambda (section)
-                (puthash (tagged-section/name section)
+                (puthash section
                          section
-                         tagged-buflist/name-to-tagged-sections-map)
+                         tagged-buflist/tagged-sections-store)
                 (when (eq? 'group (tagged-section/type section))
                   (push section sections))
                 (dolist (child (tagged-section/children section))
@@ -866,6 +889,107 @@ Populate `tagged-buflist/name-to-tagged-sections-map' with sections in buffer."
           (list->vector (reverse sections)))))
 
 ;;;; user-visible functions
+
+;;; buffer marking and operations on marked buffers
+
+(defvar tagged-buflist/marked-buffers nil
+  "List of buffers (tagged-buffer structs) marked from tagged buffer list.")
+
+(defface tagged-buflist/marked-face
+  `((t (:foreground ,+solarized-magenta+)))
+  "Face to highlight marked buffers."
+  :group 'tagged-buflist)
+
+(defmacro tagged-buflist/with-preserved-marks (&rest body)
+  "Save value of `tagged-buflist/marked-buffers', execute BODY and restore
+saved buffer marks."
+  (declare (indent 0))
+  (let ((store-var (gensym "store-var")))
+    `(let ((,store-var tagged-buflist/marked-buffers))
+       (unwind-protect
+           (progn
+             ,@body)
+         (dolist (buf ,store-var)
+           (tagged-buflist/mark-buffer (find buf tagged-buflist/buffers
+                                             :test #'tagged-buffer=)))))))
+
+(defun tagged-buflist/mark-buffer (tagged-buf)
+  "Place mark on TAGGED-BUF."
+  (assert (tagged-buffer-p tagged-buf))
+  (unless (member* tagged-buf
+                   tagged-buflist/marked-buffers
+                   :test #'tagged-buffer=)
+    (push tagged-buf tagged-buflist/marked-buffers)
+    (overlay-put (tagged-section/overlay (tagged-buffer/section tagged-buf))
+                 'face
+                 'tagged-buflist/marked-face)))
+
+(defun tagged-buflist/unmark-buffer (tagged-buf)
+  "Remove mark from TAGGED-BUF."
+  (assert (tagged-buffer-p tagged-buf))
+  (when (member* tagged-buf
+                 tagged-buflist/marked-buffers
+                 :test #'tagged-buffer=)
+    (setf tagged-buflist/marked-buffers
+          (remove* tagged-buf
+                   tagged-buflist/marked-buffers
+                   :test #'tagged-buffer=))
+    (overlay-put (tagged-section/overlay (tagged-buffer/section tagged-buf))
+                 'face
+                 nil)))
+
+
+(defun tagged-buflist/mark-buffers-at-point ()
+  (interactive)
+  (tagged-buflist/for-section-on-line
+   :if-group (comp (partial #'map #'tagged-buflist/mark-buffer)
+                   #'tagged-buflist/collect-tagged-buffers-under-section)
+   :if-buffer (comp #'tagged-buflist/mark-buffer
+                    (partial-first #'tagged-section/get-prop 'buffer))))
+
+(defun tagged-buflist/unmark-buffers-at-point ()
+  (interactive)
+  (tagged-buflist/for-section-on-line
+   :if-group (comp (partial #'map #'tagged-buflist/unmark-buffer)
+                   #'tagged-buflist/collect-tagged-buffers-under-section)
+   :if-buffer (comp #'tagged-buflist/unmark-buffer
+                    (partial-first #'tagged-section/get-prop 'buffer))))
+
+(defun tagged-buflist/unmark-all ()
+  (interactive)
+  (for-each #'tagged-buflist/unmark-buffer tagged-buflist/marked-buffers))
+
+(defun tagged-buflist/delete-marked-buffers ()
+  (interactive)
+  (tagged-buflist/with-preserved-selection
+    (map (comp #'kill-buffer
+               #'tagged-buffer/buf)
+         tagged-buflist/marked-buffers)
+    (setf tagged-buflist/marked-buffers nil)
+    (tagged-buflist/refresh)))
+
+(defun tagged-buflist/save-marked-buffers ()
+  (interactive)
+  (tagged-buflist/with-preserved-selection
+    (map (lambda (tagged-buf)
+           (with-current-buffer (tagged-buffer/buf tagged-buf)
+             (save-buffer)))
+         tagged-buflist/marked-buffers)
+    (tagged-buflist/refresh)))
+
+(defun tagged-buflist/eval-in-marked-buffers (expr)
+  "Evaluate expression EXPR in marked buffers."
+  (interactive (list (read-from-minibuffer "expr: "
+                                           nil
+                                           icicle-read-expression-map
+                                           t ;; Apply `read' to string read.
+                                           'read-expression-history)))
+  (tagged-buflist/with-preserved-selection
+    (map (lambda (tagged-buf)
+           (with-current-buffer (tagged-buffer/buf tagged-buf)
+             (eval expr)))
+         tagged-buflist/marked-buffers)
+    (tagged-buflist/refresh)))
 
 ;;; "main" functions
 
@@ -878,7 +1002,8 @@ Populate `tagged-buflist/name-to-tagged-sections-map' with sections in buffer."
   "Switch to tagged buffer list."
   (interactive)
   (setf tagged-buflist/marked-buffers nil)
-  (let ((buf (get-buffer tagged-buflist/main-buffer-name)))
+  (let ((orig-buffer (current-buffer))
+        (buf (get-buffer tagged-buflist/main-buffer-name)))
     (unless buf
       (setf buf (get-buffer-create tagged-buflist/main-buffer-name))
       (with-current-buffer buf
@@ -886,10 +1011,20 @@ Populate `tagged-buflist/name-to-tagged-sections-map' with sections in buffer."
         (tagged-buflist-mode)
         (font-lock-mode -1)
         (read-only-mode +1)
-        ;; (insert "\n")
+        (add-hook 'kill-buffer-hook
+                  #'tagged-buflist/clear-variables
+                  nil ;; append
+                  t   ;; local
+                  )
         (tagged-buflist/refresh)
-        ;; (org-align-all-tags)
-        ))
+        (goto-char (point-min))
+        ;; select original buffer
+        (tagged-buflist/for-single-section
+         (comp (partial #'eq?
+                        orig-buffer)
+               (partial-first #'tagged-section/get-prop
+                              'buffer))
+         #'tagged-buflist/goto-section)))
     (switch-to-buffer buf)))
 
 
@@ -1050,107 +1185,6 @@ section closest to START-IDX in direction depending on DELTA."
               (`buffer
                (- section-idx 1)))))
       (tagged-buflist/goto-section (aref tagged-buflist/group-sections prev-idx)))))
-
-;;; buffer marking and operations on marked buffers
-
-(defvar tagged-buflist/marked-buffers nil
-  "List of buffers (tagged-buffer structs) marked from tagged buffer list.")
-
-(defface tagged-buflist/marked-face
-  `((t (:foreground ,+solarized-magenta+)))
-  "Face to highlight marked buffers."
-  :group 'tagged-buflist)
-
-(defmacro tagged-buflist/with-preserved-marks (&rest body)
-  "Save value of `tagged-buflist/marked-buffers', execute BODY and restore
-saved buffer marks."
-  (declare (indent 0))
-  (let ((store-var (gensym "store-var")))
-    `(let ((,store-var tagged-buflist/marked-buffers))
-       (unwind-protect
-           (progn
-             ,@body)
-         (dolist (buf ,store-var)
-           (tagged-buflist/mark-buffer (find buf tagged-buflist/buffers
-                                             :test #'tagged-buffer=)))))))
-
-(defun tagged-buflist/mark-buffer (tagged-buf)
-  "Place mark on TAGGED-BUF."
-  (assert (tagged-buffer-p tagged-buf))
-  (unless (member* tagged-buf
-                   tagged-buflist/marked-buffers
-                   :test #'tagged-buffer=)
-    (push tagged-buf tagged-buflist/marked-buffers)
-    (overlay-put (tagged-section/overlay (tagged-buffer/section tagged-buf))
-                 'face
-                 'tagged-buflist/marked-face)))
-
-(defun tagged-buflist/unmark-buffer (tagged-buf)
-  "Remove mark from TAGGED-BUF."
-  (assert (tagged-buffer-p tagged-buf))
-  (when (member* tagged-buf
-                 tagged-buflist/marked-buffers
-                 :test #'tagged-buffer=)
-    (setf tagged-buflist/marked-buffers
-          (remove* tagged-buf
-                   tagged-buflist/marked-buffers
-                   :test #'tagged-buffer=))
-    (overlay-put (tagged-section/overlay (tagged-buffer/section tagged-buf))
-                 'face
-                 nil)))
-
-
-(defun tagged-buflist/mark-buffers-at-point ()
-  (interactive)
-  (tagged-buflist/for-section-on-line
-   :if-group (comp (partial #'map #'tagged-buflist/mark-buffer)
-                   #'tagged-buflist/collect-tagged-buffers-under-section)
-   :if-buffer (comp #'tagged-buflist/mark-buffer
-                    (partial-first #'tagged-section/get-prop 'buffer))))
-
-(defun tagged-buflist/unmark-buffers-at-point ()
-  (interactive)
-  (tagged-buflist/for-section-on-line
-   :if-group (comp (partial #'map #'tagged-buflist/unmark-buffer)
-                   #'tagged-buflist/collect-tagged-buffers-under-section)
-   :if-buffer (comp #'tagged-buflist/unmark-buffer
-                    (partial-first #'tagged-section/get-prop 'buffer))))
-
-(defun tagged-buflist/unmark-all ()
-  (interactive)
-  (for-each #'tagged-buflist/unmark-buffer tagged-buflist/unmark-buffer))
-
-(defun tagged-buflist/delete-marked-buffers ()
-  (interactive)
-  (tagged-buflist/with-preserved-selection
-    (map (comp #'kill-buffer
-               #'tagged-buffer/buf)
-         tagged-buflist/marked-buffers)
-    (setf tagged-buflist/marked-buffers nil)
-    (tagged-buflist/refresh)))
-
-(defun tagged-buflist/save-marked-buffers ()
-  (interactive)
-  (tagged-buflist/with-preserved-selection
-    (map (lambda (tagged-buf)
-           (with-current-buffer (tagged-buffer/buf tagged-buf)
-             (save-buffer)))
-         tagged-buflist/marked-buffers)
-    (tagged-buflist/refresh)))
-
-(defun tagged-buflist/eval-in-marked-buffers (expr)
-  "Evaluate expression EXPR in marked buffers."
-  (interactive (list (read-from-minibuffer "expr: "
-                                           nil
-                                           icicle-read-expression-map
-                                           t ;; Apply `read' to string read.
-                                           'read-expression-history)))
-  (tagged-buflist/with-preserved-selection
-    (map (lambda (tagged-buf)
-           (with-current-buffer (tagged-buffer/buf tagged-buf)
-             (eval expr)))
-         tagged-buflist/marked-buffers)
-    (tagged-buflist/refresh)))
 
 ;;;; tagged-buflist-mode
 
