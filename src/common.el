@@ -1014,6 +1014,12 @@ end of END-LINE in current buffer."
 
 ;;;;
 
+(defun insert-current-date ()
+  (interactive)
+  (insert (format-time-string "%A, %e %B %Y")))
+
+;;;;
+
 ;; may be useful someday
 ;; (defun search-property-change-with-cycling (direction start-pos prop prop-predicate)
 ;;   "DIRECTION should be either 'forward or 'backward
