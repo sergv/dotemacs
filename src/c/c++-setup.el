@@ -11,6 +11,7 @@
 (require 'c++-abbrev+)
 (require 'select-mode)
 (require 'ctags-setup)
+(require 'more-clojure)
 
 ;; doxymacs is there
 (add-to-list 'load-path (concat +emacs-standalone-path+
@@ -99,7 +100,7 @@
                      :preamble-function
                      (lambda () (concat "Select desired alternative file\n"))
                      :separator-function
-                     (apply-partially #'select-make-bold-separator "--------\n"))))
+                     (pply-partially #'select-make-bold-separator "--------\n"))))
                 (error "No *.%s file found for %s" alt-ext filename))))))))
 
   (defun c++-indent-buffer ()

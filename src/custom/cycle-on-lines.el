@@ -59,20 +59,6 @@ DIRECTION may have value either 'forward or 'backward"
                           backward-func)
                        count))))))
 
-(defun ibuffer-cycle-buffers-forward (count)
-  "Cycle through buffer list forward selecting next buffer"
-  (interactive "p")
-  (funcall
-   (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 forward)
-   count))
-
-(defun ibuffer-cycle-buffers-backward (count)
-  "Cycle through buffer list backward selecting next buffer"
-  (interactive "p")
-  (funcall
-   (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 backward)
-   count))
-
 (defun dired-cycle-files-forward (count)
   "Cycle through file list forward selecting next entry"
   (interactive "p")
