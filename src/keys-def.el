@@ -54,7 +54,7 @@
 
 
 (defconst +vim-special-keys+
-  '((", b"   ibuffer)
+  '((", b"   tagged-buflist-show)
     (";"     vim:ex-read-command)
 
     ("g C"   remember-win-config-store-configuration)
