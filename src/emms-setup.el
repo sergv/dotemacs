@@ -42,7 +42,7 @@
     ("D"        emms-playlist-mode-kill-entire-track)
 
     (","        nil)
-    (", b"      ibuffer)
+    (", b"      tagged-buflist-show)
     (";"        vim:ex-read-command)
 
     ("g x"      smex)

@@ -151,7 +151,7 @@ like \"d w\".")
   ("C-S-k"    remove-buffer-and-window)
 
   ;; (", w"      save-buffer)
-  (", b"      ibuffer)
+  (", b"      tagged-buflist-show)
   (", s"      nil)
   (", s w"    vim:replace-word)
   (", s W"    vim:replace-WORD)
