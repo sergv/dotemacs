@@ -179,6 +179,20 @@ a prefix argument reverses the meaning of that variable."
              (error "No buffer with name %s" name)
              (goto-char buf-point)))))
 
+     (defun ibuffer-cycle-buffers-forward (count)
+       "Cycle through buffer list forward selecting next buffer"
+       (interactive "p")
+       (funcall
+        (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 forward)
+        count))
+
+     (defun ibuffer-cycle-buffers-backward (count)
+       "Cycle through buffer list backward selecting next buffer"
+       (interactive "p")
+       (funcall
+        (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 backward)
+        count))
+
      (def-keys-for-map ibuffer-mode-map
        +control-x-prefix+
        +vim-special-keys+
@@ -217,6 +231,8 @@ a prefix argument reverses the meaning of that variable."
        ("S-<tab>"         ibuffer-backward-filter-group)
        ("<S-iso-lefttab>" ibuffer-backward-filter-group)
 
+       ("E"        nil)
+       ("e"        ibuffer-do-eval)
        ("r"        ibuffer-update)
        ("t"        ibuffer-cycle-buffers-forward)
        ("n"        ibuffer-cycle-buffers-backward)

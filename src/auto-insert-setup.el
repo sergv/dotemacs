@@ -8,6 +8,7 @@
 
 (require 'custom)
 (require 'common)
+(require 'more-clojure)
 
 (setf auto-insert-directory (concat +prog-data-path+ "/auto-insert")
       auto-insert 'other
@@ -52,10 +53,10 @@
                                         (file-name-sans-extension
                                          (file-name-nondirectory
                                           (buffer-file-name))))))
-   (list "date"      (apply-partially #'format-time-string
-                                      "%A, %e %B %Y"))
-   (list "date year" (apply-partially #'format-time-string
-                                      "%Y"))
+   (list "date"      (partial #'format-time-string
+                              "%A, %e %B %Y"))
+   (list "date year" (partial #'format-time-string
+                              "%Y"))
    (list "author" (lambda () "Sergey Vinokurov"))
    (list "email" (lambda () "serg.foo@gmail.com"))
    (list "clojure-path-to-ns"
