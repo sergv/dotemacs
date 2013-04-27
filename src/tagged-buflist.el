@@ -87,8 +87,8 @@ treated as a list of tags; otherwise it should be list of plain tags."
                               nrepl-popup-buffer-mode)
                :or-expr-in-buffer
                (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
-                    (memq major-mode (text-mode
-                                      fundamental-mode)))))
+                    (memq major-mode '(text-mode
+                                       fundamental-mode)))))
         (list "Emacs Lisp"
               (make-buf-tag-pred
                :major-modes '(emacs-lisp-mode
@@ -518,11 +518,13 @@ cover buffer's name, for groups it would not cover section's name."
 (defvar tagged-buflist/buffers nil
   "List of `tagged-buffer' structs of buffers currently shown.")
 
+;; Note that single tagged buffer may be represented in several sections
+;; but section cannot be referenced from more than one tagged buffer.
 (defstruct (tagged-buffer
             (:conc-name tagged-buffer/))
   buf
   tags
-  section ;; tagged section for this buffer
+  sections ;; list of tagged section for this buffer
   )
 
 (defun tagged-buffer= (buf-a buf-b)
@@ -548,7 +550,7 @@ cover buffer's name, for groups it would not cover section's name."
                            (funcall (buffer-tag/predicate tag) buf))
                          tags)
                  #'tagged-buflist/buffer-tag<)
-          :section nil))
+          :sections nil))
        (tagged-buflist/user-buffers)))
 
 (defun* tagged-buflist/buffers-matching-tagset (tagged-buflist
@@ -607,7 +609,7 @@ could be obtained with tagged-buflist/expand-tag-definitions."
                   (tagged-buffer/name buf)
                   buffer
                   section
-                (setf (tagged-buffer/section buf) section)
+                (push section (tagged-buffer/sections buf))
                 (tagged-section/put-prop section 'buffer buf)
                 (let* ((bufname (tagged-buffer/name buf))
                        (bufname-padding (- *tagged-buffers-name-length*
@@ -920,9 +922,10 @@ saved buffer marks."
                    tagged-buflist/marked-buffers
                    :test #'tagged-buffer=)
     (push tagged-buf tagged-buflist/marked-buffers)
-    (overlay-put (tagged-section/overlay (tagged-buffer/section tagged-buf))
-                 'face
-                 'tagged-buflist/marked-face)))
+    (dolist (section (tagged-buffer/sections tagged-buf))
+      (overlay-put (tagged-section/overlay section)
+                   'face
+                   'tagged-buflist/marked-face))))
 
 (defun tagged-buflist/unmark-buffer (tagged-buf)
   "Remove mark from TAGGED-BUF."
@@ -934,9 +937,10 @@ saved buffer marks."
           (remove* tagged-buf
                    tagged-buflist/marked-buffers
                    :test #'tagged-buffer=))
-    (overlay-put (tagged-section/overlay (tagged-buffer/section tagged-buf))
-                 'face
-                 nil)))
+    (dolist (section (tagged-buffer/sections tagged-buf))
+      (overlay-put (tagged-section/overlay section)
+                   'face
+                   nil))))
 
 
 (defun tagged-buflist/mark-buffers-at-point ()
