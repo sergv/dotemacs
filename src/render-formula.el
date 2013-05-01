@@ -209,7 +209,7 @@ displayed as images.")
              (add-text-properties
               (match-beginning 0)
               (match-end 0)
-              (list 'display (render-formula (trim-whitespaces s))
+              (list 'display (render-formula (trim-whitespace s))
                     'render-formula t
                     'intangible t
                     'read-only "Disable latex images first")))

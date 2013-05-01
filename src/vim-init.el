@@ -298,7 +298,7 @@ Basically swap current point with previous one."
                     ;; adapted from vim:ex-read-command
                     (let ((vim:ex-current-buffer buf)
                           (vim:ex-current-window window)
-                          (cmd (trim-whitespaces-left command)))
+                          (cmd (trim-whitespace-left command)))
                       (if (and cmd
                                (not (zero? (length cmd))))
                         (vim:ex-execute-command cmd)

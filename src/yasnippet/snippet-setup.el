@@ -6,6 +6,17 @@
 ;; Created: long ago
 ;; Description:
 
+(defun yas-load-snippet-buffer-no-kill (&optional prompt-table)
+  "Load snippet from current buffer. If PROMPT-TABLE is non-nil then
+propmt user for snippet table to load into and try to infer one
+otherwise."
+  (interactive "P")
+  (save-excursion
+    (yas-load-snippet-buffer (if prompt-table
+                               (yas--read-table)
+                               (first (yas--compute-major-mode-and-parents
+                                       buffer-file-name)))
+                             nil)))
 
 (defun snippet-setup ()
   ;; don't use init-common here ;; upd: why?
@@ -20,14 +31,14 @@
   (setq vim:normal-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>"    yas/load-snippet-buffer)
-    ("S-<f9>"  yas/tryout-snippet))
+    ("<f9>"    yas-load-snippet-buffer-no-kill)
+    ("S-<f9>"  yas-tryout-snippet))
 
   (def-keys-for-map snippet-mode-map
     ("C-c C-c" nil)
     ("C-c C-t" nil)
-    ("<f9>"    yas/load-snippet-buffer)
-    ("S-<f9>"  yas/tryout-snippet)))
+    ("<f9>"    yas-load-snippet-buffer-no-kill)
+    ("S-<f9>"  yas-tryout-snippet)))
 
 
 (provide 'snippet-setup)

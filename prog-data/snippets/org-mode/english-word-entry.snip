@@ -1,0 +1,9 @@
+# key: english-word
+# key: engword
+# name: english word translation entry
+# --
+** ${1:<word>} :drill:
+   ${1:$(trim-whitespace text)} ${2:<word-type>}${2:$(if (or (null text) (= 0 (length text))) "" " ")}- [${3:<translations>}]
+
+${4:*** synonym                                                            :hint:
+**** ${5:<synonym>}}$0
