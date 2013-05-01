@@ -51,9 +51,6 @@
                           (funcall search-function
                                    "#[ \t]*\\(if\\|elif\\|endif\\|else\\)"
                                    nil t))
-                (message "depth: %s, line: %s"
-                         (pp-to-string depth)
-                         (current-line))
                 (beginning-of-line)
                 ;; Now verify it is really a preproc line.
                 (if (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\|else\\)")

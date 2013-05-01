@@ -13,13 +13,28 @@
 (setf yas-ignore-filenames-as-triggers t)
 (require 'yasnippet)
 (setf yas-snippet-dirs (concat +prog-data-path+ "/snippets")
-      yas-prompt-functions '(yas/dropdown-prompt yas/completing-prompt)
+      yas-prompt-functions '(yas-dropdown-prompt yas-completing-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w"))
 ;; (yas-compile-directory yas-snippet-dirs)
 (yas--initialize)
 
 ;; so yasnippet is in loaded state here
+
+(eval-after-load
+    "org"
+  '(progn
+     (defadvice org-fix-tags-on-the-fly (around
+                                         org-fix-tags-on-the-fly-yasnippet-field-fix
+                                         activate
+                                         compile
+                                         preactivate
+                                         protect)
+       "Solution to problem of `org-fix-tags-on-the-fly' being called after
+every org-self-insert-command when yasnippet's field happens to be located
+in org's headline."
+       (yas--inhibit-overlay-hooks
+         ad-do-it))))
 
 (defun yas--parse-templates (&optional file)
   "Parse the templates in the current buffer. For every mention of
@@ -143,7 +158,7 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
           (t
            (call-interactively 'delete-backward-char)))))
 
-(def-keys-for-map yas/keymap
+(def-keys-for-map yas-keymap
   ("<backspace>"     yas-skip-and-clear-or-delete-backward-char)
   ("<delete>"        yas-skip-and-clear-or-delete-char)
   ("S-<backspace>"   yas-skip-and-clear-or-delete-char)
@@ -152,7 +167,7 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
   ("S-<tab>"         yas-prev-field))
 
 ;; now load snippets using enhanced functions (re)defined above
-(yas/load-directory yas/root-directory)
+(yas-load-directory yas-snippet-dirs)
 
 
 (provide 'yasnippet-setup)

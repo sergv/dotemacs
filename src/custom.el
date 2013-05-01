@@ -203,21 +203,21 @@ confuse when point is not at the beginning of line"
 
 
 
-(defun trim-whitespaces (str)
+(defun trim-whitespace (str)
   "Trim leading and tailing whitespace from STR."
   (when str
     (save-match-data
       (let ((s (if (symbolp str) (symbol-name str) str)))
         (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
 
-(defun trim-whitespaces-left (str)
+(defun trim-whitespace-left (str)
   "Trim leading whitespace from STR."
   (when str
     (save-match-data
       (let ((s (if (symbolp str) (symbol-name str) str)))
         (replace-regexp-in-string "^[[:space:]\n]*" "" s)))))
 
-(defun trim-whitespaces-right (str)
+(defun trim-whitespace-right (str)
   "Trim tailing whitespace from STR."
   (when str
     (save-match-data

@@ -91,7 +91,7 @@ With prefix argument puts symbol at point also in substitute part"
 ;; (defun* util:construct-convenient-ex-replace-command (str &key
 ;;                                                           (word nil)
 ;;                                                           (symbol nil))
-;;   (let ((clean-str (trim-whitespaces str)))
+;;   (let ((clean-str (trim-whitespace str)))
 ;;     (concat
 ;;      (util:construct-ex-replace-command clean-str
 ;;                                         :word word
