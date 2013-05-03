@@ -14,23 +14,23 @@
 
 (defconst +emacs-config-path+
   (concat (platform-dependent-root) "/emacs")
-  "Path to folder which is the root for emacs configuration.")
+  "Path to root for emacs configuration.")
 
 (defconst +emacs-standalone-path+
   (concat +emacs-config-path+ "/standalone")
-  "Path to folder which is the root for emacs configuration.")
+  "Path to directory with standalone packages.")
+
+(defconst +emacs-standalone-elc-path+
+  (concat +emacs-standalone-path+ "/local")
+  "Path to directory with compiled files of standalone packages.")
 
 (defconst +emacs-documentation-path+
   (concat +emacs-config-path+ "/doc")
-  "Path to folder which is the root for emacs configuration.")
+  "Path to directory with offline documentation.")
 
 (defconst +prog-data-path+
   (concat +emacs-config-path+ "/prog-data")
-  "Path to folder where programs can store their auxiliary files")
-
-(defconst +bytecode-lib+
-  (concat +emacs-config-path+ "/lib")
-  "Path to *.elc files")
+  "Path to directory with programs's auxiliary files.")
 
 (defconst +color-themes-path+
   (concat +prog-data-path+ "/themes")
@@ -115,7 +115,7 @@ By default, version-control specific directories are omitted, e.g. .git etc."
        :test #'string=))
 
 ;; this must go to the end in order to give files in /src dir a chance
-(add-to-list 'load-path +bytecode-lib+ t)
+;; (add-to-list 'load-path +bytecode-lib+ t)
 (add-to-list 'load-path +color-themes-path+)
 
 
