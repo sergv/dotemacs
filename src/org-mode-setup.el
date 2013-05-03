@@ -14,8 +14,10 @@
 (require 'common)
 (require 'render-formula)
 
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/local"))
+(add-to-list 'load-path (concat +emacs-standalone-elc-path+
+                                "/org"))
+(add-to-list 'load-path (concat +emacs-standalone-elc-path+
+                                "/org/emacs/site-lisp/org"))
 
 (require 'org-drill)
 

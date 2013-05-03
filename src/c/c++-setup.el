@@ -14,8 +14,8 @@
 (require 'more-clojure)
 
 ;; doxymacs is there
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/local"))
+(add-to-list 'load-path (concat +emacs-standalone-elc-path+
+                                "/doxymacs"))
 
 (require 'doxymacs)
 
