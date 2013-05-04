@@ -10,7 +10,6 @@
 (require 'custom)
 (require 'common)
 (require 'custom-predicates)
-;; (require 'functional)
 (require 'browse-kill-ring-setup)
 
 ;; (require 'paredit)
@@ -57,7 +56,7 @@
                :use-nxhtml-menu nil
                :use-comment t
                :use-render-formula t)
-  (setq-local yas/indent-line 'fixed)
+  (setq-local yas-indent-line 'fixed)
   (autopair-mode t)
   ;; (turn-on-haskell-indentation)
   ;; (setf haskell-indentation-cycle-warn nil)

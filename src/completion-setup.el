@@ -115,8 +115,8 @@
 ;;
 ;; (setq hippie-expand-try-functions-list
 ;;       (append
-;;        ;; (when (fboundp 'yas/hippie-try-expand)
-;;        ;;   '(yas/hippie-try-expand))
+;;        ;; (when (fboundp 'yas-hippie-try-expand)
+;;        ;;   '(yas-hippie-try-expand))
 ;;        '(;; try-expand-all-abbrevs
 ;;          ;; try-pabbrev-expand
 ;;

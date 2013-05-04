@@ -15,7 +15,7 @@
          (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet "printf(\"$1\\n\"$2);$0")))
+                  (yas-expand-snippet "printf(\"$1\\n\"$2);$0")))
                (lambda () (not (point-inside-string-or-comment?))))))
 
   (def-keys-for-map vim:insert-mode-local-keymap

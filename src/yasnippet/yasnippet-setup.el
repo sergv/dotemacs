@@ -40,9 +40,9 @@ in org's headline."
   "Parse the templates in the current buffer. For every mention of
 key variable a snippet definition would be returned.
 
-Returns list of snippet definitions, see `yas/parse-template'.
+Returns list of snippet definitions, see `yas-parse-template'.
 
-This is additional helper function, similar to `yas/parse-template' but
+This is additional helper function, similar to `yas-parse-template' but
 returns list of snippet definitions instead of just one thus greatly
 simlifying encoding of several keys for one snippet."
   (goto-char (point-min))

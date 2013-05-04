@@ -69,7 +69,7 @@ while interactively prompting for variables/messages."
          (list "\\<prf?\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet "printf(\"${1:$$(upcase yas/text)}\\n\");")))
+                  (yas-expand-snippet "printf(\"${1}\\n\");")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\<info\\>"
                (list
