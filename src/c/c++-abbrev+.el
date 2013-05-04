@@ -15,18 +15,18 @@
          (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet "printf(\"$1\\n\"$2);$0")))
+                  (yas-expand-snippet "printf(\"$1\\n\"$2);$0")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\<info\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet
+                  (yas-expand-snippet
                    "std::cout << \"$1: \" << $1 << std::endl;$2")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\(?:std::?\\)?\\<cout\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet
+                  (yas-expand-snippet
                    "std::cout << $1 << std::endl;$2")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\(?:std::?\\)?\\<endl\\>"
@@ -36,7 +36,7 @@
          (list "\\(?:std::?\\)?\\<cerr\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet
+                  (yas-expand-snippet
                    "std::cerr << $1 << std::endl;$2")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list (rx bow
@@ -51,7 +51,7 @@
                    eow)
                (list
                 (lambda ()
-                  (yas/expand-snippet "static_cast<$1>($2)$3")))
+                  (yas-expand-snippet "static_cast<$1>($2)$3")))
                (lambda () (not (point-inside-string-or-comment?))))))
 
   (def-keys-for-map vim:insert-mode-local-keymap

@@ -498,7 +498,7 @@ Futher modified by Sergey Vinokurov."
        (warning                              ((t (:foreground ,orange))))
        (whitespace-line                      ((t (:underline ,red))))
        (whitespace-tab                       ((t (:underline ,green))))
-       (yas/field-highlight-face             ((t (:background ,light-cyan-green-background))))))
+       (yas-field-highlight-face             ((t (:background ,light-cyan-green-background))))))
     (setf imaxima-equation-color       base0
           imaxima-label-color          cyan
           frame-background-mode        mode

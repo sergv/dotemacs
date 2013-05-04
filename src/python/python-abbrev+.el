@@ -54,19 +54,19 @@ interactively prompting for variables/messages."
         abbrev+-abbreviations
         (list
          (list "\\."
-               ;; this enables space to be omitted
+               ;; list with lambda enable space after snippet to be omitted
                (list
                 (lambda () (insert "self.")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet "print(\"$1\")$0")))
+                  (yas-expand-snippet "print(\"$1\")$0")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?f\\>"
                (list
                 (lambda ()
-                  (yas/expand-snippet "print(\"$1\".format($2))$0")))
+                  (yas-expand-snippet "print(\"$1\".format($2))$0")))
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\<info\\>"
                (list
