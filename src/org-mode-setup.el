@@ -613,7 +613,7 @@ the current topic."
 
 (defun org-mode-setup ()
   (init-common :use-yasnippet t :use-render-formula nil)
-  (set (make-local-variable 'yas/fallback-behavior)
+  (set (make-local-variable 'yas-fallback-behavior)
        '(apply org-cycle))
 
   (setf vim:normal-mode-local-keymap           (make-keymap)
@@ -663,13 +663,13 @@ the current topic."
     ("$" vim:org-end-of-line))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("TAB"   yas/expand)
-    ("<tab>" yas/expand)
+    ("TAB"   yas-expand)
+    ("<tab>" yas-expand)
     ("SPC"   abbrev+-org-self-insert-or-expand-abbrev))
 
   (def-keys-for-map org-mode-map
-    ("TAB"   yas/expand)
-    ("<tab>" yas/expand)
+    ("TAB"   yas-expand)
+    ("<tab>" yas-expand)
     ("C-k"   nil)
     ("C-t"   org-todo)
     ("SPC"   abbrev+-org-self-insert-or-expand-abbrev)))

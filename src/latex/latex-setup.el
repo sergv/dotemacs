@@ -89,7 +89,7 @@
   ;; (menu-bar-mode 1)
   (setq latex:preview nil)
 
-  (setq-local yas/key-syntaxes '("^ >"))
+  (setq-local yas-key-syntaxes '("^ >"))
   (modify-syntax-entry ?$ "\"")
 
   ;; compilation setup
