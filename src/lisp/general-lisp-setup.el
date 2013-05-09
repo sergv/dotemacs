@@ -849,7 +849,7 @@ This command assumes point is not in a string or comment."
     ;; ("S-SPC"    comint-clear-buffer-above-prompt)
 
     ("M-p"      browse-kill-ring)
-    ("M-P"      browse-comint-input-history)
+    ("C-M-p"    browse-comint-input-history)
     ("<return>" comint-send-input)
 
     ("<up>"     comint-previous-input)

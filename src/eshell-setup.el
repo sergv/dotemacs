@@ -221,7 +221,7 @@
          ("S-<down>" eshell-jump-to-next-prompt)
 
          ("M-p"      browse-kill-ring)
-         ("M-P"      browse-eshell-input-history)
+         ("C-M-p"    browse-eshell-input-history)
          ("M-/"      pcomplete)
          ;; clear all previous output
          ("SPC SPC"  eshell-clear-prompt)
@@ -249,7 +249,7 @@
          ("S-<down>" eshell-jump-to-next-prompt)
 
          ("M-p"      browse-kill-ring)
-         ("M-P"      browse-eshell-input-history)
+         ("C-M-p"    browse-eshell-input-history)
          ("C-d"      eshell-send-eof-to-process)
          ("M-/"      pcomplete)
 

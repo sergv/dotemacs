@@ -20,6 +20,7 @@
 (defun make-ghc-command (filename optimize)
   (join-lines (append
                (list "ghc"
+                     "-O2"
                      "-W"
                      "-Wall"
                      "-fwarn-monomorphism-restriction"
@@ -32,15 +33,19 @@
                      (file-name-sans-extension filename)
                      filename
                      "-rtsopts"
+                     ;; this is really required with ghc 7.4 and my gold linker
+                     "-pgml"
+                     "/usr/bin/gcc"
                      ;; "-fforce-recomp"
                      )
                (when optimize
                  (append
                   '("-O2")
-                  (when (y-or-n-p "Use LLVM? ")
-                    '("-fllvm"
-                      "-optlc-O3"
-                      "-optlo-O3")))))
+                  ;; (when (y-or-n-p "Use LLVM? ")
+                  ;;   '("-fllvm"
+                  ;;     "-optlc-O3"
+                  ;;     "-optlo-O3"))
+                  )))
               " "))
 
 
@@ -80,12 +85,14 @@ in haskell-font-lock.el")
 
 
 (defconst +haskell-compile-error-regexp+
-  (rxx ((filename
+  (rxx ((filename-char
+         ;; that is, haskell filename should not contain spaces
+         (regex "[^/\n\t\r\f\v]"))
+        (filename
          (seq (*? "/"
-                  (+ (regex "[^/\n\t\r\f\v]")))
+                  (+ filename-char))
               (? "/")
-              ;; that is, haskell filename should not contain spaces
-              (+? (regex "[^/\n\t\r\f\v ]"))
+              (+? filename-char)
               (or ".hs"
                   ".lhs"
                   ".hsc"))))
@@ -103,11 +110,13 @@ in haskell-font-lock.el")
   "Regexp which is used by `compile' to detect errors.")
 
 (defconst +haskell-compile-warning-regexp+
-  (rxx ((filename (seq (*? "/"
-                           (+ (regex "[^/\n\t\r\f\v]")))
+  (rxx ((filename-char
+         ;; that is, haskell filename should not contain spaces
+         (regex "[^/\n\t\r\f\v]"))
+        (filename (seq (*? "/"
+                           (+ filename-char))
                        (? "/")
-                       ;; that is, haskell filename should not contain spaces
-                       (+? (regex "[^/\n\t\r\f\v ]"))
+                       (+? filename-char)
                        (or ".hs"
                            ".lhs"
                            ".hsc"))))

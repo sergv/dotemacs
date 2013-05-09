@@ -68,7 +68,7 @@
     ("M-/"     pcomplete)
 
     ("M-p"     browse-kill-ring)
-    ("M-P"     browse-comint-input-history)
+    ("C-M-p"   browse-comint-input-history)
 
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)

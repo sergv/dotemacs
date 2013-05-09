@@ -267,7 +267,7 @@ in the current *Python* session."
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("M-p"      browse-kill-ring)
-    ("M-P"      browse-comint-input-history)
+    ("C-M-p"    browse-comint-input-history)
 
     ("C-SPC"    comint-clear-buffer-above-prompt)
     ("<up>"     comint-previous-input)
