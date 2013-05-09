@@ -123,7 +123,7 @@
                        vim:insert-mode-local-keymap)
       ("M-/"         inferior-maxima-input-complete)
       ("M-p"         browse-kill-ring)
-      ("M-P"         browse-comint-input-history)
+      ("C-M-p"       browse-comint-input-history)
 
       ("C-c C-c"     maxima-stop)
       ("<up>"        comint-previous-input)

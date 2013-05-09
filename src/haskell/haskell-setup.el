@@ -203,8 +203,8 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      inferior-haskell-mode-map)
-    ("M-p" browse-kill-ring)
-    ("M-P" browse-comint-input-history))
+    ("M-p"   browse-kill-ring)
+    ("C-M-p" browse-comint-input-history))
 
   (def-keys-for-map inferior-haskell-mode-map
     ("C-w"      backward-delete-word)
