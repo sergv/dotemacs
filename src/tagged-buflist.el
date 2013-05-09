@@ -303,7 +303,12 @@ treated as a list of tags; otherwise it should be list of plain tags."
                               apropos-mode
                               Info-mode
                               Man-mode
-                              ibuffer-mode)
+                              ibuffer-mode
+
+                              snippet-mode
+                              text-mode
+                              fundamental-mode
+                              special-mode)
                :name-regexp (rx bol
                                 (or "*scratch*"
                                     "*Messages*"
@@ -692,10 +697,13 @@ could be obtained with tagged-buflist/expand-tag-definitions."
   "Call function FUNC for first section than satisfies predicate PRED."
   (letrec ((iter
             (lambda (section)
-              (when section
+              (if (not (null? section))
                 (if (funcall pred section)
-                  (funcall func section)
-                  (for-each iter (tagged-section/children section)))))))
+                  (progn
+                    (funcall func section)
+                    t)
+                  (for-each iter (tagged-section/children section)))
+                nil))))
     (funcall iter tagged-buflist/toplevel-section)))
 
 (defun tagged-buflist/for-multiple-sections (pred func)
@@ -709,18 +717,24 @@ could be obtained with tagged-buflist/expand-tag-definitions."
     (funcall iter tagged-buflist/toplevel-section)))
 
 (defmacro tagged-buflist/with-preserved-selection (&rest body)
-  "Remember item at point, execute body and move point to remembered item."
+  "Remember item at point, execute body and move point to remembered item.
+If item was deleted after end of BODY's execution then try to return to
+line the point was on."
   (declare (indent 0))
-  (let ((selected-section-var (gensym "selected-section-var")))
-    `(tagged-buflist/with-optional-section-for-line ,selected-section-var
-       (unwind-protect
-           (progn
-             ,@body)
-         ;; find selected section
-         (when ,selected-section-var
-           (tagged-buflist/for-single-section (comp (partial #'tagged-section=
-                                                             ,selected-section-var))
-                                              #'tagged-buflist/goto-section))))))
+  (let ((selected-section-var (gensym "selected-section-var"))
+        (selected-line-var (gensym "selected-line-var")))
+    `(let ((,selected-line-var (count-lines (point-min) (point))))
+       (tagged-buflist/with-optional-section-for-line ,selected-section-var
+         (unwind-protect
+             (progn
+               ,@body)
+           ;; find selected section
+           (when ,selected-section-var
+             (unless (tagged-buflist/for-single-section
+                      (comp (partial #'tagged-section=
+                                     ,selected-section-var))
+                      #'tagged-buflist/goto-section)
+               (goto-line ,selected-line-var))))))))
 
 (defmacro tagged-buflist/with-preserved-invisible-sections (&rest body)
   "Remember hidden sections, execute body and restore hidden sections."

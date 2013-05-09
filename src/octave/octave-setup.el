@@ -430,7 +430,7 @@ in GROUP-NUMS."
     ("C-<down>" octave-jump-to-next-error)
 
     ("M-p"      browse-kill-ring)
-    ("M-P"      browse-comint-input-history)
+    ("C-M-p"    browse-comint-input-history)
     ("SPC SPC"  comint-clear-prompt)
 
     ("C-SPC"    comint-clear-buffer-above-prompt))
