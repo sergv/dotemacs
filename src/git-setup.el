@@ -74,6 +74,10 @@ all otherwise."
   (interactive)
   (magit-cycle-sections-visibility magit-top-section))
 
+(defun magit-visit-item-other-window ()
+  (interactive)
+  (let ((current-prefix-arg t))
+    (call-interactively #'magit-visit-item)))
 
 (defun magit-mode-setup ()
   (setf truncate-lines nil)
@@ -86,6 +90,7 @@ all otherwise."
   (def-keys-for-map magit-mode-map
     ("r"               magit-refresh)
     ("T"               magit-key-mode-popup-tagging)
+    ("SPC"             magit-visit-item-other-window)
     ("S-TAB"           magit-cycle-top-sections-visibility)
     ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
     ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
@@ -108,6 +113,7 @@ all otherwise."
     ("t"      magit-goto-next-section)
     ("n"      magit-goto-previous-section)
 
+    ("SPC"             magit-visit-item-other-window)
     ("S-TAB"           magit-cycle-top-sections-visibility)
     ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
     ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
@@ -148,13 +154,13 @@ all otherwise."
 (add-hook 'magit-log-edit-mode-hook #'magit-log-edit-mode-setup)
 
 (defun magit-commit-mode-setup ()
-  "Mode for browsing commits."
+  "Setup for commit browsing mode."
   (magit-bind-common-vimless-mode-keymap magit-commit-mode-map))
 
 (add-hook 'magit-commit-mode-hook #'magit-commit-mode-setup)
 
 (defun magit-diff-mode-setup ()
-  "Mode for browsing diffs."
+  "Setup for diff browsing mode."
   (magit-bind-common-vimless-mode-keymap magit-diff-mode-map))
 
 (add-hook 'magit-diff-mode-hook #'magit-diff-mode-setup)
