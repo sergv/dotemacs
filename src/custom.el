@@ -414,14 +414,25 @@ up by functions in compilation-finish-functions.")
 
 ;;;;
 
+(defvar-local inhibit-delete-trailing-whitespace nil
+  "Whether function `delete-trailing-whitespace+' should do actual deletion.")
+
+(defun toggle-inhibit-delete-trailing-whitespace ()
+  (interactive)
+  (if (setf inhibit-delete-trailing-whitespace
+            (not inhibit-delete-trailing-whitespace))
+    (message "Inhibition enabled")
+    (message "Inhibition disabled")))
+
 (defun delete-trailing-whitespace+ ()
   "This function removes spaces and tabs on every line after
 last non-whitespace character."
-  (save-excursion
-    (save-match-data
-      (goto-char (point-min))
-      (while (re-search-forward "[ \t]+$" nil t)
-        (replace-match "")))))
+  (unless inhibit-delete-trailing-whitespace
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward "[ \t]+$" nil t)
+          (replace-match ""))))))
 
 ;;;; tabbar stuff
 
