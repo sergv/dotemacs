@@ -159,7 +159,7 @@
       inhibit-startup-message t
       frame-title-format '("%f")
       scroll-step 1
-      case-fold-search nil ;; turn off ignorance of case during search
+      case-fold-search nil ;; do not ignore case during search
       next-line-add-newlines nil
       read-file-name-completion-ignore-case t
 
