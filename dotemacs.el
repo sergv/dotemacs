@@ -13,6 +13,7 @@
 (load-library "set-up-paths")
 (load-library "set-up-font")
 
+(load-library "base-emacs-fixes")
 (load-library "more-scheme")
 (load-library "more-clojure")
 (load-library "custom")
@@ -34,9 +35,9 @@
 ;; ******************************************************************
 
 (setq compilation-auto-jump-to-first-error nil
-      case-fold-search nil ;;turn off ignorance of case during search
       whitespace-line-column 81
-      whitespace-style '(face lines-tail tabs))
+      whitespace-style '(face lines-tail tabs)
+      whitespace-global-modes nil)
 
 (defconst +do-not-track-long-lines-modes+
   '(lisp-interaction-mode
@@ -54,7 +55,6 @@
     makefile-imake-mode
     makefile-mode
     makefile-makepp-mode))
-
 
 (defun* init-common (&key (use-yasnippet t)
                           (use-nxhtml-menu nil)
