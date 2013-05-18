@@ -131,9 +131,7 @@
                          (format "<%s" file))
                    " ")
        (current-buffer))
-      (goto-char p)))
-
-  (push (cons 'c++-mode #'c++-indent-buffer) *mode-buffer-indent-function-alist*))
+      (goto-char p))))
 
 
 

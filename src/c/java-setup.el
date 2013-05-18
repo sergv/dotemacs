@@ -6,6 +6,8 @@
 ;; Created: Thursday, 17 January 2013
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'common)
 (require 'cc-setup)
 (require 'ctags-setup)
@@ -36,8 +38,6 @@
                  " ")
      (current-buffer))))
 
-(push (cons 'java-mode #'java-indent-buffer) *mode-buffer-indent-function-alist*)
-
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
   (setf c-basic-offset 4
@@ -48,7 +48,7 @@
                          :length-min 3
                          :length-max 9))
 
-(add-hook 'java-mode-hook #'java-setup)
+(provide 'java-setup)
 
 ;; Local Variables:
 ;; End:

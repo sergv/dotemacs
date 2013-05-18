@@ -33,12 +33,12 @@
         (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read ":"
-                                     'vim:ex-complete
-                                     nil
-                                     nil
-                                     str
-                                     'vim:ex-history)))
+      (let ((result (icicle-completing-read ":"
+                                            'vim:ex-complete
+                                            nil
+                                            nil
+                                            str
+                                            'vim:ex-history)))
         (when (and result
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))

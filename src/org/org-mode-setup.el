@@ -10,21 +10,14 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'set-up-paths)
 (require 'common)
 (require 'render-formula)
 
-(add-to-list 'load-path (concat +emacs-standalone-elc-path+
-                                "/org"))
-(add-to-list 'load-path (concat +emacs-standalone-elc-path+
-                                "/org/emacs/site-lisp/org"))
-
 (require 'org-drill)
 
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-
-(define-key global-map "\C-cl" 'org-store-link)
-(define-key global-map "\C-ca" 'org-agenda)
+(def-keys-for-map global-map
+  ("\C-cl" org-store-link)
+  ("\C-ca" org-agenda))
 
 ;; org mode customizations
 (setf org-agenda-ndays 7
@@ -35,8 +28,7 @@
       org-agenda-start-on-weekday nil
       org-agenda-files (filter #'file-exist?
                                (list (concat +emacs-config-path+ "/todo.org")
-                                     "/home/sergey/projects/todo.org"
-                                     "/home/sergey/university/todo.org"))
+                                     "/home/sergey/projects/todo.org"))
       ;; notes are stored in descending date order - most recent always at top
       org-reverse-note-order t
       org-enforce-todo-dependencies t
@@ -336,7 +328,49 @@ BEG and END default to the buffer boundaries."
                      (overlay-put ov 'org-image-overlay t)
                      (overlay-put ov 'modification-hooks
                                   (list 'org-display-inline-modification-hook))
-                     (push ov org-inline-image-overlays)))))))))))
+                     (push ov org-inline-image-overlays)))))))))
+
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((C          . nil)
+        (clojure    . nil)
+        (dot        . nil)
+        (emacs-lisp . nil)
+        (haskell    . nil)
+        (js         . nil)
+        (latex      . nil)
+        (lisp       . nil)
+        (ocaml      . nil)
+        (octave     . nil)
+        (org        . nil)
+        (oz         . nil)
+        (python     . nil)
+        (R          . nil)
+        (scheme     . nil)
+        (sh         . nil)
+        (sql        . nil)
+        (sqlite     . nil)))
+     ;; (org-babel-do-load-languages
+     ;;  'org-babel-load-languages
+     ;;  '((C          . t)
+     ;;    (clojure    . t)
+     ;;    (dot        . t)
+     ;;    (emacs-lisp . t)
+     ;;    (haskell    . t)
+     ;;    (js         . nil)
+     ;;    (latex      . t)
+     ;;    (lisp       . nil)
+     ;;    (ocaml      . t)
+     ;;    (octave     . t)
+     ;;    (org        . t)
+     ;;    (oz         . nil)
+     ;;    (python     . t)
+     ;;    (R          . nil)
+     ;;    (scheme     . t)
+     ;;    (sh         . nil)
+     ;;    (sql        . nil)
+     ;;    (sqlite     . nil)))
+     ))
 
 (eval-after-load
     "org-comat"
@@ -418,27 +452,6 @@ Works on both Emacs and XEmacs."
      ;;                    (if all "in entire file" "in current outline entry")
      ;;                    cstat)))))
      ))
-
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((C          . t)
-   (clojure    . nil)
-   (dot        . t)
-   (emacs-lisp . t)
-   (haskell    . t)
-   (js         . nil)
-   (latex      . t)
-   (lisp       . nil)
-   (ocaml      . nil)
-   (octave     . t)
-   (org        . t)
-   (oz         . nil)
-   (python     . nil)
-   (R          . nil)
-   (scheme     . t)
-   (sh         . nil)
-   (sql        . nil)
-   (sqlite     . nil)))
 
 (eval-after-load
     "org-src"
@@ -674,8 +687,6 @@ the current topic."
     ("C-t"   org-todo)
     ("SPC"   abbrev+-org-self-insert-or-expand-abbrev)))
 
-(add-hook 'org-mode-hook #'org-mode-setup)
-
 (defun org-agenda-mode-setup ()
   (def-keys-for-map org-agenda-mode-map
     +control-x-prefix+
@@ -685,8 +696,6 @@ the current topic."
     ("n"   org-agenda-previous-line)
 
     ("C-t" org-agenda-todo)))
-
-(add-hook 'org-agenda-mode-hook #'org-agenda-mode-setup)
 
 ;;;; epilogue
 

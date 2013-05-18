@@ -8,10 +8,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/clojure-mode"))
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/nrepl.el"))
 (require 'general-lisp-setup)
 (require 'clojure-mode)
 (require 'clojure-test-mode)
@@ -20,14 +16,6 @@
 (require 'clojure-abbrev+)
 (require 'clojure-compile)
 (require 'browse-kill-ring-setup)
-
-(setf nrepl-tab-command 'indent-for-tab-command
-      nrepl-history-size 100000
-      nrepl-history-file (concat +prog-data-path+ "/nrepl-history"))
-
-(put 'nrepl-server-command 'safe-local-variable #'string?)
-(make-variable-buffer-local 'nrepl-server-command)
-
 
 
 (defun clojure-setup ()
@@ -61,9 +49,6 @@
     ("<f9>"    clojure-compile)
     ("S-<f9>"  kibit))
   (clojure-abbrev+-setup))
-
-(add-hook 'clojure-mode-hook #'clojure-setup)
-
 
 (def-keys-for-map nrepl-mode-map
   ("M-p" nil)
@@ -126,8 +111,6 @@
                      vim:operator-pending-mode-local-keymap
                      vim:motion-mode-local-keymap)
     *lisp-vim-movement-keybindings*))
-
-(add-hook 'nrepl-mode-hook #'nrepl-setup)
 
 (provide 'clojure-setup)
 

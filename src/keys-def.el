@@ -6,6 +6,7 @@
 ;; Created: long ago (almost since the august inception)
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
 
 (require 'vim-mock)
 
@@ -60,8 +61,9 @@
     ("g C"   remember-win-config-store-configuration)
     ("g x"   smex)
     ("g X"   smex-major-mode-commands)
-    ("M-x"   smex-nohist)
-    ("g f"   find-file)
+    ("M-x"   smex)
+    ("M-X"   smex-major-mode-commands)
+    ("g f"   icicle-file)
     ("g g f" find-filename-in-tree-recursive)
     ("g r"   rgrep)
 

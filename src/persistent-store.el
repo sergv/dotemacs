@@ -69,7 +69,7 @@
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defun persistent-store-flush-database ()
-  "Function to flush db contents to file."
+  "Flush db contents to file."
   (run-hooks persistent-store-flush-hook)
   (let ((content-list nil)
         (current-file-content
