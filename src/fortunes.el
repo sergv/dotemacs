@@ -6,6 +6,7 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
 
 (require 'common)
 (require 'comment-util)

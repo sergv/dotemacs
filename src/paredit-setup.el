@@ -116,10 +116,6 @@ If in a comment and if followed by invalid structure, call
                   :name vim:forward-slurp-sexp
                   :call-n-times t)
 
-(vimmize-function paredit-forward-slurp-sexp
-                  :name vim:forward-slurp-sexp
-                  :call-n-times t)
-
 ;; :call-n-times nil because these two handle numeric arguments themselves
 (vimmize-function paredit-forward-kill
                   :name vim:paredit-forward-kill

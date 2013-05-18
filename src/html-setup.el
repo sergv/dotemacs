@@ -8,62 +8,6 @@
 ;; Requirements:
 ;; Status:
 
-(add-to-list 'load-path (concat +emacs-standalone-path+ "/nxhtml"))
-
-(require 'nxhtml-autostart)
-
-(add-hook 'rnc-mode-hook #'init-common)
-
-(autoload 'hl-tags-mode "hl-tags-mode" nil t)
-(autoload 'sgml-skip-tag-backward "sgml-mode" nil t)
-(autoload 'sgml-skip-tag-forward "sgml-mode" nil t)
-
-(add-to-list 'magic-mode-alist '("<!DOCTYPE html .+DTD XHTML .+>" . nxhtml-mode))
-(add-to-list 'magic-mode-alist '("<[ ?]*xml " . nxml-mode))
-
-;; (eval-after-load
-;;  "rng-loc"
-;;  '(progn
-;;    (setf rng-schema-locating-files
-;;          (cons (concat +emacs-standalone-path+
-;;                        "/xhtml-transitional-in-nxml/schemas.xml")
-;;                rng-schema-locating-files-default))))
-
-(setf load-path
-      (remove-if (lambda (path)
-                   (string-match-pure? "/nxhtml/tests/?$"
-                                       path))
-                 load-path))
-
-(setf auto-mode-alist
-      (cons (cons "\\.html\\'" 'nxhtml-mode)
-            (remove* "\\.html\\'"
-                     auto-mode-alist
-                     :test #'string=
-                     :key #'car)))
-
-;; hideshow special mode
-(setq hs-special-modes-alist
-      (assq-delete-all 'nxml-mode
-                       (assq-delete-all 'nxhtml-mode
-                                        hs-special-modes-alist)))
-(dolist (mode '(nxml-mode nxhtml-mode))
-  (add-to-list 'hs-special-modes-alist
-               `(,mode
-                 "<[^/>]>\\|<[^>]*"
-                 "</"
-                 "<!--" ;; won't work on its own; uses syntax table
-                 nxhtml-hs-forward-sexp-func
-                 nil)))
-
-
-(defvar *hexcolour-keywords*
-  '(("#[[:xdigit:]]\\{6\\}"
-     (0 (put-text-property (match-beginning 0)
-                           (match-end 0)
-                           'face (list :background
-                                       (match-string-no-properties 0)))))))
-
 
 (defvar-local *markup-tags-context-func*
   (lambda ()
@@ -73,17 +17,17 @@
 containing the boundaries of the current start and end tag, or nil. Note that
 end1 and end2 should be exclusive ends of tags.")
 
-
-(defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
-  "Execute BODY with BB, BE, EB and EE bound to enclonig tags' boundaries
+(eval-when-compile
+  (defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
+    "Execute BODY with BB, BE, EB and EE bound to enclonig tags' boundaries
 if such tag can be found."
-  (let ((test-var (gensym)))
-    `(let ((,test-var (funcall *markup-tags-context-func*)))
-       (if ,test-var
-         (destructuring-bind ((,bb . ,be) . (,eb . ,ee))
-             ,test-var
-           ,on-found)
-         ,on-not-found))))
+    (let ((test-var (gensym)))
+      `(let ((,test-var (funcall *markup-tags-context-func*)))
+         (if ,test-var
+           (destructuring-bind ((,bb . ,be) . (,eb . ,ee))
+               ,test-var
+             ,on-found)
+           ,on-not-found)))))
 
 (vim:defmotion vim:motion-jump-tag (inclusive)
   "If point is positioned inside tag then jump to the beginning
@@ -264,11 +208,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (defun nxml-setup ()
   (markup-setup)
   (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode))
-
-(add-hook 'html-mode-hook #'html-setup)
-(add-hook 'sgml-mode-hook #'html-setup)
-(add-hook 'nxhtml-mode-hook #'nxhtml-setup)
-(add-hook 'nxml-mode-hook #'nxml-setup)
 
 (provide 'html-setup)
 

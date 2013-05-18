@@ -110,25 +110,6 @@ will be possible."
 
 ;;;;------------------------------------------------------------
 
-;; don't used anywhere
-;; (defmacro defadvice:icicle-on-sole-completion (func)
-  ;; `(defadvice ,func (around
-                     ;; ,(util/make-joined-name func "-on-sole-completion")
-                     ;; activate
-                     ;; compile)
-     ;; (let ((icicle-top-level-when-sole-completion-flag nil))
-       ;; ad-do-it)))
-
-(defmacro defadvice:icicle-do-not-insert-default-value (func)
-  `(defadvice ,func (around
-                     ,(util/make-joined-name func "-do-not-insert-default-value")
-                     activate
-                     compile)
-     (let ((icicle-default-value nil))
-       ad-do-it)))
-
-;;;;------------------------------------------------------------
-
 (defmacro defadvice:auto-comment (func)
   "Define advice around FUNC that will insert comments at
 beginning of line whenever previous line was commented out.

@@ -32,8 +32,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
-(require 'icicles-setup)
-(require 'pcomplete)
+(require 'icicles-autoload)
 
 (setf read-buffer-completion-ignore-case t)
 
@@ -56,43 +55,44 @@
 
 ;; convenient command completer
 
+(autoload 'smex "smex" "" t)
+(autoload 'smex-major-mode-commands "smex" "" t)
 
-(require 'smex)
+(def-keys-for-map global-map
+  ("M-x" smex)
+  ("M-X" smex-major-mode-commands))
 
-(smex-initialize)
+(eval-after-load "smex"
+  '(progn
+     (setf smex-save-file (concat +prog-data-path+ "/smex-items"))
 
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
+     ;; note: ido is used my smex
 
+     ;; create new buffers if buffer with prompted name does not exist
+     (setf ido-enable-flex-matching t
+           ;; ido-create-new-buffer 'always
+           ;; ido-file-extensions-order '(".org" ".lisp" ".l" ".cl" ".clisp" ".el" t)
+           ;; ido-ignore-extensions t
+           ;; case ignorance
+           ;; ido-case-fold t
+           ido-decorations '(" ("
+                             ")"
+                             " | "
+                             " | ..."
+                             "["
+                             "]"
+                             " [No match]"
+                             " [Matched]"
+                             " [Not readable]"
+                             " [Too big]"
+                             " [Confirm]"))))
 
 ;; (require 'auto-complete-config)
 ;; (ac-config-default)
 
 
-
 ;;;;
 
-;; note: ido is used my smex
-(require 'ido)
-
-;; create new buffers if buffer with prompted name does not exist
-(setf ido-enable-flex-matching t
-      ;; ido-create-new-buffer 'always
-      ;; ido-file-extensions-order '(".org" ".lisp" ".l" ".cl" ".clisp" ".el" t)
-      ;; ido-ignore-extensions t
-      ;; case ignorance
-      ;; ido-case-fold t
-      ido-decorations '(" ("
-                        ")"
-                        " | "
-                        " | ..."
-                        "["
-                        "]"
-                        " [No match]"
-                        " [Matched]"
-                        " [Not readable]"
-                        " [Too big]"
-                        " [Confirm]"))
 
 ;; (defun ido-setup ()
 ;;   ;; bind keys to ido-completion-map here, etc

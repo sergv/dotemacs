@@ -284,6 +284,7 @@ treated as a list of tags; otherwise it should be list of plain tags."
               (make-buf-tag-pred
                :major-modes '(comint-mode
                               compilation-mode
+                              clojure-compilation-mode
                               grep-mode
                               latex-compilation-mode
                               haskell-compilation-mode

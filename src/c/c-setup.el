@@ -37,10 +37,6 @@
                  " ")
      (current-buffer))))
 
-(push (cons 'c-mode #'c-indent-buffer) *mode-buffer-indent-function-alist*)
-
-
-
 (defun c-setup ()
   (cc-setup :define-special-keys t)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)

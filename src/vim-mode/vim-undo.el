@@ -31,9 +31,9 @@
 (require 'vim-modes)
 
 ;; try loading redo+, then redo
-(or (condition-case nil (require 'redo+ nil t) (error nil))
-    (condition-case nil (require 'redo nil t) (error nil))
-    (message "vim-mode: Could not load 'redo+' or 'redo', redo-command not available."))
+;; (or (condition-case nil (require 'redo+ nil t) (error nil))
+;;     (condition-case nil (require 'redo nil t) (error nil))
+;;     (message "vim-mode: Could not load 'redo+' or 'redo', redo-command not available."))
 
 (defvar vim:last-undo nil
   "The last item in the undo list.")

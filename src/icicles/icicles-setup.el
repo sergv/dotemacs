@@ -22,6 +22,17 @@
 (require 'common)
 
 
+(eval-when-compile
+  (defmacro icicle-setup/icicle-do-not-insert-default-value (func)
+    `(defadvice ,func (around
+                       ,(util/make-joined-name func "-do-not-insert-default-value")
+                       activate
+                       compile)
+       (let ((icicle-default-value nil))
+         ad-do-it))))
+
+
+
 (icy-mode +1)
 
 (redefun icicle-fuzzy-candidates (input)
@@ -166,8 +177,8 @@ MAP is `minibuffer-local-completion-map' or
     (when (fboundp 'yank-secondary)     ; In `second-sel.el'.
       (def-keys-for-map map
         ("C-M-y" 'icicle-yank-secondary)))
-    (olist (key  icicle-completing-read+insert-keys)
-           (define-key map key 'icicle-completing-read+insert)))
+    (dolist (key icicle-completing-read+insert-keys)
+      (define-key map key 'icicle-completing-read+insert)))
 
   ;; Need `C-g', even if `minibuffer-local-completion-map' inherits from `minibuffer-local-map'.
   (def-keys-for-map map
@@ -267,11 +278,11 @@ MAP is `minibuffer-local-completion-map' or
 
 ;; (defadvice:icicle-on-sole-completion icicle-read-shell-command-completing)
 
-(defadvice:icicle-do-not-insert-default-value icicle-file)
-(defadvice:icicle-do-not-insert-default-value icicle-locate-file)
-(defadvice:icicle-do-not-insert-default-value describe-function)
-(defadvice:icicle-do-not-insert-default-value describe-variable)
-(defadvice:icicle-do-not-insert-default-value icicle-buffer)
+(icicle-setup/icicle-do-not-insert-default-value icicle-file)
+(icicle-setup/icicle-do-not-insert-default-value icicle-locate-file)
+(icicle-setup/icicle-do-not-insert-default-value describe-function)
+(icicle-setup/icicle-do-not-insert-default-value describe-variable)
+(icicle-setup/icicle-do-not-insert-default-value icicle-buffer)
 
 
 (setf icicle-TAB-completion-methods '(vanilla
@@ -286,7 +297,7 @@ MAP is `minibuffer-local-completion-map' or
       ;; it more powerful
 
       icicle-dot-string "." ;; icicle-anychar-regexp
-      icicle-reverse-sort-p t)
+      icicle-reverse-sort-p nil)
 
 
 (icicle-set-S-TAB-methods-for-command 'icicle-file
@@ -320,8 +331,6 @@ MAP is `minibuffer-local-completion-map' or
 
 (defun completion-list-setup ()
   (setq autopair-dont-activate t))
-
-(add-hook 'completion-list-mode-hook #'completion-list-setup)
 
 
 (provide 'icicles-setup)

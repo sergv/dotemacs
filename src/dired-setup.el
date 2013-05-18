@@ -8,6 +8,9 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile (require 'cl-lib))
+
+(require 'set-up-paths)
 
 (eval-after-load
     "dired"
@@ -15,6 +18,9 @@
      (require 'dired-single)
      (require 'dired-aux)
      (require 'dired-x)
+
+     (require 'dired-single)
+     (setf image-dired-dir (path-concat +prog-data-path+ "image-dired"))
 
      (setf dired-omit-files
            (rx (or (seq bol (? ".") "#") ;; emacs autosave files
@@ -38,8 +44,8 @@
        ("<up>"     dired-cycle-files-backward)
        ("p"        nil)
        ("q"        nil)
-       ("e"        dired-do-open-marked)
-       ("f"        dired-do-open-marked)
+       ("e"        nil)
+       ("f"        nil)
        ("o"        dired-do-open-marked)
        ("Q"        dired-prompt-and-do-query-replace-regexp)
        ("<return>" dired-single-buffer)

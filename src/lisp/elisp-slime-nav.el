@@ -51,9 +51,9 @@ Argument SYM-NAME thing to find."
     (let* ((sym-at-point (symbol-at-point))
            (at-point (and sym-at-point (symbol-name sym-at-point))))
       (if current-prefix-arg
-        (completing-read "Symbol: "
-                         (elisp-slime-nav--all-navigable-symbol-names)
-                         nil t at-point)
+        (icicle-completing-read "Symbol: "
+                                (elisp-slime-nav--all-navigable-symbol-names)
+                                nil t at-point)
         at-point))))
   (when sym-name
     (let ((sym (intern sym-name)))

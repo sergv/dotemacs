@@ -6,6 +6,8 @@
 ;; Created: Thursday, 26 April 2012
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
+
 (add-to-list 'load-path (concat +emacs-standalone-path+
                                 "/magit"))
 
