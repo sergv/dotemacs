@@ -188,17 +188,20 @@
  '(which-func-maxout 1000000)
  '(yas/prompt-functions (quote (yas/completing-prompt))))
 
-(dolist (path (cl-remove-duplicates
-               (list "/home/sergey/emacs"
-                     (expand-file-name "~/emacs")
-                     "C:\\emacs"
-                     "D:\\emacs")
-               :test #'string=))
-  (when (and (file-exists-p path)
-             (file-directory-p path))
-    (add-to-list 'load-path path)))
+(provide 'custom-variables-defined)
 
-(load-library "dotemacs")
+(unless (featurep 'dotemacs)
+  (dolist (path (cl-remove-duplicates
+                 (list "/home/sergey/emacs"
+                       (expand-file-name "~/emacs")
+                       "C:\\emacs"
+                       "D:\\emacs")
+                 :test #'string=))
+    (when (and (file-exists-p path)
+               (file-directory-p path))
+      (add-to-list 'load-path path)))
+
+  (load-library "dotemacs"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Custom function declarations

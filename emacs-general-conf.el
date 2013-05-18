@@ -106,9 +106,6 @@
 (require 'autopair)
 ;; (autopair-global-mode)
 
-(require 'dired-single)
-(setf image-dired-dir (path-concat +prog-data-path+ "image-dired"))
-
 (require 'undo-tree)
 (global-undo-tree-mode t)
 (setf undo-tree-visualizer-diff t
@@ -195,20 +192,19 @@
 
 ;;;; disable mouse scrolling
 (mouse-wheel-mode -1)
-(global-unset-key (kbd "<mouse-1>"))
-(global-unset-key (kbd "<down-mouse-1>"))
-(global-unset-key (kbd "<up-mouse-1>"))
-(global-unset-key (kbd "<drag-mouse-1>"))
-
-(global-unset-key (kbd "<mouse-2>"))
-(global-unset-key (kbd "<down-mouse-2>"))
-(global-unset-key (kbd "<up-mouse-2>"))
-(global-unset-key (kbd "<drag-mouse-2>"))
-
-(global-unset-key (kbd "<mouse-3>"))
-(global-unset-key (kbd "<down-mouse-3>"))
-(global-unset-key (kbd "<up-mouse-3>"))
-(global-unset-key (kbd "<drag-mouse-3>"))
+(def-keys-for-map global-map
+  ("<mouse-1>"      nil)
+  ("<down-mouse-1>" nil)
+  ("<up-mouse-1>"   nil)
+  ("<drag-mouse-1>" nil)
+  ("<mouse-2>"      nil)
+  ("<down-mouse-2>" nil)
+  ("<up-mouse-2>"   nil)
+  ("<drag-mouse-2>" nil)
+  ("<mouse-3>"      nil)
+  ("<down-mouse-3>" nil)
+  ("<up-mouse-3>"   nil)
+  ("<drag-mouse-3>" nil))
 
 
 ;;;; native emacs backup
@@ -334,6 +330,8 @@
 (defalias 'toggle-wrap-lines 'toggle-truncate-lines)
 
 ;;;; Epilogue
+
+(provide 'emacs-general-conf)
 
 ;; Local Variables:
 ;; End:

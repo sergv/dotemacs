@@ -10,31 +10,13 @@
 (require 'more-scheme)
 
 ;; Yasnippet
-(setf yas-ignore-filenames-as-triggers t)
-(require 'yasnippet)
-(setf yas-snippet-dirs (concat +prog-data-path+ "/snippets")
+;; (require 'yasnippet)
+
+(setf yas-ignore-filenames-as-triggers t
+      yas-snippet-dirs (concat +prog-data-path+ "/snippets")
       yas-prompt-functions '(yas-dropdown-prompt yas-completing-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w"))
-;; (yas-compile-directory yas-snippet-dirs)
-(yas--initialize)
-
-;; so yasnippet is in loaded state here
-
-(eval-after-load
-    "org"
-  '(progn
-     (defadvice org-fix-tags-on-the-fly (around
-                                         org-fix-tags-on-the-fly-yasnippet-field-fix
-                                         activate
-                                         compile
-                                         preactivate
-                                         protect)
-       "Solution to problem of `org-fix-tags-on-the-fly' being called after
-every org-self-insert-command when yasnippet's field happens to be located
-in org's headline."
-       (yas--inhibit-overlay-hooks
-         ad-do-it))))
 
 (defun yas--parse-templates (&optional file)
   "Parse the templates in the current buffer. For every mention of
@@ -140,7 +122,6 @@ simlifying encoding of several keys for one snippet."
       (yas--load-directory-2 subdir
                              mode-sym))))
 
-
 (defun yas-skip-and-clear-or-delete-backward-char (&optional field)
   "Clears unmodified field if at field start, skips to next tab.
 
@@ -166,9 +147,24 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
   ("<S-iso-lefttab>" yas-prev-field)
   ("S-<tab>"         yas-prev-field))
 
+;; (yas-compile-directory yas-snippet-dirs)
 ;; now load snippets using enhanced functions (re)defined above
 (yas-load-directory yas-snippet-dirs)
 
+(eval-after-load
+    "org"
+  '(progn
+     (defadvice org-fix-tags-on-the-fly (around
+                                         org-fix-tags-on-the-fly-yasnippet-field-fix
+                                         activate
+                                         compile
+                                         preactivate
+                                         protect)
+       "Solution to problem of `org-fix-tags-on-the-fly' being called after
+every org-self-insert-command when yasnippet's field happens to be located
+in org's headline."
+       (yas--inhibit-overlay-hooks
+         ad-do-it))))
 
 (provide 'yasnippet-setup)
 

@@ -69,7 +69,7 @@
   ;; (set-buffer-file-coding-system 'utf-8-unix)
 
   (when use-yasnippet
-    (yas/minor-mode-on))
+    (yas-minor-mode-on))
 
   ;; it's usually already enabled by nxhtml autoloads
   ;; so action should be taken to turn it off
@@ -95,8 +95,8 @@
 
 
 (load-library "all-lisp-setup")
-(load-library "org-mode-setup")
-(load-library "clojure-setup")
+(load-library "org-mode-autoload")
+;; (load-library "clojure-setup") ;; handled by all-lisp-setup
 (load-library "persistent-sessions")
 
 (load-library "c-like-setup")
@@ -107,7 +107,7 @@
 (load-library "snippet-autoloads")
 (load-library "eshell-setup")
 (load-library "gnuplot-setup")
-(load-library "html-setup")
+(load-library "html-autoload")
 (load-library "latex-autoloads")
 (load-library "debsources-setup")
 (load-library "markdown-setup")
@@ -125,18 +125,17 @@
 (load-library "yaml-mode-setup")
 (load-library "doc-view-setup")
 (load-library "lua-setup")
-(load-library "glsl-setup")
+;; (load-library "glsl-setup") ;; handled by c-like-setup
 (load-library "other-setup")
 (load-library "cmake-setup")
 (load-library "asm-setup")
 (load-library "llvm-setup")
-(load-library "java-setup")
+;; (load-library "java-setup") ;; handled by c-like-setup
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
 (load-library "auto-insert-setup")
 (load-library "emms-setup")
-(load-library "ibuffer-setup")
 (load-library "tagged-buflist-setup")
 (load-library "hl-paren")
 (load-library "spell-setup")
@@ -146,7 +145,7 @@
 (load-library "comint-setup")
 (load-library "dired-setup")
 (load-library "remember-win-config")
-(load-library "yasnippet-setup")
+(load-library "yasnippet-autoload")
 ;; (load-library "cedet-setup")
 (load-library "git-setup")
 (load-library "hideshow-setup")
@@ -159,13 +158,19 @@
 (load-library "minimap-setup")
 (load-library "select-mode")
 (load-library "revive-setup")
-(load-library "paredit-setup")
+(load-library "paredit-autoload")
 (load-library "undo-tree-setup")
 (load-library "recentf-setup")
 
-;; load keys after everything to ensure that all is bound as expected
+;; load keys after everything to ensure that nothing will be rebond
+;; after it finishes
 (load-library "keys")
 (load-library "vim-init")
+
+;; this is quick-and-dirty autoloading mechanism
+(eval-after-load "ibuffer"
+  '(progn
+     (load-library "ibuffer-setup")))
 
 (require 'fortunes)
 (random t)
@@ -205,6 +210,10 @@
 (let ((package-load-list '((melpa t))))
   (package-initialize))
 
+(provide 'dotemacs)
+
+(unless (featurep 'custom-variables-defined)
+  (load-library ".emacs"))
 
 ;; Local Variables:
 ;; End:

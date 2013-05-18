@@ -15,35 +15,37 @@
 (autoload 'c-turn-on-eldoc-mode "c-eldoc" nil t)
 
 
-(unless (assoc* "my-style" c-style-alist :test #'string=?)
-  ;; inherited from linux style
-  (push '("my-style"
-          (c-basic-offset  . 8)
-          (indent-tabs-mode . nil)
-          (c-comment-only-line-offset . 0)
-          (c-hanging-braces-alist . ((brace-list-open)
-                                     (brace-entry-open)
-                                     (substatement-open after)
-                                     (block-close . c-snug-do-while)
-                                     (arglist-cont-nonempty)))
-          (c-cleanup-list . (brace-else-brace))
-          (c-offsets-alist . ((statement-block-intro . +)
-                              (knr-argdecl-intro     . 0)
-                              (substatement-open     . 0)
-                              (substatement-label    . 0)
-                              (label                 . 0)
-                              (statement-cont        . +)
-                              (innamespace           . 0))))
-        c-style-alist))
+(eval-after-load "cc-styles" ;; (require 'cc-styles)
+  '(progn
+     (unless (assoc* "my-style" c-style-alist :test #'string=?)
+       ;; inherited from linux style
+       (push '("my-style"
+               (c-basic-offset  . 8)
+               (indent-tabs-mode . nil)
+               (c-comment-only-line-offset . 0)
+               (c-hanging-braces-alist . ((brace-list-open)
+                                          (brace-entry-open)
+                                          (substatement-open after)
+                                          (block-close . c-snug-do-while)
+                                          (arglist-cont-nonempty)))
+               (c-cleanup-list . (brace-else-brace))
+               (c-offsets-alist . ((statement-block-intro . +)
+                                   (knr-argdecl-intro     . 0)
+                                   (substatement-open     . 0)
+                                   (substatement-label    . 0)
+                                   (label                 . 0)
+                                   (statement-cont        . +)
+                                   (innamespace           . 0))))
+             c-style-alist))
 
-(setf c-default-style
-      `((java-mode . "java")
-        (awk-mode . "awk")
-        (other . ,(cond ((assoc* "my-style" c-style-alist :test #'string=?)
-                         "my-style")
-                        (t
-                         "linux")))))
-(setq-default c-basic-offset 8)
+     (setf c-default-style
+           `((java-mode . "java")
+             (awk-mode . "awk")
+             (other . ,(cond ((assoc* "my-style" c-style-alist :test #'string=?)
+                              "my-style")
+                             (t
+                              "linux")))))
+     (setq-default c-basic-offset 8)))
 
 (eval-after-load
     "c-eldoc"
@@ -209,11 +211,45 @@
                                                           arguments))))))))))
 
 ;; (autoload 'c-c++-switch-header-and-source "c-setup" nil t)
+(autoload 'c-indent-buffer "c-setup")
+(push (cons 'c-mode #'c-indent-buffer) *mode-buffer-indent-function-alist*)
+
 (autoload 'c-setup "c-setup")
 (add-hook 'c-mode-hook #'c-setup)
 
+
 (autoload 'c++-setup "c++-setup")
 (add-hook 'c++-mode-hook #'c++-setup)
+
+(when (platform-use? 'work)
+  (autoload 'c++-indent-buffer "c++-setup" "" t)
+  (autoload 'c++-find-related-file "c++-setup" "" t)
+
+  (push (cons 'c++-mode #'c++-indent-buffer) *mode-buffer-indent-function-alist*))
+
+
+(autoload 'java-indent-buffer "java-setup" "" t)
+(push (cons 'java-mode #'java-indent-buffer) *mode-buffer-indent-function-alist*)
+
+(autoload 'java-setup "java-setup" "" t)
+(add-hook 'java-mode-hook #'java-setup)
+
+
+(autoload 'glsl-mode "glsl-mode" nil t)
+(add-to-list 'auto-mode-alist (cons (rx "."
+                                        (or (seq (or "vs."
+                                                     "fs."
+                                                     "gs.")
+                                                 "glsl")
+                                            "vert"
+                                            "frag"
+                                            "geom")
+                                        eot)
+                                    'glsl-mode))
+
+(autoload 'glsl-setup "glsl-setup")
+(add-hook 'glsl-mode-hook #'glsl-setup)
+
 
 (when (platform-use? 'work)
   (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode)))
@@ -243,6 +279,29 @@
 (push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
 
 
+(defun glsl-file-magic-function ()
+  (let ((ext (file-name-extension (buffer-file-name))))
+    ;; check for null since .emacs doesn't have extension
+    (and ext
+         (or (and (string-match-pure? (rx bot
+                                          (or "vs"
+                                              "fs"
+                                              "gs")
+                                          eot)
+                                      ext)
+                  (looking-at-pure? (rxx ((wh (or whitespace (char ?\n))))
+                                      bot
+                                      (* anything)
+                                      "#"
+                                      (* wh)
+                                      "version"
+                                      (+ wh)
+                                      (+ (or digit ".")))))))))
+
+(push (cons #'glsl-file-magic-function #'glsl-mode) magic-mode-alist)
+
+
+(provide 'c-like-setup)
 
 ;; Local Variables:
 ;; End:
