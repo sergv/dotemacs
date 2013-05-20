@@ -677,9 +677,9 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
         ;; Why bother checking that it is indeed higher/lower level ?
         new-head
         ;; Didn't work, so ask what to do.
-        (read-string (format "%s heading for `%s': "
-                             (if up "Parent" "Demoted") head)
-                     head nil nil t)))))
+        (read-string-no-defalut (format "%s heading for `%s': "
+                                        (if up "Parent" "Demoted") head)
+                                head nil nil t)))))
 
 (defun &&hdr-outline-promote (&optional which)
   "Promote headings higher up the tree.

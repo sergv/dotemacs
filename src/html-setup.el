@@ -166,7 +166,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                      vim:operator-pending-mode-local-keymap)
     ("m" vim:motion-jump-tag)
 
-    ("=" vim:nxml-backward-up-element)
+    ("'" vim:nxml-backward-up-element)
     ("Q" vim:nxml-backward-up-element)
     ("q" vim:markup-forward-up-element)))
 

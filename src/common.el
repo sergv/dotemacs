@@ -245,7 +245,20 @@ properties from the result."
       (set-text-properties 0 (length result) nil result)
       result)))
 
-
+(defun read-string-no-default (prompt
+                               &optional
+                               initial-input
+                               hist-m@%=!$+&^*z
+                               default-value
+                               inherit-input-method)
+  "Similar to `read-string' or `icicle-read-string' but never includes
+default into prompt."
+  (let ((icicle-default-in-prompt-format-function #'identity))
+    (icicle-read-string prompt
+                        initial-input
+                        hist-m@%=!$+&^*z
+                        default-value
+                        inherit-input-method)))
 
 (defun emacs-forget-buffer-process ()
   "Emacs will not query about this process when killing."
