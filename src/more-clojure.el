@@ -59,7 +59,7 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                   (some-expr
                    (cl-return-from cannot-optimize
                      `(,(funcall strip-quotation fallback-function)
-                       ,f
+                       ,expr
                        ,@funcs))))))))
       (letrec ((iter
                 (lambda (funcs)
@@ -103,6 +103,7 @@ optimize away common use cases."
         result))))
 
 (defmacro comp* (f &rest funcs)
+  "Similar to `comp' but uses `apply' for last function."
   `(more-clojure/comp-impl ,(cons f funcs)
                            more-clojure/comp*
                            t))
