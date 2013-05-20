@@ -966,6 +966,59 @@ saved buffer marks."
    :if-buffer (comp #'tagged-buflist/mark-buffer
                     (partial-first #'tagged-section/get-prop 'buffer))))
 
+(defvar tagged-buflist/mark-buffers-by-file-name-history nil
+  "History variable for `tagged-buflist/mark-buffers-by-file-name'.")
+
+(defun tagged-buflist/mark-buffers-by-file-name (filename-regex)
+  (interactive "sfilename regex: ")
+  (for-each #'tagged-buflist/mark-buffer
+            (filter (comp (partial #'string-match-pure? filename-regex)
+                          #'buffer-file-name
+                          #'tagged-buffer/buf)
+                    (filter (comp #'not
+                                  #'null?
+                                  #'buffer-file-name
+                                  #'tagged-buffer/buf)
+                            tagged-buflist/buffers))))
+
+(defvar tagged-buflist/mark-buffers-by-major-mode-history nil
+  "History variable for `tagged-buflist/mark-buffers-by-major-mode'.")
+
+(defun tagged-buflist/mark-buffers-by-major-mode (mmode-str)
+  "Mark buffers with major mode equal to MMODE-STR that will be treated as symbol."
+  (interactive
+   (list (completing-read-vanilla
+          "mode: "
+          (map #'symbol->string
+               (remove-duplicates
+                (map (lambda (tagged-buf)
+                       (buffer-local-value 'major-mode
+                                           (tagged-buffer/buf tagged-buf)))
+                     tagged-buflist/buffers)))
+          nil
+          t
+          ;; initial input
+          (tagged-buflist/for-section-on-line
+           :if-group (comp #'first-safe
+                           (partial #'map #'symbol->string)
+                           #'remove-duplicates
+                           (partial #'map (comp (partial #'buffer-local-value 'major-mode)
+                                                #'tagged-buffer/buf
+                                                (partial-first #'tagged-section/get-prop
+                                                               'buffer))))
+           :if-buffer (comp #'symbol->string
+                            (partial #'buffer-local-value 'major-mode)
+                            #'tagged-buffer/buf
+                            (partial-first #'tagged-section/get-prop
+                                           'buffer)))
+          'tagged-buflist/mark-buffers-by-major-mode-history)))
+  (let ((mmode (string->symbol mmode-str)))
+    (for-each #'tagged-buflist/mark-buffer
+              (filter (comp (partial #'eq? mmode)
+                            (partial #'buffer-local-value 'major-mode)
+                            #'tagged-buffer/buf)
+                      tagged-buflist/buffers))))
+
 (defun tagged-buflist/unmark-buffers-at-point ()
   (interactive)
   (tagged-buflist/for-section-on-line
@@ -1237,6 +1290,8 @@ tagged bufer list.")
       ("`"               tagged-buflist/toggle-filenames)
 
       ("m"               tagged-buflist/mark-buffers-at-point)
+      ("* m"             tagged-buflist/mark-buffers-by-major-mode)
+      ("* %"             tagged-buflist/mark-buffers-by-file-name)
       ("u"               tagged-buflist/unmark-buffers-at-point)
       ("U"               tagged-buflist/unmark-all)
       ("<f2>"            tagged-buflist/save-marked-buffers)

@@ -84,16 +84,16 @@
                                          t)
                   (goto-char (match-beginning 0)))))))
          (next-home-entry (ctags-symbols/next-home ctags-symbols-homes-zipper)))
-    (unless (or (eproj-project-names proj)
-                (assq major-mode (eproj-project-names proj)))
+    (unless (or (eproj-project/tags proj)
+                (assq major-mode (eproj-project/tags proj)))
       (eproj-load-ctags-project proj)
-      (unless (eproj-project-names proj)
+      (unless (eproj-project/tags proj)
         (error "Project %s loaded no names\nProject: %s"
-               (eproj-project-root proj)
+               (eproj-project/root proj)
                proj))
-      (unless (assq major-mode (eproj-project-names proj))
+      (unless (assq major-mode (eproj-project/tags proj))
         (error "No names in project %s for language %s"
-               (eproj-project-root proj)
+               (eproj-project/root proj)
                major-mode)))
     (if (and next-home-entry
              (string=? sym
@@ -128,15 +128,15 @@
                           (ctags-tag-line entry)))))
              (entries
               (sort (reduce #'append
-                            (map (lambda (root)
+                            (map (lambda (proj)
                                    (aif (assq major-mode
-                                              (eproj-project-names
-                                               (eproj-get-project root)))
+                                              (eproj-project/tags
+                                               (eproj-get-project (eproj-project/root proj))))
                                      (gethash sym (cdr it) nil)
                                      nil))
-                                 (cons (eproj-project-root proj)
+                                 (cons proj
                                        (eproj-get-all-related-projects
-                                        (eproj-project-root proj)))))
+                                        proj))))
                     (lambda (a b)
                       (string< (funcall entry->string a)
                                (funcall entry->string b))))))

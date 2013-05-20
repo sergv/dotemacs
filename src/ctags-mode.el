@@ -22,6 +22,7 @@
      "--fields=+SzkK"
      "--extra=+q")
     (c++-mode
+     "--language-force=c++"
      "--c++-kinds=+cdefgmnpstuv"
      "--fields=+iaSzkK"
      "--extra=+q")
@@ -148,7 +149,8 @@
   )
 
 (defun ctags-get-tags-from-buffer (buffer &optional root)
-  "Returns hash-table of (tag . ctags-tag) bindings parsed from buffer BUFFER."
+  "Returns hash-table of (tag . ctags-tag) bindings extracted from buffer BUFFER.
+BUFFER is expected to contain output of ctags command."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
@@ -205,10 +207,10 @@
 
 (defun eproj-load-single-ctags-project (root)
   (let* ((proj (eproj-get-project root)))
-    (setf (eproj-project-names proj) nil)
-    (dolist (lang (eproj-project-languages proj))
+    (setf (eproj-project/tags proj) nil)
+    (dolist (lang (eproj-project/languages proj))
       (let ((ctags-buf (get-buffer-create (concat " *"
-                                                  (eproj-project-root proj)
+                                                  (eproj-project/root proj)
                                                   "-ctags-"
                                                   (symbol->string lang)
                                                   "*"))))
@@ -218,32 +220,29 @@
           ;; (ctags-mode)
           )
         (run-ctags-on-files lang
-                            (eproj-project-root proj)
+                            (eproj-project/root proj)
                             (eproj-get-project-files proj)
                             ctags-buf)
 
         (push (cons lang (ctags-get-tags-from-buffer ctags-buf root))
-              (eproj-project-names proj))
+              (eproj-project/tags proj))
         (kill-buffer ctags-buf)))))
 
 (defun eproj-load-ctags-project (proj)
   "Reload project PROJ and all it's related projects."
-  (map (lambda (root)
-         (eproj-load-single-ctags-project root))
-       (cons (eproj-project-root proj)
-             (eproj-get-all-related-projects (eproj-project-root proj)))))
+  (map (lambda (proj)
+         (eproj-load-single-ctags-project (eproj-project/root proj)))
+       (cons proj
+             (eproj-get-all-related-projects proj))))
 
 (defun eproj-reload-projects ()
+  "Reload projects in database `*eproj-projects*'."
   (interactive)
   (if (= 0 (hash-table-count *eproj-projects*))
     (eproj-load-ctags-project (eproj-get-project-for-buf (current-buffer)))
     (maphash (lambda (root proj)
                (eproj-load-single-ctags-project root))
              *eproj-projects*)))
-
-(defun eproj-reset-projects ()
-  (interactive)
-  (setf *eproj-projects* (make-hash-table :test #'equal)))
 
 
 (defface ctags-symbol-face
