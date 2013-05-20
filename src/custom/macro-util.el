@@ -370,7 +370,10 @@ msg-transform - function to apply to entered text before inserting it into strin
        ;; get name of function containing point
        ;; this form evaluates to string which would be function name
        (funcall #',insert-entity-name-procedure (,start-position v1))
-       ((let* ((x (read-string "Variable or message starting with space: "))
+       ((let* ((x (read-string-no-default "Variable or message starting with space: "
+                                          nil
+                                          nil
+                                          ""))
                (message? (and (< 0 (length x))
                               (char= ?\s (aref x 0))))
                (result nil))

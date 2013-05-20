@@ -707,7 +707,7 @@ current line."
           (`block))
         (setq vim:visual-new-point (point))))))
 
-(defun vim:visual-denormalize-region()
+(defun vim:visual-denormalize-region ()
   (when (and vim:visual-last-point vim:visual-last-mark)
     (set-mark vim:visual-last-mark)
     (when (= (point) vim:visual-new-point)

@@ -33,6 +33,7 @@
 
 
 
+(require 'icicles-opt)
 (icy-mode +1)
 
 (redefun icicle-fuzzy-candidates (input)

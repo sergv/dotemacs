@@ -6,7 +6,10 @@
 ;; Created: Saturday, 18 May 2013
 ;; Description:
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'custom)
+;; (require 'common)
 (require 'custom-predicates)
 (require 'more-scheme)
 (require 'macro-util)
@@ -16,7 +19,7 @@
   "Read filename regexp and try to find it in current dir's tree or in trees
 obtained by following upward in filesystem"
   (interactive)
-  (let* ((filename-re (read-string "filename regexp: " ""))
+  (let* ((filename-re (read-string-no-default "filename regexp: " ""))
          (path (reverse (split-string (aif (buffer-file-name (current-buffer))
                                         (file-name-directory it)
                                         (expand-file-name default-directory))

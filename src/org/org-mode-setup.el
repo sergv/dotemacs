@@ -224,8 +224,11 @@ user."
                               (use-local-map map)
                               (setq org-read-date-inactive inactive)
                               (add-hook 'post-command-hook 'org-read-date-display)
-                              (setq org-ans0 (read-string prompt default-input
-                                                          'org-read-date-history nil))
+                              (setq org-ans0
+                                    (read-string-no-default prompt
+                                                            default-input
+                                                            'org-read-date-history
+                                                            nil))
                               ;; org-ans0: from prompt
                               ;; org-ans1: from mouse click
                               ;; org-ans2: from calendar motion
@@ -239,8 +242,10 @@ user."
 
            (t                           ; Naked prompt only
             (unwind-protect
-                (setq ans (read-string prompt default-input
-                                       'org-read-date-history timestr))
+                (setq ans (read-string-no-default prompt
+                                                  default-input
+                                                  'org-read-date-history
+                                                  timestr))
               (when org-read-date-overlay
                 (delete-overlay org-read-date-overlay)
                 (setq org-read-date-overlay nil)))))

@@ -22,8 +22,7 @@
   (lisp-setup :use-cl-indent nil :use-whitespace t)
   (clojure-enable-nrepl)
 
-  (awhen (clojure-find-ns)
-    (setf nrepl-buffer-ns it))
+  (nrepl-reset-buffer-ns!)
 
   (setq-local lisp-indent-function #'clojure-indent-function)
   (setq-local forward-sexp-function #'clojure-forward-sexp)
