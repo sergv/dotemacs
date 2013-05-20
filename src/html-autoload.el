@@ -12,6 +12,8 @@
 
 (add-hook 'rnc-mode-hook #'init-common)
 
+(autoload 'nxhtml-hs-forward-sexp-func "nxhtml-mode")
+
 (autoload 'hl-tags-mode "hl-tags-mode" nil t)
 (autoload 'sgml-skip-tag-backward "sgml-mode" nil t)
 (autoload 'sgml-skip-tag-forward "sgml-mode" nil t)

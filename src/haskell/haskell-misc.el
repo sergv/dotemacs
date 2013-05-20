@@ -8,6 +8,8 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'macro-util)
 (require 'advices-util)
 (require 'common)
