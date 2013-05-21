@@ -248,15 +248,15 @@ properties from the result."
 (defun read-string-no-default (prompt
                                &optional
                                initial-input
-                               hist-m@%=!$+&^*z
+                               hist-var
                                default-value
                                inherit-input-method)
   "Similar to `read-string' or `icicle-read-string' but never includes
 default into prompt."
-  (let ((icicle-default-in-prompt-format-function #'identity))
+  (let ((icicle-default-in-prompt-format-function (lambda (&rest _) "")))
     (icicle-read-string prompt
                         initial-input
-                        hist-m@%=!$+&^*z
+                        hist-var
                         default-value
                         inherit-input-method)))
 

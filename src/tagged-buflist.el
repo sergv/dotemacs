@@ -1149,7 +1149,7 @@ of group if on line with group."
                     #'tagged-buffer/buf
                     (partial-first #'tagged-section/get-prop 'buffer))))
 
-(defun tagged-buflist/switch-to-buffer-at-point-other-window ()
+(defun tagged-buflist/switch-to-buffer-at-point-other-window-or-cycle ()
   (interactive)
   (tagged-buflist/for-section-on-line
    :if-group #'tagged-buflist/cycle-group-visibility
@@ -1283,9 +1283,9 @@ tagged bufer list.")
       +control-x-prefix+
       +vim-special-keys+
       ("<return>"        tagged-buflist/switch-to-buffer-at-point-or-cycle)
-      ("SPC"             tagged-buflist/switch-to-buffer-at-point-or-cycle)
+      ("SPC"             tagged-buflist/switch-to-buffer-at-point-other-window-or-cycle)
       ("d"               tagged-buflist/delete-marked-buffers)
-      ("o"               tagged-buflist/switch-to-buffer-at-point-other-window)
+      ("o"               tagged-buflist/switch-to-buffer-at-point-other-window-or-cycle)
       ("r"               tagged-buflist/refresh)
       ("`"               tagged-buflist/toggle-filenames)
 
