@@ -14,7 +14,7 @@
 
 (add-to-list 'load-path (concat +emacs-standalone-elc-path+ "/auctex"))
 (add-to-list 'load-path (concat +emacs-standalone-elc-path+ "/auctex/auctex"))
-(add-to-list 'load-path (concat +emacs-standalone-elc-path+ "/auctex/auctex/style"))
+;; (add-to-list 'load-path (concat +emacs-standalone-elc-path+ "/auctex/auctex/style"))
 
 
 (require 'tex-site)

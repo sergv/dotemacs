@@ -90,7 +90,7 @@
   ("C-z"      nil)
   ("<XF86Favorites>" tagged-buflist-show)
   ("C-x b"    tagged-buflist-show)
-  ("C-b"      tagged-buflist-show)
+  ("C-b"      icicle-buffer)
   ("M-b"      tagged-buflist-show)
   ("C-x f"    find-file)
   ("C-x k"    remove-buffer)
