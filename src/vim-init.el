@@ -96,7 +96,7 @@ like \"d w\".")
 
 
         ("C-u"     undo-tree-visualize)
-        ("C-b"     switch-to-buffer)
+        ("C-b"     icicle-buffer)
 
         ("S-<backspace>" delete-whitespaces-backward)
         ("S-<delete>"    delete-whitespaces-forward)
