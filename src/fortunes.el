@@ -1310,9 +1310,6 @@ we can only help them discover it within themselves.
    "Enjoy when you can and endure when you must.
 -- Johann Wolfgang van Goethe"
 
-   "Whatever you can do or dream, begin it.
--- Johann Wolfgang van Goethe"
-
    "A man can stand anything except a succession of ordinary days.
 -- Johann Wolfgang van Goethe"
 
