@@ -8,7 +8,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(eval-after-load "icicles" '(progn (require 'icicles-setup)))
+(require 'icicles-opt)
 
 (autoload 'icy-mode "icicles" "" t)
 (autoload 'icicle-file "icicles" "" t)
@@ -19,6 +19,7 @@
 (autoload 'icicle-completing-read "icicles" "" t)
 (autoload 'icicle-read-string "icicles" "" t)
 (autoload 'icicle-shell-command "icicles" "" t)
+(autoload 'icicle-pp-eval-expression "icicles" "" t)
 
 (autoload 'completion-list-setup "icicles-setup")
 (add-hook 'completion-list-mode-hook #'completion-list-setup)

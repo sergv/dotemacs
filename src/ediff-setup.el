@@ -6,6 +6,8 @@
 ;; Created: Saturday, 24 November 2012
 ;; Description:
 
+(autoload 'ediff-quit "ediff-util" "" t)
+
 ;; don't spawn separate ediff frame
 (setf ediff-window-setup-function 'ediff-setup-windows-plain)
 
