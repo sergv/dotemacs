@@ -88,22 +88,22 @@ window configuration on end of ediff session."
           ;;   (append ediff-quit-hook
           ;;           (list (lambda ()
           ;;                   (exit-recursive-edit)))))
-          (ediff-make-buffers-readonly-at-startup read-only)
-          (orig-ediff-quit (symbol-function #'ediff-quit))
-          (new-ediff-quit
-           (lambda (reverse-default-keep-variants)
-             (interactive "P")
-             (ediff-barf-if-not-control-buffer)
-             (let ((minibuffer-auto-raise t))
-               (ediff-really-quit reverse-default-keep-variants)
-               (exit-recursive-edit)))))
-      (fset 'ediff-quit new-ediff-quit)
+          (ediff-make-buffers-readonly-at-startup read-only))
       (ediff file-a file-b)
-      ;; protect in case of abort-recursive-edit
-      (unwind-protect
-          (recursive-edit)
-        (set-window-configuration win-conf)
-        (fset 'ediff-quit orig-ediff-quit)))))
+      (let ((orig-ediff-quit (symbol-function #'ediff-quit))
+            (new-ediff-quit
+             (lambda (reverse-default-keep-variants)
+               (interactive "P")
+               (ediff-barf-if-not-control-buffer)
+               (let ((minibuffer-auto-raise t))
+                 (ediff-really-quit reverse-default-keep-variants)
+                 (exit-recursive-edit)))))
+        (fset 'ediff-quit new-ediff-quit)
+        ;; protect in case of abort-recursive-edit
+        (unwind-protect
+            (recursive-edit)
+          (set-window-configuration win-conf)
+          (fset 'ediff-quit orig-ediff-quit))))))
 
 (defun ediff/line-in-buffer? (buffer line-num)
   (with-current-buffer buffer
