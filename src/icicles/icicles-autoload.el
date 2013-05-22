@@ -8,8 +8,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'icicles-opt)
-
 (autoload 'icy-mode "icicles" "" t)
 (autoload 'icicle-file "icicles" "" t)
 (autoload 'icicle-locate-file "icicles" "" t)
@@ -20,14 +18,19 @@
 (autoload 'icicle-read-string "icicles" "" t)
 (autoload 'icicle-shell-command "icicles" "" t)
 (autoload 'icicle-pp-eval-expression "icicles" "" t)
+(autoload 'icicle-pp-eval-expression-in-minibuffer "icicles" "" t)
+(autoload 'icicle-delete-window "icicles" "" t)
 
 (autoload 'completion-list-setup "icicles-setup")
 (add-hook 'completion-list-mode-hook #'completion-list-setup)
 
+(eval-after-load "icicles" '(progn (require 'icicles-setup)))
+(load-library "icicles-opt")
 
 (provide 'icicles-autoload)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; icicles-autoload.el ends here
