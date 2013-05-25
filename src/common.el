@@ -912,6 +912,20 @@ end of END-LINE in current buffer."
 ;;                                              prop))))))
 ;;     p))
 
+;;;;
+
+(defvar common/registered-filenames (make-hash-table :test #'equal)
+  "Hashtable binding filename strings to themselves. Exists for memory
+optimization reasons.")
+
+(defun common/registered-filename (filename)
+  (aif (gethash filename common/registered-filenames)
+    it
+    (progn
+      (puthash filename filename common/registered-filenames)
+      filename)))
+
+;;;;
 
 (provide 'common)
 
