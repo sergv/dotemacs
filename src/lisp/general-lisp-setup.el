@@ -664,8 +664,10 @@ This command assumes point is not in a string or comment."
    (when (hs-already-hidden-p)
      (hs-show-block))
    (when (outline-invisible-p)
-     (show-subtree)))
- (lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
+     (show-subtree))
+   (when (&&hdr-outline-invisible-p)
+     (&&hdr-show-subtree)))
+ (clojure-mode lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
 
 ;;; keybindings as variables
 
