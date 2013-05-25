@@ -16,7 +16,7 @@
 
 (defvar gitignore-font-lock-keywords
   `(("\\(?:^\\|\\s-+\\)\\(#.*\\)$"
-     (1 font-lock-comment-face))))
+     (1 'font-lock-comment-face))))
 
 (provide 'gitignore-mode)
 
