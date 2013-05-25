@@ -546,18 +546,26 @@ cover buffer's name, for groups it would not cover section's name."
           (visible-buffers)))
 
 (defun tagged-buflist/tagged-buffers (tags)
-  (map (lambda (buf)
-         (make-tagged-buffer
-          :buf buf
-          :tags (sorted-set/from-list
-                 (filter (lambda (tag)
-                           (assert (buffer-tag-p tag) nil
-                                   "Tag should be of buffer-tag type, %s" tag)
-                           (funcall (buffer-tag/predicate tag) buf))
-                         tags)
-                 #'tagged-buflist/buffer-tag<)
-          :sections nil))
-       (tagged-buflist/user-buffers)))
+  ;; While map here works it is assumed that no git repository for opened
+  ;; files will change its HEAD reference. Since this function should not
+  ;; take long it is realistic assumption. But even if some repository will
+  ;; change, this change will not be visible inside git-with-temp-head-commit-cache
+  ;; and therefore theoretically some files might be classified as parts
+  ;; of repository even though this very moment repository deleted them or
+  ;; switched branch where they've not-tracked state.
+  (git-with-temp-head-commit-cache
+   (map (lambda (buf)
+          (make-tagged-buffer
+           :buf buf
+           :tags (sorted-set/from-list
+                  (filter (lambda (tag)
+                            (assert (buffer-tag-p tag) nil
+                                    "Tag should be of buffer-tag type, %s" tag)
+                            (funcall (buffer-tag/predicate tag) buf))
+                          tags)
+                  #'tagged-buflist/buffer-tag<)
+           :sections nil))
+        (tagged-buflist/user-buffers))))
 
 (defun* tagged-buflist/buffers-matching-tagset (tagged-buflist
                                                 tagset
@@ -567,14 +575,9 @@ EXACT is supplied then leave buffers with tags exactly in TAGSET otherwise
 buffers that match part of tagset will be included in result."
   (let ((tagset-len (sorted-set/length tagset)))
     (filter (lambda (buf)
-              ;; (message "buffer %s: intersecting %S and %S"
-              ;;          (tagged-buffer/buf buf)
-              ;;          (map #'buffer-tag/name (sorted-set-items (tagged-buffer/tags buf)))
-              ;;          (map #'buffer-tag/name (sorted-set-items tagset)))
-              ;; (not (sorted-set/empty? (sorted-set/intersection (tagged-buffer/tags buf)
-              ;;                                                  tagset)))
-              (= (sorted-set/length (sorted-set/intersection (tagged-buffer/tags buf)
-                                                             tagset))
+              (= (sorted-set/length
+                  (sorted-set/intersection (tagged-buffer/tags buf)
+                                           tagset))
                  (if exact
                    (sorted-set/length tagset)
                    (min (sorted-set/length (tagged-buffer/tags buf))
