@@ -108,6 +108,31 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                        (error "No matching item found"))))))
           (vim:motion-jump-item))))))
 
+(eval-after-load "rng-valid"
+  '(progn
+     ;; propertize Invalid message with distinctive face
+     (redefun rng-compute-mode-line-string ()
+       (cond (rng-validate-timer
+              (concat " Validated:"
+                      (number-to-string
+                       ;; Use floor rather than round because we want
+                       ;; to show 99% rather than 100% for changes near
+                       ;; the end.
+                       (floor (if (eq (buffer-size) 0)
+                                0.0
+                                (/ (* (- rng-validate-up-to-date-end (point-min))
+                                      100.0)
+                                   (- (point-max) (point-min))))))
+                      "%%"))
+             ((> rng-error-count 0)
+              (concat " "
+                      (propertize "Invalid"
+                                  'face 'error
+                                  'help-echo "mouse-1: go to first error"
+                                  'local-map (make-mode-line-mouse-map
+                                              'mouse-1
+                                              'rng-mouse-first-error))))
+             (t " Valid")))))
 
 (vimmize-motion nxml-backward-up-element
                 :name vim:nxml-backward-up-element
