@@ -10,7 +10,7 @@
 
 (require 'common)
 (require 'cc-setup)
-(require 'ctags-setup)
+(require 'eproj-setup)
 
 (defun java-indent-buffer ()
   (interactive)
@@ -43,6 +43,7 @@
   (setf c-basic-offset 4
         vim:shift-width 4)
 
+  (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"
                          :header-symbol "*"
                          :length-min 3
