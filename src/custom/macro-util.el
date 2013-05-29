@@ -872,7 +872,9 @@ value, that slot cannot be set via `setf'.
 (defmacro if-let (condition if-branch &optional else-branch)
   (assert (and (or (list? condition)
                    (vector? condition))
-               (= 2 (length condition))))
+               (= 2 (length condition)))
+          nil
+          "if-let error: invalid condition: %s" condition)
   (if (list? condition)
     (let ((tmp-var (gensym))
           (cond-var (first condition))

@@ -10,10 +10,9 @@
 (require 'cc-setup)
 (require 'c++-abbrev+)
 (require 'select-mode)
-(require 'ctags-setup)
 (require 'more-clojure)
+(require 'eproj-setup)
 
-;; doxymacs is there
 (add-to-list 'load-path (concat +emacs-standalone-elc-path+
                                 "/doxymacs"))
 
@@ -175,8 +174,7 @@
       ("SPC SPC" c++-find-related-file)))
 
   (c++-abbrev+-setup)
-  (setup-ctags-symbols)
-
+  (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"
                          :header-symbol "*"
                          :length-min 3

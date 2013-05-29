@@ -162,6 +162,7 @@
 (load-library "undo-tree-setup")
 (load-library "recentf-setup")
 (load-library "misc-autoloads")
+(load-library "eproj-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
