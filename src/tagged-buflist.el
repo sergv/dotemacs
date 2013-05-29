@@ -727,7 +727,7 @@ line the point was on."
   (declare (indent 0))
   (let ((selected-section-var (gensym "selected-section-var"))
         (selected-line-var (gensym "selected-line-var")))
-    `(let ((,selected-line-var (count-lines (point-min) (point))))
+    `(let ((,selected-line-var (count-lines1 (point-min) (point))))
        (tagged-buflist/with-optional-section-for-line ,selected-section-var
          (unwind-protect
              (progn
