@@ -16,6 +16,7 @@
 (require 'clojure-abbrev+)
 (require 'clojure-compile)
 (require 'browse-kill-ring-setup)
+(require 'eproj-setup)
 
 
 (defun clojure-setup ()
@@ -42,11 +43,9 @@
     ("<f6>"    nrepl-load-current-buffer ;; clojure-load-file
      )
 
-    ("M-."     nrepl-jump)
-    ("M-,"     nrepl-jump-back)
-
     ("<f9>"    clojure-compile)
     ("S-<f9>"  kibit))
+  (setup-eproj-symbnav)
   (clojure-abbrev+-setup))
 
 (def-keys-for-map nrepl-mode-map

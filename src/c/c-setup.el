@@ -9,7 +9,7 @@
 (require 'common)
 (require 'cc-setup)
 (require 'c-abbrev+)
-(require 'ctags-setup)
+(require 'eproj-setup)
 
 (defun c-indent-buffer ()
   (interactive)
@@ -64,7 +64,7 @@
   (def-keys-for-map vim:visual-mode-local-keymap
     (", m" c-macro-expand))
   (c-abbrev+-setup)
-  (setup-ctags-symbols)
+  (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"
                          :header-symbol "*"
                          :length-min 3

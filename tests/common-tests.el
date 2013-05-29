@@ -110,6 +110,7 @@
 (provide 'common-tests)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; End:
 
 ;; common-tests.el ends here
