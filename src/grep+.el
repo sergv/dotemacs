@@ -155,6 +155,7 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           ("cchh"    . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++  *.inl *.inc *.incl")
           ("clj"     . "*.clj")
           ("clojure" . "*.clj")
+          ("java"     . "*.java")
           ("scm"     . ,scheme-extensions)
           ("m"       . "[Mm]akefile* *.mk")
           ("make"    . "[Mm]akefile* *.mk")
