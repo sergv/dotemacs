@@ -143,16 +143,19 @@ entries."
   (let ((session-entries data))
     (awhen (assq 'buffers session-entries)
       (mapc (lambda (entry)
-              (with-current-buffer (find-file-noselect
-                                    (session-entry/file-name entry))
-                (goto-char (session-entry/point entry))
-                (aif (session-entry/major-mode entry)
-                  (unless (eq? major-mode it)
-                    (funcall (symbol-function it)))
-                  (message "warning: session buffer entry without major mode: %s"
-                           entry))
-                (sessions/restore-buffer-variables (current-buffer)
-                                                   (session-entry/variables entry))))
+              (if (file-exists? (session-entry/file-name entry))
+                (with-current-buffer (find-file-noselect
+                                      (session-entry/file-name entry))
+                  (goto-char (session-entry/point entry))
+                  (aif (session-entry/major-mode entry)
+                    (unless (eq? major-mode it)
+                      (funcall (symbol-function it)))
+                    (message "warning: session buffer entry without major mode: %s"
+                             entry))
+                  (sessions/restore-buffer-variables (current-buffer)
+                                                     (session-entry/variables entry)))
+                (message "warning: file %s does not exist!"
+                         (session-entry/file-name entry))))
             (cadr it)))
     (aif (assq 'frames session-entries)
       (restore-window-configuration (first (rest it)))
