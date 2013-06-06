@@ -230,6 +230,7 @@ MAP is `minibuffer-local-completion-map' or
     ("C-S-w"         backward-delete-word*)
     ("C-p"           vim:cmd-paste-before)
     ("M-p"           browse-kill-ring)
+    ("C-M-p"         browse-kill-ring)
 
     ("C-v"           set-mark-command)
     ("C-y"           copy-region-as-kill)
@@ -265,7 +266,7 @@ MAP is `minibuffer-local-completion-map' or
     ("["             paredit-open-square)
     ("]"             paredit-close-square)
     ("\""            paredit-doublequote)
-    ("\\"            paredit-backslash)
+    ("\\"            icicle-self-insert)
     ("M-<up>"        paredit-splice-sexp-killing-backward)
     ("M-<down>"      paredit-splice-sexp-killing-forward)
     ("C-)"           paredit-forward-slurp-sexp)

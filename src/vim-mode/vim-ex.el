@@ -59,23 +59,26 @@
 (defvar vim:ex-range nil
   "The currently parsed region.")
 
-(defvar vim:ex-keymap (make-sparse-keymap)
+(defvar vim:ex-keymap
+  (let ((map (make-sparse-keymap)))
+    (def-keys-for-map map
+      ("<tab>"    minibuffer-complete)
+      ("<return>" vim:ex-mode-exit)
+      ("RET"      vim:ex-mode-exit)
+      ("C-p"      icicle-yank-maybe-completing)
+      ("C-j"      vim:ex-mode-exit)
+      ("C-g"      vim:ex-mode-abort)
+      ("C-w"      backward-delete-word)
+      ("C-S-w"    backward-delete-word*)
+      ("<up>"     previous-history-element)
+      ("<down>"   next-history-element))
+    ;; (define-key map " " vim:ex-expect-argument)
+    ;; (define-key map "\d" 'vim:ex-delete-backward-char)
+    ;; (define-key map (kbd "ESC ESC") 'vim:ex-mode-keyboard-escape-quit)
+    map)
   "Keymap used in ex-mode.")
 
-(def-keys-for-map vim:ex-keymap
-  ("<tab>"    minibuffer-complete)
-  ("<return>" vim:ex-mode-exit)
-  ("RET"      vim:ex-mode-exit)
-  ("C-p"      icicle-yank-maybe-completing)
-  ("C-j"      vim:ex-mode-exit)
-  ("C-g"      vim:ex-mode-abort)
-  ("C-w"      backward-delete-word)
-  ("C-S-w"    backward-delete-word*)
-  ("<up>"     previous-history-element)
-  ("<down>"   next-history-element))
-;; (define-key vim:ex-keymap " " vim:ex-expect-argument)
-;; (define-key vim:ex-keymap "\d" 'vim:ex-delete-backward-char)
-;; (define-key vim:ex-keymap (kbd "ESC ESC") 'vim:ex-mode-keyboard-escape-quit)
+
 
 
 (defun vim:ex-set-info (info)
