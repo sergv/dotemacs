@@ -14,6 +14,7 @@
 (require 'vim-core)
 (require 'vim-compat)
 (require 'vim-motions)
+(require 'icicles-util)
 
 (defgroup vim-ex-mode nil
   "Configure ex-mode and search mode."
@@ -61,6 +62,7 @@
 
 (defvar vim:ex-keymap
   (let ((map (make-sparse-keymap)))
+    (icicles-util/bind-minibuffer-keys map :paredit nil)
     (def-keys-for-map map
       ("<tab>"    minibuffer-complete)
       ("<return>" vim:ex-mode-exit)
