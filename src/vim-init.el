@@ -148,6 +148,8 @@ like \"d w\".")
   ("U"        undo-tree-redo)
 
   ("C-p"      yank)
+  ("M-p"      browse-kill-ring)
+  ("C-M-p"    browse-kill-ring)
   ("C-k"      remove-buffer)
   ("C-S-k"    remove-buffer-and-window)
 
