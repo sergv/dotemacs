@@ -248,7 +248,7 @@ properties from the result."
 (defun read-string-no-default (prompt
                                &optional
                                initial-input
-                               hist-var
+                               hist-m@%=!$+&^*z
                                default-value
                                inherit-input-method)
   "Similar to `read-string' or `icicle-read-string' but never includes
@@ -256,7 +256,7 @@ default into prompt."
   (let ((icicle-default-in-prompt-format-function (lambda (&rest _) "")))
     (icicle-read-string prompt
                         initial-input
-                        hist-var
+                        hist-m@%=!$+&^*z
                         default-value
                         inherit-input-method)))
 
@@ -924,6 +924,17 @@ optimization reasons.")
     (progn
       (puthash filename filename common/registered-filenames)
       filename)))
+
+;;;;
+
+(defun* pp-to-string* (obj
+                       &key
+                       (length nil) ;; print-length
+                       (depth nil) ;; print-level
+                       )
+  (let ((print-length length)
+        (print-depth depth))
+    (pp-to-string obj)))
 
 ;;;;
 

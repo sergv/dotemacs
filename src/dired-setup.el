@@ -12,10 +12,12 @@
 
 (require 'set-up-paths)
 
+(autoload 'dired-single-buffer "dired-single" "" t)
+
 (eval-after-load
     "dired"
   '(progn
-     (require 'dired-single)
+     ;; (require 'dired-single)
      (require 'dired-aux)
      (require 'dired-x)
 
@@ -49,6 +51,7 @@
        ("o"        dired-do-open-marked)
        ("Q"        dired-prompt-and-do-query-replace-regexp)
        ("<return>" dired-single-buffer)
+       ("SPC"      dired-single-buffer-other-window)
        ("^"        dired-single-up-directory)
        ("r"        revert-buffer) ;; refresh
 
@@ -72,12 +75,22 @@
              (dired-make-relative filename)))))
 
      (defun dired-do-open-marked ()
+       "Just open currently makred files as emacs buffers without switching to
+them."
        (interactive)
        (dired-map-over-marks-check #'dired--open
                                    nil
                                    'open
                                    ;; don't redisplay dired after each file
-                                   nil))))
+                                   nil))
+
+     (defun dired-single-buffer-other-window (&optional file-to-visit)
+       "Similar to `dired-single-buffer' but opens file window that the
+current one."
+       (interactive)
+       (switch-to-buffer-other-window
+        (find-file-noselect (or file-to-visit
+                                (dired-get-file-for-visit)))))))
 
 
 (provide 'dired-setup)
