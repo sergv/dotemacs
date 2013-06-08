@@ -59,10 +59,11 @@
          (list "\\_<info\\_>"
                (list #'scheme-print-info-skeleton)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                               (not (lisp-pos-is-beginning-of-list? (point))))))))
+                          (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
+
 
 
 (provide 'scheme-abbrev+)
