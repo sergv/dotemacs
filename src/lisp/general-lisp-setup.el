@@ -357,10 +357,14 @@ nor comment."
 
 ;;; lists, strings
 
-(defun lisp-pos-is-beginning-of-list? (pos)
+(defsubst lisp-prev-pos-is-beginning-of-list? (pos)
+  "Check whether position POS minus one is beginning of a list"
+  (lisp-pos-is-beginning-of-list? (max (1- pos) (point-min))))
+
+(defsubst lisp-pos-is-beginning-of-list? (pos)
   (char= ?\( (char-after pos)))
 
-(defun lisp-pos-is-end-of-list? (pos)
+(defsubst lisp-pos-is-end-of-list? (pos)
   (char= ?\) (char-after pos)))
 
 (defun lisp-beginning-of-list-at-pos (pos)
