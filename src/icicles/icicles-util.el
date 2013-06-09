@@ -46,12 +46,11 @@
     ("C-SPC"             icicle-erase-minibuffer)
 
     ("<backspace>"       delete-backward-char)
-    ("S-<backspace>"     backward-delete-word)
-
-    ("\\"                icicle-self-insert))
+    ("S-<backspace>"     backward-delete-word))
 
   (when paredit
     (def-keys-for-map map
+      ("\\"        icicle-self-insert)
       ("("         paredit-open-round)
       (")"         paredit-close-round)
       ("["         paredit-open-square)
