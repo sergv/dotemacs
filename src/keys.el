@@ -8,11 +8,7 @@
 
 
 (require 'custom)
-
 (require 'keys-def)
-
-(autoload 'tabbar-move-selected-tab-left "tabbal-setup" "" t)
-(autoload 'tabbar-move-selected-tab-right "tabbal-setup" "" t)
 
 (def-keys-for-map global-map
   ("<f1>"     help-command)
@@ -109,9 +105,11 @@
      (def-keys-for-map help-mode-map
        +vi-keys+
        +control-x-prefix+
-       ("<escape>"   remove-buffer)
-       ("<up>"       help-go-back)
-       ("<down>"     help-go-forward))))
+       ("<escape>" remove-buffer)
+       ("<up>"     help-go-back)
+       ("<down>"   help-go-forward)
+       ("M-."      elisp-slime-nav-find-elisp-thing-at-point)
+       ("M-,"      pop-tag-mark))))
 
 ;; view-mode
 (eval-after-load "view"
@@ -119,7 +117,7 @@
      (def-keys-for-map view-mode-map
        +vi-keys+
        +control-x-prefix+
-       ("<escape>"   remove-buffer))))
+       ("<escape>" remove-buffer))))
 
 (eval-after-load "cus-edit"
   '(progn
@@ -128,34 +126,34 @@
        +vi-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
-       (", w"        customize-save-customized)
-       ("w"          vim:motion-fwd-word)
-       ("b"          vim:motion-bwd-word)
-       ("e"          vim:motion-fwd-word-end)
+       (", w"      customize-save-customized)
+       ("w"        vim:motion-fwd-word)
+       ("b"        vim:motion-bwd-word)
+       ("e"        vim:motion-fwd-word-end)
 
-       ("<escape>"   remove-buffer)
-       ("<down>"     widget-forward)
-       ("<up>"       widget-backward))
+       ("<escape>" remove-buffer)
+       ("<down>"   widget-forward)
+       ("<up>"     widget-backward))
 
      (def-keys-for-map Custom-mode-map
        +control-x-prefix+
        +vi-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
-       (", w"        customize-save-customized)
-       ("w"          vim:motion-fwd-word)
-       ("b"          vim:motion-bwd-word)
-       ("e"          vim:motion-fwd-word-end)
+       (", w"      customize-save-customized)
+       ("w"        vim:motion-fwd-word)
+       ("b"        vim:motion-bwd-word)
+       ("e"        vim:motion-fwd-word-end)
 
-       ("<escape>"   remove-buffer)
-       ("<down>"     widget-forward)
-       ("<up>"       widget-backward))))
+       ("<escape>" remove-buffer)
+       ("<down>"   widget-forward)
+       ("<up>"     widget-backward))))
 
 (eval-after-load "apropos"
   '(progn
      (def-keys-for-map apropos-mode-map
-       ("<f6>"       remove-buffer)
-       ("<escape>"   remove-buffer))))
+       ("<f6>"     remove-buffer)
+       ("<escape>" remove-buffer))))
 
 
 
