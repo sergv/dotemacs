@@ -232,7 +232,7 @@ current buffer. INIT form will be executed before performing any jumps."
                (goto-char change-pos)
                (goto-char (point-max))))))))
 
-;;;; other functions
+;;;; other macros
 
 (defmacro if-buffer-has-file (&rest body)
   "Execute BODY if current buffer has file assigned."
@@ -347,14 +347,19 @@ in the same directory the current file is."
      (format-print-value "~a")
      (format-string-start "\"")
      (format-string-end "~%\"")
-     (insert-newline-before-var-list t))
+     (insert-newline-before-var-list t)
+     (name-value-delimiter " = " ;; former ": "
+                           ))
   "Now, here's quite complicated stuff but very general too. This macro can
-solve most debug print problems.
+solve most of debug print problems of mine.
 
 I want to stress one point here: this macro does not and would never ever
 support debug printing for C++ using cout et al.
 
-msg-transform - function to apply to entered text before inserting it into string"
+MSG-TRANSFORM - function to apply to entered text before inserting it into string,
+will be applied to both variables and messages.
+
+NAME-VALUE-DELIMITER string to be inserted between variable name and it's value."
   (let ((initial-state `(list (point) nil nil))
         (start-position 'car)
         (previously-inserted-message 'cadr)
@@ -385,12 +390,15 @@ msg-transform - function to apply to entered text before inserting it into strin
               (if message?
                 (setf result
                       ,(if msg-transform
-                         '(funcall ,msg-transform (replace-regexp-in-string "^[ \t]+" "" x))
+                         `(funcall ,msg-transform
+                                   (replace-regexp-in-string "^[ \t]+" "" x))
                          '(replace-regexp-in-string "^[ \t]+" "" x)))
                 (progn
                   (push x (,variable-names v1))
                   (setf result
-                        (concat ,(if msg-transform `(funcall ,msg-transform x) 'x) ": " ,format-print-value))))
+                        (concat ,(if msg-transform `(funcall ,msg-transform x) 'x)
+                                ,name-value-delimiter
+                                ,format-print-value))))
               ;; if anything was inserted previously then prepend
               ;; ", " or "; " to result
               (when (,previously-inserted-message v1)
@@ -404,7 +412,8 @@ msg-transform - function to apply to entered text before inserting it into strin
                                           "; "
                                           ", ")))
                                      result)))
-              (setf (,previously-inserted-message v1) (if message? 'message 'variable))
+              (setf (,previously-inserted-message v1)
+                    (if message? 'message 'variable))
               ;; made up format chunk, return it so that str reference can use it
               result)
             ;; done entering values - communicate that to skeleton mode
