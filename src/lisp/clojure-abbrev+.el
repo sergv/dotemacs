@@ -35,7 +35,7 @@
 
   :format-print-value "%s"
   :format-string-start "\""
-  :format-string-end "\\n\""
+  :format-string-end "\""
   :print-end ")"
   :msg-transform #'clojure-util/quote-format-arguments
 

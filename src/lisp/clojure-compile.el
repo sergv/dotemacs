@@ -33,8 +33,15 @@
       (or "exception"
           "Exception")
       (? ":")
-      (* anything)
-      ", compiling:("
+      (* (regexp "[^\n]"))
+      (or ", compiling:"
+          ;; capture part of a stacktrace
+          (seq "\n"
+               (* (any ?\s ?\t))
+               "at"
+               (* (any ?\s ?\t))
+               (+ (regexp "[a-zA-Z0-9_.$]"))))
+      "("
       (group
        (? "/")
        (* (+ (regexp "[^/\n]"))
@@ -43,9 +50,11 @@
        "\.clj")
       ":"
       (group (+ digit))
-      ":"
-      (group (+ digit))
+      ;; stacktraces do not include columns
+      (? ":"
+         (group (+ digit)))
       ")"))
+
 
 (defun clojure-compile/get-selected-warning ()
   "Return filename, line and column for warning on current line (i.e. the selected one)."
@@ -65,7 +74,9 @@
       (when (looking-at? +clojure-compile-error-regexp+)
         (values (match-string-no-properties 1)
                 (string->number (match-string-no-properties 2))
-                (string->number (match-string-no-properties 3)))))))
+                (aif (match-string-no-properties 3)
+                  (string->number it)
+                  nil))))))
 
 
 
@@ -114,7 +125,8 @@ path, in which case filename with suffix equal to FILENAME will be tried."
                (error "File %s not found" filename))
              (vim:save-position)
              (goto-line line)
-             (move-to-column column)))))
+             (when column
+               (move-to-column column))))))
     (if-let (err (clojure-compile/get-selected-error))
       (funcall goto-err err)
       (if-let (warning (clojure-compile/get-selected-warning))
