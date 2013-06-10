@@ -18,6 +18,7 @@
 (require 'browse-kill-ring-setup)
 (require 'eproj-setup)
 
+(setf clojure-max-backtracking 10)
 
 (defun clojure-setup ()
   (lisp-setup :use-cl-indent nil :use-whitespace t)
@@ -42,9 +43,9 @@
     ("M-/"     complete-symbol)
     ("<f6>"    nrepl-load-current-buffer ;; clojure-load-file
      )
-
     ("<f9>"    clojure-compile)
     ("S-<f9>"  kibit))
+
   (setup-eproj-symbnav)
   (clojure-abbrev+-setup))
 
