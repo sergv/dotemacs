@@ -227,8 +227,8 @@ confuse when point is not at the beginning of line"
 
 (defsubst goto-line1 (line)
   "Set point at the beginning of line LINE counting from line 1 at
-beginning of buffer. Dont causes Scan error: \"Unbalanced parentheses\" as
-in `goto-line'"
+beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" as
+`goto-line' does."
   (goto-char (point-min))
   (forward-line (1- line)))
 

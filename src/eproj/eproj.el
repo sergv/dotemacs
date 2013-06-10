@@ -569,7 +569,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
 
 
 (defun eproj-get-all-related-projects (proj)
-  "Return all roots of projects realted to PROJ except PROJ itself."
+  "Return eproj-project structures of projects realted to PROJ except PROJ itself."
   (letrec ((collect
             (lambda (projs visited items)
               (if projs
@@ -675,14 +675,14 @@ AUX-INFO is expected to be a list of zero or more constructs:
                  (error "unsupported language %s" orig-major-mode))))
              (entries
               (sort (reduce #'append
-                            (map (lambda (proj-root)
+                            (map (lambda (proj)
                                    (aif (rest-safe
                                          (assq major-mode
                                                (eproj-project/tags
-                                                (eproj-get-project proj-root))))
+                                                (eproj-get-project (eproj-project/root proj)))))
                                      (gethash identifier it nil)
                                      nil))
-                                 (cons (eproj-project/root proj)
+                                 (cons proj
                                        (eproj-get-all-related-projects proj))))
                     (lambda (a b)
                       (string< (funcall entry->string a)

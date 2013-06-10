@@ -23,15 +23,6 @@
 ;;   the same command, but "M-*" will typically do the trick.
 ;;
 ;;; Code
-(defvar elisp-slime-nav-mode-map (make-keymap))
-
-;;;###autoload
-(define-minor-mode elisp-slime-nav-mode
-  "Enable Slime-style navigation of elisp symbols using M-. and M-,"
-  nil " SliNav" elisp-slime-nav-mode-map)
-
-(require 'etags)
-
 
 (defun elisp-slime-nav--all-navigable-symbol-names ()
   "Return a list of strings for the symbols to which navigation is possible."
@@ -70,10 +61,6 @@ Argument SYM-NAME thing to find."
          (progn
            (pop-tag-mark)
            (error "Don't know how to find '%s'" sym)))))))
-
-
-(define-key elisp-slime-nav-mode-map (kbd "M-.") 'elisp-slime-nav-find-elisp-thing-at-point)
-(define-key elisp-slime-nav-mode-map (kbd "M-,") 'pop-tag-mark)
 
 
 (provide 'elisp-slime-nav)
