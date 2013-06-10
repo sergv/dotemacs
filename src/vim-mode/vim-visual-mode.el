@@ -302,21 +302,20 @@
 
 
 (defun vim:visual-post-command ()
-  (cond
-    ((vim:visual-mode-p)
-     (if (or (vim:do-deactivate-mark)
-             (memq this-command vim:visual-deactivate-mark-commands))
-       (condition-case nil
-           (vim:visual-mode-exit)
-         (error nil))
-       (condition-case info
-           (vim:visual-highlight-region)
-         (error
-          (ding)
-          (message "visual-mode trouble: %s" info)
-          (condition-case nil
-              (vim:visual-mode-exit)
-            (error nil))))))))
+  (when (vim:visual-mode-p)
+    (if (or (vim:do-deactivate-mark)
+            (memq this-command vim:visual-deactivate-mark-commands))
+      (condition-case nil
+          (vim:visual-mode-exit)
+        (error nil))
+      (condition-case info
+          (vim:visual-highlight-region)
+        (error
+         (ding)
+         (message "visual-mode trouble: %s" info)
+         (condition-case nil
+             (vim:visual-mode-exit)
+           (error nil)))))))
 
 
 (defun vim:visual-highlight-region ()
@@ -699,10 +698,11 @@ current line."
                (set-mark (save-excursion
                            (goto-char (mark))
                            (line-beginning-position))))
-             (beginning-of-line)
-             (set-mark (save-excursion
-                         (goto-char (mark))
-                         (1+ (line-end-position))))))
+             (progn
+               (beginning-of-line)
+               (set-mark (save-excursion
+                           (goto-char (mark))
+                           (1+ (line-end-position)))))))
 
           (`block))
         (setq vim:visual-new-point (point))))))

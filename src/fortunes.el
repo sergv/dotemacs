@@ -2244,7 +2244,9 @@ experimentum periculosum, iudicium difficile -
 Life short, \[the\] craft long, opportunity fleeting,
 experiment treacherous, judjment difficult
 -- Hyppocrates \(c. 400BC\)"
-   ]
+
+   "Meta means that you step back from your own place. What you used to do is now what you see. What you were is now what you act on.
+-- Scott Rosenberg quoting Guy Steele"]
   "Good and nice fortunes.")
 
 (defvar *fortunes*
