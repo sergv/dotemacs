@@ -130,7 +130,7 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
         "unixfind"
         "find"))
 
-(setq grep-command "grep -nHE -e "
+(setf grep-command "grep -nHE -e "
       grep-template
       "grep <X> <C> -nHE -e '<R>' <F>"
       grep-find-command
@@ -145,31 +145,44 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
              (mapconcat (lambda (x) (concat "*." x))
                         +scheme-file-extensions+
                         " ")))
-        `(("all"     . "*")
-          ("el"      . "*.el")
-          ("c"       . "*.c")
-          ("h"       . "*.h")
-          ("ch"      . "*.c *.h")
-          ("hh"      . "*.hh *.hxx *.hpp *.h *.h++")
-          ("cc"      . "*.cc *.cxx *.cpp *.c *.c++")
-          ("cchh"    . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++  *.inl *.inc *.incl")
-          ("clj"     . "*.clj")
-          ("clojure" . "*.clj")
+        `(("all"      . "*")
+          ("el"       . "*.el")
+          ("c"        . "*.c")
+          ("h"        . "*.h")
+          ("ch"       . "*.c *.h")
+          ("hh"       . "*.hh *.hxx *.hpp *.h *.h++")
+          ("cc"       . "*.cc *.cxx *.cpp *.c *.c++")
+          ("cchh"     . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++  *.inl *.inc *.incl")
+          ("clj"      . "*.clj")
+          ("clojure"  . "*.clj")
           ("java"     . "*.java")
-          ("scm"     . ,scheme-extensions)
-          ("m"       . "[Mm]akefile* *.mk")
-          ("make"    . "[Mm]akefile* *.mk")
-          ("tex"     . "*.tex")
-          ("texi"    . "*.texi")
-          ("asm"     . "*.s")
-          ("llvm"    . "*.ll")
-          ("hs"      . "*.hs *.hsc *.lhs")
-          ("py"      . "*.py *.pyx *.pxd *.pxi"))))
+          ("scm"      . ,scheme-extensions)
+          ("mk"       . "[Mm]akefile* *.mk")
+          ("make"     . "[Mm]akefile* *.mk")
+          ("makefile" . "[Mm]akefile* *.mk")
+          ("tex"      . "*.tex")
+          ("texi"     . "*.texi")
+          ("asm"      . "*.s")
+          ("llvm"     . "*.ll")
+          ("xml"      . "*.xml")
+          ("hs"       . "*.hs *.hsc *.lhs")
+          ("py"       . "*.py *.pyx *.pxd *.pxi"))))
 
 
 (defun rgrep-region (begin end)
   (interactive "r")
-  (call-interactively #'rgrep (buffer-substring-no-properties begin end)))
+  (let* ((str (buffer-substring-no-properties begin end))
+         (regexp (read-string "Search for: "
+                              str
+                              'grep-regexp-history
+                              str)
+                 ;; (grep-read-regexp)
+                 )
+         (files (grep-read-files regexp))
+         (dir (read-directory-name "Base directory: "
+                                   nil default-directory t))
+         (confirm (equal current-prefix-arg '(4))))
+    (rgrep regexp files dir confirm)))
 
 
 (provide 'grep+)
