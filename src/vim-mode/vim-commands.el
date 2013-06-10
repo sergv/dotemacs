@@ -377,7 +377,8 @@ and switches to insert-mode."
 (defun vim:yank-line-handler (text)
   "Inserts the current text linewise."
   (beginning-of-line)
-  (set-mark (point))
+  ;; not sure if this is the right thing to do
+  ;; (set-mark (point))
   (insert text))
 
 
