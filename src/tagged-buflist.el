@@ -1037,6 +1037,8 @@ saved buffer marks."
 (defun tagged-buflist/delete-marked-buffers ()
   (interactive)
   (tagged-buflist/with-preserved-selection
+    (when tagged-buflist/marked-buffers
+      (tagged-buflist/invalidate-refresh-flag!))
     (map (comp #'kill-buffer
                #'tagged-buffer/buf)
          tagged-buflist/marked-buffers)
@@ -1073,33 +1075,45 @@ saved buffer marks."
 (defvar tagged-buflist/show-filenames t
   "Whether to show buffer filenames.")
 
+(defvar tagged-buflist/refresh-is-needed nil
+  "Flag whether current state of tagged buflist is no more up to date.")
+
+(defun tagged-buflist/invalidate-refresh-flag! ()
+  (setf tagged-buflist/refresh-is-needed t))
+
+;; yay, this hook is really good!
+(add-hook 'buffer-list-update-hook #'tagged-buflist/invalidate-refresh-flag!)
+
 (defun tagged-buflist-show ()
   "Switch to tagged buffer list."
   (interactive)
   (setf tagged-buflist/marked-buffers nil)
   (let ((orig-buffer (current-buffer))
         (buf (get-buffer tagged-buflist/main-buffer-name)))
-    (unless buf
-      (setf buf (get-buffer-create tagged-buflist/main-buffer-name))
-      (with-current-buffer buf
-        (kill-all-local-variables)
-        (tagged-buflist-mode)
-        (font-lock-mode -1)
-        (read-only-mode +1)
-        (add-hook 'kill-buffer-hook
-                  #'tagged-buflist/clear-variables
-                  nil ;; append
-                  t   ;; local
-                  )
-        (tagged-buflist/refresh)
-        (goto-char (point-min))
-        ;; select original buffer
-        (tagged-buflist/for-single-section
-         (comp (partial #'eq?
-                        orig-buffer)
-               (partial-first #'tagged-section/get-prop
-                              'buffer))
-         #'tagged-buflist/goto-section)))
+    (if buf
+      (when tagged-buflist/refresh-is-needed
+        (tagged-buflist/refresh))
+      (progn
+        (setf buf (get-buffer-create tagged-buflist/main-buffer-name))
+        (with-current-buffer buf
+          (kill-all-local-variables)
+          (tagged-buflist-mode)
+          (font-lock-mode -1)
+          (read-only-mode +1)
+          (add-hook 'kill-buffer-hook
+                    #'tagged-buflist/clear-variables
+                    nil ;; append
+                    t   ;; local
+                    )
+          (tagged-buflist/refresh)
+          (goto-char (point-min))
+          ;; select original buffer
+          (tagged-buflist/for-single-section
+           (comp (partial #'eq?
+                          orig-buffer)
+                 (partial-first #'tagged-section/get-prop
+                                'buffer))
+           #'tagged-buflist/goto-section))))
     (switch-to-buffer buf)))
 
 
@@ -1121,7 +1135,8 @@ saved buffer marks."
          (tagged-buflist/with-preserved-marks
            (tagged-buflist/with-preserved-invisible-sections
              (tagged-buflist/with-preserved-selection
-               (setf tagged-buflist/marked-buffers nil
+               (setf tagged-buflist/refresh-is-needed nil
+                     tagged-buflist/marked-buffers nil
                      tagged-buflist/buffers (tagged-buflist/tagged-buffers tags))
                (dotimes (i (length tagged-buflist/group-sections))
                  (tagged-buflist/change-group-visibility
