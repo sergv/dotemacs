@@ -561,7 +561,18 @@ of code may be called more than once."
                        ,repeat)))))
 
 
-;; This function would not define make-NAME if :consturctor argument was supplied
+(defmacro save-current-line-column (&rest body)
+  "Save current line and column, execute BODY and go to saved line and column."
+  (let ((line-var (gensym "line"))
+        (column-var (gensym "column")))
+    `(let ((,line-var (count-lines1 (point-min) (point)))
+           (,column-var (current-column)))
+       (unwind-protect
+           (progn ,@body)
+         (goto-line1 ,line-var)
+         (move-to-column ,column-var)))))
+
+;; this function would not define make-NAME if :consturctor argument was supplied
 (defmacro defstruct* (struct &rest descs)
   "Define a struct type.
 This macro defines a new data type called NAME that stores data

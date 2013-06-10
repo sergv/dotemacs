@@ -106,31 +106,32 @@
     (interactive)
     (unless (executable-find "astyle")
       (error "Command astyle is not available"))
-    (let ((file +buffer-indent-temporary-filename+)
-          (p (point)))
-      (write-region (point-min) (point-max) file)
-      (erase-buffer)
-      (shell-command
-       (join-lines (list "astyle"
-                         "--style=java"           ;; -A2
-                         "--brackets=break"       ;; -b
-                         "--align-pointer=middle" ;; -k2
-                         "--formatted"            ;; -Q
-                         "--indent=spaces=4"
-                         "--pad-oper"
-                         "--pad-header"
-                         "--unpad-paren"
-                         "--keep-one-line-statements"
-                         "--keep-one-line-blocks"
-                         "--add-brackets"
-                         "--convert-tabs"
-                         "--mode=c"
-                         "--suffix=none"
-                         "--lineend=linux"
-                         (format "<%s" file))
-                   " ")
-       (current-buffer))
-      (goto-char p))))
+    (save-current-line-column
+     (let ((file +buffer-indent-temporary-filename+)
+           (p (point)))
+       (write-region (point-min) (point-max) file)
+       (erase-buffer)
+       (shell-command
+        (join-lines (list "astyle"
+                          "--style=java"           ;; -A2
+                          "--brackets=break"       ;; -b
+                          "--align-pointer=middle" ;; -k2
+                          "--formatted"            ;; -Q
+                          "--indent=spaces=4"
+                          "--pad-oper"
+                          "--pad-header"
+                          "--unpad-paren"
+                          "--keep-one-line-statements"
+                          "--keep-one-line-blocks"
+                          "--add-brackets"
+                          "--convert-tabs"
+                          "--mode=c"
+                          "--suffix=none"
+                          "--lineend=linux"
+                          (format "<%s" file))
+                    " ")
+        (current-buffer))
+       (goto-char p)))))
 
 
 
