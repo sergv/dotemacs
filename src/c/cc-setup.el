@@ -140,6 +140,20 @@
                                      #'first)
                                hs-special-modes-alist)))))
 
+(defun* cc-setup/set-up-c-basic-offset (&key (use-work-code-style nil))
+  "Try to guess offset (`c-basic-offset') for current buffer or use value
+dictated by code standard at work if use-work-code-style is non-nil.
+Also propagate new offset to `vim:shift-width'."
+  (let ((dtrt-indent-verbosity 0)
+        (work-code-style? (and use-work-code-style
+                               (platform-use? 'work))))
+    (unless (dtrt-indent-try-set-offset)
+      (when work-code-style?
+        (setq-local c-basic-offset 4)))
+    (setq-local vim:shift-width
+                (cond ((integer? c-basic-offset) c-basic-offset)
+                      (work-code-style?          4)
+                      (t                         8)))))
 
 
 (defun* cc-setup (&key (define-special-keys t)
@@ -159,17 +173,6 @@
         whitespace-style '(face tabs lines-tail)
         ;; affects only tab display
         tab-width 4)
-
-  (let ((dtrt-indent-verbosity 0))
-    (unless (dtrt-indent-try-set-offset)
-      (when (platform-use? 'work)
-        (set (make-variable-buffer-local 'c-basic-offset) 4))
-
-      (set (make-variable-buffer-local 'vim:shift-width)
-           (cond ((integer? c-basic-offset) c-basic-offset)
-                 ((platform-use? 'work)     4)
-                 (t                         8)))))
-
 
   (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)

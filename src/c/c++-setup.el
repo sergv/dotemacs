@@ -139,6 +139,7 @@
   (cc-setup :define-special-keys t
             :use-c-eldoc nil ;; c-eldoc is too unreliable and too slow for C++
             )
+  (cc-setup/set-up-c-basic-offset :use-work-code-style t)
   (doxymacs-mode +1)
   (doxymacs-font-lock)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
