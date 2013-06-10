@@ -21,7 +21,6 @@
   '(emacs-lisp-mode
     common-lisp-mode
     scheme-mode
-    blueprint-mode
     clojure-mode
     lisp-mode)
   "List of modes that are considered to be lisp.")
