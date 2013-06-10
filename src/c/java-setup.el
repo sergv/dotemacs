@@ -16,27 +16,28 @@
   (interactive)
   (unless (executable-find "astyle")
     (error "Command astyle is not available"))
-  (let ((file +buffer-indent-temporary-filename+))
-    (write-region (point-min) (point-max) file)
-    (erase-buffer)
-    (shell-command
-     (join-lines (list "astyle"
-                       "--style=java"
-                       "--indent=spaces=4"
-                       "--brackets=attach"
-                       "--pad-oper"
-                       "--pad-header"
-                       "--unpad-paren"
-                       "--keep-one-line-statements"
-                       "--keep-one-line-blocks"
-                       "--convert-tabs"
-                       "--align-pointer=name"
-                       "--mode=java"
-                       "--suffix=none"
-                       "--lineend=linux"
-                       (format "<%s" file))
-                 " ")
-     (current-buffer))))
+  (save-current-line-column
+   (let ((file +buffer-indent-temporary-filename+))
+     (write-region (point-min) (point-max) file)
+     (erase-buffer)
+     (shell-command
+      (join-lines (list "astyle"
+                        "--style=java"
+                        "--indent=spaces=4"
+                        "--brackets=attach"
+                        "--pad-oper"
+                        "--pad-header"
+                        "--unpad-paren"
+                        "--keep-one-line-statements"
+                        "--keep-one-line-blocks"
+                        "--convert-tabs"
+                        "--align-pointer=name"
+                        "--mode=java"
+                        "--suffix=none"
+                        "--lineend=linux"
+                        (format "<%s" file))
+                  " ")
+      (current-buffer)))))
 
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
