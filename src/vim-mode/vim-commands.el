@@ -468,10 +468,11 @@ and switches to insert-mode."
       (dotimes (i (or count 1))
         (if register
           (insert-for-yank (vim:get-register register))
-          (set-mark (point))
-          (insert-for-yank (current-kill 0))
-          (setq beg (min (point) (mark t) (or beg (point)))
-                end (max (point) (mark t) (or end (point)))))))
+          (progn
+            (set-mark (point))
+            (insert-for-yank (current-kill 0))
+            (setq beg (min (point) (mark t) (or beg (point)))
+                  end (max (point) (mark t) (or end (point))))))))
     (let* ((txt (if register (vim:get-register register) (current-kill 0)))
            (yhandler (get-text-property 0 'yank-handler txt)))
       (when (eq (car-safe yhandler) 'vim:yank-line-handler)
