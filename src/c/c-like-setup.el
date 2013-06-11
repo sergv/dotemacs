@@ -17,9 +17,9 @@
 
 (eval-after-load "cc-styles" ;; (require 'cc-styles)
   '(progn
-     (unless (assoc* "my-style" c-style-alist :test #'string=?)
+     (unless (assoc* "my-c-style" c-style-alist :test #'string=?)
        ;; inherited from linux style
-       (push '("my-style"
+       (push '("my-c-style"
                (c-basic-offset  . 8)
                (indent-tabs-mode . nil)
                (c-comment-only-line-offset . 0)
@@ -38,11 +38,44 @@
                                    (innamespace           . 0))))
              c-style-alist))
 
+     ;; (setf c-style-alist
+     ;;       (remove* "my-java-style" c-style-alist :test #'string=? :key #'first))
+     (unless (assoc* "my-java-style" c-style-alist :test #'string=?)
+       ;; inherited from linux style
+       (push '("my-java-style"
+               (c-basic-offset . 4)
+               (indent-tabs-mode . nil)
+               (c-comment-only-line-offset 0 . 0)
+               (c-offsets-alist
+                ;; just like in clojure sources
+                (topmost-intro . 0)
+                (inclass . 0)
+                (arglist-intro . +)
+                (arglist-close . +)
+                (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
+                (arglist-cont c-lineup-gcc-asm-reg 0)
+
+                (inline-open . 0)
+                (topmost-intro-cont . +)
+                (statement-block-intro . +)
+                (knr-argdecl-intro . 5)
+                (substatement-open . +)
+                (substatement-label . +)
+                (label . +)
+                (statement-case-open . +)
+                (statement-cont . +)
+                ;; (arglist-intro . c-lineup-arglist-intro-after-paren)
+                ;; (arglist-close . c-lineup-arglist)
+                (access-label . 0)
+                (inher-cont . c-lineup-java-inher)
+                (func-decl-cont . c-lineup-java-throws)))
+             c-style-alist))
+
      (setf c-default-style
-           `((java-mode . "java")
+           `((java-mode . "my-java-style")
              (awk-mode . "awk")
-             (other . ,(cond ((assoc* "my-style" c-style-alist :test #'string=?)
-                              "my-style")
+             (other . ,(cond ((assoc* "my-c-style" c-style-alist :test #'string=?)
+                              "my-c-style")
                              (t
                               "linux")))))
      (setq-default c-basic-offset 8)))
@@ -263,17 +296,19 @@
                         :test #'string=))
       (save-excursion
         (save-match-data
-          (re-search-forward (rx
-                              (or "class"
-                                  "namespace"
-                                  "::"
-                                  ;; it's quite rare to see other template
-                                  ;; open brace styles so lets accomodate
-                                  ;; only for frequently used ones
-                                  (regex "template[[:space:]]*<")
-                                  (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
-                             nil
-                             t))))))
+          (let ((search-result
+                 (re-search-forward (rx
+                                     (or "class"
+                                         "namespace"
+                                         "::"
+                                         ;; it's quite rare to see other template
+                                         ;; open brace styles so lets accomodate
+                                         ;; only for frequently used ones
+                                         (regex "template[[:space:]]*<")
+                                         (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
+                                    nil
+                                    t)))
+            search-result))))))
 
 ;; this will make sure that *.h c++ header will be correctly handled
 (push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
