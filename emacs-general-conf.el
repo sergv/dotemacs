@@ -167,7 +167,10 @@
       system-time-locale "C"
 
       visible-bell nil ;; any kind of bell is annoying
-      message-log-max t)
+      message-log-max t
+
+      ;; length from the beginning of buffer for magic mode detection
+      magic-mode-regexp-match-limit 1000000)
 
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook
