@@ -41,13 +41,46 @@
        (interactive "r")
        (save-excursion
          (goto-char begin)
-         (while (<= (progn (forward-sexp 1)
-                           (point))
-                    end)
+         (while (<= (point) end)
+           (forward-sexp 1)
            (backward-sexp 1)
            (hs-hide-block t)        ;; hide and reposition at the end
            (skip-syntax-forward ")" ;; skip close delimiters
                                 )))
+       ;; turn visual mode off
+       (when (or (region-active-p)
+                 (run-if-fbound vim:visual-mode-p))
+         (deactivate-mark)
+         (run-if-fbound vim:visual-mode-exit)))
+
+     ;; todo: these two are quite similar to `hs-hide-sexps-in-region' and
+     ;; `hs-show-sexps-in-region'
+     (defun hs-show-c-sexps-in-region (begin end)
+       (interactive "r")
+       (save-excursion
+         (goto-char begin)
+         (while (<= (point) end)
+           (skip-chars-forward "^{" end)
+           (when (char=? (char-after) ?\{)
+             (hs-show-block t)
+             (skip-chars-forward "}"))))
+       ;; turn visual mode off
+       (when (or (region-active-p)
+                 (run-if-fbound vim:visual-mode-p))
+         (deactivate-mark)
+         (run-if-fbound vim:visual-mode-exit)))
+
+     (defun hs-hide-c-sexps-in-region (begin end)
+       (interactive "r")
+       (save-excursion
+         (goto-char begin)
+         (while (progn
+                  (skip-chars-forward "^{" end)
+                  (and (char=? (char-after) ?\{)
+                       (<= (point) end)))
+           (hs-hide-block t)        ;; hide and reposition at the end
+           (skip-chars-forward "}") ;; close delimiters
+           ))
        ;; turn visual mode off
        (when (or (region-active-p)
                  (run-if-fbound vim:visual-mode-p))
