@@ -202,6 +202,8 @@ Also propagate new offset to `vim:shift-width'."
     ("M-,"   pop-tag-mark))
 
   (def-keys-for-map vim:visual-mode-local-keymap
+    ("z c"   hs-hide-c-sexps-in-region)
+    ("z o"   hs-show-c-sexps-in-region)
     ("g a a" align)
     ("g a =" c-align-on-equals)
     ("g t"   c-end-of-defun)
@@ -220,3 +222,5 @@ Also propagate new offset to `vim:shift-width'."
 ;; End:
 
 ;; cc-setup.el ends here
+
+
