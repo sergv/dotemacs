@@ -136,6 +136,9 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
                                   (and (or (string-match-pure? "^.*\\.el$"
                                                                fname)
                                            (string-match-pure? "^.*/?scripts/.*$"
+                                                               p)
+                                           ;; yasnippet snippets
+                                           (string-match-pure? "^.*/?snippets/.*$"
                                                                p))
                                        ;; emacs locks?
                                        (not (string-match-pure? "^\\.#.*"
