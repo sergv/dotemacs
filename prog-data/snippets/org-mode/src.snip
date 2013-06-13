@@ -1,5 +1,5 @@
 # key: src
-# name: src block
+# name: language source code block
 # --
 #+name: ${1:name}
 #+begin_src ${2:$$(yas/choose-value (mapcar (lambda (x) (symbol->string (car x))) (filter #'cdr org-babel-load-languages)))} -n -r :comments both ${3:org switches}
