@@ -99,7 +99,7 @@
                      :preamble-function
                      (lambda () (concat "Select desired alternative file\n"))
                      :separator-function
-                     (pply-partially #'select-make-bold-separator "--------\n"))))
+                     (apply-partially #'select-make-bold-separator "--------\n"))))
                 (error "No *.%s file found for %s" alt-ext filename))))))))
 
   (defun c++-indent-buffer ()
