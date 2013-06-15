@@ -22,9 +22,12 @@ governed by."
       (if-let (project-buf (get-file-buffer project-file))
         (buffer-local-value var project-buf)
         (with-temp-buffer
+          (insert-file-contents project-file
+                                t ;; make current buffer visit inserted file
+                                )
+          ;; instert-file-contents is not enough to set local variables
           (setq-local enable-local-variables :safe)
-          ;; after content insertion local variables will be set automatically
-          (insert-file-contents project-file)
+          (normal-mode)
           (buffer-local-value var (current-buffer)))))
     (error "Project root containing project.clj not found")))
 
