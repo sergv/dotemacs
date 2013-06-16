@@ -230,6 +230,14 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     ("g <tab>" nxhtml-reindent-enclosing-tag)))
 
 
+(defun nxml-indent-buffer ()
+  (interactive)
+  (save-excursion
+    (indent-whole-buffer)))
+
+(add-to-list '*mode-buffer-indent-function-alist*
+             (cons 'nxml-mode #'nxml-indent-buffer))
+
 (defun nxml-setup ()
   (markup-setup)
   (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode))
