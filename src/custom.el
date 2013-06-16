@@ -371,21 +371,33 @@ up by functions in compilation-finish-functions.")
 (defun start-nautilus ()
   "Start nautilus in folder associated with current buffer."
   (interactive)
-  (if (buffer-file-name)
-    (async-shell-command (concat "nautilus "
-                                 (shell-quote-argument
-                                  (file-name-directory (buffer-file-name))))
-                         nil
-                         nil)
-    (async-shell-command (concat "nautilus "
-                                 (shell-quote-argument
-                                  default-directory))
-                         nil
-                         nil)))
+  (async-shell-command (concat "nautilus "
+                               (shell-quote-argument
+                                (if (buffer-file-name)
+                                  (file-name-directory (buffer-file-name))
+                                  default-directory)))
+                       nil
+                       nil))
 
 (defalias 'nautilus 'start-nautilus)
 (defalias 'run-nautilus 'start-nautilus)
 (defalias 'open-nautilus 'start-nautilus)
+
+(defun start-thunar ()
+  "Start thunar in folder associated with current buffer."
+  (interactive)
+  (async-shell-command (concat "thunar "
+                               (shell-quote-argument
+                                (if (buffer-file-name)
+                                  (file-name-directory (buffer-file-name))
+                                  default-directory)))
+                       nil
+                       nil))
+
+(defalias 'thunar 'start-thunar)
+(defalias 'run-thunar 'start-thunar)
+(defalias 'open-thunar 'start-thunar)
+
 
 ;;;; rotate list functions, very old...
 
