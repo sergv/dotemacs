@@ -381,6 +381,15 @@ Futher modified by Sergey Vinokurov."
        (tuareg-font-lock-multistage-face         ((t (:foreground ,blue :bold t))))
 
        ;; other faces
+       (antlr-font-lock-default-face             ((t (:inherit default))))
+       (antlr-font-lock-keyword-face             ((t (:inherit font-lock-keyword-face))))
+       (antlr-font-lock-syntax-face              ((t (:inherit font-lock-preprocessor-face))))
+       (antlr-font-lock-ruledef-face             ((t (:inherit font-lock-function-name-face))))
+       (antlr-font-lock-tokendef-face            ((t (:inherit font-lock-type-face))))
+       (antlr-font-lock-ruleref-face             ((t (:inherit font-lock-variable-name-face))))
+       (antlr-font-lock-tokenref-face            ((t (:inherit font-lock-type-face))))
+       (antlr-font-lock-literal-face             ((t (:inherit font-lock-constant-face))))
+
        (c-annotation-face                    ((t (:foreground ,violet))))
        (completions-common-part              ((t (:inherit match))))
        (csv-separator-face                   ((t (:foreground ,magenta))))
