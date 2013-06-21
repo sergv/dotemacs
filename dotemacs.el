@@ -131,6 +131,7 @@
 (load-library "asm-setup")
 (load-library "llvm-setup")
 ;; (load-library "java-setup") ;; handled by c-like-setup
+(load-library "antlr-setup")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
