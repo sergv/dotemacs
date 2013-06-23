@@ -94,6 +94,9 @@
 ;; Bison without running into collisions between the GPL and other license
 ;; agreements....)
 
+(require 'common)
+(require 'cc-mode)
+
 (defvar bison-buffer-local-alist nil
   "Alist of bison mode buffers, and saved local variables thereto.")
 
@@ -105,12 +108,11 @@
 
 (defvar bison-mode-abbrev-table nil
   "Abbrev table used in bison-mode buffers.")
-(define-abbrev-table 'bison-mode-abbrev-table ())
+(define-abbrev-table 'bison-mode-abbrev-table nil)
 
-(defvar bison-mode-map ()
+(defvar bison-mode-map nil
   "Keymap used in bison mode.")
-(if bison-mode-map
-    ()
+(unless bison-mode-map
   (setq bison-mode-map (make-sparse-keymap))
   (define-key bison-mode-map "{" 'bison-insert-edit-code-block)
   (define-key bison-mode-map ";" 'electric-bison-semi)
@@ -123,8 +125,7 @@
 
 (defvar bison-mode-syntax-table nil
   "Syntax table in use in bison-mode buffers.")
-(if bison-mode-syntax-table
-    ()
+(unless bison-mode-syntax-table
   (setq bison-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?/ ". 14" bison-mode-syntax-table)
   (modify-syntax-entry ?* ". 23" bison-mode-syntax-table)
@@ -138,7 +139,33 @@
 (fset 'F:local-map (symbol-function 'use-local-map))
 (fset 'F:syntax-table (symbol-function 'set-syntax-table))
 
-(defun bison-mode ()
+
+(defconst bison-mode-rule-start-regexp "^[ \t]*\\(?:\\s_\\|\\sw\\)+[ \t]*:")
+(defconst bison-mode-rule-start-or-body-regexp
+  "^[ \t]*\\(?:\\(?:\\s_\\|\\sw\\)+[ \t]*:\\||\\)")
+
+(defvar bison-mode-font-lock-keywords
+  `((,(rx (or "%union" "%token" "%type"
+              "%left" "%right" "%nonassoc"))
+     (0 'font-lock-keyword-face))
+    (,(rx bol
+          (group
+           (+ (or (syntax word)
+                  "_")))
+          (* (or whitespace "\n"))
+          ":")
+     (1 'font-lock-function-name-face))
+    (,(rx bow
+          (group
+           (+ (regexp "[A-Z0-9_]")))
+          eow)
+     (0 'font-lock-constant-face))
+    (,(rx (or ":" "|" ";"))
+     (0 'font-lock-negation-char-face)))
+  "Highlight definitions of bison distinctive constructs for font-lock.")
+
+
+(define-derived-mode bison-mode text-mode "Bison"
   "Major mode for editing Bison or Yacc code for a C target.
 Blocks of C code are replaced with ellipses unless expanded, which causes the
 buffer to be narrowed and switched to C mode; the C and Bison environments are
@@ -148,152 +175,185 @@ Turning on Bison mode calls the value of the variable bison-mode-hook with
 no args if it is non-nil.  The first time the buffer is narrowed to a block,
 the value of c-mode-hook will be called with no args within the narrowed
 environment if it is non-nil."
-  (interactive)
-  (kill-all-local-variables)
+  ;; (kill-all-local-variables)
   ;; anyone got a better way to do this?
-  (let ((elt (if bison-buffer-local-alist
-		 (assoc (current-buffer) bison-buffer-local-alist))))
+  (let ((elt (when bison-buffer-local-alist
+               (assq (current-buffer) bison-buffer-local-alist))))
     (and elt
-	 (setcdr elt nil)))
-  (use-local-map bison-mode-map)
-  (setq major-mode 'bison-mode)
-  (setq mode-name "Bison")
-  (setq local-abbrev-table bison-mode-abbrev-table)
-  (set-syntax-table bison-mode-syntax-table)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'bison-indent-line)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
-  (make-local-variable 'comment-start)
-  (setq comment-start "/* ")
-  (make-local-variable 'comment-end)
-  (setq comment-end " */")
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "/\\*+ *")
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'c-comment-indent)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
-  (make-local-variable 'selective-display)
-  (setq selective-display t)
-  (make-local-variable 'selective-display-ellipses)
-  (setq selective-display-ellipses t)
+         (setcdr elt nil)))
+
+  (set (make-local-variable 'font-lock-defaults)
+       '(bison-mode-font-lock-keywords
+         nil ;; perform syntactic fontification
+         nil ;; do not ignore case
+         nil ;; no special syntax provided
+         ))
+
+  (setq-local paragraph-start (concat "^$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local indent-line-function 'bison-indent-line)
+  (setq-local require-final-newline t)
+  (setq-local comment-start "/* ")
+  (setq-local comment-end " */")
+  (setq-local comment-column 40)
+  (setq-local comment-start-skip "/\\*+ *")
+  (setq-local comment-indent-hook 'c-comment-indent)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local selective-display t)
+  (setq-local selective-display-ellipses t)
   (make-local-variable 'block-indent-level)
   (make-local-variable 'auto-fill-hook)
-  (bison-hide-code-blocks)
-  (run-hooks 'bison-mode-hook 'c-mode-hook))
+  ;; (bison-hide-code-blocks)
+  ;; (run-hooks 'bison-mode-hook 'c-mode-hook)
+  )
+
+;; (defun bison-mode ()
+;;   "Major mode for editing Bison or Yacc code for a C target.
+;; Blocks of C code are replaced with ellipses unless expanded, which causes the
+;; buffer to be narrowed and switched to C mode; the C and Bison environments are
+;; preserved when not active.  { inserts a new block if necessary.
+;; \\{bison-mode-map}
+;; Turning on Bison mode calls the value of the variable bison-mode-hook with
+;; no args if it is non-nil.  The first time the buffer is narrowed to a block,
+;; the value of c-mode-hook will be called with no args within the narrowed
+;; environment if it is non-nil."
+;;   (interactive)
+;;   (kill-all-local-variables)
+;;   ;; anyone got a better way to do this?
+;;   (let ((elt (if bison-buffer-local-alist
+;;                (assoc (current-buffer) bison-buffer-local-alist))))
+;;     (and elt
+;;          (setcdr elt nil)))
+;;   (use-local-map bison-mode-map)
+;;   (setq major-mode 'bison-mode)
+;;   (setq mode-name "Bison")
+;;   (setq local-abbrev-table bison-mode-abbrev-table)
+;;   (set-syntax-table bison-mode-syntax-table)
+;;   (setq-local paragraph-start (concat "^$\\|" page-delimiter))
+;;   (setq-local paragraph-separate paragraph-start)
+;;   (setq-local paragraph-ignore-fill-prefix t)
+;;   (setq-local indent-line-function 'bison-indent-line)
+;;   (setq-local require-final-newline t)
+;;   (setq-local comment-start "/* ")
+;;   (setq-local comment-end " */")
+;;   (setq-local comment-column 40)
+;;   (setq-local comment-start-skip "/\\*+ *")
+;;   (setq-local comment-indent-hook 'c-comment-indent)
+;;   (setq-local parse-sexp-ignore-comments t)
+;;   (setq-local selective-display t)
+;;   (setq-local selective-display-ellipses t)
+;;   (make-local-variable 'block-indent-level)
+;;   (make-local-variable 'auto-fill-hook)
+;;   (bison-hide-code-blocks)
+;;   (run-hooks 'bison-mode-hook 'c-mode-hook))
 
 (defun electric-bison-colon (arg)
   "Insert character and correct line's indentation."
   (interactive "P")
   (let ((state (parse-partial-sexp
-		(save-excursion
-		  (if (re-search-backward
-		       "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-		       nil 'move)
-		      (- (match-end 0) 1)
-		    (point-min)))
-		(point))))
+                (save-excursion
+                  (save-match-data
+                    (if (re-search-backward
+                         "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                         nil 'move)
+                      (- (match-end 0) 1)
+                      (point-min))))
+                (point))))
     (if (or (nth 3 state) (nth 4 state) (nth 5 state))
-	(self-insert-command (prefix-numeric-value arg))
+      (self-insert-command (prefix-numeric-value arg))
       (if (and (not arg) (eolp))
-	  (progn
-	    (bison-indent-line)
-	    (and c-auto-newline
-		 (eq last-command-char ?\|)
-		 (save-excursion
-		   (beginning-of-line)
-		   (not (looking-at "[ \t]*$")))
-		 (newline))
-	    (delete-horizontal-space)
-	    (indent-to bison-colon-column)
-	    (insert last-command-char)
-	    (insert " "))
-	(self-insert-command (prefix-numeric-value arg))))))
+        (progn
+          (bison-indent-line)
+          (and c-auto-newline
+               (eq last-command-event ?\|)
+               (save-excursion
+                 (beginning-of-line)
+                 (not (looking-at-p "[ \t]*$")))
+               (newline))
+          (delete-horizontal-space)
+          (indent-to bison-colon-column)
+          (insert last-command-event)
+          (insert " "))
+        (self-insert-command (prefix-numeric-value arg))))))
 
 (defun electric-bison-semi (arg)
   "Insert character and correct line's indentation."
   (interactive "P")
   (if c-auto-newline
-      (electric-bison-terminator arg)
+    (electric-bison-terminator arg)
     (self-insert-command (prefix-numeric-value arg))))
 
 (defun electric-bison-per (arg)
   "Insert character and correct line's indentation."
   (interactive "P")
   (let ((state (parse-partial-sexp
-		(save-excursion
-		  (if (re-search-backward
-		       "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-		       nil 'move)
-		      (- (match-end 0) 1)
-		    (point-min)))
-		(point))))
+                (save-excursion
+                  (save-match-data
+                    (if (re-search-backward
+                         "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                         nil 'move)
+                      (- (match-end 0) 1)
+                      (point-min))))
+                (point))))
     (if (and (not arg)
-	     (eolp)
-	     (not (eq (preceding-char) ?%))
-	     (not (or (nth 3 state) (nth 4 state) (nth 5 state))))
-	(if (not (save-excursion
-		   (skip-chars-backward " \t")
-		   (bolp)))
-	    (indent-to bison-percent-column)
-	  (delete-region (save-excursion
-			   (beginning-of-line)
-			   (point))
-			 (point))))
+             (eolp)
+             (not (eq (preceding-char) ?%))
+             (not (or (nth 3 state) (nth 4 state) (nth 5 state))))
+      (if (not (save-excursion
+                 (skip-chars-backward " \t")
+                 (bolp)))
+        (indent-to bison-percent-column)
+        (delete-region (save-excursion
+                         (beginning-of-line)
+                         (point))
+                       (point))))
     (self-insert-command (prefix-numeric-value arg))))
 
 (defun electric-bison-terminator (arg)
   "Insert character and correct line's indentation."
   (interactive "P")
   (let ((state (parse-partial-sexp
-		(save-excursion
-		  (if (re-search-backward
-		       "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-		       nil 'move)
-		      (- (match-end 0) 1)
-		    (point-min)))
-		(point)))
-	insertpos)
+                (save-excursion
+                  (save-match-data
+                    (if (re-search-backward
+                         "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                         nil 'move)
+                      (- (match-end 0) 1)
+                      (point-min))))
+                (point)))
+        insertpos)
     (if (or (nth 3 state) (nth 4 state) (nth 5 state))
-	(self-insert-command (prefix-numeric-value arg))
+      (self-insert-command (prefix-numeric-value arg))
       (if (and (not arg) (eolp)
-	       (not (save-excursion
-		      (beginning-of-line)
-		      (skip-chars-forward " \t")
-		      (= (following-char) ?%))))
-	  (progn
-	    (and c-auto-newline
-		 (progn
-		   (if (save-excursion
-			 (beginning-of-line)
-			 (not (looking-at "[ \t]*$")))
-		       (newline))
-		   (bison-indent-line)
-		   (backward-delete-char-untabify 2)))
-	    (insert last-command-char)
-	    (bison-indent-line)
-	    (and c-auto-newline
-		 (progn
-		   (newline)
-		   (setq insertpos (- (point) 2))
-		   (bison-indent-line)))
-	    (save-excursion
-	      (if insertpos (goto-char (1+ insertpos)))
-	      (delete-char -1))))
+               (not (save-excursion
+                      (beginning-of-line)
+                      (skip-chars-forward " \t")
+                      (= (following-char) ?%))))
+        (progn
+          (and c-auto-newline
+               (progn
+                 (if (save-excursion
+                       (beginning-of-line)
+                       (not (looking-at-p "[ \t]*$")))
+                   (newline))
+                 (bison-indent-line)
+                 (backward-delete-char-untabify 2)))
+          (insert last-command-event)
+          (bison-indent-line)
+          (and c-auto-newline
+               (progn
+                 (newline)
+                 (setq insertpos (- (point) 2))
+                 (bison-indent-line)))
+          (save-excursion
+            (if insertpos (goto-char (1+ insertpos)))
+            (delete-char -1))))
       (if insertpos
-	  (save-excursion
-	    (goto-char insertpos)
-	    (self-insert-command (prefix-numeric-value arg)))
-	(self-insert-command (prefix-numeric-value arg))))))
+        (save-excursion
+          (goto-char insertpos)
+          (self-insert-command (prefix-numeric-value arg)))
+        (self-insert-command (prefix-numeric-value arg))))))
 
 (defun bison-indent-command (&optional whole-exp)
   "Indent current line as Bison code, or in some cases insert a tab character.
@@ -307,30 +367,30 @@ so that this line becomes properly indented.
 The relative indentation among the lines of the expression are preserved."
   (interactive "P")
   (if whole-exp
-      (let ((shift-amount (bison-indent-line))
-	    beg end)
-	(save-excursion
-	  (if c-tab-always-indent
-	      (beginning-of-line))
-	  (setq beg (point))
-	  (re-search-forward ";\\|^%%" nil 'move)
-	  (if (save-excursion
-		(beginning-of-line)
-		(looking-at "%%"))
-	      (progn
-		(forward-line -1)
-		(end-of-line)))
-	  (setq end (point))
-	  (goto-char beg)
-	  (forward-line 1)
-	  (setq beg (point)))
-	(if (> end beg)
-	    (indent-code-rigidly beg end shift-amount "%")))
+    (let ((shift-amount (bison-indent-line))
+          beg end)
+      (save-excursion
+        (save-match-data
+          (if c-tab-always-indent
+            (beginning-of-line))
+          (setq beg (point))
+          (re-search-forward ";\\|^%%" nil 'move)
+          (when (save-excursion
+                  (beginning-of-line)
+                  (looking-at-p "%%"))
+            (forward-line -1)
+            (end-of-line))
+          (setq end (point))
+          (goto-char beg)
+          (forward-line 1)
+          (setq beg (point))))
+      (when (> end beg)
+        (indent-code-rigidly beg end shift-amount "%")))
     (if (and (not c-tab-always-indent)
-	     (save-excursion
-	       (skip-chars-backward " \t")
-	       (not (bolp))))
-	(insert-tab)
+             (save-excursion
+               (skip-chars-backward " \t")
+               (not (bolp))))
+      (insert-tab)
       (bison-indent-line))))
 
 (defun bison-indent-line ()
@@ -341,42 +401,49 @@ Return the amount the indentation changed by."
   (let (indent)
     (save-excursion
       (cond
-       ((save-excursion
-	  (let ((limit (point))
-		state)
-	    (goto-char (point-min))
-	    (not (and (re-search-forward "^%%" limit t)
-		      (progn
-			(parse-partial-sexp
-			 (save-excursion
-			   (if (re-search-backward
-				"^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-				nil 'move)
-			       (- (match-end 0) 1)
-			     (point-min)))
-			 (point))
-			(not (or (nth 3 state)
-				 (nth 4 state)
-				 (nth 5 state))))))))
-	(setq indent 0))
-       ((save-excursion
-	  (beginning-of-line)
-	  (looking-at "[ \t]*%"))
-	(setq indent 0))
-       ((save-excursion
-	  (skip-chars-backward " \t\n\f")
-	  (eq (preceding-char) ?\;))
-	(setq indent 0))
-       (t
-	(beginning-of-line)
-	(while (not (or (bobp)
-			(looking-at "[ \t]*\\(\sw\\|\s_\\)*[ \t]*[|:]")
-			(eq (following-char) ?%)))
-	  (forward-line -1))
-	(skip-chars-forward "^:|")
-	(skip-chars-forward ":| \t")
-	(setq indent (current-column)))))
-    (indent-to indent)
+        ((save-excursion
+           (save-match-data
+             (let ((limit (point))
+                   state)
+               (goto-char (point-min))
+               (not (and (re-search-forward "^%%" limit t)
+                         (progn
+                           (parse-partial-sexp
+                            (save-excursion
+                              (if (re-search-backward
+                                   bison-mode-rule-start-regexp
+                                   nil
+                                   t)
+                                (- (match-end 0) 1)
+                                (point-min)))
+                            (point))
+                           (not (or (nth 3 state)
+                                    (nth 4 state)
+                                    (nth 5 state)))))))))
+         (setq indent 0))
+        ((save-excursion
+           (beginning-of-line)
+           (looking-at-p "[ \t]*%"))
+         (setq indent 0))
+        ((save-excursion
+           (skip-chars-backward " \t\n\f")
+           (eq (preceding-char) ?\;))
+         (setq indent 0))
+        (t
+         (beginning-of-line)
+         (if (looking-at-p bison-mode-rule-start-regexp)
+           (setq indent 0)
+           (progn
+             (forward-line -1)
+             (while (not (or (bobp)
+                             (looking-at-p bison-mode-rule-start-or-body-regexp)
+                             (eq (following-char) ?%)))
+               (forward-line -1))
+             (skip-chars-forward "^:|")
+             ;; (skip-chars-forward ":| \t")
+             (setq indent (current-column)))))))
+    (indent-to! indent)
+    (skip-chars-forward " \t")
     indent))
 
 (defun bison-insert-edit-code-block (arg)
@@ -384,100 +451,102 @@ Return the amount the indentation changed by."
 If no such block is found, create one."
   (interactive "P")
   (cond
-   ((let ((state (parse-partial-sexp
-		  (save-excursion
-		    (if (re-search-backward
-			 "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-			 nil 'move)
-			(- (match-end 0) 1)
-		      (point-min)))
-		  (point))))
-      (or (nth 3 state) (nth 4 state) (nth 5 state)))
-    (self-insert-command (prefix-numeric-value arg)))
-   ((eq (preceding-char) ?%)
-    (insert "{\n\n%}\n")
-    (forward-line -2)
-    (indent-to c-indent-level)
-    (bison-edit-code-block))
-   ((and (eolp)
-	 (save-excursion
-	   (beginning-of-line)
-	   (looking-at "%[ \t]*union[ \t]*$")))
-    (and c-auto-newline
-	 (insert "\n"))
-    (insert "{\n\n}\n")
-    (forward-line -2)
-    (indent-to c-indent-level)
-    (skip-chars-backward "^{")
-    (forward-char -1)
-    (bison-edit-code-block))
-   ((looking-at "[^\n]*\\(\n[ \t]*\\)?{")
-    (bison-edit-code-block))
-   (t
-    (let (indent)
-      (end-of-line)
-      (if c-auto-newline
-	  (progn
-	    (newline)
-	    (setq indent (bison-indent-line))
-	    (delete-horizontal-space)
-	    (indent-to (+ indent c-indent-level))))
-      (insert "{\n\n")
-      (indent-to (+ indent c-indent-level))
-      (insert "}")
-      (if (eolp)
-	  (forward-line 1)
-	(insert "\n"))
-      (forward-line -2)
-      (indent-to (+ indent c-indent-level c-indent-level))
-      (skip-chars-backward "^{")
-      (forward-char -1))
-    (bison-edit-code-block))))
+    ((let ((state (parse-partial-sexp
+                   (save-excursion
+                     (save-match-data
+                       (if (re-search-backward
+                            "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                            nil 'move)
+                         (- (match-end 0) 1)
+                         (point-min))))
+                   (point))))
+       (or (nth 3 state) (nth 4 state) (nth 5 state)))
+     (self-insert-command (prefix-numeric-value arg)))
+    ((eq (preceding-char) ?%)
+     (insert "{\n\n%}\n")
+     (forward-line -2)
+     (indent-to c-indent-level)
+     (bison-edit-code-block))
+    ((and (eolp)
+          (save-excursion
+            (beginning-of-line)
+            (looking-at-p "%[ \t]*union[ \t]*$")))
+     (and c-auto-newline
+          (insert "\n"))
+     (insert "{\n\n}\n")
+     (forward-line -2)
+     (indent-to c-indent-level)
+     (skip-chars-backward "^{")
+     (forward-char -1)
+     (bison-edit-code-block))
+    ((looking-at-p "[^\n]*\\(\n[ \t]*\\)?{")
+     (bison-edit-code-block))
+    (t
+     (let (indent)
+       (end-of-line)
+       (if c-auto-newline
+         (progn
+           (newline)
+           (setq indent (bison-indent-line))
+           (delete-horizontal-space)
+           (indent-to (+ indent c-indent-level))))
+       (insert "{\n\n")
+       (indent-to (+ indent c-indent-level))
+       (insert "}")
+       (if (eolp)
+         (forward-line 1)
+         (insert "\n"))
+       (forward-line -2)
+       (indent-to (+ indent c-indent-level c-indent-level))
+       (skip-chars-backward "^{")
+       (forward-char -1))
+     (bison-edit-code-block))))
 
 (defun bison-edit-code-block ()
   "Edit the code block associated with the current line of parser description."
   (interactive)
-  (or (looking-at "[^\n]*\\(\n[ \t]*\\)?{")
+  (or (looking-at-p "[^\n]*\\(\n[ \t]*\\)?{")
       (error "No code block attached to this parser description."))
   (while (let (state)
-	   (skip-chars-forward "^{")
-	   (setq state (parse-partial-sexp
-			(save-excursion
-			  (if (re-search-backward
-			       "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-			       nil 'move)
-			      (- (match-end 0) 1)
-			    (point-min)))
-			(point)))
-	   (or (nth 3 state) (nth 4 state) (nth 5 state)))
+           (skip-chars-forward "^{")
+           (setq state (parse-partial-sexp
+                        (save-excursion
+                          (save-match-data
+                            (if (re-search-backward
+                                 "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                                 nil 'move)
+                              (- (match-end 0) 1)
+                              (point-min))))
+                        (point)))
+           (or (nth 3 state) (nth 4 state) (nth 5 state)))
     (forward-char 1))
   (narrow-to-region (point)
-		    (save-excursion
-		      (bison-forward-list)
-		      (point)))
+                    (save-excursion
+                      (bison-forward-list)
+                      (point)))
   (bison-reveal-code-blocks)
   (forward-line 1)
   (skip-chars-forward " \t")
   (setq block-indent-level (current-column))
   (let ((modp (buffer-modified-p))
-	indent block)
+        indent block)
     (setq block block-indent-level)
     (bison-swap-to-mode 'bison-block-mode)
     (setq bison-block-is-division nil)
     (goto-char (point-min))
     (forward-char 1)
-    (if (looking-at "[ \t]*\n")
-	(forward-line 1))
+    (when (looking-at-p "[ \t]*\n")
+      (forward-line 1))
     (while (not (eobp))
       (delete-region (point) (save-excursion
-			       (skip-chars-forward " \t")
-			       (setq indent (current-column))
-			       (point)))
+                               (skip-chars-forward " \t")
+                               (setq indent (current-column))
+                               (point)))
       (if (not (or (eq (following-char) ?\n)
-		   (and (eq (following-char) ?}) (save-excursion
-						   (forward-char 1)
-						   (eobp)))))
-	  (indent-to (- indent (- c-indent-level) block)))
+                   (and (eq (following-char) ?\}) (save-excursion
+                                                   (forward-char 1)
+                                                   (eobp)))))
+        (indent-to (- indent (- c-indent-level) block)))
       (forward-line 1))
     (set-buffer-modified-p modp))
   (goto-char (+ (point-min) 1))
@@ -485,82 +554,83 @@ If no such block is found, create one."
        (forward-char 1))
   (skip-chars-forward " \t")
   (message (if (eq (key-binding "\C-c\C-c") 'bison-widen)
-	       "Enter C-c C-c to return to Bison mode."
-	     (substitute-command-keys
-	      "Enter \\[bison-widen] to return to Bison mode."))))
+             "Enter C-c C-c to return to Bison mode."
+             (substitute-command-keys
+              "Enter \\[bison-widen] to return to Bison mode."))))
 
 (defun bison-swap-to-mode (mode-def)
   "Restore the saved alternate mode, or create it by funcall-ing MODE-DEF."
   (let ((elt (assoc (current-buffer) bison-buffer-local-alist))
-	state)
+        state)
     (setq state (append
-		 (buffer-local-variables)
-		 (list (cons 'F:local-map (current-local-map)))
-		 (list (cons 'F:syntax-table (syntax-table)))))
+                 (buffer-local-variables)
+                 (list (cons 'F:local-map (current-local-map)))
+                 (list (cons 'F:syntax-table (syntax-table)))))
     (if elt
-	(progn
-	  (kill-all-local-variables)
-	  (mapcar (function (lambda (arg)
-			      (if (string-match "^F:" (symbol-name (car arg)))
-				  (funcall (car arg) (cdr arg))
-				(make-local-variable (car arg))
-				(set (car arg) (cdr arg)))))
-		  (cdr elt))
-	  (setcdr elt state))
+      (progn
+        (kill-all-local-variables)
+        (mapcar (function (lambda (arg)
+                            (if (string-match "^F:" (symbol-name (car arg)))
+                              (funcall (car arg) (cdr arg))
+                              (make-local-variable (car arg))
+                              (set (car arg) (cdr arg)))))
+                (cdr elt))
+        (setcdr elt state))
       (if mode-def
-	  (funcall mode-def)
-	(error "No saved buffer modes for this buffer."))
+        (funcall mode-def)
+        (error "No saved buffer modes for this buffer."))
       (setq bison-buffer-local-alist (cons (cons (current-buffer) state)
-					   bison-buffer-local-alist)))))
+                                           bison-buffer-local-alist)))))
 
 (defun bison-hide-code-blocks ()
   "Hide all blocks of C code (balanced {} expressions) within the buffer."
   (message "Prefrobnicating...")
   (let ((modp (buffer-modified-p))
-	(selective-display nil)
-	(divisions 1)
-	state end c-division)
+        (selective-display nil)
+        (divisions 1)
+        state end c-division)
     (save-excursion
-      (goto-char (point-min))
-      (while (and (< divisions 3)
-		  (re-search-forward "^%%\\|{" nil 'move))
-	(if (progn
-	      (setq state (parse-partial-sexp
-			   (save-excursion
-			     (if (re-search-backward
-				  "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-				  nil 'move)
-				 (- (match-end 0) 1)
-			       (point-min)))
-			   (point)))
-	      (or (nth 3 state) (nth 4 state) (nth 5 state)))
-	    (forward-line 1)
-	  (if (save-excursion
-		(beginning-of-line)
-		(looking-at "^%%"))
-	      (progn
-		(if (= (setq divisions (1+ divisions)) 3)
-		    (save-excursion
-		      (forward-line 1)
-		      (setq c-division (point))))
-		(forward-char 1))
-	    (or (bobp) (forward-char -1))
-	    (if (save-excursion
-		  (beginning-of-line)
-		  (and (not (bobp)) (looking-at "[ \t]*{")))
-		(progn
-		  (beginning-of-line)
-		  (forward-char -1)))
-	    (setq end (save-excursion
-			(bison-forward-list)
-			(point)))
-	    (while (search-forward "\n" end 'move)
-	      (delete-char -1)
-	      (insert "\r")))))
-      (if (= divisions 3)
-	  (progn
-	    (goto-char c-division)
-	    (narrow-to-region (point-min) (point)))))
+      (save-match-data
+        (goto-char (point-min))
+        (while (and (< divisions 3)
+                    (re-search-forward "^%%\\|{" nil 'move))
+          (if (progn
+                (setq state (parse-partial-sexp
+                             (save-excursion
+                               (if (re-search-backward
+                                    "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                                    nil 'move)
+                                 (- (match-end 0) 1)
+                                 (point-min)))
+                             (point)))
+                (or (nth 3 state) (nth 4 state) (nth 5 state)))
+            (forward-line 1)
+            (if (save-excursion
+                  (beginning-of-line)
+                  (looking-at-p "^%%"))
+              (progn
+                (if (= (setq divisions (1+ divisions)) 3)
+                  (save-excursion
+                    (forward-line 1)
+                    (setq c-division (point))))
+                (forward-char 1))
+              (or (bobp) (forward-char -1))
+              (when (save-excursion
+                      (beginning-of-line)
+                      (and (not (bobp)) (looking-at-p "[ \t]*{")))
+                (progn
+                  (beginning-of-line)
+                  (forward-char -1)))
+              (setq end (save-excursion
+                          (bison-forward-list)
+                          (point)))
+              (while (search-forward "\n" end 'move)
+                (delete-char -1)
+                (insert "\r")))))
+        (if (= divisions 3)
+          (progn
+            (goto-char c-division)
+            (narrow-to-region (point-min) (point))))))
     (set-buffer-modified-p modp))
   (message "Prefrobnicating... done."))
 
@@ -599,68 +669,69 @@ file.  See the documentation for C mode for details.
 it doesn't exist.  The buffer is placed in Bison Block mode."
   (interactive)
   (let ((divisions 1)
-	(endpoint (point-max))
-	state)
+        (endpoint (point-max))
+        state)
     (widen)
     (save-excursion
-      (goto-char (point-min))
-      (while (and (< divisions 3)
-		  (re-search-forward "^%%" nil t)
-		  (progn
-		    (setq state (parse-partial-sexp
-				 (save-excursion
-				   (if (re-search-backward
-					"^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-					nil 'move)
-				       (- (match-end 0) 1)
-				     (point-min)))
-				 (point)))
-		    (not (or (nth 3 state) (nth 4 state) (nth 5 state)))))
-	(setq divisions (1+ divisions))))
+      (save-match-data
+        (goto-char (point-min))
+        (while (and (< divisions 3)
+                    (re-search-forward "^%%" nil t)
+                    (progn
+                      (setq state (parse-partial-sexp
+                                   (save-excursion
+                                     (if (re-search-backward
+                                          "^[ \t]*\\(?:\\s_\\|\\sw\\)+[ \t]*:"
+                                          nil 'move)
+                                       (- (match-end 0) 1)
+                                       (point-min)))
+                                   (point)))
+                      (not (or (nth 3 state) (nth 4 state) (nth 5 state)))))
+          (setq divisions (1+ divisions)))))
     (goto-char endpoint)
-    (if (not (eq (preceding-char) ?\n))
-	(insert "\n"))
+    (unless (eq (preceding-char) ?\n)
+      (insert "\n"))
     (while (< divisions 3)
       (insert "%%\n\n")
       (and (= (setq divisions (1+ divisions)) 3)
-	   (forward-char -1)))
+           (forward-char -1)))
     (narrow-to-region (point) (point-max))
     (bison-swap-to-mode 'bison-block-mode)
     (setq bison-block-is-division t)
     (message (if (eq (key-binding "\C-c\C-c") 'bison-widen)
-		 "Enter C-c C-c to return to Bison mode."
-	       (substitute-command-keys
-		"Enter \\[bison-widen] to return to Bison mode.")))))
+               "Enter C-c C-c to return to Bison mode."
+               (substitute-command-keys
+                "Enter \\[bison-widen] to return to Bison mode.")))))
 
 (defun bison-widen ()
   "Save the current block of embedded C code and return to Bison mode."
   (interactive)
   (if (and (boundp 'bison-block-is-division)
-	   bison-block-is-division)
-      ()
+           bison-block-is-division)
+    ()
     (let ((indent (assoc 'block-indent-level
-			 (assoc (current-buffer) bison-buffer-local-alist))))
+                         (assoc (current-buffer) bison-buffer-local-alist))))
       (setq indent (if indent (cdr indent) 0))
       (goto-char (point-min))
       (forward-line 1)
       (while (not (eobp))
-	(skip-chars-forward " \t")
-	(if (looking-at "[ \t]*\n")
-	    (delete-region (save-excursion
-			     (beginning-of-line)
-			     (point))
-			   (point))
-	  (indent-to (+ (current-column) (- c-indent-level) indent)))
-	(forward-line 1))))
+        (skip-chars-forward " \t")
+        (if (looking-at-p "[ \t]*\n")
+          (delete-region (save-excursion
+                           (beginning-of-line)
+                           (point))
+                         (point))
+          (indent-to (+ (current-column) (- c-indent-level) indent)))
+        (forward-line 1))))
   (goto-char (point-min))
   (save-excursion
     (widen)
     (bison-hide-code-blocks)
     (bison-swap-to-mode nil))
-  (if (save-excursion
-	(beginning-of-line)
-	(looking-at "[ \t]*{"))
-      (beginning-of-line))
+  (when (save-excursion
+          (beginning-of-line)
+          (looking-at-p "[ \t]*{"))
+    (beginning-of-line))
   (or (bobp)
       (forward-char -1)))
 
@@ -668,37 +739,44 @@ it doesn't exist.  The buffer is placed in Bison Block mode."
   "Arrange for definition lines to continue themselves."
   (interactive)
   (setq auto-fill-hook
-	(if (or (and (numberp arg)
-		     (> arg 0))
-		(not (eq auto-fill-hook 'bison-auto-continue)))
-	    'bison-auto-continue
-	  nil)))
+        (if (or (and (numberp arg)
+                     (> arg 0))
+                (not (eq auto-fill-hook 'bison-auto-continue)))
+          'bison-auto-continue
+          nil)))
 
 (defun bison-auto-continue ()
   "Copy the current line's prefix to a new line, iff it starts with %.
 Otherwise, indent past bison-colon-column."
   (let ((state (parse-partial-sexp
-		(save-excursion
-		  (if (re-search-backward
-		       "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-		       nil 'move)
-		      (- (match-end 0) 1)
-		    (point-min)))
-		(point))))
-    (if (or (nth 3 state) (nth 4 state) (nth 5 state))
-	()
+                (save-excursion
+                  (save-match-data
+                    (if (re-search-backward
+                         "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                         nil 'move)
+                      (- (match-end 0) 1)
+                      (point-min))))
+                (point))))
+    (unless (or (nth 3 state) (nth 4 state) (nth 5 state))
       (if (save-excursion
-	    (beginning-of-line)
-	    (looking-at "%[ \t]*[^u%{}]"))
-	  (let ((prefix (save-excursion
-			  (beginning-of-line)
-			  (buffer-substring (point)
-					    (save-excursion
-					      (skip-chars-forward "^ \t\n<")
-					      (point))))))
-	    (insert "\n" prefix)
-	    (or (eq (preceding-char) ?\ )
-		(eq (preceding-char) ?\t)
-		(insert " ")))
-	(insert "\n")
-	(indent-to (+ bison-colon-column 2))))))
+            (beginning-of-line)
+            (looking-at-p "%[ \t]*[^u%{}]"))
+        (let ((prefix (save-excursion
+                        (beginning-of-line)
+                        (buffer-substring (point)
+                                          (save-excursion
+                                            (skip-chars-forward "^ \t\n<")
+                                            (point))))))
+          (insert "\n" prefix)
+          (or (eq (preceding-char) ?\ )
+              (eq (preceding-char) ?\t)
+              (insert " ")))
+        (progn
+          (insert "\n")
+          (indent-to (+ bison-colon-column 2)))))))
+
+;;;;
+
+(provide 'bison-mode)
+
+;; bison-mode.el ends here

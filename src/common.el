@@ -951,6 +951,17 @@ to mode and write new contents back to FILENAME."
 
 ;;;;
 
+(defun indent-to! (col)
+  "Indent current line to exactly COL'th column with spaces."
+  (save-excursion
+    (beginning-of-line)
+    (skip-chars-forward " \t")
+    (delete-region (line-beginning-position) (point))
+    (dotimes (i col)
+      (insert ?\s))))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:
