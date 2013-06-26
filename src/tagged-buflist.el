@@ -1084,38 +1084,46 @@ saved buffer marks."
 ;; yay, this hook is really good!
 (add-hook 'buffer-list-update-hook #'tagged-buflist/invalidate-refresh-flag!)
 
+(defun tagged-buflist/setup-main-buffer ()
+  (if-let (buf (get-buffer tagged-buflist/main-buffer-name))
+    (when tagged-buflist/refresh-is-needed
+      (tagged-buflist/refresh))
+    (progn
+      (setf buf (get-buffer-create tagged-buflist/main-buffer-name))
+      (with-current-buffer buf
+        (kill-all-local-variables)
+        (tagged-buflist-mode)
+        (font-lock-mode -1)
+        (read-only-mode +1)
+        (add-hook 'kill-buffer-hook
+                  #'tagged-buflist/clear-variables
+                  nil ;; append
+                  t   ;; local
+                  )
+        (tagged-buflist/refresh)
+        (goto-char (point-min)))))
+  buf)
+
 (defun tagged-buflist-show ()
   "Switch to tagged buffer list."
   (interactive)
   (setf tagged-buflist/marked-buffers nil)
-  (let ((orig-buffer (current-buffer))
-        (buf (get-buffer tagged-buflist/main-buffer-name)))
-    (if buf
-      (when tagged-buflist/refresh-is-needed
-        (tagged-buflist/refresh))
-      (progn
-        (setf buf (get-buffer-create tagged-buflist/main-buffer-name))
-        (with-current-buffer buf
-          (kill-all-local-variables)
-          (tagged-buflist-mode)
-          (font-lock-mode -1)
-          (read-only-mode +1)
-          (add-hook 'kill-buffer-hook
-                    #'tagged-buflist/clear-variables
-                    nil ;; append
-                    t   ;; local
-                    )
-          (tagged-buflist/refresh)
-          (goto-char (point-min))
-          ;; select original buffer
-          (tagged-buflist/for-single-section
-           (comp (partial #'eq?
-                          orig-buffer)
-                 (partial-first #'tagged-section/get-prop
-                                'buffer))
-           #'tagged-buflist/goto-section))))
-    (switch-to-buffer buf)))
+  (switch-to-buffer (tagged-buflist/setup-main-buffer)))
 
+(defun tagged-buflist-show-select-current-buf ()
+  (interactive)
+  (setf tagged-buflist/marked-buffers nil)
+  (let ((orig-buffer (current-buffer))
+        (buf (tagged-buflist/setup-main-buffer)))
+    ;; select original buffer
+    (with-current-buffer buf
+      (tagged-buflist/for-single-section
+       (lambda (section)
+         (when-let (tbuf (tagged-section/get-prop section
+                                                  'buffer))
+           (eq? orig-buffer (tagged-buffer/buf tbuf))))
+       #'tagged-buflist/goto-section))
+    (switch-to-buffer buf)))
 
 (defun tagged-buflist/toggle-filenames ()
   "Refresh tagged buffer list in current buffer."

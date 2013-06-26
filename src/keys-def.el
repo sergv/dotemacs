@@ -48,14 +48,15 @@
   "Prefix to C-x")
 
 (defconst +vim-word-motion-keys+
-  '(("w"   vim-mock:motion-fwd-word)
-    ("b"   vim-mock:motion-bwd-word)
-    ("W"   vim-mock:motion-fwd-WORD)
-    ("B"   vim-mock:motion-bwd-WORD)))
+  '(("w" vim-mock:motion-fwd-word)
+    ("b" vim-mock:motion-bwd-word)
+    ("W" vim-mock:motion-fwd-WORD)
+    ("B" vim-mock:motion-bwd-WORD)))
 
 
 (defconst +vim-special-keys+
   '((", b"   tagged-buflist-show)
+    (", B"   tagged-buflist-show-select-current-buf)
     (";"     vim:ex-read-command)
 
     ("g C"   remember-win-config-store-configuration)
@@ -66,6 +67,8 @@
     ("g f"   icicle-file)
     ("g g f" find-filename-in-tree-recursive)
     ("g r"   rgrep)
+    ("g k"   remove-buffer)
+    ("g K"   remove-buffer-and-window)
 
     ("g <"   vim-mock:motion-go-to-first-non-blank-beg)
     ("g >"   vim-mock:motion-go-to-first-non-blank-end)
