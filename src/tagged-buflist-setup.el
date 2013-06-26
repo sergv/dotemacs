@@ -38,15 +38,6 @@
        ("<down>"   tagged-buflist-cycle-buffers-forward)
        ("<up>"     tagged-buflist-cycle-buffers-backward))))
 
-(def-keys-for-map global-map
-  ("<XF86Favorites>" tagged-buflist-show)
-  ("C-x b"           tagged-buflist-show)
-  ("C-b"             icicle-buffer)
-  ("M-b"             tagged-buflist-show))
-
-(def-keys-for-map vim:normal-mode-keymap
-  (", b" tagged-buflist-show))
-
 (provide 'tagged-buflist-setup)
 
 ;; Local Variables:
