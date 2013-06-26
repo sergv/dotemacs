@@ -359,7 +359,9 @@ under git version control."
         (when-let (repository
                    (git-get-repository-root (file-name-directory buffer-file-name)))
           (let ((tracked-files-table (git-get-tracked-files repository)))
-            (when (gethash (expand-file-name buffer-file-name)
+            ;; buffer-file-truename does not contain symbolic links
+            ;; as buffer-file-name does
+            (when (gethash (expand-file-name buffer-file-truename)
                            tracked-files-table)
               (setf git-repository repository))))))))
 
