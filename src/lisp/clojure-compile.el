@@ -9,6 +9,7 @@
 (eval-when-compile (require 'cl-lib))
 (require 'common)
 (require 'clojure-util)
+(require 'keys-def)
 
 (defconst +clojure-compile-warning-regexp+
   (rx bol
@@ -21,8 +22,8 @@
        "\.clj")
       ":"
       (group (+ digit))
-      ":"
-      (group (+ digit))))
+      (? ":"
+         (group (+ digit)))))
 
 (defconst +clojure-compile-error-regexp+
   (rx (? bol "Exception in thread \"main\" ")
@@ -135,6 +136,8 @@ path, in which case filename with suffix equal to FILENAME will be tried."
 (defvar clojure-compilation-mode-map
   (let ((m (make-sparse-keymap)))
     (def-keys-for-map m
+      +vim-special-keys+
+      +vim-word-motion-keys+
       ("SPC"      clojure-compile/goto-error-other-window)
       ("<return>" clojure-compile/goto-error)
       ("o"        clojure-compile/goto-error-other-window))
