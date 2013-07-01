@@ -106,11 +106,17 @@ entries."
   (with-temp-buffer
     (insert ":;exec emacs --load \"$0\"\n\n")
     (insert ";:;exec gdb -ex \"run\" --args emacs --load \"$0\"\n\n")
-    (insert (format ";; this session was created on %s\n;; Today's quote is\n%s\n"
+    (insert (format ";; this session was created on %s\n;; Today's quotes are\n%s\n"
                     (format-time-string "%A, %e %B %Y")
-                    (join-lines
-                     (map (lambda (x) (concat ";; " x))
-                          (split-into-lines (fortune *fortunes*))))))
+                    (foldr #'concat
+                           ""
+                           (map (lambda (unused)
+                                  (concat
+                                   (join-lines
+                                    (map (lambda (x) (concat ";; " x))
+                                         (split-into-lines (fortune *fortunes*))))
+                                   "\n;;\n"))
+                                '(0 1 2 3 4 5)))))
     (print '(require 'persistent-sessions) (current-buffer))
     (let ((buffer-data
            (remq nil
