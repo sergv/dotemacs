@@ -30,33 +30,60 @@
 
 (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
 (add-to-list 'interpreter-mode-alist '("python" . python-mode))
+(add-to-list 'interpreter-mode-alist '("python3" . python-mode))
 
-;; (setf python-indent-offset 4
-;;       ;; ipython setup
-;;       python-shell-buffer-name "python repl"
-;;       python-shell-interpreter "python"
+(setf python-indent-offset 4)
+
+
+;; (setf python-shell-buffer-name "python repl"
+;;       python-shell-interpreter "python3.3" ;; "python2.7"
 ;;       python-shell-internal-buffer-name " python-repl-internal"
 ;;       python-shell-interpreter-args "-i"
 ;;
-;;       ;; python-shell-prompt-regexp "> "
-;;       ;; python-shell-prompt-block-regexp ">> "
+;;       python-shell-prompt-regexp ">>> "
+;;       python-shell-prompt-block-regexp "\\.\\.\\. "
 ;;       ;; python-shell-prompt-output-regexp ""
 ;;
 ;;       python-shell-enable-font-lock t
 ;;
-;;       ;;  python-shell-completion-setup-code
-;;       ;;    "from IPython.core.completerlib import module_completion"
-;;       ;;  python-shell-completion-module-string-code
-;;       ;;    "';'.join(module_completion('''%s'''))\n"
-;;       ;;  python-shell-completion-string-code
-;;       ;;    "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+;;       python-shell-completion-setup-code
+;;       "try:
+;;     import sys
+;;     import readline
+;; except ImportError:
+;;     def __COMPLETER_all_completions(text): []
+;; else:
+;;     import rlcompleter
+;;     readline.set_completer(rlcompleter.Completer().complete)
+;;     def __COMPLETER_all_completions(text):
+;;         import sys
+;;         completions = []
+;;         try:
+;;             i = 0
+;;             while True:
+;;                 res = readline.get_completer()(text, i)
+;;                 if not res: break
+;;                 i += 1
+;;                 completions.append(res)
+;;         except NameError:
+;;             pass
+;;         return completions"
 ;;
-;;       )
+;;       ;;    "from IPython.core.completerlib import module_completion"
+;;
+;;       python-shell-completion-module-string-code
+;;       ""
+;;
+;;       python-shell-completion-string-code
+;;       (concat "sys.stdout.write("
+;;               "\"%s\".join(__COMPLETER_all_completions(\"\"\"%s\"\"\"))"
+;;               "+ \"\\x00\\n\""
+;;               ")\n"))
 
-(setf python-indent-offset 4
-      ;; ipython setup
-      python-shell-buffer-name "python repl"
-      python-shell-interpreter "ipython"
+
+;; ipython setup
+(setf python-shell-buffer-name "python repl"
+      python-shell-interpreter "ipython3" ;; "ipython"
       python-shell-internal-buffer-name " ipython-repl-internal"
       python-shell-interpreter-args "--pprint --color-info --colors Linux --nosep --no-confirm-exit --deep-reload"
 
@@ -70,15 +97,11 @@
       "from IPython.core.completerlib import module_completion"
       python-shell-completion-module-string-code
       "';'.join(module_completion('''%s'''))\n"
-
       python-shell-completion-string-code
       (concat "sys.stdout.write("
               "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
               "+ \"\\x00\\n\""
-              ") #PYTHON-MODE SILENT\n")
-      ;; "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
-      ;; "';'.join(get_ipython().Completer.complete('''%s''')[1]) #PYTHON-MODE SILENT\n"
-      )
+              ") #PYTHON-MODE SILENT\n"))
 
 (defvar python-setup-shell-completion-code
   "import sys #PYTHON-MODE SILENT")
@@ -152,9 +175,7 @@ in the current *Python* session."
 
 (setenv "PYTHONPATH"
         (join-lines
-         (list
-          "/home/sergey/projects/python/modules/"
-          "/home/sergey/projects/python/webcam/collect-data/local/lib/python2.7/site-packages")
+         (list "/home/sergey/projects/python/modules/")
          ":"))
 (setenv "IPYTHONDIR" (concat +prog-data-path+ "/ipython"))
 
