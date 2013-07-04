@@ -407,12 +407,14 @@ the perfect point to do some house-keeping."
   ;; note: this is for brief debugging only since vim's visual mode
   ;; depends on the version with condition-case (if you dare to figure
   ;; that out then you may change this function whatever you like)
+
   ;; (unwind-protect
-  ;;      (funcall vim:active-command-function cmd)
+  ;;     (funcall vim:active-command-function cmd)
   ;;   (vim:reset-key-state)
   ;;   (vim:clear-key-sequence)
   ;;   (vim:adjust-point)
   ;;   (vim:activate-normal-mode))
+
   (condition-case err
       (funcall vim:active-command-function cmd)
     (error
