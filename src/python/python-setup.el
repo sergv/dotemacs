@@ -48,7 +48,6 @@
 ;;
 ;;       python-shell-completion-setup-code
 ;;       "try:
-;;     import sys
 ;;     import readline
 ;; except ImportError:
 ;;     def __COMPLETER_all_completions(text): []
@@ -87,31 +86,54 @@
       python-shell-internal-buffer-name " ipython-repl-internal"
       python-shell-interpreter-args "--pprint --color-info --colors Linux --nosep --no-confirm-exit --deep-reload"
 
-      python-shell-prompt-regexp "> "
-      python-shell-prompt-block-regexp ">> "
-      python-shell-prompt-output-regexp ""
+      ;; python-shell-prompt-regexp "> "
+      ;; python-shell-prompt-block-regexp ">> "
+      ;; python-shell-prompt-output-regexp ""
+
+      python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+      python-shell-prompt-block-regexp "   \\.\\.*\\.: "
+      python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
 
       python-shell-enable-font-lock t
 
       python-shell-completion-setup-code
       "from IPython.core.completerlib import module_completion"
       python-shell-completion-module-string-code
-      "';'.join(module_completion('''%s'''))\n"
+      "';'.join(module_completion(\"\"\"%s\"\"\"))\n"
       python-shell-completion-string-code
-      (concat "sys.stdout.write("
+      ;; use "_ =" to ignore return value of write function
+      (concat "_ = sys.stdout.write("
               "\"%s\".join(get_ipython().Completer.complete(\"\"\"%s\"\"\")[1])"
               "+ \"\\x00\\n\""
-              ") #PYTHON-MODE SILENT\n"))
+              "); #PYTHON-MODE SILENT\n"
+              ;;" SILENT\n"
+              ))
 
-(defvar python-setup-shell-completion-code
-  "import sys #PYTHON-MODE SILENT")
+(defvar python-setup-pprint-code
+  "import pprint
+import sys
+
+orig_displayhook = sys.displayhook
+
+def pprint_displayhook(value):
+    if value != None:
+        __builtins__._ = value
+        pprint.pprint(value)
+
+#sys.displayhook = pprint_displayhook
+
+#__builtins__.pprint_on = lambda: setattr(sys, 'displayhook', pprint_displayhook)
+#__builtins__.pprint_off = lambda: setattr(sys, 'displayhook', orig_displayhook)
+")
 (defvar python-setup-numpy-code
   "try:
     import numpy as np
 except ImportError:
     print(\"Numpy is not accessible\")")
 (add-to-list 'python-shell-setup-codes
-             'python-setup-shell-completion-code)
+             'python-shell-completion-setup-code)
+(add-to-list 'python-shell-setup-codes
+             'python-setup-pprint-code)
 (add-to-list 'python-shell-setup-codes
              'python-setup-numpy-code)
 
@@ -147,24 +169,25 @@ in the current *Python* session."
       (process-send-string python-process
                            (format python-shell-completion-string-code sep pattern))
       (accept-process-output python-process)
-      (setq completions
-            (split-string (substring completion-accum
-                                     0
-                                     (position ?\0 completion-accum))
-                          sep))
+      (let ((compl-end-pos (position ?\0 completion-accum)))
+        (setq completions
+              (split-string (substring completion-accum
+                                       0
+                                       compl-end-pos)
+                            sep))
 
-      (cond
-        ((null completions)
-         (error "Can't find completion for \"%s\"" pattern))
-        ((null? (cdr completions))
-         ;; got only one completion
-         (setf completion (car completions)))
-        (t
-         (setf completion (completing-read-vanilla ""
-                                                   completions
-                                                   nil
-                                                   nil
-                                                   pattern))))
+        (cond
+          ((null completions)
+           (error "Can't find completion for \"%s\"" pattern))
+          ((null? (cdr completions))
+           ;; got only one completion
+           (setf completion (car completions)))
+          (t
+           (setf completion (completing-read-vanilla ""
+                                                     completions
+                                                     nil
+                                                     nil
+                                                     pattern)))))
       (if (or (string= pattern completion)
               (= 0 (length completion)))
         (error "No completions found for \"%s\"" pattern)
