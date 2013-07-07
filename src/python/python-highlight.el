@@ -343,7 +343,7 @@
                               (+ hex-digit)))
 
             (float-point (seq (? sign)
-                              bow
+                              symbol-start
                               (or (seq (+ digit)
                                        (? "." (* digit)))
                                   (seq (* digit)
@@ -362,9 +362,11 @@
                                           octal
                                           hexadecimal)))
                              (? (or "l" "L")))
-                        float)))
+                        float
+                        complex)))
         number
         symbol-end)
+
      (0 'python-constant-face))
 
     (,(rx symbol-start
