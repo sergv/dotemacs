@@ -250,7 +250,7 @@ in the file it applies to."
     (define-key map "\C-s" '&&hdr-show-subtree)
     (define-key map "\C-d" '&&hdr-hide-subtree)
     (define-key map "\C-u" '&&hdr-outline-up-heading)
-    (define-key map "\C-f" '&&hdr-outline-forward-same-level)
+    ;; (define-key map "\C-f" '&&hdr-outline-forward-same-level)
     (define-key map "\C-b" '&&hdr-outline-backward-same-level)
     (define-key map "\C-t" '&&hdr-hide-body)
     (define-key map "\C-a" '&&hdr-show-all)
