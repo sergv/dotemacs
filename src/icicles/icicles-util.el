@@ -22,7 +22,7 @@
     ("C-v"               set-mark-command)
     ("C-y"               copy-region-as-kill)
     ("C-d"               kill-region)
-    ("C-f"               icicle-read+insert-file-name)
+    ("C-f"               read-and-insert-filename)
 
     ("M-<tab>"           icicle-narrow-candidates)
     ("C-<tab>"           icicle-apropos-complete-and-narrow)
