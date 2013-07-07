@@ -969,6 +969,32 @@ to mode and write new contents back to FILENAME."
     (dotimes (i col)
       (insert ?\s))))
 
+;;;; keeping window's previous buffers and switching to them
+
+(defadvice set-window-buffer (before
+                              notify-window-buffer-change
+                              activate
+                              compile)
+  (let ((window (ad-get-arg 0)
+                ;; (or (ad-get-arg 0)
+                ;;     (selected-window))
+                )
+        (new-buffer (ad-get-arg 1)))
+    (set-window-parameter window
+                          'prev-buffers
+                          (cons (window-buffer window)
+                                (filter #'buffer-live-p
+                                        (window-parameter window 'prev-buffers))))))
+
+(defun switch-to-prev-buffer-in-window ()
+  "Switch to previous alive buffer for selected window, if there's one."
+  (interactive)
+  (let* ((window (selected-window))
+         (prev-bufs (filter #'buffer-live-p
+                            (window-parameter window 'prev-buffers))))
+    (if (null? prev-bufs)
+      (error "no alive previous buffers to switch to")
+      (switch-to-buffer (car prev-bufs)))))
 ;;;;
 
 (provide 'common)
