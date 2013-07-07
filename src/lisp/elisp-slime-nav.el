@@ -24,6 +24,9 @@
 ;;
 ;;; Code
 
+;; for find-tag-marker-ring
+(require 'etags)
+
 (defun elisp-slime-nav--all-navigable-symbol-names ()
   "Return a list of strings for the symbols to which navigation is possible."
   (loop for x being the symbols
