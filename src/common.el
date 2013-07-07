@@ -199,16 +199,25 @@ All predicates are called with full absolute paths."
                  accum)))))
     (nreverse (funcall collect-rec path nil))))
 
-(defun read-and-insert-filename ()
+(defun read-and-insert-filename (&optional nondir-only?)
   "Read filename with completion from user and insert it at point.
-Of course directory names are also supported."
-  (interactive)
-  (if (and (eq major-mode 'org-mode)
-           (y-or-n-p "Insert link? "))
-    (insert "[[file:"
-            (expand-file-name (icicle-read-file-name "" nil ""))
-            "][]]")
-    (insert (expand-file-name (icicle-read-file-name "" nil "")))))
+Of course directory names are also supported.
+
+If NONDIR-ONLY? is specified then insert only nondirectory part will be
+inserted."
+  (interactive "p")
+  (let ((path (funcall (if nondir-only?
+                         #'file-name-nondirectory
+                         #'identity)
+                       (expand-file-name
+                        (icicle-read-file-name "" nil ""))))
+        (output (if (and (eq major-mode 'org-mode)
+                         (y-or-n-p "Insert link? "))
+                  (concat "[[file:"
+                          path
+                          "][]]")
+                  path))))
+  (insert output))
 
 (autoload 'find-filename-in-tree-recursive "common-heavy" "" t)
 
