@@ -217,15 +217,13 @@ MAP is `minibuffer-local-completion-map' or
 
 
 (setf icicle-TAB-completion-methods '(vanilla
-                                      swank
+                                      ;; swank
                                       ;; fuzzy
                                       )
 
       icicle-S-TAB-completion-methods-alist
-      '(("apropos" . string-match))
-
-      ;; tweak vanilla emacs-23 completion to make
-      ;; it more powerful
+      '(;; ("apropos" . string-match)
+        ("scatter" . icicle-scatter-match))
 
       icicle-dot-string "." ;; icicle-anychar-regexp
       icicle-reverse-sort-p nil)
