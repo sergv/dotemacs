@@ -45,6 +45,8 @@
                            nil
                            default))
 
+;; tweak vanilla emacs-23 completion to make
+;; it more powerful
 (setf completion-styles '(partial-completion)
       completion-category-overrides '()
       read-buffer-function #'completing-read-buffer)
