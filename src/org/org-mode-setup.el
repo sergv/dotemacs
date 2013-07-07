@@ -36,6 +36,30 @@
       org-use-property-inheritance nil ;; '("DRILL_CARD_TYPE")
 
       org-highlight-latex-fragments-and-specials t
+      org-latex-default-packages-alist
+      '(("AUTO" "inputenc"  t)
+        ("T1"   "fontenc"   t)
+        (""     "fixltx2e"  nil)
+        ;; amsmath should be one of the first, it appears to define \iiint in
+        ;; some particular way and barfs when someone already defined it
+        ;; at the time of \usepackage{amsmath}. I suspect that wasysym or
+        ;; someone near it does this to \iiint and upsets amsmath, therefore
+        ;; amsmath is included among the firts.
+        (""     "amsmath"   t)
+        (""     "graphicx"  t)
+        (""     "longtable" nil)
+        (""     "float"     nil)
+        (""     "wrapfig"   nil)
+        (""     "soul"      t)
+        (""     "textcomp"  t)
+        (""     "marvosym"  t)
+        (""     "wasysym"   t)
+        (""     "latexsym"  t)
+        (""     "amssymb"   t)
+        (""     "amstext"   nil)
+        (""     "hyperref"  nil)
+        "\\tolerance=1000")
+
       org-pretty-entities t
 
       ;; fontify code in code blocks
