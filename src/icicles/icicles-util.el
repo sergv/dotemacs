@@ -12,6 +12,7 @@
   "Utility function that binds my custom keys and is used in several places."
   (def-keys-for-map map
     ("<escape>"          abort-recursive-edit)
+    ("?"                 self-insert-command)
 
     ("C-w"               backward-delete-word)
     ("C-S-w"             backward-delete-word*)
