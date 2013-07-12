@@ -2245,9 +2245,50 @@ Life short, \[the\] craft long, opportunity fleeting,
 experiment treacherous, judjment difficult
 -- Hyppocrates \(c. 400BC\)"
 
-   "Meta means that you step back from your own place. What you used to do is now what you see. What you were is now what you act on.
--- Scott Rosenberg quoting Guy Steele"]
+   "Meta means that you step back from your own place.
+What you used to do is now what you see.
+What you were is now what you act on.
+-- Scott Rosenberg quoting Guy Steele"
+
+   "Anyone who cannot cope with mathematics is not fully human.
+At best he is a tolerable subhuman who has learned to wear shoes,
+bathe, and not make messes in the house.
+-— Lazarus Long"
+
+   "Avoid making irrevocable decisions while tired or hungry.
+N.B.: Circumstances can force your hand, so think ahead!
+-— Lazarus Long"
+
+   "If it can’t be expressed in figures, it is not science; it is opinion.
+-— Lazarus Long"
+
+   "One man’s ‘magic’ is another man’s engineering. ‘Supernatural’ is a null word.
+-— Lazarus Long"
+
+   "You can go wrong by being too skeptical as readily as by being too trusting.
+-— Lazarus Long"
+
+   "The two highest achievements of the human mind are the twin concepts of
+‘loyalty’ and ‘duty.’ Whenever these twin concepts fall into disrepute –
+get out of there fast! You may possibly save yourself,
+but it is too late to save that society. It is doomed.
+-— Lazarus Long"
+
+   "When a place gets crowded enough to require ID’s,
+social collapse is not far away. It is time to go elsewhere.
+The best thing about space travel is that it made it possible to go elsewhere.
+-— Lazarus Long"
+
+   "The difference between science and the fuzzy subjects is that science
+requires reasoning, while those other subjects merely require scholarship.
+-— Lazarus Long"
+   ]
   "Good and nice fortunes.")
+
+(defvar *other-quotes*
+  ["Money is a powerful aphrodisiac. But flowers work almost as well.
+-— Lazarus Long"
+   ])
 
 (defvar *fortunes*
   (vconcat *perlis-quotes*
