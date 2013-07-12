@@ -205,19 +205,19 @@ Of course directory names are also supported.
 
 If NONDIR-ONLY? is specified then insert only nondirectory part will be
 inserted."
-  (interactive "p")
-  (let ((path (funcall (if nondir-only?
-                         #'file-name-nondirectory
-                         #'identity)
-                       (expand-file-name
-                        (icicle-read-file-name "" nil ""))))
-        (output (if (and (eq major-mode 'org-mode)
-                         (y-or-n-p "Insert link? "))
-                  (concat "[[file:"
-                          path
-                          "][]]")
-                  path))))
-  (insert output))
+  (interactive "P")
+  (let* ((path (funcall (if nondir-only?
+                          #'file-name-nondirectory
+                          #'identity)
+                        (expand-file-name
+                         (icicle-read-file-name "" nil ""))))
+         (output (if (and (eq major-mode 'org-mode)
+                          (y-or-n-p "Insert link? "))
+                   (concat "[[file:"
+                           path
+                           "][]]")
+                   path)))
+    (insert output)))
 
 (autoload 'find-filename-in-tree-recursive "common-heavy" "" t)
 
