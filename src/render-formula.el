@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'more-clojure)
 (require 'solarized+)
 
 (defvar *formula-images-cache* (make-hash-table :test 'equal))
@@ -28,6 +29,29 @@ won't be confused by the same filename used for different images.")
   "Buffer with text that is fed to latex.")
 (defvar render-formula-latex-output-buf "#latex-output#"
   "Buffer for latex errors.")
+(defvar render-formula-conversion-errors-buf "#errors-converting-to-png#"
+  "Buffer for errors during conversion to png.")
+(defconst +render-formula-standard-packages+
+  '("amsmath"
+    "amssymb"
+    "mathrsfs" ;; very calligraphic fonts
+    "color")
+  "Packages that should always be included when rendering formulas")
+(defconst +render-formula-conditional-packages+
+  (list
+   (list (lambda (text)
+           (and (string-match-pure? (rx "\\begin{tikzpicture}") text)
+                (string-match-pure? (rx "\\end{tikzpicture}") text)))
+         "tikz"))
+  "Specification of packages, (<condition> <package>+) that should be
+included if condition returns true when applied to text that is
+currently being rendered.")
+
+(defconst +render-formula-ps-to-png-exec+ (concat +execs-path+ "/ps-to-png.py"))
+
+(defconst +render-formula-use-dvipng+ nil
+  "Whether to use dvipng or emulate it yourself through ghostscript and
+pnm utils suite.")
 
 (defun* render-formula (str &key
                             (point-size 10)
@@ -46,7 +70,10 @@ won't be confused by the same filename used for different images.")
                     "Large"
                     "LARGE"
                     "huge"
-                    "Huge")))
+                    "Huge"))
+          nil
+          "invalid font-size: %s"
+          font-size)
   (aif (gethash str *formula-images-cache* nil)
     it
     (let* ((left-eq-numbering? nil)
@@ -59,14 +86,26 @@ won't be confused by the same filename used for different images.")
            (tmp-filename (format "formula%d" *formula-index*))
            (tmp-path (concat +tmp-path+ "/render-formula"))
            (tmp-file (concat tmp-path "/" tmp-filename ".tex"))
+           ;; ps will be nedded if we're not using dvipng
+           (ps-file (concat tmp-path "/" tmp-filename ".ps"))
            (dvi-file (concat tmp-path "/" tmp-filename ".dvi"))
            (img-file (concat tmp-path "/" tmp-filename ".png"))
            (latex-bufs (list (get-buffer-create
                               render-formula-latex-input-buf)
                              (get-buffer-create
-                              render-formula-latex-output-buf))))
+                              render-formula-latex-output-buf)))
+           (conversion-error-buf (get-buffer-create
+                                  render-formula-conversion-errors-buf))
+           (packages
+            (append +render-formula-standard-packages+
+                    (foldl #'append
+                           '()
+                           (map #'cdr
+                                (filter (lambda (cond-spec)
+                                          (funcall (car cond-spec) str))
+                                        +render-formula-conditional-packages+))))))
 
-      (dolist (buf latex-bufs)
+      (dolist (buf (cons conversion-error-buf latex-bufs))
         (with-current-buffer buf
           (erase-buffer)))
       (with-current-buffer (get-buffer-create render-formula-latex-input-buf)
@@ -75,11 +114,11 @@ won't be confused by the same filename used for different images.")
                  point-size
                  (if left-eq-numbering?
                    ",leqno"
-                   ""))
-         "\\usepackage{amsmath}\n"
-         "\\usepackage{amssymb}\n"
-         "\\usepackage{mathrsfs}\n" ;; very calligraphic fonts
-         "\\usepackage{color}\n"
+                   "")))
+        (mapc (lambda (pkg)
+                (insert "\\usepackage{" pkg "}\n"))
+              packages)
+        (insert
          "\\renewcommand{\\emptyset}{\\varnothing}\n"
          "\\newcommand{\\union}{\\cup}\n"
          "\\newcommand{\\intersect}{\\cap}\n"
@@ -124,27 +163,52 @@ won't be confused by the same filename used for different images.")
             (mapc #'pop-to-buffer latex-bufs)
             (error "LaTeX error"))))
       ;; dvi is now at dvi-file
-      (call-process "dvipng"
-                    nil ;; infile
-                    nil ;; buffer
-                    nil ;; display
-                    "-T"
-                    "tight"
-                    "-D"
-                    (number->string dpi)
-                    dvi-file
-                    "-o"
-                    img-file)
-      ;; now everything interesting is in img-file
-      (let ((img (create-image img-file
-                               'png
-                               nil
-                               :ascent 'center)))
-        (setf *formula-index* (+ 1 *formula-index*))
-        (puthash str img *formula-images-cache*)
-        img))))
-
-
+      (if (if +render-formula-use-dvipng+
+            (= 0
+               (call-process "dvipng"
+                             nil ;; infile
+                             conversion-error-buf ;; buffer
+                             nil ;; display
+                             "-T"
+                             "tight"
+                             "-D"
+                             (number->string dpi)
+                             dvi-file
+                             "-o"
+                             img-file))
+            (and (= 0
+                    (call-process "dvi2ps"
+                                  nil ;; infile
+                                  conversion-error-buf ;; buffer
+                                  nil ;; display
+                                  "-R"
+                                  (number->string dpi)
+                                  "-c"
+                                  ps-file
+                                  dvi-file))
+                 (= 0
+                    (call-process +render-formula-ps-to-png-exec+
+                                  nil ;; infile
+                                  conversion-error-buf ;; buffer
+                                  nil ;; display
+                                  ;; make all background transparent
+                                  ;; "--transparent" (apply 'format "rgb:%02x/%02x/%02x" bg-color)
+                                  "--dpi"
+                                  (number->string dpi)
+                                  ps-file
+                                  img-file))))
+        ;; now everything interesting is in img-file
+        (let ((img (create-image img-file
+                                 'png
+                                 nil
+                                 :ascent 'center)))
+          (remove-buffer conversion-error-buf)
+          (setf *formula-index* (+ 1 *formula-index*))
+          (puthash str img *formula-images-cache*)
+          img)
+        (progn
+          (pop-to-buffer conversion-error-buf)
+          (error "problem transforming dvi file into image"))))))
 
 (defvar-local render-buffer-rendered? nil
   "Is set to t by `render-formula-toggle-formulas' when latex code in buffer is
@@ -153,6 +217,16 @@ displayed as images.")
 (defvar +render-buffer-latex-re+
   (rx "\$\$"
       (? "[["
+         ;; command string will be interpreted as follows:
+         ;; it will be read as usual emacs lisp source and evaluated
+         ;;
+         ;; it should evaluate to list of following entries
+         ;; (remove <string>+) - all strings here will be treated as regexps and
+         ;;     will be removed from formula source
+         ;;
+         ;; evaluation context will contain following symbols:
+         ;; comment - regexp with current mode's comments suitable for stripping
+         ;; strip-comments - evaluates to `((remove ,comment)), just for convenience
          (group
           (+? (or "\\]]"
                   "]\\]"
@@ -172,16 +246,60 @@ displayed as images.")
                                     intangible
                                     read-only)))
 
-(defun render-buffer-clean-string (regexp str)
-  (if regexp
-    (save-match-data
-      (with-temp-buffer
-        (insert str)
-        (goto-char (point-min))
-        (while (re-search-forward regexp nil t)
-          (replace-match ""))
-        (buffer-substring-no-properties (point-min) (point-max))))
-    str))
+(defun render-buffer/remove-all-matches (regexp str)
+  "Remove all matches of REGEXP from STR."
+  (save-match-data
+    (with-temp-buffer
+      (insert str)
+      (goto-char (point-min))
+      (while (re-search-forward regexp nil t)
+        (replace-match ""))
+      (buffer-substring-no-properties (point-min) (point-max)))))
+
+(defun render-buffer/cleanup-formula-string (formula-str command)
+  "Clean up FORMULA-STR w.r.t. COMMAND."
+  (if command
+    (let* ((comment (if *comment-util-current-format*
+                      (concat "^\\s-*\\(?:"
+                              (comment-format-line-regexp
+                               *comment-util-current-format*)
+                              "\\)")
+                      (progn
+                        (message "no comment format defined for %s"
+                                 major-mode)
+                        nil)))
+           (eval-result
+            (eval `(let* ((comment ,comment)
+                          (strip-comments `((remove ,comment))))
+                     ,(car (read-from-string command)))
+                  t)))
+      (unless (list? eval-result)
+        (error "command %S evaluated to invalid value: %s"
+               command
+               eval-result))
+      (foldl (lambda (str command-cell)
+               (unless (and (list? command-cell)
+                            (not (null? command-cell)))
+                 (error "invalid command cell, list expected: %s"
+                        eval-result
+                        command-cell))
+               (cond
+                 ((eq? (car command-cell) 'remove)
+                  (foldl (lambda (s rx)
+                           (assert (string? rx))
+                           (render-buffer/remove-all-matches rx s))
+                         str
+                         (cdr command-cell)))
+                 (else
+                  (error "unrecognized command cell: %s" command-cell))))
+             formula-str
+             eval-result))
+    formula-str))
+
+(defun test ()
+  (interactive)
+  (let ((comment "quux"))
+    (message "result = %s" (eval (car (read-from-string "comment")) t))))
 
 (defun render-buffer-off ()
   (save-excursion
@@ -203,17 +321,18 @@ displayed as images.")
        (goto-char (point-min))
        (while (re-search-forward +render-buffer-latex-re+ nil t)
          (unless (get-char-property (match-beginning 0) 'display)
-           (let ((s (render-buffer-clean-string
-                     (match-string-no-properties 1)
-                     (match-string-no-properties 2))))
-             (add-text-properties
-              (match-beginning 0)
-              (match-end 0)
-              (list 'display (render-formula (trim-whitespace s))
-                    'render-formula t
-                    'intangible t
-                    'read-only "Disable latex images first")))
-           (goto-char (match-end 0)))))))))
+           (let ((command (match-string-no-properties 1))
+                 (formula-str (match-string-no-properties 2)))
+             (let ((s (render-buffer/cleanup-formula-string formula-str
+                                                            command)))
+               (add-text-properties
+                (match-beginning 0)
+                (match-end 0)
+                (list 'display (render-formula (trim-whitespace s))
+                      'render-formula t
+                      'intangible t
+                      'read-only "Disable latex images first"))
+               (goto-char (match-end 0)))))))))))
 
 (defun render-formula-toggle-formulae ()
   (interactive)
