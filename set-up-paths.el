@@ -32,6 +32,10 @@
   (concat +emacs-config-path+ "/prog-data")
   "Path to directory with programs's auxiliary files.")
 
+(defconst +execs-path+
+  (concat +emacs-config-path+ "/execs")
+  "Path to directory with programs executables files.")
+
 (defconst +color-themes-path+
   (concat +prog-data-path+ "/themes")
   "Path to color themes")

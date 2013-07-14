@@ -21,7 +21,7 @@
      (write-region (point-min) (point-max) file)
      (erase-buffer)
      (shell-command
-      (join-lines (list (concat +emacs-config-path+ "/tmp/astyle.custom")
+      (join-lines (list (concat +execs-path+ "/astyle.custom")
                         "--style=java"
                         "--indent=spaces=4"
                         "--brackets=attach"
