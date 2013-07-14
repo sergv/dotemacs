@@ -112,8 +112,9 @@ will be possible."
 
 (defmacro defadvice:auto-comment (func)
   "Define advice around FUNC that will insert comments at
-beginning of line whenever previous line was commented out.
-But if prefix-arg is not nil then comment would not be inserted.
+beginning of line if previous line was commented out.
+
+But in case of non-nil prefix-arg no comment will be inserted.
 
 Intended to be used with comment-util-mode."
   `(defadvice ,func (around
