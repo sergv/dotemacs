@@ -95,6 +95,18 @@ greater indenation as current line."
       (hs-hide-block)
       (forward-line 1))))
 
+(defun python-convolute-lines ()
+  "Python translation of `paredit-convolute-sexp'."
+  (interactive)
+  (save-excursion
+    (indent-rigidly (line-beginning-position)
+                    (line-end-position)
+                    vim:shift-width)
+    (forward-line -1)
+    (indent-rigidly (line-beginning-position)
+                    (line-end-position)
+                    (- vim:shift-width))))
+
 ;;;; common setup parts
 
 (defun register-python-hideshow (mode)
@@ -163,6 +175,7 @@ greater indenation as current line."
     ("S-<f9>"  python-check)
 
     ("j"       python-shell-send-defun)
+    ("M-?"     python-convolute-lines)
 
     ("SPC SPC" switch-to-python)
     (", s s"   vim:replace-symbol-at-point)
