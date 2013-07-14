@@ -12,6 +12,10 @@
 
 (require 'custom-predicates)
 
+;; (add-to-list 'load-path
+;;              (concat (concat +emacs-standalone-path+
+;;                              "/cc-mode")))
+
 (autoload 'c-turn-on-eldoc-mode "c-eldoc" nil t)
 
 

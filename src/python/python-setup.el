@@ -29,8 +29,7 @@
                         'set)
 
 (add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
-(add-to-list 'interpreter-mode-alist '("python" . python-mode))
-(add-to-list 'interpreter-mode-alist '("python3" . python-mode))
+(add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-mode))
 
 (setf python-indent-offset 4)
 
@@ -231,7 +230,7 @@ in the current *Python* session."
   (interactive (list current-prefix-arg))
   (compilation-start (concat (if use-pypy
                                "pypy"
-                               "python")
+                               "python3.3")
                              " "
                              (file-name-nondirectory (buffer-file-name)))
                      #'python-run-mode))

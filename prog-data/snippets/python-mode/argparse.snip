@@ -3,7 +3,8 @@
 # --
 import argparse
 
-parser = argparse.ArgumentParser(description="${1:descr}")
+parser = argparse.ArgumentParser(
+    description = "${1:descr}")
 ${2:options}
 
 args = parser.parse_args()
