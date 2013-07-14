@@ -35,8 +35,7 @@
 
 ;;; ctags facility
 
-(defvar *ctags-exec* ;; "ctags-exuberant"
-  (concat +emacs-config-path+ "/tmp/python/ctags-5.8/ctags"))
+(defvar *ctags-exec* (concat +execs-path+ "/ctags"))
 
 (defvar *ctags-language-flags*
   '((c-mode
