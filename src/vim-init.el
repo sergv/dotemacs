@@ -65,7 +65,7 @@ like \"d w\".")
   ("K"   vim:motion-search-next-reverse))
 
 
-(setf +vimrc:normal&visual-keys+
+(setf +vimrc:normal-and-visual-keys+
       '(("t"       vim:motion-down)
         ("n"       vim:motion-up)
         ("s"       vim:motion-right)
@@ -96,6 +96,7 @@ like \"d w\".")
 
 
         ("C-u"     undo-tree-visualize)
+        ("C-b"     switch-to-prev-buffer-in-window)
         ("M-b"     icicle-buffer)
 
         ("S-<backspace>" delete-whitespaces-backward)
@@ -132,7 +133,7 @@ like \"d w\".")
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:visual-mode-keymap)
-  +vimrc:normal&visual-keys+)
+  +vimrc:normal-and-visual-keys+)
 
 ;;;; normal mode keybindigs
 

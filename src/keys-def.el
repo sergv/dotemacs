@@ -83,6 +83,7 @@
     ("<insert>" vim-mock:scroll-line-up)
     ("<delete>" vim-mock:scroll-line-down)
 
+    ("C-b"      switch-to-prev-buffer-in-window)
     ;; ("v"   set-mark-command)
     ;; ("y"   copy-region-as-kill)
     ))

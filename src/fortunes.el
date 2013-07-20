@@ -2282,6 +2282,9 @@ The best thing about space travel is that it made it possible to go elsewhere.
    "The difference between science and the fuzzy subjects is that science
 requires reasoning, while those other subjects merely require scholarship.
 -— Lazarus Long"
+
+   "It's far too late, and things are far too bad, for pessimism.
+-- Dee. Hock, Founder, Visa International"
    ]
   "Good and nice fortunes.")
 

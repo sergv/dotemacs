@@ -33,6 +33,7 @@
       org-reverse-note-order t
       org-enforce-todo-dependencies t
       org-enforce-todo-checkbox-dependencies t
+      org-fontify-quote-and-verse-blocks t
       org-use-property-inheritance nil ;; '("DRILL_CARD_TYPE")
 
       org-highlight-latex-fragments-and-specials t
