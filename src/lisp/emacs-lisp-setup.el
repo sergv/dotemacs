@@ -66,7 +66,8 @@
     (with-inhibited-read-only nil)
     (with-hidden-comments nil)
     (with-hidden-cloze-hints nil)
-    (with-hidden-cloze-text nil))
+    (with-hidden-cloze-text nil)
+    (c-lang-defconst 1))
   "Indentation specifications for emacs lisp.")
 
 (dolist (entry *emacs-lisp-indent-specs*)

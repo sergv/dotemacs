@@ -288,6 +288,11 @@
 (add-hook 'glsl-mode-hook #'glsl-setup)
 
 
+(autoload 'cuda-mode "cuda-mode" nil t)
+(autoload 'cuda-setup "cuda-setup" nil nil)
+(add-to-list 'auto-mode-alist '("\\.c[ul]h?\\'" . cuda-mode))
+(add-hook 'cuda-mode-hook #'cuda-setup)
+
 (when (platform-use? 'work)
   (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode)))
 
