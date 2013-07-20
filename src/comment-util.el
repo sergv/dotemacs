@@ -39,6 +39,7 @@
     (prolog-mode           (one-line "%")  (line-regexp "%+"))
     (prolog-inferior-mode  (one-line "%")  (line-regexp "%+"))
     (c-mode                (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
+    (cuda-mode             (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
     (tuareg-mode           (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
     (maxima-mode           (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
     (haskell-mode          (one-line "--") (line-regexp "--+"))
