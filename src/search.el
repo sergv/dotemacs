@@ -180,7 +180,8 @@ When not prompting in minibuffer then this variable is set to nil.")
   (unless (eq? (current-buffer) *search-init-buffer*)
     (search-setup-search-for *search-current-regexp*
                              *search-direction*
-                             :save-position nil)))
+                             :save-position nil
+                             :case-sensetive *search-case-sensetive*)))
 
 (defun search-next ()
   (interactive)
@@ -205,7 +206,8 @@ When not prompting in minibuffer then this variable is set to nil.")
 
 (defun search-next-impl ()
   "Move to the next match for `*search-current-regexp*'."
-  (unless (member* *search-current-regexp* *search-ignore-regexps* :test #'string=)
+  (unless (member* *search-current-regexp*
+                   *search-ignore-regexps* :test #'string=)
     (let ((p (point))
           (minibuffer-message-timeout 1)
           (case-fold-search (not *search-case-sensetive*)))
@@ -214,7 +216,7 @@ When not prompting in minibuffer then this variable is set to nil.")
         (if (re-search-forward *search-current-regexp* nil t)
           (message "Wrapped at bottom")
           (progn
-            (message "Nothing found")
+            (message "Nothing found for %s" *search-current-regexp*)
             (goto-char p)))))))
 
 (defun search-prev-impl ()
@@ -228,7 +230,7 @@ When not prompting in minibuffer then this variable is set to nil.")
         (if (re-search-backward *search-current-regexp* nil t)
           (message "Wrapped at top")
           (progn
-            (message "Nothing found")
+            (message "Nothing found for %s" *search-current-regexp*)
             (goto-char p)))))))
 
 
