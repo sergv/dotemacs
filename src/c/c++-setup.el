@@ -12,6 +12,7 @@
 (require 'select-mode)
 (require 'more-clojure)
 (require 'eproj-setup)
+(require 'c-indentation)
 
 (add-to-list 'load-path (concat +emacs-standalone-elc-path+
                                 "/doxymacs"))
@@ -100,38 +101,7 @@
                      (lambda () (concat "Select desired alternative file\n"))
                      :separator-function
                      (apply-partially #'select-make-bold-separator "--------\n"))))
-                (error "No *.%s file found for %s" alt-ext filename))))))))
-
-  (defun c++-indent-buffer ()
-    (interactive)
-    (unless (executable-find "astyle")
-      (error "Command astyle is not available"))
-    (save-current-line-column
-     (let ((file +buffer-indent-temporary-filename+)
-           (p (point)))
-       (write-region (point-min) (point-max) file)
-       (erase-buffer)
-       (shell-command
-        (join-lines (list "astyle"
-                          "--style=java"           ;; -A2
-                          "--brackets=break"       ;; -b
-                          "--align-pointer=middle" ;; -k2
-                          "--formatted"            ;; -Q
-                          "--indent=spaces=4"
-                          "--pad-oper"
-                          "--pad-header"
-                          "--unpad-paren"
-                          "--keep-one-line-statements"
-                          "--keep-one-line-blocks"
-                          "--add-brackets"
-                          "--convert-tabs"
-                          "--mode=c"
-                          "--suffix=none"
-                          "--lineend=linux"
-                          (format "<%s" file))
-                    " ")
-        (current-buffer))
-       (goto-char p)))))
+                (error "No *.%s file found for %s" alt-ext filename)))))))))
 
 
 
@@ -143,6 +113,8 @@
   (doxymacs-mode +1)
   (doxymacs-font-lock)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
+  (when (platform-use? 'work)
+    (setq-local c-indentation-indent-style "sophia"))
   (if-buffer-has-file
     (setq-local compile-command
                 (let* ((fname  (file-name-nondirectory buffer-file-name))

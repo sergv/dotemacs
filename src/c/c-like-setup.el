@@ -42,6 +42,28 @@
                                    (innamespace           . 0))))
              c-style-alist))
 
+     (when (platform-use? 'work)
+       (unless (assoc* "work-c++-sophia-style" c-style-alist :test #'string=?)
+         ;; inherited from linux style
+         (push '("work-c++-sophia-style"
+                 (c-basic-offset  . 4)
+                 (indent-tabs-mode . nil)
+                 (c-comment-only-line-offset . 0)
+                 (c-hanging-braces-alist . ((brace-list-open)
+                                            (brace-entry-open)
+                                            (substatement-open after)
+                                            (block-close . c-snug-do-while)
+                                            (arglist-cont-nonempty)))
+                 (c-cleanup-list . (brace-else-brace))
+                 (c-offsets-alist . ((statement-block-intro . +)
+                                     (knr-argdecl-intro     . 0)
+                                     (substatement-open     . 0)
+                                     (substatement-label    . 0)
+                                     (label                 . 0)
+                                     (statement-cont        . +)
+                                     (innamespace           . +))))
+               c-style-alist)))
+
      ;; (setf c-style-alist
      ;;       (remove* "my-java-style" c-style-alist :test #'string=? :key #'first))
      (unless (assoc* "my-java-style" c-style-alist :test #'string=?)
@@ -78,6 +100,9 @@
      (setf c-default-style
            `((java-mode . "my-java-style")
              (awk-mode . "awk")
+             (c++-mode . ,(if (platform-use? 'work)
+                            "work-c++-sophia-style"
+                            "my-c-style"))
              (other . ,(cond ((assoc* "my-c-style" c-style-alist :test #'string=?)
                               "my-c-style")
                              (t
@@ -247,9 +272,11 @@
                                                           "\\1"
                                                           arguments))))))))))
 
+(autoload 'c-indentation-indent-buffer "c-indentation" nil t)
+
 ;; (autoload 'c-c++-switch-header-and-source "c-setup" nil t)
-(autoload 'c-indent-buffer "c-setup")
-(push (cons 'c-mode #'c-indent-buffer) *mode-buffer-indent-function-alist*)
+(push (cons 'c-mode #'c-indentation-indent-buffer)
+      *mode-buffer-indent-function-alist*)
 
 (autoload 'c-setup "c-setup")
 (add-hook 'c-mode-hook #'c-setup)
@@ -260,13 +287,12 @@
 
 (when (platform-use? 'work)
   (autoload 'c++-indent-buffer "c++-setup" "" t)
-  (autoload 'c++-find-related-file "c++-setup" "" t)
+  (autoload 'c++-find-related-file "c++-setup" "" t))
+(push (cons 'c++-mode #'c-indentation-indent-buffer)
+      *mode-buffer-indent-function-alist*)
 
-  (push (cons 'c++-mode #'c++-indent-buffer) *mode-buffer-indent-function-alist*))
-
-
-(autoload 'java-indent-buffer "java-setup" "" t)
-(push (cons 'java-mode #'java-indent-buffer) *mode-buffer-indent-function-alist*)
+(push (cons 'java-mode #'c-indentation-indent-buffer)
+      *mode-buffer-indent-function-alist*)
 
 (autoload 'java-setup "java-setup" "" t)
 (add-hook 'java-mode-hook #'java-setup)
@@ -280,7 +306,10 @@
                                                  "glsl")
                                             "vert"
                                             "frag"
-                                            "geom")
+                                            "geom"
+                                            "vsh"
+                                            "fsh"
+                                            "gsh")
                                         eot)
                                     'glsl-mode))
 
