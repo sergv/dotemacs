@@ -563,6 +563,13 @@ tabbar, etc")
 
 ;;;;
 
+(defun alist->hash-table (alist &optional cmp)
+  "Translate alist of (<key> . <value>) pairs into hash-table."
+  (let ((table (make-hash-table :test (or cmp #'equal))))
+    (dolist (item alist)
+      (puthash (car item) (cdr item) table))
+    table))
+
 (defun hash-table->alist (table)
   "Translate hash table into alist of (<key> . <value>) pairs."
   (let ((result '()))

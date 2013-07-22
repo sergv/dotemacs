@@ -2285,7 +2285,9 @@ requires reasoning, while those other subjects merely require scholarship.
 
    "It's far too late, and things are far too bad, for pessimism.
 -- Dee. Hock, Founder, Visa International"
-   ]
+
+   "Work expands so as to fill the time available for its completion.
+-- Parkinson's law"]
   "Good and nice fortunes.")
 
 (defvar *other-quotes*
