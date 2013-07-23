@@ -33,33 +33,23 @@
            (file-nodir (file-name-nondirectory (car (last path)))))
       (aif (gethash filename *c++-related-file-cache* nil)
         (find-file it)
-        (letrec ((path-join (lambda (path)
-                              (join-lines path "/")))
+        (letrec ((path-join (lambda (path) (join-lines path "/")))
                  (find-subroot
-                  (lambda (path look-for-dir)
+                  (lambda (path needle)
                     (let ((dir (funcall path-join
                                         (append path
-                                                (list look-for-dir)))))
+                                                (list needle)))))
                       (cond ((null path)
                              (error "No %s subdirectory found while moving upward starting from %s"
+                                    needle
                                     file-dir))
                             ((file-exist? dir)
                              path)
                             (t
                              (funcall find-subroot
                                       (butlast path)
-                                      look-for-dir)))))))
-          ;; note: subroot - root of some git submodule
-
-          (let* ((subroot (funcall find-subroot
-                                   path
-                                   (cond ((string= ext "h") "src")
-                                         ((or (string=? ext "inc")
-                                              (string=? ext "inl")
-                                              (string=? ext "incl"))
-                                          (file-name-directory (car (last path))))
-                                         ((string=? ext "cpp") "include"))))
-                 (alt-ext (cond ((string=? ext "h") "cpp")
+                                      needle)))))))
+          (let* ((alt-ext (cond ((string=? ext "h") "cpp")
                                 ((or (string=? ext "inc")
                                      (string=? ext "inl")
                                      (string=? ext "incl"))
