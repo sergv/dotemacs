@@ -12,39 +12,11 @@
 (require 'cc-setup)
 (require 'eproj-setup)
 
-(defun java-indent-buffer ()
-  (interactive)
-  ;; (unless (executable-find "astyle")
-  ;;   (error "Command astyle is not available"))
-  (save-current-line-column
-   (let ((file +buffer-indent-temporary-filename+))
-     (write-region (point-min) (point-max) file)
-     (erase-buffer)
-     (shell-command
-      (join-lines (list (concat +execs-path+ "/astyle.custom")
-                        "--style=java"
-                        "--indent=spaces=4"
-                        "--brackets=attach"
-                        "--pad-oper"
-                        "--pad-header"
-                        "--unpad-paren"
-                        "--keep-one-line-statements"
-                        "--keep-one-line-blocks"
-                        "--convert-tabs"
-                        "--align-pointer=name"
-                        "--mode=java"
-                        "--suffix=none"
-                        "--lineend=linux"
-                        ;; "--indent-namespaces" ;; uncomment to indent toplevel
-                        ;;                       ;; classes or interfaces
-                        (format "<%s" file))
-                  " ")
-      (current-buffer)))))
-
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
   (setf c-basic-offset 4
         vim:shift-width 4)
+  (setq-local c-indentation-indent-style "java")
 
   (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"

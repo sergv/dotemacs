@@ -69,7 +69,7 @@
   (interactive "p")
   (when change-indent-style
     (setf c-indentation-indent-style
-          (completing-read "Choose style:"
+          (completing-read "Choose style: "
                            (map #'car
                                 (hash-table->alist c-indentation-indent-styles))
                            nil
