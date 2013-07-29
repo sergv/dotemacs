@@ -154,6 +154,8 @@
          program))
 
      ;; this just removes annoying quack warnings on scheme-mode startup
+     ;; and unbinds parentheses ("(", ")") and brackets ("[", "]") to be
+     ;; available for paredit
      (redefun quack-shared-mode-hookfunc-stuff ()
        ;; Install the Quack keymap and menu items.
        (local-set-key quack-scheme-mode-keymap-prefix quack-scheme-mode-keymap)
@@ -168,11 +170,11 @@
           (setq mode-popup-menu quack-scheme-mode-menuspec)))
 
        ;; Bind the paren-matching keys.
-       (local-set-key ")" 'quack-insert-closing-paren)
-       (local-set-key "]" 'quack-insert-closing-bracket)
-
-       (local-set-key "(" 'quack-insert-opening-paren)
-       (local-set-key "[" 'quack-insert-opening-bracket)
+       ;; (local-set-key ")" 'quack-insert-closing-paren)
+       ;; (local-set-key "]" 'quack-insert-closing-bracket)
+       ;;
+       ;; (local-set-key "(" 'quack-insert-opening-paren)
+       ;; (local-set-key "[" 'quack-insert-opening-bracket)
 
        ;; Steal any find-file bindings.
        (when quack-remap-find-file-bindings-p
