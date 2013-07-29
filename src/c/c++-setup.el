@@ -65,33 +65,43 @@
                 (puthash filename alt-name-in-same-dir *c++-related-file-cache*)
                 (puthash alt-name-in-same-dir filename *c++-related-file-cache*)
                 (find-file alt-name-in-same-dir))
-              (aif (find-rec (funcall path-join subroot)
-                             :filep (lambda (p)
-                                      (string= alternative-name
-                                               (file-name-nondirectory p))))
-                (if (= 1 (length it))
-                  (progn
-                    (puthash filename (car it) *c++-related-file-cache*)
-                    (puthash (car it) filename *c++-related-file-cache*)
-                    (find-file (car it)))
-                  (let ((choices it))
-                    (select-start-selection
-                     choices
-                     :buffer-name "select file"
-                     :on-selection
-                     (lambda (idx)
-                       (let ((alt-file (elt choices idx)))
-                         (select-exit)
-                         (puthash filename alt-file *c++-related-file-cache*)
-                         (puthash alt-file filename *c++-related-file-cache*)
-                         (find-file alt-file)))
-                     :predisplay-function
-                     (lambda (x) (concat x "\n"))
-                     :preamble-function
-                     (lambda () (concat "Select desired alternative file\n"))
-                     :separator-function
-                     (apply-partially #'select-make-bold-separator "--------\n"))))
-                (error "No *.%s file found for %s" alt-ext filename)))))))))
+              ;; note: subroot - root of some git submodule
+              (let ((subroot (funcall find-subroot
+                                      path
+                                      (cond ((string= ext "h") "src")
+                                            ((or (string=? ext "inc")
+                                                 (string=? ext "inl")
+                                                 (string=? ext "incl"))
+                                             (file-name-directory (car (last path))))
+                                            ((string=? ext "cpp") "include")))))
+                (aif (find-rec (funcall path-join subroot)
+                               :filep (lambda (p)
+                                        (string= alternative-name
+                                                 (file-name-nondirectory p))))
+                  (if (= 1 (length it))
+                    (progn
+                      (puthash filename (car it) *c++-related-file-cache*)
+                      (puthash (car it) filename *c++-related-file-cache*)
+                      (find-file (car it)))
+                    (let ((choices it))
+                      (select-start-selection
+                       choices
+                       :buffer-name "select file"
+                       :on-selection
+                       (lambda (idx)
+                         (let ((alt-file (elt choices idx)))
+                           (select-exit)
+                           (puthash filename alt-file *c++-related-file-cache*)
+                           (puthash alt-file filename *c++-related-file-cache*)
+                           (find-file alt-file)))
+                       :predisplay-function
+                       (lambda (x) (concat x "\n"))
+                       :preamble-function
+                       (lambda () (concat "Select desired alternative file\n"))
+                       :separator-function
+                       (apply-partially #'select-make-bold-separator
+                                        "--------\n"))))
+                  (error "No *.%s file found for %s" alt-ext filename))))))))))
 
 
 

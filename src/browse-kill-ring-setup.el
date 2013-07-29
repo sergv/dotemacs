@@ -53,6 +53,8 @@
 
     ("/"        browse-kill-ring-search-forward)
     ("?"        browse-kill-ring-search-backward)
+    ("k"        browse-kill-ring-search-repeat)
+    ("K"        browse-kill-ring-search-repeat-opposite-direction)
 
     ("u"        browse-kill-ring-undo-tree-undo-other-window)
     ("U"        browse-kill-ring-undo-tree-redo-other-window)

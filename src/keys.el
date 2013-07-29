@@ -12,6 +12,7 @@
 
 (def-keys-for-map global-map
   ("<f1>"     help-command)
+  ("<f1> t"   nil)
   ("<f2>"     save-buffer)
   ("<f3>"     prev-w)
   ("<f4>"     next-w)
