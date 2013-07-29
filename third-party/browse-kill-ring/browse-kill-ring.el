@@ -856,6 +856,52 @@ If no such overlay, raise an error."
         default
       input)))
 
+
+(defvar browse-kill-ring-last-search-regexp nil
+  "Regexp used by previous search.")
+
+(defvar browse-kill-ring-last-search-direction nil
+  "Direction used by previous search. May be nil, 'forward or 'backward.")
+
+(defun browse-kill-ring-search-repeat ()
+  "Repeat last search command preserving direction, if there was one.
+Similar to vim's search."
+  (interactive)
+  (if (and (not (null browse-kill-ring-last-search-regexp))
+           (not (null browse-kill-ring-last-search-direction)))
+    (progn
+      (message "searching for %s %ss"
+               browse-kill-ring-last-search-regexp
+               browse-kill-ring-last-search-direction)
+      (browse-kill-ring-search-forward
+       browse-kill-ring-last-search-regexp
+       (cond ((eq browse-kill-ring-last-search-direction 'forward) nil)
+             ((eq browse-kill-ring-last-search-direction 'backward) t)
+             (t (error "invalid browse-kill-ring-last-search-direction: %s"
+                       browse-kill-ring-last-search-direction)))))
+    (error "No previous search command")))
+
+(defun browse-kill-ring-search-repeat-opposite-direction ()
+  "Repeat last search command in opposite direction, if there was one.
+Similar to vim's search."
+  (interactive)
+  (if (and (not (null browse-kill-ring-last-search-regexp))
+           (not (null browse-kill-ring-last-search-direction)))
+    (let ((orig-direction browse-kill-ring-last-search-direction))
+      (unwind-protect
+          (progn
+            (setf browse-kill-ring-last-search-direction
+                  (cond ((eq browse-kill-ring-last-search-direction 'forward)
+                         'backward)
+                        ((eq browse-kill-ring-last-search-direction 'backward)
+                         'forward)
+                        (t
+                         (error "invalid browse-kill-ring-last-search-direction: %s"
+                                browse-kill-ring-last-search-direction))))
+            (browse-kill-ring-search-repeat))
+        (setf browse-kill-ring-last-search-direction orig-direction)))
+    (error "No previous search command")))
+
 (defun browse-kill-ring-search-forward (regexp &optional backwards)
   "Move to the next `*browse-kill-ring-ring-var*' entry matching REGEXP from point.
 If optional arg BACKWARDS is non-nil, move to the previous matching
@@ -863,18 +909,21 @@ entry."
   (interactive
    (list (browse-kill-ring-read-regexp "Search forward")
          current-prefix-arg))
-  (let ((orig (point)))
-    (browse-kill-ring-forward (if backwards -1 1))
+  (setf browse-kill-ring-last-search-direction (if backwards 'backward 'forward)
+        browse-kill-ring-last-search-regexp regexp)
+  (let ((orig (point))
+        (direction (if backwards -1 1)))
+    (browse-kill-ring-forward direction)
     (let ((overs (overlays-at (point))))
       (while (and overs
                   (not (if backwards (bobp) (eobp)))
-                  (not (string-match regexp
-                                     (overlay-get (car overs)
-                                                  'browse-kill-ring-target))))
-        (browse-kill-ring-forward (if backwards -1 1))
+                  (not (string-match-p regexp
+                                       (overlay-get (car overs)
+                                                    'browse-kill-ring-target))))
+        (browse-kill-ring-forward direction)
         (setq overs (overlays-at (point))))
       (unless (and overs
-                   (string-match regexp
+                   (string-match-p regexp
                                  (overlay-get (car overs)
                                               'browse-kill-ring-target)))
         (progn
@@ -1218,7 +1267,7 @@ directly; use `browse-kill-ring' instead.
               (setq items (delq nil
                                 (mapcar
                                  #'(lambda (item)
-                                     (when (string-match regexp item)
+                                     (when (string-match-p regexp item)
                                        item))
                                  items))))
             (funcall (or (cdr (assq browse-kill-ring-display-style
