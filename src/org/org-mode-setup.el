@@ -686,7 +686,6 @@ the current topic."
     ("z C"   hide-other)
 
     ("j"     eval-last-sexp)
-    ("J"     eval-print-last-sexp-unlimited-length)
 
     ("T"     org-forward-same-level)
     ("N"     org-backward-same-level))
