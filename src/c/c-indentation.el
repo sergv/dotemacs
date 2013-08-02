@@ -55,7 +55,7 @@
       "--keep-one-line-blocks"
       "--add-brackets"
       "--convert-tabs"
-      "--mode=c"
+      "--mode=java"
       "--suffix=none"
       "--lineend=linux"))))
 
@@ -93,6 +93,15 @@
                   " ")
       (current-buffer))
      (goto-char p))))
+
+(defun c-indentation-indent-file (filename &optional style)
+  "Indent FILENAME according to STYLE by running astyle on it."
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (let ((c-indentation-indent-style (or style
+                                          c-indentation-indent-style)))
+      (c-indentation-indent-buffer)
+      (write-region (point-min) (point-max) filename))))
 
 (provide 'c-indentation)
 
