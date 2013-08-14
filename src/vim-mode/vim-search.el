@@ -784,67 +784,71 @@ possibly wrapping and eob or bob."
                                      (save-excursion
                                        (goto-line1 last-line)
                                        (line-end-position)))
-                (if confirm
-                  (progn
-                    ;; this one is more difficult, we have to do the
-                    ;; highlighting and questioning on our own
-                    (overlay-put overlay 'face
-                                 (if (facep 'isearch)
-                                   'isearch 'region))
-                    (map-y-or-n-p (lambda (x)
-                                    (set-match-data x)
-                                    (move-overlay overlay (match-beginning 0) (match-end 0))
-                                    (concat "Query replacing "
-                                            (match-string 0)
-                                            " with "
-                                            (vim:match-substitute-replacement replacement case-fold-search)
-                                            ": "))
-                                  (lambda (x)
-                                    (set-match-data x)
-                                    (replace-match replacement case-fold-search)
-                                    (incf nreplaced)
-                                    (setq last-point (point)))
-                                  (lambda ()
-                                    (let ((end (save-excursion
-                                                 (goto-line1 last-line)
-                                                 (line-end-position))))
-                                      (goto-line1 next-line)
-                                      (beginning-of-line)
-                                      (when (and (> end (point))
-                                                 (re-search-forward regex end t nil))
-                                        (setq last-point (point))
-                                        (setq next-line (1+ (line-number-at-pos (point))))
-                                        (match-data))))))
+                (progn
+                  (if confirm
+                    (progn
+                      ;; this one is more difficult, we have to do the
+                      ;; highlighting and questioning on our own
+                      (overlay-put overlay 'face
+                                   (if (facep 'isearch) 'isearch 'region))
+                      (map-y-or-n-p (lambda (x)
+                                      (set-match-data x)
+                                      (move-overlay overlay (match-beginning 0) (match-end 0))
+                                      (concat "Query replacing "
+                                              (match-string 0)
+                                              " with "
+                                              (vim:match-substitute-replacement replacement
+                                                                                case-fold-search)
+                                              ": "))
+                                    (lambda (x)
+                                      (set-match-data x)
+                                      (replace-match replacement case-fold-search)
+                                      (incf nreplaced)
+                                      (setq last-point (point)))
+                                    (lambda ()
+                                      (let ((end (save-excursion
+                                                   (goto-line1 last-line)
+                                                   (line-end-position))))
+                                        (goto-line1 next-line)
+                                        (beginning-of-line)
+                                        (when (and (> end (point))
+                                                   (re-search-forward regex end t nil))
+                                          (setq last-point (point))
+                                          (setq next-line (1+ (line-number-at-pos (point))))
+                                          (match-data))))))
 
-                  ;; just replace the first occurences per line
-                  ;; without highlighting and asking
-                  (goto-line1 first-line)
-                  (beginning-of-line)
-                  (while (and (<= (line-number-at-pos (point)) last-line)
-                              (re-search-forward regex (save-excursion
-                                                         (goto-line1 last-line)
-                                                         (line-end-position))
-                                                 t nil))
-                    (incf nreplaced)
-                    (replace-match replacement)
-                    (setq last-point (point))
-                    (forward-line)
-                    (beginning-of-line)))
+                    ;; just replace the first occurences per line
+                    ;; without highlighting and asking
+                    (progn
+                      (goto-line1 first-line)
+                      (beginning-of-line))
+                    (while (and (<= (line-number-at-pos (point)) last-line)
+                                (re-search-forward regex (save-excursion
+                                                           (goto-line1 last-line)
+                                                           (line-end-position))
+                                                   t nil))
+                      (incf nreplaced)
+                      (replace-match replacement)
+                      (setq last-point (point))
+                      (forward-line)
+                      (beginning-of-line)))
 
-                (goto-char last-point)
-                (if (= nreplaced 1)
-                  (message "Replaced 1 occurence")
-                  (message "Replaced %d occurences" nreplaced)))
+                  (goto-char last-point)
+                  (if (= nreplaced 1)
+                    (message "Replaced 1 occurence")
+                    (message "Replaced %d occurences" nreplaced))))
 
             ;; clean-up the overlay
             (delete-overlay overlay)))))))
 
 
 (defun vim:parse-substitute (text)
+  "Parse ex command line in TEXT and return triple
+(<pattern> <replacement> <flags>)."
   (when (string-match-p "^\\s-*[/|,;:!@#]." text)
     (multiple-value-bind (pattern replacement flags)
         (vim:parse-substitute-lowlevel text)
-      (let* (newrepl
+      (let* ((new-repl nil)
              (idx 0) (n (length replacement)))
         ;; handle escaped chars
         (while (< idx n)
@@ -852,18 +856,18 @@ possibly wrapping and eob or bob."
                    (< (1+ idx) n))
             (let ((c (aref replacement (1+ idx))))
               (case c
-                (?n (push ?\n newrepl))
-                (?t (push ?\t newrepl))
-                (?r (push ?\r newrepl))
+                (?n (push ?\n new-repl))
+                (?t (push ?\t new-repl))
+                (?r (push ?\r new-repl))
                 ((?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?\\)
-                 (push ?\\ newrepl)
-                 (push c newrepl))
-                (t (push c newrepl)))
+                 (push ?\\ new-repl)
+                 (push c new-repl))
+                (t (push c new-repl)))
               (incf idx 2))
-            (push (aref replacement idx) newrepl)
+            (push (aref replacement idx) new-repl)
             (incf idx)))
 
-        (values pattern (apply #'string (reverse newrepl)) flags)))))
+        (values pattern (apply #'string (reverse new-repl)) flags)))))
 
 
 (defun vim:parse-substitute-lowlevel (str)
@@ -881,43 +885,45 @@ regular expressions."
 
         delimiter
         (delimiters (string-to-list "/|,;:!@#")))
-    (flet ((skip-quoted ()
-                        (while (and (< i len)
-                                    (not (char= (aref str i) delimiter)))
-                          ;; skip quoted character
-                          (if (char= (aref str i) ?\\)
-                            (incf i 2)
-                            (incf i))))
-           (skip-flags ()
-                       (while (and (< i len)
-                                   (member* (aref str i)
-                                            (string-to-list "giIc")
-                                            :test #'char=))
-                         (incf i)))
-           (pattern-expand-newlines (pat)
-                                    (letrec ((expand
-                                              (lambda (pos result-pat)
-                                                (cond
-                                                  ((= pos (length pat))
-                                                   result-pat)
-                                                  ((and (char= (aref pat pos) ?\\)
-                                                        (< (1+ pos) (length pat))
-                                                        (member* (aref pat (1+ pos))
-                                                                 (string-to-list
-                                                                  "nt")
-                                                                 :test #'char=))
-                                                   (let ((next-c (aref pat (1+ pos))))
-                                                     (funcall expand
-                                                              (+ pos 2)
-                                                              (cons (cond
-                                                                      ((char= next-c ?n) ?\n)
-                                                                      ((char= next-c ?t) ?\t))
-                                                                    result-pat))))
-                                                  (t
-                                                   (funcall expand (1+ pos) (cons (aref pat pos)
-                                                                                  result-pat)))))))
-                                      (concatenate 'string
-                                                   (nreverse (funcall expand 0 '()))))))
+    (let* ((skip-quoted
+            (lambda ()
+              (while (and (< i len)
+                          (not (char= (aref str i) delimiter)))
+                ;; skip quoted character
+                (if (char= (aref str i) ?\\)
+                  (incf i 2)
+                  (incf i)))))
+           (skip-flags
+            (lambda ()
+              (while (and (< i len)
+                          (member* (aref str i)
+                                   (string-to-list "giIc")
+                                   :test #'char=))
+                (incf i))))
+           (pattern-expand-newlines
+            (lambda (pat)
+              (letrec ((expand
+                        (lambda (pos result-pat)
+                          (cond
+                            ((= pos (length pat))
+                             result-pat)
+                            ((and (char= (aref pat pos) ?\\)
+                                  (< (1+ pos) (length pat))
+                                  (or (char= (aref pat (1+ pos)) ?n)
+                                      (char= (aref pat (1+ pos)) ?t)))
+                             (let ((next-c (aref pat (1+ pos))))
+                               (funcall expand
+                                        (+ pos 2)
+                                        (cons (cond
+                                                ((char= next-c ?n) ?\n)
+                                                ((char= next-c ?t) ?\t))
+                                              result-pat))))
+                            (t
+                             (funcall expand (1+ pos)
+                                      (cons (aref pat pos)
+                                            result-pat)))))))
+                (concatenate 'string
+                             (nreverse (funcall expand 0 '())))))))
       (while (and (< i len)
                   (not (member* (aref str i)
                                 delimiters
@@ -928,22 +934,22 @@ regular expressions."
       (setf delimiter (aref str i))
       (incf i)
       (setf pattern-start i)
-      (skip-quoted)
+      (funcall skip-quoted)
       (setf pattern-end i)
 
       (incf i)
       (when (< i len)
         (setf replacement-start i)
-        (skip-quoted)
+        (funcall skip-quoted)
         (setf replacement-end i)
         (incf i)
 
         (when (< i len)
           (setf flags-start i)
-          (skip-flags)
+          (funcall skip-flags)
           (setf flags-end i)))
-      (values (pattern-expand-newlines
-               (subseq str pattern-start (min len pattern-end)))
+      (values (funcall pattern-expand-newlines
+                       (subseq str pattern-start (min len pattern-end)))
               (when (and replacement-start
                          replacement-end
                          ;; hack
