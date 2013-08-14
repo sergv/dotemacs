@@ -26,17 +26,22 @@
   "List of modes that are considered to be lisp.")
 
 (setf auto-mode-alist
-      (cons (cons (eval `(rx "." (or ,@+scheme-file-extensions+) eot))
-                  'scheme-mode)
-            (remove-if (lambda (x)
-                         (memq x '(scheme-mode)))
-                       auto-mode-alist
-                       :key #'cdr)))
-
+      (cons (cons (rx "." (or "lisp" "asd" "asdf") eot)
+                  'common-lisp-mode)
+            (cons (cons (eval `(rx "." (or ,@+scheme-file-extensions+) eot))
+                        'scheme-mode)
+                  (filter (comp #'not
+                                (partial-first #'memq '(scheme-mode common-lisp-mode))
+                                #'cdr)
+                          auto-mode-alist))))
 
 (autoload 'lisp-setup "general-lisp-setup")
 (autoload 'lisp-repl-setup "general-lisp-setup")
 
+(autoload 'common-lisp-setup "common-lisp-setup")
+(autoload 'common-lisp-compile-and-load-file "common-lisp-setup")
+
+(add-hook 'lisp-mode-hook #'common-lisp-setup)
 
 (autoload 'scheme-setup "scheme-setup")
 (autoload 'scheme-repl-setup "scheme-setup")

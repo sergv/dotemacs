@@ -34,7 +34,7 @@
            (search-function (if forward 're-search-forward 're-search-backward))
            (target-depth 0)
            new
-           case-fold-search)
+           (case-fold-search nil))
       (save-excursion
         (while (/= count 0)
           (let ((depth 0)
