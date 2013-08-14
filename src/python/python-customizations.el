@@ -100,7 +100,7 @@ Returns variable `py-process-name' used by function `get-process'.
 
 (defun py-clean-up-buffer-contents (python-name str)
   "Remove things like \"from __future__ import print_function\" if underlying
-python shell PYTHNO-NAME (e.g. IPython) doesn't like them."
+python shell PYTHON-NAME (e.g. IPython) doesn't like them."
   (if (string-match-p "IPython" python-name)
     (let ((case-fold-search t))
       (replace-regexp-in-string

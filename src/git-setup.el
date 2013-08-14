@@ -334,12 +334,12 @@ expanded filenames in git repository to themselves.")
           (puthash repo-path inner-table *git-get-tracked-files-cache*)
           files))))
 
-  (defun git-get-repository-root (root)
-    "Returns root of git repository ROOT is part of or nil if it's not
+  (defun git-get-repository-root (path)
+    "Return root of git repository PATH is part of or nil if it's not
 under git version control."
-    (when (file-directory? root)
+    (when (file-directory? path)
       (with-temp-buffer
-        (cd root)
+        (cd path)
         (when (= 0 (call-process "git"
                                  nil
                                  t
@@ -352,6 +352,7 @@ under git version control."
                                             (point-max))))))))
 
   (defun git-update-file-repository ()
+    "Update git-repository for current buffer."
     (if-buffer-has-file
       (when (or (not git-repository)
                 (not (string-prefix? (expand-file-name git-repository)
