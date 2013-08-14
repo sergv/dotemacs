@@ -94,7 +94,7 @@ optimize away common use cases."
                            nil))
 
 (defun more-clojure/comp* (f &rest funcs)
-  "Fallback function composition routine."
+  "Fallback function composition routine, creates lambdas in runtime."
   (let ((functions (reverse (cons f funcs))))
     (lambda (arg)
       (let ((result (apply (first functions) arg)))

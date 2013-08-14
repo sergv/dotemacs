@@ -15,10 +15,11 @@
 (require 'macro-util)
 
 
-(defun find-filename-in-tree-recursive ()
+(defun find-filename-in-tree-recursive (&optional case-sensetive)
   "Read filename regexp and try to find it in current dir's tree or in trees
-obtained by following upward in filesystem"
-  (interactive)
+obtained by following upward in filesystem. Do case-sensitive name matches
+if CASE-SENSETIVE is t."
+  (interactive (list current-prefix-arg))
   (let* ((filename-re (read-string-no-default "filename regexp: " ""))
          (path (reverse (split-string (aif (buffer-file-name (current-buffer))
                                         (file-name-directory it)
@@ -28,7 +29,7 @@ obtained by following upward in filesystem"
          (subdirs-visited '())
          (found? nil)
          (files nil) ;; found files
-         )
+         (case-fold-search (not case-sensetive)))
     (letrec ((path-join (lambda (path)
                           (concat "/" (join-lines (reverse path) "/")))))
       (while (and (not found?)
