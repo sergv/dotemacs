@@ -20,42 +20,46 @@
 (defconst +scheme-implementations+
   (remove nil
           (list
-           (when (executable-find "csi") ;; Chicken Scheme
-             `(chicken
-               (command
-                ;; case-sensitive, no banner,
-                ;; full numeric tower,
-                ;; suffix: keywords:
-                ,(concat "csi -q -R numbers -keyword-style suffix " ;; "-r5rs-syntax "
-                         +prog-data-path+
-                         "/chicken-init.scm"
-                         " -:c "))))
+           ;; (when (executable-find "csi") ;; Chicken Scheme
+           ;;   `(chicken
+           ;;     (command
+           ;;      ;; case-sensitive, no banner,
+           ;;      ;; full numeric tower,
+           ;;      ;; suffix: keywords:
+           ;;      ,(concat "csi -q -R numbers -keyword-style suffix " ;; "-r5rs-syntax "
+           ;;               +prog-data-path+
+           ;;               "/chicken-init.scm"
+           ;;               " -:c "))))
 
-           (when (executable-find "bigloo") ;; Bigloo
-             `(bigloo
-               (command
-                ,(concat "bigloo -glines -gerror-localization -Wall -load "
-                         +prog-data-path+
-                         "/bigloo-init.scm"))))
+           ;; (when (executable-find "bigloo") ;; Bigloo
+           ;;   `(bigloo
+           ;;     (command
+           ;;      ,(concat "bigloo -glines -gerror-localization -Wall -load "
+           ;;               +prog-data-path+
+           ;;               "/bigloo-init.scm"))))
 
-           (when (executable-find "scheme48")
-             `(scheme48
-               (command "scheme48")))
+           ;; (when (executable-find "scheme48")
+           ;;   `(scheme48
+           ;;     (command "scheme48")))
 
            ;; gauche
-           (when (executable-find "gosh")
-             `(gauche
-               ;; -i - interactive mode
-               (command
-                ,(concat "gosh -i -l "
-                         +prog-data-path+
-                         "/gauche-init.scm"))))
+           ;; (when (executable-find "gosh")
+           ;;   `(gauche
+           ;;     ;; -i - interactive mode
+           ;;     (command
+           ;;      ,(concat "gosh -i -l "
+           ;;               +prog-data-path+
+           ;;               "/gauche-init.scm"))))
 
-           (when (executable-find "mit-scheme")
-             `(mit-scheme
-               (command
-                ,(concat "mit-scheme "
-                         "--interactive "))))
+           ;; (when (executable-find "mit-scheme")
+           ;;   `(mit-scheme
+           ;;     (command
+           ;;      ,(concat "mit-scheme "
+           ;;               "--interactive "))))
+
+           `(chibi
+             (command
+              "/home/sergey/projects/icfpc/2013_Aug/local/bin/chibi"))
 
            ;; gambit
            ;; -:<options>
@@ -70,7 +74,7 @@
            ;;     -     - the REPL interaction channel will be standard
            ;;             input and standard output
            (let ((command-args
-                  (format " -:h1048576,S,daR1- -e \"(load \\\"%s\\\")\" -"
+                  (format " -:h1048576,s,daR1- -e \"(load \\\"%s\\\")\" -"
                           (concat +prog-data-path+
                                   "/gambit-init.scm"))))
              (cond
@@ -87,19 +91,20 @@
                (else
                 nil)))
 
-           (when (executable-find "guile")
-             `(guile
-               (command
-                ,(concat "guile -l "
-                         +prog-data-path+
-                         "/guile-init.scm"))))
+           ;; (when (executable-find "guile")
+           ;;   `(guile
+           ;;     (command
+           ;;      ,(concat "guile -l "
+           ;;               +prog-data-path+
+           ;;               "/guile-init.scm"))))
 
-           (when (executable-find "racket")
-             `(racket
-               (command
-                ,(join-lines (list "racket"
-                                   "--repl")
-                             " "))))))
+           ;; (when (executable-find "racket")
+           ;;   `(racket
+           ;;     (command
+           ;;      ,(join-lines (list "racket"
+           ;;                         "--repl")
+           ;;                   " "))))
+           ))
   "List of scheme implementation records providing name, command to run etc")
 
 
@@ -215,8 +220,9 @@
   (lisp-setup :use-cl-indent nil)
   (scheme-highlight)
   ;; (common-lisp-set-style "scheme")
-  ;; (setq-local lisp-indent-function
-  ;;             #'common-lisp-indent-function)
+
+  (setq-local lisp-indent-function #'scheme-indent-function)
+
   ;; ;; Fix this to recognize scheme keywords as well
   ;; (setq-local lisp-indent-lambda-list-keywords-regexp
   ;;             (rx (or "&"
@@ -328,6 +334,7 @@
 
 ;;;; some indentation rules
 
+(put 'syntax-rules 'scheme-indent-function 1)
 (put 'if 'scheme-indent-function 1)
 
 ;;;;

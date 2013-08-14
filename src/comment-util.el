@@ -137,7 +137,7 @@ Contains single-line and region comments.")
 (defun comment-util-comment-lines (lines)
   "Comment LINES lines eiter up if argument LINES is positive
 or down if LINES is negative or comment whole region if region is active."
-  (interactive "P")
+  (interactive "p")
   (if (or (region-active-p)
           (run-if-fbound vim:visual-mode-p))
     (comment-util-comment-region (region-beginning) (region-end))
