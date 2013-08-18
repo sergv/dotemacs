@@ -780,7 +780,8 @@ This command assumes point is not in a string or comment."
     ("<return>" paredit-newline)
 
     ("S"        paredit-split-sexp)
-    ("J"        paredit-join-sexps)
+    ("g S"      paredit-split-sexp)
+    ("g J"      paredit-join-sexps)
 
     ("z o"      hs-show-block)
     ("z c"      hs-hide-block)
