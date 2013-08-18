@@ -14,8 +14,8 @@
 
 (eval-after-load "undo-tree"
   '(progn
-     ;;(def-keys-for-map undo-tree-visualizer-map +vi-keys+)
-     (def-keys-for-map undo-tree-visualizer-map
+     ;;(def-keys-for-map undo-tree-visualizer-mode-map +vi-keys+)
+     (def-keys-for-map undo-tree-visualizer-mode-map
        ("t"        undo-tree-visualize-redo)
        ("n"        undo-tree-visualize-undo)
        ("h"        undo-tree-visualize-switch-branch-left)
