@@ -373,9 +373,10 @@ up by functions in compilation-finish-functions.")
   (interactive)
   (async-shell-command (concat "nautilus "
                                (shell-quote-argument
-                                (if (buffer-file-name)
-                                  (file-name-directory (buffer-file-name))
-                                  default-directory)))
+                                (expand-file-name
+                                 (if (buffer-file-name)
+                                   (file-name-directory (buffer-file-name))
+                                   default-directory))))
                        nil
                        nil))
 
@@ -388,9 +389,10 @@ up by functions in compilation-finish-functions.")
   (interactive)
   (async-shell-command (concat "thunar "
                                (shell-quote-argument
-                                (if (buffer-file-name)
-                                  (file-name-directory (buffer-file-name))
-                                  default-directory)))
+                                (expand-file-name
+                                 (if (buffer-file-name)
+                                   (file-name-directory (buffer-file-name))
+                                   default-directory))))
                        nil
                        nil))
 
