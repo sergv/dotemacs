@@ -196,10 +196,10 @@ For more information about the vim:motion struct look at vim-core.el."
          ,doc
          (interactive)
          (if (and (vim:called-interactively-p)
-                  ;; since in minibuffer vim-mode may be inactive but
-                  ;; we may still want to execute the desired command
-                  ;; also command may not have it's mock alternative,
-                  ;; as for example vim:cmd-paste-before
+                  ;; Since in minibuffer vim-mode may be inactive but
+                  ;; we may still want to execute the desired command.
+                  ;; And command may not have it's mock alternative,
+                  ;; e.g. vim:cmd-paste-before.
                   (not (null? vim:active-command-function)))
            (funcall vim:active-command-function ',name)
            (apply (get ',name 'function) args))))))
