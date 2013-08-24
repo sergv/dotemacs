@@ -44,7 +44,7 @@
 (defconst vim:operator-repeat-keymap (vim:make-keymap)
   "Keymap to bind the repeat-operator-event.")
 
-(vim:deflocalvar vim:operator-repeat-last-event nil
+(defvar-local vim:operator-repeat-last-event nil
   "The command used to enter operator-pending-mode for commands
 like 'dd', 'yy',... .")
 

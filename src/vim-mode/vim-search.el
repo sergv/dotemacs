@@ -169,9 +169,8 @@ will be case-insensitive."
           (_ nil)))))
 
 ;; The lazy-highlighting framework.
-(vim:deflocalvar vim:active-highlights-alist nil
-  "An alist of currently active highlights."
-  )
+(defvar-local vim:active-highlights-alist nil
+  "An alist of currently active highlights.")
 
 
 (defstruct (vim:hl

@@ -72,7 +72,7 @@
 (require 'vim-compat)
 (require 'vim-mouse)
 
-(vim:deflocalvar vim:new-buffer nil
+(defvar-local vim:new-buffer nil
   "The buffer the be made current at the end of the execution of
   the current command.
 
@@ -85,10 +85,10 @@ is stored in this variable and then the buffer which was current before
 the execution of the command becomes current again. At the very end
 of the command handling code the buffer in vim:new-buffer is made current.")
 
-(vim:deflocalvar vim:this-column nil
+(defvar-local vim:this-column nil
   "The resulting column of the current motion.")
 
-(vim:deflocalvar vim:last-column nil
+(defvar-local vim:last-column nil
   "The resulting column of the previous motion.")
 
 
