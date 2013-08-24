@@ -135,8 +135,8 @@
          (string-match "mouse" (symbol-name (event-basic-type ev)))))
   (defmacro vim:track-mouse (&rest body)
     `(track-mouse ,@body))
-  (vim:deflocalvar vim:mouse-click-count 0)
-  (vim:deflocalvar vim:mouse-click-last-time nil)
+  (defvar-local vim:mouse-click-count 0)
+  (defvar-local vim:mouse-click-last-time nil)
   (defun vim:mouse-click-count (event)
     (let ((time (posn-timestamp event)))
       (setq vim:mouse-click-count
@@ -161,8 +161,8 @@
   (defalias 'vim:mouse-event-p 'mouse-event-p)
   (defmacro vim:track-mouse (&rest body)
     `(progn ,@body))
-  (vim:deflocalvar vim:mouse-click-count 0)
-  (vim:deflocalvar vim:mouse-click-last-time nil)
+  (defvar-local vim:mouse-click-count 0)
+  (defvar-local vim:mouse-click-last-time nil)
   (defcustom vim:visual-double-click-time 500
     "Number of milliseconds for a repeating click."
     :group 'vim-mode-general)
