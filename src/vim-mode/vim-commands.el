@@ -434,31 +434,34 @@ and switches to insert-mode."
 (defvar vim:last-paste nil
   "Information of the latest paste.")
 
-(vim:defcmd vim:cmd-paste-pop (count)
-  "Cycles through the kill-ring like yank-pop."
-  (unless (and (member last-command '(yank
-                                      vim:cmd-paste-pop
-                                      vim:cmd-paste-pop-next
-                                      vim:cmd-paste-before
-                                      vim:cmd-paste-behind
-                                      vim:cmd-paste-before-and-indent
-                                      vim:cmd-paste-behind-and-indent))
-               vim:last-paste)
-    (error "Previous command was not a vim-mode paste: %s" last-command))
-  (when vim:last-paste
-    (funcall (or yank-undo-function #'delete-region)
-             (vim:paste-info-begin vim:last-paste)
-             (vim:paste-info-end vim:last-paste))
-    (goto-char (vim:paste-info-point vim:last-paste))
-    (current-kill (or count 1))
-    (funcall (vim:paste-info-command vim:last-paste)
-             :count (vim:paste-info-count vim:last-paste))))
-
+(vim:defcmd vim:cmd-negate-or-paste-pop (count)
+  "Cycle through the kill-ring like yank-pop if previous command was yank or paste-pop,
+and else negates meaning of the next command (e.g. vim:cmd-join-lines will split them)."
+  (if (and (member last-command '(yank
+                                  vim:cmd-negate-or-paste-pop
+                                  vim:cmd-paste-pop-next
+                                  vim:cmd-paste-before
+                                  vim:cmd-paste-behind
+                                  vim:cmd-paste-before-and-indent
+                                  vim:cmd-paste-behind-and-indent))
+           vim:last-paste)
+    (when vim:last-paste
+      (funcall (or yank-undo-function #'delete-region)
+               (vim:paste-info-begin vim:last-paste)
+               (vim:paste-info-end vim:last-paste))
+      (goto-char (vim:paste-info-point vim:last-paste))
+      (current-kill (or count 1))
+      (funcall (vim:paste-info-command vim:last-paste)
+               :count (vim:paste-info-count vim:last-paste)))
+    (begin
+      (message "Next command will be negated")
+      (setf vim:next-command-negated? t
+            prefix-arg current-prefix-arg))))
 
 (vim:defcmd vim:cmd-paste-pop-next (count)
   "Cycles through the kill-ring like yank-pop."
   (setq this-command last-command)
-  (vim:cmd-paste-pop :count (- (or count 1))))
+  (vim:cmd-negate-or-paste-pop :count (- (or count 1))))
 
 
 (vim:defcmd vim:cmd-paste-before (count register)
@@ -590,14 +593,19 @@ indented according to the current mode."
 
 (vim:defcmd vim:cmd-join-lines (count)
   "Join `count' lines with a minimum of two lines."
-  (dotimes (i (max 1 (1- (or count 1))))
-    (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
-      (delete-region (match-beginning 2)
-                     (match-end 2))
-      (when (and (= (match-beginning 1) (match-end 1))
-                 (= (match-beginning 3) (match-end 3)))
-        (insert-char ?\s 1))
-      (backward-char))))
+  (if vim:next-command-negated?
+    (begin
+      (dotimes (i (or count 1))
+        (split-line)))
+    (save-match-data
+      (dotimes (i (max 1 (1- (or count 1))))
+        (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
+          (delete-region (match-beginning 2)
+                         (match-end 2))
+          (when (and (= (match-beginning 1) (match-end 1))
+                     (= (match-beginning 3) (match-end 3)))
+            (insert-char ?\s 1))
+          (backward-char))))))
 
 
 (vim:defcmd vim:cmd-join (motion)
