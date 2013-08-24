@@ -781,7 +781,7 @@ block motions."
 
 
 
-(vim:deflocalvar vim:current-macro nil
+(defvar-local vim:current-macro nil
   "The name of the currently recorded macro.")
 
 (vim:defcmd vim:cmd-toggle-macro-recording ((argument:char reg) nonrepeatable)

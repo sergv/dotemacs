@@ -44,23 +44,23 @@
 (add-hook 'vim:visual-mode-on-hook 'vim:visual-mode-activate)
 (add-hook 'vim:visual-mode-off-hook 'vim:visual-mode-deactivate)
 
-(vim:deflocalvar vim:visual-mode-type 'normal
+(defvar-local vim:visual-mode-type 'normal
   "Type of visual mode, should be 'normal, 'linewise or 'block.")
 
 ;; Last transient-mark-mode.
-(vim:deflocalvar vim:visual-old-transient-mark-mode)
+(defvar-local vim:visual-old-transient-mark-mode)
 
 ;; Old global variables changed in visual-mode.
-(vim:deflocalvar vim:visual-old-global-variables)
+(defvar-local vim:visual-old-global-variables)
 
 ;; List of overlays for the current region.
-(vim:deflocalvar vim:visual-overlays)
+(defvar-local vim:visual-overlays)
 
 ;; The last beginning position of the region.
-(vim:deflocalvar vim:visual-last-begin)
+(defvar-local vim:visual-last-begin)
 
 ;; The last end position of the region.
-(vim:deflocalvar vim:visual-last-end)
+(defvar-local vim:visual-last-end)
 
 ;; Info-struct to save information for visual-insertion.
 (defstruct (vim:visual-insert-info
@@ -70,13 +70,13 @@
   column)
 
 ;; The last motion used to insert something in visual mode.
-(vim:deflocalvar vim:visual-last-insert-info nil)
+(defvar-local vim:visual-last-insert-info nil)
 
 ;; The undo-mark of the last visual mode insert command.
-(vim:deflocalvar vim:visual-last-insert-undo nil)
+(defvar-local vim:visual-last-insert-undo nil)
 
 ;; If non-nil, the last region will be used when visual mode is activated.
-(vim:deflocalvar vim:visual-reactivate-last-region nil)
+(defvar-local vim:visual-reactivate-last-region nil)
 
 ;;; System variables which must temporarily be buffer local.
 (defconst vim:visual-temporary-local-variables
@@ -668,11 +668,11 @@ current line."
   "Starts ex-mode with visual-marks as initial input."
   (vim:ex-read-command "'<,'>"))
 
-(vim:deflocalvar vim:visual-last-point nil
+(defvar-local vim:visual-last-point nil
   "The position of point before a region-command.")
-(vim:deflocalvar vim:visual-last-mark nil
+(defvar-local vim:visual-last-mark nil
   "The position of mark before a region-command.")
-(vim:deflocalvar vim:visual-new-point nil
+(defvar-local vim:visual-new-point nil
   "The position of modified point before a region-command." )
 
 (defun vim:visual-normalize-region ()

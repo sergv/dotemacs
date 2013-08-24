@@ -10,13 +10,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defmacro vim:deflocalvar (name &rest args)
-  "Defines a buffer-local variable."
-  (declare (indent defun))
-  `(progn
-     (defvar ,name ,@args)
-     (make-variable-buffer-local ',name)))
-
 (defmacro* vim:defcmd (name (&rest args) &rest body)
   "Defines a new VIM-command.
 
@@ -320,7 +313,7 @@ look at vim-core.el."
 
 (font-lock-add-keywords
  'emacs-lisp-mode
- '("vim:deflocalvar" "vim:defcmd" "vim:defmotion"))
+ '("vim:defcmd" "vim:defmotion"))
 
 
 (provide 'vim-macs)

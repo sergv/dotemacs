@@ -23,7 +23,7 @@
 (defvar vim:ex-commands nil
   "List of pairs (command . function).")
 
-(vim:deflocalvar vim:ex-local-commands nil
+(defvar-local vim:ex-local-commands nil
   "List of pairs (command . function).")
 
 (defvar vim:ex-minibuffer nil

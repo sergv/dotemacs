@@ -16,12 +16,12 @@
   "Cursor types for modes."
   :group 'vim-mode)
 
-(vim:deflocalvar vim:mode-string)
+(defvar-local vim:mode-string nil)
 
-(vim:deflocalvar vim:active-mode nil
+(defvar-local vim:active-mode nil
   "The currently active vim-mode.")
 
-(vim:deflocalvar vim:active-command-function nil
+(defvar-local vim:active-command-function nil
   "The command function of the currently active vim-mode.")
 
 (defvar vim:mode-alist nil
