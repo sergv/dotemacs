@@ -74,10 +74,10 @@
   :type 'boolean
   :group 'vim-motions)
 
-(vim:deflocalvar vim:last-find nil
+(defvar-local vim:last-find nil
   "The previous find command (command . arg).")
 
-(vim:deflocalvar vim:local-marks-alist nil
+(defvar-local vim:local-marks-alist nil
   "Local marks for this buffer.")
 
 (defvar vim:global-marks-alist nil

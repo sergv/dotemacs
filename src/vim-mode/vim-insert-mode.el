@@ -19,12 +19,12 @@
 (require 'vim-normal-mode)
 (require 'vim-motions)
 
-(vim:deflocalvar vim:last-insert-undo nil)
+(defvar-local vim:last-insert-undo nil)
 
-(vim:deflocalvar vim:insert-count nil
+(defvar-local vim:insert-count nil
   "The number of times the insertion should be repeated.")
 
-(vim:deflocalvar vim:insert-marker nil
+(defvar-local vim:insert-marker nil
   "A marker which is placed at the point where insertion started.")
 
 (defcustom vim:insert-mode-replace-cursor 'hbar

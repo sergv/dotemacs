@@ -55,7 +55,7 @@ and vim:local-`map-command'."
     `(progn
        (defconst ,(intern glbkeym) (vim:make-keymap)
          ,(concat "VIM global keymap: " doc))
-       (vim:deflocalvar ,(intern lockeym) nil
+       (defvar-local ,(intern lockeym) nil
          ,(concat "VIM buffer local keymap: " doc))
        ,@(when map-command
            `((defsubst ,(intern (concat "vim:" (symbol-name map-command)))
