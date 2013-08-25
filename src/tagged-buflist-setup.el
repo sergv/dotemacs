@@ -15,6 +15,8 @@
 
 (eval-after-load "tagged-buflist"
   '(progn
+     (setf tagged-buflist/consider-nontracked-files-as-residing-in-repository t)
+
      (defun tagged-buflist-cycle-buffers-forward (count)
        "Cycle through buffer list forward selecting next buffer"
        (interactive "p")
