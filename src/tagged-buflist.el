@@ -317,6 +317,11 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                     "*Backtrace*")
                                 eol))))))
 
+(defvar tagged-buflist/consider-nontracked-files-as-residing-in-repository nil
+  "If set to T then all files under root of some repository will be considered
+to be part of it and, therefore, their buffers will be put in the group with
+tracked files for that repository.")
+
 (defun tagged-buflist/generate-tag-group-by-git-repository-root ()
   "Create tag group specification based on each buffer's git repository root."
   (unless *have-git?*
@@ -337,13 +342,22 @@ treated as a list of tags; otherwise it should be list of plain tags."
               :predicate
               (make-buf-tag-pred
                :or-expr-in-buffer
-               (progn
-                 (string= repo-root
-                          (if (eq? major-mode 'magit-status-mode)
-                            (strip-trailing-slash default-directory)
-                            (progn
-                              (git-update-file-repository)
-                              git-repository)))))))
+               (let ((buffer-repo (progn
+                                    (git-update-file-repository)
+                                    git-repository)))
+                 (cond
+                   ((and (null? tagged-buflist/consider-nontracked-files-as-residing-in-repository)
+                         (not (null? buffer-repo)))
+                    (string= repo-root buffer-repo))
+                   ((or (eq? major-mode 'magit-status-mode)
+                        (eq? major-mode 'dired-mode))
+                    (string-prefix? (expand-file-name repo-root)
+                                    (expand-file-name (strip-trailing-slash default-directory))))
+                   ((not (null? buffer-file-truename))
+                    (string-prefix? (expand-file-name repo-root)
+                                    (expand-file-name buffer-file-truename)))
+                   (else
+                    nil))))))
            roots)
       #'tagged-buflist/buffer-tag<)
      (list (make-buffer-tag
