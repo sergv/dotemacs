@@ -32,7 +32,6 @@
   (setq whitespace-style '(tabs lines-tail))
   (init-common :use-yasnippet t :use-whitespace t)
   (setq-local yas-indent-line 'fixed)
-  (autopair-mode t)
   (which-function-mode -1)
 
   (setq vim:insert-mode-local-keymap (make-sparse-keymap)
@@ -48,8 +47,6 @@
 
 (defun shell-setup ()
   (init-repl :show-directory t)
-
-  (setq autopair-dont-activate t)
   (linum-mode 1)
   (ansi-color-for-comint-mode-on)
 

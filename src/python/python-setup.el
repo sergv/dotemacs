@@ -288,15 +288,6 @@ in the current *Python* session."
   (modify-syntax-entry ?_ "_")
   (modify-syntax-entry ?. ".")
 
-  ;; these triple-quotes greatly confuse autopair when run in
-  ;; python repl so it's best to avoid them altogether
-  ;; moreover I virtually never use triple quotes at the repl
-
-  (setf autopair-handle-action-fns
-        (list #'autopair-default-handle-action
-              #'autopair-python-triple-quote-action))
-  (autopair-mode 1)
-
   (setf tab-width 4)
   (setq-local forward-sexp-function nil)
 

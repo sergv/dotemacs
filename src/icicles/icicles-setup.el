@@ -199,7 +199,7 @@ MAP is `minibuffer-local-completion-map' or
       (def-keys-for-map map
         ("C-j" 'icicle-insert-newline-in-minibuffer)))
 
-    (icicles-util/bind-minibuffer-keys map)))
+    (icicles-util/bind-minibuffer-keys map :sexp-keys nil)))
 
 ;; important: call icy-mode only after necessary functions were redefined
 (icy-mode +1)
@@ -222,8 +222,9 @@ MAP is `minibuffer-local-completion-map' or
                                       )
 
       icicle-S-TAB-completion-methods-alist
-      '(;; ("apropos" . string-match)
-        ("scatter" . icicle-scatter-match))
+      '(("apropos" . string-match)
+        ;; ("scatter" . icicle-scatter-match)
+        )
 
       icicle-dot-string "." ;; icicle-anychar-regexp
       icicle-reverse-sort-p nil)
@@ -243,8 +244,8 @@ MAP is `minibuffer-local-completion-map' or
                    minibuffer-local-filename-completion-map
                    minibuffer-local-filename-must-match-map
                    minibuffer-local-isearch-map))
-  (icicles-util/bind-minibuffer-keys map :paredit nil))
-(icicles-util/bind-minibuffer-keys icicle-read-expression-map :paredit t)
+  (icicles-util/bind-minibuffer-keys map :sexp-keys nil))
+(icicles-util/bind-minibuffer-keys icicle-read-expression-map :sexp-keys t)
 
 (def-keys-for-map icicle-read-expression-map
   ("M-/" lisp-complete-symbol))
@@ -259,7 +260,8 @@ MAP is `minibuffer-local-completion-map' or
   ("<escape>" remove-buffer))
 
 (defun completion-list-setup ()
-  (setq autopair-dont-activate t))
+  ;; empty for now
+  )
 
 
 (provide 'icicles-setup)

@@ -160,7 +160,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (put 'hs-set-up-overlay 'permanent-local t)
 
   (modify-syntax-entry ?\" "\"")
-  (autopair-mode t)
 
   (font-lock-add-keywords nil *hexcolour-keywords*)
 

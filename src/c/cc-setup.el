@@ -159,7 +159,6 @@ Also propagate new offset to `vim:shift-width'."
 (defun* cc-setup (&key (define-special-keys t)
                        (use-c-eldoc (not (platform-use? 'work))))
   (init-common :use-render-formula t)
-  (autopair-mode 1)
   (hs-minor-mode 1)
   (dtrt-indent-mode 1)
   (which-function-mode -1)

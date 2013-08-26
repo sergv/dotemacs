@@ -62,7 +62,7 @@
 
 (defvar vim:ex-keymap
   (let ((map (make-sparse-keymap)))
-    (icicles-util/bind-minibuffer-keys map :paredit nil)
+    (icicles-util/bind-minibuffer-keys map :sexp-keys nil)
     (def-keys-for-map map
       ("<tab>"    minibuffer-complete)
       ("<return>" vim:ex-mode-exit)

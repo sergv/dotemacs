@@ -15,7 +15,6 @@
 
 (defun awk-setup ()
   (init-common :use-yasnippet nil)
-  (autopair-mode t)
   (modify-syntax-entry ?\/ "\"")
   (add-hook 'after-save-hook #'make-script-file-exec)
 

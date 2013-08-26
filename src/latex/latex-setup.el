@@ -83,8 +83,7 @@
 
 (defun latex-setup ()
   (init-common)
-  (autopair-mode t)
-  (tex-fold-mode t)
+  (tex-fold-mode 1)
 
   ;; (menu-bar-mode 1)
   (setq latex:preview nil)
