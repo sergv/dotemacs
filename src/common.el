@@ -753,6 +753,8 @@ arguments and indent current buffer. See also `+buffer-indent-temporary-filename
   (interactive)
   (insert (format-time-string "%A, %e %B %Y" (current-time))))
 
+(defalias 'insert-current-date #'insert-my-formatted-date)
+
 ;;;;
 
 (defun* map-files (f file-list &key dont-write)

@@ -15,7 +15,7 @@
     common-lisp-print-info-skeleton
   :doc "Call to format to print some variables and messages."
   :print-begin "(format t "
-  :use-upcase t
+  :msg-transform #'upcase
 
   :format-print-value "~A"
   :format-string-start "\"~&"
