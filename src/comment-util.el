@@ -12,7 +12,7 @@
 (require 'advices-util)
 (require 'all-lisp-setup)
 
-(defadvice:auto-comment autopair-newline)
+(defadvice:auto-comment sp-newline)
 ;; paredit-newline's advice is defined in
 ;; general-lisp-setup.el
 (defadvice:auto-comment vim:cmd-insert-line-below)

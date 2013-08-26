@@ -103,17 +103,6 @@
 
 (global-auto-revert-mode t)
 
-(require 'autopair)
-;; (autopair-global-mode)
-
-(require 'undo-tree)
-(global-undo-tree-mode t)
-(setf undo-tree-visualizer-diff t
-      undo-tree-enable-undo-in-region nil
-      ;; display absolute timestamps
-      undo-tree-visualizer-relative-timestamps nil
-      undo-tree-visualizer-timestamps t)
-
 ;;;; saveplace - minor mode to remember positions in visited files
 (setq save-place-file (path-concat +prog-data-path+ "saveplace"))
 (setq-default save-place t)

@@ -92,20 +92,12 @@
 
   (emacs-lisp-highlight-keywords)
 
-  (setf autopair-extra-pairs
-        '(:comment
-          ((?` . ?'))
-          :string
-          ((?` . ?'))))
-  (autopair-mode t)
-
   (eldoc-mode 1)
   (eldoc-add-command 'paredit-backward-delete
                      'paredit-close-round)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"     eval-last-sexp)
-    ("g J"   vim:cmd-join-lines)
     (", m"   expand-last-macro)
     (", M"   expand-last-macro-all)
 
@@ -124,11 +116,12 @@
     ;; ("C-SPC" lisp-complete-symbol)
     ("<tab>" indent-for-tab-command)
     ("M-/"   lisp-complete-symbol)
-    ("("     paredit-open-round)
-    (")"     paredit-close-round)
-    ("["     paredit-open-square)
-    ("]"     paredit-close-square)
-    ("\""    paredit-doublequote))
+    ;; ("("     paredit-open-round)
+    ;; (")"     paredit-close-round)
+    ;; ("["     paredit-open-square)
+    ;; ("]"     paredit-close-square)
+    ;; ("\""    paredit-doublequote)
+    )
 
   (def-keys-for-map read-expression-map
     ("<tab>" lisp-complete-symbol)

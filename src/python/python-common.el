@@ -147,13 +147,13 @@ greater indenation as current line."
   ;; make . a symbol constituent, mostly for me too
   (modify-syntax-entry ?. ".")
 
-  (setf autopair-handle-action-fns
-        (list #'autopair-default-handle-action
-              #'autopair-python-triple-quote-action))
-  (autopair-mode 1)
   (hs-minor-mode 1)
   (setf hs-block-end-regexp nil)
 
+  ;; TODO <Monday, 26 August 2013>
+  ;; since autopair is gone is it necessary to keep this?
+  ;; - Slow forward-sexp implementation may still cause problems
+  ;;
   ;; autopair relies on default `forward-sexp' to be accessible, but
   ;; python sets it to `python-nav-forward-sexp' which
   ;; a. also navigates python statements as "sexps"

@@ -477,16 +477,6 @@ This command assumes point is not in a string or comment."
 
 ;;; navigation
 
-(vimmize-motion (condition-case nil
-                    (progn
-                      (when (looking-at-start-of-sexp?)
-                        (forward-char 1))
-                      (up-list 1))
-                  (error (error "No enclosing list found")))
-                :name vim:lisp-up-list
-                :exclusive t
-                :do-not-adjust-point t)
-
 (defun glisp/backward-up-list ()
   "Move out one level of parenthesis or string quotes."
   (interactive)
@@ -497,13 +487,6 @@ This command assumes point is not in a string or comment."
           (backward-up-list))
       (error (goto-char start)
              (error "No enclosing list found\n%s" err)))))
-
-(vimmize-motion glisp/backward-up-list
-                :name vim:lisp-backward-up-list
-                :exclusive t
-                :do-not-adjust-point t)
-
-
 
 
 (add-to-list 'debug-ignored-errors "\\`No enclosing list found\\'")
@@ -679,33 +662,12 @@ This command assumes point is not in a string or comment."
   '(("g c c"   lisp-comment-sexp)
     ("g c u"   lisp-uncomment-sexp)
     ("g c d"   lisp-delete-commented-part)
-
-    ("x"       vim:paredit-forward-kill)
-    ("X"       vim:paredit-backward-kill)
-
-    ("g ("     vim:splice-sexp-killing-backward)
-    ("g )"     vim:splice-sexp-killing-forward)
-
-    ;; paredit slurps/barfs
-    ("( l"     vim:backward-slurp-sexp)
-    ("( r"     vim:backward-barf-sexp)
-    (") l"     vim:forward-barf-sexp)
-    (") r"     vim:forward-slurp-sexp)
-
-    ("( ("     vim:backward-slurp-sexp)
-    ("( )"     vim:backward-barf-sexp)
-    (") ("     vim:forward-barf-sexp)
-    (") )"     vim:forward-slurp-sexp)
-
-    ("g <tab>" paredit-reindent-defun)
+    ("g <tab>" sp-indent-defun)
     ("M-p"     browse-kill-ring)
     ("="       input-unicode)))
 
 (defvar *lisp-vim-movement-keybindings*
-  '(("q"        vim:lisp-up-list)
-    ("Q"        vim:lisp-backward-up-list)
-    ("'"        vim:lisp-backward-up-list)
-    ("g n"      glisp/beginning-of-defun)
+  '(("g n"      glisp/beginning-of-defun)
     ("g t"      glisp/end-of-defun)
     ("g <up>"   glisp/beginning-of-defun)
     ("g <down>" glisp/end-of-defun)
@@ -723,14 +685,10 @@ This command assumes point is not in a string or comment."
   (init-common :use-yasnippet nil
                :use-whitespace use-whitespace
                :use-render-formula t)
-  ;; (autopair-mode) ;; don't need for lisp but useful for elisp
   (rainbow-delimiters-mode 1)
   (hs-minor-mode 1)
   ;; hiding of comments is rather annoying feature when working with lisps
   (setq-local hs-hide-comments-when-hiding-all nil)
-  (enable-paredit-mode)
-  ;; (setq-local paredit-space-for-delimiter-predicates
-  ;;             (list #'paredit-insert-space-after-reader-sharp?))
 
   (when use-whitespace
     (setq-local whitespace-line-column 81)
@@ -745,7 +703,7 @@ This command assumes point is not in a string or comment."
   (setq-local comment-padding " ")
 
   (if use-cl-indent
-    (setf lisp-indent-function #'common-lisp-indent-function)
+    (setq-local lisp-indent-function #'common-lisp-indent-function)
     ;; somehow setf does not work here
     (setq-local lisp-indent-function #'lisp-indent-function))
   ;; just in case someone will want to use standard #'lisp-indent-function
@@ -754,11 +712,11 @@ This command assumes point is not in a string or comment."
 
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap)
+  (setf vim:normal-mode-local-keymap              (make-keymap)
+        vim:visual-mode-local-keymap              (make-sparse-keymap)
+        vim:insert-mode-local-keymap              (make-sparse-keymap)
+        vim:operator-pending-mode-local-keymap    (make-sparse-keymap)
+        vim:motion-mode-local-keymap              (make-sparse-keymap)
         vim:complex-command-override-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
@@ -777,11 +735,7 @@ This command assumes point is not in a string or comment."
     ("g a a"    realign-let)
     ("g a l"    realign-let)
 
-    ("<return>" paredit-newline)
-
-    ("S"        paredit-split-sexp)
-    ("g S"      paredit-split-sexp)
-    ("g J"      paredit-join-sexps)
+    ("<return>" sp-newline)
 
     ("z o"      hs-show-block)
     ("z c"      hs-hide-block)
@@ -798,8 +752,9 @@ This command assumes point is not in a string or comment."
     ("g c u"    comment-util-uncomment-region-simple))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("C-="      input-unicode)
-    ("<return>" paredit-newline))
+    (";"        paredit-semicolon)
+    (")"        paredit-close-parenthesis)
+    ("C-="      input-unicode))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap
@@ -814,12 +769,12 @@ This command assumes point is not in a string or comment."
 
   (def-keys-for-map (vim:motion-mode-local-keymap
                      vim:operator-pending-mode-local-keymap)
-    ("w" vim:paredit-forward-word)
-    ("e" vim:paredit-forward-word-end)
-    ("b" vim:paredit-backward-word)
-    ("W" vim:paredit-forward-WORD)
-    ("E" vim:paredit-forward-WORD-end)
-    ("B" vim:paredit-backward-WORD)
+    ("w"   vim:paredit-forward-word)
+    ("e"   vim:paredit-forward-word-end)
+    ("b"   vim:paredit-backward-word)
+    ("W"   vim:paredit-forward-WORD)
+    ("E"   vim:paredit-forward-WORD-end)
+    ("B"   vim:paredit-backward-WORD)
     ("s"   vim:paredit-inner-symbol)
     ("i s" vim:paredit-inner-symbol)
     ("a s" vim:paredit-outer-symbol)

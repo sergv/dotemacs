@@ -7,10 +7,18 @@
 ;; Description:
 
 (require 'common)
+(require 'undo-tree)
 
-(autoload 'undo-tree-visualize "undo-tree" "" t)
-(autoload 'undo-tree-undo "undo-tree" "" t)
-(autoload 'undo-tree-redo "undo-tree" "" t)
+;; (autoload 'undo-tree-visualize "undo-tree" "" t)
+;; (autoload 'undo-tree-undo "undo-tree" "" t)
+;; (autoload 'undo-tree-redo "undo-tree" "" t)
+
+(global-undo-tree-mode t)
+(setf undo-tree-visualizer-diff t
+      undo-tree-enable-undo-in-region nil
+      ;; display absolute timestamps
+      undo-tree-visualizer-relative-timestamps nil
+      undo-tree-visualizer-timestamps t)
 
 (eval-after-load "undo-tree"
   '(progn

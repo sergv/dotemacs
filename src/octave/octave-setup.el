@@ -355,7 +355,6 @@ in GROUP-NUMS."
 
 (defun octave-setup ()
   (init-common :use-yasnippet t :use-render-formula t)
-  (autopair-mode t)
   (hs-minor-mode t)
 
   (setq-local yas/indent-line 'fixed)
@@ -433,10 +432,7 @@ in GROUP-NUMS."
     ("C-M-p"    browse-comint-input-history)
     ("SPC SPC"  comint-clear-prompt)
 
-    ("C-SPC"    comint-clear-buffer-above-prompt))
-
-  ;; this modifies binding of <return> so it must come at the end
-  (autopair-mode t))
+    ("C-SPC"    comint-clear-buffer-above-prompt)))
 
 
 (add-hook 'inferior-octave-mode-hook #'inferior-octave-setup)
