@@ -1,4 +1,4 @@
-;; vim-init.el --- -*- lexical-binding: t; -*-
+;; vim-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -9,6 +9,7 @@
 
 (require 'util-vim-replace)
 (require 'completion-setup)
+(require 'smartparens-setup)
 (require 'search)
 (require 'minimap-setup)
 (require 'tagged-buflist-setup)
@@ -29,7 +30,12 @@ like \"d w\".")
 
 ;;;; keybindings
 
-(defun vimrc-redefine-motions (keymap)
+;; redefine motions
+
+(dolist (keymap (list vim:normal-mode-keymap
+                      vim:visual-mode-keymap
+                      vim:operator-pending-mode-keymap
+                      vim:motion-mode-keymap))
   (def-keys-for-map keymap
     ("g g" nil)
     ("g <" vim:motion-go-to-first-non-blank-beg)
@@ -46,12 +52,6 @@ like \"d w\".")
 
     ("<mouse-1>" vim:mouse-symbol/string/sexp)))
 
-(vimrc-redefine-motions vim:normal-mode-keymap)
-(vimrc-redefine-motions vim:visual-mode-keymap)
-(vimrc-redefine-motions vim:operator-pending-mode-keymap)
-(vimrc-redefine-motions vim:motion-mode-keymap)
-
-
 (def-keys-for-map vim:operator-pending-mode-keymap
   ("k"   vim:motion-search-next)
   ("K"   vim:motion-search-next-reverse)
@@ -65,120 +65,140 @@ like \"d w\".")
   ("K"   vim:motion-search-next-reverse))
 
 
-(setf +vimrc:normal-and-visual-keys+
-      '(("t"       vim:motion-down)
-        ("n"       vim:motion-up)
-        ("s"       vim:motion-right)
-        ("l"       vim:cmd-change-char)
-
-        ;; names of these two functions are swapped for unknown reason
-        ;; anyway, so don't change order
-        ("{"       scroll-up)
-        ("}"       scroll-down)
-
-        (":"       vim:motion-repeat-last-find)
-
-        ("/"       search-start-forward)
-        ("?"       search-start-backward)
-        ("k"       search-next)
-        ("K"       search-prev)
-        ("*"       search-for-symbol-at-point-forward)
-        ("#"       search-for-symbol-at-point-backward)
-        ("g *"     search-for-word-at-point-forward)
-        ("g #"     search-for-word-at-point-backward)
-
-        ("C-h"     search-toggle-highlighting)
-        ("-"       vim:cmd-negate-or-paste-pop)
-        ("+"       vim:cmd-paste-pop-next)
-        ("X"       vim:cmd-delete-char-backward)
-        ("M"       vim:jump-to-prev-saved-position)
-        ("J"       vim:cmd-join-lines)
-
-
-        ("C-u"     undo-tree-visualize)
-        ("C-b"     switch-to-prev-buffer-in-window)
-        ("M-b"     icicle-buffer)
-
-        ("S-<backspace>" delete-whitespaces-backward)
-        ("S-<delete>"    delete-whitespaces-forward)
-        ("C-w"           backward-delete-word)
-        ("C-S-w"         backward-delete-word*)
-
-        ("q"       nil)
-        ("Q"       nil)
-
-        ("Z"       nil)
-        ("`"       nil)
-
-        ("g u"     Control-X-prefix)
-        ("g h"     nil)
-
-        ("g g"     nil)
-        ("G"       vim:motion-mark)
-        ;; ("<f5>"    vim:motion-mark)
-        ("g m"     vim:cmd-set-mark)
-        ("g M"     vim:cmd-toggle-macro-recording)
-        ("g J"     vim:cmd-join-lines)
-        ("g j"     nil)
-        ("g q"     nil)
-        ("M-x"     smex)
-        ("M-X"     smex)
-        ("g x"     smex)
-        ("g X"     smex-major-mode-commands)
-
-        (","       nil)
-        ("'"       nil)))
-
-
-
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:visual-mode-keymap)
-  +vimrc:normal-and-visual-keys+)
+  ("t"       vim:motion-down)
+  ("n"       vim:motion-up)
+  ("s"       vim:motion-right)
+  ("l"       vim:cmd-change-char)
+
+  ;; names of these two functions are swapped for unknown reason
+  ;; anyway, so don't change order
+  ("{"       scroll-up)
+  ("}"       scroll-down)
+
+  (":"       vim:motion-repeat-last-find)
+
+  ("/"       search-start-forward)
+  ("?"       search-start-backward)
+  ("k"       search-next)
+  ("K"       search-prev)
+  ("*"       search-for-symbol-at-point-forward)
+  ("#"       search-for-symbol-at-point-backward)
+  ("g *"     search-for-word-at-point-forward)
+  ("g #"     search-for-word-at-point-backward)
+
+  ("C-h"     search-toggle-highlighting)
+  ("-"       vim:cmd-negate-or-paste-pop)
+  ("+"       vim:cmd-paste-pop-next)
+  ("X"       vim:cmd-delete-char-backward)
+  ("M"       vim:jump-to-prev-saved-position)
+  ("J"       vim:cmd-join-lines)
+
+
+  ("C-u"     undo-tree-visualize)
+  ("C-b"     switch-to-prev-buffer-in-window)
+  ("M-b"     icicle-buffer)
+
+  ("S-<backspace>" delete-whitespaces-backward)
+  ("S-<delete>"    delete-whitespaces-forward)
+  ("C-w"           backward-delete-word)
+  ("C-S-w"         backward-delete-word*)
+
+  ("Z"       nil)
+  ("`"       nil)
+
+  ("g u"     Control-X-prefix)
+  ("g h"     nil)
+
+  ("g g"     nil)
+  ("G"       vim:motion-mark)
+  ;; ("<f5>"    vim:motion-mark)
+  ("g m"     vim:cmd-set-mark)
+  ("g M"     vim:cmd-toggle-macro-recording)
+  ("S"       sp-split-sexp)
+  ("g J"     sp-join-sexp)
+  ("g j"     nil)
+  ("g q"     nil)
+  ("M-x"     smex)
+  ("M-X"     smex)
+  ("g x"     smex)
+  ("g X"     smex-major-mode-commands)
+
+  (","       nil))
+
+(def-keys-for-map (vim:normal-mode-keymap
+                   vim:visual-mode-keymap
+                   vim:operator-pending-mode-keymap
+                   vim:motion-mode-keymap)
+  ("q" sp-up-sexp)
+  ("Q" sp-backward-up-sexp)
+  ("'" sp-backward-up-sexp))
 
 ;;;; normal mode keybindigs
 
 (def-keys-for-map vim:normal-mode-keymap
-  ("C-y"      nil)
-  (";"        vim:ex-read-command)
-  ("`"        minimap-toggle)
+  ("C-y"       nil)
+  (";"         vim:ex-read-command)
+  ("`"         minimap-toggle)
 
-  ("<insert>" vim:scroll-line-up)
-  ("<delete>" vim:scroll-line-down)
+  ("g ("       sp-splice-sexp-killing-backward)
+  ("g )"       sp-splice-sexp-killing-forward)
+  ("g <up>"    sp-splice-sexp-killing-around)
+  ("( l"       sp-absorb-sexp)
+  ("( r"       sp-emit-sexp)
 
-  ("u"        undo-tree-undo)
-  ("U"        undo-tree-redo)
+  ("( ("       sp-backward-slurp-sexp)
+  ("( )"       sp-backward-barf-sexp)
+  (") ("       sp-forward-barf-sexp)
+  (") )"       sp-forward-slurp-sexp)
 
-  ("C-p"      yank)
-  ("M-p"      browse-kill-ring)
-  ("C-M-p"    browse-kill-ring)
-  ("C-k"      remove-buffer)
-  ("C-S-k"    remove-buffer-and-window)
+  ("M-?"       sp-convolute-sexp)
+  ("C-<left>"  sp-backward-slurp-sexp)
+  ("C-<right>" sp-forward-slurp-sexp)
+  ("M-<left>"  sp-absorb-sexp)
+  ("M-<right>" sp-emit-sexp)
+
+  ("x"         sp-kill-char)
+  ("X"         sp-backward-kill-char)
+
+  ("<insert>"  vim:scroll-line-up)
+  ("<delete>"  vim:scroll-line-down)
+
+  ("u"         undo-tree-undo)
+  ("U"         undo-tree-redo)
+
+  ("C-p"       yank)
+  ("M-p"       browse-kill-ring)
+  ("C-M-p"     browse-kill-ring)
+  ("C-k"       remove-buffer)
+  ("C-S-k"     remove-buffer-and-window)
 
   ;; (", w"      save-buffer)
-  (", b"      tagged-buflist-show)
-  (", B"      tagged-buflist-show-select-current-buf)
-  (", s"      nil)
-  (", s w"    vim:replace-word)
-  (", s W"    vim:replace-WORD)
-  (", s s"    vim:replace-symbol-at-point)
+  (", b"       tagged-buflist-show)
+  (", B"       tagged-buflist-show-select-current-buf)
+  (", s"       nil)
+  (", s w"     vim:replace-word)
+  (", s W"     vim:replace-WORD)
+  (", s s"     vim:replace-symbol-at-point)
 
-  ("g f"      icicle-file)
-  ("g g f"    find-filename-in-tree-recursive)
-  ("g c c"    comment-util-comment-lines)
-  ("g c u"    comment-util-uncomment-region)
+  ("g f"       icicle-file)
+  ("g g f"     find-filename-in-tree-recursive)
+  ("g c c"     comment-util-comment-lines)
+  ("g c u"     comment-util-uncomment-region)
 
-  ("g r"      rgrep)
-  ("g TAB"    nil)
-  ("g n"      nil)
-  ("g t"      nil)
-  ("g <up>"   nil)
-  ("g <down>" nil)
-  ("g k"      remove-buffer)
-  ("g K"      remove-buffer-and-window)
+  ("g r"       rgrep)
+  ("g TAB"     nil)
+  ("g n"       nil)
+  ("g t"       nil)
+  ("g <up>"    nil)
+  ("g <down>"  nil)
+  ("g k"       remove-buffer)
+  ("g K"       remove-buffer-and-window)
 
-  ("g c s"    remember-win-config-store-configuration)
-  ("g c l"    remember-win-config-restore-configuration)
-  ("g c r"    remember-win-config-restore-configuration))
+  ("g c s"     remember-win-config-store-configuration)
+  ("g c l"     remember-win-config-restore-configuration)
+  ("g c r"     remember-win-config-restore-configuration))
 
 ;;;; visual keybindings
 
@@ -208,6 +228,19 @@ like \"d w\".")
   ("C--"           yank-previous)
   ("C-+"           yank-next)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
+
+  ("C-("           sp-backward-slurp-sexp)
+  ("C-)"           sp-forward-slurp-sexp)
+  ("M-("           sp-forward-barf-sexp)
+  ("M-)"           sp-backward-barf-sexp)
+
+  ("M-?"           sp-convolute-sexp)
+  ("C-<left>"      sp-backward-slurp-sexp)
+  ("C-<right>"     sp-forward-slurp-sexp)
+  ("M-<left>"      sp-forward-barf-sexp)
+  ("M-<right>"     sp-backward-barf-sexp)
+  ("M-<up>"        sp-splice-sexp-killing-backward)
+  ("M-<down>"      sp-splice-sexp-killing-forward)
 
   ("<insert>"      vim:scroll-line-up))
 
@@ -380,9 +413,9 @@ Basically swap current point with previous one."
 
 
 
-(provide 'vim-init)
+(provide 'vim-setup)
 
 ;; Local Variables:
 ;; End:
 
-;; vim-init.el ends here
+;; vim-setup.el ends here

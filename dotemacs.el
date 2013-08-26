@@ -65,7 +65,6 @@
   (when use-comment
     (comment-util-mode 1))
 
-  ;; (autopair-mode)
   ;; (set-buffer-file-coding-system 'utf-8-unix)
 
   (when use-yasnippet
@@ -165,11 +164,12 @@
 (load-library "recentf-setup")
 (load-library "misc-autoloads")
 (load-library "eproj-setup")
+(load-library "smartparens-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
 (load-library "keys")
-(load-library "vim-init")
+(load-library "vim-setup")
 
 ;; this is quick-and-dirty autoloading mechanism
 (eval-after-load "ibuffer"

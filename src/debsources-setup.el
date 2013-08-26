@@ -11,12 +11,10 @@
 
 (autoload 'debsources-mode "debsources" "Start debsources mode.")
 
-(push '("sources\\.list$" . debsources-mode)
-      auto-mode-alist)
+(add-to-list 'auto-mode-alist '("sources\\.list\\'" . debsources-mode))
 
 (defun debsources-setup ()
-  (init-common :use-yasnippet nil)
-  (autopair-mode t))
+  (init-common :use-yasnippet nil))
 
 (add-hook 'debsources-mode-hook #'debsources-setup)
 

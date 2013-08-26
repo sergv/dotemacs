@@ -12,8 +12,7 @@
 
 (defun bison-setup ()
   (init-common :use-yasnippet nil :use-render-formula nil)
-  (autopair-mode t)
-  (hs-minor-mode t))
+  (hs-minor-mode 1))
 
 (add-hook 'bison-mode-hook #'bison-setup)
 
