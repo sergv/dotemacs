@@ -132,49 +132,6 @@ If in a comment and if followed by invalid structure, call
                   :call-n-times t)
 
 
-
-(defun paredit-insert-space-after-reader-sharp? (end? delim)
-  "This is mostly a workaround to make various reader macro
-(e.g. vectors, cl-interpol, etc) more convenient to type.
-
-This determines whether to insert a space after the # sign."
-  (cond
-    (end?
-     ;; if end? is t then
-     ;; question was about inserting a space after delimiter,
-     ;; we're not handling it
-     t)
-    ;; common lisp
-    ((memq major-mode '(common-lisp-mode lisp-mode cl-mode))
-     ;; this is done with cl-interpol in mind, #"foo", #/bar/
-     (cond
-       ((and (member* delim '(?\" ?\/) :test #'char=))
-        (save-excursion
-          (skip-syntax-backward "^ >")
-          ;; if we're just after reader macro start
-          ;; then return nil as sign that we don't want a space
-          (not (looking-at-pure? "#"))))
-       ;; this is done with vectors, arrays and complex numbers in mind
-       ((char= ?\( delim)
-        (save-excursion
-          (skip-syntax-backward "^ >")
-          ;; if we're just after reader macro start
-          ;; then return nil as sign that we don't want a space
-          (not (looking-at-pure? "#[Ac]?"))))))
-
-    ;; this is for vectors
-    ((char= ?\( delim)
-     (save-excursion
-       (skip-syntax-backward "^ >")
-       ;; if we're just after reader macro start
-       ;; then return nil as sign that we don't want a space
-       (not (looking-at-pure? "#"))))
-    (else
-     ;; delimiter is not double quote so don't handle it
-     t)))
-
-
-
 (vim:defmotion vim:paredit-forward-word (inclusive count)
   (goto-char (paredit-skip-forward-for-kill (point)
                                             '(?\w)))

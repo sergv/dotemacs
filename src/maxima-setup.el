@@ -47,7 +47,6 @@
 
   (defun maxima-setup ()
     (init-common :use-yasnippet nil :use-render-formula t)
-    (autopair-mode t)
 
     (setf vim:normal-mode-local-keymap (make-keymap)
           vim:insert-mode-local-keymap (make-sparse-keymap)
@@ -111,7 +110,6 @@
 
   (defun interactive-maxima-setup ()
     (init-repl)
-    (autopair-mode t)
 
     (setf vim:normal-mode-local-keymap (make-keymap)
           vim:insert-mode-local-keymap (make-keymap))

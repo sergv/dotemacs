@@ -20,15 +20,14 @@ otherwise."
 
 (defun snippet-setup ()
   ;; don't use init-common here ;; upd: why?
-  (linum-mode t)
-  (comment-util-mode t)
-  (autopair-mode t)
+  (linum-mode 1)
+  (comment-util-mode 1)
 
-  (setq undo-tree-visualizer-timestamps    t
-        undo-tree-visualizer-parent-buffer t)
-  (setq case-fold-search nil)
+  (setf undo-tree-visualizer-timestamps    t
+        undo-tree-visualizer-parent-buffer t
+        case-fold-search nil)
 
-  (setq vim:normal-mode-local-keymap (make-sparse-keymap))
+  (setf vim:normal-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>"    yas-load-snippet-buffer-no-kill)

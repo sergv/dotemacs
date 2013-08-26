@@ -8,7 +8,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defun* icicles-util/bind-minibuffer-keys (map &key (paredit nil))
+(defun* icicles-util/bind-minibuffer-keys (map &key (sexp-keys nil))
   "Utility function that binds my custom keys and is used in several places."
   (def-keys-for-map map
     ("<escape>"          abort-recursive-edit)
@@ -49,22 +49,22 @@
     ("<backspace>"       delete-backward-char)
     ("S-<backspace>"     backward-delete-word))
 
-  (when paredit
+  (when sexp-keys
     (def-keys-for-map map
       ("\\"        icicle-self-insert)
-      ("("         paredit-open-round)
-      (")"         paredit-close-round)
-      ("["         paredit-open-square)
-      ("]"         paredit-close-square)
-      ("\""        paredit-doublequote)
-      ("M-<up>"    paredit-splice-sexp-killing-backward)
-      ("M-<down>"  paredit-splice-sexp-killing-forward)
-      ("C-)"       paredit-forward-slurp-sexp)
-      ("C-<right>" paredit-forward-slurp-sexp)
-      ("C-<left>"  paredit-forward-barf-sexp)
-      ("C-("       paredit-backward-slurp-sexp)
-      ("M-<left>"  paredit-backward-slurp-sexp)
-      ("M-<right>" paredit-backward-barf-sexp))))
+      ("("         sp--self-insert-command)
+      (")"         sp--self-insert-command)
+      ("["         sp--self-insert-command)
+      ("]"         sp--self-insert-command)
+      ("\""        sp--self-insert-command)
+      ("M-<up>"    sp-splice-sexp-killing-backward)
+      ("M-<down>"  sp-splice-sexp-killing-forward)
+      ("C-)"       sp-forward-slurp-sexp)
+      ("C-<right>" sp-forward-slurp-sexp)
+      ("C-<left>"  sp-forward-barf-sexp)
+      ("C-("       sp-backward-slurp-sexp)
+      ("M-<left>"  sp-backward-slurp-sexp)
+      ("M-<right>" sp-backward-barf-sexp))))
 
 (provide 'icicles-util)
 

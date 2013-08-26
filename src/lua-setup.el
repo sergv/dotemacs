@@ -14,16 +14,15 @@
 
 (defun lua-setup ()
   (init-common :use-yasnippet nil :use-render-formula t)
-  (autopair-mode t)
-  (hs-minor-mode t)
+  (hs-minor-mode 1)
 
   (setf vim:normal-mode-local-keymap (make-sparse-keymap)
         vim:insert-mode-local-keymap (make-sparse-keymap))
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("z o"     hs-show-block)
-    ("z c"     hs-hide-block)
-    ("z C"     hs-hide-all)
-    ("z O"     hs-show-all)))
+    ("z o" hs-show-block)
+    ("z c" hs-hide-block)
+    ("z C" hs-hide-all)
+    ("z O" hs-show-all)))
 
 (add-hook 'lua-mode-hook #'lua-setup)
 

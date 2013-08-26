@@ -80,7 +80,10 @@ Turn off highlighting if character at point is not parentheses."
   (interactive)
   (if (and (symbolp this-command)
            (memq this-command
-                 '(autopair-newline)))
+                 '(autopair-newline
+                   sp-newline
+                   paredit-newline
+                   newline)))
     (hl-paren-cleanup-overlays)
     (condition-case nil
         (hl-paren-highlight-matching-paren-at-point)
