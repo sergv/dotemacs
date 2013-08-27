@@ -204,15 +204,15 @@
        :move-to-property-end t)
 
      (defun eshell-setup ()
-       (init-repl :show-directory t)
-
-       (setq autopair-dont-activate t)
-       (linum-mode t)
-
        (setf vim:normal-mode-local-keymap           (make-keymap)
              vim:insert-mode-local-keymap           (make-sparse-keymap)
              vim:operator-pending-mode-local-keymap (make-sparse-keymap)
              vim:motion-mode-local-keymap           (make-sparse-keymap))
+
+       (init-repl :show-directory t :bind-return nil)
+
+       (setq autopair-dont-activate t)
+       (linum-mode t)
 
        (def-keys-for-map vim:normal-mode-local-keymap
          ("C-<up>"   eshell-jump-to-prev-prompt)
@@ -255,7 +255,12 @@
 
          ("C-SPC"    eshell/clear)
          ;; ("S-SPC"    eshell/clear)
-         ))
+         )
+
+       (def-keys-for-map (vim:normal-mode-local-keymap
+                          vim:insert-mode-local-keymap)
+         ("<return>"   eshell-send-input)
+         ("C-<return>" sp-newline)))
 
      (add-hook 'eshell-mode-hook #'eshell-setup)))
 

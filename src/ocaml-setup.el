@@ -59,14 +59,14 @@
   (goto-char (point-max)))
 
 (defun ocaml-interactive-setup ()
-  (init-repl)
-  (linum-mode)
+  (init-repl :bind-return nil)
+  (linum-mode 1)
   (def-keys-for-map tuareg-interactive-mode-map
-    ("RET"      ocaml-interactive-send-input)
-    ("<return>" ocaml-interactive-send-input)
-    ("SPC SPC"  comint-clear-prompt)
-    ("C-SPC"    comint-clear-buffer-above-prompt)
-    ("<f6>"     tuareg-interrupt-ocaml)))
+    ("<return>"   ocaml-interactive-send-input)
+    ("C-<return>" sp-newline)
+    ("SPC SPC"    comint-clear-prompt)
+    ("C-SPC"      comint-clear-buffer-above-prompt)
+    ("<f6>"       tuareg-interrupt-ocaml)))
 
 (add-hook 'tuareg-interactive-mode-hook #'ocaml-interactive-setup)
 

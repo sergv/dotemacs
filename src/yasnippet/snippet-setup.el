@@ -19,6 +19,8 @@ otherwise."
                              nil)))
 
 (defun snippet-setup ()
+  (setf vim:normal-mode-local-keymap (make-sparse-keymap))
+
   ;; don't use init-common here ;; upd: why?
   (linum-mode 1)
   (comment-util-mode 1)
@@ -26,8 +28,6 @@ otherwise."
   (setf undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t
         case-fold-search nil)
-
-  (setf vim:normal-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>"    yas-load-snippet-buffer-no-kill)
