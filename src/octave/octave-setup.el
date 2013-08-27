@@ -354,6 +354,13 @@ in GROUP-NUMS."
 ;;;;
 
 (defun octave-setup ()
+  (setf vim:normal-mode-local-keymap           (make-keymap)
+        vim:visual-mode-local-keymap           (make-sparse-keymap)
+        vim:insert-mode-local-keymap           (make-sparse-keymap)
+        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
+        ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
+        )
+
   (init-common :use-yasnippet t :use-render-formula t)
   (hs-minor-mode t)
 
@@ -366,12 +373,6 @@ in GROUP-NUMS."
                                " ... "))))
 
 
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
-        )
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f6>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)
@@ -413,7 +414,7 @@ in GROUP-NUMS."
 
 (defun inferior-octave-setup ()
   (init-common :use-yasnippet nil :use-nxhtml-menu nil :use-comment nil)
-  (init-repl)
+  (init-repl :bind-return inferior-octave-mode-map)
   ;; (enable-octave-interpreter-error-detection)
 
   (setf inferior-octave-prompt

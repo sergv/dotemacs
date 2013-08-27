@@ -54,6 +54,12 @@
   ("M-n" nil))
 
 (defun nrepl-setup ()
+  (setf vim:normal-mode-local-keymap           (make-keymap)
+        vim:visual-mode-local-keymap           (make-sparse-keymap)
+        vim:insert-mode-local-keymap           (make-sparse-keymap)
+        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
+        vim:motion-mode-local-keymap           (make-sparse-keymap))
+
   (init-common :use-yasnippet nil
                :use-whitespace nil
                :use-render-formula nil)
@@ -72,12 +78,6 @@
 
   (setq-local comint-use-prompt-regexp nil)
   (setq-local comint-prompt-regexp "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
-
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)

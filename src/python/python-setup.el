@@ -276,6 +276,13 @@ in the current *Python* session."
 
 
 (defun inferior-python-setup ()
+  (setf vim:normal-mode-local-keymap           (make-keymap)
+        ;; vim:visual-mode-local-keymap           (make-keymap)
+        vim:insert-mode-local-keymap           (make-keymap)
+        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
+        ;; vim:motion-mode-local-keymap           (make-keymap)
+        )
+
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-nxhtml-menu nil)
@@ -291,30 +298,23 @@ in the current *Python* session."
   (setf tab-width 4)
   (setq-local forward-sexp-function nil)
 
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        ;; vim:visual-mode-local-keymap           (make-keymap)
-        vim:insert-mode-local-keymap           (make-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        ;; vim:motion-mode-local-keymap           (make-keymap)
-        )
-
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("M-p"      browse-kill-ring)
-    ("C-M-p"    browse-comint-input-history)
+    ("M-p"        browse-kill-ring)
+    ("C-M-p"      browse-comint-input-history)
 
-    ("C-SPC"    comint-clear-buffer-above-prompt)
-    ("<up>"     comint-previous-input)
-    ("<down>"   comint-next-input)
-    ("C-<up>"   comint-previous-prompt)
-    ("C-<down>" comint-next-prompt)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt)
+    ("C-SPC"      comint-clear-buffer-above-prompt)
+    ("<up>"       comint-previous-input)
+    ("<down>"     comint-next-input)
+    ("C-<up>"     comint-previous-prompt)
+    ("C-<down>"   comint-next-prompt)
+    ("S-<up>"     comint-previous-prompt)
+    ("S-<down>"   comint-next-prompt)
 
-    ("<tab>"    python-complete))
+    ("<tab>"      python-complete))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"  comint-clear-prompt)))
+    ("SPC SPC"    comint-clear-prompt)))
 
 (add-hook 'python-mode-hook #'python-setup)
 (add-hook 'inferior-python-mode-hook #'inferior-python-setup)
