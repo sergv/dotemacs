@@ -46,12 +46,12 @@
 
 
 (defun shell-setup ()
+  (setf vim:normal-mode-local-keymap (make-keymap)
+        vim:insert-mode-local-keymap (make-sparse-keymap))
+
   (init-repl :show-directory t)
   (linum-mode 1)
   (ansi-color-for-comint-mode-on)
-
-  (setq vim:normal-mode-local-keymap (make-keymap)
-        vim:insert-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output

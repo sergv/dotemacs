@@ -655,15 +655,15 @@ the current topic."
   (render-formula-toggle-formulae))
 
 (defun org-mode-setup ()
-  (init-common :use-yasnippet t :use-render-formula nil)
-  (set (make-local-variable 'yas-fallback-behavior)
-       '(apply org-cycle))
-
   (setf vim:normal-mode-local-keymap           (make-keymap)
         vim:insert-mode-local-keymap           (make-sparse-keymap)
         vim:visual-mode-local-keymap           (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap (make-sparse-keymap)
         vim:motion-mode-local-keymap           (make-sparse-keymap))
+
+  (init-common :use-yasnippet t :use-render-formula nil)
+  (set (make-local-variable 'yas-fallback-behavior)
+       '(apply org-cycle))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("TAB"   org-cycle)

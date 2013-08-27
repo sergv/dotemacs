@@ -87,10 +87,27 @@
   (when use-render-formula
     (render-formula-mode 1)))
 
-(defun* init-repl (&key (show-directory nil))
-  (use-repl-modeline)
+(defun* init-repl (&key (show-directory nil) (bind-return t))
+  (use-repl-modeline :show-directory show-directory)
   (setf *vim:do-not-adjust-point* t)
-  (emacs-forget-buffer-process))
+  (emacs-forget-buffer-process)
+
+  (cond ((keymapp bind-return)
+         (def-keys-for-map bind-return
+           ("<return>"   comint-send-input)
+           ("C-<return>" sp-newline)))
+        ((and (not (null? bind-return))
+              (cons? bind-return)
+              (keymapp (car bind-return)))
+         (dolist (keymap bind-return)
+           (def-keys-for-map keymap
+             ("<return>"   comint-send-input)
+             ("C-<return>" sp-newline))))
+        ((not (null? bind-return))
+         (def-keys-for-map (vim:normal-mode-local-keymap
+                            vim:insert-mode-local-keymap)
+           ("<return>"   comint-send-input)
+           ("C-<return>" sp-newline)))))
 
 
 (load-library "all-lisp-setup")
