@@ -46,11 +46,11 @@
                        :put-align-spaces-after-str t)
 
   (defun maxima-setup ()
-    (init-common :use-yasnippet nil :use-render-formula t)
-
     (setf vim:normal-mode-local-keymap (make-keymap)
           vim:insert-mode-local-keymap (make-sparse-keymap)
           vim:visual-mode-local-keymap (make-sparse-keymap))
+
+    (init-common :use-yasnippet nil :use-render-formula t)
 
     (def-keys-for-map vim:normal-mode-local-keymap
       ("SPC SPC" switch-to-maxima)
@@ -109,10 +109,10 @@
       (error "Not in the maxima buffer")))
 
   (defun interactive-maxima-setup ()
-    (init-repl)
-
     (setf vim:normal-mode-local-keymap (make-keymap)
           vim:insert-mode-local-keymap (make-keymap))
+
+    (init-repl)
 
     (def-keys-for-map vim:normal-mode-local-keymap
       ("SPC SPC" comint-clear-prompt))
@@ -139,9 +139,6 @@
       ("C-<left>"    paredit-backward-slurp-sexp)
       ("C-S-<left>"  paredit-backward-barf-sexp))
 
-    (define-key vim:normal-mode-local-keymap
-      (kbd ", h")
-      maxima-help-map)
     (define-key vim:normal-mode-local-keymap
       (kbd "<f1>")
       maxima-help-map))

@@ -13,11 +13,12 @@
 
 
 (defun lua-setup ()
+  (setf vim:normal-mode-local-keymap (make-sparse-keymap)
+        vim:insert-mode-local-keymap (make-sparse-keymap))
+
   (init-common :use-yasnippet nil :use-render-formula t)
   (hs-minor-mode 1)
 
-  (setf vim:normal-mode-local-keymap (make-sparse-keymap)
-        vim:insert-mode-local-keymap (make-sparse-keymap))
   (def-keys-for-map vim:normal-mode-local-keymap
     ("z o" hs-show-block)
     ("z c" hs-hide-block)

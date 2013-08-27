@@ -136,6 +136,12 @@ greater indenation as current line."
                        :test #'eq?))))
 
 (defun python-common-setup ()
+  (setf vim:normal-mode-local-keymap           (make-keymap)
+        vim:visual-mode-local-keymap           (make-sparse-keymap)
+        vim:insert-mode-local-keymap           (make-sparse-keymap)
+        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
+        vim:motion-mode-local-keymap           (make-sparse-keymap))
+
   (init-common :use-yasnippet t
                :use-render-formula t)
 
@@ -160,12 +166,6 @@ greater indenation as current line."
   ;; b. somewhat heavy and causes noticeable delay on inserting (, " or """
   ;; => bad alternative for `forward-sexp', but nice function on its own right
   (setq-local forward-sexp-function nil)
-
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     (", d"     pylookup-lookup)
