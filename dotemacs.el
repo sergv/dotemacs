@@ -85,7 +85,24 @@
        +1)))
 
   (when use-render-formula
-    (render-formula-mode 1)))
+    (render-formula-mode 1))
+
+  ;; no need to bind in vim:normal-mode-local-keymap since
+  ;; the same will be bound in vim:normal-mode-keymap
+  (def-keys-for-map (;; vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("C-("       sp-backward-slurp-sexp)
+    ("C-)"       sp-forward-slurp-sexp)
+    ("M-("       sp-forward-barf-sexp)
+    ("M-)"       sp-backward-barf-sexp)
+
+    ("M-?"       sp-convolute-sexp)
+    ("C-<left>"  sp-backward-slurp-sexp)
+    ("C-<right>" sp-forward-slurp-sexp)
+    ("M-<left>"  sp-forward-barf-sexp)
+    ("M-<right>" sp-backward-barf-sexp)
+    ("M-<up>"    sp-splice-sexp-killing-backward)
+    ("M-<down>"  sp-splice-sexp-killing-forward)))
 
 (defun* init-repl (&key (show-directory nil) (bind-return t))
   (use-repl-modeline :show-directory show-directory)
