@@ -841,6 +841,14 @@ possibly wrapping and eob or bob."
             (delete-overlay overlay)))))))
 
 
+(defun vim:substitute-quote (text)
+  "Just quote backslash for now because it has special meaning and all other
+special characters are introduced via backlash only."
+  (replace-in-string text
+                     "\\\\"     ;; single backslash
+                     "\\\\\\\\" ;; double backslash
+                     ))
+
 (defun vim:parse-substitute (text)
   "Parse ex command line in TEXT and return triple
 (<pattern> <replacement> <flags>)."

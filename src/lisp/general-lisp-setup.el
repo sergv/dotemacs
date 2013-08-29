@@ -753,7 +753,10 @@ This command assumes point is not in a string or comment."
 
   (def-keys-for-map vim:insert-mode-local-keymap
     (";"        paredit-semicolon)
+    ("("        paredit-open-parenthesis)
     (")"        paredit-close-parenthesis)
+    ("["        paredit-open-square)
+    ("]"        paredit-close-square)
     ("C-="      input-unicode))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
