@@ -16,8 +16,8 @@
 (require 'org-drill)
 
 (def-keys-for-map global-map
-  ("\C-cl" org-store-link)
-  ("\C-ca" org-agenda))
+  ("C-c l" org-store-link)
+  ("C-c a" org-agenda))
 
 ;; org mode customizations
 (setf org-agenda-ndays 7
@@ -691,11 +691,16 @@ the current topic."
     ("N"     org-backward-same-level))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("j"   eval-region))
+    ("j"     eval-region))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("M-/"   pcomplete))
+    ("M-/"        pcomplete)
+    ("<M-return>" org-meta-return)
+    ("<M-down>"   org-metadown)
+    ("<M-up>"     org-metaup)
+    ("<M-left>"   org-metaleft)
+    ("<M-right>"  org-metaright))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap
