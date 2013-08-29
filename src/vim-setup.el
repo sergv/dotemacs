@@ -228,20 +228,6 @@ like \"d w\".")
   ("C--"           yank-previous)
   ("C-+"           yank-next)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
-
-  ("C-("           sp-backward-slurp-sexp)
-  ("C-)"           sp-forward-slurp-sexp)
-  ("M-("           sp-forward-barf-sexp)
-  ("M-)"           sp-backward-barf-sexp)
-
-  ("M-?"           sp-convolute-sexp)
-  ("C-<left>"      sp-backward-slurp-sexp)
-  ("C-<right>"     sp-forward-slurp-sexp)
-  ("M-<left>"      sp-forward-barf-sexp)
-  ("M-<right>"     sp-backward-barf-sexp)
-  ("M-<up>"        sp-splice-sexp-killing-backward)
-  ("M-<down>"      sp-splice-sexp-killing-forward)
-
   ("<insert>"      vim:scroll-line-up))
 
 
