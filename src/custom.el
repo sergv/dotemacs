@@ -7,7 +7,7 @@
 ;; Description:
 
 (eval-when-compile (require 'cl-lib))
-
+(require 'macro-util)
 
 (defun current-column ()
   "Return current column - integer number."
@@ -368,46 +368,87 @@ up by functions in compilation-finish-functions.")
 
 ;;;;
 
-(defun start-nautilus ()
-  "Start nautilus in folder associated with current buffer."
+(defvar custom/exec-with-directory-runners
+  (let ((tbl (make-hash-table :test #'equal))
+        (standard-starter
+         (lambda (exec dir)
+           (async-shell-command (join-lines (list exec
+                                                  (shell-quote-argument dir))
+                                            " ")))))
+    (puthash "thunar" standard-starter tbl)
+    (puthash "nautilus" standard-starter tbl)
+    (puthash "exo-open"
+             (lambda (exec dir)
+               (shell-command (join-lines (list exec
+                                                "--launch TerminalEmulator"
+                                                "--working-directory"
+                                                (shell-quote-argument dir))
+                                          " ")))
+             tbl)
+    (puthash "konsole"
+             (lambda (exec dir)
+               (async-shell-command (join-lines (list exec
+                                                      "--workdir"
+                                                      (shell-quote-argument dir))
+                                                " ")))
+             tbl)
+    (puthash "xfce4-terminal"
+             (lambda (exec dir)
+               (async-shell-command (join-lines (list exec
+                                                      "--default-working-directory"
+                                                      (shell-quote-argument dir))
+                                                " ")))
+             tbl)
+
+    tbl)
+  "Definitions of various executables that can be started in particular folder.")
+
+(defun custom/run-first-matching-exec (execs)
+  (assert (all? (lambda (exec)
+                  (not (null? (gethash exec custom/exec-with-directory-runners))))
+                execs))
+  (let ((dir (expand-file-name
+              (if (buffer-file-name)
+                (file-name-directory (buffer-file-name))
+                default-directory))))
+    (letrec ((iter
+              (lambda (execs)
+                (when (not (null? execs))
+                  (aif (executable-find (car execs))
+                    (funcall (gethash (car execs)
+                                      custom/exec-with-directory-runners)
+                             it
+                             dir)
+                    (funcall iter (cdr execs)))))))
+      (funcall iter execs))))
+
+(defun start-file-manager ()
+  "Start suitable file manager in folder associated with current buffer."
   (interactive)
-  (async-shell-command (concat "nautilus "
-                               (shell-quote-argument
-                                (expand-file-name
-                                 (if (buffer-file-name)
-                                   (file-name-directory (buffer-file-name))
-                                   default-directory))))
-                       nil
-                       nil))
+  (custom/run-first-matching-exec '("thunar" "nautilus")))
 
-(defalias 'nautilus 'start-nautilus)
-(defalias 'run-nautilus 'start-nautilus)
-(defalias 'open-nautilus 'start-nautilus)
+(defalias 'open-file-manager 'start-file-manager)
+(defalias 'run-file-manager 'start-file-manager)
+(defalias 'file-manager 'start-file-manager)
+(defalias 'thunar 'start-file-manager)
+(defalias 'nautilus 'start-file-manager)
 
-(defun start-thunar ()
-  "Start thunar in folder associated with current buffer."
+(defun start-terminal-emulator ()
+  "Start suitable terminal emulator in folder associated with current buffer."
   (interactive)
-  (async-shell-command (concat "thunar "
-                               (shell-quote-argument
-                                (expand-file-name
-                                 (if (buffer-file-name)
-                                   (file-name-directory (buffer-file-name))
-                                   default-directory))))
-                       nil
-                       nil))
-
-(defalias 'thunar 'start-thunar)
-(defalias 'run-thunar 'start-thunar)
-(defalias 'open-thunar 'start-thunar)
-
+  (custom/run-first-matching-exec '("exo-open"
+                                    "xfce4-terminal"
+                                    "konsole"
+                                    ;; "gnome-terminal"
+                                    )))
 
 ;;;; rotate list functions, very old...
 
 (defun rotate-entry-list (listvar)
   "Rotate list of any etries such that list '(X Y Z) becomes '(Y Z X)"
   (set listvar (let ((value (symbol-value listvar)))
-                 (cond ((null value) nil)
-                       ((equal (length value) 1) value)
+                 (cond ((null? value) nil)
+                       ((null? (cdr value)) value)
                        (t (let ((new-list (cdr value)))
                             (setcdr value nil)
                             (nconc new-list value)
@@ -416,8 +457,8 @@ up by functions in compilation-finish-functions.")
 (defun rotate-entry-list-backward (listvar)
   "Rotate list of any etries such that list '(X Y Z) becomes '(Z X Y)"
   (set listvar (let ((value (symbol-value listvar)))
-                 (cond ((null value) nil)
-                       ((equal (length value) 1) value)
+                 (cond ((null? value) nil)
+                       ((null? (cdr value)) value)
                        (t (while (cddr value)
                             (setq value (cdr value)))
                           (let ((last-elem (cdr value)))
@@ -432,6 +473,7 @@ up by functions in compilation-finish-functions.")
   "Whether function `delete-trailing-whitespace+' should do actual deletion.")
 
 (defun toggle-inhibit-delete-trailing-whitespace ()
+  "Toggle `inhibit-delete-trailing-whitespace' option."
   (interactive)
   (if (setf inhibit-delete-trailing-whitespace
             (not inhibit-delete-trailing-whitespace))
