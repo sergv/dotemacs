@@ -48,19 +48,19 @@
   "Type of visual mode, should be 'normal, 'linewise or 'block.")
 
 ;; Last transient-mark-mode.
-(defvar-local vim:visual-old-transient-mark-mode)
+(defvar-local vim:visual-old-transient-mark-mode nil)
 
 ;; Old global variables changed in visual-mode.
-(defvar-local vim:visual-old-global-variables)
+(defvar-local vim:visual-old-global-variables nil)
 
 ;; List of overlays for the current region.
-(defvar-local vim:visual-overlays)
+(defvar-local vim:visual-overlays nil)
 
 ;; The last beginning position of the region.
-(defvar-local vim:visual-last-begin)
+(defvar-local vim:visual-last-begin nil)
 
 ;; The last end position of the region.
-(defvar-local vim:visual-last-end)
+(defvar-local vim:visual-last-end nil)
 
 ;; Info-struct to save information for visual-insertion.
 (defstruct (vim:visual-insert-info

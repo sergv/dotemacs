@@ -19,7 +19,7 @@
           (cond (word "\\>") (symbol "\\_>"))
           ","
           (when fill-replace
-            str)))
+            (vim:substitute-quote str))))
 
 
 
