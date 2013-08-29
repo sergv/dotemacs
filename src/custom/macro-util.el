@@ -294,7 +294,11 @@ in the same directory the current file is."
                           ((list? mode-map)
                            mode-map)
                           (else (list mode-map)))
-             appending (funcall process-key-command-list map key-command-list))))
+             collecting `(if (not (null? ,map))
+                           (progn
+                             ,@(funcall process-key-command-list map key-command-list))
+                           ;; don't silently ignore potential problems
+                           (message ,(format "warning: map %s is nil" map))))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
                mode-map

@@ -24,7 +24,9 @@
 (autoload 'completion-list-setup "icicles-setup")
 (add-hook 'completion-list-mode-hook #'completion-list-setup)
 
-(eval-after-load "icicles" '(progn (require 'icicles-setup)))
+(eval-after-load 'icicles
+  '(progn
+     (load "icicles-setup")))
 (load-library "icicles-opt")
 
 (provide 'icicles-autoload)
