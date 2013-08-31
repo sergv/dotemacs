@@ -2287,17 +2287,19 @@ requires reasoning, while those other subjects merely require scholarship.
 -- Dee. Hock, Founder, Visa International"
 
    "Work expands so as to fill the time available for its completion.
--- Parkinson's law"]
+-- Parkinson's law"
+
+   "Творчески мыслящий взрослый — это ребёнок, который выжил."]
   "Good and nice fortunes.")
 
 (defvar *other-quotes*
   ["Money is a powerful aphrodisiac. But flowers work almost as well.
--— Lazarus Long"
-   ])
+-— Lazarus Long"])
 
 (defvar *fortunes*
   (vconcat *perlis-quotes*
-           *good-fortunes*))
+           *good-fortunes*
+           *other-quotes*))
 
 (defun fortune (fortune-source)
   "Return random fortune from FORTUNE-SOURCE sequence"

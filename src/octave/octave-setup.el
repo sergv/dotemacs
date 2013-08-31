@@ -354,13 +354,6 @@ in GROUP-NUMS."
 ;;;;
 
 (defun octave-setup ()
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
-        )
-
   (init-common :use-yasnippet t :use-render-formula t)
   (hs-minor-mode t)
 
@@ -371,7 +364,6 @@ in GROUP-NUMS."
                   (overlay-put ov
                                'display
                                " ... "))))
-
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f6>"    octave-load-current-file)

@@ -26,30 +26,24 @@
                      t))
 
 (defun shell-script-setup ()
+  (init-common :use-yasnippet t :use-whitespace t)
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
-  (setq whitespace-line-column 80)
-  (setq whitespace-style '(tabs lines-tail))
-  (init-common :use-yasnippet t :use-whitespace t)
+  (setf whitespace-line-column 80
+        whitespace-style '(tabs lines-tail))
   (setq-local yas-indent-line 'fixed)
   (which-function-mode -1)
-
-  (setq vim:insert-mode-local-keymap (make-sparse-keymap)
-        vim:normal-mode-local-keymap (make-sparse-keymap))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("M-/" icicle-comint-dynamic-complete-filename))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>"  shell-run-file)
-    ("M-/" icicle-comint-dynamic-complete-filename)))
+    ("M-/"   icicle-comint-dynamic-complete-filename)))
 
 
 (defun shell-setup ()
-  (setf vim:normal-mode-local-keymap (make-keymap)
-        vim:insert-mode-local-keymap (make-sparse-keymap))
-
-  (init-repl :show-directory t)
+  (init-repl :show-directory t :create-keymaps t)
   (linum-mode 1)
   (ansi-color-for-comint-mode-on)
 

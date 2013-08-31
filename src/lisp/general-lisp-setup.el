@@ -682,13 +682,6 @@ This command assumes point is not in a string or comment."
 
 (defun* lisp-setup (&key (use-whitespace t)
                          (use-cl-indent nil))
-  (setf vim:normal-mode-local-keymap              (make-keymap)
-        vim:visual-mode-local-keymap              (make-sparse-keymap)
-        vim:insert-mode-local-keymap              (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap    (make-sparse-keymap)
-        vim:motion-mode-local-keymap              (make-sparse-keymap)
-        vim:complex-command-override-local-keymap (make-sparse-keymap))
-
   (init-common :use-yasnippet nil
                :use-whitespace use-whitespace
                :use-render-formula t)

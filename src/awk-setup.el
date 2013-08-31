@@ -18,9 +18,6 @@
   (modify-syntax-entry ?\/ "\"")
   (add-hook 'after-save-hook #'make-script-file-exec)
 
-  (setq vim:insert-mode-local-keymap (make-sparse-keymap)
-        vim:normal-mode-local-keymap (make-sparse-keymap))
-
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-SPC" icicle-comint-dynamic-complete-filename)
     ("g t"   c-awk-end-of-defun)
