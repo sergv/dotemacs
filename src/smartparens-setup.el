@@ -18,6 +18,7 @@
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
       sp-autoskip-closing-pair 'always
+      sp-autoinsert-if-followed-by-word t
       sp-ignore-modes-list (append sp-ignore-modes-list
                                    '(ibuffer-mode
                                      ediff-mode
@@ -94,6 +95,15 @@
   (sp-local-tag  "<" "<_>" "</_>" :transform 'sp-match-sgml-tags))
 
 (sp-local-pair 'awk-mode "/" "/")
+
+;; /* */ is needed by c mode (and related ones) only
+(sp-pair "/*" nil :actions nil)
+
+(sp-with-modes '(c-mode
+                 c++-mode
+                 java-mode
+                 awk-mode)
+  (sp-local-pair "/*" "*/" :actions '(insert wrap)))
 
 (def-keys-for-map smartparens-mode-map
   ("<return>" sp-newline))
