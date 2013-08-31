@@ -178,11 +178,6 @@ Also propagate new offset to `vim:shift-width'."
   (c-toggle-electric-state -1)
   (c-toggle-auto-newline -1)
 
-  (setq vim:normal-mode-local-keymap           (make-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap))
-
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g TAB" c-indent-defun)
 

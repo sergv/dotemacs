@@ -23,10 +23,6 @@
 (defun prolog-setup ()
   (init-common :use-yasnippet nil :use-render-formula t)
 
-  (setf ;; vim:insert-mode-local-keymap (make-sparse-keymap)
-   ;; vim:visual-mode-local-keymap (make-sparse-keymap)
-   vim:normal-mode-local-keymap (make-sparse-keymap))
-
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g <tab>" prolog-indent-predicate)
     (", e"     prolog-consult-predicate)
@@ -48,11 +44,8 @@
 ;;;
 
 (defun prolog-inferior-setup ()
-  (setf vim:normal-mode-local-keymap (make-sparse-keymap)
-        vim:insert-mode-local-keymap (make-sparse-keymap))
-
   (init-common :use-yasnippet nil :use-nxhtml-menu nil :use-comment nil)
-  (init-repl)
+  (init-repl :create-keymaps nil)
 
   ;; changed in prolog.el itself
   ;; (modify-syntax-entry ?_ "_" prolog-mode-syntax-table)

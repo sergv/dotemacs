@@ -204,12 +204,7 @@
        :move-to-property-end t)
 
      (defun eshell-setup ()
-       (setf vim:normal-mode-local-keymap           (make-keymap)
-             vim:insert-mode-local-keymap           (make-sparse-keymap)
-             vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-             vim:motion-mode-local-keymap           (make-sparse-keymap))
-
-       (init-repl :show-directory t :bind-return nil)
+       (init-repl :show-directory t :bind-return nil :create-keymaps t)
 
        (setq autopair-dont-activate t)
        (linum-mode t)

@@ -36,9 +36,10 @@
 ;;         ad-do-it))))
 
 (defun haskell-setup ()
-  (setf vim:normal-mode-local-keymap (make-keymap)
-        vim:visual-mode-local-keymap (make-sparse-keymap)
-        vim:insert-mode-local-keymap (make-sparse-keymap))
+  (init-common :use-yasnippet t
+               :use-nxhtml-menu nil
+               :use-comment t
+               :use-render-formula t)
 
   ;; ghci interaction uses comint - same as shell mode
   (turn-on-font-lock)
@@ -56,10 +57,6 @@
 
   (modify-syntax-entry ?\` "\"")
 
-  (init-common :use-yasnippet t
-               :use-nxhtml-menu nil
-               :use-comment t
-               :use-render-formula t)
   (setq-local yas-indent-line 'fixed)
   ;; (turn-on-haskell-indentation)
   ;; (setf haskell-indentation-cycle-warn nil)
@@ -166,15 +163,12 @@
 ;;;; set up inferior-haskell-mode
 
 (defun inferior-haskell-mode-setup ()
-  (setf vim:normal-mode-local-keymap (make-keymap)
-        vim:insert-mode-local-keymap (make-sparse-keymap))
-
   ;; undo-tree is useless for ghci interaction
   ;; well I'm not sure now, I hope it's useful since it proved itself useful
   ;; for other repls
   ;; (undo-tree-mode -1)
   (init-common :use-comment nil :use-yasnippet nil)
-  (init-repl)
+  (init-repl :create-keymaps nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
