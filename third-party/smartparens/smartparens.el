@@ -298,6 +298,7 @@ This function is also used as a setter for this customize value."
   (sp--set-base-key-bindings)
   (sp--populate-keymap value))
 
+;;;###autoload
 (defcustom sp-base-key-bindings nil
   "A default set of key bindings for commands provided by smartparens.
 
@@ -319,6 +320,7 @@ binding for all the provided commands."
   :set 'sp--set-base-key-bindings
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-override-key-bindings nil
   "An alist of bindings and commands that should override the base key set.
 
@@ -689,6 +691,7 @@ after the smartparens indicator in the mode list."
   turn-on-smartparens-strict-mode
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-ignore-modes-list '(
                                   minibuffer-inactive-mode
                                   )
@@ -823,7 +826,7 @@ Additionally, buffers on `sp-ignore-modes-list' are ignored.
 You can still turn on smartparens in these mode manually (or
 in mode's startup-hook etc.) by calling `smartparens-mode'."
   (interactive)
-  (unless (or (member major-mode sp-ignore-modes-list)
+  (unless (or (memq major-mode sp-ignore-modes-list)
               (and (not (derived-mode-p 'comint-mode))
                    (eq (get major-mode 'mode-class) 'special)))
     (smartparens-mode t)))
@@ -835,6 +838,7 @@ in mode's startup-hook etc.) by calling `smartparens-mode'."
   (smartparens-mode -1))
 
 ;; insert custom
+;;;###autoload
 (defcustom sp-autoinsert-pair t
   "If non-nil, autoinsert pairs.  See `sp-insert-pair'."
   :type 'boolean
@@ -868,6 +872,8 @@ followed by closing pair?\", t = yes."
  'sp-autoinsert-quote-if-followed-by-closing-pair
  "the option was removed and no longer has any effect." "1.10")
 
+
+;;;###autoload
 (defcustom sp-autoskip-closing-pair 'always-end
   "Determine the behaviour when skipping closing delimiters.
 
@@ -898,6 +904,7 @@ See also `sp-skip-closing-pair'."
   :group 'smartparens)
 (make-variable-buffer-local 'sp-autoskip-closing-pair)
 
+;;;###autoload
 (defcustom sp-autoskip-opening-pair nil
   "Determine the behaviour when skipping opening delimiters.
 
@@ -907,7 +914,9 @@ instead of inserting a new pair."
   :group 'smartparens)
 (make-variable-buffer-local 'sp-autoskip-opening-pair)
 
+
 ;; TODO: rename to reflect what this actually does
+;;;###autoload
 (defcustom sp-cancel-autoskip-on-backward-movement t
   "If non-nil, deactivate the active expression on backward movement.
 
@@ -919,21 +928,25 @@ See also `sp-skip-closing-pair'."
   :group 'smartparens)
 
 ;; delete custom
+;;;###autoload
 (defcustom sp-autodelete-pair t
   "If non-nil, auto delete pairs.  See `sp-delete-pair'."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-autodelete-closing-pair t
   "If non-nil, auto delete the whole closing-pair.  See `sp-delete-pair'."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-autodelete-opening-pair t
   "If non-nil, auto delete the whole opening-pair.  See `sp-delete-pair'."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-undo-pairs-separately nil
   "If non-nil, put an `undo-boundary' before each inserted pair.
 
@@ -961,6 +974,7 @@ In the description, we consider more than one space
   :group 'smartparens)
 
 ;; wrap custom
+;;;###autoload
 (defcustom sp-autowrap-region t
   "If non-nil, wrap the active region with pair."
   :type 'boolean
@@ -971,6 +985,7 @@ In the description, we consider more than one space
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-autodelete-wrap t
   "If non-nil, autodelete opening and closing pair of most recent wrapping.
 
@@ -979,6 +994,7 @@ insertion, otherwise normal behaviour is applied."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-wrap-repeat-last 1
   "Context in which smartparens repeats the last wrap.
 
@@ -991,6 +1007,7 @@ wrap on this region with current pair."
           (const :tag "Always repeat if the point is after the opening/closing delimiter of last wrapped region" 2))
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-wrap-entire-symbol nil
   "If non-nil, do NOT wrap the entire symbol, only the part after point.
 
@@ -1014,6 +1031,7 @@ Examples:
           (repeat :tag "Disable in these major modes" symbol))
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-wrap-from-point nil
   "If non-nil, do not wrap from the beginning of next expression but from point.
 
@@ -1047,6 +1065,7 @@ position (before or after the region).
   :group 'smartparens)
 
 ;; escaping custom
+;;;###autoload
 (defcustom sp-escape-wrapped-region t
   "If non-nil, escape special chars inside the just wrapped region."
   :type 'boolean
@@ -1058,6 +1077,7 @@ position (before or after the region).
   :group 'smartparens)
 
 ;; navigation & manip custom
+;;;###autoload
 (defcustom sp-navigate-consider-sgml-tags '(
                                             html-mode
                                             )
@@ -1065,6 +1085,7 @@ position (before or after the region).
   :type '(repeat symbol)
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-navigate-consider-stringlike-sexp '(
                                                   latex-mode
                                                   )
@@ -1083,6 +1104,7 @@ start of list item (unary) OR emphatic text (binary)."
                         "It no longer has any effect, strings are now enabled globally."
                         "1.8")
 
+;;;###autoload
 (defcustom sp-navigate-use-textmode-stringlike-parser '((derived . text-mode))
   "List of modes where textmode stringlike parser is used.
 
@@ -1098,6 +1120,7 @@ where PARENT-MODE is checked using `derived-mode-p'."
                     (symbol :tag "Parent major mode name"))))
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-navigate-consider-symbols t
   "If non-nil, consider symbols outside balanced expressions as such.
 
@@ -1114,6 +1137,7 @@ compatibility and will be removed in the next major release."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-navigate-comments-as-sexps t
   "If non-nil, consider comments as sexps in `sp-get-enclosing-sexp'.
 
@@ -1123,6 +1147,7 @@ never automatically closed (see `sp-navigate-close-if-unbalanced')."
   :group 'smartparens)
 
 ;; TODO: add -alist suffix
+;;;###autoload
 (defcustom sp-navigate-skip-match `(
                                     (,sp-lisp-modes . sp--elisp-skip-match)
                                     )
@@ -1144,6 +1169,7 @@ use :skip-match option in `sp-local-pair'."
           :value-type symbol)
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-navigate-reindent-after-up `(
                                            (interactive
                                             ,@sp-lisp-modes
@@ -1166,6 +1192,7 @@ command was called programatically."
           :value-type (repeat symbol))
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-navigate-reindent-after-up-in-string t
   "If non-nil, `sp-up-sexp' will reindent inside strings.
 
@@ -1175,6 +1202,7 @@ reindent the current (string) sexp or not."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-navigate-close-if-unbalanced nil
   "If non-nil, insert the closing pair of the un-matched pair on `sp-up-sexp'.
 
@@ -1338,16 +1366,19 @@ The value of `comment-start' is used if the major mode is not found."
   :group 'smartparens)
 
 ;; ui custom
+;;;###autoload
 (defcustom sp-highlight-pair-overlay t
   "If non-nil, autoinserted pairs are highlighted while point is inside the pair."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-highlight-wrap-overlay t
   "If non-nil, wrap overlays are highlighted during editing of the wrapping pair."
   :type 'boolean
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-highlight-wrap-tag-overlay t
   "If non-nil, wrap tag overlays are highlighted during editing of the wrapping tag pair."
   :type 'boolean
@@ -8027,6 +8058,7 @@ With non-nil ARG return number of characters skipped."
 
 (put 'sp-backward-whitespace 'CUA 'move)
 
+;;;###autoload
 (defun sp-split-sexp (arg)
   "Split the list or string the point is on into two.
 
@@ -8115,6 +8147,7 @@ Return the information about resulting expression."
               :prefix (sp-get prev :prefix)))
     (sp-message :different-type)))
 
+;;;###autoload
 (defun sp-join-sexp (&optional arg)
   "Join the sexp before and after point if they are of the same type.
 
@@ -8940,11 +8973,13 @@ comment."
   "Show smartparens minor mode."
   :group 'smartparens)
 
+;;;###autoload
 (defcustom sp-show-pair-delay 0.125
   "Time in seconds to delay before showing a matching pair."
   :type '(number :tag "seconds")
   :group 'show-smartparens)
 
+;;;###autoload
 (defcustom sp-show-enclosing-pair-commands '(
                                              sp-show-enclosing-pair
                                              sp-forward-slurp-sexp
@@ -8958,6 +8993,7 @@ After the next command the pair will automatically disappear."
   :type '(repeat symbol)
   :group 'show-smartparens)
 
+;;;###autoload
 (defcustom sp-show-pair-from-inside nil
   "If non-nil, highlight the enclosing pair if immediately after
 the opening delimiter or before the closing delimiter."
@@ -9011,7 +9047,7 @@ support custom pairs."
 (defun turn-on-show-smartparens-mode ()
   "Turn on `show-smartparens-mode'."
   (interactive)
-  (unless (or (member major-mode sp-ignore-modes-list)
+  (unless (or (memq major-mode sp-ignore-modes-list)
               (and (not (derived-mode-p 'comint-mode))
                    (eq (get major-mode 'mode-class) 'special)))
     (show-smartparens-mode t)))
