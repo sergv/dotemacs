@@ -82,12 +82,6 @@
 
 
 (defun latex-setup ()
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap))
-
   (init-common)
   (tex-fold-mode 1)
 

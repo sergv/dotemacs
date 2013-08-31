@@ -56,6 +56,14 @@
     makefile-mode
     makefile-makepp-mode))
 
+(defun vim:bind-local-keymaps ()
+  (setf vim:normal-mode-local-keymap              (make-keymap)
+        vim:visual-mode-local-keymap              (make-sparse-keymap)
+        vim:insert-mode-local-keymap              (make-keymap)
+        vim:operator-pending-mode-local-keymap    (make-sparse-keymap)
+        vim:motion-mode-local-keymap              (make-sparse-keymap)
+        vim:complex-command-override-local-keymap (make-sparse-keymap)))
+
 (defun* init-common (&key (use-yasnippet t)
                           (use-nxhtml-menu nil)
                           (use-comment t)
@@ -74,7 +82,7 @@
   ;; so action should be taken to turn it off
   (nxhtml-menu-mode (if use-nxhtml-menu 1 -1))
 
-  (setq undo-tree-visualizer-timestamps    t
+  (setf undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t)
 
   (when use-whitespace
@@ -87,9 +95,11 @@
   (when use-render-formula
     (render-formula-mode 1))
 
+  (vim:bind-local-keymaps)
+
   ;; no need to bind in vim:normal-mode-local-keymap since
   ;; the same will be bound in vim:normal-mode-keymap
-  (def-keys-for-map (;; vim:normal-mode-local-keymap
+  (def-keys-for-map ( ;; vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-("       sp-backward-slurp-sexp)
     ("C-)"       sp-forward-slurp-sexp)
@@ -104,10 +114,13 @@
     ("M-<up>"    sp-splice-sexp-killing-backward)
     ("M-<down>"  sp-splice-sexp-killing-forward)))
 
-(defun* init-repl (&key (show-directory nil) (bind-return t))
+(defun* init-repl (&key (show-directory nil) (bind-return t) (create-keymaps nil))
   (use-repl-modeline :show-directory show-directory)
   (setf *vim:do-not-adjust-point* t)
   (emacs-forget-buffer-process)
+
+  (when create-keymaps
+    (vim:bind-local-keymaps))
 
   (cond ((keymapp bind-return)
          (def-keys-for-map bind-return
@@ -129,7 +142,6 @@
 
 (load-library "all-lisp-setup")
 (load-library "org-mode-autoload")
-;; (load-library "clojure-setup") ;; handled by all-lisp-setup
 (load-library "persistent-sessions")
 
 (load-library "c-like-setup")

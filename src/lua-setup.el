@@ -13,9 +13,6 @@
 
 
 (defun lua-setup ()
-  (setf vim:normal-mode-local-keymap (make-sparse-keymap)
-        vim:insert-mode-local-keymap (make-sparse-keymap))
-
   (init-common :use-yasnippet nil :use-render-formula t)
   (hs-minor-mode 1)
 

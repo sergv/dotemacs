@@ -151,11 +151,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 
 
 (defun markup-setup ()
-  (setf vim:normal-mode-local-keymap           (make-sparse-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap))
-
   (init-common :use-nxhtml-menu t)
   (hl-tags-mode t)
   (foldit-mode -1)
