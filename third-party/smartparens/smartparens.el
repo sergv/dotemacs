@@ -8446,7 +8446,7 @@ This command assumes point is not in a string or comment."
             (point))
           nil t))))
 
-(defun sp-delete-char (&optional arg)
+(defun sp-delete-char (&optional arg do-kill)
   "Delete a character forward or move forward over a delimiter.
 
 If on an opening delimiter, move forward into balanced expression.
@@ -8491,7 +8491,7 @@ Examples:
            ((let ((ok (sp-point-in-empty-sexp)))
               (when ok
                 (backward-char (length (car ok)))
-                (delete-char (+ (length (car ok)) (length (cdr ok)))))
+                (delete-char (+ (length (car ok)) (length (cdr ok))) do-kill))
               ok)
             ;; make this customizable
             (setq n (1- n)))
@@ -8506,8 +8506,8 @@ Examples:
                  ((= (sp-get thing :beg) (point))
                   (goto-char (sp-get thing :beg-in)))
                  (t
-                  (delete-char (length (match-string 0)))))
-              (delete-char (length (match-string 0))))
+                  (delete-char (length (match-string 0)) do-kil)))
+              (delete-char (length (match-string 0)) do-kill))
             ;; make this customizable
             (setq n (1- n)))
            ((and (not (sp-point-in-string))
@@ -8520,18 +8520,26 @@ Examples:
                 ;; make this customizable -- maybe we want to skip and
                 ;; continue deleting
                 (setq n 0)
-              (delete-char (length (match-string 0)))
+              (delete-char (length (match-string 0)) do-kill)
               (setq n (1- n))))
            ((bound-and-true-p hungry-delete-mode)
             (hungry-delete-forward 1)
             (setq n (1- n)))
            (t
-            (delete-char 1)
+            (delete-char 1 do-kill)
             (setq n (1- n))))))
-       ((= n 0) (delete-char 1))
-       (t (sp-backward-delete-char (sp--negate-argument arg)))))))
+       ((= n 0) (delete-char 1 do-kill))
+       (t (sp-backward-delete-char (sp--negate-argument arg) do-kill))))))
 
-(defun sp-backward-delete-char (&optional arg)
+(defun sp-kill-char (&optional arg)
+  (interactive "P")
+  (sp-delete-char arg t))
+
+(defun sp-backward-kill-char (&optional arg)
+  (interactive "P")
+  (sp-backward-delete-char arg t))
+
+(defun sp-backward-delete-char (&optional arg do-kill)
   "Delete a character backward or move backward over a delimiter.
 
 If on a closing delimiter, move backward into balanced expression.
@@ -8617,7 +8625,7 @@ Examples:
               (delete-char -1)
               (setq n (1- n))))))
          ((= n 0) (delete-char -1))
-         (t (sp-delete-char (sp--negate-argument arg))))))))
+         (t (sp-delete-char (sp--negate-argument arg) do-kill)))))))
 
 (put 'sp-backward-delete-char 'delete-selection 'supersede)
 (put 'sp-delete-char 'delete-selection 'supersede)
