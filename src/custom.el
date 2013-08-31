@@ -436,11 +436,13 @@ up by functions in compilation-finish-functions.")
 (defun start-terminal-emulator ()
   "Start suitable terminal emulator in folder associated with current buffer."
   (interactive)
-  (custom/run-first-matching-exec '("exo-open"
-                                    "xfce4-terminal"
+  (custom/run-first-matching-exec '("xfce4-terminal"
+                                    "exo-open"
                                     "konsole"
                                     ;; "gnome-terminal"
                                     )))
+
+(defalias 'run-terminal-emulator 'start-terminal-emulator)
 
 ;;;; rotate list functions, very old...
 

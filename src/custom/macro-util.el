@@ -298,7 +298,7 @@ in the same directory the current file is."
                            (progn
                              ,@(funcall process-key-command-list map key-command-list))
                            ;; don't silently ignore potential problems
-                           (message ,(format "warning: map %s is nil" map))))))
+                           (error ,(format "warning: map %s is nil" map))))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
                mode-map

@@ -19,25 +19,16 @@ otherwise."
                              nil)))
 
 (defun snippet-setup ()
-  (setf vim:normal-mode-local-keymap (make-sparse-keymap))
+  (init-common :use-yasnippet nil)
 
-  ;; don't use init-common here ;; upd: why?
-  (linum-mode 1)
-  (comment-util-mode 1)
-
-  (setf undo-tree-visualizer-timestamps    t
-        undo-tree-visualizer-parent-buffer t
-        case-fold-search nil)
-
-  (def-keys-for-map vim:normal-mode-local-keymap
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     snippet-mode-map)
     ("<f9>"    yas-load-snippet-buffer-no-kill)
     ("S-<f9>"  yas-tryout-snippet))
 
   (def-keys-for-map snippet-mode-map
     ("C-c C-c" nil)
-    ("C-c C-t" nil)
-    ("<f9>"    yas-load-snippet-buffer-no-kill)
-    ("S-<f9>"  yas-tryout-snippet)))
+    ("C-c C-t" nil)))
 
 
 (provide 'snippet-setup)

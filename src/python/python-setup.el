@@ -276,17 +276,10 @@ in the current *Python* session."
 
 
 (defun inferior-python-setup ()
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        ;; vim:visual-mode-local-keymap           (make-keymap)
-        vim:insert-mode-local-keymap           (make-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-        ;; vim:motion-mode-local-keymap           (make-keymap)
-        )
-
   (init-common :use-yasnippet nil
                :use-comment nil
                :use-nxhtml-menu nil)
-  (init-repl)
+  (init-repl :create-keymaps nil)
   (comint-setup)
   (comint-read-input-ring t)
 

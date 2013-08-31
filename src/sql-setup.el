@@ -12,12 +12,6 @@
      (load-library "sql-indent")))
 
 (defun sql-setup ()
-  (setf vim:normal-mode-local-keymap           (make-keymap)
-        vim:visual-mode-local-keymap           (make-sparse-keymap)
-        vim:insert-mode-local-keymap           (make-sparse-keymap)
-        vim:motion-mode-local-keymap           (make-sparse-keymap)
-        vim:operator-pending-mode-local-keymap (make-sparse-keymap))
-
   (init-common)
 
   (def-keys-for-map vim:normal-mode-lockal-keymap

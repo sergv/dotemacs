@@ -29,13 +29,7 @@
 on current line. See `term-bol'.")
 
      (defun term-setup ()
-       (setf vim:normal-mode-local-keymap           (make-sparse-keymap)
-             vim:insert-mode-local-keymap           (make-sparse-keymap)
-
-             ;; vim:visual-mode-local-keymap           (make-keymap)
-             ;; vim:operator-pending-mode-local-keymap (make-sparse-keymap)
-             ;; vim:motion-mode-local-keymap           (make-sparse-keymap)
-             )
+       (vim:bind-local-keymaps)
 
        (def-keys-for-map vim:normal-mode-local-keymap
          ("^" vim:term-bol-motion)
