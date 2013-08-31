@@ -207,7 +207,8 @@ If NONDIR-ONLY? is specified then insert only nondirectory part will be
 inserted."
   (interactive "P")
   (let* ((path (funcall (if nondir-only?
-                          #'file-name-nondirectory
+                          (comp #'file-name-nondirectory
+                                #'strip-trailing-slash)
                           #'identity)
                         (expand-file-name
                          (icicle-read-file-name "" nil ""))))
