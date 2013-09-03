@@ -16,7 +16,10 @@
   (cc-setup :define-special-keys nil)
   (setf c-basic-offset 4
         vim:shift-width 4)
-  (setq-local c-indentation-indent-style "java")
+  (setq-local c-indentation-indent-style
+              (if (platform-use? 'work)
+                "java"
+                "java-clojure"))
 
   (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"

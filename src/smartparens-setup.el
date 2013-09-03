@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'smartparens)
+(require 'macro-util)
 
 (smartparens-global-mode 1)
 
@@ -49,6 +50,44 @@
                                      nrepl-popup-buffer-mode
                                      nrepl-macroexpansion-minor-mode
                                      nrepl-interaction-mode)))
+
+;; these two are the same ones used for paredit
+(defadvice sp-forward-slurp-sexp
+  (after
+   sp-forward-slurp-sexp-remove-initial-whitespace
+   activate
+   compile)
+  (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
+             (whitespace-charp (char-after)))
+    (delete-whitespaces-forward)))
+
+(defadvice sp-backward-slurp-sexp
+  (after
+   sp-backward-slurp-sexp-remove-initial-whitespace
+   activate
+   compile)
+  (when (and (lisp-pos-is-end-of-sexp? (point))
+             (whitespace-charp (char-before)))
+    (delete-whitespaces-backward)))
+
+
+
+(defun sp-backward-up-sexp (&optional arg interactive)
+  "Move backward one level of parenthesis.
+
+With negative argument move forward, still one level out."
+  (interactive "p\np")
+  (sp-up-sexp (if (not (null? arg)) (- arg) -1) interactive))
+
+(vimmize-motion sp-backward-up-sexp
+                :name vim:backward-up-sexp
+                :exclusive t
+                :do-not-adjust-point t)
+
+(vimmize-motion sp-up-sexp
+                :name vim:up-sexp
+                :exclusive t
+                :do-not-adjust-point t)
 
 
 ;; do not autoinsert ' pair if the point is preceeded by word.  This
