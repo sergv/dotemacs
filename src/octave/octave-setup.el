@@ -406,7 +406,9 @@ in GROUP-NUMS."
 
 (defun inferior-octave-setup ()
   (init-common :use-yasnippet nil :use-nxhtml-menu nil :use-comment nil)
-  (init-repl :bind-return inferior-octave-mode-map)
+  (init-repl :bind-return (list vim:normal-mode-local-keymap
+                                vim:insert-mode-local-keymap
+                                inferior-octave-mode-map))
   ;; (enable-octave-interpreter-error-detection)
 
   (setf inferior-octave-prompt

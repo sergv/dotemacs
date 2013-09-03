@@ -380,7 +380,8 @@ up by functions in compilation-finish-functions.")
     (puthash "exo-open"
              (lambda (exec dir)
                (shell-command (join-lines (list exec
-                                                "--launch TerminalEmulator"
+                                                "--launch"
+                                                "TerminalEmulator"
                                                 "--working-directory"
                                                 (shell-quote-argument dir))
                                           " ")))
