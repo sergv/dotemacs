@@ -10,54 +10,75 @@
 
 (defvar c-indentation-indent-styles
   (alist->hash-table
-   '(("c"
-      "--style=linux"
-      "--indent=spaces=8"
-      "--brackets=linux"
-      "--pad-oper"
-      "--pad-header"
-      "--unpad-paren"
-      "--keep-one-line-statements"
-      "--keep-one-line-blocks"
-      "--convert-tabs"
-      "--align-pointer=name"
-      "--mode=c"
-      "--suffix=none"
-      "--lineend=linux")
-     ("sophia"
-      "--style=bsd"          ;; -A2
-      "--brackets=break"     ;; -b
-      "--align-pointer=name" ;; -k2
-      "--formatted"          ;; -Q
-      "--indent=spaces=4"
-      "--pad-oper"
-      "--pad-header"
-      "--unpad-paren"
-      "--indent-namespaces"
-      "--keep-one-line-statements"
-      "--keep-one-line-blocks"
-      "--add-brackets"
-      "--convert-tabs"
-      "--mode=c"
-      "--suffix=none"
-      "--lineend=linux"
-      )
-     ("java"
-      "--style=java"           ;; -A2
-      "--brackets=break"       ;; -b
-      "--align-pointer=middle" ;; -k2
-      "--formatted"            ;; -Q
-      "--indent=spaces=4"
-      "--pad-oper"
-      "--pad-header"
-      "--unpad-paren"
-      "--keep-one-line-statements"
-      "--keep-one-line-blocks"
-      "--add-brackets"
-      "--convert-tabs"
-      "--mode=java"
-      "--suffix=none"
-      "--lineend=linux"))))
+   (filter (comp #'not #'null?)
+           (list ("c-linux"
+                  "--style=linux"
+                  "--indent=spaces=8"
+                  "--brackets=linux"
+                  "--pad-oper"
+                  "--pad-header"
+                  "--unpad-paren"
+                  "--keep-one-line-statements"
+                  "--keep-one-line-blocks"
+                  "--convert-tabs"
+                  "--align-pointer=name"
+                  "--mode=c"
+                  "--suffix=none"
+                  "--lineend=linux")
+
+                 (when (platform-use? 'work)
+                   ("sophia"
+                    "--style=bsd"          ;; -A2
+                    "--brackets=break"     ;; -b
+                    "--align-pointer=name" ;; -k2
+                    "--formatted"          ;; -Q
+                    "--indent=spaces=4"
+                    "--pad-oper"
+                    "--pad-header"
+                    "--unpad-paren"
+                    "--indent-namespaces"
+                    "--keep-one-line-statements"
+                    "--keep-one-line-blocks"
+                    "--add-brackets"
+                    "--convert-tabs"
+                    "--mode=c"
+                    "--suffix=none"
+                    "--lineend=linux"
+                    ))
+                 ("java-standard"
+                  "--style=java"
+                  "--brackets=break"
+                  "--align-pointer=middle"
+                  "--formatted"
+                  "--indent=spaces=4"
+                  "--pad-oper"
+                  "--pad-header"
+                  "--unpad-paren"
+                  "--keep-one-line-statements"
+                  "--keep-one-line-blocks"
+                  "--add-brackets"
+                  "--convert-tabs"
+                  "--mode=java"
+                  "--suffix=none"
+                  "--lineend=linux"
+                  "--indent-namespaces" ;; standard java indents namespaces
+                  )
+                 ("java-clojure"
+                  "--style=java"
+                  "--brackets=break"
+                  "--align-pointer=middle"
+                  "--formatted"
+                  "--indent=spaces=4"
+                  "--pad-oper"
+                  "--pad-header"
+                  "--unpad-paren"
+                  "--keep-one-line-statements"
+                  "--keep-one-line-blocks"
+                  "--add-brackets"
+                  "--convert-tabs"
+                  "--mode=java"
+                  "--suffix=none"
+                  "--lineend=linux")))))
 
 (defvar c-indentation-indent-style "c"
   "Indent style to use.")
