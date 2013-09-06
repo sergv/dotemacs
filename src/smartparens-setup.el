@@ -138,11 +138,22 @@ With negative argument move forward, still one level out."
 ;; /* */ is needed by c mode (and related ones) only
 (sp-pair "/*" nil :actions nil)
 
+(defun cc-mode-open-block (id action context)
+  (when (eq action 'insert)
+    (newline)
+    (newline)
+    (indent-according-to-mode)
+    (previous-line)
+    (indent-according-to-mode)))
+
 (sp-with-modes '(c-mode
                  c++-mode
                  java-mode
                  awk-mode)
-  (sp-local-pair "/*" "*/" :actions '(insert wrap)))
+  (sp-local-pair "/*" "*/" :actions '(insert wrap))
+  (sp-local-pair "{" "}"
+                 :actions '(insert wrap)
+                 :post-handlers '(:add cc-mode-open-block)))
 
 (def-keys-for-map smartparens-mode-map
   ("<return>" sp-newline))
