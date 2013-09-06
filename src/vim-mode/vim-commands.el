@@ -596,7 +596,8 @@ indented according to the current mode."
   (if vim:next-command-negated?
     (begin
       (dotimes (i (or count 1))
-        (split-line)))
+        (split-line))
+      (setf vim:next-command-negated? nil))
     (save-match-data
       (dotimes (i (max 1 (1- (or count 1))))
         (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
