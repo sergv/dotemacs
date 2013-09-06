@@ -90,6 +90,7 @@ all otherwise."
   ;; (def-keys-for-map magit-mode-map
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
+    ("C"               magit-checkout)
     ("r"               magit-refresh)
     ("T"               magit-key-mode-popup-tagging)
     ("SPC"             magit-visit-item-other-window)

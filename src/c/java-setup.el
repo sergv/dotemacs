@@ -18,7 +18,7 @@
         vim:shift-width 4)
   (setq-local c-indentation-indent-style
               (if (platform-use? 'work)
-                "java"
+                "java-standard"
                 "java-clojure"))
 
   (setup-eproj-symbnav)
