@@ -5141,11 +5141,13 @@ returned by `sp-get-sexp'."
             (sp-forward-symbol 1)
             (setq e (point)))
         (sp-skip-forward-to-symbol)
-        (when (= (point) (point-max)) (setq last-or-first t))
-        (sp-forward-symbol 1)
-        (setq e (point))
-        (sp-forward-symbol -1)
-        (setq b (point))))
+        (if (= (point) (point-max))
+            (setq last-or-first t)
+          (progn
+            (sp-forward-symbol 1)
+            (setq e (point))
+            (sp-forward-symbol -1)
+            (setq b (point))))))
     (unless last-or-first
       (list :beg b :end e :op "" :cl "" :prefix (sp--get-prefix b) :suffix (sp--get-suffix e)))))
 
@@ -8932,7 +8934,7 @@ comment."
    ((sp-point-in-comment)
     (if (sp-region-ok-p (point) (point-at-eol))
         (progn (newline-and-indent) (ignore-errors (indent-sexp)))
-      (indent-new-comment-line)))
+      (newline-and-indent)))
    (t
     (newline-and-indent)
     (ignore-errors (indent-sexp)))))
