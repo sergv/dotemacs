@@ -156,6 +156,14 @@ With negative argument move forward, still one level out."
                  :actions '(insert wrap)
                  :post-handlers '(:add cc-mode-open-block)))
 
+(sp-with-modes '(haskell-mode
+                 haskell-c-mode
+                 haskell-cabal-mode
+                 haskell-interactive-mode
+                 inferior-haskell-mode)
+  ;; ' is part of identifiers in Haskell
+  (sp-local-pair "'" nil :actions nil))
+
 (def-keys-for-map smartparens-mode-map
   ("<return>" sp-newline))
 

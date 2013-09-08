@@ -12,7 +12,6 @@
 (require 'custom-predicates)
 (require 'browse-kill-ring-setup)
 
-;; (require 'paredit)
 (require 'align)
 (require 'shell-setup)
 
@@ -52,11 +51,14 @@
   ;; inefficiencies while navigating haskell identifiers
   (setq-local vim:word "[:word:]'")
   (modify-syntax-entry ?_ "_")
+  (modify-syntax-entry ?\' "_")
+  (modify-syntax-entry ?\@ "'")
 
   ;; (setq-local vim:word "[:word:]_'")
 
-  (modify-syntax-entry ?\` "\"")
+  ;; (modify-syntax-entry ?\` "\"")
 
+  (setq-local indent-region-function #'ignore)
   (setq-local yas-indent-line 'fixed)
   ;; (turn-on-haskell-indentation)
   ;; (setf haskell-indentation-cycle-warn nil)
@@ -78,11 +80,11 @@
         haskell-indentation-where-post-offset 2)
 
   (if-buffer-has-file ;; when visiting a file
-    (when (or (file-exist? "./makefile")
+    (setf haskell-has-makefile?
+          (or (file-exist? "./makefile")
               (file-exist? "./Makefile")
               (file-exist? "./MAKEFILE")
-              (file-exist? "./GNUMakefile"))
-      (setf haskell-has-makefile? t))
+              (file-exist? "./GNUMakefile")))
 
     ;; don't ask - just compile
     (setq-local compilation-read-command nil)
@@ -116,17 +118,12 @@
     ("<f6>"    inferior-haskell-load-file)
     ("SPC SPC" switch-to-haskell)
     ("<f9>"    haskell-compile)
-    ("S-<f9>"  hs-lint)
-
-    ;; ("C-<right>" paredit-forward-slurp-sexp)
-    ;; ("C-<left>"  paredit-forward-barf-sexp)
-    ;; ("M-<up>"    paredit-splice-sexp-killing-backward)
-    )
+    ("S-<f9>"  hs-lint))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<tab>"   haskell-simple-indent)
-    ("S-<tab>" haskell-simple-indent-backtab)
+    ("<tab>"           haskell-simple-indent)
+    ("S-<tab>"         haskell-simple-indent-backtab)
     ("<S-iso-lefttab>" haskell-simple-indent-backtab))
 
 
@@ -141,11 +138,7 @@
     ("g a : :" haskell-align-on-double-colons))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("C-="       input-unicode)
-    ;; ("C-<right>" paredit-forward-slurp-sexp)
-    ;; ("C-<left>"  paredit-forward-barf-sexp)
-    ;; ("M-<up>"    paredit-splice-sexp-killing-backward)
-    )
+    ("C-="     input-unicode))
 
   (haskell-setup-folding)
   (haskell-abbrev+-setup)
@@ -188,7 +181,7 @@
     (", h"      haskell-haddock-identifier)
     (", m"      haskell-haddock-module)
     (", ."      haskell-find-definition)
-    ("M-."     haskell-find-definition)
+    ("M-."      haskell-find-definition)
     (", g"      haskell-hoogle-at-point)
     (", y"      haskell-hayoo-at-point))
 
