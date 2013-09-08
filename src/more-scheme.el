@@ -60,9 +60,11 @@
 
 
 (defun any? (pred items)
+  "Returns t if pred returns t for any element of ITEMS."
   (funcall #'some pred items))
 
 (defun all? (pred items)
+  "Returns t if pred returns t for all elements of ITEMS."
   (funcall #'every pred items))
 
 
