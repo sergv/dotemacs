@@ -14,8 +14,8 @@
 
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
-  (setf c-basic-offset 4
-        vim:shift-width 4)
+  (setf c-basic-offset 4)
+  (setq-local vim:shift-width 4)
   (setq-local c-indentation-indent-style
               (if (platform-use? 'work)
                 "java-standard"
