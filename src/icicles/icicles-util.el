@@ -46,8 +46,9 @@
     ("C-M-SPC"           icicle-retrieve-previous-input)
     ("C-SPC"             icicle-erase-minibuffer)
 
-    ("<backspace>"       delete-backward-char)
-    ("S-<backspace>"     backward-delete-word))
+    ("S-<delete>"        delete-whitespace-forward)
+    ("S-<backspace>"     delete-whitespace-backward)
+    ("<backspace>"       delete-backward-char))
 
   (when sexp-keys
     (def-keys-for-map map

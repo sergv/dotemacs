@@ -100,8 +100,8 @@ like \"d w\".")
   ("C-b"     switch-to-prev-buffer-in-window)
   ("M-b"     icicle-buffer)
 
-  ("S-<backspace>" delete-whitespaces-backward)
-  ("S-<delete>"    delete-whitespaces-forward)
+  ("S-<backspace>" delete-whitespace-backward)
+  ("S-<delete>"    delete-whitespace-forward)
   ("C-w"           backward-delete-word)
   ("C-S-w"         backward-delete-word*)
 
@@ -219,8 +219,8 @@ like \"d w\".")
 ;;;; insert mode keybindings
 
 (def-keys-for-map vim:insert-mode-keymap
-  ("S-<backspace>" delete-whitespaces-backward)
-  ("S-<delete>"    delete-whitespaces-forward)
+  ("S-<backspace>" delete-whitespace-backward)
+  ("S-<delete>"    delete-whitespace-forward)
   ("C-w"           backward-delete-word)
   ("C-S-w"         backward-delete-word*)
   ("C-r"           nil)
