@@ -146,7 +146,7 @@ With argument COUNT, do this that many times."
 
 (defalias 'whitespace-charp 'whitespace-char-p)
 
-(defun delete-whitespaces-forward ()
+(defun delete-whitespace-forward ()
   "Delete whitespaces forward until non-whitespace
 character found"
   (interactive)
@@ -154,7 +154,7 @@ character found"
               (whitespace-char-p (char-after)))
     (delete-char 1)))
 
-(defun delete-whitespaces-backward ()
+(defun delete-whitespace-backward ()
   "Delete whitespaces backward until non-whitespace
 character found"
   (interactive)
