@@ -503,7 +503,7 @@ commented parts and leave point unchanged."
       (skip-syntax-forward " >")
       (when (and (not (eobp))
                  (lisp-pos-is-end-of-sexp? (point)))
-        (delete-whitespaces-backward))
+        (delete-whitespace-backward))
 
       (uncomment-region start end)
 
@@ -511,7 +511,7 @@ commented parts and leave point unchanged."
       (skip-syntax-backward " >")
       (when (and (not (bobp))
                  (lisp-pos-is-beginning-of-sexp? (point)))
-        (delete-whitespaces-forward)))))
+        (delete-whitespace-forward)))))
 
 
 (provide 'comment-util)

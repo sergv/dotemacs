@@ -22,7 +22,7 @@
         compile)
        (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
                   (whitespace-charp (char-after)))
-         (delete-whitespaces-forward)))
+         (delete-whitespace-forward)))
 
      (defadvice paredit-backward-slurp-sexp
        (after
@@ -31,7 +31,7 @@
         compile)
        (when (and (lisp-pos-is-end-of-sexp? (point))
                   (whitespace-charp (char-before)))
-         (delete-whitespaces-backward)))
+         (delete-whitespace-backward)))
 
      ;; fix work in comments
      (redefun paredit-newline ()
