@@ -723,12 +723,10 @@ This command assumes point is not in a string or comment."
     (", c u"    comment-util-uncomment-region)
 
     ;; universal align, aligns everything
-    ;; but currently only aligns let's, setq's etc
+    ;; but currently only aligns lets, setqs etc
     ("g a"      nil)
     ("g a a"    realign-let)
     ("g a l"    realign-let)
-
-    ("<return>" sp-newline)
 
     ("z o"      hs-show-block)
     ("z c"      hs-hide-block)
