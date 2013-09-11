@@ -164,9 +164,6 @@ With negative argument move forward, still one level out."
   ;; ' is part of identifiers in Haskell
   (sp-local-pair "'" nil :actions nil))
 
-(def-keys-for-map smartparens-mode-map
-  ("<return>" sp-newline))
-
 ;; (defun smartparens-setup ()
 ;;   (def-keys-for-map ))
 
