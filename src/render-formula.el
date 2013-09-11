@@ -257,7 +257,9 @@ displayed as images.")
       (buffer-substring-no-properties (point-min) (point-max)))))
 
 (defun render-buffer/cleanup-formula-string (formula-str command)
-  "Clean up FORMULA-STR w.r.t. COMMAND."
+  "Clean up FORMULA-STR w.r.t. COMMAND which will be interpreted
+as emacs lisp program that should return list of command cells to be
+carried out on FORMULA-STR."
   (if command
     (let* ((comment (if *comment-util-current-format*
                       (concat "^\\s-*\\(?:"
@@ -269,10 +271,12 @@ displayed as images.")
                                  major-mode)
                         nil)))
            (eval-result
-            (eval `(let* ((comment ,comment)
-                          (strip-comments `((remove ,comment))))
-                     ,(car (read-from-string command)))
-                  t)))
+            (condition-case err
+                (eval `(let* ((comment ,comment)
+                              (strip-comments `((remove ,comment))))
+                         ,(car (read-from-string command)))
+                      t)
+              (end-of-file nil))))
       (unless (list? eval-result)
         (error "command %S evaluated to invalid value: %s"
                command
