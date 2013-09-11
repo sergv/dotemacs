@@ -97,14 +97,18 @@
 
   (vim:bind-local-keymaps)
 
-  ;; no need to bind in vim:normal-mode-local-keymap since
-  ;; the same will be bound in vim:normal-mode-keymap
-  (def-keys-for-map ( ;; vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
+  ;; bind in vim:normal-mode-local-keymap since
+  ;; it will not be bound in vim:normal-mode-keymap because
+  ;; everyone needs different versions, e.g. repls, shells
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("<return>"  sp-newline))
+  (def-keys-for-map vim:insert-mode-local-keymap
     ("C-("       sp-backward-slurp-sexp)
     ("C-)"       sp-forward-slurp-sexp)
     ("M-("       sp-forward-barf-sexp)
     ("M-)"       sp-backward-barf-sexp)
+
+    ("<return>"  sp-newline)
 
     ("M-?"       sp-convolute-sexp)
     ("C-<left>"  sp-backward-slurp-sexp)
