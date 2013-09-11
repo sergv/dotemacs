@@ -131,7 +131,7 @@ entries."
                       (buffer-list))))
           (frame-data
            (window-configuration-printable)))
-      (pp
+      (print
        (list 'sessions/load-from-data
              (list 'quote
                    (list (list 'buffers
