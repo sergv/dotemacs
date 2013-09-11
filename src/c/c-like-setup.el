@@ -68,14 +68,16 @@
      ;;       (remove* "my-java-style" c-style-alist :test #'string=? :key #'first))
      (unless (assoc* "my-java-style" c-style-alist :test #'string=?)
        ;; inherited from linux style
-       (push '("my-java-style"
+       (push `("my-java-style"
                (c-basic-offset . 4)
                (indent-tabs-mode . nil)
                (c-comment-only-line-offset 0 . 0)
                (c-offsets-alist
                 ;; just like in clojure sources
                 (topmost-intro . 0)
-                (inclass . 0)
+                (inclass . ,(if (platform-use? 'work)
+                              '+
+                              0))
                 (arglist-intro . +)
                 (arglist-close . +)
                 (arglist-cont-nonempty c-lineup-gcc-asm-reg c-lineup-arglist)
