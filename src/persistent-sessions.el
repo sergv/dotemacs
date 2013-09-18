@@ -141,6 +141,12 @@ entries."
                          (list 'global-variables
                                (sessions/get-global-variables)))))
        (current-buffer)))
+    (insert "\n\n;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; coding: utf-8
+;; End:")
+
     (write-region (point-min) (point-max) file)
     (make-file-executable file)))
 
