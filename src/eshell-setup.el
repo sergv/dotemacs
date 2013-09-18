@@ -180,6 +180,7 @@
        (save-excursion
          (with-inhibited-read-only
           (forward-line -1)
+          (end-of-line)
           (delete-region (point-min) (line-end-position))
           (delete-char 1))))
 
