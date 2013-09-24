@@ -6,6 +6,8 @@
 ;; Created: Wednesday, 11 April 2012
 ;; Description:
 
+(require 'macro-util)
+
 (define-print-info-skeleton
     octave-debug-message-skeleton
   :doc "Insert call to printf statement to print some variables and messages

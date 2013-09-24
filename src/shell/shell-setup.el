@@ -11,6 +11,7 @@
 
 (require 'custom)
 (require 'comint-setup)
+(require 'shell-script-abbrev+)
 
 (autoload 'shell-command-on-region+ "shell-command+" nil t)
 (fset 'shell-command-on-region 'shell-command-on-region+)
@@ -39,7 +40,8 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>"  shell-run-file)
-    ("M-/"   icicle-comint-dynamic-complete-filename)))
+    ("M-/"   icicle-comint-dynamic-complete-filename))
+  (shell-script-abbrev+-setup))
 
 
 (defun shell-setup ()
