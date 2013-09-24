@@ -8,10 +8,11 @@
 ;; Requirements:
 ;; Status:
 
+(require 'macro-util)
 (require 'common)
 
 (define-print-info-skeleton
-    python-debug-message-skeleton
+    python-info-message-skeleton
   :doc "Insert call to print statement to print some variables and messages while
 interactively prompting for variables/messages."
   :print-begin "print("
@@ -70,7 +71,7 @@ interactively prompting for variables/messages."
                (lambda () (not (point-inside-string-or-comment?))))
          (list "\\<info\\>"
                (list
-                #'python-debug-message-skeleton)
+                #'python-info-message-skeleton)
                (lambda () (not (point-inside-string-or-comment?))))
          ;; print_function
          (list "\\<pr\\(?:i\\(?:nt\\)?\\)?_f\\(?:u\\(?:n\\(?:c\\(?:t\\(?:i\\(?:on?\\)?\\)?\\)?\\)?\\)?\\)?\\>"
