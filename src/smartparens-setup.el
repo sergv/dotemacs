@@ -164,6 +164,28 @@ With negative argument move forward, still one level out."
   ;; ' is part of identifiers in Haskell
   (sp-local-pair "'" nil :actions nil))
 
+(vimmize-function sp-backward-slurp-sexp
+                  :name vim:sp-backward-slurp-sexp)
+(vimmize-function sp-backward-barf-sexp
+                  :name vim:sp-backward-barf-sexp)
+
+(vimmize-function sp-forward-slurp-sexp
+                  :name vim:sp-forward-slurp-sexp)
+(vimmize-function sp-forward-barf-sexp
+                  :name vim:sp-forward-barf-sexp)
+
+(vimmize-function sp-splice-sexp-killing-backward
+                  :name vim:sp-splice-sexp-killing-backward)
+(vimmize-function sp-splice-sexp-killing-forward
+                  :name vim:sp-splice-sexp-killing-forward)
+(vimmize-function sp-splice-sexp-killing-around
+                  :name vim:sp-splice-sexp-killing-around)
+
+(vimmize-function sp-kill-char
+                  :name vim:sp-kill-char)
+(vimmize-function sp-backward-kill-char
+                  :name vim:sp-backward-kill-char)
+
 ;; (defun smartparens-setup ()
 ;;   (def-keys-for-map ))
 
