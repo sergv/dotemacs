@@ -104,7 +104,7 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
                                        (if repeatable
                                          '()
                                          '(nonrepeatable)))
-       ,(if doc doc (format "See `%s'." func-name))
+       ,(if doc doc (format "Vimmized version of `%s'." func-name))
        ,(cond
           ((not (null? call-n-times))
            (let ((counter (gensym)))
@@ -348,6 +348,7 @@ in the same directory the current file is."
      (indent-after-func #'prog-indent-sexp)
      (make-variable-list #'join-lines)
      (msg-transform nil)
+     ;; can be either some constant or function of one argument - user input
      (format-print-value "~a")
      (format-string-start "\"")
      (format-string-end "~%\"")
@@ -359,15 +360,25 @@ solve most of debug print problems of mine.
 
 I want to stress one point here: this macro does not and would never ever
 support debug printing for C++ using cout et al.
+Update: now it can support C++'s std::cout and other, check out
+`shell-script-info-message-skeleton' for inspiration.
 
 MSG-TRANSFORM - function to apply to entered text before inserting it into string,
 will be applied to both variables and messages.
 
 NAME-VALUE-DELIMITER string to be inserted between variable name and it's value."
   (let ((initial-state `(list (point) nil nil))
-        (start-position 'car)
-        (previously-inserted-message 'cadr)
-        (variable-names 'caddr))
+        (start-position #'car)
+        (previously-inserted-message #'cadr)
+        (variable-names #'caddr)
+        (make-func-call (lambda (name)
+                          (cond
+                            ((functionp name)
+                             `(function ,name))
+                            ((list? name)
+                             `(function ,(eval name)))
+                            (else
+                             name)))))
     `(define-skeleton ,name
        ,doc
        nil
@@ -378,13 +389,15 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
        ,format-string-start
        ;; get name of function containing point
        ;; this form evaluates to string which would be function name
-       (funcall #',insert-entity-name-procedure (,start-position v1))
+       (funcall ,(funcall make-func-call insert-entity-name-procedure)
+                (,start-position v1))
        ((let* ((x (read-string-no-default "Variable or message starting with space: "
                                           nil
                                           nil
                                           ""))
                (message? (and (< 0 (length x))
-                              (char= ?\s (aref x 0))))
+                              (or (char= ?\s (aref x 0))
+                                  (char= ?\t (aref x 0)))))
                (result nil))
           (if (< 0 (length x))
             (progn
@@ -397,12 +410,18 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
                          `(funcall ,msg-transform
                                    (replace-regexp-in-string "^[ \t]+" "" x))
                          '(replace-regexp-in-string "^[ \t]+" "" x)))
-                (progn
+                (let ((msg ,(if msg-transform
+                              `(funcall ,(funcall make-func-call msg-transform)
+                                        x)
+                              'x))
+                      (var-name x))
                   (push x (,variable-names v1))
                   (setf result
-                        (concat ,(if msg-transform `(funcall ,msg-transform x) 'x)
+                        (concat msg
                                 ,name-value-delimiter
-                                ,format-print-value))))
+                                ,(if (functionp format-print-value)
+                                   `(funcall ,format-print-value x)
+                                   'x)))))
               ;; if anything was inserted previously then prepend
               ;; ", " or "; " to result
               (when (,previously-inserted-message v1)
@@ -429,7 +448,7 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
        ,(when insert-newline-before-var-list
           ;; print \n only if there are any variable names
           `(when (,variable-names v1) '\n))
-       (funcall #',make-variable-list
+       (funcall ,(funcall make-func-call make-variable-list)
                 (nreverse
                  (remove-if (lambda (str)
                               (= 0 (length str)))
@@ -438,7 +457,7 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
        ,(when indent-after-func
           `(save-excursion
              (goto-char (,start-position v1))
-             (funcall #',indent-after-func))))))
+             (funcall ,(funcall make-func-call indent-after-func)))))))
 
 
 (defmacro* define-repeated-function (orig-func
