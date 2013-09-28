@@ -68,7 +68,8 @@
                           (use-nxhtml-menu nil)
                           (use-comment t)
                           (use-whitespace t)
-                          (use-render-formula nil))
+                          (use-render-formula nil)
+                          (sp-slurp-sexp-insert-space t))
   (linum-mode 1)
   (when use-comment
     (comment-util-mode 1))
@@ -96,6 +97,9 @@
     (render-formula-mode 1))
 
   (vim:bind-local-keymaps)
+  (when (not (eq sp-slurp-sexp-insert-space
+                 sp-forward-slurp-sexp-insert-space))
+    (setq-local sp-forward-slurp-sexp-insert-space sp-slurp-sexp-insert-space))
 
   ;; bind in vim:normal-mode-local-keymap since
   ;; it will not be bound in vim:normal-mode-keymap because
