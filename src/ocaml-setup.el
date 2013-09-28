@@ -41,7 +41,8 @@
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula t
-               :use-whitespace t)
+               :use-whitespace t
+               :sp-slurp-sexp-insert-space nil)
   (def-keys-for-map tuareg-mode-map
     ("SPC SPC" switch-to-ocaml-repl)
     ("<f6>"    tuareg-eval-buffer)))
@@ -59,7 +60,8 @@
   (goto-char (point-max)))
 
 (defun ocaml-interactive-setup ()
-  (init-repl :bind-return nil)
+  (init-repl :bind-return nil
+             :sp-slurp-sexp-insert-space nil)
   (linum-mode 1)
   (def-keys-for-map tuareg-interactive-mode-map
     ("<return>"   ocaml-interactive-send-input)

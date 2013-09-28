@@ -278,7 +278,8 @@ in the current *Python* session."
 (defun inferior-python-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
-               :use-nxhtml-menu nil)
+               :use-nxhtml-menu nil
+               :sp-slurp-sexp-insert-space nil)
   (init-repl :create-keymaps nil)
   (comint-setup)
   (comint-read-input-ring t)
