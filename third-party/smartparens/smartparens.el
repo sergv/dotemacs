@@ -7674,6 +7674,7 @@ Note that to kill only the content and not the enclosing
 delimiters you can use \\[universal-argument] \\[sp-backward-kill-sexp].
 See `sp-backward-kill-sexp' for more information."
   (interactive "p")
+  (setf arg (prefix-numeric-value arg))
   (while (> arg 0)
     (sp-splice-sexp-killing-around '(4))
     (setq arg (1- arg))))
@@ -7696,6 +7697,7 @@ Note that to kill only the content and not the enclosing
 delimiters you can use \\[universal-argument] \\[sp-kill-sexp].
 See `sp-kill-sexp' for more information."
   (interactive "p")
+  (setf arg (prefix-numeric-value arg))
   (while (> arg 0)
     (let ((ok (sp-get-enclosing-sexp 1)))
       (if ok
