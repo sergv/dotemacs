@@ -137,7 +137,8 @@ greater indenation as current line."
 
 (defun python-common-setup ()
   (init-common :use-yasnippet t
-               :use-render-formula t)
+               :use-render-formula t
+               :sp-slurp-sexp-insert-space nil)
 
   ;; ;; make ' a string delimiter
   ;; (modify-syntax-entry ?' "\"")
