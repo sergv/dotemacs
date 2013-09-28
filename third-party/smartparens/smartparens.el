@@ -5829,7 +5829,7 @@ is the last child of the enclosing sexp as defined by
 
 (defun sp--raw-argument-p (arg)
   "Return t if ARG represents raw argument, that is a non-empty list."
-  (and (listp arg) (car arg)))
+  (and (listp arg) arg))
 
 (defun sp--negate-argument (arg)
   "Return the argument ARG but negated.
@@ -6870,6 +6870,12 @@ triggers that `sp-forward-slurp-sexp' does."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; "paredit" operations
 
+;;;###autoload
+(defcustom sp-forward-slurp-sexp-insert-space t
+  "Whether `forward-slurp-sexp' should insert space between items."
+  :type 'boolean
+  :group 'smartparens)
+
 (defun sp-forward-slurp-sexp (&optional arg)
   "Add sexp following the current list in it by moving the closing delimiter.
 
@@ -6903,7 +6909,7 @@ Examples:
   \"foo| bar\" \"baz quux\" -> \"foo| bar baz quux\""
   (interactive "P")
   (if (> (prefix-numeric-value arg) 0)
-      (let ((n (abs (prefix-numeric-value arg)))
+      (let ((n (prefix-numeric-value arg))
             (enc (sp-get-enclosing-sexp))
             (in-comment (sp-point-in-comment))
             next-thing ok)
@@ -6960,7 +6966,8 @@ Examples:
                                           (sp-get ok (+ :cl-l :suffix-l))))
                             ;; only insert space if not inserting it
                             ;; would merge two sexps together
-                            (when (and (sp-get ok (/= :len-in 0))
+                            (when (and sp-forward-slurp-sexp-insert-space
+                                       (sp-get ok (/= :len-in 0))
                                        (sp-compare-sexps
                                         inner-sexp
                                         (sp-get-thing t))
