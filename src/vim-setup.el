@@ -214,7 +214,9 @@ like \"d w\".")
 
   ("g r"      rgrep-region)
   (", s"      vim:replace-selected)
-  ("\""       vim:quote-region))
+  ("\""       vim:quote-region)
+  ("{"        sp--self-insert-command)
+  ("}"        sp--self-insert-command))
 
 ;;;; insert mode keybindings
 
