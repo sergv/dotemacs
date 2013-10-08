@@ -33,6 +33,11 @@
 
 (setf python-indent-offset 4)
 
+(defvar python-exec "python3.3"
+  "Python executable to use for script running.")
+(put 'python-exec 'safe-local-variable #'string?)
+(put 'python-shell-interpreter 'safe-local-variable #'string?)
+
 
 ;; (setf python-shell-buffer-name "python repl"
 ;;       python-shell-interpreter "python3.3" ;; "python2.7"
@@ -230,7 +235,7 @@ in the current *Python* session."
   (interactive (list current-prefix-arg))
   (compilation-start (concat (if use-pypy
                                "pypy"
-                               "python3.3")
+                               python-exec)
                              " "
                              (file-name-nondirectory (buffer-file-name)))
                      #'python-run-mode))

@@ -421,7 +421,7 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
                                 ,name-value-delimiter
                                 ,(if (functionp format-print-value)
                                    `(funcall ,format-print-value x)
-                                   'x)))))
+                                   format-print-value)))))
               ;; if anything was inserted previously then prepend
               ;; ", " or "; " to result
               (when (,previously-inserted-message v1)
