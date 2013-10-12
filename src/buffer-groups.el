@@ -23,6 +23,19 @@
                        (mode . magit-wazzup-mode)
                        (mode . gitignore-mode)
                        (name . ,(rx bol "*magit" (* nonl) "*" eol))))
+       (haskell-filter `(or (mode . haskell-mode)
+                            (mode . inferior-haskell-mode)
+                            (mode . inferior-hugs-mode)
+                            (mode . haskell-hugs-mode)
+                            (mode . ghc-core-mode)
+                            (mode . hugs-mode)
+                            (name . ,(rx "*haskell*"
+                                         (? "<"
+                                            (+ digit)
+                                            ">")))))
+       (hdl-filter `(or (mode . verilog-mode)
+                        (mode . vhdl-mode)
+                        (mode . ucf-mode)))
        (clojure-filter `(or (mode . clojure-mode)
                             (mode . nrepl-mode)
                             (mode . nrepl-popup-buffer-mode)
@@ -129,16 +142,6 @@
                                         (? "<"
                                            (+ digit)
                                            ">")))))
-       (haskell-filter `(or (mode . haskell-mode)
-                            (mode . inferior-haskell-mode)
-                            (mode . inferior-hugs-mode)
-                            (mode . haskell-hugs-mode)
-                            (mode . ghc-core-mode)
-                            (mode . hugs-mode)
-                            (name . ,(rx "*haskell*"
-                                         (? "<"
-                                            (+ digit)
-                                            ">")))))
        (prolog-filter `(or (mode . prolog-mode)
                            (name . ,(rx "*prolog*"
                                         (? "<"
@@ -208,6 +211,7 @@
                                (mode . conf-ppd-mode)
                                (mode . conf-windows-mode)
                                (mode . lua-mode)
+                               (mode . tcl-mode)
                                (mode . autoconf-mode)))
        (utility-filter `(or (name . ,(rx bol (or "*Tags List*") eol))
                             (predicate . (get-buffer-process (current-buffer)))
@@ -234,6 +238,8 @@
                           ;; handle everything
                           (predicate . t))))
     `(("vc"         ,vc-filter)
+      ("haskell"    ,haskell-filter)
+      ("hdl"        ,hdl-filter)
       ("clojure"    ,clojure-filter)
       ("emacs lisp" ,emacs-lisp-filter)
       ("c/c++"      ,c-c++-filter)
@@ -246,7 +252,6 @@
       ("slime"      ,slime-filter)
       ("scheme"     ,scheme-filter)
 
-      ("haskell"    ,haskell-filter)
       ("prolog"     ,prolog-filter)
       ("maxima"     ,maxima-filter)
 

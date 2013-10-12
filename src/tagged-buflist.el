@@ -77,6 +77,21 @@ treated as a list of tags; otherwise it should be list of plain tags."
                               magit-wazzup-mode
                               gitignore-mode)
                :name-regexp (rx bol "*magit" (* nonl) "*" eol)))
+        (list "Haskell"
+              (make-buf-tag-pred
+               :major-modes '(haskell-mode
+                              inferior-haskell-mode
+                              inferior-hugs-mode
+                              haskell-hugs-mode
+                              ghc-core-mode
+                              hugs-mode)
+               :name-regexp (rx "*haskell*"
+                                (? "<" (+ digit) ">"))))
+        (list "HDL"
+              (make-buf-tag-pred
+               :major-modes '(verilog-mode
+                              vhdl-mode
+                              ucf-mode)))
         (list "Clojure"
               (make-buf-tag-pred
                :major-modes '(clojure-mode
@@ -184,16 +199,6 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                          "scheme*")
                                     "* Guile REPL *")
                                 (? "<" (+ digit) ">"))))
-        (list "Haskell"
-              (make-buf-tag-pred
-               :major-modes '(haskell-mode
-                              inferior-haskell-mode
-                              inferior-hugs-mode
-                              haskell-hugs-mode
-                              ghc-core-mode
-                              hugs-mode)
-               :name-regexp (rx "*haskell*"
-                                (? "<" (+ digit) ">"))))
         (list "Prolog"
               (make-buf-tag-pred
                :major-modes '(prolog-mode)
@@ -274,6 +279,7 @@ treated as a list of tags; otherwise it should be list of plain tags."
                               conf-ppd-mode
                               conf-windows-mode
                               lua-mode
+                              tcl-mode
                               autoconf-mode)
                :name-regexp (rx bol
                                 (or "makefile"
