@@ -186,6 +186,9 @@
 ;; (load-library "java-setup") ;; handled by c-like-setup
 (load-library "antlr-setup")
 (load-library "bison-setup")
+(load-library "verilog-setup")
+(load-library "vhdl-setup")
+(load-library "tcl-setup")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
