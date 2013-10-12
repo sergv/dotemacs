@@ -1,0 +1,43 @@
+;; verilog-setup.el --- -*- lexical-binding: t; -*-
+
+;; Copyright (C) Sergey Vinokurov
+;;
+;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Created: Saturday, 12 October 2013
+;; Description:
+
+(require 'common)
+
+;; (autoload 'verilog-mode "verilog-mode")
+
+(setf verilog-indent-level             4
+      verilog-indent-level-module      4
+      verilog-indent-level-declaration 4
+      verilog-indent-level-behavioral  0
+      verilog-indent-level-directive   0
+      verilog-case-indent              0
+      verilog-auto-newline             t
+      verilog-auto-indent-on-newline   t
+      verilog-tab-always-indent        t
+      verilog-auto-endcomments         t
+      verilog-minimum-comment-distance 40
+      verilog-indent-begin-after-if    t
+      verilog-auto-lineup              'all
+      verilog-highlight-p1800-keywords t)
+
+
+(defun verilog-setup ()
+  (init-common :use-yasnippet t
+               :use-comment t
+               :use-render-formula t
+               :use-whitespace t
+               :sp-slurp-sexp-insert-space nil))
+
+(add-hook 'verilog-mode-hook #'verilog-setup)
+
+(provide 'verilog-setup)
+
+;; Local Variables:
+;; End:
+
+;; verilog-setup.el ends here
