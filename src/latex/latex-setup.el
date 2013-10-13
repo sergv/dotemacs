@@ -94,8 +94,23 @@
   ;; compilation setup
   (if-buffer-has-file
     (setq-local compile-command
-                (concat "pdflatex -halt-on-error -shell-escape --file-line-error "
-                        (shell-quote-argument (buffer-file-name))))
+                (let* ((input-file (buffer-file-name))
+                       (result-name (concat
+                                     (file-name-sans-extension
+                                      (file-name-nondirectory input-file))
+                                     ".pdf"))
+                       (tmp-file (concat +tmp-path+ "/" result-name))
+                       (result-file (concat (strip-trailing-slash
+                                             (file-name-directory input-file))
+                                            "/"
+                                            result-name)))
+                  (format
+                   (concat "pdflatex -halt-on-error -shell-escape --file-line-error "
+                           "-output-directory %s %s && cp %s %s")
+                   (shell-quote-argument +tmp-path+)
+                   (shell-quote-argument input-file)
+                   (shell-quote-argument tmp-file)
+                   (shell-quote-argument result-file))))
 
     ;; don't ask - just compile
     (setq-local compilation-read-command nil)
