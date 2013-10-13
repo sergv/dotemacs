@@ -86,6 +86,21 @@ platform OS and usage."
          ;; fallback to make it work in unaccounted scenarios
          (expand-file-name "~"))))
 
+(defun platform-dependent-executable (exec-name)
+  "Return EXEC-NAME, which must be a file name, transformed according to
+conventions of platform this emacs instance is currently running on (
+e.g. add .exe if running on windows).
+
+Note: this function should not be applied for scripts, only for native
+binaries."
+  (let ((final-name (if (platform-os-type? 'windows)
+                      (concat exec-name ".exe")
+                      exec-name)))
+    (unless (file-exists-p final-name)
+      (error "Executable file %s does not exist" final-name))
+    (unless (file-executable-p final-name)
+      (error "Executable file %s does not have executable permissions" final-name))
+    final-name))
 
 (provide 'set-up-platform)
 

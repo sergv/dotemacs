@@ -107,7 +107,8 @@
      (write-region (point-min) (point-max) file)
      (erase-buffer)
      (shell-command
-      (join-lines (append (list (concat +execs-path+ "/astyle.custom"))
+      (join-lines (append (list (platform-dependent-executable
+                                 (concat +execs-path+ "/astyle.custom")))
                           indent-options
                           (list (format "<%s" file)))
                   " ")
