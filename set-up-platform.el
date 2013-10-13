@@ -21,19 +21,22 @@
 Use may be 'home, 'asus-netbook, 'netbook, 'work or something other
 Range of platforms may be expanded (extended?) in the future.")
 
-(let* ((system-type-file-dirs (cond ((eq system-type 'windows-nt)
-                                     '("~"))
-                                    ((memq system-type
-                                           '(gnu gnu/linux gnu/kfreebsd darwin))
-                                     '("/home/sergey" "~"))
-                                    (t
-                                     '("~"))))
-       (system-type-file (find-if (lambda (file)
-                                    (and (file-exists-p file)
-                                         (file-executable-p file)))
-                                  (mapcar (lambda (prefix)
-                                            (concat prefix "/system_type.sh"))
-                                          system-type-file-dirs))))
+(let* ((system-type-file-dirs
+        (cond ((eq system-type 'windows-nt)
+               '("~"))
+              ((memq system-type
+                     '(gnu gnu/linux gnu/kfreebsd darwin))
+               '("/home/sergey" "~"))
+              (t
+               '("~"))))
+       (system-type-file
+        (find-if (lambda (file)
+                   (and (file-exists-p file)
+                        (file-executable-p file)))
+                 (mapcan (lambda (prefix)
+                           (list (concat prefix "/system_type.sh")
+                                 (concat prefix "/system_type.cmd")))
+                         system-type-file-dirs))))
   (setf +platform+
         (cond
           ((not (null system-type-file))
@@ -71,12 +74,14 @@ Range of platforms may be expanded (extended?) in the future.")
          (error "invalid use argument: %s" use))))
 
 (defun platform-dependent-root ()
+  "Retrieve platform-dependent filesystem root for current combination of
+platform OS and usage."
   (cond ((platform-os-type? 'windows)
-         "~")
+         (expand-file-name "~"))
         ((platform-os-type? 'linux)
          (if (platform-use? '(home netbook asus-netbook))
            "/home/sergey"
-           "~"))
+           (expand-file-name "~")))
         (t
          ;; fallback to make it work in unaccounted scenarios
          (expand-file-name "~"))))
