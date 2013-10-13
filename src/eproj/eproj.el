@@ -35,7 +35,8 @@
 
 ;;; ctags facility
 
-(defvar *ctags-exec* (concat +execs-path+ "/ctags"))
+(defvar *ctags-exec*
+  (platform-dependent-executable (concat +execs-path+ "/ctags")))
 
 (defvar *ctags-language-flags*
   '((c-mode
