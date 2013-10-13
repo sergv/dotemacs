@@ -44,16 +44,20 @@
   (concat +emacs-standalone-path+ "/slime" ;;"-2012-01-15"
           ))
 
-(defconst +tmp-path+
-  (concat +prog-data-path+ "/tmp")
+(defconst +tmp-path+ (make-temp-name (if (platform-os-type? 'windows)
+                                       (concat +prog-data-path+ "/tmp")
+                                       "/tmp/emacs-tmp-"))
   "Path to temporary directory, contents of which may be removed on
 system restars.")
 
+(make-directory +tmp-path+ t)
 
-(defun %emacs-boot--strip-trailing-slash (path)
-  (if (char-equal ?\/ (aref path (1- (length path))))
-    (subseq path 0 -1)
-    path))
+(setf temporary-file-directory +tmp-path+
+      small-temporary-file-directory +tmp-path+
+      tramp-auto-save-directory (concat +prog-data-path+ "/tramp"))
+
+
+(defalias 'strip-trailing-slash 'directory-file-name)
 
 (defun %emacs-boot--get-directory-contents (dir)
   (remove-if (lambda (x) (member (file-name-nondirectory x) '("." "..")))
@@ -66,7 +70,7 @@ system restars.")
      (dirp  (lambda (p) nil))
      (do-not-visitp
       (lambda (p)
-        (member* (file-name-nondirectory (%emacs-boot--strip-trailing-slash p))
+        (member* (file-name-nondirectory (strip-trailing-slash p))
                  '("SCCS" "RCS" "CVS" "MCVS" ".svn"
                    ".git" ".hg" ".bzr" "_MTN" "_darcs"
                    "{arch}")
@@ -110,11 +114,11 @@ By default, version-control specific directories are omitted, e.g. .git etc."
       (remove-duplicates
        (append
         (%emacs-boot--find-rec-special (concat +emacs-config-path+ "/src")
-                                       :filep #'(lambda (x) nil)
-                                       :dirp #'(lambda (x) t))
+                                       :filep (lambda (x) nil)
+                                       :dirp (lambda (x) t))
         (%emacs-boot--find-rec-special (concat +emacs-config-path+ "/third-party")
-                                       :filep #'(lambda (x) nil)
-                                       :dirp #'(lambda (x) t))
+                                       :filep (lambda (x) nil)
+                                       :dirp (lambda (x) t))
         load-path)
        :test #'string=))
 

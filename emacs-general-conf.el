@@ -110,10 +110,6 @@
 
 ;;;; bunch of standard customizations
 
-(setf temporary-file-directory (concat +prog-data-path+ "/tmp")
-      tramp-auto-save-directory (concat +prog-data-path+ "/tramp"))
-
-
 (setq-default indent-tabs-mode nil) ;; never use tabs for indentation
 (setq-default cursor-type 'box)     ;; 'bar)
 (setf cursor-type 'box
