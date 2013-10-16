@@ -47,22 +47,29 @@ like \"d w\".")
     ;; short for matching
     ("m"   vim:motion-jump-item)
 
-    ("]"   vim:motion-bwd-paragraph)
-    ("["   vim:motion-fwd-paragraph)
+    ("q"   sp-up-sexp)
+    ("Q"   sp-backward-up-sexp)
+    ("'"   sp-backward-up-sexp)
 
     ("<mouse-1>" vim:mouse-symbol/string/sexp)))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
-  ("k"   vim:motion-search-next)
-  ("K"   vim:motion-search-next-reverse)
+  ("k"  vim:motion-search-next)
+  ("K"  vim:motion-search-next-reverse)
 
   ("is" vim:motion-inner-symbol)
   ("as" vim:motion-outer-symbol)
-  ("s"  vim:motion-inner-symbol))
+  ("s"  vim:motion-inner-symbol)
+
+  ("]"  vim:motion-bwd-paragraph)
+  ("["  vim:motion-fwd-paragraph))
 
 (def-keys-for-map vim:motion-mode-keymap
-  ("k"   vim:motion-search-next)
-  ("K"   vim:motion-search-next-reverse))
+  ("k" vim:motion-search-next)
+  ("K" vim:motion-search-next-reverse)
+
+  ("]" vim:motion-bwd-paragraph)
+  ("[" vim:motion-fwd-paragraph))
 
 
 (def-keys-for-map (vim:normal-mode-keymap
@@ -71,11 +78,6 @@ like \"d w\".")
   ("n"       vim:motion-up)
   ("s"       vim:motion-right)
   ("l"       vim:cmd-change-char)
-
-  ;; names of these two functions are swapped for unknown reason
-  ;; anyway, so don't change order
-  ("{"       scroll-up)
-  ("}"       scroll-down)
 
   (":"       vim:motion-repeat-last-find)
 
@@ -121,19 +123,13 @@ like \"d w\".")
   ("g j"     nil)
   ("g q"     nil)
   ("M-x"     smex)
-  ("M-X"     smex)
+  ("M-X"     smex-major-mode-commands)
   ("g x"     smex)
   ("g X"     smex-major-mode-commands)
 
+  ("<home>"  vim:motion-bwd-paragraph)
+  ("<end>"   vim:motion-fwd-paragraph)
   (","       nil))
-
-(def-keys-for-map (vim:normal-mode-keymap
-                   vim:visual-mode-keymap
-                   vim:operator-pending-mode-keymap
-                   vim:motion-mode-keymap)
-  ("q" sp-up-sexp)
-  ("Q" sp-backward-up-sexp)
-  ("'" sp-backward-up-sexp))
 
 ;;;; normal mode keybindigs
 
@@ -141,6 +137,12 @@ like \"d w\".")
   ("C-y"       nil)
   (";"         vim:ex-read-command)
   ("`"         minimap-toggle)
+  ("]"         vim:motion-bwd-paragraph)
+  ("["         vim:motion-fwd-paragraph)
+  ;; names of these two functions are swapped for unknown reason
+  ;; anyway, so don't change order
+  ("{"         scroll-up)
+  ("}"         scroll-down)
 
   ("g ("       vim:sp-splice-sexp-killing-backward)
   ("g )"       vim:sp-splice-sexp-killing-forward)
@@ -214,7 +216,9 @@ like \"d w\".")
 
   ("g r"      rgrep-region)
   (", s"      vim:replace-selected)
-  ("\""       vim:quote-region)
+  ("\""       sp--self-insert-command)
+  ("["        sp--self-insert-command)
+  ("]"        sp--self-insert-command)
   ("{"        sp--self-insert-command)
   ("}"        sp--self-insert-command))
 
