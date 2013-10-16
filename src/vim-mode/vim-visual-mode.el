@@ -794,22 +794,6 @@ current line."
               (vim:motion-begin mark-motion)))))
 
 
-(vim:defcmd vim:quote-region (nonrepeatable)
-  (let ((reg-motion (vim:visual-current-motion)))
-    (save-excursion
-      (pcase (vim:motion-type reg-motion)
-        ((or `inclusive `normal)
-         (goto-char (+ 1 (vim:motion-end reg-motion)))
-         (insert "\"")
-         (goto-char (vim:motion-begin reg-motion))
-         (insert "\""))
-        (`linewise
-         (error "linewise mode is not supported yet"))
-        (`block
-            (error "block mode is not supported yet"))))))
-
-
-
 (provide 'vim-visual-mode)
 
 ;; Local Variables:

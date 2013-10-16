@@ -188,21 +188,19 @@ greater indenation as current line."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("g t"    end-of-defun)
-    ("g n"    beginning-of-defun)
+    ("g t"      end-of-defun)
+    ("g n"      beginning-of-defun)
     ("g <up>"   beginning-of-defun)
     ("g <down>" end-of-defun)
 
-    ("<up>"   python-nav-backward-block)
-    ("<down>" python-nav-forward-block)
+    ("<up>"     python-nav-backward-block)
+    ("<down>"   python-nav-forward-block)
 
-    ("="      python-nav-backward-up-list)
-    ("q"      python-nav-up-list)
-    ("<home>" python-backward-sexp)
-    ("<end>"  python-forward-sexp)
+    ("="        python-nav-backward-up-list)
+    ("q"        python-nav-up-list)
 
-    ("*"      search-for-symbol-at-point-forward)
-    ("#"      search-for-symbol-at-point-backward))
+    ("*"        search-for-symbol-at-point-forward)
+    ("#"        search-for-symbol-at-point-backward))
 
   (python-abbrev+-setup)
 
