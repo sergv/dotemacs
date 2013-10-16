@@ -671,8 +671,11 @@ This command assumes point is not in a string or comment."
     ("g t"      glisp/end-of-defun)
     ("g <up>"   glisp/beginning-of-defun)
     ("g <down>" glisp/end-of-defun)
-    ("<home>"   paredit-backward)
-    ("<end>"    paredit-forward)))
+
+    ("<up>"     previous-line)
+    ("<down>"   next-line)
+    ("<left>"   backward-char)
+    ("<right>"  forward-char)))
 
 (defvar *lisp-search-keybindings*
   '(("*" search-for-symbol-at-point-forward)
@@ -750,12 +753,7 @@ This command assumes point is not in a string or comment."
                      vim:visual-mode-local-keymap
                      vim:operator-pending-mode-local-keymap
                      vim:motion-mode-local-keymap)
-    *lisp-vim-movement-keybindings*
-
-    ("<up>"    previous-line)
-    ("<down>"  next-line)
-    ("<left>"  backward-char)
-    ("<right>" forward-char))
+    *lisp-vim-movement-keybindings*)
 
   (def-keys-for-map (vim:motion-mode-local-keymap
                      vim:operator-pending-mode-local-keymap)
