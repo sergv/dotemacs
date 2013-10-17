@@ -253,6 +253,16 @@ positions within (point-min) and (point-max) and not at
                             :end (funcall normalize-pos end)
                             :type type)))
 
+(defun vim:change-motion-begin (motion new-begin)
+  (let ((result (copy-vim:motion motion)))
+    (setf (vim:motion-begin result) new-begin)
+    result))
+
+(defun vim:change-motion-end (motion new-end)
+  (let ((result (copy-vim:motion motion)))
+    (setf (vim:motion-end result) new-end)
+    result))
+
 
 (defun vim:motion-line-count (motion)
   "Returns the number of lines the `motion' covers."
@@ -357,8 +367,7 @@ and the (default) type of the motion."
                             :begin ,current-pos
                             :end (point)
                             :type ,type))))))
-(font-lock-add-keywords 'emacs-lisp-mode '("vim:do-motion"))
-
+(font-lock-add-keywords 'emacs-lisp-mode '("\\_<vim:do-motion\\_>"))
 
 (defun vim:adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
