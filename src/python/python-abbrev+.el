@@ -20,7 +20,7 @@ interactively prompting for variables/messages."
 
   :indent-after-func nil
   :insert-newline-before-var-list nil
-  :msg-transform nil
+  :msg-transform (lambda (x) (replace-regexp-in-string (rx "\"") "\\\"" x))
 
   :format-print-value "{}"
   :format-string-start "\""
