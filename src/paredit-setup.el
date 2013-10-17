@@ -132,14 +132,30 @@ If in a comment and if followed by invalid structure, call
                   :call-n-times t)
 
 
+(defmacro vim:do-motion-with-fixed-motion (fix-func &rest body)
+  "Execute BODY and fix motion returned by it with FIX-FUNC that should take
+two arguments: motion to be fixed and position, stored at the start of BODY's
+execution.
+
+This macro is similar to `vim:do-motion'."
+  (declare (indent 1))
+  (let ((current-pos (gensym))
+        (motion-var (gensym)))
+    `(let ((,current-pos (point))
+           (,motion-var (progn ,@body)))
+       (unless (vim:motion-p ,motion-var)
+         (error "vim:do-motion-with-fixed-motion: BODY hasn't returned motion structure"))
+       (funcall ,fix-func ,motion-var ,current-pos))))
+
+
+;; note: plain lowercase *-word functions are doing fine without
+;; vim:do-motion-with-fixed-motion corrections
 (vim:defmotion vim:paredit-forward-word (inclusive count)
-  (goto-char (paredit-skip-forward-for-kill (point)
-                                            '(?\w)))
+  (goto-char (paredit-skip-forward-for-kill (point) '(?\w)))
   (vim:motion-fwd-word :count count))
 
 (vim:defmotion vim:paredit-forward-word-end (inclusive count)
-  (goto-char (paredit-skip-forward-for-kill (point)
-                                            '(?\w)))
+  (goto-char (paredit-skip-forward-for-kill (point) '(?\w)))
   (vim:motion-fwd-word-end :count count))
 
 (vim:defmotion vim:paredit-backward-word (inclusive count)
@@ -153,42 +169,41 @@ If in a comment and if followed by invalid structure, call
   (vim:motion-bwd-word :count count))
 
 
-
 (vim:defmotion vim:paredit-forward-WORD (inclusive count)
-  (goto-char (paredit-skip-forward-for-kill (point)
-                                            '(?\w ?\_)))
-  (vim:motion-fwd-WORD :count count))
+  (vim:do-motion-with-fixed-motion #'vim:change-motion-begin
+    (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
+    (vim:motion-fwd-WORD :count count)))
 
 (vim:defmotion vim:paredit-forward-WORD-end (inclusive count)
-  (goto-char (paredit-skip-forward-for-kill (point)
-                                            '(?\w ?\_)))
-  (vim:motion-fwd-WORD-end :count count))
+  (vim:do-motion-with-fixed-motion #'vim:change-motion-begin
+    (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
+    (vim:motion-fwd-WORD-end :count count)))
 
 (vim:defmotion vim:paredit-backward-WORD (inclusive count)
-  (goto-char (paredit-skip-backward-for-kill
-              (point)
-              '(?\w ?\_)
-              :forward-word (lambda (count)
-                              (vim:motion-fwd-WORD-end :count count))
-              :backward-word (lambda (count)
-                               (vim:motion-bwd-WORD-end :count count))))
-  (vim:motion-bwd-WORD :count count))
+  (vim:do-motion-with-fixed-motion #'vim:change-motion-begin
+    (goto-char (paredit-skip-backward-for-kill
+                (point)
+                '(?\w ?\_)
+                :forward-word (lambda (count)
+                                (vim:motion-fwd-WORD-end :count count))
+                :backward-word (lambda (count)
+                                 (vim:motion-bwd-WORD-end :count count))))
+    (vim:motion-bwd-WORD :count count)))
 
 
+;; note: symbol-oriented functions are also working fine without
+;; vim:do-motion-with-fixed-motion corrections
 (vim:defmotion vim:paredit-inner-symbol (inclusive count)
-  (goto-char (paredit-skip-forward-for-kill (point)
-                                            '(?\w ?\_)))
+  (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
   (vim:motion-inner-symbol :count count))
 
 (vim:defmotion vim:paredit-outer-symbol (inclusive count)
-  (goto-char (paredit-skip-forward-for-kill (point)
-                                            '(?\w ?\_)))
+  (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
   (vim:motion-outer-symbol :count count))
 
 
 (vim:defmotion vim:paredit-forward-symbol (inclusive count)
-  (goto-char (paredit-skip-forward-for-kill (point)
-                                            '(?\w ?\_)))
+  (goto-char (paredit-skip-forward-for-kill (point) '(?\w ?\_)))
   (vim:motion-fwd-symbol :count count))
 
 (vim:defmotion vim:paredit-forward-symbol-end (inclusive count)
