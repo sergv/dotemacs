@@ -69,12 +69,15 @@
                                                p)
                                        regexp))))))
        (setf eshell-command-completions-alist
-             (append (funcall define-programs '("acroread" "pdf")
+             (append (funcall define-programs
+                              '("acroread" "pdf")
                               "\\.pdf\\'")
-                     (funcall define-programs '("okular")
+                     (funcall define-programs
+                              '("okular")
                               "\\.\\(?:pdf\\|djvu\\|ps\\)\\'")
 
-                     (funcall define-programs '("gcc" "g++" "cc" "CC" "acc" "bcc" "tcc")
+                     (funcall define-programs
+                              '("gcc" "g++" "cc" "CC" "acc" "bcc" "tcc")
                               (rx "."
                                   (or (seq
                                        (regexp "[CcHh]")
@@ -87,13 +90,16 @@
                                       "so")
                                   eot))
 
-                     (funcall define-programs '("readelf" "objdump" "nm")
+                     (funcall define-programs
+                              '("readelf" "objdump" "nm")
                               "\\(?:\\`[^.]*\\|\\.\\(?:[ao]\\|so\\)\\)\\'")
 
-                     (funcall define-programs '("gdb" "dbx" "sdb" "adb")
+                     (funcall define-programs
+                              '("gdb" "dbx" "sdb" "adb")
                               "\\`\\(?:[^.]*\\|a\\.out\\)\\'")
 
-                     (funcall define-programs '("tar" "untar")
+                     (funcall define-programs
+                              '("tar" "untar")
                               (rx (or ".tgz"
                                       ".t7z"
                                       (seq ".tbz"
@@ -105,16 +111,22 @@
                                                   "7z"))))
                                   eos))
 
-                     (funcall define-programs '("ghc" "ghci")
-                              "\\(?:\\.hs\\|\\.lhs\\|\\.hsc\\)\\'")
+                     (funcall define-programs
+                              '("ghc" "ghci")
+                              "\\.\\(?:hs\\|lhs\\|hsc\\)\\'")
 
-                     (funcall define-programs '("stalin" "guile" "csi" "csc" "scheme48" "bigloo")
+                     (funcall define-programs
+                              '("stalin" "guile" "csi" "csc" "scheme48" "bigloo")
                               (eval `(rx "." (or ,@+scheme-file-extensions+) eot)))
 
-                     (funcall define-programs '("python" "pypy" "python2.7" "python3" "ipython")
+                     (funcall define-programs
+                              '("python" "pypy"
+                                "python2.7" "ipython"
+                                "python3" "python3.3" "ipython3")
                               "\\.py\\'")
 
-                     (funcall define-programs '("makeinfo" "texi2dvi" "texi2pdf")
+                     (funcall define-programs
+                              '("makeinfo" "texi2dvi" "texi2pdf")
                               "\\.texi\\'")
 
                      `(("gunzip" . "\\.gz\\'")
@@ -200,12 +212,18 @@
        'face
        'eshell-prompt
        :init
-       (unless (string-match-p "*eshell*\\(?:<[0-9]+>\\)?" (buffer-name))
+       (unless (string-match-p (rx "*eshell*"
+                                   (? "<"
+                                      (+ digit)
+                                      ">"))
+                               (buffer-name))
          (error "Not in the eshell buffer"))
        :move-to-property-end t)
 
      (defun eshell-setup ()
-       (init-repl :show-directory t :bind-return nil :create-keymaps t)
+       (init-repl :show-directory t
+                  :bind-return nil
+                  :create-keymaps t)
 
        (setq autopair-dont-activate t)
        (linum-mode t)
