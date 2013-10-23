@@ -8,6 +8,7 @@
 ;; Requirements:
 ;; Status:
 
+(require 'custom)
 (require 'preview)
 (require 'preview-latex)
 (require 'latex-abbrev+)
@@ -68,17 +69,6 @@
 
 (load-library "latex-outline")
 
-(defun latex-preview-in-okular ()
-  "Preview current buffer's pdf file, if any, in okular program."
-  (interactive)
-  (let ((doc-name (replace-in-string (buffer-file-name) ".tex" ".pdf")))
-    (if (file-existp doc-name)
-      (start-process-shell-command "okular - tex preview"
-                                   nil
-                                   (concat "okular "
-                                           (shell-quote-argument doc-name)))
-      (error "No pdf file found - maybe compilation errors?"))))
-
 
 
 (defun latex-setup ()
@@ -121,7 +111,7 @@
     (setq-local compilation-skip-threshold 0))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("S-<f9>" latex-preview-in-okular)
+    ("S-<f9>" open-buffer-as-pdf)
     ("<f9>"   latex-compile)
     ("<f6>"   latex-toggle-preview-or-russian-spellcheck)
 
