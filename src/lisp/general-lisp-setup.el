@@ -747,7 +747,8 @@ This command assumes point is not in a string or comment."
 
   (def-keys-for-map vim:insert-mode-local-keymap
     (";"        paredit-semicolon)
-    ("C-="      input-unicode))
+    ("C-="      input-unicode)
+    (")"        paredit-close-round))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap
