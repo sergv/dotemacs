@@ -544,7 +544,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
                            (let ((tree-root (cadr-safe item))
                                  (patterns (cddr-safe item)))
                              (assert (and (not (null? tree-root))
-                                          (file-exist? tree-root)
+                                          (file-exists? tree-root)
                                           (file-directory? tree-root))
                                      nil
                                      "Invalid tree root under aux-files/tree clause: %s"

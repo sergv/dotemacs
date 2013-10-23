@@ -26,7 +26,7 @@
       org-agenda-skip-deadline-if-done t
       org-agenda-skip-scheduled-if-done t
       org-agenda-start-on-weekday nil
-      org-agenda-files (filter #'file-exist?
+      org-agenda-files (filter #'file-exists?
                                (list (concat +emacs-config-path+ "/todo.org")
                                      "/home/sergey/projects/todo.org"))
       ;; notes are stored in descending date order - most recent always at top
