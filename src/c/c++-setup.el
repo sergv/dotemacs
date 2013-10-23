@@ -43,7 +43,7 @@
                              (error "No %s subdirectory found while moving upward starting from %s"
                                     needle
                                     file-dir))
-                            ((file-exist? dir)
+                            ((file-exists? dir)
                              path)
                             (t
                              (funcall find-subroot
@@ -60,7 +60,7 @@
                           "."
                           alt-ext))
                  (alt-name-in-same-dir (concat file-dir "/" alternative-name)))
-            (if (file-exist? alt-name-in-same-dir)
+            (if (file-exists? alt-name-in-same-dir)
               (progn
                 (puthash filename alt-name-in-same-dir *c++-related-file-cache*)
                 (puthash alt-name-in-same-dir filename *c++-related-file-cache*)

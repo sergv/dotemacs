@@ -23,7 +23,7 @@ Save buffer if it has assigned file and this file exists on disk."
   (let ((old-functions kill-buffer-query-functions)
         (kill-buffer-query-functions nil))
     (if-buffer-has-file
-      (when (file-existp (buffer-file-name))
+      (when (file-exists? (buffer-file-name))
         (save-buffer)))
     (kill-buffer buffer-or-name)
     (setq kill-buffer-query-functions old-functions)))
@@ -270,11 +270,6 @@ into flat list"
     (list xs)))
 
 ;;;;
-
-(defalias 'file-exist-p 'file-exists-p)
-(defalias 'file-existp 'file-exists-p)
-
-
 
 ;; Originally from stevey, adapted to support moving to a new directory.
 (defun rename-file-and-buffer (new-name)

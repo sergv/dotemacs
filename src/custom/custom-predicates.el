@@ -38,7 +38,6 @@
                      string-prefix-p
 
                      buffer-modified-p
-                     file-existp
                      file-exists-p
                      file-executable-p
                      file-readable-p

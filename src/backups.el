@@ -77,7 +77,7 @@
       (let* ((file (buffer-file-name))
              (dest (path-concat b/backup-directory
                                 (b/make-backup-name file))))
-        (when (file-exist-p file)
+        (when (file-exists? file)
           (copy-file file dest t t t)
           ;; (if (file-exists-p dest)
           ;; (error "make-backup: fatal error: backup file %s already exists"
