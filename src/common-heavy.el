@@ -154,8 +154,8 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
         (message "Files %s and %s" new curr)
         (condition-case err
             (progn
-              (assert (file-exist? new))
-              (if (file-exist? curr)
+              (assert (file-exists? new))
+              (if (file-exists? curr)
                 (if (different-files-fast? new curr)
                   (let ((new-buf  (find-file-noselect new))
                         (curr-buf (find-file-noselect curr)))
