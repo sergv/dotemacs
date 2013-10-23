@@ -238,13 +238,13 @@ MAP is `minibuffer-local-completion-map' or
                                       icicle-S-TAB-completion-methods-alist)
 
 
-(dolist (map (list minibuffer-local-map
-                   minibuffer-local-completion-map
+(dolist (map (list minibuffer-local-completion-map
                    minibuffer-local-must-match-map
                    minibuffer-local-filename-completion-map
                    minibuffer-local-filename-must-match-map
                    minibuffer-local-isearch-map))
   (icicles-util/bind-minibuffer-keys map :sexp-keys nil))
+(icicles-util/bind-minibuffer-keys minibuffer-local-map :sexp-keys t)
 (icicles-util/bind-minibuffer-keys icicle-read-expression-map :sexp-keys t)
 
 (def-keys-for-map icicle-read-expression-map

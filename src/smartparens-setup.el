@@ -20,37 +20,39 @@
       sp-navigate-reindent-after-up nil
       sp-autoskip-closing-pair 'always
       sp-autoinsert-if-followed-by-word t
-      sp-ignore-modes-list (remove 'minibuffer-inactive-mode
-                                   (append sp-ignore-modes-list
-                                           '(ibuffer-mode
-                                             ediff-mode
-                                             emms-playlist-mode
-                                             isearch-mode
-                                             debugger-mode
-                                             compilation-mode
-                                             grep-mode
-                                             occur-mode
-                                             completion-list-mode
-                                             doc-view-mode
-                                             browse-kill-ring-mode
-                                             magit-status-mode
-                                             magit-log-mode
-                                             magit-key-mode
-                                             magit-show-branches-mode
-                                             magit-branch-manager-mode
-                                             magit-commit-mode
-                                             magit-diff-mode
-                                             org-agenda-mode
-                                             image-mode
-                                             calendar-mode
-                                             select-mode
-                                             minimap-mode
-                                             tagged-buflist-mode
+      sp-ignore-modes-list '(;; enable smartparens mode in minibuffer,
+                             ;; and let it bind keys for currently active
+                             ;; pairs, then auxiliary keys later in icicle setup
+                             ;; minibuffer-inactive-mode
+                             ibuffer-mode
+                             ediff-mode
+                             emms-playlist-mode
+                             isearch-mode
+                             debugger-mode
+                             compilation-mode
+                             grep-mode
+                             occur-mode
+                             completion-list-mode
+                             doc-view-mode
+                             browse-kill-ring-mode
+                             magit-status-mode
+                             magit-log-mode
+                             magit-key-mode
+                             magit-show-branches-mode
+                             magit-branch-manager-mode
+                             magit-commit-mode
+                             magit-diff-mode
+                             org-agenda-mode
+                             image-mode
+                             calendar-mode
+                             select-mode
+                             minimap-mode
+                             tagged-buflist-mode
 
-                                             clojure-compilation-mode
-                                             nrepl-popup-buffer-mode
-                                             nrepl-macroexpansion-minor-mode
-                                             nrepl-interaction-mode))))
+                             clojure-compilation-mode
+                             nrepl-popup-buffer-mode
+                             nrepl-macroexpansion-minor-mode
+                             nrepl-interaction-mode))
 
 ;; these two are the same ones used for paredit
 (defadvice sp-forward-slurp-sexp
