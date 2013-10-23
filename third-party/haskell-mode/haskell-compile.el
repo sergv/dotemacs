@@ -74,11 +74,11 @@ The `%s' placeholder is replaced by the current buffer's filename."
      1 (2 . 3) (4 . 5) (6 . nil)) ;; error/warning locus
 
     ;; multiple declarations
-    ("^    \\(?:Declared at:\\|            \\) \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
+    ("^    \\(?:Declared at:\\|            \\) \\(?1:.+?\\.\\(?:hs\\|lhs\\|hsc\\|c2hs\\|x\\|y\\)\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
      1 2 4 0) ;; info locus
 
     ;; this is the weakest pattern as it's subject to line wrapping et al.
-    (" at \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?[)]?$"
+    (" at \\(?1:.+?\\.\\(?:hs\\|lhs\\|hsc\\|c2hs\\|x\\|y\\)\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?[)]?$"
      1 2 (4 . 5) 0)) ;; info locus
   "Regexps used for matching GHC compile messages.
 See `compilation-error-regexp-alist' for semantics.")
