@@ -53,11 +53,6 @@
   (when sexp-keys
     (def-keys-for-map map
       ("\\"        icicle-self-insert)
-      ("("         sp--self-insert-command)
-      (")"         sp--self-insert-command)
-      ("["         sp--self-insert-command)
-      ("]"         sp--self-insert-command)
-      ("\""        sp--self-insert-command)
       ("M-<up>"    sp-splice-sexp-killing-backward)
       ("M-<down>"  sp-splice-sexp-killing-forward)
       ("C-)"       sp-forward-slurp-sexp)
