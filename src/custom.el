@@ -581,6 +581,21 @@ have 'forward or 'backward value."
 
 ;;;;
 
+(defun open-buffer-as-pdf ()
+  "Open current buffer's pdf file, if any, in suitable pdf viewer program
+(e.g. okular for linux)."
+  (interactive)
+  (let ((doc-name (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
+    (if (file-exists? doc-name)
+      (start-process-shell-command "okular - tex preview"
+                                   nil
+                                   (concat "okular"
+                                           " "
+                                           (shell-quote-argument doc-name)))
+      (error "No pdf file found"))))
+
+;;;;
+
 (require 'custom-predicates)
 
 ;; Local Variables:
