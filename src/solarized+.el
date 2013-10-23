@@ -455,6 +455,7 @@ Futher modified by Sergey Vinokurov."
        (match                                ((t (:background ,light-cyan-green-background))))
        (magit-log-graph                      ((t (:foreground ,magenta))))
        (magit-log-sha1                       ((t (:foreground ,orange))))
+       (magit-diff-hunk-header               ((t (:inherit highlight))))
 
        (magit-log-head-label-bisect-bad      ((t (:foreground ,red))))
        (magit-log-head-label-bisect-good     ((t (:foreground ,green))))

@@ -49,6 +49,9 @@
 
 ;;;; magit
 
+;; show refined diffs for selected hunk
+(setf magit-diff-refine-hunk t)
+
 (defadvice magit-log-edit-cleanup
   (before
    magit-log-edit-cleanup-clean-trailing-whitespace
@@ -81,6 +84,11 @@ all otherwise."
   (let ((current-prefix-arg t))
     (call-interactively #'magit-visit-item)))
 
+(defun magit-reminder-note ()
+  "Show note to refresh memory."
+  (interactive)
+  (message "<E> - interactive rebase, <o> - deal with submodules"))
+
 (defun magit-mode-setup ()
   (setf truncate-lines nil)
 
@@ -107,6 +115,7 @@ all otherwise."
     +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
+    ("?"      magit-reminder-note) ;; override "?" from vim search
     ("r"      magit-refresh)
 
     ("p"      magit-key-mode-popup-stashing)
