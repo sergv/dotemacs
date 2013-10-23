@@ -53,6 +53,8 @@
   (when sexp-keys
     (def-keys-for-map map
       ("\\"        icicle-self-insert)
+      ;; in sexp-related situations "''" is quite rare pair
+      ("'"         self-insert-command)
       ("M-<up>"    sp-splice-sexp-killing-backward)
       ("M-<down>"  sp-splice-sexp-killing-forward)
       ("C-)"       sp-forward-slurp-sexp)
