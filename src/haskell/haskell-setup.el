@@ -81,10 +81,10 @@
 
   (if-buffer-has-file ;; when visiting a file
     (setf haskell-has-makefile?
-          (or (file-exist? "./makefile")
-              (file-exist? "./Makefile")
-              (file-exist? "./MAKEFILE")
-              (file-exist? "./GNUMakefile")))
+          (or (file-exists? "./makefile")
+              (file-exists? "./Makefile")
+              (file-exists? "./MAKEFILE")
+              (file-exists? "./GNUMakefile")))
 
     ;; don't ask - just compile
     (setq-local compilation-read-command nil)
