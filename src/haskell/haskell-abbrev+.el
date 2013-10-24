@@ -20,11 +20,16 @@
          (list "^hps?l?n$"                  "hPutStrLn")
          (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
          ;; (cons "main"                       "main = do\n   ")
-         (list "^imp\\(?:ort\\)?$"          "import")
-         (list "^imp\\(?:ort\\)?q$"         "import qualified")
-         (list "^qimp\\(?:ort\\)?$"         "import qualified")
-                                        ;(cons "##"                     "{-#  #-}")
-         ))
+
+         (list "^imp\\(?:ort\\)?$"  "import")
+         (list "^imp\\(?:ort\\)?q$" "import qualified")
+         (list "^qimp\\(?:ort\\)?$" "import qualified")
+         (list "##"
+               (list
+                (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
+         (list "#lang"
+               (list
+                (lambda () (yas-expand-snippet "{-# LANGUAGE $1 #-}$0"))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
