@@ -15,52 +15,57 @@
 (require 'common)
 
 (require 'abbrev+)
+(require 'haskell-compile)
 
 ;;; definitions
 
-;; put it at top of file since it sometimes needs refinement
-(defun make-ghc-command (filename optimize)
-  (join-lines (append
-               (list "ghc"
-                     "-O2"
-                     "-W"
-                     "-Wall"
-                     "-fwarn-monomorphism-restriction"
-                     "-fno-warn-unused-do-bind"
-                     "-fno-warn-type-defaults"
-                     "-fno-warn-name-shadowing"
-                     "-fno-warn-wrong-do-bind"
-                     "--make"
-                     "-main-is"
-                     (file-name-sans-extension filename)
-                     filename
-                     "-rtsopts"
-                     ;; this is really required with ghc 7.4 and my gold linker
-                     "-pgml"
-                     "/usr/bin/gcc"
-                     ;; "-fforce-recomp"
-                     )
-               (when optimize
-                 (append
-                  '("-O2")
-                  ;; (when (y-or-n-p "Use LLVM? ")
-                  ;;   '("-fllvm"
-                  ;;     "-optlc-O3"
-                  ;;     "-optlo-O3"))
-                  )))
-              " "))
+(setf haskell-compile-command
+      (concat "ghc -W -Wall -fwarn-monomorphism-restriction "
+              "-ferror-spans -fforce-recomp "
+              (when (platform-os-type? 'linux)
+                ;; needed for ghc 7.4 and gold linker
+                "-rtsopts -pgml /usr/bin/gcc ")
+              ;; llvm
+              ;; "-fllvm -optlc-O3 -optlo-O3 "
+              "-c \"%s\""))
 
 
-;; outline stuff
+(defconst +haskell-compile-error-or-warning-regexp+
+  (rx bol
+      (+? (not (any ?\s ?\t ?\r ?\n)))
+      ":"
+      (or
+       ;; "121:1" & "12:3-5"
+       (seq (+ (any (?0 . ?9)))
+            ":"
+            (+ (any (?0 . ?9)))
+            (? "-"
+               (+ (any (?0 . ?9)))))
+       ;; "(289,5)-(291,36)"
+       (seq "("
+            (+ (any (?0 . ?9)))
+            ","
+            (+ (any (?0 . ?9)))
+            ")-("
+            (+ (any (?0 . ?9)))
+            ","
+            (+ (any (?0 . ?9)))
+            ")"))
+      ":"
+      (? (group " Warning:")))
+  "Regexp matching both errors and warnings.")
+
+
+;; for outline
 (defconst haskell-type-signature-regexp "[^:\n]::\\([^:\n]\\|$\\)")
 (defconst haskell-toplevel-signature-regexp "^[^ ].*[^:\n]::\\([^:\n]\\|$\\)")
 (defconst haskell-toplevel-data-declaration-regexp "^[ \t]*data[ \t]+\\(?:.\\|\n\\)+?=")
 (defconst haskell-toplevel-class-declaration-regexp "^[ \t]*class[ \t]+\\(?:.\\|\n\\)+?where")
 (defconst haskell-toplevel-instance-declaration-regexp "^[ \t]*instance[ \t]+\\(?:.\\|\n\\)+?where")
-(defconst haskell-main-function-regexp "^main[ \t]*=[ \t]*\\(?:do\\)?")
+(defconst haskell-main-function-regexp "^main[ \t]*=[ \t\n\r]*\\(?:do\\)?")
 (defconst haskell-commented-line-regexp "^[ \t]*-- ")
 
-;; utility stuff
+;; just useful utility
 (defconst haskell-operator-regexp "\\(\\s_\\|\\\\\\)+"
   "For qualification consult `haskell-font-lock-keywords-create'
 in haskell-font-lock.el")
@@ -85,134 +90,53 @@ in haskell-font-lock.el")
       (replace-match "" t t name 1)
       name)))
 
-
-(defconst +haskell-compile-error-regexp+
-  (rxx ((filename-char
-         ;; that is, haskell filename should not contain spaces
-         (regex "[^/\n\t\r\f\v]"))
-        (filename
-         (seq (*? "/"
-                  (+ filename-char))
-              (? "/")
-              (+? filename-char)
-              (or ".hs"
-                  ".lhs"
-                  ".hsc"))))
-    (group
-     filename)
-    ":"
-    (group
-     (+ digit))
-    ":"
-    (group
-     (+ digit))
-    (? "-"
-       (+ digit))
-    (? ":"))
-  "Regexp which is used by `compile' to detect errors.")
-
-(defconst +haskell-compile-warning-regexp+
-  (rxx ((filename-char
-         ;; that is, haskell filename should not contain spaces
-         (regex "[^/\n\t\r\f\v]"))
-        (filename (seq (*? "/"
-                           (+ filename-char))
-                       (? "/")
-                       (+? filename-char)
-                       (or ".hs"
-                           ".lhs"
-                           ".hsc"))))
-    bol
-    (group ;; this get's highlighted as hyperlink
-     (group
-      filename)
-     ":"
-     (group
-      (+ digit))
-     ":"
-     (group
-      (+ digit))
-     (? "-"
-        (+ digit)))
-    ":"
-    (group
-     (? "\n")
-     (+ whitespace)
-     "Warning:"))
-  "Regexp which is used by `compile' to detect warnings.")
-
-
 ;;; compilation
 
 (require 'compilation-setup)
 
-(defun haskell-reload-on-successful-compilation (buffer msg)
-  "If compilation was sucessfull then reload source file into ghci."
-  (when (eq (cdr (assq 'mode *compile-caller-info*)) 'haskell-mode)
-    (when (string-match "^finished" msg)
-      (with-current-buffer (cdr (assoc 'buffer *compile-caller-info*))
-        (inferior-haskell-load-file nil t t))
-      (setq *compile-caller-info* nil))))
-
 (defun haskell-jump-to-error (buffer msg)
   "Jump to error if compilation wasn't sucessfull, ignore warnings."
   (when (eq (cdr (assq 'mode *compile-caller-info*)) 'haskell-mode)
-    (when (string-match "^exited" msg)
+    (when (string-match-pure? "^exited" msg)
       (with-current-buffer buffer
         (goto-char (point-min))
         (save-match-data
-          (let ((continue t))
-            (while (and continue
-                        (re-search-forward +haskell-compile-error-regexp+ nil t))
-              (goto-char (match-beginning 0))
-              (if (looking-at-pure? +haskell-compile-warning-regexp+)
-                (forward-line 1)
-                (setq continue nil)))))
-        (setq *compile-caller-info* nil)
-        (compile-goto-error)))))
+          (let ((found nil))
+            ;; find first error
+            (while (and (not found)
+                        (re-search-forward +haskell-compile-error-or-warning-regexp+ nil t))
+              ;; if first group didn't match then it's an error at point
+              (unless (match-string-no-properties 1)
+                (setf found t))))
+          (setf *compile-caller-info* nil)
+          (when found
+            (goto-char (match-beginning 0))
+            (compile-goto-error)))))))
 
-(defvar-local haskell-has-makefile? nil
-  "Is set to t by `haskell-setup' when current haskell file has
-entry in makefile and should be build with make.")
+(defun haskell-compile-file (&optional edit-command)
+  "Similar to `haskell-compile' but recognizes makefiles."
+  (interactive "P")
+  (let* ((fname (file-name-nondirectory buffer-file-name))
+         (dir (file-name-directory buffer-file-name))
+         (has-makefile? (any? (lambda (fname)
+                                (file-exists? (concat dir "/" fname)))
+                              "makefile"
+                              "Makefile"
+                              "MAKEFILE"
+                              "GNUMakefile")))
+    (if haskell-has-makefile?
+      (compilation-start "make" 'haskell-compilation-mode)
+      (haskell-compile edit-command))))
 
-(defun haskell-compile (&optional optimize)
-  "Start compilation of Haskell file."
-  (interactive (list current-prefix-arg))
-  (let ((fname (file-name-nondirectory buffer-file-name)))
-    (compilation-start (if haskell-has-makefile?
-                         "make"
-                         ;; if there's makefile then let it handle project
-                         ;; build as it wants
-                         ;; (concat "make "
-                         ;;         (file-name-sans-extension fname))
-                         (make-ghc-command fname optimize))
-                       #'haskell-compilation-mode)))
-
-(define-compilation-mode haskell-compilation-mode "Haskell compilation"
-  "Mode for ghc compilation."
-
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       (list
-        (list +haskell-compile-warning-regexp+ ;; regex
-              2                                ;; file-group
-              3                                ;; line-group
-              4                                ;; column-group
-              1                                ;; type - 1 - warning
-              1 ;; hyperlink subexpression - this gets highlighted
-              )
-        (list +haskell-compile-error-regexp+
-              1 ;; file-group
-              2 ;; line-group
-              3 ;; column-group
-              2 ;; type - 2 - real error
-              )))
-
+(defun haskell-compilation-setup ()
   (set (make-local-variable '*compilation-jump-error-regexp*)
-       +haskell-compile-error-regexp+)
+       +haskell-compile-error-or-warning-regexp+)
 
-  (set (make-local-variable 'compilation-first-column) 1) ;GHC counts from 1.
+  (set (make-local-variable 'compilation-first-column) 1) ;; GHC counts from 1.
   (set (make-local-variable 'compilation-disable-input) t)
   (set (make-local-variable 'compilation-scroll-output) nil))
+
+(add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 
 
 ;;; haddock for modules
@@ -304,9 +228,6 @@ we load it."
 
 ;; (defadvice:remember-position-on-query inferior-haskell-find-definition)
 ;; (defadvice:remember-position-on-query haskell-find-definition)
-
-;;; define abbreviations
-
 
 
 (provide 'haskell-misc)
