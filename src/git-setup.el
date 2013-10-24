@@ -193,7 +193,50 @@ all otherwise."
 
 (add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
 
+;;;; git-modes
 
+(setf git-commit-confirm-commit t)
+
+(defun git-commit-mode-setup ()
+  "Mode for editing commit message."
+  (init-common :use-yasnippet nil :use-comment nil)
+
+  (def-keys-for-map magit-log-edit-mode-map
+    ("C-c C-q" magit-log-edit-cancel-log-message)
+    ("<up>"    log-edit-previous-comment)
+    ("<down>"  log-edit-next-comment)
+    ("M-p"     nil))
+
+  (add-hook 'kill-buffer-hook
+            #'magit-log-edit-cancel-log-message
+            t ;; append
+            t ;; local
+            ))
+
+(add-hook 'git-commit-mode-hook #'git-commit-mode)
+
+(defun git-rebase-mode-setup ()
+  (def-keys-for-map git-rebase-mode-map
+    +vi-keys+
+    +vim-word-motion-keys+
+    +vim-special-keys+
+    ("C-k" nil) ;; its kill buffer in global map
+    ("q"   git-rebase-server-edit)
+    ("a"   git-rebase-abort)
+
+    ("M-n" git-rebase-move-line-up)
+    ("M-t" git-rebase-move-line-down)
+    ("s"   git-rebase-squash)
+    ("p"   git-rebase-pick)
+    ("u"   git-rebase-undo)
+    ("x"   git-rebase-exec)
+    ("r"   git-rebase-reword)
+    ("e"   git-rebase-edit)
+    ("s"   git-rebase-squash)
+    ("f"   git-rebase-fixup)
+    ("d"   git-rebase-kill-line)))
+
+(add-hook 'git-rebase-mode-hook #'git-rebase-mode-setup)
 
 ;; this mode has no hook
 (eval-after-load

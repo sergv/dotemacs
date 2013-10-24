@@ -51,6 +51,7 @@
         (select-mode . nil)
         (minimap-mode . nil)
         (tagged-buflist-mode . nil)
+        (git-rebase-mode . nil)
 
         (clojure-compilation-mode . nil)
         (nrepl-popup-buffer-mode . nil)
