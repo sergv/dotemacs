@@ -22,7 +22,7 @@
 
     ("[" forward-paragraph)
     ("]" backward-paragraph))
-  "Esential vi movement keys")
+  "Essential vi movement keys")
 
 (defconst +vi-keys+
   (append +vi-essential-keys+
