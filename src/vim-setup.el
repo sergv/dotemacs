@@ -49,11 +49,11 @@ like \"d w\".")
 
     ("q"   sp-up-sexp)
     ("Q"   sp-backward-up-sexp)
-    ("'"   sp-backward-up-sexp)
 
     ("<mouse-1>" vim:mouse-symbol/string/sexp)))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
+  ("'"  sp-backward-up-sexp)
   ("k"  vim:motion-search-next)
   ("K"  vim:motion-search-next-reverse)
 
@@ -65,6 +65,7 @@ like \"d w\".")
   ("["  vim:motion-fwd-paragraph))
 
 (def-keys-for-map vim:motion-mode-keymap
+  ("'" sp-backward-up-sexp)
   ("k" vim:motion-search-next)
   ("K" vim:motion-search-next-reverse)
 
@@ -137,6 +138,7 @@ like \"d w\".")
   ("C-y"       nil)
   (";"         vim:ex-read-command)
   ("`"         minimap-toggle)
+  ("'"         sp-backward-up-sexp)
   ("]"         vim:motion-bwd-paragraph)
   ("["         vim:motion-fwd-paragraph)
   ;; names of these two functions are swapped for unknown reason
@@ -216,6 +218,7 @@ like \"d w\".")
 
   ("g r"      rgrep-region)
   (", s"      vim:replace-selected)
+  ("'"        sp--self-insert-command)
   ("\""       sp--self-insert-command)
   ("["        sp--self-insert-command)
   ("]"        sp--self-insert-command)
