@@ -95,12 +95,13 @@
                                             "/"
                                             result-name)))
                   (format
-                   (concat "pdflatex -halt-on-error -shell-escape --file-line-error "
-                           "-output-directory %s %s && cp %s %s")
-                   (shell-quote-argument +tmp-path+)
-                   (shell-quote-argument input-file)
-                   (shell-quote-argument tmp-file)
-                   (shell-quote-argument result-file))))
+                   (concat "cd '%s' && pdflatex -halt-on-error -shell-escape --file-line-error "
+                           "-output-directory '%s' '%s' && cp '%s' '%s'")
+                   +tmp-path+
+                   +tmp-path+
+                   input-file
+                   tmp-file
+                   result-file)))
 
     ;; don't ask - just compile
     (setq-local compilation-read-command nil)
