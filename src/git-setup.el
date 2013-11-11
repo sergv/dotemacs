@@ -245,7 +245,7 @@ all otherwise."
      ;; add quitting with <escape>
      (redefun magit-key-mode-build-keymap (for-group)
        "Construct a normal looking keymap for the key mode to use.
-Put it in `magit-key-mode-key-maps' for fast lookup."
+Put it in `magit-key-mode-keymaps' for fast lookup."
        (let* ((options (magit-key-mode-options-for-group for-group))
               (actions (cdr (assoc 'actions options)))
               (switches (cdr (assoc 'switches options)))
@@ -258,15 +258,12 @@ Put it in `magit-key-mode-key-maps' for fast lookup."
          (define-key map (kbd "TAB") 'magit-key-mode-jump-to-next-exec)
 
          ;; all maps should `quit' with `C-g' or `q'
-         (define-key map (kbd "ESC") `(lambda ()
+         (define-key map (kbd "C-g") `(lambda ()
                                         (interactive)
                                         (magit-key-mode-command nil)))
          (define-key map (kbd "<escape>") `(lambda ()
                                              (interactive)
                                              (magit-key-mode-command nil)))
-         (define-key map (kbd "C-g") `(lambda ()
-                                        (interactive)
-                                        (magit-key-mode-command nil)))
          (define-key map (kbd "q")   `(lambda ()
                                         (interactive)
                                         (magit-key-mode-command nil)))
@@ -287,12 +284,12 @@ Put it in `magit-key-mode-key-maps' for fast lookup."
            (dolist (k actions)
              (funcall defkey k `(magit-key-mode-command ',(nth 2 k))))
            (dolist (k switches)
-             (funcall defkey k `(magit-key-mode-add-option ',for-group ,(nth 2 k))))
+             (funcall defkey k `(magit-key-mode-toggle-option ',for-group ,(nth 2 k))))
            (dolist (k arguments)
              (funcall defkey k `(magit-key-mode-add-argument
                                  ',for-group ,(nth 2 k) ',(nth 3 k)))))
 
-         (push (cons for-group map) magit-key-mode-key-maps)
+         (push (cons for-group map) magit-key-mode-keymaps)
          map))))
 
 
