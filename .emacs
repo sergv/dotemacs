@@ -177,8 +177,6 @@
  '(tags-revert-without-query t)
  '(uniquify-buffer-name-style (quote post-forward) nil (uniquify))
  '(uniquify-strip-common-suffix nil)
- '(user-full-name "Sergey Vinokurov")
- '(user-mail-address "serg.foo@gmail.com")
  '(vc-handled-backends (quote (RCS CVS SVN SCCS Arch)))
  '(vim-mode t)
  '(vim:max-jumplist 100)

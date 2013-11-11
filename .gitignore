@@ -1,0 +1,73 @@
+# directories
+check out/**
+doc/**
+experimental/**
+drills/**
+lib/**
+local/**
+local.24.*/**
+local.*/**
+misc/**
+packages/**
+scripts/**
+standalone/**
+test/**
+third-party/**
+tmp/**
+
+!third-party/antlr-mode.el
+!third-party/bison-mode.el
+
+# haskell-mode is already under git
+src/haskell/haskell-mode
+
+# these come from using *.tex files, e.g. exporting *.org into pdf
+auto/**
+
+# prog-data
+prog-data/.maxima_history
+prog-data/backup/**
+prog-data/elisp-packages/**
+prog-data/emms/**
+prog-data/inf-haskell-module-alist
+prog-data/ipython/**
+prog-data/lambda/**
+prog-data/nrepl-history
+prog-data/nyan-mode/**
+prog-data/packages/**
+prog-data/persistent-store*
+prog-data/pylookup.db
+prog-data/quack/**
+prog-data/recentf
+prog-data/slime-repl-history
+prog-data/themes/**
+
+# files
+user-info.el
+LightenColor.hs
+emacs-todo.org
+fortunes-various.txt
+lambda.txt
+todo.org
+tramp
+quotations.txt
+.org-id-locations
+recompile.el
+recompile.sh
+diary
+quotations-fortunes.txt
+last-wconf
+
+# extensions
+*.elc
+*.pdf
+*.org
+*.pyc
+*.tar.gz
+*.tar.bz2
+*.tar.7z
+*.gz
+*.log
+*.aux
+*-session
+

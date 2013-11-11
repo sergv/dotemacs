@@ -277,6 +277,10 @@
 (unless (featurep 'custom-variables-defined)
   (load-library ".emacs"))
 
+(let ((user-info-file (concat +emacs-config-path+ "/user-info.el")))
+  (when (file-exists? user-info-file)
+    (load-file user-info-file)))
+
 ;; Local Variables:
 ;; End:
 
