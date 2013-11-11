@@ -93,11 +93,14 @@ With negative argument move forward, still one level out."
                 :do-not-adjust-point t)
 
 
+(defun sp-in-minibuffer? (id action context)
+  (not (null? (active-minibuffer-window))))
+
 ;; do not autoinsert ' pair if the point is preceeded by word.  This
 ;; will handle the situation when ' is used as a contraction symbol in
 ;; natural language.  Nil for second argument means to keep the
 ;; original definition of closing pair.
-(sp-pair "'" nil :unless '(sp-point-after-word-p))
+(sp-pair "'" nil :unless '(sp-point-after-word-p sp-in-minibuffer?))
 
 ;; emacs is lisp hacking enviroment, so we set up some most common
 ;; lisp modes too
