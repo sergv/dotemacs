@@ -91,6 +91,8 @@
     (add-hook 'compilation-finish-functions #'haskell-jump-to-error))
 
   (def-keys-for-map vim:normal-mode-local-keymap
+    ("j"       inferior-haskell-send-decl)
+
     (", t"     haskell-type)
     (", i"     haskell-info)
     (", h"     haskell-haddock-identifier)
