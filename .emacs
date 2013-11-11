@@ -190,10 +190,15 @@
 
 (unless (featurep 'dotemacs)
   (dolist (path (cl-remove-duplicates
-                 (list "/home/sergey/emacs"
-                       (expand-file-name "~/emacs")
-                       "C:\\emacs"
-                       "D:\\emacs")
+                 (append
+                  (list "/home/sergey/emacs"
+                        (expand-file-name "~/emacs"))
+                  (when (eq system-type 'windows-nt)
+                    (list
+                     ;; unfortunately Windows has no reasonable symlinks
+                     (expand-file-name "~/.emacs.d")
+                     "C:\\emacs"
+                     "D:\\emacs")))
                  :test #'string=))
     (when (and (file-exists-p path)
                (file-directory-p path))

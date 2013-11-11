@@ -35,7 +35,8 @@ Range of platforms may be expanded (extended?) in the future.")
                         (file-executable-p file)))
                  (mapcan (lambda (prefix)
                            (list (concat prefix "/system_type.sh")
-                                 (concat prefix "/system_type.cmd")))
+                                 (when (eq system-type 'windows-nt)
+                                   (concat prefix "/system_type.cmd"))))
                          system-type-file-dirs))))
   (setf +platform+
         (cond
