@@ -128,9 +128,13 @@
 
 (setf x-select-enable-clipboard t
       interprogram-paste-function
-      (if (platform-os-type? 'linux)
-        #'x-cut-buffer-or-selection-value
-        #'x-get-selection)
+      (cond
+        ((platform-os-type? 'linux)
+         #'x-cut-buffer-or-selection-value)
+        ((platform-os-type? 'windows)
+         #'w32-get-clipboard-data)
+        (t
+         (error "Unknown plaform os type: %s" +platform+)))
       query-replace-highlight t
       query-replace-interactive nil ;; do not use last search string as initial regexp
       search-highlight t
@@ -152,7 +156,9 @@
       search-whitespace-regexp nil ;; intuitive behavior for interactive regexps
       system-time-locale "C"
 
-      visible-bell nil ;; any kind of bell is annoying
+      ;; any kind of bell is annoying, but not when we're on windows
+      ;; since it uses audible bell everywhere
+      visible-bell (platform-os-type? 'windows)
       message-log-max t
 
       ;; length from the beginning of buffer for magic mode detection

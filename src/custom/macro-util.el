@@ -943,6 +943,20 @@ value, that slot cannot be set via `setf'.
              ,@body))))
     (error "not implemented yet")))
 
+
+;;;; compatibility defines
+
+(unless (symbol-function 'defvar-local)
+  ;; taken verbatim from subr.el of emacs 24.3
+  (defmacro defvar-local (var val &optional docstring)
+    "Define VAR as a buffer-local variable with default value VAL.
+Like `defvar' but additionally marks the variable as being automatically
+buffer-local wherever it is set."
+    (declare (debug defvar) (doc-string 3))
+    ;; Can't use backquote here, it's too early in the bootstrap.
+    (list 'progn (list 'defvar var val docstring)
+          (list 'make-variable-buffer-local (list 'quote var)))))
+
 ;;;; end
 
 (provide 'macro-util)

@@ -70,14 +70,28 @@
   (setf inferior-haskell-wait-and-jump t
         inferior-haskell-module-alist-file (path-concat
                                             +prog-data-path+
-                                            "inf-haskell-module-alist")
+                                            "inf-haskell-module-alist"))
 
-        haskell-indentation-left-offset       4
-        haskell-indentation-layout-offset     4
-        haskell-indentation-starter-offset    4
-        haskell-indentation-ifte-offset       4
-        haskell-indentation-where-pre-offset  2
-        haskell-indentation-where-post-offset 2)
+  (if (platform-use? 'work)
+    (progn
+      (setq-local vim:shift-width 2)
+      (setf haskell-indentation-left-offset       2
+            haskell-indentation-layout-offset     2
+            haskell-indentation-starter-offset    2
+            haskell-indentation-ifte-offset       2
+            haskell-indentation-where-pre-offset  2
+            haskell-indentation-where-post-offset 2)
+      (font-lock-add-keywords nil
+                              `((,(rx word-start (or "TRADETYPE:"
+                                                     "TAG:"
+                                                     "DESC:"))
+                                 (0 'font-lock-preprocessor-face)))))
+    (setf haskell-indentation-left-offset       4
+          haskell-indentation-layout-offset     4
+          haskell-indentation-starter-offset    4
+          haskell-indentation-ifte-offset       4
+          haskell-indentation-where-pre-offset  2
+          haskell-indentation-where-post-offset 2))
 
   (if-buffer-has-file ;; when visiting a file
     ;; don't ask - just compile
