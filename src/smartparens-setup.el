@@ -166,7 +166,8 @@ With negative argument move forward, still one level out."
                  haskell-cabal-mode
                  haskell-interactive-mode
                  inferior-haskell-mode)
-  ;; ' is identifier part in Haskell
+  ;; ' is identifier part in Haskell, and characters are rare enough
+  ;; to make manual entering '' pair feasible
   (sp-local-pair "'" nil :actions nil))
 
 (vimmize-function sp-backward-slurp-sexp

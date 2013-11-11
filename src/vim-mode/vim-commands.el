@@ -229,7 +229,7 @@ and switches to insert-mode."
     (_
      ;; deal with cw and cW
      (when (and vim:current-motion
-                (not (member (char-after) '(?  ?\r ?\n ?\t))))
+                (not (member (char-after) '(?\s ?\r ?\n ?\t))))
        (let ((cnt (* (or vim:current-cmd-count 1)
                      (or vim:current-motion-count 1))))
          (pcase vim:current-motion
