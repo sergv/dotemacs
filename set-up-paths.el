@@ -13,8 +13,14 @@
 
 
 (defconst +emacs-config-path+
-  (concat (platform-dependent-root) "/emacs")
+  (find-if (lambda (p) (and (file-accessible-directory-p p)))
+           (list
+            (concat (platform-dependent-root) "/emacs")
+            (concat (platform-dependent-root) "/.emacs.d")))
   "Path to root for emacs configuration.")
+
+(when (null +emacs-config-path+)
+  (error "No accessible directory found for +emacs-config-path+"))
 
 (defconst +emacs-standalone-path+
   (concat +emacs-config-path+ "/standalone")

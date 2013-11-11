@@ -64,6 +64,7 @@
     (conf-xdefaults-mode   (one-line "#")  (line-regexp "#+"))
     (conf-mode             (one-line "#")  (line-regexp "#+"))
     (conf-javaprop-mode    (one-line "#")  (line-regexp "#+"))
+    (conf-windows-mode     (one-line ";")  (line-regexp ";+"))
     (wisent-grammar-mode   (one-line ";;") (line-regexp ";;+"))
     (bovine-grammar-mode   (one-line ";;") (line-regexp ";;+"))
     (antlr-mode            (one-line "//") (line-regexp "//+"))
