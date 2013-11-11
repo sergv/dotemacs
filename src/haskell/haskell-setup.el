@@ -103,7 +103,7 @@
     (", y"     haskell-hayoo-at-point)
     (", c"     ghc-core-create-core)
 
-    ("="        input-unicode)
+    ("="       input-unicode)
     ;; check these out
     ;; (", f"     find-tag)
     ;; (", a"     tags-apropos)
