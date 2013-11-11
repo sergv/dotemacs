@@ -42,6 +42,7 @@
   ("S-<f7>"   tabbar-forward-group)
   ("S-<f8>"   tabbar-backward-group)
 
+  ("S-<f10>"  shell)
   ("S-<f11>"  tabbar-move-selected-tab-left)
   ("S-<f12>"  tabbar-move-selected-tab-right)
 
