@@ -24,17 +24,18 @@
 (make-directory +haskell-tmp-path+ t)
 
 (setf haskell-compile-command
-      (concat "ghc -W -Wall -fwarn-monomorphism-restriction "
-              "-ferror-spans -fforce-recomp "
-              (when (platform-os-type? 'linux)
-                ;; needed for ghc 7.4 and gold linker
-                "-rtsopts -pgml /usr/bin/gcc ")
-              (format "-hidir %s " +haskell-tmp-path+)
-              (format "-odir %s " +haskell-tmp-path+)
-              (format "-tmpdir %s " +haskell-tmp-path+)
-              ;; llvm
-              ;; "-fllvm -optlc-O3 -optlo-O3 "
-              "-c \"%s\""))
+      (or (getenv "HASKELL_COMPILE_COMMAND")
+          (concat "ghc -W -Wall -fwarn-monomorphism-restriction "
+                  "-ferror-spans -fforce-recomp "
+                  (when (platform-os-type? 'linux)
+                    ;; needed for ghc 7.4 and gold linker
+                    "-rtsopts -pgml /usr/bin/gcc ")
+                  (format "-hidir %s " +haskell-tmp-path+)
+                  (format "-odir %s " +haskell-tmp-path+)
+                  (format "-tmpdir %s " +haskell-tmp-path+)
+                  ;; llvm
+                  ;; "-fllvm -optlc-O3 -optlo-O3 "
+                  "-c \"%s\"")))
 
 
 (defconst +haskell-compile-error-or-warning-regexp+
