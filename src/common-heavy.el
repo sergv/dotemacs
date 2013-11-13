@@ -31,10 +31,11 @@ if CASE-SENSETIVE is t."
          (files nil) ;; found files
          (case-fold-search (not case-sensetive)))
     (letrec ((path-join (lambda (path)
-                          (concat "/" (join-lines (reverse path) "/")))))
+                          (concat (unless (platform-os-type? 'windows) "/")
+                                  (join-lines path "/")))))
       (while (and (not found?)
                   (not (null? path)))
-        (let ((subdir (funcall path-join path)))
+        (let ((subdir (funcall path-join (reverse path))))
           (message "searching in %s" subdir)
           (setf files
                 (find-rec subdir
