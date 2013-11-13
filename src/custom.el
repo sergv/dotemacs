@@ -421,7 +421,10 @@ up by functions in compilation-finish-functions.")
 (defun start-file-manager ()
   "Start suitable file manager in folder associated with current buffer."
   (interactive)
-  (custom/run-first-matching-exec '("thunar" "nautilus")))
+  (custom/run-first-matching-exec
+   (append (when (platform-os-type? 'windows)
+             '("explorer"))
+           '("thunar" "nautilus"))))
 
 (defalias 'open-file-manager 'start-file-manager)
 (defalias 'run-file-manager 'start-file-manager)
