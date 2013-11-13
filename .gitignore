@@ -44,6 +44,7 @@ prog-data/themes/**
 
 # files
 user-info.el
+machine-specific-setup.el
 LightenColor.hs
 emacs-todo.org
 fortunes-various.txt
