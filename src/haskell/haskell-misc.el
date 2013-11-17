@@ -98,6 +98,14 @@ in haskell-font-lock.el")
       (replace-match "" t t name 1)
       name)))
 
+(defun inf-haskell-send-input-or-jump-to-error ()
+  (interactive)
+  (if (looking-at-pure? *compilation-jump-error-regexp*)
+    (compile-goto-error)
+    (comint-send-input)))
+
+
+
 ;;; compilation
 
 (require 'compilation-setup)
