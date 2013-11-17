@@ -44,7 +44,7 @@
   (turn-on-font-lock)
   (font-lock-add-keywords nil
                           '(("`[^`]+`" . font-lock-function-name-face)))
-  ;;
+
   ;; fix vim treatment of words for Haskell
 
   ;; note: do not include underscore into vim:word as this would cause
@@ -60,9 +60,9 @@
 
   (setq-local indent-region-function #'ignore)
   (setq-local yas-indent-line 'fixed)
-  ;; (turn-on-haskell-indentation)
-  ;; (setf haskell-indentation-cycle-warn nil)
-  (turn-on-haskell-simple-indent)
+  (turn-on-haskell-indentation)
+  (setf haskell-indentation-cycle-warn nil)
+  ;; (turn-on-haskell-simple-indent)
 
   (turn-on-haskell-doc-mode)
   (setf haskell-doc-show-global-types t)
@@ -80,7 +80,10 @@
             haskell-indentation-starter-offset    2
             haskell-indentation-ifte-offset       2
             haskell-indentation-where-pre-offset  2
-            haskell-indentation-where-post-offset 2)
+            haskell-indentation-where-post-offset 2
+
+            haskell-indentation-left-offset 2
+            haskell-indent-offset 2)
       (font-lock-add-keywords nil
                               `((,(rx word-start (or "TRADETYPE:"
                                                      "TAG:"
@@ -91,7 +94,10 @@
           haskell-indentation-starter-offset    4
           haskell-indentation-ifte-offset       4
           haskell-indentation-where-pre-offset  2
-          haskell-indentation-where-post-offset 2))
+          haskell-indentation-where-post-offset 2
+
+          haskell-indentation-left-offset 4
+          haskell-indent-offset 4))
 
   (if-buffer-has-file ;; when visiting a file
     ;; don't ask - just compile
@@ -130,9 +136,15 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<tab>"           haskell-simple-indent)
-    ("S-<tab>"         haskell-simple-indent-backtab)
-    ("<S-iso-lefttab>" haskell-simple-indent-backtab))
+    ("<tab>"           (lambda () (interactive) (haskell-indentation-indent-line)))
+    ("S-<tab>"         nil)
+    ("<S-iso-lefttab>" nil))
+
+  ;; (def-keys-for-map (vim:normal-mode-local-keymap
+  ;;                    vim:insert-mode-local-keymap)
+  ;;   ("<tab>"           haskell-simple-indent)
+  ;;   ("S-<tab>"         haskell-simple-indent-backtab)
+  ;;   ("<S-iso-lefttab>" haskell-simple-indent-backtab))
 
 
   (def-keys-for-map vim:visual-mode-local-keymap
@@ -196,8 +208,9 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      inferior-haskell-mode-map)
-    ("M-p"   browse-kill-ring)
-    ("C-M-p" browse-comint-input-history))
+    ("M-p"      browse-kill-ring)
+    ("C-M-p"    browse-comint-input-history)
+    ("<return>" inf-haskell-send-input-or-jump-to-error))
 
   (def-keys-for-map inferior-haskell-mode-map
     ("C-w"      backward-delete-word)
