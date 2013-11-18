@@ -39,7 +39,13 @@
   "Path to directory with programs's auxiliary files.")
 
 (defconst +execs-path+
-  (concat +emacs-config-path+ "/execs")
+  ;; note: execs are somewhat external to emacs, so it's
+  ;; reasonable for them to be somewhere outside
+  (find-if #'file-directory-p
+   (list
+    (concat +emacs-config-path+ "/../execs")
+    (concat +emacs-config-path+ "/execs")
+    (file-name-directory (executable-find "emacs"))))
   "Path to directory with programs executables files.")
 
 (defconst +color-themes-path+
