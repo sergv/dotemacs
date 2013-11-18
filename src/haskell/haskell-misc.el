@@ -35,7 +35,17 @@
                   (format "-tmpdir %s " +haskell-tmp-path+)
                   ;; llvm
                   ;; "-fllvm -optlc-O3 -optlo-O3 "
-                  "-c \"%s\"")))
+                  "-c \"%s\""))
+      haskell-program-name
+      (cond ((platform-os-type? 'windows)
+             "ghc --interactive -XTemplateHaskell")
+            ((executable-find "ghci")
+             "ghci -XTemplateHaskell")
+            ((executable-find "ghc")
+             "ghc --interactive -XTemplateHaskell")
+            (t
+             (message "GHC not found")
+             nil)))
 
 
 (defconst +haskell-compile-error-or-warning-regexp+
