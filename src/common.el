@@ -143,7 +143,11 @@ of random numbers from RANDOM-GEN."
 
 
 (defun* get-directory-contents (dir &key (full t))
-  (remove-if (lambda (x) (member (file-name-nondirectory x) '("." "..")))
+  (remove-if (lambda (x)
+               (let ((nondir (file-name-nondirectory x)))
+                 (and (<= (length nondir) 2)
+                      (or (string= nondir ".")
+                          (string= nondir "..")))))
              (directory-files dir full)))
 
 (defun version-control-directory? (filepath)
@@ -691,6 +695,10 @@ START is inclusive and END is exclusive in ITEMS."
                               string2 (- (length string2) (length string1)) nil
                               ignore-case))))
 
+(defun* strip-string-prefix (prefix str &key (starting-at 0))
+  "Remove (+ (length PREFIX) STARTING-AT) characters from start of STR."
+  (substring str (+ starting-at (length prefix))))
+
 ;;;;
 
 (defsubst file-modification-time (filename)
@@ -1005,6 +1013,7 @@ to mode and write new contents back to FILENAME."
     (if (null? prev-bufs)
       (error "no alive previous buffers to switch to")
       (switch-to-buffer (car prev-bufs)))))
+
 ;;;;
 
 (provide 'common)
