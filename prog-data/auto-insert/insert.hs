@@ -1,15 +1,15 @@
 ----------------------------------------------------------------------------
 -- |
--- Module      :  ${filename no ext}
--- Copyright   :  (c) Sergey Vinokurov ${date year}
+-- Module      :  ${haskell path to module name}
+-- Copyright   :  (c) ${author} ${date year}
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  serg.foo@gmail.com
+-- Maintainer  :  ${email}
 -- Stability   :
 -- Portability :
 --
 --
 ----------------------------------------------------------------------------
 
-module ${filename no ext} where
+module ${haskell path to module name} where
 
