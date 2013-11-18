@@ -327,6 +327,7 @@ be used only for vim-visual-mode of the vim-mode package."
          (comment-util-comment-chunk-region begin (line-end-position)))))))
 
 (defun end-of-whitespace-prefix ()
+  "Count length of whitespace prefix for current line."
   (save-excursion
     (beginning-of-line)
     (skip-syntax-forward " ")
