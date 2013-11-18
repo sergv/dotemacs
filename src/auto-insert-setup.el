@@ -57,8 +57,8 @@
                               "%A, %e %B %Y"))
    (list "date year" (partial #'format-time-string
                               "%Y"))
-   (list "author" (lambda () "Sergey Vinokurov"))
-   (list "email" (lambda () "serg.foo@gmail.com"))
+   (list "author" (lambda () user-full-name))
+   (list "email" (lambda () user-mail-address))
    (list "clojure-path-to-ns"
          (lambda ()
            (save-match-data
