@@ -84,10 +84,38 @@
            (save-match-data
              (let ((name (buffer-file-name)))
                (if (string-match "^.*/src\\(?:/clojure\\)?/\\(.*\\)\\.clj$" name)
-                 (join-lines (split-string (match-string-no-properties 1 name)
-                                           "/")
-                             ".")
+                 (replace-regexp-in-string "/"
+                                           "."
+                                           (match-string-no-properties 1 name))
                  "")))))
+   (list "haskell path to module name"
+         (lambda ()
+           (let* ((root (locate-dominating-file
+                         (file-name-directory (buffer-file-name))
+                         (lambda (dir)
+                           (any? (lambda (path)
+                                   (or (and (file-regular? path)
+                                            (string-match-pure?
+                                             (rx (or (seq (+ not-newline)
+                                                          ".cabal")
+                                                     "Setup.hs"
+                                                     "Setup.lhs")
+                                                 eos)
+                                             path))
+                                       (and (file-directory? path)
+                                            (or (string= "src" path)
+                                                (member path
+                                                        *version-control-directories*)
+                                                ;; this is somewhat vacuous
+                                                (not (string-match-pure?
+                                                      "[A-Z][a-zA-Z]*"
+                                                      path))))))
+                                 (get-directory-contents dir)))))
+                  (raw-name (strip-string-prefix (strip-trailing-slash root)
+                                                 (file-name-sans-extension
+                                                  (buffer-file-name))
+                                                 :starting-at 1)))
+             (replace-regexp-in-string "/" "." raw-name))))
    (list "empty" (lambda () "")))
   "Alist of form (string function), used by `util:auto-insert-update'.
 When auto-insert file template contains entry of form ${HELLO} then
