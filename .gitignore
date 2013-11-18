@@ -25,6 +25,7 @@ src/haskell/haskell-mode
 auto/**
 
 # prog-data
+prog-data/auto-insert/insert.work.hs
 prog-data/.maxima_history
 prog-data/backup/**
 prog-data/elisp-packages/**
