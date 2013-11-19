@@ -161,7 +161,10 @@ entries."
                   (goto-char (session-entry/point entry))
                   (aif (session-entry/major-mode entry)
                     (unless (eq? major-mode it)
-                      (funcall (symbol-function it)))
+                      (let ((func (symbol-function it)))
+                        (when (autoloadp func)
+                          (autoload-do-load func))
+                        (funcall (symbol-function it))))
                     (message "warning: session buffer entry without major mode: %s"
                              entry))
                   (sessions/restore-buffer-variables (current-buffer)
