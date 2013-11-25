@@ -71,7 +71,9 @@
     ("C-<up>"   comint-previous-prompt)
     ("C-<down>" comint-next-prompt)
     ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt))
+    ("S-<down>" comint-next-prompt)
+
+    ("C-c C-k"  comint-kill-subjob))
 
   (setq comint-scroll-to-bottom-on-input t))
 
