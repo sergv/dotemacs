@@ -12,6 +12,7 @@
                                 "/magit"))
 
 (require 'common)
+(require 'common-heavy)
 (require 'vim-mock)
 (require 'magit)
 (require 'magit-blame)
@@ -51,6 +52,51 @@
 
 ;; show refined diffs for selected hunk
 (setf magit-diff-refine-hunk t)
+
+(defun magit-collect-unstaged-hunk-sections ()
+  "Return all staged hunk sections in magit status buffer."
+  (letrec ((collect (lambda (section)
+                      (let ((xs (mapcan collect
+                                        (magit-section-children section))))
+                        (if (magit-section-match '(unstaged diff hunk) section)
+                          (cons section xs)
+                          xs)))))
+    ;; expand to load all hunks
+    (magit-section-expand-all magit-top-section)
+    (prog1 (sort (funcall collect magit-top-section)
+                 (lambda (section-a section-b)
+                   (< (magit-section-beginning section-a)
+                      (magit-section-beginning section-b))))
+      (magit-section-collapse magit-top-section))))
+
+(defun magit-current-section-is-whitespace-only? ()
+  (interactive)
+  (let ((hunk (magit-current-section)))
+    (message "Current hunk %s whitespace-only"
+             (if (and (eq? 'hunk (magit-section-type hunk))
+                      (patch-whitespace-only-change?
+                       (buffer-substring-no-properties
+                        (magit-section-beginning hunk)
+                        (magit-section-end hunk))))
+               "IS"
+               "IS NOT"))))
+
+(defun magit-stage-non-whitespace-changes ()
+  "Unstage all hunks that introduce only whitespace change."
+  (interactive)
+  (mapc (lambda (hunk)
+          (unless (patch-whitespace-only-change?
+                   (buffer-substring-no-properties
+                    (magit-section-beginning hunk)
+                    (magit-section-end hunk)))
+            (magit-apply-hunk-item hunk "--cached")
+            ;; (magit-with-refresh
+            ;;   (magit-apply-hunk-item hunk "--reverse" "--cached"))
+            ))
+        (reverse (magit-collect-unstaged-hunk-sections)))
+  nil)
+
+
 
 (defadvice magit-log-edit-cleanup
   (before
