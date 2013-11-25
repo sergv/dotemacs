@@ -368,7 +368,7 @@ tracked files for that repository.")
            roots)
       #'tagged-buflist/buffer-tag<)
      (list (make-buffer-tag
-            :name "no git repository"
+            :name "no repository"
             :predicate (lambda (buf)
                          (with-current-buffer buf
                            (git-update-file-repository)
