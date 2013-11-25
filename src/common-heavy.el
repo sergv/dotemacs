@@ -203,6 +203,38 @@ number of spaces equal to `tab-width'."
 
 ;;;
 
+(defun patch-whitespace-only-change? (patch)
+  "Check whether given PATCH in unified format represents whitespace-only change."
+  (save-match-data
+    (let* ((lines (split-string patch
+                                "\n"
+                                ;; keep nulls to reproduce patch exactly when
+                                ;; lines are recombined
+                                nil))
+           (make-filter (lambda (first-char)
+                          (lambda (line)
+                            (or (= 0 (length line))
+                                (let ((c (aref line 0)))
+                                  (or (char= c ?\s)
+                                      (char= c first-char)))))))
+           (cleanup-diff-line (lambda (line)
+                                (if (= 0 (length line))
+                                  line
+                                  (trim-whitespace (subseq line 1)))))
+           (old (join-lines (map cleanup-diff-line
+                                 (filter (funcall make-filter ?-)
+                                         lines))
+                            "\n"))
+           (new (join-lines (map cleanup-diff-line
+                                 (filter (funcall make-filter ?+)
+                                         lines))
+                            "\n")))
+      (string=? old new))))
+
+
+
+;;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:
