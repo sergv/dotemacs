@@ -109,8 +109,7 @@
     ("<left>"  outline-move-subtree-up)
     ("<right>" outline-move-subtree-down)
     ("<down>"  outline-forward-same-level)
-    ("<up>"    outline-backward-same-level)
-    ("'"       outline-backward-same-level)))
+    ("<up>"    outline-backward-same-level)))
 
 
 (provide 'haskell-outline)
