@@ -16,6 +16,7 @@
 
 (require 'abbrev+)
 (require 'haskell-compile)
+(require 'compilation-setup)
 
 ;;; definitions
 
@@ -118,8 +119,6 @@ in haskell-font-lock.el")
 
 ;;; compilation
 
-(require 'compilation-setup)
-
 (defun haskell-jump-to-error (buffer msg)
   "Jump to error if compilation wasn't sucessfull, ignore warnings."
   (when (eq (cdr (assq 'mode *compile-caller-info*)) 'haskell-mode)
@@ -127,17 +126,12 @@ in haskell-font-lock.el")
       (with-current-buffer buffer
         (goto-char (point-min))
         (save-match-data
-          (let ((found nil))
-            ;; find first error
-            (while (and (not found)
-                        (re-search-forward +haskell-compile-error-or-warning-regexp+ nil t))
-              ;; if first group didn't match then it's an error at point
-              (unless (match-string-no-properties 1)
-                (setf found t))))
-          (setf *compile-caller-info* nil)
-          (when found
-            (goto-char (match-beginning 0))
-            (compile-goto-error)))))))
+          (when-let (entry (find-if (lambda (entry)
+                                      (let ((re (car entry)))
+                                        (re-search-forward re nil t)))
+                                    compilation-error-regexp-alist))
+            (compilation/jump-to-error (compilation/parse-matched-error-entry entry)
+                                       :other-window nil)))))))
 
 (defun haskell-compile-file (&optional edit-command)
   "Similar to `haskell-compile' but recognizes makefiles."
@@ -160,10 +154,20 @@ in haskell-font-lock.el")
 
   (set (make-local-variable 'compilation-first-column) 1) ;; GHC counts from 1.
   (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-scroll-output) nil))
+  (set (make-local-variable 'compilation-scroll-output) nil)
+
+  (def-keys-for-map haskell-compilation-mode-map
+    +vim-special-keys+
+    +vim-word-motion-keys+
+    ("SPC"      compilation/goto-error-other-window)
+    ("<return>" compilation/goto-error)
+    ("o"        compilation/goto-error-other-window)))
 
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 
+(put 'haskell-compile-command 'safe-local-variable #'string?)
+(put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
+(put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'string?)
 
 ;;; haddock for modules
 
