@@ -15,7 +15,7 @@
 
 (setf compilation-always-kill t)
 
-(defconst *compilation-jump-error-regexp*
+(defvar-local *compilation-jump-error-regexp*
   "^\\(\\(?:\\(?:\\.\\.?\\)?/[^/\n\t]+\\)*?\\)/?[^/\n\t]+:\\([0-9]+\\):\\([0-9]+\\):"
   "Regexp which is used by `compilation-jump-to-next-error'
 and `compilation-jump-to-prev-error' to detect errors
@@ -44,6 +44,79 @@ up by functions in compilation-finish-functions.")
   (setf *compile-caller-info* `((mode . ,major-mode)
                                 (compile-command . ,compile-command)
                                 (buffer . ,(current-buffer)))))
+
+
+(defun compilation/parse-matched-error-entry (entry)
+  "Parse ENTRY and return (<filename> [<line>] [<column>]) of previously matched
+error message. <line> and <column> are nullable.
+ENTRY should be of format used by `compilation-error-regexp-alist'."
+  (let* ((file-group (cadr entry))
+         (strip-cons (lambda (x)
+                       (if (cons? x)
+                         (car x)
+                         x)))
+         (line-group
+          (funcall strip-cons (car-safe (cdr-safe (cdr entry)))))
+         (column-group
+          (funcall strip-cons (car-safe (cdr-safe (cdr-safe (cdr entry)))))))
+    (values (match-string-no-properties file-group)
+            (when line-group
+              (string->number (match-string-no-properties line-group)))
+            (when column-group
+              (- (string->number (match-string-no-properties column-group))
+                 compilation-first-column)))))
+
+(defun compilation/get-selected-error ()
+  "Return filename, line and column for error or warning on current line
+(i.e. the selected one), depending on `compilation-error-regexp-alist'."
+  (save-excursion
+    (save-match-data
+      (beginning-of-line)
+      (when-let (entry (find-if (comp #'looking-at #'car)
+                                compilation-error-regexp-alist))
+        (compilation/parse-matched-error-entry entry)))))
+
+(defun compilation/find-buffer (filename)
+  "Get buffer that corresponds to FILENAME, which may be neither full nor relative
+path, in which case filename with suffix equal to FILENAME will be tried."
+  (assert (not (= 0 (length filename))))
+  (aif (find-if (lambda (buf)
+                  (string-suffix? filename (buffer-file-name buf)))
+                (visible-buffers))
+    it
+    (when (file-exists? filename)
+      (cond ((get-file-buffer filename)
+             (get-file-buffer filename))
+            (else
+             (find-file-noselect filename))))))
+
+(defun* compilation/jump-to-error (err &key (other-window nil))
+  "Jump to source of compilation error. ERR should be structure describing
+error location - list of (filename line column)."
+  (destructuring-bind (filename line column) err
+    (aif (compilation/find-buffer filename)
+      (funcall (if other-window
+                 #'switch-to-buffer-other-window
+                 #'switch-to-buffer)
+               it)
+      (error "File %s not found" filename))
+    (vim:save-position)
+    (goto-line line)
+    (when column
+      (move-to-column column))))
+
+(defun compilation/goto-error ()
+  "Jump to location of error or warning (file, line and column) in current window."
+  (interactive)
+  (when-let (err (compilation/get-selected-error))
+    (compilation/jump-to-error err :other-window nil)))
+
+(defun compilation/goto-error-other-window ()
+  "Jump to location of error or warning (file, line and column) in other window."
+  (interactive)
+  (when-let (err (compilation/get-selected-error))
+    (compilation/jump-to-error err :other-window t)))
+
 
 
 (eval-after-load "compile"
