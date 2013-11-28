@@ -344,23 +344,6 @@ into flat list"
       (t
        (error "Name %s designates neither file nor directory")))))
 
-;;;; compilation info facility
-
-(defvar *compile-caller-info* nil
-  "Alist containing information about buffer, major mode etc.
-from where current compile command was invoked. Should be cleared
-up by functions in compilation-finish-functions.")
-
-(defadvice compilation-start (before
-                              compilation-start-store-info
-                              activate
-                              compile)
-  "Record information about caller of compile command into
-`*compile-caller-info*'"
-  (setq *compile-caller-info* `((mode . ,major-mode)
-                                (compile-command . ,compile-command)
-                                (buffer . ,(current-buffer)))))
-
 ;;;;
 
 (defvar custom/exec-with-directory-runners
