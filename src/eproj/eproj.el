@@ -604,13 +604,14 @@ AUX-INFO is expected to be a list of zero or more constructs:
 
 
 (defun eproj-symbnav/identifier-at-point (&optional noerror)
-  (let ((bounds (bounds-of-thing-at-point 'symbol)))
-    (cond ((not (null? bounds))
-           (buffer-substring-no-properties (car bounds) (cdr bounds)))
-          ((null? noerror)
-           (error "No identifier at point found"))
-          (else
-           nil))))
+  (or (get-region-string-no-properties)
+      (let ((bounds (bounds-of-thing-at-point 'symbol)))
+        (cond ((not (null? bounds))
+               (buffer-substring-no-properties (car bounds) (cdr bounds)))
+              ((null? noerror)
+               (error "No identifier at point found"))
+              (else
+               nil)))))
 
 
 
