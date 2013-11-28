@@ -414,9 +414,7 @@ Works on both Emacs and XEmacs."
            ((featurep 'xemacs)
             (and zmacs-regions (region-active-p)))
 
-           ((region-active-p)
-            t)
-           ((run-if-fbound vim:visual-mode-p)
+           ((region-active?)
             t)
            ((fboundp 'use-region-p)
             (use-region-p))

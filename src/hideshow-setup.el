@@ -32,8 +32,7 @@
            (skip-syntax-forward ")" ;; close delimiters
                                 )))
        ;; turn visual mode off
-       (when (or (region-active-p)
-                 (run-if-fbound vim:visual-mode-p))
+       (when (region-active?)
          (deactivate-mark)
          (run-if-fbound vim:visual-mode-exit)))
 
@@ -48,8 +47,7 @@
            (skip-syntax-forward ")" ;; skip close delimiters
                                 )))
        ;; turn visual mode off
-       (when (or (region-active-p)
-                 (run-if-fbound vim:visual-mode-p))
+       (when (region-active?)
          (deactivate-mark)
          (run-if-fbound vim:visual-mode-exit)))
 
@@ -65,8 +63,7 @@
              (hs-show-block t)
              (skip-chars-forward "}"))))
        ;; turn visual mode off
-       (when (or (region-active-p)
-                 (run-if-fbound vim:visual-mode-p))
+       (when (region-active?)
          (deactivate-mark)
          (run-if-fbound vim:visual-mode-exit)))
 
@@ -82,8 +79,7 @@
            (skip-chars-forward "}") ;; close delimiters
            ))
        ;; turn visual mode off
-       (when (or (region-active-p)
-                 (run-if-fbound vim:visual-mode-p))
+       (when (region-active?)
          (deactivate-mark)
          (run-if-fbound vim:visual-mode-exit)))
 
