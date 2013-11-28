@@ -1022,6 +1022,18 @@ to mode and write new contents back to FILENAME."
   (or (region-active-p)
       (run-if-fbound vim:visual-mode-p)))
 
+(defun get-region-string-no-properties ()
+  "Get string currently selected by a region, or nil
+if there's no region."
+  (if (region-active?)
+    (buffer-substring-no-properties
+     (region-beginning)
+     (+ (if (run-if-fbound vim:visual-mode-p)
+          1
+          0)
+        (region-end)))
+    nil))
+
 ;;;;
 
 (provide 'common)
