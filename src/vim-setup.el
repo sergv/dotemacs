@@ -300,8 +300,7 @@ Basically swap current point with previous one."
     (with-current-buffer (get-buffer awk-buffer-name)
       (awk-exit)))
   ;; turn visual mode off
-  (when (or (region-active-p)
-            (run-if-fbound vim:visual-mode-p))
+  (when (region-active?)
     (deactivate-mark)
     (run-if-fbound vim:visual-mode-exit))
   (awk-on-region (if motion

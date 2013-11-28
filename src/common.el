@@ -1016,6 +1016,14 @@ to mode and write new contents back to FILENAME."
 
 ;;;;
 
+(defun region-active? ()
+  "Return t if region, either plain or vim's, is active."
+  ;; consider using mark-active
+  (or (region-active-p)
+      (run-if-fbound vim:visual-mode-p)))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:

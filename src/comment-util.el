@@ -9,6 +9,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'custom)
+(require 'common)
 (require 'advices-util)
 (require 'all-lisp-setup)
 
@@ -145,8 +146,7 @@ Contains single-line and region comments.")
   "Comment LINES lines eiter up if argument LINES is positive
 or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
-  (if (or (region-active-p)
-          (run-if-fbound vim:visual-mode-p))
+  (if (region-active?)
     (comment-util-comment-region (region-beginning) (region-end))
     (comment-util-comment-next-n-lines lines)))
 

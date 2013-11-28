@@ -572,8 +572,7 @@ of code may be called more than once."
                     (macroexpand-all align-str))))
     `(defun ,func ()
        (interactive)
-       (when (or (region-active-p)
-                 (run-if-fbound vim:visual-mode-p))
+       (when (region-active?)
          (align-regexp (region-beginning)
                        (region-end)
                        ,(if put-align-spaces-after-str
