@@ -10,6 +10,7 @@
 (require 'common)
 (require 'clojure-util)
 (require 'keys-def)
+(require 'compilation-setup)
 
 (defconst +clojure-compile-warning-regexp+
   (rx bol
@@ -56,91 +57,14 @@
          (group (+ digit)))
       ")"))
 
-
-(defun clojure-compile/get-selected-warning ()
-  "Return filename, line and column for warning on current line (i.e. the selected one)."
-  (save-excursion
-    (save-match-data
-      (beginning-of-line)
-      (when (looking-at? +clojure-compile-warning-regexp+)
-        (values (match-string-no-properties 1)
-                (string->number (match-string-no-properties 2))
-                (string->number (match-string-no-properties 3)))))))
-
-(defun clojure-compile/get-selected-error ()
-  "Return filename, line and column for error on current line (i.e. the selected one)."
-  (save-excursion
-    (save-match-data
-      (beginning-of-line)
-      (when (looking-at? +clojure-compile-error-regexp+)
-        (values (match-string-no-properties 1)
-                (string->number (match-string-no-properties 2))
-                (aif (match-string-no-properties 3)
-                  (string->number it)
-                  nil))))))
-
-
-
-(defun clojure-compile/find-buffer (filename)
-  "Get buffer that corresponds to FILENAME, which may be neither full nor relative
-path, in which case filename with suffix equal to FILENAME will be tried."
-  (assert (not (= 0 (length filename))))
-  ;; (cond ((char=? ?/ (elt filename 0))
-  ;;        ()))
-  (current-buffer)
-  (aif (find-if (lambda (buf)
-                  (string-suffix? filename (buffer-file-name buf)))
-                (visible-buffers))
-    it
-    (when (file-exists? filename)
-      (cond ((get-file-buffer filename)
-             (get-file-buffer filename))
-            (else
-             (find-file-noselect filename))))))
-
-(defun clojure-compile/goto-error ()
-  "Jump to location of error or warning (file, line and column) in current window."
-  (interactive)
-  (let ((goto-err
-         (lambda (spec)
-           (destructuring-bind (filename line column) spec
-             (aif (clojure-compile/find-buffer filename)
-               (switch-to-buffer it)
-               (error "File %s not found" filename))
-             (vim:save-position)
-             (goto-line line)
-             (move-to-column column)))))
-    (if-let (err (clojure-compile/get-selected-error))
-      (funcall goto-err err)
-      (if-let (warning (clojure-compile/get-selected-warning))
-        (funcall goto-err warning)))))
-
-(defun clojure-compile/goto-error-other-window ()
-  "Jump to location of error or warning (file, line and column) in other window."
-  (interactive)
-  (let ((goto-err
-         (lambda (spec)
-           (destructuring-bind (filename line column) spec
-             (aif (clojure-compile/find-buffer filename)
-               (switch-to-buffer-other-window it)
-               (error "File %s not found" filename))
-             (vim:save-position)
-             (goto-line line)
-             (when column
-               (move-to-column column))))))
-    (if-let (err (clojure-compile/get-selected-error))
-      (funcall goto-err err)
-      (if-let (warning (clojure-compile/get-selected-warning))
-        (funcall goto-err warning)))))
-
 (defvar clojure-compilation-mode-map
   (let ((m (make-sparse-keymap)))
     (def-keys-for-map m
       +vim-special-keys+
       +vim-word-motion-keys+
-      ("SPC"      clojure-compile/goto-error-other-window)
-      ("<return>" clojure-compile/goto-error)
-      ("o"        clojure-compile/goto-error-other-window))
+      ("SPC"      compilation/goto-error-other-window)
+      ("<return>" compilation/goto-error)
+      ("o"        compilation/goto-error-other-window))
     m))
 
 (define-compilation-mode clojure-compilation-mode "Clojure compilation"
