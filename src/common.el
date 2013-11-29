@@ -1036,6 +1036,26 @@ if there's no region."
 
 ;;;;
 
+(defun find-first-matching (f xs)
+  "Find first x among XS such that (F x) is non-nil, and
+return pair (x (F x))."
+  ;; imperative and ugly but efficient
+  (let ((done nil)
+        (y nil)
+        (fy nil))
+    (while (and (not done)
+                (not (null? xs)))
+      (when-let (tmp (funcall f (car xs)))
+        (setf done t
+              y (car xs)
+              fy tmp))
+      (setf xs (cdr xs)))
+    (if done
+      (values y fy)
+      nil)))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:
