@@ -14,6 +14,7 @@
 (load-library "set-up-font")
 
 (load-library "base-emacs-fixes")
+(load-library "more-haskell")
 (load-library "more-scheme")
 (load-library "more-clojure")
 (load-library "custom")
