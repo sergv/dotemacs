@@ -1056,6 +1056,11 @@ return pair (x (F x))."
 
 ;;;;
 
+(defsubst cadr-safe (x)
+  (car-safe (cdr-safe x)))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:
