@@ -21,9 +21,11 @@
          (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
          ;; (cons "main"                       "main = do\n   ")
 
-         (list "^imp\\(?:ort\\)?$"  "import")
-         (list "^imp\\(?:ort\\)?q$" "import qualified")
-         (list "^qimp\\(?:ort\\)?$" "import qualified")
+
+
+         (list (concat "^" (make-re-with-optional-suffix "import" 1) "$") "import")
+         (list (concat "^" (make-re-with-optional-suffix "import" 1) "q$") "import qualified")
+         (list (concat "^q" (make-re-with-optional-suffix "import" 1) "$") "import qualified")
          (list "##"
                (list
                 (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
