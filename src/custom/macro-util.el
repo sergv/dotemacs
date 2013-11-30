@@ -408,7 +408,7 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
                 (setf result
                       (funcall ,(if msg-transform
                                   (funcall make-func-call msg-transform)
-                                  #'identity)
+                                  '(function identity))
                                (replace-regexp-in-string "^[ \t]+" "" x)))
                 (let ((msg ,(if msg-transform
                               `(funcall ,(funcall make-func-call msg-transform)
