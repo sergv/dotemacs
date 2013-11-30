@@ -612,6 +612,17 @@ buffer if no such buffer exists."
                                  )
            (funcall ,exec-func))))))
 
+(defmacro with-first-matching-item (item-var pred-value-var pred items &rest body)
+  "Execute BODY with ITEM-VAR and PRED-VALUE-VAR bound to first and second
+result of `find-first-matching' respectively, if such result is non-nil, and
+return nil otherwise."
+  (declare (indent 4))
+  (let ((res-var (gensym)))
+    `(when-let (,res-var (find-first-matching ,pred ,items))
+       (multiple-value-bind (,item-var ,pred-value-var) ,res-var
+         ,@body))))
+
+
 ;; this function would not define make-NAME if :consturctor argument was supplied
 (defmacro defstruct* (struct &rest descs)
   "Define a struct type.
