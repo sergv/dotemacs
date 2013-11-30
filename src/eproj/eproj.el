@@ -5,6 +5,30 @@
 ;; Author: Sergey Vinokurov <serg.foo@gmail.com>
 ;; Created: Sunday, 30 December 2012
 ;; Description:
+;;
+;; Format of .eproj-info
+;; ((languages <langs>)
+;;  [(related <abs-or-rel-dir>*])
+;;  [(aux-files
+;;    [(tree <tree-root> <pattern>*)])]
+;;
+;;  ;; these are mostly for haskell
+;;  [(tag-file <abs-or-rel-file>)]
+;;  [(update-tag-file-command <command> <arg>+)])
+;;
+;; [...] - optional directive
+;; {...} - grouping directive
+;; <abs-or-rel-dir> - absolute or relative path to directory
+;; <abs-or-rel-file> - absolute or relative path to file
+;; <langs> - list of major-mode symbols
+;; <tree-root> - absolute path to existing directory
+;; <pattern> - regular expression
+;; <command> - emacs string representation of shell command to update tag
+;;             file corresponding to tag-file entry
+;; <arg> - emacs strings, arguments to the command
+;;
+;; update-tag-file-command will be executed with current directory
+;; set to project root
 
 (eval-when-compile (require 'cl-lib))
 
@@ -12,6 +36,7 @@
 (require 'common)
 (require 'custom-predicates)
 (require 'select-mode)
+(require 'more-haskell)
 
 ;;;; eproj-tag
 
@@ -75,7 +100,8 @@
                    (+ (or (not (any ?\n ?/))
                           "\\/"))
                    "$?")))
-      (or ";\""
+      (or (seq (* (any ?\s ?\t))
+               ";\"")
           eol)))
 
 (defconst +ctags-aux-fields+
@@ -128,15 +154,19 @@
                  it
                  (error "unknown ctags language: %s" lang-mode)))))))
 
-(defun eproj/ctags-get-tags-from-buffer (buffer &optional root)
+(defun eproj/ctags-get-tags-from-buffer (buffer &optional root simple-format?)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
-BUFFER is expected to contain output of ctags command."
+BUFFER is expected to contain output of ctags command.
+
+If SIMPLE-FORMAT? is t then do not attempt to parse <key>=<value> pairs
+after ;\", and expect single character there instead."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
       (let ((tags-table (make-hash-table :test #'equal)))
         (while (not (eob?))
-          (when (looking-at +ctags-line-re+)
+          (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
+                     (looking-at +ctags-line-re+))
             (let ((symbol (match-string-no-properties 1))
                   (file (concat (when root (concat root "/"))
                                 (match-string-no-properties 2)))
@@ -147,19 +177,22 @@ BUFFER is expected to contain output of ctags command."
                                   (point)
                                   (line-end-position)))
                      (fields
-                      (delq nil
-                            (map (lambda (entry)
-                                   (if (string-match? (concat "^\\("
-                                                              +ctags-aux-fields-re+
-                                                              "\\):\\(.*\\)$")
-                                                      entry)
-                                     (let ((identifier (match-string-no-properties 1 entry))
-                                           (value (match-string-no-properties 2 entry)))
-                                       ;; when value is nonempty
-                                       (when (< 0 (length value))
-                                         (cons (string->symbol identifier) value)))
-                                     (error "invalid entry: %s" entry)))
-                                 (split-string fields-str "\t" t))))
+                      (if simple-format?
+                        (list (cons 'type
+                                    (trim-whitespace fields-str)))
+                        (delq nil
+                              (map (lambda (entry)
+                                     (if (string-match? (concat "^\\("
+                                                                +ctags-aux-fields-re+
+                                                                "\\):\\(.*\\)$")
+                                                        entry)
+                                       (let ((identifier (match-string-no-properties 1 entry))
+                                             (value (match-string-no-properties 2 entry)))
+                                         ;; when value is nonempty
+                                         (when (< 0 (length value))
+                                           (cons (string->symbol identifier) value)))
+                                       (error "invalid entry: %s" entry)))
+                                   (split-string fields-str "\t" t)))))
                      (new-tag (make-eproj-tag
                                :symbol symbol
                                :file (common/registered-filename file)
@@ -191,7 +224,7 @@ BUFFER is expected to contain output of ctags command."
 
 ;;; language definitions
 
-(defun eproj/generic-tag->string (tag)
+(defun eproj/generic-tag->string (proj tag)
   (assert (eproj-tag-p tag))
   (concat "Generic tag "
           (eproj-tag/symbol tag)
@@ -225,27 +258,78 @@ BUFFER is expected to contain output of ctags command."
   ;;             (ctags-tag-line entry))))
   )
 
-(defun eproj/generic-load-procedure (proj)
-  "Generic loading procedure doing nothing"
-  (error "not implemented yet"))
+(defun eproj/haskell-tag->string (proj tag)
+  (assert (eproj-tag-p tag))
+  (concat (eproj-tag/symbol tag)
+          " ["
+          (pcase (cdr-safe (assoc 'type (eproj-tag/properties tag)))
+            ("m" "Module")
+            ("f" "Function")
+            ("c" "Class")
+            ("t" "Type")
+            ("C" "Constructor")
+            ("o" "Operator")
+            (-
+             (error "Invalid haskell tag property %s"
+                    (eproj-tag/properties tag))))
+          "]\n"
+          (eproj-tag/file tag)
+          ":"
+          (eproj-tag/line tag)
+          "\n"
+          (for-buffer-with-file (eproj-tag/file tag)
+            (save-excursion
+              (goto-line1 (eproj-tag/line tag))
+              (current-line)))))
 
 (defun eproj/load-ctags-project (lang-mode proj)
-  (let ((root (eproj-project/root proj))
-        (ctags-buf (get-buffer-create (concat " *"
-                                              (eproj-project/root proj)
-                                              "-ctags-"
-                                              (symbol->string lang-mode)
-                                              "*"))))
-    (with-current-buffer ctags-buf
-      (cd root)
-      (erase-buffer))
-    (eproj/run-ctags-on-files lang-mode
-                              root
-                              (eproj-get-project-files proj)
-                              ctags-buf)
-    (let ((table (eproj/ctags-get-tags-from-buffer ctags-buf)))
-      (kill-buffer ctags-buf)
-      table)))
+  (let ((root (eproj-project/root proj)))
+    (with-temp-buffer
+      (eproj/run-ctags-on-files lang-mode
+                                root
+                                (eproj-get-project-files proj)
+                                (current-buffer))
+      (eproj/ctags-get-tags-from-buffer (current-buffer)))))
+
+(defun eproj/load-haskell-project (proj)
+  "Load haskell project PROJ according to definitions in .eproj-info file.
+
+Note: old tags file is removed before calling update command."
+  (assert (eproj-project-p proj))
+  (when-let (tag-file (cadr-safe
+                       (assoc 'tag-file (eproj-project/aux-info proj))))
+    (assert (string? tag-file))
+    (when-let (existing-tag-file
+               (eproj-resolve-abs-or-rel-name tag-file
+                                              (eproj-project/root proj)))
+      (rm existing-tag-file))
+    (let ((tag-generation-output nil))
+      (when-let (update-tag-file-command
+                 (cdr-safe
+                  (assoc 'update-tag-file-command (eproj-project/aux-info proj))))
+        (assert (and (list? update-tag-file-command)
+                     (all? #'string? update-tag-file-command)))
+        (with-temp-buffer
+          (let ((default-directory
+                  (concat (eproj-normalize-file-name (eproj-project/root proj))
+                          "/")))
+            (apply #'call-process
+                   (car update-tag-file-command)
+                   nil              ;; input
+                   (current-buffer) ;; redirect output
+                   nil              ;; no redisplay
+                   (cdr update-tag-file-command))
+            (setf tag-generation-output
+                  (buffer-substring-no-properties (point-min) (point-max))))))
+      (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
+                                                          (eproj-project/root proj))))
+        (when (or (null? tag-file-path)
+                  (not (file-exists? tag-file-path)))
+          (error "Cannot find tag file %s\nOutput of tag generation command: %s"
+                 tag-file
+                 tag-generation-output))
+        (for-buffer-with-file tag-file-path
+          (eproj/ctags-get-tags-from-buffer (current-buffer) nil t))))))
 
 (defun eproj/clojure-load-procedure (proj)
   (assert (eproj-project-p proj))
@@ -255,7 +339,15 @@ BUFFER is expected to contain output of ctags command."
 
 
 (defvar eproj/languages
-  (list (make-eproj-language :mode 'c-mode
+  (list (make-eproj-language :mode 'haskell-mode
+                             :extension-re (rx "."
+                                               (or "hs" "lhs" "hsc")
+                                               eol)
+                             :load-procedure
+                             (lambda (proj)
+                               (eproj/load-haskell-project proj))
+                             :tag->string-procedure #'eproj/haskell-tag->string)
+        (make-eproj-language :mode 'c-mode
                              :extension-re (rx "."
                                                (or "c" "h")
                                                eol)
@@ -319,9 +411,9 @@ BUFFER is expected to contain output of ctags command."
 
 (defstruct (eproj-project
             (:conc-name eproj-project/))
-  type ;; one of symbols: git
+  type ;; references eproj-project-type structure
   root
-  aux-info
+  aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries)
   tags ;; list of (language-major-mode . <tags-table>);
   ;; <tags-table> - hashtable of (symbol-str . eproj-tag) bindings
   related-projects ;; list of other project roots
@@ -356,7 +448,7 @@ BUFFER is expected to contain output of ctags command."
 (defun eproj-update-projects ()
   "Update projects in database `*eproj-projects*'."
   (interactive)
-  (maphash (lambda (root porj)
+  (maphash (lambda (root proj)
              (eproj-reload-project! proj))
            *eproj-projects*))
 
@@ -375,12 +467,14 @@ BUFFER is expected to contain output of ctags command."
              (if (string-prefix? dir filename)
                (concat "."
                        (substring filename
-                                  (length (strip-trailing-slash dir))))
+                                  (length (eproj-normalize-file-name dir))))
                filename))))
       (switch-to-buffer-other-window buf)
       (with-current-buffer buf
         (erase-buffer)
-        (insert "type: " (pp-to-string (eproj-project/type proj)) "\n")
+        (insert "type: " (pp-to-string (eproj-project-type/name
+                                        (eproj-project/type proj)))
+                "\n")
         (insert "root: " (eproj-project/root proj) "\n")
         (insert "related projects:\n")
         (dolist (related-proj (eproj-project/related-projects proj))
@@ -406,7 +500,8 @@ BUFFER is expected to contain output of ctags command."
   "Reload tags for PROJ."
   (setf (eproj-project/tags proj)
         (map (lambda (lang-mode)
-               (assert (symbol? lang-mode))
+               (assert (symbol? lang-mode)
+                       nil "invalid language mode = %s" lang-mode)
                (if-let (lang (gethash lang-mode eproj/languages-table))
                  (if-let (load-proc (eproj-language/load-procedure lang))
                    (cons lang-mode (funcall load-proc proj))
@@ -416,57 +511,133 @@ BUFFER is expected to contain output of ctags command."
   nil)
 
 (defun eproj-reload-project! (proj)
-  (if-let (proj-root (git-get-repository-root (eproj-project/root proj)))
-    (let* ((eproj-info-file (concat (strip-trailing-slash proj-root)
-                                    "/.eproj-info"))
-           (aux-info (if (file-exists? eproj-info-file)
-                       (with-temp-buffer
-                         (cd proj-root)
-                         (insert-file-contents-literally eproj-info-file)
-                         (read
-                          (buffer-substring-no-properties (point-min) (point-max))))
-                       nil))
-           (languages (aif (rest-safe (assoc 'languages aux-info))
-                        it
-                        (progn
-                          (message "warning: no languages defined for project %s" proj)
-                          nil))))
-      (setf (eproj-project/aux-info proj)
-            aux-info
-            (eproj-project/related-projects proj)
-            (eproj-get-related-projects proj-root aux-info)
-            (eproj-project/aux-files-source proj)
-            (eproj-make-aux-files-constructor proj-root aux-info)
-            (eproj-project/languages proj)
-            languages)
-      (eproj-reload-tags proj)
-      nil)
-    (error "No git repository found for project root %s" (eproj-project/root proj))))
+  (assert (not (null? (eproj-project/root proj))))
+  (assert (string? (eproj-project/root proj)))
+  (let* ((eproj-info-file (concat (eproj-normalize-file-name (eproj-project/root proj))
+                                  "/.eproj-info"))
+         (aux-info (if (file-exists? eproj-info-file)
+                     (with-temp-buffer
+                       (cd (eproj-project/root proj))
+                       (insert-file-contents-literally eproj-info-file)
+                       (read
+                        (buffer-substring-no-properties (point-min) (point-max))))
+                     nil))
+         (languages (aif (rest-safe (assoc 'languages aux-info))
+                      it
+                      (progn
+                        (message "warning: no languages defined for project %s" proj)
+                        nil))))
+    (setf (eproj-project/aux-info proj) aux-info
+          (eproj-project/related-projects proj)
+          (eproj-get-related-projects (eproj-project/root proj) aux-info)
+          (eproj-project/aux-files-source proj)
+          (eproj-make-aux-files-constructor (eproj-project/root proj) aux-info)
+          (eproj-project/languages proj)
+          languages)
+    (eproj-reload-tags proj)
+    nil))
 
-(defun eproj-make-project (root)
+;;; project types and project creation
+
+(defstruct (eproj-project-type
+            (:conc-name eproj-project-type/))
+  name ;; one of symbols: git, eproj-file
+  ;; These functions are sorted by rough order in which results of the earlier
+  ;; functions will affect how later ones will be called, i.e. results of the
+  ;; former will be passed to the latter.
+  get-initial-project-root-proc ;; function with signature: (path)
+  make-project-proc ;; function-with-signature: (root)
+  get-project-files-proc ;; function with signature: (proj)
+  )
+
+(defvar eproj-project-types
+  (list
+   (letrec ((proj-type-entry
+             (make-eproj-project-type
+              :name 'git
+              :get-initial-project-root-proc
+              (lambda (path)
+                (when *have-git?*
+                  (eproj-normalize-file-name
+                   (if (file-directory? path)
+                     (git-get-repository-root path)
+                     (for-buffer-with-file path
+                       (git-update-file-repository)
+                       git-repository)))))
+              :make-project-proc
+              (lambda (proj-root)
+                (make-eproj-project :type proj-type-entry
+                                    :root proj-root
+                                    :tags nil
+                                    :aux-info nil
+                                    :related-projects nil
+                                    :aux-files-source nil
+                                    :languages nil))
+              :get-project-files-proc
+              (lambda (proj)
+                (let ((tracked-tbl (git-get-tracked-files (eproj-project/root proj)))
+                      (tracked-list (list)))
+                  (maphash (lambda (key value)
+                             (push key tracked-list))
+                           tracked-tbl)
+                  (append tracked-list
+                          (eproj-project/aux-files proj)))))))
+     proj-type-entry)
+   (letrec ((proj-type-entry
+             (make-eproj-project-type
+              :name 'eproj-file
+              :get-initial-project-root-proc
+              (lambda (path)
+                (eproj-normalize-file-name
+                 (eproj/find-eproj-file-location (if (file-directory? path)
+                                                   path
+                                                   (file-name-directory path)))))
+              :make-project-proc
+              (lambda (proj-root)
+                (make-eproj-project :type proj-type-entry
+                                    :root proj-root
+                                    :tags nil
+                                    :aux-info nil
+                                    :related-projects nil
+                                    :aux-files-source nil
+                                    :languages nil))
+              :get-project-files-proc
+              (lambda (proj)
+                (find-rec (eproj-project/root proj)
+                          :filep
+                          (lambda (path)
+                            (any? (lambda (lang)
+                                    (assert (symbol? lang))
+                                    (string-match-pure?
+                                     (eproj-language/extension-re
+                                      (gethash lang eproj/languages-table))
+                                     path))
+                                  (eproj-project/languages proj))))))))
+     proj-type-entry))
+  "List of `eproj-project-type' structures, defines order in
+which to try loading/root finding/etc.")
+
+(defun eproj-make-project (root type)
+  (assert (string? root)
+          nil
+          "Not a string: %s" root)
+  (assert (eproj-project-type-p type))
   (unless (and (file-exists? root)
                (file-directory? root))
     (error "invalid project root: %s" root))
-  (if-let (proj-root (git-get-repository-root root))
-    (let ((proj
-           (make-eproj-project :type 'git
-                               :root proj-root
-                               :tags nil
-                               :aux-info nil
-                               :related-projects nil
-                               :aux-files-source nil
-                               :languages nil)))
-      (eproj-reload-project! proj)
-      proj)
-    (error "only git projects are supported for now\nerror while trying to obtain project for root %s"
-           root)))
+  (let ((proj (funcall (eproj-project-type/make-project-proc type)
+                       root)))
+    (when (null? proj)
+      (error "error while trying to obtain project for root %s" root))
+    (eproj-reload-project! proj)
+    proj))
 
 ;;; utilities
 
-(defun eproj-get-project (root)
+(defun eproj-get-project (root type)
   (aif (gethash root *eproj-projects* nil)
     it
-    (let ((proj (eproj-make-project root)))
+    (let ((proj (eproj-make-project root type)))
       (puthash (eproj-project/root proj)
                proj
                *eproj-projects*)
@@ -474,26 +645,39 @@ BUFFER is expected to contain output of ctags command."
 
 
 (defun eproj-get-project-for-buf (buffer)
-  (eproj-get-project (eproj-get-project-root-for-buf buffer)))
+  (eproj-get-project-for-path (with-current-buffer buffer
+                                (or (when-let (fname buffer-file-name)
+                                      (file-name-nondirectory fname))
+                                    default-directory))))
 
-(defun eproj-get-project-root-for-buf (buffer)
-  (with-current-buffer buffer
-    (when *have-git?*
-      (git-update-file-repository))
-    (or git-repository
-        (and (buffer-file-name) (file-name-directory (buffer-file-name)))
-        default-directory)))
+(defun eproj-get-project-for-path (path)
+  (let* ((get-root-length (comp #'length #'car))
+         (initial-roots
+          (map (lambda (proj-type)
+                 (cons (eproj-normalize-file-name
+                        (funcall (eproj-project-type/get-initial-project-root-proc
+                                  proj-type)
+                                 path))
+                       proj-type))
+               eproj-project-types)))
+    (if (not (null? initial-roots))
+      ;; we aim for file with longest name since it will correspond to
+      ;; the most specific project, i.e. to the project closest to requested
+      ;; path
+      (let ((sorted-roots (stable-sort initial-roots
+                                       (lambda (a b)
+                                         (> (funcall get-root-length a)
+                                            (funcall get-root-length b))))))
+        (assert (not (null? sorted-roots)))
+        (eproj-get-project (car (car sorted-roots))
+                           (cdr (car sorted-roots))))
+      (error "Error while obtaining project for buffer %s: no potential project roots can be constructed"
+             buffer))))
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type."
-  (when (eq? (eproj-project/type proj) 'git)
-    (let ((tracked (git-get-tracked-files (eproj-project/root proj)))
-          (tracked-list (list)))
-      (maphash (lambda (key value)
-                 (push key tracked-list))
-               tracked)
-      (append tracked-list
-              (eproj-project/aux-files proj)))))
+  (funcall (eproj-project-type/get-project-files-proc (eproj-project/type proj))
+           proj))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -566,6 +750,9 @@ AUX-INFO is expected to be a list of zero or more constructs:
                            nil)))
                   aux-files-entry))))))
 
+(defun eproj/find-eproj-file-location (dir)
+  "Find .eproj-info file in directory DIR or in its parents."
+  (locate-dominating-file dir ".eproj-info"))
 
 
 (defun eproj-get-all-related-projects (proj)
@@ -577,7 +764,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
                              :test #'eproj-project/root=)
                   (funcall collect (cdr projs) visited items)
                   (funcall collect
-                           (append (map #'eproj-get-project
+                           (append (map #'eproj-get-project-for-path
                                         (eproj-project/related-projects (car projs)))
                                    (cdr projs))
                            (cons (car projs) visited)
@@ -586,9 +773,23 @@ AUX-INFO is expected to be a list of zero or more constructs:
     (assert (eproj-project-p proj) nil
             "Not a eproj-project structure: %s" proj)
     (funcall collect
-             (map #'eproj-get-project (eproj-project/related-projects proj))
+             (map #'eproj-get-project-for-path
+                  (eproj-project/related-projects proj))
              (list proj)
              nil)))
+
+(defun eproj-resolve-abs-or-rel-name (path dir)
+  "Return PATH or DIR/PATH, whichever exists, or nil if none exists."
+  (if (or (file-exists? path)
+          (file-directory? path))
+    path
+    (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
+      (when (or (file-exists? abs-path)
+                (file-directory? abs-path))
+        abs-path))))
+
+(defun eproj-normalize-file-name (path)
+  (strip-trailing-slash (expand-file-name path)))
 
 ;;;; tag/symbol navigation (navigation over homes)
 
@@ -629,15 +830,17 @@ AUX-INFO is expected to be a list of zero or more constructs:
 
 (defun eproj-symbnav/go-to-symbol-home ()
   (interactive)
-  (let* ((identifier (eproj-symbnav/identifier-at-point nil))
+  (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+         (identifier (eproj-symbnav/identifier-at-point nil))
          (orig-major-mode major-mode)
-         (proj (eproj-get-project-for-buf (current-buffer)))
          (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
                                                     :point (point)
                                                     :symbol identifier))
          (jump-to-home
           (lambda (entry)
-            (let ((file (eproj-tag/file entry)))
+            (let ((file
+                   (eproj-resolve-abs-or-rel-name (eproj-tag/file entry)
+                                                  (eproj-project/root proj))))
               (push current-home-entry eproj-symbnav/previous-homes)
               (setf eproj-symbnav/next-homes nil)
               (unless (file-exists? file)
@@ -663,7 +866,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
                major-mode)))
     (if (and next-home-entry
              (string=? identifier
-                       (eproj-tag/symbol next-home-entry)))
+                       (eproj-home-entry/symbol next-home-entry)))
       (begin
         (eproj-symbnav/switch-to-home-entry next-home-entry)
         (pop eproj-symbnav/next-homes)
@@ -675,19 +878,17 @@ AUX-INFO is expected to be a list of zero or more constructs:
                  it
                  (error "unsupported language %s" orig-major-mode))))
              (entries
-              (sort (reduce #'append
-                            (map (lambda (proj)
-                                   (aif (rest-safe
-                                         (assq major-mode
-                                               (eproj-project/tags
-                                                (eproj-get-project (eproj-project/root proj)))))
-                                     (gethash identifier it nil)
-                                     nil))
-                                 (cons proj
-                                       (eproj-get-all-related-projects proj))))
+              (sort (concatMap (lambda (proj)
+                                 (aif (rest-safe
+                                       (assq major-mode
+                                             (eproj-project/tags proj)))
+                                   (gethash identifier it nil)
+                                   nil))
+                               (cons proj
+                                     (eproj-get-all-related-projects proj)))
                     (lambda (a b)
-                      (string< (funcall entry->string a)
-                               (funcall entry->string b))))))
+                      (string< (funcall entry->string proj a)
+                               (funcall entry->string proj b))))))
         (cond ((null? entries)
                (error "No entries for identifier %s" identifier))
               ((null? (cdr entries))
@@ -702,7 +903,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
                   (select-exit)
                   (funcall jump-to-home (elt entries idx)))
                 :predisplay-function
-                entry->string
+                (partial entry->string proj)
                 :preamble-function
                 (lambda ()
                   "Choose symbol\n\n"))))))))
@@ -712,7 +913,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
   (if (null? eproj-symbnav/previous-homes)
     (error "no more previous go-to-definition entries")
     (progn
-      (when-let (identifier (ctags-symbols-identifier-at-point t))
+      (when-let (identifier (eproj-symbnav/identifier-at-point nil))
         (push (make-eproj-home-entry :buffer (current-buffer)
                                      :point (point)
                                      :symbol identifier)
