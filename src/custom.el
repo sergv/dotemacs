@@ -253,7 +253,7 @@ current working directory at point."
 
 (defun file-contents-matches-re (filename re)
   "Return t if file FILENAME exists and it contents matches RE."
-  (when (file-exists-p filename)
+  (when (file-exists? filename)
     (save-match-data
       (with-temp-buffer
         (insert-file-contents filename)
