@@ -594,6 +594,24 @@ of code may be called more than once."
          (goto-line1 ,line-var)
          (move-to-column ,column-var)))))
 
+
+(defmacro for-buffer-with-file (filename &rest body)
+  "Execute BODY in buffer with contents of FILENAME. If FILENAME is already
+opened in some buffer, then reuse it, and insert its contents in temporary
+buffer if no such buffer exists."
+  (declare (indent 1))
+  (let ((buf-var (gensym))
+        (exec-func (gensym)))
+    `(let ((,exec-func (lambda () ,@body)))
+       (if-let (,buf-var (get-file-buffer ,filename))
+         (with-current-buffer ,buf-var
+           (funcall ,exec-func))
+         (with-temp-buffer
+           (insert-file-contents ,filename
+                                 t ;; make current buffer visit inserted file
+                                 )
+           (funcall ,exec-func))))))
+
 ;; this function would not define make-NAME if :consturctor argument was supplied
 (defmacro defstruct* (struct &rest descs)
   "Define a struct type.
