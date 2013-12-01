@@ -528,7 +528,8 @@ Note: old tags file is removed before calling update command."
          (languages (aif (rest-safe (assoc 'languages aux-info))
                       it
                       (progn
-                        (message "warning: no languages defined for project %s" proj)
+                        (message "warning: no languages defined for project %s"
+                                 (eproj-project/root proj))
                         nil)))
          (specified-project-type (cadr-safe (assoc 'project-type aux-info)))
          (inferred-project-type (eproj-project-type/name
@@ -573,12 +574,12 @@ Note: old tags file is removed before calling update command."
               :get-initial-project-root-proc
               (lambda (path)
                 (when *have-git?*
-                  (eproj-normalize-file-name
-                   (if (file-directory? path)
-                     (git-get-repository-root path)
-                     (for-buffer-with-file path
-                       (git-update-file-repository)
-                       git-repository)))))
+                  (awhen (if (file-directory? path)
+                           (git-get-repository-root path)
+                           (for-buffer-with-file path
+                             (git-update-file-repository)
+                             git-repository))
+                    (eproj-normalize-file-name it))))
               :make-project-proc
               (lambda (proj-root)
                 (make-eproj-project :type proj-type-entry
@@ -603,10 +604,11 @@ Note: old tags file is removed before calling update command."
               :name 'eproj-file
               :get-initial-project-root-proc
               (lambda (path)
-                (eproj-normalize-file-name
-                 (eproj/find-eproj-file-location (if (file-directory? path)
-                                                   path
-                                                   (file-name-directory path)))))
+                (assert (string? path))
+                (awhen (eproj/find-eproj-file-location (if (file-directory? path)
+                                                         path
+                                                         (file-name-directory path)))
+                  (eproj-normalize-file-name it)))
               :make-project-proc
               (lambda (proj-root)
                 (make-eproj-project :type proj-type-entry
@@ -641,7 +643,7 @@ which to try loading/root finding/etc.")
                (file-directory? root))
     (error "invalid project root: %s" root))
   (let ((proj (funcall (eproj-project-type/make-project-proc type)
-                       root)))
+                       (eproj-normalize-file-name root))))
     (when (null? proj)
       (error "error while trying to obtain project for root %s" root))
     (eproj-reload-project! proj)
@@ -659,22 +661,21 @@ which to try loading/root finding/etc.")
       proj)))
 
 
-(defun eproj-get-project-for-buf (buffer)
-  (eproj-get-project-for-path (with-current-buffer buffer
-                                (or (when-let (fname buffer-file-name)
-                                      (file-name-nondirectory fname))
-                                    default-directory))))
-
-(defun eproj-get-project-for-path (path)
+(defun eproj-get-initial-project-root-and-type (path)
+  "Get (<initial-project-root> <project-type>) pair for project that contains
+PATH as its part."
   (let* ((get-root-length (comp #'length #'car))
          (initial-roots
-          (map (lambda (proj-type)
-                 (cons (eproj-normalize-file-name
-                        (funcall (eproj-project-type/get-initial-project-root-proc
-                                  proj-type)
-                                 path))
-                       proj-type))
-               eproj-project-types)))
+          (delq nil
+                (map (lambda (proj-type)
+                       (when-let (initial-root
+                                  (funcall (eproj-project-type/get-initial-project-root-proc
+                                            proj-type)
+                                           path))
+                         (cons (eproj-normalize-file-name
+                                initial-root)
+                               proj-type)))
+                     eproj-project-types))))
     (if (not (null? initial-roots))
       ;; we aim for file with longest name since it will correspond to
       ;; the most specific project, i.e. to the project closest to requested
@@ -684,10 +685,32 @@ which to try loading/root finding/etc.")
                                          (> (funcall get-root-length a)
                                             (funcall get-root-length b))))))
         (assert (not (null? sorted-roots)))
-        (eproj-get-project (car (car sorted-roots))
-                           (cdr (car sorted-roots))))
-      (error "Error while obtaining project for buffer %s: no potential project roots can be constructed"
-             buffer))))
+        (values (car (car sorted-roots))
+                (cdr (car sorted-roots))))
+      (error "Error while obtaining project for path %s: no potential project roots can be constructed"
+             path))))
+
+(defun eproj-get-initial-project-root (path)
+  "Retrieve root for project that would contain PATH."
+  (multiple-value-bind (initial-root proj-type)
+      (eproj-get-initial-project-root-and-type path)
+    initial-root))
+
+(defun eproj-get-initial-project-root-for-buf (buffer)
+  "Retrieve root for project that would contain BUFFER's content."
+  (condition-case nil
+      (eproj-get-initial-project-root (eproj-get-buffer-directory buffer))
+    (error nil)))
+
+(defun eproj-get-project-for-buf (buffer)
+  (eproj-get-project-for-path (eproj-get-buffer-directory buffer)))
+
+(defun eproj-get-project-for-path (path)
+  "Retrieve project that contains PATH as its part."
+  (multiple-value-bind (initial-root proj-type)
+      (eproj-get-initial-project-root-and-type path)
+    (eproj-get-project initial-root
+                       proj-type)))
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type."
@@ -805,6 +828,14 @@ AUX-INFO is expected to be a list of zero or more constructs:
 
 (defun eproj-normalize-file-name (path)
   (strip-trailing-slash (expand-file-name path)))
+
+(defun eproj-get-buffer-directory (buffer)
+  "Get directory associated with BUFFER, either throug visited file
+or `default-directory', if no file is visited."
+  (with-current-buffer buffer
+    (or (when-let (fname buffer-file-truename)
+          (file-name-directory fname))
+        default-directory)))
 
 ;;;; tag/symbol navigation (navigation over homes)
 
