@@ -160,12 +160,12 @@ Note: a PE can't \"call\" rules by name."
 ;; used at runtime for backtracking.  It's a list ((POS . THUNK)...).
 ;; Each THUNK is executed at the corresponding POS.  Thunks are
 ;; executed in a postprocessing step, not during parsing.
-(defvar peg-thunks nil)
+(defvar peg-thunks)
 
 ;; used at runtime to track the right-most error location.  It's a
 ;; pair (POSITION . EXPS ...).  POSITION is the buffer position and
 ;; EXPS is a list of rules/expressions that failed.
-(defvar peg-errors nil)
+(defvar peg-errors)
 
 ;; The basic idea is to translate each rule to a lisp function.
 ;; The result looks like
@@ -185,20 +185,20 @@ Note: a PE can't \"call\" rules by name."
       (puthash (car rule) (peg-normalize `(and . ,(cdr rule))) peg-rules))
     (peg-check-cycles peg-rules)
     `(let ((peg-thunks '()) (peg-errors '(-1))
-	   . ,(mapcar #'car rules))
+           . ,(mapcar #'car rules))
        ,@(mapcar (lambda (rule)
-		   (let ((name (car rule)))
-		     `(setq ,name
-			    (lambda ()
-			      ,(peg-translate-exp (gethash name peg-rules))))))
-		 rules)
+                   (let ((name (car rule)))
+                     `(setq ,name
+                            (lambda ()
+                              ,(peg-translate-exp (gethash name peg-rules))))))
+                 rules)
        (cond ((funcall ,(car (car rules)))
-	      (peg-postprocess peg-thunks))
-	     (t
-	      (goto-char (car peg-errors))
-	      (error "Parse error at %d (expecting %S)"
-		     (car peg-errors)
-		     (peg-merge-errors (cdr peg-errors))))))))
+              (peg-postprocess peg-thunks))
+             (t
+              (goto-char (car peg-errors))
+              (error "Parse error at %d (expecting %S)"
+                     (car peg-errors)
+                     (peg-merge-errors (cdr peg-errors))))))))
 
 
 (eval-and-compile
@@ -222,41 +222,41 @@ Note: a PE can't \"call\" rules by name."
 (defun peg-normalize (exp)
   "Return a \"normalized\" form of EXP."
   (cond ((and (consp exp)
-	      (let ((fun (gethash (car exp) peg-normalize-methods)))
-		(and fun
-		     (apply fun (cdr exp))))))
-	((stringp exp)
-	 (let ((len (length exp)))
-	   (cond ((zerop len) '(null))
-		 ((= len 1) `(char ,(aref exp 0)))
-		 (t `(str ,exp)))))
-	((and (symbolp exp) exp)
-	 (when (not (gethash exp peg-rules))
-	   (error "Reference to undefined PEG rule: %S" exp))
-	 `(call ,exp))
-	((vectorp exp)
-	 (peg-normalize `(set . ,(append exp '()))))
-	(t
-	 (error "Invalid parsing expression: %S" exp))))
+              (let ((fun (gethash (car exp) peg-normalize-methods)))
+                (and fun
+                     (apply fun (cdr exp))))))
+        ((stringp exp)
+         (let ((len (length exp)))
+           (cond ((zerop len) '(null))
+                 ((= len 1) `(char ,(aref exp 0)))
+                 (t `(str ,exp)))))
+        ((and (symbolp exp) exp)
+         (when (not (gethash exp peg-rules))
+           (error "Reference to undefined PEG rule: %S" exp))
+         `(call ,exp))
+        ((vectorp exp)
+         (peg-normalize `(set . ,(append exp '()))))
+        (t
+         (error "Invalid parsing expression: %S" exp))))
 
 (defvar peg-leaf-types '(null fail any call action char range str set
-			      bob eob bol eol bow eow bos eos syntax-class =))
+                              bob eob bol eol bow eow bos eos syntax-class =))
 
 (dolist (type peg-leaf-types)
   (puthash type `(lambda (&rest args) (cons ',type args))
-	   peg-normalize-methods))
+           peg-normalize-methods))
 
 (peg-add-method normalize or (&rest args)
   (cond ((null args) '(fail))
-	((null (cdr args)) (peg-normalize (car args)))
-	(t `(or ,(peg-normalize (car args))
-		,(peg-normalize `(or . ,(cdr args)))))))
+        ((null (cdr args)) (peg-normalize (car args)))
+        (t `(or ,(peg-normalize (car args))
+                ,(peg-normalize `(or . ,(cdr args)))))))
 
 (peg-add-method normalize and (&rest args)
   (cond ((null args) '(null))
-	((null (cdr args)) (peg-normalize (car args)))
-	(t `(and ,(peg-normalize (car args))
-		 ,(peg-normalize `(and . ,(cdr args)))))))
+        ((null (cdr args)) (peg-normalize (car args)))
+        (t `(and ,(peg-normalize (car args))
+                 ,(peg-normalize `(and . ,(cdr args)))))))
 
 (peg-add-method normalize * (&rest args)
   `(* ,(peg-normalize `(and . ,args))))
@@ -283,92 +283,92 @@ Note: a PE can't \"call\" rules by name."
   (unless (member '-- form)
     (error "Malformed stack action: %S" form))
   (let ((args (cdr (member '-- (reverse form))))
-	(values (cdr (member '-- form))))
+        (values (cdr (member '-- form))))
     (let ((form `(let ,(mapcar (lambda (var) `(,var (pop peg-stack))) args)
-		   ,@(mapcar (lambda (val) `(push ,val peg-stack)) values))))
+                   ,@(mapcar (lambda (val) `(push ,val peg-stack)) values))))
       `(action ,form))))
 
 (defvar peg-char-classes
   '(ascii alnum alpha blank cntrl digit graph lower multibyte nonascii print
-	  punct space unibyte upper word xdigit))
+          punct space unibyte upper word xdigit))
 
 (peg-add-method normalize set (&rest specs)
   (cond ((null specs) '(fail))
-	((and (null (cdr specs))
-	      (let ((range (peg-range-designator (car specs))))
-		(and range `(range ,(car range) ,(cdr range))))))
-	(t
-	 (let ((chars '()) (ranges '()) (classes '()))
-	   (while specs
-	     (let* ((spec (pop specs))
-		    (range (peg-range-designator spec)))
-	       (cond (range
-		      (push range ranges))
-		     ((peg-characterp spec)
-		      (push spec chars))
-		     ((stringp spec)
-		      (setq chars (append (reverse (append spec ())) chars)))
-		     ((memq spec peg-char-classes)
-		      (push spec classes))
-		     (t (error "Invalid set specifier: %S" spec)))))
-	   (setq ranges (reverse ranges))
-	   (setq chars (delete-dups (reverse chars)))
-	   (setq classes (reverse classes))
-	   (cond ((and (null ranges)
-		       (null classes)
-		       (cond ((null chars) '(fail))
-			     ((null (cdr chars)) `(char ,(car chars))))))
-		 (t `(set ,ranges ,chars ,classes)))))))
+        ((and (null (cdr specs))
+              (let ((range (peg-range-designator (car specs))))
+                (and range `(range ,(car range) ,(cdr range))))))
+        (t
+         (let ((chars '()) (ranges '()) (classes '()))
+           (while specs
+             (let* ((spec (pop specs))
+                    (range (peg-range-designator spec)))
+               (cond (range
+                      (push range ranges))
+                     ((peg-characterp spec)
+                      (push spec chars))
+                     ((stringp spec)
+                      (setq chars (append (reverse (append spec ())) chars)))
+                     ((memq spec peg-char-classes)
+                      (push spec classes))
+                     (t (error "Invalid set specifier: %S" spec)))))
+           (setq ranges (reverse ranges))
+           (setq chars (delete-dups (reverse chars)))
+           (setq classes (reverse classes))
+           (cond ((and (null ranges)
+                       (null classes)
+                       (cond ((null chars) '(fail))
+                             ((null (cdr chars)) `(char ,(car chars))))))
+                 (t `(set ,ranges ,chars ,classes)))))))
 
 (defun peg-range-designator (x)
   (and (symbolp x)
        (let ((str (symbol-name x)))
-	 (and (= (length str) 3)
-	      (eq (aref str 1) ?-)
-	      (< (aref str 0) (aref str 2))
-	      (cons (aref str 0) (aref str 2))))))
+         (and (= (length str) 3)
+              (eq (aref str 1) ?-)
+              (< (aref str 0) (aref str 2))
+              (cons (aref str 0) (aref str 2))))))
 
 ;; characterp is new in Emacs 23.
 (defun peg-characterp (x)
   (if (fboundp 'characterp)
-      (characterp x)
+    (characterp x)
     (integerp x)))
 
 (peg-add-method normalize list (&rest args)
   (peg-normalize
    (let ((marker (make-symbol "magic-marker")))
      `(and (stack-action (-- ',marker))
-	   ,@args
-	   (stack-action (--
-			  (let ((l '()))
-			    (while
-				(let ((e (pop peg-stack)))
-				  (cond ((eq e ',marker) nil)
-					((null peg-stack)
-					 (error "Marker not longer stack"))
-					(t (push e l) t))))
-			    l)))))))
+           ,@args
+           (stack-action (--
+                          (let ((l '()))
+                            (while
+                                (let ((e (pop peg-stack)))
+                                  (cond ((eq e ',marker) nil)
+                                        ((null peg-stack)
+                                         (error "Marker not longer stack"))
+                                        (t (push e l) t))))
+                            l)))))))
 
 (peg-add-method normalize substring (&rest args)
   (peg-normalize
    `(and `(-- (point))
-	 ,@args
-	 `(start -- (buffer-substring-no-properties start (point))))))
+         ,@args
+         `(start -- (buffer-substring-no-properties start (point))))))
 
 (peg-add-method normalize region (&rest args)
   (peg-normalize
    `(and `(-- (point))
-	 ,@args
-	 `(-- (point)))))
+         ,@args
+         `(-- (point)))))
 
 (peg-add-method normalize replace (pe replacement)
   (peg-normalize
    `(and (stack-action (-- (point)))
-	 ,pe
-	 (stack-action (start -- (progn
-				   (delete-region start (point))
-				   (insert-before-markers ,replacement))))
-	 (stack-action (x --)))))
+         ,pe
+         (stack-action (start -- (progn
+                                   (delete-region start (point))
+                                   (insert-before-markers ,replacement))))
+         (stack-action (x --)))))
 
 (peg-add-method normalize quote (form)
   (error "quote is reverved for future use"))
@@ -379,28 +379,28 @@ Note: a PE can't \"call\" rules by name."
 (defun peg-translate-exp (exp)
   "Return the ELisp code to match the PE EXP."
   (let ((translator (or (gethash (car exp) peg-translate-methods)
-			(error "No translator for: %S" (car exp)))))
+                        (error "No translator for: %S" (car exp)))))
     `(or ,(apply translator (cdr exp))
-	 (progn
-	   (peg-record-failure ',exp) ; for error reporting
-	   nil))))
+         (progn
+           (peg-record-failure ',exp) ; for error reporting
+           nil))))
 
 (defun peg-record-failure (exp)
   (cond ((= (point) (car peg-errors))
-	 (setcdr peg-errors (cons exp (cdr peg-errors))))
-	((> (point) (car peg-errors))
-	 (setq peg-errors (list (point) exp)))))
+         (setcdr peg-errors (cons exp (cdr peg-errors))))
+        ((> (point) (car peg-errors))
+         (setq peg-errors (list (point) exp)))))
 
 (peg-add-method translate and (e1 e2)
   `(and ,(peg-translate-exp e1)
-	,(peg-translate-exp e2)))
+        ,(peg-translate-exp e2)))
 
 (peg-add-method translate or (e1 e2)
   (let ((cp (peg-make-choicepoint)))
     `(,@(peg-save-choicepoint cp)
       (or ,(peg-translate-exp e1)
-	  (,@(peg-restore-choicepoint cp)
-	   ,(peg-translate-exp e2))))))
+          (,@(peg-restore-choicepoint cp)
+           ,(peg-translate-exp e2))))))
 
 ;; Choicepoints are used for backtracking.  At a choicepoint we save
 ;; enough state, so that we can continue from there if needed.
@@ -409,7 +409,7 @@ Note: a PE can't \"call\" rules by name."
 
 (defun peg-save-choicepoint (choicepoint)
   `(let ((,(car choicepoint) (point))
-	 (,(cdr choicepoint) peg-thunks))))
+         (,(cdr choicepoint) peg-thunks))))
 
 (defun peg-restore-choicepoint (choicepoint)
   `(progn
@@ -442,8 +442,8 @@ Note: a PE can't \"call\" rules by name."
 (peg-add-method translate syntax-class (class)
   (let ((probe (assoc class peg-syntax-classes)))
     (cond (probe `(looking-at ,(format "\\s%c" (cadr probe))))
-	  (t (error "Invalid syntax class: %S\nMust be one of: %s" class
-		    (mapcar #'car peg-syntax-classes))))))
+          (t (error "Invalid syntax class: %S\nMust be one of: %s" class
+                    (mapcar #'car peg-syntax-classes))))))
 
 (peg-add-method translate = (string)
   `(let ((str ,string))
@@ -454,24 +454,24 @@ Note: a PE can't \"call\" rules by name."
 (peg-add-method translate * (e)
   (let ((cp (peg-make-choicepoint)))
     `(progn (while (,@(peg-save-choicepoint cp)
-		    (cond (,(peg-translate-exp e))
-			  (t ,(peg-restore-choicepoint cp)
-			     nil))))
-	    t)))
+                    (cond (,(peg-translate-exp e))
+                          (t ,(peg-restore-choicepoint cp)
+                             nil))))
+            t)))
 
 (peg-add-method translate if (e)
   (let ((cp (peg-make-choicepoint)))
     `(,@(peg-save-choicepoint cp)
       (when ,(peg-translate-exp e)
-	,(peg-restore-choicepoint cp)
-	t))))
+        ,(peg-restore-choicepoint cp)
+        t))))
 
 (peg-add-method translate not (e)
   (let ((cp (peg-make-choicepoint)))
     `(,@(peg-save-choicepoint cp)
       (when (not ,(peg-translate-exp e))
-	,(peg-restore-choicepoint cp)
-	t))))
+        ,(peg-restore-choicepoint cp)
+        t))))
 
 (peg-add-method translate any ()
   '(when (not (eobp))
@@ -492,22 +492,22 @@ Note: a PE can't \"call\" rules by name."
   (when (and (not ranges) (not classes) (<= (length chars) 1))
     (error "Bug"))
   (let ((rbracket (member ?\] chars))
-	(minus (member ?- chars))
-	(hat (member ?^ chars)))
+        (minus (member ?- chars))
+        (hat (member ?^ chars)))
     (dolist (c '(?\] ?- ?^))
       (setq chars (remove c chars)))
     (format "[%s%s%s%s%s%s]"
-	    (if rbracket "]" "")
-	    (if minus "-" "")
-	    (mapconcat (lambda (x) (format "%c-%c" (car x) (cdr x))) ranges "")
-	    (mapconcat (lambda (c) (format "[:%s:]" c)) classes "")
-	    (mapconcat (lambda (c) (format "%c" c)) chars "")
-	    (if hat "^" ""))))
+            (if rbracket "]" "")
+            (if minus "-" "")
+            (mapconcat (lambda (x) (format "%c-%c" (car x) (cdr x))) ranges "")
+            (mapconcat (lambda (c) (format "[:%s:]" c)) classes "")
+            (mapconcat (lambda (c) (format "%c" c)) chars "")
+            (if hat "^" ""))))
 
 (peg-add-method translate range (from to)
   `(when (and (char-after)
-	      (<= ',from (char-after))
-	      (<= (char-after) ',to))
+              (<= ',from (char-after))
+              (<= (char-after) ',to))
      (forward-char)
      t))
 
@@ -531,9 +531,9 @@ Note: a PE can't \"call\" rules by name."
   "Execute \"actions\"."
   (let  ((peg-stack '()))
     (dolist (thunk (mapcar (lambda (x)
-			     (goto-char (car x))
-			     (cons (point-marker) (cdr x)))
-			   (reverse thunks)))
+                             (goto-char (car x))
+                             (cons (point-marker) (cdr x)))
+                           (reverse thunks)))
       (goto-char (car thunk))
       (funcall (cdr thunk)))
     peg-stack))
@@ -545,19 +545,19 @@ Note: a PE can't \"call\" rules by name."
 
 (defun peg-check-cycles (peg-rules)
   (maphash (lambda (name exp)
-	     (peg-detect-cycles exp (list name))
-	     (dolist (node (peg-find-star-nodes exp))
-	       (peg-detect-cycles node '())))
-	   peg-rules))
+             (peg-detect-cycles exp (list name))
+             (dolist (node (peg-find-star-nodes exp))
+               (peg-detect-cycles node '())))
+           peg-rules))
 
 (defun peg-find-star-nodes (exp)
   (let ((type (car exp)))
     (cond ((memq type peg-leaf-types) '())
-	  (t (let ((kids (apply #'append
-				(mapcar #'peg-find-star-nodes (cdr exp)))))
-	       (if (eq type '*)
-		   (cons exp kids)
-		 kids))))))
+          (t (let ((kids (apply #'append
+                                (mapcar #'peg-find-star-nodes (cdr exp)))))
+               (if (eq type '*)
+                 (cons exp kids)
+                 kids))))))
 
 (peg-define-method-table detect-cycles)
 
@@ -567,16 +567,16 @@ Otherwise traverse EXP recursively and return T if EXP can match
 without consuming input.  Return nil if EXP definetly consumes
 input.  PATH is the list of rules that we have visited so far."
   (apply (or (gethash (car exp) peg-detect-cycles-methods)
-	     (error "No detect-cycle method for: %S" exp))
-	 path (cdr exp)))
+             (error "No detect-cycle method for: %S" exp))
+         path (cdr exp)))
 
 (peg-add-method detect-cycles call (path name)
   (cond ((member name path)
-	 (error "Possible left recursion: %s"
-		(mapconcat (lambda (x) (format "%s" x))
-			   (reverse (cons name path)) " -> ")))
-	(t
-	 (peg-detect-cycles (gethash name peg-rules) (cons name path)))))
+         (error "Possible left recursion: %s"
+                (mapconcat (lambda (x) (format "%s" x))
+                           (reverse (cons name path)) " -> ")))
+        (t
+         (peg-detect-cycles (gethash name peg-rules) (cons name path)))))
 
 (peg-add-method detect-cycles and (path e1 e2)
   (and (peg-detect-cycles e1 path)
@@ -628,8 +628,8 @@ input.  PATH is the list of rules that we have visited so far."
 
 (defun peg-merge-error (exp merged)
   (apply (or (gethash (car exp) peg-merge-error-methods)
-	     (error "No merge-error method for: %S" exp))
-	 merged (cdr exp)))
+             (error "No merge-error method for: %S" exp))
+         merged (cdr exp)))
 
 (peg-add-method merge-error or (merged e1 e2)
   (peg-merge-error e2 (peg-merge-error e1 merged)))
@@ -671,11 +671,11 @@ resp. succeded instead of signaling an error."
      (insert ,string)
      (goto-char (point-min))
      ,(if noerror
-	  (let ((entry (make-symbol "entry"))
-		(start (caar rules)))
-	    `(peg-parse (entry (or (and ,start `(-- t)) ""))
-			. ,rules))
-	`(peg-parse . ,rules))))
+        (let ((entry (make-symbol "entry"))
+              (start (caar rules)))
+          `(peg-parse (entry (or (and ,start `(-- t)) ""))
+                      . ,rules))
+        `(peg-parse . ,rules))))
 
 ;; We can't expand the macro at compile time, because it needs helper
 ;; functions which aren't available yet.  Delay the expansion to
@@ -741,35 +741,35 @@ resp. succeded instead of signaling an error."
   (assert (equal (peg-parse-string ((s `(-- 1 2))) "") '(2 1)))
   (assert (equal (peg-parse-string ((s `(-- 1 2) `(a b -- a b))) "") '(2 1)))
   (assert (equal (peg-parse-string ((s (or (and (any) s)
-					   (substring [0-9]))))
-				   "ab0cd1ef2gh")
-		 '("2")))
+                                           (substring [0-9]))))
+                                   "ab0cd1ef2gh")
+                 '("2")))
   (assert (equal (peg-parse-string ((s (list x y))
-				    (x `(-- 1))
-				    (y `(-- 2)))
-				   "")
-		 '((1 2))))
+                                    (x `(-- 1))
+                                    (y `(-- 2)))
+                                   "")
+                 '((1 2))))
   (assert (equal (peg-parse-string ((s (list (* x)))
-				    (x "x" `(-- 'x)))
-				   "xxx")
-		 '((x x x))))
+                                    (x "x" `(-- 'x)))
+                                   "xxx")
+                 '((x x x))))
   (assert (equal (peg-parse-string ((s (region (* x)))
-				    (x "x" `(-- 'x)))
-				   "xxx")
-		 '(4 x x x 1)))
+                                    (x "x" `(-- 'x)))
+                                   "xxx")
+                 '(4 x x x 1)))
   (assert (equal (peg-parse-string ((s (region (list (* x))))
-				    (x "x" `(-- 'x 'y)))
-				   "xxx")
-		 '(4 (x y x y x y) 1)))
+                                    (x "x" `(-- 'x 'y)))
+                                   "xxx")
+                 '(4 (x y x y x y) 1)))
   (assert (equal (with-temp-buffer
-		   (save-excursion (insert "abcdef"))
-		   (list
-		    (peg-parse (x "a"
-				  (replace "bc" "x")
-				  (replace "de" "y")
-				  "f"))
-		    (buffer-string)))
-		 '(nil "axyf")))
+                   (save-excursion (insert "abcdef"))
+                   (list
+                    (peg-parse (x "a"
+                                  (replace "bc" "x")
+                                  (replace "de" "y")
+                                  "f"))
+                    (buffer-string)))
+                 '(nil "axyf")))
   )
 
 (when (featurep 'cl)
@@ -788,8 +788,8 @@ resp. succeded instead of signaling an error."
 ;;    written as (range ?0 ?9).  Note that 0-9 is a symbol.
 (defun peg-ex-recognize-int ()
   (peg-parse (number   sign digit (* digit))
-	     (sign     (or "+" "-" ""))
-	     (digit    [0-9])))
+             (sign     (or "+" "-" ""))
+             (digit    [0-9])))
 
 ;; peg-ex-parse-int recognizes integers and computes the corresponding
 ;; value.  The grammer is the same as for `peg-ex-recognize-int'
@@ -808,12 +808,12 @@ resp. succeded instead of signaling an error."
 ;; sign (1 or -1).
 (defun peg-ex-parse-int ()
   (peg-parse (number sign digit (* digit
-				   `(a b -- (+ (* a 10) b)))
-		     `(sign val -- (* sign val)))
-	     (sign (or (and "+" `(-- 1))
-		       (and "-" `(-- -1))
-		       (and ""  `(-- 1))))
-	     (digit [0-9] `(-- (- (char-before) ?0)))))
+                                   `(a b -- (+ (* a 10) b)))
+                     `(sign val -- (* sign val)))
+             (sign (or (and "+" `(-- 1))
+                       (and "-" `(-- -1))
+                       (and ""  `(-- 1))))
+             (digit [0-9] `(-- (- (char-before) ?0)))))
 
 ;; Put point after the ) and press C-x C-e
 ;; (peg-ex-parse-int)-234234
@@ -823,11 +823,11 @@ resp. succeded instead of signaling an error."
   (peg-parse
    (expr _ sum eol)
    (sum product (* (or (and "+" _ product `(a b -- (+ a b)))
-		       (and "-" _ product `(a b -- (- a b))))))
+                       (and "-" _ product `(a b -- (- a b))))))
    (product value (* (or (and "*" _ value `(a b -- (* a b)))
-			 (and "/" _ value `(a b -- (/ a b))))))
+                         (and "/" _ value `(a b -- (/ a b))))))
    (value (or (and (substring number) `(string -- (string-to-number string)))
-	      (and "(" _ sum ")" _)))
+              (and "(" _ sum ")" _)))
    (number (+ [0-9]) _)
    (_ (* [" \t"]))
    (eol (or "\n" "\r\n" "\r"))))
@@ -839,20 +839,20 @@ resp. succeded instead of signaling an error."
 (defun peg-ex-uri ()
   (peg-parse
    (URI-reference (or absoluteURI relativeURI)
-		  (or (and "#" (substring fragment))
-		      `(-- nil))
-		  `(scheme user host port path query fragment --
-			   (list :scheme scheme :user user
-				 :host host :port port
-				 :path path :query query
-				 :fragment fragment)))
+                  (or (and "#" (substring fragment))
+                      `(-- nil))
+                  `(scheme user host port path query fragment --
+                           (list :scheme scheme :user user
+                                 :host host :port port
+                                 :path path :query query
+                                 :fragment fragment)))
    (absoluteURI (substring scheme) ":" (or hier-part opaque-part))
    (hier-part ;(-- user host port path query)
     (or net-path
-	(and `(-- nil nil nil)
-	     abs-path))
+        (and `(-- nil nil nil)
+             abs-path))
     (or (and "?" (substring query))
-	`(-- nil)))
+        `(-- nil)))
    (net-path "//" authority (or abs-path `(-- nil)))
    (abs-path "/" path-segments)
    (path-segments segment (list (* "/" segment)) `(s l -- (cons s l)))
@@ -866,20 +866,20 @@ resp. succeded instead of signaling an error."
    (rel-segment (+ unreserved escaped [";@&=+$,"]))
    (authority (or server reg-name))
    (server (or (and (or (and (substring userinfo) "@")
-			`(-- nil))
-		    hostport)
-	       `(-- nil nil nil)))
+                        `(-- nil))
+                    hostport)
+               `(-- nil nil nil)))
    (userinfo (* (or unreserved escaped [";:&=+$,"])))
    (hostport (substring host) (or (and ":" (substring port))
-				  `(-- nil)))
+                                  `(-- nil)))
    (host (or hostname ipv4address))
    (hostname (* domainlabel ".") toplabel (opt "."))
    (domainlabel alphanum
-		(opt (* (or alphanum "-") (if alphanum))
-		     alphanum))
+                (opt (* (or alphanum "-") (if alphanum))
+                     alphanum))
    (toplabel alpha
-	     (* (or alphanum "-") (if alphanum))
-	     alphanum)
+             (* (or alphanum "-") (if alphanum))
+             alphanum)
    (ipv4address (+ digit) "." (+ digit) "." (+ digit) "." (+ digit))
    (port (* digit))
    (scheme alpha (* (or alpha digit ["+-."])))
@@ -904,9 +904,9 @@ resp. succeded instead of signaling an error."
 ;; Split STRING where SEPARATOR occurs.
 (defun peg-ex-split (string separator)
   (peg-parse-string ((s (list (* (* sep) elt)))
-		     (elt (substring (+ (not sep) (any))))
-		     (sep (= separator)))
-		    string))
+                     (elt (substring (+ (not sep) (any))))
+                     (sep (= separator)))
+                    string))
 
 ;; (peg-ex-split "-abc-cd-" "-")
 
@@ -919,14 +919,14 @@ resp. succeded instead of signaling an error."
    (comment ";" (* (not (or "\n" (eob))) (any)))
    (string "\"" (substring  (* (not "\"") (any))) "\"")
    (number (substring (opt (set "+-")) (+ digit))
-	   (if terminating)
-	   `(string -- (string-to-number string)))
+           (if terminating)
+           `(string -- (string-to-number string)))
    (symbol (substring (and symchar (* (not terminating) symchar)))
-	   `(s -- (intern s)))
+           `(s -- (intern s)))
    (symchar [a-z A-Z 0-9 "-;!#%&'*+,./:;<=>?@[]^_`{|}~"])
    (list "("          	`(-- (cons nil nil)) `(hd -- hd hd)
-	 (* sexp      	`(tl e -- (setcdr tl (list e)))
-	    ) _ ")" 	`(hd tl -- (cdr hd)))
+         (* sexp      	`(tl e -- (setcdr tl (list e)))
+            ) _ ")" 	`(hd tl -- (cdr hd)))
    (digit [0-9])
    (terminating (or (set " \n\t();\"'") (eob)))))
 
@@ -935,15 +935,15 @@ resp. succeded instead of signaling an error."
 ;; We try to detect left recursion and report it as error.
 (defun peg-ex-left-recursion ()
   (eval '(peg-parse (exp (or term
-			     (and exp "+" exp)))
-		    (term (or digit
-			      (and term "*" term)))
-		    (digit [0-9]))))
+                             (and exp "+" exp)))
+                    (term (or digit
+                              (and term "*" term)))
+                    (digit [0-9]))))
 
 (defun peg-ex-infinite-loop ()
   (eval '(peg-parse (exp (* (or "x"
-				"y"
-				(action (foo))))))))
+                                "y"
+                                (action (foo))))))))
 
 ;; Some efficecy problems:
 
@@ -951,8 +951,8 @@ resp. succeded instead of signaling an error."
 ;; Recursive definition with excessive stack usage.
 (defun peg-ex-last-digit (string)
   (peg-parse-string ((s (or (and (any) s)
-			    (substring [0-9]))))
-		    string))
+                            (substring [0-9]))))
+                    string))
 
 ;; (peg-ex-last-digit "ab0cd1ef2gh")
 ;; (peg-ex-last-digit (make-string 50 ?-))
@@ -962,11 +962,11 @@ resp. succeded instead of signaling an error."
 ;; but probably still too inefficient for large inputs.
 (defun peg-ex-last-digit2 (string)
   (peg-parse-string ((s `(-- nil)
-			(+ (* (not digit) (any))
-			   (substring digit)
-			   `(d1 d2 -- d2)))
-		     (digit [0-9]))
-		    string))
+                        (+ (* (not digit) (any))
+                           (substring digit)
+                           `(d1 d2 -- d2)))
+                     (digit [0-9]))
+                    string))
 
 ;; (peg-ex-last-digit2 "ab0cd1ef2gh")
 ;; (peg-ex-last-digit2 (concat (make-string 500000 ?-) "8a9b"))
