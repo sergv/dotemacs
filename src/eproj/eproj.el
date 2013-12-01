@@ -7,7 +7,8 @@
 ;; Description:
 ;;
 ;; Format of .eproj-info
-;; ((languages <langs>)
+;; ([(languages <langs>)] - it's not a good practice to omit this
+;;  [(project-type <proj-type>)]
 ;;  [(related <abs-or-rel-dir>*])
 ;;  [(aux-files
 ;;    [(tree <tree-root> <pattern>*)])]
@@ -21,6 +22,8 @@
 ;; <abs-or-rel-dir> - absolute or relative path to directory
 ;; <abs-or-rel-file> - absolute or relative path to file
 ;; <langs> - list of major-mode symbols
+;; <proj-type> - symbol naming type of project, will be verified
+;;               agains inferred project type
 ;; <tree-root> - absolute path to existing directory
 ;; <pattern> - regular expression
 ;; <command> - emacs string representation of shell command to update tag
@@ -526,7 +529,19 @@ Note: old tags file is removed before calling update command."
                       it
                       (progn
                         (message "warning: no languages defined for project %s" proj)
-                        nil))))
+                        nil)))
+         (specified-project-type (cadr-safe (assoc 'project-type aux-info)))
+         (inferred-project-type (eproj-project-type/name
+                                 (eproj-project/type proj))))
+    (when (and (not (null? specified-project-type))
+               (not (symbol? specified-project-type)))
+      (error "Incorrect specified project type, symbol expected: %s"
+             specified-project-type))
+    (when (and (not (null? specified-project-type))
+               (not (eq? inferred-project-type specified-project-type)))
+      (error "Inferred project type, %s, is different from one supplied in .eproj-info, %s"
+             inferred-project-type
+             specified-project-type))
     (setf (eproj-project/aux-info proj) aux-info
           (eproj-project/related-projects proj)
           (eproj-get-related-projects (eproj-project/root proj) aux-info)
