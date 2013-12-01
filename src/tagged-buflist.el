@@ -329,50 +329,62 @@ treated as a list of tags; otherwise it should be list of plain tags."
 to be part of it and, therefore, their buffers will be put in the group with
 tracked files for that repository.")
 
-(defun tagged-buflist/generate-tag-group-by-git-repository-root ()
-  "Create tag group specification based on each buffer's git repository root."
-  (unless *have-git?*
-    (error "No git installed on the system"))
-  (let ((roots (remove-duplicates
-                (delq nil
-                      (map (lambda (buf)
-                             (with-current-buffer buf
-                               (git-update-file-repository)
-                               git-repository))
-                           (buffer-list)))
-                :test #'string=)))
+(defun tagged-buflist/generate-tag-groups-by-eproj ()
+  "Generate tag group specifications based on each buffer's eproj project."
+  (let* ((projects (remove-duplicates
+                    (delq nil
+                          (map (lambda (buf)
+                                 (condition-case nil
+                                     (eproj-get-project-for-buf buf)
+                                   (error nil)))
+                               (visible-buffers)))
+                    :test (lambda (a b)
+                            (string=? (eproj-project/root a)
+                                      (eproj-project/root b))))))
     (append
      (sort
-      (map (lambda (repo-root)
-             (make-buffer-tag
-              :name (concat "git:" (abbreviate-file-name repo-root))
-              :predicate
-              (make-buf-tag-pred
-               :or-expr-in-buffer
-               (let ((buffer-repo (progn
-                                    (git-update-file-repository)
-                                    git-repository)))
-                 (cond
-                   ((and (null? tagged-buflist/consider-nontracked-files-as-residing-in-repository)
-                         (not (null? buffer-repo)))
-                    (string= repo-root buffer-repo))
-                   ((or (eq? major-mode 'magit-status-mode)
-                        (eq? major-mode 'dired-mode))
-                    (string-prefix? (expand-file-name repo-root)
-                                    (expand-file-name (strip-trailing-slash default-directory))))
-                   ((not (null? buffer-file-truename))
-                    (string-prefix? (expand-file-name repo-root)
-                                    (expand-file-name buffer-file-truename)))
-                   (else
-                    nil))))))
-           roots)
+      (map (lambda (proj)
+             (let ((repo-root (eproj-normalize-file-name (eproj-project/root proj))))
+               (make-buffer-tag
+                :name (concat (let ((type (eproj-project-type/name
+                                           (eproj-project/type proj))))
+                                (if (eq? type 'eproj-file)
+                                  "eproj"
+                                  (format "%s" type)))
+                              ":"
+                              (abbreviate-file-name (eproj-project/root proj)))
+                :predicate
+                (lambda (buffer)
+                  (awhen (eproj-get-initial-project-root-for-buf buffer)
+                    (let ((buffer-project-root (eproj-normalize-file-name it)))
+                      (with-current-buffer buffer
+                        (cond
+                          ((and (null? tagged-buflist/consider-nontracked-files-as-residing-in-repository)
+                                (not (null? buffer-project-root)))
+                           (string=? repo-root buffer-project-root))
+                          ((or (eq? major-mode 'magit-status-mode)
+                               (eq? major-mode 'dired-mode))
+                           (string-prefix? repo-root
+                                           (eproj-normalize-file-name default-directory)))
+                          ;; buffers like *Messages* do not have buffer-file-truename
+                          ;; and therefore are filtered here
+                          ((not (null? buffer-file-truename))
+                           (string=? repo-root
+                                     buffer-project-root)
+                           ;; doesn't work for nested projects
+                           ;; (string-prefix? repo-root
+                           ;;                 (eproj-normalize-file-name buffer-file-truename))
+                           )
+                          (else
+                           nil)))))))))
+           projects)
       #'tagged-buflist/buffer-tag<)
      (list (make-buffer-tag
             :name "no repository"
-            :predicate (lambda (buf)
-                         (with-current-buffer buf
-                           (git-update-file-repository)
-                           (null git-repository))))))))
+            :predicate (lambda (buffer)
+                         (or (null? (eproj-get-initial-project-root-for-buf buffer))
+                             (null? (with-current-buffer buffer
+                                      buffer-file-truename)))))))))
 
 ;;;; tagged sections
 
@@ -1308,7 +1320,7 @@ section closest to START-IDX in direction depending on DELTA."
 ;;;; tagged-buflist-mode
 
 (defvar tagged-buflist/tag-hierarchy
-  (list #'tagged-buflist/generate-tag-group-by-git-repository-root
+  (list #'tagged-buflist/generate-tag-groups-by-eproj
         +common-buffer-tags+)
   "Hierarchy definition (list of lists/functions of tags) to show
 tagged bufer list.")
