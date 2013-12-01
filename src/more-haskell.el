@@ -11,6 +11,13 @@
 (defun concatMap (f xs)
   (mapcan f xs))
 
+(defun takeWhile (f xs)
+  (let ((result nil))
+    (while (and (not (null? xs))
+                (funcall f (car xs)))
+      (push (car xs) result))
+    (nreverse result)))
+
 (provide 'more-haskell)
 
 ;; Local Variables:
