@@ -189,6 +189,12 @@ lighter than `back-to-indentation'."
   (skip-syntax-forward " " (line-end-position))
   (backward-prefix-chars))
 
+(defun indentation-size ()
+  "Return indentation size for current line."
+  (save-excursion
+    (skip-to-indentation)
+    (current-column)))
+
 (defsubst count-lines1 (begin end)
   "Return line count in region like `count-lines' but don't
 confuse when point is not at the beginning of line"

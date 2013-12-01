@@ -13,12 +13,16 @@
 (require 'macro-util)
 (require 'advices-util)
 (require 'common)
+(require 'peg)
 
 (require 'abbrev+)
 (require 'haskell-compile)
 (require 'compilation-setup)
 
 ;;; definitions
+
+(defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode)
+  "List of modes that use haskell syntax.")
 
 (defconst +haskell-tmp-path+ (concat +tmp-path+ "/haskell-tmp"))
 
@@ -76,8 +80,22 @@
 
 
 ;; for outline
-(defconst haskell-type-signature-regexp "[^:\n]::\\([^:\n]\\|$\\)")
-(defconst haskell-toplevel-signature-regexp "^[^ ].*[^:\n]::\\([^:\n]\\|$\\)")
+(defconst haskell-type-signature-regexp (rx (not (any ?: ?\n))
+                                            "::"
+                                            (group (or
+                                                    (not (any ?: ?\n))
+                                                    eol))))
+(defconst haskell-toplevel-signature-regexp (rx bol
+                                                (not (any ?\s))
+                                                (* nonl)
+                                                (or (not (any ?: ?\n))
+                                                    (seq (* whitespace)
+                                                         "\n"
+                                                         (+ whitespace)))
+                                                "::"
+                                                (group (or
+                                                        (not (any ?: ?\n))
+                                                        eol))))
 (defconst haskell-toplevel-data-declaration-regexp "^[ \t]*data[ \t]+\\(?:.\\|\n\\)+?=")
 (defconst haskell-toplevel-class-declaration-regexp "^[ \t]*class[ \t]+\\(?:.\\|\n\\)+?where")
 (defconst haskell-toplevel-instance-declaration-regexp "^[ \t]*instance[ \t]+\\(?:.\\|\n\\)+?where")
@@ -251,6 +269,331 @@ we load it."
 
 ;;; expand on search
 
+
+;;; haskell parsing
+
+;; (defun haskell-tokenize (chars)
+;;   "Tokenize a list of characters."
+;;   (with-syntax-table haskell-mode-syntax-table
+;;     (let ((tokens nil)
+;;           (tok nil)
+;;           (last-syntax nil)
+;;           (syntax-groups
+;;            ;; no need to keep one-element groups
+;;            '( ;; (?w)
+;;              ;; (?_)
+;;              ;; (?\")
+;;              ;; (?\$)
+;;              ;; (?\\)
+;;              (?\( ?\))
+;;              (?\s ?- ?>))))
+;;       (dolist (c chars)
+;;         (let ((syntax (char-syntax c)))
+;;           (when (and (not (null? last-syntax))
+;;                      (not (char=? last-syntax syntax))
+;;                      (not (find-if (lambda (group)
+;;                                      (and (member last-syntax group)
+;;                                           (member syntax group)))
+;;                                    syntax-groups)))
+;;             (when (not (null? tok))
+;;               (push (list->string (nreverse tok)) tokens))
+;;             (setf tok nil
+;;                   last-syntax syntax))
+;;           (unless (or (char=? ?\s syntax)
+;;                       (char=? ?\- syntax)
+;;                       (char=? ?> syntax))
+;;             (push c tok))
+;;           (setf last-syntax syntax)
+;;           ;; (case syntax
+;;           ;;   ((?w ?_)
+;;           ;;    (push c tok))
+;;           ;;   (())
+;;           ;;
+;;           ;;   ((?\s ?>)
+;;           ;;    (when tok
+;;           ;;      (push (list->string (reverse tok)) tokens)
+;;           ;;      (setf tok nil))))
+;;           ))
+;;       (when (not (null? tok))
+;;         (push (list->string (nreverse tok)) tokens))
+;;       (nreverse tokens))))
+
+;; (haskell-tokenize (string->list "foo    :: a         -> b\nfoo x = bar <$> (x :*! y) <*> baz (x: xs :*: xs)"))
+
+(defmacro haskell-peg-parse-string (rules string)
+  "Call `peg-parse-string' with some rules predefined for haskell."
+  `(condition-case err
+       (peg-parse-string
+        ((root ,@rules)
+         (typeclass-constraints
+          (list (or typeclass-constraints/typeclasses
+                    (and "(" some-space-opt
+                         typeclass-constraints/typeclasses
+                         some-space-opt ")")))
+          `(typeclasses -- (cons :typeclasses typeclasses))
+          whitespace
+          "=>")
+         (typeclass-constraints/typeclasses
+          typeclass-constraints/typeclass
+          (* some-space-opt
+             ","
+             some-space-opt
+             typeclass-constraints/typeclass))
+         (typeclass-constraints/typeclass
+          (substring qupcase-ident
+                     some-space
+                     ident
+                     (* some-space
+                        ident)))
+         (whitespace (* (or [?\s ?\t]
+                            newline
+                            comment)))
+         (comment (or (and "--" (* (any)) newline)
+                      ncomment))
+         (ncomment "{-" (* (or (any) newline)) (opt ncomment) "-}")
+         (newline (or "\n"
+                      "\n\r"
+                      "\r"
+                      "\f"))
+         (delim "::")
+         (arrow (or "->" "→"))
+         (func-name (substring (or ident
+                                   (and "("
+                                        whitespace
+                                        op
+                                        whitespace
+                                        ")"))))
+         (some-space (+ [?\s]))
+         (some-space-opt (* [?\s]))
+         (type-name (substring type-name-func))
+         (type-name-func type-name-atomic
+                         (or (* some-space-opt
+                                arrow
+                                some-space-opt
+                                type-name-func))
+                         (or (* some-space
+                                type-name-func)))
+         (type-name-atomic (or (and (or qupcase-ident qident)
+                                    (opt "#"))
+                               "()"
+                               (and "(" some-space-opt
+                                    type-name-func
+                                    (or (* some-space-opt ","
+                                           some-space-opt type-name-func))
+                                    some-space-opt ")")
+                               (and "(" some-space-opt
+                                    type-name-func
+                                    (or (* some-space-opt arrow
+                                           some-space-opt type-name-func))
+                                    some-space-opt ")")
+                               (and "(#" some-space-opt
+                                    type-name-func
+                                    (* some-space-opt ","
+                                       some-space-opt type-name-func)
+                                    some-space-opt "#)")
+                               (and "[" some-space-opt
+                                    type-name-func
+                                    some-space-opt "]")))
+         (qupcase-ident (* upcase-ident
+                           ".")
+                        upcase-ident)
+         (upcase-ident [A-Z]
+                       (* [?_ ?\' a-z A-Z 0-9]))
+         (qident (* upcase-ident
+                    ".")
+                 ident)
+         (ident [?_ a-z]
+                (* [?_ ?\' a-z A-Z 0-9]))
+         (op (+ [?\! ?\# ?\$ ?\% ?\& ?\* ?\+ ?\. ?\/ ?\< ?\= ?\> ?\? ?\@ ?\\ ?^ ?\| ?\- ?\~ ?\:])))
+        ,string
+        ;; t
+        )
+     (error (message "%s" err))))
+
+;; (defmacro haskell-peg-parse-string (rules string)
+;;   "Call `peg-parse-string' with some rules predefined for haskell."
+;;   `(peg-parse-string ((root ,@rules)
+;;
+;;                       ;; TODO: what about parsing a stream of tokens with PEG?
+;;
+;;                       ;; varid → (small {small | large | digit | ' })⟨reservedid⟩
+;;                       (varid (sans-others (seq small
+;;                                                (* (or small
+;;                                                       large
+;;                                                       digit
+;;                                                       "'")))
+;;                                           reservedid))
+;;
+;;                       ;; conid → large {small | large | digit | ' }
+;;                       ;; reservedid → case | class | data | default | deriving | do | else
+;;                       ;;    |         foreign | if | import | in | infix | infixl
+;;                       ;;    |         infixr | instance | let | module | newtype | of
+;;                       ;;    |         then | type | where | _
+;;
+;;                       ;; lexeme → qvarid | qconid | qvarsym | qconsym
+;;                       ;;         |         literal | special | reservedop | reservedid
+;;                       (lexeme (or qvarid
+;;                                   qconid
+;;                                   qvarsym
+;;                                   qconsym
+;;                                   literal
+;;                                   special
+;;                                   reversedop
+;;                                   reversedid))
+;;
+;;                       ;; literal → integer | float | char | string
+;;                       (literal integer
+;;                                float
+;;                                char
+;;                                string)
+;;
+;;                       ;; special → ( | ) | , | ; | [ | ] | ` | { | }
+;;                       (special (or "("
+;;                                    ")"
+;;                                    ","
+;;                                    ";"
+;;                                    "["
+;;                                    "]"
+;;                                    "`"
+;;                                    "{"
+;;                                    "}"))
+;;
+;;                       ;; whitespace → whitestuff {whitestuff}
+;;                       (whitespace (+ whitestuff))
+;;
+;;                       ;; whitestuff → whitechar | comment | ncomment
+;;                       (whitestuf (or whitechar comment ncomment))
+;;
+;;                       ;; whitechar → newline | vertab | space | tab | uniWhite
+;;                       (whitechar (or newline [?\v ?\s ?\t] ;; uniWhite
+;;                                      ))
+;;
+;;                       ;; newline → return linefeed | return | linefeed | formfeed
+;;                       (newline (or "\r\n" "\r" "\n" "\f"))
+;;                       ;; return → a carriage return
+;;                       ;; linefeed → a line feed
+;;                       ;; vertab → a vertical tab
+;;                       ;; formfeed → a form feed
+;;                       ;; space → a space
+;;                       ;; tab → a horizontal tab
+;;                       ;; uniWhite → any Unicode character defined as whitespace
+;;
+;;                       ;; comment → dashes [ any⟨symbol⟩ {any} ] newline
+;;                       (comment "--" (* "-")
+;;                                (opt (not symbol)
+;;                                     (* (any-lit)))
+;;                                newline)
+;;                       ;; dashes → -- {-}
+;;
+;;                       ;; opencom → {-
+;;                       (opencom "{-")
+;;                       ;; closecom → -}
+;;                       (closecom "-}")
+;;
+;;                       ;; ncomment → opencom ANY seq {ncomment ANY seq} closecom
+;;                       (ncomment opencom ANY-seq closecom)
+;;
+;;                       ;; ANY seq → {ANY }⟨{ANY } ( opencom | closecom ) {ANY }⟩
+;;                       (ANY-seq (sans-others (* ANY)
+;;                                             (seq (* ANY)
+;;                                                  (or opencom
+;;                                                      closecom)
+;;                                                  (* ANY))))
+;;                       ;; ANY → graphic | whitechar
+;;                       (ANY (or graphic whitechar))
+;;                       ;; any → graphic | space | tab
+;;                       (any-lit (or graphic
+;;                                    space
+;;                                    tab))
+;;
+;;                       ;; graphic → small | large | symbol | digit | special | " | '
+;;                       (graphic (or small
+;;                                    large
+;;                                    symbol
+;;                                    digit
+;;                                    special
+;;                                    "\""
+;;                                    "'"))
+;;                       ;; small → ascSmall | uniSmall | _
+;;                       (small (or ascSmall
+;;                                  "_"))
+;;                       ;; ascSmall → a | b | … | z
+;;                       (ascSmall [a-z])
+;;                       ;; uniSmall → any Unicode lowercase letter
+;;
+;;                       ;; large → ascLarge | uniLarge
+;;                       (lange (or ascLarge))
+;;                       ;; ascLarge → A | B | … | Z
+;;                       (ascLange [A-Z])
+;;                       ;; uniLarge → any uppercase or titlecase Unicode letter
+;;                       ;; symbol → ascSymbol | uniSymbol⟨special | _ | " | '⟩
+;;                       (symbol (or ascSymbol))
+;;                       ;;
+;;                       ;; ascSymbol → ! | # | $ | % | & | ⋆ | + | . | / | < | = | > | ? | @
+;;                       ;;         |         \ | ^ | | | - | ~ | :
+;;                       (ascSymbol [!#$%&⋆+./<=>?@\^|-~:])
+;;                       ;; uniSymbol → any Unicode symbol or punctuation
+;;                       ;; digit → ascDigit | uniDigit
+;;                       (digit (or ascDigit))
+;;                       ;; ascDigit → 0 | 1 | … | 9
+;;                       (ascDigit [0-9])
+;;                       ;; uniDigit → any Unicode decimal digit
+;;                       ;; octit → 0 | 1 | … | 7
+;;                       (octit [0-7])
+;;                       ;; hexit → digit | A | … | F | a | … | f
+;;                       (hexit (or digit
+;;                                  [a-fA-F])))
+;;                      ,string
+;;                      t))
+
+(defun haskell-parse-signature (signature)
+  "Returns alist of (:functions <strings>) and (:argument-types <strings>)
+entries. Returns nil on failure."
+  (cdr-safe
+   (haskell-peg-parse-string ((list func-name (* whitespace "," whitespace func-name))
+                              whitespace
+                              delim
+                              `(funcs -- (cons :functions funcs))
+                              (opt whitespace
+                                   typeclass-constraints)
+                              whitespace
+                              (list
+                               type-name
+                               ;; (* whitespace
+                               ;;    arrow
+                               ;;    whitespace
+                               ;;    type-name)
+                               )
+                              `(types -- (cons :argument-types types))
+                              some-space-opt
+                              (or newline
+                                  (eol)))
+                             signature)))
+
+
+(defun haskell-sp-newline ()
+  "Similar to `sp-newline' but autoexpands haskell signatures."
+  (interactive)
+  (let ((signature nil)
+        (indentation nil))
+    (when (memq major-mode +haskell-syntax-modes+)
+      (let ((line (current-line)))
+        (when-let (result (haskell-parse-signature (trim-whitespace line)))
+          (setf signature result
+                indentation (indentation-size)))))
+    (unwind-protect
+        (sp-newline)
+      (when (not (null? signature))
+        (when-let (funcs (cdr-safe (assoc :functions signature)))
+          (let ((func (car funcs)))
+            (when (not (save-excursion
+                         (forward-line)
+                         (skip-syntax-forward "->")
+                         (looking-at-pure? (regexp-quote func))))
+              (delete-region (line-beginning-position) (point))
+              (insert (make-string indentation ?\s)
+                      func
+                      " "))))))))
 
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
 
