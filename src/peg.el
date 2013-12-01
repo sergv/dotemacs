@@ -38,29 +38,31 @@
 ;; E.g. (sign (or "+" "-" "")) is a rule with the name "sign".  The
 ;; syntax for PEX (Parsing Expression) is a follows:
 ;;
-;; Description   	Lisp		Traditional, as in Ford's paper
-;; Sequence 		(and e1 e2)    	e1 e2
-;; Prioritized Choice   (or e1 e2)	e1 / e2
-;; Not-predicate 	(not e)		!e
-;; And-predicate	(if e)		&e
-;; Any character	(any)		.
-;; Literal string	"abc"		"abc"
-;; Character C		(char c)	'c'
-;; Zero-or-more 	(* e)		e*
-;; One-or-more 		(+ e)		e+
-;; Optional		(opt e)		e?
-;; Character range	(range a b)	[a-b]
-;; Character set	[a-b "+*" ?x]	[a-b+*x]  ; note: [] is a elisp vector
+;; Description          Lisp                        Traditional, as in Ford's paper
+;; Sequence             (and e1 e2)                 e1 e2
+;;                      (seq e1 e2)
+;; Sans-others          (sans-others e1 e2...)      ; no alternative, matches e1 and not e2...
+;; Prioritized Choice   (or e1 e2)                  e1 / e2
+;; Not-predicate        (not e)                     !e
+;; And-predicate        (if e)                      &e
+;; Any character        (any)                       .
+;; Literal string       "abc"                       "abc"
+;; Character C          (char c)                    'c'
+;; Zero-or-more         (* e)                       e*
+;; One-or-more          (+ e)                       e+
+;; Optional             (opt e)                     e?
+;; Character range      (range a b)                 [a-b]
+;; Character set        [a-b "+*" ?x]               [a-b+*x]  ; note: [] is an elisp vector
 ;; Character classes    [ascii cntrl]
 ;; Beginning-of-Buffer  (bob)
 ;; End-of-Buffer        (eob)
 ;; Beginning-of-Line    (bol)
-;; End-of-Line        	(eol)
+;; End-of-Line          (eol)
 ;; Beginning-of-Word    (bow)
-;; End-of-Word        	(eow)
+;; End-of-Word          (eow)
 ;; Beginning-of-Symbol  (bos)
-;; End-of-Symbol       	(eos)
-;; Syntax-Class       	(syntax-class NAME)
+;; End-of-Symbol        (eos)
+;; Syntax-Class         (syntax-class NAME)
 ;;
 ;; `peg-parse' also supports parsing actions, i.e. Lisp snippets which
 ;; are executed when a pex matches.  This can be used to construct
@@ -160,12 +162,12 @@ Note: a PE can't \"call\" rules by name."
 ;; used at runtime for backtracking.  It's a list ((POS . THUNK)...).
 ;; Each THUNK is executed at the corresponding POS.  Thunks are
 ;; executed in a postprocessing step, not during parsing.
-(defvar peg-thunks)
+(defvar peg-thunks nil)
 
 ;; used at runtime to track the right-most error location.  It's a
 ;; pair (POSITION . EXPS ...).  POSITION is the buffer position and
 ;; EXPS is a list of rules/expressions that failed.
-(defvar peg-errors)
+(defvar peg-errors nil)
 
 ;; The basic idea is to translate each rule to a lisp function.
 ;; The result looks like
@@ -196,9 +198,12 @@ Note: a PE can't \"call\" rules by name."
               (peg-postprocess peg-thunks))
              (t
               (goto-char (car peg-errors))
-              (error "Parse error at %d (expecting %S)"
+              (error "Parse error at %d (expecting %S), rest of input: \"%s\""
                      (car peg-errors)
-                     (peg-merge-errors (cdr peg-errors))))))))
+                     (peg-merge-errors (cdr peg-errors))
+                     (buffer-substring-no-properties (car peg-errors)
+                                                     (min (+ (car peg-errors) 100)
+                                                          (point-max)))))))))
 
 
 (eval-and-compile
@@ -257,6 +262,20 @@ Note: a PE can't \"call\" rules by name."
         ((null (cdr args)) (peg-normalize (car args)))
         (t `(and ,(peg-normalize (car args))
                  ,(peg-normalize `(and . ,(cdr args)))))))
+
+(peg-add-method normalize seq (&rest args)
+  (cond ((null args) '(null))
+        ((null (cdr args)) (peg-normalize (car args)))
+        (t `(seq ,(peg-normalize (car args))
+                 ,(peg-normalize `(seq . ,(cdr args)))))))
+
+(peg-add-method normalize sans-others (&rest args)
+  (cond ((null args)
+         (error "invalid sans-others arguments, one or more argumens expected: %s" args))
+        ((null (cdr args)) (peg-normalize (car args)))
+        (t `(not (or (not ,(peg-normalize (car args)))
+                     ;; double negation here is cancelled out by hand
+                     ,(peg-normalize `(seq . ,(cdr args))))))))
 
 (peg-add-method normalize * (&rest args)
   `(* ,(peg-normalize `(and . ,args))))
@@ -382,16 +401,23 @@ Note: a PE can't \"call\" rules by name."
                         (error "No translator for: %S" (car exp)))))
     `(or ,(apply translator (cdr exp))
          (progn
-           (peg-record-failure ',exp) ; for error reporting
+           (peg-record-failure ',exp)   ; for error reporting
            nil))))
 
 (defun peg-record-failure (exp)
+  ;; (message "Recording faliure, exp = %s, rest of input = %s"
+  ;;          exp
+  ;;          (buffer-substring-no-properties (point) (point-max)))
   (cond ((= (point) (car peg-errors))
          (setcdr peg-errors (cons exp (cdr peg-errors))))
         ((> (point) (car peg-errors))
          (setq peg-errors (list (point) exp)))))
 
 (peg-add-method translate and (e1 e2)
+  `(and ,(peg-translate-exp e1)
+        ,(peg-translate-exp e2)))
+
+(peg-add-method translate seq (e1 e2)
   `(and ,(peg-translate-exp e1)
         ,(peg-translate-exp e2)))
 
@@ -428,10 +454,10 @@ Note: a PE can't \"call\" rules by name."
 (peg-add-method translate eob () '(eobp))
 (peg-add-method translate eol () '(eolp))
 (peg-add-method translate bol () '(bolp))
-(peg-add-method translate bow () '(looking-at "\\<"))
-(peg-add-method translate eow () '(looking-at "\\>"))
-(peg-add-method translate bos () '(looking-at "\\_<"))
-(peg-add-method translate eos () '(looking-at "\\_>"))
+(peg-add-method translate bow () '(looking-at-p "\\<"))
+(peg-add-method translate eow () '(looking-at-p "\\>"))
+(peg-add-method translate bos () '(looking-at-p "\\_<"))
+(peg-add-method translate eos () '(looking-at-p "\\_>"))
 
 (defvar peg-syntax-classes
   '((whitespace ?-) (word ?w) (symbol ?s) (punctuation ?.)
@@ -467,11 +493,15 @@ Note: a PE can't \"call\" rules by name."
         t))))
 
 (peg-add-method translate not (e)
-  (let ((cp (peg-make-choicepoint)))
-    `(,@(peg-save-choicepoint cp)
-      (when (not ,(peg-translate-exp e))
-        ,(peg-restore-choicepoint cp)
-        t))))
+  ;; if it's double negation then ignore it
+  (if (and (not (null? (car e)))
+           (eq? (car e) 'not))
+    (peg-translate-exp e)
+    (let ((cp (peg-make-choicepoint)))
+      `(,@(peg-save-choicepoint cp)
+        (when (not ,(peg-translate-exp e))
+          ,(peg-restore-choicepoint cp)
+          t)))))
 
 (peg-add-method translate any ()
   '(when (not (eobp))
@@ -582,6 +612,10 @@ input.  PATH is the list of rules that we have visited so far."
   (and (peg-detect-cycles e1 path)
        (peg-detect-cycles e2 path)))
 
+(peg-add-method detect-cycles seq (path e1 e2)
+  (and (peg-detect-cycles e1 path)
+       (peg-detect-cycles e2 path)))
+
 (peg-add-method detect-cycles or (path e1 e2)
   (or (peg-detect-cycles e1 path)
       (peg-detect-cycles e2 path)))
@@ -637,6 +671,9 @@ input.  PATH is the list of rules that we have visited so far."
 (peg-add-method merge-error and (merged e1 e2)
   (peg-merge-error e1 merged))
 
+(peg-add-method merge-error seq (merged e1 e2)
+  (peg-merge-error e1 merged))
+
 (peg-add-method merge-error str (merged str)
   (add-to-list 'merged str))
 
@@ -681,7 +718,7 @@ resp. succeded instead of signaling an error."
 ;; functions which aren't available yet.  Delay the expansion to
 ;; load-time (or later).
 (eval '(progn "
-(" ;<-- this stops Emacs from indenting the next form
+("                            ;<-- this stops Emacs from indenting the next form
 
 (defun peg-test ()
   (interactive)
@@ -691,6 +728,17 @@ resp. succeded instead of signaling an error."
   (assert (not (peg-parse-string ((s (not "a"))) "a" t)))
   (assert (peg-parse-string ((s (if "a"))) "a" t))
   (assert (not (peg-parse-string ((s (if "a"))) "b" t)))
+
+;;  (assert (peg-parse-string ((s (sans-others (+ [a-z]) "foo"))) "bar" t))
+;;  (assert (not (peg-parse-string ((s (sans-others (+ [a-z]) "foo"))) "foo" t)))
+;;  (assert (not (peg-parse-string ((s (and "f" (+ (any)) "x")
+;;                                     ;; (sans-others (+ [a-z])
+;;                                     ;;              (and "f" (* [a-z]) "o"))
+;;                                     ))
+;;                                 "faaaoox"
+;;                                 t)))
+
+
   (assert (peg-parse-string ((s "ab")) "ab" t))
   (assert (not (peg-parse-string ((s "ab")) "ba" t)))
   (assert (not (peg-parse-string ((s "ab")) "a" t)))
@@ -847,7 +895,7 @@ resp. succeded instead of signaling an error."
                                  :path path :query query
                                  :fragment fragment)))
    (absoluteURI (substring scheme) ":" (or hier-part opaque-part))
-   (hier-part ;(-- user host port path query)
+   (hier-part             ;(-- user host port path query)
     (or net-path
         (and `(-- nil nil nil)
              abs-path))
@@ -924,9 +972,9 @@ resp. succeded instead of signaling an error."
    (symbol (substring (and symchar (* (not terminating) symchar)))
            `(s -- (intern s)))
    (symchar [a-z A-Z 0-9 "-;!#%&'*+,./:;<=>?@[]^_`{|}~"])
-   (list "("          	`(-- (cons nil nil)) `(hd -- hd hd)
-         (* sexp      	`(tl e -- (setcdr tl (list e)))
-            ) _ ")" 	`(hd tl -- (cdr hd)))
+   (list "("                  `(-- (cons nil nil)) `(hd -- hd hd)
+         (* sexp              `(tl e -- (setcdr tl (list e)))
+            ) _ ")"         `(hd tl -- (cdr hd)))
    (digit [0-9])
    (terminating (or (set " \n\t();\"'") (eob)))))
 
@@ -973,7 +1021,7 @@ resp. succeded instead of signaling an error."
 ;; (peg-ex-last-digit2 (make-string 500000 ?-))
 ;; (peg-ex-last-digit2 (make-string 500000 ?5))
 
-)) ; end of eval-when-load
+))                        ; end of eval-when-load
 
 (provide 'peg)
 
