@@ -48,6 +48,9 @@ under ROOT directory."
   (expand-file-name (concat eproj-tests/project-dir "/project-without-git")))
 (defconst eproj-tests/project-with-git-minimal
   (expand-file-name (concat eproj-tests/project-dir "/project-with-git")))
+(defconst eproj-tests/project-with-git-and-non-git-specified-type
+  (expand-file-name (concat eproj-tests/project-dir
+                            "/project-with-git-and-non-git-specified-type")))
 
 (defconst eproj-tests/folder-with-related-projects
   (expand-file-name (concat eproj-tests/project-dir "/related-projects")))
@@ -100,6 +103,11 @@ under ROOT directory."
                      (map (lambda (f) (expand-file-name f path))
                           (eproj-tests/non-special-files path)))))
     (should (all? #'symbol? (eproj-project/languages proj)))))
+
+(ert-deftest eproj-tests/eproj-make-project-signal-incorrect-specified-project-type ()
+  (let* ((path eproj-tests/project-with-git-and-non-git-specified-type))
+    (should-error (eproj-get-project-for-path path)
+                  :type 'error)))
 
 (ert-deftest eproj-tests/eproj-get-all-related-projects ()
   (let* ((path eproj-tests/project-with-git-minimal)
@@ -226,6 +234,7 @@ foo3	foo.bar	102	;\"	z
         eproj-tests/git-repository-test2
         eproj-tests/eproj-make-project-no-git-repo
         eproj-tests/eproj-make-project-minimal-project
+        eproj-tests/eproj-make-project-signal-incorrect-specified-project-type
         eproj-tests/eproj-get-all-related-projects
         eproj-tests/aux-files
         eproj-tests/tags-of-c-files
@@ -235,7 +244,7 @@ foo3	foo.bar	102	;\"	z
         eproj-tests/project-with-eproj-file
         ))
 
-(let ((ert-debug-on-error nil))
+(let ((ert-debug-on-error t))
   (eproj-reset-projects)
   (ert (join-lines (map #'symbol->string eproj-tests/tests) "\\|")
        ;; "eproj-tests/.*"
