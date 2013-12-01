@@ -13,6 +13,7 @@
 (require 'browse-kill-ring-setup)
 
 (require 'align)
+(require 'eproj)
 (require 'shell-setup)
 
 (require 'haskell-checkers)
@@ -67,7 +68,8 @@
   (turn-on-haskell-doc-mode)
   (setf haskell-doc-show-global-types t)
 
-  (setf inferior-haskell-wait-and-jump t
+  ;; it's not always a good idea to wait
+  (setf ;; inferior-haskell-wait-and-jump t
         inferior-haskell-module-alist-file (path-concat
                                             +prog-data-path+
                                             "inf-haskell-module-alist"))
@@ -118,7 +120,6 @@
     (", h"     haskell-haddock-identifier)
     (", m"     haskell-haddock-module)
     (", ."     haskell-find-definition)
-    ("M-."     haskell-find-definition)
     (", g"     haskell-hoogle-at-point)
     (", y"     haskell-hayoo-at-point)
     (", c"     ghc-core-create-core)
@@ -138,7 +139,8 @@
                      vim:insert-mode-local-keymap)
     ("<tab>"           (lambda () (interactive) (haskell-indentation-indent-line)))
     ("S-<tab>"         nil)
-    ("<S-iso-lefttab>" nil))
+    ("<S-iso-lefttab>" nil)
+    ("<return>"        haskell-sp-newline))
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                    vim:insert-mode-local-keymap)
@@ -169,6 +171,7 @@
   ;; declaration scanning
   (imenu-add-menubar-index)
 
+  (setup-eproj-symbnav)
   (setup-outline-headers :header-symbol "-"
                          :length-min 4
                          :length-max 9))
