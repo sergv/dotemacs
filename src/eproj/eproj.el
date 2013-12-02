@@ -278,12 +278,13 @@ after ;\", and expect single character there instead."
           "]\n"
           (eproj-tag/file tag)
           ":"
-          (eproj-tag/line tag)
+          (number->string (eproj-tag/line tag))
           "\n"
           (for-buffer-with-file (eproj-tag/file tag)
             (save-excursion
               (goto-line1 (eproj-tag/line tag))
-              (current-line)))))
+              (current-line)))
+          "\n"))
 
 (defun eproj/load-ctags-project (lang-mode proj)
   (let ((root (eproj-project/root proj)))
