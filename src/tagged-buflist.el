@@ -13,6 +13,7 @@
 (require 'more-scheme)
 (require 'datastructures)
 (require 'keys-def)
+(require 'eproj)
 
 ;;;; buffer tags and their definitions
 

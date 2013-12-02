@@ -412,6 +412,8 @@ Note: old tags file is removed before calling update command."
 
 ;;;; eproj-project
 
+;;; projects themselves
+
 (defstruct (eproj-project
             (:conc-name eproj-project/))
   type ;; references eproj-project-type structure
@@ -446,7 +448,9 @@ Note: old tags file is removed before calling update command."
 (defun eproj-reset-projects ()
   "Clear project database `*eproj-projects*'."
   (interactive)
-  (setf *eproj-projects* (make-hash-table :test #'equal)))
+  (setf *eproj-projects* (make-hash-table :test #'equal))
+  ;; do not forget to reset cache
+  (eproj/reset-buffer-local-cache))
 
 (defun eproj-update-projects ()
   "Update projects in database `*eproj-projects*'."
@@ -696,14 +700,56 @@ PATH as its part."
       (eproj-get-initial-project-root-and-type path)
     initial-root))
 
+
+
+(defmacro eproj/evaluate-with-caching-buffer-local-var (value-expr
+                                                        buffer-expr
+                                                        caching-var
+                                                        value-predicate)
+
+  (let ((buffer-var (gensym "buffer")))
+    `(let ((,buffer-var ,buffer-expr))
+       (with-current-buffer ,buffer-var
+         (cond ((null? ,caching-var)
+                (setf ,caching-var ,value-expr)
+                ,caching-var)
+               ((eq? ,caching-var 'unresolved)
+                nil)
+               (else
+                (assert (funcall ,value-predicate ,caching-var))
+                ,caching-var))))))
+
+(defun eproj/reset-buffer-local-cache ()
+  "Reset all caching buffer-local values associated with eproj in all buffers"
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (kill-local-variable 'eproj/buffer-initial-project-root-cache)
+      (kill-local-variable 'eproj/buffer-project-cache))))
+
+(defvar-local eproj/buffer-initial-project-root-cache nil
+  "Is set to initial project root (i.e. string) for buffer containing this
+variable or symbol 'unresolved.")
+
 (defun eproj-get-initial-project-root-for-buf (buffer)
   "Retrieve root for project that would contain BUFFER's content."
-  (condition-case nil
-      (eproj-get-initial-project-root (eproj-get-buffer-directory buffer))
-    (error nil)))
+  (eproj/evaluate-with-caching-buffer-local-var
+   (condition-case nil
+        (eproj-get-initial-project-root (eproj-get-buffer-directory buffer))
+      (error nil))
+   buffer
+   eproj/buffer-initial-project-root-cache
+   #'string?))
+
+(defvar-local eproj/buffer-project-cache nil
+  "Is set to project that corresponds to buffer containing this variable or
+symbol 'unresolved.")
 
 (defun eproj-get-project-for-buf (buffer)
-  (eproj-get-project-for-path (eproj-get-buffer-directory buffer)))
+  (eproj/evaluate-with-caching-buffer-local-var
+   (eproj-get-project-for-path (eproj-get-buffer-directory buffer))
+   buffer
+   eproj/buffer-project-cache
+   #'eproj-project-p))
 
 (defun eproj-get-project-for-path (path)
   "Retrieve project that contains PATH as its part."
