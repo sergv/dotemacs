@@ -93,27 +93,33 @@
            (let* ((root (locate-dominating-file
                          (file-name-directory (buffer-file-name))
                          (lambda (dir)
-                           (any? (lambda (path)
-                                   (or (and (file-regular? path)
-                                            (string-match-pure?
-                                             (rx (or (seq (+ not-newline)
-                                                          ".cabal")
-                                                     "Setup.hs"
-                                                     "Setup.lhs")
-                                                 eos)
-                                             path))
-                                       (and (file-directory? path)
-                                            (or (string= "src" path)
-                                                (member path
-                                                        *version-control-directories*)
-                                                ;; this is somewhat vacuous
-                                                (not (string-match-pure?
-                                                      "[A-Z][a-zA-Z]*"
-                                                      path))))))
-                                 (get-directory-contents dir)))))
-                  (raw-name (strip-string-prefix (strip-trailing-slash root)
+                           (or (not (string-match-pure? "[A-Z][a-zA-Z]*"
+                                                        (file-name-nondirectory
+                                                         (strip-trailing-slash dir))))
+                               (any? (lambda (path)
+                                       (or (and (file-regular? path)
+                                                (string-match-pure?
+                                                 (rx (or (seq (+ not-newline)
+                                                              ".cabal")
+                                                         "Setup.hs"
+                                                         "Setup.lhs")
+                                                     eos)
+                                                 path))
+                                           (and (file-directory? path)
+                                                (or (string= "src" path)
+                                                    (member path
+                                                            *version-control-directories*)
+                                                    ;; this is somewhat vacuous
+                                                    ;; (not (string-match-pure?
+                                                    ;;       "[A-Z][a-zA-Z]*"
+                                                    ;;       path))
+                                                    ))))
+                                     (get-directory-contents dir))))))
+                  (raw-name (strip-string-prefix (strip-trailing-slash
+                                                  (expand-file-name root))
                                                  (file-name-sans-extension
-                                                  (buffer-file-name))
+                                                  (expand-file-name
+                                                   (buffer-file-name)))
                                                  :starting-at 1)))
              (replace-regexp-in-string "/" "." raw-name))))
    (list "empty" (lambda () "")))
