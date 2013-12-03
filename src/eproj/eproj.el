@@ -874,7 +874,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
         abs-path))))
 
 (defun eproj-normalize-file-name (path)
-  (strip-trailing-slash (expand-file-name path)))
+  (strip-trailing-slash (normalize-file-name (expand-file-name path))))
 
 (defun eproj-get-buffer-directory (buffer)
   "Get directory associated with BUFFER, either throug visited file
