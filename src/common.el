@@ -1059,6 +1059,14 @@ return pair (x (F x))."
 (defsubst cadr-safe (x)
   (car-safe (cdr-safe x)))
 
+(defun normalize-file-name (fname)
+  "Normalize file name"
+  (let ((cmdline-normalized
+         (command-line-normalize-file-name fname)))
+    (if (memq system-type '(ms-dos windows-nt))
+      (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
+      cmdline-normalized)))
+
 ;;;;
 
 (provide 'common)
