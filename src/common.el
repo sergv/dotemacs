@@ -581,6 +581,15 @@ tabbar, etc")
     (maphash (lambda (k v) (push (cons k v) result)) table)
     result))
 
+(defun hash-table-entries-matching-re (table re)
+  "Return list of TABLE values whose keys match RE."
+  (let ((result nil))
+    (maphash (lambda (k v)
+               (when (string-match-pure? re k)
+                 (push v result)))
+             table)
+    result))
+
 ;;;;
 
 ;; this may be useful for something
