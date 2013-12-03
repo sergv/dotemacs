@@ -59,7 +59,7 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
           (funcall strip-cons (car-safe (cdr-safe (cdr entry)))))
          (column-group
           (funcall strip-cons (car-safe (cdr-safe (cdr-safe (cdr entry)))))))
-    (values (match-string-no-properties file-group)
+    (values (normalize-file-name (match-string-no-properties file-group))
             (when line-group
               (string->number (match-string-no-properties line-group)))
             (when column-group
