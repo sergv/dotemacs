@@ -280,7 +280,9 @@ after ;\", and expect single character there instead."
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
-          (for-buffer-with-file (eproj-tag/file tag)
+          (for-buffer-with-file
+              (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                             (eproj-project/root proj))
             (save-excursion
               (goto-line1 (eproj-tag/line tag))
               (current-line)))
@@ -921,10 +923,14 @@ or `default-directory', if no file is visited."
   (switch-to-buffer (eproj-home-entry/buffer home-entry))
   (goto-char (eproj-home-entry/point home-entry)))
 
-(defun eproj-symbnav/go-to-symbol-home ()
-  (interactive)
+(defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
+  (interactive "P")
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-         (identifier (eproj-symbnav/identifier-at-point nil))
+         (case-fold-search (and (not (null? use-regexp))
+                                (< 1 universal-argument-num-events)))
+         (identifier (if use-regexp
+                       (read-regexp "enter regexp to search for")
+                       (eproj-symbnav/identifier-at-point nil)))
          (orig-major-mode major-mode)
          (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
                                                     :point (point)
@@ -958,8 +964,10 @@ or `default-directory', if no file is visited."
                (eproj-project/root proj)
                major-mode)))
     (if (and next-home-entry
-             (string=? identifier
-                       (eproj-home-entry/symbol next-home-entry)))
+             (let ((next-symbol (eproj-home-entry/symbol next-home-entry)))
+               (if use-regexp
+                 (string-match-pure? identifier next-symbol)
+                 (string=? identifier next-symbol))))
       (begin
         (eproj-symbnav/switch-to-home-entry next-home-entry)
         (pop eproj-symbnav/next-homes)
@@ -975,7 +983,10 @@ or `default-directory', if no file is visited."
                                  (aif (rest-safe
                                        (assq major-mode
                                              (eproj-project/tags proj)))
-                                   (gethash identifier it nil)
+                                   (if use-regexp
+                                     (concat-lists
+                                      (hash-table-entries-matching-re it identifier))
+                                     (gethash identifier it nil))
                                    nil))
                                (cons proj
                                      (eproj-get-all-related-projects proj)))
@@ -983,7 +994,9 @@ or `default-directory', if no file is visited."
                       (string< (funcall entry->string proj a)
                                (funcall entry->string proj b))))))
         (cond ((null? entries)
-               (error "No entries for identifier %s" identifier))
+               (error "No entries for %s %s"
+                      (if use-regexp "regexp" "identifier")
+                      identifier))
               ((null? (cdr entries))
                (funcall jump-to-home (car entries)))
               (else
