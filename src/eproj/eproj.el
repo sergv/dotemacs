@@ -482,6 +482,7 @@ Note: old tags file is removed before calling update command."
       (switch-to-buffer-other-window buf)
       (with-current-buffer buf
         (erase-buffer)
+        (text-mode)
         (insert "type: " (pp-to-string (eproj-project-type/name
                                         (eproj-project/type proj)))
                 "\n")
@@ -501,7 +502,8 @@ Note: old tags file is removed before calling update command."
                               (funcall to-relative-name
                                        (expand-file-name (eproj-tag/file subentry))
                                        (expand-file-name (eproj-project/root proj)))
-                              (eproj-tag/line subentry))))))))
+                              (eproj-tag/line subentry))))))
+        (goto-char (point-min))))
     (error "no project for buffer %s" (buffer-name (current-buffer)))))
 
 
@@ -534,7 +536,7 @@ Note: old tags file is removed before calling update command."
                      nil))
          (languages (aif (rest-safe (assoc 'languages aux-info))
                       it
-                      (progn
+                      (begin
                         (message "warning: no languages defined for project %s"
                                  (eproj-project/root proj))
                         nil)))
@@ -895,6 +897,9 @@ or `default-directory', if no file is visited."
 (defvar eproj-symbnav/previous-homes nil
   "Previous locations from which symbol search was invoked.")
 
+(defvar eproj-symbnav/selected-loc nil
+  "Home entry corresponding to the most recently visited tag.")
+
 (defvar eproj-symbnav/next-homes nil
   "Next locations that were visited but now obscured by going back.")
 
@@ -915,8 +920,16 @@ or `default-directory', if no file is visited."
             (:conc-name eproj-home-entry/))
   buffer
   point
-  symbol ;; == name - string
+  symbol ;; == name - string, or nil if this entry was not selected explicitly
   )
+
+(defun eproj-home-entry=? (entry-a entry-b)
+  (and (eq? (eproj-home-entry/buffer entry-a)
+            (eproj-home-entry/buffer entry-b))
+       (= (eproj-home-entry/point entry-a)
+          (eproj-home-entry/point entry-b))
+       (eq? (eproj-home-entry/symbol entry-a)
+            (eproj-home-entry/symbol entry-b))))
 
 
 (defun eproj-symbnav/switch-to-home-entry (home-entry)
@@ -934,7 +947,7 @@ or `default-directory', if no file is visited."
          (orig-major-mode major-mode)
          (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
                                                     :point (point)
-                                                    :symbol identifier))
+                                                    :symbol nil))
          (jump-to-home
           (lambda (entry)
             (let ((file
@@ -950,7 +963,11 @@ or `default-directory', if no file is visited."
                 (when (re-search-forward (regexp-quote (eproj-tag/symbol entry))
                                          (line-end-position)
                                          t)
-                  (goto-char (match-beginning 0)))))))
+                  (goto-char (match-beginning 0))))
+              (setf eproj-symbnav/selected-loc
+                    (make-eproj-home-entry :buffer (current-buffer)
+                                           :point (point)
+                                           :symbol (eproj-tag/symbol entry))))))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     (unless (or (eproj-project/tags proj)
                 (assq major-mode (eproj-project/tags proj)))
@@ -964,15 +981,15 @@ or `default-directory', if no file is visited."
                (eproj-project/root proj)
                major-mode)))
     (if (and next-home-entry
-             (let ((next-symbol (eproj-home-entry/symbol next-home-entry)))
+             (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
                (if use-regexp
                  (string-match-pure? identifier next-symbol)
                  (string=? identifier next-symbol))))
       (begin
         (eproj-symbnav/switch-to-home-entry next-home-entry)
-        (pop eproj-symbnav/next-homes)
         (push current-home-entry
-              eproj-symbnav/previous-homes))
+              eproj-symbnav/previous-homes)
+        (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
       (let* ((entry->string
               (eproj-language/tag->string-procedure
                (aif (gethash orig-major-mode eproj/languages-table)
@@ -983,10 +1000,11 @@ or `default-directory', if no file is visited."
                                  (aif (rest-safe
                                        (assq major-mode
                                              (eproj-project/tags proj)))
-                                   (if use-regexp
-                                     (concat-lists
-                                      (hash-table-entries-matching-re it identifier))
-                                     (gethash identifier it nil))
+                                   (copy-list
+                                    (if use-regexp
+                                      (concat-lists
+                                       (hash-table-entries-matching-re it identifier))
+                                      (gethash identifier it nil)))
                                    nil))
                                (cons proj
                                      (eproj-get-all-related-projects proj)))
@@ -1018,14 +1036,15 @@ or `default-directory', if no file is visited."
   (interactive)
   (if (null? eproj-symbnav/previous-homes)
     (error "no more previous go-to-definition entries")
-    (progn
-      (when-let (identifier (eproj-symbnav/identifier-at-point nil))
-        (push (make-eproj-home-entry :buffer (current-buffer)
-                                     :point (point)
-                                     :symbol identifier)
-              eproj-symbnav/next-homes))
-      (eproj-symbnav/switch-to-home-entry
-       (pop eproj-symbnav/previous-homes)))))
+    (begin
+      (when (or (null? eproj-symbnav/next-homes)
+                (and (not (null? eproj-symbnav/next-homes))
+                     (not (eproj-home-entry=? eproj-symbnav/selected-loc
+                                              (car eproj-symbnav/next-homes)))))
+        (push eproj-symbnav/selected-loc eproj-symbnav/next-homes))
+      (let ((prev-home (pop eproj-symbnav/previous-homes)))
+        (setf eproj-symbnav/selected-loc prev-home)
+        (eproj-symbnav/switch-to-home-entry prev-home)))))
 
 (defun setup-eproj-symbnav ()
   (awhen (current-local-map)
