@@ -9,7 +9,7 @@
 (require 'common)
 
 (defun concatMap (f xs)
-  (mapcan f xs))
+  (mapcan (lambda (x) (copy-list (funcall f x))) xs))
 
 (defun takeWhile (f xs)
   (let ((result nil))
@@ -17,6 +17,9 @@
                 (funcall f (car xs)))
       (push (car xs) result))
     (nreverse result)))
+
+(defun concat-lists (xss)
+  (foldl #'append nil xss))
 
 (provide 'more-haskell)
 
