@@ -56,11 +56,10 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                               (symbol? f))
                        `(,f ,last-arg ,@args)
                        `(,call-form ,func ,last-arg ,@args))))
-                  (some-expr
+                  (_
                    (cl-return-from cannot-optimize
                      `(,(funcall strip-quotation fallback-function)
-                       ,expr
-                       ,@funcs))))))))
+                       ,@functions))))))))
       (letrec ((iter
                 (lambda (funcs)
                   (funcall make-call
