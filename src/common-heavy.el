@@ -75,19 +75,6 @@ if CASE-SENSETIVE is t."
                                     (lambda () ""))))
         (error "No file found for \"%s\" regexp" filename-re)))))
 
-(defun string-trim-whitespace (str)
-  "Trim whitespaces from string."
-  (let ((find-bound
-         (lambda (from-end)
-           (position-if-not (lambda (char) (member* char (string->list " \t\n\r\v\f")
-                                                    :test #'char=))
-                            str :from-end from-end))))
-    (let ((start (funcall find-bound nil))
-          (end (funcall find-bound t)))
-      (if start
-        (subseq str start (1+ end))
-        ""))))
-
 ;;;;
 
 (defun extract-unicode ()

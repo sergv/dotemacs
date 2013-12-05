@@ -510,10 +510,8 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 
 ;;;;
 
-(autoload 'string-trim-whitespace "common-heavy")
 (autoload 'extract-unicode "common-heavy")
 (autoload 'input-unicode "common-heavy" "" t)
-
 
 ;;;;
 
