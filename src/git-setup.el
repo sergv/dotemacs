@@ -375,7 +375,7 @@ and put one if nothing was found."
                              "1"
                              "--pretty='%H'"
                              "HEAD")
-               (string-trim-whitespace
+               (trim-whitespace
                 (buffer-substring-no-properties (point-min) (point-max)))))))
       (if (hash-table-p *git-get-head-commit-cache*)
         (aif (gethash repo-root *git-get-head-commit-cache*)
@@ -443,7 +443,7 @@ under git version control."
                                  "rev-parse"
                                  "--show-toplevel"))
           (strip-trailing-slash
-           (string-trim-whitespace
+           (trim-whitespace
             (buffer-substring-no-properties (point-min)
                                             (point-max))))))))
 

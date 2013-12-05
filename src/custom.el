@@ -214,7 +214,7 @@ confuse when point is not at the beginning of line"
   (when str
     (save-match-data
       (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
+        (replace-regexp-in-string "\\(?:^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))))
 
 (defun trim-whitespace-left (str)
   "Trim leading whitespace from STR."
