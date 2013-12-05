@@ -905,7 +905,8 @@ or `default-directory', if no file is visited."
 
 
 (defun eproj-symbnav/identifier-at-point (&optional noerror)
-  (or (get-region-string-no-properties)
+  (or (awhen (get-region-string-no-properties)
+        (trim-whitespace it))
       (let ((bounds (bounds-of-thing-at-point 'symbol)))
         (cond ((not (null? bounds))
                (buffer-substring-no-properties (car bounds) (cdr bounds)))
