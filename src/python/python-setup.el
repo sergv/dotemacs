@@ -197,7 +197,7 @@ in the current *Python* session."
         (error "No completions found for \"%s\"" pattern)
         (progn
           (delete-region beg end)
-          (insert (string-trim-whitespace completion)))))))
+          (insert (trim-whitespace completion)))))))
 
 
 (setenv "PYTHONPATH"
