@@ -406,8 +406,7 @@ we load it."
                 (* [?_ ?\' a-z A-Z 0-9]))
          (op (+ [?\! ?\# ?\$ ?\% ?\& ?\* ?\+ ?\. ?\/ ?\< ?\= ?\> ?\? ?\@ ?\\ ?^ ?\| ?\- ?\~ ?\:])))
         ,string
-        ;; t
-        )
+        t)
      (error (message "%s" err))))
 
 ;; (defmacro haskell-peg-parse-string (rules string)
