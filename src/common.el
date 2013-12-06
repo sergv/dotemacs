@@ -875,7 +875,7 @@ end of END-LINE in current buffer."
 ;;;;
 
 (defvar *ignored-file-name-endings*
-  '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" "~" ".bin" ".out" ".prof" ".lbin" ".so" ".a" ".ln" ".blg" ".bbl" ".elc" ".lof" ".glo" ".idx" ".lot" ".fmt" ".tfm" ".class" ".fas" ".lib" ".mem" ".x86f" ".sparcf" ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl" ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl" ".sx32fsl" ".wx64fsl" ".wx32fsl" ".fasl" ".ufsl" ".fsl" ".dxl" ".lo" ".la" ".gmo" ".mo" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".hi")
+  '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".p_o" ".p_hi" ".prof_o" ".hi" "~" ".bin" ".out" ".lbin" ".so" ".a" ".ln" ".blg" ".bbl" ".elc" ".lof" ".glo" ".idx" ".lot" ".fmt" ".tfm" ".class" ".fas" ".lib" ".mem" ".x86f" ".sparcf" ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl" ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl" ".sx32fsl" ".wx64fsl" ".wx32fsl" ".fasl" ".ufsl" ".fsl" ".dxl" ".lo" ".la" ".gmo" ".mo" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo")
   "List of file name endings to generally ignore.")
 
 (defvar *version-control-directories*
@@ -890,7 +890,14 @@ end of END-LINE in current buffer."
 
 (setf completion-ignored-extensions
       (append (map (lambda (x) (concat x "/")) *ignored-directories*)
-              *ignored-file-name-endings*))
+              *ignored-file-name-endings*)
+      grep-find-ignored-files
+      (append (list ".#*"
+                    "*.exe"
+                    "*.prof")
+              (map (lambda (x)
+                     (concat "*" x))
+                   *ignored-file-name-endings*)))
 
 ;;;;
 
