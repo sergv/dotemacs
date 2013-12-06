@@ -37,7 +37,6 @@
 
      (defvar *grep-latest-dir* nil
        "Latest directory used for `rgrep', `rzgrep' or alike.")
-     (add-to-list 'grep-find-ignored-files "*.exe")
 
      ;; make use of inlined grep-expand-keywords and set *grep-latest-dir*
      (redefun grep-expand-template (template &optional regexp files dir excl)
@@ -167,6 +166,7 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           ("llvm"     . "*.ll")
           ("xml"      . "*.xml")
           ("hs"       . "*.hs *.hsc *.lhs")
+          ("haskell"  . "*.hs *.hsc *.lhs")
           ("py"       . "*.py *.pyx *.pxd *.pxi"))))
 
 
