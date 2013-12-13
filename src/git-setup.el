@@ -45,8 +45,7 @@
                :use-comment    t
                :use-whitespace t))
 
-(add-hook 'gitignore-mode-hook
-          'gitignore-setup)
+(add-hook 'gitignore-mode-hook #'gitignore-setup)
 
 ;;;; magit
 
@@ -62,12 +61,12 @@
                           (cons section xs)
                           xs)))))
     ;; expand to load all hunks
-    (magit-section-expand-all magit-top-section)
-    (prog1 (sort (funcall collect magit-top-section)
+    (magit-section-expand-all magit-root-section)
+    (prog1 (sort (funcall collect magit-root-section)
                  (lambda (section-a section-b)
                    (< (magit-section-beginning section-a)
                       (magit-section-beginning section-b))))
-      (magit-section-collapse magit-top-section))))
+      (magit-section-collapse magit-root-section))))
 
 (defun magit-current-section-is-whitespace-only? ()
   (interactive)
@@ -123,7 +122,7 @@ all otherwise."
 (defun magit-cycle-top-sections-visibility ()
   "Cycle visibility of sections across all buffer."
   (interactive)
-  (magit-cycle-sections-visibility magit-top-section))
+  (magit-cycle-sections-visibility magit-root-section))
 
 (defun magit-visit-item-other-window ()
   (interactive)
