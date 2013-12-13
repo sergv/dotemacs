@@ -1083,6 +1083,17 @@ return pair (x (F x))."
 
 ;;;;
 
+(defun abort-recursive-edit* (&optional on-no-recursive-edit)
+  "Abort recursive edit or call ON-NO-RECURSIVE-EDIT if no recursive
+edit is active."
+  (condition-case err
+      (abort-recursive-edit)
+    (user-error (if err
+                  (funcall on-no-recursive-edit)
+                  (signal (car err) (cdr err))))))
+
+;;;;
+
 (provide 'common)
 
 ;; Local Variables:

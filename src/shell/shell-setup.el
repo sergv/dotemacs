@@ -75,7 +75,7 @@
 
     ("C-c C-k"  comint-kill-subjob))
 
-  (setq comint-scroll-to-bottom-on-input t))
+  (setf comint-scroll-to-bottom-on-input t))
 
 (when (and (platform-os-type? 'windows)
            (platform-use? 'work)
