@@ -66,7 +66,7 @@
     ("M-X"   smex-major-mode-commands)
     ("g f"   icicle-file)
     ("g g f" find-filename-in-tree-recursive)
-    ("g r"   rgrep)
+    ("g r"   rgrep-wrapper)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)
 
