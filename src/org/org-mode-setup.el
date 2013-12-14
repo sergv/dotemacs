@@ -658,31 +658,31 @@ the current topic."
        '(apply org-cycle))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("TAB"   org-cycle)
-    ("<tab>" org-cycle)
-    ("SPC SPC" org-toggle-inline-images-and-formulae)
+    ("TAB"     org-cycle)
+    ("<tab>"   org-cycle)
+    ("<print>" org-toggle-inline-images-and-formulae)
 
-    ("M-."   org-open-at-point)
-    ("M-,"   org-mark-ring-goto)
-    ("C-o"   org-open-at-point)
-    ("g o"   org-open-at-point)
+    ("M-."     org-open-at-point)
+    ("M-,"     org-mark-ring-goto)
+    ("C-o"     org-open-at-point)
+    ("g o"     org-open-at-point)
 
-    ("'"     org-mode-up-heading)
-    ("<up>"  org-mode-up-heading)
+    ("'"       org-mode-up-heading)
+    ("<up>"    org-mode-up-heading)
 
-    ("<f6>"  org-toggle-display-style)
-    ("<f9>"  org-latex-export-to-pdf)
-    ("S-<f9>" open-buffer-as-pdf)
-    ("z O"   show-all)
+    ("<f6>"    org-toggle-display-style)
+    ("<f9>"    org-latex-export-to-pdf)
+    ("S-<f9>"  open-buffer-as-pdf)
+    ("z O"       show-all)
     ;; ("z o"   show-subtree)
-    ("z c"   hide-subtree)
-    ;; hide everything except current entry and its parrents
-    ("z C"   hide-other)
+    ("z c"     hide-subtree)
+    ;; hide everything except current entry and its parents
+    ("z C"     hide-other)
 
-    ("j"     eval-last-sexp)
+    ("j"       eval-last-sexp)
 
-    ("T"     org-forward-same-level)
-    ("N"     org-backward-same-level))
+    ("T"       org-forward-same-level)
+    ("N"       org-backward-same-level))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"     eval-region))
