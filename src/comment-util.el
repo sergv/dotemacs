@@ -426,37 +426,42 @@ up and then comment the result."
        (count-lines (point) sexp-end-exclusive)
        (current-column)))))
 
-(defun* lisp-commented-linep ()
+(defun* comment-util--on-commented-line? ()
   "Return t if current line contains commented parts."
-  (save-excursion
-    (let* ((state (parse-partial-sexp (line-beginning-position)
-                                      (line-end-position)))
-           (inside-commentp (elt state 4)))
-      ;; if parse end up inside comment then current line has ;-comments
-      inside-commentp)))
+  (if-let (line-comment (comment-format-one-line *comment-util-current-format*))
+    (save-excursion
+      (beginning-of-line)
+      (skip-syntax-forward " ")
+      (looking-at-p line-comment))
+    (save-excursion
+      (let* ((state (parse-partial-sexp (line-beginning-position)
+                                        (line-end-position)))
+             (inside-comment? (elt state 4)))
+        ;; if parse end up inside comment then current line starts with a comment
+        inside-comment?))))
 
-(defun* lisp-get-region-with-commented-parts ()
+(defun* comment-util--get-commented-region ()
   "Return begin and end of region surrounding point that has
 commented parts and leave point unchanged."
-  (unless (lisp-commented-linep)
-    (error "Not on line with commented part(s)"))
+  (unless (comment-util--on-commented-line?)
+    (error "Not on commented line"))
   (let ((move-while-commented
          ;; return position of the beginning of the last line in direction
          ;; that is still has commented parts
          (lambda (dir)
            (beginning-of-line)
-           (while (and (lisp-commented-linep)
-                       (if (eq dir 'backward)
-                         (not (bobp))
-                         (not (eobp))))
+           (while (and (comment-util--on-commented-line?)
+                       (not (if (eq? dir 'backward)
+                              (bobp)
+                              (eobp))))
              (move-by-line dir))
-           (unless (if (eq dir 'backward)
-                     (bobp)
-                     (eobp))
+           (when (not (if (eq? dir 'backward)
+                        (bobp)
+                        (eobp)))
              (move-by-line-backward dir)
              ;; we're returned backwards onto line with comments
              ;; which is a known fact
-             (assert (lisp-commented-linep)
+             (assert (comment-util--on-commented-line?)
                      nil
                      "line number: %s;\nline: %s;\nprevious line: %s"
                      (count-lines1 (point-min) (point))
@@ -477,19 +482,27 @@ commented parts and leave point unchanged."
         (setf end (line-end-position)))
       (values start end))))
 
-(defun lisp-delete-commented-part ()
+(defun comment-util-delete-commented-part ()
+  "Delete all adjacent lines that are commented by line regexps."
   (interactive)
   (multiple-value-bind (start end)
-      (lisp-get-region-with-commented-parts)
+      (comment-util--get-commented-region)
     (save-excursion
       (save-match-data
-        (goto-char end)
-        (let ((clear-comment (lambda ()
-                               (cond
-                                 ((looking-at-pure? "^\\s-*;+.*$")
-                                  (delete-current-line))
-                                 ((re-search-forward ";+.*$" (line-end-position) t)
-                                  (replace-match ""))))))
+        (let* ((line-regexp
+                (comment-format-line-regexp *comment-util-current-format*))
+               (full-line-re
+                (concat "^\\s-*" line-regexp))
+               (clear-comment (lambda ()
+                                (cond
+                                  ((looking-at-pure? full-line-re)
+                                   (delete-current-line))
+                                  ;; for cases like
+                                  ;; > (let (( ;; (foo 1)
+                                  ;;          (bar 2))))
+                                  ((re-search-forward line-regexp (line-end-position) t)
+                                   (delete-region (match-beginning 0) (line-end-position)))))))
+          (goto-char end)
           (while (and (<= start (point))
                       (not (bobp)))
             (beginning-of-line)
@@ -501,12 +514,12 @@ commented parts and leave point unchanged."
 (defun* lisp-uncomment-sexp ()
   (interactive)
   (multiple-value-bind (start end)
-      (lisp-get-region-with-commented-parts)
+      (comment-util--get-commented-region)
     (save-excursion
       ;; now skip all whitespace characters and see if next char
       ;; is the close paren which would mean that sexp to be
       ;; uncommented in nested in some other and end of that
-      ;; other one shoudl be combined with it
+      ;; other one should be combined with it
       (goto-char end)
       (skip-syntax-forward " >")
       (when (and (not (eobp))

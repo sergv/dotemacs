@@ -114,6 +114,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       inferior-haskell-send-decl)
+    ("g c d"   comment-util-delete-commented-part)
 
     (", t"     haskell-type)
     (", i"     haskell-info)
