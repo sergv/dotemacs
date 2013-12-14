@@ -164,10 +164,6 @@
 
   (haskell-setup-folding)
   (haskell-abbrev+-setup)
-
-  ;; declaration scanning
-  ;; (imenu-add-menubar-index)
-
   (setup-eproj-symbnav)
   (setup-outline-headers :header-symbol "-"
                          :length-min 3))
@@ -222,7 +218,10 @@
     ("C-<up>"   comint-previous-prompt)
     ("C-<down>" comint-next-prompt)
     ("S-<up>"   compilation-jump-to-prev-error)
-    ("S-<down>" compilation-jump-to-next-error)))
+    ("S-<down>" compilation-jump-to-next-error))
+
+  (haskell-abbrev+-setup)
+  (setup-eproj-symbnav))
 
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 

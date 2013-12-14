@@ -127,7 +127,8 @@ and second being actual substituted text."
                   (setf result nil)
                   (progn
                     (when (and insert-spacep
-                               (not (char-equal (char-after) ?\s)))
+                               (or (eobp)
+                                   (not (char=? (char-after) ?\s))))
                       (insert " "))
                     ;; substitution was succesfull
                     (setf result t)))))
