@@ -19,9 +19,12 @@
          (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn")
          (list "^hps?l?n$"                  "hPutStrLn")
          (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
-         ;; (cons "main"                       "main = do\n   ")
-
-
+         (cons "main"
+               (list
+                (lambda () (yas-expand-snippet
+                       (concat "main :: IO ()\nmain = do\n"
+                               (make-string haskell-indent-offset ?\s)
+                               "$1")))))
 
          (list (concat "^" (make-re-with-optional-suffix "import" 1) "$") "import")
          (list (concat "^" (make-re-with-optional-suffix "import" 1) "q$") "import qualified")
