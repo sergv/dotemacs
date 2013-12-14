@@ -13,6 +13,7 @@
 
 (require 'grep)
 (require 'keys-def)
+(require 'compilation-setup)
 
 (eval-after-load
     "grep"
@@ -23,23 +24,29 @@
        +vi-search-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
-       ("<down>"     compilation-next-error)
-       ("<up>"       compilation-previous-error)
-       ("t"          compilation-next-error)
-       ("n"          compilation-previous-error)
+       ("t"        compilation-jump-to-next-error)
+       ("n"        compilation-jump-to-prev-error)
+       ("<up>"     compilation-jump-to-prev-error)
+       ("<down>"   compilation-jump-to-next-error)
 
-       ("<escape>"   kill-grep)
-       ("C-c C-c"    kill-grep)
+       ("<escape>" kill-grep)
+       ("C-c C-c"  kill-grep)
+       ("q"        remove-buffer)
 
-       ("C-v"        set-mark-command)
-       ("C-y"        copy-region-as-kill)
-       ("v"          set-mark-command)
-       ("y"          copy-region-as-kill))
+       ("C-v"      set-mark-command)
+       ("C-y"      copy-region-as-kill)
+       ("v"        set-mark-command)
+       ("y"        copy-region-as-kill)
+
+       ("<return>" compilation/goto-error)
+       ("SPC"      compilation/goto-error-other-window)
+       ("o"        compilation/goto-error-other-window))
 
      (defvar *grep-latest-dir* nil
        "Latest directory used for `rgrep', `rzgrep' or alike.")
 
      ;; make use of inlined grep-expand-keywords and set *grep-latest-dir*
+     ;; pay attention to rgrep-ignore-case
      (redefun grep-expand-template (template &optional regexp files dir excl)
        "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>.
 Fixed version."
@@ -51,9 +58,10 @@ Fixed version."
                         (setq command
                               (replace-match (or text "") t t command))))))
          (save-match-data
-           (funcall func "<C>" (and case-fold-search
-                                    (isearch-no-upper-case-p regexp t)
-                                    "-i"))
+           (funcall func "<C>" (when (or rgrep-ignore-case
+                                         (and case-fold-search
+                                              (isearch-no-upper-case-p regexp t)))
+                                 "-i"))
            (funcall func "<D>" dir)
            (funcall func "<F>" files)
            (funcall func "<N>" null-device)
@@ -85,7 +93,9 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
             ;; Recompute defaults using let-bound values above.
             (grep-compute-defaults)
             (cond
-              ((and grep-find-command (equal current-prefix-arg '(16)))
+              ((and (not (null grep-find-command))
+                    (not (null current-prefix-arg))
+                    (equal current-prefix-arg '(16)))
                (list (read-from-minibuffer "Run: " grep-find-command
                                            nil nil 'grep-find-history)))
               ((not grep-find-template)
@@ -94,7 +104,8 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
                         (files (grep-read-files regexp))
                         (dir (read-directory-name "Base directory: "
                                                   nil default-directory t))
-                        (confirm (equal current-prefix-arg '(4))))
+                        (confirm (and (not (null current-prefix-arg))
+                                      (equal current-prefix-arg '(4)))))
                    (list regexp files dir confirm grep-find-template)))))))
        ;; Set `grep-highlight-matches' to `always'
        ;; since `zgrep' puts filters in the grep output.
@@ -114,15 +125,12 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
                  (beg (progn
                         (goto-char compilation-filter-start)
                         (line-beginning-position)))
-                 (dir (when *grep-latest-dir*
-                        (if (char=? ?/ (aref *grep-latest-dir*
-                                             (- (length *grep-latest-dir*) 1)))
-                          (subseq *grep-latest-dir* 0 -1)
-                          *grep-latest-dir*))))
-             (goto-char beg)
+                 (dir (awhen *grep-latest-dir* (strip-trailing-slash it))))
              (when dir
-               (while (re-search-forward (concat "^" (regexp-quote dir)) end t)
-                 (replace-match ".")))))))))
+               (let ((re (concat "^" (regexp-quote dir))))
+                 (goto-char beg)
+                 (while (re-search-forward re end t)
+                   (replace-match "."))))))))))
 
 (setf find-program
       (if (and (platform-os-type? 'windows)
@@ -130,6 +138,46 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
                (executable-find "unixfind"))
         "unixfind"
         "find"))
+
+(defun grep-set-up-error-regexp (buffer msg)
+  "Set up `*compilation-jump-error-regexp*' from `compilation-error-regexp-alist'."
+  (with-current-buffer buffer
+    (when (eq? major-mode 'grep-mode)
+      (setf *compilation-jump-error-regexp*
+            "^./\\(?:[^/]+/\\)*[^/:]+\.[a-zA-Z0-9_]+:[0-9]+:"
+            ;; (join-lines (map #'car compilation-error-regexp-alist)
+            ;;             "\\|")
+            ))))
+
+
+(defvar rgrep-ignore-case nil
+  "Dynamically-bound variable that controls whether current
+rgrep invokation should be case-insensetive.")
+
+(defun rgrep-wrapper (regexp &optional files dir ignore-case)
+  "Similar to `rgrep' but ignores case if universal argument was supplied
+more than once"
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (cond
+       ((not grep-find-template)
+        (error "grep.el: No `grep-find-template' available"))
+       (t (let* ((regexp (grep-read-regexp))
+                 (files (grep-read-files regexp))
+                 (dir (read-directory-name "Base directory: "
+                                           nil default-directory t))
+                 (ignore-case (and (not (null current-prefix-arg))
+                                   (<= 16 current-prefix-arg))))
+            (list regexp files dir ignore-case))))))
+  (let* ((rgrep-ignore-case ignore-case)
+         (user-supplied-files (split-string files))
+         (grep-find-ignored-files
+          (remove-if (comp (partial-first #'member user-supplied-files))
+                     grep-find-ignored-files)))
+    (rgrep regexp files dir)))
+
+(add-to-list 'compilation-finish-functions #'grep-set-up-error-regexp)
 
 (setf grep-command "grep -nHE -e "
       grep-template
@@ -171,8 +219,11 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
           ("py"       . "*.py *.pyx *.pxd *.pxi"))))
 
 
-(defun rgrep-region (begin end)
-  (interactive "r")
+(defun rgrep-region (begin end ignore-case)
+  (interactive (list (region-beginning)
+                     (region-end)
+                     (and (not (null? current-prefix-arg))
+                          (<= 16 (car current-prefix-arg)))))
   (let* ((str (buffer-substring-no-properties begin end))
          (regexp (read-string "Search for: "
                               str
@@ -182,10 +233,8 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
                  )
          (files (grep-read-files regexp))
          (dir (read-directory-name "Base directory: "
-                                   nil default-directory t))
-         (confirm (equal current-prefix-arg '(4))))
-    (rgrep regexp files dir confirm)))
-
+                                   nil default-directory t)))
+    (rgrep-wrapper regexp files dir ignore-case)))
 
 (provide 'grep+)
 

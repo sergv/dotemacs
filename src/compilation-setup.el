@@ -60,9 +60,15 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
          (column-group
           (funcall strip-cons (car-safe (cdr-safe (cdr-safe (cdr entry)))))))
     (values (normalize-file-name (match-string-no-properties file-group))
-            (when line-group
+            (when (and (not (null? line-group))
+                       ;; it turns out that someone may put lambdas here,
+                       ;; e.g. grep...
+                       (integer? line-group))
               (string->number (match-string-no-properties line-group)))
-            (when column-group
+            (when (and (not (null? column-group))
+                       ;; it turns out that someone may put lambdas here,
+                       ;; e.g. grep...
+                       (integer? column-group))
               (- (string->number (match-string-no-properties column-group))
                  compilation-first-column)))))
 
@@ -130,6 +136,7 @@ error location - list of (filename line column)."
        ("<down>"   compilation-jump-to-next-error)
        ("M-p"      nil)
        ("<escape>" remove-buffer)
+       ("q"        remove-buffer)
 
        ("C-v"      set-mark-command)
        ("C-y"      copy-region-as-kill)
