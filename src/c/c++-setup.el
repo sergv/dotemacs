@@ -151,8 +151,7 @@
   (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"
                          :header-symbol "*"
-                         :length-min 3
-                         :length-max 9))
+                         :length-min 3))
 
 
 (provide 'c++-setup)
