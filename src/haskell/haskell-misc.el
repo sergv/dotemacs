@@ -43,11 +43,11 @@
                   "-c \"%s\""))
       haskell-program-name
       (cond ((platform-os-type? 'windows)
-             "ghc --interactive -XTemplateHaskell")
+             "ghc --interactive -XTemplateHaskell -fobject-code")
             ((executable-find "ghci")
-             "ghci -XTemplateHaskell")
+             "ghci -XTemplateHaskell -fobject-code")
             ((executable-find "ghc")
-             "ghc --interactive -XTemplateHaskell")
+             "ghc --interactive -XTemplateHaskell -fobject-code")
             (t
              (message "GHC not found")
              nil)))
