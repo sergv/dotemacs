@@ -129,18 +129,17 @@
     ;; (", f"     find-tag)
     ;; (", a"     tags-apropos)
     ;; (", v"     visit-tags-table)
-
-    ("<f6>"    inferior-haskell-load-file)
-    ("SPC SPC" switch-to-haskell)
-    ("<f9>"    haskell-compile)
-    ("S-<f9>"  hs-lint))
+    ("SPC SPC" switch-to-haskell))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<tab>"           (lambda () (interactive) (haskell-indentation-indent-line)))
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
-    ("<return>"        haskell-sp-newline))
+    ("<return>"        haskell-sp-newline)
+    ("<f6>"            inferior-haskell-load-file)
+    ("<f9>"            haskell-compile)
+    ("S-<f9>"          hs-lint))
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                    vim:insert-mode-local-keymap)
