@@ -32,6 +32,7 @@
 
 (load-library "backups")
 (load-library "emacs-general-conf")
+(load-library "smartparens-setup")
 
 ;; ******************************************************************
 
@@ -98,9 +99,11 @@
     (render-formula-mode 1))
 
   (vim:bind-local-keymaps)
-  (when (not (eq sp-slurp-sexp-insert-space
-                 sp-forward-slurp-sexp-insert-space))
-    (setq-local sp-forward-slurp-sexp-insert-space sp-slurp-sexp-insert-space))
+  (eval-after-load "smartparens"
+    `(progn
+       (when (not (eq ,sp-slurp-sexp-insert-space
+                      sp-forward-slurp-sexp-insert-space))
+         (setq-local sp-forward-slurp-sexp-insert-space ,sp-slurp-sexp-insert-space))))
 
   ;; bind in vim:normal-mode-local-keymap since
   ;; it will not be bound in vim:normal-mode-keymap because
@@ -222,7 +225,6 @@
 (load-library "recentf-setup")
 (load-library "misc-autoloads")
 (load-library "eproj-setup")
-(load-library "smartparens-setup")
 (load-library "xilinx-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
