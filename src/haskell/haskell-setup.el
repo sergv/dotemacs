@@ -165,16 +165,12 @@
   (haskell-setup-folding)
   (haskell-abbrev+-setup)
 
-  ;; (enable-paredit-mode)
-  ;; (setf paredit-mode-map nil)
-
   ;; declaration scanning
-  (imenu-add-menubar-index)
+  ;; (imenu-add-menubar-index)
 
   (setup-eproj-symbnav)
   (setup-outline-headers :header-symbol "-"
-                         :length-min 4
-                         :length-max 9))
+                         :length-min 3))
 
 ;;;; set up inferior-haskell-mode
 

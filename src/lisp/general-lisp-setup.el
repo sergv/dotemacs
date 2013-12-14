@@ -775,8 +775,7 @@ This command assumes point is not in a string or comment."
   ;;   ("d b" vim:paredit-backward-kill-word))
 
   (setup-outline-headers :header-symbol ";"
-                         :length-min 3
-                         :length-max 9))
+                         :length-min 3))
 
 (defun lisp-repl-setup ()
   (lisp-setup :use-whitespace nil)

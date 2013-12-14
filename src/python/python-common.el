@@ -215,8 +215,7 @@ greater indenation as current line."
 
   (setup-outline-headers :header-start "^[ \t]*"
                          :header-symbol "#"
-                         :length-min 3
-                         :length-max 9))
+                         :length-min 3))
 
 (provide 'python-common)
 
