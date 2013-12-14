@@ -81,6 +81,7 @@ treated as a list of tags; otherwise it should be list of plain tags."
         (list "Haskell"
               (make-buf-tag-pred
                :major-modes '(haskell-mode
+                              literate-haskell-mode
                               haskell-cabal-mode
                               inferior-haskell-mode
                               inferior-hugs-mode
