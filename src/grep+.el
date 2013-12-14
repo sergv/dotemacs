@@ -20,6 +20,7 @@
      (def-keys-for-map grep-mode-map
        +control-x-prefix+
        +vi-keys+
+       +vi-search-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
        ("<down>"     compilation-next-error)
