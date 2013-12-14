@@ -100,6 +100,8 @@
   ("C-u"      undo-tree-visualize)
   ("<print>"  render-formula-toggle-formulae))
 
+(def-keys-for-map universal-argument-map
+  ("C-<f2>" universal-argument-more))
 
 
 (eval-after-load "help-mode"

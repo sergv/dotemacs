@@ -940,8 +940,8 @@ or `default-directory', if no file is visited."
 (defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
   (interactive "P")
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-         (case-fold-search (and (not (null? use-regexp))
-                                (< 1 universal-argument-num-events)))
+         (case-fold-search (and current-prefix-arg
+                                (<= 16 current-prefix-arg)))
          (identifier (if use-regexp
                        (read-regexp "enter regexp to search for")
                        (eproj-symbnav/identifier-at-point nil)))
