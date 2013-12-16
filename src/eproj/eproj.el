@@ -46,8 +46,8 @@
 (defstruct (eproj-tag
             (:conc-name eproj-tag/))
   symbol ;; == name - string
-  file
-  line
+  file ;; string
+  line ;; number
   properties)
 
 ;;;; eproj languages
@@ -59,6 +59,8 @@
   load-procedure ;; function taking eproj/project structure and
   ;; returning hashtable of (<identifier> . <eproj-tags>) bindings
   tag->string-procedure ;; function of one argument returning string
+  synonym-modes ;; list of symbols, these modes will resolve to this language
+                ;; during tag search
   )
 
 ;;; ctags facility
@@ -352,7 +354,8 @@ Note: old tags file is removed before calling update command."
                              :load-procedure
                              (lambda (proj)
                                (eproj/load-haskell-project proj))
-                             :tag->string-procedure #'eproj/haskell-tag->string)
+                             :tag->string-procedure #'eproj/haskell-tag->string
+                             :synonym-modes '(literate-haskell-mode))
         (make-eproj-language :mode 'c-mode
                              :extension-re (rx "."
                                                (or "c" "h")
@@ -360,7 +363,8 @@ Note: old tags file is removed before calling update command."
                              :load-procedure
                              (lambda (proj)
                                (eproj/load-ctags-project 'c-mode proj))
-                             :tag->string-procedure #'eproj/generic-tag->string)
+                             :tag->string-procedure #'eproj/generic-tag->string
+                             :synonym-modes nil)
         (make-eproj-language :mode 'c++-mode
                              :extension-re (rx "."
                                                (or "c"
@@ -382,7 +386,8 @@ Note: old tags file is removed before calling update command."
                                (eproj/load-ctags-project 'c++-mode proj))
                              :tag->string-procedure
                              (lambda (proj)
-                               (eproj/load-ctags-project 'c++-mode proj)))
+                               (eproj/load-ctags-project 'c++-mode proj))
+                             :synonym-modes nil)
         (make-eproj-language :mode 'python-mode
                              :extension-re (rx "."
                                                (or "py" "pyx" "pxd" "pxi")
@@ -390,14 +395,16 @@ Note: old tags file is removed before calling update command."
                              :load-procedure
                              (lambda (proj)
                                (eproj/load-ctags-project 'python-mode proj))
-                             :tag->string-procedure #'eproj/generic-tag->string)
+                             :tag->string-procedure #'eproj/generic-tag->string
+                             :synonym-modes nil)
         (make-eproj-language :mode 'clojure-mode
                              :extension-re (rx "."
                                                (or "clj"
                                                    "java")
                                                eol)
                              :load-procedure #'eproj/clojure-load-procedure
-                             :tag->string-procedure #'eproj/generic-tag->string)
+                             :tag->string-procedure #'eproj/generic-tag->string
+                             :synonym-modes nil)
         (make-eproj-language :mode 'java-mode
                              :extension-re (rx "."
                                                (or "java")
@@ -405,12 +412,20 @@ Note: old tags file is removed before calling update command."
                              :load-procedure
                              (lambda (proj)
                                (eproj/load-ctags-project 'java-mode proj))
-                             :tag->string-procedure #'eproj/generic-tag->string)))
+                             :tag->string-procedure #'eproj/generic-tag->string
+                             :synonym-modes nil)))
 
 (defvar eproj/languages-table
   (let ((table (make-hash-table :test #'eq)))
     (dolist (lang eproj/languages)
       (puthash (eproj-language/mode lang) lang table))
+    table))
+
+(defvar eproj/synonym-modes-table
+  (let ((table (make-hash-table :test #'eq)))
+    (dolist (lang eproj/languages)
+      (dolist (synonym (eproj-language/synonym-modes lang))
+        (puthash synonym (eproj-language/mode lang) table)))
     table))
 
 ;;;; eproj-project
@@ -471,14 +486,7 @@ Note: old tags file is removed before calling update command."
   (interactive)
   (if-let (proj (eproj-get-project-for-buf (current-buffer)))
     (let ((indent "    ")
-          (buf (get-buffer-create (format "*%s description*" (eproj-project/root proj))))
-          (to-relative-name
-           (lambda (filename dir)
-             (if (string-prefix? dir filename)
-               (concat "."
-                       (substring filename
-                                  (length (eproj-normalize-file-name dir))))
-               filename))))
+          (buf (get-buffer-create (format "*%s description*" (eproj-project/root proj)))))
       (switch-to-buffer-other-window buf)
       (with-current-buffer buf
         (erase-buffer)
@@ -499,9 +507,12 @@ Note: old tags file is removed before calling update command."
             (dolist (subentry (cdr entry))
               (insert indent indent indent
                       (format "%s:%s\n"
-                              (funcall to-relative-name
-                                       (expand-file-name (eproj-tag/file subentry))
-                                       (expand-file-name (eproj-project/root proj)))
+                              (file-relative-name
+                               (expand-file-name
+                                (eproj-resolve-abs-or-rel-name
+                                 (eproj-tag/file subentry)
+                                 (eproj-project/root proj)))
+                               (expand-file-name (eproj-project/root proj)))
                               (eproj-tag/line subentry))))))
         (goto-char (point-min))))
     (error "no project for buffer %s" (buffer-name (current-buffer)))))
@@ -915,7 +926,29 @@ or `default-directory', if no file is visited."
               (else
                nil)))))
 
+(defun eproj-symbnav/show-home (entry)
+  (when (not (null? entry))
+    (with-current-buffer (eproj-home-entry/buffer entry)
+      (concat (eproj-home-entry/symbol entry)
+              "@"
+              (file-name-nondirectory buffer-file-name)
+              ":"
+              (save-excursion
+                (number->string
+                 (line-number-at-pos (eproj-home-entry/point entry))))))))
 
+(defun eproj-symbnav/describe ()
+  (interactive)
+  (message "Previous homes: %s\nSelected loc: %s\nNext homes: %s\n"
+           (map #'eproj-symbnav/show-home eproj-symbnav/previous-homes)
+           (eproj-symbnav/show-home eproj-symbnav/selected-loc)
+           (map #'eproj-symbnav/show-home eproj-symbnav/next-homes)))
+
+(defun eproj-symbnav/reset ()
+  (interactive)
+  (setf eproj-symbnav/previous-homes nil
+        eproj-symbnav/selected-loc nil
+        eproj-symbnav/next-homes nil))
 
 (defstruct (eproj-home-entry
             (:conc-name eproj-home-entry/))
@@ -937,15 +970,21 @@ or `default-directory', if no file is visited."
   (switch-to-buffer (eproj-home-entry/buffer home-entry))
   (goto-char (eproj-home-entry/point home-entry)))
 
+(defun eproj-symbnav/resolve-synonym-modes (mode)
+  "Replace modes that are similar to some other known modes"
+  (aif (gethash mode eproj/synonym-modes-table)
+    it
+    mode))
+
 (defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
   (interactive "P")
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-         (case-fold-search (and current-prefix-arg
-                                (<= 16 current-prefix-arg)))
+         (case-fold-search (and (not (null? current-prefix-arg))
+                                (<= 16 (car current-prefix-arg))))
          (identifier (if use-regexp
                        (read-regexp "enter regexp to search for")
                        (eproj-symbnav/identifier-at-point nil)))
-         (orig-major-mode major-mode)
+         (orig-major-mode (eproj-symbnav/resolve-synonym-modes major-mode))
          (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
                                                     :point (point)
                                                     :symbol nil))
@@ -971,16 +1010,16 @@ or `default-directory', if no file is visited."
                                            :symbol (eproj-tag/symbol entry))))))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     (unless (or (eproj-project/tags proj)
-                (assq major-mode (eproj-project/tags proj)))
+                (assq orig-major-mode (eproj-project/tags proj)))
       (eproj-reload-project! proj)
       (unless (eproj-project/tags proj)
         (error "Project %s loaded no names\nProject: %s"
                (eproj-project/root proj)
                proj))
-      (unless (assq major-mode (eproj-project/tags proj))
+      (unless (assq orig-major-mode (eproj-project/tags proj))
         (error "No names in project %s for language %s"
                (eproj-project/root proj)
-               major-mode)))
+               orig-major-mode)))
     (if (and next-home-entry
              (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
                (if use-regexp
@@ -999,7 +1038,7 @@ or `default-directory', if no file is visited."
              (entries
               (sort (concatMap (lambda (proj)
                                  (aif (rest-safe
-                                       (assq major-mode
+                                       (assq orig-major-mode
                                              (eproj-project/tags proj)))
                                    (copy-list
                                     (if use-regexp
