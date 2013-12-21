@@ -1032,7 +1032,7 @@ to mode and write new contents back to FILENAME."
 
 (defun region-active? ()
   "Return t if region, either plain or vim's, is active."
-  ;; consider using mark-active
+  ;; TODO consider using mark-active
   (or (region-active-p)
       (run-if-fbound vim:visual-mode-p)))
 
@@ -1047,6 +1047,25 @@ if there's no region."
           0)
         (region-end)))
     nil))
+
+(defun get-region-bounds ()
+  "Return pair of region bounds, (begin end), depending
+on currently active vim highlight mode."
+  (if (and (run-if-fbound vim:visual-mode-p)
+           (not (eq? vim:visual-mode-type 'block)))
+    (cond
+      ((eq? vim:visual-mode-type 'normal)
+       (values (region-beginning) (region-end)))
+      ((eq? vim:visual-mode-type 'linewise)
+       (values (save-excursion
+                 (goto-char (region-beginning))
+                 (line-beginning-position))
+               (save-excursion
+                 (goto-char (region-end))
+                 (line-end-position))))
+      (else
+       (error "Invalid vim:visual-mode-type: %s" vim:visual-mode-type)))
+    (values (region-beginning) (region-end))))
 
 ;;;;
 
