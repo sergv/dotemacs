@@ -293,6 +293,10 @@
 (push (cons 'c++-mode #'c-indentation-indent-buffer)
       *mode-buffer-indent-function-alist*)
 
+(when (platform-use? 'work)
+  (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode)))
+
+
 (push (cons 'java-mode #'c-indentation-indent-buffer)
       *mode-buffer-indent-function-alist*)
 
@@ -324,9 +328,8 @@
 (add-to-list 'auto-mode-alist '("\\.c[ul]h?\\'" . cuda-mode))
 (add-hook 'cuda-mode-hook #'cuda-setup)
 
-(when (platform-use? 'work)
-  (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode)))
-
+(autoload 'idl-setup "idl-setup")
+(add-hook 'idl-mode-hook #'idl-setup)
 
 (defun c++-file-magic-function ()
   (let ((ext (file-name-extension (buffer-file-name))))
