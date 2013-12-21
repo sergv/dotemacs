@@ -573,14 +573,15 @@ of code may be called more than once."
     `(defun ,func ()
        (interactive)
        (when (region-active?)
-         (align-regexp (region-beginning)
-                       (region-end)
-                       ,(if put-align-spaces-after-str
-                          (concat align-re spaces-re)
-                          (concat spaces-re align-re))
-                       1
-                       1
-                       ,repeat)))))
+         (multiple-value-bind (start end) (get-region-bounds)
+           (align-regexp start
+                         end
+                         ,(if put-align-spaces-after-str
+                            (concat align-re spaces-re)
+                            (concat spaces-re align-re))
+                         1
+                         1
+                         ,repeat))))))
 
 
 (defmacro save-current-line-column (&rest body)
