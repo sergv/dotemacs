@@ -7,15 +7,13 @@
 ;; Description:
 
 (defun asm-mode-setup ()
-  (set (make-variable-buffer-local 'whitespace-style)
-       '(face lines-tail
-              ;; tabs
-              ))
   (init-common :use-yasnippet nil
                :use-comment t
                :use-whitespace t
                :use-render-formula t)
 
+  ;; do not colorize tabs
+  (setq-local whitespace-style (remove 'tabs whitespace-style))
   (def-keys-for-map asm-mode-map
     (";" nil)))
 
