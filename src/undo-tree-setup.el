@@ -35,6 +35,7 @@
        ("<up>"     scroll-up)
        ("<down>"   scroll-down)
 
+       ("d"        undo-tree-visualizer-toggle-diff)
        ("q"        undo-tree-visualizer-quit)
        ("<escape>" undo-tree-visualizer-quit)
        ("<return>" undo-tree-visualizer-quit)
