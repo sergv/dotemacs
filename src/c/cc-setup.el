@@ -169,10 +169,10 @@ Also propagate new offset to `vim:shift-width'."
 
   (modify-syntax-entry ?_ "_")
 
-  (setf whitespace-line-column 80
-        whitespace-style '(face tabs lines-tail)
-        ;; affects only tab display
-        tab-width 4)
+  (setq-local whitespace-line-column 80)
+  (setq-local whitespace-style '(face tabs lines-tail))
+  ;; affects only tab display
+  (setf tab-width 4)
 
   (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)
