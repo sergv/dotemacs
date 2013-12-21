@@ -27,11 +27,9 @@
                      t))
 
 (defun shell-script-setup ()
-  (init-common :use-yasnippet t :use-whitespace t)
+  (init-common :use-yasnippet t :use-whitespace nil)
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
-  (setf whitespace-line-column 80
-        whitespace-style '(tabs lines-tail))
   (setq-local yas-indent-line 'fixed)
   (which-function-mode -1)
 
@@ -39,8 +37,8 @@
     ("M-/" icicle-comint-dynamic-complete-filename))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>"  shell-run-file)
-    ("M-/"   icicle-comint-dynamic-complete-filename))
+    ("<f9>" shell-run-file)
+    ("M-/"  icicle-comint-dynamic-complete-filename))
   (shell-script-abbrev+-setup))
 
 
