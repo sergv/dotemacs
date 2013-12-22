@@ -7,34 +7,49 @@
 ;; Description:
 
 (require 'abbrev+)
+(require 'haskell-misc)
 
 
 (defun haskell-abbrev+-setup ()
-  (setf abbrev+-skip-syntax '("w_" "^ >")
-        abbrev+-abbreviations
-        (list
-         ;; (cons "pwd" #'(lambda () (expand-file-name default-directory)))
-         (list "^hpr?f$"                    "hPrintf")
-         (list "^pr?f$"                     "printf")
-         (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn")
-         (list "^hps?l?n$"                  "hPutStrLn")
-         (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
-         (cons "main"
-               (list
-                (lambda () (yas-expand-snippet
-                       (concat "main :: IO ()\nmain = do\n"
-                               (make-string haskell-indent-offset ?\s)
-                               "$1")))))
+  (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
+                                     (or (null? c)
+                                         (not (char=? c ?:))))))
+         (haskell-extensions (append (map #'first haskell-language-extensions)
+                                     (remove nil
+                                             (map #'third haskell-language-extensions))))
+         (language-snippet (format "{-# LANGUAGE ${1:$$(yas-choose-value '%S)} #-}$0"
+                                   haskell-extensions)))
+    (setf abbrev+-skip-syntax '("w_" "^ >")
+          abbrev+-abbreviations
+          (list
+           ;; (cons "pwd" #'(lambda () (expand-file-name default-directory)))
+           (list "^hpr?f$"                    "hPrintf")
+           (list "^pr?f$"                     "printf")
+           (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn")
+           (list "^hps?l?n$"                  "hPutStrLn")
+           (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
+           (cons "main"
+                 (list
+                  (lambda () (yas-expand-snippet
+                         (concat "main :: IO ()\nmain = do\n"
+                                 (make-string haskell-indent-offset ?\s)
+                                 "$1")))))
 
-         (list (concat "^" (make-re-with-optional-suffix "import" 1) "$") "import")
-         (list (concat "^" (make-re-with-optional-suffix "import" 1) "q$") "import qualified")
-         (list (concat "^q" (make-re-with-optional-suffix "import" 1) "$") "import qualified")
-         (list "##"
-               (list
-                (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
-         (list "#lang"
-               (list
-                (lambda () (yas-expand-snippet "{-# LANGUAGE $1 #-}$0"))))))
+           (list (concat "^" (make-re-with-optional-suffix "import" 1) "$")
+                 "import"
+                 import-expand-pred)
+           (list (concat "^" (make-re-with-optional-suffix "import" 1) "q$")
+                 "import qualified"
+                 import-expand-pred)
+           (list (concat "^q" (make-re-with-optional-suffix "import" 1) "$")
+                 "import qualified"
+                 import-expand-pred)
+           (list "##"
+                 (list
+                  (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
+           (list "#lang"
+                 (list
+                  (lambda () (yas-expand-snippet language-snippet)))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
