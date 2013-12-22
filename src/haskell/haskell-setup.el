@@ -74,6 +74,9 @@
                                             +prog-data-path+
                                             "inf-haskell-module-alist"))
 
+  (setq-local yas-prompt-functions
+              (list #'haskell-yas-completing-prompt))
+
   (if (platform-use? 'work)
     (progn
       (setq-local vim:shift-width 2)
@@ -191,6 +194,7 @@
     ("C-<up>"   compilation-jump-to-prev-error)
     ("C-<down>" compilation-jump-to-next-error)
 
+    (", ?"      haskell-help-for-symbol-at-point)
     (", t"      haskell-type)
     (", i"      haskell-info)
     (", h"      haskell-haddock-identifier)
