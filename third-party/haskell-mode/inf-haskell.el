@@ -38,6 +38,8 @@
 (require 'haskell-mode)
 (require 'haskell-decl-scan)
 (require 'haskell-cabal)
+(require 'haskell-utils)
+(with-no-warnings (require 'cl))
 
 ;; Dynamically scoped variables.
 (defvar find-tag-marker-ring)
@@ -781,14 +783,24 @@ we load it."
          (package (nth 1 alist-record))
          (file-name (concat (subst-char-in-string ?. ?- module) ".html"))
          (local-path (concat (nth 2 alist-record) "/" file-name))
+         ;; Jump to the symbol anchor within Haddock.
+         (symbol-anchor
+          (concat "#v:"
+                  (if (string-match-p haskell-utils-operator-name-regexp sym)
+                    ;; Encode operator names just like haddock does,
+                    ;; but strip any module qualification beforehand since
+                    ;; module would be specified by a file-name anyway.
+                    (mapconcat (lambda (c) (format "-%d-" c))
+                               (haskell-utils-unqualify-op sym)
+                               "")
+                    sym)))
          (url (if (or (eq inferior-haskell-use-web-docs 'always)
                       (and (not (file-exists-p local-path))
                            (eq inferior-haskell-use-web-docs 'fallback)))
-                  (concat inferior-haskell-web-docs-base package "/" file-name)
+                  (concat inferior-haskell-web-docs-base package "/" file-name
+                          symbol-anchor)
                 (and (file-exists-p local-path)
-                     (concat "file://" local-path))))
-         ;; Jump to the symbol within Haddock.
-         (url (concat url "#v:" sym)))
+                     (concat "file://" local-path symbol-anchor)))))
     (if url (browse-url url) (error "Local file doesn't exist"))))
 
 (defvar inf-haskell-mode-map
