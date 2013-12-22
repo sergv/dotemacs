@@ -134,6 +134,12 @@ in haskell-font-lock.el")
     (comint-send-input)))
 
 
+(defun haskell-yas-completing-prompt (prompt choices &optional display-fn)
+  "Call `yas-completing-prompt' with ignoring case during completion."
+  (let ((completion-ignore-case t))
+    (yas-completing-prompt prompt
+                           choices
+                           display-fn)))
 
 ;;; compilation
 
@@ -186,6 +192,103 @@ in haskell-font-lock.el")
 (put 'haskell-compile-command 'safe-local-variable #'string?)
 (put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
 (put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'string?)
+
+;;; simple documentation system
+
+(defvar haskell-language-extensions
+  ;; make this list from documentation, e.g.
+  ;; http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
+  ;; command: '<,'>s/^-X\([^\t]+\)\t\([^\t]+\)\t[^\t]+\t-\(?:X\(.*\)\)?/("\1" "\2" "\3")/
+  '(("OverlappingInstances" "Enable overlapping instances" "NoOverlappingInstances")
+    ("IncoherentInstances" "Enable incoherent instances. Implies -XOverlappingInstances " "NoIncoherentInstances")
+    ("UndecidableInstances" "Enable undecidable instances" "NoUndecidableInstances")
+    ("Arrows" "Enable arrow notation extension" "NoArrows")
+    ("DisambiguateRecordFields" "Enable record field disambiguation" "NoDisambiguateRecordFields")
+    ("ForeignFunctionInterface" "Enable foreign function interface (implied by -fglasgow-exts)" "NoForeignFunctionInterface")
+    ("Generics" "Deprecated, does nothing. No longer enables generic classes. See also GHC's support for generic programming." "NoGenerics")
+    ("ImplicitParams" "Enable Implicit Parameters. Implied by -fglasgow-exts." "NoImplicitParams")
+    ("NoImplicitPrelude" "Don't implicitly import Prelude" "ImplicitPrelude")
+    ("RebindableSyntax" "Employ rebindable syntax" "NoRebindableSyntax")
+    ("NoMonomorphismRestriction" "Disable the monomorphism restriction" "MonomorphismRrestriction")
+    ("NoNPlusKPatterns" "Disable support for n+k patterns" "NPlusKPatterns")
+    ("NoTraditionalRecordSyntax" "Disable support for traditional record syntax (as supported by Haskell 98) C {f = x}" "TraditionalRecordSyntax")
+    ("NoMonoPatBinds" "Make pattern bindings polymorphic" "MonoPatBinds")
+    ("RelaxedPolyRec" "Relaxed checking for mutually-recursive polymorphic functions" "NoRelaxedPolyRec")
+    ("ExtendedDefaultRules" "Use GHCi's extended default rules in a normal module" "NoExtendedDefaultRules")
+    ("OverloadedStrings" "Enable overloaded string literals. " "NoOverloadedStrings")
+    ("GADTs" "Enable generalised algebraic data types. " "NoGADTs")
+    ("GADTSyntax" "Enable generalised algebraic data type syntax. " "NoGADTSyntax")
+    ("TypeFamilies" "Enable type families." "NoTypeFamilies")
+    ("ConstraintKinds" "Enable a kind of constraints." "NoConstraintKinds")
+    ("DataKinds" "Enable datatype promotion." "NoDataKinds")
+    ("PolyKinds" "Enable kind polymorphism. Implies -XKindSignatures." "NoPolyKinds")
+    ("ScopedTypeVariables" "Enable lexically-scoped type variables. Implied by -fglasgow-exts." "NoScopedTypeVariables")
+    ("MonoLocalBinds" "Enable do not generalise local bindings. " "NoMonoLocalBinds")
+    ("TemplateHaskell" "Enable Template Haskell. No longer implied by -fglasgow-exts." "NoTemplateHaskell")
+    ("QuasiQuotes" "Enable quasiquotation." "NoQuasiQuotes")
+    ("BangPatterns" "Enable bang patterns." "NoBangPatterns")
+    ("CPP" "Enable the C preprocessor." "NoCPP")
+    ("PatternGuards" "Enable pattern guards." "NoPatternGuards")
+    ("ViewPatterns" "Enable view patterns." "NoViewPatterns")
+    ("UnicodeSyntax" "Enable unicode syntax." "NoUnicodeSyntax")
+    ("MagicHash" "Allow \"#\" as a postfix modifier on identifiers." "NoMagicHash")
+    ("ExplicitForAll" "Enable explicit universal quantification. Implied by -XScopedTypeVariables, -XLiberalTypeSynonyms, -XRank2Types, -XRankNTypes, -XPolymorphicComponents, -XExistentialQuantification " "NoExplicitForAll")
+    ("PolymorphicComponents" "Enable polymorphic components for data constructors." "NoPolymorphicComponents")
+    ("Rank2Types" "Enable rank-2 types." "NoRank2Types")
+    ("RankNTypes" "Enable rank-N types." "NoRankNTypes")
+    ("ImpredicativeTypes" "Enable impredicative types." "NoImpredicativeTypes")
+    ("ExistentialQuantification" "Enable existential quantification." "NoExistentialQuantification")
+    ("KindSignatures" "Enable kind signatures." "NoKindSignatures")
+    ("EmptyDataDecls" "Enable empty data declarations." "NoEmptyDataDecls")
+    ("ParallelListComp" "Enable parallel list comprehensions." "NoParallelListComp")
+    ("TransformListComp" "Enable generalised list comprehensions." "NoTransformListComp")
+    ("MonadComprehensions" "Enable monad comprehensions." "NoMonadComprehensions")
+    ("UnliftedFFITypes" "Enable unlifted FFI types." "NoUnliftedFFITypes")
+    ("InterruptibleFFI" "Enable interruptible FFI." "NoInterruptibleFFI")
+    ("LiberalTypeSynonyms" "Enable liberalised type synonyms." "NoLiberalTypeSynonyms")
+    ("TypeOperators" "Enable type operators." "NoTypeOperators")
+    ("ExplicitNamespaces" "Enable using the keyword type to specify the namespace of entries in imports and exports." "NoExplicitNamespaces")
+    ("RecursiveDo" "Enable recursive do (mdo) notation." "NoRecursiveDo")
+    ("ParallelArrays" "Enable parallel arrays." "NoParallelArrays")
+    ("RecordWildCards" "Enable record wildcards." "NoRecordWildCards")
+    ("NamedFieldPuns" "Enable record puns." "NoNamedFieldPuns")
+    ("DisambiguateRecordFields" "Enable record field disambiguation. " "NoDisambiguateRecordFields")
+    ("UnboxedTuples" "Enable unboxed tuples." "NoUnboxedTuples")
+    ("StandaloneDeriving" "Enable standalone deriving." "NoStandaloneDeriving")
+    ("DeriveDataTypeable" "Enable deriving for the Data and Typeable classes." "NoDeriveDataTypeable")
+    ("DeriveGeneric" "Enable deriving for the Generic class." "NoDeriveGeneric")
+    ("GeneralizedNewtypeDeriving" "Enable newtype deriving." "NoGeneralizedNewtypeDeriving")
+    ("TypeSynonymInstances" "Enable type synonyms in instance heads." "NoTypeSynonymInstances")
+    ("FlexibleContexts" "Enable flexible contexts." "NoFlexibleContexts")
+    ("FlexibleInstances" "Enable flexible instances. Implies -XTypeSynonymInstances " "NoFlexibleInstances")
+    ("ConstrainedClassMethods" "Enable constrained class methods." "NoConstrainedClassMethods")
+    ("DefaultSignatures" "Enable default signatures." "NoDefaultSignatures")
+    ("MultiParamTypeClasses" "Enable multi parameter type classes." "NoMultiParamTypeClasses")
+    ("FunctionalDependencies" "Enable functional dependencies." "NoFunctionalDependencies")
+    ("PackageImports" "Enable package-qualified imports." "NoPackageImports")
+    ("LambdaCase" "Enable lambda-case expressions." "NoLambdaCase")
+    ("MultiWayIf" "Enable multi-way if-expressions." "NoMultiWayIf")
+    ("Safe" "Enable the Safe Haskell Safe mode." "")
+    ("Trustworthy" "Enable the Safe Haskell Trustworthy mode." "")
+    ("Unsafe" "Enable Safe Haskell Unsafe mode." ""))
+  "List of Haskell extensions for GHC 7.6.3 release.
+
+See http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
+for more information.")
+
+(defun haskell-help-for-symbol-at-point ()
+  "Show help for entity at point, if any.
+
+Currently only language extensions are supported."
+  (interactive)
+  (let ((name (haskell-ident-at-point)))
+    (aif (assoc name haskell-language-extensions)
+      (destructuring-bind (ext-name doc inverse) it
+        (message "%s (%s)\n%s"
+                 name
+                 (if (eq? inverse "") "no inverse" inverse)
+                 doc))
+      (error "No documentation for %s" name))))
 
 ;;; haddock for modules
 
