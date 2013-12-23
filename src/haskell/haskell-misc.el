@@ -332,7 +332,6 @@ we load it."
           (if url (browse-url url) (error "Local file doesn't exist"))))
       (error "No documentation for module %s found" name))))
 
-
 ;;; miscellany
 
 (defalias 'inferior-haskell-haddock-identifier 'inferior-haskell-find-haddock)
@@ -362,13 +361,13 @@ we load it."
 
 ;;; custom queries to inferior-haskell
 
-(haskell:make-query-to-inferior haskell-type               inferior-haskell-type t)
-(haskell:make-query-to-inferior haskell-info               inferior-haskell-info)
-(haskell:make-query-to-inferior haskell-haddock-identifier inferior-haskell-haddock-identifier)
-(haskell:make-query-to-inferior haskell-haddock-module     inferior-haskell-haddock-module)
-(haskell:make-query-to-inferior haskell-find-definition    inferior-haskell-find-definition)
-(haskell:make-query-to-inferior haskell-hoogle-at-point    haskell-hoogle)
-(haskell:make-query-to-inferior haskell-hayoo-at-point     haskell-hayoo)
+(haskell/make-query-to-inferior haskell-type               inferior-haskell-type t)
+(haskell/make-query-to-inferior haskell-info               inferior-haskell-info)
+(haskell/make-query-to-inferior haskell-haddock-identifier inferior-haskell-haddock-identifier)
+(haskell/make-query-to-inferior haskell-haddock-module     inferior-haskell-haddock-module)
+(haskell/make-query-to-inferior haskell-find-definition    inferior-haskell-find-definition)
+(haskell/make-query-to-inferior haskell-hoogle-at-point    haskell-hoogle)
+(haskell/make-query-to-inferior haskell-hayoo-at-point     haskell-hayoo)
 
 ;;; expand on search
 
