@@ -18,13 +18,15 @@
      ,x))
 
 
-(defmacro haskell:make-query-to-inferior (query-name query-func &optional use-prefix-arg)
+(defmacro haskell/make-query-to-inferior (query-name query-func &optional use-prefix-arg)
   `(defun ,query-name ,(when use-prefix-arg '(&optional x))
      ,(concat "Perform `"
               (symbol-name query-func)
               "' with current haskell identifier at point.")
      (interactive ,(when use-prefix-arg '(list current-prefix-arg)))
-     (let ((sym (haskell-ident-at-point)))
+     (let ((sym (aif (get-region-string-no-properties)
+                  (trim-whitespace it)
+                  (haskell-ident-at-point))))
        (when (> (length sym) 0)
          ,(append `(,query-func sym)
                   (when use-prefix-arg '(x)))))))
