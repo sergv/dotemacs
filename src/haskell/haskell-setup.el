@@ -70,9 +70,9 @@
 
   ;; it's not always a good idea to wait
   (setf ;; inferior-haskell-wait-and-jump t
-        inferior-haskell-module-alist-file (path-concat
-                                            +prog-data-path+
-                                            "inf-haskell-module-alist"))
+   inferior-haskell-module-alist-file (path-concat
+                                       +prog-data-path+
+                                       "inf-haskell-module-alist"))
 
   (setq-local yas-prompt-functions
               (list #'haskell-yas-completing-prompt))
@@ -119,14 +119,9 @@
     ("j"       inferior-haskell-send-decl)
     ("g c d"   comment-util-delete-commented-part)
 
-    (", t"     haskell-type)
-    (", i"     haskell-info)
-    (", h"     haskell-haddock-identifier)
-    (", m"     haskell-haddock-module)
-    (", ."     haskell-find-definition)
-    (", g"     haskell-hoogle-at-point)
-    (", y"     haskell-hayoo-at-point)
     (", c"     ghc-core-create-core)
+    (", ."     haskell-find-definition)
+    ("M-."     haskell-find-definition)
 
     ("="       input-unicode)
     ;; check these out
@@ -144,6 +139,16 @@
     ("<f6>"            inferior-haskell-load-file)
     ("<f9>"            haskell-compile)
     ("S-<f9>"          hs-lint))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
+    (", ?"     haskell-help-for-symbol-at-point)
+    (", t"     haskell-type)
+    (", i"     haskell-info)
+    (", h"     haskell-haddock-identifier)
+    (", m"     haskell-haddock-module)
+    (", g"     haskell-hoogle-at-point)
+    (", y"     haskell-hayoo-at-point))
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                    vim:insert-mode-local-keymap)
@@ -194,15 +199,8 @@
     ("C-<up>"   compilation-jump-to-prev-error)
     ("C-<down>" compilation-jump-to-next-error)
 
-    (", ?"      haskell-help-for-symbol-at-point)
-    (", t"      haskell-type)
-    (", i"      haskell-info)
-    (", h"      haskell-haddock-identifier)
-    (", m"      haskell-haddock-module)
     (", ."      haskell-find-definition)
-    ("M-."      haskell-find-definition)
-    (", g"      haskell-hoogle-at-point)
-    (", y"      haskell-hayoo-at-point))
+    ("M-."      haskell-find-definition))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
@@ -210,6 +208,16 @@
     ("M-p"      browse-kill-ring)
     ("C-M-p"    browse-comint-input-history)
     ("<return>" inf-haskell-send-input-or-jump-to-error))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
+    (", ?"     haskell-help-for-symbol-at-point)
+    (", t"     haskell-type)
+    (", i"     haskell-info)
+    (", h"     haskell-haddock-identifier)
+    (", m"     haskell-haddock-module)
+    (", g"     haskell-hoogle-at-point)
+    (", y"     haskell-hayoo-at-point))
 
   (def-keys-for-map inferior-haskell-mode-map
     ("C-w"      backward-delete-word)
