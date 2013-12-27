@@ -76,7 +76,8 @@ treated as a list of tags; otherwise it should be list of plain tags."
                               magit-stash-mode
                               magit-status-mode
                               magit-wazzup-mode
-                              gitignore-mode)
+                              gitignore-mode
+                              gitconfig-mode)
                :name-regexp (rx bol "*magit" (* nonl) "*" eol)))
         (list "Haskell"
               (make-buf-tag-pred

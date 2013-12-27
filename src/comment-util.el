@@ -89,6 +89,7 @@
     (markdown-mode         (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (rnc-mode              (one-line "#") (line-regexp "#+"))
     (gitignore-mode        (one-line "#") (line-regexp "#+"))
+    (gitconfig-mode        (one-line "#") (line-regexp "#+"))
     (lua-mode              (one-line "--") (line-regexp "--+"))
     (xmodmap-mode          (one-line "!") (line-regexp "!+"))
     (asm-mode              (one-line ";") (line-regexp ";+"))
