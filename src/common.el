@@ -762,6 +762,11 @@ arguments and indent current buffer. See also `+buffer-indent-temporary-filename
   (interactive)
   (set-buffer-file-coding-system 'utf-8-unix nil))
 
+(defun to-windows-line-endings ()
+  "Convert line endings in current buffer to windows ones (\\r\\n)."
+  (interactive)
+  (set-buffer-file-coding-system 'utf-8-dos nil))
+
 ;;;;
 
 (defun insert-my-formatted-date ()
