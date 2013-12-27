@@ -39,6 +39,15 @@
                        eol)
                    'gitignore-mode))
 
+(autoload 'gitconfig-mode "gitconfig-mode"
+          "Major mode to edit .gitconfig files"
+          t)
+
+(add-to-list 'auto-mode-alist
+             (cons (rx (or ".gitconfig"
+                           ".git/config")
+                       eol)
+                   'gitconfig-mode))
 
 (defun gitignore-setup ()
   (init-common :use-yasnippet  nil
@@ -46,6 +55,13 @@
                :use-whitespace t))
 
 (add-hook 'gitignore-mode-hook #'gitignore-setup)
+
+(defun gitconfig-setup ()
+  (init-common :use-yasnippet  nil
+               :use-comment    t
+               :use-whitespace t))
+
+(add-hook 'gitignore-mode-hook #'gitconfig-setup)
 
 ;;;; magit
 
