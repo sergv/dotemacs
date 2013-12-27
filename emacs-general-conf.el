@@ -229,9 +229,13 @@
 (global-hl-line-mode t)
 
 ;; primarily used by the theme-changer
-(setf calendar-location-name "Nikolaev Ukraine"
-      calendar-latitude 46.967
-      calendar-longitude 32)
+;; (setf calendar-location-name "Nikolaev Ukraine"
+;;       calendar-latitude 46.967
+;;       calendar-longitude 32)
+;; as reported by Google
+(setf calendar-location-name "Kiev Ukraine"
+      calendar-latitude 50.4500
+      calendar-longitude 30.5233)
 
 (setq color-theme-libraries
       (directory-files +color-themes-path+ t "^color-theme")
