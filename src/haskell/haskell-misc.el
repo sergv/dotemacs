@@ -42,15 +42,16 @@
                   ;; "-fllvm -optlc-O3 -optlo-O3 "
                   "-c \"%s\""))
       haskell-program-name
-      (cond ((platform-os-type? 'windows)
-             "ghc --interactive -XTemplateHaskell -fobject-code")
-            ((executable-find "ghci")
-             "ghci -XTemplateHaskell -fobject-code")
-            ((executable-find "ghc")
-             "ghc --interactive -XTemplateHaskell -fobject-code")
-            (t
-             (message "GHC not found")
-             nil)))
+      (let ((extensions "-XLambdaCase -XTemplateHaskell "))
+        (cond ((platform-os-type? 'windows)
+               (concat "ghc --interactive " extensions "-fbyte-code"))
+              ((executable-find "ghci")
+               (concat "ghci " extensions "-fobject-code"))
+              ((executable-find "ghc")
+               (concat "ghc --interactive " extensions "-fbyte-code"))
+              (t
+               (message "GHC not found")
+               nil))))
 
 
 (defconst +haskell-compile-error-or-warning-regexp+
