@@ -467,6 +467,9 @@ Futher modified by Sergey Vinokurov."
        (magit-log-head-label-remote          ((t (:foreground ,yellow :box t))))
        (magit-log-head-label-tags            ((t (:foreground ,cyan :box t))))
 
+       (magit-log-reflog-label-other         ((t (:background ,base02 :box t))))
+       (magit-log-reflog-label-remote        ((t (:background ,base02 :box t))))
+
        (minibuffer-prompt                    ((t (:foreground ,violet))))
        (minimap-active-region-background     ((t (:inherit highlight))))
        (navigation-node-face                 ((t (:foreground ,magenta))))
@@ -488,8 +491,8 @@ Futher modified by Sergey Vinokurov."
        (show-paren-mismatch-face             ((t (:inherit rainbow-delimiters-unmatched-face))))
        (tabbar-button-face                   ((t (:inherit tabbar-default-face
                                                            :box (:line-width 2
-                                                                             :color "white"
-                                                                             :style released-button)
+                                                                 :color "white"
+                                                                 :style released-button)
                                                            :foreground "dark red"))))
        (tabbar-default-face                  ((t (:inherit variable-pitch
                                                            :height 0.8
