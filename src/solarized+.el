@@ -544,6 +544,15 @@ Futher modified by Sergey Vinokurov."
     (light (color-theme-solarized+-dark))
     (dark (color-theme-solarized+-light))))
 
+(defun solarized+-reapply ()
+  "Apply currently selected solarized+ theme once again.
+
+Useful for applying changes made to color theme definition."
+  (interactive)
+  (case *color-theme-solarized-type*
+    (dark (color-theme-solarized+-dark))
+    (light (color-theme-solarized+-light))))
+
 (add-to-list 'color-themes
              '(color-theme-solarized+-light
                "Solarized Light"
