@@ -214,7 +214,7 @@ like \"d w\".")
   ("g c c"    comment-util-comment-region)
   ("g c u"    comment-util-uncomment-region-simple)
 
-  ("SPC SPC"  exchange-point-and-mark)
+  ("SPC SPC"  vim:visual-exchange-point-and-mark)
 
   ("g r"      rgrep-region)
   (", s"      vim:replace-selected)
