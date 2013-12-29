@@ -1415,13 +1415,13 @@ kill \"subwords\" when `subword-mode' is active."
   (or (and (boundp 'delete-selection-mode) delete-selection-mode)
       (and (boundp 'cua-delete-selection) cua-delete-selection cua-mode)))
 
-(defadvice cua-replace-region (around fix-sp-wrap activate)
+(defadvice cua-replace-region (around fix-sp-wrap activate compile)
   "Fix `sp-wrap' in `cua-selection-mode'."
   (if (sp-wrap--can-wrap-p)
       (cua--fallback)
     ad-do-it))
 
-(defadvice delete-selection-pre-hook (around fix-sp-wrap activate)
+(defadvice delete-selection-pre-hook (around fix-sp-wrap activate compile)
   "Fix `sp-wrap' in `delete-selection-mode'."
   (unless (and smartparens-mode (sp-wrap--can-wrap-p))
     ad-do-it))
@@ -9212,10 +9212,13 @@ support custom pairs."
 
 
 ;; global initialization
-(defadvice delete-backward-char (before sp-delete-pair-advice activate)
+(defadvice delete-backward-char (before sp-delete-pair-advice activate compile)
   (save-match-data
     (sp-delete-pair (ad-get-arg 0))))
-(defadvice haskell-indentation-delete-backward-char (before sp-delete-pair-advice activate)
+(defadvice haskell-indentation-delete-backward-char (before
+                                                     sp-delete-pair-advice
+                                                     activate
+                                                     compile)
   (save-match-data
     (sp-delete-pair (ad-get-arg 0))))
 (add-hook 'post-command-hook 'sp--post-command-hook-handler)
@@ -9223,14 +9226,14 @@ support custom pairs."
 (sp--set-base-key-bindings)
 (sp--update-override-key-bindings)
 
-(defadvice company--insert-candidate (after sp-company--insert-candidate activate)
+(defadvice company--insert-candidate (after sp-company--insert-candidate activate compile)
   "If `smartparens-mode' is active, we check if the completed string
 has a pair definition.  If so, we insert the closing pair."
   (when smartparens-mode
     (sp-insert-pair))
   ad-return-value)
 
-(defadvice hippie-expand (after sp-auto-complete-advice activate)
+(defadvice hippie-expand (after sp-auto-complete-advice activate compile)
   (when smartparens-mode
     (sp-insert-pair)))
 
