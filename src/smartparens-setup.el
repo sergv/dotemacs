@@ -20,7 +20,10 @@
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
       sp-autoskip-closing-pair 'always
+      ;; following variable is buffer local, so it's set in mode-local setups
+      ;; sp-autoskip-opening-pair
       sp-autoinsert-if-followed-by-word t
+      sp-autoinsert-if-followed-by-same 0
       sp-ignore-modes-list '(;; enable smartparens mode in minibuffer,
                              ;; and let it bind keys for currently active
                              ;; pairs, then auxiliary keys later in icicle setup
