@@ -6,6 +6,8 @@
 ;; Created: Tuesday,  4 December 2012
 ;; Description:
 
+;; Setup for minimap, sublime-text-like overview window
+
 (setf minimap-width-fraction  0.15
       minimap-window-location 'right
       minimap-hide-scroll-bar t
