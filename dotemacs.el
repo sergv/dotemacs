@@ -85,6 +85,9 @@
   ;; so action should be taken to turn it off
   (nxhtml-menu-mode (if use-nxhtml-menu 1 -1))
 
+  ;; do not autoinsert new pairs whin in stringlike expression
+  (setf sp-autoskip-opening-pair t)
+
   (setf undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t)
 
