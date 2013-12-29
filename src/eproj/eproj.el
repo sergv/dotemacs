@@ -61,6 +61,9 @@
   tag->string-procedure ;; function of one argument returning string
   synonym-modes ;; list of symbols, these modes will resolve to this language
                 ;; during tag search
+  applies-to-files-procedure ;; Function taking list of absolute file names
+                             ;; and returning t if at least one file is
+                             ;; in this language. The function may be nil.
   )
 
 ;;; ctags facility
@@ -143,21 +146,25 @@
         (dolist (file files)
           (when (string-match-pure? ext-re file)
             (insert file "\n")))
-        (apply #'call-process-region
-               (point-min)
-               (point-max)
-               *ctags-exec*
-               nil
-               out-buffer
-               nil
-               "-f"
-               "-"
-               "-L"
-               "-"
-               "--excmd=number"
-               (aif (rest-safe (assq lang-mode *ctags-language-flags*))
-                 it
-                 (error "unknown ctags language: %s" lang-mode)))))))
+        (when (not (= 0
+                      (apply #'call-process-region
+                             (point-min)
+                             (point-max)
+                             *ctags-exec*
+                             nil
+                             out-buffer
+                             nil
+                             "-f"
+                             "-"
+                             "-L"
+                             "-"
+                             "--excmd=number"
+                             (aif (rest-safe (assq lang-mode *ctags-language-flags*))
+                               it
+                               (error "unknown ctags language: %s" lang-mode)))))
+          (error "ctags invokation failed: %s"
+                 (with-current-buffer out-buffer
+                   (buffer-substring-no-properties (point-min) (point-max)))))))))
 
 (defun eproj/ctags-get-tags-from-buffer (buffer &optional root simple-format?)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
@@ -226,6 +233,9 @@ after ;\", and expect single character there instead."
           (forward-line 1))
         tags-table))))
 
+;;; fast-tags facility
+
+(defvar *fast-tags-exec* (executable-find "fast-tags"))
 
 ;;; language definitions
 
@@ -304,40 +314,69 @@ after ;\", and expect single character there instead."
 
 Note: old tags file is removed before calling update command."
   (assert (eproj-project-p proj))
-  (when-let (tag-file (cadr-safe
-                       (assoc 'tag-file (eproj-project/aux-info proj))))
-    (assert (string? tag-file))
-    (when-let (existing-tag-file
-               (eproj-resolve-abs-or-rel-name tag-file
-                                              (eproj-project/root proj)))
-      (rm existing-tag-file))
-    (let ((tag-generation-output nil))
-      (when-let (update-tag-file-command
-                 (cdr-safe
-                  (assoc 'update-tag-file-command (eproj-project/aux-info proj))))
-        (assert (and (list? update-tag-file-command)
-                     (all? #'string? update-tag-file-command)))
-        (with-temp-buffer
-          (let ((default-directory
-                  (concat (eproj-normalize-file-name (eproj-project/root proj))
-                          "/")))
-            (apply #'call-process
-                   (car update-tag-file-command)
-                   nil              ;; input
-                   (current-buffer) ;; redirect output
-                   nil              ;; no redisplay
-                   (cdr update-tag-file-command))
-            (setf tag-generation-output
-                  (buffer-substring-no-properties (point-min) (point-max))))))
-      (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
-                                                          (eproj-project/root proj))))
-        (when (or (null? tag-file-path)
-                  (not (file-exists? tag-file-path)))
-          (error "Cannot find tag file %s\nOutput of tag generation command: %s"
-                 tag-file
-                 tag-generation-output))
-        (for-buffer-with-file tag-file-path
-          (eproj/ctags-get-tags-from-buffer (current-buffer) nil t))))))
+  (if-let (tag-file (cadr-safe
+                     (assoc 'tag-file (eproj-project/aux-info proj))))
+    (begin
+      (assert (string? tag-file))
+      (when-let (existing-tag-file
+                 (eproj-resolve-abs-or-rel-name tag-file
+                                                (eproj-project/root proj)))
+        (rm existing-tag-file))
+      (let ((tag-generation-output nil))
+        (when-let (update-tag-file-command
+                   (cdr-safe
+                    (assoc 'update-tag-file-command (eproj-project/aux-info proj))))
+          (assert (and (list? update-tag-file-command)
+                       (all? #'string? update-tag-file-command)))
+          (with-temp-buffer
+            (let ((default-directory
+                    (concat (eproj-normalize-file-name (eproj-project/root proj))
+                            "/")))
+              (apply #'call-process
+                     (car update-tag-file-command)
+                     nil              ;; input
+                     (current-buffer) ;; redirect output
+                     nil              ;; no redisplay
+                     (cdr update-tag-file-command))
+              (setf tag-generation-output
+                    (buffer-substring-no-properties (point-min) (point-max))))))
+        (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
+                                                            (eproj-project/root proj))))
+          (when (or (null? tag-file-path)
+                    (not (file-exists? tag-file-path)))
+            (error "Cannot find tag file %s\nOutput of tag generation command: %s"
+                   tag-file
+                   tag-generation-output))
+          (for-buffer-with-file tag-file-path
+            (eproj/ctags-get-tags-from-buffer (current-buffer) nil t)))))
+    (begin
+      (when (null? *fast-tags-exec*)
+        (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
+      (with-temp-buffer
+        (let ((out-buffer (current-buffer))
+              (ext-re (eproj-language/extension-re
+                       (gethash 'haskell-mode eproj/languages-table))))
+          (with-temp-buffer
+            (dolist (file (eproj-get-project-files proj))
+              (when (string-match-pure? ext-re file)
+                (insert file "\0")))
+            (when (not (= 0
+                          (call-process-region (point-min)
+                                               (point-max)
+                                               *fast-tags-exec*
+                                               nil
+                                               out-buffer
+                                               nil
+                                               "-0"
+                                               "-o-"
+                                               "--nomerge")))
+              (error "fast-tags invokaciot failed: %s"
+                     (with-current-buffer out-buffer
+                       (buffer-substring-no-properties (point-min) (point-max)))))
+            (eproj/ctags-get-tags-from-buffer out-buffer nil t))))
+      ;; (message "Warning: no tag file for haskell project %s"
+      ;;          (eproj-project/root proj))
+      )))
 
 (defun eproj/clojure-load-procedure (proj)
   (assert (eproj-project-p proj))
@@ -347,56 +386,95 @@ Note: old tags file is removed before calling update command."
 
 
 (defvar eproj/languages
-  (list (make-eproj-language :mode 'haskell-mode
-                             :extension-re (rx "."
-                                               (or "hs" "lhs" "hsc")
-                                               eol)
-                             :load-procedure
-                             (lambda (proj)
-                               (eproj/load-haskell-project proj))
-                             :tag->string-procedure #'eproj/haskell-tag->string
-                             :synonym-modes '(literate-haskell-mode))
-        (make-eproj-language :mode 'c-mode
-                             :extension-re (rx "."
-                                               (or "c" "h")
-                                               eol)
-                             :load-procedure
-                             (lambda (proj)
-                               (eproj/load-ctags-project 'c-mode proj))
-                             :tag->string-procedure #'eproj/generic-tag->string
-                             :synonym-modes nil)
-        (make-eproj-language :mode 'c++-mode
-                             :extension-re (rx "."
-                                               (or "c"
-                                                   "cc"
-                                                   "cxx"
-                                                   "cpp"
-                                                   "c++"
-                                                   "h"
-                                                   "hh"
-                                                   "hxx"
-                                                   "hpp"
-                                                   "h++"
-                                                   "inl"
-                                                   "inc"
-                                                   "incl")
-                                               eol)
-                             :load-procedure
-                             (lambda (proj)
-                               (eproj/load-ctags-project 'c++-mode proj))
-                             :tag->string-procedure
-                             (lambda (proj)
-                               (eproj/load-ctags-project 'c++-mode proj))
-                             :synonym-modes nil)
-        (make-eproj-language :mode 'python-mode
-                             :extension-re (rx "."
-                                               (or "py" "pyx" "pxd" "pxi")
-                                               eol)
-                             :load-procedure
-                             (lambda (proj)
-                               (eproj/load-ctags-project 'python-mode proj))
-                             :tag->string-procedure #'eproj/generic-tag->string
-                             :synonym-modes nil)
+  (list (letrec ((lang (make-eproj-language
+                        :mode 'haskell-mode
+                        :extension-re (rx "."
+                                          (or "hs" "lhs" "hsc")
+                                          eol)
+                        :load-procedure
+                        (lambda (proj)
+                          (eproj/load-haskell-project proj))
+                        :tag->string-procedure #'eproj/haskell-tag->string
+                        :applies-to-files-procedure
+                        (lambda (files)
+                          (any? (comp
+                                 (partial #'string-match-pure?
+                                          (eproj-language/extension-re lang)))
+                                files))
+                        :synonym-modes '(literate-haskell-mode))))
+          lang)
+        (letrec ((lang (make-eproj-language
+                        :mode 'c-mode
+                        :extension-re (rx "."
+                                          (or "c" "h")
+                                          eol)
+                        :load-procedure
+                        (lambda (proj)
+                          (eproj/load-ctags-project 'c-mode proj))
+                        :tag->string-procedure #'eproj/generic-tag->string
+                        :applies-to-files-procedure
+                        (lambda (files)
+                          (any? (comp
+                                 (partial #'string-match-pure?
+                                          (eproj-language/extension-re lang)))
+
+                                files))
+                        :synonym-modes nil)))
+          lang)
+        (letrec ((lang (make-eproj-language
+                        :mode 'c++-mode
+                        :extension-re (rx "."
+                                          (or "c"
+                                              "cc"
+                                              "cxx"
+                                              "cpp"
+                                              "c++"
+                                              "h"
+                                              "hh"
+                                              "hxx"
+                                              "hpp"
+                                              "h++"
+                                              "inl"
+                                              "inc"
+                                              "incl")
+                                          eol)
+                        :load-procedure
+                        (lambda (proj)
+                          (eproj/load-ctags-project 'c++-mode proj))
+                        :tag->string-procedure
+                        (lambda (proj)
+                          (eproj/load-ctags-project 'c++-mode proj))
+                        :applies-to-files-procedure
+                        (lambda (files)
+                          (any? (lambda (path)
+                                  (and (string-match-pure?
+                                        (eproj-language/extension-re lang)
+                                        path)
+                                       (not (string-match-pure?
+                                             (gethash 'c-mode eproj/languages-table)
+                                             path))))
+                                files))
+
+                        :synonym-modes nil)))
+          lang)
+        (letrec ((lang (make-eproj-language
+                        :mode 'python-mode
+                        :extension-re (rx "."
+                                          (or "py" "pyx" "pxd" "pxi")
+                                          eol)
+                        :load-procedure
+                        (lambda (proj)
+                          (eproj/load-ctags-project 'python-mode proj))
+                        :tag->string-procedure #'eproj/generic-tag->string
+                        :applies-to-files-procedure
+                        (lambda (files)
+                          (any? (comp
+                                 (partial #'string-match-pure?
+                                          (eproj-language/extension-re lang)))
+
+                                files))
+                        :synonym-modes nil)))
+          lang)
         (make-eproj-language :mode 'clojure-mode
                              :extension-re (rx "."
                                                (or "clj"
@@ -404,6 +482,7 @@ Note: old tags file is removed before calling update command."
                                                eol)
                              :load-procedure #'eproj/clojure-load-procedure
                              :tag->string-procedure #'eproj/generic-tag->string
+                             :applies-to-files-procedure nil
                              :synonym-modes nil)
         (make-eproj-language :mode 'java-mode
                              :extension-re (rx "."
@@ -413,6 +492,7 @@ Note: old tags file is removed before calling update command."
                              (lambda (proj)
                                (eproj/load-ctags-project 'java-mode proj))
                              :tag->string-procedure #'eproj/generic-tag->string
+                             :applies-to-files-procedure nil
                              :synonym-modes nil)))
 
 (defvar eproj/languages-table
@@ -478,7 +558,7 @@ Note: old tags file is removed before calling update command."
            *eproj-projects*))
 
 (defun eproj-update-buffer-project ()
-  "Update project for current one and create one if it does not exists."
+  "Update project for current buffer or create new project if it does not exists."
   (interactive)
   (eproj-reload-project! (eproj-get-project-for-buf (current-buffer))))
 
@@ -550,7 +630,7 @@ Note: old tags file is removed before calling update command."
                       (begin
                         (message "warning: no languages defined for project %s"
                                  (eproj-project/root proj))
-                        nil)))
+                        (eproj/infer-project-languages proj))))
          (specified-project-type (cadr-safe (assoc 'project-type aux-info)))
          (inferred-project-type (eproj-project-type/name
                                  (eproj-project/type proj))))
@@ -572,6 +652,15 @@ Note: old tags file is removed before calling update command."
           languages)
     (eproj-reload-tags proj)
     nil))
+
+(defun eproj/infer-project-languages (proj)
+  "Try to infer languages used in project PROJ by its files."
+  (let ((files (eproj-get-project-files proj)))
+    (map #'eproj-language/mode
+         (filter (lambda (lang)
+                   (awhen (eproj-language/applies-to-files-procedure lang)
+                     (funcall it files)))
+                 eproj/languages))))
 
 ;;; project types and project creation
 
@@ -611,13 +700,9 @@ Note: old tags file is removed before calling update command."
                                     :languages nil))
               :get-project-files-proc
               (lambda (proj)
-                (let ((tracked-tbl (git-get-tracked-files (eproj-project/root proj)))
-                      (tracked-list (list)))
-                  (maphash (lambda (key value)
-                             (push key tracked-list))
-                           tracked-tbl)
-                  (append tracked-list
-                          (eproj-project/aux-files proj)))))))
+                (append (hash-table-keys (git-get-tracked-files
+                                          (eproj-project/root proj)))
+                        (eproj-project/aux-files proj))))))
      proj-type-entry)
    (letrec ((proj-type-entry
              (make-eproj-project-type

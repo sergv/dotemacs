@@ -579,6 +579,12 @@ tabbar, etc")
     (maphash (lambda (k v) (push (cons k v) result)) table)
     result))
 
+(defun hash-table-keys (table)
+  "Get list of keys of hash table."
+  (let ((result '()))
+    (maphash (lambda (k v) (push k result)) table)
+    result))
+
 (defun hash-table-entries-matching-re (table re)
   "Return list of TABLE values whose keys match RE."
   (let ((result nil))
