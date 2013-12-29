@@ -1,0 +1,1 @@
+emacs --batch -Q --eval "(progn (add-to-list 'load-path \"/home/sergey/emacs/third-party/dash.el/\") (add-to-list 'load-path \"/home/sergey/emacs/third-party/smartparens/\") (add-to-list 'load-path \"/home/sergey/emacs/third-party/smartparens/tests/\"))" -l smartparens-test.el
