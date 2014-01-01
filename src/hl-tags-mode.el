@@ -32,6 +32,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'common)
 
 (defvar-local hl-tags-start-overlay nil)
 (defvar-local hl-tags-end-overlay nil)
@@ -116,12 +117,13 @@ boundaries of the current start and end tag , or nil."
   "Toggle hl-tags-mode."
   nil "" nil
   (if hl-tags-mode
-    (progn
+    (begin
       (add-hook 'post-command-hook 'hl-tags-update nil t)
       (add-hook 'change-major-mode-hook 'hl-tags-hide nil t))
-    (remove-hook 'post-command-hook 'hl-tags-update t)
-    (remove-hook 'change-major-mode-hook 'hl-tags-hide t)
-    (hl-tags-hide)))
+    (begin
+      (remove-hook 'post-command-hook 'hl-tags-update t)
+      (remove-hook 'change-major-mode-hook 'hl-tags-hide t)
+      (hl-tags-hide))))
 
 
 (provide 'hl-tags-mode)
