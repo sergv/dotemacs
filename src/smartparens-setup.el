@@ -19,7 +19,6 @@
       sp-navigate-consider-stringlike-sexp '(latex-mode awk-mode)
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
-      sp-autoskip-closing-pair 'always
       ;; following variable is buffer local, so it's set in mode-local setups
       ;; sp-autoskip-opening-pair
       sp-autoinsert-if-followed-by-word t
