@@ -86,7 +86,9 @@
   (nxhtml-menu-mode (if use-nxhtml-menu 1 -1))
 
   ;; do not autoinsert new pairs whin in stringlike expression
-  (setf sp-autoskip-opening-pair t)
+  (setf sp-autoskip-opening-pair t
+        sp-autoskip-closing-pair 'always
+        setf sp-navigate-consider-stringlike-sexp-in-buffer t)
 
   (setf undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t)
