@@ -930,12 +930,12 @@ value, that slot cannot be set via `setf'.
 
 ;;;; aif, awhen, if-let
 
-(defmacro aif (condition if-branch &optional else-branch)
+(defmacro aif (condition true-branch &optional false-branch)
   "Anaphoric if, binds evaluated condition to variable it."
   `(let ((it ,condition))
      (if it
-       ,if-branch
-       ,else-branch)))
+       ,true-branch
+       ,false-branch)))
 
 (defmacro awhen (condition &rest body)
   "Anaphoric if, binds evaluated condition to variable it."
@@ -943,37 +943,49 @@ value, that slot cannot be set via `setf'.
      (when it
        ,@body)))
 
-(defmacro if-let (condition if-branch &optional else-branch)
-  (assert (and (or (list? condition)
-                   (vector? condition))
+(defmacro if-let (condition true-branch &optional false-branch)
+  (assert (and (list? condition)
                (= 2 (length condition)))
           nil
           "if-let error: invalid condition: %s" condition)
   (if (list? condition)
-    (let ((tmp-var (gensym))
+    (let ((tmp-var (gensym "cond-var"))
           (cond-var (first condition))
           (expr (first (rest condition))))
       `(let ((,tmp-var ,expr))
          (if ,tmp-var
            (let ((,cond-var ,tmp-var))
-             ,if-branch)
-           ,else-branch)))
+             ,true-branch)
+           ,false-branch)))
     (error "not implemented yet")))
 
 (defmacro when-let (condition &rest body)
-  (assert (and (or (list? condition)
-                   (vector? condition))
-               (= 2 (length condition))))
-  (if (list? condition)
-    (let ((tmp-var (gensym))
-          (cond-var (first condition))
-          (expr (first (rest condition))))
-      `(let ((,tmp-var ,expr))
-         (when ,tmp-var
-           (let ((,cond-var ,tmp-var))
-             ,@body))))
-    (error "not implemented yet")))
+  (declare (indent 1))
+  `(if-let ,condition (progn ,@body)))
 
+(defmacro when-let* (conditions &rest body)
+  (declare (indent 1))
+  (assert (and (list? conditions)
+               (evenp (length conditions))))
+  (if (null? conditions)
+    `(progn ,@body)
+    `(when-let (,(first conditions)
+                ,(second conditions))
+       (when-let* ,(cddr conditions)
+                  ,@body))))
+
+(defmacro if-let* (conditions true-branch &optional false-branch)
+  (declare (indent 1))
+  (assert (and (list? conditions)
+               (evenp (length conditions))))
+  (if (null? conditions)
+    true-branch
+    `(if-let (,(first conditions)
+              ,(second conditions))
+       (if-let* ,(cddr conditions)
+                ,true-branch
+                ,false-branch)
+       ,false-branch)))
 
 ;;;; compatibility defines
 
