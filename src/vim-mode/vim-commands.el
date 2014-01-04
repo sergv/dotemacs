@@ -820,8 +820,9 @@ block motions."
 (vim:defcmd vim:cmd-execute-macro (count nonrepeatable (argument:char reg))
   "Executes the keyboard-macro in register `reg.'"
   (vim:reset-key-state)
-  (execute-kbd-macro (vim:get-register reg) count))
-
+  (let ((macro (vim:get-register reg)))
+    (vim:set-register ?\@ macro)
+    (execute-kbd-macro macro count)))
 
 (provide 'vim-commands)
 
