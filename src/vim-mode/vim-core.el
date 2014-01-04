@@ -65,6 +65,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'register)
+
 (require 'vim-macs)
 (require 'vim-defs)
 (require 'vim-modes)
@@ -208,6 +210,9 @@ of the command handling code the buffer in vim:new-buffer is made current.")
     (unless txt
       (error "Register '%c' empty" register))
     txt))
+
+(defsubst vim:set-register (register value)
+  (set-register register value))
 
 
 ;; This structure is passed to operators taking a motion. A motion
