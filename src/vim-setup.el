@@ -50,7 +50,8 @@ like \"d w\".")
     ("q"   sp-up-sexp)
     ("Q"   sp-backward-up-sexp)
 
-    ("<mouse-1>" vim:mouse-symbol/string/sexp)))
+    ;; ("<mouse-1>" vim:mouse-symbol/string/sexp)
+    ))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
   ("'"  sp-backward-up-sexp)
