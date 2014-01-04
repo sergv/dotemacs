@@ -538,6 +538,9 @@ call `browse-kill-ring' again.")
 It is probably not a good idea to set this variable directly; simply
 call `browse-kill-ring' again.")
 
+(defvar browse-kill-ring-original-buffer-position nil
+  "Position in `browse-kill-ring/original-buffer'.")
+
 (defvar browse-kill-ring-preview-overlay nil
   "The overlay used to preview what would happen if the user
   inserted the given text.")
@@ -792,7 +795,9 @@ If no such overlay, raise an error."
         (delete-region (mark) (point)))
       (when (and delete-selection-mode (not buffer-read-only) transient-mark-mode mark-active)
         (delete-active-region))
-      (browse-kill-ring-insert-and-highlight str))))
+      (save-excursion
+        (goto-char browse-kill-ring-original-buffer-position)
+        (browse-kill-ring-insert-and-highlight str)))))
 
 (defun browse-kill-ring-forward (&optional arg)
   "Move forward by ARG `kill-ring' entries."
@@ -1236,6 +1241,9 @@ directly; use `browse-kill-ring' instead.
           (let ((inhibit-read-only t))
             (erase-buffer))
           (setq browse-kill-ring-original-buffer orig-buf
+                browse-kill-ring-original-buffer-position
+                (with-current-buffer orig-buf
+                  (point))
                 browse-kill-ring-original-window window
                 browse-kill-ring-original-window-config
                 (or window-config
