@@ -620,7 +620,12 @@ Note: old tags file is removed before calling update command."
                        nil "invalid language mode = %s" lang-mode)
                (if-let (lang (gethash lang-mode eproj/languages-table))
                  (if-let (load-proc (eproj-language/load-procedure lang))
-                   (cons lang-mode (funcall load-proc proj))
+                   (let ((new-tags (funcall load-proc proj)))
+                     (when (null? new-tags)
+                       (message "Warning while reloading: project %s loaded no tags for language %s"
+                                (eproj-project/root proj)
+                                lang))
+                     (cons lang-mode new-tags))
                    (error "No load procedure defined for language %s" lang-mode))
                  (error "No eproj/language defined for language %s" lang-mode)))
              (eproj-project/languages proj)))
