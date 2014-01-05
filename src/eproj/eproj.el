@@ -588,20 +588,25 @@ Note: old tags file is removed before calling update command."
           (insert indent (eproj-project/root related-proj)) "\n")
         (insert "tags:\n")
         (dolist (tags-entry (eproj-project/tags proj))
-          (insert indent "lang: " (pp-to-string (car tags-entry)) "\n")
-          (dolist (entry (sort (hash-table->alist (cdr tags-entry))
-                               (lambda (a b) (string< (car a) (car b)))))
-            (insert indent indent (pp-to-string (car entry)) "\n")
-            (dolist (subentry (cdr entry))
-              (insert indent indent indent
-                      (format "%s:%s\n"
-                              (file-relative-name
-                               (expand-file-name
-                                (eproj-resolve-abs-or-rel-name
-                                 (eproj-tag/file subentry)
-                                 (eproj-project/root proj)))
-                               (expand-file-name (eproj-project/root proj)))
-                              (eproj-tag/line subentry))))))
+          (let ((lang-tags (sort (hash-table->alist (cdr tags-entry))
+                                 (lambda (a b) (string< (car a) (car b))))))
+            (insert indent "lang: "
+                    (pp-to-string (car tags-entry))
+                    ", total amount = "
+                    (number->string (length lang-tags))
+                    "\n")
+            (dolist (entry lang-tags)
+              (insert indent indent (pp-to-string (car entry)) "\n")
+              (dolist (subentry (cdr entry))
+                (insert indent indent indent
+                        (format "%s:%s\n"
+                                (file-relative-name
+                                 (expand-file-name
+                                  (eproj-resolve-abs-or-rel-name
+                                   (eproj-tag/file subentry)
+                                   (eproj-project/root proj)))
+                                 (expand-file-name (eproj-project/root proj)))
+                                (eproj-tag/line subentry)))))))
         (goto-char (point-min))))
     (error "no project for buffer %s" (buffer-name (current-buffer)))))
 
