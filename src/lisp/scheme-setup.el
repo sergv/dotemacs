@@ -332,12 +332,12 @@
   (else
    (error "invalid +platform+: %s" +platform+)))
 
-;;;; some indentation rules
+;;; some indentation rules
 
 (put 'syntax-rules 'scheme-indent-function 1)
 (put 'if 'scheme-indent-function 1)
 
-;;;;
+;;;
 
 (defconst +scheme-prompt-regexp+
   ">+ *")

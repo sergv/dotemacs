@@ -303,7 +303,7 @@ Highlighting starts at the beginning of buffer")
         (dolist (overlay *search-match-overlays*)
           (overlay-put overlay 'face 'search-highlight-face))))))
 
-;;;;
+;;;
 
 (defmacro search-def-autoexpand-advices (expand-command
                                          modes)
@@ -321,7 +321,7 @@ Highlighting starts at the beginning of buffer")
                           search-for-word-at-point-backward)
          collect `(defadvice:expand-on-search ,command ,expand-command ,modes))))
 
-;;;;
+;;;
 
 (defmacro* search-make-search-for-thing (name
                                          bounds-func

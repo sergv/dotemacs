@@ -14,7 +14,7 @@
 (require 'emacs-lisp-highlight)
 (require 'elisp-slime-nav)
 
-;;;; elisp fontification and indentation
+;;; elisp fontification and indentation
 
 (font-lock-add-keywords 'emacs-lisp-mode
                         (map (lambda (x)
@@ -166,7 +166,7 @@
           (set-window-configuration window-config))
         (message "Compilation errors, check out *Compile-log*")))))
 
-;;;; elisp debugger
+;;; elisp debugger
 
 (defun debugger-setup ()
   (def-keys-for-map debugger-mode-map

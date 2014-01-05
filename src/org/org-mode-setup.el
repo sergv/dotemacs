@@ -84,7 +84,7 @@
       ;; this may be useful when working with large amounts of items
       org-drill-add-random-noise-to-intervals-p t)
 
-;;;; eval-after-load's
+;;; eval-after-load's
 
 (eval-after-load
     "org"
@@ -523,8 +523,8 @@ which enable the original code blocks to be found."
              (goto-char end))
            (prog1 counter (message "detangled %d code blocks" counter)))))))
 
-;;;; common org-drill's question cards with math rendering
-;;;; and other setup
+;;; common org-drill's question cards with math rendering
+;;; and other setup
 
 (defvar *org-drill-hint-tags* '("reveal" "hint" "example")
   "Subheadings with these tags will be shown revealed during question.
@@ -628,7 +628,7 @@ the current topic."
             'tree))
          (reverse drill-sections)))))
 
-;;;; other functions
+;;; other functions
 
 (defun org-mode-up-heading ()
   "Move to the the beginning of heading or one level up in heading hierarchy."
@@ -725,7 +725,7 @@ the current topic."
 
     ("C-t" org-agenda-todo)))
 
-;;;; epilogue
+;;; epilogue
 
 (provide 'org-mode-setup)
 

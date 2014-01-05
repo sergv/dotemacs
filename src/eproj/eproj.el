@@ -42,7 +42,7 @@
 (require 'select-mode)
 (require 'more-haskell)
 
-;;;; eproj-tag
+;;; eproj-tag
 
 (defstruct (eproj-tag
             (:conc-name eproj-tag/))
@@ -51,7 +51,7 @@
   line ;; number
   properties)
 
-;;;; eproj languages
+;;; eproj languages
 
 (defstruct (eproj-language
             (:conc-name eproj-language/))
@@ -67,7 +67,7 @@
                              ;; in this language. The function may be nil.
   )
 
-;;; ctags facility
+;;;; ctags facility
 
 (defvar *ctags-exec*
   (platform-dependent-executable (concat +execs-path+ "/ctags")))
@@ -234,11 +234,11 @@ after ;\", and expect single character there instead."
           (forward-line 1))
         tags-table))))
 
-;;; fast-tags facility
+;;;; fast-tags facility
 
 (defvar *fast-tags-exec* (executable-find "fast-tags"))
 
-;;; language definitions
+;;;; language definitions
 
 (defun eproj/generic-tag->string (proj tag)
   (assert (eproj-tag-p tag))
@@ -510,9 +510,9 @@ Note: old tags file is removed before calling update command."
         (puthash synonym (eproj-language/mode lang) table)))
     table))
 
-;;;; eproj-project
+;;; eproj-project
 
-;;; projects themselves
+;;;; projects themselves
 
 (defstruct (eproj-project
             (:conc-name eproj-project/))
@@ -670,7 +670,7 @@ Note: old tags file is removed before calling update command."
                      (funcall it files)))
                  eproj/languages))))
 
-;;; project types and project creation
+;;;; project types and project creation
 
 (defstruct (eproj-project-type
             (:conc-name eproj-project-type/))
@@ -768,7 +768,7 @@ which to try loading/root finding/etc.")
     (eproj-reload-project! proj)
     proj))
 
-;;; utilities
+;;;; utilities
 
 (defun eproj-get-project (root type)
   (aif (gethash root *eproj-projects* nil)
@@ -1004,7 +1004,7 @@ or `default-directory', if no file is visited."
           (file-name-directory fname))
         default-directory)))
 
-;;;; tag/symbol navigation (navigation over homes)
+;;; tag/symbol navigation (navigation over homes)
 
 (defvar eproj-symbnav/homes-history (list nil nil)
   "Two stacks of locations (previous next) from which
@@ -1200,7 +1200,7 @@ or `default-directory', if no file is visited."
     ("M-." eproj-symbnav/go-to-symbol-home)
     ("M-," eproj-symbnav/go-back)))
 
-;;;; epilogue
+;;; epilogue
 
 (provide 'eproj)
 

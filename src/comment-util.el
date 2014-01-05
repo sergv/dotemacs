@@ -145,7 +145,7 @@ Contains single-line and region comments.")
   ;; i.e. ;+ for lisp, used to insert comment automatically
   line-regexp)
 
-;; User-interface functions
+;;; User-interface functions
 (defun comment-util-comment-lines (lines)
   "Comment LINES lines eiter up if argument LINES is positive
 or down if LINES is negative or comment whole region if region is active."
@@ -181,8 +181,8 @@ they are defined for current mode or one-line comments otherwise."
   (and (comment-format-region-begin *comment-util-current-format*)
        (comment-format-region-end *comment-util-current-format*)))
 
-;;;;; These two functions require somewhat special threat because
-;; the're used /only/ in vim visual mode
+;;; These two functions require somewhat special threat because
+;;; the're used /only/ in vim visual mode
 
 (defun comment-util-uncomment-region-simple (begin end)
   "Uncomment region between begin and end presumably commented with
@@ -212,9 +212,7 @@ be used only for vim-visual-mode of the vim-mode package."
       (forward-line -1)
       (setq lines (1+ lines)))))
 
-;;;;;
-
-;; "library" functions for other part of Emacs
+;;; "library" functions for other part of Emacs
 
 (defun comment-util-on-commented-line-p ()
   (let ((one-line-comm (comment-format-one-line *comment-util-current-format*)))
@@ -223,9 +221,9 @@ be used only for vim-visual-mode of the vim-mode package."
         (skip-to-indentation)
         (looking-at-p one-line-comm)))))
 
-;;; core functionality, not for interactive use
+;;;; core functionality, not for interactive use
 
-;; Mid-level functions
+;;;;; Mid-level functions
 
 (defsubst comment-util-comment-lined-region (begin end)
   "Comment region between BEGIN and END with one-line comments."
@@ -309,7 +307,7 @@ be used only for vim-visual-mode of the vim-mode package."
     (delete-char (length begin-str))
     (indent-for-tab-command)))
 
-;; Low-level core functions
+;;;;; Low-level core functions
 
 (defun* comment-util-comment-next-n-lines (lines)
   (unless *comment-util-current-format*
@@ -392,7 +390,7 @@ be used only for vim-visual-mode of the vim-mode package."
           (delete-char 1)
           (incf i))))))
 
-;;; Some lisp-specific comment functions, inspired by paredit.el
+;;;;; Some lisp-specific comment functions, inspired by paredit.el
 
 (defun lisp-comment-sexp (&optional count)
   "If point is at the beginning of the sexp then comment it, else

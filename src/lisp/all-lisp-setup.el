@@ -11,7 +11,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-;;;; old lisps
+;;; old lisps
 
 (defconst +scheme-file-extensions+
   '("scm" "sc" "stk" "ss" "sch" "oak")
@@ -56,7 +56,7 @@
 (autoload 'lisp-pos-is-end-of-sexp? "general-lisp-setup")
 
 
-;;;; clojure
+;;; clojure
 
 (add-to-list 'load-path (concat +emacs-standalone-path+
                                 "/clojure-mode"))

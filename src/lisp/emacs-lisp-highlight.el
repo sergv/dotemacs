@@ -126,7 +126,7 @@ defclass etc."
 defpackage."
   :group 'emacs-lisp)
 
-;;;;
+;;;
 
 (defconst +emacs-lisp-loop-keywords+
   (rx symbol-start

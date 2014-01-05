@@ -158,9 +158,6 @@ then it's content will be evaluated by SLIME."
       (message "No notes produced."))))
 
 
-;;;; ********************************
-
-
 (provide 'common-lisp-setup)
 
 ;; Local Variables:
