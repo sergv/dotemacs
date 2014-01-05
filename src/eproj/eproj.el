@@ -1100,6 +1100,7 @@ or `default-directory', if no file is visited."
                        (read-regexp "enter regexp to search for")
                        (eproj-symbnav/identifier-at-point nil)))
          (orig-major-mode (eproj-symbnav/resolve-synonym-modes major-mode))
+         (orig-file-name (expand-file-name buffer-file-name))
          (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
                                                     :point (point)
                                                     :symbol nil))
@@ -1182,7 +1183,12 @@ or `default-directory', if no file is visited."
                   (select-exit)
                   (funcall jump-to-home (elt entries idx)))
                 :predisplay-function
-                (partial entry->string proj)
+                (lambda (tag)
+                  (let ((txt (entry->string proj tag)))
+                    (if (string=? orig-file-name
+                                  (expand-file-name (eproj-tag/file tag)))
+                      (propertize txt 'face font-lock-negation-char-face)
+                      txt)))
                 :preamble-function
                 (lambda ()
                   "Choose symbol\n\n"))))))))
