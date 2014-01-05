@@ -54,22 +54,15 @@ like \"d w\".")
     ))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
-  ("'"  sp-backward-up-sexp)
-  ("k"  vim:motion-search-next)
-  ("K"  vim:motion-search-next-reverse)
-
   ("is" vim:motion-inner-symbol)
   ("as" vim:motion-outer-symbol)
-  ("s"  vim:motion-inner-symbol)
+  ("s"  vim:motion-inner-symbol))
 
-  ("]"  vim:motion-bwd-paragraph)
-  ("["  vim:motion-fwd-paragraph))
-
-(def-keys-for-map vim:motion-mode-keymap
+(def-keys-for-map (vim:operator-pending-mode-keymap
+                   vim:motion-mode-keymap)
   ("'" sp-backward-up-sexp)
   ("k" vim:motion-search-next)
   ("K" vim:motion-search-next-reverse)
-
   ("]" vim:motion-bwd-paragraph)
   ("[" vim:motion-fwd-paragraph))
 
