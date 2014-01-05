@@ -93,9 +93,9 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
             ;; Recompute defaults using let-bound values above.
             (grep-compute-defaults)
             (cond
-              ((and (not (null grep-find-command))
-                    (not (null current-prefix-arg))
-                    (equal current-prefix-arg '(16)))
+              ((and (not (null? grep-find-command))
+                    (not (null? current-prefix-arg))
+                    (= 16 (first current-prefix-arg)))
                (list (read-from-minibuffer "Run: " grep-find-command
                                            nil nil 'grep-find-history)))
               ((not grep-find-template)
@@ -104,8 +104,8 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
                         (files (grep-read-files regexp))
                         (dir (read-directory-name "Base directory: "
                                                   nil default-directory t))
-                        (confirm (and (not (null current-prefix-arg))
-                                      (equal current-prefix-arg '(4)))))
+                        (confirm (and (not (null? current-prefix-arg))
+                                      (= 4 (first current-prefix-arg)))))
                    (list regexp files dir confirm grep-find-template)))))))
        ;; Set `grep-highlight-matches' to `always'
        ;; since `zgrep' puts filters in the grep output.
@@ -167,8 +167,8 @@ more than once"
                  (files (grep-read-files regexp))
                  (dir (read-directory-name "Base directory: "
                                            nil default-directory t))
-                 (ignore-case (and (not (null current-prefix-arg))
-                                   (<= 16 current-prefix-arg))))
+                 (ignore-case (and (not (null? current-prefix-arg))
+                                   (<= 16 (first current-prefix-arg)))))
             (list regexp files dir ignore-case))))))
   (let* ((rgrep-ignore-case ignore-case)
          (user-supplied-files (split-string files))
@@ -223,7 +223,7 @@ more than once"
   (interactive (list (region-beginning)
                      (region-end)
                      (and (not (null? current-prefix-arg))
-                          (<= 16 (car current-prefix-arg)))))
+                          (<= 16 (first current-prefix-arg)))))
   (let* ((str (buffer-substring-no-properties begin end))
          (regexp (read-string "Search for: "
                               str
