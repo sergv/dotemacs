@@ -370,7 +370,7 @@ Note: old tags file is removed before calling update command."
                                                "-0"
                                                "-o-"
                                                "--nomerge")))
-              (error "fast-tags invokaciot failed: %s"
+              (error "fast-tags invokation failed: %s"
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
             (eproj/ctags-get-tags-from-buffer out-buffer nil t))))
