@@ -16,7 +16,6 @@
       sp-highlight-wrap-overlay nil
       sp-highlight-wrap-tag-overlay nil
       sp-navigate-consider-sgml-tags '(html-mode xhtml-mode xml-mode nxml-mode)
-      sp-navigate-consider-stringlike-sexp '(latex-mode awk-mode)
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
       ;; following variable is buffer local, so it's set in mode-local setups
