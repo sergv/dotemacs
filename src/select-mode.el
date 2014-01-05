@@ -122,7 +122,7 @@ Items will be passed to this function before insertion into buffer.")
                                 (separator-function
                                  (lambda ()
                                    (select-make-bold-separator "--------\n"))))
-  "Initiate select session"
+  "Initiate select session."
   (assert (< 0 (length items)))
   (let ((win-config (current-window-configuration))
         (init-win (selected-window))
