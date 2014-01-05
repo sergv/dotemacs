@@ -50,7 +50,7 @@ with locking over LOCK-VAR"
     t
     ,release-action))
 
-;;;;------------------------------------------------------------
+;;;
 
 (defun util:reindent-region (start end)
   "Custom function that reindents region linewise,
@@ -86,7 +86,7 @@ Do nothing if MODES is empty."
         (util:reindent-region (vim:paste-info-begin vim:last-paste)
                               (vim:paste-info-end   vim:last-paste))))))
 
-;;;;------------------------------------------------------------
+;;;
 
 (defvar *util:expand-on-search-advice-lock* nil
   "This variable becomes t whenever one of advices defined
@@ -108,7 +108,7 @@ will be possible."
         (memq major-mode ',mode-list)
         ,expand-func))))
 
-;;;;------------------------------------------------------------
+;;;
 
 (defmacro defadvice:auto-comment (func)
   "Define advice around FUNC that will insert comments at
@@ -144,7 +144,7 @@ Intended to be used with comment-util-mode."
                              (make-string *comment-util-space-count*
                                           ?\s)))))))))
 
-;;;;------------------------------------------------------------
+;;;
 
 (defmacro defadvice:remember-position-on-query (func)
   "Make vim-like remembering position when query is made

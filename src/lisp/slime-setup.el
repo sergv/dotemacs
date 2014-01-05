@@ -213,7 +213,7 @@
       cltl2-root-url
       (concat +emacs-documentation-path+ "/cltl/"))
 
-;;;; once these were common lisp-only, now this incorporates scheme too
+;;; once these were common lisp-only, now this incorporates scheme too
 
 ;; SLIME is a minor mode and is enabled along with major lisp mode.
 ;; setting up repl buffer should not interfere with common lisp bindings
@@ -516,7 +516,7 @@ currently chosen lisp implementation."
     ("ESC"      slime-popup-buffer-quit-function)
     ("C-SPC"    slime-popup-buffer-quit-function)))
 
-;;;;
+;;;
 
 ;; (defvar *slime-compilation-invoker* nil
 ;;   "A buffer where latest `common-lisp-compile-and-load-file' was invoked.")
@@ -561,7 +561,7 @@ were produced."
 (add-hook 'slime-compilation-finished-hook #'slime-restore-window-config t)
 
 
-;;;; prompt package tracking
+;;; prompt package tracking
 
 (defcustom slime-repl-track-package-in-prompt nil
   "If T then repl prompt will be of the form \"PACKAGE>\",
@@ -608,7 +608,7 @@ If `slime-repl-suppress-prompt' is true, does nothing and returns nil."
       (set-marker slime-repl-prompt-start-mark prompt-start)
       prompt-start))))
 
-;;;; boring redefinitions and "optimizations"
+;;; boring redefinitions and "optimizations"
 
 (redefun slime-read-interactive-args ()
   "This is fixed version of `slime-read-interactive-args'."

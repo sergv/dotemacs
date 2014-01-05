@@ -15,9 +15,9 @@
 (require 'keys-def)
 (require 'eproj)
 
-;;;; buffer tags and their definitions
+;;; buffer tags and their definitions
 
-;;; buffer tags
+;;;; buffer tags
 
 (defstruct (buffer-tag
             (:conc-name buffer-tag/))
@@ -57,7 +57,7 @@ treated as a list of tags; otherwise it should be list of plain tags."
     (funcall tags)
     (copy-list tags)))
 
-;;; tag definitions
+;;;; tag definitions
 
 (defconst +common-buffer-tags+
   (map (lambda (entry)
@@ -389,7 +389,7 @@ tracked files for that repository.")
                              (null? (with-current-buffer buffer
                                       buffer-file-truename)))))))))
 
-;;;; tagged sections
+;;; tagged sections
 
 ;; supported properties and their values:
 ;; 'visibility         = #{'visible 'invisible}
@@ -555,7 +555,7 @@ cover buffer's name, for groups it would not cover section's name."
   #'tagged-section=
   #'tagged-section/hash)
 
-;;;; tagged buffers
+;;; tagged buffers
 
 (defvar tagged-buflist/buffers nil
   "List of `tagged-buffer' structs of buffers currently shown.")
@@ -627,7 +627,7 @@ buffers that match part of tagset will be included in result."
   "Number of characters to reserve for buffer name. If buffer name exceeds this
 limit it will extend past it and affect any text following.")
 
-;;;; presentation of buffer tree
+;;; presentation of buffer tree
 
 (defun* tagged-buflist/show-recursively (tagged-buflist
                                          tag-hierarchy-def
@@ -731,7 +731,7 @@ could be obtained with tagged-buflist/expand-tag-definitions."
     (while (char= (char-before) ?\n)
       (delete-backward-char 1))))
 
-;;;; internal functions
+;;; internal functions
 
 (defun tagged-buflist/for-single-section (pred func)
   "Call function FUNC for first section than satisfies predicate PRED."
@@ -809,7 +809,7 @@ line the point was on."
         tagged-buflist/current-section nil
         tagged-buflist/buffers nil))
 
-;;; functions operating of current line's section
+;;;; functions operating of current line's section
 
 (defmacro tagged-buflist/with-section-for-line (section-var
                                                 &rest body)
@@ -915,7 +915,7 @@ line the point was on."
         (funcall collect section))
       buffers)))
 
-;;; group sections
+;;;; group sections
 
 (defvar tagged-buflist/tagged-sections-store
   (make-hash-table :test #'tagged-section-hash-test)
@@ -944,9 +944,9 @@ Populate `tagged-buflist/tagged-sections-store' with sections in buffer."
     (setf tagged-buflist/group-sections
           (list->vector (reverse sections)))))
 
-;;;; user-visible functions
+;;; user-visible functions
 
-;;; buffer marking and operations on marked buffers
+;;;; buffer marking and operations on marked buffers
 
 (defvar tagged-buflist/marked-buffers nil
   "List of buffers (tagged-buffer structs) marked from tagged buffer list.")
@@ -1104,7 +1104,7 @@ saved buffer marks."
          tagged-buflist/marked-buffers)
     (tagged-buflist/refresh)))
 
-;;; "main" functions
+;;;; "main" functions
 
 (defvar tagged-buflist/main-buffer-name "*buflist*")
 
@@ -1237,7 +1237,7 @@ of group if on line with group."
                                'tagged-buflist/jump-to-buffer-history))))
   (switch-to-buffer bufname))
 
-;;; forward/backward/up selection of groups
+;;;; forward/backward/up selection of groups
 
 (defun tagged-buflist/select-parent ()
   "Jump to parent of current section."
@@ -1320,7 +1320,7 @@ section closest to START-IDX in direction depending on DELTA."
                (- section-idx 1)))))
       (tagged-buflist/goto-section (aref tagged-buflist/group-sections prev-idx)))))
 
-;;;; tagged-buflist-mode
+;;; tagged-buflist-mode
 
 (defvar tagged-buflist/tag-hierarchy
   (list #'tagged-buflist/generate-tag-groups-by-eproj
@@ -1402,7 +1402,7 @@ Similar to `ibuffer-mode'."
   )
 
 
-;;;; end
+;;; end
 
 (provide 'tagged-buflist)
 

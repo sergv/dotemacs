@@ -27,7 +27,7 @@
            prompt)
          collection predicate require-match initial-input hist def)))
 
-;;;; gitignore
+;;; gitignore
 
 (autoload 'gitignore-mode "gitignore-mode"
           "Major mode for editing .gitignore files"
@@ -63,7 +63,7 @@
 
 (add-hook 'gitignore-mode-hook #'gitconfig-setup)
 
-;;;; magit
+;;; magit
 
 ;; show refined diffs for selected hunk
 (setf magit-diff-refine-hunk t)
@@ -254,7 +254,7 @@ all otherwise."
 
 (add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
 
-;;;; git-modes
+;;; git-modes
 
 (setf git-commit-confirm-commit t)
 

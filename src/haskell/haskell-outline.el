@@ -7,7 +7,7 @@
 ;; Description:
 
 
-;;;; outline for folding
+;;; outline for folding
 
 (require 'haskell-misc)
 

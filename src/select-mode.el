@@ -287,7 +287,7 @@ Items will be passed to this function before insertion into buffer.")
   (kill-buffer select/selection-buffer)
   (select-finish-selection))
 
-;;;; this is for invokers of select-mode
+;;; this is for invokers of select-mode
 
 (defun select-extend-keymap (new-keymap)
   (use-local-map

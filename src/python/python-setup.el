@@ -209,7 +209,7 @@ in the current *Python* session."
 (register-python-hideshow 'python-mode)
 
 
-;;;; pylookup
+;;; pylookup
 (add-to-list 'load-path (concat +emacs-config-path+
                                 "/third-party/python/pylookup/"))
 
@@ -225,7 +225,7 @@ in the current *Python* session."
           "Run pylookup-update and create the database at `pylookup-db-file'."
           t)
 
-;;;; run scripts compilation mode
+;;; run scripts compilation mode
 
 (defconst +python-run-error-regexp+
   "^ *File \"\\([-a-zA-Z _0-9.,()\\\\/]+\\)\", line \\([0-9]+\\), in .*")
@@ -263,7 +263,7 @@ in the current *Python* session."
     ("<up>"   compilation-jump-to-prev-error)
     ("<down>" compilation-jump-to-next-error)))
 
-;;;; actual setups
+;;; actual setups
 
 (defun python-setup ()
   (python-common-setup)
@@ -318,7 +318,7 @@ in the current *Python* session."
 (add-hook 'python-mode-hook #'python-setup)
 (add-hook 'inferior-python-mode-hook #'inferior-python-setup)
 
-;;;; end
+;;; end
 
 (provide 'python-setup)
 

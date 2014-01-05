@@ -131,7 +131,7 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
          ,@body)
        (fset ',func ',new-name))))
 
-;;;; circular jumps
+;;; circular jumps
 
 (defmacro define-circular-jumps (forward-name
                                  backward-name
@@ -235,7 +235,7 @@ current buffer. INIT form will be executed before performing any jumps."
                (goto-char change-pos)
                (goto-char (point-max))))))))
 
-;;;; other macros
+;;; other macros
 
 (defmacro if-buffer-has-file (&rest body)
   "Execute BODY if current buffer has file assigned."
@@ -883,7 +883,7 @@ value, that slot cannot be set via `setf'.
                 (bind ,other-bindings ,@body))))))
 
 
-;;;; with-* macro
+;;; with-* macro
 
 (defmacro with-current-frame (frame &rest body)
   (declare (indent 1))
@@ -929,7 +929,7 @@ value, that slot cannot be set via `setf'.
   `(let ((inhibit-redisplay t))
      ,@body))
 
-;;;; aif, awhen, if-let
+;;; aif, awhen, if-let
 
 (defmacro aif (condition true-branch &optional false-branch)
   "Anaphoric if, binds evaluated condition to variable it."
@@ -988,7 +988,7 @@ value, that slot cannot be set via `setf'.
                 ,false-branch)
        ,false-branch)))
 
-;;;; compatibility defines
+;;; compatibility defines
 
 (unless (symbol-function 'defvar-local)
   ;; taken verbatim from subr.el of emacs 24.3
@@ -1001,7 +1001,7 @@ buffer-local wherever it is set."
     (list 'progn (list 'defvar var val docstring)
           (list 'make-variable-buffer-local (list 'quote var)))))
 
-;;;; end
+;;; end
 
 (provide 'macro-util)
 

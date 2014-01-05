@@ -11,12 +11,12 @@
 (require 'common)
 (require 'comint-setup)
 
-;;;; Prelude
+;;; Prelude
 
 (add-to-list 'load-path (concat +emacs-standalone-path+ "/tuareg"))
 (load "tuareg-site-file")
 
-;;;; Helper function
+;;; Helper function
 
 (define-switch-to-interpreter
   switch-to-ocaml-repl
@@ -35,7 +35,7 @@
 (add-to-list '*mode-buffer-indent-function-alist*
              (cons 'tuareg-mode #'ocaml-indent-buffer))
 
-;;;; ocaml-setup
+;;; ocaml-setup
 
 (defun ocaml-setup ()
   (init-common :use-yasnippet t
@@ -49,7 +49,7 @@
 
 (add-hook 'tuareg-mode-hook #'ocaml-setup)
 
-;;;; ocaml repl
+;;; ocaml repl
 
 (defun ocaml-interactive-send-input ()
   "Send current line, appending ;; if necessary."
@@ -72,7 +72,7 @@
 
 (add-hook 'tuareg-interactive-mode-hook #'ocaml-interactive-setup)
 
-;;;; end
+;;; end
 
 (provide 'ocaml-setup)
 

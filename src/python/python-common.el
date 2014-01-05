@@ -13,7 +13,7 @@
 (require 'outline-headers)
 (require 'python-abbrev+)
 
-;;;; helper functions, inside-string?, inside-comment?, aligns etc
+;;; helper functions, inside-string?, inside-comment?, aligns etc
 
 (defun python-point-inside-string-or-comment? ()
   "Return t if point is positioned inside a string."
@@ -107,7 +107,7 @@ greater indenation as current line."
                     (line-end-position)
                     (- vim:shift-width))))
 
-;;;; common setup parts
+;;; common setup parts
 
 (defun register-python-hideshow (mode)
   (setf hs-special-modes-alist

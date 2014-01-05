@@ -93,7 +93,7 @@
 ;; (ac-config-default)
 
 
-;;;;
+;;;
 
 
 ;; (defun ido-setup ()
@@ -110,7 +110,7 @@
 ;; (add-hook 'ido-setup-hook #'ido-setup)
 
 
-;;;;
+;;;
 
 
 ;; (require 'hippie-exp)

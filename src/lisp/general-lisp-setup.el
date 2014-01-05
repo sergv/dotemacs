@@ -8,7 +8,7 @@
 ;; Requirements:
 ;; Status:
 
-;;;; Generic setups for current module
+;;; Generic setups for current module
 
 (eval-when-compile (require 'cl-lib))
 
@@ -102,8 +102,8 @@ rigidly along with this one."
 (setq-default lisp-indent-function #'lisp-indent-function)
 (setf lisp-indent-function #'lisp-indent-function)
 
-;;;; Utility functions covering broad range of topics
-;;;; These may be useful in any succeeding lisp setups
+;;; Utility functions covering broad range of topics
+;;; These may be useful in any succeeding lisp setups
 
 (defun lisp-point-inside-form (form-re)
   "Return t if point is positioned within sexp form
@@ -313,7 +313,7 @@ nor comment."
       (when (or inside-stringp inside-commentp)
         start))))
 
-;;; sexps
+;;;; sexps
 
 ;;;###autoload
 (defun lisp-pos-is-beginning-of-sexp? (&optional pos)
@@ -355,7 +355,7 @@ nor comment."
   (lisp-end-of-sexp-at-pos (point)))
 
 
-;;; lists, strings
+;;;; lists, strings
 
 (defsubst lisp-prev-pos-is-beginning-of-list? (pos)
   "Check whether position POS minus one is beginning of a list"
@@ -423,7 +423,7 @@ nor comment."
   (and (not (eobp))
        (lisp-pos-is-end-of-string? (point))))
 
-;;; list navigation, realign let
+;;;; list navigation, realign let
 
 (eval-after-load
     "lisp"
@@ -475,7 +475,7 @@ This command assumes point is not in a string or comment."
           (indent-sexp))
       (error nil))))
 
-;;; navigation
+;;;; navigation
 
 (defun glisp/backward-up-list ()
   "Move out one level of parenthesis or string quotes."
@@ -567,7 +567,7 @@ This command assumes point is not in a string or comment."
   (glisp/find-beginning-of-defun #'ignore)
   (forward-sexp))
 
-;;; other
+;;;; other
 
 (defmacro* define-lisp-print-info-skeleton (name
                                             &key
@@ -644,7 +644,7 @@ This command assumes point is not in a string or comment."
                (cons mode #'lisp-indent-buffer)))
 
 
-;;; this is useful for all lisps
+;;;; this is useful for all lisps
 
 (search-def-autoexpand-advices
  (save-excursion
@@ -656,7 +656,7 @@ This command assumes point is not in a string or comment."
      (&&hdr-show-subtree)))
  (clojure-mode lisp-mode common-lisp-mode scheme-mode emacs-lisp-mode))
 
-;;; keybindings as variables
+;;;; keybindings as variables
 
 (defvar *lisp-vim-normal-mode-keybindings*
   '(("g c c"   lisp-comment-sexp)
@@ -681,7 +681,7 @@ This command assumes point is not in a string or comment."
   '(("*" search-for-symbol-at-point-forward)
     ("#" search-for-symbol-at-point-backward)))
 
-;;;; Actual setup functions
+;;; Actual setup functions
 
 (defun* lisp-setup (&key (use-whitespace t)
                          (use-cl-indent nil))

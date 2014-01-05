@@ -168,7 +168,7 @@ Returns t unless search stops at the beginning or end of the buffer."
          octave-jump-to-prev-prompt
        inferior-octave-prompt)
 
-;;;;
+;;;
 
      (defconst +octave-repl-error-regexp+
        (rx bol
@@ -305,7 +305,7 @@ in GROUP-NUMS."
                  while (< (point) end)
                  do (forward-char)))))))
 
-;;;;
+;;;
 
      (defvar octave-error-keymap
        (let ((k (make-keymap)))
@@ -351,7 +351,7 @@ in GROUP-NUMS."
              (goto-char (match-end 0))))))))
 
 
-;;;;
+;;;
 
 (defun octave-setup ()
   (init-common :use-yasnippet t
@@ -404,7 +404,7 @@ in GROUP-NUMS."
 (add-hook 'octave-mode-hook #'octave-setup)
 
 
-;;;;
+;;;
 
 (defun inferior-octave-setup ()
   (init-common :use-yasnippet nil

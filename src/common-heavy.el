@@ -75,7 +75,7 @@ if CASE-SENSETIVE is t."
                                     (lambda () ""))))
         (error "No file found for \"%s\" regexp" filename-re)))))
 
-;;;;
+;;;
 
 (defun extract-unicode ()
   ;; note - every single bit of this function is made to let this function
@@ -99,7 +99,7 @@ if CASE-SENSETIVE is t."
     (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
     (insert symb)))
 
-;;;;
+;;;
 
 (defun merge-emacs-configs (new-config-dir curr-config-dir)
   "Merge changes from NEW-CONFIG-DIR into CURR-CONFIG-DIR by successively calling
@@ -172,7 +172,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
       (error "Config under %s not found" new-conf-dir)
       (merge-emacs-configs new-conf-dir current-conf-dir))))
 
-;;;;
+;;;
 
 (defun remove-tabs (start end)
   "Replace all tab characters in region between START and END with
