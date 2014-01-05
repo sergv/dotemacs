@@ -113,6 +113,7 @@ entries."
                  (when-let (contents
                             (assoc 'contents saved-data))
                    (save-excursion
+                     (require 'eshell)
                      (let ((eshell-buffer-name buffer-name))
                        (eshell)
                        (with-inhibited-read-only
