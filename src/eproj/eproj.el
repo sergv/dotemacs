@@ -15,7 +15,8 @@
 ;;
 ;;  ;; these are mostly for haskell
 ;;  [(tag-file <abs-or-rel-file>)]
-;;  [(update-tag-file-command <command> <arg>+)])
+;;  [(update-tag-file-command <command> <arg>+)]
+;;  [(ghci "<command>")])
 ;;
 ;; [...] - optional directive
 ;; {...} - grouping directive
@@ -562,6 +563,12 @@ Note: old tags file is removed before calling update command."
   "Update project for current buffer or create new project if it does not exists."
   (interactive)
   (eproj-reload-project! (eproj-get-project-for-buf (current-buffer))))
+
+(defun eproj-get-aux-info-for-buffer-project (key)
+  "Query aux info for current buffer's project for KEY."
+  (rest-safe (assoc key
+                    (eproj-project/aux-info
+                     (eproj-get-project-for-buf (current-buffer))))))
 
 (defun eproj-describe-buffer-project ()
   (interactive)
