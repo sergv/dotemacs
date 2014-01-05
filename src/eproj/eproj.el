@@ -451,7 +451,8 @@ Note: old tags file is removed before calling update command."
                                         (eproj-language/extension-re lang)
                                         path)
                                        (not (string-match-pure?
-                                             (gethash 'c-mode eproj/languages-table)
+                                             (eproj-language/extension-re
+                                              (gethash 'c-mode eproj/languages-table))
                                              path))))
                                 files))
 
