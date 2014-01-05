@@ -76,8 +76,7 @@ DIRECTION may have value either 'forward or 'backward"
    count))
 
 
-;;;; special definitons for occur
-
+;;; special definitons for occur
 
 (defun custom-occur-find-match (n direction &optional linewise)
   (setq n (or n 1))

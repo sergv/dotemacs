@@ -432,7 +432,7 @@ into flat list"
 
 (defalias 'run-terminal-emulator 'start-terminal-emulator)
 
-;;;; rotate list functions, very old...
+;;; rotate list functions, very old...
 
 (defun rotate-entry-list (listvar)
   "Rotate list of any etries such that list '(X Y Z) becomes '(Y Z X)"
@@ -480,7 +480,7 @@ last non-whitespace character."
         (while (re-search-forward "[ \t]+$" nil t)
           (replace-match ""))))))
 
-;;;; tabbar stuff
+;;; tabbar stuff
 
 (defun swap-elements (i j xs)
   "Swaps elements at positions I and J in list XS. Returns new list."

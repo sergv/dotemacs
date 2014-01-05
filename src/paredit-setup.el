@@ -10,7 +10,7 @@
 
 (require 'common)
 
-;;;;
+;;;
 
 (eval-after-load
     'paredit
@@ -93,7 +93,7 @@ If in a comment and if followed by invalid structure, call
 
      (defadvice:auto-comment paredit-newline)))
 
-;;;; vimmized functions
+;;; vimmized functions
 
 (vimmize-function paredit-splice-sexp-killing-backward
                   :name vim:splice-sexp-killing-backward

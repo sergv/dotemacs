@@ -31,9 +31,9 @@
 (require 'lisp-jit-lock)
 
 
-;;;;; Pattern matcher
+;;; Pattern matcher
 
-;;; Patterns
+;;;;; Patterns
 
 ;; (atom? <name>)
 ;; (skip-atom)
@@ -443,7 +443,7 @@ USED-NAMES - list of names that will be actually used."
                               '(skip-everything))))))
 
 
-;;; pattern preprocessor
+;;;;; pattern preprocessor
 
 (defstruct (sexpy-preproc-directive
             (:constructor make-sexpy-preproc-directive
@@ -498,7 +498,7 @@ PREDICATE, SUBST-FUNC - functions of one arg - part of pattern."
                  directive)
                 (cdr pat)))))))
 
-;;; dictionaries go here
+;;;;; dictionaries go here
 
 (defun sexpy-dict-value (dict key)
   "Get value of cell in DICT referenced by KEY. For internal use only."
@@ -610,7 +610,7 @@ FAILED?."
   (cadr entry))
 
 
-;;; functions related to buffer, its content and position and navigation
+;;;;; functions related to buffer, its content and position and navigation
 
 (defun sexpy-skip-whitespace ()
   (skip-syntax-forward " >")
@@ -672,7 +672,7 @@ FAILED?."
   (or (eobp)
       (<= limit (point))))
 
-;;; sexpy-matcher itself
+;;;;; sexpy-matcher itself
 
 (defun sexpy-match (pattern dict limit &optional repeating)
   (catch 'sexpy-match-fail
@@ -875,7 +875,7 @@ FAILED?."
                     repeating)))))
 
 
-;;;;; useful CL preprocessor directives
+;;; useful CL preprocessor directives
 
 ;; (cl-types types-var)
 (unless (sexpy-preproc-registered-directive? 'cl-types)
@@ -1112,9 +1112,9 @@ FAILED?."
        (string? (atom? ,doc-var))
        (t)))))
 
-;;;;; fontification functions
+;;; fontification functions
 
-;;; prelude
+;;;;; prelude
 
 (defmacro preserve-buffer-undo-list (&rest body)
   (let ((hist-sym (gensym)))
@@ -1192,7 +1192,7 @@ right one in LIST. EQ-PRED is used to remove old value from list."
                 (funcall ,access-func ,arg1)
                 (funcall ,access-func ,arg2)))))
 
-;;; pattern fontifiers
+;;;;; pattern fontifiers
 
 (defstruct (sexpy-pattern-fontifier
             (:constructor make-sexpy-pattern-fontifier
@@ -1384,7 +1384,7 @@ sometimes does profiling with elp package."
 
        (elp-instrument-function #',name))))
 
-;;; fontification routines
+;;;;; fontification routines
 
 (defun sexpy-extend-font-lock-region-after-change (beg end old-len)
   (save-excursion
@@ -1417,7 +1417,7 @@ sometimes does profiling with elp package."
     ;; restore flag and force redisplay
     (set-buffer-modified-p modification-flag)))
 
-;;;;; fontification definitions
+;;; fontification definitions
 
 (sexpy-define-pattern-fontifier (defpackage)
                                 (parenthesized
@@ -1792,7 +1792,7 @@ sometimes does profiling with elp package."
 
 
 
-;;;;; tests
+;;; tests
 
 ;; (defun* match-some-text (pattern text
 ;;                                  &key
@@ -1813,7 +1813,7 @@ sometimes does profiling with elp package."
 ;;                      (or limit (point-max))
 ;;                      nil)))))
 
-;;;;; end
+;;; end
 
 (provide 'sexpy-highlight)
 
