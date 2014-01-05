@@ -176,7 +176,7 @@
   (setup-outline-headers :header-symbol "-"
                          :length-min 3))
 
-;;;; set up inferior-haskell-mode
+;;; set up inferior-haskell-mode
 
 (defun inferior-haskell-mode-setup ()
   ;; undo-tree is useless for ghci interaction

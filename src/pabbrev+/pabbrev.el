@@ -26,7 +26,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary:
+;;;; Commentary:
 ;;
 ;; The code provides a abbreviation expansion for Emacs.  Its fairly
 ;; similar to "dabbrev" expansion, which works based on the contents
@@ -111,7 +111,7 @@
 ;; original tab binding when there is no expansion, pabbrev mostly
 ;; "does what I mean", at least in my hands.
 
-;;; Installation:
+;;;; Installation:
 ;;
 ;; To install this file place in your `load-path', and add
 ;;
@@ -119,7 +119,7 @@
 ;;
 ;; to your .emacs
 
-;;; Status:
+;;;; Status:
 ;;
 ;; At the moment this seems to be working mostly, although
 ;; occasionally it seems to leave an expansion in the buffer.
@@ -134,7 +134,7 @@
 ;; XEmacs, and it is running stably there now. It has been tested on
 ;; XEmacs 21.4, running on Debian and Ubuntu Linux.
 
-;;; Package Support:
+;;;; Package Support:
 ;;
 ;; Some packages need extra support for pabbrev to work with. There are two
 ;; plists properties which package developers can use.
@@ -151,7 +151,7 @@
 ;; global-pabbrev-mode activated.
 ;;
 
-;;; Bugs;
+;;;; Bugs;
 ;;
 ;; This package had an occasional bug which has historically been hard
 ;; to track down and reproduce.  Basically I end up with a load of
@@ -165,7 +165,7 @@
 ;; consecutively. But sometimes they get called twice). Please let us
 ;; know if you see this problem.
 
-;;; Limitations:
+;;;; Limitations:
 ;;
 ;; pabbrev mode has a number of common limitations.
 ;;
@@ -192,7 +192,7 @@
 ;; that quickly, and they don't take up that much memory.
 
 
-;;; Bug Reporting
+;;;; Bug Reporting
 ;;
 ;; Bug reports are more than welcome. However one particular problem
 ;; with this mode is that it makes heavy use of
@@ -201,7 +201,7 @@
 ;; will help a lot if you can get a repeatable set of keypresses, that
 ;; always causes the problem.
 
-;;; Implementation notes:
+;;;; Implementation notes:
 ;;
 ;; The core data structures are two hashes. The first of which looks
 ;; like this...
@@ -242,7 +242,7 @@
 ;; update, which is why the prefix hash maintains sorted alists. This
 ;; is probably at the cost of slower updating of words.
 
-;;; Acknowledgements;
+;;;; Acknowledgements;
 ;;
 ;; Many thanks to Martin Kuehl for tracking down the last bug which
 ;; stood between this being an "official" full release.
@@ -262,7 +262,7 @@
 ;; Scott Vokes added a nice patch, adding the single/multiple expansion, the
 ;; universal argument support and some bug fixes.
 
-;;; Code:
+;;;; Code:
 (eval-when-compile (require 'cl-lib))
 
 (require 'thingatpt)
@@ -426,10 +426,10 @@ I'm not telling you which version, I prefer."
       :group 'pabbrev)))
 
 
-;;;; End user Customizable variables.
+;;; End user Customizable variables.
 
 
-;;;; Begin Package Support.
+;;; Begin Package Support.
 
 
 ;; mark commands after which expansion should be offered
@@ -456,9 +456,9 @@ I'm not telling you which version, I prefer."
    ))
 
 
-;;;; End Package Support
+;;; End Package Support
 
-;;; Start data structures
+;;;; Start data structures
 (defvar pabbrev-usage-hash-modes nil
   "List of modes with associated usage dictionaries.")
 
@@ -1566,7 +1566,7 @@ If this takes up too much processor power, see `pabbrev-scavenge-some-chunk-size
   (message "Swiching off pabbrev messages" )
   (setq pabbrev-idle-timer-verbose nil))
 
-;;; The following are debug functions.
+;;;; The following are debug functions.
 (defvar pabbrev-debug-buffer nil)
 
 ;;(setq pabbrev-debug-enabled t)

@@ -28,7 +28,7 @@
   nil
   "Regular expression that defines headers")
 
-;;;;; original outline-headers
+;;; original outline-headers
 
 (defun outline-headers-count-header-symbols ()
   "Return number of `+outline-headers-section-symbol+' symbols in header
@@ -79,7 +79,7 @@ headings."
           (beginning-of-line))))))
 
 
-;;;;; setup function
+;;; setup function
 
 
 (defun* setup-outline-headers (&key
@@ -146,19 +146,19 @@ headings."
     ("z U" &&hdr-show-all)
     ("z u" &&hdr-show-subtree)))
 
-;;;;; actual outline headers copied from emacs with names mangled
-;;;;; using prefix &&hdr-
-;;;;; do :%s/&&hdr-//g and original outline.el will show up
+;;; actual outline headers copied from emacs with names mangled
+;;; using prefix &&hdr-
+;;; do :%s/&&hdr-//g and original outline.el will show up
 ;;;;;
-;;;;; I want to make this clear: this is horrible and shameless copypaste
-;;;;; that should have never existed in the firts place, it has gazillion
-;;;;; drawbacks but one - it does it's job for haskell mode and will not
-;;;;; clash with original outline.el
+;;; I want to make this clear: this is horrible and shameless copypaste
+;;; that should have never existed in the firts place, it has gazillion
+;;; drawbacks but one - it does it's job for haskell mode and will not
+;;; clash with original outline.el
 ;;;;;
-;;;;; Emacs already has 41k symbols defined and this is just another nail
-;;;;; to it's coffin...
+;;; Emacs already has 41k symbols defined and this is just another nail
+;;; to it's coffin...
 
-;;; &&hdr-outline.el --- &&hdr-outline mode commands for Emacs
+;;;;; &&hdr-outline.el --- &&hdr-outline mode commands for Emacs
 
 ;; Copyright (C) 1986, 1993-1995, 1997, 2000-2012
 ;;   Free Software Foundation, Inc.
@@ -181,19 +181,19 @@ headings."
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary:
+;;;;; Commentary:
 
 ;; This package is a major mode for editing &&hdr-outline-format documents.
 ;; An &&hdr-outline can be `abstracted' to show headers at any given level,
 ;; with all stuff below hidden.  See the Emacs manual for details.
 
-;;; Todo:
+;;;;; Todo:
 
 ;; - subtree-terminators
 ;; - better handle comments before function bodies (i.e. heading)
 ;; - don't bother hiding whitespace
 
-;;; Code:
+;;;;; Code:
 
 
 (defgroup &&hdr-outlines nil
@@ -1275,9 +1275,9 @@ convenient way to make a table of contents of the buffer."
                     (insert "\n\n"))))))
           (kill-new (buffer-string)))))))
 
-;;; &&hdr-outline.el ends here
+;;;;; &&hdr-outline.el ends here
 
-;;;;; end of *horrors*
+;;; end of *horrors*
 
 
 (provide 'outline-headers)

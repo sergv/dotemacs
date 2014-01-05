@@ -15,20 +15,20 @@
 (require 'tagged-buflist-setup)
 (require 'common)
 
-;;;; configuration variables
+;;; configuration variables
 
 (defcustom vim-scroll-move-point t
   "Controlls whether scrolling functions like `vim:scroll-line-up' should
 move point to next/previous line."
   :type 'boolean)
 
-;;;; overriding keymap
+;;; overriding keymap
 
 (defvar-local vim:complex-command-override-local-keymap nil
   "Keymap for buffer-local overriding of commands that take motions,
 like \"d w\".")
 
-;;;; keybindings
+;;; keybindings
 
 ;; redefine motions
 
@@ -126,7 +126,7 @@ like \"d w\".")
   ("<end>"   vim:motion-fwd-paragraph)
   (","       nil))
 
-;;;; normal mode keybindigs
+;;; normal mode keybindigs
 
 (def-keys-for-map vim:normal-mode-keymap
   ("C-y"       nil)
@@ -198,7 +198,7 @@ like \"d w\".")
   ("g c l"     remember-win-config-restore-configuration)
   ("g c r"     remember-win-config-restore-configuration))
 
-;;;; visual keybindings
+;;; visual keybindings
 
 (def-keys-for-map vim:visual-mode-keymap
   ("TAB"      indent-region)
@@ -219,7 +219,7 @@ like \"d w\".")
   ("{"        sp--self-insert-command)
   ("}"        sp--self-insert-command))
 
-;;;; insert mode keybindings
+;;; insert mode keybindings
 
 (def-keys-for-map vim:insert-mode-keymap
   ("S-<backspace>" delete-whitespace-backward)
@@ -234,7 +234,7 @@ like \"d w\".")
   ("<insert>"      vim:scroll-line-up))
 
 
-;;;; ex bindings and commands
+;;; ex bindings and commands
 
 (def-keys-for-map vim:ex-keymap
   ("C-v" set-mark-command)

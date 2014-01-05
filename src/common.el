@@ -226,7 +226,7 @@ inserted."
 
 (autoload 'find-filename-in-tree-recursive "common-heavy" "" t)
 
-;;;;
+;;;
 
 (defun completing-read-vanilla (prompt
                                 collection
@@ -415,7 +415,7 @@ by doing (clear-string STRING)."
       (incf i))
     member))
 
-;;;;; combinatorics
+;;; combinatorics
 
 (defun factorial (x)
   (if (= 0 x)
@@ -477,7 +477,7 @@ LIST sans it's first N elements."
           :end end))
 
 
-;;;;
+;;;
 
 (defun point-inside-string-or-comment? ()
   "Return t if point is positioned inside a string."
@@ -490,7 +490,7 @@ LIST sans it's first N elements."
               (elt state 4)))))))
 
 
-;;;;
+;;;
 
 (defun assoc-value (key alist)
   (cadr (assoc key alist)))
@@ -508,12 +508,12 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
                                 (cddr keyword-arglist)
                                 default))))
 
-;;;;
+;;;
 
 (autoload 'extract-unicode "common-heavy")
 (autoload 'input-unicode "common-heavy" "" t)
 
-;;;;
+;;;
 
 (defvar *invisible-buffers* '()
   "List of buffer name regexps than should not be visible in e.g. ibuffer,
@@ -555,7 +555,7 @@ tabbar, etc")
 (add-invisible-buffer "^\\*Ibuffer\\*$")
 (add-invisible-buffer "^ .*$")
 
-;;;;
+;;;
 
 (defun for-buffers-with-mode (mode func)
   (for-each func
@@ -564,7 +564,7 @@ tabbar, etc")
                         (eq? major-mode mode)))
                     (buffer-list))))
 
-;;;;
+;;;
 
 (defun alist->hash-table (alist &optional cmp)
   "Translate alist of (<key> . <value>) pairs into hash-table."
@@ -594,7 +594,7 @@ tabbar, etc")
              table)
     result))
 
-;;;;
+;;;
 
 ;; this may be useful for something
 ;;
@@ -657,7 +657,7 @@ tabbar, etc")
 ;;                                     (make-ntree-node 'lvl1-3 '()))))
 ;;
 
-;;;;
+;;;
 
 (defun bisect (item items start end eq? less?)
   "Binary search. Returns index into vector ITEMS.
@@ -699,7 +699,7 @@ START is inclusive and END is exclusive in ITEMS."
       (setf idx (+ idx 1)))
     idx))
 
-;;;;
+;;;
 
 (defun string-suffix? (string1 string2 &optional ignore-case)
   "Return t if STRING1 is a suffix of STRING2."
@@ -712,7 +712,7 @@ START is inclusive and END is exclusive in ITEMS."
   "Remove (+ (length PREFIX) STARTING-AT) characters from start of STR."
   (substring str (+ starting-at (length prefix))))
 
-;;;;
+;;;
 
 (defsubst file-modification-time (filename)
   "Return latest modification time of file FILENAME."
@@ -741,16 +741,16 @@ faster than byte-by-byte comparison of respecfive file contents."
                   (buffer-substring-no-properties (point-min) (point-max))))
       t)))
 
-;;;;
+;;;
 
 (autoload 'merge-emacs-configs "common-heavy")
 (autoload 'merge-emacs-configs-default "common-heavy" "" t)
 
-;;;;
+;;;
 
 (autoload 'remove-tabs "common-heavy" "" t)
 
-;;;;
+;;;
 
 (defconst +buffer-indent-temporary-filename+
   (concat temporary-file-directory "/indent-buffer.tmp")
@@ -761,7 +761,7 @@ See also `*mode-buffer-indent-function-alist*'.")
   "Alist of (major-mode . function) pairs, where functions should take 0
 arguments and indent current buffer. See also `+buffer-indent-temporary-filename+'.")
 
-;;;;
+;;;
 
 (defun to-linux-line-endings ()
   "Convert line endings in current buffer to linux ones (\\n)."
@@ -773,7 +773,7 @@ arguments and indent current buffer. See also `+buffer-indent-temporary-filename
   (interactive)
   (set-buffer-file-coding-system 'utf-8-dos nil))
 
-;;;;
+;;;
 
 (defun insert-my-formatted-date ()
   "Insert today's date as \"<Day Name>, <day> <Month name> <Year>\""
@@ -782,7 +782,7 @@ arguments and indent current buffer. See also `+buffer-indent-temporary-filename
 
 (defalias 'insert-current-date #'insert-my-formatted-date)
 
-;;;;
+;;;
 
 (defun* map-files (f file-list &key dont-write)
   "For every file in FILE-LIST insert it's content into
@@ -795,7 +795,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
       (unless dont-write
         (write-region (point-min) (point-max) file)))))
 
-;;;;
+;;;
 
 (defun join-lines (lines &optional str)
   "Join list of strings with given STR that defaults to newline."
@@ -823,7 +823,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
              items
              :initial-value init))
 
-;;;;
+;;;
 
 (defun generic/length (item)
   (cond ((ring? item)
@@ -841,13 +841,13 @@ write buffer contents back into file if flag DONT-WRITE is nil."
         (else
          (error "Not implemented yet"))))
 
-;;;;
+;;;
 
 (defun indent-whole-buffer ()
   "Indent whole buffer with `indent-region'."
   (indent-region (point-min) (point-max)))
 
-;;;;
+;;;
 
 (defun list< (a b)
   "Check whether list of integers A is lexicographically lesser than
@@ -872,7 +872,7 @@ integer list B."
   "Check whether list of integers A is equal to integer list B."
   (equal a b))
 
-;;;;
+;;;
 
 (defun text-between-lines (start-line end-line)
   "Return string of text with properties between beginning of START-LINE and
@@ -883,7 +883,7 @@ end of END-LINE in current buffer."
                       (progn (goto-line1 end-line)
                              (line-end-position)))))
 
-;;;;
+;;;
 
 (defvar *ignored-file-name-endings*
   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".p_o" ".p_hi" ".prof_o" ".hi" "~" ".bin" ".out" ".lbin" ".so" ".a" ".ln" ".blg" ".bbl" ".elc" ".lof" ".glo" ".idx" ".lot" ".fmt" ".tfm" ".class" ".fas" ".lib" ".mem" ".x86f" ".sparcf" ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl" ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl" ".sx32fsl" ".wx64fsl" ".wx32fsl" ".fasl" ".ufsl" ".fsl" ".dxl" ".lo" ".la" ".gmo" ".mo" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dll" ".pdb" ".dex")
@@ -910,13 +910,13 @@ end of END-LINE in current buffer."
                      (concat "*" x))
                    *ignored-file-name-endings*)))
 
-;;;;
+;;;
 
 (defun insert-current-date ()
   (interactive)
   (insert (format-time-string "%A, %e %B %Y")))
 
-;;;;
+;;;
 
 ;; may be useful someday
 ;; (defun search-property-change-with-cycling (direction start-pos prop prop-predicate)
@@ -962,7 +962,7 @@ end of END-LINE in current buffer."
 ;;                                              prop))))))
 ;;     p))
 
-;;;;
+;;;
 
 (defvar common/registered-filenames (make-hash-table :test #'equal)
   "Hashtable binding filename strings to themselves. Exists for memory
@@ -975,7 +975,7 @@ optimization reasons.")
       (puthash filename filename common/registered-filenames)
       filename)))
 
-;;;;
+;;;
 
 (defun* pp-to-string* (obj
                        &key
@@ -986,7 +986,7 @@ optimization reasons.")
         (print-depth depth))
     (pp-to-string obj)))
 
-;;;;
+;;;
 
 (defun util/reindent-file (filename)
   "Load FILENAME contents, try to infer mode for it, reindent according
@@ -1001,7 +1001,7 @@ to mode and write new contents back to FILENAME."
       (vim:indent)
       (write-region (point-min) (point-max) filename))))
 
-;;;;
+;;;
 
 (defun indent-to! (col)
   "Indent current line to exactly COL'th column with spaces."
@@ -1039,7 +1039,7 @@ to mode and write new contents back to FILENAME."
       (error "no alive previous buffers to switch to")
       (switch-to-buffer (car prev-bufs)))))
 
-;;;;
+;;;
 
 (defun region-active? ()
   "Return t if region, either plain or vim's, is active."
@@ -1078,7 +1078,7 @@ on currently active vim highlight mode."
        (error "Invalid vim:visual-mode-type: %s" vim:visual-mode-type)))
     (values (region-beginning) (region-end))))
 
-;;;;
+;;;
 
 (defun find-first-matching (f xs)
   "Find first x among XS such that (F x) is non-nil, and
@@ -1098,7 +1098,7 @@ return pair (x (F x))."
       (values y fy)
       nil)))
 
-;;;;
+;;;
 
 (defsubst cadr-safe (x)
   (car-safe (cdr-safe x)))
@@ -1111,7 +1111,7 @@ return pair (x (F x))."
       (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
       cmdline-normalized)))
 
-;;;;
+;;;
 
 (defun abort-recursive-edit* (&optional on-no-recursive-edit)
   "Abort recursive edit or call ON-NO-RECURSIVE-EDIT if no recursive
@@ -1122,7 +1122,7 @@ edit is active."
                   (funcall on-no-recursive-edit)
                   (signal (car err) (cdr err))))))
 
-;;;;
+;;;
 
 (provide 'common)
 

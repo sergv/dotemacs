@@ -1,9 +1,9 @@
 ;; $Id: cyrillic-dvorak.el,v 1.3 2005/07/07 07:06:31 kirill Exp $
-;;;; $Author: kirill $
-;;;; Distributed under the GPL
+;; $Author: kirill $
+;; Distributed under the GPL
 
-;;;; If you're using `dvorak' keyboard layout and also need writing russian in
-;;;; the `jcuken' layout, you may find this package helpful!
+;; If you're using `dvorak' keyboard layout and also need writing russian in
+;; the `jcuken' layout, you may find this package helpful!
 
 (require 'quail)
 
