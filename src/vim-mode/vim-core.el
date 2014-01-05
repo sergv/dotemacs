@@ -94,12 +94,12 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   "The resulting column of the previous motion.")
 
 
-(defun vim:use-last-column ()
+(defsubst vim:use-last-column ()
   "This function should by called by a motion not changing the column."
   (setq vim:this-column vim:last-column))
 
 
-(defun vim:toplevel-execution ()
+(defsubst vim:toplevel-execution ()
   "Returns t iff this is a toplevel execution, not a mapping or repeat."
   (not executing-kbd-macro))
 
@@ -116,64 +116,64 @@ of the command handling code the buffer in vim:new-buffer is made current.")
         vim:current-motion-type nil
         vim:current-force-motion-type nil))
 
-(defun vim:clear-key-sequence ()
+(defsubst vim:clear-key-sequence ()
   "Clears the internal log of key-sequences."
   (setq vim:current-key-sequence nil))
 
 
-(defun vim:cmd-count-p (cmd)
+(defsubst vim:cmd-count-p (cmd)
   "Returns non-nil iff command cmd takes a count."
   (get cmd 'count))
 
-(defun vim:cmd-register-p (cmd)
+(defsubst vim:cmd-register-p (cmd)
   "Returns non-nil iff command may take a register."
   (get cmd 'register))
 
-(defun vim:cmd-motion-p (cmd)
+(defsubst vim:cmd-motion-p (cmd)
   "Returns non-nil iff command `cmd' takes a motion parameter."
   (get cmd 'motion))
 
-(defun vim:cmd-arg (cmd)
+(defsubst vim:cmd-arg (cmd)
   "Returns the type of command's argument."
   (get cmd 'argument))
 
-(defun vim:cmd-arg-p (cmd)
+(defsubst vim:cmd-arg-p (cmd)
   "Returns non-nil iff command cmd takes an argument of arbitrary type."
   (not (null (get cmd 'argument))))
 
-(defun vim:cmd-text-arg-p (cmd)
+(defsubst vim:cmd-text-arg-p (cmd)
   "Returns non-nil iff command cmd takes a text argument."
   (eq (vim:cmd-arg cmd) t))
 
-(defun vim:cmd-char-arg-p (cmd)
+(defsubst vim:cmd-char-arg-p (cmd)
   "Returns non-nil iff command cmd takes a char argument."
   (eq (vim:cmd-arg cmd) 'char))
 
-(defun vim:cmd-file-arg-p (cmd)
+(defsubst vim:cmd-file-arg-p (cmd)
   "Returns non-nil iff command cmd takes a file argument."
   (eq (vim:cmd-arg cmd) 'file))
 
-(defun vim:cmd-buffer-arg-p (cmd)
+(defsubst vim:cmd-buffer-arg-p (cmd)
   "Returns non-nil iff command cmd takes a buffer argument."
   (eq (vim:cmd-arg cmd) 'buffer))
 
-(defun vim:cmd-repeatable-p (cmd)
+(defsubst vim:cmd-repeatable-p (cmd)
   "Returns non-nil iff command cmd is repeatable."
   (get cmd 'repeatable))
 
-(defun vim:cmd-keep-visual-p (cmd)
+(defsubst vim:cmd-keep-visual-p (cmd)
   "Returns non-nil iff command cmd should stay in visual mode."
   (get cmd 'keep-visual))
 
-(defun vim:cmd-force-p (cmd)
+(defsubst vim:cmd-force-p (cmd)
   "Returns non-nil iff command cmd takes a force argument."
   (not (null (get cmd 'force))))
 
-(defun vim:cmd-type (cmd)
+(defsubst vim:cmd-type (cmd)
   "Returns the type of command cmd."
   (get cmd 'type))
 
-(defun vim:cmd-function (cmd)
+(defsubst vim:cmd-function (cmd)
   "Returns the function of command `cmd'."
   (get cmd 'function))
 
