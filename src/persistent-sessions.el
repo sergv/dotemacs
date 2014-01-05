@@ -98,6 +98,58 @@ entries."
     (destructuring-bind (var . value) bind
       (set var value))))
 
+(defvar sessions/special-modes
+  `((eshell-mode
+     (save ,(lambda (buf)
+              (save-excursion
+                (with-inhibited-read-only
+                  (goto-char (point-max))
+                  (forward-line -1)
+                  (list (list 'contents
+                              ;; collect properties as well
+                              (buffer-substring (point-min) (point-max))))))))
+     (restore ,(lambda (buffer-name saved-data)
+                 (message "Restoring eshell buffer %s" buffer-name)
+                 (when-let (contents
+                            (assoc 'contents saved-data))
+                   (save-excursion
+                     (let ((eshell-buffer-name buffer-name))
+                       (eshell)
+                       (with-inhibited-read-only
+                         (forward-line -1)
+                         (delete-region (point-min)
+                                        ;; do not capture trailing \n
+                                        (line-end-position)))
+
+                       (save-excursion
+                         (with-inhibited-read-only
+                           (with-inhibited-modification-hooks
+                             (with-inhibited-redisplay
+                               (goto-char (point-min))
+                               (insert (second contents))))))))))))
+    (shell-mode
+     (save ,(lambda (buf)
+              (save-excursion
+                (with-inhibited-read-only
+                  (goto-char (point-max))
+                  (forward-line -1)
+                  (list (list 'contents
+                              ;; collect properties as well
+                              (buffer-substring (point-min) (point-max))))))))
+     (restore ,(lambda (buffer-name saved-data)
+                 (awhen (assoc 'contents saved-data)
+                   (let ((buf (get-buffer-create buffer-name)))
+                     (with-current-buffer buf
+                       (with-inhibited-read-only
+                         (with-inhibited-modification-hooks
+                           (with-inhibited-redisplay
+                             (goto-char (point-min))
+                             (insert (second it))
+                             (insert "\n\n")))))
+                     (shell buf)
+                     (accept-process-output (get-buffer-process buf)
+                                            5 ;; Time to wait in seconds.
+                                            ))))))))
 
 
 (defun sessions/save-buffers (file)
@@ -108,34 +160,47 @@ entries."
     (insert ";:;exec gdb -ex \"run\" --args emacs --load \"$0\"\n\n")
     (insert (format ";; this session was created on %s\n;; Today's quotes are\n%s\n"
                     (format-time-string "%A, %e %B %Y")
-                    (foldr #'concat
-                           ""
-                           (map (lambda (unused)
-                                  (concat
-                                   (join-lines
-                                    (map (lambda (x) (concat ";; " x))
-                                         (split-into-lines (fortune *fortunes*))))
-                                   "\n;;\n"))
-                                '(0 1 2 3 4 5)))))
+                    (loop
+                      for i from 0 to 5
+                      concating
+                      (concat
+                       (join-lines
+                        (map (lambda (x) (concat ";; " x))
+                             (split-into-lines (fortune *fortunes*))))
+                       "\n;;\n"))))
     (print '(require 'persistent-sessions) (current-buffer))
-    (let ((buffer-data
-           (remq nil
-                 (map (lambda (buf)
-                        (when (buffer-file-name buf)
-                          (with-current-buffer buf
-                            (make-session-entry
-                             (abbreviate-file-name (buffer-file-name buf))
-                             (point)
-                             (sessions/get-buffer-variables buf)
-                             major-mode))))
-                      (buffer-list))))
-          (frame-data
-           (window-configuration-printable)))
+    (let* ((buffers (buffer-list))
+           (buffer-data
+            (map (lambda (buf)
+                   (with-current-buffer buf
+                     (make-session-entry
+                      (abbreviate-file-name (buffer-file-name buf))
+                      (point)
+                      (sessions/get-buffer-variables buf)
+                      major-mode)))
+                 (filter (comp #'not #'null? #'buffer-file-name)
+                         buffers)))
+           (special-buffer-data
+            (remq nil
+                  (map (lambda (buf)
+                         (with-current-buffer buf
+                           (when-let* (spec-entry
+                                       (assq major-mode
+                                             sessions/special-modes)
+                                       save-func (cadr-safe (assq 'save spec-entry)))
+                             (list major-mode
+                                   (buffer-name buf)
+                                   (funcall save-func buf)))))
+                       buffers)))
+           (frame-data
+            (window-configuration-printable)))
       (print
        (list 'sessions/load-from-data
              (list 'quote
                    (list (list 'buffers
                                buffer-data)
+                         (list 'special-buffers
+                               special-buffer-data)
                          (list 'frames
                                frame-data)
                          (list 'global-variables
@@ -145,10 +210,18 @@ entries."
 ;; version-control: never
 ;; no-byte-compile: t
 ;; coding: utf-8
+;; mode: emacs-lisp
 ;; End:")
 
     (write-region (point-min) (point-max) file)
     (make-file-executable file)))
+
+(defun sessions/call-symbol-function (sym)
+  "Call function bound to symbol SYM, autoloading it if necessary."
+  (let ((func (symbol-function sym)))
+    (when (autoloadp func)
+      (autoload-do-load func))
+    (funcall (symbol-function sym))))
 
 (defun sessions/load-from-data (data)
   "Load session from DATA."
@@ -161,10 +234,7 @@ entries."
                   (goto-char (session-entry/point entry))
                   (aif (session-entry/major-mode entry)
                     (unless (eq? major-mode it)
-                      (let ((func (symbol-function it)))
-                        (when (autoloadp func)
-                          (autoload-do-load func))
-                        (funcall (symbol-function it))))
+                      (sessions/call-symbol-function it))
                     (message "warning: session buffer entry without major mode: %s"
                              entry))
                   (sessions/restore-buffer-variables (current-buffer)
@@ -172,6 +242,17 @@ entries."
                 (message "warning: file %s does not exist!"
                          (session-entry/file-name entry))))
             (cadr it)))
+    (aif (assq 'special-buffers session-entries)
+      (map (lambda (saved-info)
+             (let ((mmode (first saved-info))
+                   (buffer-name (second saved-info))
+                   (special-data (third saved-info)))
+               (when-let* (spec-entry
+                           (assq mmode sessions/special-modes)
+                           restore-func (cadr-safe (assq 'restore spec-entry)))
+                 (funcall restore-func buffer-name special-data))))
+           (cadr it))
+      (message "warning: session-entries without special buffer information"))
     (aif (assq 'frames session-entries)
       (restore-window-configuration (first (rest it)))
       (message "warning: session-entries without frame information"))
