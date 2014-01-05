@@ -137,7 +137,10 @@
 (eval-after-load "edebug"
   '(progn
      (def-keys-for-map edebug-mode-map
-       ("<f6>" edebug-step-mode))))
+       ("<f5>" edebug-stop)
+       ("<f6>" edebug-step-mode)
+       ("<f7>" edebug-step-in)
+       ("<f8>" edebug-step-out))))
 
 (defun eval-print-last-sexp-unlimited-length ()
   (interactive)
@@ -171,7 +174,8 @@
     +control-x-prefix+
     +vim-special-keys+
     +vim-word-motion-keys+
-    ("<escape>" exit-recursive-edit)))
+    ("<escape>" exit-recursive-edit)
+    ("m"        vim:motion-jump-item)))
 
 (add-hook 'debugger-mode-hook #'debugger-setup)
 
