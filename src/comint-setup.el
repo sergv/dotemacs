@@ -230,7 +230,7 @@ Similarly for Soar, Scheme, etc."
 inclusively."
   (interactive)
   (save-excursion
-    (let ((inhibit-read-only t))
+    (with-inhibited-read-only
       (forward-line -1)
       (delete-region (point-min) (line-end-position))
       (delete-char 1))))
