@@ -201,7 +201,8 @@ current buffer. INIT form will be executed before performing any jumps."
        (search-property-forward ,property
                                 ,value
                                 'cycle
-                                t)
+                                t ;; no error
+                                )
        ,(when move-to-property-end
           '(let ((change-pos (next-single-property-change
                               (point)
