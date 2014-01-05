@@ -696,7 +696,13 @@ Note: old tags file is removed before calling update command."
                            (for-buffer-with-file path
                              (git-update-file-repository)
                              git-repository))
-                    (eproj-normalize-file-name it))))
+
+                    (let ((dir (eproj-normalize-file-name it)))
+                      ;; strip trailing .git, if any
+                      (save-match-data
+                        (if (string-match? "^\\(.*\\)/\\.git$" dir)
+                          (replace-match "\\1" nil nil dir)
+                          dir))))))
               :make-project-proc
               (lambda (proj-root)
                 (make-eproj-project :type proj-type-entry
@@ -777,26 +783,25 @@ which to try loading/root finding/etc.")
 (defun eproj-get-initial-project-root-and-type (path)
   "Get (<initial-project-root> <project-type>) pair for project that contains
 PATH as its part."
-  (let* ((get-root-length (comp #'length #'car))
-         (initial-roots
-          (delq nil
-                (map (lambda (proj-type)
-                       (when-let (initial-root
-                                  (funcall (eproj-project-type/get-initial-project-root-proc
-                                            proj-type)
-                                           path))
-                         (cons (eproj-normalize-file-name
-                                initial-root)
-                               proj-type)))
-                     eproj-project-types))))
+  (let ((initial-roots
+         (delq nil
+               (map (lambda (proj-type)
+                      (when-let (initial-root
+                                 (funcall (eproj-project-type/get-initial-project-root-proc
+                                           proj-type)
+                                          path))
+                        (cons (eproj-normalize-file-name initial-root)
+                              proj-type)))
+                    eproj-project-types))))
     (if (not (null? initial-roots))
       ;; we aim for file with longest name since it will correspond to
       ;; the most specific project, i.e. to the project closest to requested
       ;; path
-      (let ((sorted-roots (stable-sort initial-roots
-                                       (lambda (a b)
-                                         (> (funcall get-root-length a)
-                                            (funcall get-root-length b))))))
+      (let* ((get-root-length (comp #'length #'car))
+             (sorted-roots (stable-sort initial-roots
+                                        (lambda (a b)
+                                          (> (funcall get-root-length a)
+                                             (funcall get-root-length b))))))
         (assert (not (null? sorted-roots)))
         (values (car (car sorted-roots))
                 (cdr (car sorted-roots))))
@@ -825,7 +830,11 @@ PATH as its part."
                ((eq? ,caching-var 'unresolved)
                 nil)
                (else
-                (assert (funcall ,value-predicate ,caching-var))
+                (assert (funcall ,value-predicate ,caching-var)
+                        nil
+                        ,(format "Variable `%s' must contain value that satisfies predicate %s"
+                                 caching-var
+                                 value-predicate))
                 ,caching-var))))))
 
 (defun eproj/reset-buffer-local-cache ()
@@ -855,7 +864,10 @@ symbol 'unresolved.")
 
 (defun eproj-get-project-for-buf (buffer)
   (eproj/evaluate-with-caching-buffer-local-var
-   (eproj-get-project-for-path (eproj-get-buffer-directory buffer))
+   (eproj-get-project-for-path
+    ;; Take directory since file visited by buffer may not be
+    ;; under version control per se.
+    (eproj-get-buffer-directory buffer))
    buffer
    eproj/buffer-project-cache
    #'eproj-project-p))
