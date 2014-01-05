@@ -34,6 +34,18 @@
       eshell-send-direct-to-subprocesses nil
       eshell-tar-regexp "\\.t\\(?:ar\\(?:\\.\\(?:gz\\|bz2\\|Z\\|7z\\)\\)?\\|gz\\|a[zZ]\\|z2\\|7z\\)\\'")
 
+(defvar eshell-prompt-text-properties
+       '(read-only
+         t
+         face eshell-prompt
+         ;; These three properties transform
+         ;; piece of text into real prompt
+         ;; (which is plainly convenient to use).
+         intangible t
+         rear-nonsticky t
+         field prompt
+         ))
+
 (eval-after-load
     "eshell"
   '(progn
@@ -145,14 +157,7 @@
          (let ((prompt (funcall eshell-prompt-function)))
            (and eshell-highlight-prompt
                 (add-text-properties 0 (length prompt)
-                                     '(read-only t
-                                                 face eshell-prompt
-                                                 ;; these three properties transform this
-                                                 ;; piece of text into real prompt
-                                                 ;; which is plainly convenient to use
-                                                 intangible t
-                                                 rear-nonsticky t
-                                                 field 'prompt)
+                                     eshell-prompt-text-properties
                                      prompt))
            (eshell-interactive-print prompt)))
        (run-hooks 'eshell-after-prompt-hook))
@@ -192,9 +197,9 @@
        (save-excursion
          (with-inhibited-read-only
           (forward-line -1)
-          (end-of-line)
-          (delete-region (point-min) (line-end-position))
-          (delete-char 1))))
+          (delete-region (point-min)
+                         ;; add 1 to capture trailing \n
+                         (+ 1 (line-end-position))))))
 
      ;; convenient commands
      (defun eshell-clear-prompt ()
