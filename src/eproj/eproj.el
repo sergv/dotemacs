@@ -247,9 +247,10 @@ after ;\", and expect single character there instead."
           "\n"
           (eproj-tag/file tag)
           ":"
-          (eproj-tag/line tag)
+          (number->string (eproj-tag/line tag))
           "\n"
-          (eproj-tag/properties tag))
+          (format "%s" (eproj-tag/properties tag))
+          "\n")
   ;; (lambda (entry)
   ;;   (let ((delim (cadr (assq orig-major-mode
   ;;                            *ctags-symbols-name-delimiter-alist*))))
@@ -274,6 +275,23 @@ after ;\", and expect single character there instead."
   ;;             (ctags-tag-line entry))))
   )
 
+(defun eproj/c-tag->string (proj tag)
+  (assert (eproj-tag-p tag))
+  (concat (eproj-tag/symbol tag)
+          " "
+          (awhen (assq 'kind (eproj-tag/properties tag))
+            (concat
+             "["
+             (cdr it)
+             "]"))
+          "\n"
+          (eproj-tag/file tag)
+          ":"
+          (number->string (eproj-tag/line tag))
+          "\n"
+          (eproj/extract-tag-line proj tag)
+          "\n"))
+
 (defun eproj/haskell-tag->string (proj tag)
   (assert (eproj-tag-p tag))
   (concat (eproj-tag/symbol tag)
@@ -293,12 +311,7 @@ after ;\", and expect single character there instead."
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
-          (for-buffer-with-file
-              (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
-                                             (eproj-project/root proj))
-            (save-excursion
-              (goto-line1 (eproj-tag/line tag))
-              (current-line)))
+          (eproj/extract-tag-line proj tag)
           "\n"))
 
 (defun eproj/load-ctags-project (lang-mode proj)
@@ -412,7 +425,7 @@ Note: old tags file is removed before calling update command."
                         :load-procedure
                         (lambda (proj)
                           (eproj/load-ctags-project 'c-mode proj))
-                        :tag->string-procedure #'eproj/generic-tag->string
+                        :tag->string-procedure #'eproj/c-tag->string
                         :applies-to-files-procedure
                         (lambda (files)
                           (any? (comp
@@ -1014,6 +1027,16 @@ or `default-directory', if no file is visited."
           (file-name-directory fname))
         default-directory)))
 
+(defun eproj/extract-tag-line (proj tag)
+  "Fetch line where TAG is defined."
+  (assert (eproj-tag-p tag) nil "Eproj tag is required.")
+  (for-buffer-with-file
+      (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                     (eproj-project/root proj))
+    (save-excursion
+      (goto-line1 (eproj-tag/line tag))
+      (current-line))))
+
 ;;; tag/symbol navigation (navigation over homes)
 
 (defvar eproj-symbnav/homes-history (list nil nil)
@@ -1184,7 +1207,7 @@ or `default-directory', if no file is visited."
                   (funcall jump-to-home (elt entries idx)))
                 :predisplay-function
                 (lambda (tag)
-                  (let ((txt (entry->string proj tag)))
+                  (let ((txt (funcall entry->string proj tag)))
                     (if (string=? orig-file-name
                                   (expand-file-name (eproj-tag/file tag)))
                       (propertize txt 'face font-lock-negation-char-face)
