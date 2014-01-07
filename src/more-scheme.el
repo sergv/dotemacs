@@ -61,12 +61,27 @@
 
 (defun any? (pred items)
   "Returns t if pred returns t for any element of ITEMS."
-  (funcall #'some pred items))
+  ;; (funcall #'some pred items)
+  (let ((done nil)
+        (result nil))
+    (while (and (not done)
+                (not (null? items)))
+      (aif (funcall pred (first items))
+        (setf done t
+              result it)
+        (setf items (rest items))))
+    result))
 
 (defun all? (pred items)
   "Returns t if pred returns t for all elements of ITEMS."
-  (funcall #'every pred items))
-
+  ;; (funcall #'every pred items)
+  (let ((result t))
+    (while (and (not (null? result))
+                (not (null? items)))
+      (aif (funcall pred (first items))
+        (setf items (rest items))
+        (setf result nil)))
+    result))
 
 (defun list-ref (i list)
   (nth i list))
