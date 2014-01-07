@@ -250,8 +250,7 @@
     (", E"     scheme-send-last-sexp)
     (", d"     scheme-describe-current-symbol)
     ("SPC SPC" switch-to-scheme-repl)
-    ("j"       scheme-send-last-sexp)
-    ("J"       scheme-send-last-sexp))
+    ("j"       scheme-send-last-sexp))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
@@ -259,8 +258,7 @@
     ("M-/"     scheme-smart-complete))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("j"       scheme-send-region)
-    ("J"       scheme-send-region))
+    ("j"       scheme-send-region))
 
   (scheme-abbrev+-setup))
 
@@ -335,7 +333,7 @@
 ;;; some indentation rules
 
 (put 'syntax-rules 'scheme-indent-function 1)
-(put 'if 'scheme-indent-function 1)
+(put 'if 'scheme-indent-function 3)
 
 ;;;
 
