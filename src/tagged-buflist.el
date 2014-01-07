@@ -22,7 +22,8 @@
 (defstruct (buffer-tag
             (:conc-name buffer-tag/))
   name
-  predicate)
+  predicate ;; function of one argument - buffer to test
+  )
 
 (defmacro* make-buf-tag-pred (&key major-modes
                                    name-regexp
@@ -60,272 +61,285 @@ treated as a list of tags; otherwise it should be list of plain tags."
 ;;;; tag definitions
 
 (defconst +common-buffer-tags+
-  (map (lambda (entry)
-         (make-buffer-tag :name (first entry) :predicate (cadr entry)))
-       (list
-        (list "vc"
-              (make-buf-tag-pred
-               :major-modes '(magit-mode
-                              magit-commit-mode
-                              magit-diff-mode
-                              magit-key-mode
-                              magit-log-edit-mode
-                              magit-log-mode
-                              magit-reflog-mode
-                              magit-show-branches-mode
-                              magit-stash-mode
-                              magit-status-mode
-                              magit-wazzup-mode
-                              gitignore-mode
-                              gitconfig-mode)
-               :name-regexp (rx bol "*magit" (* nonl) "*" eol)))
-        (list "Haskell"
-              (make-buf-tag-pred
-               :major-modes '(haskell-mode
-                              literate-haskell-mode
-                              haskell-cabal-mode
-                              inferior-haskell-mode
-                              inferior-hugs-mode
-                              haskell-hugs-mode
-                              ghc-core-mode
-                              hugs-mode)
-               :name-regexp (rx "*haskell*"
-                                (? "<" (+ digit) ">"))))
-        (list "HDL"
-              (make-buf-tag-pred
-               :major-modes '(verilog-mode
-                              vhdl-mode
-                              ucf-mode)))
-        (list "Clojure"
-              (make-buf-tag-pred
-               :major-modes '(clojure-mode
-                              nrepl-mode
-                              nrepl-popup-buffer-mode
-                              nrepl-macroexpansion-minor-mode
-                              nrepl-interaction-mode
-                              nrepl-popup-buffer-mode)
-               :or-expr-in-buffer
-               (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
-                    (memq major-mode '(text-mode
-                                       fundamental-mode)))))
-        (list "Emacs Lisp"
-              (make-buf-tag-pred
-               :major-modes '(emacs-lisp-mode
-                              inferior-emacs-lisp-mode)
-               :and-expr-in-buffer (not (string-match-pure? "^\\*.+\\*$"
-                                                            (buffer-name)))))
-        (list "C/C++"
-              (make-buf-tag-pred
-               :major-modes '(c-mode c++-mode glsl-mode)))
-        (list "Ocaml"
-              (make-buf-tag-pred
-               :major-modes '(tuareg-mode
-                              tuareg-interactive-mode)
-               :name-regexp (rx "*ocaml-toplevel*"
-                                (? "<" (+ digit) ">"))))
-        (list "Octave"
-              (make-buf-tag-pred
-               :major-modes '(octave-mode inferior-octave-mode)
-               :name-regexp (rx "*[oO]ctave*"
-                                (? "<" (+ digit) ">"))))
-        (list "Python"
-              (make-buf-tag-pred
-               :major-modes '(python-mode
-                              python-repl-mode
-                              inferior-python-mode
-                              python-run-mode)
-               :name-regexp (rx (or "*[pP]ython*"
-                                    "*IPython*"
-                                    "*Python Output*")
-                                (? "<" (+ digit) ">"))))
-        (list "Cython"
-              (make-buf-tag-pred
-               :major-modes '(cython-mode
-                              cython-compilation-mode)))
-        (list "Lisp"
-              (make-buf-tag-pred
-               :major-modes '(cl-mode lisp-mode common-lisp-mode)
-               :and-expr-in-buffer (not (string-match-pure? "^\\*.+\\*$"
-                                                            (buffer-name)))))
-        (list "Slime"
-              (make-buf-tag-pred
-               :major-modes '(slime-repl-mode sldb-mode)
-               :name-regexp (rx "*"
-                                (or (seq (or "slime-repl"
-                                             "sldb")
-                                         (+ " ")
-                                         (or "sbcl"
-                                             "sbcl-full"
-                                             "cmucl"
-                                             "clisp"
-                                             "ccl"
-                                             "ecl"
-                                             "clozure"
-                                             "lisp"
-                                             "scheme"
-                                             "chicken"
-                                             "bigloo"
-                                             "scheme48"
-                                             "guile"
-                                             "gambit"
-                                             "gauche"
-                                             "mit")
-                                         (? "/"
-                                            (+ digit)))
-                                    (or "slime-events"
-                                        "slime-description"
-                                        "slime-trace"
-                                        "slime-compilation"
-                                        "slime-xref"
-                                        "slime-apropos"
-                                        "slime-inspector"
-                                        "slime-macroexpansion"
-                                        "inferior-lisp"
-                                        "lisp-interaction"
-                                        "fuzzy completions"))
-                                "*"
-                                ;; (? "<"
-                                ;;    (+ digit)
-                                ;;    ">")
-                                )))
-        (list "Scheme"
-              (make-buf-tag-pred
-               :major-modes '(scheme-mode)
-               :name-regexp (rx (or (seq "*"
-                                         (? (or "chicken"
-                                                "bigloo"
-                                                "scheme48"
-                                                "guile"
-                                                "gambit"
-                                                "gauche"
-                                                "mit")
-                                            "-")
-                                         "scheme*")
-                                    "* Guile REPL *")
-                                (? "<" (+ digit) ">"))))
-        (list "Prolog"
-              (make-buf-tag-pred
-               :major-modes '(prolog-mode)
-               :name-regexp (rx "*prolog*"
-                                (? "<" (+ digit) ">"))))
-        (list "Maxima"
-              (make-buf-tag-pred
-               :major-modes '(maxima-mode
-                              maxima-noweb-mode
-                              inferior-maxima-mode)
-               :name-regexp (rx (or "*maxima*"
-                                    "*imaxima*")
-                                (? "<"
-                                   (+ digit)
-                                   ">"))))
-        (list "Org"
-              (make-buf-tag-pred
-               :major-modes '(org-mode
-                              org-agenda-mode
-                              diary-mode
-                              calendar-mode)))
-        (list "Books"
-              (make-buf-tag-pred
-               :major-modes '(doc-view-mode)
-               :name-regexp (rx bol
-                                (+ anything)
-                                (or ".pdf"
-                                    ".djvu"
-                                    ".ps"
-                                    ".dvi")
-                                eol)))
-        (list "Latex"
-              (make-buf-tag-pred
-               :major-modes '(latex-mode tex-mode LaTeX-mode)))
-        (list "Java"
-              (make-buf-tag-pred
-               :major-modes '(java-mode)))
-        (list "Web"
-              (make-buf-tag-pred
-               :major-modes '(html-mode
-                              sgml-mode
-                              nxhtml-mode
-                              nxhtml-muamo-mode
-                              css-mode
-                              js-mode
-                              django-nxhtml-mumamo-mode
-                              django-html-mumamo-mode
-                              rnc-mode)))
-        (list "markup"
-              (make-buf-tag-pred
-               :major-modes '(nxml-mode
-                              markdown-mode
-                              yaml-mode
-                              rst-mode)))
-        (list "lowlevel programming"
-              (make-buf-tag-pred
-               :major-modes '(asm-mode
-                              llvm-mode
-                              tablegen-mode)))
-        (list "other programming"
-              (make-buf-tag-pred
-               :major-modes '(makefile-mode
-                              makefile-automake-mode
-                              makefile-gmake-mode
-                              makefile-makepp-mode
-                              makefile-bsdmake-mode
-                              makefile-imake-mode
-                              cmake-mode
-                              shell-script-mode
-                              sh-mode
-                              sh-script-mode
-                              conf-space-mode
-                              conf-mode
-                              conf-xdefaults-mode
-                              conf-unix-mode
-                              conf-colon-mode
-                              conf-javaprop-mode
-                              conf-ppd-mode
-                              conf-windows-mode
-                              lua-mode
-                              tcl-mode
-                              autoconf-mode)
-               :name-regexp (rx bol
-                                (or "makefile"
-                                    "Makefile"
-                                    "GNUMakefile")
-                                eol)))
-        (list "utility"
-              (make-buf-tag-pred
-               :major-modes '(comint-mode
-                              compilation-mode
-                              clojure-compilation-mode
-                              grep-mode
-                              latex-compilation-mode
-                              haskell-compilation-mode
-                              hs-lint-mode
-                              hs-scan-mode
-                              gnuplot-run-mode
-                              eshell-mode
-                              shell-mode)
-               :name-regexp (rx bol (or "*Tags List*") eol)
-               :or-expr-in-buffer (get-buffer-process (current-buffer))))
-        (list "dired"
-              (make-buf-tag-pred
-               :major-modes '(dired-mode)))
-        (list "other"
-              (make-buf-tag-pred
-               :major-modes '(help-mode
-                              apropos-mode
-                              Info-mode
-                              Man-mode
-                              ibuffer-mode
-
-                              snippet-mode
-                              text-mode
-                              fundamental-mode
-                              special-mode)
-               :name-regexp (rx bol
-                                (or "*scratch*"
-                                    "*Messages*"
-                                    "*Pp Eval Output*"
-                                    "*Backtrace*")
-                                eol))))))
+  (let ((basic-tags
+         (map (lambda (entry)
+                (make-buffer-tag :name (first entry) :predicate (cadr entry)))
+              (list
+               (list "vc"
+                     (make-buf-tag-pred
+                      :major-modes '(magit-mode
+                                     magit-commit-mode
+                                     magit-diff-mode
+                                     magit-key-mode
+                                     magit-log-edit-mode
+                                     magit-log-mode
+                                     magit-reflog-mode
+                                     magit-show-branches-mode
+                                     magit-stash-mode
+                                     magit-status-mode
+                                     magit-wazzup-mode
+                                     gitignore-mode
+                                     gitconfig-mode)
+                      :name-regexp (rx bol "*magit" (* nonl) "*" eol)))
+               (list "Haskell"
+                     (make-buf-tag-pred
+                      :major-modes '(haskell-mode
+                                     literate-haskell-mode
+                                     haskell-cabal-mode
+                                     inferior-haskell-mode
+                                     inferior-hugs-mode
+                                     haskell-hugs-mode
+                                     ghc-core-mode
+                                     hugs-mode)
+                      :name-regexp (rx "*haskell*"
+                                       (? "<" (+ digit) ">"))))
+               (list "HDL"
+                     (make-buf-tag-pred
+                      :major-modes '(verilog-mode
+                                     vhdl-mode
+                                     ucf-mode)))
+               (list "Clojure"
+                     (make-buf-tag-pred
+                      :major-modes '(clojure-mode
+                                     nrepl-mode
+                                     nrepl-popup-buffer-mode
+                                     nrepl-macroexpansion-minor-mode
+                                     nrepl-interaction-mode
+                                     nrepl-popup-buffer-mode)
+                      :or-expr-in-buffer
+                      (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
+                           (memq major-mode '(text-mode
+                                              fundamental-mode)))))
+               (list "Emacs Lisp"
+                     (make-buf-tag-pred
+                      :major-modes '(emacs-lisp-mode
+                                     inferior-emacs-lisp-mode)
+                      :and-expr-in-buffer (not (string-match-pure? "^\\*.+\\*$"
+                                                                   (buffer-name)))))
+               (list "C/C++"
+                     (make-buf-tag-pred
+                      :major-modes '(c-mode c++-mode glsl-mode)))
+               (list "Ocaml"
+                     (make-buf-tag-pred
+                      :major-modes '(tuareg-mode
+                                     tuareg-interactive-mode)
+                      :name-regexp (rx "*ocaml-toplevel*"
+                                       (? "<" (+ digit) ">"))))
+               (list "Octave"
+                     (make-buf-tag-pred
+                      :major-modes '(octave-mode inferior-octave-mode)
+                      :name-regexp (rx "*[oO]ctave*"
+                                       (? "<" (+ digit) ">"))))
+               (list "Python"
+                     (make-buf-tag-pred
+                      :major-modes '(python-mode
+                                     python-repl-mode
+                                     inferior-python-mode
+                                     python-run-mode)
+                      :name-regexp (rx (or "*[pP]ython*"
+                                           "*IPython*"
+                                           "*Python Output*")
+                                       (? "<" (+ digit) ">"))))
+               (list "Cython"
+                     (make-buf-tag-pred
+                      :major-modes '(cython-mode
+                                     cython-compilation-mode)))
+               (list "Lisp"
+                     (make-buf-tag-pred
+                      :major-modes '(cl-mode lisp-mode common-lisp-mode)
+                      :and-expr-in-buffer (not (string-match-pure? "^\\*.+\\*$"
+                                                                   (buffer-name)))))
+               (list "Slime"
+                     (make-buf-tag-pred
+                      :major-modes '(slime-repl-mode sldb-mode)
+                      :name-regexp (rx "*"
+                                       (or (seq (or "slime-repl"
+                                                    "sldb")
+                                                (+ " ")
+                                                (or "sbcl"
+                                                    "sbcl-full"
+                                                    "cmucl"
+                                                    "clisp"
+                                                    "ccl"
+                                                    "ecl"
+                                                    "clozure"
+                                                    "lisp"
+                                                    "scheme"
+                                                    "chicken"
+                                                    "bigloo"
+                                                    "scheme48"
+                                                    "guile"
+                                                    "gambit"
+                                                    "gauche"
+                                                    "mit")
+                                                (? "/"
+                                                   (+ digit)))
+                                           (or "slime-events"
+                                               "slime-description"
+                                               "slime-trace"
+                                               "slime-compilation"
+                                               "slime-xref"
+                                               "slime-apropos"
+                                               "slime-inspector"
+                                               "slime-macroexpansion"
+                                               "inferior-lisp"
+                                               "lisp-interaction"
+                                               "fuzzy completions"))
+                                       "*"
+                                       ;; (? "<"
+                                       ;;    (+ digit)
+                                       ;;    ">")
+                                       )))
+               (list "Scheme"
+                     (make-buf-tag-pred
+                      :major-modes '(scheme-mode)
+                      :name-regexp (rx (or (seq "*"
+                                                (? (or "chicken"
+                                                       "bigloo"
+                                                       "scheme48"
+                                                       "guile"
+                                                       "gambit"
+                                                       "gauche"
+                                                       "mit")
+                                                   "-")
+                                                "scheme*")
+                                           "* Guile REPL *")
+                                       (? "<" (+ digit) ">"))))
+               (list "Prolog"
+                     (make-buf-tag-pred
+                      :major-modes '(prolog-mode)
+                      :name-regexp (rx "*prolog*"
+                                       (? "<" (+ digit) ">"))))
+               (list "Maxima"
+                     (make-buf-tag-pred
+                      :major-modes '(maxima-mode
+                                     maxima-noweb-mode
+                                     inferior-maxima-mode)
+                      :name-regexp (rx (or "*maxima*"
+                                           "*imaxima*")
+                                       (? "<"
+                                          (+ digit)
+                                          ">"))))
+               (list "Org"
+                     (make-buf-tag-pred
+                      :major-modes '(org-mode
+                                     org-agenda-mode
+                                     diary-mode
+                                     calendar-mode)))
+               (list "Books"
+                     (make-buf-tag-pred
+                      :major-modes '(doc-view-mode)
+                      :name-regexp (rx bol
+                                       (+ anything)
+                                       (or ".pdf"
+                                           ".djvu"
+                                           ".ps"
+                                           ".dvi")
+                                       eol)))
+               (list "Latex"
+                     (make-buf-tag-pred
+                      :major-modes '(latex-mode tex-mode LaTeX-mode)))
+               (list "Java"
+                     (make-buf-tag-pred
+                      :major-modes '(java-mode)))
+               (list "Web"
+                     (make-buf-tag-pred
+                      :major-modes '(html-mode
+                                     sgml-mode
+                                     nxhtml-mode
+                                     nxhtml-muamo-mode
+                                     css-mode
+                                     js-mode
+                                     django-nxhtml-mumamo-mode
+                                     django-html-mumamo-mode
+                                     rnc-mode)))
+               (list "markup"
+                     (make-buf-tag-pred
+                      :major-modes '(nxml-mode
+                                     markdown-mode
+                                     yaml-mode
+                                     rst-mode)))
+               (list "lowlevel programming"
+                     (make-buf-tag-pred
+                      :major-modes '(asm-mode
+                                     llvm-mode
+                                     tablegen-mode)))
+               (list "other programming"
+                     (make-buf-tag-pred
+                      :major-modes '(makefile-mode
+                                     makefile-automake-mode
+                                     makefile-gmake-mode
+                                     makefile-makepp-mode
+                                     makefile-bsdmake-mode
+                                     makefile-imake-mode
+                                     cmake-mode
+                                     shell-script-mode
+                                     sh-mode
+                                     sh-script-mode
+                                     conf-space-mode
+                                     conf-mode
+                                     conf-xdefaults-mode
+                                     conf-unix-mode
+                                     conf-colon-mode
+                                     conf-javaprop-mode
+                                     conf-ppd-mode
+                                     conf-windows-mode
+                                     lua-mode
+                                     tcl-mode
+                                     autoconf-mode
+                                     pascal-mode
+                                     m2-mode ;; Modula-2
+                                     )
+                      :name-regexp (rx bol
+                                       (or "makefile"
+                                           "Makefile"
+                                           "GNUMakefile")
+                                       eol)))
+               (list "utility"
+                     (make-buf-tag-pred
+                      :major-modes '(comint-mode
+                                     compilation-mode
+                                     clojure-compilation-mode
+                                     grep-mode
+                                     latex-compilation-mode
+                                     haskell-compilation-mode
+                                     hs-lint-mode
+                                     hs-scan-mode
+                                     gnuplot-run-mode
+                                     eshell-mode
+                                     shell-mode)
+                      :name-regexp (rx bol (or "*Tags List*") eol)
+                      :or-expr-in-buffer (get-buffer-process (current-buffer))))
+               (list "dired"
+                     (make-buf-tag-pred
+                      :major-modes '(dired-mode)))
+               ;; (list "other"
+               ;;       (make-buf-tag-pred
+               ;;        :major-modes '(help-mode
+               ;;                       apropos-mode
+               ;;                       Info-mode
+               ;;                       Man-mode
+               ;;                       ibuffer-mode
+               ;;
+               ;;                       snippet-mode
+               ;;                       text-mode
+               ;;                       fundamental-mode
+               ;;                       special-mode)
+               ;;        :name-regexp (rx bol
+               ;;                         (or "*scratch*"
+               ;;                             "*Messages*"
+               ;;                             "*Pp Eval Output*"
+               ;;                             "*Backtrace*")
+               ;;                         eol)))
+               ))))
+    (append basic-tags
+            (list (make-buffer-tag
+                   :name "other"
+                   :predicate (lambda (buf)
+                                (all? (comp #'not
+                                            (partial-first #'funcall buf)
+                                            #'buffer-tag/predicate)
+                                      basic-tags)))))))
 
 (defvar tagged-buflist/consider-nontracked-files-as-residing-in-repository nil
   "If set to T then all files under root of some repository will be considered
