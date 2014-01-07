@@ -164,6 +164,8 @@ all otherwise."
     ("T"               magit-key-mode-popup-tagging)
     ("SPC"             magit-visit-item-other-window)
     ("S-TAB"           magit-cycle-top-sections-visibility)
+    ("<S-tab>"         magit-cycle-top-sections-visibility)
+    ("S-<tab>"         magit-cycle-top-sections-visibility)
     ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
     ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
     ("C-TAB"           magit-cycle-section)
