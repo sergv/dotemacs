@@ -313,8 +313,39 @@ we load it."
 (haskell/make-query-to-inferior haskell-hoogle-at-point    haskell-hoogle)
 (haskell/make-query-to-inferior haskell-hayoo-at-point     haskell-hayoo)
 
-;;; expand on search
+;;; define forward-haskell-symbol
 
+(defvar forward-haskell-symbol-re
+  (rx (or (group (+ ;; (regexp "[-!#$%&*+./<=>?@^|~:\\]")
+                  (any ?\- ?\! ?\# ?\$ ?\% ?\& ?\* ?\+ ?\. ?\/ ?\< ?\= ?\> ?\? ?\@ ?^ ?\| ?\~ ?\: ?\\ )))
+          (group
+           (seq bow
+                (regexp "[a-zA-Z]")
+                (group
+                 (* (regexp "['a-zA-Z_0-9]")))))))
+  "Regexp to recognize haskell symbols as generic enttities for search
+(with e..g \"*\" in vim).")
+
+(bounds-of-thing-at-point 'haskell-symbol)
+
+(put 'haskell-symbol 'forward-op #'forward-haskell-symbol)
+
+(defun forward-haskell-symbol (arg)
+  "Like `forward-symbol' but for generic Haskell symbols (either operators,
+uppercase or lowercase names)."
+  (interactive "p")
+  (if (natnump arg)
+    (re-search-forward forward-haskell-symbol-re nil t arg)
+    (while (< arg 0)
+      (when (re-search-backward forward-haskell-symbol-re nil t)
+        (cond ((not (null? (match-beginning 1)))
+               (skip-chars-backward "\\-!#$%&*+./<=>?@\\^|~:\\\\"))
+              ((not (null? (match-beginning 2)))
+               (when (not (null? (match-beginning 3)))
+                 (skip-chars-backward "a-zA-Z0-9'_")))
+              (else
+               (error "No group of forward-haskell-symbol-re matched, should not happen"))))
+      (setf arg (1+ arg)))))
 
 ;;; haskell parsing
 

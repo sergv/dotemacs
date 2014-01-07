@@ -352,6 +352,30 @@ obvious"
               :case-sensetive t)
              (funcall ,action-after)))))))
 
+(autoload 'forward-haskell-symbol "haskell-misc" t)
+
+;; Haskell search
+
+(search-make-search-for-thing search-for-haskell-symbol-at-point-forward
+                              (lambda () (bounds-of-thing-at-point 'haskell-symbol))
+                              #'search-next-impl
+                              'forward
+                              ;; Don't use \\_<,\\_> since they rely on
+                              ;; syntax table which was tampered with in haskell
+                              ;; mode so that e.g. regexp "\\_<Node" won't match
+                              ;; the input "x:Node (x - 1)".
+                              :regex-start "\\<"
+                              :regex-end "\\>"
+                              :error-message "No symbol at point")
+
+(search-make-search-for-thing search-for-haskell-symbol-at-point-backward
+                              (lambda () (bounds-of-thing-at-point 'haskell-symbol))
+                              #'search-prev-impl
+                              'backward
+                              :regex-start "\\<"
+                              :regex-end "\\>"
+                              :error-message "No symbol at point")
+
 ;; Lispocentric searches
 (search-make-search-for-thing search-for-symbol-at-point-forward
                               (lambda () (bounds-of-thing-at-point 'symbol))
