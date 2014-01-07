@@ -583,47 +583,6 @@ Note: old tags file is removed before calling update command."
                     (eproj-project/aux-info
                      (eproj-get-project-for-buf (current-buffer))))))
 
-(defun eproj-describe-buffer-project ()
-  (interactive)
-  (if-let (proj (eproj-get-project-for-buf (current-buffer)))
-    (let ((indent "    ")
-          (buf (get-buffer-create (format "*%s description*" (eproj-project/root proj)))))
-      (switch-to-buffer-other-window buf)
-      (with-current-buffer buf
-        (erase-buffer)
-        (text-mode)
-        (insert "type: " (pp-to-string (eproj-project-type/name
-                                        (eproj-project/type proj)))
-                "\n")
-        (insert "root: " (eproj-project/root proj) "\n")
-        (insert "related projects:\n")
-        (dolist (related-proj (eproj-project/related-projects proj))
-          (insert indent (eproj-project/root related-proj)) "\n")
-        (insert "tags:\n")
-        (dolist (tags-entry (eproj-project/tags proj))
-          (let ((lang-tags (sort (hash-table->alist (cdr tags-entry))
-                                 (lambda (a b) (string< (car a) (car b))))))
-            (insert indent "lang: "
-                    (pp-to-string (car tags-entry))
-                    ", total amount = "
-                    (number->string (length lang-tags))
-                    "\n")
-            (dolist (entry lang-tags)
-              (insert indent indent (pp-to-string (car entry)) "\n")
-              (dolist (subentry (cdr entry))
-                (insert indent indent indent
-                        (format "%s:%s\n"
-                                (file-relative-name
-                                 (expand-file-name
-                                  (eproj-resolve-abs-or-rel-name
-                                   (eproj-tag/file subentry)
-                                   (eproj-project/root proj)))
-                                 (expand-file-name (eproj-project/root proj)))
-                                (eproj-tag/line subentry)))))))
-        (goto-char (point-min))))
-    (error "no project for buffer %s" (buffer-name (current-buffer)))))
-
-
 
 (defun eproj-reload-tags (proj)
   "Reload tags for PROJ."
@@ -790,6 +749,78 @@ which to try loading/root finding/etc.")
       (error "error while trying to obtain project for root %s" root))
     (eproj-reload-project! proj)
     proj))
+
+;;;; description
+
+(defun eproj-describe-all-projects ()
+  (interactive)
+  (let ((buf (get-buffer-create "*eproj projects")))
+    (switch-to-buffer-other-window buf)
+    (with-current-buffer buf
+      (erase-buffer)
+      (text-mode)
+      (maphash (lambda (root proj)
+                 (eproj-descibe-proj buf proj nil t)
+                 (insert (make-string 80 ?\-) "\n"))
+               *eproj-projects*)
+      (goto-char (point-min)))))
+
+(defun eproj-describe-buffer-project ()
+  (interactive)
+  (if-let (proj (eproj-get-project-for-buf (current-buffer)))
+    (let ((buf (get-buffer-create (format "*%s description*" (eproj-project/root proj)))))
+      (switch-to-buffer-other-window buf)
+      (with-current-buffer buf
+        (erase-buffer)
+        (text-mode)
+        (eproj-descibe-proj buf proj t nil)
+        (goto-char (point-min))))
+    (error "no project for buffer %s" (buffer-name (current-buffer)))))
+
+(defun eproj-descibe-proj (buf proj &optional describe-tags describe-buffers)
+  "Insert description of PROJ in current buffer BUF."
+  (let ((indent "    "))
+    (with-current-buffer buf
+      (insert "type: " (pp-to-string (eproj-project-type/name
+                                      (eproj-project/type proj)))
+              "\n")
+      (insert "root: " (eproj-project/root proj) "\n")
+      (insert "related projects:\n")
+      (dolist (related-proj (eproj-project/related-projects proj))
+        (insert indent (eproj-project/root related-proj)) "\n")
+      (when describe-buffers
+        (insert "buffers:\n")
+        (dolist (buf (filter (lambda (buf)
+                               (condition-case nil
+                                   (string=
+                                    (eproj-project/root proj)
+                                    (eproj-project/root
+                                     (eproj-get-project-for-buf buf)))
+                                 (error nil)))
+                             (visible-buffers)))
+          (insert indent (buffer-name buf) "\n")))
+      (when describe-tags
+        (insert "tags:\n")
+        (dolist (tags-entry (eproj-project/tags proj))
+          (let ((lang-tags (sort (hash-table->alist (cdr tags-entry))
+                                 (lambda (a b) (string< (car a) (car b))))))
+            (insert indent "lang: "
+                    (pp-to-string (car tags-entry))
+                    ", total amount = "
+                    (number->string (length lang-tags))
+                    "\n")
+            (dolist (entry lang-tags)
+              (insert indent indent (pp-to-string (car entry)) "\n")
+              (dolist (subentry (cdr entry))
+                (insert indent indent indent
+                        (format "%s:%s\n"
+                                (file-relative-name
+                                 (expand-file-name
+                                  (eproj-resolve-abs-or-rel-name
+                                   (eproj-tag/file subentry)
+                                   (eproj-project/root proj)))
+                                 (expand-file-name (eproj-project/root proj)))
+                                (eproj-tag/line subentry)))))))))))
 
 ;;;; utilities
 
