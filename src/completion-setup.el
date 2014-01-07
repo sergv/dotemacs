@@ -51,10 +51,6 @@
       completion-category-overrides '()
       read-buffer-function #'completing-read-buffer)
 
-(setf pcomplete-autolist nil
-      pcomplete-recexact nil
-      pcomplete-cycle-completions t)
-
 ;; convenient command completer
 
 (autoload 'smex "smex" "" t)
