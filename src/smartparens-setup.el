@@ -75,7 +75,12 @@
              (whitespace-charp (char-before)))
     (delete-whitespace-backward)))
 
-
+(defun smartparens-buffer-local-setup ()
+  "Set up buffer-local options for smartparens."
+  ;; do not autoinsert new pairs when in stringlike expression
+  (setq-local sp-autoskip-opening-pair t)
+  (setq-local sp-autoskip-closing-pair 'always)
+  (setq-local sp-navigate-consider-stringlike-sexp-in-buffer t))
 
 (defun sp-backward-up-sexp (&optional arg interactive)
   "Move backward one level of parenthesis.

@@ -171,6 +171,8 @@
             (aif (get-buffer "*Completions*")
               (kill-buffer it))))
 
+(add-hook 'minibuffer-setup-hook #'smartparens-buffer-local-setup)
+
 ;;;; character enconding
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
