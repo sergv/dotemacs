@@ -85,10 +85,7 @@
   ;; so action should be taken to turn it off
   (nxhtml-menu-mode (if use-nxhtml-menu 1 -1))
 
-  ;; do not autoinsert new pairs whin in stringlike expression
-  (setf sp-autoskip-opening-pair t
-        sp-autoskip-closing-pair 'always
-        sp-navigate-consider-stringlike-sexp-in-buffer t)
+  (smartparens-buffer-local-setup)
 
   (setf undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t)
@@ -104,6 +101,8 @@
     (render-formula-mode 1))
 
   (vim:bind-local-keymaps)
+
+  ;; I should figure what's going on here someday.
   (eval-after-load "smartparens"
     `(progn
        (when (not (eq ,sp-slurp-sexp-insert-space
