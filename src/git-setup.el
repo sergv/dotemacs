@@ -451,18 +451,20 @@ expanded filenames in git repository to themselves.")
     "Return root of git repository PATH is part of or nil if it's not
 under git version control."
     (when (file-directory? path)
-      (with-temp-buffer
-        (cd path)
-        (when (= 0 (call-process "git"
-                                 nil
-                                 t
-                                 nil
-                                 "rev-parse"
-                                 "--show-toplevel"))
-          (strip-trailing-slash
-           (trim-whitespace
-            (buffer-substring-no-properties (point-min)
-                                            (point-max))))))))
+      (if (file-directory? (concat (strip-trailing-slash path) "/.git"))
+        path
+        (with-temp-buffer
+          (cd path)
+          (when (= 0 (call-process "git"
+                                   nil
+                                   t
+                                   nil
+                                   "rev-parse"
+                                   "--show-toplevel"))
+            (strip-trailing-slash
+             (trim-whitespace
+              (buffer-substring-no-properties (point-min)
+                                              (point-max)))))))))
 
   (defun git-update-file-repository ()
     "Update git-repository for current buffer."
