@@ -111,9 +111,7 @@
     (setq-local compilation-ask-about-save nil)
     (setq-local compilation-auto-jump-to-first-error nil)
     ;; don't skip any messages
-    (setq-local compilation-skip-threshold 0)
-
-    (add-hook 'compilation-finish-functions #'haskell-jump-to-error))
+    (setq-local compilation-skip-threshold 0))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       inferior-haskell-send-decl)
