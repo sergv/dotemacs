@@ -103,15 +103,6 @@
 (defconst haskell-main-function-regexp "^main[ \t]*=[ \t\n\r]*\\(?:do\\)?")
 (defconst haskell-commented-line-regexp "^[ \t]*-- ")
 
-;; just useful utility
-(defconst haskell-operator-regexp "\\(\\s_\\|\\\\\\)+"
-  "For qualification consult `haskell-font-lock-keywords-create'
-in haskell-font-lock.el")
-
-(defsubst haskell-operator? (expr)
-  "Return t if EXPR is a Haskell operator (e.g. !!, ++, Data.Map.!, etc.)"
-  (string-match-pure? haskell-operator-regexp expr))
-
 
 (defconst haskell-module-quantification-regexp
   (let ((conid "\\b[[:upper:]][[:alnum:]'_]*\\b"))
@@ -141,54 +132,6 @@ in haskell-font-lock.el")
     (yas-completing-prompt prompt
                            choices
                            display-fn)))
-
-;;; compilation
-
-(defun haskell-jump-to-error (buffer msg)
-  "Jump to error if compilation wasn't sucessfull, ignore warnings."
-  (when (eq (cdr (assq 'mode *compile-caller-info*)) 'haskell-mode)
-    (when (string-match-pure? "^exited" msg)
-      (with-current-buffer buffer
-        (goto-char (point-min))
-        (save-match-data
-          (when-let (entry (find-if (lambda (entry)
-                                      (let ((re (car entry)))
-                                        (re-search-forward re nil t)))
-                                    compilation-error-regexp-alist))
-            (compilation/jump-to-error (compilation/parse-matched-error-entry entry)
-                                       :other-window nil)))))))
-
-(defun haskell-compile-file (&optional edit-command)
-  "Similar to `haskell-compile' but recognizes makefiles."
-  (interactive "P")
-  (let* ((fname (file-name-nondirectory buffer-file-name))
-         (dir (file-name-directory buffer-file-name))
-         (has-makefile? (any? (lambda (fname)
-                                (file-exists? (concat dir "/" fname)))
-                              "makefile"
-                              "Makefile"
-                              "MAKEFILE"
-                              "GNUMakefile")))
-    (if haskell-has-makefile?
-      (compilation-start "make" 'haskell-compilation-mode)
-      (haskell-compile edit-command))))
-
-(defun haskell-compilation-setup ()
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       +haskell-compile-error-or-warning-regexp+)
-
-  (set (make-local-variable 'compilation-first-column) 1) ;; GHC counts from 1.
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-scroll-output) nil)
-
-  (def-keys-for-map haskell-compilation-mode-map
-    +vim-special-keys+
-    +vim-word-motion-keys+
-    ("SPC"      compilation/goto-error-other-window)
-    ("<return>" compilation/goto-error)
-    ("o"        compilation/goto-error-other-window)))
-
-(add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 
 (put 'haskell-compile-command 'safe-local-variable #'string?)
 (put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
@@ -340,7 +283,7 @@ we load it."
 
 ;;; Automatized definitions using advices-util and macro-util
 
-;;; align functions
+;;;; align functions
 
 (make-align-function haskell-align-on-equals
                      "=[^=]"
@@ -360,7 +303,7 @@ we load it."
 (make-align-function haskell-align-on-double-colons
                      "::[^:]")
 
-;;; custom queries to inferior-haskell
+;;;; custom queries to inferior-haskell
 
 (haskell/make-query-to-inferior haskell-type               inferior-haskell-type t)
 (haskell/make-query-to-inferior haskell-info               inferior-haskell-info)
