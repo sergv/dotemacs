@@ -146,7 +146,10 @@
     (", h"     haskell-haddock-identifier)
     (", m"     haskell-haddock-module)
     (", g"     haskell-hoogle-at-point)
-    (", y"     haskell-hayoo-at-point))
+    (", y"     haskell-hayoo-at-point)
+
+    ("*"       search-for-haskell-symbol-at-point-forward)
+    ("#"       search-for-haskell-symbol-at-point-backward))
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                    vim:insert-mode-local-keymap)
