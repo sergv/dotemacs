@@ -35,13 +35,13 @@
                                  (make-string haskell-indent-offset ?\s)
                                  "$1")))))
 
-           (list (concat "^" (make-re-with-optional-suffix "import" 1) "$")
+           (list (concat "^" (make-re-with-optional-suffix "import" 2) "$")
                  "import"
                  import-expand-pred)
-           (list (concat "^" (make-re-with-optional-suffix "import" 1) "q$")
+           (list (concat "^" (make-re-with-optional-suffix "import" 2) "q$")
                  "import qualified"
                  import-expand-pred)
-           (list (concat "^q" (make-re-with-optional-suffix "import" 1) "$")
+           (list (concat "^q" (make-re-with-optional-suffix "import" 2) "$")
                  "import qualified"
                  import-expand-pred)
            (list "##"
