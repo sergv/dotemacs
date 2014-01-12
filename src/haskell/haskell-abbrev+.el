@@ -9,6 +9,14 @@
 (require 'abbrev+)
 (require 'haskell-misc)
 
+(defun haskell-abbrev+-extract-mod-name (qualified-name)
+  "Extract module name from QUALIFIED-NAME, e.g. if QUALIFIED-NAME = Foo.Bar
+then Bar would be the result."
+  (save-match-data
+    (if (string-match "\\(?:[A-Z][a-zA-Z0-9_']+\\.\\)+\\([A-Z][a-zA-Z0-9_']+\\)"
+                      qualified-name)
+      (match-string 1 qualified-name)
+      nil)))
 
 (defun haskell-abbrev+-setup ()
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
@@ -17,6 +25,8 @@
          (haskell-extensions (append (map #'first haskell-language-extensions)
                                      (remove nil
                                              (map #'third haskell-language-extensions))))
+         (expand-qualified-import-snippet-action
+          (lambda () (yas-expand-snippet "import qualified $1 as ${2:$(haskell-abbrev+-extract-mod-name yas/text)}$0")))
          (language-snippet (format "{-# LANGUAGE ${1:$$(yas-choose-value '%S)} #-}$0"
                                    haskell-extensions)))
     (setf abbrev+-skip-syntax '("w_" "^ >")
@@ -39,10 +49,10 @@
                  "import"
                  import-expand-pred)
            (list (concat "^" (make-re-with-optional-suffix "import" 2) "q$")
-                 "import qualified"
+                 (list expand-qualified-import-snippet-action)
                  import-expand-pred)
            (list (concat "^q" (make-re-with-optional-suffix "import" 2) "$")
-                 "import qualified"
+                 (list expand-qualified-import-snippet-action)
                  import-expand-pred)
            (list "##"
                  (list
