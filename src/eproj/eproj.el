@@ -415,7 +415,9 @@ Note: old tags file is removed before calling update command."
                                  (partial #'string-match-pure?
                                           (eproj-language/extension-re lang)))
                                 files))
-                        :synonym-modes '(literate-haskell-mode))))
+                        :synonym-modes '(literate-haskell-mode
+                                         haskell-c-mode
+                                         haskell-c2hs-mode))))
           lang)
         (letrec ((lang (make-eproj-language
                         :mode 'c-mode
