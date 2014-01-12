@@ -124,7 +124,7 @@
                                   eos))
 
                      (funcall define-programs
-                              '("ghc" "ghci")
+                              '("ghc" "ghci" "runghc" "runhaskell")
                               "\\.\\(?:hs\\|lhs\\|hsc\\)\\'")
 
                      (funcall define-programs
