@@ -320,9 +320,12 @@ we load it."
                   (any ?\- ?\! ?\# ?\$ ?\% ?\& ?\* ?\+ ?\. ?\/ ?\< ?\= ?\> ?\? ?\@ ?^ ?\| ?\~ ?\: ?\\ )))
           (group
            (seq bow
-                (regexp "[a-zA-Z]")
+                ;; allow _ as a first char to fit GHC
+                (or (regexp "[_a-z]")
+                    ;; allow ' preceding conids because of DataKinds/PolyKinds
+                    (regexp "'?[A-Z]"))
                 (group
-                 (* (regexp "['a-zA-Z_0-9]")))))))
+                 (* (regexp "['a-zA-Z_0-9#]")))))))
   "Regexp to recognize haskell symbols as generic enttities for search
 (with e..g \"*\" in vim).")
 
@@ -334,18 +337,23 @@ we load it."
   "Like `forward-symbol' but for generic Haskell symbols (either operators,
 uppercase or lowercase names)."
   (interactive "p")
-  (if (natnump arg)
-    (re-search-forward forward-haskell-symbol-re nil t arg)
-    (while (< arg 0)
-      (when (re-search-backward forward-haskell-symbol-re nil t)
-        (cond ((not (null? (match-beginning 1)))
-               (skip-chars-backward "\\-!#$%&*+./<=>?@\\^|~:\\\\"))
-              ((not (null? (match-beginning 2)))
-               (when (not (null? (match-beginning 3)))
-                 (skip-chars-backward "a-zA-Z0-9'_")))
-              (else
-               (error "No group of forward-haskell-symbol-re matched, should not happen"))))
-      (setf arg (1+ arg)))))
+  (let ((name-chars "a-zA-Z0-9'_#")
+        (operator-chars "\\-!#$%&*+./<=>?@\\^|~:\\\\"))
+    (if (natnump arg)
+      (re-search-forward forward-haskell-symbol-re nil t arg)
+      (while (< arg 0)
+        (when (re-search-backward forward-haskell-symbol-re nil t)
+          (cond ((not (null? (match-beginning 1)))
+                 (skip-chars-backward operator-chars)
+                 ;; we may have matched # thas ends a name
+                 (skip-chars-backward name-chars))
+                ((not (null? (match-beginning 2)))
+                 ;; (goto-char (match-beginning 2))
+                 (when (not (null? (match-beginning 3)))
+                   (skip-chars-backward name-chars)))
+                (else
+                 (error "No group of forward-haskell-symbol-re matched, should not happen"))))
+        (setf arg (1+ arg))))))
 
 ;;; haskell parsing
 

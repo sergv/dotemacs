@@ -184,6 +184,8 @@ Futher modified by Sergey Vinokurov."
        (font-lock-type-face          ((t (:foreground ,yellow))))
        (font-lock-variable-name-face ((t (:foreground ,blue :bold t))))
 
+       (haskell-operator-face        ((t (:foreground ,blue))))
+
        (clojure-constant-face        ((t (:foreground ,cyan))))
        (clojure-java-interop-face    ((t (:foreground ,yellow))))
        (clojure-meta-type-annotation-face ((t (:foreground ,green))))
