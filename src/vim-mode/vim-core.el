@@ -223,7 +223,7 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   has-begin ;; t iff the motion defined an explicit begin
   begin     ;; first point in this motion
   end       ;; last point in this motion
-  type      ;; 'inclusive, 'exclusive, 'linewise
+  type      ;; 'inclusive, 'exclusive, 'linewise, 'block
   )
 
 

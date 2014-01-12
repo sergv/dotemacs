@@ -300,8 +300,26 @@ windows. The reason is that Emacs does not have window-local variables.")
 (vim:defmotion vim:motion-lines (linewise count)
   "Moves count - 1 lines down."
   (vim:use-last-column)
-  (let (line-move-visual)
-    (next-line (1- (or count 1)))))
+  (let (line-move-visual
+        (c (1- (or count 1))))
+    (if (/= 0 c)
+      (next-line c)
+      (vim:make-motion :has-begin t
+                       :begin (line-beginning-position)
+                       :end (line-end-position)
+                       :type 'linewise))))
+
+(vim:defmotion vim:motion-current-line (linewise count)
+  "Moves count - 1 lines down, properly considering the case when point is at
+e.g. shell prompt.."
+  (vim:use-last-column)
+  (let (line-move-visual
+        (start (line-beginning-position)))
+    (vim:make-motion :has-begin t
+                     :begin start
+                     :end (line-end-position (or count 1))
+                     ;; anything but linewise or block
+                     :type 'exclusive)))
 
 (vim:defmotion vim:motion-screen-up (linewise count)
   "Move the cursor count screen lines up."
