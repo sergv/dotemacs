@@ -19,6 +19,24 @@
            pcomplete-recexact nil
            pcomplete-cycle-completions t)))
 
+(defun pcmpl-git-commits ()
+  "Return list of commits to complete against."
+  (append '("HEAD")
+          (pcmpl-git-get-refs "heads\\|tags")))
+
+(defun pcmpl-git-commits-and-files ()
+  "Return list of commits to complete against."
+  (pcomplete-entries)
+  ;; doesn't work for now
+  ;; (append '("HEAD")
+  ;;         (pcmpl-git-get-refs "heads\\|tags")
+  ;;         (pcomplete-entries)
+  ;;
+  ;;         )
+  )
+
+(defalias 'pcmpl-git-rev 'pcmpl-git-commits)
+
 (defun pcmpl-git-get-refs (type)
   "Return a list of `git' refs filtered by TYPE."
   (save-match-data
@@ -39,29 +57,6 @@
                                                                  (point-max))
                                  "\n"
                                  t)))))))
-
-(defvar shell-completion--git-commands
-  '("add"
-    "bisect"
-    "branch"
-    "checkout"
-    "clone"
-    "commit"
-    "diff"
-    "fetch"
-    "grep"
-    "init"
-    "log"
-    "merge"
-    "mv"
-    "pull"
-    "push"
-    "rebase"
-    "reset"
-    "rm"
-    "show"
-    "status"
-    "tag"))
 
 ;;; dsl draft
 
@@ -96,12 +91,38 @@
 
 ;;; simple pcomplete macro
 
-(defmacro defpcmpl (name definition)
+(defmacro* defpcmpl (name definition &key (evaluate-definition nil))
+  "Define completion function NAME which should start with pcomplete/.
+DEFINITION is described by the following grammar:
+
+non-terminals:
+start      = <or> | <opts>
+or         = (opts <positional>* <opts>*)
+opts       = (opts <flags>? <args>?)
+positional = (<positional-arg> <start>?)
+
+flags      = (flags <flag>*)
+args       = (args <completion-expr>)
+
+flag       = <flag-string> | (<flag-string> <completion-expr>)
+
+terminals:
+flag-string     - emacs string describing flag, must include - or --
+completion-expr - elisp expression, like (pcomplete-here (pcomplete-entries))
+positional-arg  - emacs string, usually without -s
+
+N.B. Small deviations to the grammar may be tolerated, but they're mostly
+useless, e.g. (opts (args)) would be accepted but to no effect.
+
+
+<or> just lists alternatives, mostly useful for positional arguments.
+
+<opts> stands for given flags followed by args, no more positional arguments."
   (declare (indent 1))
   (assert (string-match-pure? "pcomplete/" (symbol->string name)))
   (let ((got-end-of-flags-var (gensym "got-end-of-flags"))
-        (last-arg-is-single-dash-var (gensym "last-arg-is-single-dash?"))
-        (last-arg-is-two-dashes-var (gensym "last-arg-is-two-dashes?")))
+        (last-arg-starts-with-single-dash-var (gensym "last-arg-starts-with-single-dash?"))
+        (last-arg-starts-with-two-dashes-var (gensym "last-arg-starts-with-two-dashes?")))
     (letrec ((process
               (lambda (definition level)
                 (assert (and (list? definition)
@@ -111,7 +132,7 @@
                       ((eq? 'opts (first definition))
                        (funcall process-opts definition))
                       (else
-                       (error "unsupported definition: %s" definition)))))
+                       (error "unsupported definition: %S" definition)))))
              (process-or
               (lambda (definition level)
                 (when-let (defs (rest definition))
@@ -140,429 +161,1203 @@
              (process-opts
               (lambda (definition)
                 (let* ((info (rest definition))
-                       (short (cdr-safe (assoc 'short info)))
-                       (long (cdr-safe (assoc 'long info)))
-                       (end (cadr-safe (assoc 'end info))))
-                  (assert (all? (comp (partial string-match-pure? "^-[^-].*"))
-                                short)
+                       (flags (cdr-safe (assoc 'flags info)))
+                       (args (assoc 'args info))
+                       (get-flag-name
+                        (lambda (flag)
+                          (cond ((string? flag)
+                                 flag)
+                                ((list? flag)
+                                 (first flag))
+                                (else
+                                 (error "invalid flag: %S" flag)))))
+                       (complex-flag? (lambda (flag) (list? flag)))
+                       (short-flag? (comp (partial #'string-match-pure? "^-[^-].*")))
+                       (long-flag? (comp (partial #'string-match-pure? "^--[^-].*")))
+                       (expand-complex
+                        (lambda (flag-def)
+                          (assert (and (list? flag-def)
+                                       (= 2 (length flag-def)))
+                                  nil
+                                  "invalid flag def, (<name> <compl>) expected: %S"
+                                  flag-def)
+                          (let ((name (first flag-def))
+                                (compl (second flag-def)))
+                            ;; todo: use -1 here instead of last?
+                            `((string= (pcomplete-arg 'last -1) ,name)
+                              ,compl)))))
+                  (assert (all? (lambda (entry)
+                                  (and (list? entry)
+                                       (not (null? entry))
+                                       (memq (first entry) '(flags args))))
+                                info)
                           nil
-                          "All short options must start with single dash")
-                  (assert (all? (comp (partial string-match-pure? "^--[^-].*"))
-                                long)
+                          "<opts> clause must contain either (flags ...) or (args ...) entries only: %S"
+                          info)
+                  (assert (all? (comp (partial #'string-match-pure?
+                                               "^--?[^-].*")
+                                      get-flag-name)
+                                flags)
                           nil
-                          "All long options must start with two dashes")
-                  (when (or (not (null? short))
-                            (not (null? long))
-                            (not (null? end)))
-                    `(while
-                         (cond
-                           ,@(when (not (null? short))
-                               (list
-                                `((and (not ,got-end-of-flags-var)
-                                       ,last-arg-is-single-dash-var)
-                                  (pcomplete-here '(,@short
-                                                    ;; ,@long
-                                                    )))))
-                           ,@(when (not (null? long))
-                               (list
-                                `((and (not ,got-end-of-flags-var)
-                                       ,last-arg-is-two-dashes-var)
-                                  (pcomplete-here '(,@long)))))
-                           ,@(when (not (null? end))
-                               (list `(t
-                                       ,end)))))))))
+                          "All flags names must start with dash or two dashes: %S\nFailed flags: %S"
+                          flags
+                          (filter (comp #'not
+                                        (partial #'string-match-pure?
+                                                 "^--?[^-].*")
+                                        get-flag-name)
+                                  flags))
+                  (let ((short (filter short-flag?
+                                       (map get-flag-name flags)))
+                        (short-complex (filter (lambda (flag)
+                                                 (and (funcall short-flag?
+                                                               (funcall get-flag-name
+                                                                        flag))
+                                                      (funcall complex-flag? flag)))
+                                               flags))
+                        (long (filter long-flag?
+                                      (map get-flag-name flags)))
+                        (long-complex (filter (lambda (flag)
+                                                (and (funcall long-flag?
+                                                              (funcall get-flag-name
+                                                                       flag))
+                                                     (funcall complex-flag? flag)))
+                                              flags)))
+                    (when (or (not (null? short))
+                              (not (null? long))
+                              (not (null? args)))
+                      `(while
+                           (cond
+                             ,@(when (not (null? short))
+                                 (list
+                                  `((and (not ,got-end-of-flags-var)
+                                         ,last-arg-starts-with-single-dash-var)
+                                    (pcomplete-here '(,@short
+                                                      ;; ,@long
+                                                      )))))
+                             ,@(when (not (null? long))
+                                 (list
+                                  `((and (not ,got-end-of-flags-var)
+                                         ,last-arg-starts-with-two-dashes-var)
+                                    (pcomplete-here '(,@long)))))
+                             ,@(when (or (not (null? args))
+                                         (not (null? short-complex))
+                                         (not (null? long-complex)))
+                                 (when (not (null? args))
+                                   (assert (not (null? (cadr args)))
+                                           nil
+                                           "Meaningless (args ...) clause without completion action, (args <action>) expected: %s"
+                                           args))
+                                 (list `(t
+                                         (cond
+                                           ,@(when (not (null? short-complex))
+                                               (map expand-complex short-complex))
+                                           ,@(when (not (null? long-complex))
+                                               (map expand-complex long-complex))
+                                           (t
+                                            ,(cadr args)))))))))))))
              (process-positional
               (lambda (definition level)
                 (assert (string? (first definition)))
-                (when (not (null? (cadr-safe definition)))
-                  (let ((name (first definition)))
-                    `((string= (pcomplete-arg ,level) ,name)
-                      ,(funcall process
-                                (cadr definition)
-                                (+ level 1))))))))
+                (let ((name (first definition)))
+                  `((string= (pcomplete-arg ,level) ,name)
+                    ,@(when (not (null? (cadr-safe definition)))
+                        (list (funcall process
+                                       (cadr definition)
+                                       (+ level 1)))))))))
       `(defun ,name ()
-         (let* ((,last-arg-is-single-dash-var
-                 (string= "-" (pcomplete-arg 'last)))
-                (,last-arg-is-two-dashes-var
-                 (string= "--" (pcomplete-arg 'last)))
+         (let* ((,last-arg-starts-with-single-dash-var
+                 (string-match-pure? "^-\\([^-]\\|$\\)" (pcomplete-arg 'last)))
+                (,last-arg-starts-with-two-dashes-var
+                 (string-match-pure? "^--\\([^-]\\|$\\)" (pcomplete-arg 'last)))
                 (,got-end-of-flags-var
-                 (and (not ,last-arg-is-two-dashes-var)
+                 (and (not ,last-arg-starts-with-two-dashes-var)
                       (member "--" pcomplete-args))))
-           ,(funcall process definition 1))))))
+           ,(funcall process
+                     (if evaluate-definition
+                       (eval definition t)
+                       definition)
+                     1))))))
 
 
+;;; Version control
+
+;;;###autoload
 (defpcmpl pcomplete/git
   (or ("add"
        (opts
-        (end (pcomplete-here (pcomplete-entries)))))
+        (flags "-n"
+               "--dry-run"
+               "-v"
+               "--verbose"
+               "-i"
+               "--interactive"
+               "-p"
+               "--patch"
+               "-e"
+               "--edit"
+               "-f"
+               "--force"
+               "-u"
+               "--update"
+               "-N"
+               "--intent-to-add"
+               "-A"
+               "--all"
+               "--ignore-removal"
+               "--refresh"
+               "--ignore-errors"
+               "--ignore-missing")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("bisect"
-       (or ("good")
-           ("bad")
-           ("start")))
+       (or
+        ("help")
+        ("start"
+         (opts
+          (flags "--no-checkout")
+          (args (pcomplete-here (pcmpl-git-rev)))))
+        ("bad"
+         (opts
+          (args (pcomplete-here (pcmpl-git-rev)))))
+        ("good"
+         (opts
+          (args (pcomplete-here (pcmpl-git-rev)))))
+        ("skip"
+         (opts
+          (args (pcomplete-here (pcmpl-git-rev)))))
+        ("next")
+        ("reset"
+         (opts
+          (args (pcomplete-here (pcmpl-git-commits)))))
+        ("visualize")
+        ("replay")
+        ("log")
+        ("run")))
       ("branch"
        (opts
-        (short "-d" "-D")
-        (long "--list")
-        (end (pcomplete-here (pcmpl-git-get-refs "heads")))))
+        (flags "-v"
+               "--verbose"
+               "-q"
+               "--quiet"
+               "-t"
+               "--track"
+               "--set-upstream"
+               "-u"
+               "--set-upstream-to"
+               "--unset-upstream"
+               "--color"
+               "-r"
+               "--remotes"
+               "--contains"
+               "--abbrev"
+               "-a"
+               "--all"
+               "-d"
+               "--delete"
+               "-D"
+               "-m"
+               "--move"
+               "-M"
+               "--list"
+               "-l"
+               "--create-reflog"
+               "--edit-description"
+               "-f"
+               "--force"
+               "--no-merged"
+               "--merged"
+               "--column")
+        (args (pcomplete-here (pcmpl-git-commits)))))
       ("checkout"
        (opts
-        (end (pcomplete-here (pcmpl-git-get-refs "heads")))))
+        (flags "-q"
+               "--quiet"
+               ("-b" (pcomplete-here (pcmpl-git-get-refs "heads")))
+               ("-B" (pcomplete-here (pcmpl-git-get-refs "heads")))
+               "-l"
+               "--detach"
+               "-t"
+               "--track"
+               "--orphan"
+               "-2"
+               "--ours"
+               "-3"
+               "--theirs"
+               "-f"
+               "--force"
+               "-m"
+               "--merge"
+               "--overwrite-ignore"
+               "--conflict"
+               "-p"
+               "--patch"
+               "--ignore-skip-worktree-bits")
+        (args (pcomplete-here (pcmpl-git-commits)))))
       ("clone"
        (opts
-        (short "-l"
+        (flags "-v"
+               "--verbose"
+               "-q"
+               "--quiet"
+               "--progress"
                "-n"
+               "--no-checkout"
+               "--bare"
+               "--mirror"
+               "-l"
+               "--local"
+               "--no-hardlinks"
                "-s"
+               "--shared"
+               "--recursive"
+               "--recurse-submodules"
+               "--template"
+               "--reference"
                "-o"
+               "--origin"
                "-b"
+               "--branch"
                "-u"
-               "-c")
-        (long "--bare"
-              "--mirror"
-              "--local"
-              "--progress"
-              "--no-checkout"
-              "--no-hardlinks"
-              "--shared"
-              "--recursive"
-              "--recursive-submodules"
-              "--template"
-              "--reference"
-              "--origin"
-              "--branch"
-              "--upload-pack"
-              "--depth"
-              "--single-branch"
-              "--separate-git-dir"
-              "--config")))
+               "--upload-pack"
+               "--depth"
+               "--single-branch"
+               "--separate-git-dir"
+               "-c"
+               "--config")))
       ("commit"
        (opts
-        (short "-F"
+        (flags "-q"
+               "--quiet"
+               "-v"
+               "--verbose"
+               "-F"
+               "--file"
+               "--author"
+               "--date"
                "-m"
+               "--message"
                "-c"
+               "--reedit-message"
                "-C"
+               "--reuse-message"
+               "--fixup"
+               "--squash"
+               "--reset-author"
                "-s"
+               "--signoff"
                "-t"
+               "--template"
                "-e"
+               "--edit"
+               "--cleanup"
+               "--status"
                "-S"
-
+               "--gpg-sign"
                "-a"
+               "--all"
                "-i"
+               "--include"
+               "--interactive"
                "-p"
+               "--patch"
                "-o"
+               "--only"
                "-n"
+               "--no-verify"
+               "--dry-run"
+               "--short"
+               "--branch"
+               "--porcelain"
+               "--long"
                "-z"
-               "-u")
-        (long "--file"
-              "--author"
-              "--date"
-              "--message"
-              "--reedit-message"
-              "--reuse-message"
-              "--fixup"
-              "--squash"
-              "--reset-author"
-              "--signoff"
-              "--template"
-              "--edit"
-              "--cleanup"
-              "--status"
-              "--gpg-sign"
-
-              "--all"
-              "--include"
-              "--interactive"
-              "--patch"
-              "--only"
-              "--no-verify"
-              "--dry-run"
-              "--short"
-              "--branch"
-
-              ;; "--porcelain"
-              "--long"
-              "--null"
-              "--amend"
-              "--no-post-rewrite"
-              "--untracked-files")
-        (end (pcomplete-here (pcomplete-entries)))))
+               "--null"
+               "--amend"
+               "--no-post-rewrite"
+               "-u"
+               "--untracked-files")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("diff"
        (opts
-        (short "-p"
+        (flags "--no-index"
+               "--cached"
+               "-p"
                "-u"
+               "--patch"
                "-s"
+               "--no-patch"
                "-U"
+               "--unified"
+               "--raw"
+               "--patch-with-raw"
+               "--minimal"
+               "--patience"
+               "--histogram"
+               "--diff-algorithm=patience"
+               "--diff-algorithm=minimal"
+               "--diff-algorithm=histogram"
+               "--diff-algorithm=myers"
+               "--diff-algorithm=default"
+               "--stat"
+               "--numstat"
+               "--shortstat"
+               "--dirstat"
+               "--summary"
+               "--patch-with-stat"
                "-z"
+               "--name-only"
+               "--name-status"
+               "--submodule"
+               "--color"
+               "--no-color"
+               "--word-diff"
+               "--word-diff-regex"
+               "--color-words"
+               "--no-renames"
+               "--check"
+               "--full-index"
+               "--binary"
+               "--abbrev"
                "-B"
+               "--break-rewrites"
                "-M"
+               "--find-renames"
                "-C"
+               "--find-copies"
+               "--find-copies-harder"
                "-D"
+               "--irreversible-delete"
                "-l"
+               "--diff-filter"
                "-S"
                "-G"
+               "--pickaxe-all"
+               "--pickaxe-regex"
                "-O"
                "-R"
+               "--relative"
                "-a"
+               "--text"
+               "--ignore-space-at-eol"
                "-b"
+               "--ignore-space-change"
                "-w"
-               "-W")
-        (long "--no-index"
-              "--cached"
-              "--patch"
-              "--no-patch"
-              "--unified"
-              "--raw"
-              "--minimal"
-              "--patience"
-              "--histogram"
-              "--diff-algorithm"
-              "--stat"
-              "--numstat"
-              "--shortstat"
-              "--dirstat"
-              "--summary"
-              "--name-only"
-              "--name-status"
-              "--submodule"
-              "--color"
-              "--no-color"
-              "--word-diff"
-              "--word-diff-regex"
-              "--color-words"
-              "--no-renames"
-              "--check"
-              "--full-index"
-              "--binary"
-              "--abbrev"
-              "--break-rewrites"
-              "--find-renames"
-              "--find-copies"
-              "--find-copies-harder"
-              "--irreversible-delete"
-              "--diff-filter"
-              "--pickaxe-all"
-              "--pickaxe-regex"
-              "--relative"
-              "--text"
-              "--ignore-space-at-eol"
-              "--ignore-space-change"
-              "--ignore-all-space"
-              "--ignore-blank-lines"
-              "--inter-hunk-context"
-              "--function-context"
-              "--exit-code"
-              "--quiet"
-              "--ext-diff"
-              "--no-ext-diff"
-              "--textconv"
-              "--no-textconv"
-              "--ignore-submodules"
-              "--src-prefix"
-              "--dst-prefix"
-              "--no-prefix")
-        (end (pcomplete-here (pcomplete-entries)))))
+               "--ignore-all-space"
+               "--ignore-blank-lines"
+               "--inter-hunk-context"
+               "-W"
+               "--function-context"
+               "--exit-code"
+               "--quiet"
+               "--ext-diff"
+               "--no-ext-diff"
+               "--textconv"
+               "--no-textconv"
+               "--ignore-submodules"
+               "--src-prefix"
+               "--dst-prefix"
+               "--no-prefix")
+        (args (pcomplete-here (pcmpl-git-commits-and-files)))))
       ("fetch"
        (opts
-        (short "-a"
+        (flags "-v"
+               "--verbose"
+               "-q"
+               "--quiet"
+               "--all"
+               "-a"
+               "--append"
+               "--upload-pack"
                "-f"
+               "--force"
+               "-m"
+               "--multiple"
                "-t"
+               "--tags"
                "-n"
                "-p"
+               "--prune"
+               "--recurse-submodules"
+               "--dry-run"
                "-k"
-               "-u")
-        (long "--all"
-              "--multiple"
-              "--append"
-              "--fonce"
-              "--tags"
-              "--no-tags"
-              "--prune"
-              "--recurse-submodules"
-              "--dry-run"
-              "--keep"
-              "--update-head-ok"
-              "--progress"
-              "--depth"
-              "--unshallow")))
+               "--keep"
+               "-u"
+               "--update-head-ok"
+               "--progress"
+               "--depth"
+               "--unshallow")))
       ("grep"
        (opts
-        (short "-v"
+        (flags "--cached"
+               "--no-index"
+               "--untracked"
+               "--exclude-standard"
+               "-v"
+               "--invert-match"
                "-i"
+               "--ignore-case"
                "-w"
+               "--word-regexp"
                "-a"
+               "--text"
                "-I"
+               "--textconv"
+               "--max-depth"
                "-E"
+               "--extended-regexp"
                "-G"
+               "--basic-regexp"
                "-F"
-               "-p"
+               "--fixed-strings"
+               "-P"
+               "--perl-regexp"
                "-n"
+               "--line-number"
                "-h"
                "-H"
+               "--full-name"
                "-l"
+               "--files-with-matches"
+               "--name-only"
                "-L"
+               "--files-without-match"
                "-z"
+               "--null"
                "-c"
+               "--count"
+               "--color"
+               "--break"
+               "--heading"
                "-C"
+               "--context"
                "-B"
+               "--before-context"
                "-A"
+               "--after-context"
+               "-NUM"
                "-p"
+               "--show-function"
                "-W"
+               "--function-context"
                "-f"
                "-e"
+               "--and"
+               "--or"
+               "--not"
+               "-q"
+               "--quiet"
+               "--all-match"
                "-O"
-               "-q")
-        (long "--cached"
-              "--no-index"
-              "--untracked"
-              "--exclude-standard"
-              "--invert-match"
-              "--ignore-case"
-              "--word-regexp"
-              "--text"
-              "--textconv"
-              "--max-depth"
-              "--extended-regexp"
-              "--basic-regexp"
-              "--fixed-strings"
-              "--perl-regexp"
-              "--line-number"
-              "--full-name"
-              "--files-with-matches"
-              "--name-only"
-              "--files-without-match"
-              "--null"
-              "--count"
-              "--break"
-              "--heading"
-              "--context"
-              "--before-context"
-              "--after-context"
-              "--show-function"
-              "--function-context"
-              "--and"
-              "--or"
-              "--not"
-              "--all-match"
-              "--ext-grep"
-              "--quiet")
-        (end (pcomplete-here (pcomplete-entries)))))
+               "--open-files-in-pager"
+               "--ext-grep")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("init"
        (opts
-        (long "--bare"
-              "--shared"
-              "--separate-git-dir")
-        (end (pcomplete-here (pcomplete-entries)))))
+        (flags "--bare"
+               "--shared"
+               "--separate-git-dir")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("log"
        (opts
-        (short "-q"
+        (flags "-q"
+               "--quiet"
+               "--source"
+               "--use-mailmap"
+               "--decorate"
                "-L")
-        (long "--quiet"
-              "--source"
-              "--use-mailmap"
-              "--decorate")
-        (end (pcomplete-here (pcomplete-entries)))))
-      ("merge")
+        (args (pcomplete-here (pcmpl-git-commits-and-files)))))
+      ("merge"
+       (opts
+        (flags "-n"
+               "--stat"
+               "--summary"
+               "--log"
+               "--squash"
+               "--commit"
+               "-e"
+               "--edit"
+               "--ff"
+               "--ff-only"
+               "--rerere-autoupdate"
+               "--verify-signatures"
+               "-s"
+               "--strategy"
+               "-X"
+               "--strategy-option"
+               "-m"
+               "--message"
+               "-v"
+               "--verbose"
+               "-q"
+               "--quiet"
+               "--abort"
+               "--progress"
+               "-S"
+               "--gpg-sign"
+               "--overwrite-ignore")
+        (args (pcomplete-here (pcmpl-git-commits)))))
       ("mv"
        (opts
-        (end (pcomplete-here (pcomplete-entries)))))
+        (flags "-v"
+               "--verbose"
+               "-n"
+               "--dry-run"
+               "-f"
+               "--force"
+               "-k")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("p4"
        (or ("submit")
            ("rebase")
            ("clone")))
-      ("pull")
-      ("push")
+      ("pull"
+       (opts
+        (flags "-n"
+               "--no-stat"
+               "--commit"
+               "--no-commit"
+               "--squash"
+               "--no-squash"
+               "--no-ff"
+               "--ff"
+               "--no-rebase"
+               "--rebase"
+               "--rebase=preserve"
+               "-s")))
+      ("push"
+       (opts
+        (flags "-v"
+               "--verbose"
+               "-q"
+               "--quiet"
+               "--repo"
+               "--all"
+               "--mirror"
+               "--delete"
+               "--tags"
+               "-n"
+               "--dry-run"
+               "--porcelain"
+               "-f"
+               "--force"
+               "--force-with-lease"
+               "--recurse-submodules"
+               "--thin"
+               "--receive-pack"
+               "--exec"
+               "-u"
+               "--set-upstream"
+               "--progress"
+               "--prune"
+               "--no-verify"
+               "--follow-tags")))
       ("rebase"
        (opts
-        (short "-i"
-               "-x")
-        (long "--interactive"
-              "--exec"
-              "--no-ff")
-        (end (pcomplete-here (pcmpl-git-get-refs "heads")))))
+        (flags "-i"
+               "-x"
+               "--interactive"
+               "--exec"
+               "--no-ff")
+        (args (pcomplete-here (pcmpl-git-rev)))))
       ("reset"
        (opts
-        (long "--mixed"
-              "--soft"
-              "--hard"
-              "--merge"
-              "--keep")
-        (end (pcomplete-here (pcomplete-entries)))))
+        (flags "--mixed"
+               "--soft"
+               "--hard"
+               "--merge"
+               "--keep")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("rm"
        (opts
-        (short "-f"
+        (flags "-f"
                "-r"
-               "-n")
-        (long "--cached"
-              "--dry-run"
-              "--force")
-        (end (pcomplete-here (pcomplete-entries)))))
+               "-n"
+               "--cached"
+               "--dry-run"
+               "--force")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("show"
        (opts
-        (short "-q"
-               "-L")
-        (long "--quiet"
-              "--source"
-              "--use-mailmap"
-              "--decorate")
-        (end (pcomplete-here (pcomplete-entries)))))
+        (flags "-q"
+               "-L"
+               "--quiet"
+               "--source"
+               "--use-mailmap"
+               "--decorate")
+        (args (pcomplete-here (pcomplete-entries)))))
       ("status")
       ("tag"
        (opts
-        (end (pcomplete-here (pcmpl-git-get-refs "tags")))))))
+        (args (pcomplete-here (pcmpl-git-get-refs "tags")))))))
 
+;;; Haskell
+
+(defun pcmpl-haskell-source-or-obj-files (ignore-obj)
+  (let ((pcomplete-file-ignore
+         (regexp-opt (remove-if (lambda (ext)
+                                  (and (null ignore-obj)
+                                       (string-match-pure? ext
+                                                           (rx "."
+                                                               (or "o"
+                                                                   "p_o"
+                                                                   "p_hi"
+                                                                   "prof_o"
+                                                                   "hi"
+                                                                   "so"
+                                                                   "a"
+                                                                   "lib"
+                                                                   "dll")))))
+                                *ignored-file-name-endings*)))
+        (pcomplete-dir-ignore
+         (regexp-opt *version-control-directories*)))
+    (pcomplete-entries)))
+
+;;;###autoload
+(defpcmpl pcomplete/runghc
+  (opts
+   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files nil)))))
+
+;;;###autoload
+(defpcmpl pcomplete/runhaskell
+  (opts
+   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files t)))))
+
+;;;###autoload
+(defpcmpl pcomplete/ghc
+  (opts
+   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files nil)))))
+
+;;;###autoload
+(defpcmpl pcomplete/cabal
+  (let* ((programs '("alex"
+                     "ar"
+                     "c2hs"
+                     "cpphs"
+                     "ffihugs"
+                     "gcc"
+                     "ghc"
+                     "ghc-pkg"
+                     "greencard"
+                     "haddock"
+                     "happy"
+                     "hmake"
+                     "hpc"
+                     "hsc2hs"
+                     "hscolour"
+                     "hugs"
+                     "jhc"
+                     "ld"
+                     "lhc"
+                     "lhc-pkg"
+                     "nhc98"
+                     "pkg-config"
+                     "ranlib"
+                     "strip"
+                     "tar"
+                     "uhc"))
+         (help-flags '("-h"
+                       "--help"))
+         (help-verbosity-flags `(,@help-flags
+                                 "-v"
+                                 "--verbose"
+                                 "--verbose=0"
+                                 "--verbose=1"
+                                 "--verbose=2"
+                                 "--verbose=3"))
+         (builddir-flags '(("--builddir" (pcomplete-here (pcomplete-dirs)))))
+         (solver-flags '("--solver"
+                         "--solver=topdown"
+                         "--solver=modular"
+                         "--solver=choose"))
+         (fetch-flags '("--max-backjumps"
+                        "--reorder-goals"
+                        "--shadow-installed-packages"))
+         (configure-flags `(,@help-verbosity-flags
+                            ,@builddir-flags
+                            "-g"
+                            "--ghc"
+                            "--nhc98"
+                            "--jhc"
+                            "--lhc"
+                            "--hugs"
+                            "--uhc"
+                            "-w"
+                            "--with-compiler"
+                            "--with-hc-pkg"
+                            ("--prefix" (pcomplete-here (pcomplete-dirs)))
+                            ("--bindir" (pcomplete-here (pcomplete-dirs)))
+                            ("--libdir" (pcomplete-here (pcomplete-dirs)))
+                            ("--libsubdir" (pcomplete-here (pcomplete-dirs)))
+                            ("--libexecdir" (pcomplete-here (pcomplete-dirs)))
+                            ("--datadir" (pcomplete-here (pcomplete-dirs)))
+                            ("--datasubdir" (pcomplete-here (pcomplete-dirs)))
+                            ("--docdir" (pcomplete-here (pcomplete-dirs)))
+                            ("--htmldir" (pcomplete-here (pcomplete-dirs)))
+                            ("--haddockdir" (pcomplete-here (pcomplete-dirs)))
+                            ("--sysconfdir" (pcomplete-here (pcomplete-dirs)))
+                            ("-b" (pcomplete-here (pcomplete-dirs)))
+                            ("--scratchdir" (pcomplete-here (pcomplete-dirs)))
+                            "--program-prefix"
+                            "--program-suffix"
+                            "--enable-library-vanilla"
+                            "--disable-library-vanilla"
+                            "-p"
+                            "--enable-library-profiling"
+                            "--disable-library-profiling"
+                            "--enable-shared"
+                            "--disable-shared"
+                            "--enable-executable-dynamic"
+                            "--disable-executable-dynamic"
+                            "--enable-executable-profiling"
+                            "--disable-executable-profiling"
+                            "-O"
+                            "--enable-optimization"
+                            "--enable-optimization=0"
+                            "--enable-optimization=1"
+                            "--enable-optimization=2"
+                            "--disable-optimization"
+                            "--enable-library-for-ghci"
+                            "--disable-library-for-ghci"
+                            "--enable-split-objs"
+                            "--disable-split-objs"
+                            "--enable-executable-stripping"
+                            "--disable-executable-stripping"
+                            "--configure-option"
+                            "--user"
+                            "--global"
+                            ("--package-db" (pcomplete-here (pcomplete-entries)))
+                            "-f"
+                            "--flags"
+                            ("--extra-include-dirs" (pcomplete-here (pcomplete-dirs)))
+                            ("--extra-lib-dirs" (pcomplete-here (pcomplete-dirs)))
+                            ("--extra-prog-path" (pcomplete-here (pcomplete-dirs)))
+                            "--enable-tests"
+                            "--disable-tests"
+                            "--enable-library-coverage"
+                            "--disable-library-coverage"
+                            "--enable-benchmarks"
+                            "--disable-benchmarks"
+                            ,@(concatMap (lambda (p)
+                                           `((,(concat "--" p)
+                                              (pcomplete-here (pcomplete-entries)))
+                                             ,(concat "--" p "-option")
+                                             ,(concat "--" p "-options")))
+                                         programs)
+                            "--cabal-lib-version"
+                            "--constraint"
+                            "--preference"
+                            ,@solver-flags)))
+    `(or
+      ("install"
+       (opts
+        (flags ,@configure-flags
+               "--enable-documentation"
+               "--disable-documentation"
+               "--doc-index-file"
+               "--dry-run"
+               ,@fetch-flags
+               "--reinstall"
+               "--avoid-reinstalls"
+               "--force-reinstalls"
+               "--upgrade-dependencies"
+               "--only-dependencies"
+               "--dependencies-only"
+               "--root-cmd"
+               ("--symlink-bindir" (pcomplete-here (pcomplete-dirs)))
+               "--build-summary"
+               "--build-log"
+               "--remote-build-reporting"
+               "--remote-build-reporting=none"
+               "--remote-build-reporting=anonymous"
+               "--remote-build-reporting=detailed"
+               "--one-shot"
+               "-j"
+               "--jobs"
+               "--haddock-hoogle"
+               "--haddock-html"
+               "--haddock-html-location=URL"
+               "--haddock-executables"
+               "--haddock-internal"
+               ("--haddock-css" (pcomplete-here (pcomplete-entries)))
+               "--haddock-hyperlink-source"
+               ("--haddock-hscolour-css" (pcomplete-here (pcomplete-entries)))
+               "--haddock-contents-location")))
+      ("update"
+       (opts
+        (flags ,@help-verbosity-flags)))
+      ("list"
+       (opts
+        (flags ,@help-verbosity-flags
+               "--installed"
+               "--simple-output")))
+      ("info"
+       (opts
+        (flags ,@help-verbosity-flags)))
+      ("fetch"
+       (opts
+        (flags ,@help-verbosity-flags
+               "--dependencies"
+               "--no-dependencies"
+               ,@solver-flags
+               ,@fetch-flags)))
+      ("get"
+       (opts
+        (flags ,@help-verbosity-flags
+               ("-d" (pcomplete-entries (pcomplete-dirs)))
+               ("--destdir" (pcomplete-entries (pcomplete-dirs)))
+               "-s"
+               "--source-repository"
+               "--source-repository=head"
+               "--source-repository=this"
+               "--pristine")))
+      ("check"
+       (opts
+        (flags ,@help-flags)))
+      ("sdist")
+      ("upload")
+      ("report")
+      ("run")
+      ("init")
+      ("configure"
+       (opts
+        (flags ,@configure-flags)))
+      ("build"
+       (opts
+        (flags ,@help-verbosity-flags
+               ,@builddir-flags
+               "-j"
+               "--jobs"
+               "--only"
+               ,@(concatMap (lambda (p)
+                              `((,(concat "--with-" p)
+                                 (pcomplete-here (pcomplete-entries)))
+                                ,(concat "--" p "-option")
+                                ,(concat "--" p "-options")))
+                            programs))))
+      ("repl")
+      ("sandbox"
+       (or ("init")
+           ("delete")
+           ("add-source"
+            (opts
+             (args (pcomplete-here (pcomplete-entries)))))
+           ("hc-pkg")
+           ("list-sources")))
+      ("copy")
+      ("haddock")
+      ("clean")
+      ("hscolour")
+      ("register")
+      ("test"
+       (opts
+        (flags ,@help-verbosity-flags
+               ,@builddir-flags
+               "--log"
+               "--machine-log"
+               "--show-details"
+               "--show-details=always"
+               "--show-details=never"
+               "--show-details=failures"
+               "--keep-tix-files"
+               "--test-options"
+               "--test-option"
+               "-j"
+               "--jobs"
+               "--only")))
+      ("bench")
+      ("help")))
+  :evaluate-definition t)
+
+;;; C, low-level stuff
+
+;;;###autoload
 (defpcmpl pcomplete/nm
-  (opts (short "-a"
+  (opts
+   (flags "-a"
+          "--debug-syms"
+          "-A"
+          "--print-file-name"
+          "-B"
+          "-C"
+          "--demangle"
+          "--demangle=auto"
+          "--demangle=gnu"
+          "--demangle=lucid"
+          "--demangle=arm"
+          "--demangle=hp"
+          "--demangle=edg"
+          "--demangle=gnu-v3"
+          "--demangle=java"
+          "--demangle=gnat"
+          "--no-demangle"
+          "-D"
+          "--dynamic"
+          "--defined-only"
+          "-e"
+          "-f"
+          "--format"
+          "--format=bsd"
+          "--format=sysv"
+          "--format=posix"
+          "-g"
+          "--extern-only"
+          "-l"
+          "--line-numbers"
+          "-n"
+          "--numeric-sort"
+          "-o"
+          "-p"
+          "--no-sort"
+          "-P"
+          "--portability"
+          "-r"
+          "--reverse-sort"
+          "--plugin"
+          "-S"
+          "--print-size"
+          "-s"
+          "--print-armap"
+          "--size-sort"
+          "--special-syms"
+          "--synthetic"
+          "-t"
+          "--radix"
+          "--target"
+          "-u"
+          "--undefined-only"
+          "-X"
+          "-h"
+          "--help"
+          "-V"
+          "--version")
+   (args (pcomplete-here (pcomplete-entries)))))
+
+
+(defun pcmpl-gcc-assembler-flags ()
+  '())
+
+(defun pcmpl-gcc-preprocessor-flags ()
+  '())
+
+(defun pcmpl-gcc-linker-flags ()
+  '())
+
+;;;###autoload
+(defpcmpl pcomplete/gcc
+  (opts
+   (flags "-pass-exit-codes"
+          "--help"
+          "--help=common"
+          "--help=optimizers"
+          "--help=params"
+          "--help=target"
+          "--help=warnings"
+          "--help=joined"
+          "--help=separate"
+          "--help=undocumented"
+          "--help=^joined"
+          "--help=^separate"
+          "--help=^undocumented"
+          "--target-help"
+          "--help"
+          "--version"
+          "-dumpspecs"
+          "-dumpversion"
+          "-dumpmachine"
+          "-print-search-dirs"
+          "-print-libgcc-file-name"
+          "-print-file-name=<lib>"
+          "-print-prog-name=<prog>"
+          "-print-multiarch"
+          "-print-multi-directory"
+          "-print-multi-lib"
+          "-print-multi-os-director"
+          "-print-sysroot"
+          "-print-sysroot-headers-s"
+          "-Wa,"
+          "-Wp,"
+          "-Wl,"
+          ("-Xassembler" (pcomplete-here (pcmpl-gcc-assembler-flags)))
+          ("-Xpreprocessor" (pcomplete-here (pcmpl-gcc-preprocessor-flags)))
+          ("-Xlinker" (pcomplete-here (pcmpl-gcc-linker-flags)))
+          "-save-temps"
+          "-save-temps"
+          "-no-canonical-prefixes"
+          "-pipe"
+          "-time"
+          ("-specs" (pcomplete-here (pcomplete-entries)))
+          "-std"
+          "-std=c++11"
+          "-std=c99"
+          "-std=c89"
+          ("--sysroot" (pcomplete-here (pcomplete-dirs)))
+          ("-B" (pcomplete-here (pcomplete-dirs)))
+          "-v"
+          "-###"
+          "-E"
+          "-S"
+          "-c"
+          ("-o" (pcomplete-here (pcomplete-entries)))
+          "-pie"
+          "-shared"
+          ("-x" (pcomplete-here '("c" "c++" "assembler" "none")))
+
+          "-static"
+
+          ("-I" (pcomplete-here (pcomplete-dirs)))
+          ("-L" (pcomplete-here (pcomplete-dirs)))
+          "-Os"
+          "-O2"
+          "-O3"
+          "-marh"
+          "-march=native"
+          "-fomit-frame-pontier")
+   (args (pcomplete-here (pcomplete-entries)))))
+
+;;; simpler definitions, vanilla Unix & GNU tools
+
+;;;###autoload
+(defpcmpl pcomplete/cp
+  (opts (flags "-r")
+        (args (pcomplete-here (pcomplete-entries)))))
+
+;;;###autoload
+(defpcmpl pcomplete/ls
+  (opts (flags "-a"
+               "--all"
+               "-A"
+               "--almost-all"
+               "--author"
+               "-b"
+               "--escape"
+               "--block-size"
+               "-B"
+               "--ignore-backups"
+               "-c"
                "-C"
+               "--color"
+               "-d"
+               "--directory"
                "-D"
+               "--dired"
                "-f"
+               "-F"
+               "--classify"
+               "--file-type"
+               "--format"
+               "--full-time"
                "-g"
+               "--group-directories-first"
+               "-G"
+               "--no-group"
+               "-h"
+               "--human-readable"
+               "--si"
+               "-H"
+               "--dereference-command-line"
+               "--dereference-command-line-symlink-to-dir"
+               "--hide"
+               "--indicator-style"
+               "-i"
+               "--inode"
+               "-I"
+               "--ignore"
+               "-k"
+               "--kibibytes"
                "-l"
+               "-L"
+               "--dereference"
+               "-m"
                "-n"
+               "--numeric-uid-gid"
+               "-N"
+               "--literal"
                "-o"
                "-p"
-               "-P"
+               "--indicator-style"
+               "-q"
+               "--hide-control-chars"
+               "--show-control-chars"
+               "-Q"
+               "--quote-name"
+               "--quoting-style"
                "-r"
-               "-S"
+               "--reverse"
+               "-R"
+               "--recursive"
                "-s"
+               "--size"
+               "-S"
+               "--sort"
+               "--time"
+               "--time-style"
                "-t"
-               "-u")
-        (long "--debug-syms"
-              "--demangle"
-              "--demangle=auto"
-              "--demangle=gnu"
-              "--demangle=lucid"
-              "--demangle=arm"
-              "--demangle=hp"
-              "--demangle=edg"
-              "--demangle=gnu-v3"
-              "--demangle=java"
-              "--demangle=gnat"
-              "--no-demangle"
-              "--dynamic"
-              "--format"
-              "--format=bsd"
-              "--format=sysv"
-              "--format=posix"
-              "--extern-only"
-              "--line-numbers"
-              "--numeric-sort"
-              "--no-sort"
-              "--portability"
-              "--reverse-sort"
-              "--pulgin"
-              "--print-size"
-              "--print-armap"
-              "--size-sort"
-              "--special-syms"
-              "--synthetic"
-              "--radix"
-              "--target"
-              "--undefined-only")
-        (end (pcomplete-here (pcomplete-entries)))))
+               "-T"
+               "--tabsize"
+               "-u"
+               "-U"
+               "-v"
+               "-w"
+               "--width"
+               "-x"
+               "-X"
+               "-Z"
+               "--context"
+               "-1"
+               "--help"
+               "--version")
+        (args (pcomplete-here (pcomplete-entries)))))
 
-(defpcmpl pcomplete/cp
-  (opts (short "-r")
-        (end (pcomplete-here (pcomplete-entries)))))
+;;;###autoload
+(defpcmpl pcomplete/cat
+  (opts (flags "--help")
+        (args (pcomplete-here (pcomplete-entries)))))
 
+;;;###autoload
+(defpcmpl pcomplete/mv
+  (opts (flags "--backup"
+               "-b"
+               "-f"
+               "--force"
+               "-i"
+               "--interactive"
+               "-n"
+               "--no-clobber"
+               "--strip-trailing-slashes"
+               "-S"
+               "--suffix"
+               "-t"
+               "--target-directory"
+               "-T"
+               "--no-target-directory"
+               "-u"
+               "--update"
+               "-v"
+               "--verbose"
+               "--help"
+               "--version")
+        (args (pcomplete-here (pcomplete-entries)))))
+
+;; (defvar shell-completion--git-commands
+;;   '("add"
+;;     "bisect"
+;;     "branch"
+;;     "checkout"
+;;     "clone"
+;;     "commit"
+;;     "diff"
+;;     "fetch"
+;;     "grep"
+;;     "init"
+;;     "log"
+;;     "merge"
+;;     "mv"
+;;     "pull"
+;;     "push"
+;;     "rebase"
+;;     "reset"
+;;     "rm"
+;;     "show"
+;;     "status"
+;;     "tag"))
 ;; hand-crafted git completion prototype
 ;; (defun pcomplete/git ()
 ;;   "Completion for git."
@@ -571,7 +1366,7 @@
 ;;          (while (pcomplete-here (pcomplete-entries))))
 ;;         ((string= (pcomplete-arg 1) "branch")
 ;;          ;; (pcomplete-match (rx "branch") 1)
-;;          (message "(pcomplete-argi 'last) = %s"
+;;          (message "(pcomplete-argi 'last) = %S"
 ;;                   (pp-to-string (pcomplete-arg 'last)))
 ;;          (while
 ;;              (cond ((string= (pcomplete-arg) "-")
@@ -588,31 +1383,6 @@
 ;;          (while (pcomplete-here (pcomplete-entries))))
 ;;         ((pcomplete-match (rx "tag") 1)
 ;;          (pcomplete-here* (pcmpl-git-get-refs "tags")))))
-
-
-(defun pcomplete/ls ()
-  "Completion for ls."
-  (let ((pcomplete-help "helpful message"))
-    (while t (pcomplete-here
-              (funcall (lambda (f)
-                         (lambda (string pred action)
-                           (remove-if (lambda (x)
-                                        (member x '("." ".." "./" "../")))
-                                      (funcall f string pred action))))
-                       (pcomplete-entries))))))
-
-(defun pcomplete/cat ()
-  "Completion for cat"
-  (while t
-    (let ((pcomplete-help (identity "helpful message")))
-      (pcomplete-here
-       (funcall (lambda (f)
-                  (let ((func f))
-                    (lambda (string pred action)
-                      (remove-if (lambda (x)
-                                   (member x '("." ".." "./" "../")))
-                                 (funcall func string pred action)))))
-                (pcomplete-entries))))))
 
 (provide 'shell-completion)
 
