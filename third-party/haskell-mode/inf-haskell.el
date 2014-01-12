@@ -183,7 +183,7 @@ It runs the hook `inferior-haskell-hook' after starting the process and
 setting up the inferior-haskell buffer."
   (interactive (list (inferior-haskell-command current-prefix-arg)))
   (setq inferior-haskell-buffer
-        (apply 'make-comint "haskell" (car command) nil (cdr command)))
+        (apply 'make-comint "ghci" (car command) nil (cdr command)))
   (with-current-buffer inferior-haskell-buffer
     (inferior-haskell-mode)
     (run-hooks 'inferior-haskell-hook)))
