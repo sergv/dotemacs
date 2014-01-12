@@ -129,14 +129,25 @@ modNameToPath
            "search :: (Ord k) => Map.Map k v -> k -> v")))
 
 
+(ert-deftest haskell-tests/abbrev+-extract-module-name ()
+  (should (string= (haskell-abbrev+-extract-mod-name "Foo.Bar")
+                   "Bar"))
+  (should (string= (haskell-abbrev+-extract-mod-name "Foo.Bar.Baz")
+                   "Baz"))
+  (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
+                   "Quux")))
+
 (setf haskell-tests/tests
       '(haskell-tests/toplevel-signature-regexp
         haskell-tests/haskell-peg-parse-string
-        haskell-tests/haskell-parse-signature))
+        haskell-tests/haskell-parse-signature
+        haskell-tests/abbrev+-extract-module-name))
 
 (let ((ert-debug-on-error nil))
   (eproj-reset-projects)
-  (ert (join-lines (map #'symbol->string haskell-tests/tests) "\\|")
+  (ert (join-lines (map (comp #'regexp-quote #'symbol->string)
+                        haskell-tests/tests)
+                   "\\|")
        ;; "haskell-tests/.*"
        )
   nil)
