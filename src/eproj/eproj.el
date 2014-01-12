@@ -787,7 +787,7 @@ which to try loading/root finding/etc.")
       (insert "root: " (eproj-project/root proj) "\n")
       (insert "related projects:\n")
       (dolist (related-proj (eproj-project/related-projects proj))
-        (insert indent (eproj-project/root related-proj)) "\n")
+        (insert indent related-proj) "\n")
       (when describe-buffers
         (insert "buffers:\n")
         (dolist (buf (filter (lambda (buf)
