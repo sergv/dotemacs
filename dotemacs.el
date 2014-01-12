@@ -137,6 +137,11 @@
 
   (when create-keymaps
     (vim:bind-local-keymaps))
+  (if (not (null? vim:operator-pending-mode-local-keymap))
+    (def-keys-for-map vim:operator-pending-mode-local-keymap
+      ("c" vim:motion-current-line))
+    (message "init-repl warning: vim:operator-pending-mode-local-keymap is nil, \"c\" not bound in buffer %s"
+             (current-buffer)))
 
   (cond ((keymapp bind-return)
          (def-keys-for-map bind-return

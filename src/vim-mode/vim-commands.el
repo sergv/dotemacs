@@ -162,7 +162,9 @@ and switches to insert-mode."
   (vim:cmd-yank-line :count count :register register)
   (let ((beg (line-beginning-position))
         (end (save-excursion
-               (forward-line (1- (or count 1)))
+               (let ((n (1- (or count 1))))
+                 (when (/= 0 n)
+                   (forward-line n)))
                (line-end-position))))
     (if (= beg (point-min))
       (if (= end (point-max))
@@ -228,7 +230,8 @@ and switches to insert-mode."
 
     (_
      ;; deal with cw and cW
-     (when (and vim:current-motion
+     (when (and (not (null? vim:current-motion))
+                (not (eob?))
                 (not (member (char-after) '(?\s ?\r ?\n ?\t))))
        (let ((cnt (* (or vim:current-cmd-count 1)
                      (or vim:current-motion-count 1))))
