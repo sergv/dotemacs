@@ -25,6 +25,18 @@
         conf-mode-hook
         conf-xdefaults-mode-hook))
 
+(autoload 'pcomplete/git "shell-completion" nil t)
+(autoload 'pcomplete/runghc "shell-completion" nil t)
+(autoload 'pcomplete/runhaskell "shell-completion" nil t)
+(autoload 'pcomplete/ghc "shell-completion" nil t)
+(autoload 'pcomplete/cabal "shell-completion" nil t)
+(autoload 'pcomplete/nm "shell-completion" nil t)
+(autoload 'pcomplete/gcc "shell-completion" nil t)
+(autoload 'pcomplete/cp "shell-completion" nil t)
+(autoload 'pcomplete/ls "shell-completion" nil t)
+(autoload 'pcomplete/cat "shell-completion" nil t)
+(autoload 'pcomplete/mv "shell-completion" nil t)
+
 
 ;; Local Variables:
 ;; End:
