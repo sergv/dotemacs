@@ -34,7 +34,7 @@
 (defmacro rxx (definitions &rest main-expr)
   "Return `rx' invokation of main-expr that has symbols defined in
 DEFINITIONS substituted by definition body. DEFINITIONS is list
-of the form of let-bindigs, (symbol body). No recursion is permitted -
+of let-bindig forms, (<symbol> <body>). No recursion is permitted -
 no defined symbol should show up in body of its definition or in
 body of any futher definition."
   (awhen (find-if (lambda (def) (not (= 2 (length def)))) definitions)

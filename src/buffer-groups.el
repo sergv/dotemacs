@@ -25,6 +25,8 @@
                        (name . ,(rx bol "*magit" (* nonl) "*" eol))))
        (haskell-filter `(or (mode . haskell-mode)
                             (mode . literate-haskell-mode)
+                            (mode . c2hs-mode)
+                            (mode . haskell-c-mode)
                             (mode . haskell-cabal-mode)
                             (mode . inferior-haskell-mode)
                             (mode . inferior-hugs-mode)
