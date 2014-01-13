@@ -8,6 +8,8 @@
 
 (load "haskell-autoloads-generated")
 
+(defvar *haskell-extensions* '("hs" "lhs" "hsc" "chs"))
+
 (autoload 'haskell-setup "haskell-setup" "" nil nil)
 (autoload 'inferior-haskell-mode-setup "haskell-setup" "" nil nil)
 
@@ -29,6 +31,7 @@
 
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 
+(provide 'haskell-autoload)
 
 ;; Local Variables:
 ;; End:
