@@ -24,6 +24,7 @@
 (defconst +comment-util-comment-format-alist+
   '((haskell-mode          (one-line "--") (line-regexp "--+"))
     (haskell-c-mode        (one-line "--") (line-regexp "--+"))
+    (c2hs-mode             (one-line "--") (line-regexp "--+"))
     (literate-haskell-mode (one-line "--") (line-regexp "--+"))
     (ghc-core-mode         (one-line "--") (line-regexp "--+"))
     (latex-mode            (one-line "%")  (line-regexp "%+"))
