@@ -12,6 +12,7 @@
 
 (autoload 'haskell-setup "haskell-setup" "" nil nil)
 (autoload 'inferior-haskell-mode-setup "haskell-setup" "" nil nil)
+(autoload 'c2hs-mode "c2hs-mode" "" nil nil)
 
 (add-to-list 'auto-mode-alist        '("\\.hcr\\'" . ghc-core-mode))
 (add-to-list 'auto-mode-alist        '("\\.cabal\\'" . haskell-cabal-mode))
@@ -20,7 +21,7 @@
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
 (add-to-list 'auto-mode-alist        '("\\.hsc\\'" . haskell-c-mode))
-(add-to-list 'auto-mode-alist        '("\\.chs\\'" . haskell-c-mode))
+(add-to-list 'auto-mode-alist        '("\\.chs\\'" . c2hs-mode))
 
 (defalias 'ghci 'switch-to-haskell)
 

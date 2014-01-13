@@ -86,6 +86,8 @@ treated as a list of tags; otherwise it should be list of plain tags."
                       :major-modes '(haskell-mode
                                      literate-haskell-mode
                                      haskell-cabal-mode
+                                     c2hs-mode
+                                     haskell-c-mode
                                      inferior-haskell-mode
                                      inferior-hugs-mode
                                      haskell-hugs-mode

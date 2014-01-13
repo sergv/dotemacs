@@ -418,7 +418,7 @@ Note: old tags file is removed before calling update command."
                                 files))
                         :synonym-modes '(literate-haskell-mode
                                          haskell-c-mode
-                                         haskell-c2hs-mode))))
+                                         c2hs-mode))))
           lang)
         (letrec ((lang (make-eproj-language
                         :mode 'c-mode
