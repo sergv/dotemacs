@@ -41,6 +41,7 @@
 (require 'custom-predicates)
 (require 'select-mode)
 (require 'more-haskell)
+(require 'haskell-autoload)
 
 ;;; eproj-tag
 
@@ -402,9 +403,9 @@ Note: old tags file is removed before calling update command."
 (defvar eproj/languages
   (list (letrec ((lang (make-eproj-language
                         :mode 'haskell-mode
-                        :extension-re (rx "."
-                                          (or "hs" "lhs" "hsc")
-                                          eol)
+                        :extension-re (concat "."
+                                              (regexp-opt *haskell-extensions*)
+                                              "$")
                         :load-procedure
                         (lambda (proj)
                           (eproj/load-haskell-project proj))

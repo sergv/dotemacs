@@ -93,7 +93,7 @@
            (let* ((root (locate-dominating-file
                          (file-name-directory (buffer-file-name))
                          (lambda (dir)
-                           (or (not (string-match-pure? "[A-Z][a-zA-Z]*"
+                           (or (not (string-match-pure? "[A-Z][a-zA-Z0-9_']*"
                                                         (file-name-nondirectory
                                                          (strip-trailing-slash dir))))
                                (any? (lambda (path)

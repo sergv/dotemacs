@@ -14,6 +14,7 @@
 (require 'grep)
 (require 'keys-def)
 (require 'compilation-setup)
+(require 'haskell-autoload)
 
 (eval-after-load
     "grep"
@@ -190,10 +191,13 @@ more than once"
               find-program)
 
       grep-files-aliases
-      (let ((scheme-extensions
-             (mapconcat (lambda (x) (concat "*." x))
-                        +scheme-file-extensions+
-                        " ")))
+      (let* ((make-compl-pattern (lambda (x) (concat "*." x)))
+             (scheme-exts
+              (join-lines (map make-compl-pattern +scheme-file-extensions+)
+                          " "))
+             (haskell-exts
+              (join-lines (map make-compl-pattern *haskell-extensions*)
+                          " ")))
         `(("all"      . "*")
           ("el"       . "*.el")
           ("c"        . "*.c")
@@ -205,7 +209,7 @@ more than once"
           ("clj"      . "*.clj")
           ("clojure"  . "*.clj")
           ("java"     . "*.java")
-          ("scm"      . ,scheme-extensions)
+          ("scm"      . ,scheme-exts)
           ("mk"       . "[Mm]akefile* *.mk")
           ("make"     . "[Mm]akefile* *.mk")
           ("makefile" . "[Mm]akefile* *.mk")
@@ -214,8 +218,8 @@ more than once"
           ("asm"      . "*.s")
           ("llvm"     . "*.ll")
           ("xml"      . "*.xml")
-          ("hs"       . "*.hs *.hsc *.lhs")
-          ("haskell"  . "*.hs *.hsc *.lhs")
+          ("hs"       . ,haskell-exts)
+          ("haskell"  . ,haskell-exts)
           ("py"       . "*.py *.pyx *.pxd *.pxi"))))
 
 
