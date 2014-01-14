@@ -566,19 +566,22 @@ Note: old tags file is removed before calling update command."
   (interactive)
   (setf *eproj-projects* (make-hash-table :test #'equal))
   ;; do not forget to reset cache
-  (eproj/reset-buffer-local-cache))
+  (eproj/reset-buffer-local-cache)
+  (eproj-symbnav/reset))
 
 (defun eproj-update-projects ()
   "Update projects in database `*eproj-projects*'."
   (interactive)
   (maphash (lambda (root proj)
              (eproj-reload-project! proj))
-           *eproj-projects*))
+           *eproj-projects*)
+  (eproj-symbnav/reset))
 
 (defun eproj-update-buffer-project ()
   "Update project for current buffer or create new project if it does not exists."
   (interactive)
-  (eproj-reload-project! (eproj-get-project-for-buf (current-buffer))))
+  (eproj-reload-project! (eproj-get-project-for-buf (current-buffer)))
+  (eproj-symbnav/reset))
 
 (defun eproj-get-aux-info-for-buffer-project (key)
   "Query aux info for current buffer's project for KEY."
