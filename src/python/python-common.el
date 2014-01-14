@@ -151,15 +151,9 @@ greater indenation as current line."
   (hs-minor-mode 1)
   (setf hs-block-end-regexp nil)
 
-  ;; TODO <Monday, 26 August 2013>
-  ;; since autopair is gone is it necessary to keep this?
-  ;; - Slow forward-sexp implementation may still cause problems
-  ;;
-  ;; autopair relies on default `forward-sexp' to be accessible, but
-  ;; python sets it to `python-nav-forward-sexp' which
-  ;; a. also navigates python statements as "sexps"
-  ;; b. somewhat heavy and causes noticeable delay on inserting (, " or """
-  ;; => bad alternative for `forward-sexp', but nice function on its own right
+  ;; By default this is set to `python-nav-forward-sexp' which is too
+  ;; heavyweight alternative to `forward-sexp' for general-purpose use
+  ;; (causes noticeable delay on inserting (, " or """)
   (setq-local forward-sexp-function nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
