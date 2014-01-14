@@ -230,7 +230,6 @@
                   :bind-return nil
                   :create-keymaps t)
 
-       (setq autopair-dont-activate t)
        (linum-mode t)
 
        (def-keys-for-map vim:normal-mode-local-keymap
