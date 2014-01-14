@@ -45,6 +45,7 @@
 
 (add-to-list 'auto-mode-alist
              (cons (rx (or ".gitconfig"
+                           ".gitmodules"
                            ".git/config")
                        eol)
                    'gitconfig-mode))
@@ -59,7 +60,10 @@
 (defun gitconfig-setup ()
   (init-common :use-yasnippet  nil
                :use-comment    t
-               :use-whitespace t))
+               :use-whitespace t)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<tab>" tab-to-tab-stop)))
 
 (add-hook 'gitignore-mode-hook #'gitconfig-setup)
 
