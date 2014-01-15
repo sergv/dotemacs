@@ -278,6 +278,15 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                        definition)
                      1))))))
 
+(defun pcmpl-entries-ignoring (re)
+  "Like `pcomplete-entries' but ignores files mathing RE."
+  (let ((pcomplete-file-ignore re)
+        (pcomplete-dir-ignore
+         (regexp-opt *version-control-directories*)))
+    (pcomplete-entries)))
+
+(defun pcmpl-entries-ignoring-common ()
+  (pcmpl-entries-ignoring (regexp-opt *ignored-file-name-endings*)))
 
 ;;; Version control
 
@@ -653,7 +662,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
        (opts
         (flags "--bare"
                "--shared"
-               "--separate-git-dir")
+               ("--separate-git-dir" (pcomplete-here (pcomplete-dirs))))
         (args (pcomplete-here (pcomplete-entries)))))
       ("log"
        (opts
@@ -791,29 +800,27 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 ;;; Haskell
 
 (defun pcmpl-haskell-source-or-obj-files (ignore-obj)
-  (let ((pcomplete-file-ignore
-         (regexp-opt (remove-if (lambda (ext)
-                                  (and (null ignore-obj)
-                                       (string-match-pure? ext
-                                                           (rx "."
-                                                               (or "o"
-                                                                   "p_o"
-                                                                   "p_hi"
-                                                                   "prof_o"
-                                                                   "hi"
-                                                                   "so"
-                                                                   "a"
-                                                                   "lib"
-                                                                   "dll")))))
-                                *ignored-file-name-endings*)))
-        (pcomplete-dir-ignore
-         (regexp-opt *version-control-directories*)))
-    (pcomplete-entries)))
+  (pcmpl-entries-ignoring
+   (regexp-opt (if ignore-obj
+                 *ignored-file-name-endings*
+                 (remove-if (lambda (ext)
+                              (string-match-pure? (rx "."
+                                                      (or "o"
+                                                          "p_o"
+                                                          "p_hi"
+                                                          "prof_o"
+                                                          "hi"
+                                                          "so"
+                                                          "a"
+                                                          "lib"
+                                                          "dll"))
+                                                  ext))
+                            *ignored-file-name-endings*)))))
 
 ;;;###autoload
 (defpcmpl pcomplete/runghc
   (opts
-   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files nil)))))
+   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files)))))
 
 ;;;###autoload
 (defpcmpl pcomplete/runhaskell
@@ -823,7 +830,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 ;;;###autoload
 (defpcmpl pcomplete/ghc
   (opts
-   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files nil)))))
+   (args (pcomplete-here (pcmpl-haskell-source-or-obj-files)))))
 
 ;;;###autoload
 (defpcmpl pcomplete/cabal
@@ -923,7 +930,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "--configure-option"
                             "--user"
                             "--global"
-                            ("--package-db" (pcomplete-here (pcomplete-entries)))
+                            ("--package-db" (pcomplete-here (pcmpl-entries-ignoring-common)))
                             "-f"
                             "--flags"
                             ("--extra-include-dirs" (pcomplete-here (pcomplete-dirs)))
@@ -937,7 +944,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "--disable-benchmarks"
                             ,@(concatMap (lambda (p)
                                            `((,(concat "--" p)
-                                              (pcomplete-here (pcomplete-entries)))
+                                              (pcomplete-here (pcmpl-entries-ignoring-common)))
                                              ,(concat "--" p "-option")
                                              ,(concat "--" p "-options")))
                                          programs)
@@ -976,9 +983,9 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--haddock-html-location=URL"
                "--haddock-executables"
                "--haddock-internal"
-               ("--haddock-css" (pcomplete-here (pcomplete-entries)))
+               ("--haddock-css" (pcomplete-here (pcmpl-entries-ignoring-common)))
                "--haddock-hyperlink-source"
-               ("--haddock-hscolour-css" (pcomplete-here (pcomplete-entries)))
+               ("--haddock-hscolour-css" (pcomplete-here (pcmpl-entries-ignoring-common)))
                "--haddock-contents-location")))
       ("update"
        (opts
@@ -1001,8 +1008,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("get"
        (opts
         (flags ,@help-verbosity-flags
-               ("-d" (pcomplete-entries (pcomplete-dirs)))
-               ("--destdir" (pcomplete-entries (pcomplete-dirs)))
+               ("-d" (pcomplete-here (pcomplete-dirs)))
+               ("--destdir" (pcomplete-here (pcomplete-dirs)))
                "-s"
                "--source-repository"
                "--source-repository=head"
@@ -1028,7 +1035,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--only"
                ,@(concatMap (lambda (p)
                               `((,(concat "--with-" p)
-                                 (pcomplete-here (pcomplete-entries)))
+                                 (pcomplete-here (pcmpl-entries-ignoring-common)))
                                 ,(concat "--" p "-option")
                                 ,(concat "--" p "-options")))
                             programs))))
@@ -1038,7 +1045,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
            ("delete")
            ("add-source"
             (opts
-             (args (pcomplete-here (pcomplete-entries)))))
+             (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
            ("hc-pkg")
            ("list-sources")))
       ("copy")
@@ -1183,7 +1190,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-no-canonical-prefixes"
           "-pipe"
           "-time"
-          ("-specs" (pcomplete-here (pcomplete-entries)))
+          ("-specs" (pcomplete-here (pcmpl-entries-ignoring-common)))
           "-std"
           "-std=c++11"
           "-std=c99"
@@ -1309,7 +1316,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 ;;;###autoload
 (defpcmpl pcomplete/cat
   (opts (flags "--help")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
 
 ;;;###autoload
 (defpcmpl pcomplete/mv
@@ -1336,53 +1343,36 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--version")
         (args (pcomplete-here (pcomplete-entries)))))
 
-;; (defvar shell-completion--git-commands
-;;   '("add"
-;;     "bisect"
-;;     "branch"
-;;     "checkout"
-;;     "clone"
-;;     "commit"
-;;     "diff"
-;;     "fetch"
-;;     "grep"
-;;     "init"
-;;     "log"
-;;     "merge"
-;;     "mv"
-;;     "pull"
-;;     "push"
-;;     "rebase"
-;;     "reset"
-;;     "rm"
-;;     "show"
-;;     "status"
-;;     "tag"))
-;; hand-crafted git completion prototype
-;; (defun pcomplete/git ()
-;;   "Completion for git."
-;;   (pcomplete-here shell-completion--git-commands)
-;;   (cond ((pcomplete-match (rx (or "add" "mv" "rm")) 1)
-;;          (while (pcomplete-here (pcomplete-entries))))
-;;         ((string= (pcomplete-arg 1) "branch")
-;;          ;; (pcomplete-match (rx "branch") 1)
-;;          (message "(pcomplete-argi 'last) = %S"
-;;                   (pp-to-string (pcomplete-arg 'last)))
-;;          (while
-;;              (cond ((string= (pcomplete-arg) "-")
-;;                     (pcomplete-here '("-a"
-;;                                       "-r"
-;;                                       )))
-;;                    ((string= (pcomplete-arg) "--")
-;;                     (pcomplete-here '("--list"
-;;                                       "--track")))))
-;;          (pcomplete-here* (pcmpl-git-get-refs "heads")))
-;;         ((pcomplete-match (rx "checkout") 1)
-;;          (pcomplete-here* (pcmpl-git-get-refs "heads")))
-;;         ((pcomplete-match (rx "log") 1)
-;;          (while (pcomplete-here (pcomplete-entries))))
-;;         ((pcomplete-match (rx "tag") 1)
-;;          (pcomplete-here* (pcmpl-git-get-refs "tags")))))
+;;;###autoload
+(defpcmpl pcomplete/bash
+  (let ((short-options))
+    `(opts
+      (flags "-c"
+             "-i"
+             "-l"
+             "-r"
+             "-s"
+             "-D"
+             ("-O"
+              (opt (flags ,@short-options)))
+             ("+O"
+              (opt (flags ,@short-options)))
+             "--debugger"
+             "--dump-po-strings"
+             "--dump-strings"
+             "--help"
+             ("--init-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
+             ("--rcfile" (pcomplete-here (pcmpl-entries-ignoring-common)))
+             "-l"
+             "--login"
+             "--noediting"
+             "--noprofile"
+             "--norc"
+             "--posix"
+             "--restricted"
+             "--verbose"
+             "--version")
+      (args (pcomplete-here (pcmpl-entries-ignoring-common))))))
 
 (provide 'shell-completion)
 

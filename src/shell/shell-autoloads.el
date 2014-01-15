@@ -36,6 +36,7 @@
 (autoload 'pcomplete/ls "shell-completion" nil t)
 (autoload 'pcomplete/cat "shell-completion" nil t)
 (autoload 'pcomplete/mv "shell-completion" nil t)
+(autoload 'pcomplete/bash "shell-completion" nil t)
 
 
 ;; Local Variables:
