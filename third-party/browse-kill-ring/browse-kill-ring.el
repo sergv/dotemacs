@@ -539,7 +539,7 @@ It is probably not a good idea to set this variable directly; simply
 call `browse-kill-ring' again.")
 
 (defvar browse-kill-ring-original-buffer-position nil
-  "Position in `browse-kill-ring/original-buffer'.")
+  "Position in `browse-kill-ring-original-buffer'.")
 
 (defvar browse-kill-ring-preview-overlay nil
   "The overlay used to preview what would happen if the user
