@@ -1,0 +1,15 @@
+[submodule "third-party/c2hs-mode"]
+        path = third-party/c2hs-mode
+        url = https://github.com/sergv/c2hs-mode.git
+[submodule "third-party/ariadne-el"]
+        path = third-party/ariadne-el
+        url = https://github.com/manzyuk/ariadne-el.git
+[submodule "third-party/bert-el"]
+        path = third-party/bert-el
+        url = https://github.com/manzyuk/bert-el.git
+[submodule "third-party/haskell-mode"]
+        path = third-party/haskell-mode
+        url = https://github.com/sergv/haskell-mode.git
+[submodule "third-party/browse-kill-ring"]
+        path = third-party/browse-kill-ring
+        url = https://github.com/sergv/browse-kill-ring.git
