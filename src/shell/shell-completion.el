@@ -793,6 +793,57 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--decorate")
         (args (pcomplete-here (pcomplete-entries)))))
       ("status")
+      ("submodule"
+       (or
+        ("add"
+         (opts
+          (flags "-b"
+                 "-f"
+                 "--force"
+                 "--name"
+                 "--reference")
+          (args (pcomplete-here (pcomplete-dirs)))))
+        ("status"
+         (opts
+          (flags "--cached"
+                 "--recursive")
+          (args (pcomplete-here (pcomplete-dirs)))))
+
+        ("init"
+         (opts
+          (args (pcomplete-here (pcomplete-dirs)))))
+        ("deinit"
+         (opts
+          (flags "-f"
+                 "--force")
+          (args (pcomplete-here (pcomplete-dirs)))))
+        ("update"
+         (opts
+          (flags "--init"
+                 "--remote"
+                 "-N"
+                 "--no-fetch"
+                 "-f"
+                 "--force"
+                 "--rebase"
+                 "--reference"
+                 "--merge"
+                 "--recursive")
+          (args (pcomplete-here (pcomplete-dirs)))))
+        ("summary"
+         (opts
+          (flags "--cached"
+                 "--files"
+                 "--summary-limit"
+                 "--commit")
+          (args (pcomplete-here (pcomplete-dirs)))))
+        ("foreach"
+         (opts
+          (flags "--recursive")))
+        ("sync"
+         (opts
+          (flags "--recursive")
+          (args (pcomplete-here (pcomplete-dirs)))))))
       ("tag"
        (opts
         (args (pcomplete-here (pcmpl-git-get-refs "tags")))))))
