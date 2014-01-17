@@ -278,7 +278,15 @@
        (def-keys-for-map (vim:normal-mode-local-keymap
                           vim:insert-mode-local-keymap)
          ("<return>"   eshell-send-input)
-         ("C-<return>" sp-newline)))
+         ("C-<return>" sp-newline))
+
+       (def-keys-for-map (vim:normal-mode-local-keymap
+                          vim:insert-mode-local-keymap
+                          eshell-mode-map)
+         ("C-<left>"  vim:sp-backward-slurp-sexp)
+         ("C-<right>" vim:sp-forward-slurp-sexp)
+         ("M-<left>"  sp-absorb-sexp)
+         ("M-<right>" sp-emit-sexp)))
 
      (add-hook 'eshell-mode-hook #'eshell-setup)))
 

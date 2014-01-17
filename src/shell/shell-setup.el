@@ -71,7 +71,12 @@
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)
 
-    ("C-c C-k"  comint-kill-subjob))
+    ("C-c C-k"  comint-kill-subjob)
+
+    ("C-<left>"  vim:sp-backward-slurp-sexp)
+    ("C-<right>" vim:sp-forward-slurp-sexp)
+    ("M-<left>"  sp-absorb-sexp)
+    ("M-<right>" sp-emit-sexp))
 
   (setf comint-scroll-to-bottom-on-input t))
 
