@@ -34,16 +34,21 @@
     (cond
       ((and (platform-os-type? 'linux)
             (platform-use? '(home asus-netbook work)))
-       '("-unknown-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
+       '("-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+         "-unknown-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'linux)
             (platform-use? 'netbook))
-       '("-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
+       '("-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+         "-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'windows)
             (platform-use? 'work))
-       (if (and (<= (display-pixel-width) 1280)
-                (<= (display-pixel-height) 1024))
-         '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
-         '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1"))))
+       (append
+        '("-outline-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
+          "-outline-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1")
+        (if (and (<= (display-pixel-width) 1280)
+                 (<= (display-pixel-height) 1024))
+          '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
+          '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1")))))
     '("-unknown-Droid Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
       "-unknown-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
       "-unknown-Inconsolata-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
