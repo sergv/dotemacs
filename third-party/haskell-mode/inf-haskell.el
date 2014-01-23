@@ -61,7 +61,9 @@
        ((executable-find "ghci") "ghci"))
       "hugs \"+.\"")
   "The name of the command to start the inferior Haskell process.
-The command can include arguments."
+The command can include arguments.
+
+Also this can be a list of arguments to pass to process start procedure."
   ;; Custom only supports the :options keyword for a few types, e.g. not
   ;; for string.
   ;; :options '("hugs \"+.\"" "ghci")
@@ -159,7 +161,7 @@ This will either look for a Cabal file or a \"module\" statement in the file."
 
 (defun inferior-haskell-string-to-strings (string)
   "Split the STRING into a list of strings."
-  (let ((i (string-match "[\"]" string)))
+  (let ((i (string-match-p "[\"]" string)))
     (if (null i) (split-string string) ; no quoting:  easy
       (append (unless (eq i 0) (split-string (substring string 0 i)))
               (let ((rfs (read-from-string string i)))
@@ -167,10 +169,18 @@ This will either look for a Cabal file or a \"module\" statement in the file."
                       (inferior-haskell-string-to-strings
                        (substring string (cdr rfs)))))))))
 
+(defvar inferior-haskell-command-history nil
+  "History of ghci commands by `inferior-haskell-command'.")
+
 (defun inferior-haskell-command (arg)
-  (inferior-haskell-string-to-strings
-   (if (null arg) haskell-program-name
-     (read-string "Command to run haskell: " haskell-program-name))))
+  (if (null arg)
+    (if (listp haskell-program-name)
+      haskell-program-name
+      (inferior-haskell-string-to-strings haskell-program-name))
+    (inferior-haskell-string-to-strings
+     (read-string "Command to run haskell: "
+                  haskell-program-name
+                  'inferior-haskell-command-history))))
 
 (defvar inferior-haskell-buffer nil
   "The buffer in which the inferior process is running.")
