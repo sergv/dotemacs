@@ -839,10 +839,9 @@ which to try loading/root finding/etc.")
                *eproj-projects*)
       proj)))
 
-
-(defun eproj-get-initial-project-root-and-type (path)
+(defun eproj-get-initial-project-root-and-type-safe (path)
   "Get (<initial-project-root> <project-type>) pair for project that contains
-PATH as its part."
+PATH as its part. Returns nil if nothing found."
   (let ((initial-roots
          (delq nil
                (map (lambda (proj-type)
@@ -865,15 +864,21 @@ PATH as its part."
         (assert (not (null? sorted-roots)))
         (values (car (car sorted-roots))
                 (cdr (car sorted-roots))))
-      (error "Error while obtaining project for path %s: no potential project roots can be constructed"
-             path))))
+      nil)))
+
+(defun eproj-get-initial-project-root-and-type (path)
+  "Get (<initial-project-root> <project-type>) pair for project that contains
+PATH as its part."
+  (aif (eproj-get-initial-project-root-and-type-safe path)
+    it
+    (error "Error while obtaining project for path %s: no potential project roots can be constructed"
+           path)))
 
 (defun eproj-get-initial-project-root (path)
   "Retrieve root for project that would contain PATH."
   (multiple-value-bind (initial-root proj-type)
       (eproj-get-initial-project-root-and-type path)
     initial-root))
-
 
 
 (defmacro eproj/evaluate-with-caching-buffer-local-var (value-expr
@@ -912,7 +917,7 @@ variable or symbol 'unresolved.")
   "Retrieve root for project that would contain BUFFER's content."
   (eproj/evaluate-with-caching-buffer-local-var
    (condition-case nil
-        (eproj-get-initial-project-root (eproj-get-buffer-directory buffer))
+        (eproj-get-initial-project-root (eproj--get-buffer-directory buffer))
       (error nil))
    buffer
    eproj/buffer-initial-project-root-cache
@@ -927,10 +932,14 @@ symbol 'unresolved.")
    (eproj-get-project-for-path
     ;; Take directory since file visited by buffer may not be
     ;; under version control per se.
-    (eproj-get-buffer-directory buffer))
+    (eproj--get-buffer-directory buffer))
    buffer
    eproj/buffer-project-cache
    #'eproj-project-p))
+
+(defun eproj-exists-project-for-buf? (buffer)
+  (not (null? (eproj-get-initial-project-root-and-type-safe
+               (eproj--get-buffer-directory buffer)))))
 
 (defun eproj-get-project-for-path (path)
   "Retrieve project that contains PATH as its part."
@@ -1056,7 +1065,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
 (defun eproj-normalize-file-name (path)
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
 
-(defun eproj-get-buffer-directory (buffer)
+(defun eproj--get-buffer-directory (buffer)
   "Get directory associated with BUFFER, either throug visited file
 or `default-directory', if no file is visited."
   (with-current-buffer buffer
