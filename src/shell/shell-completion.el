@@ -132,7 +132,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                       ((eq? 'opts (first definition))
                        (funcall process-opts definition))
                       (else
-                       (error "unsupported definition: %S" definition)))))
+                       (error "process: unsupported definition: %S" definition)))))
              (process-or
               (lambda (definition level)
                 (when-let (defs (rest definition))
@@ -1396,7 +1396,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;;###autoload
 (defpcmpl pcomplete/bash
-  (let ((short-options))
+  (let ((short-options nil))
     `(opts
       (flags "-c"
              "-i"
@@ -1406,8 +1406,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              "-D"
              ("-O"
               (opt (flags ,@short-options)))
-             ("+O"
-              (opt (flags ,@short-options)))
+             ;; ("+O"
+             ;;  (opt (flags ,@short-options)))
              "--debugger"
              "--dump-po-strings"
              "--dump-strings"
@@ -1423,7 +1423,29 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              "--restricted"
              "--verbose"
              "--version")
-      (args (pcomplete-here (pcmpl-entries-ignoring-common))))))
+      (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+  :evaluate-definition t)
+
+;;;###autoload
+(defpcmpl pcomplete/source
+  (opts (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
+
+;;;###autoload
+(defpcmpl pcomplete/ssh-add
+  (opts (flags "-l"
+               "-L"
+               "-k"
+               "-c"
+               "-t"
+               "-d"
+               "-D"
+               "-x"
+               "-X"
+               "-s"
+               "-e")
+        (args (pcomplete-here (pcomplete-entries)))))
+
+
 
 (provide 'shell-completion)
 
