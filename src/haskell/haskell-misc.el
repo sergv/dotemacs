@@ -133,6 +133,7 @@
                            choices
                            display-fn)))
 
+(put 'haskell-program-name 'safe-local-variable (lambda (x) (or (string? x) (list? x))))
 (put 'haskell-compile-command 'safe-local-variable #'string?)
 (put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
 (put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'string?)
