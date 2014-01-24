@@ -65,7 +65,7 @@
                      vim:insert-mode-local-keymap)
     ("<tab>" tab-to-tab-stop)))
 
-(add-hook 'gitignore-mode-hook #'gitconfig-setup)
+(add-hook 'gitconfig-mode-hook #'gitconfig-setup)
 
 ;;; magit
 
