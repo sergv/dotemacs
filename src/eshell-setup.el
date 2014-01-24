@@ -230,7 +230,8 @@
                   :bind-return nil
                   :create-keymaps t)
 
-       (linum-mode t)
+       (linum-mode +1)
+       (smartparens-mode +1)
 
        (def-keys-for-map vim:normal-mode-local-keymap
          ("C-<up>"   eshell-jump-to-prev-prompt)
