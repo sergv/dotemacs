@@ -80,7 +80,14 @@ and second being actual substituted text."
                   action)
             nil)
            (t
-            (insert (funcall action))
+            (let ((res (funcall action)))
+              (unless (string? res)
+                (error "action %s didn't return string"
+                       (substring-no-properties
+                        (pp-to-string action)
+                        0
+                        80)))
+              (insert res))
             t))))
     (values insert-spacep (buffer-substring-no-properties p (point)))))
 
