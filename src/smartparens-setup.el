@@ -179,6 +179,10 @@ With negative argument move forward, still one level out."
   (sp-local-pair "\\(" nil :when '(sp-in-string-p))
   (sp-local-pair "\\\\(" nil :when '(sp-in-string-p)))
 
+(sp-with-modes '(eshell-mode
+                 shell-mode)
+  (sp-local-pair "\"" "\"" :actions '(insert wrap)))
+
 (vimmize-function sp-backward-slurp-sexp
                   :name vim:sp-backward-slurp-sexp)
 (vimmize-function sp-backward-barf-sexp
