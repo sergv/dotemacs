@@ -1,15 +1,120 @@
-[submodule "third-party/c2hs-mode"]
-        path = third-party/c2hs-mode
-        url = https://github.com/sergv/c2hs-mode.git
+[submodule "third-party/agda-mode"]
+        path = third-party/agda-mode
+        url = https://github.com/jwiegley/agda-mode.git
 [submodule "third-party/ariadne-el"]
         path = third-party/ariadne-el
         url = https://github.com/manzyuk/ariadne-el.git
 [submodule "third-party/bert-el"]
         path = third-party/bert-el
         url = https://github.com/manzyuk/bert-el.git
-[submodule "third-party/haskell-mode"]
-        path = third-party/haskell-mode
-        url = https://github.com/sergv/haskell-mode.git
 [submodule "third-party/browse-kill-ring"]
         path = third-party/browse-kill-ring
         url = https://github.com/sergv/browse-kill-ring.git
+[submodule "third-party/c-eldoc"]
+        path = third-party/c-eldoc
+        url = https://github.com/nflath/c-eldoc.git
+[submodule "third-party/c2hs-mode"]
+        path = third-party/c2hs-mode
+        url = https://github.com/sergv/c2hs-mode.git
+[submodule "third-party/csv-mode"]
+        path = third-party/csv-mode
+        url = https://github.com/emacsmirror/csv-mode.git
+[submodule "third-party/cuda-mode"]
+        path = third-party/cuda-mode
+        url = https://github.com/sergv/cuda-mode.git
+[submodule "third-party/cygwin-mount"]
+        path = third-party/cygwin-mount
+        url = https://github.com/emacsmirror/cygwin-mount.git
+[submodule "third-party/dash.el"]
+        path = third-party/dash.el
+        url = https://github.com/magnars/dash.el.git
+[submodule "third-party/fuzzy-match"]
+        path = third-party/fuzzy-match
+        url = https://github.com/emacsmirror/fuzzy-match.git
+[submodule "third-party/graphviz-dot-mode"]
+        path = third-party/graphviz-dot-mode
+        url = https://github.com/ppareit/graphviz-dot-mode.git
+[submodule "third-party/git-modes"]
+        path = third-party/git-modes
+        url = https://github.com/magit/git-modes.git
+[submodule "third-party/haskell-mode"]
+        path = third-party/haskell-mode
+        url = https://github.com/sergv/haskell-mode.git
+[submodule "third-party/icicles"]
+        path = third-party/icicles
+        url = https://github.com/sergv/icicles.git
+[submodule "third-party/lua-mode"]
+        path = third-party/lua-mode
+        url = https://github.com/immerrr/lua-mode.git
+[submodule "third-party/magit-log-edit"]
+        path = third-party/magit-log-edit
+        url = https://github.com/magit/magit-log-edit.git
+[submodule "third-party/markdown-mode"]
+        path = third-party/markdown-mode
+        url = https://github.com/defunkt/markdown-mode.git
+[submodule "third-party/minimap"]
+        path = third-party/minimap
+        url = https://github.com/sergv/emacs-minimap.git
+[submodule "third-party/mocker.el"]
+        path = third-party/mocker.el
+        url = https://github.com/sigma/mocker.el.git
+[submodule "third-party/paredit"]
+        path = third-party/paredit
+        url = https://github.com/goncha/paredit.git
+[submodule "third-party/rainbow-delimiters"]
+        path = third-party/rainbow-delimiters
+        url = https://github.com/jlr/rainbow-delimiters.git
+[submodule "third-party/revive-plus"]
+        path = third-party/revive-plus
+        url = https://github.com/sergv/revive-plus.git
+[submodule "third-party/s.el"]
+        path = third-party/s.el
+        url = https://github.com/purcell/s.el.git
+[submodule "third-party/smartparens"]
+        path = third-party/smartparens
+        url = https://github.com/Fuco1/smartparens.git
+[submodule "third-party/smex"]
+        path = third-party/smex
+        url = https://github.com/nonsequitur/smex.git
+[submodule "third-party/sunrise-commander"]
+        path = third-party/sunrise-commander
+        url = https://github.com/emacsmirror/sunrise-commander.git
+[submodule "third-party/ucf-mode"]
+        path = third-party/ucf-mode
+        url = https://github.com/sergv/emacs-ucf-mode.git
+[submodule "third-party/undo-tree"]
+        path = third-party/undo-tree
+        url = https://github.com/emacsmirror/undo-tree.git
+[submodule "third-party/yasnippet"]
+        path = third-party/yasnippet
+        url = https://github.com/capitaomorte/yasnippet.git
+[submodule "third-party/misc-modes"]
+        path = third-party/misc-modes
+        url = https://git.gitorious.org/misc-emacs-modes/misc-emacs-modes.git
+[submodule "standalone/auctex-dev"]
+        path = standalone/auctex-dev
+        url = https://github.com/jwiegley/auctex.git
+[submodule "standalone/cc-mode"]
+        path = standalone/cc-mode
+        url = https://github.com/emacsmirror/cc-mode.git
+[submodule "standalone/clojure-mode"]
+        path = standalone/clojure-mode
+        url = https://github.com/technomancy/clojure-mode.git
+[submodule "standalone/doxymacs"]
+        path = standalone/doxymacs
+        url = git://doxymacs.git.sourceforge.net/gitroot/doxymacs/doxymacs
+[submodule "standalone/nrepl.el"]
+        path = standalone/nrepl.el
+        url = https://github.com/kingtim/nrepl.el.git
+[submodule "standalone/nxhtml"]
+        path = standalone/nxhtml
+        url = https://github.com/sergv/nxhtml.git
+[submodule "standalone/org-mode"]
+        path = standalone/org-mode
+        url = git://orgmode.org/org-mode.git
+[submodule "standalone/tuareg"]
+        path = standalone/tuareg
+        url = https://github.com/emacsmirror/tuareg.git
+[submodule "third-party/python/python.el"]
+        path = third-party/python/python.el
+        url = https://github.com/sergv/python.el.git
