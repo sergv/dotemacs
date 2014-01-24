@@ -157,8 +157,9 @@ like \"d w\".")
   ("M-<left>"  sp-absorb-sexp)
   ("M-<right>" sp-emit-sexp)
 
-  ("x"         vim:sp-kill-char)
-  ("X"         vim:sp-backward-kill-char)
+
+  ("x"         vim:cmd-delete-char)
+  ("X"         vim:cmd-delete-char-backward)
 
   ("<insert>"  vim:scroll-line-up)
   ("<delete>"  vim:scroll-line-down)
