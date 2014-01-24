@@ -187,7 +187,6 @@
 (load-library "rst-setup")
 (load-library "texinfo-setup")
 (load-library "maxima-setup")
-(load-library "d-mode-setup")
 (load-library "yaml-mode-setup")
 (load-library "doc-view-setup")
 (load-library "lua-setup")
