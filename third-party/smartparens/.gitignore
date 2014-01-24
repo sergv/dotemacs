@@ -2,3 +2,5 @@ elpa
 *.elc
 *~*
 docs/_build
+
+smartparens-autoloads.el
