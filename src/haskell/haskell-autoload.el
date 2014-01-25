@@ -6,7 +6,7 @@
 ;; Created: Thursday, 12 July 2012
 ;; Description:
 
-(load "haskell-autoloads-generated")
+(load-library "haskell-mode-autoloads")
 
 (defvar *haskell-extensions* '("hs" "lhs" "hsc" "chs"))
 
