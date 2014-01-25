@@ -239,6 +239,12 @@
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 
 
+(defun haskell-compilation-setup ()
+  (setq-local *compilation-jump-error-regexp*
+              +haskell-compile-error-or-warning-regexp+))
+
+(add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
+
 (provide 'haskell-setup)
 
 ;; Local Variables:
