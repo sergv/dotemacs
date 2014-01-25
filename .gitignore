@@ -12,7 +12,7 @@ packages/**
 scripts/**
 standalone/**
 test/**
-# third-party/**
+third-party/**
 tmp/**
 
 !third-party/antlr-mode.el
