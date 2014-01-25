@@ -38,12 +38,11 @@ then Bar would be the result."
            (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn")
            (list "^hps?l?n$"                  "hPutStrLn")
            (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
-           (cons "main"
+           (list "main"
                  (list
                   (lambda () (yas-expand-snippet
                          (concat "main :: IO ()\nmain = do\n"
-                                 (make-string haskell-indent-offset ?\s)
-                                 "$1")))))
+                                 (make-string haskell-indent-offset ?\s) "$1")))))
 
            (list (concat "^" (make-re-with-optional-suffix "import" 2) "$")
                  "import"
