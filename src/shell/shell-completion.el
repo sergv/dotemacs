@@ -167,10 +167,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                         (lambda (flag)
                           (cond ((string? flag)
                                  flag)
-                                ((list? flag)
+                                ((and (list? flag)
+                                      (not (null? flag))
+                                      (string? (first flag)))
                                  (first flag))
                                 (else
-                                 (error "invalid flag: %S" flag)))))
+                                 (error "process-opts: invalid flag, not string or non-empty list with string as a first element: %S" flag)))))
                        (complex-flag? (lambda (flag) (list? flag)))
                        (short-flag? (comp (partial #'string-match-pure? "^-[^-].*")))
                        (long-flag? (comp (partial #'string-match-pure? "^--[^-].*")))
@@ -1425,6 +1427,87 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              "--version")
       (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
   :evaluate-definition t)
+
+;;;###autoload
+(defpcmpl pcomplete/diff
+  (opts
+   (flags "--normal"
+          "-q"
+          "--brief"
+          "-s"
+          "--report-identical-files"
+          "-c"
+          "-C"
+          "--context"
+          "--context="
+          "-u"
+          "-U"
+          "--unified"
+          "--unified="
+          "-e"
+          "--ed"
+          "-n"
+          "--rcs"
+          "-y"
+          "--side-by-side"
+          "-W"
+          "--width="
+          "--left-column"
+          "--suppress-common-lines-p"
+          "--show-c-function"
+          "-F"
+          "--show-function-line="
+          "--label"
+          "--expand-tabs"
+          "-T"
+          "--initial-tab"
+          "--tabsize="
+          "--suppress-blank-empty"
+          "-l"
+          "--paginate-r"
+          "--recursive"
+          "--no-dereference"
+          "-N"
+          "--new-file"
+          "--unidirectional-new-file"
+          "--ignore-file-name-case"
+          "--no-ignore-file-name-case"
+          "-x"
+          "--exclude="
+          "-X"
+          ("--exclude-from" (pcomplete-here (pcmpl-entries-ignoring-common)))
+          "-S"
+          ("--starting-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
+          ("--from-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
+          ("--to-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
+          "-i"
+          "--ignore-case"
+          "-E"
+          "--ignore-tab-expansion"
+          "-Z"
+          "--ignore-trailing-space"
+          "-b"
+          "--ignore-space-change"
+          "-w"
+          "--ignore-all-space"
+          "-B"
+          "--ignore-blank-lines"
+          "-I"
+          "--ignore-matching-lines="
+          "-a"
+          "--text"
+          "--strip-trailing-cr-D"
+          "--ifdef="
+          "--GTYPE-group-format="
+          "--line-format=LFMT"
+          "--LTYPE-line-format="
+          "-d"
+          "--minimal"
+          "--horizon-lines="
+          "--speed-large-files--help"
+          "-v"
+          "--version")
+   (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
 
 ;;;###autoload
 (defpcmpl pcomplete/source
