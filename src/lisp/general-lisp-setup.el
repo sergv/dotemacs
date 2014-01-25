@@ -743,7 +743,9 @@ This command assumes point is not in a string or comment."
     ("z c"      hs-hide-sexps-in-region)
     ("z o"      hs-show-sexps-in-region)
     ("g c c"    comment-util-comment-region)
-    ("g c u"    comment-util-uncomment-region-simple))
+    ("g c u"    comment-util-uncomment-region-simple)
+
+    ("'"        sp-backward-up-sexp))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     (";"        paredit-semicolon)
