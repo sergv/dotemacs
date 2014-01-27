@@ -26,10 +26,6 @@
   (concat +emacs-config-path+ "/standalone")
   "Path to directory with standalone packages.")
 
-(defconst +emacs-standalone-elc-path+
-  (concat +emacs-standalone-path+ "/local")
-  "Path to directory with compiled files of standalone packages.")
-
 (defconst +emacs-documentation-path+
   (concat +emacs-config-path+ "/doc")
   "Path to directory with offline documentation.")

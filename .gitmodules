@@ -99,10 +99,10 @@
         url = https://github.com/emacsmirror/cc-mode.git
 [submodule "standalone/clojure-mode"]
         path = standalone/clojure-mode
-        url = https://github.com/technomancy/clojure-mode.git
-[submodule "standalone/doxymacs"]
-        path = standalone/doxymacs
-        url = git://doxymacs.git.sourceforge.net/gitroot/doxymacs/doxymacs
+        url = https://github.com/sergv/clojure-mode.git
+[submodule "standalone/magit"]
+        path = standalone/magit
+        url = https://github.com/sergv/magit.git
 [submodule "standalone/nrepl.el"]
         path = standalone/nrepl.el
         url = https://github.com/kingtim/nrepl.el.git
@@ -111,7 +111,7 @@
         url = https://github.com/sergv/nxhtml.git
 [submodule "standalone/org-mode"]
         path = standalone/org-mode
-        url = git://orgmode.org/org-mode.git
+        url = https://github.com/sergv/org-mode.git
 [submodule "standalone/tuareg"]
         path = standalone/tuareg
         url = https://github.com/emacsmirror/tuareg.git
