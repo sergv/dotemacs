@@ -176,13 +176,13 @@ Futher modified by Sergey Vinokurov."
        (font-lock-builtin-face       ((t (:foreground ,cyan))))
        (font-lock-constant-face      ((t (:foreground ,yellow))))
        (font-lock-doc-face           ((t (:foreground ,green))))
-       (font-lock-function-name-face ((t (:foreground ,blue :bold t))))
+       (font-lock-function-name-face ((t (:foreground ,blue))))
        (font-lock-keyword-face       ((t (:foreground ,cyan))))
        (font-lock-negation-char-face ((t (:foreground ,magenta))))
        (font-lock-preprocessor-face  ((t (:foreground ,orange))))
        (font-lock-string-face        ((t (:foreground ,orange))))
        (font-lock-type-face          ((t (:foreground ,yellow))))
-       (font-lock-variable-name-face ((t (:foreground ,blue :bold t))))
+       (font-lock-variable-name-face ((t (:foreground ,blue))))
 
        (haskell-operator-face        ((t (:foreground ,blue))))
 
