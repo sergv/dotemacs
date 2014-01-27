@@ -1189,6 +1189,8 @@ or `default-directory', if no file is visited."
                                          (line-end-position)
                                          t)
                   (goto-char (match-beginning 0))))
+              ;; remove annoying "Mark set" message
+              (message "")
               (setf eproj-symbnav/selected-loc
                     (make-eproj-home-entry :buffer (current-buffer)
                                            :point (point)
