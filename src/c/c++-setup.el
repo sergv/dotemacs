@@ -14,11 +14,6 @@
 (require 'eproj-setup)
 (require 'c-indentation)
 
-(add-to-list 'load-path (concat +emacs-standalone-elc-path+
-                                "/doxymacs"))
-
-(require 'doxymacs)
-
 
 (when (platform-use? 'work)
   (defvar *c++-related-file-cache*
@@ -110,8 +105,6 @@
             :use-c-eldoc nil ;; c-eldoc is too unreliable and too slow for C++
             )
   (cc-setup/set-up-c-basic-offset :use-work-code-style t)
-  (doxymacs-mode +1)
-  (doxymacs-font-lock)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (when (platform-use? 'work)
     (setq-local c-indentation-indent-style "sophia"))

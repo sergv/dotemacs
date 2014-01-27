@@ -10,10 +10,10 @@
 
 (require 'set-up-paths)
 
-(add-to-list 'load-path (concat +emacs-standalone-elc-path+
-                                "/org"))
-(add-to-list 'load-path (concat +emacs-standalone-elc-path+
-                                "/org/emacs/site-lisp/org"))
+(add-to-list 'load-path (concat +emacs-standalone-path+
+                                "/org-mode/lisp"))
+(add-to-list 'load-path (concat +emacs-standalone-path+
+                                "/org-mode/contrib/lisp"))
 
 (require 'org-loaddefs)
 
