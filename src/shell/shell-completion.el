@@ -288,7 +288,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     (pcomplete-entries)))
 
 (defun pcmpl-entries-ignoring-common ()
-  (pcmpl-entries-ignoring (regexp-opt *ignored-file-name-endings*)))
+  (pcmpl-entries-ignoring (concat (regexp-opt *ignored-file-name-endings*)
+                                  "$")))
 
 ;;; Version control
 
@@ -854,21 +855,24 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 (defun pcmpl-haskell-source-or-obj-files (ignore-obj)
   (pcmpl-entries-ignoring
-   (regexp-opt (if ignore-obj
-                 *ignored-file-name-endings*
-                 (remove-if (lambda (ext)
-                              (string-match-pure? (rx "."
-                                                      (or "o"
-                                                          "p_o"
-                                                          "p_hi"
-                                                          "prof_o"
-                                                          "hi"
-                                                          "so"
-                                                          "a"
-                                                          "lib"
-                                                          "dll"))
-                                                  ext))
-                            *ignored-file-name-endings*)))))
+   (concat
+    (regexp-opt (if ignore-obj
+                  *ignored-file-name-endings*
+                  (remove-if (lambda (ext)
+                               (string-match-pure? (rx "."
+                                                       (or "o"
+                                                           "p_o"
+                                                           "p_hi"
+                                                           "prof_o"
+                                                           "hi"
+                                                           "so"
+                                                           "a"
+                                                           "lib"
+                                                           "dll")
+                                                       eol)
+                                                   ext))
+                             *ignored-file-name-endings*)))
+    "$")))
 
 ;;;###autoload
 (defpcmpl pcomplete/runghc
