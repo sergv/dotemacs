@@ -158,7 +158,6 @@
  '(slime-repl-history-trim-whitespaces t)
  '(slime-repl-track-package-in-prompt t)
  '(slime-repl-wrap-history t)
- '(smex-history-length 100)
  '(speedbar-use-images nil)
  '(sql-input-ring-separator "
 --
