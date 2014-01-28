@@ -22,6 +22,11 @@
 
 (eval-after-load "undo-tree"
   '(progn
+     (def-keys-for-map undo-tree-map
+       ("C-/" nil)
+       ("C-_" nil)
+       ("C-?" nil)
+       ("M-_" nil))
      ;;(def-keys-for-map undo-tree-visualizer-mode-map +vi-keys+)
      (def-keys-for-map undo-tree-visualizer-mode-map
        ("t"        undo-tree-visualize-redo)

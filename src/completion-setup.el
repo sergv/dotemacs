@@ -53,6 +53,11 @@
 
 ;; convenient command completer
 
+(setf smex-history-length 100
+      smex-save-file (concat +prog-data-path+ "/smex-items")
+      smex-auto-update (not (platform-use? 'work))
+      smex-flex-matching t)
+
 (autoload 'smex "smex" "" t)
 (autoload 'smex-major-mode-commands "smex" "" t)
 
@@ -62,7 +67,6 @@
 
 (eval-after-load "smex"
   '(progn
-     (setf smex-save-file (concat +prog-data-path+ "/smex-items"))
 
      ;; note: ido is used my smex
 

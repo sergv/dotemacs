@@ -205,7 +205,6 @@
 (load-library "compilation-setup")
 (load-library "completion-setup")
 (load-library "auto-insert-setup")
-(load-library "emms-setup")
 (load-library "tagged-buflist-setup")
 (load-library "hl-paren")
 (load-library "spell-setup")
