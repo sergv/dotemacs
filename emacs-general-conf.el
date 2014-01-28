@@ -163,7 +163,8 @@
       message-log-max t
 
       ;; length from the beginning of buffer for magic mode detection
-      magic-mode-regexp-match-limit 1000000)
+      magic-mode-regexp-match-limit 1000000
+      suggest-key-bindings nil)
 
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook
