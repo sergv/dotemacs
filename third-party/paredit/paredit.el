@@ -125,6 +125,8 @@
 (defconst paredit-version 25)
 (defconst paredit-beta-p t)
 
+(eval-when-compile (require 'cl-lib))
+
 (eval-and-compile
 
   (defun paredit-xemacs-p ()
@@ -1187,33 +1189,24 @@ This is expected to be called only in `paredit-comment-dwim'; do not
 
 ;;;; Character Deletion
 
-(defun paredit-forward-delete (&optional argument)
-  "Delete a character forward or move forward over a delimiter.
-If on an opening S-expression delimiter, move forward into the
-  S-expression.
-If on a closing S-expression delimiter, refuse to delete unless the
-  S-expression is empty, in which case delete the whole S-expression.
-With a numeric prefix argument N, delete N characters forward.
-With a `C-u' prefix argument, simply delete a character forward,
-  without regard for delimiter balancing."
-  (interactive "P")
+(defun paredit-forward-delete-operator (&optional argument kill-flag)
   (cond ((or (consp argument) (eobp))
-         (delete-char +1))
+         (delete-char +1 kill-flag))
         ((integerp argument)
          (if (< argument 0)
-             (paredit-backward-delete argument)
-             (while (> argument 0)
-               (paredit-forward-delete)
-               (setq argument (- argument 1)))))
+           (paredit-backward-delete-operator argument kill-flag)
+           (while (> argument 0)
+             (paredit-forward-delete-operator nil kill-flag)
+             (setq argument (- argument 1)))))
         ((paredit-in-string-p)
-         (paredit-forward-delete-in-string))
+         (paredit-forward-delete-in-string kill-flag))
         ((paredit-in-comment-p)
-         (paredit-forward-delete-in-comment))
+         (paredit-forward-delete-in-comment kill-flag))
         ((paredit-in-char-p)            ; Escape -- delete both chars.
-         (delete-char -1)
-         (delete-char +1))
+         (delete-char -1 kill-flag)
+         (delete-char +1 kill-flag))
         ((eq (char-after) ?\\ )         ; ditto
-         (delete-char +2))
+         (delete-char +2 kill-flag))
         ((let ((syn (char-syntax (char-after))))
            (or (eq syn ?\( )
                (eq syn ?\" )))
@@ -1222,14 +1215,14 @@ With a `C-u' prefix argument, simply delete a character forward,
                  nil))
              (forward-char)
            (message "Deleting spurious opening delimiter.")
-           (delete-char +1)))
+           (delete-char +1 kill-flag)))
         ((and (not (paredit-in-char-p (1- (point))))
               (eq (char-syntax (char-after)) ?\) )
               (eq (char-before) (matching-paren (char-after))))
-         (delete-char -1)               ; Empty list -- delete both
-         (delete-char +1))              ;   delimiters.
+         (delete-char -1 kill-flag)          ; Empty list -- delete both
+         (delete-char +1 kill-flag))         ;   delimiters.
         ((eq ?\; (char-after))
-         (paredit-forward-delete-comment-start))
+         (paredit-forward-delete-comment-start kill-flag))
         ((eq (char-syntax (char-after)) ?\) )
          (if (paredit-handle-sexp-errors
                  (save-excursion (forward-char) (backward-sexp) t)
@@ -1237,13 +1230,31 @@ With a `C-u' prefix argument, simply delete a character forward,
              (message "End of list!")
              (progn
                (message "Deleting spurious closing delimiter.")
-               (delete-char +1))))
+               (delete-char +1 kill-flag))))
         ;; Just delete a single character, if it's not a closing
         ;; delimiter.  (The character literal case is already handled
         ;; by now.)
-        (t (delete-char +1))))
+        (t (delete-char +1 kill-flag))))
+
+(defun paredit-forward-delete (&optional argument)
+  "Delete/kill a character forward or move forward over a delimiter.
+If on an opening S-expression delimiter, move forward into the
+  S-expression.
+If on a closing S-expression delimiter, refuse to delete unless the
+  S-expression is empty, in which case delete the whole S-expression.
+With a numeric prefix argument N, delete N characters forward.
+With a `C-u' prefix argument, simply delete a character forward,
+  without regard for delimiter balancing."
+  (interactive "P")
+  (paredit-forward-delete-operator argument nil))
+
+(defun paredit-forward-kill (&optional argument)
+  "Same as `paredit-forward-delete' but kills deleted text."
+  (interactive "P")
+  (paredit-forward-delete-operator argument t))
+
 
-(defun paredit-forward-delete-in-string ()
+(defun paredit-forward-delete-in-string (kill-flag)
   (let ((start+end (paredit-string-start+end-points)))
     (cond ((not (eq (point) (cdr start+end)))
            ;; If it's not the close-quote, it's safe to delete.  But
@@ -1251,20 +1262,20 @@ With a `C-u' prefix argument, simply delete a character forward,
            (cond ((paredit-in-string-escape-p)
                   ;; We're right after the backslash, so backward
                   ;; delete it before deleting the escaped character.
-                  (delete-char -1))
+                  (delete-char -1 kill-flag))
                  ((eq (char-after) ?\\ )
                   ;; If we're not in a string escape, but we are on a
                   ;; backslash, it must start the escape for the next
                   ;; character, so delete the backslash before deleting
                   ;; the next character.
-                  (delete-char +1)))
-           (delete-char +1))
+                  (delete-char +1 kill-flag)))
+           (delete-char +1 kill-flag))
           ((eq (1- (point)) (car start+end))
            ;; If it is the close-quote, delete only if we're also right
            ;; past the open-quote (i.e. it's empty), and then delete
            ;; both quotes.  Otherwise we refuse to delete it.
-           (delete-char -1)
-           (delete-char +1)))))
+           (delete-char -1 kill-flag)
+           (delete-char +1 kill-flag)))))
 
 (defun paredit-check-forward-delete-in-comment ()
   ;; Point is in a comment, possibly at eol.  We are about to delete
@@ -1276,16 +1287,68 @@ With a `C-u' prefix argument, simply delete a character forward,
             (next-line-end (point-at-eol 2)))
         (paredit-check-region next-line-start next-line-end))))
 
-(defun paredit-forward-delete-in-comment ()
+(defun paredit-forward-delete-in-comment (kill-flag)
   (paredit-check-forward-delete-in-comment)
-  (delete-char +1))
+  (delete-char +1 kill-flag))
 
-(defun paredit-forward-delete-comment-start ()
+(defun paredit-forward-delete-comment-start (kill-flag)
   ;; Point precedes a comment start (not at eol).  Refuse to delete a
   ;; comment start if the comment contains unbalanced junk.
   (paredit-check-region (+ (point) 1) (point-at-eol))
-  (delete-char +1))
+  (delete-char +1 kill-flag))
 
+(defun paredit-backward-delete-operator (argument kill-flag)
+  (cond ((or (consp argument) (bobp))
+         ;++ Should this untabify?
+         (delete-char -1 kill-flag))
+        ((integerp argument)
+         (if (< argument 0)
+           (paredit-forward-delete-operator (- 0 argument) kill-flag)
+           (while (> argument 0)
+             (paredit-backward-delete-operator nil kill-flag)
+             (setq argument (- argument 1)))))
+        ((paredit-in-string-p)
+         (paredit-backward-delete-in-string kill-flag))
+        ((paredit-in-comment-p)
+         (paredit-backward-delete-in-comment kill-flag))
+        ((paredit-in-char-p)            ; Escape -- delete both chars.
+         (delete-char -1 kill-flag)
+         (delete-char +1 kill-flag))
+        ((paredit-in-char-p (1- (point)))
+         (delete-char -2 kill-flag)) ; ditto
+        ((let ((syn (char-syntax (char-before))))
+           (or (eq syn ?\) )
+               (eq syn ?\" )))
+         (if (save-excursion
+               (paredit-handle-sexp-errors (progn (backward-sexp) t)
+                 nil))
+             (backward-char)
+           (message "Deleting spurious closing delimiter.")
+           (delete-char -1 kill-flag)))
+        ((and (eq (char-syntax (char-before)) ?\( )
+              (eq (char-after) (matching-paren (char-before))))
+         (delete-char -1 kill-flag)          ; Empty list -- delete both
+         (delete-char +1 kill-flag))         ;   delimiters.
+        ((bolp)
+         (paredit-backward-delete-maybe-comment-end kill-flag))
+        ((eq (char-syntax (char-before)) ?\( )
+         (if (paredit-handle-sexp-errors
+                 (save-excursion (backward-char) (forward-sexp) t)
+               nil)
+             (message "Beginning of list!")
+             (progn
+               (message "Deleting spurious closing delimiter.")
+               (delete-char -1 kill-flag))))
+        ;; Delete it, unless it's an opening delimiter.  The case of
+        ;; character literals is already handled by now.
+        (t
+         ;; Turn off the @#&*&!^&(%^ botch in GNU Emacs 24 that changed
+         ;; `backward-delete-char' and `backward-delete-char-untabify'
+         ;; semantically so that they delete the region in transient
+         ;; mark mode.
+         (let ((delete-active-region nil))
+           (backward-delete-char-untabify +1 kill-flag)))))
+
 (defun paredit-backward-delete (&optional argument)
   "Delete a character backward or move backward over a delimiter.
 If on a closing S-expression delimiter, move backward into the
@@ -1296,58 +1359,16 @@ With a numeric prefix argument N, delete N characters backward.
 With a `C-u' prefix argument, simply delete a character backward,
   without regard for delimiter balancing."
   (interactive "P")
-  (cond ((or (consp argument) (bobp))
-         ;++ Should this untabify?
-         (delete-char -1))
-        ((integerp argument)
-         (if (< argument 0)
-             (paredit-forward-delete (- 0 argument))
-             (while (> argument 0)
-               (paredit-backward-delete)
-               (setq argument (- argument 1)))))
-        ((paredit-in-string-p)
-         (paredit-backward-delete-in-string))
-        ((paredit-in-comment-p)
-         (paredit-backward-delete-in-comment))
-        ((paredit-in-char-p)            ; Escape -- delete both chars.
-         (delete-char -1)
-         (delete-char +1))
-        ((paredit-in-char-p (1- (point)))
-         (delete-char -2))              ; ditto
-        ((let ((syn (char-syntax (char-before))))
-           (or (eq syn ?\) )
-               (eq syn ?\" )))
-         (if (save-excursion
-               (paredit-handle-sexp-errors (progn (backward-sexp) t)
-                 nil))
-             (backward-char)
-           (message "Deleting spurious closing delimiter.")
-           (delete-char -1)))
-        ((and (eq (char-syntax (char-before)) ?\( )
-              (eq (char-after) (matching-paren (char-before))))
-         (delete-char -1)               ; Empty list -- delete both
-         (delete-char +1))              ;   delimiters.
-        ((bolp)
-         (paredit-backward-delete-maybe-comment-end))
-        ((eq (char-syntax (char-before)) ?\( )
-         (if (paredit-handle-sexp-errors
-                 (save-excursion (backward-char) (forward-sexp) t)
-               nil)
-             (message "Beginning of list!")
-             (progn
-               (message "Deleting spurious closing delimiter.")
-               (delete-char -1))))
-        ;; Delete it, unless it's an opening delimiter.  The case of
-        ;; character literals is already handled by now.
-        (t
-         ;; Turn off the @#&*&!^&(%^ botch in GNU Emacs 24 that changed
-         ;; `backward-delete-char' and `backward-delete-char-untabify'
-         ;; semantically so that they delete the region in transient
-         ;; mark mode.
-         (let ((delete-active-region nil))
-           (backward-delete-char-untabify +1)))))
+  (paredit-backward-delete-operator argument nil))
+
+(defun paredit-backward-kill (&optional argument)
+  "Same as `paredit-backward-delete' but kills deleted text."
+  (interactive "P")
+  (paredit-backward-delete-operator argument t))
+
+
 
-(defun paredit-backward-delete-in-string ()
+(defun paredit-backward-delete-in-string (kill-flag)
   (let ((start+end (paredit-string-start+end-points)))
     (cond ((not (eq (1- (point)) (car start+end)))
            ;; If it's not the open-quote, it's safe to delete.
@@ -1355,22 +1376,22 @@ With a `C-u' prefix argument, simply delete a character backward,
                ;; If we're on a string escape, since we're about to
                ;; delete the backslash, we must first delete the
                ;; escaped char.
-               (delete-char +1))
-           (delete-char -1)
+               (delete-char +1 kill-flag))
+           (delete-char -1 kill-flag)
            (if (paredit-in-string-escape-p)
                ;; If, after deleting a character, we find ourselves in
                ;; a string escape, we must have deleted the escaped
                ;; character, and the backslash is behind the point, so
                ;; backward delete it.
-               (delete-char -1)))
+               (delete-char -1 kill-flag)))
           ((eq (point) (cdr start+end))
            ;; If it is the open-quote, delete only if we're also right
            ;; past the close-quote (i.e. it's empty), and then delete
            ;; both quotes.  Otherwise we refuse to delete it.
-           (delete-char -1)
-           (delete-char +1)))))
+           (delete-char -1 kill-flag)
+           (delete-char +1 kill-flag)))))
 
-(defun paredit-backward-delete-in-comment ()
+(defun paredit-backward-delete-in-comment (kill-flag)
   ;; Point is in a comment, possibly just after the comment start.
   ;; Refuse to delete a comment start if the comment contains
   ;; unbalanced junk.
@@ -1379,10 +1400,10 @@ With a `C-u' prefix argument, simply delete a character backward,
         ;; Must call `paredit-in-string-p' before
         ;; `paredit-in-comment-p'.
         (not (or (paredit-in-string-p) (paredit-in-comment-p))))
-      (paredit-check-region (point) (point-at-eol)))
-  (backward-delete-char-untabify +1))
+    (paredit-check-region (point) (point-at-eol)))
+  (backward-delete-char-untabify +1 kill-flag))
 
-(defun paredit-backward-delete-maybe-comment-end ()
+(defun paredit-backward-delete-maybe-comment-end (kill-flag)
   ;; Point is at bol, possibly just after a comment end (i.e., the
   ;; previous line may have had a line comment).  Refuse to delete a
   ;; comment end if moving the current line into the previous line's
@@ -1391,7 +1412,7 @@ With a `C-u' prefix argument, simply delete a character backward,
         (backward-char)
         (and (not (paredit-in-string-p)) (paredit-in-comment-p)))
       (paredit-check-region (point-at-eol) (point-at-bol)))
-  (delete-char -1))
+  (delete-char -1 kill-flag))
 
 ;;;; Killing
 
@@ -1531,15 +1552,19 @@ With a numeric prefix argument N, do `kill-line' that many times."
 ;;; extraordinarily difficult or impossible, so we have to implement
 ;;; killing in both directions by parsing forward.
 
-(defun paredit-forward-kill-word ()
-  "Kill a word forward, skipping over intervening delimiters."
-  (interactive)
-  (let ((beginning (point)))
+(defun paredit-skip-forward-for-kill (beginning word-syntaxes)
+  "Calculates resulting position after skip forward past various lisp delimiters,
+like sexps, strings, etc in a paredit-defined fashion.
+
+word-syntaxes - list of characters denoting syntaxes."
+  (save-excursion
+    (goto-char beginning)
     (skip-syntax-forward " -")
     (let* ((parse-state (paredit-current-parse-state))
            (state (paredit-kill-word-state parse-state 'char-after)))
       (while (not (or (eobp)
-                      (eq ?w (char-syntax (char-after)))))
+                      (member (char-syntax (char-after))
+                              word-syntaxes)))
         (setq parse-state
               (progn (forward-char 1) (paredit-current-parse-state))
 ;;               (parse-partial-sexp (point) (1+ (point))
@@ -1548,43 +1573,61 @@ With a numeric prefix argument N, do `kill-line' that many times."
         (let* ((old-state state)
                (new-state
                 (paredit-kill-word-state parse-state 'char-after)))
-          (cond ((not (eq old-state new-state))
-                 (setq parse-state
-                       (paredit-kill-word-hack old-state
-                                               new-state
-                                               parse-state))
-                 (setq state
-                       (paredit-kill-word-state parse-state
-                                                'char-after))
-                 (setq beginning (point)))))))
+          (unless (eq old-state new-state)
+            (setq parse-state
+                  (paredit-kill-word-hack old-state
+                                          new-state
+                                          parse-state))
+            (setq state
+                  (paredit-kill-word-state parse-state
+                                           'char-after))
+
+            (setq beginning (point))))))
+    beginning))
+
+(defun* paredit-skip-backward-for-kill (beginning
+                                        word-syntaxes
+                                        &key
+                                        (forward-word #'forward-word)
+                                        (backward-word #'backward-word))
+  "Calculates skip backward past various lisp delimiters.
+Also see `paredit-skip-forward-for-kill'."
+  (save-excursion
     (goto-char beginning)
-    (kill-word 1)))
+    (if (not (or (bobp)
+                 (memq (char-syntax (char-before)) word-syntaxes)))
+        (let ((end (point)))
+          (funcall backward-word 1)
+          (funcall forward-word 1)
+          (goto-char (min end (point)))
+          (let* ((parse-state (paredit-current-parse-state))
+                 (state
+                  (paredit-kill-word-state parse-state 'char-before)))
+            (while (and (< (point) end)
+                        (progn
+                          (setq parse-state
+                                (parse-partial-sexp (point) (1+ (point))
+                                                    nil nil parse-state))
+                          (or (eq state
+                                  (paredit-kill-word-state parse-state
+                                                           'char-before))
+                              (progn (backward-char 1) nil)))))
+            (when (and (eq state 'comment)
+                       (eq ?\# (char-after (point)))
+                       (eq ?\| (char-before (point))))
+              (backward-char 1)))))
+    (point)))
+
+(defun paredit-forward-kill-word ()
+  "Kill a word forward, skipping over intervening delimiters."
+  (interactive)
+  (goto-char (paredit-skip-forward-for-kill (point) '(?\w)))
+  (kill-word 1))
 
 (defun paredit-backward-kill-word ()
   "Kill a word backward, skipping over any intervening delimiters."
   (interactive)
-  (if (not (or (bobp)
-               (eq (char-syntax (char-before)) ?w)))
-      (let ((end (point)))
-        (backward-word 1)
-        (forward-word 1)
-        (goto-char (min end (point)))
-        (let* ((parse-state (paredit-current-parse-state))
-               (state
-                (paredit-kill-word-state parse-state 'char-before)))
-          (while (and (< (point) end)
-                      (progn
-                        (setq parse-state
-                              (parse-partial-sexp (point) (1+ (point))
-                                                  nil nil parse-state))
-                        (or (eq state
-                                (paredit-kill-word-state parse-state
-                                                         'char-before))
-                            (progn (backward-char 1) nil)))))
-          (if (and (eq state 'comment)
-                   (eq ?\# (char-after (point)))
-                   (eq ?\| (char-before (point))))
-              (backward-char 1)))))
+  (goto-char (paredit-skip-backward-for-kill (point) '(?\w)))
   (backward-kill-word 1))
 
 ;;;;;; Word-Killing Auxiliaries
@@ -1593,7 +1636,7 @@ With a numeric prefix argument N, do `kill-line' that many times."
   (cond ((paredit-in-comment-p parse-state) 'comment)
         ((paredit-in-string-p  parse-state) 'string)
         ((memq (char-syntax (funcall adjacent-char-fn))
-               '(?\( ?\) ))
+               '(?\( ?\)))
          'delimiter)
         (t 'other)))
 
@@ -2025,7 +2068,7 @@ The argument is passed on to `yank' or `yank-pop'; see their
          (save-excursion (backward-up-list) (indent-sexp)))
         (t (error "Last command was not a yank or a wrap: %s" last-command))))
 
-(defun paredit-splice-sexp (&optional argument)
+(defun paredit-splice-sexp (&optional argument kill-flag)
   "Splice the list that the point is on by removing its delimiters.
 With a prefix argument as in `C-u', kill all S-expressions backward in
   the current list before splicing all S-expressions forward into the
@@ -2060,7 +2103,7 @@ Inside a string, unescape all backslashes, or signal an error if doing
       (let ((end-marker (make-marker)))
         (save-excursion
           (up-list)
-          (delete-char -1)
+          (delete-char -1 kill-flag)
           (set-marker end-marker (point)))
         (delete-region delete-start delete-end)
         (paredit-splice-reindent delete-start (marker-position end-marker))))))
@@ -2094,21 +2137,21 @@ Inside a string, unescape all backslashes, or signal an error if doing
            (paredit-hack-kill-region saved (point))))
         ((consp argument)
          (let ((v (car argument)))
-           (if (= v 4)                  ;One `C-u'.
-               ;; Move backward until we hit the open paren; then
-               ;; kill that selected region.
-               (let ((end (point)))
-                 (paredit-ignore-sexp-errors
-                   (while (not (bobp))
-                     (backward-sexp)))
-                 (paredit-hack-kill-region (point) end))
-               ;; Move forward until we hit the close paren; then
-               ;; kill that selected region.
-               (let ((beginning (point)))
-                 (paredit-ignore-sexp-errors
-                   (while (not (eobp))
-                     (forward-sexp)))
-                 (paredit-hack-kill-region beginning (point))))))
+           (if (= v 4)        ;One `C-u'.
+             ;; Move backward until we hit the open paren; then
+             ;; kill that selected region.
+             (let ((end (point)))
+               (paredit-ignore-sexp-errors
+                 (while (not (bobp))
+                   (backward-sexp)))
+               (paredit-hack-kill-region (point) end))
+             ;; Move forward until we hit the close paren; then
+             ;; kill that selected region.
+             (let ((beginning (point)))
+               (paredit-ignore-sexp-errors
+                 (while (not (eobp))
+                   (forward-sexp)))
+               (paredit-hack-kill-region beginning (point))))))
         (t (error "Bizarre prefix argument `%s'." argument))))
 
 (defun paredit-splice-sexp-killing-backward (&optional n)
