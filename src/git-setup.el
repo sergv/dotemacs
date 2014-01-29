@@ -85,8 +85,7 @@
     (prog1 (sort (funcall collect magit-root-section)
                  (lambda (section-a section-b)
                    (< (magit-section-beginning section-a)
-                      (magit-section-beginning section-b))))
-      (magit-section-collapse magit-root-section))))
+                      (magit-section-beginning section-b)))))))
 
 (defun magit-current-section-is-whitespace-only? ()
   (interactive)
@@ -103,16 +102,26 @@
 (defun magit-stage-non-whitespace-changes ()
   "Unstage all hunks that introduce only whitespace change."
   (interactive)
-  (mapc (lambda (hunk)
-          (unless (patch-whitespace-only-change?
-                   (buffer-substring-no-properties
-                    (magit-section-beginning hunk)
-                    (magit-section-end hunk)))
-            (magit-apply-hunk-item hunk "--cached")
-            ;; (magit-with-refresh
-            ;;   (magit-apply-hunk-item hunk "--reverse" "--cached"))
-            ))
-        (reverse (magit-collect-unstaged-hunk-sections)))
+  (let ((nonwhitespace-patches
+         (filter (lambda (patch)
+                   (not (patch-whitespace-only-change? patch)))
+                 (map (lambda (hunk)
+                        (buffer-substring-no-properties
+                         (magit-section-beginning hunk)
+                         (magit-section-end hunk)))
+                      (reverse (magit-collect-unstaged-hunk-sections))))))
+    (dolist (patch nonwhitespace-patches)
+      (when-let* (sections
+                  (magit-collect-unstaged-hunk-sections)
+                  hunk
+                  (find-if (lambda (section)
+                             (string= patch
+                                      (buffer-substring-no-properties
+                                       (magit-section-beginning section)
+                                       (magit-section-end section))
+                                      ))
+                           sections))
+        (magit-apply-hunk-item hunk "--cached"))))
   nil)
 
 
