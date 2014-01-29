@@ -60,7 +60,7 @@
         url = https://github.com/sigma/mocker.el.git
 [submodule "third-party/paredit"]
         path = third-party/paredit
-        url = https://github.com/goncha/paredit.git
+        url = https://github.com/sergv/paredit.git
 [submodule "third-party/rainbow-delimiters"]
         path = third-party/rainbow-delimiters
         url = https://github.com/jlr/rainbow-delimiters.git
