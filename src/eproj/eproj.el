@@ -1098,11 +1098,15 @@ or `default-directory', if no file is visited."
 (defvar eproj-symbnav/next-homes nil
   "Next locations that were visited but now obscured by going back.")
 
+(defvar-local eproj-symbnav/identifier-type 'symbol
+  "Type of identifiers to look for when retrieving name at point to
+search for in tags. This should be a symbol
+as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/identifier-at-point (&optional noerror)
   (or (awhen (get-region-string-no-properties)
         (trim-whitespace it))
-      (let ((bounds (bounds-of-thing-at-point 'symbol)))
+      (let ((bounds (bounds-of-thing-at-point eproj-symbnav/identifier-type)))
         (cond ((not (null? bounds))
                (buffer-substring-no-properties (car bounds) (cdr bounds)))
               ((null? noerror)
