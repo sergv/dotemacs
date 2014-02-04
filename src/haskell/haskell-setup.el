@@ -59,6 +59,7 @@
 
   ;; (modify-syntax-entry ?\` "\"")
 
+  (setq-local eproj-symbnav/identifier-type 'haskell-symbol)
   (setq-local indent-region-function #'ignore)
   (setq-local yas-indent-line 'fixed)
   (turn-on-haskell-indentation)
