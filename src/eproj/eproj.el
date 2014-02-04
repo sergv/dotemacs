@@ -396,7 +396,7 @@ Note: old tags file is removed before calling update command."
 (defun eproj/clojure-load-procedure (proj)
   (assert (eproj-project-p proj))
   (when (memq 'java-mode (eproj-project/languages proj))
-    (load-ctags-project 'java-mode proj))
+    (eproj/load-ctags-project 'java-mode proj))
   )
 
 
@@ -463,16 +463,14 @@ Note: old tags file is removed before calling update command."
                           (eproj/load-ctags-project 'c++-mode proj))
                         :applies-to-files-procedure
                         (lambda (files)
-                          (any? (lambda (path)
-                                  (and (string-match-pure?
-                                        (eproj-language/extension-re lang)
-                                        path)
-                                       (not (string-match-pure?
-                                             (eproj-language/extension-re
-                                              (gethash 'c-mode eproj/languages-table))
-                                             path))))
-                                files))
-
+                          (let ((c-ext (eproj-language/extension-re
+                                        (gethash 'c-mode eproj/languages-table))))
+                            (any? (lambda (path)
+                                    (and (string-match-pure?
+                                          (eproj-language/extension-re lang)
+                                          path)
+                                         (not (string-match-pure? c-ext path))))
+                                  files)))
                         :synonym-modes nil)))
           lang)
         (letrec ((lang (make-eproj-language
@@ -493,25 +491,45 @@ Note: old tags file is removed before calling update command."
                                 files))
                         :synonym-modes nil)))
           lang)
-        (make-eproj-language :mode 'clojure-mode
-                             :extension-re (rx "."
-                                               (or "clj"
-                                                   "java")
-                                               eol)
-                             :load-procedure #'eproj/clojure-load-procedure
-                             :tag->string-procedure #'eproj/generic-tag->string
-                             :applies-to-files-procedure nil
-                             :synonym-modes nil)
-        (make-eproj-language :mode 'java-mode
-                             :extension-re (rx "."
-                                               (or "java")
-                                               eol)
-                             :load-procedure
-                             (lambda (proj)
-                               (eproj/load-ctags-project 'java-mode proj))
-                             :tag->string-procedure #'eproj/generic-tag->string
-                             :applies-to-files-procedure nil
-                             :synonym-modes nil)))
+        (letrec ((lang (make-eproj-language
+                        :mode 'clojure-mode
+                        :extension-re (rx "."
+                                          (or "clj"
+                                              "java")
+                                          eol)
+                        :load-procedure #'eproj/clojure-load-procedure
+                        :tag->string-procedure #'eproj/generic-tag->string
+                        :applies-to-files-procedure
+                        (lambda (files)
+                          (let ((java-ext (eproj-language/extension-re
+                                           (gethash 'java-mode eproj/languages-table))))
+                            (any? (lambda (path)
+                                    (and (string-match-pure?
+                                          (eproj-language/extension-re lang)
+                                          path)
+                                         (not (string-match-pure?
+                                               java-ext
+                                               path))))
+                                  files)))
+                        :synonym-modes nil)))
+          lang)
+        (letrec ((lang (make-eproj-language
+                        :mode 'java-mode
+                        :extension-re (rx "."
+                                          (or "java")
+                                          eol)
+                        :load-procedure
+                        (lambda (proj)
+                          (eproj/load-ctags-project 'java-mode proj))
+                        :tag->string-procedure #'eproj/generic-tag->string
+                        :applies-to-files-procedure
+                        (lambda (files)
+                          (any? (comp
+                                 (partial #'string-match-pure?
+                                          (eproj-language/extension-re lang)))
+                                files))
+                        :synonym-modes nil)))
+          lang)))
 
 (defvar eproj/languages-table
   (let ((table (make-hash-table :test #'eq)))
@@ -791,6 +809,7 @@ which to try loading/root finding/etc.")
                                       (eproj-project/type proj)))
               "\n")
       (insert "root: " (eproj-project/root proj) "\n")
+      (insert (format "languages: %s\n" (eproj-project/languages proj)))
       (insert "related projects:\n")
       (dolist (related-proj (eproj-project/related-projects proj))
         (insert indent related-proj) "\n")
