@@ -9,6 +9,28 @@
 (require 'abbrev+)
 (require 'haskell-misc)
 
+(define-print-info-skeleton
+    haskell-debug-message-skeleton
+  :doc "Insert call to trace to print some variables and messages
+while interactively prompting for variables/messages."
+  :print-begin "trace (printf "
+  :print-end ") "
+
+  :indent-after-func nil
+  :insert-newline-before-var-list nil
+
+  :format-print-value "%s"
+  :format-string-start "\""
+  :format-string-end "\" "
+  :name-value-delimiter " = "
+
+  :insert-entity-name-procedure (constantly nil)
+  :make-variable-list (lambda (vars)
+                        (join-lines (map (lambda (v)
+                                           (concat "(show $ " v ")"))
+                                         vars)
+                                    " ")))
+
 (defun haskell-abbrev+-extract-mod-name (qualified-name)
   "Extract module name from QUALIFIED-NAME, e.g. if QUALIFIED-NAME = Foo.Bar
 then Bar would be the result."
@@ -58,7 +80,11 @@ then Bar would be the result."
                   (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
            (list "#lang"
                  (list
-                  (lambda () (yas-expand-snippet language-snippet)))))))
+                  (lambda () (yas-expand-snippet language-snippet))))
+           (list "\\<info\\>"
+                 (list
+                  #'haskell-debug-message-skeleton)
+                 (lambda () (not (point-inside-string-or-comment?)))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
