@@ -105,7 +105,8 @@ Items will be passed to this function before insertion into buffer.")
           ("<up>"     select-move-selection-up)
           ("<down>"   select-move-selection-down)
           ("<return>" select-do-select)
-          ("<escape>" select-exit))
+          ("<escape>" select-exit)
+          ("q"        select-exit))
         map))
 
 
