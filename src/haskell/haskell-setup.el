@@ -150,7 +150,8 @@
     (", y"     haskell-hayoo-at-point)
 
     ("*"       search-for-haskell-symbol-at-point-forward)
-    ("#"       search-for-haskell-symbol-at-point-backward))
+    ("#"       search-for-haskell-symbol-at-point-backward)
+    ("'"       haskell-move-up))
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                    vim:insert-mode-local-keymap)
