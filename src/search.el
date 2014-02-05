@@ -333,21 +333,28 @@ Highlighting starts at the beginning of buffer")
                                          (error-message nil))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
-  (let ((bounds (gensym)))
-    `(defun ,name (&optional non-strict)
+  (let ((bounds-var (gensym "bounds"))
+        (substr-var (gensym "substr"))
+        (non-strict-var (gensym "non-strict")))
+    `(defun ,name (&optional ,non-strict-var)
        (interactive (list current-prefix-arg))
-       (let* ((,bounds (funcall ,bounds-func)))
-         (if (null ,bounds)
+       (let ((,bounds-var (funcall ,bounds-func)))
+         (if (null ,bounds-var)
            ,(when error-message `(error ,error-message))
-           (progn
+           (let ((,substr-var (buffer-substring-no-properties (car ,bounds-var)
+                                                              (cdr ,bounds-var))))
              (vim:save-position)
-             (goto-char (cdr ,bounds))
+             (goto-char (cdr ,bounds-var))
              (search-setup-search-for
-              (concat (unless non-strict ,regex-start)
-                      (regexp-quote
-                       (buffer-substring-no-properties (car ,bounds)
-                                                       (cdr ,bounds)))
-                      (unless non-strict ,regex-end))
+              (concat (unless ,non-strict-var
+                        ,(if (functionp regex-start)
+                           `(funcall ,regex-start ,substr-var)
+                           regex-start))
+                      (regexp-quote ,substr-var)
+                      (unless ,non-strict-var
+                        ,(if (functionp regex-end)
+                           `(funcall ,regex-end ,substr-var)
+                           regex-end)))
               ,direction
               :case-sensetive t)
              (funcall ,action-after)))))))
@@ -364,16 +371,28 @@ obvious"
                               ;; syntax table which was tampered with in haskell
                               ;; mode so that e.g. regexp "\\_<Node" won't match
                               ;; the input "x:Node (x - 1)".
-                              :regex-start "\\<"
-                              :regex-end "\\>"
+                              :regex-start (lambda (pat)
+                                             (if (string-match-pure? "^[a-zA-Z0-9_]" pat)
+                                               "\\<"
+                                               ""))
+                              :regex-end (lambda (pat)
+                                             (if (string-match-pure? "[a-zA-Z0-9_]$" pat)
+                                               "\\>"
+                                               ""))
                               :error-message "No symbol at point")
 
 (search-make-search-for-thing search-for-haskell-symbol-at-point-backward
                               (lambda () (bounds-of-thing-at-point 'haskell-symbol))
                               #'search-prev-impl
                               'backward
-                              :regex-start "\\<"
-                              :regex-end "\\>"
+                              :regex-start (lambda (pat)
+                                             (if (string-match-pure? "^[a-zA-Z0-9_]" pat)
+                                               "\\<"
+                                               ""))
+                              :regex-end (lambda (pat)
+                                             (if (string-match-pure? "[a-zA-Z0-9_]$" pat)
+                                               "\\>"
+                                               ""))
                               :error-message "No symbol at point")
 
 ;; Lispocentric searches
