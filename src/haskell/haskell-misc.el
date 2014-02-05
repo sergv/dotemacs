@@ -277,6 +277,29 @@ we load it."
           (if url (browse-url url) (error "Local file doesn't exist"))))
       (error "No documentation for module %s found" name))))
 
+;;; up level navigation
+
+(defun haskell-back-up-indent-level ()
+  "Move up to lesser indentation level, skipping empty lines."
+  (let* ((get-whitespace-level
+          (lambda ()
+            (save-excursion
+              (back-to-indentation)
+              (current-column))))
+         (current-level (funcall get-whitespace-level)))
+    (while (and (not (bob?))
+                (<= current-level
+                    (funcall get-whitespace-level)))
+      (backward-line 1)
+      (while (looking-at-pure? "^$")
+        (backward-line 1)))
+    (back-to-indentation)))
+
+(defun haskell-move-up ()
+  (interactive)
+  (or (sp-backward-up-sexp)
+      (haskell-back-up-indent-level)))
+
 ;;; miscellany
 
 (defalias 'inferior-haskell-haddock-identifier 'inferior-haskell-find-haddock)
