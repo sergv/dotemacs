@@ -409,8 +409,8 @@ tracked files for that repository.")
 
 ;; supported properties and their values:
 ;; 'visibility         = #{'visible 'invisible}
-;; 'buffer             = emacs buffer for buffer type section
-;; 'buffer-name-bounds = (cons <buffer name beginning pos> <buffer name end pos>)
+;; 'buffer             = tagged-buffer struct for buffer type section
+;; 'buffer-name-bounds = (cons <buffer name beginning pos> <buffer name end pos>), bounds in buffer listing sections, e.g. *buflist*
 
 (defstruct (tagged-section
             (:conc-name tagged-section/))
@@ -1137,6 +1137,7 @@ saved buffer marks."
 (add-hook 'buffer-list-update-hook #'tagged-buflist/invalidate-refresh-flag!)
 
 (defun tagged-buflist/setup-main-buffer ()
+  "Set up main buffer for showing sections and return in."
   (if-let (buf (get-buffer tagged-buflist/main-buffer-name))
     (when tagged-buflist/refresh-is-needed
       (tagged-buflist/refresh))
@@ -1241,7 +1242,7 @@ of group if on line with group."
   "History variable for `tagged-buflist/jump-to-buffer'.")
 
 (defun tagged-buflist/jump-to-buffer (bufname)
-  "Select BUFNAME in current window."
+  "Jump to section corresponding to buffer with BUFNAME name."
   (interactive
    (list
     (let ((completion-ignore-case t))
@@ -1251,7 +1252,31 @@ of group if on line with group."
                                t   ;; require match
                                nil ;; initial input
                                'tagged-buflist/jump-to-buffer-history))))
-  (switch-to-buffer bufname))
+  (letrec ((extract-leaf-sections
+            (lambda (section)
+              (aif (tagged-section/children section)
+                (foldr #'append nil (map extract-leaf-sections it))
+                (list section)))))
+    (let ((buffer-sections
+           (funcall extract-leaf-sections
+                    tagged-buflist/toplevel-section)))
+      (assert (all? (comp #'not
+                          #'null?
+                          (partial-first #'tagged-section/get-prop 'buffer))
+                    buffer-sections))
+      (assert (all? (comp #'not
+                          #'null?
+                          #'tagged-buffer/buf
+                          (partial-first #'tagged-section/get-prop 'buffer))
+                    buffer-sections))
+      (tagged-buflist/goto-section
+       (find-if (lambda (section)
+                  (string= bufname
+                           (buffer-name
+                            (tagged-buffer/buf
+                             (tagged-section/get-prop section
+                                                      'buffer)))))
+                buffer-sections)))))
 
 ;;;; forward/backward/up selection of groups
 
