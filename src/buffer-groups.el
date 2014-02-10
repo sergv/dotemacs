@@ -229,7 +229,10 @@
                             (mode . hs-scan-mode)
                             (mode . gnuplot-run-mode)
                             (mode . eshell-mode)
-                            (mode . shell-mode)))
+                            (predicate . (and (or (not (null? (get-buffer-process (current-buffer))))
+                                                  (eq? major-mode 'shell-mode))
+                                              (not (string-match-pure? "Async Shell Command"
+                                                                       (buffer-name)))))))
        (dired-filter `(or (mode . dired-mode)))
        (other-filter `(or (name . ,(rx "*scratch*"))
                           (name . ,(rx "*Messages*"))
