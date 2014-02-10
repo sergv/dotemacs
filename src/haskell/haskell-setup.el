@@ -190,6 +190,14 @@
     ("an" vim:motion-outer-haskell-node)
     ("n"  vim:motion-inner-haskell-node))
 
+  (def-keys-for-map shm-map
+    ("C-w" nil)
+    ("M-w" nil)
+    ("C-y" nil)
+    ("M-y" nil)
+    ("M-a" nil)
+    ("M-k" nil))
+
   (haskell-setup-folding)
   (haskell-abbrev+-setup)
   (setup-eproj-symbnav)
