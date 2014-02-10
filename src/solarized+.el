@@ -23,7 +23,6 @@
 (defconst +solarized-violet+  "#6c71c4")
 (defconst +solarized-magenta+ "#d33682")
 
-
 (defun color-theme-solarized+ (mode)
   "Color theme by Ethan Schoonover, created 2011-03-24.
 Ported to Emacs by Greg Pfeil, http://ethanschoonover.com/solarized.
@@ -185,6 +184,12 @@ Futher modified by Sergey Vinokurov."
        (font-lock-variable-name-face ((t (:foreground ,blue))))
 
        (haskell-operator-face        ((t (:foreground ,blue))))
+
+       (shm-current-face             ((t (:background ,base02))))
+       (shm-quarantine-face          ((((supports :underline (:style wave)))
+                                       (:underline (:style wave :color ,orange)))
+                                      (t (:underline ,orange))))
+
 
        (clojure-constant-face        ((t (:foreground ,cyan))))
        (clojure-java-interop-face    ((t (:foreground ,yellow))))
@@ -493,8 +498,8 @@ Futher modified by Sergey Vinokurov."
        (show-paren-mismatch-face             ((t (:inherit rainbow-delimiters-unmatched-face))))
        (tabbar-button-face                   ((t (:inherit tabbar-default-face
                                                            :box (:line-width 2
-                                                                 :color "white"
-                                                                 :style released-button)
+                                                                             :color "white"
+                                                                             :style released-button)
                                                            :foreground "dark red"))))
        (tabbar-default-face                  ((t (:inherit variable-pitch
                                                            :height 0.8

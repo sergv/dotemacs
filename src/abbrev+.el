@@ -151,10 +151,14 @@ and second being actual substituted text."
           (setf result nil)))
       result)))
 
+(defvar-local abbrev+-fallback-function (lambda () (insert " "))
+  "Fallback function called by `abbrev+-insert-space-or-expand-abbrev'
+if no expansion was produced.")
+
 (defun abbrev+-insert-space-or-expand-abbrev (&optional dont-expand)
   (interactive (list current-prefix-arg))
   (unless (abbrev+-expand dont-expand)
-    (insert " ")))
+    (funcall abbrev+-fallback-function)))
 
 (defun abbrev+-org-self-insert-or-expand-abbrev (&optional dont-expand)
   (interactive (list current-prefix-arg))
