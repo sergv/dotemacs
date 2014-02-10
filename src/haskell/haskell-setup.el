@@ -123,7 +123,9 @@
     ("g c d"   comment-util-delete-commented-part)
     (", c"     ghc-core-create-core)
     ("="       input-unicode)
-    ("SPC SPC" switch-to-haskell))
+    ("SPC SPC" switch-to-haskell)
+    ("g n"     haskell-node/move-to-topmost-start)
+    ("g t"     haskell-node/move-to-topmost-end))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("["       shm/open-bracket)

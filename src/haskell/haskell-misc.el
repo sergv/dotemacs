@@ -712,10 +712,19 @@ entries. Returns nil on failure."
         (shm/newline-indent)))))
 
 
+(defun vim/motion-haskell-node/topmost-parent ()
+  (let ((node-pair (shm-current-node-pair)))
+    (while (funcall pred node-pair)
+      (setq node-pair (shm-node-parent node-pair)))
+    ;; ! abstraction is broken here...
+    (cdr node-pair)))
+
+
 (defun vim/motion-haskell-node/move-n-parents-up (n)
   "Move N - 1 parents up from current node and return resulting node."
   (let ((node-pair (shm-current-node-pair)))
-    (dotimes (i (- n 1))
+    (assert (< 0 n))
+    (dotimes (- n 1)
       (setq node-pair (shm-node-parent node-pair)))
     ;; ! abstraction is broken here...
     (cdr node-pair)))
