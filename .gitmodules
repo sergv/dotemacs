@@ -118,3 +118,9 @@
 [submodule "third-party/python/python.el"]
         path = third-party/python/python.el
         url = https://github.com/sergv/python.el.git
+[submodule "third-party/hi2"]
+        path = third-party/hi2
+        url = https://github.com/sergv/hi2.git
+[submodule "third-party/structured-haskell-mode"]
+        path = third-party/structured-haskell-mode
+        url = https://github.com/sergv/structured-haskell-mode.git

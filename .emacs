@@ -12,8 +12,8 @@
       max-specpdl-size    42000)
 
 ;; speeds up startup time considerably, worth to use
-(setq gc-cons-threshold (* 60 1024 1024)
-      gc-cons-percentage 0.25)
+(setq gc-cons-threshold (* 25 1024 1024)
+      gc-cons-percentage 0.15)
 
 
 
@@ -204,6 +204,11 @@
       (add-to-list 'load-path path)))
 
   (load-library "dotemacs"))
+
+;; do not squander the memory
+(setq gc-cons-threshold (* 5 1024 1024)
+      gc-cons-percentage 0.10)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Custom function declarations
