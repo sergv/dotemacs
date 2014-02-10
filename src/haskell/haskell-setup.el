@@ -17,6 +17,8 @@
 (require 'shell-setup)
 
 (require 'haskell-checkers)
+;; (require 'hi2)
+(require 'shm)
 
 (require 'haskell-abbrev+)
 (require 'haskell-misc)
@@ -62,8 +64,15 @@
   (setq-local eproj-symbnav/identifier-type 'haskell-symbol)
   (setq-local indent-region-function #'ignore)
   (setq-local yas-indent-line 'fixed)
-  (turn-on-haskell-indentation)
-  (setf haskell-indentation-cycle-warn nil)
+
+  (structured-haskell-mode +1)
+  (setq-local abbrev+-fallback-function #'shm/space)
+
+  ;; (turn-on-hi2)
+  ;; (setf hi2-show-indentations nil
+  ;;       hi2-show-indentations-after-eol nil
+  ;;       hi2-dyn-show-indentations nil)
+  ;;
   ;; (turn-on-haskell-simple-indent)
 
   (turn-on-haskell-doc-mode)
@@ -78,32 +87,27 @@
   (setq-local yas-prompt-functions
               (list #'haskell-yas-completing-prompt))
 
-  (if (platform-use? 'work)
-    (progn
-      (setq-local vim:shift-width 2)
-      (setf haskell-indentation-left-offset       2
-            haskell-indentation-layout-offset     2
-            haskell-indentation-starter-offset    2
-            haskell-indentation-ifte-offset       2
-            haskell-indentation-where-pre-offset  2
-            haskell-indentation-where-post-offset 2
+  (let ((offset (if (platform-use? 'work)
+                  2
+                  4)))
+    (setq-local vim:shift-width       offset)
+    (setq-local hi2-left-offset       offset)
+    (setq-local hi2-layout-offset     offset)
+    (setq-local hi2-starter-offset    offset)
+    (setq-local hi2-ifte-offset       offset)
+    (setq-local hi2-where-pre-offset  2)
+    (setq-local hi2-where-post-offset 2)
 
-            haskell-indentation-left-offset 2
-            haskell-indent-offset 2)
-      (font-lock-add-keywords nil
-                              `((,(rx word-start (or "TRADETYPE:"
-                                                     "TAG:"
-                                                     "DESC:"))
-                                 (0 'font-lock-preprocessor-face)))))
-    (setf haskell-indentation-left-offset       4
-          haskell-indentation-layout-offset     4
-          haskell-indentation-starter-offset    4
-          haskell-indentation-ifte-offset       4
-          haskell-indentation-where-pre-offset  2
-          haskell-indentation-where-post-offset 2
-
-          haskell-indentation-left-offset 4
-          haskell-indent-offset 4))
+    (setq-local hi2-left-offset       offset)
+    (setq-local haskell-indent-offset offset)
+    (setq-local haskell-indent-spaces offset)
+    (setq-local shm-indent-spaces     offset))
+  (when (platform-use? 'work)
+    (font-lock-add-keywords nil
+                            `((,(rx word-start (or "TRADETYPE:"
+                                                   "TAG:"
+                                                   "DESC:"))
+                               (0 'font-lock-preprocessor-face)))))
 
   (if-buffer-has-file ;; when visiting a file
     ;; don't ask - just compile
@@ -117,24 +121,31 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       inferior-haskell-send-decl)
     ("g c d"   comment-util-delete-commented-part)
-
     (", c"     ghc-core-create-core)
-    (", ."     haskell-find-definition)
-    ("M-."     haskell-find-definition)
-
     ("="       input-unicode)
-    ;; check these out
-    ;; (", f"     find-tag)
-    ;; (", a"     tags-apropos)
-    ;; (", v"     visit-tags-table)
     ("SPC SPC" switch-to-haskell))
+
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("["       shm/open-bracket)
+    ("{"       shm/open-brace)
+    ("-"       shm/hyphen)
+    ("#"       shm/hash)
+    (","       shm/comma)
+    (":"       shm/:)
+    ("C-="     input-unicode))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<tab>"           (lambda () (interactive) (haskell-indentation-indent-line)))
+    ("C-w"             shm/backward-kill-word)
+    ("M-u"             shm/insert-undefined)
+    ("M-<up>"          shm/swing-up)
+    ("M-<down>"        shm/swing-down)
+    ("<tab>"           shm/tab)
+    ("<backtab>"       shm/backtab)
+
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
-    ("<return>"        haskell-sp-newline)
+    ("<return>"        haskell-newline)
     ("<f6>"            inferior-haskell-load-file)
     ("<f9>"            haskell-compile)
     ("S-<f9>"          hs-lint))
@@ -151,7 +162,9 @@
 
     ("*"       search-for-haskell-symbol-at-point-forward)
     ("#"       search-for-haskell-symbol-at-point-backward)
-    ("'"       haskell-move-up))
+    ("'"       shm/goto-parent)
+    ;; ("'"       haskell-move-up)
+    )
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                    vim:insert-mode-local-keymap)
@@ -170,8 +183,10 @@
     ("g a - -" haskell-align-on-comments)
     ("g a : :" haskell-align-on-double-colons))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ("C-="     input-unicode))
+  (def-keys-for-map vim:operator-pending-mode-local-keymap
+    ("in" vim:motion-inner-haskell-node)
+    ("an" vim:motion-outer-haskell-node)
+    ("n"  vim:motion-inner-haskell-node))
 
   (haskell-setup-folding)
   (haskell-abbrev+-setup)

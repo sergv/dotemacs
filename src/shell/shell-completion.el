@@ -853,7 +853,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;; Haskell
 
-(defun pcmpl-haskell-source-or-obj-files (ignore-obj)
+(defun pcmpl-haskell-source-or-obj-files (&optional ignore-obj)
   (pcmpl-entries-ignoring
    (concat
     (regexp-opt (if ignore-obj
@@ -883,6 +883,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 (defpcmpl pcomplete/runhaskell
   (opts
    (args (pcomplete-here (pcmpl-haskell-source-or-obj-files t)))))
+
 
 ;;;###autoload
 (defpcmpl pcomplete/ghc
