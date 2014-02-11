@@ -44,6 +44,20 @@ currently defined ex commands. Should be updated with
                          b))
       (remap-interval a b begin end seed))))
 
+(defun make-simple-random-generator ()
+  (let* ((time (current-time))
+         (a (first time))
+         (b (second time))
+         (microsec (third time))
+         (gen (make-random-gen
+                ;; make an obscure seed
+                (+ (logxor a b)
+                   ;; this is wery much like random noise
+                   microsec
+                   (emacs-pid)))
+               ))
+    (lambda ()
+      (funcall gen 0.0 1.0))))
 
 ;; yeilds values in range [0..1)
 (defun make-tausworthe-random-gen (seed1 seed2 seed3)
@@ -83,15 +97,23 @@ currently defined ex commands. Should be updated with
   "Return tausworthe random generator obtained
 by seeding `make-tausworthe-random-gen' with
 current time and"
-  (multiple-value-bind (a b microsec)
-      (current-time)
-    (let ((c (+ (* 65536 a) b)))
-      (make-tausworthe-random-gen
-       (+ (min c microsec) 2)
-       (+ (emacs-pid) 8)
-       (+ (max c microsec) 16)))))
+  (let* ((time (current-time))
+         (a (first time))
+         (b (second time))
+         (microsec (third time))
+         (c (+ (* 65536 a) b)))
+    (make-tausworthe-random-gen
+     (+ (min c microsec) 2)
+     (+ (emacs-pid) 8)
+     (+ (max c microsec) 16))))
 
-(defvar *tausworthe-random-gen* (make-tausworthe-random-generator)
+(defvar *random-gen*
+  ;; NB on x32 systems hightest three bits will be zero
+  ;; and (expt 2 32)/(ash 1 32) will be 0, so use
+  ;; simpler generator that has no overflows
+  (if (= 0 (ash 1 31))
+    (make-simple-random-generator)
+    (make-tausworthe-random-generator))
   "Global random generator")
 
 (defun random-shuffle (vect random-gen)
@@ -121,7 +143,7 @@ of random numbers from RANDOM-GEN."
       (delete-region begin end)
       (when (= (char-after) ?\n)
         (delete-char 1))
-      (random-shuffle lines *tausworthe-random-gen*)
+      (random-shuffle lines *random-gen*)
       (goto-char begin)
       (loop
         for line across lines
