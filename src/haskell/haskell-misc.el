@@ -712,12 +712,25 @@ entries. Returns nil on failure."
         (shm/newline-indent)))))
 
 
-(defun vim/motion-haskell-node/topmost-parent ()
-  (let ((node-pair (shm-current-node-pair)))
-    (while (funcall pred node-pair)
-      (setq node-pair (shm-node-parent node-pair)))
+(defun haskell-node/topmost-parent ()
+  "Get the topmost haskell node for current position."
+  (let ((node-pair (shm-current-node-pair))
+        (prev-pair nil))
+    (while (not (null? node-pair))
+      (setq prev-pair node-pair
+            node-pair (shm-node-parent node-pair)))
     ;; ! abstraction is broken here...
-    (cdr node-pair)))
+    (cdr prev-pair)))
+
+(defun haskell-node/move-to-topmost-start ()
+  "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
+  (interactive)
+  (goto-char (shm-node-start (haskell-node/topmost-parent))))
+
+(defun haskell-node/move-to-topmost-end ()
+  "Move to end of the topmost node, similar to `glisp/end-of-defun'."
+  (interactive)
+  (goto-char (shm-node-end (haskell-node/topmost-parent))))
 
 
 (defun vim/motion-haskell-node/move-n-parents-up (n)
