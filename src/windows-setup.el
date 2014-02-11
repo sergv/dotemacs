@@ -10,8 +10,9 @@
 
 (assert (platform-os-type? 'windows) "Not on windows platform!")
 
-(require 'cygwin-mount)
-(cygwin-mount-activate)
+(when (executable-find "mount")
+  (require 'cygwin-mount)
+  (cygwin-mount-activate))
 
 (add-to-list 'exec-suffixes ".sh")
 
