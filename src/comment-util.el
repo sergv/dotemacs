@@ -28,7 +28,7 @@
     (literate-haskell-mode (one-line "--") (line-regexp "--+"))
     (ghc-core-mode         (one-line "--") (line-regexp "--+"))
     (latex-mode            (one-line "%")  (line-regexp "%+"))
-    (octave-mode           (one-line "%")  (line-regexp "%+\\|#+"))
+    (octave-mode           (one-line "%")  (line-regexp "\\(?:%+\\|#+\\)"))
     (blueprint-mode        (one-line ";;") (line-regexp ";+"))
     (clojure-mode          (one-line ";;") (line-regexp ";+"))
     (nrepl-mode            (one-line ";;") (line-regexp ";+"))
@@ -162,7 +162,7 @@ they are defined for current mode or one-line comments otherwise."
   (save-excursion
     (if (comment-util-region-comments-defined?)
       (comment-util-comment-chunk-region begin end)
-      (comment-util-comment-lined-region begin end))))
+      (comment-util--comment-lined-region begin end))))
 
 (defun comment-util-uncomment-region ()
   "Uncomment region at point commented either with line comments or block comments."
@@ -195,9 +195,9 @@ be used only for vim-visual-mode of the vim-mode package."
     (skip-to-indentation)
     (when (looking-at-p
            (comment-format-one-line *comment-util-current-format*))
-      (comment-util-uncomment-lines (count-lines begin end)))))
+      (comment-util--uncomment-lines (count-lines begin end)))))
 
-(defun comment-util-uncomment-lines (lines)
+(defun comment-util--uncomment-lines (lines)
   "Uncomment lines eiter up if N is positive or down if N is negative."
   (if (> lines 0)
     (while (> lines 0)
@@ -215,7 +215,7 @@ be used only for vim-visual-mode of the vim-mode package."
 
 ;;; "library" functions for other part of Emacs
 
-(defun comment-util-on-commented-line-p ()
+(defun comment--util-on-commented-line-p ()
   (let ((one-line-comm (comment-format-one-line *comment-util-current-format*)))
     (when one-line-comm
       (save-excursion
@@ -226,7 +226,7 @@ be used only for vim-visual-mode of the vim-mode package."
 
 ;;;;; Mid-level functions
 
-(defsubst comment-util-comment-lined-region (begin end)
+(defsubst comment-util--comment-lined-region (begin end)
   "Comment region between BEGIN and END with one-line comments."
   (goto-char begin)
   (comment-util-comment-next-n-lines (count-lines begin end)))
@@ -317,7 +317,7 @@ be used only for vim-visual-mode of the vim-mode package."
   (cond
     ;; has one-line comments defined
     ((comment-format-one-line *comment-util-current-format*)
-     (comment-util-comment-n-lines-starting-at-col
+     (comment-util--comment-n-lines-starting-at-col
       (concat (comment-format-one-line *comment-util-current-format*)
               (make-string *comment-util-space-count* ?\s))
       lines
@@ -338,7 +338,8 @@ be used only for vim-visual-mode of the vim-mode package."
     (skip-syntax-forward " ")
     (current-column)))
 
-(defun comment-util-comment-n-lines-starting-at-col (comment-str lines column)
+(defun comment-util--comment-n-lines-starting-at-col (comment-str lines column)
+  "Comment next LINES with COMMENT-STR, but insert them at COLUMN."
   (let ((skip-to-column (lambda ()
                           (beginning-of-line)
                           (while (and (< (current-column) column)
@@ -424,12 +425,12 @@ up and then comment the result."
         (reindent-then-newline-and-indent)))
 
     (save-excursion
-      (comment-util-comment-n-lines-starting-at-col
+      (comment-util--comment-n-lines-starting-at-col
        ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...
        (count-lines (point) sexp-end-exclusive)
        (current-column)))))
 
-(defun* comment-util--on-commented-line? ()
+(defun comment-util--on-commented-line? ()
   "Return t if current line contains commented parts."
   (if-let (line-comment (comment-format-one-line *comment-util-current-format*))
     (save-excursion
@@ -443,7 +444,7 @@ up and then comment the result."
         ;; if parse end up inside comment then current line starts with a comment
         inside-comment?))))
 
-(defun* comment-util--get-commented-region ()
+(defun comment-util--get-commented-region ()
   "Return begin and end of region surrounding point that has
 commented parts and leave point unchanged."
   (unless (comment-util--on-commented-line?)
@@ -514,7 +515,7 @@ commented parts and leave point unchanged."
           (when (bobp)
             (funcall clear-comment)))))))
 
-(defun* lisp-uncomment-sexp ()
+(defun lisp-uncomment-sexp ()
   (interactive)
   (multiple-value-bind (start end)
       (comment-util--get-commented-region)
