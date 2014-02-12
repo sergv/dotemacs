@@ -244,7 +244,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
            (eq 'QualStmt (shm-node-cons parent)))
       (shm-newline)
       (indent-to (1- (shm-node-start-column parent)))
-      (insert ",")
+      (insert "," (if shm-insert-space-after-comma " " ""))
       (shm-set-node-overlay parent-pair))
      ;; When inside a list, indent to the list's position with an
      ;; auto-inserted comma.

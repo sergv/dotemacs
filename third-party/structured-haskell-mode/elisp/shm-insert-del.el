@@ -173,10 +173,12 @@ the current node to the parent."
            ;; When inside a list, indent to the list's position with an
            ;; auto-inserted comma.
            ((eq 'List (shm-node-cons parent))
-            (shm-insert-string ",")
+            (shm-insert-string (concat ","
+                                       (if shm-insert-space-after-comma " " "")))
             (shm-set-node-overlay parent-pair))
            (t
-            (shm-insert-string ",")
+            (shm-insert-string (concat ","
+                                       (if shm-insert-space-after-comma " " "")))
             (shm-set-node-overlay parent-pair))))))))
 
 (defun shm/single-quote ()
