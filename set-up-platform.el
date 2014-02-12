@@ -97,11 +97,12 @@ binaries."
   (let ((final-name (if (platform-os-type? 'windows)
                       (concat exec-name ".exe")
                       exec-name)))
-    (unless (file-exists-p final-name)
-      (error "Executable file %s does not exist" final-name))
-    (unless (file-executable-p final-name)
-      (error "Executable file %s does not have executable permissions" final-name))
-    final-name))
+    (cond ((not (file-exists-p final-name))
+           (message "Executable file %s does not exist" final-name))
+          ((not (file-executable-p final-name))
+           (message "Executable file %s does not have executable permissions" final-name))
+          (t
+           final-name))))
 
 (provide 'set-up-platform)
 
