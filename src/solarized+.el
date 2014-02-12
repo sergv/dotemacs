@@ -187,8 +187,8 @@ Futher modified by Sergey Vinokurov."
 
        (shm-current-face             ((t (:background ,base02))))
        (shm-quarantine-face          ((((supports :underline (:style wave)))
-                                       (:underline (:style wave :color ,orange)))
-                                      (t (:underline ,orange))))
+                                       (:underline (:style wave :color ,base02)))
+                                      (t (:underline ,base02))))
 
 
        (clojure-constant-face        ((t (:foreground ,cyan))))
