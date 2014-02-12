@@ -315,17 +315,18 @@ we load it."
 (make-align-function haskell-align-on-arrows
                      "\\(?:->\\|→\\) ")
 (make-align-function haskell-align-on-left-arrows
-                     "<- ")
+                     "\\(?:<-\\|←\\) ")
 (make-align-function haskell-align-on-guards
                      "|[^|]"
                      :require-one-or-more-spaces t)
 (make-align-function haskell-align-on-commas
                      ",[^,)]")
 (make-align-function haskell-align-on-comments
-                     "-- "
+                     "--+ "
                      :require-one-or-more-spaces t)
+
 (make-align-function haskell-align-on-double-colons
-                     "::[^:]")
+                     "\\(?:::[^:]\\|∷\\)")
 
 ;;;; custom queries to inferior-haskell
 
@@ -682,89 +683,39 @@ entries. Returns nil on failure."
 (defun haskell-newline ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
   (interactive)
-  (when (memq major-mode +haskell-syntax-modes+)
-    (let ((line (current-line)))
-      (if-let (result (haskell-parse-signature (trim-whitespace line)))
-        (if-let* (signature
-                  result
-                  indentation
-                  (indentation-size)
-                  funcs
-                  (cdr-safe (assoc :functions signature))
-                  func
-                  (car funcs))
-          (begin
-            (shm/newline-indent)
-            ;; Maybe consider using this function instead?
-            ;; (shm/simple-indent-newline-same-col)
-            (unless (save-excursion
-                      (forward-line)
-                      (skip-syntax-forward "->")
-                      (looking-at-pure? (concat (regexp-quote func)
-                                                "\\_>")))
-              (delete-region (line-beginning-position) (point))
-              (insert (make-string indentation ?\s)
-                      func
-                      " ")))
-          ;; indent in either case, the key is to indent
-          ;; *after* parsing signature on current line
-          (shm/newline-indent))
-        (shm/newline-indent)))))
-
-
-(defun haskell-node/topmost-parent ()
-  "Get the topmost haskell node for current position."
-  (let ((node-pair (shm-current-node-pair))
-        (prev-pair nil))
-    (while (not (null? node-pair))
-      (setq prev-pair node-pair
-            node-pair (shm-node-parent node-pair)))
-    ;; ! abstraction is broken here...
-    (cdr prev-pair)))
-
-(defun haskell-node/move-to-topmost-start ()
-  "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
-  (interactive)
-  (goto-char (shm-node-start (haskell-node/topmost-parent))))
-
-(defun haskell-node/move-to-topmost-end ()
-  "Move to end of the topmost node, similar to `glisp/end-of-defun'."
-  (interactive)
-  (goto-char (shm-node-end (haskell-node/topmost-parent))))
-
-
-(defun vim/motion-haskell-node/move-n-parents-up (n)
-  "Move N - 1 parents up from current node and return resulting node."
-  (let ((node-pair (shm-current-node-pair)))
-    (assert (< 0 n))
-    (dotimes (- n 1)
-      (setq node-pair (shm-node-parent node-pair)))
-    ;; ! abstraction is broken here...
-    (cdr node-pair)))
-
-(vim:defmotion vim:motion-inner-haskell-node (inclusive count)
-  "Select `count' inner haskell nodes."
-  (let ((node (vim/motion-haskell-node/move-n-parents-up (or count 1))))
-    (vim:make-motion :has-begin t
-                     :begin (shm-node-start node)
-                     :end (shm-node-end node)
-                     :type 'inclusive)))
-
-
-(vim:defmotion vim:motion-outer-haskell-node (inclusive count)
-  "Select `count' outer haskell nodes."
-  (let ((node (vim/motion-haskell-node/move-n-parents-up (or count 1))))
-    (vim:make-motion :has-begin t
-                     :begin (save-excursion
-                              (goto-char (shm-node-start node))
-                              (skip-syntax-backward " >")
-                              (point))
-                     :end (save-excursion
-                            (goto-char (shm-node-end node))
-                            (skip-syntax-forward " >")
-                            (point))
-                     :type 'inclusive)))
-
+  (let ((indent
+         (lambda ()
+           (if (null? (shm-current-node-pair))
+             (shm/simple-indent-newline-same-col)
+             (shm/newline-indent)))))
+    (when (memq major-mode +haskell-syntax-modes+)
+      (let ((line (current-line)))
+        (if-let (result (haskell-parse-signature (trim-whitespace line)))
+          (if-let* (signature
+                    result
+                    indentation
+                    (indentation-size)
+                    funcs
+                    (cdr-safe (assoc :functions signature))
+                    func
+                    (car funcs))
+            (begin
+              (funcall indent)
+              ;; Maybe consider using this function instead?
+              ;; (shm/simple-indent-newline-same-col)
+              (unless (save-excursion
+                        (forward-line)
+                        (skip-syntax-forward "->")
+                        (looking-at-pure? (concat (regexp-quote func)
+                                                  "\\_>")))
+                (delete-region (line-beginning-position) (point))
+                (insert (make-string indentation ?\s)
+                        func
+                        " ")))
+            ;; indent in either case, the key is to indent
+            ;; *after* parsing signature on current line
+            (funcall indent))
+          (funcall indent))))))
 
 
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
