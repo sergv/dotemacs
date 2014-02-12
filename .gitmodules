@@ -36,7 +36,7 @@
         url = https://github.com/ppareit/graphviz-dot-mode.git
 [submodule "third-party/git-modes"]
         path = third-party/git-modes
-        url = https://github.com/magit/git-modes.git
+        url = https://github.com/sergv/git-modes.git
 [submodule "third-party/haskell-mode"]
         path = third-party/haskell-mode
         url = https://github.com/sergv/haskell-mode.git
