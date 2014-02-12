@@ -135,38 +135,40 @@
      `(rx (or ,@+ctags-aux-fields+)))))
 
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
-  (with-current-buffer out-buffer
-    (goto-char (point-max))
-    (unless (looking-at-pure? "^$")
-      (insert "\n"))
-    (let ((ext-re (eproj-language/extension-re
-                   (gethash lang-mode eproj/languages-table))
-                  ;; (cadr (assq lang-mode *ctags-language-extensions*))
-                  ))
-      (with-temp-buffer
-        (cd root-dir)
-        (dolist (file files)
-          (when (string-match-pure? ext-re file)
-            (insert file "\n")))
-        (when (not (= 0
-                      (apply #'call-process-region
-                             (point-min)
-                             (point-max)
-                             *ctags-exec*
-                             nil
-                             out-buffer
-                             nil
-                             "-f"
-                             "-"
-                             "-L"
-                             "-"
-                             "--excmd=number"
-                             (aif (rest-safe (assq lang-mode *ctags-language-flags*))
-                               it
-                               (error "unknown ctags language: %s" lang-mode)))))
-          (error "ctags invokation failed: %s"
-                 (with-current-buffer out-buffer
-                   (buffer-substring-no-properties (point-min) (point-max)))))))))
+  (if (not (null? *ctags-exec*))
+    (with-current-buffer out-buffer
+      (goto-char (point-max))
+      (unless (looking-at-pure? "^$")
+        (insert "\n"))
+      (let ((ext-re (eproj-language/extension-re
+                     (gethash lang-mode eproj/languages-table))
+                    ;; (cadr (assq lang-mode *ctags-language-extensions*))
+                    ))
+        (with-temp-buffer
+          (cd root-dir)
+          (dolist (file files)
+            (when (string-match-pure? ext-re file)
+              (insert file "\n")))
+          (when (not (= 0
+                        (apply #'call-process-region
+                               (point-min)
+                               (point-max)
+                               *ctags-exec*
+                               nil
+                               out-buffer
+                               nil
+                               "-f"
+                               "-"
+                               "-L"
+                               "-"
+                               "--excmd=number"
+                               (aif (rest-safe (assq lang-mode *ctags-language-flags*))
+                                 it
+                                 (error "unknown ctags language: %s" lang-mode)))))
+            (error "ctags invokation failed: %s"
+                   (with-current-buffer out-buffer
+                     (buffer-substring-no-properties (point-min) (point-max))))))))
+    (message "ctags executable not found")))
 
 (defun eproj/ctags-get-tags-from-buffer (buffer &optional root simple-format?)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
