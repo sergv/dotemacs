@@ -9,6 +9,7 @@
 
 (require 'custom)
 (require 'common)
+(require 'comment-util)
 (require 'custom-predicates)
 (require 'browse-kill-ring-setup)
 
@@ -23,6 +24,7 @@
 (require 'haskell-abbrev+)
 (require 'haskell-misc)
 (require 'haskell-outline)
+(require 'haskell-shm)
 
 ;; ;; prevent paredit from reindenting Haskell lines
 ;; (dolist (func '(indent-region
@@ -36,6 +38,14 @@
 ;;                       compile)
 ;;       (unless (eq major-mode 'haskell-mode)
 ;;         ad-do-it))))
+
+(vimmize-motion shm/goto-parent
+                :name vim:shm/goto-parent
+                :exclusive nil)
+
+(vimmize-motion shm/goto-parent-end
+                :name vim:shm/goto-parent-end
+                :exclusive nil)
 
 (defun haskell-setup ()
   (init-common :use-yasnippet t
@@ -121,11 +131,10 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       inferior-haskell-send-decl)
     ("g c d"   comment-util-delete-commented-part)
+    ("g c c"   haskell-comment-node)
     (", c"     ghc-core-create-core)
     ("="       input-unicode)
-    ("SPC SPC" switch-to-haskell)
-    ("g n"     haskell-node/move-to-topmost-start)
-    ("g t"     haskell-node/move-to-topmost-end))
+    ("SPC SPC" switch-to-haskell))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("["       shm/open-bracket)
@@ -134,6 +143,8 @@
     ("#"       shm/hash)
     (","       shm/comma)
     (":"       shm/:)
+    ("="       shm/=)
+    ("-"       shm/hyphen)
     ("C-="     input-unicode))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
@@ -164,9 +175,10 @@
 
     ("*"       search-for-haskell-symbol-at-point-forward)
     ("#"       search-for-haskell-symbol-at-point-backward)
-    ("'"       shm/goto-parent)
+    ("'"       vim:shm/goto-parent)
     ;; ("'"       haskell-move-up)
-    )
+    ("g n"     haskell-node/move-to-topmost-start)
+    ("g t"     haskell-node/move-to-topmost-end))
 
   ;; (def-keys-for-map (vim:normal-mode-local-keymap
   ;;                    vim:insert-mode-local-keymap)
@@ -176,6 +188,9 @@
 
 
   (def-keys-for-map vim:visual-mode-local-keymap
+    ("("       sp--self-insert-command)
+    ("["       sp--self-insert-command)
+    ("{"       sp--self-insert-command)
     ("g a"     nil)
     ("g a ="   haskell-align-on-equals)
     ("g a - >" haskell-align-on-arrows)
@@ -190,13 +205,23 @@
     ("an" vim:motion-outer-haskell-node)
     ("n"  vim:motion-inner-haskell-node))
 
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap
+                     vim:motion-mode-local-keymap
+                     vim:operator-pending-mode-local-keymap)
+    ("m" vim:motion-jump-haskell-item)
+    ("'" vim:shm/goto-parent)
+    ("q" vim:shm/goto-parent-end))
+
   (def-keys-for-map shm-map
-    ("C-w" nil)
-    ("M-w" nil)
-    ("C-y" nil)
-    ("M-y" nil)
-    ("M-a" nil)
-    ("M-k" nil))
+    ("C-w"        nil)
+    ("M-w"        nil)
+    ("C-y"        nil)
+    ("M-y"        nil)
+    ("M-a"        nil)
+    ("M-k"        nil)
+    ("C-k"        nil)
+    ("C-<return>" shm/simple-indent-newline-same-col))
 
   (haskell-setup-folding)
   (haskell-abbrev+-setup)
