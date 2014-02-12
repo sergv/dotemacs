@@ -171,6 +171,12 @@ when option is nil.
   :group 'shm
   :type 'list)
 
+(defcustom shm-insert-space-after-comma
+  t
+  "Whether to add space after autoinserted commas"
+  :group 'shm
+  :type 'boolean)
+
 
 ;; Provide
 
