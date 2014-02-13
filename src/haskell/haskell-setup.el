@@ -76,6 +76,7 @@
   (setq-local yas-indent-line 'fixed)
 
   (structured-haskell-mode +1)
+  (setq-local indent-line-function #'ignore)
   (setq-local abbrev+-fallback-function #'shm/space)
 
   ;; (turn-on-hi2)
