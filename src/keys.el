@@ -18,10 +18,8 @@
   ("<f4>"     next-w)
 
   ("<f6>"     nil)
-  ("<f7>"     (lambda () (interactive)
-                (tabbar-scroll (tabbar-current-tabset) -1)))
-  ("<f8>"     (lambda () (interactive)
-                (tabbar-scroll (tabbar-current-tabset) 1)))
+  ("<f7>"     prev-f)
+  ("<f8>"     next-f)
 
   ("<f9>"     compile)
   ("<f10>"    eshell)
