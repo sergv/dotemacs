@@ -223,7 +223,8 @@
 (desktop-save-mode -1)
 
 ;; nuke trailing whitespaces when writing to a file
-(add-hook 'write-file-hooks #'delete-trailing-whitespace+)
+(add-to-list 'write-file-functions
+             #'delete-trailing-whitespace+)
 
 (setq auto-save-list-file-prefix (path-concat +prog-data-path+
                                               "auto-save-list/.save-"))

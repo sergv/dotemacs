@@ -58,8 +58,11 @@
             (:conc-name eproj-language/))
   mode
   extension-re
-  load-procedure ;; function taking eproj/project structure and
-  ;; returning hashtable of (<identifier> . <eproj-tags>) bindings
+  load-procedure
+  ;; function taking two arguments, eproj/project structure and
+  ;; list of files to load from. Returns hashtable of
+  ;; (<identifier> . <eproj-tags>) bindings for specified
+  ;; files, <eproj-tags> is a list of tags
   tag->string-procedure ;; function of one argument returning string
   synonym-modes ;; list of symbols, these modes will resolve to this language
                 ;; during tag search
@@ -317,16 +320,16 @@ after ;\", and expect single character there instead."
           (eproj/extract-tag-line proj tag)
           "\n"))
 
-(defun eproj/load-ctags-project (lang-mode proj)
+(defun eproj/load-ctags-project (lang-mode proj files)
   (let ((root (eproj-project/root proj)))
     (with-temp-buffer
       (eproj/run-ctags-on-files lang-mode
                                 root
-                                (eproj-get-project-files proj)
+                                files
                                 (current-buffer))
       (eproj/ctags-get-tags-from-buffer (current-buffer)))))
 
-(defun eproj/load-haskell-project (proj)
+(defun eproj/load-haskell-project (proj files)
   "Load haskell project PROJ according to definitions in .eproj-info file.
 
 Note: old tags file is removed before calling update command."
@@ -374,7 +377,7 @@ Note: old tags file is removed before calling update command."
               (ext-re (eproj-language/extension-re
                        (gethash 'haskell-mode eproj/languages-table))))
           (with-temp-buffer
-            (dolist (file (eproj-get-project-files proj))
+            (dolist (file files)
               (when (string-match-pure? ext-re file)
                 (insert file "\0")))
             (when (not (= 0
@@ -395,10 +398,10 @@ Note: old tags file is removed before calling update command."
       ;;          (eproj-project/root proj))
       )))
 
-(defun eproj/clojure-load-procedure (proj)
+(defun eproj/clojure-load-procedure (proj files)
   (assert (eproj-project-p proj))
   (when (memq 'java-mode (eproj-project/languages proj))
-    (eproj/load-ctags-project 'java-mode proj))
+    (eproj/load-ctags-project 'java-mode proj files))
   )
 
 
@@ -409,8 +412,8 @@ Note: old tags file is removed before calling update command."
                                               (regexp-opt *haskell-extensions*)
                                               "$")
                         :load-procedure
-                        (lambda (proj)
-                          (eproj/load-haskell-project proj))
+                        (lambda (proj files)
+                          (eproj/load-haskell-project proj files))
                         :tag->string-procedure #'eproj/haskell-tag->string
                         :applies-to-files-procedure
                         (lambda (files)
@@ -428,8 +431,8 @@ Note: old tags file is removed before calling update command."
                                           (or "c" "h")
                                           eol)
                         :load-procedure
-                        (lambda (proj)
-                          (eproj/load-ctags-project 'c-mode proj))
+                        (lambda (proj files)
+                          (eproj/load-ctags-project 'c-mode proj files))
                         :tag->string-procedure #'eproj/c-tag->string
                         :applies-to-files-procedure
                         (lambda (files)
@@ -458,11 +461,9 @@ Note: old tags file is removed before calling update command."
                                               "incl")
                                           eol)
                         :load-procedure
-                        (lambda (proj)
-                          (eproj/load-ctags-project 'c++-mode proj))
-                        :tag->string-procedure
-                        (lambda (proj)
-                          (eproj/load-ctags-project 'c++-mode proj))
+                        (lambda (proj files)
+                          (eproj/load-ctags-project 'c++-mode proj files))
+                        :tag->string-procedure #'eproj/c-tag->string
                         :applies-to-files-procedure
                         (lambda (files)
                           (let ((c-ext (eproj-language/extension-re
@@ -481,8 +482,8 @@ Note: old tags file is removed before calling update command."
                                           (or "py" "pyx" "pxd" "pxi")
                                           eol)
                         :load-procedure
-                        (lambda (proj)
-                          (eproj/load-ctags-project 'python-mode proj))
+                        (lambda (proj files)
+                          (eproj/load-ctags-project 'python-mode proj files))
                         :tag->string-procedure #'eproj/generic-tag->string
                         :applies-to-files-procedure
                         (lambda (files)
@@ -521,8 +522,8 @@ Note: old tags file is removed before calling update command."
                                           (or "java")
                                           eol)
                         :load-procedure
-                        (lambda (proj)
-                          (eproj/load-ctags-project 'java-mode proj))
+                        (lambda (proj files)
+                          (eproj/load-ctags-project 'java-mode proj files))
                         :tag->string-procedure #'eproj/generic-tag->string
                         :applies-to-files-procedure
                         (lambda (files)
@@ -603,30 +604,86 @@ Note: old tags file is removed before calling update command."
   (eproj-reload-project! (eproj-get-project-for-buf (current-buffer)))
   (eproj-symbnav/reset))
 
+(defun eproj-update-buffer-tags ()
+  "Update tags only for current buffer in project that contains it."
+  (interactive)
+  (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+         (buf (current-buffer))
+         (fname (expand-file-name (buffer-file-name buf)))
+         (non-fname-tag-func
+          (lambda (tag)
+            (not (string= fname
+                          (expand-file-name
+                           (eproj-tag/file tag))))))
+         (mode (eproj-symbnav/resolve-synonym-modes
+                (with-current-buffer buf
+                  major-mode))))
+    (unless (memq mode
+                  (eproj-project/languages proj))
+      (error "Project %s does not manage %s files"
+             (eproj-projcet/root proj)
+             mode))
+    (if-let (old-tags (cdr-safe (assoc mode (eproj-project/tags proj))))
+      (eproj-with-language-load-proc mode load-proc
+        (let ((new-tags (funcall load-proc proj (list fname))))
+          ;; filter all tags values to remove any tags
+          ;; related to current buffer
+          (maphash (lambda (symbol-str tags)
+                     (puthash symbol-str
+                              (filter non-fname-tag-func
+                                      tags)
+                              old-tags))
+                   old-tags)
+          (hash-table-merge-with!
+           (lambda (symbol-str tags-old tags-new)
+             (append tags-old
+                     tags-new))
+           old-tags
+           new-tags))
+        (eproj-symbnav/reset))
+      (error "Project %s does not have tags for %s"
+             (eproj-project/root proj)
+             mode))))
+
 (defun eproj-get-aux-info-for-buffer-project (key)
   "Query aux info for current buffer's project for KEY."
   (rest-safe (assoc key
                     (eproj-project/aux-info
                      (eproj-get-project-for-buf (current-buffer))))))
 
+(defmacro eproj-with-language-load-proc (lang-mode-var
+                                         load-proc-var
+                                         &rest
+                                         body)
+  "Execute BODY with LOAD-PROC-VAR bound to load procedure for mode in LANG-MODE-VAR."
+  (declare (indent 2))
+  (let ((lang-var (gensym "lang")))
+    `(progn
+       (assert (symbol? ,lang-mode-var)
+               nil
+               "invalid language mode = %s" ,lang-mode-var)
+       (if-let (,lang-var (gethash ,lang-mode-var eproj/languages-table))
+         (if-let (,load-proc-var (eproj-language/load-procedure ,lang-var))
+           (begin
+             ,@body)
+           (error "No load procedure defined for language %s"
+                  ,lang-mode-var))
+         (error "No eproj/language defined for language %s"
+                ,lang-mode-var)))))
 
 (defun eproj-reload-tags (proj)
   "Reload tags for PROJ."
-  (setf (eproj-project/tags proj)
-        (map (lambda (lang-mode)
-               (assert (symbol? lang-mode)
-                       nil "invalid language mode = %s" lang-mode)
-               (if-let (lang (gethash lang-mode eproj/languages-table))
-                 (if-let (load-proc (eproj-language/load-procedure lang))
-                   (let ((new-tags (funcall load-proc proj)))
+  (let ((files (eproj-get-project-files proj)))
+    (setf (eproj-project/tags proj)
+          (map (lambda (lang-mode)
+                 (eproj-with-language-load-proc lang-mode load-proc
+                   (let ((new-tags (funcall load-proc proj files)))
                      (when (null? new-tags)
                        (message "Warning while reloading: project %s loaded no tags for language %s"
                                 (eproj-project/root proj)
                                 lang))
-                     (cons lang-mode new-tags))
-                   (error "No load procedure defined for language %s" lang-mode))
-                 (error "No eproj/language defined for language %s" lang-mode)))
-             (eproj-project/languages proj)))
+                     (cons lang-mode new-tags))))
+               (eproj-project/languages proj))))
   nil)
 
 (defun eproj-reload-project! (proj)
@@ -764,15 +821,15 @@ which to try loading/root finding/etc.")
 (defun eproj-make-project (root type)
   (assert (string? root)
           nil
-          "Not a string: %s" root)
+          "Project root must be a string: %s" root)
   (assert (eproj-project-type-p type))
   (unless (and (file-exists? root)
                (file-directory? root))
-    (error "invalid project root: %s" root))
+    (error "Invalid project root, existing directory required: %s" root))
   (let ((proj (funcall (eproj-project-type/make-project-proc type)
                        (eproj-normalize-file-name root))))
     (when (null? proj)
-      (error "error while trying to obtain project for root %s" root))
+      (error "Error while trying to obtain project for root %s" root))
     (eproj-reload-project! proj)
     proj))
 
@@ -785,10 +842,15 @@ which to try loading/root finding/etc.")
     (with-current-buffer buf
       (erase-buffer)
       (text-mode)
-      (maphash (lambda (root proj)
+      (let ((projs (sort (hash-table->alist *eproj-projects*)
+                         (lambda (a b)
+                           (string< (car a)
+                                    (car b))))))
+        (map (lambda (entry)
+               (destructuring-bind (root . proj) entry
                  (eproj-descibe-proj buf proj nil t)
-                 (insert (make-string 80 ?\-) "\n"))
-               *eproj-projects*)
+                 (insert (make-string 80 ?\-) "\n")))
+             projs))
       (goto-char (point-min)))))
 
 (defun eproj-describe-buffer-project ()
