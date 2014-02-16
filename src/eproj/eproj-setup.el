@@ -9,6 +9,7 @@
 (autoload 'eproj-symbnav/go-to-symbol-home "eproj" "" t)
 (autoload 'eproj-symbnav/go-back "eproj" "" t)
 (autoload 'setup-eproj-symbnav "eproj")
+(autoload 'eproj-update-buffer-tags "eproj")
 
 (provide 'eproj-setup)
 
