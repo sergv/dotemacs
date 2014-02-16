@@ -607,6 +607,13 @@ tabbar, etc")
     (maphash (lambda (k v) (push k result)) table)
     result))
 
+(defun hash-table-keys-filter (pred table)
+  "Get list of keys of hash table for entries that match PRED, i.e. PRED
+returns true for key and value."
+  (let ((result '()))
+    (maphash (lambda (k v) (when (funcall pred k v) (push k result))) table)
+    result))
+
 (defun hash-table-entries-matching-re (table re)
   "Return list of TABLE values whose keys match RE."
   (let ((result nil))
@@ -615,6 +622,22 @@ tabbar, etc")
                  (push v result)))
              table)
     result))
+
+(defun hash-table-merge! (table-main table-aux)
+  "Add all entries from TABLE-AUX into TABLE-MAIN."
+  (maphash (lambda (k v)
+             (puthash k v table-main))
+           table-aux))
+
+(defun hash-table-merge-with! (comb-func table-main table-aux)
+  "Add all entries from TABLE-AUX into TABLE-MAIN, combine entries present
+in both tables with COMB-FUNC, which should take 3 arguments: key, value in
+main table and value in aux table."
+  (maphash (lambda (k v)
+             (if-let (v-main (gethash k table-main))
+               (puthash k (funcall comb-func k v-main v) table-main)
+               (puthash k v table-main)))
+           table-aux))
 
 ;;;
 
