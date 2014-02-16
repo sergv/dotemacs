@@ -182,7 +182,8 @@ all otherwise."
     ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
     ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
     ("C-TAB"           magit-cycle-section)
-    ("C-<tab>"         magit-cycle-section)))
+    ("C-<tab>"         magit-cycle-section)
+    ("'"               magit-goto-parent-section)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
 
