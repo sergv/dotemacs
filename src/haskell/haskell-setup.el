@@ -147,8 +147,26 @@
     (","       shm/comma)
     (":"       shm/:)
     ("="       shm/=)
-    ("-"       shm/hyphen)
-    ("C-="     input-unicode))
+
+    ("C-="     input-unicode)
+
+    ("+"       shm/+)
+    ("*"       shm/*)
+    ("="       shm/=)
+    ("<"       shm/<)
+    (">"       shm/>)
+    ("!"       shm/!)
+    ("@"       shm/@)
+    ("$"       shm/$)
+    ("%"       shm/%)
+    ("^"       shm/^)
+    ("&"       shm/&)
+
+    ("/"       shm//)
+    ("?"       shm/?)
+    ("|"       shm/|)
+    ("\\"      shm/\\)
+    ("~"       shm/~))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
