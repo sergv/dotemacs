@@ -681,7 +681,7 @@ Note: old tags file is removed before calling update command."
                      (when (null? new-tags)
                        (message "Warning while reloading: project %s loaded no tags for language %s"
                                 (eproj-project/root proj)
-                                lang))
+                                lang-mode))
                      (cons lang-mode new-tags))))
                (eproj-project/languages proj))))
   nil)
