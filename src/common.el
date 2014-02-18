@@ -1195,61 +1195,66 @@ the current buffer."
   (interactive "p")
   (other-window (- n)))
 
+(defun swap-buffers-in-windows (win-a win-b)
+  "Swap buffers in window WIN-A and WIN-B."
+  (let* ((buf-a (current-buffer))
+         (pos-a (with-selected-window win-a
+                  (with-current-buffer buf-a
+                    (point))))
+         (buf-b (save-selected-window (select-window win-b t)
+                                      (current-buffer)))
+         (pos-b (with-selected-window win-b
+                  (with-current-buffer buf-b
+                    (point)))))
+    (if (eq? buf-b buf-a)
+      (begin
+        (with-selected-window win-a
+          (with-current-buffer buf-a
+            (goto-char pos-b)))
+        (select-window win-b)
+        (with-selected-window win-b
+          (with-current-buffer buf-b
+            (goto-char pos-a))))
+      (begin
+        (switch-to-buffer buf-b)
+        (select-window win-b)
+        (switch-to-buffer buf-a)))))
+
 (defun swap-buffers-forward ()
   "Swap current buffer with next buffer"
   (interactive)
   (let* ((curr-win (selected-window))
-         (curr-buffer (current-buffer))
-         (curr-pos (with-selected-window curr-win
-                     (with-current-buffer curr-buffer
-                       (point))))
-         (next-win (next-window curr-win 0))
-         (next-buffer (save-selected-window (select-window next-win t)
-                                            (current-buffer)))
-         (next-pos (with-selected-window next-win
-                     (with-current-buffer next-buffer
-                       (point)))))
-    (if (eq? next-buffer curr-buffer)
-      (begin
-        (with-selected-window curr-win
-          (with-current-buffer curr-buffer
-            (goto-char next-pos)))
-        (select-window next-win)
-        (with-selected-window next-win
-          (with-current-buffer next-buffer
-            (goto-char curr-pos))))
-      (begin
-        (switch-to-buffer next-buffer)
-        (select-window next-win)
-        (switch-to-buffer curr-buffer)))))
+         (next-win (next-window curr-win 0)))
+    (swap-buffers-in-windows curr-win next-win)))
 
 (defun swap-buffers-backward ()
   "Swap current buffer with previous buffer"
   (interactive)
   (let* ((curr-win (selected-window))
-         (curr-buffer (current-buffer))
-         (curr-pos (with-selected-window curr-win
-                     (with-current-buffer curr-buffer
-                       (point))))
-         (prev-win (previous-window curr-win 0))
-         (prev-buffer (save-selected-window (select-window prev-win t)
-                                            (current-buffer)))
-         (prev-pos (with-selected-window prev-win
-                     (with-current-buffer prev-buffer
-                       (point)))))
-    (if (eq? prev-buffer curr-buffer)
-      (begin
-        (with-selected-window curr-win
-          (with-current-buffer curr-buffer
-            (goto-char prev-pos)))
-        (select-window prev-win)
-        (with-selected-window prev-win
-          (with-current-buffer prev-buffer
-            (goto-char curr-pos))))
-      (begin
-        (switch-to-buffer prev-buffer)
-        (select-window prev-win)
-        (switch-to-buffer curr-buffer)))))
+         (prev-win (previous-window curr-win 0)))
+    (swap-buffers-in-windows curr-win prev-win)))
+
+(defun swap-buffers-forward-through-frame ()
+  "Swap current buffer with selected buffer in the next frame."
+  (interactive)
+  (let* ((curr-win (selected-window))
+         (next-frame (next-frame nil
+                                 nil ;; exclude minibuffer-only frames
+                                 ))
+         (next-win (with-selected-frame next-frame
+                     (selected-window))))
+    (swap-buffers-in-windows curr-win next-win)))
+
+(defun swap-buffers-backward-through-frames ()
+  "Swap current buffer with selected buffer in the previous frame."
+  (interactive)
+  (let* ((curr-win (selected-window))
+         (prev-frame (previous-frame nil
+                                     nil ;; exclude minibuffer-only frames
+                                     ))
+         (prev-win (with-selected-frame prev-frame
+                     (selected-window))))
+    (swap-buffers-in-windows curr-win prev-win)))
 
 (defun next-f (n)
   "Switch to Nth previous frame."
