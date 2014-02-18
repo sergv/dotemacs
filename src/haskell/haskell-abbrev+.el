@@ -78,7 +78,7 @@ then Bar would be the result."
            (list "##"
                  (list
                   (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
-           (list "#lang"
+           (list "\\(?:#lang\\|langext\\)"
                  (list
                   (lambda () (yas-expand-snippet language-snippet))))
            (list "\\<info\\>"
