@@ -140,8 +140,6 @@
     ("SPC SPC" switch-to-haskell))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("["       shm/open-bracket)
-    ("{"       shm/open-brace)
     ("-"       shm/hyphen)
     ("#"       shm/hash)
     (","       shm/comma)
@@ -169,6 +167,12 @@
     ("~"       shm/~))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("("       sp--self-insert-command)
+    ("["       sp--self-insert-command)
+    ("{"       sp--self-insert-command))
+
+  (def-keys-for-map (vim:visual-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-w"             shm/backward-kill-word)
     ("M-u"             shm/insert-undefined)
@@ -209,9 +213,6 @@
 
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("("       sp--self-insert-command)
-    ("["       sp--self-insert-command)
-    ("{"       sp--self-insert-command)
     ("g a"     nil)
     ("g a ="   haskell-align-on-equals)
     ("g a - >" haskell-align-on-arrows)
@@ -235,6 +236,9 @@
     ("q" vim:shm/goto-parent-end))
 
   (def-keys-for-map shm-map
+    (")"          nil)
+    ("]"          nil)
+    ("}"          nil)
     ("C-w"        nil)
     ("M-w"        nil)
     ("C-y"        nil)
