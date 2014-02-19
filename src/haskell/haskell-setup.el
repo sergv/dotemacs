@@ -166,13 +166,13 @@
     ("\\"      shm/\\)
     ("~"       shm/~))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
+  (def-keys-for-map (vim:visual-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("("       sp--self-insert-command)
     ("["       sp--self-insert-command)
     ("{"       sp--self-insert-command))
 
-  (def-keys-for-map (vim:visual-mode-local-keymap
+  (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-w"             shm/backward-kill-word)
     ("M-u"             shm/insert-undefined)
@@ -236,6 +236,9 @@
     ("q" vim:shm/goto-parent-end))
 
   (def-keys-for-map shm-map
+    ("("          nil)
+    ("["          nil)
+    ("{"          nil)
     (")"          nil)
     ("]"          nil)
     ("}"          nil)
