@@ -88,6 +88,7 @@
     (html-mode             (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (sgml-mode             (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (markdown-mode         (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
+    (rst-mode              (one-line ".. ") (line-regexp ".. "))
     (rnc-mode              (one-line "#") (line-regexp "#+"))
     (gitignore-mode        (one-line "#") (line-regexp "#+"))
     (gitconfig-mode        (one-line "#") (line-regexp "#+"))
