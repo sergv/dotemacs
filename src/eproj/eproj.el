@@ -602,7 +602,8 @@ Note: old tags file is removed before calling update command."
   "Update project for current buffer or create new project if it does not exists."
   (interactive)
   (eproj-reload-project! (eproj-get-project-for-buf (current-buffer)))
-  (eproj-symbnav/reset))
+  (eproj-symbnav/reset)
+  (message "done"))
 
 (defun eproj-update-buffer-tags ()
   "Update tags only for current buffer in project that contains it."
