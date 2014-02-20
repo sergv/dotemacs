@@ -542,17 +542,30 @@ commented parts and leave point unchanged."
 
 (autoload 'shm-current-node "shm" "" nil)
 
-(defun haskell-comment-node ()
+(defun haskell-comment-node (&optional count)
   "Similar to `lisp-comment-sexp' buf for current haskell node."
-  (interactive)
-  (when-let (node (shm-current-node))
-    (save-excursion
-      (goto-char (shm-node-start node))
-      (comment-util--comment-n-lines-starting-at-col
-       (concat (comment-format-one-line *comment-util-current-format*)
-               (make-string *comment-util-space-count* ?\s))
-       (count-lines (point) (shm-node-end node))
-       (current-column)))))
+  (interactive (list current-prefix-arg))
+  (let ((comment-format
+         (concat (comment-format-one-line *comment-util-current-format*)
+                 (make-string *comment-util-space-count* ?\s))))
+    (if (not (null? count))
+      (save-excursion
+        (skip-to-indentation)
+        (comment-util--comment-n-lines-starting-at-col
+         comment-format
+         count
+         (current-column)))
+      (when-let (node (shm-current-node))
+        (let ((node-count (count-lines (shm-node-start node)
+                                       (shm-node-end node))))
+          (save-excursion
+            (if (= 1 node-count)
+              (skip-to-indentation)
+              (goto-char (shm-node-start node)))
+            (comment-util--comment-n-lines-starting-at-col
+             comment-format
+             node-count
+             (current-column))))))))
 
 
 (provide 'comment-util)
