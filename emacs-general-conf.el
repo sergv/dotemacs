@@ -229,8 +229,8 @@
 (setq auto-save-list-file-prefix (path-concat +prog-data-path+
                                               "auto-save-list/.save-"))
 
-;;;; color - themes, current line etc
-(global-hl-line-mode t)
+;;;; color themes, current line etc
+(global-hl-line-mode -1)
 
 ;; primarily used by the theme-changer
 ;; (setf calendar-location-name "Nikolaev Ukraine"
