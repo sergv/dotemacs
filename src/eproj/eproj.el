@@ -69,6 +69,9 @@
   applies-to-files-procedure ;; Function taking list of absolute file names
                              ;; and returning t if at least one file is
                              ;; in this language. The function may be nil.
+  normalize-identifier-before-navigation-procedure ;; Possibly strip unneeded
+                                                   ;; information before
+                                                   ;; performing navigation
   )
 
 ;;;; ctags facility
@@ -423,7 +426,9 @@ Note: old tags file is removed before calling update command."
                                 files))
                         :synonym-modes '(literate-haskell-mode
                                          haskell-c-mode
-                                         c2hs-mode))))
+                                         c2hs-mode)
+                        :normalize-identifier-before-navigation-procedure
+                        #'haskell-remove-module-qualification)))
           lang)
         (letrec ((lang (make-eproj-language
                         :mode 'c-mode
@@ -441,7 +446,9 @@ Note: old tags file is removed before calling update command."
                                           (eproj-language/extension-re lang)))
 
                                 files))
-                        :synonym-modes nil)))
+                        :synonym-modes nil
+                        :normalize-identifier-before-navigation-procedure
+                        #'identity)))
           lang)
         (letrec ((lang (make-eproj-language
                         :mode 'c++-mode
@@ -474,7 +481,9 @@ Note: old tags file is removed before calling update command."
                                           path)
                                          (not (string-match-pure? c-ext path))))
                                   files)))
-                        :synonym-modes nil)))
+                        :synonym-modes nil
+                        :normalize-identifier-before-navigation-procedure
+                        #'identity)))
           lang)
         (letrec ((lang (make-eproj-language
                         :mode 'python-mode
@@ -492,7 +501,9 @@ Note: old tags file is removed before calling update command."
                                           (eproj-language/extension-re lang)))
 
                                 files))
-                        :synonym-modes nil)))
+                        :synonym-modes nil
+                        :normalize-identifier-before-navigation-procedure
+                        #'identity)))
           lang)
         (letrec ((lang (make-eproj-language
                         :mode 'clojure-mode
@@ -514,7 +525,9 @@ Note: old tags file is removed before calling update command."
                                                java-ext
                                                path))))
                                   files)))
-                        :synonym-modes nil)))
+                        :synonym-modes nil
+                        :normalize-identifier-before-navigation-procedure
+                        #'identity)))
           lang)
         (letrec ((lang (make-eproj-language
                         :mode 'java-mode
@@ -531,7 +544,9 @@ Note: old tags file is removed before calling update command."
                                  (partial #'string-match-pure?
                                           (eproj-language/extension-re lang)))
                                 files))
-                        :synonym-modes nil)))
+                        :synonym-modes nil
+                        :normalize-identifier-before-navigation-procedure
+                        #'identity)))
           lang)))
 
 (defvar eproj/languages-table
@@ -1192,7 +1207,11 @@ as accepted by `bounds-of-thing-at-point'.")
         (trim-whitespace it))
       (let ((bounds (bounds-of-thing-at-point eproj-symbnav/identifier-type)))
         (cond ((not (null? bounds))
-               (buffer-substring-no-properties (car bounds) (cdr bounds)))
+               (funcall (eproj-language/normalize-identifier-before-navigation-procedure
+                         (gethash (eproj-symbnav/resolve-synonym-modes major-mode)
+                                  eproj/languages-table))
+                        (buffer-substring-no-properties (car bounds)
+                                                        (cdr bounds))))
               ((null? noerror)
                (error "No identifier at point found"))
               (else
