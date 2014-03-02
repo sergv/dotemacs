@@ -103,11 +103,15 @@ entries."
      (save ,(lambda (buf)
               (save-excursion
                 (with-inhibited-read-only
-                  (goto-char (point-max))
-                  (forward-line -1)
-                  (list (list 'contents
-                              ;; collect properties as well
-                              (buffer-substring (point-min) (point-max))))))))
+                 (goto-char (point-max))
+                 (forward-line -1)
+                 (list (list 'contents
+                             ;; collect properties as well
+                             (buffer-substring (point-min) (point-max)))
+                       (list 'current-dir
+                             (expand-file-name default-directory))
+                       (list 'eshell-history-ring
+                             eshell-history-ring))))))
      (restore ,(lambda (buffer-name saved-data)
                  (message "Restoring eshell buffer %s" buffer-name)
                  (when-let (contents
@@ -117,40 +121,59 @@ entries."
                      (let ((eshell-buffer-name buffer-name))
                        (eshell)
                        (with-inhibited-read-only
-                         (forward-line -1)
-                         (delete-region (point-min)
-                                        ;; do not capture trailing \n
-                                        (line-end-position)))
-
+                        (forward-line -1)
+                        (delete-region (point-min)
+                                       ;; do not capture trailing \n
+                                       (line-end-position)))
                        (save-excursion
                          (with-inhibited-read-only
-                           (with-inhibited-modification-hooks
-                             (with-inhibited-redisplay
-                               (goto-char (point-min))
-                               (insert (second contents))))))))))))
+                          (with-inhibited-modification-hooks
+                           (with-inhibited-redisplay
+                             (goto-char (point-min))
+                             (insert (second contents))))))
+                       (when-let (current-dir
+                                  (cadr-safe
+                                   (assoc 'current-dir saved-data)))
+                         (goto-char (point-max))
+                         (insert "cd \"" current-dir "\"")
+                         (eshell-send-input))
+                       (awhen (cadr-safe (assoc 'eshell-history-ring saved-data))
+                         (setf eshell-history-ring it))))))))
     (shell-mode
      (save ,(lambda (buf)
               (save-excursion
                 (with-inhibited-read-only
-                  (goto-char (point-max))
-                  (forward-line -1)
-                  (list (list 'contents
-                              ;; collect properties as well
-                              (buffer-substring (point-min) (point-max))))))))
+                 (goto-char (point-max))
+                 (forward-line -1)
+                 (list (list 'contents
+                             ;; collect properties as well
+                             (buffer-substring (point-min) (point-max)))
+                       (list 'current-dir
+                             (expand-file-name default-directory))
+                       (list 'comint-input-ring
+                             comint-input-ring))))))
      (restore ,(lambda (buffer-name saved-data)
                  (awhen (assoc 'contents saved-data)
                    (let ((buf (get-buffer-create buffer-name)))
                      (with-current-buffer buf
                        (with-inhibited-read-only
-                         (with-inhibited-modification-hooks
-                           (with-inhibited-redisplay
-                             (goto-char (point-min))
-                             (insert (second it))
-                             (insert "\n\n")))))
+                        (with-inhibited-modification-hooks
+                         (with-inhibited-redisplay
+                           (goto-char (point-min))
+                           (insert (second it))
+                           (insert "\n\n")))))
                      (shell buf)
                      (accept-process-output (get-buffer-process buf)
                                             5 ;; Time to wait in seconds.
-                                            ))))))))
+                                            )
+                     (when-let (current-dir
+                                (cadr-safe
+                                 (assoc 'current-dir saved-data)))
+                       (goto-char (point-max))
+                       (insert "cd \"" current-dir "\"")
+                       (comint-send-input))
+                     (awhen (cadr-safe (assoc 'comint-input-ring saved-data))
+                       (setf comint-input-ring it)))))))))
 
 
 (defun sessions/save-buffers (file)
