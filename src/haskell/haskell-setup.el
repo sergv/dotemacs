@@ -325,6 +325,12 @@
 
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 
+(defun haskell-cabal-setup ()
+  (init-common :use-comment t :use-yasnippet nil)
+  (setq-local vim:shift-width 2))
+
+(add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
+
 (provide 'haskell-setup)
 
 ;; Local Variables:
