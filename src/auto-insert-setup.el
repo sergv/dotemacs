@@ -47,6 +47,7 @@
              ("\\.x?html?$" . ["insert.xhtml" auto-insert-update])
              ("\\.py$"      . ["insert.py"    auto-insert-update])
              ("\\.org$"     . ["insert.org"   auto-insert-update])
+             ("\\.eproj-info" . ["insert.eproj-info" auto-insert-update])
 
              ("AndroidManifest.xml"       . ["insert-android-manifest.xml" auto-insert-update])
              ("/res/drawable.*/.*\\.xml$" . ["insert-android-drawable.xml" auto-insert-update])
