@@ -1,0 +1,25 @@
+;; ([(languages <langs>)] - it's not a good practice to omit this
+;;  [(project-type <proj-type>)]
+;;  [(related <abs-or-rel-dir>*])
+;;  [(aux-files
+;;    [(tree <tree-root> <pattern>*)])]
+;;
+;;  ;; these are mostly for haskell
+;;  [(tag-file <abs-or-rel-file>)]
+;;  [(update-tag-file-command <command> <arg>+)]
+;;  [(ghci "<command>")])
+;;
+;; [...] - optional directive
+;; {...} - grouping directive
+;; <abs-or-rel-dir> - absolute or relative path to directory
+;; <abs-or-rel-file> - absolute or relative path to file
+;; <langs> - list of major-mode symbols
+;; <proj-type> - symbol naming type of project, will be verified
+;;               agains inferred project type
+;; <tree-root> - absolute path to existing directory
+;; <pattern> - regular expression
+;; <command> - emacs string representation of shell command to update tag
+;;             file corresponding to tag-file entry
+;; <arg> - emacs strings, arguments to the command
+
+((languages))
