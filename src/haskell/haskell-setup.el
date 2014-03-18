@@ -100,9 +100,7 @@
   (setq-local yas-prompt-functions
               (list #'haskell-yas-completing-prompt))
 
-  (let ((offset (if (platform-use? 'work)
-                  2
-                  4)))
+  (let ((offset 2))
     (setq-local vim:shift-width       offset)
     (setq-local hi2-left-offset       offset)
     (setq-local hi2-layout-offset     offset)
