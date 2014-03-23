@@ -24,6 +24,7 @@
 
 (require 'ring)
 (require 'cl)
+(require 'cl-lib)
 
 (defvar shm-lighter " SHM?"
   "The lighter for structured Haskell mode.")
@@ -267,7 +268,7 @@ Any optimizations welcome."
                                        (current-column))))
     (cond ((vectorp ast)
            (save-excursion
-             (map 'vector
+             (cl-map 'vector
                   (lambda (node)
                     (vector
                      (elt node 0)
