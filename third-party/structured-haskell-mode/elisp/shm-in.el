@@ -60,11 +60,26 @@
     (and (looking-at-p "'")
          (looking-back "'"))))
 
+(defun shm-in-string-or-comment ()
+  "Are we in string or comment?"
+  (let* ((state (parse-partial-sexp (line-beginning-position)
+                                    (point)))
+         (inside-string? (elt state 3))
+         (inside-comment? (elt state 4)))
+    (or inside-comment?
+        inside-string?
+        (and (eq 'font-lock-string-face
+                 (get-text-property (point) 'face))
+             (if (char-equal (char-after) ?\")
+               (eq 'font-lock-string-face
+                   (get-text-property (- (point) 1) 'face))
+               t)))))
+
+
 (defun shm-literal-insertion ()
   "Should a node have literal insertion?"
-  (or (shm-in-string)
+  (or (shm-in-string-or-comment)
       (shm-in-char)
-      (shm-in-comment)
       (and (memq (char-before) '(?\' ?\\))
            (char-equal (char-after) ?\'))
       (and (memq (char-before) '(?\" ?\\))
