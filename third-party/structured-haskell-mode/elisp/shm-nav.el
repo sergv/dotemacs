@@ -104,34 +104,43 @@ node."
       (progn (goto-char (shm-node-start current))
              (setq shm-last-point (point))))))
 
-(defun shm/close-paren ()
+(defun shm/close-paren (&optional insert-literally)
   "Either insert a close paren or go to the end of the node."
-  (interactive)
-  (shm-with-fallback
-   self-insert-command
-   (if (shm-literal-insertion)
+  (interactive "p")
+  (if (memq (char-after) '(?\) ?\] ?\}))
+    (forward-char)
+    (shm-with-fallback
+     sp--self-insert-command
+     (if (or (shm-literal-insertion)
+             insert-literally)
        (shm-insert-string ")")
-     (progn (shm/reparse)
-            (shm/goto-parent-end)))))
+       (progn (shm/reparse)
+              (shm/goto-parent-end))))))
 
-(defun shm/close-bracket ()
+(defun shm/close-bracket (&optional insert-literally)
   "Either insert a close bracket or go to the end of the node."
-  (interactive)
-  (shm-with-fallback
-   self-insert-command
-   (if (shm-literal-insertion)
+  (interactive "p")
+  (if (memq (char-after) '(?\) ?\] ?\}))
+    (forward-char)
+    (shm-with-fallback
+     sp--self-insert-command
+     (if (or (shm-literal-insertion)
+             insert-literally)
        (shm-insert-string "]")
-     (progn (shm/reparse)
-            (shm/goto-parent-end)))))
+       (progn (shm/reparse)
+              (shm/goto-parent-end))))))
 
-(defun shm/close-brace ()
+(defun shm/close-brace (&optional insert-literally)
   "Either insert a close brace or go to the end of the node."
-  (interactive)
-  (shm-with-fallback
-   self-insert-command
-   (if (shm-literal-insertion)
+  (interactive "p")
+  (if (memq (char-after) '(?\) ?\] ?\}))
+    (forward-char)
+    (shm-with-fallback
+     sp--self-insert-command
+     (if (or (shm-literal-insertion)
+             insert-literally)
        (shm-insert-string "}")
-     (progn (shm/reparse)
-            (shm/goto-parent-end)))))
+       (progn (shm/reparse)
+              (shm/goto-parent-end))))))
 
 (provide 'shm-nav)
