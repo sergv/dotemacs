@@ -33,12 +33,14 @@ if it's operator character and CHAR is operator character too.
 
 Similar to `shm-insert-string'."
   (when (memq char shm/operator-chars)
-    ;; delete spaces backwards if there's operator char
+    ;; delete spaces backwards if there's operator or open paren char
     ;; somewhere
     (let ((dist (save-excursion
                   (let ((n (skip-syntax-backward " ")))
-                    (and (memq (char-before (point))
-                               shm/operator-chars)
+                    (and (or (memq (char-before (point))
+                                   shm/operator-chars)
+                             (char-equal (char-before (point))
+                                         ?\())
                          (if (char-equal (char-before (point)) ?|)
                            (not (string-match-p "^[ \t]*|"
                                                 (buffer-substring-no-properties
@@ -54,12 +56,14 @@ Similar to `shm-insert-string'."
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
   (when (or (and (not (char-equal (char-before) ?\s))
+                 (not (char-equal (char-before) ?\())
                  (not (memq (char-before) shm/operator-chars)))
             ;; Distance ourselves from | that is a potential guard.
             (char-equal (char-before) ?|))
     (shm-insert-string " "))
   (shm-insert-char-appending-to-prev-operator char)
   (when (and (not (char-equal (char-after) ?\s))
+                 (not (char-equal (char-before) ?\)))
              (not (memq (char-after) shm/operator-chars)))
     (shm-insert-string " ")))
 
