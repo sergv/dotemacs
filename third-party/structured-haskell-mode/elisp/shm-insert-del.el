@@ -32,12 +32,14 @@
 if it's operator character and CHAR is operator character too.
 
 Similar to `shm-insert-string'."
-  (when (memq char shm/operator-chars)
+  (when (and (memq char shm/operator-chars)
+             (not (shm-literal-insertion)))
     ;; delete spaces backwards if there's operator or open paren char
     ;; somewhere
     (let ((dist (save-excursion
                   (let ((n (skip-syntax-backward " ")))
-                    (and (or (memq (char-before (point))
+                    (and (not (bobp))
+                         (or (memq (char-before (point))
                                    shm/operator-chars)
                              (char-equal (char-before (point))
                                          ?\())
