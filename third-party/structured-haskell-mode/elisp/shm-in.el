@@ -47,11 +47,12 @@
                                     (point)))
          (inside-string? (elt state 3)))
     (or inside-string?
-        (save-excursion
-          (when (looking-at-p "\"")
-            (forward-char -1))
-          (eq 'font-lock-string-face
-              (get-text-property (point) 'face))))))
+        (and (eq 'font-lock-string-face
+                 (get-text-property (point) 'face))
+             (if (char-equal (char-after) ?\")
+               (eq 'font-lock-string-face
+                   (get-text-property (- (point) 1) 'face))
+               t)))))
 
 (defun shm-in-char ()
   "Are we in a char literal?"
