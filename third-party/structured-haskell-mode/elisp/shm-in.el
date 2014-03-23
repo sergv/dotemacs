@@ -24,7 +24,11 @@
                   (point))
                (/= (line-beginning-position) (point)))
       (forward-char -1))
-    (and (or (eq 'font-lock-comment-delimiter-face
+    (and (or (let* ((state (parse-partial-sexp (line-beginning-position)
+                                               (point)))
+                    (inside-comment? (elt state 4)))
+               inside-comment?)
+             (eq 'font-lock-comment-delimiter-face
                  (get-text-property (point) 'face))
              (eq 'font-lock-doc-face
                  (get-text-property (point) 'face))
@@ -39,22 +43,30 @@
 
 (defun shm-in-string ()
   "Are we in a string?"
-  (save-excursion
-    (when (looking-at "\"")
-      (forward-char -1))
-    (eq 'font-lock-string-face
-        (get-text-property (point) 'face))))
+  (let* ((state (parse-partial-sexp (line-beginning-position)
+                                    (point)))
+         (inside-string? (elt state 3)))
+    (or inside-string?
+        (save-excursion
+          (when (looking-at-p "\"")
+            (forward-char -1))
+          (eq 'font-lock-string-face
+              (get-text-property (point) 'face))))))
 
 (defun shm-in-char ()
   "Are we in a char literal?"
   (save-excursion
-    (and (looking-at "'")
+    (and (looking-at-p "'")
          (looking-back "'"))))
 
 (defun shm-literal-insertion ()
   "Should a node have literal insertion?"
   (or (shm-in-string)
       (shm-in-char)
-      (shm-in-comment)))
+      (shm-in-comment)
+      (and (memq (char-before) '(?\' ?\\))
+           (char-equal (char-after) ?\'))
+      (and (memq (char-before) '(?\" ?\\))
+           (char-equal (char-after) ?\"))))
 
 (provide 'shm-in)
