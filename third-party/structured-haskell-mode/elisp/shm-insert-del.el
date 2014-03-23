@@ -55,15 +55,19 @@ Similar to `shm-insert-string'."
 (defun shm-insert-char-surrounding-with-spaces (char)
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
-  (when (or (and (not (char-equal (char-before) ?\s))
-                 (not (char-equal (char-before) ?\())
-                 (not (memq (char-before) shm/operator-chars)))
-            ;; Distance ourselves from | that is a potential guard.
-            (char-equal (char-before) ?|))
+  (when (and (not (string-match-p "^[ \t]*$"
+                                  (buffer-substring-no-properties
+                                   (line-beginning-position)
+                                   (point))))
+             (or (and (not (char-equal (char-before) ?\s))
+                      (not (char-equal (char-before) ?\())
+                      (not (memq (char-before) shm/operator-chars)))
+                 ;; Distance ourselves from | that is a potential guard.
+                 (char-equal (char-before) ?|)))
     (shm-insert-string " "))
   (shm-insert-char-appending-to-prev-operator char)
   (when (and (not (char-equal (char-after) ?\s))
-                 (not (char-equal (char-before) ?\)))
+             (not (char-equal (char-before) ?\)))
              (not (memq (char-after) shm/operator-chars)))
     (shm-insert-string " ")))
 
