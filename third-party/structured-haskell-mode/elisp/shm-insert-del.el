@@ -27,6 +27,74 @@
   (coerce "!#$%&*+-./:<=>?@\\^|~" 'list)
   "Characters that may constitute operators.")
 
+(defun shm-insert-char-appending-to-prev-operator (char)
+  "Insert CHAR while optionally removing whitespace to the previous character
+if it's operator character and CHAR is operator character too.
+
+Similar to `shm-insert-string'."
+  (when (memq char shm/operator-chars)
+    ;; delete spaces backwards if there's operator char
+    ;; somewhere
+    (let ((dist (save-excursion
+                  (let ((n (skip-syntax-backward " ")))
+                    (and (memq (char-before (point))
+                               shm/operator-chars)
+                         (if (char-equal (char-before (point)) ?|)
+                           (not (string-match-p "^[ \t]*|"
+                                                (buffer-substring-no-properties
+                                                 (line-beginning-position)
+                                                 (- (point) 1))))
+                           t)
+                         n)))))
+      (when dist
+        (delete-forward-char dist))))
+  (shm-insert-string (make-string 1 char)))
+
+(defun shm-insert-char-surrounding-with-spaces (char)
+  "Insert CHARacter while trying to surround it with spaces and
+stick it to the previous operator on line."
+  (when (or (and (not (char-equal (char-before) ?\s))
+                 (not (memq (char-before) shm/operator-chars)))
+            ;; Distance ourselves from | that is a potential guard.
+            (char-equal (char-before) ?|))
+    (shm-insert-string " "))
+  (shm-insert-char-appending-to-prev-operator char)
+  (when (and (not (char-equal (char-after) ?\s))
+             (not (memq (char-after) shm/operator-chars)))
+    (shm-insert-string " ")))
+
+(defmacro shm-make-self-insert-surrounded-with-spaces (name char)
+  "Make function NAME for inserting CHARacter with optionally surrounding
+it whith spacec when not in literal insertion context."
+  (let ((str (make-string 1 char)))
+    `(defun ,name (arg)
+       ,(format "Insert %c character surrounding it with spaces and sticking to the previous operator characters." char)
+       (interactive "p")
+       (cond
+         ((or (not (null? current-prefix-arg))
+              (shm-literal-insertion))
+          (insert ,str))
+         (t (shm-insert-char-surrounding-with-spaces ,char))))))
+
+(shm-make-self-insert-surrounded-with-spaces shm/= ?=)
+(shm-make-self-insert-surrounded-with-spaces shm/+ ?+)
+(shm-make-self-insert-surrounded-with-spaces shm/* ?*)
+(shm-make-self-insert-surrounded-with-spaces shm/< ?<)
+(shm-make-self-insert-surrounded-with-spaces shm/> ?>)
+(shm-make-self-insert-surrounded-with-spaces shm/! ?!)
+(shm-make-self-insert-surrounded-with-spaces shm/@ ?@)
+(shm-make-self-insert-surrounded-with-spaces shm/$ ?$)
+(shm-make-self-insert-surrounded-with-spaces shm/% ?%)
+(shm-make-self-insert-surrounded-with-spaces shm/^ ?^)
+(shm-make-self-insert-surrounded-with-spaces shm/& ?&)
+(shm-make-self-insert-surrounded-with-spaces shm// ?/)
+(shm-make-self-insert-surrounded-with-spaces shm/? ?\?)
+(shm-make-self-insert-surrounded-with-spaces shm/| ?|)
+(shm-make-self-insert-surrounded-with-spaces shm/\\ ?\\)
+(shm-make-self-insert-surrounded-with-spaces shm/~ ?~)
+
+
+
 (defun shm-post-self-insert ()
   "Self-insertion handler."
   (save-excursion
@@ -189,29 +257,6 @@ the current node to the parent."
   (interactive)
   (shm-delimit "'" "'"))
 
-(defun shm/= ()
-  "Insert equal."
-  (interactive)
-  (cond
-    ((shm-literal-insertion)
-     (insert "="))
-    (t (when (and (not (char-equal (char-before) ?\s))
-                  (not (memq (char-before) shm/operator-chars)))
-         (shm-insert-string " "))
-       ;; delete spaces backwards if there's operator char
-       ;; somewhere
-       (let ((dist (save-excursion
-                     (let ((n (skip-syntax-backward " ")))
-                       (and (memq (char-before (point))
-                                  shm/operator-chars)
-                            n)))))
-         (when dist
-           (delete-forward-char dist)))
-       (shm-insert-string "=")
-       (when (and (not (char-equal (char-after) ?\s))
-                  (not (memq (char-after) shm/operator-chars)))
-         (shm-insert-string " ")))))
-
 
 (defun shm/: ()
   "Insert colon."
@@ -235,7 +280,7 @@ the current node to the parent."
           (forward-word -1)
           (shm-evaporate (point) (1+ (point)))))
        (t
-        (shm-insert-string ":"))))))
+        (shm-insert-char-surrounding-with-spaces ?:))))))
 
 (defun shm/hyphen (n)
   "The - hyphen."
@@ -244,7 +289,7 @@ the current node to the parent."
            (looking-at "}"))
       (progn (insert "--")
              (forward-char -1))
-    (self-insert-command n)))
+    (shm-insert-char-surrounding-with-spaces ?-)))
 
 (defun shm/hash (n)
   "The # hash."
@@ -263,7 +308,7 @@ the current node to the parent."
              (ido-completing-read
               "Language: "
               (shm-supported-languages))))))
-    (self-insert-command n)))
+    (shm-insert-char-surrounding-with-spaces ?#)))
 
 (defun shm/open-paren ()
   "Delimit parentheses."
