@@ -114,14 +114,14 @@
   (or (eolp)
       (looking-at "[])},;]")))
 
-(defun shm/double-quote ()
+(defun shm/double-quote (arg)
   "Insert double quotes.
 
 This tries to be clever about insertion. If already in a string,
 it will insert \", if at the end of a string, it will glide over
 the ending quote. If not in a string, it will insert \"\", and
 also space out any neccessary spacing."
-  (interactive)
+  (interactive "p")
   (shm/reparse)
   (if (shm-in-comment)
       (insert "\"")
@@ -134,8 +134,7 @@ also space out any neccessary spacing."
              (looking-back "\\\\"))
         (insert "\""))
        ((shm-find-overlay 'shm-quarantine)
-        (insert "\"\"")
-        (forward-char -1))
+        (sp--self-insert-command arg))
        ;; "…|…"
        ((shm-in-string)
         (cond
