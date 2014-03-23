@@ -23,6 +23,10 @@
 (require 'shm-indent)
 (require 'shm-languages)
 
+(defvar shm/operator-chars
+  (coerce "!#$%&*+-./:<=>?@\\^|~" 'list)
+  "Characters that may constitute operators.")
+
 (defun shm-post-self-insert ()
   "Self-insertion handler."
   (save-excursion
@@ -190,13 +194,25 @@ the current node to the parent."
   "Insert equal."
   (interactive)
   (cond
-   ((shm-literal-insertion)
-    (insert "="))
-   (t (unless (looking-back " ")
-        (shm-insert-string " "))
-      (shm-insert-string "=")
-      (unless (looking-at " ")
-        (shm-insert-string " ")))))
+    ((shm-literal-insertion)
+     (insert "="))
+    (t (when (and (not (char-equal (char-before) ?\s))
+                  (not (memq (char-before) shm/operator-chars)))
+         (shm-insert-string " "))
+       ;; delete spaces backwards if there's operator char
+       ;; somewhere
+       (let ((dist (save-excursion
+                     (let ((n (skip-syntax-backward " ")))
+                       (and (memq (char-before (point))
+                                  shm/operator-chars)
+                            n)))))
+         (when dist
+           (delete-forward-char dist)))
+       (shm-insert-string "=")
+       (when (and (not (char-equal (char-after) ?\s))
+                  (not (memq (char-after) shm/operator-chars)))
+         (shm-insert-string " ")))))
+
 
 (defun shm/: ()
   "Insert colon."
