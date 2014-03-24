@@ -53,7 +53,12 @@
                :use-comment t
                :use-render-formula t)
 
-  (add-hook 'after-save-hook #'eproj-update-buffer-tags nil t)
+  (add-hook 'after-save-hook
+            (lambda ()
+              (ignore-errors
+                (eproj-update-buffer-tags)))
+            nil
+            t)
 
   ;; ghci interaction uses comint - same as shell mode
   (turn-on-font-lock)
