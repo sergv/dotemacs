@@ -106,39 +106,39 @@ node."
 
 (defun shm/close-paren (&optional insert-literally)
   "Either insert a close paren or go to the end of the node."
-  (interactive "p")
+  (interactive "P")
   (if (memq (char-after) '(?\) ?\] ?\}))
     (forward-char)
     (shm-with-fallback
      sp--self-insert-command
      (if (or (shm-literal-insertion)
-             insert-literally)
+             (not (null insert-literally)))
        (shm-insert-string ")")
        (progn (shm/reparse)
               (shm/goto-parent-end))))))
 
 (defun shm/close-bracket (&optional insert-literally)
   "Either insert a close bracket or go to the end of the node."
-  (interactive "p")
+  (interactive "P")
   (if (memq (char-after) '(?\) ?\] ?\}))
     (forward-char)
     (shm-with-fallback
      sp--self-insert-command
      (if (or (shm-literal-insertion)
-             insert-literally)
+             (not (null? insert-literally)))
        (shm-insert-string "]")
        (progn (shm/reparse)
               (shm/goto-parent-end))))))
 
 (defun shm/close-brace (&optional insert-literally)
   "Either insert a close brace or go to the end of the node."
-  (interactive "p")
+  (interactive "P")
   (if (memq (char-after) '(?\) ?\] ?\}))
     (forward-char)
     (shm-with-fallback
      sp--self-insert-command
      (if (or (shm-literal-insertion)
-             insert-literally)
+             (not (null? insert-literally)))
        (shm-insert-string "}")
        (progn (shm/reparse)
               (shm/goto-parent-end))))))
