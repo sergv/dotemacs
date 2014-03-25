@@ -37,7 +37,7 @@
                          "decl")
     (switch-to-buffer "*shm-scratch-test*")
     (when (save-excursion (goto-char (point-min))
-                          (looking-at "structured-haskell-mode:"))
+                          (looking-at-p "structured-haskell-mode:"))
       (insert "\nNote: If you got a parse error for valid code
 that is using fairly new (read: couple years) a GHC extension,
 you are probably hitting the fact that haskell-src-exts doesn't

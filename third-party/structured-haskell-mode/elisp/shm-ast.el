@@ -294,8 +294,8 @@ Any optimizations welcome."
                                           (1- (+ (point) (elt node 5)))))
                             ;; This avoids the case of:
                             (while (save-excursion (goto-char (line-beginning-position))
-                                                   (or (looking-at "[ ]+-- ")
-                                                       (looking-at "[ ]+$")))
+                                                   (or (looking-at-p "[ ]+-- ")
+                                                       (looking-at-p "[ ]+$")))
                               (forward-line -1)
                               (goto-char (line-end-position)))
                             (let ((marker (set-marker (make-marker) (point))))

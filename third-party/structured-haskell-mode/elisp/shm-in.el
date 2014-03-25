@@ -35,11 +35,11 @@
              (eq 'font-lock-comment-face
                  (get-text-property (point) 'face))
              (save-excursion (goto-char (line-beginning-position))
-                             (looking-at "^\-\- ")))
+                             (looking-at-p "^\-\- ")))
          ;; Pragmas {-# SPECIALIZE .. #-} etc are not to be treated as
          ;; comments, even though they are highlighted as such
          (not (save-excursion (goto-char (line-beginning-position))
-                              (looking-at "{-# "))))))
+                              (looking-at-p "{-# "))))))
 
 (defun shm-in-string ()
   "Are we in a string?"
