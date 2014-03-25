@@ -25,10 +25,10 @@
   (interactive)
   (if (looking-back "^[ ]+")
       (cond
-       ((or (looking-at "then[] [{}\"'()]")
-            (looking-at "else[] [{}\"'()]"))
+       ((or (looking-at-p "then[] [{}\"'()]")
+            (looking-at-p "else[] [{}\"'()]"))
         (delete-indentation))
-       ((looking-at "[ ]*$")
+       ((looking-at-p "[ ]*$")
         (delete-indentation))
        (t
         (let ((current (shm-current-node)))
@@ -132,7 +132,7 @@ hai = do foo bar
                             current
                             (shm-node-start (shm-node-child current-pair)))))
         (delete-indentation)
-        (if (looking-at " ")
+        (if (looking-at-p " ")
             (forward-char 1)
           (insert " "))
         (shm-insert-indented (lambda () (insert swing-string)))))
@@ -181,7 +181,7 @@ hai = do foo bar
       ;; If we're going to drag something, that means the *real* parent
       ;; should encompass whatever we're going to drag, and that should
       ;; be at or beyond the end of the line.
-      (unless (looking-at "\\(=>\\|->\\)")
+      (unless (looking-at-p "\\(=>\\|->\\)")
         (let ((current (shm-current-node-pair)))
           (while (and (not (>= (shm-node-end (cdr current))
                                end-position))
@@ -222,7 +222,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
                    "ImportSpecList")
           (and (string= (shm-node-type-name current)
                         "ModuleName")
-               (looking-at "$")
+               (looking-at-p "$")
                parent
                (string= (shm-node-type-name parent)
                         "ImportDecl")))
@@ -401,7 +401,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
 
 (defun shm-newline-indent-listish (current parent parent-pair)
   "Indent and insert a comma for a list-ish syntactical node."
-  (let* ((first-item-on-line (and (not (looking-at ","))
+  (let* ((first-item-on-line (and (not (looking-at-p ","))
                                   (save-excursion
                                     (goto-char (shm-node-start current))
                                     (search-backward-regexp "[[,][ ]*")
@@ -413,7 +413,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
     (shm-newline)
     (indent-to (shm-node-start-column parent))
     ;; Don't insert duplicate commas.
-    (unless (or (looking-at ",") already-have-comma)
+    (unless (or (looking-at-p ",") already-have-comma)
       (insert ","))
     (when go-back
       (let ((column (current-column)))
@@ -424,7 +424,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
                               (current-column))
                            ? )))
     (unless (or (looking-back ",")
-                (looking-at ","))
+                (looking-at-p ","))
       (insert " "))
     (shm-set-node-overlay parent-pair)))
 

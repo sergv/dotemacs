@@ -56,7 +56,7 @@ will insert them back verbatim."
    kill-line
    (shm/reparse)
    (cond
-    ((looking-at "^[ ]+$")
+    ((looking-at-p "^[ ]+$")
      (delete-region (point) (line-end-position)))
     ((= (line-end-position) (line-beginning-position))
      (delete-char -1)
@@ -73,7 +73,7 @@ will insert them back verbatim."
          (kill-region (point)
                       (1- (shm-node-end current))))))
     ((and (= (point) (line-end-position))
-          (not (looking-at "\n[^ ]")))
+          (not (looking-at-p "\n[^ ]")))
      (let ((column (current-column)))
        (delete-region (point)
                       (save-excursion (forward-line 1)
@@ -99,7 +99,7 @@ will insert them back verbatim."
                (shm-in-string))
      (when (looking-back "[a-zA-Z0-9]+_*")
        (shm-insert-string " "))
-     (when (and (looking-at "[a-zA-Z0-9]+_*")
+     (when (and (looking-at-p "[a-zA-Z0-9]+_*")
                 (not (shm-evaporate-before-p)))
        (shm-insert-string " ")
        (forward-char -1)))
