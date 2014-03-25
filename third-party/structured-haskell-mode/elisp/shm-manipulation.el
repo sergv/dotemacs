@@ -164,7 +164,7 @@ Only parenthesized nodes are supported at the moment."
           (delete-char -1)))
        (t
         (goto-char (shm-node-end current))
-        (when (looking-at ",")
+        (when (looking-at-p ",")
           (delete-char 1))))
       (insert "] ["))))
 
@@ -179,7 +179,7 @@ Only parenthesized nodes are supported at the moment."
       (cond
        ((shm-in-comment)
         (save-excursion
-          (unless (looking-at "{-")
+          (unless (looking-at-p "{-")
             (search-backward-regexp "{-" nil nil 1))
           (delete-region (point) (+ 2 (point)))
           (search-forward-regexp "-}" nil nil 1)
@@ -206,7 +206,7 @@ Only parenthesized nodes are supported at the moment."
                    (string= "ImportDecl"
                             (shm-node-type-name current)))
           (cond
-           ((looking-at "import[\n ]+qualified[ \n]+")
+           ((looking-at-p "import[\n ]+qualified[ \n]+")
             (search-forward-regexp "qualified" (shm-node-end current) t 1)
             (delete-region (point)
                            (search-backward-regexp "qualified"))

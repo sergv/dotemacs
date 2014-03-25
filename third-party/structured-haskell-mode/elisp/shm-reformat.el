@@ -19,7 +19,7 @@
 
 (ignore-errors
   (require 'shm-ast)
-  (require 'hindent)
+  (require 'hindent))
 
 (defun shm-reformat-decl ()
   "Reformat the current declaration with `hindent/reformat-decl'
