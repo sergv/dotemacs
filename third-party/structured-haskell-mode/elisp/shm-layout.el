@@ -46,7 +46,7 @@ after 'zoo' are *really* dependent."
         ('forward
          (when (and current
                     (< (shm-node-end current) (line-end-position))
-                    (not (and (looking-at " ")
+                    (not (and (looking-at-p " ")
                               (looking-back " "))))
            (goto-char (shm-node-end current))))
         ('backward
@@ -66,7 +66,7 @@ line after END-POINT."
                  ;; it. If it causes problems, I'll deal with it then.
                  ;;
                  ;; (not (and (looking-back "^[ ]+")
-                 ;;           (looking-at "[ ]*")))
+                 ;;           (looking-at-p "[ ]*")))
                  (save-excursion (goto-char end-point)
                                  (forward-word)
                                  (= (line-number-at-pos) line)))
@@ -304,7 +304,7 @@ location. See `shm/yank' for documentation on that."
               ;; If there's an empty line at the end, then strip that
               ;; out. It's just bothersome when pasting back in.
               (goto-char (point-max))
-              (when (looking-at "^$")
+              (when (looking-at-p "^$")
                 (delete-region (1- (point))
                                (point)))
               (when (> (count-lines (point-min)

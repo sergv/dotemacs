@@ -57,7 +57,7 @@
                      (let ((rhs (elt vector i)))
                        (goto-char (shm-node-end rhs))
                        (cond
-                        ((looking-at "[\n ]*where")
+                        ((looking-at-p "[\n ]*where")
                          (search-forward-regexp "where[ \n]*"))
                         (t
                          (unless (= (line-beginning-position) (point))
