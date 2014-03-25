@@ -363,37 +363,34 @@ obvious"
 
 ;; Haskell search
 
-(search-make-search-for-thing search-for-haskell-symbol-at-point-forward
-                              (lambda () (bounds-of-thing-at-point 'haskell-symbol))
-                              #'search-next-impl
-                              'forward
-                              ;; Don't use \\_<,\\_> since they rely on
-                              ;; syntax table which was tampered with in haskell
-                              ;; mode so that e.g. regexp "\\_<Node" won't match
-                              ;; the input "x:Node (x - 1)".
-                              :regex-start (lambda (pat)
-                                             (if (string-match-pure? "^[a-zA-Z0-9_]" pat)
-                                               "\\<"
-                                               ""))
-                              :regex-end (lambda (pat)
-                                             (if (string-match-pure? "[a-zA-Z0-9_]$" pat)
-                                               "\\>"
-                                               ""))
-                              :error-message "No symbol at point")
-
-(search-make-search-for-thing search-for-haskell-symbol-at-point-backward
-                              (lambda () (bounds-of-thing-at-point 'haskell-symbol))
-                              #'search-prev-impl
-                              'backward
-                              :regex-start (lambda (pat)
-                                             (if (string-match-pure? "^[a-zA-Z0-9_]" pat)
-                                               "\\<"
-                                               ""))
-                              :regex-end (lambda (pat)
-                                             (if (string-match-pure? "[a-zA-Z0-9_]$" pat)
-                                               "\\>"
-                                               ""))
-                              :error-message "No symbol at point")
+(let* ((forward-re "^[a-zA-Z0-9]")
+       (backward-re "[a-zA-Z0-9]$")
+       (regex-start-func (lambda (pat)
+                           (if (string-match-pure? forward-re pat)
+                             ;; Don't use \\_<,\\_> since they rely on
+                             ;; syntax table which was tampered with in haskell
+                             ;; mode so that e.g. regexp "\\_<Node" won't match
+                             ;; the input "x:Node (x - 1)".
+                             "\\<"
+                             "")))
+       (regex-end-func (lambda (pat)
+                         (if (string-match-pure? backward-re pat)
+                           "\\>"
+                           ""))))
+  (search-make-search-for-thing search-for-haskell-symbol-at-point-forward
+                                (lambda () (bounds-of-thing-at-point 'haskell-symbol))
+                                #'search-next-impl
+                                'forward
+                                :regex-start regex-start-func
+                                :regex-end regex-end-func
+                                :error-message "No symbol at point")
+  (search-make-search-for-thing search-for-haskell-symbol-at-point-backward
+                                (lambda () (bounds-of-thing-at-point 'haskell-symbol))
+                                #'search-prev-impl
+                                'backward
+                                :regex-start regex-start-func
+                                :regex-end regex-end-func
+                                :error-message "No symbol at point"))
 
 ;; Lispocentric searches
 (search-make-search-for-thing search-for-symbol-at-point-forward
