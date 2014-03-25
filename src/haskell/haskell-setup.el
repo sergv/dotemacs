@@ -26,6 +26,9 @@
 (require 'haskell-outline)
 (require 'haskell-shm)
 
+(setf shm-insert-space-after-comma t
+      shm-indent-where-clause-when-inserting t)
+
 ;; ;; prevent paredit from reindenting Haskell lines
 ;; (dolist (func '(indent-region
 ;;                 indent-sexp
@@ -140,7 +143,9 @@
     ("g c c"   haskell-comment-node)
     (", c"     ghc-core-create-core)
     ("="       input-unicode)
-    ("SPC SPC" switch-to-haskell))
+    ("SPC SPC" switch-to-haskell)
+    ("g g ("   shm/wrap-parens)
+    ("g w"     shm/goto-where))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("-"       shm/hyphen)
