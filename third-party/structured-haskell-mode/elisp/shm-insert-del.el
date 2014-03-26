@@ -61,16 +61,18 @@ stick it to the previous operator on line."
                                   (buffer-substring-no-properties
                                    (line-beginning-position)
                                    (point))))
-             (or (and (not (char-equal (char-before) ?\s))
+             (or (bobp)
+                 (and (not (char-equal (char-before) ?\s))
                       (not (char-equal (char-before) ?\())
                       (not (memq (char-before) shm/operator-chars)))
                  ;; Distance ourselves from | that is a potential guard.
                  (char-equal (char-before) ?|)))
     (shm-insert-string " "))
   (shm-insert-char-appending-to-prev-operator char)
-  (when (and (not (char-equal (char-after) ?\s))
-             (not (char-equal (char-before) ?\)))
-             (not (memq (char-after) shm/operator-chars)))
+  (when (or (eobp)
+            (and (not (char-equal (char-after) ?\s))
+                 (not (char-equal (char-before) ?\)))
+                 (not (memq (char-after) shm/operator-chars))))
     (shm-insert-string " ")))
 
 (defmacro shm-make-self-insert-surrounded-with-spaces (name char)
