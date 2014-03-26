@@ -131,7 +131,7 @@
     (when customizations
       (dolist (entry customizations)
         (set (make-local-variable (car entry))
-             (cdr entry)))))
+             (cadr entry)))))
   (structured-haskell-mode 1)
   (insert (plist-get test :start-buffer-content))
   (goto-char (plist-get test :start-cursor))
