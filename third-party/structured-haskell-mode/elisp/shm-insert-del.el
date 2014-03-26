@@ -304,21 +304,25 @@ the current node to the parent."
 (defun shm/hash (n)
   "The # hash."
   (interactive "p")
-  (if (and (looking-back "{-")
-           (looking-at "-}"))
-      (progn
-        (insert "#  #")
-        (forward-char -2)
-        (let ((pragma (ido-completing-read "Pragma: "
-                                           shm-pragmas)))
-          (insert pragma
-                  " ")
-          (when (string= pragma "LANGUAGE")
-            (insert
-             (ido-completing-read
-              "Language: "
-              (shm-supported-languages))))))
-    (shm-insert-char-surrounding-with-spaces ?#)))
+  (cond ((and (looking-back "{-")
+              (looking-at "-}"))
+         (insert "#  #")
+         (forward-char -2)
+         (let ((pragma (ido-completing-read "Pragma: "
+                                            shm-pragmas)))
+           (insert pragma
+                   " ")
+           (when (string= pragma "LANGUAGE")
+             (insert
+              (ido-completing-read
+               "Language: "
+               (shm-supported-languages))))))
+        ((and (looking-back "{")
+              (looking-at-p "}"))
+         (insert "##")
+         (forward-char -1))
+        (t
+         (shm-insert-char-surrounding-with-spaces ?#))))
 
 (defun shm/open-paren ()
   "Delimit parentheses."
