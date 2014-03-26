@@ -121,7 +121,8 @@ it whith spacec when not in literal insertion context."
    ((region-active-p)
     (shm-wrap-delimiters "(" ")"))
    (t (let ((line (line-number-at-pos))
-            (node (or current (shm-current-node))))
+            (node (ignore-errors
+                    (or current (shm-current-node)))))
         (save-excursion
           (goto-char (shm-node-start node))
           (insert "(")
@@ -153,7 +154,7 @@ it whith spacec when not in literal insertion context."
                (shm-nothing-following-p))
           (shm-auto-insert-do))
          ((and (looking-back " <-")
-               (let ((current (shm-current-node)))
+               (let ((current (ignore-errors (shm-current-node))))
                  (when current
                    (or (eq 'Do (shm-node-cons current))
                        (string= "Stmt" (shm-node-type-name current))))))
@@ -172,7 +173,7 @@ it whith spacec when not in literal insertion context."
          ((and (looking-back "[^a-zA-Z0-9_#]let")
                (shm-nothing-following-p))
           (cond
-           ((let ((current (shm-current-node)))
+           ((let ((current (ignore-errors (shm-current-node))))
               (and current
                    (or (not (or (eq 'Do (shm-node-cons current))
                                 (eq 'BDecls (shm-node-cons current))
@@ -205,7 +206,8 @@ also space out any neccessary spacing."
   (shm/reparse)
   (if (shm-in-comment)
       (insert "\"")
-    (let* ((current-node (shm-current-node))
+    (let* ((current-node (ignore-errors
+                           (shm-current-node)))
            (node (if (eq 'Lit (shm-node-cons current-node))
                      (shm-actual-node)
                    current-node)))
@@ -246,7 +248,7 @@ the current node to the parent."
   (interactive "p")
   (if (shm-in-comment)
       (self-insert-command n)
-    (let ((current-pair (shm-current-node-pair)))
+    (let ((current-pair (ignore-errors (shm-current-node-pair))))
       (if (not current-pair)
           (self-insert-command n)
         (let* ((current (cdr current-pair))
@@ -276,7 +278,8 @@ the current node to the parent."
   (if (or (not shm-colon-enabled)
           (shm-literal-insertion))
       (call-interactively 'self-insert-command)
-    (let ((current (shm-current-node)))
+    (let ((current (ignore-errors
+                     (shm-current-node))))
       (cond
        ((and current
              (or (eq (shm-node-cons current)
@@ -329,7 +332,8 @@ the current node to the parent."
 (defun shm/open-paren ()
   "Delimit parentheses."
   (interactive)
-  (let ((current (shm-current-node)))
+  (let ((current (ignore-errors
+                   (shm-current-node))))
     (cond
      ((and current
            (or (string= "ExportSpec" (shm-node-type-name current))
@@ -347,7 +351,8 @@ the current node to the parent."
 (defun shm/open-brace ()
   "Delimit braces."
   (interactive)
-  (let ((current (shm-current-node)))
+  (let ((current (ignore-errors
+                   (shm-current-node))))
     (cond
      ((and current
            (string= "Pat" (shm-node-type-name current)))
@@ -631,10 +636,13 @@ do x <- |
   (interactive)
   (shm-with-fallback
    delete-char
-   (let ((current (shm-current-node))
+   (let ((current (ignore-errors
+                    (shm-current-node)))
          (inhibit-read-only t))
-     (delete-region (shm-node-start current)
-                    (shm-node-end current)))))
+     (if current
+       (delete-region (shm-node-start current)
+                      (shm-node-end current))
+       (delete-char 1)))))
 
 (defun shm/export ()
   "Export the identifier at point."
