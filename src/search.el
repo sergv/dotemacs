@@ -328,8 +328,8 @@ Highlighting starts at the beginning of buffer")
                                          action-after
                                          direction
                                          &key
-                                         (regex-start "\\_<")
-                                         (regex-end   "\\_>")
+                                         (regex-start-func (constantly "\\_<"))
+                                         (regex-end-func   (constantly "\\_>"))
                                          (error-message nil))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
@@ -347,14 +347,10 @@ obvious"
              (goto-char (cdr ,bounds-var))
              (search-setup-search-for
               (concat (unless ,non-strict-var
-                        ,(if (functionp regex-start)
-                           `(funcall ,regex-start ,substr-var)
-                           regex-start))
+                        (funcall ,regex-start-func ,substr-var))
                       (regexp-quote ,substr-var)
                       (unless ,non-strict-var
-                        ,(if (functionp regex-end)
-                           `(funcall ,regex-end ,substr-var)
-                           regex-end)))
+                        (funcall ,regex-end-func ,substr-var)))
               ,direction
               :case-sensetive t)
              (funcall ,action-after)))))))
@@ -381,15 +377,15 @@ obvious"
                                 (lambda () (bounds-of-thing-at-point 'haskell-symbol))
                                 #'search-next-impl
                                 'forward
-                                :regex-start regex-start-func
-                                :regex-end regex-end-func
+                                :regex-start-func regex-start-func
+                                :regex-end-func regex-end-func
                                 :error-message "No symbol at point")
   (search-make-search-for-thing search-for-haskell-symbol-at-point-backward
                                 (lambda () (bounds-of-thing-at-point 'haskell-symbol))
                                 #'search-prev-impl
                                 'backward
-                                :regex-start regex-start-func
-                                :regex-end regex-end-func
+                                :regex-start-func regex-start-func
+                                :regex-end-func regex-end-func
                                 :error-message "No symbol at point"))
 
 ;; Lispocentric searches
@@ -430,8 +426,8 @@ obvious"
                                           #'vim:motion-inner-word))
                               #'search-next-impl
                               'forward
-                              :regex-start "\\<"
-                              :regex-end "\\>"
+                              :regex-start-func (constantly "\\<")
+                              :regex-end-func (constantly "\\>")
                               :error-message "No word at point")
 
 (search-make-search-for-thing search-for-word-at-point-backward
@@ -440,8 +436,8 @@ obvious"
                                  #'vim:motion-inner-word))
                               #'search-prev-impl
                               'backward
-                              :regex-start "\\<"
-                              :regex-end "\\>"
+                              :regex-start-func (constantly "\\<")
+                              :regex-end-func (constantly "\\>")
                               :error-message "No word at point")
 
 (add-to-list 'debug-ignored-errors "\\`No \\(?:symbol\\|word\\) at point\\'")
