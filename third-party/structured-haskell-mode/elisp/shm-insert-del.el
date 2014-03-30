@@ -57,36 +57,36 @@ Similar to `shm-insert-string'."
 (defun shm-insert-char-surrounding-with-spaces (char)
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
-  (when (and (not (string-match-p "^[ \t]*$"
-                                  (buffer-substring-no-properties
-                                   (line-beginning-position)
-                                   (point))))
-             (or (bobp)
-                 (and (not (char-equal (char-before) ?\s))
-                      (not (char-equal (char-before) ?\())
-                      (not (memq (char-before) shm/operator-chars)))
-                 ;; Distance ourselves from | that is a potential guard.
-                 (char-equal (char-before) ?|)))
-    (shm-insert-string " "))
-  (shm-insert-char-appending-to-prev-operator char)
-  (when (or (eobp)
-            (and (not (char-equal (char-after) ?\s))
-                 (not (char-equal (char-before) ?\)))
-                 (not (memq (char-after) shm/operator-chars))))
-    (shm-insert-string " ")))
+  (if (or (not (null? current-prefix-arg))
+          (shm-literal-insertion))
+    (insert (make-string 1 char))
+    (progn
+      (when (and (not (string-match-p "^[ \t]*$"
+                                      (buffer-substring-no-properties
+                                       (line-beginning-position)
+                                       (point))))
+                 (or (bobp)
+                     (and (not (char-equal (char-before) ?\s))
+                          (not (char-equal (char-before) ?\())
+                          (not (memq (char-before) shm/operator-chars)))
+                     ;; Distance ourselves from | that is a potential guard.
+                     (char-equal (char-before) ?|)))
+        (shm-insert-string " "))
+      (shm-insert-char-appending-to-prev-operator char)
+      (when (or (eobp)
+                (and (not (char-equal (char-after) ?\s))
+                     (not (char-equal (char-before) ?\)))
+                     (not (memq (char-after) shm/operator-chars))))
+        (shm-insert-string " ")))))
 
 (defmacro shm-make-self-insert-surrounded-with-spaces (name char)
   "Make function NAME for inserting CHARacter with optionally surrounding
-it whith spacec when not in literal insertion context."
+it whith spaces when not in literal insertion context."
   (let ((str (make-string 1 char)))
     `(defun ,name (arg)
        ,(format "Insert %c character surrounding it with spaces and sticking to the previous operator characters." char)
        (interactive "p")
-       (cond
-         ((or (not (null? current-prefix-arg))
-              (shm-literal-insertion))
-          (insert ,str))
-         (t (shm-insert-char-surrounding-with-spaces ,char))))))
+       (shm-insert-char-surrounding-with-spaces ,char))))
 
 (shm-make-self-insert-surrounded-with-spaces shm/= ?=)
 (shm-make-self-insert-surrounded-with-spaces shm/+ ?+)
@@ -104,8 +104,6 @@ it whith spacec when not in literal insertion context."
 (shm-make-self-insert-surrounded-with-spaces shm/| ?|)
 (shm-make-self-insert-surrounded-with-spaces shm/\\ ?\\)
 (shm-make-self-insert-surrounded-with-spaces shm/~ ?~)
-
-
 
 (defun shm-post-self-insert ()
   "Self-insertion handler."
