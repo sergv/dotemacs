@@ -248,23 +248,25 @@ the current node to the parent."
   (interactive "p")
   (if (shm-in-comment)
       (self-insert-command n)
-    (let ((current-pair (ignore-errors (shm-current-node-pair))))
-      (if (not current-pair)
-          (self-insert-command n)
+    (let ((current-pair (ignore-errors (shm-current-node-pair)))
+          (str (concat ","
+                       (if shm-insert-space-after-comma " " ""))))
+      (if current-pair
         (let* ((current (cdr current-pair))
-               (parent-pair (shm-node-parent current-pair))
-               (parent (cdr parent-pair)))
-          (cond
-           ;; When inside a list, indent to the list's position with an
-           ;; auto-inserted comma.
-           ((eq 'List (shm-node-cons parent))
-            (shm-insert-string (concat ","
-                                       (if shm-insert-space-after-comma " " "")))
-            (shm-set-node-overlay parent-pair))
-           (t
-            (shm-insert-string (concat ","
-                                       (if shm-insert-space-after-comma " " "")))
-            (shm-set-node-overlay parent-pair))))))))
+               (parent-pair (shm-node-parent current-pair)))
+          (if parent-pair
+            (let ((parent (cdr parent-pair)))
+              (cond
+               ;; When inside a list, indent to the list's position with an
+               ;; auto-inserted comma.
+               ((eq 'List (shm-node-cons parent))
+                (shm-insert-string str)
+                (shm-set-node-overlay parent-pair))
+               (t
+                (shm-insert-string str)
+                (shm-set-node-overlay parent-pair))))
+            (shm-insert-string str)))
+        (shm-insert-string str)))))
 
 (defun shm/single-quote ()
   "Delimit single quotes."
