@@ -853,7 +853,7 @@ which to try loading/root finding/etc.")
 
 (defun eproj-describe-all-projects ()
   (interactive)
-  (let ((buf (get-buffer-create "*eproj projects")))
+  (let ((buf (get-buffer-create "*eproj projects*")))
     (switch-to-buffer-other-window buf)
     (with-current-buffer buf
       (erase-buffer)
@@ -892,7 +892,7 @@ which to try loading/root finding/etc.")
       (insert (format "languages: %s\n" (eproj-project/languages proj)))
       (insert "related projects:\n")
       (dolist (related-proj (eproj-project/related-projects proj))
-        (insert indent related-proj) "\n")
+        (insert indent related-proj "\n"))
       (when describe-buffers
         (insert "buffers:\n")
         (dolist (buf (filter (lambda (buf)
