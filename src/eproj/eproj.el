@@ -637,7 +637,7 @@ Note: old tags file is removed before calling update command."
     (unless (memq mode
                   (eproj-project/languages proj))
       (error "Project %s does not manage %s files"
-             (eproj-projcet/root proj)
+             (eproj-project/root proj)
              mode))
     (if-let (old-tags (cdr-safe (assoc mode (eproj-project/tags proj))))
       (eproj-with-language-load-proc mode load-proc
