@@ -29,7 +29,8 @@
 (setf shm-insert-space-after-comma t
       shm-indent-point-after-adding-where-clause t
       shm-colon-enabled t
-      shm-indent-use-chris-done-if-indent-style nil)
+      shm-indent-use-chris-done-if-indent-style nil
+      inferior-haskell-find-project-root nil)
 
 ;; ;; prevent paredit from reindenting Haskell lines
 ;; (dolist (func '(indent-region
