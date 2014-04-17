@@ -14,10 +14,10 @@
 (defun sql-setup ()
   (init-common)
 
-  (def-keys-for-map vim:normal-mode-lockal-keymap
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>" sql-send-buffer))
 
-  (def-keys-for-map (vim:normal-mode-lockal-keymap
+  (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
     ("g n" sql-beginning-of-statement)
     ("g t" sql-end-of-statement))
