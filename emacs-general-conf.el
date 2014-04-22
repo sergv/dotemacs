@@ -191,19 +191,22 @@
 
 ;;;; disable mouse scrolling
 (mouse-wheel-mode -1)
-(def-keys-for-map global-map
-  ("<mouse-1>"      nil)
-  ("<down-mouse-1>" nil)
-  ("<up-mouse-1>"   nil)
-  ("<drag-mouse-1>" nil)
-  ("<mouse-2>"      nil)
-  ("<down-mouse-2>" nil)
-  ("<up-mouse-2>"   nil)
-  ("<drag-mouse-2>" nil)
-  ("<mouse-3>"      nil)
-  ("<down-mouse-3>" nil)
-  ("<up-mouse-3>"   nil)
-  ("<drag-mouse-3>" nil))
+(def-keys-for-map (global-map
+                   minibuffer-inactive-mode-map)
+  ("<mouse-1>"      ignore)
+  ("<down-mouse-1>" ignore)
+  ("<up-mouse-1>"   ignore)
+  ("<drag-mouse-1>" ignore)
+  ("<mouse-2>"      ignore)
+  ("<down-mouse-2>" ignore)
+  ("<up-mouse-2>"   ignore)
+  ("<drag-mouse-2>" ignore)
+  ("<mouse-3>"      ignore)
+  ("<down-mouse-3>" ignore)
+  ("<up-mouse-3>"   ignore)
+  ("<drag-mouse-3>" ignore)
+  ("<mouse-4>"      ignore)
+  ("<mouse-5>"      ignore))
 
 
 ;;;; native emacs backup
