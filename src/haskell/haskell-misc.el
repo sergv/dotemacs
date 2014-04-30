@@ -55,28 +55,11 @@
 
 
 (defconst +haskell-compile-error-or-warning-regexp+
-  (rx bol
-      (+? (not (any ?\s ?\t ?\r ?\n)))
-      ":"
-      (or
-       ;; "121:1" & "12:3-5"
-       (seq (+ (any (?0 . ?9)))
-            ":"
-            (+ (any (?0 . ?9)))
-            (? "-"
-               (+ (any (?0 . ?9)))))
-       ;; "(289,5)-(291,36)"
-       (seq "("
-            (+ (any (?0 . ?9)))
-            ","
-            (+ (any (?0 . ?9)))
-            ")-("
-            (+ (any (?0 . ?9)))
-            ","
-            (+ (any (?0 . ?9)))
-            ")"))
-      ":"
-      (? (group " Warning:")))
+  (join-lines (map (comp (partial #'concat "\\(?:")
+                         (partial-first #'concat "\\)")
+                         #'car)
+                   haskell-compilation-error-regexp-alist)
+              "\\|")
   "Regexp matching both errors and warnings.")
 
 
@@ -685,9 +668,9 @@ entries. Returns nil on failure."
   (interactive)
   (let ((indent
          (lambda ()
-           (if (null? (shm-current-node-pair))
-             (shm/simple-indent-newline-same-col)
-             (shm/newline-indent)))))
+           (if (shm-current-node-pair)
+             (shm/newline-indent)
+             (shm/simple-indent-newline-same-col)))))
     (when (memq major-mode +haskell-syntax-modes+)
       (let ((line (current-line)))
         (if-let (result (haskell-parse-signature (trim-whitespace line)))
