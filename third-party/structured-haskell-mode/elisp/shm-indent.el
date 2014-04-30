@@ -160,10 +160,10 @@ hai = do foo bar
       (shm-newline)
       (indent-to column)
       (insert "\\")))
-   ((and (looking-at "[^])}\"]") ;; This is a cheap solution. It
+   ((and (looking-at-p "[^])}\"]") ;; This is a cheap solution. It
          ;; could use node boundaries
          ;; instead.
-         (not (looking-at "$"))
+         (not (looking-at-p "$"))
          (looking-back " "))
     (shm/reparse)
     (let ((newline-string (buffer-substring-no-properties (point)
@@ -362,6 +362,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
                (string= "GuardedAlt" (shm-node-type-name parent))
                (string= "GuardedRhs" (shm-node-type-name parent))))
       (shm-newline)
+      (delete-whitespace-forward)
       (indent-to (+ (shm-indent-spaces)
                     (shm-node-start-column (cdr (shm-node-parent parent-pair))))))
      ;; When in a field update.
