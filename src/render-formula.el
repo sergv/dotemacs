@@ -53,6 +53,13 @@ currently being rendered.")
   "Whether to use dvipng or emulate it yourself through ghostscript and
 pnm utils suite.")
 
+(defconst +render-formula-tmp-path+
+  (concat +tmp-path+ "/render-formula"))
+(unless (file-directory-p +render-formula-tmp-path+)
+  (mkdir +render-formula-tmp-path+
+         t ;; parents
+         ))
+
 (defun* render-formula (str &key
                             (point-size 10)
                             (font-size "normalsize")
@@ -84,12 +91,11 @@ pnm utils suite.")
                       (or foreground-color
                           (frame-parameter nil 'foreground-color))))
            (tmp-filename (format "formula%d" *formula-index*))
-           (tmp-path (concat +tmp-path+ "/render-formula"))
-           (tmp-file (concat tmp-path "/" tmp-filename ".tex"))
+           (tmp-file (concat +render-formula-tmp-path+ "/" tmp-filename ".tex"))
            ;; ps will be nedded if we're not using dvipng
-           (ps-file (concat tmp-path "/" tmp-filename ".ps"))
-           (dvi-file (concat tmp-path "/" tmp-filename ".dvi"))
-           (img-file (concat tmp-path "/" tmp-filename ".png"))
+           (ps-file (concat +render-formula-tmp-path+ "/" tmp-filename ".ps"))
+           (dvi-file (concat +render-formula-tmp-path+ "/" tmp-filename ".dvi"))
+           (img-file (concat +render-formula-tmp-path+ "/" tmp-filename ".png"))
            (latex-bufs (list (get-buffer-create
                               render-formula-latex-input-buf)
                              (get-buffer-create
@@ -141,7 +147,6 @@ pnm utils suite.")
          "\\end{document}\n")
         ;; (buffer-substring-no-properties (point-min) (point-max))
 
-
         (if (= 0
                (call-process-region (point-min) (point-max)
                                     "latex"
@@ -152,7 +157,7 @@ pnm utils suite.")
                                     "-file-line-error"
                                     "-halt-on-error"
                                     "-shell-escape"
-                                    "-output-directory" tmp-path
+                                    "-output-directory" +render-formula-tmp-path+
                                     "-jobname" tmp-filename))
           (progn
             (mapc #'remove-buffer latex-bufs))

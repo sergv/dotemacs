@@ -140,6 +140,9 @@ greater indenation as current line."
                :use-render-formula t
                :sp-slurp-sexp-insert-space nil)
 
+  (setq-local tab-width 4)
+  (setq-local vim:shift-width 4)
+
   ;; ;; make ' a string delimiter
   ;; (modify-syntax-entry ?' "\"")
 
