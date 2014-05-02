@@ -182,33 +182,72 @@ under ROOT directory."
        ,@body)))
 
 (ert-deftest eproj-tests/eproj/ctags-get-tags-from-buffer ()
-  (eproj-tests/test-ctags-get-tags-from-buffer
-   "\
-foo1	foo.bar	100;\"	x
-foo2	foo.bar	101 ;\"	y
-foo3	foo.bar	102	;\"	z
+  (let ((test-filename "foo.bar"))
+    (eproj-tests/test-ctags-get-tags-from-buffer
+     (format
+      "\
+foo1	%s	100;\"	x
+foo2	%s	101 ;\"	y
+foo3	%s	102	;\"	z
 "
-   tags-table
-   (eproj/ctags-get-tags-from-buffer (current-buffer) nil t)
-   (should-not (= 0 (hash-table-size tags-table)))
+      test-filename
+      test-filename
+      test-filename)
+     tags-table
+     (eproj/ctags-get-tags-from-buffer (current-buffer) nil t)
+     (should-not (= 0 (hash-table-size tags-table)))
 
-   (let ((tag1 (car-safe (gethash "foo1" tags-table))))
-     (should tag1)
-     (should (string=? "foo.bar" (eproj-tag/file tag1)))
-     (should (= 100 (eproj-tag/line tag1)))
-     (should (equal (cons 'type "x") (assoc 'type (eproj-tag/properties tag1)))))
+     (let ((tag1 (car-safe (gethash "foo1" tags-table))))
+       (should tag1)
+       (should (string=? test-filename (eproj-tag/file tag1)))
+       (should (= 100 (eproj-tag/line tag1)))
+       (should (equal (cons 'type "x") (assoc 'type (eproj-tag/properties tag1)))))
 
-   (let ((tag2 (car-safe (gethash "foo2" tags-table))))
-     (should tag2)
-     (should (string=? "foo.bar" (eproj-tag/file tag2)))
-     (should (= 101 (eproj-tag/line tag2)))
-     (should (equal (cons 'type "y") (assoc 'type (eproj-tag/properties tag2)))))
+     (let ((tag2 (car-safe (gethash "foo2" tags-table))))
+       (should tag2)
+       (should (string=? test-filename (eproj-tag/file tag2)))
+       (should (= 101 (eproj-tag/line tag2)))
+       (should (equal (cons 'type "y") (assoc 'type (eproj-tag/properties tag2)))))
 
-   (let ((tag3 (car-safe (gethash "foo3" tags-table))))
-     (should tag3)
-     (should (string=? "foo.bar" (eproj-tag/file tag3)))
-     (should (= 102 (eproj-tag/line tag3)))
-     (should (equal (cons 'type "z") (assoc 'type (eproj-tag/properties tag3)))))))
+     (let ((tag3 (car-safe (gethash "foo3" tags-table))))
+       (should tag3)
+       (should (string=? test-filename (eproj-tag/file tag3)))
+       (should (= 102 (eproj-tag/line tag3)))
+       (should (equal (cons 'type "z") (assoc 'type (eproj-tag/properties tag3))))))))
+
+(ert-deftest eproj-tests/eproj/ctags-get-tags-from-buffer/filenames-with-spaces ()
+  (let ((test-filename "/home/admin/my projects/test project/hello.c"))
+    (eproj-tests/test-ctags-get-tags-from-buffer
+     (format
+      "\
+foo1	%s	100;\"	x
+foo2	%s	101 ;\"	y
+foo3	%s	102	;\"	z
+"
+      test-filename
+      test-filename
+      test-filename)
+     tags-table
+     (eproj/ctags-get-tags-from-buffer (current-buffer) nil t)
+     (should-not (= 0 (hash-table-size tags-table)))
+
+     (let ((tag1 (car-safe (gethash "foo1" tags-table))))
+       (should tag1)
+       (should (string=? test-filename (eproj-tag/file tag1)))
+       (should (= 100 (eproj-tag/line tag1)))
+       (should (equal (cons 'type "x") (assoc 'type (eproj-tag/properties tag1)))))
+
+     (let ((tag2 (car-safe (gethash "foo2" tags-table))))
+       (should tag2)
+       (should (string=? test-filename (eproj-tag/file tag2)))
+       (should (= 101 (eproj-tag/line tag2)))
+       (should (equal (cons 'type "y") (assoc 'type (eproj-tag/properties tag2)))))
+
+     (let ((tag3 (car-safe (gethash "foo3" tags-table))))
+       (should tag3)
+       (should (string=? test-filename (eproj-tag/file tag3)))
+       (should (= 102 (eproj-tag/line tag3)))
+       (should (equal (cons 'type "z") (assoc 'type (eproj-tag/properties tag3))))))))
 
 ;; (eproj-get-project-for-path eproj-tests/project-with-eproj-file)
 (ert-deftest eproj-tests/project-with-eproj-file ()
@@ -240,6 +279,7 @@ foo3	foo.bar	102	;\"	z
         eproj-tests/tags-of-c-files
 
         eproj-tests/eproj/ctags-get-tags-from-buffer
+        eproj-tests/eproj/ctags-get-tags-from-buffer/filenames-with-spaces
 
         eproj-tests/project-with-eproj-file
         ))
@@ -249,8 +289,6 @@ foo3	foo.bar	102	;\"	z
   (ert (join-lines (map #'symbol->string eproj-tests/tests) "\\|")
        ;; "eproj-tests/.*"
        ))
-
-
 
 ;; Local Variables:
 ;; no-byte-compile: t

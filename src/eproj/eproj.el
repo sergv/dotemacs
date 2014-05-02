@@ -103,9 +103,11 @@
 
 (defconst +ctags-line-re+
   (rx bol
+      ;; tag name
       (group (+ (not (any ?\t ?\s ?\n))))
       "\t"
-      (group (+ (not (any ?\t ?\s ?\n))))
+      ;; filename, *can* contain spaces
+      (group (+ (not (any ?\t ?\n))))
       "\t"
       (or (group (+ digit))
           (or (seq "/^"
@@ -690,7 +692,9 @@ Note: old tags file is removed before calling update command."
           (map (lambda (lang-mode)
                  (eproj-with-language-load-proc lang-mode load-proc
                    (let ((new-tags (funcall load-proc proj files)))
-                     (when (null? new-tags)
+                     (assert (and (not (null? new-tags))
+                                  (hash-table-p new-tags)))
+                     (when (= 0 (hash-table-count new-tags))
                        (message "Warning while reloading: project %s loaded no tags for language %s"
                                 (eproj-project/root proj)
                                 lang-mode))
