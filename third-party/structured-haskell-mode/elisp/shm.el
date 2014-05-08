@@ -202,7 +202,8 @@
   "Stop the minor mode. Restore various settings and clean up any
 state that will hopefully be garbage collected."
   ;; Kill the timer.
-  (cancel-timer shm-parsing-timer)
+  (when shm-parsing-timer
+    (cancel-timer shm-parsing-timer))
   (setq shm-parsing-timer nil)
   ;; Kill self-insert hooks.
   (remove-hook 'post-self-insert-hook 'shm-post-self-insert t)
