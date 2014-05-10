@@ -700,6 +700,11 @@ entries. Returns nil on failure."
             (funcall indent))
           (funcall indent))))))
 
+(defun haskell-abbrev+-fallback-space ()
+  (interactive)
+  (if structured-haskell-mode
+    (shm/space)
+    (insert " ")))
 
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
 

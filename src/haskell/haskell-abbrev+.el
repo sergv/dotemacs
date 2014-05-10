@@ -8,6 +8,8 @@
 
 (require 'abbrev+)
 (require 'haskell-misc)
+;; for ghc flags to OPTIONS_GHC
+(require 'shell-completion)
 
 (define-print-info-skeleton
     haskell-debug-message-skeleton
@@ -49,8 +51,23 @@ then Bar would be the result."
                                              (map #'third haskell-language-extensions))))
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-mod-name yas-text)}$0")))
-         (language-snippet (format "{-# LANGUAGE ${1:$$(yas-choose-value '%S)} #-}$0"
-                                   haskell-extensions)))
+         (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
+                                   haskell-extensions))
+         (ghc-flags (map (lambda (x)
+                           (cond
+                             ((string? x)
+                              x)
+                             ((and (list? x)
+                                   (not (null? x)))
+                              (first x))
+                             (else
+                              (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
+                                     x))))
+                         pcomplete-ghc-flags))
+         (options-snippet (format "{-# OPTIONS_GHC ${1:$\$(yas-choose-value '%S)} #-}$0"
+                                  ghc-flags))
+         (default-options-snippet (format "{-# OPTIONS_GHC -Wall -fwarn-monomorphism-restriction ${1:$\$(yas-choose-value '%S)} #-}$0"
+                                          ghc-flags)))
     (setf abbrev+-skip-syntax '("w_" "^ >")
           abbrev+-abbreviations
           (list
@@ -81,6 +98,12 @@ then Bar would be the result."
            (list "\\(?:#lang\\|langext\\)"
                  (list
                   (lambda () (yas-expand-snippet language-snippet))))
+           (list "#opts?"
+                 (list
+                  (lambda () (yas-expand-snippet options-snippet))))
+           (list "#\\(?:opts?-def\\|dopts?\\)"
+                 (list
+                  (lambda () (yas-expand-snippet default-options-snippet))))
            (list "\\<info\\>"
                  (list
                   #'haskell-debug-message-skeleton)
