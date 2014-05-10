@@ -28,6 +28,7 @@
 (autoload 'pcomplete/git "shell-completion" nil t)
 (autoload 'pcomplete/runghc "shell-completion" nil t)
 (autoload 'pcomplete/runhaskell "shell-completion" nil t)
+(autoload 'pcomplete-ghc-flags "shell-completion" nil)
 (autoload 'pcomplete/ghc "shell-completion" nil t)
 (autoload 'pcomplete/cabal "shell-completion" nil t)
 (autoload 'pcomplete/nm "shell-completion" nil t)
