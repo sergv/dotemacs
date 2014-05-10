@@ -326,6 +326,11 @@ the current node to the parent."
               (looking-at-p "}"))
          (insert "##")
          (forward-char -1))
+        ;; don't surround with spaces if it's first character on the line
+        ;; this is for e.g. #includes, #lang/#opts abbrevs
+        ((= (point)
+            (line-beginning-position))
+         (insert "#"))
         (t
          (shm-insert-char-surrounding-with-spaces ?#))))
 
