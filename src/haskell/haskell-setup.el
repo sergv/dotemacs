@@ -90,7 +90,7 @@
 
   (structured-haskell-mode +1)
   (setq-local indent-line-function #'ignore)
-  (setq-local abbrev+-fallback-function #'shm/space)
+  (setq-local abbrev+-fallback-function #'haskell-abbrev+-fallback-space)
 
   ;; (turn-on-hi2)
   ;; (setf hi2-show-indentations nil
