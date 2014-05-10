@@ -1352,24 +1352,33 @@ as accepted by `bounds-of-thing-at-point'.")
               ((null? (cdr entries))
                (funcall jump-to-home (car entries)))
               (else
-               (select-start-selection
-                entries
-                :buffer-name "Symbol homes"
-                :after-init #'ignore
-                :on-selection
-                (lambda (idx)
-                  (select-exit)
-                  (funcall jump-to-home (elt entries idx)))
-                :predisplay-function
-                (lambda (tag)
-                  (let ((txt (funcall entry->string proj tag)))
-                    (if (string=? orig-file-name
-                                  (expand-file-name (eproj-tag/file tag)))
-                      (propertize txt 'face font-lock-negation-char-face)
-                      txt)))
-                :preamble-function
-                (lambda ()
-                  "Choose symbol\n\n"))))))))
+               (let ((expanded-project-root
+                      (expand-file-name (eproj-project/root proj))))
+                 (select-start-selection
+                  entries
+                  :buffer-name "Symbol homes"
+                  :after-init #'ignore
+                  :on-selection
+                  (lambda (idx)
+                    (select-exit)
+                    (funcall jump-to-home (elt entries idx)))
+                  :predisplay-function
+                  (lambda (tag)
+                    (let ((txt (funcall entry->string proj tag))
+                          (expanded-tag-file
+                           (expand-file-name (eproj-tag/file tag))))
+                      (cond ((string=? orig-file-name
+                                       expanded-tag-file)
+                             (propertize txt 'face 'font-lock-negation-char-face))
+                            ((string-prefix? expanded-project-root
+                                             expanded-tag-file)
+                             ;; use italic instead of underscore
+                             (propertize txt 'face 'italic))
+                            (else
+                             txt))))
+                  :preamble-function
+                  (lambda ()
+                    "Choose symbol\n\n")))))))))
 
 (defun eproj-symbnav/go-back ()
   (interactive)
