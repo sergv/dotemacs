@@ -30,7 +30,15 @@
       shm-indent-point-after-adding-where-clause t
       shm-colon-enabled t
       shm-indent-use-chris-done-if-indent-style nil
-      inferior-haskell-find-project-root nil)
+      inferior-haskell-find-project-root nil
+      ghc-core-program-args '("-O2"
+                              "-dsuppress-uniques"
+                              "-dsuppress-idinfo"
+                              "-dsuppress-module-prefixes"
+                              ;; "-dsuppress-type-signatures"
+                              "-dsuppress-type-applications"
+                              "-dsuppress-coercions")
+      )
 
 ;; ;; prevent paredit from reindenting Haskell lines
 ;; (dolist (func '(indent-region
