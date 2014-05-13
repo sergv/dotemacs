@@ -202,6 +202,7 @@
 (load-library "vhdl-setup")
 (load-library "tcl-setup")
 (load-library "cool-setup")
+(load-library "haskell-grammar-tools-setup")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")
