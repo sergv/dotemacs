@@ -28,6 +28,8 @@
     (literate-haskell-mode (one-line "--") (line-regexp "--+"))
     (ghc-core-mode         (one-line "--") (line-regexp "--+"))
     (haskell-cabal-mode    (one-line "--") (line-regexp "--+"))
+    (alex-mode             (one-line "--") (line-regexp "--+"))
+    (happy-mode            (one-line "--") (line-regexp "--+"))
     (latex-mode            (one-line "%")  (line-regexp "%+"))
     (octave-mode           (one-line "%")  (line-regexp "\\(?:%+\\|#+\\)"))
     (blueprint-mode        (one-line ";;") (line-regexp ";+"))
