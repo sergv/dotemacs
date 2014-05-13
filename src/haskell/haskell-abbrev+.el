@@ -86,6 +86,9 @@ then Bar would be the result."
            (list (concat "^" (make-re-with-optional-suffix "import" 2) "$")
                  "import"
                  import-expand-pred)
+           (list "importMap"
+                 "import Data.Map (Map)\nimport qualified Data.Map as M"
+                 import-expand-pred)
            (list (concat "^" (make-re-with-optional-suffix "import" 2) "q$")
                  (list expand-qualified-import-snippet-action)
                  import-expand-pred)
