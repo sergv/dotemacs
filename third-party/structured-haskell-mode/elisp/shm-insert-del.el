@@ -60,7 +60,7 @@ stick it to the previous operator on line."
   (if (or (not (null? current-prefix-arg))
           (shm-literal-insertion))
     (insert (make-string 1 char))
-    (progn
+    (let ((inserted-string-before? nil))
       (when (and (not (string-match-p "^[ \t]*$"
                                       (buffer-substring-no-properties
                                        (line-beginning-position)
@@ -71,13 +71,16 @@ stick it to the previous operator on line."
                           (not (memq (char-before) shm/operator-chars)))
                      ;; Distance ourselves from | that is a potential guard.
                      (char-equal (char-before) ?|)))
-        (shm-insert-string " "))
+        (shm-insert-string " ")
+        (setf inserted-string-before? t))
       (shm-insert-char-appending-to-prev-operator char)
-      (when (or (eobp)
-                (and (not (char-equal (char-after) ?\s))
-                     (not (char-equal (char-before) ?\)))
-                     (not (memq (char-after) shm/operator-chars))))
-        (shm-insert-string " ")))))
+      (when (not (and (eq char ?\\)
+                      inserted-string-before?))
+        (when (or (eobp)
+                  (and (not (char-equal (char-after) ?\s))
+                       (not (char-equal (char-before) ?\)))
+                       (not (memq (char-after) shm/operator-chars))))
+          (shm-insert-string " "))))))
 
 (defmacro shm-make-self-insert-surrounded-with-spaces (name char)
   "Make function NAME for inserting CHARacter with optionally surrounding
@@ -94,7 +97,6 @@ it whith spaces when not in literal insertion context."
 (shm-make-self-insert-surrounded-with-spaces shm/< ?<)
 (shm-make-self-insert-surrounded-with-spaces shm/> ?>)
 (shm-make-self-insert-surrounded-with-spaces shm/! ?!)
-(shm-make-self-insert-surrounded-with-spaces shm/@ ?@)
 (shm-make-self-insert-surrounded-with-spaces shm/$ ?$)
 (shm-make-self-insert-surrounded-with-spaces shm/% ?%)
 (shm-make-self-insert-surrounded-with-spaces shm/^ ?^)
@@ -131,6 +133,14 @@ it whith spaces when not in literal insertion context."
                             1))
           (insert ")"))
         (forward-char 1)))))
+
+(defun shm/@ ()
+  "Insert a space but sometimes do something more clever, like
+  inserting skeletons."
+  (interactive)
+  (if (shm-in-pattern?)
+    (insert "@")
+    (shm-insert-char-surrounding-with-spaces ?@)))
 
 (defun shm/space ()
   "Insert a space but sometimes do something more clever, like
