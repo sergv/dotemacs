@@ -673,6 +673,45 @@ node. This function will return the *actual* node at point. See
   "Get the text of the current shm node"
   (shm-node-string (shm-current-node)))
 
+(defun shm-in-pattern? ()
+  "Check whether point is located in haskell function pattern."
+  (let ((node-pair (shm-current-node-pair)))
+    (when node-pair
+      (let ((workable-node (cdr-safe (shm-workable-node node-pair))))
+        (when workable-node
+          (let ((constructor (shm-node-cons workable-node)))
+            (string-match-p "^P.*" (symbol-name constructor))
+            ;; maybe more efficient but certainly less generic
+            ;; (memq constructor
+            ;;       '(PVar
+            ;;         PLit
+            ;;         PNeg
+            ;;         PNPlusK
+            ;;         PInfixApp
+            ;;         PApp
+            ;;         PTuple
+            ;;         PList
+            ;;         PParen
+            ;;         PRec
+            ;;         PAsPat
+            ;;         PWildCard
+            ;;         PIrrPat
+            ;;         PatTypeSig
+            ;;         PViewPat
+            ;;         PRPat
+            ;;         PXTag
+            ;;         PXETag
+            ;;         PXPcdata
+            ;;         PXPatTag
+            ;;         PXRPats
+            ;;         PExplTypeArg
+            ;;         PQuasiQuote
+            ;;         PBangPat
+            ;;         PFieldPat
+            ;;         PFieldPun
+            ;;         PFieldWildcard))
+            ))))))
+
 (provide 'shm-ast)
 
 ;; Local variables:
