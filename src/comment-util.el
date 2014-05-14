@@ -21,7 +21,7 @@
 (defadvice:auto-comment vim:cmd-insert-line-above)
 
 
-(defconst +comment-util-comment-format-alist+
+(defparameter +comment-util-comment-format-alist+
   '((haskell-mode          (one-line "--") (line-regexp "--+"))
     (haskell-c-mode        (one-line "--") (line-regexp "--+"))
     (c2hs-mode             (one-line "--") (line-regexp "--+"))
@@ -30,6 +30,7 @@
     (haskell-cabal-mode    (one-line "--") (line-regexp "--+"))
     (alex-mode             (one-line "--") (line-regexp "--+"))
     (happy-mode            (one-line "--") (line-regexp "--+"))
+    (agda2-mode            (one-line "--") (line-regexp "--+"))
     (latex-mode            (one-line "%")  (line-regexp "%+"))
     (octave-mode           (one-line "%")  (line-regexp "\\(?:%+\\|#+\\)"))
     (blueprint-mode        (one-line ";;") (line-regexp ";+"))
