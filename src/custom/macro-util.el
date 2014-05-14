@@ -988,6 +988,16 @@ value, that slot cannot be set via `setf'.
                 ,false-branch)
        ,false-branch)))
 
+(defmacro defparameter (var &optional value doc)
+  "Just like CL's defparameter, sets variable value when evaluated."
+  (let ((tmp-var (gensym "store")))
+    `(progn
+       (setf ,tmp-var ,value)
+       (if (boundp ',var)
+         (setf ,var ,tmp-var)
+         (defvar ,var ,tmp-var ,doc))
+       nil)))
+
 ;;; compatibility defines
 
 (unless (symbol-function 'defvar-local)
