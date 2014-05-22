@@ -78,7 +78,7 @@ stick it to the previous operator on line."
                       inserted-string-before?))
         (when (or (eobp)
                   (and (not (char-equal (char-after) ?\s))
-                       (not (char-equal (char-before) ?\)))
+                       (not (char-equal (char-after) ?\)))
                        (not (memq (char-after) shm/operator-chars))))
           (shm-insert-string " "))))))
 
