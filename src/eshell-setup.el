@@ -128,6 +128,10 @@
                               "\\.\\(?:hs\\|lhs\\|hsc\\)\\'")
 
                      (funcall define-programs
+                              '("hp2ps")
+                              "\\.hp\\'")
+
+                     (funcall define-programs
                               '("stalin" "guile" "csi" "csc" "scheme48" "bigloo")
                               (eval `(rx "." (or ,@+scheme-file-extensions+) eot)))
 

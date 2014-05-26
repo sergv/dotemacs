@@ -43,7 +43,8 @@
 (defun haskell-blocks-verify-front ()
   (save-excursion
     (goto-char (match-end 0))
-    (unless (= ?- (char-after))
+    (when (not (and (= ?\{ (char-before))
+                    (= ?- (char-after))))
       (haskell-blocks-verify-location))))
 
 (defun haskell-blocks-verify-back ()
@@ -68,7 +69,7 @@
  '((haskell-blocks
     :submode haskell-mode
     ;;:face mmm-output-submode-face
-    :front "{"
+    :front "{%?"
     :front-verify haskell-blocks-verify-front
     :back haskell-blocks-find-back
     :back-verify haskell-blocks-verify-back

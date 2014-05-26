@@ -1497,6 +1497,26 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("help")))
   :evaluate-definition t)
 
+(defpcmpl pcomplete/hp2ps
+  (opts
+   (flags "-b"
+          "-d"
+          "-efin"
+          "-efmm"
+          "-efpt"
+          "-g"
+          "-i+"
+          "-i-"
+          "-M"
+          "-mN"
+          "-m0"
+          "-p"
+          "-s"
+          "-tf"
+          "-y"
+          "-c")
+   (args (pcomplete-here (pcomplete-entries ".*\\.hp\\'")))))
+
 ;;; C, low-level stuff
 
 ;;;###autoload
