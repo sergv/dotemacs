@@ -22,6 +22,8 @@
 (defstruct (buffer-tag
             (:conc-name buffer-tag/))
   name
+  comparison-name ;; string
+  other-comparison-info ;; string or nil
   predicate ;; function of one argument - buffer to test
   )
 
@@ -48,7 +50,15 @@
                               `(progn ,and-expr-in-buffer)))))))))
 
 (defun tagged-buflist/buffer-tag< (tag1 tag2)
-  (string< (buffer-tag/name tag1) (buffer-tag/name tag2)))
+  (let ((name1 (buffer-tag/comparison-name tag1))
+        (name2 (buffer-tag/comparison-name tag2))
+        (other-info1 (buffer-tag/other-comparison-info tag1))
+        (other-info2 (buffer-tag/other-comparison-info tag2)))
+    (or (string< name1 name2)
+        (and (string= name1 name2)
+             (not (null? other-info1))
+             (not (null? other-info2))
+             (string< other-info1 other-info2)))))
 
 (defun tagged-buflist/expand-tag-definitions (tags)
   "If TAGS is a function then it will be called and it's result will be
@@ -63,7 +73,10 @@ treated as a list of tags; otherwise it should be list of plain tags."
 (defconst +common-buffer-tags+
   (let ((basic-tags
          (map (lambda (entry)
-                (make-buffer-tag :name (first entry) :predicate (cadr entry)))
+                (make-buffer-tag :name (first entry)
+                                 :comparison-name (first entry)
+                                 :other-comparison-info nil
+                                 :predicate (cadr entry)))
               (list
                (list "vc"
                      (make-buf-tag-pred
@@ -337,6 +350,8 @@ treated as a list of tags; otherwise it should be list of plain tags."
     (append basic-tags
             (list (make-buffer-tag
                    :name "other"
+                   :comparison-name "other"
+                   :other-comparison-info nil
                    :predicate (lambda (buf)
                                 (all? (comp #'not
                                             (partial-first #'funcall buf)
@@ -363,15 +378,19 @@ tracked files for that repository.")
     (append
      (sort
       (map (lambda (proj)
-             (let ((repo-root (eproj-normalize-file-name (eproj-project/root proj))))
+             (let ((repo-root (eproj-normalize-file-name (eproj-project/root proj)))
+                   (fname (abbreviate-file-name (eproj-project/root proj)))
+                   (project-type (let ((type (eproj-project-type/name
+                                              (eproj-project/type proj))))
+                                   (if (eq? type 'eproj-file)
+                                     "eproj"
+                                     (format "%s" type)))))
                (make-buffer-tag
-                :name (concat (let ((type (eproj-project-type/name
-                                           (eproj-project/type proj))))
-                                (if (eq? type 'eproj-file)
-                                  "eproj"
-                                  (format "%s" type)))
+                :name (concat project-type
                               ":"
-                              (abbreviate-file-name (eproj-project/root proj)))
+                              fname)
+                :comparison-name fname
+                :other-comparison-info project-type
                 :predicate
                 (lambda (buffer)
                   (awhen (eproj-get-initial-project-root-for-buf buffer)
@@ -400,6 +419,8 @@ tracked files for that repository.")
       #'tagged-buflist/buffer-tag<)
      (list (make-buffer-tag
             :name "no repository"
+            :comparison-name "no repository"
+            :other-comparison-info nil
             :predicate (lambda (buffer)
                          (or (null? (eproj-get-initial-project-root-for-buf buffer))
                              (null? (with-current-buffer buffer
