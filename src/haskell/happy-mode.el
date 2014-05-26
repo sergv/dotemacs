@@ -15,19 +15,21 @@
 (defconst happy-percent-column 41 "\
 *The column in which to place a percent introducing a modifier (e.g. %prec).")
 
-(defvar happy-mode-map
+(defparameter happy-mode-map
   (let ((keymap (make-sparse-keymap)))
     (def-keys-for-map keymap
-      (";"           electric-happy-semi)
-      (":"           electric-happy-colon)
-      ("|"           electric-happy-colon)
-      ;; ("%"           electric-happy-per)
-      ("<backspace>" backward-delete-char-untabify)
-      ("<tab>"       happy-indent-command))
+      (";"               electric-happy-semi)
+      (":"               electric-happy-colon)
+      ("|"               electric-happy-colon)
+      ;; ("%"               electric-happy-per)
+      ("<backspace>"     backward-delete-char-untabify)
+      ("<tab>"           happy-indent-command)
+      ("S-<tab>"         happy-dedent-command)
+      ("S-<iso-lefttab>" happy-dedent-command))
     keymap)
   "Keymap used in happy mode.")
 
-(defvar happy-mode-syntax-table
+(defparameter happy-mode-syntax-table
   (let ((tbl (make-syntax-table)))
     (modify-syntax-entry ?\{ "(}  " tbl)
     (modify-syntax-entry ?\} "){  " tbl)
@@ -59,7 +61,7 @@
 (defconst happy-mode-rule-start-or-body-regexp
   "^[ \t]*\\(?:\\(?:\\s_\\|\\sw\\)+[ \t]*:\\||\\)")
 
-(defvar happy-mode-font-lock-keywords
+(defparameter happy-mode-font-lock-keywords
   `((,(rx (or "%name"
               "%tokentype"
               "%error"
@@ -90,10 +92,9 @@
     (,(rx (or ":"
               "|"
               ";"
-              ;; (seq "'"
-              ;;      anything
-              ;;      "'")
-              ))
+              (seq "'"
+                   (+ (not (any ?\n ?\')))
+                   "'")))
      (0 'font-lock-negation-char-face))
     (,(rx "$" (or digit "$"))
      (0 'font-lock-variable-name-face)))
@@ -124,34 +125,43 @@
   (make-local-variable 'block-indent-level)
   (make-local-variable 'auto-fill-hook))
 
+(defun happy-in-literal-context? (start end)
+  "Check whether end is in literal context."
+  (let* ((state (parse-partial-sexp start end))
+         (inside-string? (nth 3 state))
+         (inside-comment? (nth 4 state))
+         (following-quote-character? (nth 5 state)))
+    (or inside-string?
+               inside-comment?
+               following-quote-character?)))
+
 (defun electric-happy-colon (arg)
   "Insert character and correct line's indentation."
   (interactive "P")
-  (let ((state (parse-partial-sexp
-                (save-excursion
-                  (save-match-data
-                    (if (re-search-backward
-                         "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-                         nil 'move)
-                      (- (match-end 0) 1)
-                      (point-min))))
-                (point))))
-    (if (or (nth 3 state) (nth 4 state) (nth 5 state))
-      (self-insert-command (prefix-numeric-value arg))
-      (if (and (not arg) (eolp))
-        (progn
-          (happy-indent-line)
-          (and c-auto-newline
-               (eq last-command-event ?\|)
-               (save-excursion
-                 (beginning-of-line)
-                 (not (looking-at-p "[ \t]*$")))
-               (newline))
-          (delete-horizontal-space)
-          (indent-to happy-colon-column)
-          (insert last-command-event)
-          (insert " "))
-        (self-insert-command (prefix-numeric-value arg))))))
+  (cond ((happy-in-literal-context? (save-excursion
+                                      (save-match-data
+                                        (if (re-search-backward
+                                             "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                                             nil 'move)
+                                          (- (match-end 0) 1)
+                                          (point-min))))
+                                    (point))
+         (self-insert-command (prefix-numeric-value arg)))
+        ((and (not arg)
+              (eolp))
+         (happy-indent-line)
+         (and c-auto-newline
+              (eq last-command-event ?\|)
+              (save-excursion
+                (beginning-of-line)
+                (not (looking-at-p "[ \t]*$")))
+              (newline))
+         (delete-horizontal-space)
+         (indent-to happy-colon-column)
+         (insert last-command-event)
+         (insert " "))
+        (else
+         (self-insert-command (prefix-numeric-value arg)))))
 
 (defun electric-happy-semi (arg)
   "Insert character and correct line's indentation."
@@ -187,47 +197,44 @@
 (defun electric-happy-terminator (arg)
   "Insert character and correct line's indentation."
   (interactive "P")
-  (let ((state (parse-partial-sexp
-                (save-excursion
-                  (save-match-data
-                    (if (re-search-backward
-                         "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
-                         nil 'move)
-                      (- (match-end 0) 1)
-                      (point-min))))
-                (point)))
-        insertpos)
-    (if (or (nth 3 state) (nth 4 state) (nth 5 state))
-      (self-insert-command (prefix-numeric-value arg))
-      (if (and (not arg) (eolp)
-               (not (save-excursion
-                      (beginning-of-line)
-                      (skip-chars-forward " \t")
-                      (= (following-char) ?%))))
-        (progn
-          (and c-auto-newline
-               (progn
-                 (if (save-excursion
-                       (beginning-of-line)
-                       (not (looking-at-p "[ \t]*$")))
-                   (newline))
-                 (happy-indent-line)
-                 (backward-delete-char-untabify 2)))
-          (insert last-command-event)
-          (happy-indent-line)
-          (and c-auto-newline
-               (progn
-                 (newline)
-                 (setq insertpos (- (point) 2))
-                 (happy-indent-line)))
-          (save-excursion
-            (if insertpos (goto-char (1+ insertpos)))
-            (delete-char -1))))
-      (if insertpos
+  (if (happy-in-literal-context? (save-excursion
+                                   (save-match-data
+                                     (if (re-search-backward
+                                          "^[ \t]*\\(\\s_\\|\\sw\\)+[ \t]*:"
+                                          nil 'move)
+                                       (- (match-end 0) 1)
+                                       (point-min))))
+                                 (point))
+    (self-insert-command (prefix-numeric-value arg))
+    (if (and (not arg) (eolp)
+             (not (save-excursion
+                    (beginning-of-line)
+                    (skip-chars-forward " \t")
+                    (= (following-char) ?%))))
+      (progn
+        (and c-auto-newline
+             (progn
+               (if (save-excursion
+                     (beginning-of-line)
+                     (not (looking-at-p "[ \t]*$")))
+                 (newline))
+               (happy-indent-line)
+               (backward-delete-char-untabify 2)))
+        (insert last-command-event)
+        (happy-indent-line)
+        (and c-auto-newline
+             (progn
+               (newline)
+               (setq insertpos (- (point) 2))
+               (happy-indent-line)))
         (save-excursion
-          (goto-char insertpos)
-          (self-insert-command (prefix-numeric-value arg)))
-        (self-insert-command (prefix-numeric-value arg))))))
+          (if insertpos (goto-char (1+ insertpos)))
+          (delete-char -1))))
+    (if insertpos
+      (save-excursion
+        (goto-char insertpos)
+        (self-insert-command (prefix-numeric-value arg)))
+      (self-insert-command (prefix-numeric-value arg)))))
 
 (defun happy-indent-command (&optional whole-exp)
   "Indent current line as Happy (Bison) code, or in some cases insert a tab character.
@@ -267,6 +274,9 @@ The relative indentation among the lines of the expression are preserved."
       (insert-tab)
       (happy-indent-line))))
 
+(defun happy-dedent-command ()
+  (interactive)
+  (indent-to! (max 0 (- (current-column) 4))))
 
 (defun happy-indent-line ()
   "Indent current line as Happy (Bison) code.
@@ -282,27 +292,19 @@ Return the amount the indentation changed by."
                    state)
                (goto-char (point-min))
                (not (and (re-search-forward "^%%" limit t)
-                         (progn
-                           (parse-partial-sexp
-                            (save-excursion
-                              (if (re-search-backward
-                                   happy-mode-rule-start-regexp
-                                   nil
-                                   t)
-                                (- (match-end 0) 1)
-                                (point-min)))
-                            (point))
-                           (not (or (nth 3 state)
-                                    (nth 4 state)
-                                    (nth 5 state)))))))))
+                         (happy-in-literal-context?
+                          (save-excursion
+                            (if (re-search-backward
+                                 happy-mode-rule-start-regexp
+                                 nil
+                                 t)
+                              (- (match-end 0) 1)
+                              (point-min)))
+                          (point)))))))
          (setq indent 0))
         ((save-excursion
            (beginning-of-line)
            (looking-at-p "[ \t]*%"))
-         (setq indent 0))
-        ((save-excursion
-           (skip-chars-backward " \t\n\f")
-           (eq (preceding-char) ?\;))
          (setq indent 0))
         (t
          (beginning-of-line)
