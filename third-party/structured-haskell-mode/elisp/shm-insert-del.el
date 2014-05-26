@@ -286,7 +286,8 @@ the current node to the parent."
   "Insert colon."
   (interactive)
   (if (or (not shm-colon-enabled)
-          (shm-literal-insertion))
+          (shm-literal-insertion)
+          (shm-in-pattern?))
       (call-interactively 'self-insert-command)
     (let ((current (ignore-errors
                      (shm-current-node))))
