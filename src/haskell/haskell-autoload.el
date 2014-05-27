@@ -8,7 +8,7 @@
 
 (load-library "haskell-mode-autoloads")
 
-(defvar *haskell-extensions* '("hs" "lhs" "hsc" "chs"))
+(defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs"))
 
 (autoload 'haskell-setup "haskell-setup" "" nil nil)
 (autoload 'inferior-haskell-mode-setup "haskell-setup" "" nil nil)

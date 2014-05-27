@@ -526,7 +526,7 @@ which enable the original code blocks to be found."
 ;;; common org-drill's question cards with math rendering
 ;;; and other setup
 
-(defvar *org-drill-hint-tags* '("reveal" "hint" "example")
+(defparameter *org-drill-hint-tags* '("reveal" "hint" "example")
   "Subheadings with these tags will be shown revealed during question.
 These tags will be inherited by all subheadings. Use like this:
 

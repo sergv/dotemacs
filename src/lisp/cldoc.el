@@ -156,7 +156,7 @@ Non-nil values for this variable have no effect unless
 ;;; No user options below here.
 
 ;; Non-nil if this version of emacs supports dynamically resizable echo areas.
-(defvar cldoc-echo-area-multiline-supported-p
+(defparameter cldoc-echo-area-multiline-supported-p
   (and (string-lessp "21" emacs-version)
        (save-match-data
         (numberp (string-match "^GNU Emacs" (emacs-version))))))
@@ -168,7 +168,7 @@ Non-nil values for this variable have no effect unless
 ;; as most motion commands are good candidates.
 ;; This variable contains an obarray of symbols; do not manipulate it
 ;; directly.  Instead, use `cldoc-add-command' and `cldoc-remove-command'.
-(defvar cldoc-message-commands nil)
+(defparameter cldoc-message-commands nil)
 
 ;; This is used by cldoc-add-command to initialize cldoc-message-commands
 ;; as an obarray.
@@ -176,26 +176,26 @@ Non-nil values for this variable have no effect unless
 ;; choose to increase the number of buckets, you must do so before loading
 ;; this file since the obarray is initialized at load time.
 ;; Remember to keep it a prime number to improve hash performance.
-(defvar cldoc-message-commands-table-size 31)
+(defparameter cldoc-message-commands-table-size 31)
 
 ;; Bookkeeping; elements are as follows:
 ;;   0 - contains the last symbol read from the buffer.
 ;;   1 - contains the string last displayed in the echo area for that
 ;;       symbol, so it can be printed again if necessary without reconsing.
 ;;   2 - 'function if function args, 'variable if variable documentation.
-(defvar cldoc-last-data (make-vector 3 nil))
-(defvar cldoc-last-message nil)
+(defparameter cldoc-last-data (make-vector 3 nil))
+(defparameter cldoc-last-message nil)
 
 ;; Idle timers are supported in Emacs 19.31 and later.
-(defvar cldoc-use-idle-timer-p t ;; (fboundp 'run-with-idle-timer)
+(defparameter cldoc-use-idle-timer-p t ;; (fboundp 'run-with-idle-timer)
   )
 
 ;; cldoc's timer object, if using idle timers
-(defvar cldoc-timer nil)
+(defparameter cldoc-timer nil)
 
 ;; idle time delay currently in use by timer.
 ;; This is used to determine if cldoc-idle-delay is changed by the user.
-(defvar cldoc-current-idle-delay cldoc-idle-delay)
+(defparameter cldoc-current-idle-delay cldoc-idle-delay)
 
 ;; Put minor mode string on the global minor-mode-alist.
 ;;;###autoload
@@ -567,7 +567,7 @@ the mode, respectively."
 ;; these functions will be compiled to bytecode, but can't be lazy-loaded
 ;; even if you set byte-compile-dynamic; to do that would require making
 ;; them named top-level defuns, which is not particularly desirable either.
-(defvar cldoc-function-argstring-from-docstring-method-table
+(defparameter cldoc-function-argstring-from-docstring-method-table
   (list
    ;; Try first searching for args starting with symbol name.
    ;; This is to avoid matching parenthetical remarks in e.g. sit-for.
@@ -748,7 +748,7 @@ the mode, respectively."
  "up-list" "down-list")
 
 
-(defvar cl-operator-signatures (make-vector 67 0))
+(defparameter cl-operator-signatures (make-vector 67 0))
 
 ;; note
 ;; these symbols are used,  => =>|

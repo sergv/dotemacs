@@ -24,7 +24,7 @@
 (defvar-local vim:active-command-function nil
   "The command function of the currently active vim-mode.")
 
-(defvar vim:mode-alist nil
+(defparameter vim:mode-alist nil
   "Assocative list of all registered submodes, (mode-symbol . mode-text).")
 
 (defvar-local vim:emulation-mode-alist nil

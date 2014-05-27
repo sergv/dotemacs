@@ -557,7 +557,7 @@ Futher modified by Sergey Vinokurov."
     (run-hooks 'color-theme-solarized+-theme-changed-hook)))
 
 
-(defvar color-theme-solarized+-theme-changed-hook '()
+(defparameter color-theme-solarized+-theme-changed-hook '()
   "Hook to run when theme changes")
 
 (defun color-theme-solarized+-dark ()
@@ -568,7 +568,7 @@ Futher modified by Sergey Vinokurov."
   (interactive)
   (color-theme-solarized+ 'light))
 
-(defvar *color-theme-solarized-type* nil
+(defparameter *color-theme-solarized-type* nil
   "Type of current solarized color theme, either 'light or 'dark.")
 
 (defun solarized+-toggle ()

@@ -74,58 +74,58 @@
 (defconst glsl-version "2.0"
   "OpenGLSL major mode version number.")
 
-(defvar glsl-type-face 'glsl-type-face)
+(defparameter glsl-type-face 'glsl-type-face)
 (defface glsl-type-face
   '((t (:inherit 'font-lock-type-face))) "glsl: type face"
   :group 'glsl)
 
-(defvar glsl-builtin-face 'glsl-builtin-face)
+(defparameter glsl-builtin-face 'glsl-builtin-face)
 (defface glsl-builtin-face
   '((t (:inherit 'font-lock-builtin-face))) "glsl: builtin face"
   :group 'glsl)
 
-(defvar glsl-deprecated-builtin-face 'glsl-deprecated-builtin-face)
+(defparameter glsl-deprecated-builtin-face 'glsl-deprecated-builtin-face)
 (defface glsl-deprecated-builtin-face
   '((t (:inherit 'glsl-builtin-face))) "glsl: deprecated builtin face"
   :group 'glsl)
 
-(defvar glsl-keyword-face 'glsl-keyword-face)
+(defparameter glsl-keyword-face 'glsl-keyword-face)
 (defface glsl-keyword-face
   '((t (:inherit 'font-lock-keyword-face))) "glsl: keyword face"
   :group 'glsl)
 
-(defvar glsl-deprecated-keyword-face 'glsl-deprecated-keyword-face)
+(defparameter glsl-deprecated-keyword-face 'glsl-deprecated-keyword-face)
 (defface glsl-deprecated-keyword-face
   '((t (:inherit 'glsl-keyword-face))) "glsl: deprecated keyword face"
   :group 'glsl)
 
-(defvar glsl-variable-name-face 'glsl-variable-name-face)
+(defparameter glsl-variable-name-face 'glsl-variable-name-face)
 (defface glsl-variable-name-face
   '((t (:inherit 'font-lock-variable-name-face))) "glsl: variable face"
   :group 'glsl)
 
-(defvar glsl-deprecated-variable-name-face 'glsl-deprecated-variable-name-face)
+(defparameter glsl-deprecated-variable-name-face 'glsl-deprecated-variable-name-face)
 (defface glsl-deprecated-variable-name-face
   '((t (:inherit 'glsl-variable-name-face))) "glsl: deprecated variable face"
   :group 'glsl)
 
-(defvar glsl-preprocessor-face 'glsl-preprocessor-face)
+(defparameter glsl-preprocessor-face 'glsl-preprocessor-face)
 (defface glsl-preprocessor-face
   '((t (:inherit 'font-lock-preprocessor-face))) "glsl: preprocessor face"
   :group 'glsl)
 
-(defvar glsl-mode-hook nil)
+(defparameter glsl-mode-hook nil)
 
-(defvar glsl-mode-map
+(defparameter glsl-mode-map
   (let ((glsl-mode-map (make-sparse-keymap)))
     ;; (define-key glsl-mode-map [S-iso-lefttab] 'ff-find-other-file)
     glsl-mode-map)
   "Keymap for GLSL major mode")
 
-(defvar glsl-man-pages-base-url "http://www.opengl.org/sdk/docs/manglsl/xhtml/"
+(defparameter glsl-man-pages-base-url "http://www.opengl.org/sdk/docs/manglsl/xhtml/"
   "Location of GL manpages")
 
-(defvar glsl-type-list
+(defparameter glsl-type-list
   '("float" "double" "int" "void" "bool" "true" "false" "mat2" "mat3"
     "mat4" "dmat2" "dmat3" "dmat4" "mat2x2" "mat2x3" "mat2x4" "dmat2x2"
     "dmat2x3" "dmat2x4" "mat3x2" "mat3x3" "mat3x4" "dmat3x2" "dmat3x3"
@@ -152,7 +152,7 @@
     "half" "fixed" "unsigned" "hvec2" "hvec3" "hvec4" "fvec2" "fvec3" "fvec4"
     "sampler3DRect"))
 
-(defvar glsl-modifier-list
+(defparameter glsl-modifier-list
   '("attribute" "const" "uniform" "varying" "coherent" "volatile" "restrict"
     "readonly" "writeonly" "atomic_uint" "layout" "centroid" "flat" "smooth"
     "noperspective" "patch" "sample" "break" "continue" "do" "for" "while"
@@ -163,10 +163,10 @@
     "public" "static" "extern" "external" "interface" "superp" "input" "output"
     "filter" "sizeof" "cast" "namespace" "using" "row_major"))
 
-(defvar glsl-deprecated-modifier-list
+(defparameter glsl-deprecated-modifier-list
   '("varying" "attribute"))      ; centroid is deprecated when used with varying
 
-(defvar glsl-builtin-list
+(defparameter glsl-builtin-list
   '("abs" "acos" "acosh" "all" "any" "asin" "asinh" "atan" "atanh"
     "atomicCounter" "atomicCounterDecrement" "atomicCounterIncrement"
     "barrier" "bitCount" "bitfieldExtract" "bitfieldInsert" "bitfieldReverse"
@@ -194,7 +194,7 @@
     "umulExtended" "unpackDouble2x32" "unpackHalf2x16" "unpackSnorm2x16"
     "unpackSnorm4x8" "unpackUnorm2x16" "unpackUnorm4x8" "usubBorrow"))
 
-(defvar glsl-deprecated-builtin-list
+(defparameter glsl-deprecated-builtin-list
   '("texture1D" "texture1DProj" "texture1DLod" "texture1DProjLod"
     "texture2D" "texture2DProj" "texture2DLod" "texture2DProjLod"
     "texture2DRect" "texture2DRectProj"
@@ -203,25 +203,25 @@
     "shadow2D" "shadow2DProj" "shadow2DLod" "shadow2DProjLod"
     "textureCube" "textureCubeLod"))
 
-(defvar glsl-deprecated-variables-list
+(defparameter glsl-deprecated-variables-list
   '("gl_FragColor" "gl_FragData" "gl_MaxVarying" "gl_MaxVaryingFloats"
     "gl_MaxVaryingComponents"))
 
-(defvar glsl-preprocessor-directive-list
+(defparameter glsl-preprocessor-directive-list
   '("define" "undef" "if" "ifdef" "ifndef" "else" "elif" "endif"
     "error" "pragma" "extension" "version" "line"))
 
-(defvar glsl-preprocessor-expr-list
+(defparameter glsl-preprocessor-expr-list
   '("defined" "##"))
 
-(defvar glsl-preprocessor-builtin-list
+(defparameter glsl-preprocessor-builtin-list
   '("__LINE__" "__FILE__" "__VERSION__"))
 
 (defun glsl-ppre (re)
   "Preprocess word list into regexp for font-lock-keywords"
   (format "\\<\\(%s\\)\\>" (regexp-opt re)))
 
-(defvar glsl-font-lock-keywords-1
+(defparameter glsl-font-lock-keywords-1
   (eval-when-compile
     (list
      (cons (format "^\\W*#\\W*\\<\\(%s\\)\\>"
@@ -237,10 +237,10 @@
      (cons "gl_[A-Z][A-Za-z_]+" glsl-variable-name-face)))
   "Minimal highlighting expressions for GLSL mode")
 
-(defvar glsl-font-lock-keywords glsl-font-lock-keywords-1
+(defparameter glsl-font-lock-keywords glsl-font-lock-keywords-1
   "Default highlighting expressions for GLSL mode")
 
-(defvar glsl-mode-syntax-table
+(defparameter glsl-mode-syntax-table
   (let ((glsl-mode-syntax-table (make-syntax-table)))
     (modify-syntax-entry ?/ ". 124b" glsl-mode-syntax-table)
     (modify-syntax-entry ?* ". 23" glsl-mode-syntax-table)
@@ -249,7 +249,7 @@
     glsl-mode-syntax-table)
   "Syntax table for glsl-mode")
 
-(defvar glsl-other-file-alist
+(defparameter glsl-other-file-alist
   '(("\\.frag$" (".vert"))
     ("\\.vert$" (".frag")))
   "Alist of extensions to find given the current file's extension")

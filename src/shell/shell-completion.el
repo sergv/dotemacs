@@ -885,7 +885,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (args (pcomplete-here (pcmpl-haskell-source-or-obj-files t)))))
 
 ;;;###autoload
-(defvar pcomplete-ghc-flags
+(defparameter pcomplete-ghc-flags
   '("-?"
     "-help"
     "-v"

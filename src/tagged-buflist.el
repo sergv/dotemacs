@@ -358,7 +358,7 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                             #'buffer-tag/predicate)
                                       basic-tags)))))))
 
-(defvar tagged-buflist/consider-nontracked-files-as-residing-in-repository nil
+(defparameter tagged-buflist/consider-nontracked-files-as-residing-in-repository nil
   "If set to T then all files under root of some repository will be considered
 to be part of it and, therefore, their buffers will be put in the group with
 tracked files for that repository.")
@@ -491,8 +491,8 @@ cover buffer's name, for groups it would not cover section's name."
            (setf (tagged-section/optional-overlay section) ov)
            ov))))))
 
-(defvar tagged-buflist/toplevel-section nil)
-(defvar tagged-buflist/current-section nil)
+(defparameter tagged-buflist/toplevel-section nil)
+(defparameter tagged-buflist/current-section nil)
 
 (defun tagged-section/add-child (section child)
   "Add CHILD as last SECTION's child."
@@ -594,7 +594,7 @@ cover buffer's name, for groups it would not cover section's name."
 
 ;;; tagged buffers
 
-(defvar tagged-buflist/buffers nil
+(defparameter tagged-buflist/buffers nil
   "List of `tagged-buffer' structs of buffers currently shown.")
 
 ;; Note that single tagged buffer may be represented in several sections
@@ -657,10 +657,10 @@ buffers that match part of tagset will be included in result."
                         tagset-len))))
             tagged-buflist)))
 
-(defvar tagged-buffers/group-faces
+(defparameter tagged-buffers/group-faces
   [outline-1 outline-2 outline-3 outline-4 outline-5 outline-6 outline-7 outline-8])
 
-(defvar *tagged-buffers-name-length* 32
+(defparameter *tagged-buffers-name-length* 32
   "Number of characters to reserve for buffer name. If buffer name exceeds this
 limit it will extend past it and affect any text following.")
 
@@ -954,11 +954,11 @@ line the point was on."
 
 ;;;; group sections
 
-(defvar tagged-buflist/tagged-sections-store
+(defparameter tagged-buflist/tagged-sections-store
   (make-hash-table :test #'tagged-section-hash-test)
   "Hash table of sections as keys and themselves as values.")
 
-(defvar tagged-buflist/group-sections nil
+(defparameter tagged-buflist/group-sections nil
   "Vector of tagged sections sorted by their beginning positions within
 `tagged-buflist/main-buffer-name' buffer.")
 
@@ -985,7 +985,7 @@ Populate `tagged-buflist/tagged-sections-store' with sections in buffer."
 
 ;;;; buffer marking and operations on marked buffers
 
-(defvar tagged-buflist/marked-buffers nil
+(defparameter tagged-buflist/marked-buffers nil
   "List of buffers (tagged-buffer structs) marked from tagged buffer list.")
 
 (defface tagged-buflist/marked-face
@@ -1042,7 +1042,7 @@ saved buffer marks."
    :if-buffer (comp #'tagged-buflist/mark-buffer
                     (partial-first #'tagged-section/get-prop 'buffer))))
 
-(defvar tagged-buflist/mark-buffers-by-file-name-history nil
+(defparameter tagged-buflist/mark-buffers-by-file-name-history nil
   "History variable for `tagged-buflist/mark-buffers-by-file-name'.")
 
 (defun tagged-buflist/mark-buffers-by-file-name (filename-regex)
@@ -1057,7 +1057,7 @@ saved buffer marks."
                                   #'tagged-buffer/buf)
                             tagged-buflist/buffers))))
 
-(defvar tagged-buflist/mark-buffers-by-major-mode-history nil
+(defparameter tagged-buflist/mark-buffers-by-major-mode-history nil
   "History variable for `tagged-buflist/mark-buffers-by-major-mode'.")
 
 (defun tagged-buflist/mark-buffers-by-major-mode (mmode-str)
@@ -1143,12 +1143,12 @@ saved buffer marks."
 
 ;;;; "main" functions
 
-(defvar tagged-buflist/main-buffer-name "*buflist*")
+(defparameter tagged-buflist/main-buffer-name "*buflist*")
 
-(defvar tagged-buflist/show-filenames t
+(defparameter tagged-buflist/show-filenames t
   "Whether to show buffer filenames.")
 
-(defvar tagged-buflist/refresh-is-needed nil
+(defparameter tagged-buflist/refresh-is-needed nil
   "Flag whether current state of tagged buflist is no more up to date.")
 
 (defun tagged-buflist/invalidate-refresh-flag! ()
@@ -1259,7 +1259,7 @@ of group if on line with group."
 
 
 
-(defvar tagged-buflist/jump-to-buffer-history nil
+(defparameter tagged-buflist/jump-to-buffer-history nil
   "History variable for `tagged-buflist/jump-to-buffer'.")
 
 (defun tagged-buflist/jump-to-buffer (bufname)
@@ -1384,13 +1384,13 @@ section closest to START-IDX in direction depending on DELTA."
 
 ;;; tagged-buflist-mode
 
-(defvar tagged-buflist/tag-hierarchy
+(defparameter tagged-buflist/tag-hierarchy
   (list #'tagged-buflist/generate-tag-groups-by-eproj
         +common-buffer-tags+)
   "Hierarchy definition (list of lists/functions of tags) to show
 tagged bufer list.")
 
-(defvar tagged-buflist-mode-map
+(defparameter tagged-buflist-mode-map
   (let ((map (make-sparse-keymap)))
     (dotimes (k 128)
       (define-key map [k] nil))

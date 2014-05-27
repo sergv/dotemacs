@@ -33,7 +33,7 @@
 
 (setf python-indent-offset 4)
 
-(defvar python-exec "python3.3"
+(defparameter python-exec "python3.3"
   "Python executable to use for script running.")
 (put 'python-exec 'safe-local-variable #'string?)
 (put 'python-shell-interpreter 'safe-local-variable #'string?)
@@ -113,7 +113,7 @@
               ;;" SILENT\n"
               ))
 
-(defvar python-setup-pprint-code
+(defparameter python-setup-pprint-code
   "import pprint
 import sys
 
@@ -129,7 +129,7 @@ def pprint_displayhook(value):
 #__builtins__.pprint_on = lambda: setattr(sys, 'displayhook', pprint_displayhook)
 #__builtins__.pprint_off = lambda: setattr(sys, 'displayhook', orig_displayhook)
 ")
-(defvar python-setup-numpy-code
+(defparameter python-setup-numpy-code
   "try:
     import numpy as np
 except ImportError:

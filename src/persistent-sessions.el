@@ -32,7 +32,7 @@
   (first-safe (rest-safe (rest-safe (rest-safe entry)))))
 
 
-(defvar *sessions-buffer-variables* nil
+(defparameter *sessions-buffer-variables* nil
   "List of buffer-local variables to save in session file.")
 
 (defun sessions/get-buffer-variables (buffer)
@@ -57,7 +57,7 @@
 
 
 
-(defvar *sessions-global-variables* '(log-edit-comment-ring
+(defparameter *sessions-global-variables* '(log-edit-comment-ring
                                       vim:ex-history
                                       read-expression-history
                                       eshell-history-ring
@@ -98,7 +98,7 @@ entries."
     (destructuring-bind (var . value) bind
       (set var value))))
 
-(defvar sessions/special-modes
+(defparameter sessions/special-modes
   `((eshell-mode
      (save ,(lambda (buf)
               (save-excursion

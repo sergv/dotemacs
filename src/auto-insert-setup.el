@@ -60,7 +60,7 @@
               . ["insert.lisp" auto-insert-update]))))
 
 
-(defvar auto-insert-fields
+(defparameter auto-insert-fields
   (list
    (list "filename" (lambda ()
                       (file-name-nondirectory

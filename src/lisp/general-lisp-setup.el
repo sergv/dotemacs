@@ -658,7 +658,7 @@ This command assumes point is not in a string or comment."
 
 ;;;; keybindings as variables
 
-(defvar *lisp-vim-normal-mode-keybindings*
+(defparameter *lisp-vim-normal-mode-keybindings*
   '(("g c c"   lisp-comment-sexp)
     ("g c u"   lisp-uncomment-sexp)
     ("g c d"   comment-util-delete-commented-part)
@@ -666,7 +666,7 @@ This command assumes point is not in a string or comment."
     ("M-p"     browse-kill-ring)
     ("="       input-unicode)))
 
-(defvar *lisp-vim-movement-keybindings*
+(defparameter *lisp-vim-movement-keybindings*
   '(("g n"      glisp/beginning-of-defun)
     ("g t"      glisp/end-of-defun)
     ("g <up>"   glisp/beginning-of-defun)
@@ -677,7 +677,7 @@ This command assumes point is not in a string or comment."
     ("<left>"   backward-char)
     ("<right>"  forward-char)))
 
-(defvar *lisp-search-keybindings*
+(defparameter *lisp-search-keybindings*
   '(("*" search-for-symbol-at-point-forward)
     ("#" search-for-symbol-at-point-backward)))
 
