@@ -14,6 +14,7 @@
 (require 'browse-kill-ring-setup)
 
 (require 'align)
+(require 'compilation-setup)
 (require 'eproj)
 (require 'shell-setup)
 
@@ -340,7 +341,10 @@
 
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
-              +haskell-compile-error-or-warning-regexp+))
+              +haskell-compile-error-or-warning-regexp+)
+  (def-keys-for-map haskell-compilation-mode-map
+    ("<return>" compilation/goto-error)
+    ("SPC"      compilation/goto-error-other-window)))
 
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 
