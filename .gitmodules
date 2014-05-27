@@ -130,3 +130,6 @@
 [submodule "third-party/mmm-mode"]
         path = third-party/mmm-mode
         url = https://github.com/purcell/mmm-mode.git
+[submodule "third-party/happy-mode"]
+	path = third-party/happy-mode
+	url = https://github.com/sergv/happy-mode.git
