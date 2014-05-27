@@ -25,7 +25,18 @@
                   (string-equal ": " (substring prompt -2)))
            (format "%s (default %s): " (substring prompt 0 -2) def)
            prompt)
-         collection predicate require-match initial-input hist def)))
+         collection predicate require-match initial-input hist def))
+      magit-restore-window-configuration t
+      magit-commit-ask-to-stage nil
+      with-editor-emacsclient-executable nil
+      magit-status-buffer-name-format "*magit: %b*"
+      magit-diff-buffer-name-format "*magit-diff*"
+      magit-commit-buffer-name-format "*magit-commit*"
+      magit-log-buffer-name-format "*magit-log*"
+      magit-reflog-buffer-name-format "*magit-reflog*"
+      magit-branches-buffer-name-format "*magit-branches*"
+      magit-wazzup-buffer-name-format "*magit-wazzup*"
+      magit-cherry-buffer-name-format "*magit-cherry*")
 
 ;;; gitignore
 
@@ -74,18 +85,21 @@
 
 (defun magit-collect-unstaged-hunk-sections ()
   "Return all staged hunk sections in magit status buffer."
-  (letrec ((collect (lambda (section)
-                      (let ((xs (mapcan collect
-                                        (magit-section-children section))))
-                        (if (magit-section-match '(unstaged diff hunk) section)
-                          (cons section xs)
-                          xs)))))
-    ;; expand to load all hunks
-    (magit-section-expand-all magit-root-section)
-    (prog1 (sort (funcall collect magit-root-section)
-                 (lambda (section-a section-b)
-                   (< (magit-section-beginning section-a)
-                      (magit-section-beginning section-b)))))))
+  (save-excursion
+    (letrec ((collect (lambda (section)
+                        (let ((xs (mapcan collect
+                                          (magit-section-children section))))
+                          (if (equal? '(hunk file unstaged status)
+                                      (map #'car
+                                           (magit-section-ident section)))
+                            (cons section xs)
+                            xs)))))
+      ;; expand to load all hunks
+      (magit-section-expand-all magit-root-section)
+      (prog1 (sort (funcall collect magit-root-section)
+                   (lambda (section-a section-b)
+                     (< (magit-section-start section-a)
+                        (magit-section-start section-b))))))))
 
 (defun magit-current-section-is-whitespace-only? ()
   (interactive)
@@ -94,34 +108,37 @@
              (if (and (eq? 'hunk (magit-section-type hunk))
                       (patch-whitespace-only-change?
                        (buffer-substring-no-properties
-                        (magit-section-beginning hunk)
+                        (magit-section-start hunk)
                         (magit-section-end hunk))))
                "IS"
                "IS NOT"))))
 
 (defun magit-stage-non-whitespace-changes ()
-  "Unstage all hunks that introduce only whitespace change."
   (interactive)
-  (let ((nonwhitespace-patches
-         (filter (lambda (patch)
-                   (not (patch-whitespace-only-change? patch)))
+  (magit-stage-matching-changes (lambda (patch)
+                                  (not (patch-whitespace-only-change? patch)))))
+
+(defun magit-stage-matching-changes (pred)
+  "Unstage all hunks that introduce only whitespace change."
+  (let ((matching-patches
+         (filter pred
                  (map (lambda (hunk)
                         (buffer-substring-no-properties
-                         (magit-section-beginning hunk)
+                         (magit-section-start hunk)
                          (magit-section-end hunk)))
                       (reverse (magit-collect-unstaged-hunk-sections))))))
-    (dolist (patch nonwhitespace-patches)
+    (dolist (patch matching-patches)
       (when-let* (sections
                   (magit-collect-unstaged-hunk-sections)
                   hunk
                   (find-if (lambda (section)
                              (string= patch
                                       (buffer-substring-no-properties
-                                       (magit-section-beginning section)
+                                       (magit-section-start section)
                                        (magit-section-end section))
                                       ))
                            sections))
-        (magit-apply-hunk-item hunk "--cached"))))
+        (magit-apply-hunk hunk "--cached"))))
   nil)
 
 
@@ -143,7 +160,7 @@ all otherwise."
                                                   :test #'equal?)))))
     (save-excursion
       (dolist (child children)
-        (goto-char (magit-section-beginning child))
+        (goto-char (magit-section-start child))
         (if all-equal
           (magit-cycle-section)
           (magit-hide-section))))))
@@ -156,12 +173,7 @@ all otherwise."
 (defun magit-visit-item-other-window ()
   (interactive)
   (let ((current-prefix-arg t))
-    (call-interactively #'magit-visit-item)))
-
-(defun magit-reminder-note ()
-  "Show note to refresh memory."
-  (interactive)
-  (message "<E> - interactive rebase, <o> - deal with submodules"))
+    (call-interactively #'magit-visit-file)))
 
 (defun magit-mode-setup ()
   (setf truncate-lines nil)
@@ -192,7 +204,7 @@ all otherwise."
     +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
-    ("?"      magit-reminder-note) ;; override "?" from vim search
+    ("?"      magit-dispatch-popup) ;; override "?" from vim search
     ("r"      magit-refresh)
 
     ("p"      magit-key-mode-popup-stashing)
@@ -278,7 +290,7 @@ all otherwise."
   "Mode for editing commit message."
   (init-common :use-yasnippet nil :use-comment nil)
 
-  (def-keys-for-map magit-log-edit-mode-map
+  (def-keys-for-map git-commit-mode-map
     ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    log-edit-previous-comment)
     ("<down>"  log-edit-next-comment)
@@ -290,7 +302,7 @@ all otherwise."
             t ;; local
             ))
 
-(add-hook 'git-commit-mode-hook #'git-commit-mode)
+(add-hook 'git-commit-mode-hook #'git-commit-mode-setup)
 
 (defun git-rebase-mode-setup ()
   (def-keys-for-map git-rebase-mode-map
