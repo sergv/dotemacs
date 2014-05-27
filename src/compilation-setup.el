@@ -16,7 +16,21 @@
 (setf compilation-always-kill t)
 
 (defvar-local *compilation-jump-error-regexp*
-  "^\\(\\(?:\\(?:\\.\\.?\\)?/[^/\n\t]+\\)*?\\)/?[^/\n\t]+:\\([0-9]+\\):\\([0-9]+\\):"
+  (rxx ((delim (or "/"
+                   "\\"))
+        (filename (+ (not (any ?/ ?\\ ?\n ?\t)))))
+    bol
+    (group (*? (? (or "."
+                      ".."))
+               delim
+               filename))
+    (? delim)
+    filename
+    ":"
+    (group (+ (any (?0 . ?9))))
+    ":"
+    (group (+ (any (?0 . ?9))))
+    ":")
   "Regexp which is used by `compilation-jump-to-next-error'
 and `compilation-jump-to-prev-error' to detect errors
 in compilation or related buffers")

@@ -19,6 +19,7 @@
 (defadvice:auto-comment vim:cmd-insert-line-below)
 
 (defadvice:auto-comment vim:cmd-insert-line-above)
+(defadvice:auto-comment haskell-newline)
 
 
 (defparameter +comment-util-comment-format-alist+
@@ -58,6 +59,8 @@
     (slime-xref-mode       (one-line ";;") (line-regexp ";+"))
     (makefile-mode         (one-line "#")  (line-regexp "#+"))
     (makefile-gmake-mode   (one-line "#")  (line-regexp "#+"))
+    (makefile-automake-mode (one-line "#")  (line-regexp "#+"))
+    (makefile-bsdmake-mode (one-line "#")  (line-regexp "#+"))
     (cmake-mode            (one-line "#")  (line-regexp "#+"))
     (gnuplot-mode          (one-line "#")  (line-regexp "#+"))
     (debsources-mode       (one-line "#")  (line-regexp "#+"))

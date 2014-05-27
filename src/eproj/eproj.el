@@ -1156,10 +1156,14 @@ AUX-INFO is expected to be a list of zero or more constructs:
   (if (or (file-exists? path)
           (file-directory? path))
     path
-    (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
-      (when (or (file-exists? abs-path)
+    (if (file-name-absolute-p path)
+      (error "Non-existing absolute file name: %s, probably something went wrong" path)
+      (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
+        (if (or (file-exists? abs-path)
                 (file-directory? abs-path))
-        abs-path))))
+          abs-path
+          (error "File %s does not exist, try `eproj-update-buffer-project'"
+                 abs-path))))))
 
 (defun eproj-normalize-file-name (path)
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
