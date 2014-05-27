@@ -9,7 +9,7 @@
 (require 'general-lisp-setup)
 
 
-(defvar vim:current-mouse-event nil)
+(defparameter vim:current-mouse-event nil)
 
 (defun vim:cmd-mouse-p (cmd)
   (get cmd 'mouse))

@@ -65,7 +65,7 @@ and possibly more rude behavior"
         (indent-for-tab-command)
         (forward-line 1)))))
 
-(defvar *util:lisp:indent-advice-lock* nil
+(defparameter *util:lisp:indent-advice-lock* nil
   "This variable becomes t whenever there's one of *-indent-advice's
 \(for `vim:cmd-paste-behind' `vim:cmd-paste-before' `vim:cmd-paste-pop'
      and `vim:cmd-paste-pop-next'\) operates on current buffer")
@@ -88,7 +88,7 @@ Do nothing if MODES is empty."
 
 ;;;
 
-(defvar *util:expand-on-search-advice-lock* nil
+(defparameter *util:expand-on-search-advice-lock* nil
   "This variable becomes t whenever one of advices defined
 via `defadvice:expand-on-search' becomes active")
 

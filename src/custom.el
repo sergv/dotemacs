@@ -352,7 +352,7 @@ into flat list"
 
 ;;;;
 
-(defvar custom/exec-with-directory-runners
+(defparameter custom/exec-with-directory-runners
   (let ((tbl (make-hash-table :test #'equal))
         (standard-starter
          (lambda (exec dir)

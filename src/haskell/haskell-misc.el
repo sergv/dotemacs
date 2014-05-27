@@ -123,7 +123,7 @@
 
 ;;; simple documentation system
 
-(defvar haskell-language-extensions
+(defparameter haskell-language-extensions
   ;; make this list from documentation, e.g.
   ;; http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
   ;; command: '<,'>s/^-X\([^\t]+\)\t\([^\t]+\)\t[^\t]+\t-\(?:X\(.*\)\)?/("\1" "\2" "\3")/
@@ -323,7 +323,7 @@ we load it."
 
 ;;; define forward-haskell-symbol
 
-(defvar forward-haskell-symbol-re
+(defparameter forward-haskell-symbol-re
   (rx (or (group (+ ;; (regexp "[-!#$%&*+./<=>?@^|~:\\]")
                   (any ?\- ?\! ?\# ?\$ ?\% ?\& ?\* ?\+ ?\. ?\/ ?\< ?\= ?\> ?\? ?\@ ?^ ?\| ?\~ ?\: ?\\ )))
           (group

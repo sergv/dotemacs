@@ -6,7 +6,7 @@
 ;; Created: Sunday, 11 March 2012
 ;; Description:
 
-(defvar *remember-win-config-configurations* nil
+(defparameter *remember-win-config-configurations* nil
   "Alist of (char win-config) pairs.")
 
 (defun remember-win-config-store-configuration (char)

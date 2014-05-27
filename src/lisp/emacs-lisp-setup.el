@@ -42,7 +42,7 @@
 
 (put 'redefun 'doc-string-elt 3)
 
-(defvar *emacs-lisp-indent-specs*
+(defparameter *emacs-lisp-indent-specs*
   '((autoload nil)
     (begin 0)
     (if 1)

@@ -112,7 +112,7 @@
 Contains single-line and region comments.")
 
 
-(defvar *comment-util-space-count* 1
+(defparameter *comment-util-space-count* 1
   "Amount of spaces to put after comment markers.")
 
 (defvar-local *comment-util-current-format* nil

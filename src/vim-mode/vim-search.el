@@ -65,34 +65,34 @@ highlighted."
 (defconst vim:search-keymap (make-sparse-keymap)
   "Keymap used in search-ex-mode.")
 
-(defvar vim:search-history nil
+(defparameter vim:search-history nil
   "The history for the search command.")
 
-(defvar vim:search-direction nil
+(defparameter vim:search-direction nil
   "The direction of the current search, either 'forward or 'backward.")
 
-(defvar vim:search-count nil
+(defparameter vim:search-count nil
   "The count if the current search.")
 
-(defvar vim:search-start-point nil
+(defparameter vim:search-start-point nil
   "The point where the search started.")
 
-(defvar vim:search-overlay nil
+(defparameter vim:search-overlay nil
   "The overlay for the current search result.")
 
-(defvar vim:search-pattern nil
+(defparameter vim:search-pattern nil
   "The actual search pattern.")
 
-(defvar vim:search-match-beg nil
+(defparameter vim:search-match-beg nil
   "The beginning position of the last match.")
 
-(defvar vim:search-match-end nil
+(defparameter vim:search-match-end nil
   "The end position of the last match.")
 
-(defvar vim:substitute-pattern nil
+(defparameter vim:substitute-pattern nil
   "The actual replacement.")
 
-(defvar vim:substitute-replacement nil
+(defparameter vim:substitute-replacement nil
   "The actual replacement.")
 
 (defface vim:search '((t (:inherit isearch)))
@@ -322,7 +322,7 @@ name `name' to `new-regex'."
         (funcall (vim:hl-update-hook hl) result)))))
 
 
-(defvar vim:hl-update-timer nil
+(defparameter vim:hl-update-timer nil
   "Time used for updating highlights.")
 
 

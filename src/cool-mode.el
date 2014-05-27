@@ -8,7 +8,7 @@
 
 (require 'common)
 
-(defvar cool-mode-syntax-table
+(defparameter cool-mode-syntax-table
   (let ((tbl (make-syntax-table)))
     (modify-syntax-entry ?\" "\""    tbl)
     ;; ensure that (*/*) are comments

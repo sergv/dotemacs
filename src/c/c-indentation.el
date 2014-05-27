@@ -8,7 +8,7 @@
 
 (require 'common)
 
-(defvar c-indentation-indent-styles-alist
+(defparameter c-indentation-indent-styles-alist
   (list '("c-linux"
           "--style=linux"
           "--indent=spaces=8"
@@ -73,15 +73,15 @@
           "--suffix=none"
           "--lineend=linux")))
 
-(defvar c-indentation-indent-styles
+(defparameter c-indentation-indent-styles
   (alist->hash-table
    (filter (comp #'not #'null?)
            c-indentation-indent-styles-alist)))
 
-(defvar c-indentation-indent-style (caar c-indentation-indent-styles-alist)
+(defparameter c-indentation-indent-style (caar c-indentation-indent-styles-alist)
   "Indent style to use.")
 
-(defvar c-indentation-style-history nil)
+(defparameter c-indentation-style-history nil)
 
 
 (defun c-indentation-indent-buffer (&optional change-indent-style)

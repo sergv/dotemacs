@@ -13,21 +13,21 @@
 ;;; database stores all info in single file, but facilities
 ;;; for dealing with multiple files are provided
 
-(defvar persistent-store-content nil ;; (make-hash-table :test #'equal :size 1024)
+(defparameter persistent-store-content nil ;; (make-hash-table :test #'equal :size 1024)
   "Current contents of the database")
 
-(defvar persistent-store-store-file
+(defparameter persistent-store-store-file
   (path-concat +prog-data-path+ "persistent-store")
   "Filename of database store file")
 
-(defvar persistent-store-backup-file
+(defparameter persistent-store-backup-file
   (concat persistent-store-store-file ".bak")
   "Filename of backup database store file")
 
-(defvar persistent-store-flush-hook nil
+(defparameter persistent-store-flush-hook nil
   "Functions that will be called before flush of contents to disc will take place")
 
-(defvar persistent-store-loaded-content nil
+(defparameter persistent-store-loaded-content nil
   "Contents of `persistent-store-store-file' than was used to set up
 `persistent-store-content'.")
 
