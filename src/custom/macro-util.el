@@ -120,8 +120,6 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
            func)))))
 
 
-
-
 (defmacro redefun (func args &rest body)
   "Redefine function FUNC. Arguments as in `defun'."
   (declare (indent defun))

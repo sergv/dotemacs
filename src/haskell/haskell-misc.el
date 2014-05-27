@@ -296,16 +296,16 @@ we load it."
                      "=[^=]"
                      :require-one-or-more-spaces t)
 (make-align-function haskell-align-on-arrows
-                     "\\(?:->\\|→\\) ")
+                     "\\(?:->\\|→\\)\\(?: \\|$\\)")
 (make-align-function haskell-align-on-left-arrows
-                     "\\(?:<-\\|←\\) ")
+                     "\\(?:<-\\|←\\)\\(?: \\|$\\)")
 (make-align-function haskell-align-on-guards
-                     "|[^|]"
+                     "|\\(?:[^|]\\|$\\)"
                      :require-one-or-more-spaces t)
 (make-align-function haskell-align-on-commas
-                     ",[^,)]")
+                     ",\\(?:[^,\)]\\|$\\)")
 (make-align-function haskell-align-on-comments
-                     "--+ "
+                     "--+\\(?: \\|$\\)"
                      :require-one-or-more-spaces t)
 
 (make-align-function haskell-align-on-double-colons
