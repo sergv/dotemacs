@@ -12,7 +12,7 @@
 (require 'comment-util)
 (require 'persistent-store)
 
-(defvar *perlis-quotes*
+(defparameter *perlis-quotes*
   ["I think that it's extraordinarily important that we in computer
 science keep fun in computing. When it started out, it was an awful
 lot of fun. Of course, the paying customers got shafted every now and
@@ -546,7 +546,7 @@ They are a superb high-level documentation.
    ]
   "Quotes and epigrams by Alan J. Perlis")
 
-(defvar *cl-quotes*
+(defparameter *cl-quotes*
   [
    "The problem with Lisp is that it makes you so damned smug.
 -- Jesse Bowman"
@@ -678,7 +678,7 @@ turn from 99999 to A0000."
    ]
   "Quotes about Common Lisp")
 
-(defvar *mean-quotes*
+(defparameter *mean-quotes*
   [
    "It's never the technical stuff that gets you in trouble.
 It's the personalities and the politics.
@@ -761,7 +761,7 @@ together only by a shared disgust for all the alternatives.
    ]
   "I don't consider these nice or profound or helpful or fun anymore")
 
-(defvar *cervantes-quotes*
+(defparameter *cervantes-quotes*
   ["Беду ни праздностью, ни ленью не поправишь.
 -- Мигель де Сервантес"
 
@@ -948,7 +948,7 @@ together only by a shared disgust for all the alternatives.
 -- Мигель де Сервантес"
    ])
 
-(defvar *good-fortunes*
+(defparameter *good-fortunes*
   ["γνωθι σεαUτόυ \(Познай себя\)
 -- Inscription at Temple of Apollo at Delphi"
 
@@ -2296,11 +2296,11 @@ requires reasoning, while those other subjects merely require scholarship.
 ]
   "Good and nice fortunes.")
 
-(defvar *other-quotes*
+(defparameter *other-quotes*
   ["Money is a powerful aphrodisiac. But flowers work almost as well.
 -— Lazarus Long"])
 
-(defvar *fortunes*
+(defparameter *fortunes*
   (vconcat *perlis-quotes*
            *good-fortunes*
            *other-quotes*))

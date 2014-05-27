@@ -452,7 +452,7 @@ USED-NAMES - list of names that will be actually used."
   args-count
   subst-procedure)
 
-(defvar *sexpy-preproc-registered-directives*
+(defparameter *sexpy-preproc-registered-directives*
   nil
   "List of sexpy-preproc-directive structs.")
 
@@ -1130,7 +1130,7 @@ FAILED?."
 
 (require 'elp)
 
-(defvar *sexpy-pattern-fontify-form-regexp*
+(defparameter *sexpy-pattern-fontify-form-regexp*
   "(\\(?:\\sw\\|\\s_\\)+\\_>"
   "Regexp used to find form start relative to current position to
 initiate fontification update.")
@@ -1142,7 +1142,7 @@ initiate fontification update.")
                 "\\_>")))
 
 
-(defvar *sexpy-pattern-fontify-defined-heads* nil
+(defparameter *sexpy-pattern-fontify-defined-heads* nil
   "List of head strings for which have matchers defined.")
 
 (defun sexpy-pattern-fontify-up-list (&optional up-list-limit)
@@ -1317,7 +1317,7 @@ fontifiers."
                    (when (< limit (point))
                      (goto-char limit)))))))))))
 
-(defvar *sexpy-lisp-pattern-fontifiers* nil
+(defparameter *sexpy-lisp-pattern-fontifiers* nil
   "List of either pattern-based or regexp based fontification procedures of
 one argument. Entries are ordered by decrease of priority.")
 

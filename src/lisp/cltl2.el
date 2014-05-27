@@ -38,16 +38,16 @@
 (require 'thingatpt)
 
 ;; maybe this should be a (defcustom cltl2-root-url ...) ?
-(defvar cltl2-root-url
+(defparameter cltl2-root-url
   (concat +emacs-documentation-path+ "/cltl/")
   "*The base URL of the default online edition of CLtL2. If you keep a
 copy of it on your local system, change the URL to something like
 \"file:/usr/share/doc/cltl2/\".")
 
-(defvar cltl2-history nil
+(defparameter cltl2-history nil
   "History of symbols looked up in CLtL2.")
 
-(defvar cltl2-symbols (make-vector 127 0)
+(defparameter cltl2-symbols (make-vector 127 0)
   "This variable holds the access information for the symbols indexed
 in the CLtL2 lookup index.")
 

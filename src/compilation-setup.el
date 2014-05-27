@@ -44,7 +44,7 @@ in compilation or related buffers")
 
 ;;; compilation info
 
-(defvar *compile-caller-info* nil
+(defparameter *compile-caller-info* nil
   "Alist containing information about buffer, major mode etc.
 from where current compile command was invoked. Should be cleared
 up by functions in compilation-finish-functions.")

@@ -47,7 +47,7 @@
 (eval-when-compile (require 'cl))
 
 
-(defvar el-swank-fuzzy-recursion-soft-limit 30
+(defparameter el-swank-fuzzy-recursion-soft-limit 30
   "This is a soft limit for recursion in
 RECURSIVELY-COMPUTE-MOST-COMPLETIONS.  Without this limit,
 completing a string such as \"ZZZZZZ\" with a symbol named

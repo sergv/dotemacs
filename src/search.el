@@ -20,17 +20,17 @@
 ;; where the search was started. While at minibuffer keys S-<up> and S-<down>
 ;; enable to move between matches
 
-(defvar *search-current-regexp* nil
+(defparameter *search-current-regexp* nil
   "Regexp being searched now.")
-(defvar *search-start-marker* nil
+(defparameter *search-start-marker* nil
   "Marker which points to location from which search was initiated.")
-(defvar *search-match-overlays* nil
+(defparameter *search-match-overlays* nil
   "List of overlays which highlight matches for regexp being searched for.")
 
 (defface search-highlight-face '((t (:inherit lazy-highlight)))
   "Face to highlight matches for regexp being searched for.")
 
-(defvar *search-minibuffer-keymap*
+(defparameter *search-minibuffer-keymap*
   (let ((map (make-sparse-keymap)))
     (def-keys-for-map map
       ("<enter>"   search-done)
@@ -54,15 +54,15 @@
       ("C-SPC"     delete-minibuffer-contents))
     map))
 
-(defvar *search-minibuffer-history* nil
+(defparameter *search-minibuffer-history* nil
   "List of previously entered regexps.")
-(defvar *search-init-window* nil
+(defparameter *search-init-window* nil
   "Window with buffer being searched in.")
-(defvar *search-init-buffer* nil
+(defparameter *search-init-buffer* nil
   "Buffer being searched in.")
-(defvar *search-direction* nil
+(defparameter *search-direction* nil
   "Direction currentl being searched in. Either 'forward or 'backward.")
-(defvar *search-case-sensetive* nil
+(defparameter *search-case-sensetive* nil
   "Becomes set to te during case-sensetive matches.")
 
 (defun* search-setup-search-for (regex
@@ -112,7 +112,7 @@
 
 
 
-(defvar *search-minibuffer* nil
+(defparameter *search-minibuffer* nil
   "Becomes set to current minibuffer with current prompt for regexp.
 When not prompting in minibuffer then this variable is set to nil.")
 
@@ -236,13 +236,13 @@ When not prompting in minibuffer then this variable is set to nil.")
 
 ;; Some highlight-specific parameters
 
-(defvar *search-highlight-limit* 1000
+(defparameter *search-highlight-limit* 1000
   "Number of matches that should be highlighted.
 Highlighting starts at the beginning of buffer")
 ;; matches longer than approximately 10 lines are probably an error
-(defvar *search-maximum-highlight-length* 1000
+(defparameter *search-maximum-highlight-length* 1000
   "Maximum character length of regexp match that should be highlighted.")
-(defvar *search-ignore-regexps*
+(defparameter *search-ignore-regexps*
   '("\\(.*\\)*" "\\(.+\\)*" "\\(.*\\)+" "\\(.+\\)+"
     "\\(?:.*\\)*" "\\(?:.+\\)*" "\\(?:.*\\)+" "\\(?:.+\\)+")
   "Regexps for which neither highlighting nor searching should occur.")

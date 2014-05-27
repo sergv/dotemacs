@@ -76,10 +76,10 @@
 
 ;;;; ctags facility
 
-(defvar *ctags-exec*
+(defparameter *ctags-exec*
   (platform-dependent-executable (concat +execs-path+ "/ctags")))
 
-(defvar *ctags-language-flags*
+(defparameter *ctags-language-flags*
   '((c-mode
      "--language-force=c"
      "--c-kinds=-cdefgmnpstuv"
@@ -247,7 +247,7 @@ after ;\", and expect single character there instead."
 
 ;;;; fast-tags facility
 
-(defvar *fast-tags-exec* (executable-find "fast-tags"))
+(defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
 ;;;; language definitions
 
@@ -410,7 +410,7 @@ Note: old tags file is removed before calling update command."
   )
 
 
-(defvar eproj/languages
+(defparameter eproj/languages
   (list (letrec ((lang (make-eproj-language
                         :mode 'haskell-mode
                         :extension-re (concat "."
@@ -551,13 +551,13 @@ Note: old tags file is removed before calling update command."
                         #'identity)))
           lang)))
 
-(defvar eproj/languages-table
+(defparameter eproj/languages-table
   (let ((table (make-hash-table :test #'eq)))
     (dolist (lang eproj/languages)
       (puthash (eproj-language/mode lang) lang table))
     table))
 
-(defvar eproj/synonym-modes-table
+(defparameter eproj/synonym-modes-table
   (let ((table (make-hash-table :test #'eq)))
     (dolist (lang eproj/languages)
       (dolist (synonym (eproj-language/synonym-modes lang))
@@ -596,7 +596,7 @@ Note: old tags file is removed before calling update command."
   (string= (eproj-project/root proj-a)
            (eproj-project/root proj-b)))
 
-(defvar *eproj-projects*
+(defparameter *eproj-projects*
   (make-hash-table :test #'equal))
 
 (defun eproj-reset-projects ()
@@ -764,7 +764,7 @@ Note: old tags file is removed before calling update command."
   get-project-files-proc ;; function with signature: (proj)
   )
 
-(defvar eproj-project-types
+(defparameter eproj-project-types
   (list
    (letrec ((proj-type-entry
              (make-eproj-project-type
@@ -1188,17 +1188,17 @@ or `default-directory', if no file is visited."
 
 ;;; tag/symbol navigation (navigation over homes)
 
-(defvar eproj-symbnav/homes-history (list nil nil)
+(defparameter eproj-symbnav/homes-history (list nil nil)
   "Two stacks of locations (previous next) from which
 `eproj-symbnav/go-to-symbol-home' was invoked.")
 
-(defvar eproj-symbnav/previous-homes nil
+(defparameter eproj-symbnav/previous-homes nil
   "Previous locations from which symbol search was invoked.")
 
-(defvar eproj-symbnav/selected-loc nil
+(defparameter eproj-symbnav/selected-loc nil
   "Home entry corresponding to the most recently visited tag.")
 
-(defvar eproj-symbnav/next-homes nil
+(defparameter eproj-symbnav/next-homes nil
   "Next locations that were visited but now obscured by going back.")
 
 (defvar-local eproj-symbnav/identifier-type 'symbol

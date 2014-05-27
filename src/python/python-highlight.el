@@ -121,7 +121,7 @@
 
 
 
-(defvar *python-font-lock-keywords* nil
+(defparameter *python-font-lock-keywords* nil
   "Additional expressions to highlight in Python mode.")
 
 

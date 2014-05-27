@@ -13,7 +13,7 @@
 (require 'more-scheme)
 (require 'macro-util)
 
-(defvar *ex-commands-re-cache* nil
+(defparameter *ex-commands-re-cache* nil
   "This variable contains optimized regexp that matches
 currently defined ex commands. Should be updated with
 `ex-commands-re-cache-update' when new ex commands being defined.")
@@ -107,7 +107,7 @@ current time and"
      (+ (emacs-pid) 8)
      (+ (max c microsec) 16))))
 
-(defvar *random-gen*
+(defparameter *random-gen*
   ;; NB on x32 systems hightest three bits will be zero
   ;; and (expt 2 32)/(ash 1 32) will be 0, so use
   ;; simpler generator that has no overflows
@@ -537,7 +537,7 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
 
 ;;;
 
-(defvar *invisible-buffers* '()
+(defparameter *invisible-buffers* '()
   "List of buffer name regexps than should not be visible in e.g. ibuffer,
 tabbar, etc")
 
@@ -802,7 +802,7 @@ faster than byte-by-byte comparison of respecfive file contents."
   "Path to temporary file reserved for buffer indentation puproses.
 See also `*mode-buffer-indent-function-alist*'.")
 
-(defvar *mode-buffer-indent-function-alist* nil
+(defparameter *mode-buffer-indent-function-alist* nil
   "Alist of (major-mode . function) pairs, where functions should take 0
 arguments and indent current buffer. See also `+buffer-indent-temporary-filename+'.")
 
@@ -930,17 +930,17 @@ end of END-LINE in current buffer."
 
 ;;;
 
-(defvar *ignored-file-name-endings*
+(defparameter *ignored-file-name-endings*
   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".p_o" ".p_hi" ".prof_o" ".hi" "~" ".bin" ".out" ".lbin" ".so" ".a" ".ln" ".blg" ".bbl" ".elc" ".lof" ".glo" ".idx" ".lot" ".fmt" ".tfm" ".class" ".fas" ".lib" ".mem" ".x86f" ".sparcf" ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl" ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl" ".sx32fsl" ".wx64fsl" ".wx32fsl" ".fasl" ".ufsl" ".fsl" ".dxl" ".lo" ".la" ".gmo" ".mo" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dll" ".pdb" ".dex")
   "List of file name endings to generally ignore.")
 
-(defvar *version-control-directories*
+(defparameter *version-control-directories*
   '("SCCS" "RCS" "CVS" "MCVS"
     ".svn" ".git" ".hg" ".bzr"
     "_MTN" "_darcs" "{arch}")
   "List of directory names used by version-control systems.")
 
-(defvar *ignored-directories*
+(defparameter *ignored-directories*
   (append *version-control-directories*)
   "List of directory names to generally ignore.")
 
@@ -1009,7 +1009,7 @@ end of END-LINE in current buffer."
 
 ;;;
 
-(defvar common/registered-filenames (make-hash-table :test #'equal)
+(defparameter common/registered-filenames (make-hash-table :test #'equal)
   "Hashtable binding filename strings to themselves. Exists for memory
 optimization reasons.")
 

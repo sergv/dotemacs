@@ -34,7 +34,7 @@
       eshell-send-direct-to-subprocesses nil
       eshell-tar-regexp "\\.t\\(?:ar\\(?:\\.\\(?:gz\\|bz2\\|Z\\|7z\\)\\)?\\|gz\\|a[zZ]\\|z2\\|7z\\)\\'")
 
-(defvar eshell-prompt-text-properties
+(defparameter eshell-prompt-text-properties
        '(read-only
          t
          face eshell-prompt

@@ -80,7 +80,7 @@
 (defvar-local vim:local-marks-alist nil
   "Local marks for this buffer.")
 
-(defvar vim:global-marks-alist nil
+(defparameter vim:global-marks-alist nil
   "Global marks.")
 
 (defun vim:local-mark-p (mark-char)
@@ -183,7 +183,7 @@
   "Maximal number of jumps in the jumplist."
   :group 'vim-motions)
 
-(defvar vim:jumplist '(nil . nil)
+(defparameter vim:jumplist '(nil . nil)
   "The jumplist.
 In contrast to VIM, vim-mode mode has only one jump-list for all
 windows. The reason is that Emacs does not have window-local variables.")

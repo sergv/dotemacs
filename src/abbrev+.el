@@ -36,11 +36,11 @@ will have the value of text matched by the regular expression.")
   "List of syntaxes that will be tried one after the other
 to find match for car-element in `abbrev+-abbreviations'")
 
-(defvar abbrev+-text-to-substitute nil
+(defparameter abbrev+-text-to-substitute nil
   "Will contain value of text that will be replaced when function
 from `abbrev+-abbreviations' second element will be called.")
 
-(defvar abbrev+-after-expand-and-space-hook nil
+(defparameter abbrev+-after-expand-and-space-hook nil
   "Hook to be run after expansion was carried out and trailing space was
 inserted. Space is important - if conditions to insert space were not
 met then this hook would not run.")

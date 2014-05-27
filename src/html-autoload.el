@@ -57,7 +57,7 @@
                  nil)))
 
 
-(defvar *hexcolour-keywords*
+(defparameter *hexcolour-keywords*
   '(("#[[:xdigit:]]\\{6\\}"
      (0 (put-text-property (match-beginning 0)
                            (match-end 0)

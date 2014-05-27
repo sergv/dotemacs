@@ -20,47 +20,47 @@
   "Configure ex-mode and search mode."
   :group 'vim-mode)
 
-(defvar vim:ex-commands nil
+(defparameter vim:ex-commands nil
   "List of pairs (command . function).")
 
 (defvar-local vim:ex-local-commands nil
   "List of pairs (command . function).")
 
-(defvar vim:ex-minibuffer nil
+(defparameter vim:ex-minibuffer nil
   "The currenty active ex minibuffer.")
 
-(defvar vim:ex-current-buffer nil
+(defparameter vim:ex-current-buffer nil
   "The buffer to which the currently active ex session belongs to.")
 
-(defvar vim:ex-current-window nil
+(defparameter vim:ex-current-window nil
   "The window to which the currently active ex session belongs to.")
 
-(defvar vim:ex-info-length nil
+(defparameter vim:ex-info-length nil
   "Current info string.")
 
-(defvar vim:ex-info-string nil
+(defparameter vim:ex-info-string nil
   "Current info string.")
 
-(defvar vim:ex-update-info nil
+(defparameter vim:ex-update-info nil
   "Flag to indicate that an update is in progress.")
 
-(defvar vim:ex-history nil
+(defparameter vim:ex-history nil
   "History of ex-commands.")
 
 (defface vim:ex-info '((t :foreground "#d33682" :underline t))
   "Face for the info message in ex mode."
   :group 'vim-ex-mode)
 
-(defvar vim:ex-cmd nil
+(defparameter vim:ex-cmd nil
   "The currently parsed command.")
-(defvar vim:ex-arg nil
+(defparameter vim:ex-arg nil
   "The currently parse command.")
-(defvar vim:ex-arg-handler nil
+(defparameter vim:ex-arg-handler nil
   "The currently active argument handler.")
-(defvar vim:ex-range nil
+(defparameter vim:ex-range nil
   "The currently parsed region.")
 
-(defvar vim:ex-keymap
+(defparameter vim:ex-keymap
   (let ((map (make-sparse-keymap)))
     (icicles-util/bind-minibuffer-keys map :sexp-keys nil)
     (def-keys-for-map map
@@ -184,7 +184,7 @@ cancel ex-mode."
   update     ;; Called whenever the argument has changed.
   )
 
-(defvar vim:argument-handlers-alist
+(defparameter vim:argument-handlers-alist
   `((text . ,(vim:make-arg-handler :complete #'vim:ex-complete-text-argument))
     (file . ,(vim:make-arg-handler :complete #'vim:ex-complete-file-argument))
     (buffer . ,(vim:make-arg-handler :complete #'vim:ex-complete-buffer-argument)))

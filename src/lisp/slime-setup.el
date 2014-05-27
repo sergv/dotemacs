@@ -30,7 +30,7 @@
 (setf inferior-lisp-program "sbcl"
       slime-repl-history-file (concat +prog-data-path+ "/slime-repl-history"))
 
-(defvar *slime-registered-lisps*
+(defparameter *slime-registered-lisps*
   `((sbcl
      (type common-lisp)
      (run-command
@@ -527,7 +527,7 @@ currently chosen lisp implementation."
 ;;   (setf *slime-compilation-invoker* (current-buffer)))
 
 
-(defvar *slime-before-compilation-window-config* nil
+(defparameter *slime-before-compilation-window-config* nil
   "Window configuration before the start of compilation.")
 
 (defun slime-remember-window-config (begin end)

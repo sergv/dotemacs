@@ -8,7 +8,7 @@
 
 (require 'common)
 
-(defvar gitconfig-mode-syntax-table
+(defparameter gitconfig-mode-syntax-table
   (let ((tbl (make-syntax-table)))
     (modify-syntax-entry ?\" "\"")
     (modify-syntax-entry ?\# "<")
@@ -27,7 +27,7 @@
 
 
 
-(defvar gitconfig-font-lock-keywords
+(defparameter gitconfig-font-lock-keywords
   `(("\\(?:^\\|\\s-+\\)\\(#.*\\)$"
      (1 'font-lock-comment-face))
     ("\"[^\"]*\""
