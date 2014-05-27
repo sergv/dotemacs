@@ -7,7 +7,8 @@
 ;; Description:
 ;;
 ;; Format of .eproj-info
-;; ([(languages <langs>)] - it's not a good practice to omit this
+;; ([(languages <langs>)] - it's not a good practice to omit this; if it's empty
+;;                          then no attempt will be made to infer languages used
 ;;  [(project-type <proj-type>)]
 ;;  [(related <abs-or-rel-dir>*])
 ;;  [(aux-files
@@ -714,12 +715,13 @@ Note: old tags file is removed before calling update command."
                        (read
                         (buffer-substring-no-properties (point-min) (point-max))))
                      nil))
-         (languages (aif (rest-safe (assoc 'languages aux-info))
-                      it
-                      (begin
-                        (message "warning: no languages defined for project %s"
-                                 (eproj-project/root proj))
-                        (eproj/infer-project-languages proj))))
+         (languages (let ((languages-entry (assoc 'languages aux-info)))
+                      (if (null? languages-entry)
+                        (begin
+                          (message "warning: no languages defined for project %s"
+                                   (eproj-project/root proj))
+                          (eproj/infer-project-languages proj))
+                        (rest languages-entry))))
          (specified-project-type (cadr-safe (assoc 'project-type aux-info)))
          (inferred-project-type (eproj-project-type/name
                                  (eproj-project/type proj))))
