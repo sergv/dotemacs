@@ -18,15 +18,15 @@
 
 (defconst b/backup-directory (path-concat +prog-data-path+ "backup"))
 
-(defvar b/backup-interval 3600
+(defparameter b/backup-interval 3600
   "Time interval in seconds to make backups on save.")
 
-(defvar b/last-backup-time nil
+(defparameter b/last-backup-time nil
   "Time of last backup made by `run-backup-as-needed'.")
 (make-variable-buffer-local 'b/last-backup-time)
 (set-default 'b/last-backup-time nil)
 
-(defvar b/has-unbackupped-changes nil
+(defparameter b/has-unbackupped-changes nil
   "Becomes true whenever you perform save that has no corresponding backup.")
 (make-variable-buffer-local 'b/has-unbackupped-changes)
 (set-default 'b/has-unbackupped-changes nil)

@@ -140,33 +140,33 @@ If nil, fontification is not deferred."
 
 ;;; Variables that are not customizable.
 
-(defvar lisp-jit-lock-mode nil
+(defparameter lisp-jit-lock-mode nil
   "Non-nil means Just-in-time Lock mode is active.")
 (make-variable-buffer-local 'lisp-jit-lock-mode)
 
-(defvar lisp-jit-lock-functions nil
+(defparameter lisp-jit-lock-functions nil
   "Functions to do the actual fontification.
 They are called with two arguments: the START and END of the region to fontify.")
 (make-variable-buffer-local 'lisp-jit-lock-functions)
 
-(defvar lisp-jit-lock-context-unfontify-pos nil
+(defparameter lisp-jit-lock-context-unfontify-pos nil
   "Consider text after this position as contextually unfontified.
 If nil, contextual fontification is disabled.")
 (make-variable-buffer-local 'lisp-jit-lock-context-unfontify-pos)
 
 
-(defvar lisp-jit-lock-stealth-timer nil
+(defparameter lisp-jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
-(defvar lisp-jit-lock-stealth-repeat-timer nil
+(defparameter lisp-jit-lock-stealth-repeat-timer nil
   "Timer for repeated stealth fontification in Just-in-time Lock mode.")
-(defvar lisp-jit-lock-context-timer nil
+(defparameter lisp-jit-lock-context-timer nil
   "Timer for context fontification in Just-in-time Lock mode.")
-(defvar lisp-jit-lock-defer-timer nil
+(defparameter lisp-jit-lock-defer-timer nil
   "Timer for deferred fontification in Just-in-time Lock mode.")
 
-(defvar lisp-jit-lock-defer-buffers nil
+(defparameter lisp-jit-lock-defer-buffers nil
   "List of buffers with pending deferred fontification.")
-(defvar lisp-jit-lock-stealth-buffers nil
+(defparameter lisp-jit-lock-stealth-buffers nil
   "List of buffers that are being fontified stealthily.")
 
 ;;; JIT lock mode
@@ -594,8 +594,8 @@ Defaults to the whole buffer.  END can be out of bounds."
                 '(fontified nil lisp-jit-lock-defer-multiline nil)))
               (setq lisp-jit-lock-context-unfontify-pos (point-max)))))))))
 
-(defvar lisp-jit-lock-start) (defvar lisp-jit-lock-end) ; Dynamically scoped variables.
-(defvar lisp-jit-lock-after-change-extend-region-functions nil
+(defparameter lisp-jit-lock-start) (defvar lisp-jit-lock-end) ; Dynamically scoped variables.
+(defparameter lisp-jit-lock-after-change-extend-region-functions nil
   "Hook that can extend the text to refontify after a change.
 This is run after every buffer change.  The functions are called with
 the three arguments of `after-change-functions': START END OLD-LEN.
@@ -614,7 +614,7 @@ redisplay (see comment about repeated redisplay in `lisp-jit-lock-fontify-now').
               (not (looking-at-p regexp)))
     (backward-up-list)))
 
-(defvar *lisp-jit-lock-form-regexp*
+(defparameter *lisp-jit-lock-form-regexp*
   "(\\(?:\\sw\\|\\s_\\)+\\_>"
   "Regexp used to find form start relative to current position to
 initiate fontification update.")

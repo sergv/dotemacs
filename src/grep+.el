@@ -151,7 +151,7 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
             ))))
 
 
-(defvar rgrep-ignore-case nil
+(defparameter rgrep-ignore-case nil
   "Dynamically-bound variable that controls whether current
 rgrep invokation should be case-insensetive.")
 

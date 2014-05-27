@@ -25,20 +25,20 @@
                #'select-inhibit-tabbar))
 
 
-(defvar select/init-window-config nil)
-(defvar select/init-window nil
+(defparameter select/init-window-config nil)
+(defparameter select/init-window nil
   "Window from which select-mode's instance was invoked")
-(defvar select/init-buffer nil
+(defparameter select/init-buffer nil
   "Buffer from which select-mode's instance was invoked")
 
 
-(defvar select/selected-item nil
+(defparameter select/selected-item nil
   "Index (number) of selected item")
-(defvar select/items nil
+(defparameter select/items nil
   "List of possible selections")
-(defvar select/selection-overlay nil
+(defparameter select/selection-overlay nil
   "Overlay that displays ")
-(defvar select/selection-buffer nil
+(defparameter select/selection-buffer nil
   "Buffer where selection takes place")
 
 (defface select-selection-face '((t (:inherit secondary-selection)))
@@ -48,7 +48,7 @@
 ;;   "Face to highlight currently selected item")
 
 
-(defvar select/separator-function (lambda () "")
+(defparameter select/separator-function (lambda () "")
   "Function of no arguments that returns current separator to use.
 
 Separator is used like this
@@ -59,16 +59,16 @@ bar
 ---------------
 baz
 <...>")
-(defvar select/predisplay-function #'identity
+(defparameter select/predisplay-function #'identity
   "This should be a function of one item to be displayed.
 
 Items will be passed to this function before insertion into buffer.")
 
-(defvar select/on-selection-function #'ignore
+(defparameter select/on-selection-function #'ignore
   "This should be a function of one argument - index of currently selected item.")
-(defvar select/preamble-function (lambda () "")
+(defparameter select/preamble-function (lambda () "")
   "Function that returns contents at the top of the buffer")
-(defvar select/epilogue-function (lambda () "")
+(defparameter select/epilogue-function (lambda () "")
   "Function that returns contents at the bottom of the buffer")
 
 (define-derived-mode select-mode text-mode "Selection"

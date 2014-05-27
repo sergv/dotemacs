@@ -10,7 +10,7 @@
 (require 'more-clojure)
 (require 'solarized+)
 
-(defvar *formula-images-cache* (make-hash-table :test 'equal))
+(defparameter *formula-images-cache* (make-hash-table :test 'equal))
 
 (defun render-buffer-flush-cache ()
   (setf *formula-images-cache* (make-hash-table :test 'equal)
@@ -21,15 +21,15 @@
           #'render-buffer-flush-cache)
 
 
-(defvar *formula-index* 0
+(defparameter *formula-index* 0
   "Global numbering of formulas to index filenames so that emacs
 won't be confused by the same filename used for different images.")
 
-(defvar render-formula-latex-input-buf "#latex-input#"
+(defparameter render-formula-latex-input-buf "#latex-input#"
   "Buffer with text that is fed to latex.")
-(defvar render-formula-latex-output-buf "#latex-output#"
+(defparameter render-formula-latex-output-buf "#latex-output#"
   "Buffer for latex errors.")
-(defvar render-formula-conversion-errors-buf "#errors-converting-to-png#"
+(defparameter render-formula-conversion-errors-buf "#errors-converting-to-png#"
   "Buffer for errors during conversion to png.")
 (defconst +render-formula-standard-packages+
   '("amsmath"
@@ -219,7 +219,7 @@ pnm utils suite.")
   "Is set to t by `render-formula-toggle-formulas' when latex code in buffer is
 displayed as images.")
 
-(defvar +render-buffer-latex-re+
+(defparameter +render-buffer-latex-re+
   (rx "\$\$"
       (? "[["
          ;; command string will be interpreted as follows:

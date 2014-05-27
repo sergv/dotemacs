@@ -222,7 +222,7 @@ in the file it applies to."
   :group '&&hdr-outlines)
 ;;;###autoload(put '&&hdr-outline-heading-end-regexp 'safe-local-variable 'stringp)
 
-(defvar &&hdr-outline-mode-prefix-map
+(defparameter &&hdr-outline-mode-prefix-map
   (let ((map (make-sparse-keymap)))
     (define-key map "@" '&&hdr-outline-mark-subtree)
     (define-key map "\C-n" '&&hdr-outline-next-visible-heading)
@@ -249,7 +249,7 @@ in the file it applies to."
     ;; Where to bind &&hdr-outline-cycle ?
     map))
 
-(defvar &&hdr-outline-mode-menu-bar-map
+(defparameter &&hdr-outline-mode-menu-bar-map
   (let ((map (make-sparse-keymap)))
 
     (define-key map [hide] (cons "Hide" (make-sparse-keymap "Hide")))
@@ -335,7 +335,7 @@ in the file it applies to."
                   :help "Move to the visible heading line of which the present line is a subheading"))
     map))
 
-(defvar &&hdr-outline-minor-mode-menu-bar-map
+(defparameter &&hdr-outline-minor-mode-menu-bar-map
   (let ((map (make-sparse-keymap)))
     (define-key map [&&hdr-outline]
       (cons "Outline"
@@ -353,11 +353,11 @@ in the file it applies to."
     map))
 
 
-(defvar &&hdr-outline-mode-map
+(defparameter &&hdr-outline-mode-map
   (let ((map (make-sparse-keymap)))
     map))
 
-(defvar &&hdr-outline-font-lock-keywords
+(defparameter &&hdr-outline-font-lock-keywords
   '( ;;
     ;; Highlight headings according to the level.
     (eval . (list (concat "^\\(?:" &&hdr-outline-regexp "\\).+")
@@ -404,7 +404,7 @@ in the file it applies to."
   "Level 8."
   :group '&&hdr-outlines)
 
-(defvar &&hdr-outline-font-lock-faces
+(defparameter &&hdr-outline-font-lock-faces
   [&&hdr-outline-1 &&hdr-outline-2 &&hdr-outline-3 &&hdr-outline-4
                    &&hdr-outline-5 &&hdr-outline-6 &&hdr-outline-7 &&hdr-outline-8])
 
@@ -436,13 +436,13 @@ in the file it applies to."
     (looking-at &&hdr-outline-regexp)
     (aref &&hdr-outline-font-lock-faces (% (1- (funcall &&hdr-outline-level)) (length &&hdr-outline-font-lock-faces)))))
 
-(defvar &&hdr-outline-view-change-hook nil
+(defparameter &&hdr-outline-view-change-hook nil
   "Normal hook to be run after &&hdr-outline visibility changes.")
 
-(defvar &&hdr-outline-mode-hook nil
+(defparameter &&hdr-outline-mode-hook nil
   "*This hook is run when &&hdr-outline mode starts.")
 
-(defvar &&hdr-outline-blank-line nil
+(defparameter &&hdr-outline-blank-line nil
   "*Non-nil means to leave unhidden blank line before heading.")
 
 ;;;###autoload
@@ -535,13 +535,13 @@ See the command `&&hdr-outline-mode' for more information on this mode."
     ;; When turning off &&hdr-outline mode, get rid of any &&hdr-outline hiding.
     (&&hdr-show-all)))
 
-(defvar &&hdr-outline-level '&&hdr-outline-level
+(defparameter &&hdr-outline-level '&&hdr-outline-level
   "*Function of no args to compute a header's nesting level in an &&hdr-outline.
 It can assume point is at the beginning of a header line and that the match
 data reflects the `&&hdr-outline-regexp'.")
 ;;;###autoload(put '&&hdr-outline-level 'risky-local-variable t)
 
-(defvar &&hdr-outline-heading-alist ()
+(defparameter &&hdr-outline-heading-alist ()
   "Alist associating a heading for every possible level.
 Each entry is of the form (HEADING . LEVEL).
 This alist is used two ways: to find the heading corresponding to
@@ -892,7 +892,7 @@ This puts point at the start of the current subtree, and mark at the end."
     (goto-char beg)))
 
 
-(defvar &&hdr-outline-isearch-open-invisible-function nil
+(defparameter &&hdr-outline-isearch-open-invisible-function nil
   "Function called if `isearch' finishes in an invisible overlay.
 The function is called with the overlay as its only argument.
 If nil, `&&hdr-show-entry' is called to reveal the invisible text.")

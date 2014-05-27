@@ -371,7 +371,7 @@ Put it in `magit-key-mode-keymaps' for fast lookup."
 
 
 
-(defvar *have-git?* (executable-find "git")
+(defparameter *have-git?* (executable-find "git")
   "Becomes t when git executable is accessible")
 
 (defvar-local git-repository nil

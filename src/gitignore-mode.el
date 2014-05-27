@@ -14,7 +14,7 @@
   (setq-local font-lock-defaults
               '(gitignore-font-lock-keywords)))
 
-(defvar gitignore-font-lock-keywords
+(defparameter gitignore-font-lock-keywords
   `(("\\(?:^\\|\\s-+\\)\\(#.*\\)$"
      (1 'font-lock-comment-face))))
 

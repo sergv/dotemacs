@@ -157,17 +157,17 @@ Note: a PE can't \"call\" rules by name."
 
 ;; A table of the PEG rules.  Used during compilation to resolve
 ;; references to named rules.
-(defvar peg-rules)
+(defparameter peg-rules)
 
 ;; used at runtime for backtracking.  It's a list ((POS . THUNK)...).
 ;; Each THUNK is executed at the corresponding POS.  Thunks are
 ;; executed in a postprocessing step, not during parsing.
-(defvar peg-thunks nil)
+(defparameter peg-thunks nil)
 
 ;; used at runtime to track the right-most error location.  It's a
 ;; pair (POSITION . EXPS ...).  POSITION is the buffer position and
 ;; EXPS is a list of rules/expressions that failed.
-(defvar peg-errors nil)
+(defparameter peg-errors nil)
 
 ;; The basic idea is to translate each rule to a lisp function.
 ;; The result looks like
@@ -244,7 +244,7 @@ Note: a PE can't \"call\" rules by name."
         (t
          (error "Invalid parsing expression: %S" exp))))
 
-(defvar peg-leaf-types '(null fail any call action char range str set
+(defparameter peg-leaf-types '(null fail any call action char range str set
                               bob eob bol eol bow eow bos eos syntax-class =))
 
 (dolist (type peg-leaf-types)
@@ -307,7 +307,7 @@ Note: a PE can't \"call\" rules by name."
                    ,@(mapcar (lambda (val) `(push ,val peg-stack)) values))))
       `(action ,form))))
 
-(defvar peg-char-classes
+(defparameter peg-char-classes
   '(ascii alnum alpha blank cntrl digit graph lower multibyte nonascii print
           punct space unibyte upper word xdigit))
 
@@ -459,7 +459,7 @@ Note: a PE can't \"call\" rules by name."
 (peg-add-method translate bos () '(looking-at-p "\\_<"))
 (peg-add-method translate eos () '(looking-at-p "\\_>"))
 
-(defvar peg-syntax-classes
+(defparameter peg-syntax-classes
   '((whitespace ?-) (word ?w) (symbol ?s) (punctuation ?.)
     (open ?\() (close ?\)) (string ?\") (escape ?\\) (charquote ?/)
     (math ?$) (prefix ?') (comment ?<) (endcomment ?>)
@@ -556,7 +556,7 @@ Note: a PE can't \"call\" rules by name."
      (push (cons (point) (lambda () ,form)) peg-thunks)
      t))
 
-(defvar peg-stack)
+(defparameter peg-stack)
 (defun peg-postprocess (thunks)
   "Execute \"actions\"."
   (let  ((peg-stack '()))

@@ -48,7 +48,7 @@
   "The command used to enter operator-pending-mode for commands
 like 'dd', 'yy',... .")
 
-(defvar vim:next-command-negated? nil
+(defparameter vim:next-command-negated? nil
   "Becomes t if next command should be negated.")
 
 (vim:define-keymap operator-pending-mode

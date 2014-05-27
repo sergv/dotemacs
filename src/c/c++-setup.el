@@ -15,7 +15,7 @@
 (require 'c-indentation)
 
 
-(defvar *c++-related-file-cache*
+(defparameter *c++-related-file-cache*
   (make-hash-table :test 'equal))
 
 (defun c++-find-related-file ()
