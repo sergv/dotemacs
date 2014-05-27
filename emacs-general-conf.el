@@ -39,6 +39,7 @@
         (doc-view-mode . nil)
         (browse-kill-ring-mode . nil)
         (magit-status-mode . nil)
+        (magit-popup-mode . nil)
         (magit-log-mode . nil)
         (magit-key-mode . nil)
         (magit-show-branches-mode . nil)
