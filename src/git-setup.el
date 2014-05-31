@@ -36,7 +36,10 @@
       magit-reflog-buffer-name-format "*magit-reflog*"
       magit-branches-buffer-name-format "*magit-branches*"
       magit-wazzup-buffer-name-format "*magit-wazzup*"
-      magit-cherry-buffer-name-format "*magit-cherry*")
+      magit-cherry-buffer-name-format "*magit-cherry*"
+      ;; make magit-process buffers invisible by default
+      magit-process-buffer-name-format " *magit-process: %b*"
+      magit-process-log-max 256)
 
 ;;; gitignore
 
@@ -186,7 +189,8 @@ all otherwise."
   (def-keys-for-map magit-mode-map
     ("C"               magit-checkout)
     ("r"               magit-refresh)
-    ("T"               magit-key-mode-popup-tagging)
+    ("T"               magit-tag-popup)
+    ("R"               magit-rebase-popup)
     ("SPC"             magit-visit-item-other-window)
     ("S-TAB"           magit-cycle-top-sections-visibility)
     ("<S-tab>"         magit-cycle-top-sections-visibility)
@@ -207,8 +211,8 @@ all otherwise."
     ("?"      magit-dispatch-popup) ;; override "?" from vim search
     ("r"      magit-refresh)
 
-    ("p"      magit-key-mode-popup-stashing)
-    ("T"      magit-key-mode-popup-tagging)
+    ("p"      magit-stash-popup)
+    ("T"      magit-tag-popup)
     ("<down>" magit-goto-next-section)
     ("<up>"   magit-goto-previous-section)
     ("t"      magit-goto-next-section)
@@ -282,6 +286,14 @@ all otherwise."
 
 (add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
 
+(defun magit-popup-setup ()
+  (def-keys-for-map magit-popup-help-mode-map
+    ("<escape>" magit-popup-quit)
+    ("q"        magit-popup-quit)))
+
+(add-hook 'magit-popup-mode-hook #'magit-popup-setup)
+(add-hook 'magit-popup-sequence-mode-hook #'magit-popup-setup)
+
 ;;; git-modes
 
 (setf git-commit-confirm-commit t)
@@ -296,11 +308,12 @@ all otherwise."
     ("<down>"  log-edit-next-comment)
     ("M-p"     nil))
 
-  (add-hook 'kill-buffer-hook
-            #'magit-log-edit-cancel-log-message
-            t ;; append
-            t ;; local
-            ))
+  ;; (add-hook 'kill-buffer-hook
+  ;;           #'magit-log-edit-cancel-log-message
+  ;;           t ;; append
+  ;;           t ;; local
+  ;;           )
+  )
 
 (add-hook 'git-commit-mode-hook #'git-commit-mode-setup)
 
