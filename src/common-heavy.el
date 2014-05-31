@@ -202,12 +202,15 @@ number of spaces equal to `tab-width'."
                           (lambda (line)
                             (or (= 0 (length line))
                                 (let ((c (aref line 0)))
+                                  ;; detect space since diffs use
+                                  ;; first character - it may be either
+                                  ;; + (add), - (removal) or space (no change)
                                   (or (char= c ?\s)
                                       (char= c first-char)))))))
            (cleanup-diff-line (lambda (line)
                                 (if (= 0 (length line))
                                   line
-                                  (trim-whitespace (subseq line 1)))))
+                                  (remove-whitespace (subseq line 1)))))
            (old (join-lines (map cleanup-diff-line
                                  (filter (funcall make-filter ?-)
                                          lines))
