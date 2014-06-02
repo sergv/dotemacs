@@ -350,7 +350,14 @@
 
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet nil)
-  (setq-local vim:shift-width 2))
+  (setq-local vim:shift-width 2)
+  (setq-local standard-indent 2)
+  (setq-local tab-always-indent t)
+  (def-keys-for-map '(vim:normal-mode-local-keymap
+                      vim:insert-mode-local-keymap)
+    ("<tab>"           indent-relative-forward)
+    ("S-<tab>"         indent-relative-backward)
+    ("S-<iso-lefttab>" indent-relative-backward)))
 
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 
