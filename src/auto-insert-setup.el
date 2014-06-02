@@ -40,6 +40,7 @@
              ("\\.clj$"     . ["insert.clj"   auto-insert-update])
              ("\\.el$"      . ["insert.el"    auto-insert-update])
              ("\\.hs$"      . ["insert.hs"    auto-insert-update])
+             ("\\.cabal$"   . ["insert.cabal" auto-insert-update])
              ("\\.awk$"     . ["insert.awk"   auto-insert-update])
              ("\\.tex$"     . ["insert.tex"   auto-insert-update])
              ("\\.snip$"    . ["insert.snip"  auto-insert-update])
@@ -129,7 +130,6 @@ When auto-insert file template contains entry of form ${HELLO} then
 `util:auto-insert-update' will replace it with return value
 function than has correspondence to HELLO in this alist.")
 
-
 (defun auto-insert-update ()
   "Function that substitutes actual data into auto-insert
 template files, data description may be found in
@@ -146,8 +146,6 @@ template files, data description may be found in
                    (while (re-search-forward pattern nil t)
                      (replace-match new-data t t))))
                auto-insert-fields)))))))
-
-
 
 (add-hook 'find-file-hooks 'auto-insert)
 
