@@ -797,17 +797,6 @@ faster than byte-by-byte comparison of respecfive file contents."
 
 ;;;
 
-(defconst +buffer-indent-temporary-filename+
-  (concat temporary-file-directory "/indent-buffer.tmp")
-  "Path to temporary file reserved for buffer indentation puproses.
-See also `*mode-buffer-indent-function-alist*'.")
-
-(defparameter *mode-buffer-indent-function-alist* nil
-  "Alist of (major-mode . function) pairs, where functions should take 0
-arguments and indent current buffer. See also `+buffer-indent-temporary-filename+'.")
-
-;;;
-
 (defun to-linux-line-endings ()
   "Convert line endings in current buffer to linux ones (\\n)."
   (interactive)
@@ -885,12 +874,6 @@ write buffer contents back into file if flag DONT-WRITE is nil."
          (cl-member item sequence :test test))
         (else
          (error "Not implemented yet"))))
-
-;;;
-
-(defun indent-whole-buffer ()
-  "Indent whole buffer with `indent-region'."
-  (indent-region (point-min) (point-max)))
 
 ;;;
 
@@ -1031,7 +1014,16 @@ optimization reasons.")
         (print-depth depth))
     (pp-to-string obj)))
 
-;;;
+;;; indentation
+
+(defun indent-to! (col)
+  "Indent current line to exactly COL'th column with spaces."
+  (save-excursion
+    (beginning-of-line)
+    (skip-chars-forward " \t")
+    (delete-region (line-beginning-position) (point))
+    (dotimes (i col)
+      (insert ?\s))))
 
 (defun util/reindent-file (filename)
   "Load FILENAME contents, try to infer mode for it, reindent according
@@ -1046,16 +1038,85 @@ to mode and write new contents back to FILENAME."
       (vim:indent)
       (write-region (point-min) (point-max) filename))))
 
-;;;
+(defun indent-relative-backwards ()
+  "Indent backwards. Dual to `indent-relative'.
+Clone of `haskell-simple-indent-backtab'."
+  (interactive)
+  (let ((current-point (point))
+        (i 0)
+        (x 0))
+    (goto-char (line-beginning-position))
+    (save-excursion
+      (while (< (point) current-point)
+        (indent-relative)
+        (setq i (+ i 1))))
+    (dotimes (x (- i 1))
+      (indent-relative))))
 
-(defun indent-to! (col)
-  "Indent current line to exactly COL'th column with spaces."
-  (save-excursion
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    (delete-region (line-beginning-position) (point))
-    (dotimes (i col)
-      (insert ?\s))))
+(defconst +buffer-indent-temporary-filename+
+  (concat temporary-file-directory "/indent-buffer.tmp")
+  "Path to temporary file reserved for buffer indentation puproses.
+See also `*mode-buffer-indent-function-alist*'.")
+
+(defparameter *mode-buffer-indent-function-alist* nil
+  "Alist of (major-mode . function) pairs, where functions should take 0
+arguments and indent current buffer. See also `+buffer-indent-temporary-filename+'.")
+
+(defun indent-whole-buffer ()
+  "Indent whole buffer with `indent-region'."
+  (indent-region (point-min) (point-max)))
+
+(defun indent-relative-forward ()
+  "Indent forwards similarly to `indent-relative'."
+  (interactive)
+  (indent-relative+ 'forward))
+
+(defun indent-relative-backward ()
+  "Indent backwards similarly to `indent-relative'."
+  (interactive)
+  (indent-relative+ 'backward))
+
+;; inspired by indent-relative for v24.3.1
+(defun indent-relative+ (direction)
+  "Space out to under next indent point in previous nonblank line.
+An indent point is a non-whitespace character following whitespace.
+The following line shows the indentation points in this line.
+    ^         ^    ^     ^   ^           ^      ^  ^    ^
+If the previous nonblank line has no indent points beyond the
+column point starts at, `tab-to-tab-stop' is done instead, unless
+this command is invoked with a numeric argument, in which case it
+does nothing.
+
+See also `indent-relative-maybe'."
+  (save-match-data
+    (let ((start-column (current-column))
+          indent)
+      (save-excursion
+        (beginning-of-line)
+        (when (re-search-backward "^[^\n]" nil t)
+          (let ((end (if (eq? direction 'forward)
+                       (min (+ (line-end-position) 1)
+                            (point-max))
+                       (line-beginning-position))))
+            (move-to-column start-column)
+            ;; Is start-column inside a tab on this line?
+            (when (> (current-column) start-column)
+              (backward-char 1))
+            (if (eq? direction 'forward)
+              (begin
+                (skip-chars-forward "^ \t" end)
+                (skip-chars-forward " \t" end))
+              (begin
+                (skip-chars-backward " \t" end)
+                (skip-chars-backward "^ \t" end)))
+            (unless (= (point) end)
+              (setf indent (current-column))))))
+      (cond
+        (indent
+         (indent-to! indent)
+         (move-to-column indent))
+        ((eq? direction 'forward)
+         (tab-to-tab-stop))))))
 
 ;;;; keeping window's previous buffers and switching to them
 
