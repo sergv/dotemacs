@@ -41,6 +41,15 @@
       magit-process-buffer-name-format " *magit-process: %b*"
       magit-process-log-max 256)
 
+;; undefine some keys in various keymaps that are not tied to particular
+;; mode
+(eval-after-load "magit"
+  '(progn
+     (def-keys-for-map (magit-hunk-section-map
+                        magit-file-section-map
+                        magit-untracked-section-map)
+       ("k" nil))))
+
 ;;; gitignore
 
 (autoload 'gitignore-mode "gitignore-mode"
@@ -187,6 +196,8 @@ all otherwise."
   ;; (def-keys-for-map magit-mode-map
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
+    ("k"               search-next)
+    ("D"               magit-discard)
     ("C"               magit-checkout)
     ("r"               magit-refresh)
     ("T"               magit-tag-popup)
@@ -211,6 +222,8 @@ all otherwise."
     ("?"      magit-dispatch-popup) ;; override "?" from vim search
     ("r"      magit-refresh)
 
+    ("k"      search-next)
+    ("D"      magit-discard)
     ("p"      magit-stash-popup)
     ("T"      magit-tag-popup)
     ("<down>" magit-goto-next-section)
@@ -393,7 +406,6 @@ Put it in `magit-key-mode-keymaps' for fast lookup."
 
          (push (cons for-group map) magit-key-mode-keymaps)
          map))))
-
 
 
 (defparameter *have-git?* (executable-find "git")
