@@ -176,7 +176,7 @@ more than once"
          (grep-find-ignored-files
           (remove-if (comp (partial-first #'member user-supplied-files))
                      grep-find-ignored-files)))
-    (rgrep regexp files dir)))
+    (rgrep regexp files dir current-prefix-arg)))
 
 (add-to-list 'compilation-finish-functions #'grep-set-up-error-regexp)
 
