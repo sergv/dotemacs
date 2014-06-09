@@ -39,7 +39,8 @@
       magit-cherry-buffer-name-format "*magit-cherry*"
       ;; make magit-process buffers invisible by default
       magit-process-buffer-name-format " *magit-process: %b*"
-      magit-process-log-max 256)
+      magit-process-log-max 256
+      magit-popup-show-help-section nil)
 
 ;; undefine some keys in various keymaps that are not tied to particular
 ;; mode
@@ -300,7 +301,7 @@ all otherwise."
 (add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
 
 (defun magit-popup-setup ()
-  (def-keys-for-map magit-popup-help-mode-map
+  (def-keys-for-map magit-popup-mode-map
     ("<escape>" magit-popup-quit)
     ("q"        magit-popup-quit)))
 
