@@ -50,15 +50,25 @@
      ;; pay attention to rgrep-ignore-case
      (redefun grep-expand-template (template &optional regexp files dir excl)
        "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>.
-Fixed version."
+Fixed version. Also recognized <E>, which will be replaced by -E or -F depending
+on whether supplied patterns is regexp or fixed string."
        (setf *grep-latest-dir* dir)
-       (let* ((command template)
-              (case-fold-search nil)
-              (func (lambda (token text)
-                      (when (string-match token command)
-                        (setq command
-                              (replace-match (or text "") t t command))))))
-         (save-match-data
+       (save-match-data
+         (let* ((command template)
+                (case-fold-search nil)
+                (fixed-string?
+                 (lambda (x)
+                   ;; conservative regexp detection - if there's no regexp
+                   ;; metacharacters then it's fixed string
+                   ;; (string-match-pure? "^[-a-zA-Z0-9_'\"%#@!`~ :;<>/]+$" x)
+                   (string-match-pure? (rx bol
+                                           (+ (not (any ?+ ?* ?? ?| ?\( ?\) ?\[ ?\] ?\{ ?\} ?^ ?$ )))
+                                           eol)
+                                       x)))
+                (func (lambda (token text)
+                        (when (string-match token command)
+                          (setq command
+                                (replace-match (or text "") t t command))))))
            (funcall func "<C>" (when (or rgrep-ignore-case
                                          (and case-fold-search
                                               (isearch-no-upper-case-p regexp t)))
@@ -67,8 +77,11 @@ Fixed version."
            (funcall func "<F>" files)
            (funcall func "<N>" null-device)
            (funcall func "<X>" excl)
-           (funcall func "<R>" regexp))
-         command))
+           (funcall func "<E>" (if (funcall fixed-string? regexp)
+                                 "-F"
+                                 "-E"))
+           (funcall func "<R>" regexp)
+           command)))
 
      (redefun zrgrep (regexp &optional files dir confirm grep-find-template)
        "Recursively grep for REGEXP in gzipped FILES in tree rooted at DIR.
@@ -180,14 +193,14 @@ more than once"
 
 (add-to-list 'compilation-finish-functions #'grep-set-up-error-regexp)
 
-(setf grep-command "grep -nHE -e "
+(setf grep-command "grep -HnE -e "
       grep-template
-      "grep <X> <C> -nHE -e '<R>' <F>"
+      "grep <X> <C> -nH <E> -e '<R>' <F>"
       grep-find-command
-      (format "%s . -type f -print0 | xargs -0 -e grep -nHE -e "
+      (format "%s . -type f -print0 | xargs -0 -e grep -HnE -e "
               find-program)
       grep-find-template
-      (format "%s \"<D>\" <X> -type f <F> -print0 | xargs -0 -e grep <C> -nHE -e \"<R>\""
+      (format "%s \"<D>\" <X> -type f <F> -print0 | xargs -0 -e grep <C> -Hn <E> -e \"<R>\""
               find-program)
 
       grep-files-aliases
