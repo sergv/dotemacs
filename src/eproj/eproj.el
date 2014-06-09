@@ -1264,6 +1264,10 @@ as accepted by `bounds-of-thing-at-point'.")
 
 
 (defun eproj-symbnav/switch-to-home-entry (home-entry)
+  (unless (buffer-live-p (eproj-home-entry/buffer home-entry))
+    (setf (eproj-home-entry/buffer home-entry)
+          (find-file-noselect
+           (buffer-file-name (eproj-home-entry/buffer home-entry)))))
   (switch-to-buffer (eproj-home-entry/buffer home-entry))
   (goto-char (eproj-home-entry/point home-entry)))
 
@@ -1309,6 +1313,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                            :point (point)
                                            :symbol (eproj-tag/symbol entry))))))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
+    ;; load tags if there're none
     (unless (or (eproj-project/tags proj)
                 (assq orig-major-mode (eproj-project/tags proj)))
       (eproj-reload-project! proj)
