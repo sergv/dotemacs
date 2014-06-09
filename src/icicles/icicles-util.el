@@ -45,6 +45,7 @@
     ("M-SPC"             toggle-icicle-hiding-common-match)
     ("C-M-SPC"           icicle-retrieve-previous-input)
     ("C-SPC"             icicle-erase-minibuffer)
+    ("SPC"               self-insert-command)
 
     ("S-<delete>"        delete-whitespace-forward)
     ("S-<backspace>"     delete-whitespace-backward)
