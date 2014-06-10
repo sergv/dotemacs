@@ -60,22 +60,23 @@ stick it to the previous operator on line."
   (if (or (not (null? current-prefix-arg))
           (shm-literal-insertion))
     (insert (make-string 1 char))
-    (let ((inserted-string-before? nil))
-      (when (and (not (string-match-p "^[ \t]*$"
-                                      (buffer-substring-no-properties
-                                       (line-beginning-position)
-                                       (point))))
+    (let ((on-empty-string-p
+           (string-match-p "^[ \t]*$"
+                           (buffer-substring-no-properties
+                            (line-beginning-position)
+                            (point)))))
+      (when (and (not on-empty-string-p)
                  (or (bobp)
                      (and (not (char-equal (char-before) ?\s))
                           (not (char-equal (char-before) ?\())
                           (not (memq (char-before) shm/operator-chars)))
                      ;; Distance ourselves from | that is a potential guard.
                      (char-equal (char-before) ?|)))
-        (shm-insert-string " ")
-        (setf inserted-string-before? t))
+        (shm-insert-string " "))
       (shm-insert-char-appending-to-prev-operator char)
-      (when (not (and (eq char ?\\)
-                      inserted-string-before?))
+      (when (not (if (char-equal char ?\\)
+                   (char-equal (char-before) ?\()
+                   nil))
         (when (or (eobp)
                   (and (not (char-equal (char-after) ?\s))
                        (not (char-equal (char-after) ?\)))
