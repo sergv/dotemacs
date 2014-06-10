@@ -369,305 +369,49 @@ uppercase or lowercase names)."
                  (error "No group of forward-haskell-symbol-re matched, should not happen"))))
         (setf arg (1+ arg))))))
 
-;;; haskell parsing
+;; newline that detects haskell signatures
 
-;; (defun haskell-tokenize (chars)
-;;   "Tokenize a list of characters."
-;;   (with-syntax-table haskell-mode-syntax-table
-;;     (let ((tokens nil)
-;;           (tok nil)
-;;           (last-syntax nil)
-;;           (syntax-groups
-;;            ;; no need to keep one-element groups
-;;            '( ;; (?w)
-;;              ;; (?_)
-;;              ;; (?\")
-;;              ;; (?\$)
-;;              ;; (?\\)
-;;              (?\( ?\))
-;;              (?\s ?- ?>))))
-;;       (dolist (c chars)
-;;         (let ((syntax (char-syntax c)))
-;;           (when (and (not (null? last-syntax))
-;;                      (not (char=? last-syntax syntax))
-;;                      (not (find-if (lambda (group)
-;;                                      (and (member last-syntax group)
-;;                                           (member syntax group)))
-;;                                    syntax-groups)))
-;;             (when (not (null? tok))
-;;               (push (list->string (nreverse tok)) tokens))
-;;             (setf tok nil
-;;                   last-syntax syntax))
-;;           (unless (or (char=? ?\s syntax)
-;;                       (char=? ?\- syntax)
-;;                       (char=? ?> syntax))
-;;             (push c tok))
-;;           (setf last-syntax syntax)
-;;           ;; (case syntax
-;;           ;;   ((?w ?_)
-;;           ;;    (push c tok))
-;;           ;;   (())
-;;           ;;
-;;           ;;   ((?\s ?>)
-;;           ;;    (when tok
-;;           ;;      (push (list->string (reverse tok)) tokens)
-;;           ;;      (setf tok nil))))
-;;           ))
-;;       (when (not (null? tok))
-;;         (push (list->string (nreverse tok)) tokens))
-;;       (nreverse tokens))))
+(defun shm-node-top-parent (node-pair)
+  "Get latest parent of given NODE-PAIR."
+  (let ((parent (shm-node-parent node-pair)))
+    (while parent
+      (setf node-pair parent
+            parent (shm-node-parent node-pair)))
+    node-pair))
 
-;; (haskell-tokenize (string->list "foo    :: a         -> b\nfoo x = bar <$> (x :*! y) <*> baz (x: xs :*: xs)"))
+(defun shm-search-node-upwards (predicate node-pair)
+  "Searh for node matching PREDICATE starting from NODE-PAIR."
+  (let ((tmp node-pair))
+    (while (and tmp
+                (not (funcall predicate tmp)))
+      (setf tmp (shm-node-parent tmp)))
+    tmp))
 
-(defmacro haskell-peg-parse-string (rules string)
-  "Call `peg-parse-string' with some rules predefined for haskell."
-  `(condition-case err
-       (peg-parse-string
-        ((root ,@rules)
-         (typeclass-constraints
-          (list (or typeclass-constraints/typeclasses
-                    (and "(" some-space-opt
-                         typeclass-constraints/typeclasses
-                         some-space-opt ")")))
-          `(typeclasses -- (cons :typeclasses typeclasses))
-          whitespace
-          "=>")
-         (typeclass-constraints/typeclasses
-          typeclass-constraints/typeclass
-          (* some-space-opt
-             ","
-             some-space-opt
-             typeclass-constraints/typeclass))
-         (typeclass-constraints/typeclass
-          (substring qupcase-ident
-                     some-space
-                     ident
-                     (* some-space
-                        ident)))
-         (whitespace (* (or [?\s ?\t]
-                            newline
-                            comment)))
-         (comment (or (and "--" (* (any)) newline)
-                      ncomment))
-         (ncomment "{-" (* (or (any) newline)) (opt ncomment) "-}")
-         (newline (or "\n"
-                      "\n\r"
-                      "\r"
-                      "\f"))
-         (delim "::")
-         (arrow (or "->" "→"))
-         (func-name (substring (or ident
-                                   (and "("
-                                        whitespace
-                                        op
-                                        whitespace
-                                        ")"))))
-         (some-space (+ [?\s]))
-         (some-space-opt (* [?\s]))
-         (type-name (substring type-name-func))
-         (type-name-func type-name-atomic
-                         (or (* some-space-opt
-                                arrow
-                                some-space-opt
-                                type-name-func))
-                         (or (* some-space
-                                type-name-func)))
-         (type-name-atomic (or (and (or qupcase-ident qident)
-                                    (opt "#"))
-                               "()"
-                               (and "(" some-space-opt
-                                    type-name-func
-                                    (or (* some-space-opt ","
-                                           some-space-opt type-name-func))
-                                    some-space-opt ")")
-                               (and "(" some-space-opt
-                                    type-name-func
-                                    (or (* some-space-opt arrow
-                                           some-space-opt type-name-func))
-                                    some-space-opt ")")
-                               (and "(#" some-space-opt
-                                    type-name-func
-                                    (* some-space-opt ","
-                                       some-space-opt type-name-func)
-                                    some-space-opt "#)")
-                               (and "[" some-space-opt
-                                    type-name-func
-                                    some-space-opt "]")))
-         (qupcase-ident (* upcase-ident
-                           ".")
-                        upcase-ident)
-         (upcase-ident [A-Z]
-                       (* [?_ ?\' a-z A-Z 0-9]))
-         (qident (* upcase-ident
-                    ".")
-                 ident)
-         (ident [?_ a-z]
-                (* [?_ ?\' a-z A-Z 0-9]))
-         (op (+ [?\! ?\# ?\$ ?\% ?\& ?\* ?\+ ?\. ?\/ ?\< ?\= ?\> ?\? ?\@ ?\\ ?^ ?\| ?\- ?\~ ?\:])))
-        ,string
-        t)
-     (error (message "%s" err))))
+;; (defun shm-node-parent-chain (node-pair)
+;;   "Get latest parent of given NODE-PAIR."
+;;   (let* ((parent (shm-node-parent node-pair))
+;;          (chain nil))
+;;     (while parent
+;;       (push (list parent
+;;                   (buffer-substring-no-properties (shm-node-start (cdr parent))
+;;                                                   (shm-node-end (cdr parent))))
+;;             chain)
+;;       (setf node-pair parent
+;;             parent (shm-node-parent node-pair)))
+;;     chain))
 
-;; (defmacro haskell-peg-parse-string (rules string)
-;;   "Call `peg-parse-string' with some rules predefined for haskell."
-;;   `(peg-parse-string ((root ,@rules)
-;;
-;;                       ;; TODO: what about parsing a stream of tokens with PEG?
-;;
-;;                       ;; varid → (small {small | large | digit | ' })⟨reservedid⟩
-;;                       (varid (sans-others (seq small
-;;                                                (* (or small
-;;                                                       large
-;;                                                       digit
-;;                                                       "'")))
-;;                                           reservedid))
-;;
-;;                       ;; conid → large {small | large | digit | ' }
-;;                       ;; reservedid → case | class | data | default | deriving | do | else
-;;                       ;;    |         foreign | if | import | in | infix | infixl
-;;                       ;;    |         infixr | instance | let | module | newtype | of
-;;                       ;;    |         then | type | where | _
-;;
-;;                       ;; lexeme → qvarid | qconid | qvarsym | qconsym
-;;                       ;;         |         literal | special | reservedop | reservedid
-;;                       (lexeme (or qvarid
-;;                                   qconid
-;;                                   qvarsym
-;;                                   qconsym
-;;                                   literal
-;;                                   special
-;;                                   reversedop
-;;                                   reversedid))
-;;
-;;                       ;; literal → integer | float | char | string
-;;                       (literal integer
-;;                                float
-;;                                char
-;;                                string)
-;;
-;;                       ;; special → ( | ) | , | ; | [ | ] | ` | { | }
-;;                       (special (or "("
-;;                                    ")"
-;;                                    ","
-;;                                    ";"
-;;                                    "["
-;;                                    "]"
-;;                                    "`"
-;;                                    "{"
-;;                                    "}"))
-;;
-;;                       ;; whitespace → whitestuff {whitestuff}
-;;                       (whitespace (+ whitestuff))
-;;
-;;                       ;; whitestuff → whitechar | comment | ncomment
-;;                       (whitestuf (or whitechar comment ncomment))
-;;
-;;                       ;; whitechar → newline | vertab | space | tab | uniWhite
-;;                       (whitechar (or newline [?\v ?\s ?\t] ;; uniWhite
-;;                                      ))
-;;
-;;                       ;; newline → return linefeed | return | linefeed | formfeed
-;;                       (newline (or "\r\n" "\r" "\n" "\f"))
-;;                       ;; return → a carriage return
-;;                       ;; linefeed → a line feed
-;;                       ;; vertab → a vertical tab
-;;                       ;; formfeed → a form feed
-;;                       ;; space → a space
-;;                       ;; tab → a horizontal tab
-;;                       ;; uniWhite → any Unicode character defined as whitespace
-;;
-;;                       ;; comment → dashes [ any⟨symbol⟩ {any} ] newline
-;;                       (comment "--" (* "-")
-;;                                (opt (not symbol)
-;;                                     (* (any-lit)))
-;;                                newline)
-;;                       ;; dashes → -- {-}
-;;
-;;                       ;; opencom → {-
-;;                       (opencom "{-")
-;;                       ;; closecom → -}
-;;                       (closecom "-}")
-;;
-;;                       ;; ncomment → opencom ANY seq {ncomment ANY seq} closecom
-;;                       (ncomment opencom ANY-seq closecom)
-;;
-;;                       ;; ANY seq → {ANY }⟨{ANY } ( opencom | closecom ) {ANY }⟩
-;;                       (ANY-seq (sans-others (* ANY)
-;;                                             (seq (* ANY)
-;;                                                  (or opencom
-;;                                                      closecom)
-;;                                                  (* ANY))))
-;;                       ;; ANY → graphic | whitechar
-;;                       (ANY (or graphic whitechar))
-;;                       ;; any → graphic | space | tab
-;;                       (any-lit (or graphic
-;;                                    space
-;;                                    tab))
-;;
-;;                       ;; graphic → small | large | symbol | digit | special | " | '
-;;                       (graphic (or small
-;;                                    large
-;;                                    symbol
-;;                                    digit
-;;                                    special
-;;                                    "\""
-;;                                    "'"))
-;;                       ;; small → ascSmall | uniSmall | _
-;;                       (small (or ascSmall
-;;                                  "_"))
-;;                       ;; ascSmall → a | b | … | z
-;;                       (ascSmall [a-z])
-;;                       ;; uniSmall → any Unicode lowercase letter
-;;
-;;                       ;; large → ascLarge | uniLarge
-;;                       (lange (or ascLarge))
-;;                       ;; ascLarge → A | B | … | Z
-;;                       (ascLange [A-Z])
-;;                       ;; uniLarge → any uppercase or titlecase Unicode letter
-;;                       ;; symbol → ascSymbol | uniSymbol⟨special | _ | " | '⟩
-;;                       (symbol (or ascSymbol))
-;;                       ;;
-;;                       ;; ascSymbol → ! | # | $ | % | & | ⋆ | + | . | / | < | = | > | ? | @
-;;                       ;;         |         \ | ^ | | | - | ~ | :
-;;                       (ascSymbol [!#$%&⋆+./<=>?@\^|-~:])
-;;                       ;; uniSymbol → any Unicode symbol or punctuation
-;;                       ;; digit → ascDigit | uniDigit
-;;                       (digit (or ascDigit))
-;;                       ;; ascDigit → 0 | 1 | … | 9
-;;                       (ascDigit [0-9])
-;;                       ;; uniDigit → any Unicode decimal digit
-;;                       ;; octit → 0 | 1 | … | 7
-;;                       (octit [0-7])
-;;                       ;; hexit → digit | A | … | F | a | … | f
-;;                       (hexit (or digit
-;;                                  [a-fA-F])))
-;;                      ,string
-;;                      t))
-
-(defun haskell-parse-signature (signature)
-  "Returns alist of (:functions <strings>) and (:argument-types <strings>)
-entries. Returns nil on failure."
-  (cdr-safe
-   (haskell-peg-parse-string ((list func-name (* whitespace "," whitespace func-name))
-                              whitespace
-                              delim
-                              `(funcs -- (cons :functions funcs))
-                              (opt whitespace
-                                   typeclass-constraints)
-                              whitespace
-                              (list
-                               type-name
-                               ;; (* whitespace
-                               ;;    arrow
-                               ;;    whitespace
-                               ;;    type-name)
-                               )
-                              `(types -- (cons :argument-types types))
-                              some-space-opt
-                              (or newline
-                                  (eol)))
-                             signature)))
-
+(defun haskell-enclosing-TypeSig-function-name-node ()
+  "Extract function name from TypeSig node if point is currently in one or
+return nil otherwise."
+  (when-let (enclosing-sig (cdr-safe
+                            (shm-search-node-upwards
+                             (comp (partial #'eq? 'TypeSig) #'shm-node-cons #'cdr)
+                             (shm-current-node-pair))))
+    (save-excursion
+      (goto-char (shm-node-start enclosing-sig))
+      (when-let (curr-node (cdr-safe (shm-current-node-pair)))
+        (when (eq? 'Ident (shm-node-cons curr-node))
+          curr-node)))))
 
 (defun haskell-newline ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
@@ -678,33 +422,28 @@ entries. Returns nil on failure."
              (shm/newline-indent)
              (shm/simple-indent-newline-same-col)))))
     (when (memq major-mode +haskell-syntax-modes+)
-      (let ((line (current-line)))
-        (if-let (result (haskell-parse-signature (trim-whitespace line)))
-          (if-let* (signature
-                    result
-                    indentation
-                    (indentation-size)
-                    funcs
-                    (cdr-safe (assoc :functions signature))
-                    func
-                    (car funcs))
-            (begin
-              (funcall indent)
-              ;; Maybe consider using this function instead?
-              ;; (shm/simple-indent-newline-same-col)
-              (unless (save-excursion
-                        (forward-line)
-                        (skip-syntax-forward "->")
-                        (looking-at-pure? (concat (regexp-quote func)
-                                                  "\\_>")))
-                (delete-region (line-beginning-position) (point))
-                (insert (make-string indentation ?\s)
-                        func
-                        " ")))
-            ;; indent in either case, the key is to indent
-            ;; *after* parsing signature on current line
-            (funcall indent))
-          (funcall indent))))))
+      (if-let (func-name-node (haskell-enclosing-TypeSig-function-name-node))
+        (let ((func-name (buffer-substring-no-properties
+                          (shm-node-start func-name-node)
+                          (shm-node-end func-name-node)))
+              (indentation (save-excursion
+                             (goto-char (shm-node-start func-name-node))
+                             (current-column))))
+          (funcall indent)
+          ;; Maybe consider using this function instead?
+          ;; (shm/simple-indent-newline-same-col)
+          (unless (save-excursion
+                    (forward-line)
+                    (skip-syntax-forward "->")
+                    (looking-at-pure? (concat (regexp-quote func-name)
+                                              "\\_>")))
+            (delete-region (line-beginning-position) (point))
+            (insert (make-string indentation ?\s)
+                    func-name
+                    " ")))
+        ;; indent in either case, the key is to indent
+        ;; *after* parsing signature on current line
+        (funcall indent)))))
 
 (defun haskell-abbrev+-fallback-space ()
   (interactive)
@@ -713,12 +452,6 @@ entries. Returns nil on failure."
     (insert " ")))
 
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
-
-;;; remember position on query
-
-;; (defadvice:remember-position-on-query inferior-haskell-find-definition)
-;; (defadvice:remember-position-on-query haskell-find-definition)
-
 
 (provide 'haskell-misc)
 
