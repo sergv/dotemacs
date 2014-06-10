@@ -269,6 +269,7 @@
     ("M-a"        nil)
     ("M-k"        nil)
     ("C-k"        nil)
+    ("<delete>"   nil)
     ("C-<return>" shm/simple-indent-newline-same-col))
 
   (haskell-setup-folding)
