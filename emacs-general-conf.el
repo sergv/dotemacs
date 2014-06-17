@@ -192,8 +192,8 @@
 
 
 ;;;; disable mouse scrolling
-(mouse-wheel-mode -1)
-(def-keys-for-map (global-map
+;; (mouse-wheel-mode -1)
+(def-keys-for-map (;; global-map
                    minibuffer-inactive-mode-map)
   ("<mouse-1>"      ignore)
   ("<down-mouse-1>" ignore)
