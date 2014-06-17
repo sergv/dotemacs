@@ -190,6 +190,9 @@
     ("StandaloneDeriving" "Enable standalone deriving." "NoStandaloneDeriving")
     ("DeriveDataTypeable" "Enable deriving for the Data and Typeable classes." "NoDeriveDataTypeable")
     ("DeriveGeneric" "Enable deriving for the Generic class." "NoDeriveGeneric")
+    ("DeriveFunctor" "Enable deriving for the Functor class." "NoDeriveFunctor")
+    ("DeriveFoldable" "Enable deriving for the Foldable class." "NoDeriveFoldable")
+    ("DeriveTraversable" "Enable deriving for the Traversable class." "NoDeriveTraversable")
     ("GeneralizedNewtypeDeriving" "Enable newtype deriving." "NoGeneralizedNewtypeDeriving")
     ("TypeSynonymInstances" "Enable type synonyms in instance heads." "NoTypeSynonymInstances")
     ("FlexibleContexts" "Enable flexible contexts." "NoFlexibleContexts")
@@ -403,15 +406,26 @@ uppercase or lowercase names)."
 (defun haskell-enclosing-TypeSig-function-name-node ()
   "Extract function name from TypeSig node if point is currently in one or
 return nil otherwise."
-  (when-let (enclosing-sig (cdr-safe
+  (if-let (enclosing-sig (cdr-safe
                             (shm-search-node-upwards
                              (comp (partial #'eq? 'TypeSig) #'shm-node-cons #'cdr)
                              (shm-current-node-pair))))
     (save-excursion
       (goto-char (shm-node-start enclosing-sig))
-      (when-let (curr-node (cdr-safe (shm-current-node-pair)))
-        (when (eq? 'Ident (shm-node-cons curr-node))
-          curr-node)))))
+      (if-let (curr-node (cdr-safe (shm-current-node-pair)))
+        (cond ((eq? 'Ident (shm-node-cons curr-node))
+               curr-node)
+              ((eq? 'Symbol (shm-node-cons curr-node))
+               curr-node)
+              (else
+               ;; (error "node constructor is not Ident: %s" (shm-node-cons curr-node))
+               ))
+        ;; (error "no current node found starting at %s"
+        ;;        (buffer-substring-no-properties (point)
+        ;;                                        (line-end-position)))
+        ))
+    ;; (error "no enclosing type signature")
+    ))
 
 (defun haskell-newline ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
