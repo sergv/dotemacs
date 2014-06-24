@@ -23,6 +23,8 @@ while interactively prompting for variables/messages."
 
   :format-print-value "%s"
   :format-string-start "\""
+  ;; it is indented to not end format string with \n
+  ;; since trace macro will add newline per se
   :format-string-end "\" "
   :name-value-delimiter " = "
 

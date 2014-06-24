@@ -13,6 +13,8 @@
 ;;  [(related <abs-or-rel-dir>*])
 ;;  [(aux-files
 ;;    [(tree <tree-root> <pattern>*)])]
+;;  [(ignored-files <regexp>+)] - ignored filenames, <regexp>
+;;                                should match absolute file names
 ;;
 ;;  ;; these are mostly for haskell
 ;;  [(tag-file <abs-or-rel-file>)]
@@ -583,14 +585,12 @@ Note: old tags file is removed before calling update command."
 
 (defun eproj-project/aux-files (proj)
   (aif (eproj-project/aux-files-source proj)
-    (map (lambda (path)
-           (expand-file-name path (eproj-project/root proj)))
-         (cond ((functionp it)
+    (cond ((functionp it)
                 (funcall it))
                ((list? it)
                 it)
                (else
-                nil)))
+                nil))
     nil))
 
 (defun eproj-project/root= (proj-a proj-b)
@@ -1051,8 +1051,16 @@ symbol 'unresolved.")
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type."
-  (funcall (eproj-project-type/get-project-files-proc (eproj-project/type proj))
-           proj))
+  (let ((files
+         (funcall (eproj-project-type/get-project-files-proc (eproj-project/type proj))
+                  proj)))
+    (aif (rest-safe (assoc 'ignored-files (eproj-project/aux-info proj)))
+      (filter (lambda (fname)
+                (all? (lambda (re)
+                        (not (string-match-pure? re fname)))
+                      it))
+              files)
+      files)))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -1076,7 +1084,7 @@ Returns nil if no relevant entry found in AUX-INFO."
            related-entry))))
 
 (defun eproj-make-aux-files-constructor (root aux-info)
-  "Make up function that will return list of relative names for auxiliary files
+  "Make up function that will return list of absolute names for auxiliary files
 of project upon invokation. Aux files usually are files in repository that
 are not listed by `eproj-get-project-files' \(e.g. files not tracked by version
 control system, etc).
@@ -1113,14 +1121,12 @@ AUX-INFO is expected to be a list of zero or more constructs:
                                      nil
                                      "Invalid patterns under aux-files/tree clause: %s"
                                      patterns)
-                             (map (lambda (path)
-                                    (file-relative-name path project-root))
-                                  (find-rec tree-root
-                                            :filep
-                                            (lambda (path)
-                                              (any? (lambda (regexp)
-                                                      (string-match-pure? regexp path))
-                                                    patterns))))))
+                             (find-rec tree-root
+                                       :filep
+                                       (lambda (path)
+                                         (any? (lambda (regexp)
+                                                 (string-match-pure? regexp path))
+                                               patterns)))))
                           (else
                            nil)))
                   aux-files-entry))))))
