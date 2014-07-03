@@ -416,7 +416,7 @@ Note: old tags file is removed before calling update command."
 (defparameter eproj/languages
   (list (letrec ((lang (make-eproj-language
                         :mode 'haskell-mode
-                        :extension-re (concat "."
+                        :extension-re (concat "\\."
                                               (regexp-opt *haskell-extensions*)
                                               "$")
                         :load-procedure
