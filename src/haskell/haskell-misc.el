@@ -326,7 +326,6 @@ we load it."
 (haskell/make-query-to-inferior haskell-info               inferior-haskell-info)
 (haskell/make-query-to-inferior haskell-haddock-identifier inferior-haskell-haddock-identifier)
 (haskell/make-query-to-inferior haskell-haddock-module     inferior-haskell-haddock-module)
-(haskell/make-query-to-inferior haskell-find-definition    inferior-haskell-find-definition)
 (haskell/make-query-to-inferior haskell-hoogle-at-point    haskell-hoogle)
 (haskell/make-query-to-inferior haskell-hayoo-at-point     haskell-hayoo)
 
@@ -464,6 +463,14 @@ return nil otherwise."
   (if structured-haskell-mode
     (shm/space)
     (insert " ")))
+
+(defun haskell-clear-buffer-and-load-file ()
+  "Switch to ghci, clear it and load current file."
+  (interactive)
+  (when (buffer-live-p inferior-haskell-buffer)
+    (with-current-buffer inferior-haskell-buffer
+      (comint-clear-buffer-above-prompt)))
+  (inferior-haskell-load-file))
 
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
 

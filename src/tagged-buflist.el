@@ -106,7 +106,18 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                      haskell-hugs-mode
                                      ghc-core-mode
                                      hugs-mode)
-                      :name-regexp (rx "*haskell*"
+                      :name-regexp (rx "*"
+                                       (or "haskell" "ghci")
+                                       "*"
+                                       (? "<" (+ digit) ">"))))
+               (list "Proof assistants"
+                     (make-buf-tag-pred
+                      :major-modes '(agda2-mode
+                                     coq-mode
+                                     idris-mode)
+                      :name-regexp (rx "*"
+                                       (or "agda" "coq" "idris")
+                                       "*"
                                        (? "<" (+ digit) ">"))))
                (list "HDL"
                      (make-buf-tag-pred
