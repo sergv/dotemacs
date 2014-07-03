@@ -204,6 +204,7 @@
 (load-library "cool-setup")
 (load-library "haskell-grammar-tools-setup")
 (load-library "agda-setup")
+(load-library "dos-setup")
 
 (load-library "compilation-setup")
 (load-library "completion-setup")

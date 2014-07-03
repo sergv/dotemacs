@@ -304,7 +304,7 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                      autoconf-mode
                                      pascal-mode
                                      m2-mode ;; Modula-2
-                                     )
+                                     dos-mode)
                       :name-regexp (rx bol
                                        (or "makefile"
                                            "Makefile"
