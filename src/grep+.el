@@ -62,7 +62,7 @@ on whether supplied patterns is regexp or fixed string."
                    ;; metacharacters then it's fixed string
                    ;; (string-match-pure? "^[-a-zA-Z0-9_'\"%#@!`~ :;<>/]+$" x)
                    (string-match-pure? (rx bol
-                                           (+ (not (any ?+ ?* ?? ?| ?\( ?\) ?\[ ?\] ?\{ ?\} ?^ ?$ )))
+                                           (+ (not (any ?+ ?* ?? ?| ?\( ?\) ?\[ ?\] ?\{ ?\} ?^ ?$ ?\\)))
                                            eol)
                                        x)))
                 (func (lambda (token text)
