@@ -206,6 +206,7 @@
     ("<return>"        haskell-newline)
     ("<f6>"            inferior-haskell-load-file)
     ("<f9>"            haskell-compile)
+    ("C-<f6>"          haskell-clear-buffer-and-load-file)
     ("S-<f9>"          hs-lint))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
@@ -300,10 +301,7 @@
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)
     ("C-<up>"   compilation-jump-to-prev-error)
-    ("C-<down>" compilation-jump-to-next-error)
-
-    (", ."      haskell-find-definition)
-    ("M-."      haskell-find-definition))
+    ("C-<down>" compilation-jump-to-next-error))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
@@ -355,6 +353,9 @@
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
+  (setq-local indent-line-function
+              (lambda ()
+                (indent-to standard-indent)))
   (def-keys-for-map '(vim:normal-mode-local-keymap
                       vim:insert-mode-local-keymap)
     ("<tab>"           indent-relative-forward)
