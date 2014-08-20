@@ -316,8 +316,8 @@ inserted with properties."
   :group 'browse-kill-ring)
 
 (defun browse-kill-ring/get-ring-value ()
-  (browse-kill-ring-with-original-buffer
-   (symbol-value *browse-kill-ring-ring-var*)))
+  (buffer-local-value *browse-kill-ring-ring-var*
+                      (window-buffer browse-kill-ring-original-window)))
 
 (defun browse-kill-ring/set-ring-value (value)
   (browse-kill-ring-with-original-buffer
@@ -1341,6 +1341,10 @@ directly; use `browse-kill-ring' instead.
 (browse-kill-ring-define-browser browse-comint-input-history
                                  comint-input-ring
                                  "*Comint Input History*")
+
+(browse-kill-ring-define-browser browse-haskell-interactive-input-history
+                                 haskell-interactive-mode-history
+                                 "*haskell interactive history*")
 
 (provide 'browse-kill-ring)
 
