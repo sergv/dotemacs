@@ -146,15 +146,22 @@ and switches to insert-mode."
 
 
 (defparameter vim:insert-mode-exit-move-point t
-  "Whether to move point backwards on `vim:insert-mode-exit'.")
+  "Whether to move point backwards on `vim:insert-mode-exit'. Can be t, nil or
+'dont-move-at-line-end.")
 
 (vim:defcmd vim:insert-mode-exit (nonrepeatable)
   "Deactivates insert-mode, returning to normal-mode."
   (vim:activate-normal-mode)
   (goto-char (max (line-beginning-position)
-                  (if vim:insert-mode-exit-move-point
-                    (1- (point))
-                    (point)))))
+                  (cond ((eq? vim:insert-mode-exit-move-point
+                              'dont-move-at-line-end)
+                         (if (= (point) (line-end-position))
+                           (point)
+                           (1- (point))))
+                        (vim:insert-mode-exit-move-point
+                         (1- (point)))
+                        (else
+                         (point))))))
 
 
 (vim:defcmd vim:cmd-delete-line (count register)
