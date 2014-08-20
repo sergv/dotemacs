@@ -2107,8 +2107,6 @@ A: \"But I never asked anybody how.\""
 same river and he's not the same man.
 -- Heraclitas"
 
-   "Writing about music is like dancing about architecture."
-
    "The number you have dialed is imaginary.  Please divide by 0 and try again."
 
    "We should be careful to get out of an experience only the wisdom that is
