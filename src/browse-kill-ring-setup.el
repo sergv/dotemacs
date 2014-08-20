@@ -10,25 +10,28 @@
 
 (autoload 'browse-kill-ring
           "browse-kill-ring"
-          "Display items in the `kill-ring' in another buffer."
+          "Display `kill-ring' items in another buffer."
           t)
 
 (autoload 'browse-eshell-input-history
           "browse-kill-ring"
-          "Display items in the `eshell-history-ring' in another buffer."
+          "Display `eshell-history-ring' items in another buffer."
           t)
 
 (autoload 'browse-comint-input-history
           "browse-kill-ring"
-          "Display items in the `comint-input-ring' in another buffer."
+          "Display `comint-input-ring' items in another buffer."
           t)
 
 (autoload 'browse-nrepl-input-history
           "browse-kill-ring"
-          "Display items in the `nrepl-input-history' in another buffer."
+          "Display `nrepl-input-history' items in another buffer."
           t)
 
-
+(autoload 'browse-haskell-interactive-input-history
+          "browse-kill-ring"
+          "Display `haskell-interactive-mode-history' items in another buffer."
+          t)
 
 (defun browse-kill-ring-mode-setup ()
   (def-keys-for-map browse-kill-ring-mode-map
