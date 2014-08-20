@@ -28,6 +28,20 @@
 
 (make-directory +haskell-tmp-path+ t)
 
+
+(setf shm-insert-space-after-comma t
+      shm-indent-point-after-adding-where-clause t
+      shm-colon-enabled t
+      shm-indent-use-chris-done-if-indent-style nil
+      inferior-haskell-find-project-root nil
+      ghc-core-program-args '("-O2"
+                              "-dsuppress-uniques"
+                              "-dsuppress-idinfo"
+                              "-dsuppress-module-prefixes"
+                              ;; "-dsuppress-type-signatures"
+                              "-dsuppress-type-applications"
+                              "-dsuppress-coercions"))
+
 (setf haskell-compile-command
       (or (getenv "HASKELL_COMPILE_COMMAND")
           (concat "ghc -W -Wall -fwarn-monomorphism-restriction "
@@ -41,22 +55,55 @@
                   ;; llvm
                   ;; "-fllvm -optlc-O3 -optlo-O3 "
                   "-c \"%s\""))
-      haskell-program-name
-      (let ((extensions "-XLambdaCase -XTemplateHaskell -XOverloadedStrings")
-            (opts "-fbyte-code")
-            (rts-opts "+RTS -M1G"))
-        (cond ((platform-os-type? 'windows)
-               (join-lines (list "ghc" "--interactive" extensions opts rts-opts)
-                           " "))
-              ((executable-find "ghci")
-               (join-lines (list "ghci" extensions opts rts-opts)
-                           " "))
-              ((executable-find "ghc")
-               (join-lines (list "ghc" "--interactive" extensions opts rts-opts)
-                           " "))
-              (t
-               (message "GHC not found")
-               nil))))
+      ;; 'cabal-repl is good as well
+      haskell-process-type 'ghci
+      haskell-process-path-ghci
+      (if (platform-os-type? 'windows)
+        "ghc"
+        "ghci")
+      haskell-process-args-ghci
+      (let ((extensions '("-XLambdaCase" "-XTemplateHaskell" "-XOverloadedStrings"))
+            ;; (opts "-fobject-code")
+            (opts '("-fbyte-code" "-odir" "/tmp/ghc" "-hidir" "/tmp/ghc"))
+            (rts-opts '("+RTS" "-M1G")))
+        (append (if (platform-os-type? 'windows)
+                  "--interactive"
+                  nil)
+                extensions
+                opts
+                rts-opts))
+
+      haskell-process-suggest-remove-import-lines t
+      haskell-process-auto-import-loaded-modules t
+      ;; haskell-process-suggest-hoogle-imports t ;; may be cool
+      haskell-process-show-debug-tips nil
+      haskell-interactive-popup-errors nil
+      haskell-interactive-mode-eval-mode #'haskell-mode
+      ;; Propertize so that later haskell-interactive-mode.el will catch
+      ;; these properties up when inserting prompt.
+      haskell-interactive-prompt "λ> "
+
+      ;; haskell-program-name
+      ;; (let ((extensions "-XLambdaCase -XTemplateHaskell -XOverloadedStrings")
+      ;;       ;; (opts "-fobject-code")
+      ;;       (opts "-fbyte-code -odir /tmp/ghc -hidir /tmp/ghc")
+      ;;       (rts-opts "+RTS -M1G"))
+      ;;   (cond ((platform-os-type? 'windows)
+      ;;          (join-lines (list "ghc" "--interactive" extensions opts rts-opts)
+      ;;                      " "))
+      ;;         ((executable-find "ghci")
+      ;;          (join-lines (list "ghci" extensions opts rts-opts)
+      ;;                      " "))
+      ;;         ((executable-find "ghc")
+      ;;          (join-lines (list "ghc" "--interactive" extensions opts rts-opts)
+      ;;                      " "))
+      ;;         (t
+      ;;          (message "GHC not found")
+      ;;          nil)))
+      )
+
+(redefun haskell-interactive-prompt-regex ()
+  "λ> +")
 
 
 (defconst +haskell-compile-error-or-warning-regexp+
@@ -473,6 +520,61 @@ return nil otherwise."
   (inferior-haskell-load-file))
 
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
+
+(defun haskell-interactive-clear-prompt ()
+  "Clear haskell prompt from input."
+  (interactive)
+  (goto-char haskell-interactive-mode-prompt-start)
+  (when (not (equal (point)
+                    (line-end-position)))
+    (delete-region (point) (line-end-position))))
+
+(defun haskell-interactive-clear-buffer-above-prompt ()
+  (interactive)
+  (let ((session (haskell-session)))
+    (with-current-buffer (haskell-session-interactive-buffer session)
+      (save-excursion
+        (goto-char (point-max))
+        (forward-line -1)
+        (let ((inhibit-read-only t))
+          (set-text-properties (point-min) (point-max) nil))
+        (remove-overlays (point-min) (line-end-position))
+        (delete-region (point-min) (line-end-position))
+        (haskell-session-set session 'next-error-region nil)
+        (haskell-session-set session 'next-error-locus nil)))))
+
+(define-circular-jumps
+    haskell-interactive-jump-to-next-prompt
+    haskell-interactive-jump-to-prev-prompt
+  (haskell-interactive-prompt-regex))
+
+(defun haskell-bind-shm-bindings ()
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("-"       shm/hyphen)
+    ("#"       shm/hash)
+    (","       shm/comma)
+    (":"       shm/:)
+    ("="       shm/=)
+
+    ("C-="     input-unicode)
+
+    ("+"       shm/+)
+    ("*"       shm/*)
+    ("="       shm/=)
+    ("<"       shm/<)
+    (">"       shm/>)
+    ("!"       shm/!)
+    ("@"       shm/@)
+    ("$"       shm/$)
+    ("%"       shm/%)
+    ("^"       shm/^)
+    ("&"       shm/&)
+
+    ("/"       shm//)
+    ("?"       shm/?)
+    ("|"       shm/|)
+    ("\\"      shm/\\)
+    ("~"       shm/~)))
 
 (provide 'haskell-misc)
 

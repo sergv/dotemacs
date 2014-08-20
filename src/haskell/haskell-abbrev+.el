@@ -44,7 +44,7 @@ then Bar would be the result."
       (match-string 1 qualified-name)
       qualified-name)))
 
-(defun haskell-abbrev+-setup ()
+(defun* haskell-abbrev+-setup (&key (repl nil))
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
                                      (or (null? c)
                                          (not (char=? c ?:))))))
@@ -72,47 +72,51 @@ then Bar would be the result."
                                           ghc-flags)))
     (setf abbrev+-skip-syntax '("w_" "^ >")
           abbrev+-abbreviations
-          (list
-           ;; (cons "pwd" #'(lambda () (expand-file-name default-directory)))
-           (list "^hpr?f$"                    "hPrintf")
-           (list "^pr?f$"                     "printf")
-           (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn")
-           (list "^hps?l?n$"                  "hPutStrLn")
-           (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
-           (list "main"
-                 (list
-                  (lambda () (yas-expand-snippet
-                         (concat "main :: IO ()\nmain = do\n"
-                                 (make-string haskell-indent-offset ?\s) "$1")))))
+          (append
+           (if (not repl)
+             (list
+              (list "main"
+                    (list
+                     (lambda () (yas-expand-snippet
+                            (concat "main :: IO ()\nmain = do\n"
+                                    (make-string haskell-indent-offset ?\s) "$1")))))
+              (list "##"
+                    (list
+                     (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
+              (list "\\(?:#lang\\|langext\\)"
+                    (list
+                     (lambda () (yas-expand-snippet language-snippet))))
+              (list "#opts?"
+                    (list
+                     (lambda () (yas-expand-snippet options-snippet))))
+              (list "#\\(?:opts?-def\\|dopts?\\)"
+                    (list
+                     (lambda () (yas-expand-snippet default-options-snippet)))))
+             nil)
+           (list
+            ;; (cons "pwd" #'(lambda () (expand-file-name default-directory)))
+            (list "^hpr?f$"                    "hPrintf")
+            (list "^pr?f$"                     "printf")
+            (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn")
+            (list "^hps?l?n$"                  "hPutStrLn")
+            (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
 
-           (list (concat "^" (make-re-with-optional-suffix "import" 2) "$")
-                 "import"
-                 import-expand-pred)
-           (list "importMap"
-                 "import Data.Map (Map)\nimport qualified Data.Map as M"
-                 import-expand-pred)
-           (list (concat "^" (make-re-with-optional-suffix "import" 2) "q$")
-                 (list expand-qualified-import-snippet-action)
-                 import-expand-pred)
-           (list (concat "^q" (make-re-with-optional-suffix "import" 2) "$")
-                 (list expand-qualified-import-snippet-action)
-                 import-expand-pred)
-           (list "##"
-                 (list
-                  (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
-           (list "\\(?:#lang\\|langext\\)"
-                 (list
-                  (lambda () (yas-expand-snippet language-snippet))))
-           (list "#opts?"
-                 (list
-                  (lambda () (yas-expand-snippet options-snippet))))
-           (list "#\\(?:opts?-def\\|dopts?\\)"
-                 (list
-                  (lambda () (yas-expand-snippet default-options-snippet))))
-           (list "\\<info\\>"
-                 (list
-                  #'haskell-debug-message-skeleton)
-                 (lambda () (not (point-inside-string-or-comment?)))))))
+            (list (concat "^" (make-re-with-optional-suffix "import" 2) "$")
+                  "import"
+                  import-expand-pred)
+            (list (concat "^" (make-re-with-optional-suffix "import" 2) "m$")
+                  "import Data.Map (Map)\nimport qualified Data.Map as M"
+                  import-expand-pred)
+            (list (concat "^" (make-re-with-optional-suffix "import" 2) "q$")
+                  (list expand-qualified-import-snippet-action)
+                  import-expand-pred)
+            (list (concat "^q" (make-re-with-optional-suffix "import" 2) "$")
+                  (list expand-qualified-import-snippet-action)
+                  import-expand-pred)
+            (list "\\<info\\>"
+                  (list
+                   #'haskell-debug-message-skeleton)
+                  (lambda () (not (point-inside-string-or-comment?))))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 

@@ -184,6 +184,7 @@ Futher modified by Sergey Vinokurov."
        (font-lock-variable-name-face ((t (:foreground ,blue))))
 
        (haskell-operator-face        ((t (:foreground ,blue))))
+       (haskell-interactive-face-compile-error ((t (:foreground ,red))))
        ;; agda
        (agda2-highlight-bound-variable-face          ((t (:inherit default))))
        (agda2-highlight-coinductive-constructor-face ((t (:foreground ,yellow))))
