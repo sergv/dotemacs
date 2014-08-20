@@ -130,18 +130,20 @@
     ("M-<up>"    sp-splice-sexp-killing-backward)
     ("M-<down>"  sp-splice-sexp-killing-forward)))
 
-(defun* init-repl (&key (show-directory nil) (bind-return t) (create-keymaps nil))
+(defun* init-repl (&key (show-directory nil) (bind-return t) (create-keymaps nil) (bind-vim:motion-current-line t))
   (use-repl-modeline :show-directory show-directory)
-  (setf *vim:do-not-adjust-point* t)
+  (setq-local *vim:do-not-adjust-point* t)
+  (setq-local vim:insert-mode-exit-move-point 'dont-move-at-line-end)
   (emacs-forget-buffer-process)
 
   (when create-keymaps
     (vim:bind-local-keymaps))
-  (if (not (null? vim:operator-pending-mode-local-keymap))
-    (def-keys-for-map vim:operator-pending-mode-local-keymap
-      ("c" vim:motion-current-line))
-    (message "init-repl warning: vim:operator-pending-mode-local-keymap is nil, \"c\" not bound in buffer %s"
-             (current-buffer)))
+  (when bind-vim:motion-current-line
+    (if (not (null? vim:operator-pending-mode-local-keymap))
+      (def-keys-for-map vim:operator-pending-mode-local-keymap
+        ("c" vim:motion-current-line))
+      (message "init-repl warning: vim:operator-pending-mode-local-keymap is nil, \"c\" not bound in buffer %s"
+               (current-buffer))))
 
   (cond ((keymapp bind-return)
          (def-keys-for-map bind-return
