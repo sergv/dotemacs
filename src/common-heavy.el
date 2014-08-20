@@ -221,7 +221,20 @@ number of spaces equal to `tab-width'."
                             "\n")))
       (string=? old new))))
 
-
+(defun remove-duplicates-from-sorted-list-by (eq-pred xs)
+  "Remove consecutive elements of xs for which eq-pred returns t."
+  (when (not (null? xs))
+    (let* ((prev (car xs))
+           (ys (cdr xs))
+           (result (list prev)))
+      ;; prev is assumed to always be added to result
+      (while (not (null? ys))
+        (let ((y (car ys)))
+          (unless (funcall eq-pred prev y)
+            (setf prev y)
+            (push prev result))
+          (setf ys (cdr ys))))
+      (nreverse result))))
 
 ;;;
 

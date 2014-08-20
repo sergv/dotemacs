@@ -1346,56 +1346,69 @@ as accepted by `bounds-of-thing-at-point'.")
                (aif (gethash orig-major-mode eproj/languages-table)
                  it
                  (error "unsupported language %s" orig-major-mode))))
+             (expanded-project-root
+              (expand-file-name (eproj-project/root proj)))
+             (tag->string
+              (lambda (tag)
+                (let ((txt (funcall entry->string proj tag))
+                      (expanded-tag-file
+                       (expand-file-name (eproj-tag/file tag))))
+                  (cond ((string=? orig-file-name
+                                   expanded-tag-file)
+                         (propertize txt 'face 'font-lock-negation-char-face))
+                        ((string-prefix? expanded-project-root
+                                         expanded-tag-file)
+                         ;; use italic instead of underscore
+                         (propertize txt 'face 'italic))
+                        (else
+                         txt)))))
+             (entry-tag #'car)
+             (entry-string #'cdr)
              (entries
-              (sort (concatMap (lambda (proj)
-                                 (aif (rest-safe
-                                       (assq orig-major-mode
-                                             (eproj-project/tags proj)))
-                                   (copy-list
-                                    (if use-regexp
-                                      (concat-lists
-                                       (hash-table-entries-matching-re it identifier))
-                                      (gethash identifier it nil)))
-                                   nil))
-                               (cons proj
-                                     (eproj-get-all-related-projects proj)))
-                    (lambda (a b)
-                      (string< (funcall entry->string proj a)
-                               (funcall entry->string proj b))))))
+              ;; I'm not entirely sure where duplicates come from, but it's cheap
+              ;; to remove them and at the same time I'm reluctant to tweak my
+              ;; Emacs because of it's dynamically-typed lisp.
+              (remove-duplicates-from-sorted-list-by
+               (lambda (a b)
+                 ;; compare results of tag->string
+                 (string= (funcall entry-string a) (funcall entry-string b)))
+               (sort (map (lambda (tag)
+                            (cons tag
+                                  (funcall tag->string tag)))
+                          (concatMap (lambda (proj)
+                                       (aif (rest-safe
+                                             (assq orig-major-mode
+                                                   (eproj-project/tags proj)))
+                                         (copy-list
+                                          (if use-regexp
+                                            (concat-lists
+                                             (hash-table-entries-matching-re it identifier))
+                                            (gethash identifier it nil)))
+                                         nil))
+                                     (cons proj
+                                           (eproj-get-all-related-projects proj))))
+                     (lambda (a b)
+                       ;; compare results of tag->string
+                       (string< (funcall entry-string a) (funcall entry-string b)))))))
         (cond ((null? entries)
                (error "No entries for %s %s"
                       (if use-regexp "regexp" "identifier")
                       identifier))
               ((null? (cdr entries))
-               (funcall jump-to-home (car entries)))
+               (funcall jump-to-home (funcall entry-tag (car entries))))
               (else
-               (let ((expanded-project-root
-                      (expand-file-name (eproj-project/root proj))))
-                 (select-start-selection
-                  entries
-                  :buffer-name "Symbol homes"
-                  :after-init #'ignore
-                  :on-selection
-                  (lambda (idx)
-                    (select-exit)
-                    (funcall jump-to-home (elt entries idx)))
-                  :predisplay-function
-                  (lambda (tag)
-                    (let ((txt (funcall entry->string proj tag))
-                          (expanded-tag-file
-                           (expand-file-name (eproj-tag/file tag))))
-                      (cond ((string=? orig-file-name
-                                       expanded-tag-file)
-                             (propertize txt 'face 'font-lock-negation-char-face))
-                            ((string-prefix? expanded-project-root
-                                             expanded-tag-file)
-                             ;; use italic instead of underscore
-                             (propertize txt 'face 'italic))
-                            (else
-                             txt))))
-                  :preamble-function
-                  (lambda ()
-                    "Choose symbol\n\n")))))))))
+               (select-start-selection
+                entries
+                :buffer-name "Symbol homes"
+                :after-init #'ignore
+                :on-selection
+                (lambda (idx)
+                  (select-exit)
+                  (funcall jump-to-home (funcall entry-tag (elt entries idx))))
+                :predisplay-function
+                entry-string
+                :preamble-function
+                (lambda () "Choose symbol\n\n"))))))))
 
 (defun eproj-symbnav/go-back ()
   (interactive)

@@ -1327,6 +1327,7 @@ the current buffer."
   (interactive "p")
   (other-frame (- n)))
 
+(autoload 'remove-duplicates-from-sorted-list-by "common-heavy" "" nil)
 
 (provide 'common)
 
