@@ -27,20 +27,6 @@
 (require 'haskell-outline)
 (require 'haskell-shm)
 
-(setf shm-insert-space-after-comma t
-      shm-indent-point-after-adding-where-clause t
-      shm-colon-enabled t
-      shm-indent-use-chris-done-if-indent-style nil
-      inferior-haskell-find-project-root nil
-      ghc-core-program-args '("-O2"
-                              "-dsuppress-uniques"
-                              "-dsuppress-idinfo"
-                              "-dsuppress-module-prefixes"
-                              ;; "-dsuppress-type-signatures"
-                              "-dsuppress-type-applications"
-                              "-dsuppress-coercions")
-      )
-
 ;; ;; prevent paredit from reindenting Haskell lines
 ;; (dolist (func '(indent-region
 ;;                 indent-sexp
@@ -155,36 +141,11 @@
     ("g c c"   haskell-comment-node)
     (", c"     ghc-core-create-core)
     ("="       input-unicode)
-    ("SPC SPC" switch-to-haskell)
+    ("SPC SPC" haskell-interactive-switch)
     ("g g ("   shm/wrap-parens)
     ("g w"     shm/goto-where))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"       shm/hyphen)
-    ("#"       shm/hash)
-    (","       shm/comma)
-    (":"       shm/:)
-    ("="       shm/=)
-
-    ("C-="     input-unicode)
-
-    ("+"       shm/+)
-    ("*"       shm/*)
-    ("="       shm/=)
-    ("<"       shm/<)
-    (">"       shm/>)
-    ("!"       shm/!)
-    ("@"       shm/@)
-    ("$"       shm/$)
-    ("%"       shm/%)
-    ("^"       shm/^)
-    ("&"       shm/&)
-
-    ("/"       shm//)
-    ("?"       shm/?)
-    ("|"       shm/|)
-    ("\\"      shm/\\)
-    ("~"       shm/~))
+  (haskell-bind-shm-bindings)
 
   (def-keys-for-map (vim:visual-mode-local-keymap
                      vim:insert-mode-local-keymap)
@@ -204,20 +165,20 @@
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
     ("<return>"        haskell-newline)
-    ("<f6>"            inferior-haskell-load-file)
+    ("<f6>"            haskell-process-load-or-reload)
     ("<f9>"            haskell-compile)
     ("C-<f6>"          haskell-clear-buffer-and-load-file)
     ("S-<f9>"          hs-lint))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    (", ?"     haskell-help-for-symbol-at-point)
-    (", t"     haskell-type)
-    (", i"     haskell-info)
-    (", h"     haskell-haddock-identifier)
-    (", m"     haskell-haddock-module)
-    (", g"     haskell-hoogle-at-point)
-    (", y"     haskell-hayoo-at-point)
+    ;; (", ?"     haskell-help-for-symbol-at-point)
+    ;; (", t"     haskell-type)
+    ;; (", i"     haskell-info)
+    ;; (", h"     haskell-haddock-identifier)
+    ;; (", m"     haskell-haddock-module)
+    ;; (", g"     haskell-hoogle-at-point)
+    ;; (", y"     haskell-hayoo-at-point)
 
     ("*"       search-for-haskell-symbol-at-point-forward)
     ("#"       search-for-haskell-symbol-at-point-backward)
@@ -333,11 +294,46 @@
     ("S-<up>"   compilation-jump-to-prev-error)
     ("S-<down>" compilation-jump-to-next-error))
 
-  (haskell-abbrev+-setup)
-  (setup-eproj-symbnav))
+  (haskell-abbrev+-setup :repl t))
 
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 
+(defun haskell-interactive-mode-setup ()
+  ;; undo-tree is useless for ghci interaction
+  ;; well I'm not sure now, I hope it's useful since it proved itself useful
+  ;; for other repls
+  ;; (undo-tree-mode -1)
+  (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil)
+  (init-repl :create-keymaps t :bind-return nil :bind-vim:motion-current-line nil)
+  (haskell-bind-shm-bindings)
+
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC"  haskell-interactive-clear-prompt))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap
+                     haskell-interactive-mode-map)
+    ("M-p"      browse-kill-ring)
+    ("C-M-p"    browse-haskell-interactive-input-history)
+    ;; ("<return>" inf-haskell-send-input-or-jump-to-error)
+    )
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     haskell-interactive-mode-map)
+    ("C-SPC"    haskell-interactive-clear-buffer-above-prompt)
+    ("C-w"      backward-delete-word)
+    ("C-S-w"    backward-delete-word*)
+
+    ("<up>"     haskell-interactive-mode-history-previous)
+    ("<down>"   haskell-interactive-mode-history-next)
+    ("<tab>"    haskell-interactive-mode-tab)
+
+    ("S-<up>"   haskell-interactive-jump-to-prev-prompt)
+    ("S-<down>" haskell-interactive-jump-to-next-prompt))
+
+  (haskell-abbrev+-setup :repl t))
+
+(add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
 
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
