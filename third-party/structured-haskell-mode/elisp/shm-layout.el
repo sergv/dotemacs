@@ -117,11 +117,14 @@ for top-level functions and things like that."
 
 (defun shm-insert-string (string)
   "Insert the given string."
-  (save-excursion
-    (shm-appropriate-adjustment-point 'forward)
-    (shm-adjust-dependents (point) (length string)))
-  (insert string)
-  (shm/init t))
+  (if structured-haskell-mode
+    (progn
+      (save-excursion
+        (shm-appropriate-adjustment-point 'forward)
+        (shm-adjust-dependents (point) (length string)))
+      (insert string)
+      (shm/init t))
+    (insert string)))
 
 (defun shm-insert-indented (do-insert &optional no-adjust-dependents)
   "Insert, indented in The Right Way. Calls DO-INSERT to do the insertion.
