@@ -136,3 +136,6 @@
 [submodule "third-party/emacs_bat"]
 	path = third-party/emacs_bat
 	url = https://github.com/timepp/emacs_bat.git
+[submodule "third-party/ghc-mod"]
+	path = third-party/ghc-mod
+	url = https://github.com/kazu-yamamoto/ghc-mod.git
