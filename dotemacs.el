@@ -239,6 +239,7 @@
 (load-library "misc-autoloads")
 (load-library "eproj-setup")
 (load-library "xilinx-setup")
+(load-library "diff-mode-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
