@@ -254,7 +254,8 @@
     ("Safe" "Enable the Safe Haskell Safe mode." "")
     ("Trustworthy" "Enable the Safe Haskell Trustworthy mode." "")
     ("Unsafe" "Enable Safe Haskell Unsafe mode." "")
-    ("TupleSections" "Enable tuple sections" ""))
+    ("TupleSections" "Enable tuple sections" "")
+    ("NondecreasingIndentation" "Enable nondecreasing indentation in do blocks" ""))
   "List of Haskell extensions for GHC 7.6.3 release.
 
 See http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
