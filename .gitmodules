@@ -131,11 +131,8 @@
         path = third-party/mmm-mode
         url = https://github.com/purcell/mmm-mode.git
 [submodule "third-party/happy-mode"]
-	path = third-party/happy-mode
-	url = https://github.com/sergv/happy-mode.git
+        path = third-party/happy-mode
+        url = https://github.com/sergv/happy-mode.git
 [submodule "third-party/emacs_bat"]
-	path = third-party/emacs_bat
-	url = https://github.com/timepp/emacs_bat.git
-[submodule "third-party/ghc-mod"]
-	path = third-party/ghc-mod
-	url = https://github.com/kazu-yamamoto/ghc-mod.git
+        path = third-party/emacs_bat
+        url = https://github.com/timepp/emacs_bat.git
