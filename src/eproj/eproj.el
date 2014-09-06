@@ -48,12 +48,38 @@
 
 ;;; eproj-tag
 
-(defstruct (eproj-tag
-            (:conc-name eproj-tag/))
-  symbol ;; == name - string
-  file ;; string
-  line ;; number
-  properties)
+;; use this to debug type errors
+;; (defstruct (eproj-tag
+;;             (:conc-name eproj-tag/))
+;;   symbol ;; == name - string
+;;   file   ;; string
+;;   line   ;; number
+;;   properties)
+
+;; (fmakunbound 'make-eproj-tag)
+
+(defsubst make-eproj-tag (symbol file line props)
+  (cons symbol (cons file (cons line props))))
+
+(defsubst eproj-tag-p (tag-struct)
+  (and (consp tag-struct)
+       (stringp (car tag-struct))
+       (consp (cdr tag-struct))
+       (stringp (cadr tag-struct))
+       (consp (cddr tag-struct))
+       (integerp (caddr tag-struct))))
+
+(defsubst eproj-tag/symbol (tag-struct)
+  (car tag-struct))
+
+(defsubst eproj-tag/file (tag-struct)
+  (cadr tag-struct))
+
+(defsubst eproj-tag/line (tag-struct)
+  (caddr tag-struct))
+
+(defsubst eproj-tag/properties (tag-struct)
+  (cdddr tag-struct))
 
 ;;; eproj languages
 
@@ -181,22 +207,36 @@
                      (buffer-substring-no-properties (point-min) (point-max))))))))
     (message "ctags executable not found")))
 
+(defparameter eproj/ctags-string-cache
+  (make-hash-table :test #'equal :size 997 :weakness t))
+
+(defsubst eproj/ctags-cache-string (x)
+  (assert (string? x))
+  (if-let (cached-x (gethash x eproj/ctags-string-cache))
+    cached-x
+    (puthash x x eproj/ctags-string-cache)))
+
 (defun eproj/ctags-get-tags-from-buffer (buffer &optional root simple-format?)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command.
 
 If SIMPLE-FORMAT? is t then do not attempt to parse <key>=<value> pairs
-after ;\", and expect single character there instead."
+after ;\", and expect single character there instead (this won't be checked at
+runtime but rather will be silently relied on)."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
-      (let ((tags-table (make-hash-table :test #'equal)))
+      (let ((tags-table (make-hash-table :test #'equal))
+            (root-prefix (when root (concat root "/")))
+            (fields-re (concat "^\\(" +ctags-aux-fields-re+ "\\):\\(.*\\)$")))
         (while (not (eob?))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
                      (looking-at +ctags-line-re+))
-            (let ((symbol (match-string-no-properties 1))
-                  (file (concat (when root (concat root "/"))
-                                (match-string-no-properties 2)))
+            (let ((symbol (eproj/ctags-cache-string
+                           (match-string-no-properties 1)))
+                  (file (eproj/ctags-cache-string
+                         (concat root-prefix
+                                 (match-string-no-properties 2))))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"
@@ -206,25 +246,24 @@ after ;\", and expect single character there instead."
                      (fields
                       (if simple-format?
                         (list (cons 'type
-                                    (trim-whitespace fields-str)))
+                                    (eproj/ctags-cache-string
+                                     (trim-whitespace fields-str))))
                         (delq nil
                               (map (lambda (entry)
-                                     (if (string-match? (concat "^\\("
-                                                                +ctags-aux-fields-re+
-                                                                "\\):\\(.*\\)$")
-                                                        entry)
+                                     (if (string-match? fields-re entry)
                                        (let ((identifier (match-string-no-properties 1 entry))
                                              (value (match-string-no-properties 2 entry)))
                                          ;; when value is nonempty
                                          (when (< 0 (length value))
-                                           (cons (string->symbol identifier) value)))
+                                           (cons (string->symbol identifier)
+                                                 (eproj/ctags-cache-string value))))
                                        (error "invalid entry: %s" entry)))
                                    (split-string fields-str "\t" t)))))
                      (new-tag (make-eproj-tag
-                               :symbol symbol
-                               :file (common/registered-filename file)
-                               :line line
-                               :properties fields)
+                               symbol
+                               (common/registered-filename file)
+                               line
+                               fields)
                               ;; (make-ctags-tag
                               ;;  :symbol     symbol
                               ;;  :file-idx   (ctags-file->id file)
@@ -335,7 +374,8 @@ after ;\", and expect single character there instead."
                                 root
                                 files
                                 (current-buffer))
-      (eproj/ctags-get-tags-from-buffer (current-buffer)))))
+      (prog1 (eproj/ctags-get-tags-from-buffer (current-buffer))
+        (erase-buffer)))))
 
 (defun eproj/load-haskell-project (proj files)
   "Load haskell project PROJ according to definitions in .eproj-info file.
@@ -344,6 +384,7 @@ Note: old tags file is removed before calling update command."
   (assert (eproj-project-p proj))
   (if-let (tag-file (cadr-safe
                      (assoc 'tag-file (eproj-project/aux-info proj))))
+    ;; this case is somewhat dated as tag-files are not used anymore
     (begin
       (assert (string? tag-file))
       (when-let (existing-tag-file
@@ -381,27 +422,32 @@ Note: old tags file is removed before calling update command."
       (when (null? *fast-tags-exec*)
         (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
       (with-temp-buffer
-        (let ((out-buffer (current-buffer))
-              (ext-re (eproj-language/extension-re
-                       (gethash 'haskell-mode eproj/languages-table))))
-          (with-temp-buffer
-            (dolist (file files)
-              (when (string-match-pure? ext-re file)
-                (insert file "\0")))
-            (when (not (= 0
-                          (call-process-region (point-min)
-                                               (point-max)
-                                               *fast-tags-exec*
-                                               nil
-                                               out-buffer
-                                               nil
-                                               "-0"
-                                               "-o-"
-                                               "--nomerge")))
-              (error "fast-tags invokation failed: %s"
-                     (with-current-buffer out-buffer
-                       (buffer-substring-no-properties (point-min) (point-max)))))
-            (eproj/ctags-get-tags-from-buffer out-buffer nil t))))
+        (with-disabled-undo
+         (with-inhibited-modification-hooks
+          (let ((out-buffer (current-buffer))
+                (ext-re (eproj-language/extension-re
+                         (gethash 'haskell-mode eproj/languages-table))))
+            (with-temp-buffer
+              (with-disabled-undo
+               (with-inhibited-modification-hooks
+                (dolist (file files)
+                  (when (string-match-pure? ext-re file)
+                    (insert file "\0")))
+                (when (not (= 0
+                              (call-process-region (point-min)
+                                                   (point-max)
+                                                   *fast-tags-exec*
+                                                   nil
+                                                   out-buffer
+                                                   nil
+                                                   "-0"
+                                                   "-o-"
+                                                   "--nomerge")))
+                  (error "fast-tags invokation failed: %s"
+                         (with-current-buffer out-buffer
+                           (buffer-substring-no-properties (point-min) (point-max)))))))
+              (erase-buffer)
+              (eproj/ctags-get-tags-from-buffer out-buffer nil t))))))
       ;; (message "Warning: no tag file for haskell project %s"
       ;;          (eproj-project/root proj))
       )))
@@ -605,7 +651,8 @@ Note: old tags file is removed before calling update command."
   (interactive)
   (setf *eproj-projects* (make-hash-table :test #'equal))
   ;; do not forget to reset cache
-  (eproj/reset-buffer-local-cache))
+  (eproj/reset-buffer-local-cache)
+  (garbage-collect))
 
 (defun eproj-update-projects ()
   "Update projects in database `*eproj-projects*'."
@@ -620,6 +667,7 @@ Note: old tags file is removed before calling update command."
   (eproj-reload-project! (eproj-get-project-for-buf (current-buffer)))
   (message "done"))
 
+;; careful: quite complex procedure
 (defun eproj-update-buffer-tags ()
   "Update tags only for current buffer in project that contains it."
   (interactive)
@@ -1025,7 +1073,9 @@ variable or symbol 'unresolved.")
    #'string?))
 
 (defvar-local eproj/buffer-project-cache nil
-  "Is set to project that corresponds to buffer containing this variable or
+  "Caches value computed by `eproj-get-project-for-buf'.
+
+Set to project that corresponds to buffer containing this variable or
 symbol 'unresolved.")
 
 (defun eproj-get-project-for-buf (buffer)

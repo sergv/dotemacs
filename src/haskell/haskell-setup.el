@@ -53,7 +53,6 @@
                :use-nxhtml-menu nil
                :use-comment t
                :use-render-formula t)
-
   (add-hook 'after-save-hook
             (lambda ()
               (ignore-errors

@@ -322,9 +322,7 @@ default into prompt."
   "Return non-nil if Nth group matched."
   (match-beginning n))
 
-(defun re-group-matched? (n)
-  "Return non-nil if Nth group matched."
-  (match-beginning n))
+(defalias 're-group-matched? #'re-group-matchedp)
 
 
 (defun constantly (x)
