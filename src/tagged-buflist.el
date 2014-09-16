@@ -70,7 +70,7 @@ treated as a list of tags; otherwise it should be list of plain tags."
 
 ;;;; tag definitions
 
-(defconst +common-buffer-tags+
+(defparameter +common-buffer-tags+
   (let ((basic-tags
          (map (lambda (entry)
                 (make-buffer-tag :name (first entry)
@@ -115,10 +115,14 @@ treated as a list of tags; otherwise it should be list of plain tags."
                       :major-modes '(agda2-mode
                                      coq-mode
                                      idris-mode)
-                      :name-regexp (rx "*"
-                                       (or "agda" "coq" "idris")
-                                       "*"
-                                       (? "<" (+ digit) ">"))))
+                      :name-regexp (rx (or "*Agda information*"
+                                           (seq "*"
+                                                (or (seq "agda"
+                                                         (? "2"))
+                                                    "coq"
+                                                    "idris")
+                                                "*"
+                                                (? "<" (+ digit) ">"))))))
                (list "HDL"
                      (make-buf-tag-pred
                       :major-modes '(verilog-mode
@@ -131,7 +135,8 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                      nrepl-popup-buffer-mode
                                      nrepl-macroexpansion-minor-mode
                                      nrepl-interaction-mode
-                                     nrepl-popup-buffer-mode)
+                                     nrepl-popup-buffer-mode
+                                     kibit-check-mode)
                       :or-expr-in-buffer
                       (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
                            (memq major-mode '(text-mode
@@ -608,6 +613,8 @@ cover buffer's name, for groups it would not cover section's name."
 (defparameter tagged-buflist/buffers nil
   "List of `tagged-buffer' structs of buffers currently shown.")
 
+;; I have no idea what this is about...
+;;
 ;; Note that single tagged buffer may be represented in several sections
 ;; but section cannot be referenced from more than one tagged buffer.
 (defstruct (tagged-buffer
