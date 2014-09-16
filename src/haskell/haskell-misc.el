@@ -370,13 +370,6 @@ we load it."
 
 ;;;; custom queries to inferior-haskell
 
-(haskell/make-query-to-inferior haskell-type               inferior-haskell-type t)
-(haskell/make-query-to-inferior haskell-info               inferior-haskell-info)
-(haskell/make-query-to-inferior haskell-haddock-identifier inferior-haskell-haddock-identifier)
-(haskell/make-query-to-inferior haskell-haddock-module     inferior-haskell-haddock-module)
-(haskell/make-query-to-inferior haskell-hoogle-at-point    haskell-hoogle)
-(haskell/make-query-to-inferior haskell-hayoo-at-point     haskell-hayoo)
-
 ;;; define forward-haskell-symbol
 
 (defparameter forward-haskell-symbol-re
@@ -392,8 +385,6 @@ we load it."
                  (* (regexp "['a-zA-Z_0-9#]")))))))
   "Regexp to recognize haskell symbols as generic enttities for search
 (with e..g \"*\" in vim).")
-
-(bounds-of-thing-at-point 'haskell-symbol)
 
 (put 'haskell-symbol 'forward-op #'forward-haskell-symbol)
 
