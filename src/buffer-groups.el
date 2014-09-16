@@ -8,7 +8,7 @@
 ;; Common information as to how classify buffers based on ther name, major mode etc
 
 
-(defconst +buffer-groups+
+(defparameter +buffer-groups+
   (symbol-macrolet
       ((vc-filter `(or (mode . magit-mode)
                        (mode . magit-commit-mode)
@@ -22,6 +22,7 @@
                        (mode . magit-status-mode)
                        (mode . magit-wazzup-mode)
                        (mode . gitignore-mode)
+                       (mode . gitconfig-mode)
                        (name . ,(rx bol "*magit" (* nonl) "*" eol))))
        (haskell-filter `(or (mode . haskell-mode)
                             (mode . literate-haskell-mode)
@@ -33,10 +34,21 @@
                             (mode . haskell-hugs-mode)
                             (mode . ghc-core-mode)
                             (mode . hugs-mode)
-                            (name . ,(rx "*haskell*"
-                                         (? "<"
-                                            (+ digit)
-                                            ">")))))
+                            (name . ,(rx "*"
+                                         (or "haskell" "ghci")
+                                         "*"
+                                         (? "<" (+ digit) ">")))))
+       (proof-assistants-filter `(or (mode . agda2-mode)
+                                     (mode . coq-mode)
+                                     (mode . idris-mode)
+                                     (name . ,(rx (or "*Agda information*"
+                                                      (seq "*"
+                                                           (or (seq "agda"
+                                                                    (? "2"))
+                                                               "coq"
+                                                               "idris")
+                                                           "*"
+                                                           (? "<" (+ digit) ">")))))))
        (hdl-filter `(or (mode . verilog-mode)
                         (mode . vhdl-mode)
                         (mode . ucf-mode)))
@@ -63,7 +75,9 @@
                           (mode . c++-mode)
                           (mode . glsl-mode)))
        (ocaml-filter `(or (mode . tuareg-mode)
-                          (mode . tuareg-interactive-mode)))
+                          (mode . tuareg-interactive-mode)
+                          (name . ,(rx "*ocaml-toplevel*"
+                                       (? "<" (+ digit) ">")))))
        (octave-filter `(or (mode . octave-mode)
                            (mode . inferiro-octave-mode)
                            (name . ,(rx "*Octave*"
@@ -246,6 +260,7 @@
                           (predicate . t))))
     `(("vc"         ,vc-filter)
       ("haskell"    ,haskell-filter)
+      ("proof assistants" ,proof-assistants-filter)
       ("hdl"        ,hdl-filter)
       ("clojure"    ,clojure-filter)
       ("emacs lisp" ,emacs-lisp-filter)
