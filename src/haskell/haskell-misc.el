@@ -508,6 +508,7 @@ return nil otherwise."
   (interactive)
   (when (buffer-live-p inferior-haskell-buffer)
     (with-current-buffer inferior-haskell-buffer
+      (goto-char (point-max))
       (comint-clear-buffer-above-prompt)))
   (inferior-haskell-load-file))
 
