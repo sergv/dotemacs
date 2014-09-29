@@ -1011,8 +1011,8 @@ PATH as its part. Returns nil if nothing found."
                                           (> (funcall get-root-length a)
                                              (funcall get-root-length b))))))
         (assert (not (null? sorted-roots)))
-        (values (car (car sorted-roots))
-                (cdr (car sorted-roots))))
+        (values (caar sorted-roots)
+                (cdar sorted-roots)))
       nil)))
 
 (defun eproj-get-initial-project-root-and-type (path)
