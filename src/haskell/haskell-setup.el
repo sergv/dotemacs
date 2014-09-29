@@ -359,6 +359,20 @@
 
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 
+(defun hs-lint-setup ()
+  (setq-local *compilation-jump-error-regexp*
+              hs-lint-regex)
+  (let ((hs-lint-regex-orig
+         "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): %s:.*[\n\C-m]Found:[\n\C-m]\\s +.*[\n\C-m]Why not:[\n\C-m]\\s +.*[\n\C-m]"))
+    (setq-local compilation-error-regex-alist
+                (list
+                 (list (format hs-lint-regex-orig "Error")
+                       1 2 3 2)
+                 (list (format hs-lint-regex-orig "Warning")
+                       1 2 3 1)))))
+
+(add-hook 'hs-lint-setup-hook #'hs-lint-setup)
+
 (provide 'haskell-setup)
 
 ;; Local Variables:
