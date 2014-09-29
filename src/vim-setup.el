@@ -85,7 +85,6 @@ like \"d w\".")
   ("g *"     search-for-word-at-point-forward)
   ("g #"     search-for-word-at-point-backward)
 
-  ("C-h"     search-toggle-highlighting)
   ("-"       vim:cmd-negate-or-paste-pop)
   ("+"       vim:cmd-paste-pop-next)
   ("X"       vim:cmd-delete-char-backward)
@@ -124,7 +123,13 @@ like \"d w\".")
 
   ("<home>"  vim:motion-bwd-paragraph)
   ("<end>"   vim:motion-fwd-paragraph)
-  (","       nil))
+  (","       nil)
+
+  ("C-h"     search-toggle-highlighting)
+  ;; rebind "C-h" for terminals that refuse to send "C-h" and
+  ;; send "C-<backspace>" instead
+  ("C-<backspace>" search-toggle-highlighting)
+  ("<C-backspace>" search-toggle-highlighting))
 
 ;;; normal mode keybindigs
 

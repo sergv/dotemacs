@@ -35,7 +35,11 @@
     ("?"   search-start-backward)
     ("k"   search-next)
     ("K"   search-prev)
-    ("C-h" search-toggle-highlighting))
+    ("C-h" search-toggle-highlighting)
+    ;; rebind "C-h" for terminals that refuse to send "C-h" and
+    ;; send "C-<backspace>" instead
+    ("C-<backspace>" search-toggle-highlighting)
+    ("<C-backspace>" search-toggle-highlighting))
   "Vi key for searching from search.el, probably should not be used without
 `+vim-special-keys+'.")
 
