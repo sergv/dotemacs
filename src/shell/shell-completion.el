@@ -1757,6 +1757,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--version")
         (args (pcomplete-here (pcomplete-entries)))))
 
+(defalias 'pcomplese/l #'pcomplete/ls)
+(defalias 'pcomplese/la #'pcomplete/ls)
+(defalias 'pcomplese/ll #'pcomplete/ls)
+
 ;;;###autoload
 (defpcmpl pcomplete/cat
   (opts (flags "--help")
