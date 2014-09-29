@@ -85,8 +85,8 @@ outputWith action typ exts code =
 output :: Action -> Parser -> [Extension] -> String -> IO ()
 output action parser exts code =
   case parser mode code of
-    ParseFailed _ e -> error e
-    ParseOk (D ast) ->
+    ParseFailed loc e -> error $ show loc ++ ":" ++ e
+    ParseOk (D ast)   ->
       case action of
         Check -> return ()
         Parse ->
@@ -126,7 +126,8 @@ fix ast = fromMaybe ast (applyFixities baseFixities ast)
 parseMode :: ParseMode
 parseMode =
   defaultParseMode {extensions = defaultExtensions
-                   ,fixities = Nothing}
+                   -- ,fixities = Nothing
+                   }
 
 -- | Generate a list of spans from the HSE AST.
 genHSE :: Data a => ParseMode -> a -> [String]
