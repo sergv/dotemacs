@@ -73,6 +73,8 @@
     ("g r"   rgrep-wrapper)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)
+    ("g b"   tagged-buflist-show)
+    ("g B"   tagged-buflist-show-select-current-buf)
 
     ("g <"   vim-mock:motion-go-to-first-non-blank-beg)
     ("g >"   vim-mock:motion-go-to-first-non-blank-end)
