@@ -194,14 +194,15 @@
 
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("g a"     nil)
-    ("g a ="   haskell-align-on-equals)
-    ("g a - >" haskell-align-on-arrows)
-    ("g a < -" haskell-align-on-left-arrows)
-    ("g a |"   haskell-align-on-guards)
-    ("g a ,"   haskell-align-on-commas)
-    ("g a - -" haskell-align-on-comments)
-    ("g a : :" haskell-align-on-double-colons))
+    ("g a"       nil)
+    ("g a ="     haskell-align-on-equals)
+    ("g a - >"   haskell-align-on-arrows)
+    ("g a < -"   haskell-align-on-left-arrows)
+    ("g a |"     haskell-align-on-guards)
+    ("g a ,"     haskell-align-on-commas)
+    ("g a - -"   haskell-align-on-comments)
+    ("g a : :"   haskell-align-on-double-colons)
+    ("g a # - }" haskell-align-on-pragma-close))
 
   (def-keys-for-map vim:operator-pending-mode-local-keymap
     ("in" vim:motion-inner-haskell-node)
