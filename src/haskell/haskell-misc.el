@@ -367,6 +367,8 @@ we load it."
 
 (make-align-function haskell-align-on-double-colons
                      "\\(?:::[^:]\\|∷\\)")
+(make-align-function haskell-align-on-pragma-close
+                     "#-}")
 
 ;;;; custom queries to inferior-haskell
 
