@@ -13,6 +13,7 @@
 (setf mmm-global-mode 'maybe
       mmm-submode-decoration-level 0)
 
+(add-to-list 'auto-mode-alist '("\\.alex\\'" . alex-mode))
 (add-to-list 'auto-mode-alist '("\\.x\\'" . alex-mode))
 (mmm-add-mode-ext-class 'alex-mode "\\.x\\'" 'haskell-blocks)
 
@@ -23,7 +24,10 @@
 
 (defun haskell-grammar-tools-setup ()
   (init-common :use-yasnippet nil :use-render-formula nil)
-  (hs-minor-mode 1))
+  (hs-minor-mode 1)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<f9>" haskell-compile)))
 
 (add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
 (add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
