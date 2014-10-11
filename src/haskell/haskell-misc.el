@@ -55,6 +55,8 @@
                   ;; llvm
                   ;; "-fllvm -optlc-O3 -optlo-O3 "
                   "-c \"%s\""))
+      haskell-compile-cabal-build-command
+      "cd %s && cabal build --ghc-option=-ferror-spans && cabal test --show-details=always"
       ;; 'cabal-repl is good as well
       haskell-process-type 'ghci
       haskell-process-path-ghci

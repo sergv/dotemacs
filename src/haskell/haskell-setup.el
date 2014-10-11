@@ -140,7 +140,7 @@
     ("g c c"   haskell-comment-node)
     (", c"     ghc-core-create-core)
     ("="       input-unicode)
-    ("SPC SPC" haskell-interactive-switch)
+    ("SPC SPC" switch-to-haskell)
     ("g g ("   shm/wrap-parens)
     ("g w"     shm/goto-where))
 
@@ -164,7 +164,7 @@
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
     ("<return>"        haskell-newline)
-    ("<f6>"            haskell-process-load-or-reload)
+    ("<f6>"            inferior-haskell-load-file)
     ("<f9>"            haskell-compile)
     ("C-<f6>"          haskell-clear-buffer-and-load-file)
     ("S-<f9>"          hs-lint))
