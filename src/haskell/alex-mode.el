@@ -39,41 +39,32 @@
     tbl)
   "Syntax table in use in alex-mode buffers.")
 
-(defconst alex-mode-rule-start-regexp
-  (rxx ((ws (* (any ?\s ?\t)))
-        (ws-nl (* (any ?\s ?\t ?\n ?\r))))
-    bol
-    ws
-    (+ (or (syntax word)
-           (syntax symbol)))
-    ws
-    (? "::"
-       ws
-       "{"
-       (* (not (any ?\})))
-       "}"
-       ws-nl)
-    ":"))
-(defconst alex-mode-rule-start-or-body-regexp
-  "^[ \t]*\\(?:\\(?:\\s_\\|\\sw\\)+[ \t]*:\\||\\)")
-
-(defparameter (setf alex-mode-font-lock-keywords
-              `((,(rx (or "%wrapper"
-                          ":-"))
-                 (0 'font-lock-keyword-face))
-                (,(rx bol
-                      "<"
-                      (+ (regexp "[^>]"))
-                      ">")
-                 (0 'font-lock-function-name-face))
-                (,(rx (or "$"
-                          "@"
-                          ";"
-                          "["
-                          "]"
-                          "\\"
-                          "^"))
-                 (0 'font-lock-constant-face))))
+(defparameter alex-mode-font-lock-keywords
+  `((,(rx (or "%wrapper"
+              ":-"))
+     (0 'font-lock-keyword-face))
+    (,(rx bol
+          "<"
+          (+ (regexp "[^>]"))
+          ">")
+     (0 'font-lock-function-name-face))
+    (,(rx (or (seq (or "$"
+                       "@")
+                   (* (regexp "[a-zA-Z_]")))
+              "["
+              "]"
+              "\\"
+              "^"))
+     (0 'font-lock-constant-face))
+    ;; regexp metacharacters
+    (,(rx (or "*"
+              "+"
+              "."
+              "|"
+              "\\"
+              "("
+              ")"))
+     (0 'font-lock-negation-char-face)))
   "Highlight definitions of alex distinctive constructs for font-lock.")
 
 
