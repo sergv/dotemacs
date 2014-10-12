@@ -25,6 +25,12 @@
 (defun haskell-grammar-tools-setup ()
   (init-common :use-yasnippet nil :use-render-formula nil)
   (hs-minor-mode 1)
+  (setq-local vim:shift-width 2)
+  (setq-local standard-indent 2)
+  (setq-local tab-always-indent t)
+  (setq-local indent-line-function
+              (lambda ()
+                (indent-to standard-indent)))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile)))
