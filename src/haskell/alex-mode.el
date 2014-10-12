@@ -61,6 +61,7 @@
               "+"
               "."
               "|"
+              "?"
               "\\"
               "("
               ")"))
@@ -68,7 +69,7 @@
   "Highlight definitions of alex distinctive constructs for font-lock.")
 
 
-(define-derived-mode alex-mode prog-mode "Happy"
+(define-derived-mode alex-mode prog-mode "Alex"
   ""
   (set (make-local-variable 'font-lock-defaults)
        '(alex-mode-font-lock-keywords
