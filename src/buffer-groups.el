@@ -165,14 +165,6 @@
                                         (? "<"
                                            (+ digit)
                                            ">")))))
-       (maxima-filter `(or (mode . maxima-mode)
-                           (mode . maxima-noweb-mode)
-                           (mode . inferior-maxima-mode)
-                           (name . ,(rx (or "*maxima*"
-                                            "*imaxima*")
-                                        (? "<"
-                                           (+ digit)
-                                           ">")))))
        (org-filter     `(or (mode . org-mode)
                             (mode . org-agenda-mode)
                             (mode . diary-mode)
@@ -275,7 +267,6 @@
       ("scheme"     ,scheme-filter)
 
       ("prolog"     ,prolog-filter)
-      ("maxima"     ,maxima-filter)
 
       ("org"        ,org-filter)
       ("books"      ,book-filter)

@@ -10,8 +10,7 @@
 (require 'cc-setup)
 
 (defun cuda-setup ()
-  (cc-setup :define-special-keys nil
-            :use-c-eldoc nil)
+  (cc-setup :define-special-keys nil)
   (cc-setup/set-up-c-basic-offset)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (setup-eproj-symbnav)

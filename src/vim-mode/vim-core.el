@@ -178,24 +178,17 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   (get cmd 'function))
 
 
-(defmacro vim:apply-save-buffer (&rest args)
+(defmacro vim:apply-save-buffer (func &rest args)
   "Like `apply' but stores the current buffer."
-  (let ((ret (make-symbol "ret")))
-    `(progn
-       (save-current-buffer
-         (let ((,ret (apply ,@args)))
-           (setq vim:new-buffer (current-buffer))
-           ,ret)))))
+  `(save-current-buffer
+     (prog1 (apply ,func ,@args)
+       (setq vim:new-buffer (current-buffer)))))
 
-
-(defmacro vim:funcall-save-buffer (&rest args)
+(defmacro vim:funcall-save-buffer (func &rest args)
   "Like `funcall' but stores the current buffer."
-  (let ((ret (make-symbol "ret")))
-    `(progn
-       (save-current-buffer
-         (let ((,ret (funcall ,@args)))
-           (setq vim:new-buffer (current-buffer))
-           ,ret)))))
+  `(save-current-buffer
+     (prog1 (funcall ,func ,@args)
+       (setq vim:new-buffer (current-buffer)))))
 
 (defun vim:select-register ()
   "Sets the register for the next command."
@@ -428,19 +421,20 @@ the perfect point to do some house-keeping."
   ;;   (vim:clear-key-sequence)
   ;;   (vim:adjust-point)
   ;;   (vim:activate-normal-mode))
-
-  (condition-case err
-      (funcall vim:active-command-function cmd)
-    (error
-     (vim:reset-key-state)
-     (vim:clear-key-sequence)
-     (vim:adjust-point)
-     (vim:activate-normal-mode)
-     (message "vim:execute-command: error: %s\nvim:active-command-function: %s\ncmd: %s"
-              err
-              vim:active-command-function
-              cmd)
-     (signal (car err) (cdr err)))))
+  (funcall vim:active-command-function cmd)
+  ;; (condition-case err
+  ;;     (funcall vim:active-command-function cmd)
+  ;;   (error
+  ;;    (vim:reset-key-state)
+  ;;    (vim:clear-key-sequence)
+  ;;    (vim:adjust-point)
+  ;;    (vim:activate-normal-mode)
+  ;;    (message "vim:execute-command: error: %s\nvim:active-command-function: %s\ncmd: %s"
+  ;;             err
+  ;;             vim:active-command-function
+  ;;             cmd)
+  ;;    (signal (car err) (cdr err))))
+  )
 
 
 

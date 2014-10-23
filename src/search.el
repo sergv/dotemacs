@@ -338,7 +338,7 @@ obvious"
         (non-strict-var (gensym "non-strict")))
     `(defun ,name (&optional ,non-strict-var)
        (interactive (list current-prefix-arg))
-       (let ((,bounds-var (funcall ,bounds-func)))
+       (let ((,bounds-var (funcall #',bounds-func)))
          (if (null ,bounds-var)
            ,(when error-message `(error ,error-message))
            (let ((,substr-var (buffer-substring-no-properties (car ,bounds-var)
@@ -347,69 +347,69 @@ obvious"
              (goto-char (cdr ,bounds-var))
              (search-setup-search-for
               (concat (unless ,non-strict-var
-                        (funcall ,regex-start-func ,substr-var))
+                        (funcall #',regex-start-func ,substr-var))
                       (regexp-quote ,substr-var)
                       (unless ,non-strict-var
-                        (funcall ,regex-end-func ,substr-var)))
+                        (funcall #',regex-end-func ,substr-var)))
               ,direction
               :case-sensetive t)
-             (funcall ,action-after)))))))
+             (funcall #',action-after)))))))
 
 (autoload 'forward-haskell-symbol "haskell-misc" t)
 
 ;; Haskell search
 
-(let* ((forward-re "^[a-zA-Z0-9]")
-       (backward-re "[a-zA-Z0-9]$")
-       (regex-start-func (lambda (pat)
-                           (if (string-match-pure? forward-re pat)
-                             ;; Don't use \\_<,\\_> since they rely on
-                             ;; syntax table which was tampered with in haskell
-                             ;; mode so that e.g. regexp "\\_<Node" won't match
-                             ;; the input "x:Node (x - 1)".
-                             "\\<"
-                             "")))
-       (regex-end-func (lambda (pat)
-                         (if (string-match-pure? backward-re pat)
-                           "\\>"
-                           ""))))
-  (search-make-search-for-thing search-for-haskell-symbol-at-point-forward
-                                (lambda () (bounds-of-thing-at-point 'haskell-symbol))
-                                #'search-next-impl
-                                'forward
-                                :regex-start-func regex-start-func
-                                :regex-end-func regex-end-func
-                                :error-message "No symbol at point")
-  (search-make-search-for-thing search-for-haskell-symbol-at-point-backward
-                                (lambda () (bounds-of-thing-at-point 'haskell-symbol))
-                                #'search-prev-impl
-                                'backward
-                                :regex-start-func regex-start-func
-                                :regex-end-func regex-end-func
-                                :error-message "No symbol at point"))
+(defsubst search-for-haskell-symbol-at-point-regex-start-func (pat)
+  (if (string-match-pure? "^[a-zA-Z0-9]" pat)
+    ;; Don't use \\_<,\\_> since they rely on
+    ;; syntax table which was tampered with in haskell
+    ;; mode so that e.g. regexp "\\_<Node" won't match
+    ;; the input "x:Node (x - 1)".
+    "\\<"
+    ""))
+
+(defsubst search-for-haskell-symbol-at-point-regex-end-func (pat)
+  (if (string-match-pure? "[a-zA-Z0-9]$" pat)
+    "\\>"
+    ""))
+
+(search-make-search-for-thing search-for-haskell-symbol-at-point-forward
+                              (lambda () (bounds-of-thing-at-point 'haskell-symbol))
+                              search-next-impl
+                              'forward
+                              :regex-start-func search-for-haskell-symbol-at-point-regex-start-func
+                              :regex-end-func search-for-haskell-symbol-at-point-regex-end-func
+                              :error-message "No symbol at point")
+(search-make-search-for-thing search-for-haskell-symbol-at-point-backward
+                              (lambda () (bounds-of-thing-at-point 'haskell-symbol))
+                              search-prev-impl
+                              'backward
+                              :regex-start-func search-for-haskell-symbol-at-point-regex-start-func
+                              :regex-end-func search-for-haskell-symbol-at-point-regex-end-func
+                              :error-message "No symbol at point")
 
 ;; Lispocentric searches
 (search-make-search-for-thing search-for-symbol-at-point-forward
                               (lambda () (bounds-of-thing-at-point 'symbol))
-                              #'search-next-impl
+                              search-next-impl
                               'forward
                               :error-message "No symbol at point")
 
 (search-make-search-for-thing search-for-symbol-at-point-backward
                               (lambda () (bounds-of-thing-at-point 'symbol))
-                              #'search-prev-impl
+                              search-prev-impl
                               'backward
                               :error-message "No symbol at point")
 
 (search-make-search-for-thing search-for-slime-symbol-at-point-forward
-                              #'slime-bounds-of-symbol-at-point
-                              #'search-next-impl
-                              'forward
+                              slime-bounds-of-symbol-at-point
+                              search-next-impl
+                              forward
                               :error-message "No symbol at point")
 
 (search-make-search-for-thing search-for-slime-symbol-at-point-backward
-                              #'slime-bounds-of-symbol-at-point
-                              #'search-prev-impl
+                              slime-bounds-of-symbol-at-point
+                              search-prev-impl
                               'backward
                               :error-message "No symbol at point")
 
@@ -424,7 +424,7 @@ obvious"
 (search-make-search-for-thing search-for-word-at-point-forward
                               (lambda () (util:get-bounds-covered-by-vim-motion
                                           #'vim:motion-inner-word))
-                              #'search-next-impl
+                              search-next-impl
                               'forward
                               :regex-start-func (constantly "\\<")
                               :regex-end-func (constantly "\\>")
@@ -434,7 +434,7 @@ obvious"
                               (lambda ()
                                 (util:get-bounds-covered-by-vim-motion
                                  #'vim:motion-inner-word))
-                              #'search-prev-impl
+                              search-prev-impl
                               'backward
                               :regex-start-func (constantly "\\<")
                               :regex-end-func (constantly "\\>")

@@ -168,6 +168,9 @@
       magic-mode-regexp-match-limit 1000000
       suggest-key-bindings nil)
 
+(when (boundp 'ring-bell-function)
+  (setf ring-bell-function #'ignore))
+
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook
           (lambda ()
