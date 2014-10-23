@@ -355,7 +355,9 @@ in the same directory the current file is."
      (format-string-end "~%\"")
      (insert-newline-before-var-list t)
      (name-value-delimiter " = " ;; former ": "
-                           ))
+                           )
+     (variable-delimiter ", ")
+     (message-delimiter "; "))
   "Now, here's quite complicated stuff but very general too. This macro can
 solve most of debug print problems of mine.
 
@@ -418,23 +420,24 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
                       (var-name x))
                   (push x (,variable-names v1))
                   (setf result
-                        (concat msg
-                                ,name-value-delimiter
-                                ,(if (functionp format-print-value)
-                                   `(funcall ,format-print-value x)
-                                   format-print-value)))))
+                        ,(if (functionp format-print-value)
+                           `(funcall ,format-print-value x)
+                           `(concat msg
+                                    ,name-value-delimiter
+                                    ,format-print-value)))))
               ;; if anything was inserted previously then prepend
               ;; ", " or "; " to result
               (when (,previously-inserted-message v1)
                 (setf result (concat (case (,previously-inserted-message v1)
                                        (message
                                         (if message?
-                                          ", "
-                                          "; "))
+                                          ,variable-delimiter
+                                          ,message-delimiter))
                                        (variable
                                         (if message?
-                                          "; "
-                                          ", ")))
+                                          ,message-delimiter
+
+                                          ,variable-delimiter)))
                                      result)))
               (setf (,previously-inserted-message v1)
                     (if message? 'message 'variable))

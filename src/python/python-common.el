@@ -160,8 +160,6 @@ greater indenation as current line."
   (setq-local forward-sexp-function nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    (", d"     pylookup-lookup)
-    (", ?"     pylookup-lookup)
     ("<f6>"    python-shell-send-buffer)
     ("<f9>"    python-run-script)
     ("S-<f9>"  python-check)

@@ -356,6 +356,7 @@ runtime but rather will be silently relied on)."
             ("t" "Type")
             ("C" "Constructor")
             ("o" "Operator")
+            ("p" "Pattern")
             (_
              (error "Invalid haskell tag property %s"
                     (eproj-tag/properties tag))))

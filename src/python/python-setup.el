@@ -208,23 +208,6 @@ in the current *Python* session."
 
 (register-python-hideshow 'python-mode)
 
-
-;;; pylookup
-(add-to-list 'load-path (concat +emacs-config-path+
-                                "/third-party/python/pylookup/"))
-
-(setf pylookup-program (concat +emacs-config-path+
-                               "/third-party/python/pylookup/pylookup.py")
-      pylookup-db-file (concat +prog-data-path+
-                               "/pylookup.db"))
-
-(autoload 'pylookup-lookup "pylookup"
-          "Lookup SEARCH-TERM in the Python HTML indexes."
-          t)
-(autoload 'pylookup-update "pylookup"
-          "Run pylookup-update and create the database at `pylookup-db-file'."
-          t)
-
 ;;; run scripts compilation mode
 
 (defconst +python-run-error-regexp+

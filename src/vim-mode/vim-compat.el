@@ -79,17 +79,7 @@
     ;; TODO: perhaps (interactive-p) is enough?
     (if (not (fboundp 'called-interactively-p))
       '(interactive-p)
-      ;; Else, it is defined, but perhaps too old?
-      (let* ((func-obj (symbol-function 'called-interactively-p))
-             (arity (cond ((subrp func-obj) (subr-arity func-obj))
-                          ((functionp func-obj) (function-arity func-obj))
-                          (t
-                           (error "called-interactively-p is not a function or subr")))))
-        (pcase (max (or (car-safe arity) 0)
-                    (or (cdr-safe arity) 0))
-          (0 '(called-interactively-p))
-          ;; handle calls in macro as well
-          (1 '(called-interactively-p 'any))))))
+      '(called-interactively-p 'any)))
    (vim:xemacs-p '(let (executing-macro) (interactive-p)))))
 
 (vim:emacsen
@@ -332,7 +322,7 @@ of a match for REGEXP."
 
   (defun insert-for-yank (text)
     (let* ((yank-handler (and text
-                              (get-text-property 0 'yank-handler text))))
+                              (get-text-property 0 'vim:yank-handler text))))
       (if (or (null yank-handler) (null (car yank-handler)))
         (insert text)
         (funcall (car yank-handler)
@@ -341,13 +331,13 @@ of a match for REGEXP."
   (defadvice kill-new (before vim:kill-new (string &optional replace yank-handler) activate)
     "Set the yank-handler property at the given string."
     (when yank-handler
-      (put-text-property 0 (length string) 'yank-handler yank-handler string)))
+      (put-text-property 0 (length string) 'vim:yank-handler yank-handler string)))
 
   (defadvice yank (around vim:yank (&optional arg) activate)
     "Like `yank' but respects the yank-handler property."
     (let* ((text (nth (if (numberp arg) arg 0) kill-ring-yank-pointer))
            (yank-handler (and text
-                              (get-text-property 0 'yank-handler text))))
+                              (get-text-property 0 'vim:yank-handler text))))
       (if (or (null yank-handler) (null (car yank-handler)))
         ad-do-it
         (funcall (car yank-handler)
