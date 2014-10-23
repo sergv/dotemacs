@@ -110,9 +110,7 @@
 
 
 (defun c++-setup ()
-  (cc-setup :define-special-keys t
-            :use-c-eldoc nil ;; c-eldoc is too unreliable and too slow for C++
-            )
+  (cc-setup :define-special-keys t)
   (cc-setup/set-up-c-basic-offset :use-work-code-style t)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
   (when (platform-use? 'work)

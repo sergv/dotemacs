@@ -211,8 +211,8 @@ All predicates are called with full absolute paths."
   (letrec ((collect-rec
             (lambda (path accum)
               (cond
-                ((and (file-directory-p path)
-                      (not (funcall do-not-visitp path)))
+                ((and (not (funcall do-not-visitp path))
+                      (file-directory-p path))
                  (reduce (lambda (acc p)
                            (funcall collect-rec p acc))
                          (get-directory-contents path :full t)
@@ -223,7 +223,7 @@ All predicates are called with full absolute paths."
                  (cons path accum))
                 (t
                  accum)))))
-    (nreverse (funcall collect-rec path nil))))
+    (funcall collect-rec path nil)))
 
 (defun read-and-insert-filename (&optional nondir-only?)
   "Read filename with completion from user and insert it at point.

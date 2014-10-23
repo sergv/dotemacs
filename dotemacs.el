@@ -22,7 +22,6 @@
 ;; ******************************************************************
 
 ;; parts of custom
-(load-library "win-buf-utils")
 (load-library "cycle-on-lines")
 
 (load-library "common")
@@ -188,7 +187,6 @@
 (load-library "csv-setup")
 (load-library "rst-setup")
 (load-library "texinfo-setup")
-(load-library "maxima-setup")
 (load-library "yaml-mode-setup")
 (load-library "doc-view-setup")
 (load-library "lua-setup")

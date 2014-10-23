@@ -16,11 +16,6 @@
   (init-common :use-yasnippet nil))
 (add-hook 'xmodmap-mode-hook #'xmodmap-setup)
 
-
-
-(autoload 'sunrise "sunrise-commander" "MC-like two-pane commander." t)
-
-
 ;; Local Variables:
 ;; End:
 

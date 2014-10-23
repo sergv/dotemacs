@@ -17,9 +17,8 @@
 
   :indent-after-func nil
   :insert-newline-before-var-list nil
-  :msg-transform nil
 
-  :format-print-value (lambda (msg) (concat "${" msg "}"))
+  :format-print-value (lambda (msg) (concat msg " = ${" msg "}"))
   :format-string-start "\""
   :format-string-end "\""
 

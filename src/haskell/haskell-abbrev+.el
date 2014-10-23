@@ -15,25 +15,28 @@
     haskell-debug-message-skeleton
   :doc "Insert call to trace to print some variables and messages
 while interactively prompting for variables/messages."
-  :print-begin "trace (printf "
-  :print-end ") "
+  :print-begin "trace "
+  :print-end " $ "
 
   :indent-after-func nil
   :insert-newline-before-var-list nil
 
-  :format-print-value "%s"
-  :format-string-start "\""
-  ;; it is indented to not end format string with \n
-  ;; since trace macro will add newline per se
-  :format-string-end "\" "
-  :name-value-delimiter " = "
+  :format-print-value (lambda (msg) (concat "\"" msg " = \" <> show (" msg ")"))
+
+  :format-string-start "("
+  :format-string-end ")"
+  :msg-transform (lambda (x) (concat "\"" x "\""))
+  :variable-delimiter " <> \", \" <> "
+  :message-delimiter " <> \"; \" <> "
 
   :insert-entity-name-procedure (constantly nil)
-  :make-variable-list (lambda (vars)
-                        (join-lines (map (lambda (v)
-                                           (concat "(show $ " v ")"))
-                                         vars)
-                                    " ")))
+  :make-variable-list (constantly nil))
+
+(defun haskell-abbrev+-extract-first-capital-char (qualified-name)
+  (when qualified-name
+    (if (> (length qualified-name) 0)
+      (substring qualified-name 0 1)
+      qualified-name)))
 
 (defun haskell-abbrev+-extract-mod-name (qualified-name)
   "Extract module name from QUALIFIED-NAME, e.g. if QUALIFIED-NAME = Foo.Bar
@@ -52,7 +55,7 @@ then Bar would be the result."
                                      (remove nil
                                              (map #'third haskell-language-extensions))))
          (expand-qualified-import-snippet-action
-          (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-mod-name yas-text)}$0")))
+          (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
          (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
                                    haskell-extensions))
          (ghc-flags (map (lambda (x)

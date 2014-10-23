@@ -336,14 +336,20 @@ and switches to insert-mode."
     (save-excursion
       (forward-line (1- (or count 1)))
       (let ((txt (concat (buffer-substring beg (line-end-position)) "\n")))
+        (put-text-property 0
+                           (length txt)
+                           'yank-handler
+                           (list #'vim:yank-line-handler txt)
+                           txt)
+        (put-text-property 0
+                           (length txt)
+                           'vim:yank-handler
+                           #'vim:yank-line-handler
+                           txt)
         (if register
-          (progn
-            (put-text-property 0 (length txt)
-                               'yank-handler
-                               (list #'vim:yank-line-handler txt)
-                               txt)
-            (set-register register txt))
-          (kill-new txt nil (list #'vim:yank-line-handler txt)))))))
+          (set-register register txt)
+          (kill-new txt nil ;; (list #'vim:yank-line-handler txt)
+                    ))))))
 
 
 (vim:defcmd vim:cmd-yank-rectangle (motion register nonrepeatable)
@@ -367,20 +373,21 @@ and switches to insert-mode."
         (forward-line -1)))
     (let ((txt (mapconcat #'cdr parts "\n")))
       ;; `txt' contains the block as single lines
+      (put-text-property 0 (length txt)
+                         'yank-handler
+                         (list #'vim:yank-block-handler
+                               (cons (- endcol begcol -1) parts)
+                               nil
+                               #'delete-rectangle)
+                         txt)
+      (put-text-property 0 (length txt)
+                         'vim:yank-handler
+                         #'vim:yank-block-handler
+                         txt)
       (if register
         (progn
-          (put-text-property 0 (length txt)
-                             'yank-handler
-                             (list #'vim:yank-block-handler
-                                   (cons (- endcol begcol -1) parts)
-                                   nil
-                                   #'delete-rectangle)
-                             txt)
           (set-register register txt))
-        (kill-new txt nil (list #'vim:yank-block-handler
-                                (cons (- endcol begcol -1) parts)
-                                nil
-                                #'delete-rectangle))))
+        (kill-new txt nil)))
     (goto-line1 begrow)
     (move-to-column begcol)))
 
@@ -488,8 +495,8 @@ and else negates meaning of the next command (e.g. vim:cmd-join-lines will split
             (setq beg (min (point) (mark t) (or beg (point)))
                   end (max (point) (mark t) (or end (point))))))))
     (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-           (yhandler (get-text-property 0 'yank-handler txt)))
-      (when (eq (car-safe yhandler) 'vim:yank-line-handler)
+           (yhandler (get-text-property 0 'vim:yank-handler txt)))
+      (when (eq yhandler 'vim:yank-line-handler)
         ;; place cursor at for non-blank of first inserted line
         (goto-char pos)
         (vim:motion-first-non-blank)))
@@ -509,9 +516,9 @@ and else negates meaning of the next command (e.g. vim:cmd-join-lines will split
   (let ((txt (if register (vim:get-register register) (current-kill 0))))
     (unless txt
       (error "Kill-ring empty"))
-    (let ((yhandler (get-text-property 0 'yank-handler txt))
+    (let ((yhandler (get-text-property 0 'vim:yank-handler txt))
           (pos (point)))
-      (pcase (car-safe yhandler)
+      (pcase yhandler
         (`vim:yank-line-handler
          (let ((at-eob (= (line-end-position) (point-max))))
            ;; We have to take care of the special case where we cannot
@@ -552,11 +559,11 @@ If the inserted text consists of full lines those lines are
 indented according to the current mode."
   (vim:cmd-paste-before :count count :register register)
   (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-         (yhandler (get-text-property 0 'yank-handler txt)))
+         (yhandler (get-text-property 0 'vim:yank-handler txt)))
     (when (eq (car-safe yhandler) 'vim:yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
       (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-             (yhandler (get-text-property 0 'yank-handler txt)))
+             (yhandler (get-text-property 0 'vim:yank-handler txt)))
         (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
               (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
           (indent-region (vim:paste-info-begin vim:last-paste)
@@ -576,8 +583,8 @@ If the inserted text consists of full lines those lines are
 indented according to the current mode."
   (vim:cmd-paste-behind :count count :register register)
   (let* ((txt (if register (vim:get-register register) (current-kill 0)))
-         (yhandler (get-text-property 0 'yank-handler txt)))
-    (when (eq (car-safe yhandler) 'vim:yank-line-handler)
+         (yhandler (get-text-property 0 'vim:yank-handler txt)))
+    (when (eq yhandler 'vim:yank-line-handler)
       ;; We have to reindent the lines and update the paste-data.
       (let ((begln (line-number-at-pos (vim:paste-info-begin vim:last-paste)))
             (endln (line-number-at-pos (vim:paste-info-end vim:last-paste))))
