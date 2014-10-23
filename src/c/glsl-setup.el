@@ -9,7 +9,7 @@
 (require 'cc-setup)
 
 (defun glsl-setup ()
-  (cc-setup :define-special-keys nil :use-c-eldoc nil)
+  (cc-setup :define-special-keys nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     (", ?" glsl-find-man-page)))

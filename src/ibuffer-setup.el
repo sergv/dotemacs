@@ -99,7 +99,6 @@ The value from `ibuffer-saved-filter-groups' is used."
               ,(assoc "haskell"    +buffer-groups+)
               ,(assoc "prolog"     +buffer-groups+)
               ,(assoc "octave"     +buffer-groups+)
-              ,(assoc "maxima"     +buffer-groups+)
               ,(assoc "org"        +buffer-groups+))
 
              ("default"

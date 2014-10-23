@@ -26,7 +26,6 @@
 (defun cython-setup ()
   (python-common-setup)
   (def-keys-for-map vim:normal-mode-local-keymap
-    (", d"     pylookup-lookup)
     ("<f9>"    cython-compile))
 
   (pabbrev-mode 1)

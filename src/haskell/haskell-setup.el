@@ -19,7 +19,6 @@
 (require 'shell-setup)
 
 (require 'haskell-checkers)
-;; (require 'hi2)
 (require 'shm)
 
 (require 'haskell-abbrev+)
@@ -86,11 +85,6 @@
   (setq-local indent-line-function #'ignore)
   (setq-local abbrev+-fallback-function #'haskell-abbrev+-fallback-space)
 
-  ;; (turn-on-hi2)
-  ;; (setf hi2-show-indentations nil
-  ;;       hi2-show-indentations-after-eol nil
-  ;;       hi2-dyn-show-indentations nil)
-  ;;
   ;; (turn-on-haskell-simple-indent)
 
   (turn-on-haskell-doc-mode)
@@ -107,14 +101,6 @@
 
   (let ((offset 2))
     (setq-local vim:shift-width       offset)
-    (setq-local hi2-left-offset       offset)
-    (setq-local hi2-layout-offset     offset)
-    (setq-local hi2-starter-offset    offset)
-    (setq-local hi2-ifte-offset       offset)
-    (setq-local hi2-where-pre-offset  2)
-    (setq-local hi2-where-post-offset 2)
-
-    (setq-local hi2-left-offset       offset)
     (setq-local haskell-indent-offset offset)
     (setq-local haskell-indent-spaces offset)
     (setq-local shm-indent-spaces     offset))

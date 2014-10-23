@@ -81,10 +81,10 @@ how a completion matches."
     *all-chunks*))
 
 (defun swfy-recursively-compute-most-completions
-  (short full
-         short-index initial-full-index
-         chunks current-chunk current-chunk-pos
-         recurse-p)
+    (short full
+           short-index initial-full-index
+           chunks current-chunk current-chunk-pos
+           recurse-p)
   "Recursively (if RECURSE-P is true) find /most/ possible ways
 to fuzzily map the letters in SHORT onto FULL, using CHAR= to
 determine if two letters match.
@@ -107,27 +107,27 @@ onto the special variable *ALL-CHUNKS* and the function returns."
    (fixnum short-index initial-full-index)
    (simple-string short full)
    (special *all-chunks*))
-  (flet ((char= (c1 c2) (eq c1 c2))
-         (short-cur ()
-                    "Returns the next letter from the abbreviation, or NIL
+  (cl-flet ((char= (c1 c2) (eq c1 c2))
+            (short-cur ()
+                       "Returns the next letter from the abbreviation, or NIL
             if all have been used."
-                    (if (= short-index (length short))
-                      nil
-                      (aref short short-index)))
-         (add-to-chunk (char pos)
-                       "Adds the CHAR at POS in FULL to the current chunk,
+                       (if (= short-index (length short))
+                         nil
+                         (aref short short-index)))
+            (add-to-chunk (char pos)
+                          "Adds the CHAR at POS in FULL to the current chunk,
             marking the start position if it is empty."
-                       (unless current-chunk
-                         (setf current-chunk-pos pos))
-                       (push char current-chunk))
-         (collect-chunk ()
-                        "Collects the current chunk to CHUNKS and prepares for
+                          (unless current-chunk
+                            (setf current-chunk-pos pos))
+                          (push char current-chunk))
+            (collect-chunk ()
+                           "Collects the current chunk to CHUNKS and prepares for
             a new chunk."
-                        (when current-chunk
-                          (push (list current-chunk-pos
-                                      (coerce (reverse current-chunk) 'string)) chunks)
-                          (setf current-chunk nil
-                                current-chunk-pos nil))))
+                           (when current-chunk
+                             (push (list current-chunk-pos
+                                         (coerce (reverse current-chunk) 'string)) chunks)
+                             (setf current-chunk nil
+                                   current-chunk-pos nil))))
     ;; If there's an outstanding chunk coming in collect it.  Since
     ;; we're recursively called on skipping an input character, the
     ;; chunk can't possibly continue on.
@@ -365,11 +365,11 @@ match should be performed before the fuzzy match."
 (defmacro* with-swfy-timedout ((name time-in-msec) &body body)
   (let ((started (gensym)))
     `(let ((,started (current-time)))
-       (flet ((,name ()
-                     (let* ((elapsed (current-time))
-                            (negated (swfy-negate-time elapsed ,started)))
-                       (values (< ,time-in-msec negated)
-                               (- ,time-in-msec negated)))))
+       (cl-flet ((,name ()
+                        (let* ((elapsed (current-time))
+                               (negated (swfy-negate-time elapsed ,started)))
+                          (values (< ,time-in-msec negated)
+                                  (- ,time-in-msec negated)))))
          (progn ,@body)))))
 
 (defun swfy-find-matching-symbols-with-prefix-length (string

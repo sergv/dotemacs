@@ -481,7 +481,6 @@ Futher modified by Sergey Vinokurov."
        (ido-indicator                        ((t (:foreground ,blue :width condensed))))
        (ido-only-match                       ((t (:foreground ,cyan))))
        (ido-subdir                           ((t (:foreground ,orange))))
-       (imaxima-latex-error-face             ((t (:inherit error))))
        (isearch                              ((t (:inherit lazy-highlight))))
        (ispell-highlight-face                ((t (:inherit flyspell-incorrect))))
        (italic                               ((t (:underline t :italic t))))
@@ -579,9 +578,7 @@ Futher modified by Sergey Vinokurov."
        (whitespace-line                      ((t (:underline ,red))))
        (whitespace-tab                       ((t (:underline ,green))))
        (yas-field-highlight-face             ((t (:background ,light-cyan-green-background))))))
-    (setf imaxima-equation-color       base0
-          imaxima-label-color          cyan
-          frame-background-mode        mode
+    (setf frame-background-mode        mode
           *color-theme-solarized-type* mode
           org-drill-new-count-color    blue
           org-drill-done-count-color   green

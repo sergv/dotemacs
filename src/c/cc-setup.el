@@ -11,7 +11,6 @@
 (require 'custom)
 
 (require 'more-clojure)
-(require 'c-eldoc)
 (require 'ctypes)
 (require 'find-file)
 (require 'etags)
@@ -156,16 +155,12 @@ Also propagate new offset to `vim:shift-width'."
                       (t                         8)))))
 
 
-(defun* cc-setup (&key (define-special-keys t)
-                       (use-c-eldoc (not (platform-use? 'work))))
+(defun* cc-setup (&key (define-special-keys t))
   (init-common :use-render-formula t
                :sp-slurp-sexp-insert-space nil)
   (hs-minor-mode 1)
   (dtrt-indent-mode 1)
   (which-function-mode -1)
-  (when use-c-eldoc
-    (c-turn-on-eldoc-mode)
-    (set (make-variable-buffer-local 'eldoc-idle-delay) 0.2))
 
   (modify-syntax-entry ?_ "_")
 
@@ -206,10 +201,7 @@ Also propagate new offset to `vim:shift-width'."
 
   (when define-special-keys
     (def-keys-for-map vim:normal-mode-local-keymap
-      ("SPC SPC" ff-find-related-file)))
-  (when use-c-eldoc
-    (def-keys-for-map vim:normal-mode-local-keymap
-      (", ?"     c-eldoc-show-current-symbol-declaration))))
+      ("SPC SPC" ff-find-related-file))))
 
 (provide 'cc-setup)
 

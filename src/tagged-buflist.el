@@ -241,16 +241,6 @@ treated as a list of tags; otherwise it should be list of plain tags."
                       :major-modes '(prolog-mode)
                       :name-regexp (rx "*prolog*"
                                        (? "<" (+ digit) ">"))))
-               (list "Maxima"
-                     (make-buf-tag-pred
-                      :major-modes '(maxima-mode
-                                     maxima-noweb-mode
-                                     inferior-maxima-mode)
-                      :name-regexp (rx (or "*maxima*"
-                                           "*imaxima*")
-                                       (? "<"
-                                          (+ digit)
-                                          ">"))))
                (list "Org"
                      (make-buf-tag-pred
                       :major-modes '(org-mode

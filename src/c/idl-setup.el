@@ -10,8 +10,7 @@
 (require 'cc-setup)
 
 (defun idl-setup ()
-  (cc-setup :define-special-keys t
-            :use-c-eldoc nil))
+  (cc-setup :define-special-keys t))
 
 (provide 'idl-setup)
 

@@ -10,9 +10,6 @@
 [submodule "third-party/browse-kill-ring"]
         path = third-party/browse-kill-ring
         url = https://github.com/sergv/browse-kill-ring.git
-[submodule "third-party/c-eldoc"]
-        path = third-party/c-eldoc
-        url = https://github.com/nflath/c-eldoc.git
 [submodule "third-party/c2hs-mode"]
         path = third-party/c2hs-mode
         url = https://github.com/sergv/c2hs-mode.git
@@ -28,9 +25,6 @@
 [submodule "third-party/dash.el"]
         path = third-party/dash.el
         url = https://github.com/magnars/dash.el.git
-[submodule "third-party/fuzzy-match"]
-        path = third-party/fuzzy-match
-        url = https://github.com/emacsmirror/fuzzy-match.git
 [submodule "third-party/graphviz-dot-mode"]
         path = third-party/graphviz-dot-mode
         url = https://github.com/ppareit/graphviz-dot-mode.git
@@ -55,9 +49,6 @@
 [submodule "third-party/minimap"]
         path = third-party/minimap
         url = https://github.com/sergv/emacs-minimap.git
-[submodule "third-party/mocker.el"]
-        path = third-party/mocker.el
-        url = https://github.com/sigma/mocker.el.git
 [submodule "third-party/paredit"]
         path = third-party/paredit
         url = https://github.com/sergv/paredit.git
@@ -76,9 +67,6 @@
 [submodule "third-party/smex"]
         path = third-party/smex
         url = https://github.com/nonsequitur/smex.git
-[submodule "third-party/sunrise-commander"]
-        path = third-party/sunrise-commander
-        url = https://github.com/emacsmirror/sunrise-commander.git
 [submodule "third-party/ucf-mode"]
         path = third-party/ucf-mode
         url = https://github.com/sergv/emacs-ucf-mode.git
@@ -94,9 +82,6 @@
 [submodule "standalone/auctex-dev"]
         path = standalone/auctex-dev
         url = https://github.com/jwiegley/auctex.git
-[submodule "standalone/cc-mode"]
-        path = standalone/cc-mode
-        url = https://github.com/emacsmirror/cc-mode.git
 [submodule "standalone/clojure-mode"]
         path = standalone/clojure-mode
         url = https://github.com/sergv/clojure-mode.git
@@ -109,9 +94,6 @@
 [submodule "standalone/nxhtml"]
         path = standalone/nxhtml
         url = https://github.com/sergv/nxhtml.git
-[submodule "standalone/org-mode"]
-        path = standalone/org-mode
-        url = https://github.com/sergv/org-mode.git
 [submodule "standalone/tuareg"]
         path = standalone/tuareg
         url = https://github.com/emacsmirror/tuareg.git
@@ -136,3 +118,6 @@
 [submodule "third-party/emacs_bat"]
         path = third-party/emacs_bat
         url = https://github.com/timepp/emacs_bat.git
+[submodule "standalone/org-mode"]
+        path = standalone/org-mode
+        url = https://github.com/jwiegley/org-mode.git
