@@ -342,7 +342,8 @@
                       vim:insert-mode-local-keymap)
     ("<tab>"           indent-relative-forward)
     ("S-<tab>"         indent-relative-backward)
-    ("S-<iso-lefttab>" indent-relative-backward)))
+    ("S-<iso-lefttab>" indent-relative-backward)
+    ("<f9>"            haskell-compile)))
 
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 
