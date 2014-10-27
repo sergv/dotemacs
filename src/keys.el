@@ -22,7 +22,7 @@
   ("<f8>"     next-f)
 
   ("<f9>"     compile)
-  ("<f10>"    eshell)
+  ("<f10>"    shell)
   ("<f11>"    tabbar-backward-tab)
   ("<f12>"    tabbar-forward-tab)
 
@@ -40,7 +40,7 @@
   ("S-<f7>"   swap-buffers-forward-through-frame)
   ("S-<f8>"   swap-buffers-backward-through-frames)
 
-  ("S-<f10>"  shell)
+  ("S-<f10>"  eshell)
   ("S-<f11>"  tabbar-move-selected-tab-left)
   ("S-<f12>"  tabbar-move-selected-tab-right)
 
