@@ -9,10 +9,11 @@
 
 (require 'vim-core)
 
-(defun* util:construct-ex-replace-command (str &key
-                                               (word nil)
-                                               (symbol nil)
-                                               (fill-replace nil))
+(defun* util:construct-ex-replace-command (str
+                                           &key
+                                           (word nil)
+                                           (symbol nil)
+                                           (fill-replace nil))
   (concat "%s,"
           (cond (word "\\<") (symbol "\\_<"))
           (regexp-quote str)
@@ -52,7 +53,7 @@
      (save-excursion
        (vim:motion-inner-word)))
     :word t
-    :fill-replace current-prefix-arg)))
+    :fill-replace (not current-prefix-arg))))
 
 (vim:defcmd vim:replace-WORD (nonrepeatable)
   "Partially construct vim ex-replace command from WORD at point."
@@ -61,7 +62,7 @@
     (util:get-str-covered-by-vim-motion
      (save-excursion
        (vim:motion-inner-WORD))))
-   :fill-replace current-prefix-arg))
+   :fill-replace (not current-prefix-arg)))
 
 (vim:defcmd vim:replace-selected (nonrepeatable)
   "Partially construct vim ex-replace command from selected region."
@@ -71,8 +72,7 @@
       (buffer-substring-no-properties
        (region-beginning)
        (1+ (region-end)))
-      :fill-replace current-prefix-arg))))
-
+      :fill-replace (not current-prefix-arg)))))
 
 (vim:defcmd vim:replace-symbol-at-point (nonrepeatable)
   "Partially construct vim ex-replace command from symbol at point.
@@ -81,7 +81,7 @@ With prefix argument puts symbol at point also in substitute part"
    (util:construct-ex-replace-command
     (symbol-name (symbol-at-point))
     :symbol t
-    :fill-replace current-prefix-arg)))
+    :fill-replace (not current-prefix-arg))))
 
 
 ;; ;; all this code duplication stuff probably could be reduced to
