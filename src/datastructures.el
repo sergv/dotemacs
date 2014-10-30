@@ -124,7 +124,7 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
                      :length len)))
 
 (defun sorted-set/from-list (items lt-pred)
-  "Construct sorted set from ITEMS list using LT-PRED predicate to sotr
+  "Construct sorted set from ITEMS list using LT-PRED predicate to sort
 items and remove any duplicates."
   (let ((remove-duplicates
          (lambda (items)
