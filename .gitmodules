@@ -40,9 +40,6 @@
 [submodule "third-party/lua-mode"]
         path = third-party/lua-mode
         url = https://github.com/immerrr/lua-mode.git
-[submodule "third-party/magit-log-edit"]
-        path = third-party/magit-log-edit
-        url = https://github.com/magit/magit-log-edit.git
 [submodule "third-party/markdown-mode"]
         path = third-party/markdown-mode
         url = https://github.com/defunkt/markdown-mode.git

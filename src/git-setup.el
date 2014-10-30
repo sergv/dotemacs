@@ -42,15 +42,6 @@
       magit-process-log-max 256
       magit-popup-show-help-section nil)
 
-;; undefine some keys in various keymaps that are not tied to particular
-;; mode
-(eval-after-load "magit"
-  '(progn
-     (def-keys-for-map (magit-hunk-section-map
-                        magit-file-section-map
-                        magit-untracked-section-map)
-       ("k" nil))))
-
 ;;; gitignore
 
 (autoload 'gitignore-mode "gitignore-mode"
@@ -111,8 +102,8 @@
       (magit-section-expand-all magit-root-section)
       (prog1 (sort (funcall collect magit-root-section)
                    (lambda (section-a section-b)
-                     (< (magit-section-start section-a)
-                        (magit-section-start section-b))))))))
+                     (< (magit-section-beginning section-a)
+                        (magit-section-beginning section-b))))))))
 
 (defun magit-current-section-is-whitespace-only? ()
   (interactive)
@@ -121,7 +112,7 @@
              (if (and (eq? 'hunk (magit-section-type hunk))
                       (patch-whitespace-only-change?
                        (buffer-substring-no-properties
-                        (magit-section-start hunk)
+                        (magit-section-beginning hunk)
                         (magit-section-end hunk))))
                "IS"
                "IS NOT"))))
@@ -137,7 +128,7 @@
          (filter pred
                  (map (lambda (hunk)
                         (buffer-substring-no-properties
-                         (magit-section-start hunk)
+                         (magit-section-beginning hunk)
                          (magit-section-end hunk)))
                       (reverse (magit-collect-unstaged-hunk-sections))))))
     (dolist (patch matching-patches)
@@ -147,11 +138,11 @@
                   (find-if (lambda (section)
                              (string= patch
                                       (buffer-substring-no-properties
-                                       (magit-section-start section)
+                                       (magit-section-beginning section)
                                        (magit-section-end section))
                                       ))
                            sections))
-        (magit-apply-hunk hunk "--cached"))))
+        (magit-apply-hunk-item hunk "--cached"))))
   nil)
 
 
@@ -173,7 +164,7 @@ all otherwise."
                                                   :test #'equal?)))))
     (save-excursion
       (dolist (child children)
-        (goto-char (magit-section-start child))
+        (goto-char (magit-section-beginning child))
         (if all-equal
           (magit-cycle-section)
           (magit-hide-section))))))
@@ -186,7 +177,7 @@ all otherwise."
 (defun magit-visit-item-other-window ()
   (interactive)
   (let ((current-prefix-arg t))
-    (call-interactively #'magit-visit-file)))
+    (call-interactively #'magit-visit-item)))
 
 (defun magit-mode-setup ()
   (setf truncate-lines nil)
@@ -316,7 +307,8 @@ all otherwise."
   "Mode for editing commit message."
   (init-common :use-yasnippet nil :use-comment nil)
 
-  (def-keys-for-map git-commit-mode-map
+  (def-keys-for-map (git-commit-mode-map
+                     magit-log-edit-mode-map)
     ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    log-edit-previous-comment)
     ("<down>"  log-edit-next-comment)
