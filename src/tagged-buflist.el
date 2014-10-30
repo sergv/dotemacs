@@ -626,7 +626,13 @@ cover buffer's name, for groups it would not cover section's name."
             (not (string-match-pure? "^ " (buffer-name buf))))
           (visible-buffers)))
 
+(defparameter tagged-buflist/buffer-tags-cache
+  (make-hash-table :test #'eq :size 503 :weakness t)
+  "Cache that associates sets of tags to buffers")
+
 (defun tagged-buflist/tagged-buffers (tags)
+  (assert (all? #'buffer-tag-p tags) nil
+          "All tags should be of buffer-tag type, %s" tags)
   ;; While map here works it is assumed that no git repository for opened
   ;; files will change its HEAD reference. Since this function should not
   ;; take long it is realistic assumption. But even if some repository will
@@ -636,16 +642,20 @@ cover buffer's name, for groups it would not cover section's name."
   ;; switched branch where they've not-tracked state.
   (git-with-temp-head-commit-cache
    (map (lambda (buf)
-          (make-tagged-buffer
-           :buf buf
-           :tags (sorted-set/from-list
-                  (filter (lambda (tag)
-                            (assert (buffer-tag-p tag) nil
-                                    "Tag should be of buffer-tag type, %s" tag)
-                            (funcall (buffer-tag/predicate tag) buf))
-                          tags)
-                  #'tagged-buflist/buffer-tag<)
-           :sections nil))
+          (let ((buffer-tags
+                 (if-let (cached-tags (gethash buf tagged-buflist/buffer-tags-cache))
+                   cached-tags
+                   (let ((new-tags
+                          (sorted-set/from-list
+                           (filter (lambda (tag)
+                                     (funcall (buffer-tag/predicate tag) buf))
+                                   tags)
+                           #'tagged-buflist/buffer-tag<)))
+                     (puthash buf new-tags tagged-buflist/buffer-tags-cache)))))
+            (make-tagged-buffer
+             :buf buf
+             :tags buffer-tags
+             :sections nil)))
         (tagged-buflist/user-buffers))))
 
 (defun* tagged-buflist/buffers-matching-tagset (tagged-buflist
@@ -660,7 +670,7 @@ buffers that match part of tagset will be included in result."
                   (sorted-set/intersection (tagged-buffer/tags buf)
                                            tagset))
                  (if exact
-                   (sorted-set/length tagset)
+                   tagset-len
                    (min (sorted-set/length (tagged-buffer/tags buf))
                         tagset-len))))
             tagged-buflist)))
@@ -701,15 +711,18 @@ could be obtained with tagged-buflist/expand-tag-definitions."
                   section
                 (push section (tagged-buffer/sections buf))
                 (tagged-section/put-prop section 'buffer buf)
-                (let* ((bufname (tagged-buffer/name buf))
+                (let* ((real-buffer (tagged-buffer/buf buf))
+                       (real-buffer-file-name (buffer-file-name real-buffer))
+                       (bufname (tagged-buffer/name buf))
                        (bufname-padding (- *tagged-buffers-name-length*
                                            (length bufname)))
                        (line-prefix
                         (concat (make-string (* 2 depth) ?\s)
-                                (if (and (buffer-file-name (tagged-buffer/buf buf))
-                                         (buffer-modified? (tagged-buffer/buf buf)))
+                                (if (and real-buffer-file-name
+                                         (buffer-modified? real-buffer))
                                   "(+) "
                                   "    ")))
+                       (line-prefix-len (length line-prefix))
                        (line (concat line-prefix
                                      bufname
                                      (if (< 0 bufname-padding)
@@ -718,18 +731,17 @@ could be obtained with tagged-buflist/expand-tag-definitions."
                                      " "
                                      (if add-full-buffer-names
                                        (abbreviate-file-name
-                                        (or (buffer-file-name (tagged-buffer/buf buf))
+                                        (or real-buffer-file-name
                                             ""))
                                        "")
                                      "\n"))
                        (propertized-line
                         (propertize line 'tagged-buflist/section section)))
-                  (tagged-section/put-prop section
-                                           'buffer-name-bounds
-                                           (cons (+ (point) (length line-prefix))
-                                                 (+ (point)
-                                                    (length line-prefix)
-                                                    (length bufname))))
+                  (let ((start (+ (point) line-prefix-len)))
+                    (tagged-section/put-prop section
+                                             'buffer-name-bounds
+                                             (cons start
+                                                   (+ start (length bufname)))))
                   (insert propertized-line)))))))
        (show-buffers
         (lambda (spec tagset depth buflist)
