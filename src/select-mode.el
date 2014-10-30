@@ -19,10 +19,7 @@
 (when (or (require 'tabbar-setup nil t)
           (require 'tabbar nil t))
   (defun select-inhibit-tabbar ()
-    (eq major-mode 'select-mode))
-
-  (add-to-list 'tabbar-inhibit-functions
-               #'select-inhibit-tabbar))
+    (eq major-mode 'select-mode)))
 
 
 (defparameter select/init-window-config nil)

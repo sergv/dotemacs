@@ -487,6 +487,20 @@ Futher modified by Sergey Vinokurov."
        (lazy-highlight                       ((t (:background ,light-cyan-green-background))))
        (link                                 ((t (:foreground ,violet :underline t))))
        (match                                ((t (:background ,light-cyan-green-background))))
+
+       ;; stable magit fontification
+       (magit-log-graph                      ((t (:foreground ,magenta))))
+       (magit-log-sha1                       ((t (:foreground ,orange))))
+       (magit-diff-hunk-header               ((t (:inherit highlight))))
+       (magit-log-head-label-bisect-bad      ((t (:foreground ,red))))
+       (magit-log-head-label-bisect-good     ((t (:foreground ,green))))
+       (magit-log-head-label-default         ((t (:foreground ,base01 :box t))))
+       (magit-log-head-label-local           ((t (:foreground ,blue :box t))))
+       (magit-log-head-label-remote          ((t (:foreground ,yellow :box t))))
+       (magit-log-head-label-tags            ((t (:foreground ,cyan :box t))))
+       (magit-log-reflog-label-other         ((t (:background ,base02 :box t))))
+       (magit-log-reflog-label-remote        ((t (:background ,base02 :box t))))
+       ;; fontification for new magit which I don't use
        (magit-log-graph                      ((t (:foreground ,magenta :background nil))))
        (magit-log-sha1                       ((t (:foreground ,orange :background nil))))
        (magit-section-highlight              ((t (:inherit highlight))))
