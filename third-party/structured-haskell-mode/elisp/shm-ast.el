@@ -712,6 +712,24 @@ node. This function will return the *actual* node at point. See
             ;;         PFieldWildcard))
             ))))))
 
+(defun shm-any-parent-satisfies? (pred node-pair)
+  "Check all parents of NODE-PAIR if any of them satisfies predicate PRED,
+which should take node pair."
+  (save-excursion
+    (let ((curr-pair node-pair)
+          (found nil))
+      (while (and (not found)
+                  (not (null curr-pair)))
+        (setf found (funcall pred curr-pair))
+        (setf curr-pair (shm-node-parent curr-pair)))
+      found)))
+
+(defun shm-inside-do-block? (node-pair)
+  (shm-any-parent-satisfies?
+   (lambda (node-pair)
+     (eq 'Do (shm-node-cons (cdr node-pair))))
+   node-pair))
+
 (provide 'shm-ast)
 
 ;; Local variables:
