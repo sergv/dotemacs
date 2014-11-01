@@ -126,7 +126,8 @@ fix ast = fromMaybe ast (applyFixities baseFixities ast)
 parseMode :: ParseMode
 parseMode =
   defaultParseMode {extensions = defaultExtensions
-                   -- ,fixities = Nothing
+                   -- disable fixities so that unfamiliar operators do not confuse the parser
+                   , fixities   = Nothing
                    }
 
 -- | Generate a list of spans from the HSE AST.
