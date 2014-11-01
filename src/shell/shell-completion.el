@@ -1329,7 +1329,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "--cabal-lib-version"
                             "--constraint"
                             "--preference"
-                            ,@solver-flags)))
+                            ,@solver-flags
+                            "--allow-newer")))
     `(or
       ("install"
        (opts
