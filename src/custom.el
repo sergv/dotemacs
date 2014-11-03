@@ -232,7 +232,7 @@ confuse when point is not at the beginning of line"
         (replace-regexp-in-string "^[ \t\v\f\n]*" "" s)))))
 
 (defun trim-whitespace-right (str)
-  "Trim tailing whitespace from STR."
+  "Trim trailing whitespace from STR."
   (when str
     (save-match-data
       (let ((s (if (symbolp str) (symbol-name str) str)))
