@@ -23,8 +23,8 @@
 
   ("<f9>"     compile)
   ("<f10>"    shell)
-  ("<f11>"    tabbar-backward-tab)
-  ("<f12>"    tabbar-forward-tab)
+  ("<f11>"    prev-buffer)
+  ("<f12>"    next-buffer)
 
   ("<XF86Back>"    tabbar-backward-tab)
   ("<XF86Forward>" tabbar-forward-tab)
