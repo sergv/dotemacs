@@ -365,8 +365,44 @@ runtime but rather will be silently relied on)."
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
-          (eproj/extract-tag-line proj tag)
+          (eproj/haskell-extract-tag-signature proj tag)
           "\n"))
+
+(defun eproj/haskel-extract-block ()
+  "Extract indented Haskell block that starts on the current line."
+  (beginning-of-line)
+  (let ((start (point)))
+    (cl-symbol-macrolet
+        ((advance
+          (progn
+            (forward-line 1)
+            (beginning-of-line)
+            (skip-chars-forward " \t"))))
+      (skip-chars-forward " \t")
+      (let ((col (current-column)))
+        ;; actualy this is a loop with postcondition
+        advance
+        (while (< col (current-column))
+          advance)
+        (let ((previous-line-end (line-end-position 0)))
+          (buffer-substring-no-properties start previous-line-end))))))
+
+(defun eproj/haskell-extract-tag-signature (proj tag)
+  "Fetch line where TAG is defined."
+  (assert (eproj-tag-p tag) nil "Eproj tag is required.")
+  (for-buffer-with-file
+      (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                     (eproj-project/root proj))
+    (save-excursion
+      (goto-line1 (eproj-tag/line tag))
+      (eproj/haskel-extract-block)
+      ;; alternative implementation with regexps
+      ;; (save-match-data
+      ;;   (goto-line1 (eproj-tag/line tag))
+      ;;   (if (looking-at "^\\([^ \t\n\r\f\v].* ::\\(?: .*\n\\|\n\\)\\(?:^[ \t]+.+\n\\)*\\)")
+      ;;     (match-string-no-properties 1)
+      ;;     (current-line)))
+      )))
 
 (defun eproj/load-ctags-project (lang-mode proj files)
   (let ((root (eproj-project/root proj)))
