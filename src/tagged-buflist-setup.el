@@ -12,6 +12,8 @@
 
 (autoload 'tagged-buflist-show "tagged-buflist"
           "Switch to tagged buffer list." t)
+(autoload 'tagged-buflist-show-select-current-buf "tagged-buflist"
+          "Switch to tagged buffer list." t)
 
 (eval-after-load "tagged-buflist"
   '(progn
