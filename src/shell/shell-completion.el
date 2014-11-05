@@ -131,7 +131,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                        (funcall process-or definition level))
                       ((eq? 'opts (first definition))
                        (funcall process-opts definition))
-                      (else
+                      (t
                        (error "process: unsupported definition: %S" definition)))))
              (process-or
               (lambda (definition level)
@@ -171,7 +171,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                       (not (null? flag))
                                       (string? (first flag)))
                                  (first flag))
-                                (else
+                                (t
                                  (error "process-opts: invalid flag, not string or non-empty list with string as a first element: %S" flag)))))
                        (complex-flag? (lambda (flag) (list? flag)))
                        (short-flag? (comp (partial #'string-match-pure? "^-[^-].*")))

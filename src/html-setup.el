@@ -104,7 +104,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                        (goto-char (- ee 1)))
                       ((inside? pos eb ee)
                        (goto-char bb))
-                      (else
+                      (t
                        (error "No matching item found"))))))
           (vim:motion-jump-item))))))
 

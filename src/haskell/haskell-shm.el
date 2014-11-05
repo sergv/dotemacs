@@ -77,7 +77,7 @@ Similar to `vim:motion-jump-item'."
              (goto-char end))
             ((= end (point))
              (goto-char start))
-            (else
+            (t
              (shm/forward-node))))))
 
 (provide 'haskell-shm)

@@ -269,7 +269,7 @@ in the same directory the current file is."
                      ((and (list? command)
                            (eq? 'lambda (car command)))
                       (list 'function command))
-                     (else
+                     (t
                       (list 'quote command))))))
            (process-key-command-list
             (lambda (map key-command-list)
@@ -294,7 +294,7 @@ in the same directory the current file is."
                            (eval mode-map))
                           ((list? mode-map)
                            mode-map)
-                          (else (list mode-map)))
+                          (t (list mode-map)))
              collecting `(if (not (null? ,map))
                            (progn
                              ,@(funcall process-key-command-list map key-command-list))
@@ -380,7 +380,7 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
                              `(function ,name))
                             ((list? name)
                              `(function ,(eval name)))
-                            (else
+                            (t
                              name)))))
     `(define-skeleton ,name
        ,doc

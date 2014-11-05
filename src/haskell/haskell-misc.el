@@ -412,7 +412,7 @@ uppercase or lowercase names)."
                  ;; (goto-char (match-beginning 2))
                  (when (not (null? (match-beginning 3)))
                    (skip-chars-backward name-chars)))
-                (else
+                (t
                  (error "No group of forward-haskell-symbol-re matched, should not happen"))))
         (setf arg (1+ arg))))))
 
@@ -461,7 +461,7 @@ return nil otherwise."
                curr-node)
               ((eq? 'Symbol (shm-node-cons curr-node))
                curr-node)
-              (else
+              (t
                ;; (error "node constructor is not Ident: %s" (shm-node-cons curr-node))
                ))
         ;; (error "no current node found starting at %s"

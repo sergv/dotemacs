@@ -81,7 +81,7 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
                    len (+ 1 len)
                    tmp (rest tmp)
                    items2 (rest items2)))
-            (else
+            (t
              ;; equal case
              (setf (rest tmp) (cons (first items1) nil)
                    len (+ 1 len)
@@ -112,7 +112,7 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
              (setf items1 (rest items1)))
             ((funcall lt-than (first items2) (first items1))
              (setf items2 (rest items2)))
-            (else
+            (t
              ;; equal case
              (setf (rest tmp) (cons (first items1) nil)
                    len (+ 1 len)

@@ -51,7 +51,7 @@
                                ((or (member ext inline-exts)
                                     (member ext source-exts))
                                 header-exts)
-                               (else
+                               (t
                                 nil)))
                (alternative-names
                 (map (comp (partial #'concat
