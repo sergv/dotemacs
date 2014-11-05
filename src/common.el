@@ -539,16 +539,27 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
   "List of buffer name regexps than should not be visible in e.g. ibuffer,
 tabbar, etc")
 
+(defparameter invisible-buffers-re nil
+  "Regexp that is synced with `*invisible-buffers*' variable.")
+
 (defun add-invisible-buffer (buf-re)
   (assert (string? buf-re))
-  (add-to-list '*invisible-buffers* buf-re))
+  (add-to-list '*invisible-buffers* buf-re)
+  (let ((buf-re-with-group
+         (concat "\\(?:" buf-re "\\)")))
+    (setf invisible-buffers-re
+          (if invisible-buffers-re
+            (concat invisible-buffers-re
+                    "\\|"
+                    buf-re-with-group)
+            buf-re-with-group))))
 
 (defun invisible-buffer? (buf)
   "Returns t if buffer BUF should be regarded as invisible, see also
 `*invisible-buffers*'."
   (cond ((or (string? buf)
              (buffer? buf))
-         (string-match-pure? (join-lines *invisible-buffers* "\\|")
+         (string-match-pure? invisible-buffers-re
                              (if (string? buf)
                                buf
                                (buffer-name buf))))
@@ -560,7 +571,7 @@ tabbar, etc")
         ;;  (any? (lambda (re)
         ;;          (string-match-pure? re (buffer-name buf)))
         ;;        *invisible-buffers*))
-        (else
+        (t
          (error "wrong argument type - not a string nor a buffer: %s"
                 buf))))
 
@@ -570,19 +581,30 @@ tabbar, etc")
             (not (invisible-buffer? buf)))
           (buffer-list)))
 
-(add-invisible-buffer "^\\*Completions\\*$")
-(add-invisible-buffer "^#.+#$")
-(add-invisible-buffer "^\\*Ibuffer\\*$")
-(add-invisible-buffer "^ .*$")
+(add-invisible-buffer (rx
+                       bol
+                       (or (or "*Backtrace*"
+                               "*Kill Ring*"
+                               "*Pp Eval Output*"
+                               "*buflist*"
+                               "*Async Shell Command*"
+                               "*Completions*"
+                               "*Ibuffer*"
+                               "*magit-process*"
+                               "*scratch*"
+                               "*Help*")
+                           (seq "#" (+ anything) "#")
+                           (seq " " (* anything)))
+                       eol))
 
 ;;;
 
 (defun for-buffers-with-mode (mode func)
-  (for-each func
-            (filter (lambda (buf)
-                      (with-current-buffer buf
-                        (eq? major-mode mode)))
-                    (buffer-list))))
+  (mapc func
+        (filter (lambda (buf)
+                  (with-current-buffer buf
+                    (eq? major-mode mode)))
+                (buffer-list))))
 
 ;;;
 
@@ -1326,6 +1348,23 @@ the current buffer."
   (other-frame (- n)))
 
 (autoload 'remove-duplicates-from-sorted-list-by "common-heavy" "" nil)
+
+(defun gc-stats ()
+  "Do garbage collection and pretty-print results for use in modeline."
+  (let* ((stats (garbage-collect))
+         (entry->bytes (lambda (entry)
+                         (when entry
+                           (let ((size (second entry))
+                                 (used (third entry)))
+                             (* size used)))))
+         (to-mb (lambda (x) (when x (/ x (* 1024 1024)))))
+         ;; (extract-used (lambda (x) (car-safe (cdr-safe (cdr-safe x)))))
+         (bytes-used (sum (map entry->bytes stats))))
+    (format "[%sMb/cons %sMb/vec %sMb/heap %sMb]"
+            (funcall to-mb bytes-used)
+            (funcall (comp to-mb entry->bytes) (assoc 'conses stats))
+            (funcall (comp to-mb entry->bytes) (assoc 'vector-slots stats))
+            (funcall (comp to-mb entry->bytes) (assoc 'heap stats)))))
 
 (provide 'common)
 
