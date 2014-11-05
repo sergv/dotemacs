@@ -107,7 +107,7 @@ path, in which case filename with suffix equal to FILENAME will be tried."
     (when (file-exists? filename)
       (cond ((get-file-buffer filename)
              (get-file-buffer filename))
-            (else
+            (t
              (find-file-noselect filename))))))
 
 (defun* compilation/jump-to-error (err &key (other-window nil))

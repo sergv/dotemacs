@@ -506,7 +506,7 @@ last non-whitespace character."
                (list (nth i xs))
                (subseq xs (1+ j)))))))
 
-(defun init (xs)
+(defsubst init (xs)
   "Return all but last elements of XS."
   (nreverse (cdr-safe (reverse xs))))
 

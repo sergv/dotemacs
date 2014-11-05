@@ -80,7 +80,7 @@
                 (vector? val))
             (< max-size (length val)))
        (subseq val 0 (min max-size (length val))))
-      (else
+      (t
        val))))
 
 (defun sessions/get-global-variables ()

@@ -325,25 +325,25 @@ Basically swap current point with previous one."
   ((argument:text command) nonrepeatable)
   (let ((exec-command
          (lambda (buf)
-              (let ((window (or (get-buffer-window buf)
-                                (selected-window))))
-                (with-current-buffer buf
-                  (with-selected-window window
-                    ;; adapted from vim:ex-read-command
-                    (let ((vim:ex-current-buffer buf)
-                          (vim:ex-current-window window)
-                          (cmd (trim-whitespace-left command)))
-                      (if (and cmd
-                               (not (zero? (length cmd))))
-                        (vim:ex-execute-command cmd)
-                        (error "invalid command \"%s\"" cmd)))))))))
+           (let ((window (or (get-buffer-window buf)
+                             (selected-window))))
+             (with-current-buffer buf
+               (with-selected-window window
+                 ;; adapted from vim:ex-read-command
+                 (let ((vim:ex-current-buffer buf)
+                       (vim:ex-current-window window)
+                       (cmd (trim-whitespace-left command)))
+                   (if (and cmd
+                            (not (zero? (length cmd))))
+                     (vim:ex-execute-command cmd)
+                     (error "invalid command \"%s\"" cmd)))))))))
     (cond ((eq? major-mode 'ibuffer-mode)
-           (for-each exec-command
-                     (ibuffer-get-marked-buffers)))
+           (mapc exec-command
+                 (ibuffer-get-marked-buffers)))
           ((eq? major-mode 'tagged-buflist-mode)
-           (for-each exec-command
-                     (map #'tagged-buffer/buf tagged-buflist/marked-buffers)))
-          (else
+           (mapc (comp exec-command #'tagged-buffer/buf)
+                 tagged-buflist/marked-buffers))
+          (t
            (error "command works in ibuffer-mode or tagged-buflist-mode only")))))
 
 (vim:emap "in-bufs" 'vim:apply-to-selected-buffers)
