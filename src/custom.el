@@ -478,15 +478,21 @@ into flat list"
     (message "Inhibition enabled")
     (message "Inhibition disabled")))
 
+(defun inhibit-delete-trailing-whitespace? ()
+  "Function that says whether trailing whitespace should be deleted for current
+buffer."
+  (or inhibit-delete-trailing-whitespace
+      (eq? major-mode 'diff-mode)))
+
 (defun delete-trailing-whitespace+ ()
   "This function removes spaces and tabs on every line after
 last non-whitespace character."
-  (unless inhibit-delete-trailing-whitespace
+  (unless (inhibit-delete-trailing-whitespace?)
     (save-excursion
       (save-match-data
         (goto-char (point-min))
         (while (re-search-forward "[ \t]+$" nil t)
-          (replace-match ""))))))
+          (delete-region (match-beginning 0) (match-end 0)))))))
 
 ;;; tabbar stuff
 
