@@ -179,7 +179,7 @@ like \"d w\".")
   ("C-S-k"     remove-buffer-and-window)
 
   ;; (", w"      save-buffer)
-  (", b"       tagged-buflist-show)
+  (", b"       ibuffer)
   (", B"       tagged-buflist-show-select-current-buf)
   (", s"       nil)
   (", s w"     vim:replace-word)
