@@ -65,7 +65,7 @@ then Bar would be the result."
                              ((and (list? x)
                                    (not (null? x)))
                               (first x))
-                             (else
+                             (t
                               (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
                                      x))))
                          pcomplete-ghc-flags))

@@ -129,7 +129,7 @@ then it's content will be evaluated by SLIME."
 
      (unless noswitch
        (switch-to-slime))))
-  (else
+  (t
    (error "invalid +platform+: %s" +platform+)))
 
 

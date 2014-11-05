@@ -419,7 +419,7 @@ tracked files for that repository.")
                            ;; (string-prefix? repo-root
                            ;;                 (eproj-normalize-file-name buffer-file-truename))
                            )
-                          (else
+                          (t
                            nil)))))))))
            projects)
       #'tagged-buflist/buffer-tag<)
@@ -557,7 +557,7 @@ cover buffer's name, for groups it would not cover section's name."
                      nil)
                     ((tagged-buflist/invisible-section? section)
                      t)
-                    (else
+                    (t
                      (funcall iter
                               (tagged-section/parent section)))))))
     (funcall iter (tagged-section/parent section)))
@@ -799,7 +799,7 @@ could be obtained with tagged-buflist/expand-tag-definitions."
                   (progn
                     (funcall func section)
                     t)
-                  (for-each iter (tagged-section/children section)))
+                  (mapc iter (tagged-section/children section)))
                 nil))))
     (funcall iter tagged-buflist/toplevel-section)))
 
@@ -810,7 +810,7 @@ could be obtained with tagged-buflist/expand-tag-definitions."
               (when section
                 (when (funcall pred section)
                   (funcall func section))
-                (for-each iter (tagged-section/children section))))))
+                (mapc iter (tagged-section/children section))))))
     (funcall iter tagged-buflist/toplevel-section)))
 
 (defmacro tagged-buflist/with-preserved-selection (&rest body)
@@ -920,7 +920,7 @@ line the point was on."
              (overlay-put ov 'invisible nil)
              (overlay-put ov 'before-string nil)
              (tagged-section/put-prop section 'visibility 'visible))
-            (else
+            (t
              (error "Unsupported visibility type %s" new-visiblity))))
     nil))
 
@@ -934,7 +934,7 @@ line the point was on."
            (tagged-buflist/change-group-visibility section 'invisible))
           ((eq? visibility 'invisible)
            (tagged-buflist/change-group-visibility section 'visible))
-          (else
+          (t
            (error "Unsupported visibility type %s" visiblity)))))
 
 (defun* tagged-buflist/for-section-on-line (&key
@@ -1067,15 +1067,15 @@ saved buffer marks."
 
 (defun tagged-buflist/mark-buffers-by-file-name (filename-regex)
   (interactive "sfilename regex: ")
-  (for-each #'tagged-buflist/mark-buffer
-            (filter (comp (partial #'string-match-pure? filename-regex)
-                          #'buffer-file-name
-                          #'tagged-buffer/buf)
-                    (filter (comp #'not
-                                  #'null?
-                                  #'buffer-file-name
-                                  #'tagged-buffer/buf)
-                            tagged-buflist/buffers))))
+  (mapc #'tagged-buflist/mark-buffer
+        (filter (comp (partial #'string-match-pure? filename-regex)
+                      #'buffer-file-name
+                      #'tagged-buffer/buf)
+                (filter (comp #'not
+                              #'null?
+                              #'buffer-file-name
+                              #'tagged-buffer/buf)
+                        tagged-buflist/buffers))))
 
 (defparameter tagged-buflist/mark-buffers-by-major-mode-history nil
   "History variable for `tagged-buflist/mark-buffers-by-major-mode'.")
@@ -1109,11 +1109,11 @@ saved buffer marks."
                                            'buffer)))
           'tagged-buflist/mark-buffers-by-major-mode-history)))
   (let ((mmode (string->symbol mmode-str)))
-    (for-each #'tagged-buflist/mark-buffer
-              (filter (comp (partial #'eq? mmode)
-                            (partial #'buffer-local-value 'major-mode)
-                            #'tagged-buffer/buf)
-                      tagged-buflist/buffers))))
+    (mapc #'tagged-buflist/mark-buffer
+          (filter (comp (partial #'eq? mmode)
+                        (partial #'buffer-local-value 'major-mode)
+                        #'tagged-buffer/buf)
+                  tagged-buflist/buffers))))
 
 (defun tagged-buflist/unmark-buffers-at-point ()
   (interactive)
@@ -1125,7 +1125,7 @@ saved buffer marks."
 
 (defun tagged-buflist/unmark-all ()
   (interactive)
-  (for-each #'tagged-buflist/unmark-buffer tagged-buflist/marked-buffers))
+  (mapc #'tagged-buflist/unmark-buffer tagged-buflist/marked-buffers))
 
 (defun tagged-buflist/delete-marked-buffers ()
   (interactive)
