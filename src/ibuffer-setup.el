@@ -16,7 +16,8 @@
 (setf ibuffer-formats '((mark modified read-only " " (name 32 32 :left :elide) " " (mode 16 16 :left :elide) " " filename-and-process)
                         (mark " " (name 32 -1) " " filename-and-process))
       ibuffer-jump-offer-only-visible-buffers t
-      ibuffer-show-empty-filter-groups nil)
+      ibuffer-show-empty-filter-groups nil
+      ibuffer-use-other-window nil)
 
 (eval-after-load
     "ibuffer"
