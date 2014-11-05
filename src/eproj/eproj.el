@@ -672,7 +672,7 @@ Note: old tags file is removed before calling update command."
                 (funcall it))
                ((list? it)
                 it)
-               (else
+               (t
                 nil))
     nil))
 
@@ -1080,7 +1080,7 @@ PATH as its part."
                 ,caching-var)
                ((eq? ,caching-var 'unresolved)
                 nil)
-               (else
+               (t
                 (assert (funcall ,value-predicate ,caching-var)
                         nil
                         ,(format "Variable `%s' must contain value that satisfies predicate %s"
@@ -1165,7 +1165,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                     path)
                    ((file-directory? (expand-file-name path project-root))
                     (expand-file-name path project-root))
-                   (else
+                   (t
                     (error "invalid related-project entry: non-existing absolute nor relative directory: %s"
                            path))))
            related-entry))))
@@ -1214,7 +1214,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
                                          (any? (lambda (regexp)
                                                  (string-match-pure? regexp path))
                                                patterns)))))
-                          (else
+                          (t
                            nil)))
                   aux-files-entry))))))
 
@@ -1313,7 +1313,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                                         (cdr bounds))))
               ((null? noerror)
                (error "No identifier at point found"))
-              (else
+              (t
                nil)))))
 
 (defun eproj-symbnav/show-home (entry)
@@ -1447,7 +1447,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                          expanded-tag-file)
                          ;; use italic instead of underscore
                          (propertize txt 'face 'italic))
-                        (else
+                        (t
                          txt)))))
              (entry-tag #'car)
              (entry-string #'cdr)
@@ -1483,7 +1483,7 @@ as accepted by `bounds-of-thing-at-point'.")
                       identifier))
               ((null? (cdr entries))
                (funcall jump-to-home (funcall entry-tag (car entries))))
-              (else
+              (t
                (select-start-selection
                 entries
                 :buffer-name "Symbol homes"

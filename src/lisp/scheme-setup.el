@@ -88,7 +88,7 @@
                   (command
                    ,(concat "gsi"
                             command-args))))
-               (else
+               (t
                 nil)))
 
            ;; (when (executable-find "guile")
@@ -327,7 +327,7 @@
                                         "\"\)\n"))
        (unless noswitch
          (switch-to-scheme-repl)))))
-  (else
+  (t
    (error "invalid +platform+: %s" +platform+)))
 
 ;;; some indentation rules

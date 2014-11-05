@@ -52,13 +52,6 @@
 (defmacro begin (&rest body)
   `(progn ,@body))
 
-(defconst else t)
-
-(defun for-each (func items)
-  (dolist (item items)
-    (funcall func item)))
-
-
 (defun any? (pred items)
   "Returns t if pred returns t for any element of ITEMS."
   ;; (funcall #'some pred items)
@@ -83,10 +76,10 @@
         (setf result nil)))
     result))
 
-(defun list-ref (i list)
+(defsubst list-ref (i list)
   (nth i list))
 
-(defun vector-ref (i vect)
+(defsubst vector-ref (i vect)
   (aref i vect))
 
 

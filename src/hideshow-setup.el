@@ -120,7 +120,7 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                    (funcall hs-hide-all-non-comment-function)
                    (hs-hide-block-at-point t)))
 
-                (else
+                (t
                  ;; found a comment, probably
                  (let ((c-reg (hs-inside-comment-p)))
                    (when (and c-reg (car c-reg))

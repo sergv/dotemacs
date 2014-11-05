@@ -892,7 +892,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
          (ring-member item sequence :test test))
         ((list? sequence)
          (cl-member item sequence :test test))
-        (else
+        (t
          (error "Not implemented yet"))))
 
 ;;;
@@ -911,7 +911,7 @@ integer list B."
             ((> (first a) (first b))
              (setf done t
                    result nil))
-            (else
+            (t
              (setf a (rest a)
                    b (rest b)))))
     result))
@@ -1004,7 +1004,7 @@ end of END-LINE in current buffer."
 ;;               (or (not p)
 ;;                   (>= p (point-max))))
 ;;          (setf p (point-min)))
-;;         (else
+;;         (t
 ;;          (setf done (funcall prop-predicate (get-text-property
 ;;                                              p
 ;;                                              prop))))))
@@ -1200,7 +1200,7 @@ on currently active vim highlight mode."
                (save-excursion
                  (goto-char (region-end))
                  (line-end-position))))
-      (else
+      (t
        (error "Invalid vim:visual-mode-type: %s" vim:visual-mode-type)))
     (values (region-beginning) (region-end))))
 

@@ -160,7 +160,7 @@ and switches to insert-mode."
                            (1- (point))))
                         (vim:insert-mode-exit-move-point
                          (1- (point)))
-                        (else
+                        (t
                          (point))))))
 
 

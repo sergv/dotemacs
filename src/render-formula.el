@@ -299,7 +299,7 @@ carried out on FORMULA-STR."
                            (render-buffer/remove-all-matches rx s))
                          str
                          (cdr command-cell)))
-                 (else
+                 (t
                   (error "unrecognized command cell: %s" command-cell))))
              formula-str
              eval-result))
