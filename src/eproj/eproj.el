@@ -213,7 +213,7 @@
     cached-x
     (puthash x x eproj/ctags-string-cache)))
 
-(defun eproj/ctags-get-tags-from-buffer (buffer &optional root simple-format?)
+(defun eproj/ctags-get-tags-from-buffer (buffer proj &optional simple-format?)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command.
 
@@ -224,16 +224,17 @@ runtime but rather will be silently relied on)."
     (save-match-data
       (goto-char (point-min))
       (let ((tags-table (make-hash-table :test #'equal))
-            (root-prefix (when root (concat root "/")))
-            (fields-re (concat "^\\(" +ctags-aux-fields-re+ "\\):\\(.*\\)$")))
+            (fields-re (concat "^\\(" +ctags-aux-fields-re+ "\\):\\(.*\\)$"))
+            (root (eproj-project/root proj)))
         (while (not (eob?))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
                      (looking-at +ctags-line-re+))
             (let ((symbol (eproj/ctags-cache-string
                            (match-string-no-properties 1)))
                   (file (eproj/ctags-cache-string
-                         (concat root-prefix
-                                 (match-string-no-properties 2))))
+                         (eproj-resolve-abs-or-rel-name
+                          (match-string-no-properties 2)
+                          root)))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"
@@ -258,7 +259,7 @@ runtime but rather will be silently relied on)."
                                    (split-string fields-str "\t" t)))))
                      (new-tag (make-eproj-tag
                                symbol
-                               (common/registered-filename file)
+                               file
                                line
                                fields)
                               ;; (make-ctags-tag
@@ -408,7 +409,7 @@ runtime but rather will be silently relied on)."
                                 root
                                 files
                                 (current-buffer))
-      (prog1 (eproj/ctags-get-tags-from-buffer (current-buffer))
+      (prog1 (eproj/ctags-get-tags-from-buffer (current-buffer) proj)
         (erase-buffer)))))
 
 (defun eproj/load-haskell-project (proj files)
@@ -426,7 +427,7 @@ Note: old tags file is removed before calling update command."
                   (not (file-exists? tag-file-path)))
           (error "Cannot find tag file %s at %s" tag-file tag-file-path))
         (for-buffer-with-file tag-file-path
-          (eproj/ctags-get-tags-from-buffer (current-buffer) nil t))))
+          (eproj/ctags-get-tags-from-buffer (current-buffer) proj t))))
     (begin
       (when (null? *fast-tags-exec*)
         (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
@@ -451,12 +452,13 @@ Note: old tags file is removed before calling update command."
                                                    nil
                                                    "-0"
                                                    "-o-"
+                                                   "--permissive-encoding"
                                                    "--nomerge")))
                   (error "fast-tags invokation failed: %s"
                          (with-current-buffer out-buffer
                            (buffer-substring-no-properties (point-min) (point-max)))))))
               (erase-buffer)
-              (eproj/ctags-get-tags-from-buffer out-buffer nil t))))))
+              (eproj/ctags-get-tags-from-buffer out-buffer proj t))))))
       ;; (message "Warning: no tag file for haskell project %s"
       ;;          (eproj-project/root proj))
       )))
@@ -1108,11 +1110,13 @@ symbol 'unresolved.")
            (filter-ignored-files
             (lambda (files)
               (aif ignored-files-regexps
-                (filter (lambda (fname)
-                          (all? (lambda (re)
-                                  (not (string-match-pure? re fname)))
-                                it))
-                        files)
+                (let ((regexp
+                       (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
+                                  it
+                                  "\\|")))
+                  (filter (lambda (fname)
+                            (not (string-match-pure? regexp fname)))
+                          files))
                 files))))
       ;; if there's file-list then read it and store to cache
       (if-let (file-list (cadr-safe
