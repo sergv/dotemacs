@@ -1347,6 +1347,15 @@ the current buffer."
   (interactive "p")
   (other-frame (- n)))
 
+
+(autoload 'start-file-manager "common-heavy" "" t)
+(autoload 'start-terminal-emulator "common-heavy" "" t)
+
+(defalias 'run-file-manager 'start-file-manager)
+
+(defalias 'run-terminal-emulator 'start-terminal-emulator)
+(defalias 'run-terminal 'start-terminal-emulator)
+
 (autoload 'remove-duplicates-from-sorted-list-by "common-heavy" "" nil)
 
 (defun gc-stats ()
