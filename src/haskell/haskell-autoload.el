@@ -18,6 +18,8 @@
 (add-to-list 'auto-mode-alist        '("\\.cabal\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist        '("\\.\\(?:[gh]s\\|hi\\)\\'" . haskell-mode))
 (add-to-list 'auto-mode-alist        '("\\.l[gh]s\\'" . literate-haskell-mode))
+(add-to-list 'auto-mode-alist        '("\\.hs-boot\\'" . haskell-mode))
+(add-to-list 'auto-mode-alist        '("\\.lhs-boot\\'" . literate-haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
 (add-to-list 'auto-mode-alist        '("\\.hsc\\'" . haskell-c-mode))
