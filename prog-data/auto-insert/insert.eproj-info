@@ -8,8 +8,6 @@
 ;;
 ;;  ;; these are mostly for haskell
 ;;  [(tag-file <abs-or-rel-file>)]
-;;  [(update-tag-file-command <command> <arg>+)]
-;;  [(ghci "<command>")])
 ;;
 ;; [...] - optional directive
 ;; {...} - grouping directive

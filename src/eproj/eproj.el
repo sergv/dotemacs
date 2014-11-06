@@ -15,11 +15,11 @@
 ;;    [(tree <tree-root> <pattern>*)])]
 ;;  [(ignored-files <regexp>+)] - ignored filenames, <regexp>
 ;;                                should match absolute file names
+;;  [(file-list <abs-or-rel-file>)] - filename listing all files in lisp format,
+;;                                    e.g. ("foo" "c:/bar.txt" "../quux.log")
 ;;
 ;;  ;; these are mostly for haskell
 ;;  [(tag-file <abs-or-rel-file>)]
-;;  [(update-tag-file-command <command> <arg>+)]
-;;  [(ghci "<command>")])
 ;;
 ;; [...] - optional directive
 ;; {...} - grouping directive
@@ -33,9 +33,6 @@
 ;; <command> - emacs string representation of shell command to update tag
 ;;             file corresponding to tag-file entry
 ;; <arg> - emacs strings, arguments to the command
-;;
-;; update-tag-file-command will be executed with current directory
-;; set to project root
 
 (eval-when-compile (require 'cl-lib))
 
@@ -421,40 +418,15 @@ Note: old tags file is removed before calling update command."
   (assert (eproj-project-p proj))
   (if-let (tag-file (cadr-safe
                      (assoc 'tag-file (eproj-project/aux-info proj))))
-    ;; this case is somewhat dated as tag-files are not used anymore
     (begin
       (assert (string? tag-file))
-      (when-let (existing-tag-file
-                 (eproj-resolve-abs-or-rel-name tag-file
-                                                (eproj-project/root proj)))
-        (rm existing-tag-file))
-      (let ((tag-generation-output nil))
-        (when-let (update-tag-file-command
-                   (cdr-safe
-                    (assoc 'update-tag-file-command (eproj-project/aux-info proj))))
-          (assert (and (list? update-tag-file-command)
-                       (all? #'string? update-tag-file-command)))
-          (with-temp-buffer
-            (let ((default-directory
-                    (concat (eproj-normalize-file-name (eproj-project/root proj))
-                            "/")))
-              (apply #'call-process
-                     (car update-tag-file-command)
-                     nil              ;; input
-                     (current-buffer) ;; redirect output
-                     nil              ;; no redisplay
-                     (cdr update-tag-file-command))
-              (setf tag-generation-output
-                    (buffer-substring-no-properties (point-min) (point-max))))))
-        (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
-                                                            (eproj-project/root proj))))
-          (when (or (null? tag-file-path)
-                    (not (file-exists? tag-file-path)))
-            (error "Cannot find tag file %s\nOutput of tag generation command: %s"
-                   tag-file
-                   tag-generation-output))
-          (for-buffer-with-file tag-file-path
-            (eproj/ctags-get-tags-from-buffer (current-buffer) nil t)))))
+      (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
+                                                          (eproj-project/root proj))))
+        (when (or (null? tag-file-path)
+                  (not (file-exists? tag-file-path)))
+          (error "Cannot find tag file %s at %s" tag-file tag-file-path))
+        (for-buffer-with-file tag-file-path
+          (eproj/ctags-get-tags-from-buffer (current-buffer) nil t))))
     (begin
       (when (null? *fast-tags-exec*)
         (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
@@ -788,36 +760,23 @@ Note: old tags file is removed before calling update command."
                (eproj-project/languages proj))))
   nil)
 
-(defun eproj-reload-project! (proj)
-  (assert (not (null? (eproj-project/root proj))))
-  (assert (string? (eproj-project/root proj)))
-  (let* ((eproj-info-file (concat (eproj-normalize-file-name (eproj-project/root proj))
-                                  "/.eproj-info"))
-         (aux-info (if (file-exists? eproj-info-file)
-                     (with-temp-buffer
-                       (cd (eproj-project/root proj))
-                       (insert-file-contents-literally eproj-info-file)
-                       (read
-                        (buffer-substring-no-properties (point-min) (point-max))))
-                     nil))
-         (languages (let ((languages-entry (assoc 'languages aux-info)))
-                      (if (null? languages-entry)
-                        (begin
-                          (message "warning: no languages defined for project %s"
-                                   (eproj-project/root proj))
-                          (eproj/infer-project-languages proj))
-                        (rest languages-entry))))
-         (specified-project-type (cadr-safe (assoc 'project-type aux-info)))
-         (inferred-project-type (eproj-project-type/name
-                                 (eproj-project/type proj))))
+(defun eproj-populate-from-eproj-info! (proj aux-info)
+  (let ((languages (let ((languages-entry (assoc 'languages aux-info)))
+                     (if (null? languages-entry)
+                       (begin
+                         (message "warning: no languages defined for project %s"
+                                  (eproj-project/root proj))
+                         ;; language inference is somewhat dubious feature
+                         ;; because it may infer something nonsensical
+                         ;; (e.g. treat some templates as legitimate project language)
+                         (eproj/infer-project-languages proj))
+                       (rest languages-entry))))
+        (specified-project-type (cadr-safe (assoc 'project-type aux-info)))
+        (inferred-project-type (eproj-project-type/name
+                                (eproj-project/type proj))))
     (when (and (not (null? specified-project-type))
                (not (symbol? specified-project-type)))
       (error "Incorrect specified project type, symbol expected: %s"
-             specified-project-type))
-    (when (and (not (null? specified-project-type))
-               (not (eq? inferred-project-type specified-project-type)))
-      (error "Inferred project type, %s, is different from one supplied in .eproj-info, %s"
-             inferred-project-type
              specified-project-type))
     (setf (eproj-project/aux-info proj) aux-info
           (eproj-project/related-projects proj)
@@ -828,6 +787,29 @@ Note: old tags file is removed before calling update command."
           languages)
     (eproj-reload-tags proj)
     nil))
+
+(defun eproj-get-eproj-info-from-dir (dir)
+  "Get filename of .eproj-info file from directory DIR if it exists, else return nil."
+  (let ((eproj-info-file (concat (eproj-normalize-file-name dir)
+                                 "/.eproj-info")))
+    (when (file-exists? eproj-info-file)
+      eproj-info-file)))
+
+(defun eproj-read-eproj-info-file (filename)
+  "Read .eproj-info file from FILENAME."
+  (with-temp-buffer
+    (insert-file-contents-literally filename)
+    (goto-char (point-min))
+    (read (current-buffer))))
+
+(defun eproj-reload-project! (proj)
+  "Update project PROJ - re-read its .eproj-info file and update project
+variables accordingly."
+  (assert (not (null? (eproj-project/root proj))))
+  (assert (string? (eproj-project/root proj)))
+  (eproj-populate-from-eproj-info!
+   (eproj-read-eproj-info-file
+    (eproj-get-eproj-info-from-dir (eproj-project/root proj)))))
 
 (defun eproj/infer-project-languages (proj)
   "Try to infer languages used in project PROJ by its files."
@@ -864,7 +846,6 @@ Note: old tags file is removed before calling update command."
                            (for-buffer-with-file path
                              (git-update-file-repository)
                              git-repository))
-
                     (let ((dir (eproj-normalize-file-name it)))
                       ;; strip trailing .git, if any
                       (save-match-data
@@ -890,12 +871,7 @@ Note: old tags file is removed before calling update command."
              (make-eproj-project-type
               :name 'eproj-file
               :get-initial-project-root-proc
-              (lambda (path)
-                (assert (string? path))
-                (awhen (eproj/find-eproj-file-location (if (file-directory? path)
-                                                         path
-                                                         (file-name-directory path)))
-                  (eproj-normalize-file-name it)))
+              #'eproj/find-eproj-file-location
               :make-project-proc
               (lambda (proj-root)
                 (make-eproj-project :type proj-type-entry
@@ -921,7 +897,7 @@ Note: old tags file is removed before calling update command."
   "List of `eproj-project-type' structures, defines order in
 which to try loading/root finding/etc.")
 
-(defun eproj-make-project (root type)
+(defun eproj-make-project (root type aux-info)
   (assert (string? root)
           nil
           "Project root must be a string: %s" root)
@@ -933,7 +909,7 @@ which to try loading/root finding/etc.")
                        (eproj-normalize-file-name root))))
     (when (null? proj)
       (error "Error while trying to obtain project for root %s" root))
-    (eproj-reload-project! proj)
+    (eproj-populate-from-eproj-info! proj aux-info)
     proj))
 
 ;;;; description
@@ -1016,77 +992,63 @@ which to try loading/root finding/etc.")
 
 ;;;; utilities
 
-(defun eproj-get-project (root type)
+(defun eproj-get-project (root type aux-info)
   (aif (gethash root *eproj-projects* nil)
     it
-    (let ((proj (eproj-make-project root type)))
+    (let ((proj (eproj-make-project root type aux-info)))
       (puthash (eproj-project/root proj)
                proj
                *eproj-projects*)
       proj)))
 
-(defun eproj-get-initial-project-root-and-type-safe (path)
-  "Get (<initial-project-root> <project-type>) pair for project that contains
-PATH as its part. Returns nil if nothing found."
-  (let ((initial-roots
-         (delq nil
-               (map (lambda (proj-type)
-                      (when-let (initial-root
-                                 (funcall (eproj-project-type/get-initial-project-root-proc
-                                           proj-type)
-                                          path))
-                        (cons (eproj-normalize-file-name initial-root)
-                              proj-type)))
-                    eproj-project-types))))
-    (if (not (null? initial-roots))
-      ;; we aim for file with longest name since it will correspond to
-      ;; the most specific project, i.e. to the project closest to requested
-      ;; path
-      (let* ((get-root-length (comp #'length #'car))
-             (sorted-roots (stable-sort initial-roots
-                                        (lambda (a b)
-                                          (> (funcall get-root-length a)
-                                             (funcall get-root-length b))))))
-        (assert (not (null? sorted-roots)))
-        (values (caar sorted-roots)
-                (cdar sorted-roots)))
-      nil)))
-
-(defun eproj-get-initial-project-root-and-type (path)
+(defun eproj-get-initial-project-root-type-and-aux-info (path)
   "Get (<initial-project-root> <project-type>) pair for project that contains
 PATH as its part."
-  (aif (eproj-get-initial-project-root-and-type-safe path)
-    it
+  (if-let (initial-root (eproj/find-eproj-file-location path))
+    (if-let (eproj-info-file (eproj-get-eproj-info-from-dir initial-root))
+      (let* ((aux-info (eproj-read-eproj-info-file eproj-info-file))
+             (proj-type (or (cadr-safe (assoc 'project-type aux-info))
+                            'eproj-file))
+             (actual-type (find-if (lambda (type)
+                                     (eq? (eproj-project-type/name type) proj-type))
+                                   eproj-project-types)))
+        (unless actual-type
+          (error "invalid project type in .eproj-file at %s: %s" path proj-type))
+        (values initial-root
+                actual-type
+                aux-info))
+      (error ".eproj-info file does not exist at %s"
+             initial-root))
     (error "Error while obtaining project for path %s: no potential project roots can be constructed"
            path)))
 
 (defun eproj-get-initial-project-root (path)
   "Retrieve root for project that would contain PATH."
-  (multiple-value-bind (initial-root proj-type)
-      (eproj-get-initial-project-root-and-type path)
+  (multiple-value-bind (initial-root proj-type aux_info)
+      (eproj-get-initial-project-root-type-and-aux-info path)
     initial-root))
-
 
 (defmacro eproj/evaluate-with-caching-buffer-local-var (value-expr
                                                         buffer-expr
                                                         caching-var
                                                         value-predicate)
 
-  (let ((buffer-var (gensym "buffer")))
+  (let* ((buffer-var (gensym "buffer"))
+         (is-nil (gensym "is-nil"))
+         (is-nil-value `(quote ,is-nil)))
     `(let ((,buffer-var ,buffer-expr))
        (with-current-buffer ,buffer-var
-         (cond ((null? ,caching-var)
-                (setf ,caching-var ,value-expr)
-                ,caching-var)
-               ((eq? ,caching-var 'unresolved)
-                nil)
-               (t
-                (assert (funcall ,value-predicate ,caching-var)
-                        nil
-                        ,(format "Variable `%s' must contain value that satisfies predicate %s"
-                                 caching-var
-                                 value-predicate))
-                ,caching-var))))))
+         (when (null? ,caching-var)
+           (setf ,caching-var (or ,value-expr ,is-nil-value)))
+         (if (eq? ,caching-var ,is-nil-value)
+           nil
+           (progn
+             (assert (funcall ,value-predicate ,caching-var)
+                     nil
+                     ,(format "Variable `%s' must contain value that satisfies predicate %s"
+                              caching-var
+                              value-predicate))
+             ,caching-var))))))
 
 (defun eproj/reset-buffer-local-cache ()
   "Reset all caching buffer-local values associated with eproj in all buffers"
@@ -1125,29 +1087,67 @@ symbol 'unresolved.")
    eproj/buffer-project-cache
    #'eproj-project-p))
 
-(defun eproj-exists-project-for-buf? (buffer)
-  (not (null? (eproj-get-initial-project-root-and-type-safe
-               (eproj--get-buffer-directory buffer)))))
-
 (defun eproj-get-project-for-path (path)
   "Retrieve project that contains PATH as its part."
-  (multiple-value-bind (initial-root proj-type)
-      (eproj-get-initial-project-root-and-type path)
+  (multiple-value-bind (initial-root proj-type aux-info)
+      (eproj-get-initial-project-root-type-and-aux-info path)
     (eproj-get-project initial-root
-                       proj-type)))
+                       proj-type
+                       aux-info)))
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type."
-  (let ((files
-         (funcall (eproj-project-type/get-project-files-proc (eproj-project/type proj))
-                  proj)))
-    (aif (rest-safe (assoc 'ignored-files (eproj-project/aux-info proj)))
-      (filter (lambda (fname)
-                (all? (lambda (re)
-                        (not (string-match-pure? re fname)))
-                      it))
-              files)
-      files)))
+  ;; Cached files are necessarily from file-list and intended for projects whose
+  ;; list of files does not change and may be cached.
+  (if-let (cached-files (cadr-safe
+                         (assoc 'eproj-get-project-files/cached-files
+                                (eproj-project/aux-info proj))))
+    cached-files
+    (let* ((ignored-files-regexps
+            (rest-safe (assoc 'ignored-files (eproj-project/aux-info proj))))
+           (filter-ignored-files
+            (lambda (files)
+              (aif ignored-files-regexps
+                (filter (lambda (fname)
+                          (all? (lambda (re)
+                                  (not (string-match-pure? re fname)))
+                                it))
+                        files)
+                files))))
+      ;; if there's file-list then read it and store to cache
+      (if-let (file-list (cadr-safe
+                          (assoc 'file-list (eproj-project/aux-info proj))))
+        (let ((file-list-filename (eproj-resolve-abs-or-rel-name
+                                   file-list
+                                   (eproj-project/root proj))))
+          (when (or (null? file-list-filename)
+                    (not (file-exists? file-list-filename)))
+            (error "Cannot find file list: filename %s at %s" file-list file-list-filename))
+          (let ((list-of-files
+                 (with-temp-buffer
+                   (insert-file-contents-literally file-list-filename)
+                   (goto-char (point-min))
+                   (read (current-buffer)))))
+            (assert (list? list-of-files))
+            (let ((resolved-files
+                   (funcall filter-ignored-files
+                            (map (lambda (filename)
+                                   (eproj-resolve-abs-or-rel-name
+                                    filename
+                                    (eproj-project/root proj)))
+                                 list-of-files))))
+              (assert (all? (lambda (filename)
+                              (and (string? filename)
+                                   (file-exists? filename)))
+                            resolved-files))
+              ;; add to cache
+              (push (list 'eproj-get-project-files/cached-files resolved-files)
+                    (eproj-project/aux-info proj))
+              resolved-files)))
+        (let ((files
+               (funcall (eproj-project-type/get-project-files-proc (eproj-project/type proj))
+                        proj)))
+          (funcall filter-ignored-files files))))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -1218,10 +1218,14 @@ AUX-INFO is expected to be a list of zero or more constructs:
                            nil)))
                   aux-files-entry))))))
 
-(defun eproj/find-eproj-file-location (dir)
-  "Find .eproj-info file in directory DIR or in its parents."
-  (locate-dominating-file dir ".eproj-info"))
-
+(defun eproj/find-eproj-file-location (path)
+  "Find closest directory parent of PATH that contains .eproj-info file."
+  (assert (string? path))
+  (let ((dir (if (file-directory? path)
+               path
+               (file-name-directory path))))
+    (awhen (locate-dominating-file dir ".eproj-info")
+      (eproj-normalize-file-name it))))
 
 (defun eproj-get-all-related-projects (proj)
   "Return eproj-project structures of projects realted to PROJ except PROJ itself."
@@ -1459,24 +1463,41 @@ as accepted by `bounds-of-thing-at-point'.")
                (lambda (a b)
                  ;; compare results of tag->string
                  (string= (funcall entry-string a) (funcall entry-string b)))
-               (sort (map (lambda (tag)
-                            (cons tag
-                                  (funcall tag->string tag)))
-                          (concatMap (lambda (proj)
-                                       (aif (rest-safe
-                                             (assq orig-major-mode
-                                                   (eproj-project/tags proj)))
-                                         (copy-list
-                                          (if use-regexp
-                                            (concat-lists
-                                             (hash-table-entries-matching-re it identifier))
-                                            (gethash identifier it nil)))
-                                         nil))
-                                     (cons proj
-                                           (eproj-get-all-related-projects proj))))
-                     (lambda (a b)
-                       ;; compare results of tag->string
-                       (string< (funcall entry-string a) (funcall entry-string b)))))))
+               (sort
+                ;; (loop
+                ;;   for project in (cons proj
+                ;;                        (eproj-get-all-related-projects proj))
+                ;;   for check = (rest-safe
+                ;;                (assq orig-major-mode
+                ;;                      (eproj-project/tags project)))
+                ;;   if check
+                ;;   nconc
+                ;;   (loop
+                ;;     with identifiers =
+                ;;     (if use-regexp
+                ;;       (concat-lists
+                ;;        (hash-table-entries-matching-re it identifier))
+                ;;       (gethash identifier it nil))
+                ;;     for tag in identifiers
+                ;;     collect (cons tag
+                ;;                   (funcall tag->string tag))))
+                (map (lambda (tag)
+                       (cons tag
+                             (funcall tag->string tag)))
+                     (concatMap (lambda (proj)
+                                  (aif (rest-safe
+                                        (assq orig-major-mode
+                                              (eproj-project/tags proj)))
+                                    (if use-regexp
+                                      (concat-lists
+                                       (hash-table-entries-matching-re it identifier))
+                                      (gethash identifier it nil))
+                                    nil))
+                                (cons proj
+                                      (eproj-get-all-related-projects proj))))
+                (lambda (a b)
+                  ;; compare results of tag->string
+                  (string< (funcall entry-string a) (funcall entry-string b)))))))
         (cond ((null? entries)
                (error "No entries for %s %s"
                       (if use-regexp "regexp" "identifier")
