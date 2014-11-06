@@ -358,88 +358,6 @@ into flat list"
       (t
        (error "Name %s designates neither file nor directory")))))
 
-;;;;
-
-(defparameter custom/exec-with-directory-runners
-  (let ((tbl (make-hash-table :test #'equal))
-        (standard-starter
-         (lambda (exec dir)
-           (async-shell-command (join-lines (list exec
-                                                  (shell-quote-argument dir))
-                                            " ")))))
-    (puthash "thunar" standard-starter tbl)
-    (puthash "nautilus" standard-starter tbl)
-    (puthash "exo-open"
-             (lambda (exec dir)
-               (shell-command (join-lines (list exec
-                                                "--launch"
-                                                "TerminalEmulator"
-                                                "--working-directory"
-                                                (shell-quote-argument dir))
-                                          " ")))
-             tbl)
-    (puthash "konsole"
-             (lambda (exec dir)
-               (async-shell-command (join-lines (list exec
-                                                      "--workdir"
-                                                      (shell-quote-argument dir))
-                                                " ")))
-             tbl)
-    (puthash "xfce4-terminal"
-             (lambda (exec dir)
-               (async-shell-command (join-lines (list exec
-                                                      "--default-working-directory"
-                                                      (shell-quote-argument dir))
-                                                " ")))
-             tbl)
-
-    tbl)
-  "Definitions of various executables that can be started in particular folder.")
-
-(defun custom/run-first-matching-exec (execs)
-  (assert (all? (lambda (exec)
-                  (not (null? (gethash exec custom/exec-with-directory-runners))))
-                execs))
-  (let ((dir (expand-file-name
-              (if (buffer-file-name)
-                (file-name-directory (buffer-file-name))
-                default-directory))))
-    (letrec ((iter
-              (lambda (execs)
-                (when (not (null? execs))
-                  (aif (executable-find (car execs))
-                    (funcall (gethash (car execs)
-                                      custom/exec-with-directory-runners)
-                             it
-                             dir)
-                    (funcall iter (cdr execs)))))))
-      (funcall iter execs))))
-
-(defun start-file-manager ()
-  "Start suitable file manager in folder associated with current buffer."
-  (interactive)
-  (custom/run-first-matching-exec
-   (append (when (platform-os-type? 'windows)
-             '("explorer"))
-           '("thunar" "nautilus"))))
-
-(defalias 'open-file-manager 'start-file-manager)
-(defalias 'run-file-manager 'start-file-manager)
-(defalias 'file-manager 'start-file-manager)
-(defalias 'thunar 'start-file-manager)
-(defalias 'nautilus 'start-file-manager)
-
-(defun start-terminal-emulator ()
-  "Start suitable terminal emulator in folder associated with current buffer."
-  (interactive)
-  (custom/run-first-matching-exec '("xfce4-terminal"
-                                    "exo-open"
-                                    "konsole"
-                                    ;; "gnome-terminal"
-                                    )))
-
-(defalias 'run-terminal-emulator 'start-terminal-emulator)
-
 ;;; rotate list functions, very old...
 
 (defun rotate-entry-list (listvar)
@@ -463,7 +381,6 @@ into flat list"
                             (setcdr last-elem (symbol-value listvar))
                             (setcdr value nil)
                             last-elem))))))
-
 
 ;;;;
 
