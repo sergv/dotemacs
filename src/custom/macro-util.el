@@ -129,6 +129,63 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
          ,@body)
        (fset ',func ',new-name))))
 
+(defmacro defun-caching (func args cache-args &rest body)
+  "Defun new function FUNC that automatically caches it's output depending of values of
+CACHE-ARGS, which should be a list.
+
+NB does not expect to cache values of ARGS that are nil."
+  (assert (list? cache-args))
+  (assert (all? #'symbol? cache-args))
+  (assert (equal? cache-args
+                  (intersection args cache-args :test #'equal?))
+          nil
+          "defun-caching: CACHE-ARGS must be a subset of ARGS")
+  (let ((cache-var (gensym "cache"))
+        (query-var (gensym "query"))
+        (hash-table-var (gensym "hash-table"))
+        (value-var (gensym "value"))
+        (not-present-sym `(quote ,(gensym "not-present"))))
+    `(let ((,cache-var (make-hash-table :test #'equal)))
+       (defun ,func ,args
+         (let ((,query-var
+                ,(first
+                  (foldl (lambda (hash-table-expr-struct x)
+                           (destructuring-bind (hash-table-expr may-be-null?)
+                               hash-table-expr-struct
+                             (list
+                              (if may-be-null?
+                                `(let ((,hash-table-var ,hash-table-expr))
+                                   (and ,hash-table-var
+                                        (gethash ,x ,hash-table-var)))
+                                `(gethash ,x ,hash-table-expr))
+                              t
+                              )))
+                         ;; state: hash table and whether it may be null
+                         (list cache-var nil)
+                         cache-args))))
+           (if ,query-var
+             ,query-var
+             (let ((,value-var (progn ,@body)))
+               ,(funcall (foldr (lambda (x mk-value-to-put)
+                                  (let ((table-var (gensym "table")))
+                                    (lambda (table)
+                                      `(let ((,table-var ,table))
+                                         (puthash ,x
+                                                  ,(funcall mk-value-to-put
+                                                            `(gethash ,x
+                                                                      ,table-var
+                                                                      (make-hash-table :test #'equal)))
+                                                  ,table-var)
+                                         ;; return table we've been assigning to
+                                         ;; so it may be accessed one level
+                                         ;; above current one
+                                         ,table-var))))
+                                (lambda (unused-table)
+                                  value-var)
+                                cache-args)
+                         cache-var)
+               ,value-var)))))))
+
 ;;; circular jumps
 
 (defmacro define-circular-jumps (forward-name
