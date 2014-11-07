@@ -225,7 +225,8 @@ runtime but rather will be silently relied on)."
       (goto-char (point-min))
       (let ((tags-table (make-hash-table :test #'equal))
             (fields-re (concat "^\\(" +ctags-aux-fields-re+ "\\):\\(.*\\)$"))
-            (root (eproj-project/root proj)))
+            (root (eproj-project/root proj))
+            (*eproj-resolve-abs-or-rel-name/cache* (make-hash-table :test #'equal)))
         (while (not (eob?))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
                      (looking-at +ctags-line-re+))
@@ -643,11 +644,11 @@ Note: old tags file is removed before calling update command."
 (defun eproj-project/aux-files (proj)
   (aif (eproj-project/aux-files-source proj)
     (cond ((functionp it)
-                (funcall it))
-               ((list? it)
-                it)
-               (t
-                nil))
+           (funcall it))
+          ((list? it)
+           it)
+          (t
+           nil))
     nil))
 
 (defun eproj-project/root= (proj-a proj-b)
@@ -1254,19 +1255,33 @@ AUX-INFO is expected to be a list of zero or more constructs:
              (list proj)
              nil)))
 
+(defparameter *eproj-resolve-abs-or-rel-name/cache* nil
+  "If bound thet it should be a hash table from pairs of path and directory into
+either absolute or relative existing filenames.")
+
 (defun eproj-resolve-abs-or-rel-name (path dir)
   "Return PATH or DIR/PATH, whichever exists, or nil if none exists."
-  (if (or (file-exists? path)
-          (file-directory? path))
-    path
-    (if (file-name-absolute-p path)
-      (error "Non-existing absolute file name: %s, probably something went wrong" path)
-      (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
-        (if (or (file-exists? abs-path)
-                (file-directory? abs-path))
-          abs-path
-          (error "File %s does not exist, try `eproj-update-buffer-project'"
-                 abs-path))))))
+  (symbol-macrolet
+      ((compute-filename
+        (if (or (file-exists? path)
+                (file-directory? path))
+          path
+          (if (file-name-absolute-p path)
+            (error "Non-existing absolute file name: %s, probably something went wrong" path)
+            (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
+              (if (or (file-exists? abs-path)
+                      (file-directory? abs-path))
+                abs-path
+                (error "File %s does not exist, try `eproj-update-buffer-project'"
+                       abs-path)))))))
+    (let ((key (cons path dir)))
+      (if *eproj-resolve-abs-or-rel-name/cache*
+        (aif (gethash key *eproj-resolve-abs-or-rel-name/cache*)
+          it
+          (let ((fname compute-filename))
+            (puthash key fname *eproj-resolve-abs-or-rel-name/cache*)
+            fname))
+        compute-filename))))
 
 (defun eproj-normalize-file-name (path)
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
