@@ -224,18 +224,14 @@ runtime but rather will be silently relied on)."
     (save-match-data
       (goto-char (point-min))
       (let ((tags-table (make-hash-table :test #'equal))
-            (fields-re (concat "^\\(" +ctags-aux-fields-re+ "\\):\\(.*\\)$"))
-            (root (eproj-project/root proj))
-            (*eproj-resolve-abs-or-rel-name/cache* (make-hash-table :test #'equal)))
+            (fields-re (concat "^\\(" +ctags-aux-fields-re+ "\\):\\(.*\\)$")))
         (while (not (eob?))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
                      (looking-at +ctags-line-re+))
             (let ((symbol (eproj/ctags-cache-string
                            (match-string-no-properties 1)))
                   (file (eproj/ctags-cache-string
-                         (eproj-resolve-abs-or-rel-name
-                          (match-string-no-properties 2)
-                          root)))
+                         (match-string-no-properties 2)))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"
@@ -297,7 +293,8 @@ runtime but rather will be silently relied on)."
   (concat "Generic tag "
           (eproj-tag/symbol tag)
           "\n"
-          (eproj-tag/file tag)
+          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                         (eproj-project/root proj))
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -337,7 +334,8 @@ runtime but rather will be silently relied on)."
              (cdr it)
              "]"))
           "\n"
-          (eproj-tag/file tag)
+          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                         (eproj-project/root proj))
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -360,7 +358,8 @@ runtime but rather will be silently relied on)."
              (error "Invalid haskell tag property %s"
                     (eproj-tag/properties tag))))
           "]\n"
-          (eproj-tag/file tag)
+          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                         (eproj-project/root proj))
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -453,7 +452,7 @@ Note: old tags file is removed before calling update command."
                                                    nil
                                                    "-0"
                                                    "-o-"
-                                                   "--permissive-encoding"
+                                                   "--ignore-encoding-errors"
                                                    "--nomerge")))
                   (error "fast-tags invokation failed: %s"
                          (with-current-buffer out-buffer
@@ -656,7 +655,8 @@ Note: old tags file is removed before calling update command."
            (eproj-project/root proj-b)))
 
 (defparameter *eproj-projects*
-  (make-hash-table :test #'equal))
+  (make-hash-table :test #'equal)
+  "Hash table mapping project roots to projects.")
 
 (defun eproj-reset-projects ()
   "Clear project database `*eproj-projects*'."
@@ -756,9 +756,9 @@ Note: old tags file is removed before calling update command."
                      (assert (and (not (null? new-tags))
                                   (hash-table-p new-tags)))
                      (when (= 0 (hash-table-count new-tags))
-                       (message "Warning while reloading: project %s loaded no tags for language %s"
-                                (eproj-project/root proj)
-                                lang-mode))
+                       (error "Warning while reloading: project %s loaded no tags for language %s"
+                              (eproj-project/root proj)
+                              lang-mode))
                      (cons lang-mode new-tags))))
                (eproj-project/languages proj))))
   nil)
@@ -811,6 +811,7 @@ variables accordingly."
   (assert (not (null? (eproj-project/root proj))))
   (assert (string? (eproj-project/root proj)))
   (eproj-populate-from-eproj-info!
+   proj
    (eproj-read-eproj-info-file
     (eproj-get-eproj-info-from-dir (eproj-project/root proj)))))
 
@@ -1004,24 +1005,26 @@ which to try loading/root finding/etc.")
                *eproj-projects*)
       proj)))
 
-(defun eproj-get-initial-project-root-type-and-aux-info (path)
-  "Get (<initial-project-root> <project-type>) pair for project that contains
-PATH as its part."
+(defun-caching eproj-get-initial-project-root-type-and-aux-info (path) (path)
+  "Get (<initial-project-root> <project-type> <aux-info>) triple for project
+containing PATH as its part."
   (if-let (initial-root (eproj/find-eproj-file-location path))
-    (if-let (eproj-info-file (eproj-get-eproj-info-from-dir initial-root))
-      (let* ((aux-info (eproj-read-eproj-info-file eproj-info-file))
-             (proj-type (or (cadr-safe (assoc 'project-type aux-info))
-                            'eproj-file))
-             (actual-type (find-if (lambda (type)
-                                     (eq? (eproj-project-type/name type) proj-type))
-                                   eproj-project-types)))
-        (unless actual-type
-          (error "invalid project type in .eproj-file at %s: %s" path proj-type))
-        (values initial-root
-                actual-type
-                aux-info))
-      (error ".eproj-info file does not exist at %s"
-             initial-root))
+    (if-let (proj (gethash initial-root *eproj-projects* nil))
+      (values initial-root (eproj-project/type proj) (eproj-project/aux-info proj))
+      (if-let (eproj-info-file (eproj-get-eproj-info-from-dir initial-root))
+        (let* ((aux-info (eproj-read-eproj-info-file eproj-info-file))
+               (proj-type (or (cadr-safe (assoc 'project-type aux-info))
+                              'eproj-file))
+               (actual-type (find-if (lambda (type)
+                                       (eq? (eproj-project-type/name type) proj-type))
+                                     eproj-project-types)))
+          (unless actual-type
+            (error "invalid project type in .eproj-file at %s: %s" path proj-type))
+          (values initial-root
+                  actual-type
+                  aux-info))
+        (error ".eproj-info file does not exist at %s"
+               initial-root)))
     (error "Error while obtaining project for path %s: no potential project roots can be constructed"
            path)))
 
@@ -1255,35 +1258,20 @@ AUX-INFO is expected to be a list of zero or more constructs:
              (list proj)
              nil)))
 
-(defparameter *eproj-resolve-abs-or-rel-name/cache* nil
-  "If bound thet it should be a hash table from pairs of path and directory into
-either absolute or relative existing filenames.")
+(defun-caching eproj-resolve-abs-or-rel-name (path dir) (path dir)
+  (if (or (file-exists? path)
+          (file-directory? path))
+    path
+    (if (file-name-absolute-p path)
+      (error "Non-existing absolute file name: %s, probably something went wrong" path)
+      (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
+        (if (or (file-exists? abs-path)
+                (file-directory? abs-path))
+          abs-path
+          (error "File %s does not exist, try `eproj-update-buffer-project'"
+                 abs-path))))))
 
-(defun eproj-resolve-abs-or-rel-name (path dir)
-  "Return PATH or DIR/PATH, whichever exists, or nil if none exists."
-  (symbol-macrolet
-      ((compute-filename
-        (if (or (file-exists? path)
-                (file-directory? path))
-          path
-          (if (file-name-absolute-p path)
-            (error "Non-existing absolute file name: %s, probably something went wrong" path)
-            (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
-              (if (or (file-exists? abs-path)
-                      (file-directory? abs-path))
-                abs-path
-                (error "File %s does not exist, try `eproj-update-buffer-project'"
-                       abs-path)))))))
-    (let ((key (cons path dir)))
-      (if *eproj-resolve-abs-or-rel-name/cache*
-        (aif (gethash key *eproj-resolve-abs-or-rel-name/cache*)
-          it
-          (let ((fname compute-filename))
-            (puthash key fname *eproj-resolve-abs-or-rel-name/cache*)
-            fname))
-        compute-filename))))
-
-(defun eproj-normalize-file-name (path)
+(defun-caching eproj-normalize-file-name (path) (path)
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
 
 (defun eproj--get-buffer-directory (buffer)
@@ -1407,10 +1395,10 @@ as accepted by `bounds-of-thing-at-point'.")
                                                     :point (point)
                                                     :symbol nil))
          (jump-to-home
-          (lambda (entry)
+          (lambda (entry entry-proj)
             (let ((file
                    (eproj-resolve-abs-or-rel-name (eproj-tag/file entry)
-                                                  (eproj-project/root proj))))
+                                                  (eproj-project/root entry-proj))))
               (push current-home-entry eproj-symbnav/previous-homes)
               (setf eproj-symbnav/next-homes nil)
               (unless (file-exists? file)
@@ -1459,8 +1447,8 @@ as accepted by `bounds-of-thing-at-point'.")
              (expanded-project-root
               (expand-file-name (eproj-project/root proj)))
              (tag->string
-              (lambda (tag)
-                (let ((txt (funcall entry->string proj tag))
+              (lambda (tag tag-proj)
+                (let ((txt (funcall entry->string tag-proj tag))
                       (expanded-tag-file
                        (expand-file-name (eproj-tag/file tag))))
                   (cond ((string=? orig-file-name
@@ -1472,8 +1460,9 @@ as accepted by `bounds-of-thing-at-point'.")
                          (propertize txt 'face 'italic))
                         (t
                          txt)))))
-             (entry-tag #'car)
-             (entry-string #'cdr)
+             (entry-tag #'first)
+             (entry-string #'second)
+             (entry-proj #'third)
              (entries
               ;; I'm not entirely sure where duplicates come from, but it's cheap
               ;; to remove them and at the same time I'm reluctant to tweak my
@@ -1500,17 +1489,22 @@ as accepted by `bounds-of-thing-at-point'.")
                 ;;     for tag in identifiers
                 ;;     collect (cons tag
                 ;;                   (funcall tag->string tag))))
-                (map (lambda (tag)
-                       (cons tag
-                             (funcall tag->string tag)))
+                (map (lambda (tag-entry)
+                       (destructuring-bind (tag . tag-proj)
+                           tag-entry
+                         (list tag
+                               (funcall tag->string tag tag-proj)
+                               tag-proj)))
                      (concatMap (lambda (proj)
                                   (aif (rest-safe
                                         (assq orig-major-mode
                                               (eproj-project/tags proj)))
-                                    (if use-regexp
-                                      (concat-lists
-                                       (hash-table-entries-matching-re it identifier))
-                                      (gethash identifier it nil))
+                                    (map (lambda (tag)
+                                           (cons tag proj))
+                                         (if use-regexp
+                                           (concat-lists
+                                            (hash-table-entries-matching-re it identifier))
+                                           (gethash identifier it nil)))
                                     nil))
                                 (cons proj
                                       (eproj-get-all-related-projects proj))))
@@ -1522,7 +1516,9 @@ as accepted by `bounds-of-thing-at-point'.")
                       (if use-regexp "regexp" "identifier")
                       identifier))
               ((null? (cdr entries))
-               (funcall jump-to-home (funcall entry-tag (car entries))))
+               (funcall jump-to-home
+                        (funcall entry-tag (car entries))
+                        (funcall entry-proj (car entries))))
               (t
                (select-start-selection
                 entries
@@ -1531,7 +1527,10 @@ as accepted by `bounds-of-thing-at-point'.")
                 :on-selection
                 (lambda (idx)
                   (select-exit)
-                  (funcall jump-to-home (funcall entry-tag (elt entries idx))))
+                  (let ((entry (elt entries idx)))
+                    (funcall jump-to-home
+                             (funcall entry-tag entry)
+                             (funcall entry-proj entry))))
                 :predisplay-function
                 entry-string
                 :preamble-function
