@@ -1450,12 +1450,15 @@ as accepted by `bounds-of-thing-at-point'.")
               (lambda (tag tag-proj)
                 (let ((txt (funcall entry->string tag-proj tag))
                       (expanded-tag-file
-                       (expand-file-name (eproj-tag/file tag))))
+                       (expand-file-name
+                        (eproj-resolve-abs-or-rel-name
+                         (eproj-tag/file tag)
+                         (eproj-project/root tag-proj)))))
                   (cond ((string=? orig-file-name
                                    expanded-tag-file)
                          (propertize txt 'face 'font-lock-negation-char-face))
-                        ((string-prefix? expanded-project-root
-                                         expanded-tag-file)
+                        ((string=? (eproj-project/root proj)
+                                   (eproj-project/root tag-proj))
                          ;; use italic instead of underscore
                          (propertize txt 'face 'italic))
                         (t
