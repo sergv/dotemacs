@@ -447,29 +447,30 @@ uppercase or lowercase names)."
 ;;             parent (shm-node-parent node-pair)))
 ;;     chain))
 
-(defun haskell-enclosing-TypeSig-function-name-node ()
+(defun haskell-enclosing-TypeSig-node ()
+  (cdr-safe
+   (shm-search-node-upwards
+    (comp (partial #'eq? 'TypeSig) #'shm-node-cons #'cdr)
+    (shm-current-node-pair))))
+
+(defun haskell-TypeSig-function-name-node (typesig-node)
   "Extract function name from TypeSig node if point is currently in one or
 return nil otherwise."
-  (if-let (enclosing-sig (cdr-safe
-                            (shm-search-node-upwards
-                             (comp (partial #'eq? 'TypeSig) #'shm-node-cons #'cdr)
-                             (shm-current-node-pair))))
-    (save-excursion
-      (goto-char (shm-node-start enclosing-sig))
-      (if-let (curr-node (cdr-safe (shm-current-node-pair)))
-        (cond ((eq? 'Ident (shm-node-cons curr-node))
-               curr-node)
-              ((eq? 'Symbol (shm-node-cons curr-node))
-               curr-node)
-              (t
-               ;; (error "node constructor is not Ident: %s" (shm-node-cons curr-node))
-               ))
-        ;; (error "no current node found starting at %s"
-        ;;        (buffer-substring-no-properties (point)
-        ;;                                        (line-end-position)))
-        ))
-    ;; (error "no enclosing type signature")
-    ))
+  (save-excursion
+    (goto-char (shm-node-start typesig-node))
+    (if-let (curr-node (cdr-safe (shm-current-node-pair)))
+      (cond ((eq? 'Ident (shm-node-cons curr-node))
+             curr-node)
+            ((eq? 'Symbol (shm-node-cons curr-node))
+             curr-node)
+            (t
+             nil
+             ;; (error "node constructor is not Ident: %s" (shm-node-cons curr-node))
+             ))
+      ;; (error "no current node found starting at %s"
+      ;;        (buffer-substring-no-properties (point)
+      ;;                                        (line-end-position)))
+      )))
 
 (defun haskell-newline ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
@@ -480,21 +481,27 @@ return nil otherwise."
              (shm/newline-indent)
              (shm/simple-indent-newline-same-col)))))
     (when (memq major-mode +haskell-syntax-modes+)
-      (if-let (func-name-node (haskell-enclosing-TypeSig-function-name-node))
+      (if-let* (enclosing-sig-node (haskell-enclosing-TypeSig-node)
+                func-name-node (haskell-TypeSig-function-name-node enclosing-sig-node))
         (let ((func-name (buffer-substring-no-properties
                           (shm-node-start func-name-node)
                           (shm-node-end func-name-node)))
               (indentation (save-excursion
                              (goto-char (shm-node-start func-name-node))
-                             (current-column))))
+                             (current-column)))
+              (p (point))
+              (sig-end (shm-node-end enclosing-sig-node)))
           (funcall indent)
           ;; Maybe consider using this function instead?
           ;; (shm/simple-indent-newline-same-col)
-          (unless (save-excursion
+          (when (and
+                 (= p sig-end)
+                 (not
+                  (save-excursion
                     (forward-line)
                     (skip-syntax-forward "->")
                     (looking-at-pure? (concat (regexp-quote func-name)
-                                              "\\_>")))
+                                              "\\_>")))))
             (delete-region (line-beginning-position) (point))
             (insert (make-string indentation ?\s)
                     func-name
