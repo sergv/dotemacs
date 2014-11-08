@@ -35,27 +35,38 @@ column, `tab-to-tab-stop' is done instead."
               (while (progn (beginning-of-line)
                             (not (bobp)))
                 (forward-line -1)
-                (if (not (looking-at "[ \t]*\n"))
+                (if (not (looking-at-p "[ \t]*\n"))
                     (let ((this-indentation (current-indentation)))
-                      (if (or (not invisible-from)
+                      (when (or (not invisible-from)
                               (< this-indentation invisible-from))
-                          (if (> this-indentation start-column)
-                              (setq invisible-from this-indentation)
-                            (let ((end (line-beginning-position 2)))
-                              (move-to-column start-column)
-                              ;; Is start-column inside a tab on this line?
-                              (if (> (current-column) start-column)
-                                  (backward-char 1))
-                              (or (looking-at "[ \t]")
+                        (if (> this-indentation start-column)
+                            (setq invisible-from this-indentation)
+                          (let ((end (line-beginning-position 2)))
+                            (move-to-column start-column)
+                            ;; Is start-column inside a tab on this line?
+                            (when (> (current-column) start-column)
+                              (backward-char 1))
+                            ;; Check if we're at indent point that corresponds to
+                            ;; the first word on a line. In that case the new
+                            ;; indent point is shm-indent-spaces characters forward -
+                            ;; maintain indentation effect.
+                            (if (let ((p (line-beginning-position)))
+                                  (save-excursion
+                                    (skip-chars-backward " \t" p)
+                                    (= p (point))))
+                              (forward-char shm-indent-spaces)
+                              ;; actually move to the next indentation point
+                              (progn
+                                (unless (looking-at-p "[ \t]")
                                   (skip-chars-forward "^ \t" end))
-                              (skip-chars-forward " \t" end)
-                              (let ((col (current-column)))
-                                (throw 'shm-simple-indent-break
-                                       (if (or (= (point) end)
-                                               (and invisible-from
-                                                    (> col invisible-from)))
-                                           invisible-from
-                                         col)))))))))))))
+                                (skip-chars-forward " \t" end)))
+                            (let ((col (current-column)))
+                              (throw 'shm-simple-indent-break
+                                     (if (or (= (point) end)
+                                             (and invisible-from
+                                                  (> col invisible-from)))
+                                         invisible-from
+                                       col)))))))))))))
     (if indent
         (let ((opoint (point-marker)))
           (indent-line-to indent)
