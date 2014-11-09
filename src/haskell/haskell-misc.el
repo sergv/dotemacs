@@ -259,7 +259,8 @@
     ("TupleSections" "Enable tuple sections" "")
     ("NondecreasingIndentation" "Enable nondecreasing indentation in do blocks" "")
     ("AllowAmbiguousTypes" "Enable checking for ambiguite at the use site" "")
-    ("PatternSynonyms" "Enable pattern synonyms" ""))
+    ("PatternSynonyms" "Enable pattern synonyms" "")
+    ("InstanceSigs" "Allow signatures for instance functions" ""))
   "List of Haskell extensions for GHC 7.6.3-7.8.3 release.
 
 See http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html

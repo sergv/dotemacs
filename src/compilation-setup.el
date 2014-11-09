@@ -110,7 +110,7 @@ path, in which case filename with suffix equal to FILENAME will be tried."
             (t
              (find-file-noselect filename))))))
 
-(defun* compilation/jump-to-error (err &key (other-window nil))
+(defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing
 error location - list of (filename line column)."
   (destructuring-bind (filename line column) err
@@ -129,13 +129,13 @@ error location - list of (filename line column)."
   "Jump to location of error or warning (file, line and column) in current window."
   (interactive)
   (when-let (err (compilation/get-selected-error))
-    (compilation/jump-to-error err :other-window nil)))
+    (compilation/jump-to-error err nil)))
 
 (defun compilation/goto-error-other-window ()
   "Jump to location of error or warning (file, line and column) in other window."
   (interactive)
   (when-let (err (compilation/get-selected-error))
-    (compilation/jump-to-error err :other-window t)))
+    (compilation/jump-to-error err t)))
 
 
 
