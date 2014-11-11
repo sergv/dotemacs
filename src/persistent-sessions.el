@@ -32,41 +32,56 @@
   (first-safe (rest-safe (rest-safe (rest-safe entry)))))
 
 
-(defparameter *sessions-buffer-variables* nil
-  "List of buffer-local variables to save in session file.")
+(defparameter *sessions-buffer-variables*
+  (list
+   (list (lambda (buf)
+           (require 'haskell-misc)
+           (with-current-buffer buf (memq major-mode +haskell-syntax-modes+)))
+         'haskell-compile-command
+         'haskell-compile-cabal-build-command
+         'haskell-process-args-ghci))
+  "List of buffer-local variables to save in session file.
+Format: list of (<predicate> <vars>) where predicate is a function of
+single buffer argument that should return t if <vars> variables should
+be saved or restored for current buffer. Obviously it shouldn't depend
+on values of said variables.")
 
 (defun sessions/get-buffer-variables (buffer)
   "Get buffer's local variables that should be saved."
   (with-current-buffer buffer
-    (map (lambda (var)
-           (when (local-variable? var)
-             ;; (assert (local-variable? var)
-             ;;         t
-             ;;         "Non-local variable %s in buffer \"%s\""
-             ;;         var
-             ;;         buffer)
-             (list var (symbol-value var))))
-         *sessions-buffer-variables*)))
+    (concatMap! (lambda (entry)
+                  (let ((pred (car entry))
+                        (vars (cdr entry)))
+                    (when (funcall pred buffer)
+                      (map (lambda (var)
+                             (when (and (boundp var)
+                                        (local-variable? var))
+                               (cons var (symbol-value var))))
+                           vars))))
+                *sessions-buffer-variables*)))
 
 (defun sessions/restore-buffer-variables (buffer bindings)
   "Restore variables captured in BINDINGS for buffer BUFFER."
   (with-current-buffer buffer
-    (dolist (bind bindings)
-      (destructuring-bind (variable value) bind
-        (set variable value)))))
-
-
+    (mapc (lambda (entry)
+            (let ((pred (car entry))
+                  (vars (cdr entry)))
+              (when (funcall pred buffer)
+                (dolist (bind bindings)
+                  (let ((var (car bind)))
+                    (when (memq var vars)
+                      (set var (cdr bind))))))))
+          *sessions-buffer-variables*)))
 
 (defparameter *sessions-global-variables* '(log-edit-comment-ring
-                                      vim:ex-history
-                                      read-expression-history
-                                      eshell-history-ring
-                                      *search-minibuffer-history*)
+                                            vim:ex-history
+                                            read-expression-history
+                                            *search-minibuffer-history*)
   "List of global variables to save in session file.")
 
 (defun sessions/truncate-long-sequences (val)
   "Truncate overly long sequences."
-  (let ((max-size 500))
+  (let ((max-size 1000))
     (cond
       ((ring? val)
        (if (< max-size (ring-size val))
@@ -95,8 +110,7 @@ entries."
 (defun sessions/restore-global-variables (bindings)
   "Restore global variables from BINDINGS."
   (dolist (bind bindings)
-    (destructuring-bind (var . value) bind
-      (set var value))))
+    (set (car bind) (cdr bind))))
 
 (defparameter sessions/special-modes
   `((eshell-mode
@@ -190,7 +204,7 @@ entries."
                       (concat
                        (join-lines
                         (map (lambda (x) (concat ";; " x))
-                             (split-into-lines (fortune *fortunes*))))
+                             (split-into-lines (fortune/get-next-fortune))))
                        "\n;;\n"))))
     (print '(require 'persistent-sessions) (current-buffer))
     (let* ((buffers (buffer-list))
@@ -291,7 +305,9 @@ entries."
     (sessions/load-from-data
      (with-temp-buffer
        (insert-file-contents-literally file)
-       (read (buffer-substring-no-properties (point-min) (point-max)))))
+       (read (buffer-substring-no-properties (point-min) (point-max)))
+       ;; (read (current-buffer))
+       ))
     (message "warning: file %s does not exist" file)))
 
 
