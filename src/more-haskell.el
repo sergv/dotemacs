@@ -11,6 +11,9 @@
 (defsubst concatMap (f xs)
   (mapcan (lambda (x) (copy-list (funcall f x))) xs))
 
+(defsubst concatMap! (f xs)
+  (mapcan (lambda (x) (funcall f x)) xs))
+
 (defun takeWhile (f xs)
   (let ((result nil))
     (while (and (not (null? xs))
