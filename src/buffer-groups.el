@@ -34,6 +34,8 @@
                             (mode . haskell-hugs-mode)
                             (mode . ghc-core-mode)
                             (mode . hugs-mode)
+                            (mode . alex-mode)
+                            (mode . happy-mode)
                             (name . ,(rx "*"
                                          (or "haskell" "ghci")
                                          "*"
