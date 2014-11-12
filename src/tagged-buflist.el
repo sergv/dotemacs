@@ -105,7 +105,9 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                      inferior-hugs-mode
                                      haskell-hugs-mode
                                      ghc-core-mode
-                                     hugs-mode)
+                                     hugs-mode
+                                     alex-mode
+                                     happy-mode)
                       :name-regexp (rx "*"
                                        (or "haskell" "ghci")
                                        "*"
