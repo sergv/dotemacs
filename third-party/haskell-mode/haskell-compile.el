@@ -49,6 +49,13 @@ The `%s' placeholder is replaced by the cabal package top folder."
   :group 'haskell-compile
   :type 'string)
 
+(defcustom haskell-compile-cabal-build-command-presets
+  ()
+  "Predefined build commands for `haskell-compile'. Should be alist of
+(<preset-name> <command-with-%s>) pairs. <preset-name> will be used to prompt
+user.")
+
+;;;###autoload
 (defcustom haskell-compile-command
   "ghc -Wall -ferror-spans -fforce-recomp -c %s"
   "Default build command to use for `haskell-cabal-build' when no cabal file is detected.
@@ -111,6 +118,9 @@ messages pointing to additional source locations."
             'haskell-compilation-filter-hook nil t)
   )
 
+(defvar haskell-compile--build-presets-history nil)
+
+
 ;;;###autoload
 (defun haskell-compile (&optional edit-command)
   "Compile the Haskell program including the current buffer.
@@ -120,33 +130,38 @@ folders via `haskell-cabal-find-dir' and if found, invoke
 folder. If no cabal package could be detected,
 `haskell-compile-command' is used instead.
 
-If prefix argument EDIT-COMMAND is non-nil (and not a negative
-prefix `-'), `haskell-compile' prompts for custom compile
-command.
-
-If EDIT-COMMAND contains the negative prefix argument `-',
-`haskell-compile' calls the alternative command defined in
-`haskell-compile-cabal-build-alt-command' if a cabal package was
-detected.
+If prefix argument EDIT-COMMAND is non-nil, `haskell-compile' prompts for
+one of the predefined compile commands.
 
 `haskell-compile' uses `haskell-compilation-mode' which is
 derived from `compilation-mode'. See Info
 node `(haskell-mode)compilation' for more details."
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
-                         compilation-save-buffers-predicate)
+                          compilation-save-buffers-predicate)
   (let* ((cabdir (haskell-cabal-find-dir))
-         (command1 (if (eq edit-command '-)
-                       haskell-compile-cabal-build-alt-command
-                     haskell-compile-cabal-build-command))
+         (raw-command
+          (if edit-command
+            (let ((preset
+                   (intern
+                    (completing-read "build preset: "
+                                     haskell-compile-cabal-build-command-presets
+                                     nil
+                                     t
+                                     nil
+                                     'haskell-compile--build-presets-history))))
+              (cadr
+               (assoc preset haskell-compile-cabal-build-command-presets)))
+            haskell-compile-cabal-build-command))
          (srcname (buffer-file-name))
-         (command (if cabdir
-                      (format command1 cabdir)
-                    (if (and srcname (derived-mode-p 'haskell-mode))
-                        (format haskell-compile-command srcname)
-                      command1))))
-    (when (and edit-command (not (eq edit-command '-)))
-      (setq command (compilation-read-command command)))
+         (command (cond (cabdir
+                         (format raw-command cabdir))
+                        ((and srcname (derived-mode-p 'haskell-mode))
+                         (format haskell-compile-command srcname))
+                        (t
+                         raw-command))))
+    ;; (when (and edit-command (not (eq edit-command '-)))
+    ;;   (setq command (compilation-read-command command)))
 
     (compilation-start command 'haskell-compilation-mode)))
 
