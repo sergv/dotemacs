@@ -42,6 +42,58 @@
                               "-dsuppress-type-applications"
                               "-dsuppress-coercions"))
 
+(let* ((build-dir "/tmp/dist")
+       (mk-build-dir-arg
+        (lambda (custom-build-dir)
+          (if custom-build-dir
+            (concat "--builddir " custom-build-dir " ")
+            "")))
+       (common-conf-opts
+        (lambda (custom-build-dir)
+          (concat (funcall mk-build-dir-arg custom-build-dir)
+                  "--enable-tests")))
+       (build-command
+        (lambda (custom-build-dir)
+          (concat
+           "cabal build " (funcall mk-build-dir-arg custom-build-dir) "--ghc-options=\"-j4 -ferror-spans\" && \\\n"
+           "cabal test " (funcall mk-build-dir-arg custom-build-dir) "--show-details=always"))))
+  (setf haskell-compile-cabal-build-command-presets
+        `((vanilla
+           ,(concat
+             "cd %s && \\\n"
+             "cabal configure "
+             (concat "--disable-library-profiling "
+                     "--disable-executable-profiling "
+                     (funcall common-conf-opts build-dir)
+                     " && \\\n")
+             (funcall build-command build-dir)))
+          (clean
+           ,(concat
+             "cd %s && \\\n"
+             "cabal clean --builddir " build-dir))
+          (prof
+           ,(concat
+             "cd %s && \\\n"
+             "cabal configure "
+             (concat "--enable-library-profiling "
+                     "--enable-executable-profiling "
+                     (funcall common-conf-opts build-dir)
+                     " && \\\n")
+             (funcall build-command build-dir)))
+          ;; hpc command must use local dist build directory, it won't
+          ;; work with absolute paths.
+          (hpc
+           ,(concat
+             "cd %s && \\\n"
+             "cabal configure "
+             (concat "--enable-library-coverage "
+                     "--disable-library-profiling "
+                     "--disable-executable-profiling "
+                     "--disable-split-objs "
+                     (funcall common-conf-opts nil)
+                     " && \\\n")
+             (funcall build-command nil))))))
+
 (setf haskell-compile-command
       (or (getenv "HASKELL_COMPILE_COMMAND")
           (concat "ghc -W -Wall -fwarn-monomorphism-restriction "
@@ -56,7 +108,9 @@
                   ;; "-fllvm -optlc-O3 -optlo-O3 "
                   "-c \"%s\""))
       haskell-compile-cabal-build-command
-      "cd %s && cabal build --ghc-option=-ferror-spans && cabal test --show-details=always"
+      (or (cadr-safe (assoc 'vanilla haskell-compile-cabal-build-command-presets))
+          (error "failed to set up haskell-compile-cabal-build-command"))
+      ;; "cd %s && cabal build --ghc-option=-ferror-spans && cabal test --show-details=always"
       ;; 'cabal-repl is good as well
       haskell-process-type 'ghci
       haskell-process-path-ghci
