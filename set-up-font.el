@@ -34,11 +34,13 @@
     (cond
       ((and (platform-os-type? 'linux)
             (platform-use? '(home asus-netbook work)))
-       '("-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+       '("-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+         "-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
          "-unknown-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'linux)
             (platform-use? 'netbook))
-       '("-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+       '("-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+         "-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
          "-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'windows)
             (platform-use? 'work))
