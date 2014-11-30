@@ -302,23 +302,25 @@ number of spaces equal to `tab-width'."
 (defun start-file-manager ()
   "Start suitable file manager in folder associated with current buffer."
   (interactive)
-  (custom/run-first-matching-exec
-   (cond
-     ((platform-os-type? 'windows)
-      '("explorer"))
-     ((platform-os-type? 'linux)
-      '("thunar" "nautilus"))
-     (t
-      (error "unknown platform - no known file managers")))))
+  (save-window-excursion
+    (custom/run-first-matching-exec
+     (cond
+       ((platform-os-type? 'windows)
+        '("explorer"))
+       ((platform-os-type? 'linux)
+        '("thunar" "nautilus"))
+       (t
+        (error "unknown platform - no known file managers"))))))
 
 (defun start-terminal-emulator ()
   "Start suitable terminal emulator in folder associated with current buffer."
   (interactive)
-  (custom/run-first-matching-exec '("xfce4-terminal"
-                                    "exo-open"
-                                    "konsole"
-                                    ;; "gnome-terminal"
-                                    )))
+  (save-window-excursion
+    (custom/run-first-matching-exec '("xfce4-terminal"
+                                      "exo-open"
+                                      "konsole"
+                                      ;; "gnome-terminal"
+                                      ))))
 
 ;;;
 
