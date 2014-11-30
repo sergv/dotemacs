@@ -93,9 +93,8 @@
     (letrec ((collect (lambda (section)
                         (let ((xs (mapcan collect
                                           (magit-section-children section))))
-                          (if (equal? '(hunk file unstaged status)
-                                      (map #'car
-                                           (magit-section-ident section)))
+                          (if (magit-section-match '(unstaged diff hunk)
+                                                   section)
                             (cons section xs)
                             xs)))))
       ;; expand to load all hunks

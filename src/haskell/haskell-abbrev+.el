@@ -49,8 +49,9 @@ then Bar would be the result."
 
 (defun* haskell-abbrev+-setup (&key (repl nil))
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
-                                     (or (null? c)
-                                         (not (char=? c ?:))))))
+                                     (and (not (point-inside-string-or-comment?))
+                                          (or (null? c)
+                                              (not (char=? c ?:)))))))
          (haskell-extensions (append (map #'first haskell-language-extensions)
                                      (remove nil
                                              (map #'third haskell-language-extensions))))
@@ -82,27 +83,37 @@ then Bar would be the result."
                     (list
                      (lambda () (yas-expand-snippet
                             (concat "main :: IO ()\nmain = do\n"
-                                    (make-string haskell-indent-offset ?\s) "$1")))))
+                                    (make-string haskell-indent-offset ?\s) "$1"))))
+                    (lambda () (not (point-inside-string-or-comment?))))
               (list "##"
                     (list
-                     (lambda () (yas-expand-snippet "{-# $1 #-}$0"))))
+                     (lambda () (yas-expand-snippet "{-# $1 #-}$0")))
+                    (lambda () (not (point-inside-string-or-comment?))))
               (list "\\(?:#lang\\|langext\\)"
                     (list
-                     (lambda () (yas-expand-snippet language-snippet))))
+                     (lambda () (yas-expand-snippet language-snippet)))
+                    (lambda () (not (point-inside-string-or-comment?))))
               (list "#opts?"
                     (list
-                     (lambda () (yas-expand-snippet options-snippet))))
+                     (lambda () (yas-expand-snippet options-snippet)))
+                    (lambda () (not (point-inside-string-or-comment?))))
               (list "#\\(?:opts?-def\\|dopts?\\)"
                     (list
-                     (lambda () (yas-expand-snippet default-options-snippet)))))
+                     (lambda () (yas-expand-snippet default-options-snippet)))
+                    (lambda () (not (point-inside-string-or-comment?)))))
              nil)
            (list
             ;; (cons "pwd" #'(lambda () (expand-file-name default-directory)))
-            (list "^hpr?f$"                    "hPrintf")
-            (list "^pr?f$"                     "printf")
-            (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn")
-            (list "^hps?l?n$"                  "hPutStrLn")
-            (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr")
+            (list "^hpr?f$"                    "hPrintf"
+                  (lambda () (not (point-inside-string-or-comment?))))
+            (list "^pr?f$"                     "printf"
+                  (lambda () (not (point-inside-string-or-comment?))))
+            (list "^\\(?:ps\\|p\\)l?n$"        "putStrLn"
+                  (lambda () (not (point-inside-string-or-comment?))))
+            (list "^hps?l?n$"                  "hPutStrLn"
+                  (lambda () (not (point-inside-string-or-comment?))))
+            (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr"
+                  (lambda () (not (point-inside-string-or-comment?))))
 
             (list (concat "^" (make-re-with-optional-suffix "import" 2) "$")
                   "import"
