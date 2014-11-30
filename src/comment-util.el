@@ -107,6 +107,7 @@
     (vhdl-mode             (one-line "--") (line-regexp "--+"))
     (tcl-mode              (one-line "#") (line-regexp "#+"))
     (ucf-mode              (one-line "#") (line-regexp "#+"))
+    (yaml-mode             (one-line "#") (line-regexp "#+"))
     (dos-mode              (one-line "rem ") (line-regexp "rem ?")))
   "List of per-mode specifications of comments.
 Contains single-line and region comments.")
