@@ -46,8 +46,10 @@
           to -1
           until (or (= i -1)
                     (let ((node (elt vector i)))
-                      (and (string= "Rhs"
-                                    (shm-node-type-name node))
+                      (and (or (string= "Rhs"
+                                        (shm-node-type-name node))
+                               (string= "Decl"
+                                        (shm-node-type-name node)))
                            (<= (shm-node-start node)
                                (shm-node-start (cdr node-pair)))
                            (>= (shm-node-end node)
@@ -62,8 +64,11 @@
                         (t
                          (unless (= (line-beginning-position) (point))
                            (insert "\n"))
-                         (let ((indent (shm-node-start-column
-                                        (cdr (shm-node-parent (cons i rhs))))))
+                         (let ((indent (let ((parent
+                                              (cdr-safe (shm-node-parent (cons i rhs)))))
+                                         (if parent
+                                           (shm-node-start-column parent)
+                                           0))))
                            (indent-to (+ 2 indent))
                            (insert "where")
                            (if shm-indent-point-after-adding-where-clause
