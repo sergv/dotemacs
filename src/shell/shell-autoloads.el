@@ -31,6 +31,7 @@
 (autoload 'pcomplete-ghc-flags "shell-completion" nil)
 (autoload 'pcomplete/ghc "shell-completion" nil t)
 (autoload 'pcomplete/cabal "shell-completion" nil t)
+(autoload 'pcomplete/hp2ps "shell-completion" nil t)
 (autoload 'pcomplete/nm "shell-completion" nil t)
 (autoload 'pcomplete/gcc "shell-completion" nil t)
 (autoload 'pcomplete/cp "shell-completion" nil t)
@@ -39,6 +40,9 @@
 (autoload 'pcomplete/mv "shell-completion" nil t)
 (autoload 'pcomplete/bash "shell-completion" nil t)
 
+(defalias 'pcomplete/l 'pcomplete/ls)
+(defalias 'pcomplete/la 'pcomplete/ls)
+(defalias 'pcomplete/ll 'pcomplete/ls)
 
 ;; Local Variables:
 ;; End:
