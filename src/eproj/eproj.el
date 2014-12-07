@@ -165,8 +165,10 @@
 
 (defconst +ctags-aux-fields-re+
   (eval-when-compile
-    (macroexpand
-     `(rx (or ,@+ctags-aux-fields+)))))
+    (concat "^\\("
+            (macroexpand
+             `(rx (or ,@+ctags-aux-fields+)))
+            "\\):\\(.*\\)$")))
 
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
   (if (not (null? *ctags-exec*))
@@ -223,8 +225,7 @@ runtime but rather will be silently relied on)."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
-      (let ((tags-table (make-hash-table :test #'equal))
-            (fields-re (concat "^\\(" +ctags-aux-fields-re+ "\\):\\(.*\\)$")))
+      (let ((tags-table (make-hash-table :test #'equal)))
         (while (not (eob?))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
                      (looking-at +ctags-line-re+))
@@ -245,7 +246,7 @@ runtime but rather will be silently relied on)."
                                      (trim-whitespace fields-str))))
                         (delq nil
                               (map (lambda (entry)
-                                     (if (string-match? fields-re entry)
+                                     (if (string-match? +ctags-aux-fields-re+ entry)
                                        (let ((identifier (match-string-no-properties 1 entry))
                                              (value (match-string-no-properties 2 entry)))
                                          ;; when value is nonempty
@@ -258,23 +259,7 @@ runtime but rather will be silently relied on)."
                                symbol
                                file
                                line
-                               fields)
-                              ;; (make-ctags-tag
-                              ;;  :symbol     symbol
-                              ;;  :file-idx   (ctags-file->id file)
-                              ;;  :line       line
-                              ;;  :kind       (cdr (assoc* 'kind fields))
-                              ;;  :aux-fields (filter (lambda (x)
-                              ;;                        (not (eq? 'kind (car x))))
-                              ;;                      fields))
-                              ))
-                ;; (unless (ctags-file->id file)
-                ;;   (let ((file-idx (+ (ctags/latest-defined-index *ctags-file-sequence*)
-                ;;                      1)))
-                ;;     (setf *ctags-file-sequence* (ctags/grow-vector *ctags-file-sequence*
-                ;;                                                    file-idx
-                ;;                                                    file))
-                ;;     (puthash file file-idx *ctags-file-idxs*)))
+                               fields)))
                 (puthash symbol
                          (cons new-tag
                                (gethash symbol tags-table nil))
@@ -344,27 +329,35 @@ runtime but rather will be silently relied on)."
 
 (defun eproj/haskell-tag->string (proj tag)
   (assert (eproj-tag-p tag))
-  (concat (eproj-tag/symbol tag)
-          " ["
-          (pcase (cdr-safe (assoc 'type (eproj-tag/properties tag)))
-            ("m" "Module")
-            ("f" "Function")
-            ("c" "Class")
-            ("t" "Type")
-            ("C" "Constructor")
-            ("o" "Operator")
-            ("p" "Pattern")
-            (_
-             (error "Invalid haskell tag property %s"
-                    (eproj-tag/properties tag))))
-          "]\n"
-          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
-                                         (eproj-project/root proj))
-          ":"
-          (number->string (eproj-tag/line tag))
-          "\n"
-          (eproj/haskell-extract-tag-signature proj tag)
-          "\n"))
+  (let* ((type (cdr-safe (assoc 'type (eproj-tag/properties tag))))
+         (is-module?
+          (pcase type
+            ("m" t)
+            (_   nil))))
+    (concat (eproj-tag/symbol tag)
+            " ["
+            (pcase type
+              ("m" "Module")
+              ("f" "Function")
+              ("c" "Class")
+              ("t" "Type")
+              ("C" "Constructor")
+              ("o" "Operator")
+              ("p" "Pattern")
+              (_
+               (error "Invalid haskell tag property %s"
+                      (eproj-tag/properties tag))))
+            "]\n"
+            (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                           (eproj-project/root proj))
+            ":"
+            (number->string (eproj-tag/line tag))
+            "\n"
+            (if is-module?
+              ""
+              (concat
+               (eproj/haskell-extract-tag-signature proj tag)
+               "\n")))))
 
 (defun eproj/haskel-extract-block ()
   "Extract indented Haskell block that starts on the current line."
@@ -664,6 +657,9 @@ Note: old tags file is removed before calling update command."
   (setf *eproj-projects* (make-hash-table :test #'equal))
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
+  ;; reset tagged-buflist cache since project list may update
+  (setf tagged-buflist/buffer-tags-cache
+        (make-hash-table :test #'eq :size 503 :weakness t))
   (garbage-collect))
 
 (defun eproj-update-projects ()

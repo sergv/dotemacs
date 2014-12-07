@@ -583,15 +583,13 @@ tabbar, etc")
 
 (add-invisible-buffer (rx
                        bol
-                       (or (or "*Backtrace*"
-                               "*Kill Ring*"
+                       (or (or "*Kill Ring*"
                                "*Pp Eval Output*"
                                "*buflist*"
                                "*Async Shell Command*"
                                "*Completions*"
                                "*Ibuffer*"
                                "*magit-process*"
-                               "*scratch*"
                                "*Help*")
                            (seq "#" (+ anything) "#")
                            (seq " " (* anything)))
@@ -625,6 +623,12 @@ tabbar, etc")
   "Get list of keys of hash table."
   (let ((result '()))
     (maphash (lambda (k v) (push k result)) table)
+    result))
+
+(defun hash-table-values (table)
+  "Get list of values of hash table."
+  (let ((result '()))
+    (maphash (lambda (k v) (push v result)) table)
     result))
 
 (defun hash-table-keys-filter (pred table)

@@ -109,8 +109,8 @@ window configuration on end of ediff session."
   (with-current-buffer buffer
     (let ((line-min 1)
           (line-max (count-lines (point-min) (point-max))))
-      (and (<= line-min num)
-           (<= num line-max)))))
+      (and (<= line-min line-num)
+           (<= line-num line-max)))))
 
 (defun ediff/read-line-in-buffer (prompt
                                   buffer

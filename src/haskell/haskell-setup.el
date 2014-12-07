@@ -70,7 +70,7 @@
   ;; inefficiencies while navigating haskell identifiers
   (setq-local vim:word "[:word:]'")
   (modify-syntax-entry ?_ "_")
-  (modify-syntax-entry ?\' "_")
+  (modify-syntax-entry ?\' "w")
   (modify-syntax-entry ?\@ "'")
 
   ;; (setq-local vim:word "[:word:]_'")
@@ -360,6 +360,11 @@
                        1 2 3 1)))))
 
 (add-hook 'hs-lint-setup-hook #'hs-lint-setup)
+
+(defun ghc-core-setup ()
+  (structured-haskell-mode -1))
+
+(add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 
 (provide 'haskell-setup)
 

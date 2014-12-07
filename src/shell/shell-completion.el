@@ -97,9 +97,9 @@ DEFINITION is described by the following grammar:
 
 non-terminals:
 start      = <or> | <opts>
-or         = (opts <positional>* <opts>*)
+or         = (or <positional>* <opts>*)
 opts       = (opts <flags>? <args>?)
-positional = (<positional-arg> <start>?)
+positional = (<positional-arg> <start>?) | ((<positional-arg>+) <start>?)
 
 flags      = (flags <flag>*)
 args       = (args <completion-expr>)
@@ -126,7 +126,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     (letrec ((process
               (lambda (definition level)
                 (assert (and (list? definition)
-                             (not (null? definition))))
+                             (not (null? definition)))
+                        nil
+                        "invalid definition %s"
+                        definition)
                 (cond ((eq? 'or (first definition))
                        (funcall process-or definition level))
                       ((eq? 'opts (first definition))
@@ -136,12 +139,19 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              (process-or
               (lambda (definition level)
                 (when-let (defs (rest definition))
-                  (let* ((positional-defs
-                          (filter (comp #'string? #'first) defs))
+                  (let* ((positional-def?
+                          (lambda (def)
+                            (or (string? (first def))
+                                (and
+                                 (list? (first def))
+                                 (all? #'string? (first def))))))
+                         (positional-defs
+                          (filter positional-def? defs))
                          (other-defs
-                          (filter (comp #'not #'string? #'first) defs))
+                          (filter (comp #'not positional-def?) defs))
                          (names
-                          (map #'first positional-defs)))
+                          (concatMap #'(lambda (x) (if (list? x) x (list x)))
+                                     positional-defs)))
                     `(progn
                        ,@(when names
                            (list `(pcomplete-here ',names)))
@@ -216,8 +226,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                                                         flag))
                                                       (funcall complex-flag? flag)))
                                                flags))
-                        (long (filter long-flag?
-                                      (map get-flag-name flags)))
+                        (long (concatMap (lambda (flag)
+                                           (save-match-data
+                                             (if (string-match? "=$" flag)
+                                               (list flag (replace-match ""))
+                                               (list flag))))
+                                         (filter long-flag?
+                                                 (map get-flag-name flags))))
                         (long-complex (filter (lambda (flag)
                                                 (and (funcall long-flag?
                                                               (funcall get-flag-name
@@ -259,12 +274,16 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                             ,(cadr args)))))))))))))
              (process-positional
               (lambda (definition level)
-                (assert (string? (first definition)))
                 (let ((name (first definition)))
-                  `((string= (pcomplete-arg ,level) ,name)
-                    ,@(when (not (null? (cadr-safe definition)))
+                  (assert (or (string? name)
+                              (and (list? name)
+                                   (all? #'string? name))))
+                  `(,(if (string? name)
+                       `(string= (pcomplete-arg ,level) ,name)
+                       `(member (pcomplete-arg ,level) ,name))
+                    ,@(awhen (cadr-safe definition)
                         (list (funcall process
-                                       (cadr definition)
+                                       it
                                        (+ level 1)))))))))
       `(defun ,name ()
          (let* ((,last-arg-starts-with-single-dash-var
@@ -795,7 +814,32 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--use-mailmap"
                "--decorate")
         (args (pcomplete-here (pcomplete-entries)))))
-      ("status")
+      ("status"
+       (opts
+        (flags
+         "-s"
+         "--short"
+         "-b"
+         "--branch"
+         "--porcelain"
+         "--long"
+         "-u"
+         "--untracked-files="
+         "-uno"
+         "--untracked-files=no"
+         "-unormal"
+         "--untracked-files-normal"
+         "-uall"
+         "--untracked-files=all"
+         "--ignore-submodules="
+         "--ignore-submodules=none"
+         "--ignore-submodules=untracked"
+         "--ignore-submodules=dirty"
+         "--ignore-submodules=all"
+         "--ignored"
+         "-z"
+         "--column="
+         "--no-column")))
       ("submodule"
        (or
         ("add"
@@ -963,7 +1007,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-hide-all-packages"
     "-hide-package"
     "-ignore-package"
-    ("-package-db" (pcomplete-here (pcomplete-entries)))
+    ("-package-db" (pcomplete-here (pcmpl-entries-ignoring-common)))
     "-clear-package-db"
     "-no-global-package-db"
     "-global-package-db"
@@ -1498,6 +1542,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("help")))
   :evaluate-definition t)
 
+;;;###autoload
 (defpcmpl pcomplete/hp2ps
   (opts
    (flags "-b"
@@ -1758,10 +1803,6 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--version")
         (args (pcomplete-here (pcomplete-entries)))))
 
-(defalias 'pcomplese/l #'pcomplete/ls)
-(defalias 'pcomplese/la #'pcomplete/ls)
-(defalias 'pcomplese/ll #'pcomplete/ls)
-
 ;;;###autoload
 (defpcmpl pcomplete/cat
   (opts (flags "--help")
@@ -1924,7 +1965,35 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-e")
         (args (pcomplete-here (pcomplete-entries)))))
 
-
+;;;###autoload
+(defpcmpl pcomplete/busybox
+  (or
+   ("bash"
+    (opts (args (pcomplete/bash))))
+   ("cat"
+    (opts (args (pcomplete/cat))))
+   ("cp"
+    (opts (args (pcomplete/cp))))
+   ("chown"
+    (opts (args (pcomplete/chown))))
+   ("chgrp"
+    (opts (args (pcomplete/chgrp))))
+   ("diff"
+    (opts (args (pcomplete/diff))))
+   ("ls"
+    (opts (args (pcomplete/ls))))
+   ("mv"
+    (opts (args (pcomplete/mv))))
+   ("rm"
+    (opts (args (pcomplete/rm))))
+   ("rmdir"
+    (opts (args (pcomplete/rmdir))))
+   ("tar"
+    (opts (args (pcomplete/tar))))
+   ("xargs"
+    (opts (args (pcomplete/xargs))))
+   ("which"
+    (opts (args (pcomplete/which))))))
 
 (provide 'shell-completion)
 
