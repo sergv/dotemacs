@@ -268,7 +268,11 @@ the current node to the parent."
       (self-insert-command n)
     (let ((current-pair (ignore-errors (shm-current-node-pair)))
           (str (concat ","
-                       (if shm-insert-space-after-comma " " ""))))
+                       (if (and shm-insert-space-after-comma
+                                (not (char= (char-after)
+                                            ?\s)))
+                         " "
+                         ""))))
       (if current-pair
         (let* ((current (cdr current-pair))
                (parent-pair (shm-node-parent current-pair)))
