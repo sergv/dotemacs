@@ -35,6 +35,13 @@
                      :reader (read-from-minibuffer "Filter by not matching (regexp): "))
        (not (string-match-pure? qualifier (buffer-name buf))))
 
+     (define-ibuffer-filter eproj-root
+         "Toggle current view to buffers with eproj project to QUALIFIER."
+       (:description "eproj root"
+                     :reader (read-from-minibuffer "Filter by eproj project root: "))
+       (ignore-errors
+         (string=? (eproj-project/root (eproj-get-project-for-buf buf))
+                   qualifier)))
 
      (define-ibuffer-filter git-repository-root
          "Toggle current view to buffers with git repository equal to QUALIFIER."
@@ -45,22 +52,53 @@
          (when git-repository
            (string=? qualifier git-repository))))
 
+     (define-ibuffer-sorter major-mode-and-buffer-name
+       "Sort the buffers by major modes and buffer names.
+Ordering is lexicographic."
+       (:description "major mode and buffer name")
+       (let* ((buf-a (car a))
+              (mode-a
+               (downcase
+                (symbol-name (buffer-local-value 'major-mode buf-a))))
+              (buf-b (car b))
+              (mode-b (downcase
+                       (symbol-name (buffer-local-value 'major-mode buf-b)))))
+         (or (string-lessp mode-a mode-b)
+             (and (string-equal mode-a mode-b)
+                  (string-lessp (buffer-name buf-a)
+                                (buffer-name buf-b))))))
+
      (defun ibuffer-generate-filter-group-by-git-repository-root ()
        "Create ibuffer buffer-group specification based on each buffer's
 git repository root"
        (if *have-git?*
-         (let ((roots (ibuffer-remove-duplicates
-                       (delq nil
-                             (map (lambda (buf)
-                                    (with-current-buffer buf
-                                      (git-update-file-repository)
-                                      git-repository))
-                                  (buffer-list))))))
+         (let ((roots (sort
+                       (remove-duplicates
+                        (map #'strip-trailing-slash
+                             (delq nil
+                                   (map (lambda (buf)
+                                          (with-current-buffer buf
+                                            (git-update-file-repository)
+                                            git-repository))
+                                        (buffer-list))))
+                        :test #'string-equal)
+                       #'string<)))
            (map (lambda (repo-root)
                   (cons (format "git:%s" repo-root)
                         `((git-repository-root . ,repo-root))))
                 roots))
          (error "No git installed on the system")))
+
+     (defun ibuffer-generate-filter-group-by-eproj ()
+       "Create ibuffer buffer-group specification based on each buffer's
+git repository root"
+       (map (lambda (root)
+              (cons (format "eproj:%s" root)
+                    `((eproj-root . ,root))))
+            (sort
+             (map #'eproj-project/root
+                  (hash-table-values *eproj-projects*))
+             #'string<)))
 
      ;; make it handle ibuffer-aux-fliter-groups and use case-insensetive completion
      (redefun ibuffer-switch-to-saved-filter-groups (name)
@@ -76,9 +114,9 @@ The value from `ibuffer-saved-filter-groups' is used."
                                              (mapcar #'car ibuffer-aux-filter-groups))
                                      nil
                                      t)))))
-       (aif (cdr (assoc name ibuffer-saved-filter-groups))
+       (aif (cdr-safe (assoc name ibuffer-saved-filter-groups))
          (setq ibuffer-filter-groups it)
-         (aif (cdr (assoc name ibuffer-aux-filter-groups))
+         (aif (cdr-safe (assoc name ibuffer-aux-filter-groups))
            (setq ibuffer-filter-groups (if (functionp it)
                                          (funcall it)
                                          it))
@@ -87,26 +125,28 @@ The value from `ibuffer-saved-filter-groups' is used."
        (ibuffer-update nil t))
 
      (setf ibuffer-saved-filter-groups
-           `(("lisp"
-              ,(assoc "blueprint"  +buffer-groups+)
-              ,(assoc "lisp"       +buffer-groups+)
-              ,(assoc "slime"      +buffer-groups+)
-              ,(assoc "emacs lisp" +buffer-groups+)
-              ,(assoc "scheme"     +buffer-groups+)
-              ,(assoc "org"        +buffer-groups+))
+           `(("haskell"
+              ,(assoc "haskell"              +buffer-groups+)
+              ,(assoc "proof assistants"     +buffer-groups+)
+              ,(assoc "org"                  +buffer-groups+)
+              ,(assoc "lowlevel programming" +buffer-groups+)
+              ,(assoc "other programming"    +buffer-groups+)
+              ,(assoc "dired"                +buffer-groups+)
+              ,(assoc "utility"              +buffer-groups+))
 
-             ("math"
-              ,(assoc "blueprint"  +buffer-groups+)
-              ,(assoc "haskell"    +buffer-groups+)
-              ,(assoc "prolog"     +buffer-groups+)
-              ,(assoc "octave"     +buffer-groups+)
-              ,(assoc "org"        +buffer-groups+))
+             ("c/c++"
+              ,(assoc "c/c++"                +buffer-groups+)
+              ,(assoc "lowlevel programming" +buffer-groups+)
+              ,(assoc "other programming"    +buffer-groups+)
+              ,(assoc "dired"                +buffer-groups+)
+              ,(assoc "utility"              +buffer-groups+))
 
              ("default"
               ,@+buffer-groups+)))
 
-     (defvar ibuffer-aux-filter-groups
-       `(("git repo" . ,#'ibuffer-generate-filter-group-by-git-repository-root))
+     (defparameter ibuffer-aux-filter-groups
+       `(("git repo" . ,#'ibuffer-generate-filter-group-by-git-repository-root)
+         ("eproj" . ,#'ibuffer-generate-filter-group-by-eproj))
        "List of auxiliary filter groups than can have default filter-group format
 used by ibuffer or can be functions of no arguments that will be called to
 generate actual filter group.")
@@ -193,6 +233,12 @@ a prefix argument reverses the meaning of that variable."
         (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 backward)
         count))
 
+     (defun ibuffer-visit-buffer-other-window (&optional single)
+       "Visit the buffer on this line in other window."
+       (interactive)
+       (let ((buf (ibuffer-current-buffer t)))
+         (switch-to-buffer-other-window buf)))
+
      (def-keys-for-map ibuffer-mode-map
        +control-x-prefix+
        +vim-special-keys+
@@ -208,14 +254,18 @@ a prefix argument reverses the meaning of that variable."
        ("f n"      ibuffer-filter-by-name)
        ("f c"      ibuffer-filter-by-content)
        ("f f"      ibuffer-filter-by-filename)
+       ("f g"      ibuffer-filter-by-git-repository-root)
        ("f p"      ibuffer-pop-filter)
        ("f o"      ibuffer-or-filter)
-       ("SPC"      ibuffer-visit-buffer)
+       ("SPC"      ibuffer-visit-buffer-other-window)
        ("* m"      ibuffer-mark-using-mode)
        ("* M"      ibuffer-mark-modified-buffers)
        ("* d"      ibuffer-mark-dired-buffers)
        ("* n"      ibuffer-mark-by-name-regexp)
        ("* f"      ibuffer-mark-by-file-name-regexp)
+       ;; to be consistent with dired
+       ("* %"      ibuffer-mark-by-file-name-regexp)
+       ("s m"      ibuffer-do-sort-by-major-mode-and-buffer-name)
        ("U"        ibuffer-unmark-all)
        ("T"        ibuffer-toggle-marks)
        ("K"        ibuffer-do-delete)
@@ -231,6 +281,7 @@ a prefix argument reverses the meaning of that variable."
        ("S-<tab>"         ibuffer-backward-filter-group)
        ("<S-iso-lefttab>" ibuffer-backward-filter-group)
 
+       ("'"        ibuffer-backward-filter-group)
        ("E"        nil)
        ("e"        ibuffer-do-eval)
        ("r"        ibuffer-update)
