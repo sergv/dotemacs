@@ -197,39 +197,41 @@ if inside parentheses."
       (shm-evaporate (point) (+ (point) (length "undefined"))))))
 
 (defun shm-auto-insert-let ()
-  "Insert template
+  "Insert let template:
 
-let | in {undefined}"
-  ;; don't insert in clause if we're in do block
-  (unless (shm-inside-do-block? (shm-current-node-pair))
-    (delete-region (- (point) 3) (point))
-    ;; If needs to be nested this way. Don't change it.
-    (let
-        ((evaporate-in (lambda ()
-                         (forward-char 4)
-                         (save-excursion
-                           (forward-word)
-                           (forward-char 1)
-                           (shm-evaporate (point) (+ (point) (length "undefined")))))))
-      (if (bound-and-true-p structured-haskell-repl-mode)
-        (let ((points (shm-decl-points)))
-          (if points
-            (if (= (point) (car points))
-              (progn (shm-insert-indented
-                      (lambda () (insert "let _ = undefined")))
-                     (search-forward "_")
-                     (shm-evaporate (1- (point)) (point))
-                     (forward-word 1)
-                     (forward-word -1)
-                     (shm-evaporate (point) (+ (point) (length "undefined")))
-                     (search-backward "_"))
-              (progn (shm-insert-indented
-                      (lambda () (insert "let  in undefined")))
-                     (funcall evaporate-in)))
-            (insert "let ")))
-        (progn (shm-insert-indented (lambda () (insert "let \nin undefined")))
-               (funcall evaporate-in))))
-    (shm/reparse)))
+\"let |\" in do blocks and list comprehensions or
+
+\"let | in {undefined}\" otherwise."
+  (delete-region (- (point) 3) (point))
+  (cond ((or (shm-inside-do-block? (shm-current-node-pair))
+             (shm-inside-list-comprehension? (shm-current-node-pair)))
+         (insert "let "))
+        (t
+         (let ((evaporate-in (lambda ()
+                               (forward-char 4)
+                               (save-excursion
+                                 (forward-word)
+                                 (forward-char 1)
+                                 (shm-evaporate (point) (+ (point) (length "undefined")))))))
+           (if (bound-and-true-p structured-haskell-repl-mode)
+             (let ((points (shm-decl-points)))
+               (if points
+                 (if (= (point) (car points))
+                   (progn (shm-insert-indented
+                           (lambda () (insert "let _ = undefined")))
+                          (search-forward "_")
+                          (shm-evaporate (1- (point)) (point))
+                          (forward-word 1)
+                          (forward-word -1)
+                          (shm-evaporate (point) (+ (point) (length "undefined")))
+                          (search-backward "_"))
+                   (progn (shm-insert-indented
+                           (lambda () (insert "let  in undefined")))
+                          (funcall evaporate-in)))
+                 (insert "let ")))
+             (progn (shm-insert-indented (lambda () (insert "let \nin undefined")))
+                    (funcall evaporate-in))))
+         (shm/reparse))))
 
 (defun shm-auto-insert-module ()
   "Insert template
