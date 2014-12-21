@@ -730,6 +730,12 @@ which should take node pair."
      (eq 'Do (shm-node-cons (cdr node-pair))))
    node-pair))
 
+(defun shm-inside-list-comprehension? (node-pair)
+  (shm-any-parent-satisfies?
+   (lambda (node-pair)
+     (eq 'ListComp (shm-node-cons (cdr node-pair))))
+   node-pair))
+
 (provide 'shm-ast)
 
 ;; Local variables:
