@@ -9,7 +9,7 @@
         url = https://github.com/manzyuk/bert-el.git
 [submodule "third-party/browse-kill-ring"]
         path = third-party/browse-kill-ring
-        url = https://github.com/sergv/browse-kill-ring.git
+        url = https://git.gitorious.org/sergv-emacs/browse-kill-ring.git
 [submodule "third-party/c2hs-mode"]
         path = third-party/c2hs-mode
         url = https://github.com/sergv/c2hs-mode.git
@@ -33,10 +33,10 @@
         url = https://github.com/magit/git-modes.git
 [submodule "third-party/haskell-mode"]
         path = third-party/haskell-mode
-        url = https://github.com/sergv/haskell-mode.git
+        url = https://git.gitorious.org/sergv-emacs/haskell-mode.git
 [submodule "third-party/icicles"]
         path = third-party/icicles
-        url = https://github.com/sergv/icicles.git
+        url = https://git.gitorious.org/sergv-emacs/icicles.git
 [submodule "third-party/lua-mode"]
         path = third-party/lua-mode
         url = https://github.com/immerrr/lua-mode.git
@@ -45,28 +45,28 @@
         url = https://github.com/defunkt/markdown-mode.git
 [submodule "third-party/minimap"]
         path = third-party/minimap
-        url = https://github.com/sergv/emacs-minimap.git
+        url = https://github.com/dustinlacewell/emacs-minimap.git
 [submodule "third-party/paredit"]
         path = third-party/paredit
-        url = https://github.com/sergv/paredit.git
+        url = https://git.gitorious.org/sergv-emacs/paredit-el.git
 [submodule "third-party/rainbow-delimiters"]
         path = third-party/rainbow-delimiters
         url = https://github.com/jlr/rainbow-delimiters.git
 [submodule "third-party/revive-plus"]
         path = third-party/revive-plus
-        url = https://github.com/sergv/revive-plus.git
+        url = https://git.gitorious.org/sergv-emacs/revive-plus.git
 [submodule "third-party/s.el"]
         path = third-party/s.el
         url = https://github.com/purcell/s.el.git
 [submodule "third-party/smartparens"]
         path = third-party/smartparens
-        url = https://github.com/sergv/smartparens.git
+        url = https://git.gitorious.org/sergv-emacs/smartparens.git
 [submodule "third-party/smex"]
         path = third-party/smex
         url = https://github.com/nonsequitur/smex.git
 [submodule "third-party/ucf-mode"]
         path = third-party/ucf-mode
-        url = https://github.com/sergv/emacs-ucf-mode.git
+        url = https://git.gitorious.org/sergv-emacs/emacs-ucf-mode.git
 [submodule "third-party/undo-tree"]
         path = third-party/undo-tree
         url = https://github.com/emacsmirror/undo-tree.git
@@ -75,37 +75,34 @@
         url = https://github.com/capitaomorte/yasnippet.git
 [submodule "third-party/misc-modes"]
         path = third-party/misc-modes
-        url = https://git.gitorious.org/misc-emacs-modes/misc-emacs-modes.git
+        url = https://git.gitorious.org/sergv-emacs/misc-modes.git
 [submodule "standalone/auctex-dev"]
         path = standalone/auctex-dev
         url = https://github.com/jwiegley/auctex.git
 [submodule "standalone/clojure-mode"]
         path = standalone/clojure-mode
-        url = https://github.com/sergv/clojure-mode.git
+        url = https://git.gitorious.org/sergv-emacs/clojure-mode.git
 [submodule "standalone/magit"]
         path = standalone/magit
-        url = https://github.com/sergv/magit.git
+        url = https://git.gitorious.org/sergv-emacs/magit.git
 [submodule "standalone/nrepl.el"]
         path = standalone/nrepl.el
-        url = https://github.com/sergv/cider.git
+        url = https://git.gitorious.org/sergv-emacs/cider.git
 [submodule "standalone/nxhtml"]
         path = standalone/nxhtml
-        url = https://github.com/sergv/nxhtml.git
+        url = https://git.gitorious.org/sergv-emacs/nxhtml.git
 [submodule "standalone/tuareg"]
         path = standalone/tuareg
         url = https://github.com/emacsmirror/tuareg.git
 [submodule "third-party/python/python.el"]
         path = third-party/python/python.el
-        url = https://github.com/sergv/python.el.git
-[submodule "third-party/hi2"]
-        path = third-party/hi2
-        url = https://github.com/sergv/hi2.git
+        url = https://git.gitorious.org/sergv-emacs/python-el.git
 [submodule "third-party/structured-haskell-mode"]
         path = third-party/structured-haskell-mode
-        url = https://github.com/sergv/structured-haskell-mode.git
+        url = https://git.gitorious.org/sergv-emacs/structured-haskell-mode.git
 [submodule "third-party/yafolding.el"]
         path = third-party/yafolding.el
-        url = https://github.com/sergv/yafolding.el.git
+        url = https://git.gitorious.org/sergv-emacs/yafolding-el.git
 [submodule "third-party/mmm-mode"]
         path = third-party/mmm-mode
         url = https://github.com/purcell/mmm-mode.git
