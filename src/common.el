@@ -1142,6 +1142,13 @@ See also `indent-relative-maybe'."
         ((eq? direction 'forward)
          (tab-to-tab-stop))))))
 
+(defun tab-to-tab-stop-backward ()
+  "Like `tab-to-tab-stop' but backwards."
+  (interactive)
+  (let ((nexttab (indent-next-tab-stop (current-column) t)))
+    (delete-horizontal-space t)
+    (indent-to nexttab)))
+
 ;;;; keeping window's previous buffers and switching to them
 
 (defadvice set-window-buffer (before
