@@ -78,22 +78,6 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                  :other-comparison-info nil
                                  :predicate (cadr entry)))
               (list
-               (list "vc"
-                     (make-buf-tag-pred
-                      :major-modes '(magit-mode
-                                     magit-commit-mode
-                                     magit-diff-mode
-                                     magit-key-mode
-                                     magit-log-edit-mode
-                                     magit-log-mode
-                                     magit-reflog-mode
-                                     magit-show-branches-mode
-                                     magit-stash-mode
-                                     magit-status-mode
-                                     magit-wazzup-mode
-                                     gitignore-mode
-                                     gitconfig-mode)
-                      :name-regexp (rx bol "*magit" (* nonl) "*" eol)))
                (list "Haskell"
                      (make-buf-tag-pred
                       :major-modes '(haskell-mode
@@ -318,6 +302,22 @@ treated as a list of tags; otherwise it should be list of plain tags."
                                            "Makefile"
                                            "GNUMakefile")
                                        eol)))
+               (list "vc"
+                     (make-buf-tag-pred
+                      :major-modes '(magit-mode
+                                     magit-commit-mode
+                                     magit-diff-mode
+                                     magit-key-mode
+                                     magit-log-edit-mode
+                                     magit-log-mode
+                                     magit-reflog-mode
+                                     magit-show-branches-mode
+                                     magit-stash-mode
+                                     magit-status-mode
+                                     magit-wazzup-mode
+                                     gitignore-mode
+                                     gitconfig-mode)
+                      :name-regexp (rx bol "*magit" (* nonl) "*" eol)))
                (list "utility"
                      (make-buf-tag-pred
                       :major-modes '(comint-mode
