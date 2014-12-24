@@ -78,7 +78,10 @@
                :use-whitespace t)
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<tab>" tab-to-tab-stop)))
+    ("<tab>"       tab-to-tab-stop)
+    ("<backtab>"   tab-to-tab-stop-backward)
+    ("S-<tab>"     tab-to-tab-stop-backward)
+    ("S-<iso-tab>" tab-to-tab-stop-backward)))
 
 (add-hook 'gitconfig-mode-hook #'gitconfig-setup)
 

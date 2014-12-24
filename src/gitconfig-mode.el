@@ -25,8 +25,6 @@
                 nil ;; perform syntactic fontification (e.g. strings, comments)
                 )))
 
-
-
 (defparameter gitconfig-font-lock-keywords
   `(("\\(?:^\\|\\s-+\\)\\(#.*\\)$"
      (1 'font-lock-comment-face))
