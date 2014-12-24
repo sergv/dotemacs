@@ -1328,7 +1328,9 @@ as accepted by `bounds-of-thing-at-point'.")
     (with-current-buffer (eproj-home-entry/buffer entry)
       (concat (eproj-home-entry/symbol entry)
               "@"
-              (file-name-nondirectory buffer-file-name)
+              (if buffer-file-name
+                (file-name-nondirectory buffer-file-name)
+                "<no-buffer>")
               ":"
               (save-excursion
                 (number->string

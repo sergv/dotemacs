@@ -163,7 +163,7 @@
     ;; (", h"     haskell-haddock-identifier)
     ;; (", m"     haskell-haddock-module)
     ;; (", g"     haskell-hoogle-at-point)
-    ;; (", y"     haskell-hayoo-at-point)
+    (", y"     hayoo)
 
     ("*"       search-for-haskell-symbol-at-point-forward)
     ("#"       search-for-haskell-symbol-at-point-backward)
