@@ -229,7 +229,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                         (long (concatMap (lambda (flag)
                                            (save-match-data
                                              (if (string-match? "=$" flag)
-                                               (list flag (replace-match ""))
+                                               (list flag (replace-match "" nil nil flag))
                                                (list flag))))
                                          (filter long-flag?
                                                  (map get-flag-name flags))))
@@ -788,6 +788,75 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--exec"
                "--no-ff")
         (args (pcomplete-here (pcmpl-git-rev)))))
+      ("remote"
+       (or
+        ("add"
+         (opts
+          (flags
+           "-v"
+           "--verbose"
+           ("-t" (pcomplete-here (pcmpl-git-get-refs "heads")))
+           "-f"
+           "--tags"
+           "--no-tags"
+           "--mirror"
+           "--mirror=fetch"
+           "--mirror=push")))
+        ("rename"
+         (opts
+          (flags
+           "-v"
+           "--verbose")))
+        ("remove"
+         (opts
+          (flags
+           "-v"
+           "--verbose")))
+        ("set-head"
+         (opts
+          (flags
+           "-v"
+           "--verbose"
+           "-a"
+           "--auto"
+           "-d"
+           "--delete")
+          (args
+           (pcomplete-here (pcmpl-git-get-refs "heads")))))
+        ("set-branches"
+         (opts
+          (flags
+           "-v"
+           "--verbose"
+           "--add")))
+        ("set-url"
+         (opts
+          (flags
+           "-v"
+           "--verbose"
+           "--push"
+           "--add"
+           "--delete")))
+        ("show"
+         (opts
+          (flags
+           "-v"
+           "--verbose"
+           "-n")))
+        ("prune"
+         (opts
+          (flags
+           "-v"
+           "--verbose"
+           "-n"
+           "--dry-run")))
+        ("update"
+         (opts
+          (flags
+           "-v"
+           "--verbose"
+           "-p"
+           "--prune")))))
       ("reset"
        (opts
         (flags "--mixed"
