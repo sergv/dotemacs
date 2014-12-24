@@ -2085,6 +2085,46 @@ requires reasoning, while those other subjects merely require scholarship.
 
    "Science is the father of knowledge, but opinion breeds ignorance.
 -- Hippocrates 460-377 BC"
+
+   "Sometimes it pays to stay in bed on Monday, rather than spending the rest
+of the week debugging Monday's code.
+-- Dan Salomon"
+
+   "Optimism is an occupational hazard of programming;
+feedback is the treatment.
+-- Kent Beck"
+
+"Everything that can be invented has been invented.
+-- Charles H. Duell, Commissioner, U.S. Office of Patents"
+
+"I think there’s a world market for about 5 computers.
+-- Thomas J. Watson, Chairman of the Board, IBM"
+
+
+"It would appear that we have reached the limits of what it is
+possible to achieve with computer technology, although one should be careful
+with such statements, as they tend to sound pretty silly in 5 years.
+-- John Von Neumann"
+
+"Controlling complexity is the essence of computer programming.
+-- Brian Kernigan"
+
+"Complexity kills.  It sucks the life out of developers,
+it makes products difficult to plan, build and test,
+it introduces security challenges,
+and it causes end-user and administrator frustration.
+-- Ray Ozzie"
+
+"There are two ways of constructing a software design.
+One way is to make it so simple that there are obviously no deficiencies.
+And the other way is to make it so complicated that there are no obvious
+deficiencies.
+-- C.A.R. Hoare"
+
+"True innovation often comes from the small startup who is lean enough to launch
+a market but lacks the heft to own it.
+-- Timm Martin"
+
 ]
   "Good and nice fortunes.")
 
