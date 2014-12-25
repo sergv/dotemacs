@@ -163,6 +163,7 @@ Also propagate new offset to `vim:shift-width'."
   (which-function-mode -1)
 
   (modify-syntax-entry ?_ "_")
+  (modify-syntax-entry ?# ".")
 
   (setq-local whitespace-line-column 80)
   (setq-local whitespace-style '(face tabs lines-tail))
