@@ -368,20 +368,24 @@ expected to work."
                           (goto-char (line-end-position))
                           (jump))
                         0))
-             (end (progn (goto-char (1+ (point)))
-                         (or (flet
-                                 ((jump ()
-                                        (when (search-forward-regexp "[\n]+[^ \n]" nil t 1)
-                                          (cond
-                                           ((save-excursion (beginning-of-line)
-                                                            (looking-at-p skip-at-start-re))
-                                            (jump))
-                                           (t (forward-char -1)
-                                              (search-backward-regexp "[^\n ]" nil t)
-                                              (forward-char)
-                                              (point))))))
-                               (jump))
-                             (point-max)))))
+             (end (if (save-excursion
+                        (goto-char start)
+                        (looking-at-p "module\\_>"))
+                    (search-forward-regexp "\\_<where\\_>" nil t 1)
+                    (progn (goto-char (1+ (point)))
+                           (or (flet
+                                   ((jump ()
+                                          (when (search-forward-regexp "[\n]+[^ \n]" nil t 1)
+                                            (cond
+                                              ((save-excursion (beginning-of-line)
+                                                               (looking-at-p skip-at-start-re))
+                                               (jump))
+                                              (t (forward-char -1)
+                                                 (search-backward-regexp "[^\n ]" nil t)
+                                                 (forward-char)
+                                                 (point))))))
+                                 (jump))
+                               (point-max))))))
         (cons start end))))))
 
 (defun shm-delete-markers (decl)
