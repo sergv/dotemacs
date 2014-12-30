@@ -117,7 +117,8 @@ parseSomeStmt :: ParseMode -> String -> ParseResult D
 parseSomeStmt mode code =
   ((D . fix) <$> parseStmtWithMode mode code) <|>
   ((D . fix) <$> parseExpWithMode mode code) <|>
-  (D <$> parseImport mode code)
+  (D <$> parseImport mode code) <|>
+  (D <$> parseExportSpecs mode code)
 
 -- | Apply fixities after parsing.
 fix ast = fromMaybe ast (applyFixities baseFixities ast)
@@ -237,6 +238,13 @@ dropUntilLast ch = go []
 
 --------------------------------------------------------------------------------
 -- Parsers that HSE hackage doesn't have
+
+parseExportSpecs :: ParseMode -> String -> ParseResult [ExportSpec SrcSpanInfo]
+parseExportSpecs mode code =
+  case parseModuleWithMode mode code of
+    ParseOk (Module _ (Just (ModuleHead _ _ _ (Just (ExportSpecList _ xs)))) _ _ _) -> return xs
+    ParseOk _ -> ParseFailed noLoc "parseExportSpecs"
+    ParseFailed x y -> ParseFailed x y
 
 parseImport :: ParseMode -> String -> ParseResult (ImportDecl SrcSpanInfo)
 parseImport mode code =
