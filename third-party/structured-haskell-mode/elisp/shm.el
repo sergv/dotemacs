@@ -233,19 +233,29 @@ state that will hopefully be garbage collected."
   "Either indent if at the start of a line, or jump to the next
   slot."
   (interactive)
-  (or (when (save-excursion (goto-char (line-beginning-position))
-                            (looking-at-p "^[ ]*$"))
-        (shm/jump-to-slot))
-      (shm/simple-indent)))
+  (let ((evaporate-overlays-at-point
+         (remove-if-not (lambda (o) (overlay-get o 'shm-evaporate-overlay))
+                        (overlays-at (point)))))
+    (cond
+      ((or (shm/jump-to-slot)
+           evaporate-overlays-at-point)
+       (mapc #'delete-overlay evaporate-overlays-at-point))
+      (t
+       (shm/simple-indent)))))
 
 (defun shm/backtab ()
   "Either de-indent if at the start of a line, or jump to the previous
   slot."
   (interactive)
-  (or (when (save-excursion (goto-char (line-beginning-position))
-                            (looking-at-p "^[ ]*$"))
-        (shm/jump-to-previous-slot))
-      (shm/simple-indent-backtab)))
+  (let ((evaporate-overlays-at-point
+         (remove-if-not (lambda (o) (overlay-get o 'shm-evaporate-overlay))
+                        (overlays-at (point)))))
+    (cond
+      ((or (shm/jump-to-previous-slot)
+           evaporate-overlays-at-point)
+       (mapc #'delete-overlay evaporate-overlays-at-point))
+      (t
+       (shm/simple-indent-backtab)))))
 
 (defun shm/ret-proxy ()
   "Run `shm/simple-indent-newline-same-col', or in electric mode
