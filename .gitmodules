@@ -115,3 +115,6 @@
 [submodule "standalone/org-mode"]
         path = standalone/org-mode
         url = https://github.com/jwiegley/org-mode.git
+[submodule "third-party/ghc-prof-mode"]
+	path = third-party/ghc-prof-mode
+	url = https://github.com/pxqr/ghc-prof-mode.git
