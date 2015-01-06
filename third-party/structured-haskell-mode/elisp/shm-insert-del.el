@@ -114,7 +114,8 @@ it whith spaces when not in literal insertion context."
 (shm-make-self-insert-surrounded-with-spaces shm// ?/)
 (shm-make-self-insert-surrounded-with-spaces shm/? ?\?)
 (shm-make-self-insert-surrounded-with-spaces shm/| ?|)
-(shm-make-self-insert-surrounded-with-spaces shm/\\ ?\\)
+;; (shm-make-self-insert-surrounded-with-spaces shm/\\ ?\\)
+(defalias 'shm/\\ #'self-insert-command)
 (shm-make-self-insert-surrounded-with-spaces shm/~ ?~)
 
 (defun shm-post-self-insert ()
