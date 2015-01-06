@@ -271,7 +271,9 @@ the current node to the parent."
           (str (concat ","
                        (if (and shm-insert-space-after-comma
                                 (not (char= (char-after)
-                                            ?\s)))
+                                            ?\s))
+                                (not (char= (char-after)
+                                            ?\))))
                          " "
                          ""))))
       (if current-pair
