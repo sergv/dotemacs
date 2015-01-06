@@ -20,7 +20,7 @@
           "\\(?:\\." haskell-regexen/conid "\\)*\\b"))
 
 (defconst-set haskell-regexen/qvarid
-  (concat haskell-regexen/modid "\\." haskell-regexen/varid))
+  (concat "\\(" haskell-regexen/modid "\\)\\.\\(" haskell-regexen/varid "\\)"))
 (defconst-set haskell-regexen/qconid
   (concat haskell-regexen/modid "\\." haskell-regexen/conid))
 
