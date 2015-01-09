@@ -509,6 +509,8 @@ LIST sans it's first N elements."
           (or (elt state 3)
               (elt state 4)))))))
 
+(defun point-not-inside-string-or-comment? ()
+  (not (point-inside-string-or-comment?)))
 
 ;;;
 
