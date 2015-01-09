@@ -58,25 +58,25 @@ interactively prompting for variables/messages."
                ;; list with lambda enable space after snippet to be omitted
                (list
                 (lambda () (insert "self.")))
-               (lambda () (not (point-inside-string-or-comment?))))
+               #'point-not-inside-string-or-comment?)
          (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?\\>"
                (list
                 (lambda ()
                   (yas-expand-snippet "print(\"$1\")$0")))
-               (lambda () (not (point-inside-string-or-comment?))))
+               #'point-not-inside-string-or-comment?)
          (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?f\\>"
                (list
                 (lambda ()
                   (yas-expand-snippet "print(\"$1\".format($2))$0")))
-               (lambda () (not (point-inside-string-or-comment?))))
+               #'point-not-inside-string-or-comment?)
          (list "\\<info\\>"
                (list
                 #'python-info-message-skeleton)
-               (lambda () (not (point-inside-string-or-comment?))))
+               #'point-not-inside-string-or-comment?)
          ;; print_function
          (list "\\<pr\\(?:i\\(?:nt\\)?\\)?_f\\(?:u\\(?:n\\(?:c\\(?:t\\(?:i\\(?:on?\\)?\\)?\\)?\\)?\\)?\\)?\\>"
                "from __future__ import print_function"
-               (lambda () (not (point-inside-string-or-comment?))))))
+               #'point-not-inside-string-or-comment?)))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
