@@ -72,11 +72,11 @@ while interactively prompting for variables/messages."
                (list
                 (lambda ()
                   (yas-expand-snippet "printf(\"${1}\\n\");")))
-               (lambda () (not (point-inside-string-or-comment?))))
+               #'point-not-inside-string-or-comment?)
          (list "\\<info\\>"
                (list
                 #'octave-debug-message-skeleton)
-               (lambda () (not (point-inside-string-or-comment?))))))
+               #'point-not-inside-string-or-comment?)))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
