@@ -181,6 +181,7 @@
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g a"       nil)
+    ("g a a"     haskell-align-generic)
     ("g a ="     haskell-align-on-equals)
     ("g a - >"   haskell-align-on-arrows)
     ("g a < -"   haskell-align-on-left-arrows)
