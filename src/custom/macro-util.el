@@ -455,7 +455,7 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
                                           nil
                                           nil
                                           ""))
-               (message? (and (< 0 (length x))
+               (message? (and (not (zerop (length x)))
                               (or (char= ?\s (aref x 0))
                                   (char= ?\t (aref x 0)))))
                (result nil))
@@ -478,7 +478,7 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
                   (push x (,variable-names v1))
                   (setf result
                         ,(if (functionp format-print-value)
-                           `(funcall ,format-print-value x)
+                           `(funcall #',format-print-value x)
                            `(concat msg
                                     ,name-value-delimiter
                                     ,format-print-value)))))
