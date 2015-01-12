@@ -10,9 +10,16 @@
 (require 'haskell-misc)
 ;; for ghc flags to OPTIONS_GHC
 (require 'shell-completion)
+(require 'shm-ast)
+
+(defun haskell-debug-message-skeleton-format-print-value (msg)
+  (concat "\"" msg " = \" <> show "
+          (if (string-match-pure? "[ \t]" msg)
+            (concat "(" msg ")")
+            msg)))
 
 (define-print-info-skeleton
-    haskell-debug-message-skeleton
+    haskell-pure-debug-message-skeleton
   :doc "Insert call to trace to print some variables and messages
 while interactively prompting for variables/messages."
   :print-begin "trace "
@@ -21,7 +28,7 @@ while interactively prompting for variables/messages."
   :indent-after-func nil
   :insert-newline-before-var-list nil
 
-  :format-print-value (lambda (msg) (concat "\"" msg " = \" <> show (" msg ")"))
+  :format-print-value haskell-debug-message-skeleton-format-print-value
 
   :format-string-start "("
   :format-string-end ")"
@@ -32,11 +39,45 @@ while interactively prompting for variables/messages."
   :insert-entity-name-procedure (constantly nil)
   :make-variable-list (constantly nil))
 
+(define-print-info-skeleton
+    haskell-monadic-debug-message-skeleton
+  :doc "Insert call to trace to print some variables and messages
+while interactively prompting for variables/messages."
+  :print-begin "liftIO $ putStrLn $ "
+  :print-end ""
+
+  :indent-after-func nil
+  :insert-newline-before-var-list nil
+
+  :format-print-value haskell-debug-message-skeleton-format-print-value
+
+  :format-string-start ""
+  :format-string-end ""
+  :msg-transform (lambda (x) (concat "\"" x "\""))
+  :variable-delimiter " <> \", \" <> "
+  :message-delimiter " <> \"; \" <> "
+
+  :insert-entity-name-procedure (constantly nil)
+  :make-variable-list (constantly nil))
+
+(defun haskell-debug-message-skeleton ()
+  (interactive)
+  ;; don't insert monadic version if we're not in some
+  ;; do block
+  (let ((inside-immediate-do-block?
+         (eq 'Do
+             (shm-node-cons
+              (cdr
+               (shm-current-node-pair))))))
+    (if inside-immediate-do-block?
+      (haskell-monadic-debug-message-skeleton)
+      (haskell-pure-debug-message-skeleton))))
+
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
-    (if (> (length qualified-name) 0)
-      (substring qualified-name 0 1)
-      qualified-name)))
+    (if (zerop (length qualified-name))
+      qualified-name
+      (substring qualified-name 0 1))))
 
 (defun haskell-abbrev+-extract-mod-name (qualified-name)
   "Extract module name from QUALIFIED-NAME, e.g. if QUALIFIED-NAME = Foo.Bar
