@@ -218,7 +218,7 @@ more than once"
           ("ch"       . "*.c *.h")
           ("hh"       . "*.hh *.hxx *.hpp *.h *.h++")
           ("cc"       . "*.cc *.cxx *.cpp *.c *.c++")
-          ("cchh"     . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++  *.inl *.inc *.incl")
+          ("cchh"     . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++ *.inl *.inc *.incl")
           ("clj"      . "*.clj")
           ("clojure"  . "*.clj")
           ("java"     . "*.java")
