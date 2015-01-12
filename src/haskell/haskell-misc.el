@@ -63,7 +63,7 @@
              "cd %s && \\\n"
              "cabal configure "
              (concat "--disable-library-profiling "
-                     "--disable-executable-profiling "
+                     "--disable-profiling "
                      (funcall common-conf-opts build-dir)
                      " && \\\n")
              (funcall build-command build-dir)))
@@ -88,7 +88,7 @@
              "cabal configure "
              (concat "--enable-library-coverage "
                      "--disable-library-profiling "
-                     "--disable-executable-profiling "
+                     "--disable-profiling "
                      "--disable-split-objs "
                      (funcall common-conf-opts nil)
                      " && \\\n")
@@ -159,7 +159,7 @@
       )
 
 (redefun haskell-interactive-prompt-regex ()
-  "λ> +")
+  "λ?> +")
 
 
 (defconst +haskell-compile-error-or-warning-regexp+
@@ -429,6 +429,15 @@ we load it."
                      "\\(?:::[^:]\\|∷\\)")
 (make-align-function haskell-align-on-pragma-close
                      "#-}")
+
+(defun haskell-align-generic ()
+  (interactive)
+  (haskell-align-on-equals)
+  (haskell-align-on-arrows)
+  (haskell-align-on-left-arrows)
+  (haskell-align-on-comments)
+  (haskell-align-on-double-colons)
+  (haskell-align-on-pragma-close))
 
 ;;;; custom queries to inferior-haskell
 
