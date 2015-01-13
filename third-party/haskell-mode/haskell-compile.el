@@ -142,16 +142,20 @@ node `(haskell-mode)compilation' for more details."
   (let* ((cabdir (haskell-cabal-find-dir))
          (raw-command
           (if edit-command
-            (let ((preset
-                   (intern
-                    (completing-read "build preset: "
-                                     haskell-compile-cabal-build-command-presets
-                                     nil
-                                     t
-                                     nil
-                                     'haskell-compile--build-presets-history))))
-              (cadr
-               (assoc preset haskell-compile-cabal-build-command-presets)))
+            (let* ((preset
+                    (intern
+                     (completing-read "build preset: "
+                                      haskell-compile-cabal-build-command-presets
+                                      nil
+                                      t
+                                      nil
+                                      'haskell-compile--build-presets-history)))
+                   (command
+                    (cadr
+                     (assoc preset haskell-compile-cabal-build-command-presets))))
+              ;; remember command so it will be called again in the future
+              (setf haskell-compile-cabal-build-command command)
+              command)
             haskell-compile-cabal-build-command))
          (srcname (buffer-file-name))
          (command (cond (cabdir
