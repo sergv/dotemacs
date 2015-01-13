@@ -42,7 +42,14 @@
                               "-dsuppress-type-applications"
                               "-dsuppress-coercions"))
 
-(let* ((build-dir "/tmp/dist")
+(let* ((build-dir
+        (cond
+          ((platform-os-type? 'linux)
+           "/tmp/dist")
+          ((platform-os-type? 'windows)
+           nil)
+          (t
+           nil)))
        (mk-build-dir-arg
         (lambda (custom-build-dir)
           (if custom-build-dir
@@ -55,44 +62,66 @@
        (build-command
         (lambda (custom-build-dir)
           (concat
-           "cabal build " (funcall mk-build-dir-arg custom-build-dir) "--ghc-options=\"-j4 -ferror-spans\" && \\\n"
-           "cabal test " (funcall mk-build-dir-arg custom-build-dir) "--show-details=always"))))
+           "cabal build " (funcall mk-build-dir-arg custom-build-dir) "--ghc-options=\"-j4 -ferror-spans\"")))
+       (test-command
+        (lambda (custom-build-dir)
+          (concat
+           "cabal test " (funcall mk-build-dir-arg custom-build-dir) "--show-details=always")))
+       (sep " && \\\n"))
   (setf haskell-compile-cabal-build-command-presets
         `((vanilla
            ,(concat
-             "cd %s && \\\n"
-             "cabal configure "
-             (concat "--disable-library-profiling "
+             "cd %s"
+             sep
+             (concat "cabal "
+                     "configure "
+                     "--disable-library-profiling "
                      "--disable-profiling "
-                     (funcall common-conf-opts build-dir)
-                     " && \\\n")
-             (funcall build-command build-dir)))
+                     (funcall common-conf-opts build-dir))
+             sep
+             (funcall build-command build-dir)
+             sep
+             (funcall test-command build-dir)))
+          (test
+           ,(concat
+             "cd %s"
+             sep
+             (funcall test-command build-dir)))
           (clean
            ,(concat
-             "cd %s && \\\n"
+             "cd %s"
+             sep
              "cabal clean --builddir " build-dir))
           (prof
            ,(concat
-             "cd %s && \\\n"
-             "cabal configure "
-             (concat "--enable-library-profiling "
+             "cd %s"
+             sep
+             (concat "cabal "
+                     "configure "
+                     "--enable-library-profiling "
                      "--enable-executable-profiling "
-                     (funcall common-conf-opts build-dir)
-                     " && \\\n")
-             (funcall build-command build-dir)))
+                     (funcall common-conf-opts build-dir))
+             sep
+             (funcall build-command build-dir)
+             sep
+             (funcall test-command build-dir)))
           ;; hpc command must use local dist build directory, it won't
           ;; work with absolute paths.
           (hpc
            ,(concat
-             "cd %s && \\\n"
-             "cabal configure "
-             (concat "--enable-library-coverage "
+             "cd %s"
+             sep
+             (concat "cabal "
+                     "configure "
+                     "--enable-library-coverage "
                      "--disable-library-profiling "
                      "--disable-profiling "
                      "--disable-split-objs "
-                     (funcall common-conf-opts nil)
-                     " && \\\n")
-             (funcall build-command nil))))))
+                     (funcall common-conf-opts nil))
+             sep
+             (funcall build-command nil)
+             sep
+             (funcall test-command nil))))))
 
 (setf haskell-compile-command
       (or (getenv "HASKELL_COMPILE_COMMAND")
