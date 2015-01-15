@@ -57,7 +57,6 @@
     ("W" vim-mock:motion-fwd-WORD)
     ("B" vim-mock:motion-bwd-WORD)))
 
-
 (defconst +vim-special-keys+
   '((", b"   ibuffer)
     (", B"   tagged-buflist-show-select-current-buf)
@@ -94,7 +93,6 @@
     ;; ("v"   set-mark-command)
     ;; ("y"   copy-region-as-kill)
     ))
-
 
 (provide 'keys-def)
 
