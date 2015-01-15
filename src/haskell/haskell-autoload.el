@@ -37,6 +37,9 @@
 
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 
+(autoload 'ghc-init "ghc" nil t)
+(autoload 'ghc-debug "ghc" nil t)
+
 (provide 'haskell-autoload)
 
 ;; Local Variables:
