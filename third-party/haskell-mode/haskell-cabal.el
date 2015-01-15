@@ -286,7 +286,12 @@ a list is returned instead of failing with a nil result."
 (defun haskell-cabal-find-dir (&optional dir)
   "Like `haskell-cabal-find-file' but returns directory instead.
 See `haskell-cabal-find-file' for meaning of DIR argument."
-  (let ((cabal-file (haskell-cabal-find-file dir)))
+  (let ((cabal-file (or (locate-dominating-file
+                         (or dir
+                             default-directory)
+                         (lambda (dir)
+                           (haskell-cabal-find-pkg-desc dir t)))
+                        (haskell-cabal-find-file dir))))
     (when cabal-file
       (file-name-directory cabal-file))))
 
