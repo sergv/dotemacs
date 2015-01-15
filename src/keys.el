@@ -17,6 +17,7 @@
   ("<f3>"     prev-w)
   ("<f4>"     next-w)
 
+  ("<f5>"     revert-buffer)
   ("<f6>"     nil)
   ("<f7>"     prev-f)
   ("<f8>"     next-f)

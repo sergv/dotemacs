@@ -26,6 +26,9 @@
 (require 'haskell-outline)
 (require 'haskell-shm)
 
+;; never cache module alist to a file
+(setf inferior-haskell-module-alist-file nil)
+
 ;; ;; prevent paredit from reindenting Haskell lines
 ;; (dolist (func '(indent-region
 ;;                 indent-sexp
@@ -91,10 +94,7 @@
   (setf haskell-doc-show-global-types t)
 
   ;; it's not always a good idea to wait
-  (setf ;; inferior-haskell-wait-and-jump t
-   inferior-haskell-module-alist-file (path-concat
-                                       +prog-data-path+
-                                       "inf-haskell-module-alist"))
+  ;; (setf inferior-haskell-wait-and-jump t)
 
   (setq-local yas-prompt-functions
               (list #'haskell-yas-completing-prompt))
@@ -104,39 +104,32 @@
     (setq-local haskell-indent-offset offset)
     (setq-local haskell-indent-spaces offset)
     (setq-local shm-indent-spaces     offset))
-  (when (platform-use? 'work)
-    (font-lock-add-keywords nil
-                            `((,(rx word-start (or "TRADETYPE:"
-                                                   "TAG:"
-                                                   "DESC:"))
-                               (0 'font-lock-preprocessor-face)))))
 
-  (if-buffer-has-file ;; when visiting a file
-    ;; don't ask - just compile
-    (setq-local compilation-read-command nil)
-    ;; don't ask - just save
-    (setq-local compilation-ask-about-save nil)
-    (setq-local compilation-auto-jump-to-first-error nil)
-    ;; don't skip any messages
-    (setq-local compilation-skip-threshold 0))
+  (setq-local compilation-read-command nil)
+  ;; don't ask - just save
+  (setq-local compilation-ask-about-save nil)
+  (setq-local compilation-auto-jump-to-first-error nil)
+  ;; don't skip any messages
+  (setq-local compilation-skip-threshold 0)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("j"       inferior-haskell-send-decl)
-    ("g c d"   comment-util-delete-commented-part)
-    ("g c c"   haskell-comment-node)
-    (", c"     ghc-core-create-core)
-    ("="       input-unicode)
-    ("SPC SPC" switch-to-haskell)
-    ("g g ("   shm/wrap-parens)
-    ("g w"     shm/goto-where))
+    ("j"         inferior-haskell-send-decl)
+    ("g c d"     comment-util-delete-commented-part)
+    ("g c c"     haskell-comment-node)
+    ("g c o r e" ghc-core-create-core)
+    ("="         input-unicode)
+    ("SPC SPC"   switch-to-haskell)
+    ("g ("       shm/wrap-parens)
+    ("g )"       shm/wrap-parens)
+    ("g w"       shm/goto-where))
 
   (haskell-bind-shm-bindings)
 
   (def-keys-for-map (vim:visual-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("("       sp--self-insert-command)
-    ("["       sp--self-insert-command)
-    ("{"       sp--self-insert-command))
+    ("(" sp--self-insert-command)
+    ("[" sp--self-insert-command)
+    ("{" sp--self-insert-command))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
