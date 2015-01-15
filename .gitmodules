@@ -118,3 +118,6 @@
 [submodule "third-party/ghc-prof-mode"]
 	path = third-party/ghc-prof-mode
 	url = https://github.com/pxqr/ghc-prof-mode.git
+[submodule "third-party/ghc-mod"]
+	path = third-party/ghc-mod
+	url = https://github.com/kazu-yamamoto/ghc-mod.git
