@@ -103,12 +103,19 @@
   (add-hook 'minibuffer-setup-hook #'search-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'search-minibuffer-exit)
 
-  (read-from-minibuffer prompt
-                        nil
-                        *search-minibuffer-keymap*
-                        nil
-                        ;; 'regexp-history
-                        '*search-minibuffer-history*))
+  (let ((init-regexp
+         (if (region-active?)
+           (regexp-quote
+            (get-region-string-no-properties))
+           nil)))
+    (setf *search-current-regexp* init-regexp)
+    (search-update init-regexp)
+    (read-from-minibuffer prompt
+                          init-regexp
+                          *search-minibuffer-keymap*
+                          nil
+                          ;; 'regexp-history
+                          '*search-minibuffer-history*)))
 
 
 
@@ -120,29 +127,34 @@ When not prompting in minibuffer then this variable is set to nil.")
 (defun search-minibuffer-setup ()
   (remove-hook 'minibuffer-setup-hook #'search-minibuffer-setup)
   (setf *search-minibuffer* (current-buffer))
-  (add-hook 'after-change-functions #'search-update t t))
+  (add-hook 'after-change-functions #'search-update-after-change t t))
 
 (defun search-minibuffer-exit ()
   (remove-hook 'minibuffer-exit-hook #'search-minibuffer-exit)
-  (remove-hook 'after-change-functions #'search-update t)
+  (remove-hook 'after-change-functions #'search-update-after-change t)
 
   (setf *search-minibuffer* nil))
 
-(defun search-regex-valid-p (regex)
-  (not (string-match-p "\\\\$" regex)))
+(defun search-regex-valid? (regex)
+  (and (string? regex)
+       (< 0 (length regex))
+       (not (string-match-pure? "\\\\$" regex))))
 
-(defun search-update (start end old-len)
+(defun search-update-after-change (start end old-len)
   (setf *search-current-regexp* (search-get-current-regexp))
   (condition-case nil
-      (when (search-regex-valid-p *search-current-regexp*)
-        (search-highlight-matches *search-current-regexp*)
-        ;; this forgets current locatin and jums to first match of
-        ;; updated regexp
-        (search-with-initiated-buffer
-         (goto-char *search-start-marker*)
-         (search-next-from-minibuf)))
+      (search-update *search-current-regexp*)
     ;; swallow an error or we'll be kicked out of the hook
     (error nil)))
+
+(defun search-update (regexp)
+  (when (search-regex-valid? regexp)
+    (search-highlight-matches regexp)
+    ;; this forgets current location and jums to first match of
+    ;; updated regexp
+    (search-with-initiated-buffer
+     (goto-char *search-start-marker*)
+     (search-next-from-minibuf))))
 
 
 (defun search-get-current-regexp ()
@@ -206,8 +218,7 @@ When not prompting in minibuffer then this variable is set to nil.")
 
 (defun search-next-impl ()
   "Move to the next match for `*search-current-regexp*'."
-  (unless (member* *search-current-regexp*
-                   *search-ignore-regexps* :test #'string=)
+  (unless (gethash *search-current-regexp* *search-ignore-regexps*)
     (let ((p (point))
           (minibuffer-message-timeout 1)
           (case-fold-search (not *search-case-sensetive*)))
@@ -221,7 +232,7 @@ When not prompting in minibuffer then this variable is set to nil.")
 
 (defun search-prev-impl ()
   "Move to the previous match for `*search-current-regexp*'."
-  (unless (member* *search-current-regexp* *search-ignore-regexps* :test #'string=)
+  (unless (gethash *search-current-regexp* *search-ignore-regexps*)
     (let ((p (point))
           (minibuffer-message-timeout 1)
           (case-fold-search (not *search-case-sensetive*)))
@@ -243,8 +254,11 @@ Highlighting starts at the beginning of buffer")
 (defparameter *search-maximum-highlight-length* 1000
   "Maximum character length of regexp match that should be highlighted.")
 (defparameter *search-ignore-regexps*
-  '("\\(.*\\)*" "\\(.+\\)*" "\\(.*\\)+" "\\(.+\\)+"
-    "\\(?:.*\\)*" "\\(?:.+\\)*" "\\(?:.*\\)+" "\\(?:.+\\)+")
+  (let ((tbl (make-hash-table :test #'equal)))
+    (dolist (re '("\\(.*\\)*" "\\(.+\\)*" "\\(.*\\)+" "\\(.+\\)+"
+                  "\\(?:.*\\)*" "\\(?:.+\\)*" "\\(?:.*\\)+" "\\(?:.+\\)+"))
+      (puthash re re tbl))
+    tbl)
   "Regexps for which neither highlighting nor searching should occur.")
 
 
@@ -252,7 +266,7 @@ Highlighting starts at the beginning of buffer")
   (search-with-initiated-buffer
    (search-clean-overlays)
    (when (and (<= 1 (length regexp))
-              (not (member* regexp *search-ignore-regexps* :test #'string=)))
+              (not (gethash regexp *search-ignore-regexps*)))
      (save-excursion
        (goto-char (point-min))
        (let ((i 0)
