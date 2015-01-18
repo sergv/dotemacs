@@ -26,13 +26,17 @@
 
 (defconst +vi-keys+
   (append +vi-essential-keys+
-          '(("/" search-start-forward)
-            ("?" search-start-backward)))
+          '(("/"   search-start-forward)
+            ("M-/" search-start-forward-new-color)
+            ("?"   search-start-backward)
+            ("M-?" search-start-backward-new-color)))
   "Essential vi movement keys plus search keys")
 
 (defconst +vi-search-keys+
   '(("/"   search-start-forward)
+    ("M-/" search-start-forward-new-color)
     ("?"   search-start-backward)
+    ("M-?" search-start-backward-new-color)
     ("k"   search-next)
     ("K"   search-prev)
     ("C-h" search-toggle-highlighting)

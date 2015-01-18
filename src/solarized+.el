@@ -415,6 +415,15 @@ Futher modified by Sergey Vinokurov."
        (tuareg-font-lock-operator-face           ((t (:foreground ,cyan))))
        (tuareg-font-lock-multistage-face         ((t (:foreground ,blue :bold t))))
 
+       (search-red-face                          ((t (:foreground ,base03 :background ,red))))
+       (search-orange-face                       ((t (:foreground ,base03 :background ,orange))))
+       (search-yellow-face                       ((t (:foreground ,base03 :background ,yellow))))
+       (search-green-face                        ((t (:foreground ,base03 :background ,green))))
+       (search-cyan-face                         ((t (:foreground ,base03 :background ,cyan))))
+       (search-blue-face                         ((t (:foreground ,base03 :background ,blue))))
+       (search-violet-face                       ((t (:foreground ,base03 :background ,violet))))
+       (search-magenta-face                      ((t (:foreground ,base03 :background ,magenta))))
+
        ;; other faces
        (antlr-font-lock-default-face             ((t (:inherit default))))
        (antlr-font-lock-keyword-face             ((t (:inherit font-lock-keyword-face))))
