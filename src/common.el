@@ -1396,6 +1396,33 @@ the current buffer."
             (funcall (comp to-mb entry->bytes) (assoc 'vector-slots stats))
             (funcall (comp to-mb entry->bytes) (assoc 'heap stats)))))
 
+;;;;
+
+(defun delete-if-with-action! (pred items on-deletion)
+  "Delete items matching PRED from ITEMS list while applying ON-DELETION
+to deleted items. ITEMS will be mutated in order to obtain result."
+  (let ((tmp items)
+        (prev nil))
+    (while tmp
+      (let ((item (car tmp)))
+        (if (funcall pred item)
+          ;; remove the item
+          (let ((next-cons (cdr tmp)))
+            (if (null? next-cons)
+              ;; at the end of list - overwrite current cons
+              (progn
+                (if prev
+                  (setf (cdr prev) nil)
+                  (setf items nil))
+                (setf tmp nil))
+              (setf (car tmp) (car next-cons)
+                    (cdr tmp) (cdr next-cons)))
+            (funcall on-deletion item))
+          ;; keep the item and move forward
+          (setf prev tmp
+                tmp (cdr tmp)))))
+    items))
+
 (provide 'common)
 
 ;; Local Variables:

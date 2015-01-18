@@ -195,7 +195,9 @@ greater indenation as current line."
     ("q"        python-nav-up-list)
 
     ("*"        search-for-symbol-at-point-forward)
-    ("#"        search-for-symbol-at-point-backward))
+    ("M-*"      search-for-symbol-at-point-forward-new-color)
+    ("#"        search-for-symbol-at-point-backward)
+    ("M-#"      search-for-symbol-at-point-backward-new-color))
 
   (python-abbrev+-setup)
 

@@ -443,11 +443,15 @@ currently chosen lisp implementation."
     ("M-."     slime-inspector-show-source)
 
     ("/"       search-start-forward)
+    ("M-/"     search-start-forward-new-color)
     ("?"       search-start-backward)
+    ("M-?"     search-start-backward-new-color)
     ("k"       search-next)
     ("K"       search-prev)
     ("*"       search-for-symbol-at-point-forward)
+    ("M-*"     search-for-symbol-at-point-forward-new-color)
     ("#"       search-for-symbol-at-point-backward)
+    ("M-#"     search-for-symbol-at-point-backward-new-color)
     ("C-h"     search-toggle-highlighting)
 
     ("r"       slime-inspector-reinspect)

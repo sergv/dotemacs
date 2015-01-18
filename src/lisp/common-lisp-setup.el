@@ -50,8 +50,10 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("*" search-for-slime-symbol-at-point-forward)
-    ("#" search-for-slime-symbol-at-point-backward))
+    ("*"   search-for-slime-symbol-at-point-forward)
+    ("M-*" search-for-slime-symbol-at-point-forward-new-color)
+    ("#"   search-for-slime-symbol-at-point-backward)
+    ("M-#" search-for-slime-symbol-at-point-backward-new-color))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       slime-eval-last-expression)
