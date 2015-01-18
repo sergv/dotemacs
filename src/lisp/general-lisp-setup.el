@@ -678,8 +678,10 @@ This command assumes point is not in a string or comment."
     ("<right>"  forward-char)))
 
 (defparameter *lisp-search-keybindings*
-  '(("*" search-for-symbol-at-point-forward)
-    ("#" search-for-symbol-at-point-backward)))
+  '(("*"   search-for-symbol-at-point-forward)
+    ("M-*" search-for-symbol-at-point-forward-new-color)
+    ("#"   search-for-symbol-at-point-backward)
+    ("M-#" search-for-symbol-at-point-backward-new-color)))
 
 ;;; Actual setup functions
 

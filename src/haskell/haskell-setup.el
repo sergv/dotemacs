@@ -159,7 +159,9 @@
     (", y"     hayoo)
 
     ("*"       search-for-haskell-symbol-at-point-forward)
+    ("M-*"     search-for-haskell-symbol-at-point-forward-new-color)
     ("#"       search-for-haskell-symbol-at-point-backward)
+    ("M-#"     search-for-haskell-symbol-at-point-backward-new-color)
     ("'"       vim:shm/goto-parent)
     ;; ("'"       haskell-move-up)
     ("g n"     haskell-node/move-to-topmost-start)
