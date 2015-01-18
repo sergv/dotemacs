@@ -99,7 +99,7 @@
              (concat "cabal "
                      "configure "
                      "--enable-library-profiling "
-                     "--enable-executable-profiling "
+                     "--enable-profiling "
                      (funcall common-conf-opts build-dir))
              sep
              (funcall build-command build-dir)
