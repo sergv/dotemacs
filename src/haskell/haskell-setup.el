@@ -119,8 +119,8 @@
     ("g c o r e" ghc-core-create-core)
     ("="         input-unicode)
     ("SPC SPC"   switch-to-haskell)
-    ("g ("       shm/wrap-parens)
-    ("g )"       shm/wrap-parens)
+    ("g g ("     shm/wrap-parens)
+    ("g g )"     shm/wrap-parens)
     ("g w"       shm/goto-where))
 
   (haskell-bind-shm-bindings)
