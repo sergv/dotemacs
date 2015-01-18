@@ -105,6 +105,92 @@
           (should (= res 4)))
         (should (common-tests/pair= target-value (aref items res)))))))
 
+(ert-deftest common-tests/test-delete-if-with-action! ()
+  (let ((make-list
+         (lambda (n)
+           (loop
+             for i from 0 to n
+             collecting i))))
+    (should (equal nil
+                   (delete-if-with-action!
+                    (lambda (x) (error "should not be called"))
+                    nil
+                    #'ignore)))
+
+    (should (equal '(0)
+                   (delete-if-with-action!
+                    (lambda (n) nil)
+                    (funcall make-list 0)
+                    #'ignore)))
+    (should (equal '()
+                   (delete-if-with-action!
+                    (lambda (n) t)
+                    (funcall make-list 0)
+                    #'ignore)))
+
+    (should (equal '(0 1)
+                   (delete-if-with-action!
+                    (lambda (n) nil)
+                    (funcall make-list 1)
+                    #'ignore)))
+    (should (equal '(1)
+                   (delete-if-with-action!
+                    (lambda (n) (= n 0))
+                    (funcall make-list 1)
+                    #'ignore)))
+    (should (equal '(0)
+                   (delete-if-with-action!
+                    (lambda (n) (= n 1))
+                    (funcall make-list 1)
+                    #'ignore)))
+    (should (equal '()
+                   (delete-if-with-action!
+                    (lambda (n) t)
+                    (funcall make-list 1)
+                    #'ignore)))
+
+    (should (equal '(0 1 2 3 4 5)
+                   (delete-if-with-action!
+                    (lambda (n) nil)
+                    (funcall make-list 5)
+                    #'ignore)))
+    (should (equal '(1 2 3 4 5)
+                   (delete-if-with-action!
+                    (lambda (n) (= n 0))
+                    (funcall make-list 5)
+                    #'ignore)))
+    (should (equal '(0 2 3 4 5)
+                   (delete-if-with-action!
+                    (lambda (n) (= n 1))
+                    (funcall make-list 5)
+                    #'ignore)))
+    (should (equal '(0 1 2 3 5)
+                   (delete-if-with-action!
+                    (lambda (n) (= n 4))
+                    (funcall make-list 5)
+                    #'ignore)))
+    (should (equal '(0 1 2 3 4)
+                   (delete-if-with-action!
+                    (lambda (n) (= n 5))
+                    (funcall make-list 5)
+                    #'ignore)))
+    (should (equal '(0 1 2 3 4 5)
+                   (delete-if-with-action!
+                    (lambda (n) (= n 6))
+                    (funcall make-list 5)
+                    #'ignore)))
+
+    (should (equal '(4 5)
+                   (delete-if-with-action!
+                    (lambda (n) (<= n 3))
+                    (funcall make-list 5)
+                    #'ignore)))
+    (should (equal '(0 1 2)
+                   (delete-if-with-action!
+                    (lambda (n) (<= 3 n))
+                    (funcall make-list 5)
+                    #'ignore)))))
+
 (ert "common-tests/.*")
 
 (provide 'common-tests)

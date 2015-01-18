@@ -25,7 +25,6 @@
 (load-library "cycle-on-lines")
 
 (load-library "common")
-(load-library "search")
 (load-library "persistent-store")
 (persistent-store-init)
 
@@ -206,6 +205,7 @@
 (load-library "agda-setup")
 (load-library "dos-setup")
 
+(load-library "search")
 (load-library "compilation-setup")
 (load-library "completion-setup")
 (load-library "auto-insert-setup")
