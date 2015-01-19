@@ -123,8 +123,8 @@ then Bar would be the result."
               (list "main"
                     (list
                      (lambda () (yas-expand-snippet
-                            (concat "main :: IO ()\nmain = do\n"
-                                    (make-string haskell-indent-offset ?\s) "$1"))))
+                                 (concat "main :: IO ()\nmain = do\n"
+                                         (make-string haskell-indent-offset ?\s) "$1"))))
                     #'point-not-inside-string-or-comment?)
               (list "##"
                     (list
@@ -171,6 +171,10 @@ then Bar would be the result."
             (list "\\<info\\>"
                   (list
                    #'haskell-debug-message-skeleton)
+                  #'point-not-inside-string-or-comment?)
+            (list "\\<infom\\>"
+                  (list
+                   #'haskell-monadic-debug-message-skeleton)
                   #'point-not-inside-string-or-comment?)))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
