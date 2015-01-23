@@ -150,7 +150,6 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ;; (", ?"     haskell-help-for-symbol-at-point)
     ;; (", t"     haskell-type)
     ;; (", i"     haskell-info)
     ;; (", h"     haskell-haddock-identifier)
@@ -255,7 +254,6 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    (", ?"     haskell-help-for-symbol-at-point)
     (", t"     haskell-type)
     (", i"     haskell-info)
     (", h"     haskell-haddock-identifier)
