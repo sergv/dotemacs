@@ -93,9 +93,7 @@ then Bar would be the result."
                                      (and (not (point-inside-string-or-comment?))
                                           (or (null? c)
                                               (not (char=? c ?:)))))))
-         (haskell-extensions (append (map #'first haskell-language-extensions)
-                                     (remove nil
-                                             (map #'third haskell-language-extensions))))
+         (haskell-extensions haskell-language-extensions)
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
          (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
