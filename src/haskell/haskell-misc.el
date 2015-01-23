@@ -283,20 +283,6 @@
 See http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
 for more information.")
 
-(defun haskell-help-for-symbol-at-point ()
-  "Show help for entity at point, if any.
-
-Currently only language extensions are supported."
-  (interactive)
-  (let ((name (haskell-ident-at-point)))
-    (aif (assoc name haskell-language-extensions)
-      (destructuring-bind (ext-name doc inverse) it
-        (message "%s (%s)\n%s"
-                 name
-                 (if (eq? inverse "") "no inverse" inverse)
-                 doc))
-      (error "No documentation for %s" name))))
-
 ;;; haddock for modules
 
 (defun inferior-haskell-haddock-module (name)
