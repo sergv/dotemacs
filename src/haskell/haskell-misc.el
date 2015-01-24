@@ -28,6 +28,26 @@
 
 (make-directory +haskell-tmp-path+ t)
 
+(defconst cabal-install-version
+  (save-match-data
+    (let ((raw-version (shell-command-to-string "cabal --version")))
+      (if (and raw-version
+               (string-match? "^cabal-install version \\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\n.*$" raw-version))
+        (list (string->number (match-string 1 raw-version))
+              (string->number (match-string 2 raw-version))
+              (string->number (match-string 3 raw-version))
+              (string->number (match-string 4 raw-version)))
+        nil))))
+
+(defun cabal-install-version-at-least? (major minor patch aux)
+  (and cabal-install-version
+       (or (< major  (first cabal-install-version))
+           (and (= major  (first cabal-install-version))
+                (or (< minor (second cabal-install-version))
+                    (and (= minor (second cabal-install-version))
+                         (or (< patch  (third cabal-install-version))
+                             (and (= patch  (third cabal-install-version))
+                                  (<= aux (fourth cabal-install-version))))))))))
 
 (setf shm-insert-space-after-comma t
       shm-indent-point-after-adding-where-clause t
@@ -76,7 +96,9 @@
              (concat "cabal "
                      "configure "
                      "--disable-library-profiling "
-                     "--disable-profiling "
+                     (if (cabal-install-version-at-least? 1 22 0 0)
+                       "--disable-profiling "
+                       "--disable-executable-profiling ")
                      (funcall common-conf-opts build-dir))
              sep
              (funcall build-command build-dir)
@@ -99,7 +121,9 @@
              (concat "cabal "
                      "configure "
                      "--enable-library-profiling "
-                     "--enable-profiling "
+                     (if (cabal-install-version-at-least? 1 22 0 0)
+                       "--enable-profiling "
+                       "--enable-executable-profiling ")
                      (funcall common-conf-opts build-dir))
              sep
              (funcall build-command build-dir)
@@ -115,7 +139,9 @@
                      "configure "
                      "--enable-library-coverage "
                      "--disable-library-profiling "
-                     "--disable-profiling "
+                     (if (cabal-install-version-at-least? 1 22 0 0)
+                       "--disable-profiling "
+                       "--disable-executable-profiling ")
                      "--disable-split-objs "
                      (funcall common-conf-opts nil))
              sep

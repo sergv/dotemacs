@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'pcomplete)
+(require 'haskell-misc)
 
 (eval-after-load "pcomplete"
   '(progn
@@ -1404,7 +1405,9 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "--disable-shared"
                             "--enable-executable-dynamic"
                             "--disable-executable-dynamic"
-                            "--enable-profiling"
+                            "--enable-executable-profiling"
+                            ,@(when (cabal-install-version-at-least? 1 22 0 0)
+                                '("--enable-profiling"))
                             "--disable-profiling"
                             "-O"
                             "--enable-optimization"
