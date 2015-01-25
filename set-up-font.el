@@ -75,6 +75,12 @@
               (with-current-frame new-frame
                 (set-frame-font *emacs-font*)))))
 
+;; set default font for all unicode characters
+
+(defconst +dejavu-sans-mono-font+ "DejaVu Sans Mono")
+
+(when (member +dejavu-sans-mono-font+ (font-family-list))
+  (set-fontset-font t 'unicode +dejavu-sans-mono-font+ nil nil))
 
 (provide 'set-up-font)
 
