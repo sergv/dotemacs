@@ -1,5 +1,5 @@
 name:                ${filename no ext}
-version:             0.1
+version:             0.1.0.0
 synopsis:            TODO
 description:         TODO
 license:             BSD3
@@ -10,23 +10,29 @@ maintainer:          ${author} <${email}>
 cabal-version:       >= 1.16
 build-type:          Simple
 
--- library              ${filename no ext}
---   exposed-modules:   Foo.Bar, Foo.Baz
+library
+  exposed-modules:   Foo
+  build-depends:     base >= 4.7
+  ghc-options:       -W -Wall -fwarn-monomorphism-restriction -ferror-spans -rtsopts
+--  hs-source-dirs:    src
+--  other-modules:     Utils.Utils
+--  build-tools:       alex happy
+
 executable           ${filename no ext}
-  build-depends:     base, containers, mtl, text, wl-pprint-text
+  build-depends:     base >= 4.7, ${filename no ext}
   main-is:           Main.hs
   default-language:  Haskell2010
   ghc-options:       -W -Wall -fwarn-monomorphism-restriction -ferror-spans -rtsopts
 --  hs-source-dirs:    src
 --  other-modules:     Utils.Utils
 --  ghc-options:       -main-is MyMain
---  build-tools:       alex happy
 
 test-suite ${filename no ext}-test
   type:              exitcode-stdio-1.0
-  build-depends:     base, containers, mtl, text, wl-pprint-text,
+  build-depends:     base,
                      hunit, test-framework,
-                     QuickCheck, test-framework-quickcheck
+                     QuickCheck, test-framework-quickcheck,
+                     ${filename no ext}
 --  main-is:           Test/Main.hs
 --  hs-source-dirs:    test
 
