@@ -9,6 +9,7 @@
 (require 'search)
 (require 'yafolding)
 (require 'haskell-misc)
+(require 'search)
 
 (search-def-autoexpand-advices
  (yafolding-show)
