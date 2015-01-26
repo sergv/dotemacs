@@ -13,7 +13,7 @@
 (require 'macro-util)
 (require 'advices-util)
 (require 'common)
-(require 'peg)
+(require 'search)
 
 (require 'abbrev+)
 (require 'haskell-compile)
