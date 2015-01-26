@@ -18,6 +18,7 @@
 (require 'macro-util)
 (require 'el-swank-fuzzy)
 (require 'lisp-utils)
+(require 'search)
 
 (require 'eldoc)
 (require 'paredit)
