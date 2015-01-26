@@ -618,6 +618,26 @@ return nil otherwise."
     ("\\"      shm/\\)
     ("~"       shm/~)))
 
+(defun haskell-prof-search-column (column pred)
+  (assert (< 0 column))
+  (save-match-data
+    (let ((column-re
+           (concat "^\\(?:[ \t]*[^ \t]+\\)"
+                   "\\(?:[ \t]+[^ \t]+\\)\\{" (number->string (- column 1)) "\\}"
+                   "[ \t]+"
+                   "\\([^ \t]+\\)")))
+      (while (and (re-search-forward column-re nil t)
+                  (not (funcall pred
+                                (match-string-no-properties 1))))))))
+
+(defun haskell-prof-search-individual-time (minimum-fraction)
+  (assert (numberp minimum-fraction))
+  (haskell-prof-search-column
+   4
+   (lambda (x)
+     (and (string-match-pure? "[0-9.]+" x)
+          (< minimum-fraction (string->number x))))))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
