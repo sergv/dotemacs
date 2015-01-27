@@ -18,7 +18,21 @@
 
      (setf pcomplete-autolist nil
            pcomplete-recexact nil
-           pcomplete-cycle-completions t)))
+           pcomplete-cycle-completions t
+           pcomplete-command-completion-function
+           (lambda ()
+             (pcomplete-here
+              (pcomplete-entries nil
+                                 (lambda (filename)
+                                   (or (file-executable-p filename)
+                                       (string-match-pure? (rx (or ".hs"
+                                                                   ".sh"
+                                                                   ".py"
+                                                                   ".exe"
+                                                                   ".bat"
+                                                                   ".cmd")
+                                                               eol)
+                                                           filename)))))))))
 
 (defun pcmpl-git-commits ()
   "Return list of commits to complete against."
@@ -151,8 +165,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                          (other-defs
                           (filter (comp #'not positional-def?) defs))
                          (names
-                          (concatMap #'(lambda (x) (if (list? x) x (list x)))
-                                     positional-defs)))
+                          (map #'(lambda (x) (if (list? x) (first x) (list x)))
+                               positional-defs)))
                     `(progn
                        ,@(when names
                            (list `(pcomplete-here ',names)))
