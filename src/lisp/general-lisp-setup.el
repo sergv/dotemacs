@@ -665,7 +665,7 @@ This command assumes point is not in a string or comment."
     ("g c d"   comment-util-delete-commented-part)
     ("g <tab>" sp-indent-defun)
     ("M-p"     browse-kill-ring)
-    ("="       input-unicode)))
+    ("+"       input-unicode)))
 
 (defparameter *lisp-vim-movement-keybindings*
   '(("g n"      glisp/beginning-of-defun)
