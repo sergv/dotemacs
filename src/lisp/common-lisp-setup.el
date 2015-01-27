@@ -76,6 +76,7 @@
                      vim:insert-mode-local-keymap)
     ("<f6>"  common-lisp-load-file)
     ("<f9>"  common-lisp-compile-and-load-file)
+    ("`"     common-lisp-compile-and-load-file)
 
     ("M-/"   slime-complete-symbol)
     ("M-:"   slime-interactive-eval))

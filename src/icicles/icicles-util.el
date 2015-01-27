@@ -8,11 +8,18 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(defun insert-backtick ()
+  (interactive)
+  (insert "`"))
+
 (defun* icicles-util/bind-minibuffer-keys (map &key (sexp-keys nil))
   "Utility function that binds my custom keys and is used in several places."
   (def-keys-for-map map
     ("<escape>"          abort-recursive-edit)
     ("?"                 self-insert-command)
+
+    ("`"                 exit-minibuffer)
+    ("C-`"               insert-backtick)
 
     ("C-w"               backward-delete-word)
     ("C-S-w"             backward-delete-word*)

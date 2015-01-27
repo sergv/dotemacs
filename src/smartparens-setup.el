@@ -116,7 +116,7 @@ With negative argument move forward, still one level out."
   (sp-local-pair "'" nil :actions nil)
   ;; also only use the pseudo-quote inside strings where it serve as
   ;; hyperlink.
-  (sp-local-pair "`" "'" :when '(sp-in-string-p)))
+  (sp-local-pair "`" "'" :when '(sp-in-string-p) :unless '(sp-in-minibuffer?)))
 
 ;; NOTE: Normally, `sp-local-pair' accepts list of modes (or a single
 ;; mode) as a first argument.  The macro `sp-with-modes' adds this
@@ -134,7 +134,7 @@ With negative argument move forward, still one level out."
   ;; these pairs do not have global definition.
   (sp-local-pair "$" "$")
   (sp-local-pair "\\[" "\\]")
-  (sp-local-pair "`" "'")
+  (sp-local-pair "`" "'" :unless '(sp-in-minibuffer?))
   (sp-local-tag "\\b" "\\begin{_}" "\\end{_}"))
 
 ;; html modes
@@ -177,7 +177,8 @@ With negative argument move forward, still one level out."
   ;; to make manual entering '' pair feasible
   (sp-local-pair "'" nil :actions nil)
   (sp-local-pair "\\(" nil :when '(sp-in-string-p))
-  (sp-local-pair "\\\\(" nil :when '(sp-in-string-p)))
+  (sp-local-pair "\\\\(" nil :when '(sp-in-string-p))
+  (sp-local-pair "`" "`" :actions '(insert wrap)))
 
 (sp-with-modes '(eshell-mode
                  shell-mode)
