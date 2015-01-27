@@ -476,8 +476,7 @@ backtrack the entire buffer which would lock up Emacs.")
        :post-handlers (sp-escape-wrapped-region sp-escape-quotes-after-insert))
       (:open "("     :close ")"     :actions (insert wrap autoskip navigate))
       (:open "["     :close "]"     :actions (insert wrap autoskip navigate))
-      (:open "{"     :close "}"     :actions (insert wrap autoskip navigate))
-      (:open "`"     :close "`"     :actions (insert wrap autoskip navigate)))))
+      (:open "{"     :close "}"     :actions (insert wrap autoskip navigate)))))
   "List of pair definitions.
 
 Maximum length of opening or closing pair is
