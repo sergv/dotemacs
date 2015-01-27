@@ -121,7 +121,9 @@
     ("SPC SPC"   switch-to-haskell)
     ("g g ("     shm/wrap-parens)
     ("g g )"     shm/wrap-parens)
-    ("g w"       shm/goto-where))
+    ("g w"       shm/goto-where)
+    ("`"         haskell-compile)
+    ("C-`"       hs-lint))
 
   (haskell-bind-shm-bindings)
 
@@ -145,8 +147,8 @@
     ("<return>"        haskell-newline)
     ("<f6>"            inferior-haskell-load-file)
     ("<f9>"            haskell-compile)
-    ("C-<f6>"          haskell-clear-buffer-and-load-file)
-    ("S-<f9>"          hs-lint))
+    ("S-<f9>"          hs-lint)
+    ("C-<f6>"          haskell-clear-buffer-and-load-file))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)

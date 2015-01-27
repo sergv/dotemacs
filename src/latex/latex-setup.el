@@ -112,6 +112,8 @@
     (setq-local compilation-skip-threshold 0))
 
   (def-keys-for-map vim:normal-mode-local-keymap
+    ("C-`"    open-buffer-as-pdf)
+    ("`"      latex-compile)
     ("S-<f9>" open-buffer-as-pdf)
     ("<f9>"   latex-compile)
     ("<f6>"   latex-toggle-preview-or-russian-spellcheck)

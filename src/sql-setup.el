@@ -15,7 +15,8 @@
   (init-common)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>" sql-send-buffer))
+    ("<f9>" sql-send-buffer)
+    ("`"    sql-send-buffer))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
@@ -23,7 +24,7 @@
     ("g t" sql-end-of-statement))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("<f6>" sql-send-region)
+    ("`"    sql-send-region)
     ("<f9>" sql-send-region)))
 
 (add-hook 'sql-mode-hook #'sql-setup)

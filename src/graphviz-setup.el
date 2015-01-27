@@ -14,7 +14,9 @@
 (defun graphviz-setup ()
   (init-common)
   (local-set-key (kbd "<f9>") #'compile)
-  (local-set-key (kbd "S-<f9>") #'graphviz-dot-preview))
+  (local-set-key (kbd "S-<f9>") #'graphviz-dot-preview)
+  (local-set-key (kbd "`") #'compile)
+  (local-set-key (kbd "C-`") #'graphviz-dot-preview))
 
 (add-hook 'graphviz-dot-mode-hook #'graphviz-setup)
 

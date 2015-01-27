@@ -107,7 +107,8 @@
     ("M-/"   lisp-complete-symbol)
 
     ("<tab>" indent-for-tab-command)
-    ("<f9>"  elisp-compile-and-move))
+    ("<f9>"  elisp-compile-and-move)
+    ("`"     elisp-compile-and-move))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"   eval-region))
