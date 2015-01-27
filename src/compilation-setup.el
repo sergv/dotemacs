@@ -158,6 +158,7 @@ error location - list of (filename line column)."
        ("y"        copy-region-as-kill)
 
        ("<f9>"     recompile)
+       ("`"        recompile)
        ("SPC"      compile-goto-error)
        ("o"        compile-goto-error))))
 

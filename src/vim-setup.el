@@ -142,7 +142,6 @@ like \"d w\".")
 (def-keys-for-map vim:normal-mode-keymap
   ("C-y"       nil)
   (";"         vim:ex-read-command)
-  ("`"         minimap-toggle)
   ("'"         sp-backward-up-sexp)
   ("]"         vim:motion-bwd-paragraph)
   ("["         vim:motion-fwd-paragraph)

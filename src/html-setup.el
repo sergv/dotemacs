@@ -193,7 +193,8 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (markup-setup)
   (setf *markup-tags-context-func* #'hl-tags-context-sgml-mode)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>" browse-url-of-buffer)))
+    ("<f9>" browse-url-of-buffer)
+    ("`"    browse-url-of-buffer)))
 
 
 (defun nxhtml-reindent-enclosing-tag ()

@@ -27,6 +27,8 @@
   ("<f11>"    prev-buffer)
   ("<f12>"    next-buffer)
 
+  ("`"        compile)
+
   ("<XF86Back>"    tabbar-backward-tab)
   ("<XF86Forward>" tabbar-forward-tab)
 
@@ -44,7 +46,6 @@
   ("S-<f10>"  eshell)
   ("S-<f11>"  tabbar-move-selected-tab-left)
   ("S-<f12>"  tabbar-move-selected-tab-right)
-
 
   ("C-<f9>"   enlarge-window)
   ("C-<f10>"  shrink-window)

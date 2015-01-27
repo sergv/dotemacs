@@ -44,7 +44,9 @@
     ("<f6>"    nrepl-load-current-buffer ;; clojure-load-file
      )
     ("<f9>"    clojure-compile)
-    ("S-<f9>"  kibit))
+    ("`"       clojure-compile)
+    ("S-<f9>"  kibit)
+    ("C-`"     kibit))
 
   (setup-eproj-symbnav)
   (clojure-abbrev+-setup))
