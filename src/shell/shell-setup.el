@@ -38,6 +38,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>" shell-run-file)
+    ("`"    shell-run-file)
     ("M-/"  icicle-comint-dynamic-complete-filename))
   (shell-script-abbrev+-setup))
 

@@ -26,7 +26,8 @@
 (defun cython-setup ()
   (python-common-setup)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>"    cython-compile))
+    ("<f9>"    cython-compile)
+    ("`"       cython-compile))
 
   (pabbrev-mode 1)
   (def-keys-for-map (vim:normal-mode-local-keymap

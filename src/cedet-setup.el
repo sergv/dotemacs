@@ -16,6 +16,7 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
+    ("`"    semantic-grammar-create-package)
     ("<f9>" semantic-grammar-create-package))
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"     eval-last-sexp)
