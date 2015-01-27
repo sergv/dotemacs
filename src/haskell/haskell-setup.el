@@ -117,7 +117,7 @@
     ("g c d"     comment-util-delete-commented-part)
     ("g c c"     haskell-comment-node)
     ("g c o r e" ghc-core-create-core)
-    ("="         input-unicode)
+    ("+"         input-unicode)
     ("SPC SPC"   switch-to-haskell)
     ("g g ("     shm/wrap-parens)
     ("g g )"     shm/wrap-parens)
