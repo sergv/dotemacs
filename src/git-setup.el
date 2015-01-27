@@ -527,6 +527,11 @@ under git version control."
                            tracked-files-table)
               (setf git-repository repository))))))))
 
+(defun git-add ()
+  (interactive)
+  (unless buffer-file-name
+    (error "Current buffer has no file"))
+  (shell-command (concat "git add " (shell-quote-argument buffer-file-name))))
 
 (provide 'git-setup)
 
