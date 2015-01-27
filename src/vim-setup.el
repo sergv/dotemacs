@@ -409,7 +409,17 @@ Basically swap current point with previous one."
 
 (vim:emap "blame" 'vim:blame)
 
+(vim:defcmd vim:add (nonrepeatable)
+  "Run git add on current file."
+  (aif (buffer-file-name)
+    (progn
+      (git-update-file-repository)
+      (if git-repository
+        (git-add)
+        (error "File %s is not under git VCS" it)))
+    (error "current buffer has no associated file")))
 
+(vim:emap "add" 'vim:add)
 
 (provide 'vim-setup)
 
