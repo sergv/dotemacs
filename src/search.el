@@ -50,15 +50,15 @@
   "Alternative magenta face.")
 
 (defparameter *search-highlight-faces*
-  ['search-highlight-face
-   'search-red-face
-   'search-orange-face
-   'search-yellow-face
-   'search-green-face
-   'search-cyan-face
-   'search-blue-face
-   'search-violet-face
-   'search-magenta-face])
+  [search-highlight-face
+   search-red-face
+   search-orange-face
+   search-yellow-face
+   search-green-face
+   search-cyan-face
+   search-blue-face
+   search-violet-face
+   search-magenta-face])
 (defparameter *search-highlight-face-index* 0
   "Index into `*search-highlight-faces*' that determines currently used face for
 highlighting searches.")
