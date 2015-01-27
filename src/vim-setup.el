@@ -245,20 +245,18 @@ like \"d w\".")
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up))
 
-
 ;;; ex bindings and commands
 
 (def-keys-for-map vim:ex-keymap
   ("C-v" set-mark-command)
   ("C-y" copy-region-as-kill))
 
-
 (vim:defcmd vim:cmd-new-frame (nonrepeatable keep-visual)
   "Pops up a new frame."
   (new-frame))
 
 (vim:emap "new frame" 'vim:cmd-new-frame)
-(vim:emap "nf" "new frame")
+(vim:emap "nf" 'vim:cmd-new-frame)
 
 
 (vim:defcmd vim:jump-to-prev-saved-position (nonrepeatable keep-visual)
@@ -290,11 +288,11 @@ Basically swap current point with previous one."
   (split-window-vertically))
 
 (vim:emap "horizontal split" 'vim:cmd-split-horizontally)
-(vim:emap "hsplit" "horizontal split")
-(vim:emap "hs" "horizontal split")
+(vim:emap "hsplit" 'vim:cmd-split-horizontally)
+(vim:emap "hs" 'vim:cmd-split-horizontally)
 (vim:emap "vertical split" 'vim:cmd-split-vertically)
-(vim:emap "vsplit" "vertical split" )
-(vim:emap "vs" "vertical split" )
+(vim:emap "vsplit" 'vim:cmd-split-vertically)
+(vim:emap "vs" 'vim:cmd-split-vertically)
 
 (vim:emap "write" 'vim:cmd-write-current-buffer)
 (vim:emap "w" "write")
@@ -402,7 +400,8 @@ Basically swap current point with previous one."
       (magit-status default-directory))))
 
 (vim:emap "magit" 'vim:magit)
-(vim:emap "mg" "magit")
+(vim:emap "mg" 'vim:magit)
+(vim:emap "g" 'vim:magit)
 
 
 (vim:defcmd vim:blame (nonrepeatable)
