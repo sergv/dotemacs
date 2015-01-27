@@ -92,7 +92,7 @@ like \"d w\".")
   ("g M-#"   search-for-word-at-point-backward-new-color)
 
   ("-"       vim:cmd-negate-or-paste-pop)
-  ("+"       vim:cmd-paste-pop-next)
+  ("="       vim:cmd-paste-pop-next)
   ("X"       vim:cmd-delete-char-backward)
   ("M"       vim:jump-to-prev-saved-position)
   ("J"       vim:cmd-join-lines)
