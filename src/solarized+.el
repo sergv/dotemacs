@@ -649,12 +649,6 @@ Useful for applying changes made to color theme definition."
                "Solarized Dark"
                "Ethan Schoonover & Greg Pfeil <greg@technomadic.org>"))
 
-
-(require 'theme-changer)
-(change-theme #'color-theme-solarized+-light
-              #'color-theme-solarized+-dark)
-
-
 (provide 'solarized+)
 
 ;; Local Variables:

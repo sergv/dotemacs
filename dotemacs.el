@@ -253,6 +253,10 @@
 (fortune-init-scratch-buf)
 
 
+(require 'theme-changer)
+(change-theme #'color-theme-solarized+-light
+              #'color-theme-solarized+-dark)
+
 ;; test faces for readability
 ;; (progn
 ;;   (load-file "~/emacs/color-lab.elc")
