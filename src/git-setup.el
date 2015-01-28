@@ -225,6 +225,7 @@ all otherwise."
     ("t"      magit-goto-next-section)
     ("n"      magit-goto-previous-section)
 
+    ("`"               magit-visit-item)
     ("SPC"             magit-visit-item-other-window)
     ("S-TAB"           magit-cycle-top-sections-visibility)
     ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)

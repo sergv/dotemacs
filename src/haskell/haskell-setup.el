@@ -321,6 +321,7 @@
   (setq-local *compilation-jump-error-regexp*
               +haskell-compile-error-or-warning-regexp+)
   (def-keys-for-map haskell-compilation-mode-map
+    ("`"        compilation/goto-error)
     ("<return>" compilation/goto-error)
     ("SPC"      compilation/goto-error-other-window)))
 
@@ -339,6 +340,7 @@
     ("<tab>"           indent-relative-forward)
     ("S-<tab>"         indent-relative-backward)
     ("S-<iso-lefttab>" indent-relative-backward)
+    ("`"               haskell-compile)
     ("<f9>"            haskell-compile)))
 
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
