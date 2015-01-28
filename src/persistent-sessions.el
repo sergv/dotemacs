@@ -79,6 +79,20 @@ on values of said variables.")
                                             *search-minibuffer-history*)
   "List of global variables to save in session file.")
 
+(defun sessions/strip-text-properties (val)
+  (cond
+    ((ring? val)
+     (let ((result (make-ring (ring-size val))))
+       (dotimes (n (ring-length val))
+         (ring-insert result
+                      (sessions/strip-text-properties
+                       (ring-ref val n))))
+       result))
+    ((string? val)
+     (substring-no-properties val))
+    (t
+     val)))
+
 (defun sessions/truncate-long-sequences (val)
   "Truncate overly long sequences."
   (let ((max-size 1000))
@@ -104,7 +118,9 @@ entries."
   (remq nil
         (map (lambda (var)
                (when (boundp var)
-                 (cons var (sessions/truncate-long-sequences (symbol-value var)))))
+                 (cons var (sessions/strip-text-properties
+                            (sessions/truncate-long-sequences
+                             (symbol-value var))))))
              *sessions-global-variables*)))
 
 (defun sessions/restore-global-variables (bindings)
