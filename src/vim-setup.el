@@ -11,7 +11,6 @@
 (require 'completion-setup)
 (require 'smartparens-setup)
 (require 'search)
-(require 'minimap-setup)
 (require 'tagged-buflist-setup)
 (require 'common)
 
