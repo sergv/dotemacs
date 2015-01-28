@@ -321,7 +321,7 @@
   (setq-local *compilation-jump-error-regexp*
               +haskell-compile-error-or-warning-regexp+)
   (def-keys-for-map haskell-compilation-mode-map
-    ("`"        compilation/goto-error)
+    ("`"        recompile)
     ("<return>" compilation/goto-error)
     ("SPC"      compilation/goto-error-other-window)))
 
