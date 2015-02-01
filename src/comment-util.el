@@ -48,7 +48,6 @@
     (inferior-scheme-mode  (one-line ";;") (line-regexp ";+"))
     (lisp-interaction-mode (one-line ";;") (line-regexp ";+"))
     (org-mode              (one-line "#")  (line-regexp "#+"))
-    (tagged-buflist-mode   (one-line "#")  (line-regexp "#+"))
     (prolog-mode           (one-line "%")  (line-regexp "%+"))
     (prolog-inferior-mode  (one-line "%")  (line-regexp "%+"))
     (c-mode                (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))

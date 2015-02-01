@@ -671,12 +671,7 @@ This command assumes point is not in a string or comment."
   '(("g n"      glisp/beginning-of-defun)
     ("g t"      glisp/end-of-defun)
     ("g <up>"   glisp/beginning-of-defun)
-    ("g <down>" glisp/end-of-defun)
-
-    ("<up>"     previous-line)
-    ("<down>"   next-line)
-    ("<left>"   backward-char)
-    ("<right>"  forward-char)))
+    ("g <down>" glisp/end-of-defun)))
 
 (defparameter *lisp-search-keybindings*
   '(("*"   search-for-symbol-at-point-forward)

@@ -209,7 +209,6 @@
 (load-library "compilation-setup")
 (load-library "completion-setup")
 (load-library "auto-insert-setup")
-(load-library "tagged-buflist-setup")
 (load-library "hl-paren")
 (load-library "spell-setup")
 (load-library "abbrev+")
@@ -280,10 +279,6 @@
 (put 'set-goal-column 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
-
-
-(ex-commands-re-cache-update)
-
 
 (require 'package)
 (let ((package-load-list '((melpa t))))

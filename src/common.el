@@ -13,20 +13,6 @@
 (require 'more-scheme)
 (require 'macro-util)
 
-(defparameter *ex-commands-re-cache* nil
-  "This variable contains optimized regexp that matches
-currently defined ex commands. Should be updated with
-`ex-commands-re-cache-update' when new ex commands being defined.")
-
-
-(defun ex-commands-re-cache-update ()
-  "Updates `*ex-commands-re-cache*' with current ex-commands."
-  (setf *ex-commands-re-cache*
-        (concat "\\("
-                (regexp-opt (map #'car vim:ex-commands))
-                "\\)\\(!\\)?")))
-
-
 
 (defsubst remap-interval (a b c d x)
   "Remap x from [a, b] into [c, d]"
