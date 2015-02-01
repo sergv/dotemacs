@@ -11,7 +11,6 @@
 (require 'completion-setup)
 (require 'smartparens-setup)
 (require 'search)
-(require 'tagged-buflist-setup)
 (require 'common)
 
 ;;; configuration variables
@@ -36,10 +35,8 @@ like \"d w\".")
                       vim:operator-pending-mode-keymap
                       vim:motion-mode-keymap))
   (def-keys-for-map keymap
-    ("g g" nil)
-    ("g <" vim:motion-go-to-first-non-blank-beg)
-    ("g >" vim:motion-go-to-first-non-blank-end)
-    ("G"   nil)
+    ("g g" vim:motion-go-to-first-non-blank-beg)
+    ("G"   vim:motion-go-to-first-non-blank-end)
     ("j"   nil)
 
     ("%"   nil)
@@ -76,19 +73,19 @@ like \"d w\".")
   (":"       vim:motion-repeat-last-find)
 
   ("/"       search-start-forward)
-  ("M-/"     search-start-forward-new-color)
+  ("C-/"     search-start-forward-new-color)
   ("?"       search-start-backward)
-  ("M-?"     search-start-backward-new-color)
+  ("C-?"     search-start-backward-new-color)
   ("k"       search-next)
   ("K"       search-prev)
   ("*"       search-for-symbol-at-point-forward)
-  ("M-*"     search-for-symbol-at-point-forward-new-color)
+  ("C-*"     search-for-symbol-at-point-forward-new-color)
   ("#"       search-for-symbol-at-point-backward)
-  ("M-#"     search-for-symbol-at-point-backward-new-color)
-  ("g *"     search-for-word-at-point-forward)
-  ("g M-*"   search-for-word-at-point-forward-new-color)
-  ("g #"     search-for-word-at-point-backward)
-  ("g M-#"   search-for-word-at-point-backward-new-color)
+  ("C-#"     search-for-symbol-at-point-backward-new-color)
+  ;; ("g *"     search-for-word-at-point-forward)
+  ;; ("g M-*"   search-for-word-at-point-forward-new-color)
+  ;; ("g #"     search-for-word-at-point-backward)
+  ;; ("g M-#"   search-for-word-at-point-backward-new-color)
 
   ("-"       vim:cmd-negate-or-paste-pop)
   ("="       vim:cmd-paste-pop-next)
@@ -96,10 +93,7 @@ like \"d w\".")
   ("M"       vim:jump-to-prev-saved-position)
   ("J"       vim:cmd-join-lines)
 
-
-  ("C-u"     undo-tree-visualize)
-  ("C-b"     switch-to-prev-buffer-in-window)
-  ("M-b"     icicle-buffer)
+  ("SPC u"   undo-tree-visualize)
 
   ("S-<backspace>" delete-whitespace-backward)
   ("S-<delete>"    delete-whitespace-forward)
@@ -112,8 +106,6 @@ like \"d w\".")
   ("g u"     Control-X-prefix)
   ("g h"     nil)
 
-  ("g g"     nil)
-  ("G"       vim:motion-mark)
   ;; ("<f5>"    vim:motion-mark)
   ("g m"     vim:cmd-set-mark)
   ("g M"     vim:cmd-toggle-macro-recording)
@@ -121,10 +113,7 @@ like \"d w\".")
   ("g J"     sp-join-sexp)
   ("g j"     nil)
   ("g q"     nil)
-  ("M-x"     smex)
-  ("M-X"     smex-major-mode-commands)
   ("g x"     smex)
-  ("g X"     smex-major-mode-commands)
 
   ("<home>"  vim:motion-bwd-paragraph)
   ("<end>"   vim:motion-fwd-paragraph)
@@ -134,7 +123,12 @@ like \"d w\".")
   ;; rebind "C-h" for terminals that refuse to send "C-h" and
   ;; send "C-<backspace>" instead
   ("C-<backspace>" search-toggle-highlighting)
-  ("<C-backspace>" search-toggle-highlighting))
+  ("<C-backspace>" search-toggle-highlighting)
+
+  ("<down>"  vim:motion-fwd-paragraph)
+  ("<up>"    vim:motion-bwd-paragraph)
+  ("<left>"  prev-w)
+  ("<right>" next-w))
 
 ;;; normal mode keybindigs
 
@@ -179,19 +173,14 @@ like \"d w\".")
   ("C-p"       yank)
   ("M-p"       browse-kill-ring)
   ("C-M-p"     browse-kill-ring)
-  ("C-k"       remove-buffer)
-  ("C-S-k"     remove-buffer-and-window)
 
-  ;; (", w"      save-buffer)
-  (", b"       ibuffer)
-  (", B"       tagged-buflist-show-select-current-buf)
   (", s"       nil)
   (", s w"     vim:replace-word)
   (", s W"     vim:replace-WORD)
   (", s s"     vim:replace-symbol-at-point)
 
   ("g f"       icicle-file)
-  ("g g f"     find-filename-in-tree-recursive)
+  ;; ("g g f"     find-filename-in-tree-recursive)
   ("g c c"     comment-util-comment-lines)
   ("g c u"     comment-util-uncomment-region)
 
@@ -201,8 +190,6 @@ like \"d w\".")
   ("g t"       nil)
   ("g <up>"    nil)
   ("g <down>"  nil)
-  ("g k"       remove-buffer)
-  ("g K"       remove-buffer-and-window)
 
   ("g c s"     remember-win-config-store-configuration)
   ("g c l"     remember-win-config-restore-configuration)
@@ -249,14 +236,6 @@ like \"d w\".")
   ("C-v" set-mark-command)
   ("C-y" copy-region-as-kill))
 
-(vim:defcmd vim:cmd-new-frame (nonrepeatable keep-visual)
-  "Pops up a new frame."
-  (new-frame))
-
-(vim:emap "new frame" 'vim:cmd-new-frame)
-(vim:emap "nf" 'vim:cmd-new-frame)
-
-
 (vim:defcmd vim:jump-to-prev-saved-position (nonrepeatable keep-visual)
   "Jump to position pointed to by ' mark.
 Basically swap current point with previous one."
@@ -267,13 +246,14 @@ Basically swap current point with previous one."
   (delete-other-windows))
 
 (vim:emap "only" 'vim:cmd-only)
+(vim:emap "on" 'vim:cmd-only)
 
 (vim:defcmd vim:cmd-close (nonrepeatable keep-visual)
   "Close current window, just like C-x 0."
-  (message "You can run vim:cmd-close with M-k")
   (icicle-delete-window nil))
 
 (vim:emap "close" 'vim:cmd-close)
+(vim:emap "cl" 'vim:cmd-close)
 
 (vim:defcmd vim:cmd-split-vertically (nonrepeatable keep-visual)
   "Split current window vertically, just like C-x 3."
@@ -285,15 +265,13 @@ Basically swap current point with previous one."
   ;; this is not a bug, function is correct too!
   (split-window-vertically))
 
-(vim:emap "horizontal split" 'vim:cmd-split-horizontally)
 (vim:emap "hsplit" 'vim:cmd-split-horizontally)
 (vim:emap "hs" 'vim:cmd-split-horizontally)
-(vim:emap "vertical split" 'vim:cmd-split-vertically)
 (vim:emap "vsplit" 'vim:cmd-split-vertically)
 (vim:emap "vs" 'vim:cmd-split-vertically)
 
 (vim:emap "write" 'vim:cmd-write-current-buffer)
-(vim:emap "w" "write")
+(vim:emap "w" 'vim:cmd-write-current-buffer)
 
 
 (vim:defcmd vim:start-awk (motion nonrepeatable)
@@ -311,7 +289,6 @@ Basically swap current point with previous one."
                  (if motion
                    (vim:motion-end motion)
                    (line-end-position))))
-
 
 (vim:emap "awk" 'vim:start-awk)
 
@@ -342,11 +319,8 @@ Basically swap current point with previous one."
     (cond ((eq? major-mode 'ibuffer-mode)
            (mapc exec-command
                  (ibuffer-get-marked-buffers)))
-          ((eq? major-mode 'tagged-buflist-mode)
-           (mapc (comp exec-command #'tagged-buffer/buf)
-                 tagged-buflist/marked-buffers))
           (t
-           (error "command works in ibuffer-mode or tagged-buflist-mode only")))))
+           (error "command works in ibuffer-mode only")))))
 
 (vim:emap "in-bufs" 'vim:apply-to-selected-buffers)
 
@@ -398,17 +372,16 @@ Basically swap current point with previous one."
       (magit-status default-directory))))
 
 (vim:emap "magit" 'vim:magit)
-(vim:emap "mg" 'vim:magit)
 (vim:emap "g" 'vim:magit)
 
 
-(vim:defcmd vim:blame (nonrepeatable)
+(vim:defcmd vim:git-blame (nonrepeatable)
   "Run `magit-blame-mode'."
   (magit-blame-mode 'toggle))
 
-(vim:emap "blame" 'vim:blame)
+(vim:emap "gblame" 'vim:bit-lame)
 
-(vim:defcmd vim:add (nonrepeatable)
+(vim:defcmd vim:git-add (nonrepeatable)
   "Run git add on current file."
   (aif (buffer-file-name)
     (progn
@@ -418,7 +391,53 @@ Basically swap current point with previous one."
         (error "File %s is not under git VCS" it)))
     (error "current buffer has no associated file")))
 
-(vim:emap "add" 'vim:add)
+(vim:emap "gadd" 'vim:git-add)
+
+
+(vim:defcmd vim:ibuffer (nonrepeatable)
+  "Open ibuffer buffer."
+  (ibuffer))
+
+(vim:emap "ibuffer" 'vim:ibuffer)
+(vim:emap "ib" 'vim:ibuffer)
+
+;; Frame commands
+
+(vim:defcmd vim:cmd-new-frame (nonrepeatable keep-visual)
+  "Pops up a new frame."
+  (new-frame))
+
+(vim:emap "newf" 'vim:cmd-new-frame)
+
+(vim:defcmd vim:next-f (count nonrepeatable)
+  "Select next fram."
+  (next-f (or count 1)))
+
+(vim:emap "nextf" 'vim:next-f)
+(vim:emap "nf" 'vim:next-f)
+
+(vim:defcmd vim:prev-f (count nonrepeatable)
+  "Select previous framae."
+  (prev-f (or count 1)))
+
+(vim:emap "prevf" 'vim:prev-f)
+(vim:emap "pf" 'vim:prev-f)
+
+;; Buffer commands
+
+(vim:defcmd vim:remove-buffer ((argument:buffer buf) nonrepeatable)
+  "Remove current buffer."
+  (remove-buffer buf))
+
+(vim:emap "rembuf" 'vim:remove-buffer)
+(vim:emap "rb" 'vim:remove-buffer)
+
+(vim:defcmd vim:remove-buffer-and-window ((argument:buffer buf) nonrepeatable)
+  "Remove current buffer and close its window."
+  (remove-buffer-and-window buf))
+
+(vim:emap "rembufwin" 'vim:remove-buffer-and-window)
+(vim:emap "rbw" 'vim:remove-buffer-and-window)
 
 (provide 'vim-setup)
 

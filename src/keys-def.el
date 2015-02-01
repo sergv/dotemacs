@@ -27,16 +27,16 @@
 (defconst +vi-keys+
   (append +vi-essential-keys+
           '(("/"   search-start-forward)
-            ("M-/" search-start-forward-new-color)
+            ("C-/" search-start-forward-new-color)
             ("?"   search-start-backward)
-            ("M-?" search-start-backward-new-color)))
+            ("C-?" search-start-backward-new-color)))
   "Essential vi movement keys plus search keys")
 
 (defconst +vi-search-keys+
   '(("/"   search-start-forward)
-    ("M-/" search-start-forward-new-color)
+    ("C-/" search-start-forward-new-color)
     ("?"   search-start-backward)
-    ("M-?" search-start-backward-new-color)
+    ("C-?" search-start-backward-new-color)
     ("k"   search-next)
     ("K"   search-prev)
     ("C-h" search-toggle-highlighting)
@@ -77,8 +77,6 @@
     ("g r"   rgrep-wrapper)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)
-    ("g b"   tagged-buflist-show)
-    ("g B"   tagged-buflist-show-select-current-buf)
 
     ("g <"   vim-mock:motion-go-to-first-non-blank-beg)
     ("g >"   vim-mock:motion-go-to-first-non-blank-end)
@@ -93,7 +91,8 @@
     ("<insert>" vim-mock:scroll-line-up)
     ("<delete>" vim-mock:scroll-line-down)
 
-    ("C-b"      switch-to-prev-buffer-in-window)
+    ("<left>"  prev-w)
+    ("<right>" next-w)
     ;; ("v"   set-mark-command)
     ;; ("y"   copy-region-as-kill)
     ))

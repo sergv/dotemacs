@@ -662,8 +662,8 @@ the current topic."
     ("<tab>"   org-cycle)
     ("<print>" org-toggle-inline-images-and-formulae)
 
-    ("M-."     org-open-at-point)
-    ("M-,"     org-mark-ring-goto)
+    ("C-."     org-open-at-point)
+    ("C-,"     org-mark-ring-goto)
     ("C-o"     org-open-at-point)
     ("g o"     org-open-at-point)
 
@@ -691,12 +691,12 @@ the current topic."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("M-/"        pcomplete)
-    ("<M-return>" org-meta-return)
-    ("<M-down>"   org-metadown)
-    ("<M-up>"     org-metaup)
-    ("<M-left>"   org-metaleft)
-    ("<M-right>"  org-metaright))
+    ("C-/"        pcomplete)
+    ("<C-return>" org-meta-return)
+    ("<C-down>"   org-metadown)
+    ("<C-up>"     org-metaup)
+    ("<C-left>"   org-metaleft)
+    ("<C-right>"  org-metaright))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap

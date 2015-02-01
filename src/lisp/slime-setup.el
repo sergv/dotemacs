@@ -209,9 +209,7 @@
 (setf common-lisp-style-default "my-style"
       slime-net-coding-system 'utf-8-unix
       common-lisp-hyperspec-root
-      (concat +emacs-documentation-path+ "/HyperSpec/")
-      cltl2-root-url
-      (concat +emacs-documentation-path+ "/cltl/"))
+      (concat +emacs-documentation-path+ "/HyperSpec/"))
 
 ;;; once these were common lisp-only, now this incorporates scheme too
 
@@ -318,8 +316,6 @@ currently chosen lisp implementation."
   ;; to keep things separate
   (lisp-repl-setup)
 
-  ;; (turn-on-cldoc-mode)
-  ;;
   ;; (setq slime-use-autodoc-mode nil)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
@@ -338,8 +334,6 @@ currently chosen lisp implementation."
   (lisp-repl-setup)
   (slime-repl-implementation-specific-setup)
 
-  ;; (turn-on-cldoc-mode)
-  ;;
   ;; (setq slime-use-autodoc-mode nil)
 
   (def-keys-for-map vim:insert-mode-local-keymap
@@ -352,16 +346,15 @@ currently chosen lisp implementation."
     ("S"        slime-selector)
 
     (", d"      slime-describe-symbol)
-    (", h"      slime-hyperspec-lookup)
-    (", c"      cltl2-lookup))
+    (", h"      slime-hyperspec-lookup))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<f6>"        reload-slime)
     ("<return>"    slime-repl-return)
-    ("M-."         slime-edit-definition)
-    ("M-/"         slime-complete-symbol)
-    ("M-:"         slime-interactive-eval)
+    ("C-."         slime-edit-definition)
+    ("C-/"         slime-complete-symbol)
+    ("C-:"         slime-interactive-eval)
 
     ("M-P"         browse-slime-repl-input-history)
 
@@ -408,7 +401,7 @@ currently chosen lisp implementation."
 
     ("<return>" sldb-default-action)
     ("RET"      sldb-default-action)
-    ("M-."      sldb-show-source)
+    ("C-."      sldb-show-source)
     ("C-v"      set-mark-command)
     ("C-y"      copy-region-as-kill)
 
@@ -440,18 +433,18 @@ currently chosen lisp implementation."
     ("<next>"  scroll-up-commend)
     ("<prior>" scroll-down-commend)
 
-    ("M-."     slime-inspector-show-source)
+    ("C-."     slime-inspector-show-source)
 
     ("/"       search-start-forward)
-    ("M-/"     search-start-forward-new-color)
+    ("C-/"     search-start-forward-new-color)
     ("?"       search-start-backward)
-    ("M-?"     search-start-backward-new-color)
+    ("C-?"     search-start-backward-new-color)
     ("k"       search-next)
     ("K"       search-prev)
     ("*"       search-for-symbol-at-point-forward)
-    ("M-*"     search-for-symbol-at-point-forward-new-color)
+    ("C-*"     search-for-symbol-at-point-forward-new-color)
     ("#"       search-for-symbol-at-point-backward)
-    ("M-#"     search-for-symbol-at-point-backward-new-color)
+    ("C-#"     search-for-symbol-at-point-backward-new-color)
     ("C-h"     search-toggle-highlighting)
 
     ("r"       slime-inspector-reinspect)
@@ -510,7 +503,7 @@ currently chosen lisp implementation."
     +control-x-prefix+
     +vim-special-keys+
     ("ESC"      nil)
-    ("M-."      slime-showxrev)
+    ("C-."      slime-showxrev)
     ("C-v"      set-mark-command)
     ("C-y"      copy-region-as-kill)
 

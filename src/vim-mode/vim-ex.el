@@ -121,12 +121,25 @@ except for the info message."
   (with-current-buffer vim:ex-minibuffer
     (vim:strip-ex-info (buffer-substring (minibuffer-prompt-end) (point-max)))))
 
+(defparameter *ex-commands-re-cache* nil
+  "This variable contains optimized regexp that matches
+currently defined ex commands. Should be updated with
+`ex-commands-re-cache-update' when new ex commands being defined.")
+
+(defun ex-commands-re-cache-update ()
+  "Updates `*ex-commands-re-cache*' with current ex-commands."
+  (setf *ex-commands-re-cache*
+        (concat "\\("
+                (regexp-opt (map #'car vim:ex-commands))
+                "\\)\\(!\\)?")))
+
 (defun vim:emap (keys command)
   "Maps an ex-command to some function."
   (let ((binding (assoc keys vim:ex-commands)))
     (if binding
       (setcdr binding command)
-      (add-to-list 'vim:ex-commands (cons keys command)))))
+      (add-to-list 'vim:ex-commands (cons keys command))))
+  (ex-commands-re-cache-update))
 
 (defun vim:local-emap (keys command)
   "Maps an ex-command to some function buffer-local."
@@ -278,7 +291,7 @@ This function should be called whenever the minibuffer is exited."
 
 (defun vim:ex-change (beg end len)
   "Checks if the command or argument changed and informs the
-argument handler. Gets calledon every minibuffer change."
+argument handler. Gets called on every minibuffer change."
   (unless vim:ex-update-info
     (let ((cmdline (vim:ex-contents)))
       (multiple-value-bind (range cmd spaces arg beg end force)
@@ -371,7 +384,6 @@ has been pressed."
   (vim:ex-set-info nil)
   (multiple-value-bind (range cmd spaces arg beg end force) (vim:ex-split-cmdline cmdline)
     (setq vim:ex-cmd cmd)
-
     (cond
       ;; only complete at the end of the command
       ((< (point) (point-max)) nil)
@@ -384,7 +396,7 @@ has been pressed."
        ;; considered as completion. Furthermore the result has to be
        ;; modified if no `!' has been given in order to show the possible
        ;; `!' completions.
-       (lexical-let*
+       (let*
            ((precicate predicate)
             (pred
              (cond
@@ -642,16 +654,17 @@ Returns four values: (cmd beg end force) where
             end-off 0
             sep ?,))
 
-    (when (= pos (or (string-match *ex-commands-re-cache*
-                                   ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
-                                   text pos) -1))
-      (setq cmd (cons (match-beginning 1) (match-end 1))))
+    (save-match-data
+      (when (= pos (or (string-match *ex-commands-re-cache*
+                                     ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
+                                     text pos) -1))
+        (setq cmd (cons (match-beginning 1) (match-end 1))))
 
-    (multiple-value-bind (start end)
-        (vim:ex-get-range (and begin (cons begin begin-off))
-                          sep
-                          (and end (cons end end-off)))
-      (values cmd start end (match-beginning 2)))))
+      (multiple-value-bind (start end)
+          (vim:ex-get-range (and begin (cons begin begin-off))
+                            sep
+                            (and end (cons end end-off)))
+        (values cmd start end (match-beginning 2))))))
 
 
 (defun vim:ex-parse-address (text pos)
@@ -776,8 +789,9 @@ the offset and the new position."
         (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read-vanilla ">" ;;'vim:ex-complete
-                                             (map #'car vim:ex-commands)
+      (let ((result (completing-read-vanilla ">"
+                                             ;; #'vim:ex-complete
+                                             vim:ex-commands
                                              nil
                                              nil
                                              initial-input

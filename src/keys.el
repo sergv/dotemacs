@@ -13,7 +13,7 @@
 (def-keys-for-map global-map
   ("<f1>"     help-command)
   ("<f1> t"   nil)
-  ("<f2>"     save-buffer)
+  ("<f2>"     universal-argument)
   ("<f3>"     prev-w)
   ("<f4>"     next-w)
 
@@ -24,28 +24,14 @@
 
   ("<f9>"     compile)
   ("<f10>"    shell)
-  ("<f11>"    prev-buffer)
-  ("<f12>"    next-buffer)
 
   ("`"        compile)
-
-  ("<XF86Back>"    tabbar-backward-tab)
-  ("<XF86Forward>" tabbar-forward-tab)
-
-  ("S-<XF86Back>"    tabbar-move-selected-tab-left)
-  ("S-<XF86Forward>" tabbar-move-selected-tab-right)
-
-  ("C-<f2>"   universal-argument)
 
   ("S-<f3>"   swap-buffers-backward)
   ("S-<f4>"   swap-buffers-forward)
 
   ("S-<f7>"   swap-buffers-forward-through-frame)
   ("S-<f8>"   swap-buffers-backward-through-frames)
-
-  ("S-<f10>"  eshell)
-  ("S-<f11>"  tabbar-move-selected-tab-left)
-  ("S-<f12>"  tabbar-move-selected-tab-right)
 
   ("C-<f9>"   enlarge-window)
   ("C-<f10>"  shrink-window)
@@ -69,6 +55,7 @@
   ("C-t"      nil)
   ("C-<down>" nil)
   ("C-<up>"   nil)
+  ("C-b"      icicle-buffer)
 
   ;; for icicle
   ("<M-tab>"  nil)
@@ -86,22 +73,18 @@
   ("M-X"      smex-major-mode-commands)
   ("C-x <f1>" nil)
   ("C-z"      nil)
-  ("<XF86Favorites>" tagged-buflist-show-select-current-buf)
-  ("C-x b"           tagged-buflist-show)
-  ("M-b"             icicle-buffer)
-  ("C-b"             switch-to-prev-buffer-in-window)
   ("C-x f"    find-file)
-  ("C-x k"    remove-buffer)
   ("C-k"      remove-buffer)
   ("M-k"      icicle-delete-window)
-  ("C-x K"    remove-buffer-and-window)
   ("C-S-k"    remove-buffer-and-window)
-  ("C-x u"    undo-tree-visualize)
   ("C-u"      undo-tree-visualize)
-  ("<print>"  render-formula-toggle-formulae))
+  ("<print>"  render-formula-toggle-formulae)
+
+  ("<right>"  forward-char)
+  ("<left>"  backward-char))
 
 (def-keys-for-map universal-argument-map
-  ("C-<f2>" universal-argument-more))
+  ("<f2>" universal-argument-more))
 
 
 (eval-after-load "help-mode"

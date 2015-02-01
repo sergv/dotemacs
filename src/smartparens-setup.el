@@ -48,8 +48,6 @@
                              image-mode
                              calendar-mode
                              select-mode
-                             minimap-mode
-                             tagged-buflist-mode
 
                              clojure-compilation-mode
                              nrepl-popup-buffer-mode

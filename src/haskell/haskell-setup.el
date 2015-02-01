@@ -112,6 +112,11 @@
   ;; don't skip any messages
   (setq-local compilation-skip-threshold 0)
 
+  (vim:local-emap "core" 'ghc-core-create-core)
+  (vim:local-emap "compile" 'haskell-compile)
+  (vim:local-emap "c" 'haskell-compile)
+  (vim:local-emap "hlint" 'hs-lint)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"         inferior-haskell-send-decl)
     ("g c d"     comment-util-delete-commented-part)
@@ -136,9 +141,9 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-w"             shm/backward-kill-word)
-    ("M-u"             shm/insert-undefined)
-    ("M-<up>"          shm/swing-up)
-    ("M-<down>"        shm/swing-down)
+    ("C-u"             shm/insert-undefined)
+    ("C-<up>"          shm/swing-up)
+    ("C-<down>"        shm/swing-down)
     ("<tab>"           shm/tab)
     ("<backtab>"       shm/backtab)
 
@@ -160,9 +165,9 @@
     (", y"     hayoo)
 
     ("*"       search-for-haskell-symbol-at-point-forward)
-    ("M-*"     search-for-haskell-symbol-at-point-forward-new-color)
+    ("C-*"     search-for-haskell-symbol-at-point-forward-new-color)
     ("#"       search-for-haskell-symbol-at-point-backward)
-    ("M-#"     search-for-haskell-symbol-at-point-backward-new-color)
+    ("C-#"     search-for-haskell-symbol-at-point-backward-new-color)
     ("'"       vim:shm/goto-parent)
     ;; ("'"       haskell-move-up)
     ("g n"     haskell-node/move-to-topmost-start)
@@ -173,7 +178,6 @@
   ;;   ("<tab>"           haskell-simple-indent)
   ;;   ("S-<tab>"         haskell-simple-indent-backtab)
   ;;   ("<S-iso-lefttab>" haskell-simple-indent-backtab))
-
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g a"       nil)

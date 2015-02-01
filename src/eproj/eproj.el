@@ -1554,11 +1554,11 @@ as accepted by `bounds-of-thing-at-point'.")
 (defun setup-eproj-symbnav ()
   (awhen (current-local-map)
     (def-keys-for-map it
-      ("M-." eproj-symbnav/go-to-symbol-home)
-      ("M-," eproj-symbnav/go-back)))
+      ("C-." eproj-symbnav/go-to-symbol-home)
+      ("C-," eproj-symbnav/go-back)))
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("M-." eproj-symbnav/go-to-symbol-home)
-    ("M-," eproj-symbnav/go-back)))
+    ("C-." eproj-symbnav/go-to-symbol-home)
+    ("C-," eproj-symbnav/go-back)))
 
 ;;; epilogue
 

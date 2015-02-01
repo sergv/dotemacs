@@ -101,10 +101,10 @@
     (", m"   expand-last-macro)
     (", M"   expand-last-macro-all)
 
-    ("M-:"   icicle-pp-eval-expression)
-    ("M-."   elisp-slime-nav-find-elisp-thing-at-point)
-    ("M-,"   pop-tag-mark)
-    ("M-/"   lisp-complete-symbol)
+    ("C-:"   icicle-pp-eval-expression)
+    ("C-."   elisp-slime-nav-find-elisp-thing-at-point)
+    ("C-,"   pop-tag-mark)
+    ("C-/"   lisp-complete-symbol)
 
     ("<tab>" indent-for-tab-command)
     ("<f9>"  elisp-compile-and-move)
@@ -116,7 +116,7 @@
   (def-keys-for-map vim:insert-mode-local-keymap
     ;; ("C-SPC" lisp-complete-symbol)
     ("<tab>" indent-for-tab-command)
-    ("M-/"   lisp-complete-symbol)
+    ("C-/"   lisp-complete-symbol)
     ;; ("("     paredit-open-round)
     ;; (")"     paredit-close-round)
     ;; ("["     paredit-open-square)
@@ -126,7 +126,7 @@
 
   (def-keys-for-map read-expression-map
     ("<tab>" lisp-complete-symbol)
-    ("M-/"   lisp-complete-symbol)
+    ("C-/"   lisp-complete-symbol)
     ("C-w"   backward-delete-word)
     ("C-S-w" backward-delete-word*))
 

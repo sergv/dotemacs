@@ -77,7 +77,7 @@
     (when (or (get-buffer buffer)
               (y-or-n-p (format "No buffer with name \"%s\" exists. Create new buffer? " buffer)))
       (switch-to-buffer buffer))
-    (switch-to-buffer (other-buffer))))
+    (switch-to-prev-buffer-in-window)))
 
 (vim:defcmd vim:cmd-next-buffer (count nonrepeatable)
   "Goes to the `count'-th next buffer in the buffer list."
