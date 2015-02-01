@@ -207,6 +207,13 @@ greater indenation as current line."
     ("#"        search-for-symbol-at-point-backward)
     ("M-#"      search-for-symbol-at-point-backward-new-color))
 
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<tab>"       tab-to-tab-stop)
+    ("<backtab>"   tab-to-tab-stop-backward)
+    ("S-<tab>"     tab-to-tab-stop-backward)
+    ("S-<iso-tab>" tab-to-tab-stop-backward))
+
   (python-abbrev+-setup)
 
   ;; pabbrev isn't powerful enough
