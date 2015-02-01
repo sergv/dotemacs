@@ -50,6 +50,16 @@
                 :name vim:shm/goto-parent-end
                 :exclusive nil)
 
+(vim:defcmd vim:ghc-core-create-core (nonrepeatable)
+  (ghc-core-create-core))
+(vim:defcmd vim:haskell-compile (nonrepeatable)
+  (haskell-compile nil))
+(vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
+  (haskell-compile t))
+(vim:defcmd vim:hs-lint (nonrepeatable)
+  (hs-lint))
+
+
 (defun haskell-setup ()
   (init-common :use-yasnippet t
                :use-nxhtml-menu nil
@@ -112,10 +122,12 @@
   ;; don't skip any messages
   (setq-local compilation-skip-threshold 0)
 
-  (vim:local-emap "core" 'ghc-core-create-core)
-  (vim:local-emap "compile" 'haskell-compile)
-  (vim:local-emap "c" 'haskell-compile)
-  (vim:local-emap "hlint" 'hs-lint)
+  (vim:local-emap "core" 'vim:ghc-core-create-core)
+  (vim:local-emap "compile" 'vim:haskell-compile)
+  (vim:local-emap "c" 'vim:haskell-compile)
+  (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
+  (vim:local-emap "cc" 'vim:haskell-compile-choosing-command)
+  (vim:local-emap "hlint" 'vim:hs-lint)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"         inferior-haskell-send-decl)
