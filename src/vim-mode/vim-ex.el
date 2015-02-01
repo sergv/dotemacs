@@ -126,11 +126,15 @@ except for the info message."
 currently defined ex commands. Should be updated with
 `ex-commands-re-cache-update' when new ex commands being defined.")
 
-(defun ex-commands-re-cache-update ()
+(defparameter vim:all-known-ex-commands nil
+  "List of strings of all known ex-mode commands.")
+
+(defun ex-commands-re-cache-update (keys)
   "Updates `*ex-commands-re-cache*' with current ex-commands."
+  (add-to-list 'vim:all-known-ex-commands keys)
   (setf *ex-commands-re-cache*
         (concat "\\("
-                (regexp-opt (map #'car vim:ex-commands))
+                (regexp-opt vim:all-known-ex-commands)
                 "\\)\\(!\\)?")))
 
 (defun vim:emap (keys command)
@@ -139,14 +143,15 @@ currently defined ex commands. Should be updated with
     (if binding
       (setcdr binding command)
       (add-to-list 'vim:ex-commands (cons keys command))))
-  (ex-commands-re-cache-update))
+  (ex-commands-re-cache-update keys))
 
 (defun vim:local-emap (keys command)
   "Maps an ex-command to some function buffer-local."
   (let ((binding (assoc keys vim:ex-local-commands)))
     (if binding
       (setcdr binding command)
-      (add-to-list 'vim:ex-local-commands (cons keys command)))))
+      (add-to-list 'vim:ex-local-commands (cons keys command)))
+    (ex-commands-re-cache-update keys)))
 
 (defun vim:ex-binding (cmd)
   "Returns the current binding of `cmd'. If no such

@@ -142,6 +142,7 @@ like \"d w\".")
   ;; anyway, so don't change order
   ("{"         scroll-up)
   ("}"         scroll-down)
+  ("!"         shell-command+)
 
   ("g ("       vim:sp-splice-sexp-killing-backward)
   ("g )"       vim:sp-splice-sexp-killing-forward)
@@ -159,7 +160,6 @@ like \"d w\".")
   ("C-<right>" vim:sp-forward-slurp-sexp)
   ("M-<left>"  sp-absorb-sexp)
   ("M-<right>" sp-emit-sexp)
-
 
   ("x"         vim:cmd-delete-char)
   ("X"         vim:cmd-delete-char-backward)
@@ -379,7 +379,7 @@ Basically swap current point with previous one."
   "Run `magit-blame-mode'."
   (magit-blame-mode 'toggle))
 
-(vim:emap "gblame" 'vim:bit-lame)
+(vim:emap "gblame" 'vim:git-blame)
 
 (vim:defcmd vim:git-add (nonrepeatable)
   "Run git add on current file."

@@ -135,6 +135,9 @@ greater indenation as current line."
                        :key #'car
                        :test #'eq?))))
 
+(vim:defcmd vim:python-shell-send-buffer (nonrepeatable)
+  (python-shell-send-buffer))
+
 (defun python-common-setup ()
   (init-common :use-yasnippet t
                :use-render-formula t
@@ -158,6 +161,9 @@ greater indenation as current line."
   ;; heavyweight alternative to `forward-sexp' for general-purpose use
   ;; (causes noticeable delay on inserting (, " or """)
   (setq-local forward-sexp-function nil)
+
+  (vim:local-emap "load" 'vim:python-shell-send-buffer)
+  (vim:local-emap "l" 'vim:python-shell-send-buffer)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f6>"    python-shell-send-buffer)
