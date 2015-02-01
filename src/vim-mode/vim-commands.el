@@ -322,7 +322,7 @@ and switches to insert-mode."
                (vim:cmd-yank-line :count (vim:motion-line-count motion)
                                   :register register))
     (_
-     (let ((text (buffer-substring
+     (let ((text (buffer-substring-no-properties
                   (vim:motion-begin-pos motion)
                   (vim:motion-end-pos motion))))
        (if register

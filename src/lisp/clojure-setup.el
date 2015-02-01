@@ -98,8 +98,8 @@
     ("S-<up>"   nrepl-previous-prompt)
     ("S-<down>" nrepl-next-prompt)
 
-    ("M-."      nrepl-jump)
-    ("M-,"      nrepl-jump-back)
+    ("C-."      nrepl-jump)
+    ("C-,"      nrepl-jump-back)
     ("C-M-p"    browse-nrepl-input-history))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap

@@ -179,15 +179,6 @@ given major-mode is created."
           (setq global-mode-string
                 (append '("" vim:mode-string) (cdr global-mode-string))))))))
 
-
-(defcustom vim:show-paren-range
-  0
-  "The minimal distance between point and a parenthesis which
-causes the parenthesis to be highlighted."
-  :type 'integer
-  :group 'vim-mode-general)
-
-
 (provide 'vim)
 
 ;; Local Variables:

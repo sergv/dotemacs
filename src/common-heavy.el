@@ -324,6 +324,28 @@ number of spaces equal to `tab-width'."
 
 ;;;
 
+(defun shell-command+ (command &optional output-buffer error-buffer)
+  "Just like `shell-command' but asks to remove current buffer if its file does
+not exist after command is finished."
+  (interactive (list
+                (read-shell-command "Shell command: " nil nil
+                                    (let ((filename
+                                           (cond
+                                             (buffer-file-name)
+                                             ((eq major-mode 'dired-mode)
+                                              (dired-get-filename nil t)))))
+                                      (and filename (file-relative-name filename))))
+                current-prefix-arg
+                shell-command-default-error-buffer))
+  (let ((buf (current-buffer))
+        (filename (buffer-file-name)))
+    (shell-command command output-buffer error-buffer)
+    (when (and (not (file-exists? filename))
+               (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
+      (kill-buffer buf))))
+
+;;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:

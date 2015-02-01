@@ -189,8 +189,8 @@ Also propagate new offset to `vim:shift-width'."
     ("z C"   hs-hide-all)
     ("z O"   hs-show-all)
 
-    ("M-."   find-tag)
-    ("M-,"   pop-tag-mark))
+    ("C-."   find-tag)
+    ("C-,"   pop-tag-mark))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("z c"   hs-hide-c-sexps-in-region)
