@@ -359,7 +359,7 @@ runtime but rather will be silently relied on)."
                (eproj/haskell-extract-tag-signature proj tag)
                "\n")))))
 
-(defun eproj/haskel-extract-block ()
+(defun eproj/haskell-extract-block ()
   "Extract indented Haskell block that starts on the current line."
   (beginning-of-line)
   (let ((start (point)))
@@ -386,7 +386,7 @@ runtime but rather will be silently relied on)."
                                      (eproj-project/root proj))
     (save-excursion
       (goto-line1 (eproj-tag/line tag))
-      (eproj/haskel-extract-block)
+      (eproj/haskell-extract-block)
       ;; alternative implementation with regexps
       ;; (save-match-data
       ;;   (goto-line1 (eproj-tag/line tag))
@@ -447,9 +447,10 @@ Note: old tags file is removed before calling update command."
                                                    "-o-"
                                                    "--ignore-encoding-errors"
                                                    "--nomerge")))
-                  (error "fast-tags invokation failed: %s"
+                  (error "fast-tags invokation failed: %s\nfiles: %s"
                          (with-current-buffer out-buffer
-                           (buffer-substring-no-properties (point-min) (point-max)))))))
+                           (buffer-substring-no-properties (point-min) (point-max)))
+                         files))))
               (erase-buffer)
               (eproj/ctags-get-tags-from-buffer out-buffer proj t))))))
       ;; (message "Warning: no tag file for haskell project %s"
@@ -1290,10 +1291,6 @@ or `default-directory', if no file is visited."
 
 ;;; tag/symbol navigation (navigation over homes)
 
-(defparameter eproj-symbnav/homes-history (list nil nil)
-  "Two stacks of locations (previous next) from which
-`eproj-symbnav/go-to-symbol-home' was invoked.")
-
 (defparameter eproj-symbnav/previous-homes nil
   "Previous locations from which symbol search was invoked.")
 
@@ -1537,6 +1534,22 @@ as accepted by `bounds-of-thing-at-point'.")
                 :preamble-function
                 (lambda () "Choose symbol\n\n"))))))))
 
+(defun eproj-symbnav/record-ariadne-entry (orig-buf orig-pt buf pt)
+  (let ((current-home-entry
+         (make-eproj-home-entry :buffer orig-buf
+                                :point orig-pt
+                                :symbol nil)))
+    (push current-home-entry
+          eproj-symbnav/previous-homes)
+    (setf eproj-symbnav/selected-loc
+          (make-eproj-home-entry
+           :buffer buf
+           :point pt
+           ;; Ariadne entry has no symbols so there would be no caching on the
+           ;; Emacs side - everything should be done by Ariadne.
+           :symbol nil)
+          eproj-symbnav/next-homes nil)))
+
 (defun eproj-symbnav/go-back ()
   (interactive)
   (if (null? eproj-symbnav/previous-homes)
@@ -1559,6 +1572,7 @@ as accepted by `bounds-of-thing-at-point'.")
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-." eproj-symbnav/go-to-symbol-home)
     ("C-," eproj-symbnav/go-back)))
+
 
 ;;; epilogue
 

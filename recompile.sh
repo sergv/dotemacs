@@ -514,7 +514,7 @@ fi
 [ -f "$emacs_dir/user-info.el" ] || touch "$emacs_dir/user-info.el"
 [ -f "$emacs_dir/machine-specific-setup.el" ] || touch "$emacs_dir/machine-specific-setup.el"
 
-emacs --batch --load recompile.el -f recompile-main
+emacs --load recompile.el -f recompile-main
 
 
 exit 0
