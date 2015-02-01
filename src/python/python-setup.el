@@ -153,7 +153,7 @@ in the current *Python* session."
                                ;;XXX hack for .py buffers
                                ;; (get-process py-which-bufname)
                                ))
-           (prompt-beg (overlay-end comint-last-prompt-overlay))
+           (prompt-beg (cdr comint-last-prompt))
            ;; XXX currently we go backwards to find the beginning of an
            ;; expression part; a more powerful approach in the future might be
            ;; to let ipython have the complete line, so that context can be used
