@@ -93,7 +93,8 @@
     (dolist (file *files*)
       (byte-compile-file file)))
 
-  (detach-hooks))
+  (detach-hooks)
+  (kill-emacs))
 
 
 ;; Local Variables:
