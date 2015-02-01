@@ -57,8 +57,8 @@
     ("S-<lefttab>"     eri-indent-reverse)
     ("S-<iso-lefttab>" eri-indent-reverse)
     ("+"               input-unicode)
-    ("M-."             agda2-goto-definition-keyboard)
-    ("M-,"             agda2-go-back)
+    ("C-."             agda2-goto-definition-keyboard)
+    ("C-,"             agda2-go-back)
     ;; zoom in into hole, show its goal and context
     (", ,"             agda2-goal-and-context)
     ;; same as ", ," but tries to infer type of current hole's contents

@@ -15,22 +15,7 @@
 (require 'slime-setup)
 (require 'common-lisp-abbrev+)
 (require 'browse-kill-ring-setup)
-(require 'cldoc)
 ;; (require 'hyperspec)
-
-(autoload 'cltl2-lookup "cltl2" nil t)
-
-
-
-(defadvice cldoc-print-current-symbol-info
-    (around
-     cldoc-print-current-symbol-info-disable-in-comment-and-string
-     activate
-     compile)
-  (multiple-value-bind (insidep start)
-      (lisp-position-inside-string-or-comment)
-    (unless insidep
-      ad-do-it)))
 
 ;; (define-switch-to-interpreter
 ;;     switch-to-messages
@@ -46,7 +31,6 @@
   (common-lisp-set-style "my-style")
 
   (slime-mode 1)
-  (turn-on-cldoc-mode)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
@@ -62,15 +46,14 @@
     ("SPC SPC" switch-to-slime)
     ("S"       slime-selector)
 
-    ("M-."     slime-edit-definition)
-    ("M-,"     slime-pop-find-definition-stack)
+    ("C-."     slime-edit-definition)
+    ("C-,"     slime-pop-find-definition-stack)
 
     (", m"     slime-macroexpand-1)
     (", M"     slime-macroexpand-all)
     (", d"     slime-describe-symbol)
     (", i"     slime-inspect)
-    (", h"     slime-hyperspec-lookup)
-    (", c"     cltl2-lookup))
+    (", h"     slime-hyperspec-lookup))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

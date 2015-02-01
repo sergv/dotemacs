@@ -85,8 +85,8 @@
 
 ;; (vim:nmap "\\" 'vim:cmd-emacs)
 
-(vim:nmap (kbd "C-z") 'vim:activate-emacs-mode)
-(vim:map (kbd "C-z") 'vim:activate-normal-mode :keymap vim:emacs-keymap)
+;; (vim:nmap (kbd "C-z") 'vim:activate-emacs-mode)
+;; (vim:map (kbd "C-z") 'vim:activate-normal-mode :keymap vim:emacs-keymap)
 
 (vim:omap [escape] 'vim:operator-pending-mode-exit)
 (vim:omap "0" 'vim:motion-beginning-of-line-or-digit-argument)
@@ -166,7 +166,6 @@
 
 (vim:omap "%" 'vim:motion-jump-item)
 
-;; (vim:omap "gg" 'vim:motion-mark)
 ;; (vim:omap (kbd "C-o") 'vim:cmd-prev-jump)
 ;; (vim:omap (kbd "C-i") 'vim:cmd-next-jump)
 ;; (vim:omap [tab] 'indent-for-tab-command)
@@ -219,7 +218,7 @@
 (vim:omap (kbd "C-v") 'vim:cmd-force-blockwise)
 
 ;(vim:nmap "x" "dl")
-(vim:nmap "m" 'vim:cmd-set-mark)
+;; (vim:nmap "m" 'vim:cmd-set-mark)
 (vim:nmap "x" 'vim:cmd-delete-char)
 (vim:nmap "D" "d$")
 (vim:nmap "d" 'vim:cmd-delete)
