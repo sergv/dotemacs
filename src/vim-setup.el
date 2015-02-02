@@ -233,8 +233,10 @@ like \"d w\".")
 ;;; ex bindings and commands
 
 (def-keys-for-map vim:ex-keymap
-  ("C-v" set-mark-command)
-  ("C-y" copy-region-as-kill))
+  ("C-v"     set-mark-command)
+  ("C-y"     copy-region-as-kill)
+  ("<prior>" nil)
+  ("<next>"  nil))
 
 (vim:defcmd vim:jump-to-prev-saved-position (nonrepeatable keep-visual)
   "Jump to position pointed to by ' mark.
