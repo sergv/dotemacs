@@ -237,6 +237,9 @@ MAP is `minibuffer-local-completion-map' or
 (icicle-set-S-TAB-methods-for-command 'icicle-locate-file-other-window
                                       icicle-S-TAB-completion-methods-alist)
 
+(def-keys-for-map minibuffer-local-completion-map
+  ("<prior>" nil)
+  ("<next>"  nil))
 
 (dolist (map (list minibuffer-local-completion-map
                    minibuffer-local-must-match-map
