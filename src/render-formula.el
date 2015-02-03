@@ -15,7 +15,8 @@
 (defun render-buffer-flush-cache ()
   (setf *formula-images-cache* (make-hash-table :test 'equal)
         *formula-index* 0)
-  (clear-image-cache))
+  (ignore-errors
+    (clear-image-cache)))
 
 (add-hook 'color-theme-solarized+-theme-changed-hook
           #'render-buffer-flush-cache)
