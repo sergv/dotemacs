@@ -414,14 +414,14 @@ Basically swap current point with previous one."
 (vim:emap "newf" 'vim:cmd-new-frame)
 
 (vim:defcmd vim:next-f (count nonrepeatable)
-  "Select next fram."
+  "Select next frame."
   (next-f (or count 1)))
 
 (vim:emap "nextf" 'vim:next-f)
 (vim:emap "nf" 'vim:next-f)
 
 (vim:defcmd vim:prev-f (count nonrepeatable)
-  "Select previous framae."
+  "Select previous frame."
   (prev-f (or count 1)))
 
 (vim:emap "prevf" 'vim:prev-f)
@@ -436,9 +436,9 @@ Basically swap current point with previous one."
 (vim:emap "rembuf" 'vim:remove-buffer)
 (vim:emap "rb" 'vim:remove-buffer)
 
-(vim:defcmd vim:remove-buffer-and-window ((argument:buffer buf) nonrepeatable)
+(vim:defcmd vim:remove-buffer-and-window (nonrepeatable)
   "Remove current buffer and close its window."
-  (remove-buffer-and-window buf))
+  (remove-buffer-and-window))
 
 (vim:emap "rembufwin" 'vim:remove-buffer-and-window)
 (vim:emap "rbw" 'vim:remove-buffer-and-window)
