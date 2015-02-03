@@ -315,7 +315,9 @@ argument handler. Gets called on every minibuffer change."
            (let ((cmd (vim:ex-binding cmd)))
              (cond
                ((eq cmd 'incomplete)
-                (vim:ex-set-info "Incomplete command"))
+                ;; do not distract me with warnings
+                ;; (vim:ex-set-info "Incomplete command")
+                )
                ((and (not cmd)
                      (not (zerop (length vim:ex-cmd))))
                 (vim:ex-set-info "Unknown command"))

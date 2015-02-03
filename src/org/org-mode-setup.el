@@ -664,6 +664,8 @@ the current topic."
 
     ("C-."     org-open-at-point)
     ("C-,"     org-mark-ring-goto)
+    ("g ."     org-open-at-point)
+    ("g ,"     org-mark-ring-goto)
     ("C-o"     org-open-at-point)
     ("g o"     org-open-at-point)
 
