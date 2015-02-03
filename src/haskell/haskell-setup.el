@@ -58,6 +58,10 @@
   (haskell-compile t))
 (vim:defcmd vim:hs-lint (nonrepeatable)
   (hs-lint))
+(vim:defcmd vim:inferior-haskell-load-file (nonrepeatable)
+  (inferior-haskell-load-file))
+(vim:defcmd vim:haskell-clear-buffer-and-load-file (nonrepeatable)
+  (haskell-clear-buffer-and-load-file))
 
 
 (defun haskell-setup ()
