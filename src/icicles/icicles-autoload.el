@@ -29,6 +29,37 @@
      (load "icicles-setup")))
 (load-library "icicles-opt")
 
+
+(require 'icicles-util)
+
+(def-keys-for-map minibuffer-local-completion-map
+  ("<prior>" nil)
+  ("<next>"  nil))
+
+(dolist (map (list minibuffer-local-completion-map
+                   minibuffer-local-must-match-map
+                   minibuffer-local-filename-completion-map
+                   minibuffer-local-filename-must-match-map
+                   minibuffer-local-isearch-map
+
+                   minibuffer-inactive-mode-map))
+  (icicles-util/bind-minibuffer-keys map :sexp-keys nil))
+(icicles-util/bind-minibuffer-keys minibuffer-local-map :sexp-keys t)
+
+(def-keys-for-map completion-list-mode-map
+  +control-x-prefix+
+  +vim-special-keys+
+  ("<up>"     previous-completion)
+  ("<down>"   next-completion)
+  ("<escape>" remove-buffer))
+
+(eval-after-load 'icicles
+  '(progn
+     (icicles-util/bind-minibuffer-keys icicle-read-expression-map :sexp-keys t)
+
+     (def-keys-for-map icicle-read-expression-map
+       ("M-/" lisp-complete-symbol))))
+
 (provide 'icicles-autoload)
 
 ;; Local Variables:
