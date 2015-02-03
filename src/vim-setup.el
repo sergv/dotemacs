@@ -119,6 +119,7 @@ like \"d w\".")
   ("<end>"   vim:motion-fwd-paragraph)
   (","       nil)
 
+  ("C-b"     icicle-buffer)
   ("C-h"     search-toggle-highlighting)
   ;; rebind "C-h" for terminals that refuse to send "C-h" and
   ;; send "C-<backspace>" instead
@@ -228,7 +229,8 @@ like \"d w\".")
   ("C--"           yank-previous)
   ("C-+"           yank-next)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
-  ("<insert>"      vim:scroll-line-up))
+  ("<insert>"      vim:scroll-line-up)
+  ("C-b"           icicle-buffer))
 
 ;;; ex bindings and commands
 
