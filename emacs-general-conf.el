@@ -54,6 +54,7 @@
         (minimap-mode . nil)
         (git-rebase-mode . nil)
         (undo-tree-visualizer-mode . nil)
+        (haskell-compilation-mode . nil)
 
         (clojure-compilation-mode . nil)
         (nrepl-popup-buffer-mode . nil)

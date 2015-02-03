@@ -62,24 +62,19 @@
     ("B" vim-mock:motion-bwd-WORD)))
 
 (defconst +vim-special-keys+
-  '((", b"   ibuffer)
-    (", B"   tagged-buflist-show-select-current-buf)
-
-    (";"     vim:ex-read-command)
+  '((";"     vim:ex-read-command)
+    ("C-b"   icicle-buffer)
 
     ("g C"   remember-win-config-store-configuration)
     ("g x"   smex)
-    ("g X"   smex-major-mode-commands)
     ("M-x"   smex)
-    ("M-X"   smex-major-mode-commands)
     ("g f"   icicle-file)
-    ("g g f" find-filename-in-tree-recursive)
     ("g r"   rgrep-wrapper)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)
 
-    ("g <"   vim-mock:motion-go-to-first-non-blank-beg)
-    ("g >"   vim-mock:motion-go-to-first-non-blank-end)
+    ("g g"   vim-mock:motion-go-to-first-non-blank-beg)
+    ("G"     vim-mock:motion-go-to-first-non-blank-end)
 
     ("z"     nil)
     ;; we do not always have vim mode enabled

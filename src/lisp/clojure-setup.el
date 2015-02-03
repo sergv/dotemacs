@@ -87,6 +87,8 @@
     (", m"      nrepl-macroexpand-1)
     (", M"      nrepl-macroexpand-all)
 
+    ("g ."      nrepl-jump)
+    ("g ,"      nrepl-jump-back)
     ("j"        nrepl-eval-last-expression))
   (def-keys-for-map (vim:insert-mode-local-keymap
                      vim:normal-mode-local-keymap)

@@ -204,7 +204,10 @@ all otherwise."
     ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
     ("C-TAB"           magit-cycle-section)
     ("C-<tab>"         magit-cycle-section)
-    ("'"               magit-goto-parent-section)))
+    ("'"               magit-goto-parent-section)
+    ("C-b"             icicle-buffer)
+    ("<left>"          prev-w)
+    ("<right>"         next-w)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
 

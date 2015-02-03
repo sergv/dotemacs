@@ -122,12 +122,16 @@
   ;; don't skip any messages
   (setq-local compilation-skip-threshold 0)
 
+  ;; (ghc-init)
+
   (vim:local-emap "core" 'vim:ghc-core-create-core)
   (vim:local-emap "compile" 'vim:haskell-compile)
   (vim:local-emap "c" 'vim:haskell-compile)
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc" 'vim:haskell-compile-choosing-command)
   (vim:local-emap "hlint" 'vim:hs-lint)
+  (vim:local-emap "load" 'vim:inferior-haskell-load-file)
+  (vim:local-emap "loadc" 'vim:haskell-clear-buffer-and-load-file)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"         inferior-haskell-send-decl)
@@ -136,8 +140,6 @@
     ("g c o r e" ghc-core-create-core)
     ("+"         input-unicode)
     ("SPC SPC"   switch-to-haskell)
-    ("g g ("     shm/wrap-parens)
-    ("g g )"     shm/wrap-parens)
     ("g w"       shm/goto-where)
     ("`"         haskell-compile)
     ("C-`"       hs-lint))
@@ -339,7 +341,9 @@
   (def-keys-for-map haskell-compilation-mode-map
     ("`"        recompile)
     ("<return>" compilation/goto-error)
-    ("SPC"      compilation/goto-error-other-window)))
+    ("SPC"      compilation/goto-error-other-window)
+    ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
+    ("G"        vim-mock:motion-go-to-first-non-blank-end)))
 
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 
