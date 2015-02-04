@@ -724,8 +724,8 @@ the current topic."
     +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
-    ("t"   org-agenda-next-line)
-    ("n"   org-agenda-previous-line)
+    ("h"   org-agenda-next-line)
+    ("t"   org-agenda-previous-line)
 
     ("C-t" org-agenda-todo)))
 

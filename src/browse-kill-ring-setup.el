@@ -37,12 +37,10 @@
   (def-keys-for-map browse-kill-ring-mode-map
     +control-x-prefix+
     +vim-special-keys+
-    ("h"        nil)
-    ("s"        nil)
     ("y"        nil)
 
-    ("t"        browse-kill-ring-forward)
-    ("n"        browse-kill-ring-previous)
+    ("h"        browse-kill-ring-forward)
+    ("t"        browse-kill-ring-previous)
     ("<down>"   browse-kill-ring-forward)
     ("<up>"     browse-kill-ring-previous)
     ("r"        browse-kill-ring-update)

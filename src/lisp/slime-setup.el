@@ -396,8 +396,8 @@ currently chosen lisp implementation."
   ;;   +vim-word-motion-keys+)
 
   (def-keys-for-map sldb-mode-map
-    ("t"        sldb-down)
-    ("n"        sldb-up)
+    ("h"        sldb-down)
+    ("t"        sldb-up)
 
     ("<return>" sldb-default-action)
     ("RET"      sldb-default-action)
@@ -421,10 +421,10 @@ currently chosen lisp implementation."
     ;; vim mode is disabled here
     +control-x-prefix+
     +vim-special-keys+
-    ("h"       left-char)
-    ("t"       next-line)
-    ("n"       previous-line)
-    ("s"       right-char)
+    ("d"       left-char)
+    ("h"       next-line)
+    ("t"       previous-line)
+    ("n"       right-char)
 
     ("<down>"  slime-inspector-next)
     ("<up>"    slime-inspector-pop)
@@ -457,8 +457,8 @@ currently chosen lisp implementation."
     +control-x-prefix+
     +vim-special-keys+
     ("<escape>" slime-fuzzy-abort)
-    ("t"        slime-fuzzy-next)
-    ("n"        slime-fuzzy-prev)
+    ("h"        slime-fuzzy-next)
+    ("t"        slime-fuzzy-prev)
     ("["        slime-fuzzy-next)
     ("]"        slime-fuzzy-prev))
 
@@ -507,8 +507,8 @@ currently chosen lisp implementation."
     ("C-v"      set-mark-command)
     ("C-y"      copy-region-as-kill)
 
-    ("t"        slime-xref-next-line)
-    ("n"        slime-xref-prev-line)
+    ("h"        slime-xref-next-line)
+    ("t"        slime-xref-prev-line)
     ("DEL"      nil)
     ("ESC"      slime-popup-buffer-quit-function)
     ("C-SPC"    slime-popup-buffer-quit-function)))

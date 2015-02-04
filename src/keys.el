@@ -148,8 +148,8 @@
   +control-x-prefix+
   ("<up>"   custom-occur-prev)
   ("<down>" custom-occur-next)
-  ("n"      custom-occur-prev)
-  ("t"      custom-occur-next)
+  ("t"      custom-occur-prev)
+  ("h"      custom-occur-next)
 
   ("k"      remove-buffer)
   ("K"      remove-buffer-and-window))
