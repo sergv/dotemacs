@@ -638,6 +638,24 @@ return nil otherwise."
      (and (string-match-pure? "[0-9.]+" x)
           (< minimum-fraction (string->number x))))))
 
+(defparameter haskell-compilation-buffer "*haskell-compilation*")
+
+(defun haskell-compilation-next-error-other-window ()
+  (interactive)
+  (with-selected-window (get-buffer-window haskell-compilation-buffer
+                                           t ;; all-frames
+                                           )
+    (with-current-buffer haskell-compilation-buffer
+      (compilation-jump-to-next-error))))
+
+(defun haskell-compilation-prev-error-other-window ()
+  (interactive)
+  (with-selected-window (get-buffer-window haskell-compilation-buffer
+                                           t ;; all-frames
+                                           )
+    (with-current-buffer haskell-compilation-buffer
+      (compilation-jump-to-prev-error))))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
