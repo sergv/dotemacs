@@ -25,8 +25,8 @@
        +vi-search-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
-       ("t"        compilation-jump-to-next-error)
-       ("n"        compilation-jump-to-prev-error)
+       ("h"        compilation-jump-to-next-error)
+       ("t"        compilation-jump-to-prev-error)
        ("<up>"     compilation-jump-to-prev-error)
        ("<down>"   compilation-jump-to-next-error)
 

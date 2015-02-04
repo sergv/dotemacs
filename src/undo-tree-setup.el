@@ -29,10 +29,10 @@
        ("M-_" nil))
      ;;(def-keys-for-map undo-tree-visualizer-mode-map +vi-keys+)
      (def-keys-for-map undo-tree-visualizer-mode-map
-       ("t"        undo-tree-visualize-redo)
-       ("n"        undo-tree-visualize-undo)
-       ("h"        undo-tree-visualize-switch-branch-left)
-       ("s"        undo-tree-visualize-switch-branch-right)
+       ("h"        undo-tree-visualize-redo)
+       ("t"        undo-tree-visualize-undo)
+       ("d"        undo-tree-visualize-switch-branch-left)
+       ("n"        undo-tree-visualize-switch-branch-right)
        ("SPC"      undo-tree-visualizer-toggle-timestamps)
        ("a"        undo-tree-visualizer-toggle-timestamps)
        ("<left>"   undo-tree-visualizer-scroll-left)
@@ -40,7 +40,6 @@
        ("<up>"     scroll-up)
        ("<down>"   scroll-down)
 
-       ("d"        undo-tree-visualizer-toggle-diff)
        ("q"        undo-tree-visualizer-quit)
        ("<escape>" undo-tree-visualizer-quit)
        ("<return>" undo-tree-visualizer-quit)

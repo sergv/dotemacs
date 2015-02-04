@@ -15,10 +15,10 @@
                   +control-x-prefix+))
 
 (defconst +vi-essential-keys+
-  '(("t" next-line)
-    ("n" previous-line)
-    ("h" backward-char)
-    ("s" forward-char)
+  '(("d" backward-char)
+    ("h" next-line)
+    ("t" previous-line)
+    ("n" forward-char)
 
     ("[" forward-paragraph)
     ("]" backward-paragraph))
@@ -62,7 +62,7 @@
     ("B" vim-mock:motion-bwd-WORD)))
 
 (defconst +vim-special-keys+
-  '((";"     vim:ex-read-command)
+  '(("s"     vim:ex-read-command)
     ("C-b"   icicle-buffer)
 
     ("g C"   remember-win-config-store-configuration)

@@ -10,10 +10,10 @@
   (def-keys-for-map image-mode-map
     +control-x-prefix+
     +vim-special-keys+
-    ("h" image-backward-hscroll)
-    ("t" image-scroll-down)
-    ("n" image-scroll-up)
-    ("s" image-forward-hscroll)
+    ("d" image-backward-hscroll)
+    ("h" image-scroll-down)
+    ("t" image-scroll-up)
+    ("n" image-forward-hscroll)
     ("r" (lambda () (interactive) (revert-buffer nil t)))
 
     ("<left>"  image-backward-hscroll)

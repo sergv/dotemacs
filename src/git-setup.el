@@ -225,8 +225,8 @@ all otherwise."
     ("T"      magit-tag-popup)
     ("<down>" magit-goto-next-section)
     ("<up>"   magit-goto-previous-section)
-    ("t"      magit-goto-next-section)
-    ("n"      magit-goto-previous-section)
+    ("h"      magit-goto-next-section)
+    ("t"      magit-goto-previous-section)
 
     ("`"               magit-visit-item)
     ("SPC"             magit-visit-item-other-window)
@@ -246,8 +246,8 @@ all otherwise."
 (defun magit-log-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-log-mode-map)
   (def-keys-for-map magit-log-mode-map
-    ("t" vim-mock:motion-down)
-    ("n" vim-mock:motion-up)))
+    ("h" vim-mock:motion-down)
+    ("t" vim-mock:motion-up)))
 
 (add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 
