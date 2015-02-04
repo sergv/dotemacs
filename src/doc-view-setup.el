@@ -16,10 +16,10 @@
      (def-keys-for-map doc-view-mode-map
        +control-x-prefix+
        +vim-special-keys+
-       ("h" image-backward-hscroll)
-       ("t" doc-view-next-line-or-next-page)
-       ("n" doc-view-previous-line-or-previous-page)
-       ("s" image-forward-hscroll)
+       ("d" image-backward-hscroll)
+       ("h" doc-view-next-line-or-next-page)
+       ("t" doc-view-previous-line-or-previous-page)
+       ("n" image-forward-hscroll)
        ("p" nil))))
 
 (autoload 'doc-view-current-page "doc-view" "" nil 'macro)
