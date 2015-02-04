@@ -164,6 +164,8 @@
     ("C-<down>"        shm/swing-down)
     ("<tab>"           shm/tab)
     ("<backtab>"       shm/backtab)
+    ("C-t"             haskell-compilation-prev-error-other-window)
+    ("C-h"             haskell-compilation-next-error-other-window)
 
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
