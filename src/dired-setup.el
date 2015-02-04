@@ -40,8 +40,8 @@
      (def-keys-for-map dired-mode-map
        +control-x-prefix+
        +vim-special-keys+
-       ("t"        dired-cycle-files-forward)
-       ("n"        dired-cycle-files-backward)
+       ("h"        dired-cycle-files-forward)
+       ("t"        dired-cycle-files-backward)
        ("<down>"   dired-cycle-files-forward)
        ("<up>"     dired-cycle-files-backward)
        ("p"        nil)

@@ -65,9 +65,12 @@ like \"d w\".")
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:visual-mode-keymap)
-  ("t"       vim:motion-down)
-  ("n"       vim:motion-up)
-  ("s"       vim:motion-right)
+  (";"       vim:cmd-delete)
+
+  ("d"       vim:motion-left)
+  ("h"       vim:motion-down)
+  ("t"       vim:motion-up)
+  ("n"       vim:motion-right)
   ("l"       vim:cmd-change-char)
 
   (":"       vim:motion-repeat-last-find)
@@ -135,7 +138,7 @@ like \"d w\".")
 
 (def-keys-for-map vim:normal-mode-keymap
   ("C-y"       nil)
-  (";"         vim:ex-read-command)
+  ("s"         vim:ex-read-command)
   ("'"         sp-backward-up-sexp)
   ("]"         vim:motion-bwd-paragraph)
   ("["         vim:motion-fwd-paragraph)
@@ -201,7 +204,7 @@ like \"d w\".")
 (def-keys-for-map vim:visual-mode-keymap
   ("TAB"      indent-region)
   ("<tab>"    indent-region)
-  (";"        vim:visual-ex-read-command)
+  ("s"        vim:visual-ex-read-command)
 
   ("g c c"    comment-util-comment-region)
   ("g c u"    comment-util-uncomment-region-simple)

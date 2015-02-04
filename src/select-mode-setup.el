@@ -20,8 +20,8 @@
     +vim-word-motion-keys+
     +vim-special-keys+
 
-    ("n" select-move-selection-up)
-    ("t" select-move-selection-down)))
+    ("h" select-move-selection-down)
+    ("t" select-move-selection-up)))
 
 (add-hook 'select-mode-hook #'select-mode-setup)
 
