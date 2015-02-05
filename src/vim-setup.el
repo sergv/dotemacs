@@ -43,10 +43,7 @@ like \"d w\".")
     ;; short for matching
     ("m"   vim:motion-jump-item)
 
-    ("q"   sp-up-sexp)
-
-    ;; ("<mouse-1>" vim:mouse-symbol/string/sexp)
-    ))
+    ("q"   sp-up-sexp)))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
   ("is" vim:motion-inner-symbol)
@@ -56,8 +53,8 @@ like \"d w\".")
 (def-keys-for-map (vim:operator-pending-mode-keymap
                    vim:motion-mode-keymap)
   ("'" sp-backward-up-sexp)
-  ("k" vim:motion-search-next)
-  ("K" vim:motion-search-next-reverse)
+  ;; ("k" vim:motion-search-next)
+  ;; ("K" vim:motion-search-next-reverse)
   ("]" vim:motion-bwd-paragraph)
   ("[" vim:motion-fwd-paragraph))
 

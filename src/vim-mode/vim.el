@@ -118,8 +118,7 @@
   (require 'vim-compat)
   (require 'vim-normal-mode)
   (require 'vim-keymap)
-  (require 'vim-maps)
-  (require 'vim-mouse))
+  (require 'vim-maps))
 
 
 (defgroup vim-mode nil
