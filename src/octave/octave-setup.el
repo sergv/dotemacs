@@ -371,15 +371,15 @@ in GROUP-NUMS."
     ("<f6>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)
     ("g <tab>" octave-indent-defun)
-    (", s s"   vim:replace-symbol-at-point)
+    ("g s s"   vim:replace-symbol-at-point)
 
     ("j"       octave-send-line)
     ("J"       octave-send-defun)
     ("g a ="   octave-align-on-equals)
     ("g a ,"   octave-align-on-commas)
 
-    ("g t"     end-of-defun)
-    ("g n"     (lambda () (interactive) (octave-beginning-of-defun)))
+    ("g t"     (lambda () (interactive) (octave-beginning-of-defun)))
+    ("g h"     end-of-defun)
 
     ("z o"     hs-show-block)
     ("z c"     hs-hide-block)
@@ -426,12 +426,11 @@ in GROUP-NUMS."
     ("C-<up>"   octave-jump-to-prev-error)
     ("C-<down>" octave-jump-to-next-error)
 
-    ("M-p"      browse-kill-ring)
-    ("C-M-p"    browse-comint-input-history)
+    ("C-S-p"    browse-kill-ring)
+    ("M-p"      browse-comint-input-history)
     ("SPC SPC"  comint-clear-prompt)
 
     ("C-SPC"    comint-clear-buffer-above-prompt)))
-
 
 (add-hook 'inferior-octave-mode-hook #'inferior-octave-setup)
 
@@ -447,7 +446,6 @@ run `inferior-octave-on-output-hook'."
           (lambda ()
             (set-process-filter inferior-octave-process
                                 'inferior-octave-custom-output-filter)))
-
 
 (provide 'octave-setup)
 

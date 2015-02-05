@@ -48,8 +48,7 @@
 `+vim-special-keys+'.")
 
 (defconst +control-x-prefix+
-  '((","   nil)
-    ("g"   nil)
+  '(("g"   nil)
     ;; ("g h" help-command)
     ;; ("g u" Control-X-prefix)
     )
@@ -86,8 +85,10 @@
     ("<insert>" vim-mock:scroll-line-up)
     ("<delete>" vim-mock:scroll-line-down)
 
-    ("<left>"  prev-w)
-    ("<right>" next-w)
+    ("<left>"    prev-w)
+    ("<right>"   next-w)
+    ("S-<left>"  swap-buffers-backward)
+    ("S-<right>" swap-buffers-forward)
     ;; ("v"   set-mark-command)
     ;; ("y"   copy-region-as-kill)
     ))

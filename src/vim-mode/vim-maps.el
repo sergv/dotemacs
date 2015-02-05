@@ -161,8 +161,8 @@
 (vim:omap "F" 'vim:motion-find-back)
 (vim:omap "t" 'vim:motion-find-to)
 (vim:omap "T" 'vim:motion-find-back-to)
-(vim:omap ":" 'vim:motion-repeat-last-find)
-(vim:omap "," 'vim:motion-repeat-last-find-opposite)
+;; (vim:omap ":" 'vim:motion-repeat-last-find)
+;; (vim:omap "," 'vim:motion-repeat-last-find-opposite)
 
 (vim:omap "%" 'vim:motion-jump-item)
 

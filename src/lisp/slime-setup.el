@@ -338,15 +338,15 @@ currently chosen lisp implementation."
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC"      slime-space)
-    (","        slime-handle-repl-shortcut))
+    ("-"        slime-handle-repl-shortcut))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  slime-repl-clear-prompt)
     ("'"        slime-selector)
     ("S"        slime-selector)
 
-    (", d"      slime-describe-symbol)
-    (", h"      slime-hyperspec-lookup))
+    ("- d"      slime-describe-symbol)
+    ("- h"      slime-hyperspec-lookup))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

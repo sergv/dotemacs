@@ -25,7 +25,7 @@
 (require 'align-let)
 (require 'outline-headers)
 (require 'rainbow-delimiters)
-(require 'paredit-setup)
+(require 'paredit-autoload)
 
 
 (eval-after-load
@@ -664,14 +664,11 @@ This command assumes point is not in a string or comment."
     ("g c u"   lisp-uncomment-sexp)
     ("g c d"   comment-util-delete-commented-part)
     ("g <tab>" sp-indent-defun)
-    ("M-p"     browse-kill-ring)
     ("+"       input-unicode)))
 
 (defparameter *lisp-vim-movement-keybindings*
-  '(("g n"      glisp/beginning-of-defun)
-    ("g t"      glisp/end-of-defun)
-    ("g <up>"   glisp/beginning-of-defun)
-    ("g <down>" glisp/end-of-defun)))
+  '(("g t"      glisp/beginning-of-defun)
+    ("g h"      glisp/end-of-defun)))
 
 (defparameter *lisp-search-keybindings*
   '(("*"   search-for-symbol-at-point-forward)
@@ -720,8 +717,8 @@ This command assumes point is not in a string or comment."
   (def-keys-for-map vim:normal-mode-local-keymap
     *lisp-vim-normal-mode-keybindings*
 
-    (", c c"    comment-util-comment-lines)
-    (", c u"    comment-util-uncomment-region)
+    ("- c c"    comment-util-comment-lines)
+    ("- c u"    comment-util-uncomment-region)
 
     ;; universal align, aligns everything
     ;; but currently only aligns lets, setqs etc
@@ -798,8 +795,7 @@ This command assumes point is not in a string or comment."
     ("C-SPC"    comint-clear-buffer-above-prompt)
     ;; ("S-SPC"    comint-clear-buffer-above-prompt)
 
-    ("M-p"      browse-kill-ring)
-    ("C-M-p"    browse-comint-input-history)
+    ("M-p"      browse-comint-input-history)
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

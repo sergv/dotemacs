@@ -33,15 +33,10 @@
   (setq-local yas-indent-line 'fixed)
   (which-function-mode -1)
 
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ("M-/" icicle-comint-dynamic-complete-filename))
-
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>" shell-run-file)
-    ("`"    shell-run-file)
-    ("M-/"  icicle-comint-dynamic-complete-filename))
+    ("`"    shell-run-file))
   (shell-script-abbrev+-setup))
-
 
 (defun shell-setup ()
   (init-repl :show-directory t :create-keymaps t)
@@ -56,12 +51,11 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      shell-mode-map)
-    ("C-SPC"   comint-clear-buffer-above-prompt)
-    ("<tab>"   pcomplete)
-    ("M-/"     pcomplete)
+    ("C-SPC"    comint-clear-buffer-above-prompt)
+    ("<tab>"    pcomplete)
+    ("M-/"      pcomplete)
 
-    ("M-p"     browse-kill-ring)
-    ("C-M-p"   browse-comint-input-history)
+    ("M-p"      browse-comint-input-history)
 
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
