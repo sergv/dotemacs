@@ -137,8 +137,6 @@ error location - list of (filename line column)."
   (when-let (err (compilation/get-selected-error))
     (compilation/jump-to-error err t)))
 
-
-
 (eval-after-load "compile"
   '(progn
      (def-keys-for-map compilation-mode-map
@@ -148,6 +146,8 @@ error location - list of (filename line column)."
        +vim-word-motion-keys+
        ("<up>"     compilation-jump-to-prev-error)
        ("<down>"   compilation-jump-to-next-error)
+       ("t"        compilation-jump-to-prev-error)
+       ("h"        compilation-jump-to-next-error)
        ("M-p"      nil)
        ("<escape>" remove-buffer)
        ("q"        remove-buffer)
@@ -161,7 +161,6 @@ error location - list of (filename line column)."
        ("`"        recompile)
        ("SPC"      compile-goto-error)
        ("o"        compile-goto-error))))
-
 
 (provide 'compilation-setup)
 

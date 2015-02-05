@@ -32,10 +32,10 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC" nrepl-switch-to-repl-buffer)
 
-    (", j d"   nrepl-javadoc)
-    (", d"     nrepl-doc)
-    (", m"     nrepl-macroexpand-1)
-    (", M"     nrepl-macroexpand-all)
+    ("- j d"   nrepl-javadoc)
+    ("- d"     nrepl-doc)
+    ("- m"     nrepl-macroexpand-1)
+    ("- M"     nrepl-macroexpand-all)
 
     ("j"       nrepl-eval-last-expression))
   (def-keys-for-map (vim:insert-mode-local-keymap
@@ -82,10 +82,10 @@
     *lisp-vim-normal-mode-keybindings*
     ("SPC SPC"  nrepl-delete-current-input)
 
-    (", j d"    nrepl-javadoc)
-    (", d"      nrepl-doc)
-    (", m"      nrepl-macroexpand-1)
-    (", M"      nrepl-macroexpand-all)
+    ("- j d"    nrepl-javadoc)
+    ("- d"      nrepl-doc)
+    ("- m"      nrepl-macroexpand-1)
+    ("- M"      nrepl-macroexpand-all)
 
     ("g ."      nrepl-jump)
     ("g ,"      nrepl-jump-back)

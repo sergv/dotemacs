@@ -176,7 +176,7 @@ greater indenation as current line."
     ("M-?"     python-convolute-lines)
 
     ("SPC SPC" switch-to-python)
-    (", s s"   vim:replace-symbol-at-point)
+    ("g s s"   vim:replace-symbol-at-point)
 
     ("z o"     hs-show-block)
     ("z c"     hs-hide-block)
@@ -191,10 +191,8 @@ greater indenation as current line."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("g t"      end-of-defun)
-    ("g n"      beginning-of-defun)
-    ("g <up>"   beginning-of-defun)
-    ("g <down>" end-of-defun)
+    ("g t"      beginning-of-defun)
+    ("g h"      end-of-defun)
 
     ("<up>"     python-nav-backward-block)
     ("<down>"   python-nav-forward-block)

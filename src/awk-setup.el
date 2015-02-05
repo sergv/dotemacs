@@ -11,7 +11,6 @@
 (require 'custom)
 
 (autoload 'awk-start "awk+" nil t)
-;; (defalias 'awk 'awk-start)
 
 (defun awk-setup ()
   (init-common :use-yasnippet nil)
@@ -20,14 +19,8 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-SPC" icicle-comint-dynamic-complete-filename)
-    ("g t"   c-awk-end-of-defun)
-    ("g n"   c-awk-beginning-of-defun)
-    ("g <up>"   c-awk-beginning-of-defun)
-    ("g <down>" c-awk-end-of-defun))
-
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ("C-SPC" icicle-comint-dynamic-complete-filename)))
-
+    ("g t"   c-awk-beginning-of-defun)
+    ("g h"   c-awk-end-of-defun)))
 
 (add-hook 'awk-mode-hook #'awk-setup)
 
