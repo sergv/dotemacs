@@ -72,7 +72,6 @@
 (require 'vim-modes)
 (require 'vim-keymap)
 (require 'vim-compat)
-(require 'vim-mouse)
 
 (defvar-local vim:new-buffer nil
   "The buffer the be made current at the end of the execution of
@@ -189,13 +188,6 @@ of the command handling code the buffer in vim:new-buffer is made current.")
   `(save-current-buffer
      (prog1 (funcall ,func ,@args)
        (setq vim:new-buffer (current-buffer)))))
-
-(defun vim:select-register ()
-  "Sets the register for the next command."
-  (interactive)
-  (setq vim:current-register (read-char-exclusive))
-  (setq vim:current-key-sequence (vconcat vim:current-key-sequence
-                                          (vim:this-command-keys))))
 
 (defun vim:get-register (register)
   "Returns the content of `register', signals error on fail."
@@ -421,22 +413,19 @@ the perfect point to do some house-keeping."
   ;;   (vim:clear-key-sequence)
   ;;   (vim:adjust-point)
   ;;   (vim:activate-normal-mode))
-  (funcall vim:active-command-function cmd)
-  ;; (condition-case err
-  ;;     (funcall vim:active-command-function cmd)
-  ;;   (error
-  ;;    (vim:reset-key-state)
-  ;;    (vim:clear-key-sequence)
-  ;;    (vim:adjust-point)
-  ;;    (vim:activate-normal-mode)
-  ;;    (message "vim:execute-command: error: %s\nvim:active-command-function: %s\ncmd: %s"
-  ;;             err
-  ;;             vim:active-command-function
-  ;;             cmd)
-  ;;    (signal (car err) (cdr err))))
-  )
-
-
+  ;; (funcall vim:active-command-function cmd)
+  (condition-case err
+      (funcall vim:active-command-function cmd)
+    (error
+     (vim:reset-key-state)
+     (vim:clear-key-sequence)
+     (vim:adjust-point)
+     (vim:activate-normal-mode)
+     (message "vim:execute-command: error: %s\nvim:active-command-function: %s\ncmd: %s"
+              err
+              vim:active-command-function
+              cmd)
+     (signal (car err) (cdr err)))))
 
 (defun vim:execute-current-motion ()
   "Executes the current motion and returns the representing
@@ -458,11 +447,8 @@ vim:motion object."
       (when (vim:cmd-count-p cmd)
         (push count parameters)
         (push :count parameters))
-      (when (vim:cmd-mouse-p cmd)
-        (push vim:current-mouse-event parameters))
 
       (vim:apply-save-buffer cmd parameters))))
-
 
 (defun vim:get-current-cmd-motion ()
   "Returns the motion range for the current command w.r.t.
@@ -547,15 +533,6 @@ command-specific transformations."
 (vim:map (kbd "ESC ESC")
          #'vim:exit-to-normal-mode
          :keymap vim:override-keymap)
-
-(vim:map (kbd "<A-escape>")
-         #'vim:exit-to-normal-mode
-         :keymap vim:override-keymap)
-
-(vim:map (kbd "<M-escape>")
-         #'vim:exit-to-normal-mode
-         :keymap vim:override-keymap)
-
 
 (provide 'vim-core)
 
