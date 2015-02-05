@@ -641,20 +641,35 @@ return nil otherwise."
 (defparameter haskell-compilation-buffer "*haskell-compilation*")
 
 (defun haskell-compilation-next-error-other-window ()
+  "Select next error in `haskell-compilation-buffer' buffer and jump to
+it's position in current window."
   (interactive)
-  (with-selected-window (get-buffer-window haskell-compilation-buffer
-                                           t ;; all-frames
-                                           )
-    (with-current-buffer haskell-compilation-buffer
-      (compilation-jump-to-next-error))))
+  (unless (buffer-live-p (get-buffer haskell-compilation-buffer))
+    (error "Buffer %s is not live" haskell-compilation-buffer))
+  (if-let (err (with-selected-window (get-buffer-window haskell-compilation-buffer
+                                                        t ;; all-frames
+                                                        )
+                 (with-current-buffer haskell-compilation-buffer
+                   (compilation-jump-to-next-error)
+                   (compilation/get-selected-error))))
+    (compilation/jump-to-error err nil)
+    (error "No errors found in compilation buffer")))
 
 (defun haskell-compilation-prev-error-other-window ()
+  "Select previous error in `haskell-compilation-buffer' buffer and jump to
+it's position in current window."
   (interactive)
-  (with-selected-window (get-buffer-window haskell-compilation-buffer
-                                           t ;; all-frames
-                                           )
-    (with-current-buffer haskell-compilation-buffer
-      (compilation-jump-to-prev-error))))
+  (unless (buffer-live-p (get-buffer haskell-compilation-buffer))
+    (error "Buffer %s is not live" haskell-compilation-buffer))
+  (if-let (err
+             (with-selected-window (get-buffer-window haskell-compilation-buffer
+                                                      t ;; all-frames
+                                                      )
+               (with-current-buffer haskell-compilation-buffer
+                 (compilation-jump-to-prev-error)
+                 (compilation/get-selected-error))))
+    (compilation/jump-to-error err nil)
+    (error "No errors found in compilation buffer")))
 
 (provide 'haskell-misc)
 
