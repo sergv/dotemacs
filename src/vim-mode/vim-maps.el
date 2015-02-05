@@ -99,7 +99,6 @@
 (vim:omap "7" 'digit-argument)
 (vim:omap "8" 'digit-argument)
 (vim:omap "9" 'digit-argument)
-;; (vim:nmap "\"" 'vim:select-register)
 
 ;; (vim:nmap "ZZ" 'vim:cmd-write-and-close)
 
@@ -266,7 +265,6 @@
 
 (vim:nmap "." 'vim:cmd-repeat)
 
-;; (vim:nmap "=" 'vim:cmd-indent)
 (vim:nmap "<" 'vim:cmd-shift-left)
 (vim:nmap ">" 'vim:cmd-shift-right)
 
@@ -277,12 +275,10 @@
 
 ;; (vim:omap (kbd "C-e") 'vim:scroll-line-down)
 ;; (vim:omap (kbd "C-d") 'vim:scroll-down)
-;; (vim:omap (kbd "C-f") 'vim:scroll-page-down)
 ;; (vim:omap "z+" 'vim:scroll-bottom-line-to-top)
 
 ;; (vim:omap (kbd "C-y") 'vim:scroll-line-up)
 ;; (vim:omap (kbd "C-u") 'vim:scroll-up)
-;; (vim:omap (kbd "C-b") 'vim:scroll-page-up)
 ;; (vim:omap "z^" 'vim:scroll-top-line-to-bottom)
 
 (vim:omap "zt" 'vim:scroll-line-to-top)
@@ -360,7 +356,6 @@
 (vim:vmap "v" 'vim:visual-toggle-normal)
 (vim:vmap "V" 'vim:visual-toggle-linewise)
 (vim:vmap (kbd "C-v") 'vim:visual-toggle-block)
-;; (vim:vmap "\"" 'vim:select-register)
 
 (vim:vmap "d" 'vim:cmd-delete)
 (vim:vmap "D" 'vim:cmd-delete)
@@ -378,7 +373,6 @@
 
 (vim:vmap "J" 'vim:cmd-join)
 
-;; (vim:vmap "=" 'vim:cmd-indent)
 (vim:vmap "<" 'vim:cmd-shift-left)
 (vim:vmap ">" 'vim:cmd-shift-right)
 
@@ -448,8 +442,6 @@
 ;; (vim:emap "bd" "bdelete")
 (vim:emap "substitute" 'vim:cmd-substitute)
 (vim:emap "s" "substitute")
-;; (vim:emap "marks" 'vim:cmd-show-marks)
-;; (vim:emap "jumps" 'vim:cmd-show-jumps)
 ;; (vim:emap "ju" "jumps")
 (vim:emap "nohlsearch" 'vim:cmd-nohighlight)
 (vim:emap "noh" "nohlsearch")

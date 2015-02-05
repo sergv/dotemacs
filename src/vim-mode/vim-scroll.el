@@ -75,25 +75,6 @@
              (line-number-at-pos (point)))
       (ding))))
 
-
-(vim:defcmd vim:scroll-page-up (count nonrepeatable keep-visual)
-  "Scrolls the window `count' pages upwards."
-  (vim:use-last-column)
-  (condition-case nil
-      (dotimes (i (or count 1))
-        (scroll-down nil))
-    (error (goto-char (point-min)))))
-
-
-(vim:defcmd vim:scroll-page-down (count nonrepeatable keep-visual)
-  "Scrolls the window `count' pages upwards."
-  (vim:use-last-column)
-  (condition-case nil
-      (dotimes (i (or count 1))
-        (scroll-up nil))
-    (error (goto-char (point-max)))))
-
-
 (vim:defcmd vim:scroll-line-to-top (count nonrepeatable keep-visual)
   "Scrolls line number `count' (or the cursor line) to the top of the window."
   (vim:use-last-column)
