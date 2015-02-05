@@ -39,7 +39,7 @@
                                 (file-name-nondirectory buffer-file-name)))))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    (", m" c-macro-expand))
+    ("- m" c-macro-expand))
   (c-abbrev+-setup)
   (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"

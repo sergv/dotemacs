@@ -98,8 +98,8 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"     eval-last-sexp)
-    (", m"   expand-last-macro)
-    (", M"   expand-last-macro-all)
+    ("- m"   expand-last-macro)
+    ("- M"   expand-last-macro-all)
 
     ("C-:"   icicle-pp-eval-expression)
     ("C-."   elisp-slime-nav-find-elisp-thing-at-point)

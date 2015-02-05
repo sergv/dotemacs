@@ -62,27 +62,27 @@
     ("g ."             agda2-goto-definition-keyboard)
     ("g ,"             agda2-go-back)
     ;; zoom in into hole, show its goal and context
-    (", ,"             agda2-goal-and-context)
+    ("- ,"             agda2-goal-and-context)
     ;; same as ", ," but tries to infer type of current hole's contents
-    (", ."             agda2-goal-and-context-and-inferred)
+    ("- ."             agda2-goal-and-context-and-inferred)
     ;; add more cases by splitting given argument
-    (", c"             agda2-make-case)
+    ("- c"             agda2-make-case)
     ;; insert some value that matches hole's type
-    (", a"             agda2-auto)
+    ("- a"             agda2-auto)
     ;; query expression and evaluate (normalise) it)
-    (", e"             agda2-compute-normalised-maybe-toplevel)
+    ("j"               agda2-compute-normalised-maybe-toplevel)
     ;; Give. Checks whether the term written in the current hole has the right
     ;; type and, if it does, replaces the hole with that term.
-    (", g"             agda2-give)
+    ("- g"             agda2-give)
     ;; Refine. Checks whether the return type of the expression e in the hole
     ;; matches the expected type. If so, the hole is replaced by e { }1 ... { }n,
     ;; where a sufficient number of new holes have been inserted.
     ;; If the hole is empty, then the refine command instead inserts a lambda or
     ;; constructor (if there is a unique type-correct choice).
-    (", r"             agda2-refine)
+    ("- r"             agda2-refine)
     ;; navigate between holes
-    (", f"             agda2-next-goal)
-    (", b"             agda2-previous-goal))
+    ("- f"             agda2-next-goal)
+    ("- b"             agda2-previous-goal))
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"               agda2-compute-normalised-region)
     ("g a ="           agda-align-on-equals)

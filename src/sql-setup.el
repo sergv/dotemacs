@@ -20,8 +20,8 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("g n" sql-beginning-of-statement)
-    ("g t" sql-end-of-statement))
+    ("g t" sql-beginning-of-statement)
+    ("g h" sql-end-of-statement))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("`"    sql-send-region)

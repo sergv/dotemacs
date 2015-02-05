@@ -246,9 +246,9 @@
   ;; (setq-local eldoc-idle-delay 0.01)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    (", e"     scheme-send-last-sexp)
-    (", E"     scheme-send-last-sexp)
-    (", d"     scheme-describe-current-symbol)
+    ("- e"     scheme-send-last-sexp)
+    ("- E"     scheme-send-last-sexp)
+    ("- d"     scheme-describe-current-symbol)
     ("SPC SPC" switch-to-scheme-repl)
     ("j"       scheme-send-last-sexp))
 

@@ -49,11 +49,11 @@
     ("C-."     slime-edit-definition)
     ("C-,"     slime-pop-find-definition-stack)
 
-    (", m"     slime-macroexpand-1)
-    (", M"     slime-macroexpand-all)
-    (", d"     slime-describe-symbol)
-    (", i"     slime-inspect)
-    (", h"     slime-hyperspec-lookup))
+    ("- m"     slime-macroexpand-1)
+    ("- M"     slime-macroexpand-all)
+    ("- d"     slime-describe-symbol)
+    ("- i"     slime-inspect)
+    ("- h"     slime-hyperspec-lookup))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
@@ -65,8 +65,8 @@
     ("M-:"   slime-interactive-eval))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    (", m"     slime-macroexpand-1)
-    (", M"     slime-macroexpand-all))
+    ("- m"     slime-macroexpand-1)
+    ("- M"     slime-macroexpand-all))
 
   (common-lisp-abbrev+-setup))
 

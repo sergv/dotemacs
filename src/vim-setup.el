@@ -44,7 +44,6 @@ like \"d w\".")
     ("m"   vim:motion-jump-item)
 
     ("q"   sp-up-sexp)
-    ("Q"   sp-backward-up-sexp)
 
     ;; ("<mouse-1>" vim:mouse-symbol/string/sexp)
     ))
@@ -65,7 +64,7 @@ like \"d w\".")
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:visual-mode-keymap)
-  (";"       vim:cmd-delete)
+  (","       vim:cmd-delete)
 
   ("d"       vim:motion-left)
   ("h"       vim:motion-down)
@@ -73,7 +72,8 @@ like \"d w\".")
   ("n"       vim:motion-right)
   ("l"       vim:cmd-change-char)
 
-  (":"       vim:motion-repeat-last-find)
+  (";"       vim:motion-repeat-last-find)
+  (":"       vim:motion-repeat-last-find-opposite)
 
   ("/"       search-start-forward)
   ("C-/"     search-start-forward-new-color)
@@ -104,14 +104,13 @@ like \"d w\".")
   ("C-S-w"         backward-delete-word*)
 
   ("Z"       nil)
-  ("`"       nil)
 
   ("g u"     Control-X-prefix)
   ("g h"     nil)
 
   ;; ("<f5>"    vim:motion-mark)
   ("g m"     vim:cmd-set-mark)
-  ("g M"     vim:cmd-toggle-macro-recording)
+  ("Q"       vim:cmd-toggle-macro-recording)
   ("S"       sp-split-sexp)
   ("g J"     sp-join-sexp)
   ("g j"     nil)
@@ -120,7 +119,6 @@ like \"d w\".")
 
   ("<home>"  vim:motion-bwd-paragraph)
   ("<end>"   vim:motion-fwd-paragraph)
-  (","       nil)
 
   ("C-b"     icicle-buffer)
   ("C-h"     search-toggle-highlighting)
@@ -129,10 +127,12 @@ like \"d w\".")
   ("C-<backspace>" search-toggle-highlighting)
   ("<C-backspace>" search-toggle-highlighting)
 
-  ("<down>"  vim:motion-fwd-paragraph)
-  ("<up>"    vim:motion-bwd-paragraph)
-  ("<left>"  prev-w)
-  ("<right>" next-w))
+  ("<down>"    vim:motion-fwd-paragraph)
+  ("<up>"      vim:motion-bwd-paragraph)
+  ("<left>"    prev-w)
+  ("<right>"   next-w)
+  ("S-<left>"  swap-buffers-backward)
+  ("S-<right>" swap-buffers-forward))
 
 ;;; normal mode keybindigs
 
@@ -150,7 +150,6 @@ like \"d w\".")
 
   ("g ("       vim:sp-splice-sexp-killing-backward)
   ("g )"       vim:sp-splice-sexp-killing-forward)
-  ("g <up>"    vim:sp-splice-sexp-killing-around)
   ("( l"       vim:sp-absorb-sexp)
   ("( r"       sp-emit-sexp)
 
@@ -175,13 +174,11 @@ like \"d w\".")
   ("U"         undo-tree-redo)
 
   ("C-p"       yank)
-  ("M-p"       browse-kill-ring)
-  ("C-M-p"     browse-kill-ring)
+  ("C-S-p"     browse-kill-ring)
 
-  (", s"       nil)
-  (", s w"     vim:replace-word)
-  (", s W"     vim:replace-WORD)
-  (", s s"     vim:replace-symbol-at-point)
+  ("g s w"     vim:replace-word)
+  ("g s W"     vim:replace-WORD)
+  ("g s s"     vim:replace-symbol-at-point)
 
   ("g f"       icicle-file)
   ;; ("g g f"     find-filename-in-tree-recursive)
@@ -192,11 +189,8 @@ like \"d w\".")
   ("g TAB"     nil)
   ("g n"       nil)
   ("g t"       nil)
-  ("g <up>"    nil)
-  ("g <down>"  nil)
 
   ("g c s"     remember-win-config-store-configuration)
-  ("g c l"     remember-win-config-restore-configuration)
   ("g c r"     remember-win-config-restore-configuration))
 
 ;;; visual keybindings
@@ -212,7 +206,7 @@ like \"d w\".")
   ("SPC SPC"  vim:visual-exchange-point-and-mark)
 
   ("g r"      rgrep-region)
-  (", s"      vim:replace-selected)
+  ("g s"      vim:replace-selected)
   ("'"        sp--self-insert-command)
   ("\""       sp--self-insert-command)
   ("["        sp--self-insert-command)
@@ -229,6 +223,7 @@ like \"d w\".")
   ("C-S-w"         backward-delete-word*)
   ("C-r"           nil)
   ("C-p"           yank)
+  ("C-S-p"         browse-kill-ring)
   ("C--"           yank-previous)
   ("C-+"           yank-next)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
@@ -420,7 +415,6 @@ Basically swap current point with previous one."
   "Select next frame."
   (next-f (or count 1)))
 
-(vim:emap "nextf" 'vim:next-f)
 (vim:emap "nf" 'vim:next-f)
 
 (vim:defcmd vim:prev-f (count nonrepeatable)
@@ -436,15 +430,15 @@ Basically swap current point with previous one."
   "Remove current buffer."
   (remove-buffer buf))
 
-(vim:emap "rembuf" 'vim:remove-buffer)
 (vim:emap "rb" 'vim:remove-buffer)
+(vim:emap "bd" 'vim:remove-buffer)
 
 (vim:defcmd vim:remove-buffer-and-window (nonrepeatable)
   "Remove current buffer and close its window."
   (remove-buffer-and-window))
 
-(vim:emap "rembufwin" 'vim:remove-buffer-and-window)
 (vim:emap "rbw" 'vim:remove-buffer-and-window)
+(vim:emap "bdw" 'vim:remove-buffer-and-window)
 
 (provide 'vim-setup)
 

@@ -246,7 +246,12 @@ a prefix argument reverses the meaning of that variable."
        ("C-k"      remove-buffer)
        ("C-S-k"    remove-buffer-and-window)
 
-       ("s r"      ibuffer-do-sort-by-recency)
+       ("S"        nil)
+       ("S a"      ibuffer-do-sort-by-alphabetic)
+       ("S f"      ibuffer-do-sort-by-filename/process)
+       ("S m"      ibuffer-do-sort-by-major-mode-and-buffer-name)
+       ("S r"      ibuffer-do-sort-by-recency)
+       ("S M"      ibuffer-do-sort-by-major-mode)
        ("f"        nil)
        ("f m"      ibuffer-filter-by-mode)
        ("f n"      ibuffer-filter-by-name)
@@ -263,7 +268,6 @@ a prefix argument reverses the meaning of that variable."
        ("* f"      ibuffer-mark-by-file-name-regexp)
        ;; to be consistent with dired
        ("* %"      ibuffer-mark-by-file-name-regexp)
-       ("s m"      ibuffer-do-sort-by-major-mode-and-buffer-name)
        ("U"        ibuffer-unmark-all)
        ("T"        ibuffer-toggle-marks)
        ("K"        ibuffer-do-delete)
