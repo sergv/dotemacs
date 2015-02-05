@@ -25,7 +25,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g <tab>" prolog-indent-predicate)
-    (", e"     prolog-consult-predicate)
+    ("- e"     prolog-consult-predicate)
 
     ("SPC SPC" switch-to-prolog)
 
@@ -61,8 +61,7 @@
     ("<tab>"    nil)
     ("C-SPC"    comint-clear-buffer-above-prompt)
 
-    ("M-p"      browse-kill-ring)
-    ("C-M-p"    browse-comint-input-history)
+    ("M-p"      browse-comint-input-history)
     ("<return>" comint-send-input)
 
     ("<up>"     comint-previous-input)

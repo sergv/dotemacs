@@ -190,6 +190,8 @@ all otherwise."
   ;; (def-keys-for-map magit-mode-map
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
+    ("s"               vim:ex-read-command)
+    (";"               magit-stage-item)
     ("k"               search-next)
     ("D"               magit-discard)
     ("C"               magit-checkout)
@@ -207,7 +209,9 @@ all otherwise."
     ("'"               magit-goto-parent-section)
     ("C-b"             icicle-buffer)
     ("<left>"          prev-w)
-    ("<right>"         next-w)))
+    ("<right>"         next-w)
+    ("S-<left>"        swap-buffers-backward)
+    ("S-<right>"       swap-buffers-forward)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
 
@@ -216,19 +220,20 @@ all otherwise."
     +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
-    ("?"      magit-dispatch-popup) ;; override "?" from vim search
-    ("r"      magit-refresh)
+    ("?"               magit-dispatch-popup) ;; override "?" from vim search
+    ("r"               magit-refresh)
 
-    ("k"      search-next)
-    ("D"      magit-discard)
-    ("p"      magit-stash-popup)
-    ("T"      magit-tag-popup)
-    ("<down>" magit-goto-next-section)
-    ("<up>"   magit-goto-previous-section)
-    ("h"      magit-goto-next-section)
-    ("t"      magit-goto-previous-section)
+    ("s"               vim:ex-read-command)
+    (";"               magit-stage-item)
+    ("k"               search-next)
+    ("D"               magit-discard)
+    ("p"               magit-stash-popup)
+    ("T"               magit-tag-popup)
+    ("<down>"          magit-goto-next-section)
+    ("<up>"            magit-goto-previous-section)
+    ("h"               magit-goto-next-section)
+    ("t"               magit-goto-previous-section)
 
-    ("`"               magit-visit-item)
     ("SPC"             magit-visit-item-other-window)
     ("S-TAB"           magit-cycle-top-sections-visibility)
     ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)

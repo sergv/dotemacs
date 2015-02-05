@@ -8,24 +8,16 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defun insert-backtick ()
-  (interactive)
-  (insert "`"))
-
 (defun* icicles-util/bind-minibuffer-keys (map &key (sexp-keys nil))
   "Utility function that binds my custom keys and is used in several places."
   (def-keys-for-map map
     ("<escape>"          abort-recursive-edit)
     ("?"                 self-insert-command)
 
-    ("`"                 exit-minibuffer)
-    ("C-`"               insert-backtick)
-
     ("C-w"               backward-delete-word)
     ("C-S-w"             backward-delete-word*)
     ("C-p"               vim:cmd-paste-before)
-    ("M-p"               browse-kill-ring)
-    ("C-M-p"             browse-kill-ring)
+    ("C-S-p"             browse-kill-ring)
 
     ("C-v"               set-mark-command)
     ("C-y"               copy-region-as-kill)

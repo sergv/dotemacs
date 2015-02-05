@@ -25,8 +25,6 @@
   ("<f9>"     compile)
   ("<f10>"    shell)
 
-  ("`"        compile)
-
   ("S-<f3>"   swap-buffers-backward)
   ("S-<f4>"   swap-buffers-forward)
 
@@ -37,7 +35,6 @@
   ("C-<f10>"  shrink-window)
   ("C-<f11>"  enlarge-window-horizontally)
   ("C-<f12>"  shrink-window-horizontally)
-
 
   ;; use abort, don't exit here
   ("<escape>" abort-recursive-edit)
@@ -51,7 +48,8 @@
   ("C-v"      set-mark-command)
   ("C-y"      copy-region-as-kill)
   ("C-f"      read-and-insert-filename)
-  ("M-p"      browse-kill-ring)
+  ("C-S-p"    browse-kill-ring)
+
   ("C-t"      nil)
   ("C-<down>" nil)
   ("C-<up>"   nil)
@@ -75,13 +73,12 @@
   ("C-z"      nil)
   ("C-x f"    find-file)
   ("C-k"      remove-buffer)
-  ("M-k"      icicle-delete-window)
   ("C-S-k"    remove-buffer-and-window)
   ("C-u"      undo-tree-visualize)
   ("<print>"  render-formula-toggle-formulae)
 
   ("<right>"  forward-char)
-  ("<left>"  backward-char))
+  ("<left>"   backward-char))
 
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))
@@ -95,8 +92,8 @@
        ("<escape>" remove-buffer)
        ("<up>"     help-go-back)
        ("<down>"   help-go-forward)
-       ("M-."      elisp-slime-nav-find-elisp-thing-at-point)
-       ("M-,"      pop-tag-mark))))
+       ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
+       ("C-,"      pop-tag-mark))))
 
 ;; view-mode
 (eval-after-load "view"
@@ -113,7 +110,7 @@
        +vi-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
-       (", w"      customize-save-customized)
+       ("- w"      customize-save-customized)
        ("w"        vim:motion-fwd-word)
        ("b"        vim:motion-bwd-word)
        ("e"        vim:motion-fwd-word-end)
@@ -127,7 +124,7 @@
        +vi-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
-       (", w"      customize-save-customized)
+       ("- w"      customize-save-customized)
        ("w"        vim:motion-fwd-word)
        ("b"        vim:motion-bwd-word)
        ("e"        vim:motion-fwd-word-end)
@@ -139,7 +136,6 @@
 (eval-after-load "apropos"
   '(progn
      (def-keys-for-map apropos-mode-map
-       ("<f6>"     remove-buffer)
        ("<escape>" remove-buffer))))
 
 
@@ -150,7 +146,6 @@
   ("<down>" custom-occur-next)
   ("t"      custom-occur-prev)
   ("h"      custom-occur-next)
-
   ("k"      remove-buffer)
   ("K"      remove-buffer-and-window))
 
@@ -159,8 +154,6 @@
      (def-keys-for-map doc-view-mode-map
        ("S-<up>"   doc-view-previous-page)
        ("S-<down>" doc-view-next-page))))
-
-
 
 
 (defun define-cyrillic-keys ()

@@ -141,7 +141,6 @@
     ("j"         inferior-haskell-send-decl)
     ("g c d"     comment-util-delete-commented-part)
     ("g c c"     haskell-comment-node)
-    ("g c o r e" ghc-core-create-core)
     ("+"         input-unicode)
     ("SPC SPC"   switch-to-haskell)
     ("g w"       shm/goto-where)
@@ -177,12 +176,21 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ;; (", t"     haskell-type)
-    ;; (", i"     haskell-info)
-    ;; (", h"     haskell-haddock-identifier)
-    ;; (", m"     haskell-haddock-module)
-    ;; (", g"     haskell-hoogle-at-point)
-    (", y"     hayoo)
+    ;; ("- t"     haskell-type)
+    ;; ("- i"     haskell-info)
+    ;; ("- h"     haskell-haddock-identifier)
+    ;; ("- m"     haskell-haddock-module)
+    ;; ("- g"     haskell-hoogle-at-point)
+    ("- ?"     ghc-display-errors)
+    ("- y"     hayoo)
+    ("- /"     ghc-complete)
+    ("- t"     ghc-show-type)
+    ("- i"     ghc-show-info)
+    ("- e"     ghc-expand-th)
+    ("- m"     ghc-insert-module)
+    ("- c"     ghc-case-split)
+    ("- r"     ghc-refine)
+    ("- a"     ghc-auto)
 
     ("*"       search-for-haskell-symbol-at-point-forward)
     ("C-*"     search-for-haskell-symbol-at-point-forward-new-color)
@@ -190,14 +198,16 @@
     ("C-#"     search-for-haskell-symbol-at-point-backward-new-color)
     ("'"       vim:shm/goto-parent)
     ;; ("'"       haskell-move-up)
-    ("g n"     haskell-node/move-to-topmost-start)
-    ("g t"     haskell-node/move-to-topmost-end))
+    ("g t"     haskell-node/move-to-topmost-start)
+    ("g h"     haskell-node/move-to-topmost-end))
 
-  ;; (def-keys-for-map (vim:normal-mode-local-keymap
-  ;;                    vim:insert-mode-local-keymap)
-  ;;   ("<tab>"           haskell-simple-indent)
-  ;;   ("S-<tab>"         haskell-simple-indent-backtab)
-  ;;   ("<S-iso-lefttab>" haskell-simple-indent-backtab))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("C-/"     ghc-complete)
+    ;; ("<tab>"           haskell-simple-indent)
+    ;; ("S-<tab>"         haskell-simple-indent-backtab)
+    ;; ("<S-iso-lefttab>" haskell-simple-indent-backtab)
+    )
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g a"       nil)
@@ -274,18 +284,17 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      inferior-haskell-mode-map)
-    ("M-p"      browse-kill-ring)
-    ("C-M-p"    browse-comint-input-history)
+    ("M-p"      browse-comint-input-history)
     ("<return>" inf-haskell-send-input-or-jump-to-error))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    (", t"     haskell-type)
-    (", i"     haskell-info)
-    (", h"     haskell-haddock-identifier)
-    (", m"     haskell-haddock-module)
-    (", g"     haskell-hoogle-at-point)
-    (", y"     haskell-hayoo-at-point))
+    ("- t"     haskell-type)
+    ("- i"     haskell-info)
+    ("- h"     haskell-haddock-identifier)
+    ("- m"     haskell-haddock-module)
+    ("- g"     haskell-hoogle-at-point)
+    ("- y"     haskell-hayoo-at-point))
 
   (def-keys-for-map inferior-haskell-mode-map
     ("C-w"      backward-delete-word)
@@ -319,8 +328,7 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      haskell-interactive-mode-map)
-    ("M-p"      browse-kill-ring)
-    ("C-M-p"    browse-haskell-interactive-input-history)
+    ("C-S-p" browse-kill-ring)
     ;; ("<return>" inf-haskell-send-input-or-jump-to-error)
     )
 
@@ -361,6 +369,10 @@
   (setq-local indent-line-function
               (lambda ()
                 (indent-to standard-indent)))
+  (vim:local-emap "compile" 'vim:haskell-compile)
+  (vim:local-emap "c" 'vim:haskell-compile)
+  (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
+  (vim:local-emap "cc" 'vim:haskell-compile-choosing-command)
   (def-keys-for-map '(vim:normal-mode-local-keymap
                       vim:insert-mode-local-keymap)
     ("<tab>"           indent-relative-forward)
@@ -374,6 +386,7 @@
 (defun hs-lint-setup ()
   (setq-local *compilation-jump-error-regexp*
               hs-lint-regex)
+  ;; recognize possible error at the end
   (let ((hs-lint-regex-orig
          "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): %s:.*[\n\C-m]Found:[\n\C-m]\\s +.*[\n\C-m]Why not:[\n\C-m]\\s +.*[\n\C-m]"))
     (setq-local compilation-error-regex-alist

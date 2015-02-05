@@ -243,8 +243,7 @@
          ("S-<up>"   eshell-jump-to-prev-prompt)
          ("S-<down>" eshell-jump-to-next-prompt)
 
-         ("M-p"      browse-kill-ring)
-         ("C-M-p"    browse-eshell-input-history)
+         ("M-p"      browse-eshell-input-history)
          ("M-/"      pcomplete)
          ;; clear all previous output
          ("SPC SPC"  eshell-clear-prompt)
@@ -271,8 +270,7 @@
          ("S-<up>"   eshell-jump-to-prev-prompt)
          ("S-<down>" eshell-jump-to-next-prompt)
 
-         ("M-p"      browse-kill-ring)
-         ("C-M-p"    browse-eshell-input-history)
+         ("M-p"      browse-eshell-input-history)
          ("C-d"      eshell-send-eof-to-process)
          ("M-/"      pcomplete)
 
@@ -283,7 +281,9 @@
        (def-keys-for-map (vim:normal-mode-local-keymap
                           vim:insert-mode-local-keymap)
          ("<return>"   eshell-send-input)
-         ("C-<return>" sp-newline))
+         ("C-<return>" sp-newline)
+         ("<up>"       eshell-previous-matching-input-from-input)
+         ("<down>"     eshell-next-matching-input-from-input))
 
        (def-keys-for-map (vim:normal-mode-local-keymap
                           vim:insert-mode-local-keymap

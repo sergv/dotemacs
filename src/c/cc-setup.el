@@ -178,10 +178,8 @@ Also propagate new offset to `vim:shift-width'."
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g TAB" c-indent-defun)
 
-    ("g t"   c-end-of-defun)
-    ("g n"   c-beginning-of-defun)
-    ("g <up>"   c-beginning-of-defun)
-    ("g <down>" c-end-of-defun)
+    ("g t"   c-beginning-of-defun)
+    ("g h"   c-end-of-defun)
 
     ("z o"   hs-show-block)
     ("z v"   hs-show-block)
@@ -199,8 +197,8 @@ Also propagate new offset to `vim:shift-width'."
     ("z o"   hs-show-c-sexps-in-region)
     ("g a a" align)
     ("g a =" c-align-on-equals)
-    ("g t"   c-end-of-defun)
-    ("g n"   c-beginning-of-defun))
+    ("g t"   c-beginning-of-defun)
+    ("g h"   c-end-of-defun))
 
   (when define-special-keys
     (def-keys-for-map vim:normal-mode-local-keymap

@@ -12,7 +12,7 @@
   (cc-setup :define-special-keys nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    (", ?" glsl-find-man-page)))
+    ("- ?" glsl-find-man-page)))
 
 (add-hook 'glsl-mode-hook #'glsl-setup)
 
