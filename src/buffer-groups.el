@@ -82,69 +82,7 @@
                                         (? "<"
                                            (+ digit)
                                            ">")))))
-       (lisp-filter `(or (predicate
-                          .
-                          (and (memq major-mode
-                                     '(cl-mode
-                                       lisp-mode
-                                       common-lisp-mode))
-                               (not (string-match-pure? "^\\*.+\\*$"
-                                                        (buffer-name)))))))
-       (slime-filter `(or (mode . slime-repl-mode)
-                          (mode . sldb-mode)
-                          (name . ,(rx "*"
-                                       (or (seq (or "slime-repl"
-                                                    "sldb")
-                                                (+ " ")
-                                                (or "sbcl"
-                                                    "sbcl-full"
-                                                    "cmucl"
-                                                    "clisp"
-                                                    "ccl"
-                                                    "ecl"
-                                                    "clozure"
-                                                    "lisp"
-                                                    "scheme"
-                                                    "chicken"
-                                                    "bigloo"
-                                                    "scheme48"
-                                                    "guile"
-                                                    "gambit"
-                                                    "gauche"
-                                                    "mit")
-                                                (? "/"
-                                                   (+ digit)))
-                                           (or "slime-events"
-                                               "slime-description"
-                                               "slime-trace"
-                                               "slime-compilation"
-                                               "slime-xref"
-                                               "slime-apropos"
-                                               "slime-inspector"
-                                               "slime-macroexpansion"
-                                               "inferior-lisp"
-                                               "lisp-interaction"
-                                               "fuzzy completions"))
-                                       "*"
-                                       ;; (? "<"
-                                       ;;    (+ digit)
-                                       ;;    ">")
-                                       ))))
-       (scheme-filter `(or (mode . scheme-mode)
-                           (name . ,(rx (or (seq "*"
-                                                 (? (or "chicken"
-                                                        "bigloo"
-                                                        "scheme48"
-                                                        "guile"
-                                                        "gambit"
-                                                        "gauche"
-                                                        "mit")
-                                                    "-")
-                                                 "scheme*")
-                                            "* Guile REPL *")
-                                        (? "<"
-                                           (+ digit)
-                                           ">")))))
+
        (prolog-filter `(or (mode . prolog-mode)
                            (name . ,(rx "*prolog*"
                                         (? "<"
@@ -258,10 +196,6 @@
       ("ocaml"      ,ocaml-filter)
       ("octave"     ,octave-filter)
       ("python"     ,python-filter)
-
-      ("lisp"       ,lisp-filter)
-      ("slime"      ,slime-filter)
-      ("scheme"     ,scheme-filter)
 
       ("prolog"     ,prolog-filter)
 

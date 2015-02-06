@@ -205,9 +205,6 @@ more than once"
 
       grep-files-aliases
       (let* ((make-compl-pattern (lambda (x) (concat "*." x)))
-             (scheme-exts
-              (join-lines (map make-compl-pattern +scheme-file-extensions+)
-                          " "))
              (haskell-exts
               (join-lines (map make-compl-pattern *haskell-extensions*)
                           " ")))
@@ -222,7 +219,6 @@ more than once"
           ("clj"      . "*.clj")
           ("clojure"  . "*.clj")
           ("java"     . "*.java")
-          ("scm"      . ,scheme-exts)
           ("mk"       . "[Mm]akefile* *.mk")
           ("make"     . "[Mm]akefile* *.mk")
           ("makefile" . "[Mm]akefile* *.mk")

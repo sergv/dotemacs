@@ -220,48 +220,6 @@ Futher modified by Sergey Vinokurov."
        (clojure-java-interop-face    ((t (:foreground ,yellow))))
        (clojure-meta-type-annotation-face ((t (:foreground ,green))))
 
-       (ansi-lisp-constant-face      ((t (:inherit font-lock-constant-face))))
-       (ansi-lisp-keyword-face       ((t (:inherit font-lock-keyword-face))))
-       (ansi-lisp-warning-face       ((t (:inherit font-lock-warning-face))))
-       (ansi-lisp-global-variable-face ((t (:inherit font-lock-variable-name-face))))
-       (ansi-lisp-declaration-face   ((t (:foreground ,green))))
-       (ansi-lisp-type-face          ((t (:inherit font-lock-type-face))))
-       (ansi-lisp-expression-face    ((t (:inherit font-lock-builtin-face))))
-       (ansi-lisp-special-form-face  ((t (:inherit font-lock-builtin-face))))
-       (ansi-lisp-macro-face         ((t (:inherit font-lock-builtin-face))))
-       (ansi-lisp-generic-function-face ((t (:inherit font-lock-builtin-face))))
-       (ansi-lisp-function-face      ((t (:inherit font-lock-builtin-face))))
-
-       (ansi-lisp-predicate-face     ((t (:foreground ,blue))))
-       (ansi-lisp-mutating-op-face   ((t (:foreground ,blue))))
-
-       (ansi-lisp-format-directive-face ((t (:inherit font-lock-negation-char-face))))
-       (ansi-lisp-symbols-without-home-package-face ((t (:inherit ansi-lisp-constant-face))))
-       (ansi-lisp-defined-name-face  ((t (:inherit font-lock-function-name-face))))
-       (ansi-lisp-defined-data-name-face ((t (:inherit font-lock-function-name-face)
-                                             ;; (:foreground ,(if (eq 'light mode) orange yellow))
-                                             )))
-       (ansi-lisp-doc-face           ((t (:inherit font-lock-doc-face))))
-       (ansi-lisp-exported-symbols-face ((t (:foreground ,cyan))))
-
-       ;; (ansi-lisp-loop-keyword-face  ((t (:foreground ,cyan))))
-
-       ;; slime & swank
-       (sldb-detailed-frame-line-face        ((t nil)))
-       (sldb-frame-label-face                ((t (:foreground ,base2))))
-       (sldb-restartable-frame-line-face     ((t (:foreground ,cyan))))
-       (sldb-section-face                    ((t (:foreground ,base2))))
-       (slime-error-face                     ((t (:underline ,red :bold t))))
-       (slime-note-face                      ((t (:underline ,green :bold t))))
-       (slime-reader-conditional-face        ((t nil ;; (:foreground ,violet)
-                                                 )))
-       (slime-repl-input-face                ((t (:bold t))))
-       (slime-repl-output-face               ((t (:inherit default))))
-       (slime-repl-prompt-face               ((t (:foreground ,blue))))
-       (slime-repl-result-face               ((t (:inherit default))))
-       (slime-style-warning-face             ((t (:underline ,yellow :bold t))))
-       (slime-warning-face                   ((t (:underline ,orange :bold t))))
-
        ;; info
        (info-xref                    ((t (:foreground ,blue :underline t))))
        (info-xref-visited            ((t (:inherit info-xref :foreground ,magenta))))

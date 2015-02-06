@@ -678,8 +678,7 @@ This command assumes point is not in a string or comment."
 
 ;;; Actual setup functions
 
-(defun* lisp-setup (&key (use-whitespace t)
-                         (use-cl-indent nil))
+(defun* lisp-setup (&key (use-whitespace t))
   (init-common :use-yasnippet nil
                :use-whitespace use-whitespace
                :use-render-formula t)
@@ -700,10 +699,8 @@ This command assumes point is not in a string or comment."
   (setq-local comment-end "")
   (setq-local comment-padding " ")
 
-  (if use-cl-indent
-    (setq-local lisp-indent-function #'common-lisp-indent-function)
-    ;; somehow setf does not work here
-    (setq-local lisp-indent-function #'lisp-indent-function))
+  ;; somehow setf does not work here
+  (setq-local lisp-indent-function #'lisp-indent-function)
   ;; just in case someone will want to use standard #'lisp-indent-function
   ;; put information for this case
   ;; (put 'if 'lisp-indent-function nil)
