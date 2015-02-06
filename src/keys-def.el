@@ -11,8 +11,7 @@
 (require 'vim-mock)
 
 (declaim (special +vi-essential-keys+
-                  +vi-keys+
-                  +control-x-prefix+))
+                  +vi-keys+))
 
 (defconst +vi-essential-keys+
   '(("d" backward-char)
@@ -47,13 +46,6 @@
   "Vi key for searching from search.el, probably should not be used without
 `+vim-special-keys+'.")
 
-(defconst +control-x-prefix+
-  '(("g"   nil)
-    ;; ("g h" help-command)
-    ;; ("g u" Control-X-prefix)
-    )
-  "Prefix to C-x")
-
 (defconst +vim-word-motion-keys+
   '(("w" vim-mock:motion-fwd-word)
     ("b" vim-mock:motion-bwd-word)
@@ -64,6 +56,7 @@
   '(("s"     vim:ex-read-command)
     ("C-b"   icicle-buffer)
 
+    ("g"     nil)
     ("g C"   remember-win-config-store-configuration)
     ("g x"   smex)
     ("M-x"   smex)
