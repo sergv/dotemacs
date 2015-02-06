@@ -437,6 +437,16 @@ Basically swap current point with previous one."
 (vim:emap "rbw" 'vim:remove-buffer-and-window)
 (vim:emap "bdw" 'vim:remove-buffer-and-window)
 
+
+(vim:defcmd vim:multicommand
+  ((argument:text command) nonrepeatable)
+  (mapc #'vim:ex-execute-command
+        (split-string command
+                      "[ ,]\\|&&"
+                      t)))
+
+(vim:emap "m" 'vim:multicommand)
+
 (provide 'vim-setup)
 
 ;; Local Variables:
