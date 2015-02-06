@@ -21,7 +21,7 @@
 (setf clojure-max-backtracking 10)
 
 (defun clojure-setup ()
-  (lisp-setup :use-cl-indent nil :use-whitespace t)
+  (lisp-setup :use-whitespace t)
   (clojure-enable-nrepl)
 
   (nrepl-reset-buffer-ns!)

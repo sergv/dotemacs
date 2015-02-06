@@ -13,48 +13,20 @@
 
 ;;; old lisps
 
-(defconst +scheme-file-extensions+
-  '("scm" "sc" "stk" "ss" "sch" "oak")
-  "List of scheme file extensions")
-
 (defconst +lisp-modes+
   '(emacs-lisp-mode
-    common-lisp-mode
-    scheme-mode
     clojure-mode
     lisp-mode)
   "List of modes that are considered to be lisp.")
 
-(setf auto-mode-alist
-      (cons (cons (rx "." (or "lisp" "asd" "asdf") eot)
-                  'common-lisp-mode)
-            (cons (cons (eval `(rx "." (or ,@+scheme-file-extensions+) eot))
-                        'scheme-mode)
-                  (filter (comp #'not
-                                (partial-first #'memq '(scheme-mode common-lisp-mode))
-                                #'cdr)
-                          auto-mode-alist))))
-
 (autoload 'lisp-setup "general-lisp-setup")
 (autoload 'lisp-repl-setup "general-lisp-setup")
-
-(autoload 'common-lisp-setup "common-lisp-setup")
-(autoload 'common-lisp-compile-and-load-file "common-lisp-setup")
-
-(add-hook 'lisp-mode-hook #'common-lisp-setup)
-
-(autoload 'scheme-setup "scheme-setup")
-(autoload 'scheme-repl-setup "scheme-setup")
-
-(add-hook 'scheme-mode-hook #'scheme-setup)
-(add-hook 'inferior-scheme-mode-hook #'scheme-repl-setup)
 
 (autoload 'emacs-lisp-setup "emacs-lisp-setup")
 (add-hook 'emacs-lisp-mode-hook #'emacs-lisp-setup)
 
 (autoload 'lisp-pos-is-beginning-of-sexp? "general-lisp-setup")
 (autoload 'lisp-pos-is-end-of-sexp? "general-lisp-setup")
-
 
 ;;; clojure
 
