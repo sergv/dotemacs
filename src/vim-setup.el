@@ -196,6 +196,8 @@ like \"d w\".")
   ("TAB"      indent-region)
   ("<tab>"    indent-region)
   ("s"        vim:visual-ex-read-command)
+  ("k"        vim:cmd-make-downcase)
+  ("K"        vim:cmd-make-upcase)
 
   ("g c c"    comment-util-comment-region)
   ("g c u"    comment-util-uncomment-region-simple)
