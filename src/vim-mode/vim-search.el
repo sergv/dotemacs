@@ -445,7 +445,6 @@ name `name' to `new-regex'."
         (vim:parse-substitute argument)
       (unless pattern (error "No pattern given"))
       (unless replacement (error "No replacement given"))
-      (vim:add-jump)
       (setq flag-list (append flag-str nil))
 
       (when (memq ?g flag-list)
@@ -704,8 +703,8 @@ regular expressions."
 (vim:defcmd vim:cmd-nohighlight (nonrepeatable)
   "Disables the active search highlightings."
   (vim:delete-hl 'vim:search)
-  (vim:delete-hl 'vim:substitute))
-
+  (vim:delete-hl 'vim:provide)
+  (search-toggle-highlighting))
 
 (provide 'vim-search)
 

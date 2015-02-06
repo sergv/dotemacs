@@ -93,7 +93,7 @@ like \"d w\".")
   ("M"       vim:jump-to-prev-saved-position)
   ("J"       vim:cmd-join-lines)
 
-  ("SPC u"   undo-tree-visualize)
+  ("g u"     undo-tree-visualize)
 
   ("S-<backspace>" delete-whitespace-backward)
   ("S-<delete>"    delete-whitespace-forward)
@@ -102,7 +102,6 @@ like \"d w\".")
 
   ("Z"       nil)
 
-  ("g u"     Control-X-prefix)
   ("g h"     nil)
 
   ;; ("<f5>"    vim:motion-mark)
@@ -167,6 +166,7 @@ like \"d w\".")
   ("<insert>"  vim:scroll-line-up)
   ("<delete>"  vim:scroll-line-down)
 
+  ("D"         vim:delete-current-line)
   ("u"         undo-tree-undo)
   ("U"         undo-tree-redo)
 

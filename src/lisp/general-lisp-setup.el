@@ -667,8 +667,8 @@ This command assumes point is not in a string or comment."
     ("+"       input-unicode)))
 
 (defparameter *lisp-vim-movement-keybindings*
-  '(("g t"      glisp/beginning-of-defun)
-    ("g h"      glisp/end-of-defun)))
+  '(("g t"     glisp/beginning-of-defun)
+    ("g h"     glisp/end-of-defun)))
 
 (defparameter *lisp-search-keybindings*
   '(("*"   search-for-symbol-at-point-forward)

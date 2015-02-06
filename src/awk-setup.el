@@ -18,9 +18,8 @@
   (add-hook 'after-save-hook #'make-script-file-exec)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("C-SPC" icicle-comint-dynamic-complete-filename)
-    ("g t"   c-awk-beginning-of-defun)
-    ("g h"   c-awk-end-of-defun)))
+    ("g t" c-awk-beginning-of-defun)
+    ("g h" c-awk-end-of-defun)))
 
 (add-hook 'awk-mode-hook #'awk-setup)
 

@@ -113,11 +113,7 @@
 ;; (vim:mmap "g$" 'vim:motion-end-of-screen-line)
 
 (vim:mmap "k" 'vim:motion-up)
-;; (vim:mmap "gk" 'vim:motion-screen-up)
 (vim:mmap "j" 'vim:motion-down)
-;; (vim:mmap "gj" 'vim:motion-screen-down)
-;; (vim:mmap "-" "k^")
-;; (vim:mmap "+" "j^")
 ;; (vim:mmap "G" 'vim:motion-go-to-first-non-blank-end)
 ;; (vim:mmap "gg" 'vim:motion-go-to-first-non-blank-beg)
 
@@ -165,8 +161,6 @@
 
 (vim:omap "%" 'vim:motion-jump-item)
 
-;; (vim:omap (kbd "C-o") 'vim:cmd-prev-jump)
-;; (vim:omap (kbd "C-i") 'vim:cmd-next-jump)
 ;; (vim:omap [tab] 'indent-for-tab-command)
 
 (vim:omap "iw" 'vim:motion-inner-word)
