@@ -38,7 +38,6 @@
     (clojure-mode          (one-line ";;") (line-regexp ";+"))
     (nrepl-mode            (one-line ";;") (line-regexp ";+"))
     (python-mode           (one-line "#")  (line-regexp "#+"))
-    (cython-mode           (one-line "#")  (line-regexp "#+"))
     (comint-mode           (one-line nil))
     (cl-mode               (one-line ";;") (line-regexp ";+"))
     (lisp-mode             (one-line ";;") (line-regexp ";+"))
