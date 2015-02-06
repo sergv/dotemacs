@@ -64,7 +64,7 @@
 
      (setf eshell-cmpl-file-ignore "~\\'\\|\\`\\.#"
            eshell-cmpl-dir-ignore
-           (concat "\\`" (regex-opt *ignored-directories*) "\\'"))
+           (concat "\\`" (regexp-opt *ignored-directories*) "\\'"))
 
      ;; commands to run in separate buffer
      (push "ssh" eshell-visual-commands)
