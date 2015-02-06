@@ -192,7 +192,6 @@ all otherwise."
   (def-keys-for-map magit-mode-map
     ("s"               vim:ex-read-command)
     (";"               magit-stage-item)
-    ("k"               search-next)
     ("D"               magit-discard)
     ("C"               magit-checkout)
     ("r"               magit-refresh)
@@ -225,7 +224,6 @@ all otherwise."
 
     ("s"               vim:ex-read-command)
     (";"               magit-stage-item)
-    ("k"               search-next)
     ("D"               magit-discard)
     ("p"               magit-stash-popup)
     ("T"               magit-tag-popup)
@@ -347,7 +345,7 @@ all otherwise."
     ("M-t" git-rebase-move-line-down)
     ("s"   git-rebase-squash)
     ("p"   git-rebase-pick)
-    ("u"   git-rebase-undo)
+    ("k"   git-rebase-undo)
     ("x"   git-rebase-exec)
     ("r"   git-rebase-reword)
     ("e"   git-rebase-edit)

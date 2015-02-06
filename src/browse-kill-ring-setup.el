@@ -54,11 +54,11 @@
 
     ("/"        browse-kill-ring-search-forward)
     ("?"        browse-kill-ring-search-backward)
-    ("k"        browse-kill-ring-search-repeat)
-    ("K"        browse-kill-ring-search-repeat-opposite-direction)
+    ("k"        browse-kill-ring-undo-tree-undo-other-window)
+    ("K"        browse-kill-ring-undo-tree-redo-other-window)
 
-    ("u"        browse-kill-ring-undo-tree-undo-other-window)
-    ("U"        browse-kill-ring-undo-tree-redo-other-window)
+    ("u"        browse-kill-ring-search-repeat)
+    ("U"        browse-kill-ring-search-repeat-opposite-direction)
 
     ("<escape>" browse-kill-ring-quit)))
 

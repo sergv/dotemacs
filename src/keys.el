@@ -74,7 +74,6 @@
   ("C-x f"    find-file)
   ("C-k"      remove-buffer)
   ("C-S-k"    remove-buffer-and-window)
-  ("C-u"      undo-tree-visualize)
   ("<print>"  render-formula-toggle-formulae)
 
   ("<right>"  forward-char)
@@ -143,12 +142,11 @@
 
 (def-keys-for-map occur-mode-map
   +control-x-prefix+
-  ("<up>"   custom-occur-prev)
-  ("<down>" custom-occur-next)
-  ("t"      custom-occur-prev)
-  ("h"      custom-occur-next)
-  ("k"      remove-buffer)
-  ("K"      remove-buffer-and-window))
+  ("<up>"     custom-occur-prev)
+  ("<down>"   custom-occur-next)
+  ("t"        custom-occur-prev)
+  ("h"        custom-occur-next)
+  ("<escape>" remove-buffer))
 
 (eval-after-load "doc-view"
   '(progn
