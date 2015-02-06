@@ -132,10 +132,6 @@
                               "\\.hp\\'")
 
                      (funcall define-programs
-                              '("stalin" "guile" "csi" "csc" "scheme48" "bigloo")
-                              (eval `(rx "." (or ,@+scheme-file-extensions+) eot)))
-
-                     (funcall define-programs
                               '("python" "pypy"
                                 "python2.7" "ipython"
                                 "python3" "python3.3" "ipython3")
