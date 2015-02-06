@@ -7,7 +7,6 @@
 ;; Description:
 
 (require 'common)
-(require 'python-common)
 
 (defface python-keyword-face
   '((t (:inherit font-lock-keyword-face)))
