@@ -204,6 +204,10 @@ and switches to insert-mode."
      (delete-region (vim:motion-begin-pos motion) (vim:motion-end-pos motion))
      (goto-char (vim:motion-begin-pos motion)))))
 
+(vim:defcmd vim:delete-current-line ()
+  "Function that does what \"d$\" does in vanilla vim."
+  (vim:cmd-delete :motion (vim:motion-end-of-line)))
+
 (vim:defcmd vim:cmd-delete-char (count register)
   "Deletes the next count characters."
   (vim:cmd-delete :motion (vim:motion-right :count (or count 1))

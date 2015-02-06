@@ -64,7 +64,7 @@
 
      (setf eshell-cmpl-file-ignore "~\\'\\|\\`\\.#"
            eshell-cmpl-dir-ignore
-           "\\`\\(?:\\.\\.?\\|CVS\\|\\.svn\\|\\.git\\|\\.hg\\|_darcs\\|\\.bzr\\)/\\'")
+           (concat "\\`" (regex-opt *ignored-directories*) "\\'"))
 
      ;; commands to run in separate buffer
      (push "ssh" eshell-visual-commands)
@@ -238,18 +238,15 @@
        (smartparens-mode +1)
 
        (def-keys-for-map vim:normal-mode-local-keymap
+         ("C-t"      eshell-jump-to-prev-prompt)
+         ("C-h"      eshell-jump-to-next-prompt)
          ("C-<up>"   eshell-jump-to-prev-prompt)
          ("C-<down>" eshell-jump-to-next-prompt)
-         ("S-<up>"   eshell-jump-to-prev-prompt)
-         ("S-<down>" eshell-jump-to-next-prompt)
-
          ("M-p"      browse-eshell-input-history)
-         ("M-/"      pcomplete)
+         ("C-/"      pcomplete)
          ;; clear all previous output
          ("SPC SPC"  eshell-clear-prompt)
-         ("C-SPC"    eshell/clear)
-         ;; ("S-SPC"   eshell/clear)
-         )
+         ("C-SPC"    eshell/clear))
 
        ;; (def-keys-for-map (vim:normal-mode-local-keymap
        ;;                     vim:operator-pending-mode-local-keymap
@@ -257,26 +254,21 @@
        ;;   ("^" vim:eshell-bol))
 
        (def-keys-for-map vim:insert-mode-local-keymap
+         ("C-t"      eshell-jump-to-prev-prompt)
+         ("C-h"      eshell-jump-to-next-prompt)
          ("C-<up>"   eshell-jump-to-prev-prompt)
          ("C-<down>" eshell-jump-to-next-prompt)
-         ("S-<up>"   eshell-jump-to-prev-prompt)
-         ("S-<down>" eshell-jump-to-next-prompt)
-
-         ("C-SPC"   eshell/clear))
+         ("C-SPC"    eshell/clear))
 
        (def-keys-for-map eshell-mode-map
+         ("C-t"      eshell-jump-to-prev-prompt)
+         ("C-h"      eshell-jump-to-next-prompt)
          ("C-<up>"   eshell-jump-to-prev-prompt)
          ("C-<down>" eshell-jump-to-next-prompt)
-         ("S-<up>"   eshell-jump-to-prev-prompt)
-         ("S-<down>" eshell-jump-to-next-prompt)
-
-         ("M-p"      browse-eshell-input-history)
+         ("C-p"      browse-eshell-input-history)
          ("C-d"      eshell-send-eof-to-process)
-         ("M-/"      pcomplete)
-
-         ("C-SPC"    eshell/clear)
-         ;; ("S-SPC"    eshell/clear)
-         )
+         ("C-/"      pcomplete)
+         ("C-SPC"    eshell/clear))
 
        (def-keys-for-map (vim:normal-mode-local-keymap
                           vim:insert-mode-local-keymap)

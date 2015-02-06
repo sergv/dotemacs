@@ -53,19 +53,19 @@
                      shell-mode-map)
     ("C-SPC"    comint-clear-buffer-above-prompt)
     ("<tab>"    pcomplete)
-    ("M-/"      pcomplete)
+    ("C-/"      pcomplete)
 
     ("M-p"      browse-comint-input-history)
 
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
 
+    ("C-t"      comint-previous-prompt)
+    ("C-h"      comint-next-prompt)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
     ("C-<up>"   comint-previous-prompt)
     ("C-<down>" comint-next-prompt)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt)
 
     ("C-c C-k"  comint-kill-subjob)
 

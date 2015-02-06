@@ -89,6 +89,7 @@
      (def-keys-for-map help-mode-map
        +vi-keys+
        +control-x-prefix+
+       ("SPC"      help-follow)
        ("<escape>" remove-buffer)
        ("<up>"     help-go-back)
        ("<down>"   help-go-forward)
