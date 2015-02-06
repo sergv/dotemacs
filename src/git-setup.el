@@ -337,21 +337,25 @@ all otherwise."
     +vi-keys+
     +vim-word-motion-keys+
     +vim-special-keys+
-    ("C-k" nil) ;; its kill buffer in global map
-    ("q"   git-rebase-server-edit)
-    ("a"   git-rebase-abort)
+    ("C-k"      nil) ;; its kill buffer in global map
+    ("q"        with-editor-cancel)
+    ("a"        git-rebase-abort)
+    ("<down>"   git-rebase-move-line-down)
+    ("<up>"     git-rebase-move-line-up)
+    ("C-h"      git-rebase-move-line-down)
+    ("C-t"      git-rebase-move-line-up)
+    ("SPC"      git-rebase-show-commit)
+    ("<return>" with-editor-finish)
 
-    ("M-n" git-rebase-move-line-up)
-    ("M-t" git-rebase-move-line-down)
-    ("s"   git-rebase-squash)
-    ("p"   git-rebase-pick)
-    ("k"   git-rebase-undo)
-    ("x"   git-rebase-exec)
-    ("r"   git-rebase-reword)
-    ("e"   git-rebase-edit)
-    ("s"   git-rebase-squash)
-    ("f"   git-rebase-fixup)
-    ("d"   git-rebase-kill-line)))
+    ("s"        git-rebase-squash)
+    ("p"        git-rebase-pick)
+    ("k"        git-rebase-undo)
+    ("x"        git-rebase-exec)
+    ("r"        git-rebase-reword)
+    ("e"        git-rebase-edit)
+    ("s"        git-rebase-squash)
+    ("f"        git-rebase-fixup)
+    ("d"        git-rebase-kill-line)))
 
 (add-hook 'git-rebase-mode-hook #'git-rebase-mode-setup)
 
