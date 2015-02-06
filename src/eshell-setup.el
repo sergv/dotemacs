@@ -11,7 +11,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (setf eshell-directory-name (concat +prog-data-path+ "/eshell/")
-      eshell-aliases-file (concat eshell-directory-name "/alias")
+      eshell-bad-command-tolerance 10000 ;; don't want eshell autocorrection aliases
       eshell-buffer-maximum-lines 65536
       eshell-buffer-shorthand t
       eshell-cmpl-autolist nil ;; this option is really harmful when set to t
@@ -61,10 +61,25 @@
      ;; (setenv "PAGER" "cat")
 
      ;; try eshell-complex-commands if some command doesn't work
+     (defalias 'eshell-read-aliases-list #'ignore)
 
      (setf eshell-cmpl-file-ignore "~\\'\\|\\`\\.#"
            eshell-cmpl-dir-ignore
-           (concat "\\`" (regexp-opt *ignored-directories*) "\\'"))
+           (concat "\\`" (regexp-opt *ignored-directories*) "\\'")
+           eshell-command-aliases-list
+           '(("l" "*ls -CF --color=always $*")
+             ("la" "*ls -A --color=always $*")
+             ("ll" "*ls --human-readable -AlF --color=always $*")
+             ("chmod" "*chmod $*")
+             ("find" "busybox find $*")
+
+             ("diff" "*diff --unified --recursive --ignore-tab-expansion --ignore-blank-lines $*")
+             ("ediff" "ediff $1 $2")
+             ("ediff3" "ediff3 $1 $2 $3")
+             ("open" "find-file $1")
+
+             ("gcc" "*gcc $*")
+             ("python" "*python -B $*")))
 
      ;; commands to run in separate buffer
      (push "ssh" eshell-visual-commands)
@@ -124,8 +139,8 @@
                                   eos))
 
                      (funcall define-programs
-                              '("ghc" "ghci" "runghc" "runhaskell")
-                              "\\.\\(?:hs\\|lhs\\|hsc\\)\\'")
+                              '("ghc" "ghci" "runghc" "runhaskell" "hugs" "jhc" "c2hs")
+                              "\\.\\(?:hs\\|lhs\\|hsc\\|c2hs\\)\\'")
 
                      (funcall define-programs
                               '("hp2ps")
