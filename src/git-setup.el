@@ -186,8 +186,6 @@ all otherwise."
 
   ;; here we do have vim mode enabled
   ;; (def-keys-for-map magit-mode-map
-  ;;   +control-x-prefix+)
-  ;; (def-keys-for-map magit-mode-map
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
     ("s"               vim:ex-read-command)
@@ -216,7 +214,6 @@ all otherwise."
 
 (defun magit-bind-common-vimless-mode-keymap (map)
   (def-keys-for-map map
-    +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
     ("?"               magit-dispatch-popup) ;; override "?" from vim search

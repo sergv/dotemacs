@@ -8,7 +8,6 @@
 
 (defun image-mode-setup ()
   (def-keys-for-map image-mode-map
-    +control-x-prefix+
     +vim-special-keys+
     ("d" image-backward-hscroll)
     ("h" image-scroll-down)

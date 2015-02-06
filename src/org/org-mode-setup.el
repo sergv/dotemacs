@@ -721,12 +721,10 @@ the current topic."
 
 (defun org-agenda-mode-setup ()
   (def-keys-for-map org-agenda-mode-map
-    +control-x-prefix+
     +vim-special-keys+
     +vi-search-keys+
     ("h"   org-agenda-next-line)
     ("t"   org-agenda-previous-line)
-
     ("C-t" org-agenda-todo)))
 
 ;;; epilogue

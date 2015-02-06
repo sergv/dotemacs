@@ -32,7 +32,8 @@
      (add-hook 'ediff-keymap-setup-hook
                (lambda ()
                  (def-keys-for-map ediff-mode-map
-                   +control-x-prefix+
+                   ("h"        ediff-next-difference)
+                   ("t"        ediff-previous-difference)
                    ("<down>"   ediff-next-difference)
                    ("<up>"     ediff-previous-difference)
                    ("<escape>" ediff-quit))))))
