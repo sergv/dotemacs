@@ -47,7 +47,6 @@
 (icicles-util/bind-minibuffer-keys minibuffer-local-map :sexp-keys t)
 
 (def-keys-for-map completion-list-mode-map
-  +control-x-prefix+
   +vim-special-keys+
   ("<up>"     previous-completion)
   ("<down>"   next-completion)

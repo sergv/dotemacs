@@ -35,7 +35,6 @@
 
 (defun browse-kill-ring-mode-setup ()
   (def-keys-for-map browse-kill-ring-mode-map
-    +control-x-prefix+
     +vim-special-keys+
     ("y"        nil)
 

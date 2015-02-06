@@ -87,7 +87,8 @@
   '(progn
      (def-keys-for-map help-mode-map
        +vi-keys+
-       +control-x-prefix+
+       +vim-word-motion-keys+
+       +vim-special-keys+
        ("SPC"      help-follow)
        ("<escape>" remove-buffer)
        ("<up>"     help-go-back)
@@ -100,13 +101,11 @@
   '(progn
      (def-keys-for-map view-mode-map
        +vi-keys+
-       +control-x-prefix+
        ("<escape>" remove-buffer))))
 
 (eval-after-load "cus-edit"
   '(progn
      (def-keys-for-map custom-mode-map
-       +control-x-prefix+
        +vi-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
@@ -120,7 +119,6 @@
        ("<up>"     widget-backward))
 
      (def-keys-for-map Custom-mode-map
-       +control-x-prefix+
        +vi-keys+
        +vim-special-keys+
        +vim-word-motion-keys+
@@ -141,7 +139,6 @@
 
 
 (def-keys-for-map occur-mode-map
-  +control-x-prefix+
   ("<up>"     custom-occur-prev)
   ("<down>"   custom-occur-next)
   ("t"        custom-occur-prev)

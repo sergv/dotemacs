@@ -140,7 +140,6 @@ error location - list of (filename line column)."
 (eval-after-load "compile"
   '(progn
      (def-keys-for-map compilation-mode-map
-       +control-x-prefix+
        +vi-keys+
        +vim-special-keys+
        +vim-word-motion-keys+

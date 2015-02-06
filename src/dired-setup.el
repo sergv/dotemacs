@@ -38,7 +38,6 @@
                  (dired-omit-mode 1)))
 
      (def-keys-for-map dired-mode-map
-       +control-x-prefix+
        +vim-special-keys+
        ("h"        dired-cycle-files-forward)
        ("t"        dired-cycle-files-backward)
