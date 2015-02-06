@@ -242,7 +242,6 @@ a prefix argument reverses the meaning of that variable."
      (def-keys-for-map ibuffer-mode-map
        +control-x-prefix+
        +vim-special-keys+
-       ;;("q"        remove-buffer)
        ("C-k"      remove-buffer)
        ("C-S-k"    remove-buffer-and-window)
 

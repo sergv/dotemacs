@@ -37,8 +37,8 @@
     ("C-/" search-start-forward-new-color)
     ("?"   search-start-backward)
     ("C-?" search-start-backward-new-color)
-    ("k"   search-next)
-    ("K"   search-prev)
+    ("u"   search-next)
+    ("U"   search-prev)
     ("C-h" search-toggle-highlighting)
     ;; rebind "C-h" for terminals that refuse to send "C-h" and
     ;; send "C-<backspace>" instead
@@ -71,6 +71,7 @@
     ("g r"   rgrep-wrapper)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)
+    ("g u"   undo-tree-visualize)
 
     ("g g"   vim-mock:motion-go-to-first-non-blank-beg)
     ("G"     vim-mock:motion-go-to-first-non-blank-end)
