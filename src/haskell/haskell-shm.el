@@ -72,7 +72,6 @@ Similar to `vim:motion-jump-item'."
     (let* ((node (shm-current-node))
            (start (shm-node-start node))
            (end (shm-node-end node)))
-      (vim:add-jump)
       (cond ((= start (point))
              (goto-char end))
             ((= end (point))

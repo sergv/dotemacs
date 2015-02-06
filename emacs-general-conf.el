@@ -26,6 +26,7 @@
         (slime-fuzzy-completions-mode . nil)
         (slime-xref-mode . nil)
         (Custom-mode . nil)
+        (help-mode . nil)
         (ibuffer-mode . nil)
         (ediff-mode . nil)
         (emms-playlist-mode . nil)

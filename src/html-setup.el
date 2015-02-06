@@ -77,35 +77,32 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                                             eb pre-eb
                                             ee pre-ee)))))
         (if (not (null? bb)) ;; if bb is non-nil then interesting type was found
-          (progn
-            ;; combined case of tag and open/closing paren
-            (vim:add-jump)
-            (let ((next-open (condition-case nil
-                                 (1- (scan-lists (point) 1 -1))
-                               (error (point-max))))
-                  (next-close (condition-case nil
-                                  (1- (scan-lists (point) 1 +1))
-                                (error (point-max)))))
-              (let ((pos (min next-open next-close)))
-                (if (>= pos (line-end-position))
-                  ;; original error "No matching item found on the current line"
-                  (setf pos tag-start)
-                  ;; else use closest position
-                  (setf pos (min pos tag-start)))
-                (cond ((= pos next-open)
-                       (goto-char pos)
-                       (forward-list)
-                       (backward-char))
-                      ((= pos next-close)
-                       (goto-char (1+ pos))
-                       (backward-list))
-                      ((inside? pos bb be)
-                       ;; ee is an exclusive end
-                       (goto-char (- ee 1)))
-                      ((inside? pos eb ee)
-                       (goto-char bb))
-                      (t
-                       (error "No matching item found"))))))
+          (let ((next-open (condition-case nil
+                               (1- (scan-lists (point) 1 -1))
+                             (error (point-max))))
+                (next-close (condition-case nil
+                                (1- (scan-lists (point) 1 +1))
+                              (error (point-max)))))
+            (let ((pos (min next-open next-close)))
+              (if (>= pos (line-end-position))
+                ;; original error "No matching item found on the current line"
+                (setf pos tag-start)
+                ;; else use closest position
+                (setf pos (min pos tag-start)))
+              (cond ((= pos next-open)
+                     (goto-char pos)
+                     (forward-list)
+                     (backward-char))
+                    ((= pos next-close)
+                     (goto-char (1+ pos))
+                     (backward-list))
+                    ((inside? pos bb be)
+                     ;; ee is an exclusive end
+                     (goto-char (- ee 1)))
+                    ((inside? pos eb ee)
+                     (goto-char bb))
+                    (t
+                     (error "No matching item found")))))
           (vim:motion-jump-item))))))
 
 (eval-after-load "rng-valid"
