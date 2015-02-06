@@ -9,7 +9,6 @@
 
 (defun calendar-mode-setup ()
   (def-keys-for-map calendar-mode-map
-    +control-x-prefix+
     +vim-special-keys+))
 
 (add-hook 'calendar-mode-hook #'calendar-mode-setup)

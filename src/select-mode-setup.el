@@ -16,7 +16,6 @@
   (def-keys-for-map select-mode-map
     +vi-essential-keys+
     +vi-search-keys+
-    +control-x-prefix+
     +vim-word-motion-keys+
     +vim-special-keys+
 

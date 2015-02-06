@@ -14,7 +14,6 @@
      ;; don't bind nor vi-keys nor vim's word-motion keys here as the're useless
      ;; when navigating pdfs
      (def-keys-for-map doc-view-mode-map
-       +control-x-prefix+
        +vim-special-keys+
        ("d" image-backward-hscroll)
        ("h" doc-view-next-line-or-next-page)
