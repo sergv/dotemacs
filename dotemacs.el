@@ -181,7 +181,6 @@
 (load-library "octave-setup")
 (load-library "sql-setup")
 (load-library "python-setup")
-(load-library "cython-setup")
 (load-library "graphviz-setup")
 (load-library "csv-setup")
 (load-library "rst-setup")

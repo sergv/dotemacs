@@ -82,9 +82,6 @@
                                         (? "<"
                                            (+ digit)
                                            ">")))))
-       (cython-filter `(or (mode . cython-mode)
-                           (mode . cython-compilation-mode)))
-
        (lisp-filter `(or (predicate
                           .
                           (and (memq major-mode
@@ -261,7 +258,6 @@
       ("ocaml"      ,ocaml-filter)
       ("octave"     ,octave-filter)
       ("python"     ,python-filter)
-      ("cython"     ,cython-filter)
 
       ("lisp"       ,lisp-filter)
       ("slime"      ,slime-filter)
