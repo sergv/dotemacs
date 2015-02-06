@@ -413,8 +413,6 @@ Highlighting starts at the beginning of buffer")
                           search-prev
                           search-for-symbol-at-point-forward
                           search-for-symbol-at-point-backward
-                          search-for-slime-symbol-at-point-forward
-                          search-for-slime-symbol-at-point-backward
                           search-for-word-at-point-forward
                           search-for-word-at-point-backward)
          collect `(defadvice:expand-on-search ,command ,expand-command ,modes))))
@@ -532,20 +530,6 @@ obvious"
 (search/make-search-for-thing search-for-symbol-at-point-backward
                               search-for-symbol-at-point-backward-new-color
                               (lambda () (bounds-of-thing-at-point 'symbol))
-                              search/prev-impl
-                              'backward
-                              :error-message "No symbol at point")
-
-(search/make-search-for-thing search-for-slime-symbol-at-point-forward
-                              search-for-slime-symbol-at-point-forward-new-color
-                              slime-bounds-of-symbol-at-point
-                              search/next-impl
-                              forward
-                              :error-message "No symbol at point")
-
-(search/make-search-for-thing search-for-slime-symbol-at-point-backward
-                              search-for-slime-symbol-at-point-backward-new-color
-                              slime-bounds-of-symbol-at-point
                               search/prev-impl
                               'backward
                               :error-message "No symbol at point")
