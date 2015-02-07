@@ -49,9 +49,6 @@
 [submodule "third-party/rainbow-delimiters"]
         path = third-party/rainbow-delimiters
         url = https://github.com/jlr/rainbow-delimiters.git
-[submodule "third-party/revive-plus"]
-        path = third-party/revive-plus
-        url = https://git.gitorious.org/sergv-emacs/revive-plus.git
 [submodule "third-party/s.el"]
         path = third-party/s.el
         url = https://github.com/purcell/s.el.git

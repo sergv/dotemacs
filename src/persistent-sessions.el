@@ -11,11 +11,11 @@
 (require 'common)
 (require 'more-clojure)
 (require 'fortunes)
-(require 'revive-setup)
+(require 'revive-minimal)
 
-(defalias 'revive-plus:window-configuration-printable #'window-configuration-printable)
-(defalias 'revive-plus:restore-window-configuration #'restore-window-configuration)
-
+(setf revive-plus:all-frames t
+      revive:save-variables-mode-local-private
+      '((c++-mode c-indentation-style c-basic-offset)))
 
 (defun make-session-entry (file-name point variables major-mode)
   (list file-name point variables major-mode))
@@ -207,28 +207,25 @@ entries."
                                    (funcall save-func buf)))))
                        buffers)))
            (frame-data
-            (window-configuration-printable)))
-      (print
-       (list 'sessions/load-from-data
-             (list 'quote
-                   (list (list 'buffers
-                               buffer-data)
-                         (list 'special-buffers
-                               special-buffer-data)
-                         (list 'frames
-                               frame-data)
-                         (list 'global-variables
-                               (sessions/get-global-variables)))))
-       (current-buffer)))
-    (insert "\n\n;; Local Variables:
+            (revive-plus:window-configuration-printable)))
+      (insert "(sessions/load-from-data\n")
+      (insert "  '(\n")
+      (dolist (x (list (list 'buffers buffer-data)
+                       (list 'special-buffers special-buffer-data)
+                       (list 'frames frame-data)
+                       (list 'global-variables (sessions/get-global-variables))))
+        (print x (current-buffer))
+        (insert "\n"))
+      (insert "))\n")
+      (insert "\n\n;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; coding: utf-8
 ;; mode: emacs-lisp
 ;; End:")
 
-    (write-region (point-min) (point-max) file)
-    (make-file-executable file)))
+      (write-region (point-min) (point-max) file)
+      (make-file-executable file))))
 
 (defun sessions/call-symbol-function (sym)
   "Call function bound to symbol SYM, autoloading it if necessary."
@@ -268,7 +265,7 @@ entries."
            (cadr it))
       (message "warning: session-entries without special buffer information"))
     (aif (assq 'frames session-entries)
-      (restore-window-configuration (first (rest it)))
+      (revive-plus:restore-window-configuration (first (rest it)))
       (message "warning: session-entries without frame information"))
     (aif (assq 'global-variables session-entries)
       (sessions/restore-global-variables (first (rest it)))

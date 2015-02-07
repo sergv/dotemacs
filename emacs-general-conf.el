@@ -175,7 +175,7 @@
 ;; Remove completion buffer when done
 (add-hook 'minibuffer-exit-hook
           (lambda ()
-            (aif (get-buffer "*Completions*")
+            (awhen (get-buffer "*Completions*")
               (kill-buffer it))))
 
 (add-hook 'minibuffer-setup-hook #'smartparens-buffer-local-setup)
@@ -214,21 +214,12 @@
   ("<mouse-4>"      ignore)
   ("<mouse-5>"      ignore))
 
-
 ;;;; native emacs backup
-(setq make-backup-files   nil
-      ;; kept-new-versions   100
-      ;; kept-old-versions   100
-      ;; delete-old-versions t
-      ;; version-control     'never
-      )
+(setq make-backup-files   nil)
 (setq backup-directory-alist nil)
 
 ;;;; desktops
-(setq desktop-save 'if-exists
-      desktop-dirname +prog-data-path+
-      desktop-base-file-name "emacs.session"
-      desktop-path (list "." +prog-data-path+))
+(setq desktop-save nil)
 (desktop-save-mode -1)
 
 ;; nuke trailing whitespaces when writing to a file
@@ -341,6 +332,8 @@
 (defalias 'unnarrow 'widen)
 (defalias 'align 'align-regexp)
 (defalias 'toggle-wrap-lines 'toggle-truncate-lines)
+
+(defalias 'eshell (lambda () (inteeractive) (error "eshell is disabled")))
 
 ;;;; Epilogue
 
