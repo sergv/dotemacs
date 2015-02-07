@@ -24,7 +24,6 @@
   (skip-to-indentation))
 
 
-
 (defun vim-mock:scroll-line-to-center ()
   "Scroll selected line to the center of the window."
   (interactive)
@@ -40,8 +39,21 @@
   (interactive)
   (recenter -1))
 
+(defun vim-mock:motion-fwd-word-end (count)
+  (interactive "p")
+  (vim:move-fwd-end (or count 1) #'vim:boundary-word))
 
+(defun vim-mock:motion-fwd-WORD-end (count)
+  (interactive "p")
+  (vim:move-fwd-end (or count 1) #'vim:boundary-WORD))
 
+(defun vim-mock:motion-bwd-word-end (count)
+  (interactive "p")
+  (vim:move-bwd-end (or count 1) #'vim:boundary-word))
+
+(defun vim-mock:motion-bwd-WORD-end (count)
+  (interactive "p")
+  (vim:move-bwd-end (or count 1) #'vim:boundary-WORD))
 
 (defun vim-mock:motion-fwd-word (count)
   "Moves the cursor beginning of the next word."

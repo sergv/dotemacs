@@ -61,13 +61,8 @@
 (autoload 'smex "smex" "" t)
 (autoload 'smex-major-mode-commands "smex" "" t)
 
-(def-keys-for-map global-map
-  ("M-x" smex)
-  ("M-X" smex-major-mode-commands))
-
 (eval-after-load "smex"
   '(progn
-
      ;; note: ido is used my smex
 
      ;; create new buffers if buffer with prompted name does not exist
@@ -89,12 +84,7 @@
                              " [Too big]"
                              " [Confirm]"))))
 
-;; (require 'auto-complete-config)
-;; (ac-config-default)
-
-
 ;;;
-
 
 ;; (defun ido-setup ()
 ;;   ;; bind keys to ido-completion-map here, etc
@@ -108,90 +98,6 @@
 ;;     ("<f6>" ido-toggle-regexp)))
 
 ;; (add-hook 'ido-setup-hook #'ido-setup)
-
-
-;;;
-
-
-;; (require 'hippie-exp)
-;;
-;; (setq hippie-expand-try-functions-list
-;;       (append
-;;        ;; (when (fboundp 'yas-hippie-try-expand)
-;;        ;;   '(yas-hippie-try-expand))
-;;        '(;; try-expand-all-abbrevs
-;;          ;; try-pabbrev-expand
-;;
-;;          try-expand-dabbrev
-;;          ;; try-expand-dabbrev-all-buffers
-;;          ;; try-expand-dabbrev-from-kill
-;;          try-complete-file-name
-;;          try-complete-file-name-partially
-;;          ;; try-expand-list
-;;          ;; try-expand-line
-;;          try-complete-lisp-symbol
-;;          try-complete-lisp-symbol-partially
-;;          )))
-;;
-;; (global-set-key (kbd "M-/") 'hippie-expand)
-
-;; (require 'pabbrev)
-;;
-;; (setq pabbrev-minimal-expansion-p t
-      ;; pabbrev-global-mode-not-buffer-names '("*Messages*" "*Compile-Log*" "*Help*")
-      ;; pabbrev-idle-timer-verbose nil
-      ;; pabbrev-global-mode-buffer-size-limit nil
-      ;; pabbrev-marker-distance-before-scavenge 2000
-      ;; pabbrev-read-only-error nil
-      ;; pabbrev-scavenge-some-chunk-size 64
-      ;; pabbrev-thing-at-point-constituent (quote symbol))
-;;
-;;
-;; ;; (defun he-general-word-beg ()
-  ;; ;; "Return last non-whitespace position to the left of point"
-  ;; ;; (let ((bol (line-beginning-position))
-        ;; ;; (p))
-    ;; ;; (save-excursion
-      ;; ;; (let (char (char-before))
-        ;; ;; (while (and
-                ;; ;; (< bol (point))
-                ;; ;; (not (equal char " "))
-                ;; ;; (not (equal char "\n"))
-                ;; ;; (not (equal char "\t")))
-          ;; ;; (backward-char)))
-      ;; ;; (setq p (point)))
-    ;; ;; p))
-;;
-;; (defun he-general-word-beg ()
-  ;; "Return last non-whitespace position to the left of point"
-  ;; (let ((bol (line-beginning-position)))
-    ;; (save-excursion
-      ;; (skip-syntax-backward "^-()\"\\/$'<>!|" bol)
-      ;; (point))))
-;;
-;; (defun try-pabbrev-expand (old)
-  ;; (unless old
-    ;; (he-init-string (he-general-word-beg) (point))
-;;
-    ;; (setq he-expand-list (sort
-                          ;; (mapcar #'car
-                                  ;; (pabbrev-fetch-all-suggestions-for-prefix
-                                   ;; he-search-string))
-                          ;; 'string-lessp)))
-  ;; (while (and he-expand-list
-              ;; (he-string-member (car he-expand-list) he-tried-table))
-    ;; (setq he-expand-list (cdr he-expand-list)))
-  ;; (if (null he-expand-list)
-      ;; (progn
-        ;; (when old (he-reset-string))
-        ;; ())
-      ;; (he-substitute-string (car he-expand-list))
-      ;; (setq he-tried-table (cons (car he-expand-list) (cdr he-tried-table)))
-      ;; (setq he-expand-list (cdr he-expand-list))
-      ;; t))
-
-;; Now you can bind keys to hippie-expand for vanilla completion
-;; and to pabbrev-expand-maybe for completion with popup
 
 (provide 'completion-setup)
 

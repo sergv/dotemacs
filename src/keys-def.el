@@ -50,7 +50,9 @@
   '(("w" vim-mock:motion-fwd-word)
     ("b" vim-mock:motion-bwd-word)
     ("W" vim-mock:motion-fwd-WORD)
-    ("B" vim-mock:motion-bwd-WORD)))
+    ("B" vim-mock:motion-bwd-WORD)
+    ("e" vim-mock:motion-fwd-word-end)
+    ("E" vim-mock:motion-fwd-WORD-end)))
 
 (defconst +vim-special-keys+
   '(("s"     vim:ex-read-command)
@@ -59,6 +61,8 @@
     ("g"     nil)
     ("g x"   smex)
     ("M-x"   smex)
+    ("g e"   vim-mock:motion-bwd-word-end)
+    ("g E"   vim-mock:motion-bwd-WORD-end)
     ("g f"   icicle-file)
     ("g r"   rgrep-wrapper)
     ("g k"   remove-buffer)
