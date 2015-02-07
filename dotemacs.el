@@ -163,7 +163,7 @@
 
 (load-library "all-lisp-setup")
 (load-library "org-mode-autoload")
-(load-library "persistent-sessions")
+(load-library "persistent-sessions-autoloads")
 
 (load-library "c-like-setup")
 (load-library "haskell-autoload")
@@ -214,9 +214,7 @@
 (load-library "comment-util")
 (load-library "comint-setup")
 (load-library "dired-setup")
-(load-library "remember-win-config")
 (load-library "yasnippet-autoload")
-;; (load-library "cedet-setup")
 (load-library "git-setup")
 (load-library "hideshow-setup")
 (load-library "render-formula")
@@ -225,7 +223,6 @@
 (load-library "telnet-mode-setup")
 (load-library "ediff-setup")
 (load-library "select-mode-setup")
-(load-library "revive-setup")
 (load-library "paredit-autoload")
 (load-library "undo-tree-setup")
 (load-library "recentf-setup")
