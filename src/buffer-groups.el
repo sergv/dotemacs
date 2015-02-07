@@ -171,7 +171,6 @@
                             (mode . hs-lint-mode)
                             (mode . hs-scan-mode)
                             (mode . gnuplot-run-mode)
-                            (mode . eshell-mode)
                             (predicate . (and (or (not (null? (get-buffer-process (current-buffer))))
                                                   (eq? major-mode 'shell-mode))
                                               (not (string-match-pure? "Async Shell Command"

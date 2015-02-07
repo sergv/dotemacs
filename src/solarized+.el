@@ -304,15 +304,6 @@ Futher modified by Sergey Vinokurov."
        (ediff-fine-diff-B                    ((t (:underline ,cyan))))
        (ediff-fine-diff-C                    ((t (:underline ,cyan))))
 
-       ;; eshell
-       (eshell-ls-archive                    ((t (:foreground ,violet))))
-       (eshell-ls-directory                  ((t (:foreground ,blue))))
-       (eshell-ls-executable                 ((t (:foreground ,green))))
-       (eshell-ls-missing                    ((t (:foreground ,red))))
-       (eshell-ls-special                    ((t (:foreground ,magenta))))
-       (eshell-ls-symlink                    ((t (:foreground ,cyan))))
-       (eshell-prompt                        ((t (:foreground ,magenta))))
-
        (rainbow-delimiters-depth-1-face      ((t (:foreground ,base0))))
        (rainbow-delimiters-depth-2-face      ((t (:foreground ,red))))
        (rainbow-delimiters-depth-3-face      ((t (:foreground ,orange))))

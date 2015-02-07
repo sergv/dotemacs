@@ -171,7 +171,6 @@
 (load-library "awk-setup")
 (load-library "shell-autoloads")
 (load-library "snippet-autoloads")
-(load-library "eshell-setup")
 (load-library "gnuplot-setup")
 (load-library "html-autoload")
 (load-library "latex-autoloads")
