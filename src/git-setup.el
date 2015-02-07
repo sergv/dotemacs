@@ -189,6 +189,8 @@ all otherwise."
   ;;   +vim-special-keys+)
   (def-keys-for-map magit-mode-map
     ("s"               vim:ex-read-command)
+    ("k"               magit-unstage-item)
+    ("K"               magit-unstage-all-confirm)
     (";"               magit-stage-item)
     ("D"               magit-discard)
     ("C"               magit-checkout)
@@ -221,6 +223,8 @@ all otherwise."
 
     ("s"               vim:ex-read-command)
     (";"               magit-stage-item)
+    ("k"               magit-unstage-item)
+    ("K"               magit-unstage-all-confirm)
     ("D"               magit-discard)
     ("p"               magit-stash-popup)
     ("T"               magit-tag-popup)
