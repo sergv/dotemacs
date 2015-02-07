@@ -185,10 +185,7 @@ like \"d w\".")
   ("g r"       rgrep-wrapper)
   ("g TAB"     nil)
   ("g n"       nil)
-  ("g t"       nil)
-
-  ("g c s"     remember-win-config-store-configuration)
-  ("g c r"     remember-win-config-restore-configuration))
+  ("g t"       nil))
 
 ;;; visual keybindings
 

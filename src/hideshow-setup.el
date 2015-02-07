@@ -8,7 +8,7 @@
 
 (eval-after-load
     "hideshow"
-  '(begin
+  '(progn
      (defadvice byte-compile-file (around
                                    byte-compile-file-hideshow-off
                                    activate

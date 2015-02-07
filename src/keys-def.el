@@ -57,7 +57,6 @@
     ("C-b"   icicle-buffer)
 
     ("g"     nil)
-    ("g C"   remember-win-config-store-configuration)
     ("g x"   smex)
     ("M-x"   smex)
     ("g f"   icicle-file)

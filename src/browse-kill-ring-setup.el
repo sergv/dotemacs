@@ -13,11 +13,6 @@
           "Display `kill-ring' items in another buffer."
           t)
 
-(autoload 'browse-eshell-input-history
-          "browse-kill-ring"
-          "Display `eshell-history-ring' items in another buffer."
-          t)
-
 (autoload 'browse-comint-input-history
           "browse-kill-ring"
           "Display `comint-input-ring' items in another buffer."
