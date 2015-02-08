@@ -259,7 +259,8 @@ all otherwise."
   "Mode for editing commit message."
   (init-common :use-yasnippet nil :use-comment nil)
 
-  (def-keys-for-map magit-log-edit-mode-map
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     magit-log-edit-mode-map)
     ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    log-edit-previous-comment)
     ("<down>"  log-edit-next-comment)
