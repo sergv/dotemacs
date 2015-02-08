@@ -41,14 +41,10 @@
 
 (defun pcmpl-git-commits-and-files ()
   "Return list of commits to complete against."
-  (pcomplete-entries)
-  ;; doesn't work for now
-  ;; (append '("HEAD")
-  ;;         (pcmpl-git-get-refs "heads\\|tags")
-  ;;         (pcomplete-entries)
-  ;;
-  ;;         )
-  )
+  (append (pcmpl-git-commits)
+          (directory-files default-directory
+                           nil
+                           directory-files-no-dot-files-regexp)))
 
 (defalias 'pcmpl-git-rev 'pcmpl-git-commits)
 
@@ -63,7 +59,9 @@
                     "for-each-ref"
                     "refs/"
                     "--format=%(refname)")
-      (let ((re (concat "^refs/" type "/\\(.*\\)")))
+      (let ((re (concat "^refs/"
+                        "\\(?:" type "\\)"
+                        "/\\(.*\\)")))
         (delq nil
               (map (lambda (ref)
                      (when (string-match? re ref)
@@ -879,7 +877,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--hard"
                "--merge"
                "--keep")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-git-commits-and-files)))))
       ("rm"
        (opts
         (flags "-f"
