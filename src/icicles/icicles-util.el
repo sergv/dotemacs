@@ -18,7 +18,9 @@
     ("C-S-w"             backward-delete-word*)
     ("C-p"               vim:cmd-paste-before)
     ("C-S-p"             browse-kill-ring)
+    ("M-p"               browse-kill-ring)
 
+    ("C-/"               nil)
     ("C-v"               set-mark-command)
     ("C-y"               copy-region-as-kill)
     ("C-d"               kill-region)
