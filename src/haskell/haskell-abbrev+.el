@@ -113,7 +113,7 @@ then Bar would be the result."
                                   ghc-flags))
          (default-options-snippet (format "{-# OPTIONS_GHC -Wall -fwarn-monomorphism-restriction ${1:$\$(yas-choose-value '%S)} #-}$0"
                                           ghc-flags)))
-    (setf abbrev+-skip-syntax '("w_" "^ >")
+    (setf abbrev+-skip-syntax '("w_" "^ >" (" " "w_") (" " "^ >"))
           abbrev+-abbreviations
           (append
            (if (not repl)
@@ -124,7 +124,7 @@ then Bar would be the result."
                                  (concat "main :: IO ()\nmain = do\n"
                                          (make-string haskell-indent-offset ?\s) "$1"))))
                     #'point-not-inside-string-or-comment?)
-              (list "##"
+              (list "## *"
                     (list
                      (lambda () (yas-expand-snippet "{-# $1 #-}$0")))
                     #'point-not-inside-string-or-comment?)
