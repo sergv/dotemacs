@@ -459,20 +459,6 @@ combinations"
                        (funcall collect (1- start) (1- i))))))))
     (funcall collect (1- k) (1- n))))
 
-
-(defun split-at (n list)
-  "Return two elements: list of first N elements of LIST and
-LIST sans it's first N elements."
-  (cond
-    ((null list)
-     (values nil nil))
-    ((= n 0)
-     (values nil list))
-    (t
-     (bind (((head tail) (split-at (1- n) (cdr list))))
-           (values (cons (car list) head) tail)))))
-
-
 (defun* sum (seq &key (key #'identity) (start 0) (end nil))
   (reduce #'+
           seq
@@ -480,7 +466,6 @@ LIST sans it's first N elements."
           :key key
           :start start
           :end end))
-
 
 ;;;
 
