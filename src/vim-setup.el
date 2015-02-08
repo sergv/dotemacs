@@ -113,8 +113,8 @@ like \"d w\".")
   ("g q"     nil)
   ("g x"     smex)
 
-  ("<home>"  vim:motion-bwd-paragraph)
-  ("<end>"   vim:motion-fwd-paragraph)
+  ("<home>"  prev-f)
+  ("<end>"   next-f)
 
   ("C-:"     icicle-pp-eval-expression)
   ("C-b"     icicle-buffer)
