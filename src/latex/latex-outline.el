@@ -189,8 +189,6 @@ for use in utility functions."
        (setq latex:document-start (copy-marker start))))))
 
 
-(require 'functional)
-
 (defconst latex-part-regexp          "\\\\part\\*?{\\(?:.\\|\n\\)*?}")
 (defconst latex-chapter-regexp       "\\\\chapter\\*?{\\(?:.\\|\n\\)*?}")
 (defconst latex-section-regexp       "\\\\section\\*?{\\(?:.\\|\n\\)*?}")
