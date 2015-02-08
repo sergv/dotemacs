@@ -63,7 +63,7 @@ car's of `abbrev+-abbreviations' and returning corresponding element in cdr."
 in `abbrev+-abbreviations' whose car matched. Return two arguments:
 first being t if after substitution it may be desirable to insert space
 and second being actual substituted text."
-  (let ((p (point))
+  (let ((start (point))
         (insert-spacep
          (cond
            ((stringp action)
@@ -89,7 +89,7 @@ and second being actual substituted text."
                         80)))
               (insert res))
             t))))
-    (values insert-spacep (buffer-substring-no-properties p (point)))))
+    (values insert-spacep (buffer-substring-no-properties start (point)))))
 
 
 (defun abbrev+-expand (&optional dont-expand)
@@ -97,7 +97,7 @@ and second being actual substituted text."
 `abbrev-abbreviations'. Returns nil if nothing was substituted."
   (interactive (list current-prefix-arg))
   (unless dont-expand
-    (let ((p (point))
+    (let ((start (point))
           entry
           str
           result)
@@ -105,9 +105,16 @@ and second being actual substituted text."
         for syntax in abbrev+-skip-syntax
         until entry
         do
-        (goto-char p)
-        (skip-syntax-backward syntax)
-        (setf str (buffer-substring-no-properties (point) p)
+        (goto-char start)
+        (cond
+          ((string? syntax)
+           (skip-syntax-backward syntax))
+          ((list? syntax)
+           (dolist (s syntax)
+             (skip-syntax-backward s)))
+          (t
+           (error "invalid syntax: %s" syntax)))
+        (setf str (buffer-substring-no-properties (point) start)
               entry (abbrev+-get-substitution str)))
       (if entry
         (let ((action (second entry))
@@ -122,7 +129,7 @@ and second being actual substituted text."
           (if substitutep
             (progn
               (goto-char point-before-predicate-call)
-              (delete-region (point) p)
+              (delete-region (point) start)
               (setf abbrev+-text-to-substitute str)
               (multiple-value-bind (insert-spacep substituted-text)
                   (abbrev+-perform-substitution action)
@@ -141,12 +148,12 @@ and second being actual substituted text."
                     (setf result t)))))
             ;; if we do not perform substitution then return to original point
             (progn
-              (goto-char p)
+              (goto-char start)
               ;; no substitutions were performed
               (setf result nil))))
         ;; no suitable entry found
         (progn
-          (goto-char p)
+          (goto-char start)
           ;; no substitutions were performed
           (setf result nil)))
       result)))
