@@ -8,8 +8,11 @@
 
 (load-library "haskell-mode-autoloads")
 
-(require 'ghc-prof-mode)
-(remove-hook 'haskell-mode-hook 'ghc-prof-highlight-current)
+(autoload 'ghc-prof-mode "ghc-prof-mode" nil t)
+(eval-after-load "ghc-prof-mode"
+  '(progn
+     (remove-hook 'haskell-mode-hook #'ghc-prof-highlight-current)
+     (add-hook 'ghc-prof-mode-hook #'ghc-prof-clear)))
 
 (defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot"))
 
