@@ -66,10 +66,11 @@ system restars.")
 
 (defun remove-tmp-path ()
   "Delete `+tmp-path+' directory on emacs exit."
-  (delete-directory +tmp-path+
-                    t   ;; recurse
-                    nil ;; don't just move to trash
-                    ))
+  (ignore-errors
+    (delete-directory +tmp-path+
+                      t   ;; recurse
+                      nil ;; don't just move to trash
+                      )))
 (add-hook 'kill-emacs-hook #'remove-tmp-path)
 
 (defalias 'strip-trailing-slash 'directory-file-name)
