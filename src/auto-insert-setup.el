@@ -92,31 +92,34 @@
                  "")))))
    (list "haskell path to module name"
          (lambda ()
-           (let* ((root (locate-dominating-file
-                         (file-name-directory (buffer-file-name))
-                         (lambda (dir)
-                           (or (not (string-match-pure? "[A-Z][a-zA-Z0-9_']*"
-                                                        (file-name-nondirectory
-                                                         (strip-trailing-slash dir))))
-                               (any? (lambda (path)
-                                       (or (and (file-regular? path)
-                                                (string-match-pure?
-                                                 (rx (or (seq (+ not-newline)
-                                                              ".cabal")
-                                                         "Setup.hs"
-                                                         "Setup.lhs")
-                                                     eos)
-                                                 path))
-                                           (and (file-directory? path)
-                                                (or (string= "src" path)
-                                                    (member path
-                                                            *version-control-directories*)
-                                                    ;; this is somewhat vacuous
-                                                    ;; (not (string-match-pure?
-                                                    ;;       "[A-Z][a-zA-Z]*"
-                                                    ;;       path))
-                                                    ))))
-                                     (get-directory-contents dir))))))
+           (let* ((root
+                   (locate-dominating-file
+                    (file-name-directory (buffer-file-name))
+                    (lambda (dir)
+                      (or (not (string-match-pure? "[A-Z][a-zA-Z0-9_']*"
+                                                   (file-name-nondirectory
+                                                    (strip-trailing-slash dir))))
+                          (any? (lambda (path)
+                                  (or (and (file-regular? path)
+                                           (string-match-pure?
+                                            (rx (or (seq (+ not-newline)
+                                                         ".cabal")
+                                                    "Setup.hs"
+                                                    "Setup.lhs")
+                                                eos)
+                                            path))
+                                      (and (file-directory? path)
+                                           (or (string= "src" path)
+                                               (member path
+                                                       *version-control-directories*)
+                                               ;; this is somewhat vacuous
+                                               ;; (not (string-match-pure?
+                                               ;;       "[A-Z][a-zA-Z]*"
+                                               ;;       path))
+                                               ))))
+                                (directory-files dir
+                                                 t
+                                                 directory-files-no-dot-files-regexp))))))
                   (raw-name (strip-string-prefix (strip-trailing-slash
                                                   (expand-file-name root))
                                                  (file-name-sans-extension

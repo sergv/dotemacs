@@ -145,18 +145,6 @@ of random numbers from RANDOM-GEN."
   "Connect paths with standard delimiter"
   (mapconcat #'strip-trailing-slash args "/"))
 
-(defalias 'paths-concat 'path-concat)
-
-
-
-(defun* get-directory-contents (dir &key (full t))
-  (remove-if (lambda (x)
-               (let ((nondir (file-name-nondirectory x)))
-                 (and (<= (length nondir) 2)
-                      (or (string= nondir ".")
-                          (string= nondir "..")))))
-             (directory-files dir full)))
-
 (defun version-control-directory? (filepath)
   "Test whether FILEPATH contains version control directory as its subpart"
   (string-match-pure? (concat "\\(?:"
@@ -200,7 +188,7 @@ All predicates are called with full absolute paths."
                       (file-directory-p path))
                  (reduce (lambda (acc p)
                            (funcall collect-rec p acc))
-                         (get-directory-contents path :full t)
+                         (directory-files dir t directory-files-no-dot-files-regexp)
                          :initial-value (if (funcall dirp path)
                                           (cons path accum)
                                           accum)))
