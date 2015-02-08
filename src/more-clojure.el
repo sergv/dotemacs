@@ -8,16 +8,14 @@
 
 (eval-when-compile (require 'cl-lib))
 
-
-(defun first-safe (x)
+(defsubst first-safe (x)
   (car-safe x))
 
-(defun rest-safe (x)
+(defsubst rest-safe (x)
   (cdr-safe x))
 
-(defun filter (pred seq &rest args)
+(defsubst filter (pred seq &rest args)
   (apply #'remove-if-not pred seq args))
-
 
 (defmacro more-clojure/comp-impl (functions
                                   fallback-function
@@ -106,7 +104,6 @@ optimize away common use cases."
   `(more-clojure/comp-impl ,(cons f funcs)
                            more-clojure/comp*
                            t))
-
 
 (defalias 'partial #'apply-partially)
 

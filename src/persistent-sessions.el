@@ -17,19 +17,23 @@
       revive:save-variables-mode-local-private
       '((c++-mode c-indentation-style c-basic-offset)))
 
-(defun make-session-entry (file-name point variables major-mode)
-  (list file-name point variables major-mode))
-(defun session-entry/file-name (entry)
+(defsubst make-session-entry (buf-name point variables major-mode other-data)
+  (list buf-name point variables major-mode other-data))
+(defsubst session-entry/buffer-name (entry)
+  "Extract buffer name from ENTRY. For buffers with  files this is absolute file
+name, for temporary buffers - just the buffer name."
   (first-safe entry))
-(defun session-entry/point (entry)
+(defsubst session-entry/point (entry)
   (first-safe (rest-safe entry)))
-(defun session-entry/variables (entry)
+(defsubst session-entry/variables (entry)
   (first-safe (rest-safe (rest-safe entry))))
 ;; Major mode is remembered because there're cases when emacs infers wrong
 ;; mode for otherwise normal buffer. Also modes may be changed by hand, so
 ;; it is preserved for every buffer.
-(defun session-entry/major-mode (entry)
+(defsubst session-entry/major-mode (entry)
   (first-safe (rest-safe (rest-safe (rest-safe entry)))))
+(defsubst session-entry/other-data (entry)
+  (first-safe (rest-safe (rest-safe (rest-safe (rest-safe entry))))))
 
 
 (defparameter *sessions-buffer-variables*
@@ -191,8 +195,26 @@ entries."
                       (abbreviate-file-name (buffer-file-name buf))
                       (point)
                       (sessions/get-buffer-variables buf)
-                      major-mode)))
+                      major-mode
+                      nil)))
                  (filter (comp #'not #'null? #'buffer-file-name)
+                         buffers)))
+           (temporary-buffer-data
+            (map (lambda (buf)
+                   (with-current-buffer buf
+                     (make-session-entry
+                      (buffer-name buf)
+                      (point)
+                      (sessions/get-buffer-variables buf)
+                      major-mode
+                      (buffer-substring-no-properties (point-min) (point-max)))))
+                 (filter (lambda (buf)
+                           (with-current-buffer buf
+                             (and (null? (buffer-file-name buf))
+                                  (not (assq major-mode
+                                             sessions/special-modes))
+                                  (not (string-match-pure? "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
+                                                           (buffer-name buf))))))
                          buffers)))
            (special-buffer-data
             (remq nil
@@ -211,6 +233,7 @@ entries."
       (insert "(sessions/load-from-data\n")
       (insert "  '(\n")
       (dolist (x (list (list 'buffers buffer-data)
+                       (list 'temporary-buffers temporary-buffer-data)
                        (list 'special-buffers special-buffer-data)
                        (list 'frames frame-data)
                        (list 'global-variables (sessions/get-global-variables))))
@@ -234,24 +257,38 @@ entries."
       (autoload-do-load func))
     (funcall (symbol-function sym))))
 
-(defun sessions/load-from-data (data)
+(defun sessions/load-from-data (session-entries)
   "Load session from DATA."
-  (let ((session-entries data))
+  (let ((setup-buffer
+         (lambda (point mode vars)
+           (setf mode (or mode default-major-mode))
+           (goto-char point)
+           (unless (eq? major-mode mode)
+             (sessions/call-symbol-function mode))
+           (sessions/restore-buffer-variables (current-buffer) vars))))
     (awhen (assq 'buffers session-entries)
       (mapc (lambda (entry)
-              (if (file-exists? (session-entry/file-name entry))
+              (if (file-exists? (session-entry/buffer-name entry))
                 (with-current-buffer (find-file-noselect
-                                      (session-entry/file-name entry))
-                  (goto-char (session-entry/point entry))
-                  (aif (session-entry/major-mode entry)
-                    (unless (eq? major-mode it)
-                      (sessions/call-symbol-function it))
-                    (message "warning: session buffer entry without major mode: %s"
-                             entry))
-                  (sessions/restore-buffer-variables (current-buffer)
-                                                     (session-entry/variables entry)))
+                                      (session-entry/buffer-name entry))
+                  (funcall setup-buffer
+                           (session-entry/point entry)
+                           (session-entry/major-mode entry)
+                           (session-entry/variables entry)))
                 (message "warning: file %s does not exist!"
-                         (session-entry/file-name entry))))
+                         (session-entry/buffer-name entry))))
+            (cadr it)))
+    (awhen (assq 'temporary-buffers session-entries)
+      (mapc (lambda (entry)
+              (let ((buf
+                     (get-buffer-create
+                      (session-entry/buffer-name entry))))
+                (with-current-buffer buf
+                  (insert (session-entry/other-data entry))
+                  (funcall setup-buffer
+                           (session-entry/point entry)
+                           (session-entry/major-mode entry)
+                           (session-entry/variables entry)))))
             (cadr it)))
     (aif (assq 'special-buffers session-entries)
       (map (lambda (saved-info)
