@@ -204,11 +204,7 @@ like \"d w\".")
   ("g r"      rgrep-region)
   ("g s"      vim:replace-selected)
   ("'"        sp--self-insert-command)
-  ("\""       sp--self-insert-command)
-  ("["        sp--self-insert-command)
-  ("]"        sp--self-insert-command)
-  ("{"        sp--self-insert-command)
-  ("}"        sp--self-insert-command))
+  ("\""       sp--self-insert-command))
 
 ;;; insert mode keybindings
 
