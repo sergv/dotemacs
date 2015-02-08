@@ -62,6 +62,7 @@
   ("C-SPC"    nil)
   ("M-SPC"    nil)
   ("M-."      nil)
+  ("C-/"      nil)
   ("M-/"      nil)
   ("M-f"      nil)
   ("M-m"      nil)
@@ -87,6 +88,7 @@
   '(progn
      (def-keys-for-map help-mode-map
        +vi-keys+
+       +vi-search-keys+
        +vim-word-motion-keys+
        +vim-special-keys+
        ("SPC"      help-follow)
@@ -94,7 +96,9 @@
        ("<up>"     help-go-back)
        ("<down>"   help-go-forward)
        ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
-       ("C-,"      pop-tag-mark))))
+       ("C-,"      pop-tag-mark)
+       ("v"        set-mark-command)
+       ("y"        copy-region-as-kill))))
 
 ;; view-mode
 (eval-after-load "view"
