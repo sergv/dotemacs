@@ -17,20 +17,6 @@
      (eval ,x)
      ,x))
 
-
-(defmacro haskell/make-query-to-inferior (query-name query-func &optional use-prefix-arg)
-  `(defun ,query-name ,(when use-prefix-arg '(&optional x))
-     ,(concat "Perform `"
-              (symbol-name query-func)
-              "' with current haskell identifier at point.")
-     (interactive ,(when use-prefix-arg '(list current-prefix-arg)))
-     (let ((sym (aif (get-region-string-no-properties)
-                  (trim-whitespace it)
-                  (haskell-ident-at-point))))
-       (when (> (length sym) 0)
-         ,(append `(,query-func sym)
-                  (when use-prefix-arg '(x)))))))
-
 (defmacro rxx (definitions &rest main-expr)
   "Return `rx' invokation of main-expr that has symbols defined in
 DEFINITIONS substituted by definition body. DEFINITIONS is list
@@ -46,7 +32,6 @@ body of any futher definition."
                  definitions
                  :initial-value main-expr
                  :from-end t)))
-
 
 (defmacro* vimmize-motion (func
                            &key
@@ -520,7 +505,6 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
              (goto-char (,start-position v1))
              (funcall ,(funcall make-func-call indent-after-func)))))))
 
-
 (defmacro* define-repeated-function (orig-func
                                      &key
                                      (prefix "-n")
@@ -534,8 +518,6 @@ NAME-VALUE-DELIMITER string to be inserted between variable name and it's value.
      (setf count (or count ,default-count))
      (dotimes (i count)
        (funcall #',orig-func))))
-
-
 
 (defmacro* define-switch-to-interpreter (name
                                          (&rest buffer-names)
@@ -613,8 +595,6 @@ of code may be called more than once."
                                           buffer-names
                                           ", ")))))))))
 
-
-
 (defmacro* make-align-function (func
                                 align-str
                                 &key
@@ -644,7 +624,6 @@ of code may be called more than once."
                          1
                          ,repeat))))))
 
-
 (defmacro save-current-line-column (&rest body)
   "Save current line and column, execute BODY and go to saved line and column."
   (let ((line-var (gensym "line"))
@@ -655,7 +634,6 @@ of code may be called more than once."
            (progn ,@body)
          (goto-line1 ,line-var)
          (move-to-column ,column-var)))))
-
 
 (defmacro for-buffer-with-file (filename &rest body)
   "Execute BODY in buffer with contents of FILENAME. If FILENAME is already
@@ -683,263 +661,6 @@ return nil otherwise."
     `(when-let (,res-var (find-first-matching ,pred ,items))
        (multiple-value-bind (,item-var ,pred-value-var) ,res-var
          ,@body))))
-
-
-;; this function would not define make-NAME if :consturctor argument was supplied
-(defmacro defstruct* (struct &rest descs)
-  "Define a struct type.
-This macro defines a new data type called NAME that stores data
-in SLOTs.  It defines a `make-NAME' constructor, a `copy-NAME'
-copier, a `NAME-p' predicate, and slot accessors named `NAME-SLOT'.
-You can use the accessors to set the corresponding slots, via `setf'.
-
-NAME may instead take the form (NAME OPTIONS...), where each
-OPTION is either a single keyword or (KEYWORD VALUE).
-See Info node `(cl)Structures' for a list of valid keywords.
-
-Each SLOT may instead take the form (SLOT SLOT-OPTS...), where
-SLOT-OPTS are keyword-value pairs for that slot.  Currently, only
-one keyword is supported, `:read-only'.  If this has a non-nil
-value, that slot cannot be set via `setf'.
-
-\(fn NAME SLOTS...)"
-  (let* ((name (if (consp struct) (car struct) struct))
-         (opts (cdr-safe struct))
-         (slots nil)
-         (defaults nil)
-         (conc-name (concat (symbol-name name) "-"))
-         (constructor (intern (format "make-%s" name)))
-         (constrs nil)
-         (copier (intern (format "copy-%s" name)))
-         (predicate (intern (format "%s-p" name)))
-         (print-func nil) (print-auto nil)
-         (safety (if (cl-compiling-file) cl-optimize-safety 3))
-         (include nil)
-         (tag (intern (format "cl-struct-%s" name)))
-         (tag-symbol (intern (format "cl-struct-%s-tags" name)))
-         (include-descs nil)
-         (side-eff nil)
-         (type nil)
-         (named nil)
-         (forms nil)
-         pred-form pred-check)
-    (if (stringp (car descs))
-      (push (list 'put (list 'quote name) '(quote structure-documentation)
-                  (pop descs)) forms))
-    (setq descs (cons '(cl-tag-slot)
-                      (map (function (lambda (x) (if (consp x) x (list x))))
-                           descs)))
-    (while opts
-      (let ((opt (if (consp (car opts)) (caar opts) (car opts)))
-            (args (cdr-safe (pop opts))))
-        (cond ((eq opt :conc-name)
-               (if args
-                 (setq conc-name (if (car args)
-                                   (symbol-name (car args)) ""))))
-              ((eq opt :constructor)
-               (if (cdr args)
-                 (progn
-                   (setq constructor nil)
-                   (push args constrs)
-                   ;; If this defines a constructor of the same name as
-                   ;; the default one, don't define the default.
-                   ;; (if (eq (car args) constructor)
-                   ;;   (setq constructor nil))
-                   ;; (push args constrs)
-                   )
-                 (if args (setq constructor (car args)))))
-              ((eq opt :copier)
-               (if args (setq copier (car args))))
-              ((eq opt :predicate)
-               (if args (setq predicate (car args))))
-              ((eq opt :include)
-               (setq include (car args)
-                     include-descs (map (function
-                                         (lambda (x)
-                                           (if (consp x) x (list x))))
-                                        (cdr args))))
-              ((eq opt :print-function)
-               (setq print-func (car args)))
-              ((eq opt :type)
-               (setq type (car args)))
-              ((eq opt :named)
-               (setq named t))
-              ((eq opt :initial-offset)
-               (setq descs (nconc (make-list (car args) '(cl-skip-slot))
-                                  descs)))
-              (t
-               (error "Slot option %s unrecognized" opt)))))
-    (if print-func
-      (setq print-func (list 'progn
-                             (list 'funcall (list 'function print-func)
-                                   'cl-x 'cl-s 'cl-n) t))
-      (or type (and include (not (get include 'cl-struct-print)))
-          (setq print-auto t
-                print-func (and (or (not (or include type)) (null print-func))
-                                (list 'progn
-                                      (list 'princ (format "#S(%s" name)
-                                            'cl-s))))))
-    (if include
-      (let ((inc-type (get include 'cl-struct-type))
-            (old-descs (get include 'cl-struct-slots)))
-        (or inc-type (error "%s is not a struct name" include))
-        (and type (not (eq (car inc-type) type))
-             (error ":type disagrees with :include for %s" name))
-        (while include-descs
-          (setcar (memq (or (assq (caar include-descs) old-descs)
-                            (error "No slot %s in included struct %s"
-                                   (caar include-descs) include))
-                        old-descs)
-                  (pop include-descs)))
-        (setq descs (append old-descs (delq (assq 'cl-tag-slot descs) descs))
-              type (car inc-type)
-              named (assq 'cl-tag-slot descs))
-        (if (cadr inc-type) (setq tag name named t))
-        (let ((incl include))
-          (while incl
-            (push (list 'pushnew (list 'quote tag)
-                        (intern (format "cl-struct-%s-tags" incl)))
-                  forms)
-            (setq incl (get incl 'cl-struct-include)))))
-      (if type
-        (progn
-          (or (memq type '(vector list))
-              (error "Invalid :type specifier: %s" type))
-          (if named (setq tag name)))
-        (setq type 'vector named 'true)))
-    (or named (setq descs (delq (assq 'cl-tag-slot descs) descs)))
-    (push (list 'defvar tag-symbol) forms)
-    (setq pred-form (and named
-                         (let ((pos (- (length descs)
-                                       (length (memq (assq 'cl-tag-slot descs)
-                                                     descs)))))
-                           (if (eq type 'vector)
-                             (list 'and '(vectorp cl-x)
-                                   (list '>= '(length cl-x) (length descs))
-                                   (list 'memq (list 'aref 'cl-x pos)
-                                         tag-symbol))
-                             (if (= pos 0)
-                               (list 'memq '(car-safe cl-x) tag-symbol)
-                               (list 'and '(consp cl-x)
-                                     (list 'memq (list 'nth pos 'cl-x)
-                                           tag-symbol))))))
-          pred-check (and pred-form (> safety 0)
-                          (if (and (eq (caadr pred-form) 'vectorp)
-                                   (= safety 1))
-                            (cons 'and (cdddr pred-form)) pred-form)))
-    (let ((pos 0) (descp descs))
-      (while descp
-        (let* ((desc (pop descp))
-               (slot (car desc)))
-          (if (memq slot '(cl-tag-slot cl-skip-slot))
-            (progn
-              (push nil slots)
-              (push (and (eq slot 'cl-tag-slot) (list 'quote tag))
-                    defaults))
-            (if (assq slot descp)
-              (error "Duplicate slots named %s in %s" slot name))
-            (let ((accessor (intern (format "%s%s" conc-name slot))))
-              (push slot slots)
-              (push (nth 1 desc) defaults)
-              (push (list*
-                     'defsubst* accessor '(cl-x)
-                     (append
-                      (and pred-check
-                           (list (list 'or pred-check
-                                       `(error "%s accessing a non-%s"
-                                               ',accessor ',name))))
-                      (list (if (eq type 'vector) (list 'aref 'cl-x pos)
-                                (if (= pos 0) '(car cl-x)
-                                    (list 'nth pos 'cl-x)))))) forms)
-              (push (cons accessor t) side-eff)
-              (push (list 'define-setf-method accessor '(cl-x)
-                          (if (cadr (memq :read-only (cddr desc)))
-                            (list 'progn '(ignore cl-x)
-                                  `(error "%s is a read-only slot"
-                                          ',accessor))
-                            ;; If cl is loaded only for compilation,
-                            ;; the call to cl-struct-setf-expander would
-                            ;; cause a warning because it may not be
-                            ;; defined at run time.  Suppress that warning.
-                            (list 'with-no-warnings
-                                  (list 'cl-struct-setf-expander 'cl-x
-                                        (list 'quote name) (list 'quote accessor)
-                                        (and pred-check (list 'quote pred-check))
-                                        pos))))
-                    forms)
-              (if print-auto
-                (nconc print-func
-                       (list (list 'princ (format " %s" slot) 'cl-s)
-                             (list 'prin1 (list accessor 'cl-x) 'cl-s)))))))
-        (setq pos (1+ pos))))
-    (setq slots (nreverse slots)
-          defaults (nreverse defaults))
-    (and predicate pred-form
-         (progn (push (list 'defsubst* predicate '(cl-x)
-                            (if (eq (car pred-form) 'and)
-                              (append pred-form '(t))
-                              (list 'and pred-form t))) forms)
-                (push (cons predicate 'error-free) side-eff)))
-    (and copier
-         (progn (push (list 'defun copier '(x) '(copy-sequence x)) forms)
-                (push (cons copier t) side-eff)))
-    (if constructor
-      (push (list constructor
-                  (cons '&key (delq nil (copy-sequence slots))))
-            constrs))
-    (while constrs
-      (let* ((name (caar constrs))
-             (args (cadr (pop constrs)))
-             (anames (cl-arglist-args args))
-             (make (mapcar* (function (lambda (s d) (if (memq s anames) s d)))
-                            slots defaults)))
-        (push (list 'defsubst* name
-                    (list* '&cl-defs (list 'quote (cons nil descs)) args)
-                    (cons type make)) forms)
-        (if (cl-safe-expr-p (cons 'progn (map 'second descs)))
-          (push (cons name t) side-eff))))
-    (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
-    (if print-func
-      (push `(push
-              ;; The auto-generated function does not pay attention to
-              ;; the depth argument cl-n.
-              (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
-                (and ,pred-form ,print-func))
-              custom-print-functions)
-            forms))
-    (push (list 'setq tag-symbol (list 'list (list 'quote tag))) forms)
-    (push (list* 'eval-when '(compile load eval)
-                 (list 'put (list 'quote name) '(quote cl-struct-slots)
-                       (list 'quote descs))
-                 (list 'put (list 'quote name) '(quote cl-struct-type)
-                       (list 'quote (list type (eq named t))))
-                 (list 'put (list 'quote name) '(quote cl-struct-include)
-                       (list 'quote include))
-                 (list 'put (list 'quote name) '(quote cl-struct-print)
-                       print-auto)
-                 (map (function (lambda (x)
-                                  (list 'put (list 'quote (car x))
-                                        '(quote side-effect-free)
-                                        (list 'quote (cdr x)))))
-                      side-eff))
-          forms)
-    (cons 'progn (nreverse (cons (list 'quote name) forms)))))
-
-(defmacro bind (bindings &rest body)
-  (cond
-    ((null bindings)
-     `(progn ,@body))
-    ((listp (first (car bindings)))
-     `(multiple-value-bind ,(first (car bindings))
-          ,(second (car bindings))
-        (bind ,(cdr bindings) ,@body)))
-    (t
-     (multiple-value-bind (symbol-bindings other-bindings)
-         (split-with-pred (lambda (b) (symbolp (car b)))
-                          bindings)
-       `(cl:let ,symbol-bindings
-                (bind ,other-bindings ,@body))))))
-
 
 ;;; with-* macro
 

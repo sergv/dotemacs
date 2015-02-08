@@ -9,12 +9,6 @@
 
 (require 'macro-util)
 
-;; (defmacro util:update-alist-entry (alist key entry)
-  ;; `(setq ,alist
-         ;; (cons ,entry
-               ;; (delq (assoc ,key ,alist)
-                     ;; ,alist))))
-
 (defmacro make-synchronizing-advice (func
                                      adv-name
                                      lock-var
@@ -24,73 +18,35 @@
                                      release-action)
   "Define advice ADV-NAME around FUNC that will surround calls to FUNC
 with locking over LOCK-VAR"
-  (let ((acquire (gensym)))
-
+  (let ((acquired-var (gensym "acquired?")))
     `(defadvice ,func (around ,adv-name activate compile)
-       (let ((,acquire (and (not ,lock-var)
-                            ,acquire-pred)))
-         (when ,acquire
+       (let ((,acquired-var (and (not ,lock-var)
+                                 ,acquire-pred)))
+         (when ,acquired-var
            (setq ,lock-var t)
            ,acquire-action)
 
          ad-do-it
 
-         (when (and ,acquire
+         (when (and ,acquired-var
                     ,release-pred)
            (setq ,lock-var nil)
            ,release-action)))))
 
-(defmacro make-light-synchronizing-advice (func adv-name lock-var acquire-pred release-action)
-  `(make-synchronizing-advice
-    ,func
-    ,adv-name
-    ,lock-var
-    ,acquire-pred
-    nil
-    t
-    ,release-action))
-
-;;;
-
-(defun util:reindent-region (start end)
-  "Custom function that reindents region linewise,
-differs from indent-region with silent behavior( i.e. no messages)
-and possibly more rude behavior"
-  (save-excursion
-    (let ((m (set-marker (make-marker) end)))
-      (indent-for-tab-command)
-      (goto-char start)
-      (while (< (point) (marker-position m))
-        (beginning-of-line)
-        (indent-for-tab-command)
-        (forward-line 1)))))
-
-(defparameter *util:lisp:indent-advice-lock* nil
-  "This variable becomes t whenever there's one of *-indent-advice's
-\(for `vim:cmd-paste-behind' `vim:cmd-paste-before' `vim:cmd-paste-pop'
-     and `vim:cmd-paste-pop-next'\) operates on current buffer")
-
-(defmacro defadvice:indent-after-yank (func &optional modes)
-  "Define indent-after-yank advice around FUNC that will
-reindent text after yanking in major modes from list MODES.
-Do nothing if MODES is empty."
-  (let ((adv-name (util/make-joined-name func "-indent-advice"))
-        (mode-list (util:flatten
-                    (util/eval-if-symbol modes))))
-    (when (not (null? mode-list))
-      `(make-light-synchronizing-advice
+(defmacro make-light-synchronizing-advice (func adv-name acquire-pred release-action)
+  (let ((lock-var (gensym "lock-var")))
+    `(progn
+       (defvar ,lock-var nil ,(concat "Locking variable for " (symbol->string adv-name)))
+       (make-synchronizing-advice
         ,func
         ,adv-name
-        *util:lisp:indent-advice-lock*
-        (memq major-mode ',mode-list)
-        (util:reindent-region (vim:paste-info-begin vim:last-paste)
-                              (vim:paste-info-end   vim:last-paste))))))
+        ,lock-var
+        ,acquire-pred
+        nil
+        t
+        ,release-action))))
 
 ;;;
-
-(defparameter *util:expand-on-search-advice-lock* nil
-  "This variable becomes t whenever one of advices defined
-via `defadvice:expand-on-search' becomes active")
 
 (defmacro defadvice:expand-on-search (func expand-func &optional modes)
   "Define expand-on-search advice that will call EXPAND-FUNC after FUNC
@@ -104,7 +60,6 @@ will be possible."
       `(make-light-synchronizing-advice
         ,func
         ,adv-name
-        *util:expand-on-search-advice-lock*
         (memq major-mode ',mode-list)
         ,expand-func))))
 
@@ -143,24 +98,6 @@ Intended to be used with comment-util-mode."
              (insert (concat (match-string 1 prev-line)
                              (make-string *comment-util-space-count*
                                           ?\s)))))))))
-
-;;;
-
-(defmacro defadvice:remember-position-on-query (func)
-  "Make vim-like remembering position when query is made
-to find Haskell function."
-  `(defadvice ,func (around
-                     ,(util/make-joined-name func
-                                             "-remember-prev-pos")
-                     activate
-                     compile)
-     (let ((buf (current-buffer))
-           (pos (point)))
-       ad-do-it
-       (when (eq buf
-                 (current-buffer))
-         ;; save into ` register
-         (vim:save-position pos)))))
 
 (provide 'advices-util)
 
