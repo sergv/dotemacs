@@ -57,7 +57,7 @@
      (icicles-util/bind-minibuffer-keys icicle-read-expression-map :sexp-keys t)
 
      (def-keys-for-map icicle-read-expression-map
-       ("M-/" lisp-complete-symbol))))
+       ("C-/" lisp-complete-symbol))))
 
 (provide 'icicles-autoload)
 

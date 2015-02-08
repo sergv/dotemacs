@@ -101,6 +101,7 @@
     ("- m"   expand-last-macro)
     ("- M"   expand-last-macro-all)
 
+    ("M-:"   nil)
     ("C-:"   icicle-pp-eval-expression)
     ("C-."   elisp-slime-nav-find-elisp-thing-at-point)
     ("C-,"   pop-tag-mark)
