@@ -33,20 +33,19 @@ with locking over LOCK-VAR"
            (setq ,lock-var nil)
            ,release-action)))))
 
-(defmacro make-light-synchronizing-advice (func adv-name acquire-pred release-action)
-  (let ((lock-var (gensym "lock-var")))
-    `(progn
-       (defvar ,lock-var nil ,(concat "Locking variable for " (symbol->string adv-name)))
-       (make-synchronizing-advice
-        ,func
-        ,adv-name
-        ,lock-var
-        ,acquire-pred
-        nil
-        t
-        ,release-action))))
+(defmacro make-light-synchronizing-advice (func adv-name lock-var acquire-pred release-action)
+  `(make-synchronizing-advice
+    ,func
+    ,adv-name
+    ,lock-var
+    ,acquire-pred
+    nil
+    t
+    ,release-action))
 
 ;;;
+
+(defvar defadvice:expand-on-search-lock nil)
 
 (defmacro defadvice:expand-on-search (func expand-func &optional modes)
   "Define expand-on-search advice that will call EXPAND-FUNC after FUNC
@@ -60,6 +59,7 @@ will be possible."
       `(make-light-synchronizing-advice
         ,func
         ,adv-name
+        defadvice:expand-on-search-lock
         (memq major-mode ',mode-list)
         ,expand-func))))
 
