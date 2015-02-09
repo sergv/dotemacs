@@ -150,6 +150,7 @@ error location - list of (filename line column)."
        ("M-p"      nil)
        ("<escape>" remove-buffer)
        ("q"        remove-buffer)
+       ("C-c C-c"  kill-compilation)
 
        ("C-v"      set-mark-command)
        ("C-y"      copy-region-as-kill)
