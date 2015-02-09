@@ -188,7 +188,7 @@ All predicates are called with full absolute paths."
                       (file-directory-p path))
                  (reduce (lambda (acc p)
                            (funcall collect-rec p acc))
-                         (directory-files dir t directory-files-no-dot-files-regexp)
+                         (directory-files path t directory-files-no-dot-files-regexp)
                          :initial-value (if (funcall dirp path)
                                           (cons path accum)
                                           accum)))
