@@ -375,7 +375,7 @@ Basically swap current point with previous one."
   "Run `magit-blame-mode'."
   (magit-blame-mode 'toggle))
 
-(vim:emap "gblame" 'vim:git-blame)
+(vim:emap "blame" 'vim:git-blame)
 
 (vim:defcmd vim:git-add (nonrepeatable)
   "Run git add on current file."

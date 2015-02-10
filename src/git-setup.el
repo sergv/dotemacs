@@ -349,6 +349,7 @@ all otherwise."
     ("SPC"      git-rebase-show-commit)
     ("<return>" with-editor-finish)
 
+    ("n"        ignore)
     ("s"        git-rebase-squash)
     ("p"        git-rebase-pick)
     ("k"        git-rebase-undo)
