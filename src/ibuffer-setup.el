@@ -270,8 +270,6 @@ a prefix argument reverses the meaning of that variable."
        ("T"        ibuffer-toggle-marks)
        ("K"        ibuffer-do-delete)
 
-       ("G"        ibuffer-switch-to-saved-filter-groups)
-
        ("C-z"      nil)
        ("v"        nil)
        ("/"        ibuffer-jump-to-buffer)
