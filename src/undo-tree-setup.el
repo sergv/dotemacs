@@ -22,28 +22,24 @@
 
 (eval-after-load "undo-tree"
   '(progn
-     (def-keys-for-map undo-tree-map
-       ("C-/" nil)
-       ("C-_" nil)
-       ("C-?" nil)
-       ("M-_" nil))
-     ;;(def-keys-for-map undo-tree-visualizer-mode-map +vi-keys+)
+     ;; reset it since it's useless
+     (setf undo-tree-map (make-sparse-keymap))
      (def-keys-for-map undo-tree-visualizer-mode-map
-       ("h"        undo-tree-visualize-redo)
-       ("t"        undo-tree-visualize-undo)
-       ("d"        undo-tree-visualize-switch-branch-left)
-       ("n"        undo-tree-visualize-switch-branch-right)
-       ("SPC"      undo-tree-visualizer-toggle-timestamps)
-       ("a"        undo-tree-visualizer-toggle-timestamps)
-       ("<left>"   undo-tree-visualizer-scroll-left)
-       ("<right>"  undo-tree-visualizer-scroll-right)
-       ("<up>"     scroll-up)
-       ("<down>"   scroll-down)
-
-       ("q"        undo-tree-visualizer-quit)
-       ("<escape>" undo-tree-visualizer-quit)
-       ("<return>" undo-tree-visualizer-quit)
-       ("C-u"      undo-tree-visualizer-quit))))
+       +vim-special-keys+
+       ("h"         undo-tree-visualize-redo)
+       ("t"         undo-tree-visualize-undo)
+       ("d"         undo-tree-visualize-switch-branch-left)
+       ("n"         undo-tree-visualize-switch-branch-right)
+       ("SPC"       undo-tree-visualizer-toggle-timestamps)
+       ("<left>"    prev-w)
+       ("<right>"   next-w)
+       ("S-<left>"  swap-buffers-backward)
+       ("S-<right>" swap-buffers-forward)
+       ("<up>"      scroll-up)
+       ("<down>"    scroll-down)
+       ("q"         undo-tree-visualizer-quit)
+       ("<escape>"  undo-tree-visualizer-quit)
+       ("<return>"  undo-tree-visualizer-quit))))
 
 
 (provide 'undo-tree-setup)
