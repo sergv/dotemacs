@@ -16,7 +16,9 @@
       yas-snippet-dirs (concat +prog-data-path+ "/snippets")
       yas-prompt-functions '(yas-dropdown-prompt yas-completing-prompt)
       yas-skip-and-clear-key "DEL"
-      yas-key-syntaxes (list "^ >" "w_." "w_" "w"))
+      yas-key-syntaxes (list "^ >" "w_." "w_" "w")
+      ;; don't reactivate fields on undo/redo
+      yas-snippet-revival nil)
 
 (defun yas--parse-templates (&optional file)
   "Parse the templates in the current buffer. For every mention of
