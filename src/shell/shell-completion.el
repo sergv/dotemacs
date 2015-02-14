@@ -1384,6 +1384,19 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
          (fetch-flags '("--max-backjumps"
                         "--reorder-goals"
                         "--shadow-installed-packages"))
+         (program-options-flags
+          (concatMap (lambda (p)
+                       `((,(concat "--" p)
+                          (pcomplete-here (pcmpl-entries-ignoring-common)))
+                         ,(concat "--" p "-option")
+                         ,(concat "--" p "-options")))
+                     programs))
+         (run-flags `(,@help-verbosity-flags
+                      ,@builddir-flags
+                      "-j"
+                      "--jobs"
+                      "--only"
+                      ,@program-options-flags))
          (configure-flags `(,@help-verbosity-flags
                             ,@builddir-flags
                             "-g"
@@ -1421,9 +1434,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "--enable-executable-dynamic"
                             "--disable-executable-dynamic"
                             "--enable-executable-profiling"
+                            "--disable-executable-profiling"
                             ,@(when (cabal-install-version-at-least? 1 22 0 0)
-                                '("--enable-profiling"))
-                            "--disable-profiling"
+                                '("--enable-profiling"
+                                  "--disable-profiling"))
                             "-O"
                             "--enable-optimization"
                             "--enable-optimization=0"
@@ -1451,12 +1465,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "--disable-library-coverage"
                             "--enable-benchmarks"
                             "--disable-benchmarks"
-                            ,@(concatMap (lambda (p)
-                                           `((,(concat "--" p)
-                                              (pcomplete-here (pcmpl-entries-ignoring-common)))
-                                             ,(concat "--" p "-option")
-                                             ,(concat "--" p "-options")))
-                                         programs)
+                            ,@program-options-flags
                             "--cabal-lib-version"
                             "--constraint"
                             "--preference"
@@ -1531,7 +1540,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("sdist")
       ("upload")
       ("report")
-      ("run")
+      ("run"
+       (opts
+        (flags
+         ,@run-flags)))
       ("init"
        (opts
         (flags "-h"
@@ -1589,13 +1601,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-j"
                "--jobs"
                "--only"
-               ,@(concatMap (lambda (p)
-                              `((,(concat "--with-" p)
-                                 (pcomplete-here (pcmpl-entries-ignoring-common)))
-                                ,(concat "--" p "-option")
-                                ,(concat "--" p "-options")))
-                            programs))))
-      ("repl")
+               ,@program-options-flags)))
+      ("repl"
+       (opts
+        (flags
+         ,@run-flags)))
       ("sandbox"
        (or ("init")
            ("delete")
@@ -1606,7 +1616,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
            ("list-sources")))
       ("copy")
       ("haddock")
-      ("clean")
+      ("clean"
+       (opts
+        (flags
+         ,@help-verbosity-flags
+         ,@builddir-flags
+         "-s"
+         "--save-configure")))
       ("hscolour")
       ("register")
       ("test"
