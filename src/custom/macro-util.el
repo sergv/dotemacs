@@ -182,42 +182,56 @@ NB does not expect to cache values of ARGS that are nil."
 jumps on REGEX with wraparound in buffer. INIT form will be executed
 before performing any jumps."
   (declare (indent 2))
-  (symbol-macrolet ((forward-search `(re-search-forward
-                                      ,regex
-                                      nil
-                                      t))
-                    (backward-search `(re-search-backward
-                                       ,regex
-                                       nil
-                                       t)))
+  (let ((forward-search `(re-search-forward
+                          ,regex
+                          nil
+                          t))
+        (backward-search `(re-search-backward
+                           ,regex
+                           nil
+                           t))
+        (found-var (string->symbol "found?"))
+        (original-pos-var (string->symbol "pt")))
     `(progn
        (defun ,forward-name ()
          "Jump forward between regexp matches with wraparound."
          (interactive)
          ,init
-         (save-match-data
-           ;; this rather complicated check checks for case of first prompt in
-           ;; the buffer
-           (when (or (= 1 (forward-line 1))
-                     (eobp)
-                     (beginning-of-line)
-                     (not ,forward-search))
-             (goto-char (point-min))
-             ,forward-search)
-           (goto-char (match-beginning 0))))
+         (let ((,found-var nil)
+               (,original-pos-var (point)))
+           (save-match-data
+             ;; this rather complicated check checks for case of first prompt in
+             ;; the buffer
+             (when (or (= 1 (forward-line 1))
+                       (eobp)
+                       (beginning-of-line)
+                       (not (setf ,found-var ,forward-search)))
+               (goto-char (point-min))
+               (setf ,found-var ,forward-search))
+             (if ,found-var
+               (goto-char (match-beginning 0))
+               (progn
+                 (goto-char ,original-pos-var)
+                 (next-line))))))
 
        (defun ,backward-name ()
          "Jump backward between regexp matches with wraparound."
          (interactive)
          ,init
-         (save-match-data
-           (when (or (= -1 (forward-line -1))
-                     (bobp)
-                     (end-of-line)
-                     (not ,backward-search))
-             (goto-char (point-max))
-             ,backward-search)
-           (goto-char (match-beginning 0)))))))
+         (let ((,found-var nil)
+               (,original-pos-var (point)))
+           (save-match-data
+             (when (or (= -1 (forward-line -1))
+                       (bobp)
+                       (end-of-line)
+                       (not (setf ,found-var ,backward-search)))
+               (goto-char (point-max))
+               (setf ,found-var ,backward-search))
+             (if ,found-var
+               (goto-char (match-beginning 0))
+               (progn
+                 (goto-char ,original-pos-var)
+                 (previous-line)))))))))
 
 (defmacro* define-circular-prompt-property-jumps (forward-name
                                                   backward-name
