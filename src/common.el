@@ -244,8 +244,7 @@ properties from the result."
                                           hist-m@%=!$+&^*z
                                           def
                                           inherit-input-method)))
-      (set-text-properties 0 (length result) nil result)
-      result)))
+      (substring-no-properties result))))
 
 (defun read-string-no-default (prompt
                                &optional

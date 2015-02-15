@@ -49,6 +49,8 @@
   ("C-y"      copy-region-as-kill)
   ("C-f"      read-and-insert-filename)
   ("C-S-p"    browse-kill-ring)
+  ("C-w"      backward-delete-word)
+  ("C-S-w"    backward-delete-word*)
 
   ("C-t"      nil)
   ("C-<down>" nil)
