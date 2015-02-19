@@ -94,7 +94,6 @@
        +vim-word-motion-keys+
        +vim-special-keys+
        ("SPC"      help-follow)
-       ("<escape>" remove-buffer)
        ("<up>"     help-go-back)
        ("<down>"   help-go-forward)
        ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
@@ -106,8 +105,7 @@
 (eval-after-load "view"
   '(progn
      (def-keys-for-map view-mode-map
-       +vi-keys+
-       ("<escape>" remove-buffer))))
+       +vi-keys+)))
 
 (eval-after-load "cus-edit"
   '(progn
@@ -120,7 +118,6 @@
        ("b"        vim:motion-bwd-word)
        ("e"        vim:motion-fwd-word-end)
 
-       ("<escape>" remove-buffer)
        ("<down>"   widget-forward)
        ("<up>"     widget-backward))
 
@@ -133,23 +130,16 @@
        ("b"        vim:motion-bwd-word)
        ("e"        vim:motion-fwd-word-end)
 
-       ("<escape>" remove-buffer)
        ("<down>"   widget-forward)
        ("<up>"     widget-backward))))
 
-(eval-after-load "apropos"
-  '(progn
-     (def-keys-for-map apropos-mode-map
-       ("<escape>" remove-buffer))))
-
-
 
 (def-keys-for-map occur-mode-map
-  ("<up>"     custom-occur-prev)
-  ("<down>"   custom-occur-next)
-  ("t"        custom-occur-prev)
-  ("h"        custom-occur-next)
-  ("<escape>" remove-buffer))
+  ("<up>"   custom-occur-prev)
+  ("<down>" custom-occur-next)
+  ("t"      custom-occur-prev)
+  ("h"      custom-occur-next)
+  ("q"      remove-buffer))
 
 (eval-after-load "doc-view"
   '(progn
