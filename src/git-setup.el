@@ -210,7 +210,9 @@ all otherwise."
     ("<left>"          prev-w)
     ("<right>"         next-w)
     ("S-<left>"        swap-buffers-backward)
-    ("S-<right>"       swap-buffers-forward)))
+    ("S-<right>"       swap-buffers-forward)
+    ("<home>"          prev-f)
+    ("<end>"           next-f)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
 
