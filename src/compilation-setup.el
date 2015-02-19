@@ -148,7 +148,6 @@ error location - list of (filename line column)."
        ("t"        compilation-jump-to-prev-error)
        ("h"        compilation-jump-to-next-error)
        ("M-p"      nil)
-       ("<escape>" remove-buffer)
        ("q"        remove-buffer)
        ("C-c C-c"  kill-compilation)
 
