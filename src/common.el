@@ -147,7 +147,7 @@ of random numbers from RANDOM-GEN."
 
 (defun version-control-directory? (filepath)
   "Test whether FILEPATH contains version control directory as its subpart"
-  (string-match-pure? (concat "\\(?:"
+  (string-match-pure? (concat "\\(?:/\\|^\\)\\(?:"
                               (regexp-opt
                                *version-control-directories*)
                               "\\)\\(?:/\\|$\\)")
@@ -898,12 +898,12 @@ end of END-LINE in current buffer."
 
 (defparameter *ignored-file-name-endings*
   (append
-   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" "~" ".bin" ".out" ".lbin" ".a" ".ln" ".blg" ".bbl" ".elc" ".lof" ".glo" ".idx" ".lot" ".fmt" ".tfm" ".class" ".fas" ".lib" ".mem" ".fasl" ".dxl" ".lo" ".la" ".gmo" ".mo" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dex")
+   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot" ".class" ".fasl" ".lo" ".la" ".gmo" ".mo" ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dex")
    (cond
      ((platform-os-type? 'linux)
       '(".so" ))
      ((platform-os-type? 'windows)
-      '(".dll" ".pdb" ))
+      '(".dll" ".pdb" ".lib"))
      (t
       nil)))
   "List of file name endings to generally ignore.")
@@ -915,7 +915,8 @@ end of END-LINE in current buffer."
   "List of directory names used by version-control systems.")
 
 (defparameter *ignored-directories*
-  (append *version-control-directories*)
+  (append *version-control-directories*
+          '(".cabal-sandbox"))
   "List of directory names to generally ignore.")
 
 (setf completion-ignored-extensions
