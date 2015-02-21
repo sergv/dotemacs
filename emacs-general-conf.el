@@ -167,7 +167,9 @@
 
       ;; length from the beginning of buffer for magic mode detection
       magic-mode-regexp-match-limit 1000000
-      suggest-key-bindings nil)
+      suggest-key-bindings nil
+
+      load-prefer-newer t)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
