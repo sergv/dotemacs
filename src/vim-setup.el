@@ -415,7 +415,6 @@ Basically swap current point with previous one."
   "Select previous frame."
   (prev-f (or count 1)))
 
-(vim:emap "prevf" 'vim:prev-f)
 (vim:emap "pf" 'vim:prev-f)
 
 ;; Buffer commands
@@ -443,6 +442,7 @@ Basically swap current point with previous one."
                       t)))
 
 (vim:emap "m" 'vim:multicommand)
+(vim:emap "do" 'vim:multicommand)
 
 (provide 'vim-setup)
 

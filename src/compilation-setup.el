@@ -142,6 +142,7 @@ error location - list of (filename line column)."
      (def-keys-for-map compilation-mode-map
        +vi-keys+
        +vim-special-keys+
+       +vi-search-keys+
        +vim-word-motion-keys+
        ("<up>"     compilation-jump-to-prev-error)
        ("<down>"   compilation-jump-to-next-error)
