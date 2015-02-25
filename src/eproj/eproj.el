@@ -679,42 +679,45 @@ Note: old tags file is removed before calling update command."
 (defun eproj-update-buffer-tags ()
   "Update tags only for current buffer in project that contains it."
   (interactive)
-  (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-         (buf (current-buffer))
-         (fname (expand-file-name (buffer-file-name buf)))
-         (non-fname-tag-func
-          (lambda (tag)
-            (not (string= fname
-                          (expand-file-name
-                           (eproj-tag/file tag))))))
-         (mode (eproj-symbnav/resolve-synonym-modes
-                (with-current-buffer buf
-                  major-mode))))
-    (unless (memq mode
-                  (eproj-project/languages proj))
-      (error "Project %s does not manage %s files"
-             (eproj-project/root proj)
-             mode))
-    (if-let (old-tags (cdr-safe (assoc mode (eproj-project/tags proj))))
-      (eproj-with-language-load-proc mode load-proc
-        (let ((new-tags (funcall load-proc proj (list fname))))
-          ;; filter all tags values to remove any tags
-          ;; related to current buffer
-          (maphash (lambda (symbol-str tags)
-                     (puthash symbol-str
-                              (filter non-fname-tag-func
-                                      tags)
-                              old-tags))
-                   old-tags)
-          (hash-table-merge-with!
-           (lambda (symbol-str tags-old tags-new)
-             (append tags-old
-                     tags-new))
-           old-tags
-           new-tags)))
-      (error "Project %s does not have tags for %s"
-             (eproj-project/root proj)
-             mode))))
+  (let* ((root (eproj-get-initial-project-root-for-buf (current-buffer)))
+         (proj (gethash root *eproj-projects* nil)))
+    (when (not (null? proj))
+      (let* ((proj (eproj-get-project-for-buf (current-buffer)))
+             (buf (current-buffer))
+             (fname (expand-file-name (buffer-file-name buf)))
+             (non-fname-tag-func
+              (lambda (tag)
+                (not (string= fname
+                              (expand-file-name
+                               (eproj-tag/file tag))))))
+             (mode (eproj-symbnav/resolve-synonym-modes
+                    (with-current-buffer buf
+                      major-mode))))
+        (unless (memq mode
+                      (eproj-project/languages proj))
+          (error "Project %s does not manage %s files"
+                 (eproj-project/root proj)
+                 mode))
+        (if-let (old-tags (cdr-safe (assoc mode (eproj-project/tags proj))))
+          (eproj-with-language-load-proc mode load-proc
+            (let ((new-tags (funcall load-proc proj (list fname))))
+              ;; filter all tags values to remove any tags
+              ;; related to current buffer
+              (maphash (lambda (symbol-str tags)
+                         (puthash symbol-str
+                                  (filter non-fname-tag-func
+                                          tags)
+                                  old-tags))
+                       old-tags)
+              (hash-table-merge-with!
+               (lambda (symbol-str tags-old tags-new)
+                 (append tags-old
+                         tags-new))
+               old-tags
+               new-tags)))
+          (error "Project %s does not have tags for %s"
+                 (eproj-project/root proj)
+                 mode))))))
 
 (defun eproj-get-aux-info-for-buffer-project (key)
   "Query aux info for current buffer's project for KEY."
@@ -1059,7 +1062,7 @@ containing PATH as its part."
       (kill-local-variable 'eproj/buffer-initial-project-root-cache)
       (kill-local-variable 'eproj/buffer-project-cache))))
 
-(defvar-local eproj/buffer-initial-project-root-cache nil
+(defvar eproj/buffer-initial-project-root-cache nil
   "Is set to initial project root (i.e. string) for buffer containing this
 variable or symbol 'unresolved.")
 
@@ -1073,7 +1076,7 @@ variable or symbol 'unresolved.")
    eproj/buffer-initial-project-root-cache
    #'string?))
 
-(defvar-local eproj/buffer-project-cache nil
+(defvar eproj/buffer-project-cache nil
   "Caches value computed by `eproj-get-project-for-buf'.
 
 Set to project that corresponds to buffer containing this variable or
