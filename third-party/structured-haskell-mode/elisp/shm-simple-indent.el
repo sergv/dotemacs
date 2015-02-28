@@ -29,16 +29,20 @@ column, `tab-to-tab-stop' is done instead."
   (interactive)
   (let* ((start-column (current-column))
          (invisible-from nil)           ; `nil' means infinity here
+         (indenting-where (looking-at-p "[ \t]*where\\>"))
          (indent
           (catch 'shm-simple-indent-break
             (save-excursion
               (while (progn (beginning-of-line)
                             (not (bobp)))
                 (forward-line -1)
+                ;; don't indent to the where's level
+                (when (looking-at-p "[ \t]*where\\>")
+                  (forward-line -1))
                 (if (not (looking-at-p "[ \t]*\n"))
                     (let ((this-indentation (current-indentation)))
                       (when (or (not invisible-from)
-                              (< this-indentation invisible-from))
+                                (< this-indentation invisible-from))
                         (if (> this-indentation start-column)
                             (setq invisible-from this-indentation)
                           (let ((end (line-beginning-position 2)))
@@ -54,7 +58,12 @@ column, `tab-to-tab-stop' is done instead."
                                   (save-excursion
                                     (skip-chars-backward " \t" p)
                                     (= p (point))))
-                              (forward-char shm-indent-spaces)
+                              (progn
+                                (let ((offset (if (or indenting-where
+                                                      (looking-at-p "where\\>"))
+                                                2
+                                                shm-indent-spaces)))
+                                  (forward-char offset)))
                               ;; actually move to the next indentation point
                               (progn
                                 (unless (looking-at-p "[ \t]")
