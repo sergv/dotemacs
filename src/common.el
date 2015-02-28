@@ -186,12 +186,20 @@ All predicates are called with full absolute paths."
               (cond
                 ((and (not (funcall do-not-visitp path))
                       (file-directory-p path))
-                 (reduce (lambda (acc p)
-                           (funcall collect-rec p acc))
-                         (directory-files path t directory-files-no-dot-files-regexp)
-                         :initial-value (if (funcall dirp path)
-                                          (cons path accum)
-                                          accum)))
+                 (let ((result (if (funcall dirp path)
+                                 (cons path accum)
+                                 accum)))
+                   (dolist (entry (directory-files path
+                                                   t
+                                                   directory-files-no-dot-files-regexp
+                                                   t ;; don't sort
+                                                   ))
+                     (cond
+                       ((file-directory-p entry)
+                        (setf result (funcall collect-rec entry result)))
+                       ((funcall filep entry)
+                        (push entry result))))
+                   result))
                 ((funcall filep path)
                  (cons path accum))
                 (t
