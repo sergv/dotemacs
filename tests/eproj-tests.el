@@ -21,7 +21,7 @@ under ROOT directory."
                 (partial-first #'member '(".gitignore" ".eproj-info"))
                 #'file-name-nondirectory)
           (filter (comp #'not #'file-directory?)
-                  (get-directory-contents path :full t))))
+                  (directory-files path t directory-files-no-dot-files-regexp))))
 
 (defun eproj-tests/normalize-file-list (items)
   (sort (map (comp #'strip-trailing-slash #'expand-file-name) items) #'string<))
@@ -44,13 +44,6 @@ under ROOT directory."
 
 (defconst eproj-tests/project-dir
   (concat +emacs-config-path+ "/tests/eproj-sample-projects"))
-(defconst eproj-tests/project-without-git
-  (expand-file-name (concat eproj-tests/project-dir "/project-without-git")))
-(defconst eproj-tests/project-with-git-minimal
-  (expand-file-name (concat eproj-tests/project-dir "/project-with-git")))
-(defconst eproj-tests/project-with-git-and-non-git-specified-type
-  (expand-file-name (concat eproj-tests/project-dir
-                            "/project-with-git-and-non-git-specified-type")))
 
 (defconst eproj-tests/folder-with-related-projects
   (expand-file-name (concat eproj-tests/project-dir "/related-projects")))
@@ -64,56 +57,9 @@ under ROOT directory."
   (expand-file-name (concat eproj-tests/project-dir "/project-with-c-files")))
 
 (defconst eproj-tests/project-with-eproj-file
-  (expand-file-name (concat eproj-tests/project-dir "/project-with-eproj-file")))
-
-
-(ert-deftest eproj-tests/git-repository-test1 ()
-  "Test `git-get-repository-root' for directory without git repository."
-  (let ((path eproj-tests/project-without-git))
-    (should-not (eproj-tests/paths=? path (git-get-repository-root path)))))
-
-(ert-deftest eproj-tests/git-repository-test2 ()
-  "Test `git-get-repository-root' for directory with git repository."
-  (let ((path eproj-tests/project-with-git-minimal))
-    (should (eproj-tests/paths=? path (git-get-repository-root path)))))
-
-
-(ert-deftest eproj-tests/eproj-make-project-no-git-repo ()
-  (let* ((path eproj-tests/project-without-git)
-         (proj (eproj-get-project-for-path path)))
-    (should-not (eq? 'git (eproj-project-type/name
-                           (eproj-project/type
-                            proj))))))
-
-(ert-deftest eproj-tests/eproj-make-project-minimal-project ()
-  (let* ((path eproj-tests/project-with-git-minimal)
-         (proj (eproj-get-project-for-path path)))
-    (should (not (null? proj)))
-    (should (eq 'git (eproj-project-type/name
-                                        (eproj-project/type proj))))
-    (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should (eproj-project/root= proj proj))
-    (should-not (null? (eproj-project/aux-info proj)))
-    (should (null? (eproj-project/related-projects proj)))
-    (should (null? (eproj-project/aux-files proj)))
-    (should (equal? (eproj-tests/normalize-file-list
-                     (map (lambda (f) (expand-file-name f (eproj-project/root proj)))
-                          (eproj-get-project-files proj)))
-                    (eproj-tests/normalize-file-list
-                     (map (lambda (f) (expand-file-name f path))
-                          (eproj-tests/non-special-files path)))))
-    (should (all? #'symbol? (eproj-project/languages proj)))))
-
-(ert-deftest eproj-tests/eproj-make-project-signal-incorrect-specified-project-type ()
-  (let* ((path eproj-tests/project-with-git-and-non-git-specified-type))
-    (should-error (eproj-get-project-for-path path)
-                  :type 'error)))
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-eproj-file")))
 
 (ert-deftest eproj-tests/eproj-get-all-related-projects ()
-  (let* ((path eproj-tests/project-with-git-minimal)
-         (proj (eproj-get-project-for-path path)))
-    (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should (null? (eproj-project/related-projects proj))))
   (let* ((path eproj-tests/project-with-git-with-related)
          (proj (eproj-get-project-for-path path)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
@@ -124,23 +70,26 @@ under ROOT directory."
                                (eproj-get-all-related-projects proj))))
                    (eproj-tests/normalize-file-list
                     (filter #'file-directory?
-                            (get-directory-contents
+                            (directory-files
                              eproj-tests/folder-with-related-projects
-                             :full t)))))))
+                             t
+                             directory-files-no-dot-files-regexp)))))))
 
 (ert-deftest eproj-tests/aux-files ()
   (let* ((path eproj-tests/project-with-aux-files)
          (proj (eproj-get-project-for-path path)))
     (should (not (null? proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
+    (should (not (null? (eproj-project/aux-files proj))))
     (should (equal (eproj-tests/normalize-file-list
                     (eproj-project/aux-files proj))
                    (eproj-tests/normalize-file-list
                     (filter #'file-regular?
-                            (get-directory-contents
+                            (directory-files
                              (concat eproj-tests/project-with-aux-files
                                      "/aux-files")
-                             :full t)))))))
+                             t
+                             directory-files-no-dot-files-regexp)))))))
 
 (ert-deftest eproj-tests/tags-of-c-files ()
   (let* ((path eproj-tests/project-with-c-files)
@@ -249,7 +198,6 @@ foo3	%s	102	;\"	z
        (should (= 102 (eproj-tag/line tag3)))
        (should (equal (cons 'type "z") (assoc 'type (eproj-tag/properties tag3))))))))
 
-;; (eproj-get-project-for-path eproj-tests/project-with-eproj-file)
 (ert-deftest eproj-tests/project-with-eproj-file ()
   (let* ((path eproj-tests/project-with-eproj-file)
          (proj (eproj-get-project-for-path path)))
@@ -258,23 +206,15 @@ foo3	%s	102	;\"	z
     (should (not (null? (eproj/find-eproj-file-location (concat path "/Foo/Bar")))))
     (should (not (null? proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should (eq? 'eproj-file
-                 (eproj-project-type/name (eproj-project/type proj))))
 
     (should (equal (eproj-tests/normalize-file-list
                     (find-rec path
-                              :filep
-                              (lambda (path) (string-match-pure? "\\.hs$" path))))
+                              :filep "\\.hs$"))
                    (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
 
 
 (setf eproj-tests/tests
-      '(eproj-tests/git-repository-test1
-        eproj-tests/git-repository-test2
-        eproj-tests/eproj-make-project-no-git-repo
-        eproj-tests/eproj-make-project-minimal-project
-        eproj-tests/eproj-make-project-signal-incorrect-specified-project-type
-        eproj-tests/eproj-get-all-related-projects
+      '(eproj-tests/eproj-get-all-related-projects
         eproj-tests/aux-files
         eproj-tests/tags-of-c-files
 
@@ -284,7 +224,7 @@ foo3	%s	102	;\"	z
         eproj-tests/project-with-eproj-file
         ))
 
-(let ((ert-debug-on-error t))
+(let ((ert-debug-on-error nil))
   (eproj-reset-projects)
   (ert (join-lines (map #'symbol->string eproj-tests/tests) "\\|")
        ;; "eproj-tests/.*"
