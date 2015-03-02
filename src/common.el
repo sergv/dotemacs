@@ -917,9 +917,7 @@ end of END-LINE in current buffer."
   "List of file name endings to generally ignore.")
 
 (defparameter *version-control-directories*
-  '("SCCS" "RCS" "CVS" "MCVS"
-    ".svn" ".git" ".hg" ".bzr"
-    "_MTN" "_darcs" "{arch}")
+  '(".svn" ".git" ".hg" "_darcs")
   "List of directory names used by version-control systems.")
 
 (defparameter *ignored-directories*
