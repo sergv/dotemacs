@@ -419,6 +419,41 @@
 
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 
+(defvar hs-lint-error-regex
+  "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Error:")
+
+(defvar hs-lint-warning-regex
+  "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Warning:")
+
+(defun hs-lint-setup ()
+  (set (make-local-variable '*compilation-jump-error-regexp*)
+       (concat "\\("
+               hs-lint-error-regex
+               "\\)\\|\\("
+               hs-lint-warning-regex
+               "\\)"))
+  (setq-local compilation-error-regexp-alist
+              (list
+               (list hs-lint-error-regex
+                     1 ;; file-group
+                     2 ;; line-group
+                     3 ;; column-group
+                     2 ;; type - 2 - error
+                     )
+               (list hs-lint-warning-regex
+                     1 ;; file-group
+                     2 ;; line-group
+                     3 ;; column-group
+                     1 ;; type - 1 - warning
+                     )))
+  (def-keys-for-map hs-lint-mode-map
+    ("<up>"   compilation-jump-to-prev-error)
+    ("<down>" compilation-jump-to-next-error)
+    ("t"      compilation-jump-to-prev-error)
+    ("h"      compilation-jump-to-next-error)))
+
+(add-hook 'hs-lint-mode-hook #'hs-lint-setup)
+
 (provide 'haskell-setup)
 
 ;; Local Variables:
