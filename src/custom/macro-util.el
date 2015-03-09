@@ -769,6 +769,12 @@ return nil otherwise."
                   ,@body))))
 
 (defmacro if-let* (conditions true-branch &optional false-branch)
+  "E.g.
+(if-let (foo 1
+         bar 2
+         baz 3)
+  (+ foo bar baz)
+  'failed)))))"
   (declare (indent 1))
   (assert (and (list? conditions)
                (evenp (length conditions))))
