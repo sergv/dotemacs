@@ -211,6 +211,8 @@ entries."
                  (filter (lambda (buf)
                            (with-current-buffer buf
                              (and (null? (buffer-file-name buf))
+                                  (not (memq major-mode
+                                             '(dired-mode)))
                                   (not (assq major-mode
                                              sessions/special-modes))
                                   (not (string-match-pure? "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
