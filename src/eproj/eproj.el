@@ -39,7 +39,6 @@
 (require 'custom)
 (require 'common)
 (require 'custom-predicates)
-(require 'select-mode)
 (require 'more-haskell)
 (require 'haskell-autoload)
 
@@ -99,8 +98,7 @@
 
 ;;;; ctags facility
 
-(defparameter *ctags-exec*
-  (platform-dependent-executable (concat +execs-path+ "/ctags")))
+(defparameter *ctags-exec* (executable-find "ctags"))
 
 (defparameter *ctags-language-flags*
   '((c-mode
@@ -168,7 +166,7 @@
             "\\):\\(.*\\)$")))
 
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
-  (if (not (null? *ctags-exec*))
+  (if (not (null *ctags-exec*))
     (with-current-buffer out-buffer
       (goto-char (point-max))
       (unless (looking-at-pure? "^$")
@@ -178,7 +176,7 @@
         (with-temp-buffer
           (cd root-dir)
           (dolist (file files)
-            (when (string-match-pure? ext-re file)
+            (when (string-match-p ext-re file)
               (insert file "\n")))
           (when (not (= 0
                         (apply #'call-process-region
@@ -205,7 +203,7 @@
   (make-hash-table :test #'equal :size 997 :weakness t))
 
 (defsubst eproj/ctags-cache-string (x)
-  (assert (string? x))
+  (assert (stringp x))
   (if-let (cached-x (gethash x eproj/ctags-string-cache))
     cached-x
     (puthash x x eproj/ctags-string-cache)))
@@ -222,7 +220,7 @@ runtime but rather will be silently relied on)."
     (save-match-data
       (goto-char (point-min))
       (let ((tags-table (make-hash-table :test #'equal)))
-        (while (not (eob?))
+        (while (not (eobp))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
                      (looking-at +ctags-line-re+))
             (let ((symbol (eproj/ctags-cache-string
@@ -242,7 +240,7 @@ runtime but rather will be silently relied on)."
                                      (trim-whitespace fields-str))))
                         (delq nil
                               (map (lambda (entry)
-                                     (if (string-match? +ctags-aux-fields-re+ entry)
+                                     (if (string-match +ctags-aux-fields-re+ entry)
                                        (let ((identifier (match-string-no-properties 1 entry))
                                              (value (match-string-no-properties 2 entry)))
                                          ;; when value is nonempty
@@ -476,7 +474,7 @@ runtime but rather will be silently relied on)."
   (aif (eproj-project/aux-files-source proj)
     (cond ((functionp it)
            (funcall it))
-          ((list? it)
+          ((listp it)
            it)
           (t
            nil))
@@ -517,7 +515,7 @@ runtime but rather will be silently relied on)."
   (interactive)
   (let* ((root (eproj-get-initial-project-root-for-buf (current-buffer)))
          (proj (gethash root *eproj-projects* nil)))
-    (when (not (null? proj))
+    (when (not (null proj))
       (let* ((proj (eproj-get-project-for-buf (current-buffer)))
              (buf (current-buffer))
              (fname (expand-file-name (buffer-file-name buf)))
@@ -569,7 +567,7 @@ runtime but rather will be silently relied on)."
   (declare (indent 2))
   (let ((lang-var (gensym "lang")))
     `(progn
-       (assert (symbol? ,lang-mode-var)
+       (assert (symbolp ,lang-mode-var)
                nil
                "invalid language mode = %s" ,lang-mode-var)
        (if-let (,lang-var (gethash ,lang-mode-var eproj/languages-table))
@@ -588,7 +586,7 @@ runtime but rather will be silently relied on)."
           (map (lambda (lang-mode)
                  (eproj-with-language-load-proc lang-mode load-proc
                    (let ((new-tags (funcall load-proc proj files)))
-                     (assert (and (not (null? new-tags))
+                     (assert (and (not (null new-tags))
                                   (hash-table-p new-tags)))
                      (when (= 0 (hash-table-count new-tags))
                        (error "Warning while reloading: project %s loaded no tags for language %s"
@@ -619,12 +617,12 @@ runtime but rather will be silently relied on)."
   "Get filename of .eproj-info file from directory DIR if it exists, else return nil."
   (let ((eproj-info-file (concat (eproj-normalize-file-name dir)
                                  "/.eproj-info")))
-    (when (file-exists? eproj-info-file)
+    (when (file-exists-p eproj-info-file)
       eproj-info-file)))
 
 (defun eproj-read-eproj-info-file (filename)
   "Read .eproj-info file from FILENAME."
-  (unless (file-exists? filename)
+  (unless (file-exists-p filename)
     (error ".eproj-info file does not exist: %s" filename))
   (with-temp-buffer
     (insert-file-contents-literally filename)
@@ -634,8 +632,8 @@ runtime but rather will be silently relied on)."
 (defun eproj-reload-project! (proj)
   "Update project PROJ - re-read its .eproj-info file and update project
 variables accordingly."
-  (assert (not (null? (eproj-project/root proj))))
-  (assert (string? (eproj-project/root proj)))
+  (assert (not (null (eproj-project/root proj))))
+  (assert (stringp (eproj-project/root proj)))
   (eproj-populate-from-eproj-info!
    proj
    (eproj-read-eproj-info-file
@@ -644,11 +642,11 @@ variables accordingly."
 ;;;; project creation
 
 (defun eproj-make-project (root aux-info)
-  (assert (string? root)
+  (assert (stringp root)
           nil
           "Project root must be a string: %s" root)
-  (unless (and (file-exists? root)
-               (file-directory? root))
+  (unless (and (file-exists-p root)
+               (file-directory-p root))
     (error "Invalid project root, existing directory required: %s" root))
   (let ((proj
          (make-eproj-project :root root
@@ -657,7 +655,7 @@ variables accordingly."
                              :related-projects nil
                              :aux-files-source nil
                              :languages nil)))
-    (when (null? proj)
+    (when (null proj)
       (error "Error while trying to obtain project for root %s" root))
     (eproj-populate-from-eproj-info! proj aux-info)
     proj))
@@ -781,9 +779,9 @@ governing PATH."
          (is-nil-value `(quote ,is-nil)))
     `(let ((,buffer-var ,buffer-expr))
        (with-current-buffer ,buffer-var
-         (when (null? ,caching-var)
+         (when (null ,caching-var)
            (setf ,caching-var (or ,value-expr ,is-nil-value)))
-         (if (eq? ,caching-var ,is-nil-value)
+         (if (eq ,caching-var ,is-nil-value)
            nil
            (progn
              (assert (funcall ,value-predicate ,caching-var)
@@ -812,7 +810,7 @@ variable or symbol 'unresolved.")
       (error nil))
    buffer
    eproj/buffer-initial-project-root-cache
-   #'string?))
+   #'stringp))
 
 (defvar-local eproj/buffer-project-cache nil
   "Caches value computed by `eproj-get-project-for-buf'.
@@ -832,8 +830,8 @@ symbol 'unresolved.")
 
 (defun eproj-get-project-for-path (path)
   "Retrieve project that contains PATH as its part."
-  (assert (or (file-exists? path)
-              (file-directory? path))
+  (assert (or (file-exists-p path)
+              (file-directory-p path))
           nil
           "Cannot get eproj project for nonexisting path: %s"
           path)
@@ -860,7 +858,7 @@ symbol 'unresolved.")
                                   it
                                   "\\|")))
                   (filter (lambda (fname)
-                            (not (string-match-pure? regexp fname)))
+                            (not (string-match-p regexp fname)))
                           files))
                 files))))
       ;; if there's file-list then read it and store to cache
@@ -868,15 +866,15 @@ symbol 'unresolved.")
         (let ((file-list-filename (eproj-resolve-abs-or-rel-name
                                    file-list
                                    (eproj-project/root proj))))
-          (when (or (null? file-list-filename)
-                    (not (file-exists? file-list-filename)))
+          (when (or (null file-list-filename)
+                    (not (file-exists-p file-list-filename)))
             (error "Cannot find file list: filename %s at %s" file-list file-list-filename))
           (let ((list-of-files
                  (with-temp-buffer
                    (insert-file-contents-literally file-list-filename)
                    (goto-char (point-min))
                    (read (current-buffer)))))
-            (assert (list? list-of-files))
+            (assert (listp list-of-files))
             (let ((resolved-files
                    (funcall filter-ignored-files
                             (map (lambda (filename)
@@ -885,8 +883,8 @@ symbol 'unresolved.")
                                     (eproj-project/root proj)))
                                  list-of-files))))
               (assert (all? (lambda (filename)
-                              (and (string? filename)
-                                   (file-exists? filename)))
+                              (and (stringp filename)
+                                   (file-exists-p filename)))
                             resolved-files))
               ;; add to cache
               (push (list 'eproj-get-project-files/cached-files resolved-files)
@@ -897,8 +895,8 @@ symbol 'unresolved.")
                          :filep
                          (lambda (path)
                            (any? (lambda (lang)
-                                   (assert (symbol? lang))
-                                   (string-match-pure?
+                                   (assert (symbolp lang))
+                                   (string-match-p
                                     (eproj-language/extension-re
                                      (gethash lang eproj/languages-table))
                                     path))
@@ -913,12 +911,12 @@ Returns nil if no relevant entry found in AUX-INFO."
   (let ((project-root root))
     (when-let (related-entry (cdr-safe (assq 'related aux-info)))
       (map (lambda (path)
-             (assert (string? path) nil
+             (assert (stringp path) nil
                      "invalid entry under related clause, string expected %s"
                      path)
-             (cond ((file-directory? path)
+             (cond ((file-directory-p path)
                     path)
-                   ((file-directory? (expand-file-name path project-root))
+                   ((file-directory-p (expand-file-name path project-root))
                     (expand-file-name path project-root))
                    (t
                     (error "invalid related-project entry: non-existing absolute nor relative directory: %s"
@@ -944,20 +942,20 @@ AUX-INFO is expected to be a list of zero or more constructs:
         (with-temp-buffer
           (cd project-root)
           (mapcan (lambda (item)
-                    (assert (list? item) nil
+                    (assert (listp item) nil
                             "invalid entry under aux-files clause, list expected: %s"
                             item)
-                    (cond ((eq? (car-safe item) 'tree)
+                    (cond ((eq (car-safe item) 'tree)
                            (let ((tree-root (cadr-safe item))
                                  (patterns (cddr-safe item)))
-                             (assert (and (not (null? tree-root))
-                                          (file-exists? tree-root)
-                                          (file-directory? tree-root))
+                             (assert (and (not (null tree-root))
+                                          (file-exists-p tree-root)
+                                          (file-directory-p tree-root))
                                      nil
                                      "Invalid tree root under aux-files/tree clause: %s"
                                      tree-root)
-                             (assert (and (list? patterns)
-                                          (not (null? patterns)))
+                             (assert (and (listp patterns)
+                                          (not (null patterns)))
                                      nil
                                      "Invalid patterns under aux-files/tree clause: %s"
                                      patterns)
@@ -965,7 +963,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
                                        :filep
                                        (lambda (path)
                                          (any? (lambda (regexp)
-                                                 (string-match-pure? regexp path))
+                                                 (string-match-p regexp path))
                                                patterns)))))
                           (t
                            nil)))
@@ -973,8 +971,8 @@ AUX-INFO is expected to be a list of zero or more constructs:
 
 (defun eproj/find-eproj-file-location (path)
   "Find closest directory parent of PATH that contains .eproj-info file."
-  (assert (string? path))
-  (let ((dir (if (file-directory? path)
+  (assert (stringp path))
+  (let ((dir (if (file-directory-p path)
                path
                (file-name-directory path))))
     (awhen (locate-dominating-file dir ".eproj-info")
@@ -1004,14 +1002,14 @@ AUX-INFO is expected to be a list of zero or more constructs:
              nil)))
 
 (defun-caching eproj-resolve-abs-or-rel-name (path dir) (path dir)
-  (if (or (file-exists? path)
-          (file-directory? path))
+  (if (or (file-exists-p path)
+          (file-directory-p path))
     path
     (if (file-name-absolute-p path)
       (error "Non-existing absolute file name: %s, probably something went wrong" path)
       (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
-        (if (or (file-exists? abs-path)
-                (file-directory? abs-path))
+        (if (or (file-exists-p abs-path)
+                (file-directory-p abs-path))
           abs-path
           (error "File %s does not exist, try `eproj-update-buffer-project'"
                  abs-path))))))
@@ -1023,8 +1021,8 @@ AUX-INFO is expected to be a list of zero or more constructs:
   "Get directory associated with BUFFER, either throug visited file
 or `default-directory', if no file is visited."
   (with-current-buffer buffer
-    (or (when-let (fname buffer-file-truename)
-          (file-name-directory fname))
+    (or (when buffer-file-truename
+          (file-name-directory buffer-file-truename))
         default-directory)))
 
 (autoload 'eproj-symbnav/describe "eproj-symbnav" nil t)

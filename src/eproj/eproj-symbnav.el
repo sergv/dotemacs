@@ -6,6 +6,7 @@
 ;; Created: Saturday, 28 February 2015
 ;; Description:
 
+(require 'select-mode)
 (require 'eproj)
 
 ;;; tag/symbol navigation (navigation over homes)
@@ -32,19 +33,19 @@ as accepted by `bounds-of-thing-at-point'.")
   (or (awhen (get-region-string-no-properties)
         (trim-whitespace it))
       (let ((bounds (bounds-of-thing-at-point eproj-symbnav/identifier-type)))
-        (cond ((not (null? bounds))
+        (cond ((not (null bounds))
                (funcall (eproj-language/normalize-identifier-before-navigation-procedure
                          (gethash (eproj-symbnav/resolve-synonym-modes major-mode)
                                   eproj/languages-table))
                         (buffer-substring-no-properties (car bounds)
                                                         (cdr bounds))))
-              ((null? noerror)
+              ((null noerror)
                (error "No identifier at point found"))
               (t
                nil)))))
 
 (defun eproj-symbnav/show-home (entry)
-  (when (not (null? entry))
+  (when (not (null entry))
     (with-current-buffer (eproj-home-entry/buffer entry)
       (concat (eproj-home-entry/symbol entry)
               "@"
@@ -102,7 +103,7 @@ as accepted by `bounds-of-thing-at-point'.")
 (defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
   (interactive "P")
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-         (case-fold-search (and (not (null? current-prefix-arg))
+         (case-fold-search (and (not (null current-prefix-arg))
                                 (<= 16 (car current-prefix-arg))))
          (identifier (if use-regexp
                        (read-regexp "enter regexp to search for")
@@ -119,7 +120,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                                   (eproj-project/root entry-proj))))
               (push current-home-entry eproj-symbnav/previous-homes)
               (setf eproj-symbnav/next-homes nil)
-              (unless (file-exists? file)
+              (unless (file-exists-p file)
                 (error "file %s does not exist" file))
               (find-file file)
               (goto-line (eproj-tag/line entry))
@@ -150,8 +151,8 @@ as accepted by `bounds-of-thing-at-point'.")
     (if (and next-home-entry
              (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
                (if use-regexp
-                 (string-match-pure? identifier next-symbol)
-                 (string=? identifier next-symbol))))
+                 (string-match-p identifier next-symbol)
+                 (string= identifier next-symbol))))
       (begin
         (eproj-symbnav/switch-to-home-entry next-home-entry)
         (push current-home-entry
@@ -172,11 +173,11 @@ as accepted by `bounds-of-thing-at-point'.")
                         (eproj-resolve-abs-or-rel-name
                          (eproj-tag/file tag)
                          (eproj-project/root tag-proj)))))
-                  (cond ((string=? orig-file-name
-                                   expanded-tag-file)
+                  (cond ((string= orig-file-name
+                                  expanded-tag-file)
                          (propertize txt 'face 'font-lock-negation-char-face))
-                        ((string=? (eproj-project/root proj)
-                                   (eproj-project/root tag-proj))
+                        ((string= (eproj-project/root proj)
+                                  (eproj-project/root tag-proj))
                          ;; use italic instead of underscore
                          (propertize txt 'face 'italic))
                         (t
@@ -232,11 +233,11 @@ as accepted by `bounds-of-thing-at-point'.")
                 (lambda (a b)
                   ;; compare results of tag->string
                   (string< (funcall entry-string a) (funcall entry-string b)))))))
-        (cond ((null? entries)
+        (cond ((null entries)
                (error "No entries for %s %s"
                       (if use-regexp "regexp" "identifier")
                       identifier))
-              ((null? (cdr entries))
+              ((null (cdr entries))
                (funcall jump-to-home
                         (funcall entry-tag (car entries))
                         (funcall entry-proj (car entries))))
@@ -259,11 +260,11 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/go-back ()
   (interactive)
-  (if (null? eproj-symbnav/previous-homes)
+  (if (null eproj-symbnav/previous-homes)
     (error "no more previous go-to-definition entries")
     (begin
-      (when (or (null? eproj-symbnav/next-homes)
-                (and (not (null? eproj-symbnav/next-homes))
+      (when (or (null eproj-symbnav/next-homes)
+                (and (not (null eproj-symbnav/next-homes))
                      (not (eproj-home-entry=? eproj-symbnav/selected-loc
                                               (car eproj-symbnav/next-homes)))))
         (push eproj-symbnav/selected-loc eproj-symbnav/next-homes))
