@@ -11,6 +11,11 @@
 (autoload 'setup-eproj-symbnav "eproj")
 (autoload 'eproj-update-buffer-tags "eproj")
 
+(eval-after-load "eproj"
+  '(progn
+     (setf *ctags-exec*
+           (platform-dependent-executable (concat +execs-path+ "/ctags")))))
+
 (provide 'eproj-setup)
 
 ;; Local Variables:
