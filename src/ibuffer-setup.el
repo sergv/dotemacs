@@ -266,9 +266,14 @@ a prefix argument reverses the meaning of that variable."
        ("* f"      ibuffer-mark-by-file-name-regexp)
        ;; to be consistent with dired
        ("* %"      ibuffer-mark-by-file-name-regexp)
-       ("U"        ibuffer-unmark-all)
        ("T"        ibuffer-toggle-marks)
-       ("K"        ibuffer-do-delete)
+
+       ("u"        ibuffer-jump-to-buffer)
+       ("U"        ibuffer-jump-to-buffer)
+       ("d"        ignore)
+       (","        ibuffer-mark-for-delete)
+       ("k"        ibuffer-unmark-forward)
+       ("K"        ibuffer-unmark-all)
 
        ("C-z"      nil)
        ("v"        nil)
