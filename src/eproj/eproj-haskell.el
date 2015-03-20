@@ -19,15 +19,20 @@ files.
 Note: old tags file is removed before calling update command."
   (assert (eproj-project-p proj))
   (if-let (tag-file-entry (assoc 'tag-file (eproj-project/aux-info proj)))
-    (let ((tag-file (cadr tag-file-entry)))
-      (assert (stringp tag-file))
-      (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
-                                                          (eproj-project/root proj))))
-        (when (or (null tag-file-path)
-                  (not (file-exists-p tag-file-path)))
-          (error "Cannot find tag file %s at %s" tag-file tag-file-path))
-        (for-buffer-with-file tag-file-path
-          (eproj/ctags-get-tags-from-buffer (current-buffer) proj t))))
+    (progn
+      (unless (= (length tag-file-entry) 2)
+        (error "invalid 'tag-file entry in %s project: %s"
+               (eproj-project/root proj)
+               tag-file-entry))
+      (let ((tag-file (cadr tag-file-entry)))
+        (assert (stringp tag-file))
+        (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
+                                                            (eproj-project/root proj))))
+          (when (or (null tag-file-path)
+                    (not (file-exists-p tag-file-path)))
+            (error "Cannot find tag file %s at %s" tag-file tag-file-path))
+          (for-buffer-with-file tag-file-path
+            (eproj/ctags-get-tags-from-buffer (current-buffer) proj t)))))
     (progn
       (unless *fast-tags-exec*
         (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
