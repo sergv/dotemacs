@@ -10,14 +10,16 @@
 
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
-(defun eproj/load-haskell-project (proj files)
+(defun eproj/load-haskell-project (proj make-project-files)
   "Load haskell project PROJ according to definitions in .eproj-info file.
+
+NB MAKE-PROJECT-FILES should be a function of 0 arguments that returns a list of
+files.
 
 Note: old tags file is removed before calling update command."
   (assert (eproj-project-p proj))
-  (if-let (tag-file (cadr-safe
-                     (assoc 'tag-file (eproj-project/aux-info proj))))
-    (progn
+  (if-let (tag-file-entry (assoc 'tag-file (eproj-project/aux-info proj)))
+    (let ((tag-file (cadr tag-file-entry)))
       (assert (stringp tag-file))
       (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
                                                           (eproj-project/root proj))))
@@ -38,7 +40,7 @@ Note: old tags file is removed before calling update command."
             (with-temp-buffer
               (with-disabled-undo
                (with-inhibited-modification-hooks
-                (dolist (file files)
+                (dolist (file (funcall make-project-files))
                   (when (string-match-pure? ext-re file)
                     (insert file "\0")))
                 (when (not (= 0
