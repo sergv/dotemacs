@@ -85,8 +85,8 @@
   extension-re
   load-procedure
   ;; function taking two arguments, eproj/project structure and
-  ;; list of files to load from. Returns hashtable of
-  ;; (<identifier> . <eproj-tags>) bindings for specified
+  ;; function of zero arguments returning list of files to load from.
+  ;; Returns hashtable of (<identifier> . <eproj-tags>) bindings for specified
   ;; files, <eproj-tags> is a list of tags
   tag->string-procedure ;; function of one argument returning string
   synonym-modes ;; list of symbols, these modes will resolve to this language
@@ -328,20 +328,20 @@ runtime but rather will be silently relied on)."
       (current-line))))
 
 
-(defun eproj/load-ctags-project (lang-mode proj files)
+(defun eproj/load-ctags-project (lang-mode proj make-project-files)
   (let ((root (eproj-project/root proj)))
     (with-temp-buffer
       (eproj/run-ctags-on-files lang-mode
                                 root
-                                files
+                                (funcall make-project-files)
                                 (current-buffer))
       (prog1 (eproj/ctags-get-tags-from-buffer (current-buffer) proj)
         (erase-buffer)))))
 
-(defun eproj/clojure-load-procedure (proj files)
+(defun eproj/clojure-load-procedure (proj make-project-files)
   (assert (eproj-project-p proj))
   (when (memq 'java-mode (eproj-project/languages proj))
-    (eproj/load-ctags-project 'java-mode proj files))
+    (eproj/load-ctags-project 'java-mode proj make-project-files))
   )
 
 (autoload 'eproj/load-haskell-project "eproj-haskell" nil nil)
@@ -355,8 +355,8 @@ runtime but rather will be silently relied on)."
                           (regexp-opt *haskell-extensions*)
                           "$")
     :load-procedure
-    (lambda (proj files)
-      (eproj/load-haskell-project proj files))
+    (lambda (proj make-project-files)
+      (eproj/load-haskell-project proj make-project-files))
     :tag->string-procedure #'eproj/haskell-tag->string
     :synonym-modes '(literate-haskell-mode
                      haskell-c-mode
@@ -369,8 +369,8 @@ runtime but rather will be silently relied on)."
                       (or "c" "h")
                       eol)
     :load-procedure
-    (lambda (proj files)
-      (eproj/load-ctags-project 'c-mode proj files))
+    (lambda (proj make-project-files)
+      (eproj/load-ctags-project 'c-mode proj make-project-files))
     :tag->string-procedure #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -393,8 +393,8 @@ runtime but rather will be silently relied on)."
                           "incl")
                       eol)
     :load-procedure
-    (lambda (proj files)
-      (eproj/load-ctags-project 'c++-mode proj files))
+    (lambda (proj make-project-files)
+      (eproj/load-ctags-project 'c++-mode proj make-project-files))
     :tag->string-procedure #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -405,8 +405,8 @@ runtime but rather will be silently relied on)."
                       (or "py" "pyx" "pxd" "pxi")
                       eol)
     :load-procedure
-    (lambda (proj files)
-      (eproj/load-ctags-project 'python-mode proj files))
+    (lambda (proj make-project-files)
+      (eproj/load-ctags-project 'python-mode proj make-project-files))
     :tag->string-procedure #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -428,8 +428,8 @@ runtime but rather will be silently relied on)."
                       (or "java")
                       eol)
     :load-procedure
-    (lambda (proj files)
-      (eproj/load-ctags-project 'java-mode proj files))
+    (lambda (proj make-project-files)
+      (eproj/load-ctags-project 'java-mode proj make-project-files))
     :tag->string-procedure #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -534,7 +534,7 @@ runtime but rather will be silently relied on)."
                  mode))
         (if-let (old-tags (cdr-safe (assoc mode (eproj-project/tags proj))))
           (eproj-with-language-load-proc mode load-proc
-            (let ((new-tags (funcall load-proc proj (list fname))))
+            (let ((new-tags (funcall load-proc proj (lambda () (list fname)))))
               ;; filter all tags values to remove any tags
               ;; related to current buffer
               (maphash (lambda (symbol-str tags)
@@ -581,11 +581,20 @@ runtime but rather will be silently relied on)."
 
 (defun eproj-reload-tags (proj)
   "Reload tags for PROJ."
-  (let ((files (eproj-get-project-files proj)))
+  (let ((files nil)
+        (made-files nil)
+        (make-project-files-func
+         (lambda ()
+           (if made-files
+             files
+             (progn
+               (setf files (eproj-get-project-files proj)
+                     made-files t)
+               files)))))
     (setf (eproj-project/tags proj)
           (map (lambda (lang-mode)
                  (eproj-with-language-load-proc lang-mode load-proc
-                   (let ((new-tags (funcall load-proc proj files)))
+                   (let ((new-tags (funcall load-proc proj make-project-files-func)))
                      (assert (and (not (null new-tags))
                                   (hash-table-p new-tags)))
                      (when (= 0 (hash-table-count new-tags))
