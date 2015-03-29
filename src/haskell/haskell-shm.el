@@ -8,7 +8,7 @@
 
 (require 'shm)
 
-(defun haskell-node/topmost-parent ()
+(defun haskell-node/topmost-parent-pair ()
   "Get the topmost haskell node for current position."
   (let ((node-pair (shm-current-node-pair))
         (prev-pair nil))
@@ -16,17 +16,17 @@
       (setq prev-pair node-pair
             node-pair (shm-node-parent node-pair)))
     ;; ! abstraction is broken here...
-    (cdr prev-pair)))
+    prev-pair))
 
 (defun haskell-node/move-to-topmost-start ()
   "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
   (interactive)
-  (goto-char (shm-node-start (haskell-node/topmost-parent))))
+  (goto-char (shm-node-start (cdr (haskell-node/topmost-parent-pair)))))
 
 (defun haskell-node/move-to-topmost-end ()
   "Move to end of the topmost node, similar to `glisp/end-of-defun'."
   (interactive)
-  (goto-char (shm-node-end (haskell-node/topmost-parent))))
+  (goto-char (shm-node-end (cdr (haskell-node/topmost-parent-pair)))))
 
 
 (defun vim/motion-haskell-node/move-n-parents-up (n)

@@ -12,66 +12,67 @@
 (require 'shell-completion)
 (require 'shm-ast)
 
-(defun haskell-debug-message-skeleton-format-print-value (msg)
-  (concat "\"" msg " = \" <> show "
-          (if (string-match-pure? "[ \t]" msg)
-            (concat "(" msg ")")
-            msg)))
+(defun haskell-insert-info-template (&optional arg monadic?)
+  (interactive "P")
+  (let* ((start-position (point))
+         (user-input nil)
+         (initial-insertion t)
+         (is-message?
+          (lambda (x)
+            (and (not (zerop (length x)))
+                 (or (char= ?\s (aref x 0))
+                     (char= ?\t (aref x 0))))))
+         (prompt-user
+          (lambda ()
+            (read-string-no-default "Variable or message starting with space: "
+                                    nil
+                                    nil
+                                    "")))
+         (has-liftio?
+          (save-match-data
+            (save-excursion
+              (goto-char (point-min))
+              (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t))))
+         (start
+          (if monadic?
+            (if has-liftio?
+              "liftIO $ putStrLn $ "
+              "putStrLn $ ")
+            "trace ("))
+         (end
+          (if monadic?
+            ""
+            ") $ ")))
+    (insert start
+            "intercalate \", \" ["
+            ;; get name of function containing point
+            ;; this form evaluates to string which would be function name
+            ;; (funcall ,(funcall make-func-call make-entity-name)
+            ;;          start-position)
+            )
 
-(define-print-info-skeleton
-    haskell-pure-debug-message-skeleton
-  :doc "Insert call to trace to print some variables and messages
-while interactively prompting for variables/messages."
-  :print-begin "trace "
-  :print-end " $ "
+    (while (and (setf user-input (funcall prompt-user))
+                (< 0 (length user-input)))
+      (unless initial-insertion
+        (insert ", "))
+      (if (funcall is-message? user-input)
+        (insert "\""
+                (replace-regexp-in-string "^[ \t]+" "" user-input)
+                "\"")
+        (insert "\""
+                user-input
+                " = \" ++ "
+                "show "
+                (if (string-match-pure? "[ \t]" user-input)
+                  (concat "(" user-input ")")
+                  user-input)))
+      (setf initial-insertion nil))
+    (insert "]"
+            end)))
 
-  :indent-after-func nil
-  :insert-newline-before-var-list nil
-
-  :format-print-value haskell-debug-message-skeleton-format-print-value
-
-  :format-string-start "("
-  :format-string-end ")"
-  :msg-transform (lambda (x) (concat "\"" x "\""))
-  :variable-delimiter " <> \", \" <> "
-  :message-delimiter " <> \"; \" <> "
-
-  :insert-entity-name-procedure (constantly nil)
-  :make-variable-list (constantly nil))
-
-(define-print-info-skeleton
-    haskell-monadic-debug-message-skeleton
-  :doc "Insert call to trace to print some variables and messages
-while interactively prompting for variables/messages."
-  :print-begin "liftIO $ putStrLn $ "
-  :print-end ""
-
-  :indent-after-func nil
-  :insert-newline-before-var-list nil
-
-  :format-print-value haskell-debug-message-skeleton-format-print-value
-
-  :format-string-start ""
-  :format-string-end ""
-  :msg-transform (lambda (x) (concat "\"" x "\""))
-  :variable-delimiter " <> \", \" <> "
-  :message-delimiter " <> \"; \" <> "
-
-  :insert-entity-name-procedure (constantly nil)
-  :make-variable-list (constantly nil))
-
-(defun haskell-debug-message-skeleton ()
-  (interactive)
-  ;; don't insert monadic version if we're not in some
-  ;; do block
-  (let ((inside-immediate-do-block?
-         (eq 'Do
-             (shm-node-cons
-              (cdr
-               (shm-current-node-pair))))))
-    (if inside-immediate-do-block?
-      (haskell-monadic-debug-message-skeleton)
-      (haskell-pure-debug-message-skeleton))))
+(defun haskell-insert-monadic-info-template (&optional arg)
+  (interactive "P")
+  (haskell-insert-info-template arg t))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
@@ -168,11 +169,11 @@ then Bar would be the result."
                   import-expand-pred)
             (list "\\<info\\>"
                   (list
-                   #'haskell-debug-message-skeleton)
+                   #'haskell-insert-info-template)
                   #'point-not-inside-string-or-comment?)
             (list "\\<infom\\>"
                   (list
-                   #'haskell-monadic-debug-message-skeleton)
+                   #'haskell-insert-monadic-info-template)
                   #'point-not-inside-string-or-comment?)))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
