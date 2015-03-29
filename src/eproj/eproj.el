@@ -581,16 +581,16 @@ runtime but rather will be silently relied on)."
 
 (defun eproj-reload-tags (proj)
   "Reload tags for PROJ."
-  (let ((files nil)
-        (made-files nil)
-        (make-project-files-func
-         (lambda ()
-           (if made-files
-             files
-             (progn
-               (setf files (eproj-get-project-files proj)
-                     made-files t)
-               files)))))
+  (let* ((files nil)
+         (made-files nil)
+         (make-project-files-func
+          (lambda ()
+            (if made-files
+              files
+              (progn
+                (setf files (eproj-get-project-files proj)
+                      made-files t)
+                files)))))
     (setf (eproj-project/tags proj)
           (map (lambda (lang-mode)
                  (eproj-with-language-load-proc lang-mode load-proc
