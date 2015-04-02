@@ -68,7 +68,7 @@
   (init-common :use-yasnippet t
                :use-nxhtml-menu nil
                :use-comment t
-               :use-render-formula t)
+               :use-render-formula nil)
   (add-hook 'after-save-hook
             (lambda ()
               (ignore-errors

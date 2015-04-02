@@ -182,15 +182,15 @@ defpackage."
           "with")
       symbol-end))
 
-(make-highlight-procedure
- emacs-lisp-highlight-loop-keywords
- +emacs-lisp-loop-keywords+
- #'lisp-point-inside-loop-form?)
+;; (make-highlight-procedure
+;;  emacs-lisp-highlight-loop-keywords
+;;  +emacs-lisp-loop-keywords+
+;;  #'lisp-point-inside-loop-form?)
 
-(defun lisp-point-inside-loop-form? ()
-  "Return t if point is positioned inside a loop form."
-  (and (lisp-point-inside-form "( *loop\\_>")
-       (not (lisp-point-inside-string-or-comment?))))
+;; (defun lisp-point-inside-loop-form? ()
+;;   "Return t if point is positioned inside a loop form."
+;;   (and (lisp-point-inside-form "( *loop\\_>")
+;;        (not (lisp-point-inside-string-or-comment?))))
 
 
 
@@ -1165,10 +1165,11 @@ defpackage."
   (font-lock-add-keywords
    mode
    (append +emacs-lisp-basic-keywords+
-           (list
-            ;; loop highlighting is nice to have in Emacs
-            '(emacs-lisp-highlight-loop-keywords
-              0 'emacs-lisp-loop-keyword-face)))))
+           ;; (list
+           ;;  ;; loop highlighting is nice to have in Emacs
+           ;;  '(emacs-lisp-highlight-loop-keywords
+           ;;    0 'emacs-lisp-loop-keyword-face))
+           )))
 
 ;; some safety compile-time checks
 (eval-when-compile
