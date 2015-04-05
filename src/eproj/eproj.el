@@ -492,6 +492,9 @@ runtime but rather will be silently relied on)."
   "Clear project database `*eproj-projects*'."
   (interactive)
   (setf *eproj-projects* (make-hash-table :test #'equal))
+  (eproj-get-initial-project-root/reset-cache)
+  (eproj-resolve-abs-or-rel-name/reset-cache)
+  (eproj-normalize-file-name/reset-cache)
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
   (garbage-collect))
@@ -705,9 +708,6 @@ variables accordingly."
   "Insert description of PROJ in current buffer BUF."
   (let ((indent "    "))
     (with-current-buffer buf
-      (insert "type: " (pp-to-string (eproj-project-type/name
-                                      (eproj-project/type proj)))
-              "\n")
       (insert "root: " (eproj-project/root proj) "\n")
       (insert (format "languages: %s\n" (eproj-project/languages proj)))
       (insert "related projects:\n")
@@ -724,6 +724,14 @@ variables accordingly."
                                  (error nil)))
                              (visible-buffers)))
           (insert indent (buffer-name buf) "\n")))
+      (insert "number of tags loaded: "
+              (let ((tag-count 0))
+                (dolist (tags-entry (eproj-project/tags proj))
+                  (let ((lang-tags (hash-table->alist (cdr tags-entry))))
+                    (setf tag-count
+                          (+ tag-count (length lang-tags)))))
+                (number->string tag-count))
+              "\n")
       (when describe-tags
         (insert "tags:\n")
         (dolist (tags-entry (eproj-project/tags proj))
@@ -758,7 +766,7 @@ variables accordingly."
                *eproj-projects*)
       proj)))
 
-(defun-caching eproj-get-initial-project-root (path) (path)
+(defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache (path)
   "Get (<initial-project-root> <project-type> <aux-info>) triple for project
 governing PATH."
   (if-let (initial-root (eproj/find-eproj-file-location path))
@@ -1010,7 +1018,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
              (list proj)
              nil)))
 
-(defun-caching eproj-resolve-abs-or-rel-name (path dir) (path dir)
+(defun-caching eproj-resolve-abs-or-rel-name (path dir) eproj-resolve-abs-or-rel-name/reset-cache (path dir)
   (if (or (file-exists-p path)
           (file-directory-p path))
     path
@@ -1023,7 +1031,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
           (error "File %s does not exist, try `eproj-update-buffer-project'"
                  abs-path))))))
 
-(defun-caching eproj-normalize-file-name (path) (path)
+(defun-caching eproj-normalize-file-name (path) eproj-normalize-file-name/reset-cache (path)
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
 
 (defun eproj--get-buffer-directory (buffer)

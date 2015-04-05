@@ -114,11 +114,13 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
          ,@body)
        (fset ',func ',new-name))))
 
-(defmacro defun-caching (func args cache-args &rest body)
+(defmacro defun-caching (func args reset-cache-func cache-args &rest body)
   "Defun new function FUNC that automatically caches it's output depending of values of
 CACHE-ARGS, which should be a list.
 
 NB does not expect to cache values of ARGS that are nil."
+  (assert (symbol? func))
+  (assert (symbol? reset-cache-func))
   (assert (list? cache-args))
   (assert (all? #'symbol? cache-args))
   (assert (equal? cache-args
@@ -129,8 +131,12 @@ NB does not expect to cache values of ARGS that are nil."
         (query-var (gensym "query"))
         (hash-table-var (gensym "hash-table"))
         (value-var (gensym "value"))
-        (not-present-sym `(quote ,(gensym "not-present"))))
-    `(let ((,cache-var (make-hash-table :test #'equal)))
+        (not-present-sym `(quote ,(gensym "not-present")))
+        (empty-table-expr '(make-hash-table :test #'equal)))
+    `(progn
+       (defvar ,cache-var ,empty-table-expr)
+       (defun ,reset-cache-func ()
+         (setf ,cache-var ,empty-table-expr))
        (defun ,func ,args
          (let ((,query-var
                 ,(first
@@ -159,7 +165,7 @@ NB does not expect to cache values of ARGS that are nil."
                                                   ,(funcall mk-value-to-put
                                                             `(gethash ,x
                                                                       ,table-var
-                                                                      (make-hash-table :test #'equal)))
+                                                                      ,empty-table-expr))
                                                   ,table-var)
                                          ;; return table we've been assigning to
                                          ;; so it may be accessed one level
