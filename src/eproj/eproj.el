@@ -14,7 +14,8 @@
 ;;  [(aux-files
 ;;    [(tree <tree-root> <pattern>*)])]
 ;;  [(ignored-files <regexp>+)] - ignored filenames, <regexp>
-;;                                should match absolute file names
+;;                                should match absolute file names. Will be applied
+;;                                to file-list argument too.
 ;;  [(file-list <abs-or-rel-file>)] - filename listing all files in lisp format,
 ;;                                    e.g. ("foo" "c:/bar.txt" "../quux.log")
 ;;
@@ -82,6 +83,7 @@
 (defstruct (eproj-language
             (:conc-name eproj-language/))
   mode
+  extensions ;; list of <ext> strings
   extension-re
   load-procedure
   ;; function taking two arguments, eproj/project structure and
@@ -351,6 +353,7 @@ runtime but rather will be silently relied on)."
   (list
    (make-eproj-language
     :mode 'haskell-mode
+    :extensions *haskell-extensions*
     :extension-re (concat "\\."
                           (regexp-opt *haskell-extensions*)
                           "$")
@@ -365,6 +368,7 @@ runtime but rather will be silently relied on)."
     #'haskell-remove-module-qualification)
    (make-eproj-language
     :mode 'c-mode
+    :extensions '("c" "h")
     :extension-re (rx "."
                       (or "c" "h")
                       eol)
@@ -377,6 +381,19 @@ runtime but rather will be silently relied on)."
     #'identity)
    (make-eproj-language
     :mode 'c++-mode
+    :extensions '("c"
+                  "cc"
+                  "cxx"
+                  "cpp"
+                  "c++"
+                  "h"
+                  "hh"
+                  "hxx"
+                  "hpp"
+                  "h++"
+                  "inl"
+                  "inc"
+                  "incl")
     :extension-re (rx "."
                       (or "c"
                           "cc"
@@ -401,6 +418,7 @@ runtime but rather will be silently relied on)."
     #'identity)
    (make-eproj-language
     :mode 'python-mode
+    :extensions '("py" "pyx" "pxd" "pxi")
     :extension-re (rx "."
                       (or "py" "pyx" "pxd" "pxi")
                       eol)
@@ -413,6 +431,7 @@ runtime but rather will be silently relied on)."
     #'identity)
    (make-eproj-language
     :mode 'clojure-mode
+    :extensions '("clj" "java")
     :extension-re (rx "."
                       (or "clj"
                           "java")
@@ -424,6 +443,7 @@ runtime but rather will be silently relied on)."
     #'identity)
    (make-eproj-language
     :mode 'java-mode
+    :extensions '("java")
     :extension-re (rx "."
                       (or "java")
                       eol)
@@ -861,23 +881,12 @@ symbol 'unresolved.")
   "Retrieve project files for PROJ depending on it's type."
   ;; Cached files are necessarily from file-list and intended for projects whose
   ;; list of files does not change and may be cached.
-  (if-let (cached-files
-           (eproj-project/get-aux-info proj
-                                       'eproj-get-project-files/cached-files))
-    cached-files
-    (let* ((ignored-files-regexps
-            (cdr-safe (assq 'ignored-files (eproj-project/aux-info proj))))
-           (filter-ignored-files
-            (lambda (files)
-              (aif ignored-files-regexps
-                (let ((regexp
-                       (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
-                                  it
-                                  "\\|")))
-                  (filter (lambda (fname)
-                            (not (string-match-p regexp fname)))
-                          files))
-                files))))
+  (let ((ignored-files-absolute-regexps
+         (cdr-safe (assq 'ignored-files (eproj-project/aux-info proj)))))
+    (if-let (cached-files
+             (eproj-project/get-aux-info proj
+                                         'eproj-get-project-files/cached-files))
+      cached-files
       ;; if there's file-list then read it and store to cache
       (if-let (file-list (eproj-project/get-aux-info proj 'file-list))
         (let ((file-list-filename (eproj-resolve-abs-or-rel-name
@@ -886,7 +895,18 @@ symbol 'unresolved.")
           (when (or (null file-list-filename)
                     (not (file-exists-p file-list-filename)))
             (error "Cannot find file list: filename %s at %s" file-list file-list-filename))
-          (let ((list-of-files
+          (let ((filter-ignored-files
+                 (lambda (files)
+                   (aif ignored-files-absolute-regexps
+                     (let ((regexp
+                            (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
+                                       it
+                                       "\\|")))
+                       (filter (lambda (fname)
+                                 (not (string-match-p regexp fname)))
+                               files))
+                     files)))
+                (list-of-files
                  (with-temp-buffer
                    (insert-file-contents-literally file-list-filename)
                    (goto-char (point-min))
@@ -907,19 +927,116 @@ symbol 'unresolved.")
               (push (list 'eproj-get-project-files/cached-files resolved-files)
                     (eproj-project/aux-info proj))
               resolved-files)))
-        (let ((project-files
-               (find-rec (eproj-project/root proj)
-                         :filep
-                         (lambda (path)
-                           (any? (lambda (lang)
-                                   (assert (symbolp lang))
-                                   (string-match-p
-                                    (eproj-language/extension-re
-                                     (gethash lang eproj/languages-table))
-                                    path))
-                                 (eproj-project/languages proj))))))
-          (funcall filter-ignored-files
-                   project-files))))))
+        (eproj/find-rec
+         (eproj-project/root proj)
+         (concatMap (lambda (lang)
+                      (assert (symbolp lang))
+                      (eproj-language/extensions
+                       (gethash lang eproj/languages-table)))
+                    (eproj-project/languages proj))
+         ignored-files-absolute-regexps
+         *ignored-directories*
+         *ignored-directory-prefixes*)
+        ))))
+
+(defvar eproj/find-available?
+  (and (not (platform-os-type? 'windows))
+       (executable-find "find")))
+
+(defvar eproj/busybox-available?
+  (executable-find "busybox"))
+
+(defun eproj/find-rec (root
+                       extensions
+                       ignored-files-absolute-regexps
+                       ignored-directories
+                       ignored-directory-prefixes)
+  (when (null? extensions)
+    (error "no extensions for project %s" root))
+  (if (or eproj/find-available?
+          eproj/busybox-available?)
+    (let* ((ignored-dirs
+            (nconc
+             (map (lambda (dir) (list "-ipath" (concat "*/" dir)))
+                  ignored-directories)
+             (map (lambda (dir) (list "-ipath" (concat "*/" dir "*")))
+                  ignored-directory-prefixes)))
+           (ignored-files
+            (map (lambda (re) (list "-iregex" re))
+                 ignored-files-absolute-regexps))
+           (exts
+            (map (lambda (ext) (list "-iname" (concat "*." ext)))
+                 extensions))
+           (find-cmd
+            (cond
+              (eproj/find-available? "find")
+              (eproj/busybox-available? "busybox")))
+           (cmd
+            (util:flatten
+             (list (when (and (not eproj/find-available?)
+                              eproj/busybox-available?)
+                     "find")
+                   (when eproj/find-available?
+                     '("-O3"))
+                   root
+                   (when eproj/find-available?
+                     '("-regextype" "emacs"))
+                   (when ignored-dirs
+                     (list
+                      "-type" "d"
+                      "("
+                      (sep-by "-o" ignored-dirs)
+                      ")"
+                      "-prune"
+                      "-o"))
+                   (when ignored-files
+                     (list
+                      "-type" "f"
+                      "("
+                      (sep-by "-o" ignored-files)
+                      ")"
+                      "-prune"
+                      "-o"))
+                   "-type" "f"
+                   "("
+                   (sep-by "-o" exts)
+                   ")"
+                   "-print"))))
+      (with-temp-buffer
+        (with-disabled-undo
+          (with-inhibited-modification-hooks
+            (apply #'call-process
+                   find-cmd
+                   nil
+                   t
+                   nil
+                   cmd)
+            (split-into-lines
+             (buffer-substring-no-properties (point-min)
+                                             (point-max)))))))
+    (let ((ext-re (concat "\\."
+                          (regexp-opt extensions)
+                          "$"))
+          (ignored-files-absolute-re
+           (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
+                      ignored-files-absolute-regexps
+                      "\\|"))
+          (ignored-dirs-re
+           (concat "\\(?:/\\|^\\)\\(?:"
+                   (regexp-opt ignored-directories)
+                   "\\)\\(?:/\\|$\\)")))
+      (find-rec root
+                :filep
+                (if ignored-files-absolute-regexps
+                  (lambda (path)
+                    (and (string-match-p ext-re path)
+                         (not (string-match-p ignored-files-absolute-re path))))
+                  (lambda (path)
+                    (string-match-p ext-re path)))
+                :do-not-visitp
+                (lambda (path)
+                  (string-match-pure? ignored-dirs-re
+                                      (file-name-nondirectory path)))))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.

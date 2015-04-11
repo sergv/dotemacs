@@ -16,6 +16,8 @@
      (setf *ctags-exec*
            (platform-dependent-executable (concat +execs-path+ "/ctags")))))
 
+(add-to-list 'auto-mode-alist '("\\.eproj-info$" . emacs-lisp-mode))
+
 (provide 'eproj-setup)
 
 ;; Local Variables:

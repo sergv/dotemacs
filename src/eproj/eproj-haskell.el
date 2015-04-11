@@ -38,32 +38,38 @@ Note: old tags file is removed before calling update command."
         (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
       (with-temp-buffer
         (with-disabled-undo
-         (with-inhibited-modification-hooks
-          (let ((out-buffer (current-buffer))
-                (ext-re (eproj-language/extension-re
-                         (gethash 'haskell-mode eproj/languages-table))))
-            (with-temp-buffer
-              (with-disabled-undo
-               (with-inhibited-modification-hooks
-                (dolist (file (funcall make-project-files))
-                  (when (string-match-pure? ext-re file)
-                    (insert file "\0")))
-                (when (not (= 0
-                              (call-process-region (point-min)
-                                                   (point-max)
-                                                   *fast-tags-exec*
-                                                   nil
-                                                   out-buffer
-                                                   nil
-                                                   "-0"
-                                                   "-o-"
-                                                   "--ignore-encoding-errors"
-                                                   "--nomerge")))
-                  (error "fast-tags invokation failed: %s"
-                         (with-current-buffer out-buffer
-                           (buffer-substring-no-properties (point-min) (point-max)))))))
-              (erase-buffer)
-              (eproj/ctags-get-tags-from-buffer out-buffer proj t))))))
+          (with-inhibited-modification-hooks
+            (let ((out-buffer (current-buffer))
+                  (ext-re (eproj-language/extension-re
+                           (gethash 'haskell-mode eproj/languages-table))))
+              (with-temp-buffer
+                (with-disabled-undo
+                  (with-inhibited-modification-hooks
+                    (let ((files
+                           (filter
+                            (lambda (file)
+                              (string-match-pure? ext-re file))
+                            (funcall make-project-files))))
+                      (when files
+                        (insert (car files))
+                        (dolist (file (cdr files))
+                          (insert "\0" file))))
+                    (when (not (= 0
+                                  (call-process-region (point-min)
+                                                       (point-max)
+                                                       *fast-tags-exec*
+                                                       nil
+                                                       out-buffer
+                                                       nil
+                                                       "-0"
+                                                       "-o-"
+                                                       "--ignore-encoding-errors"
+                                                       "--nomerge")))
+                      (error "fast-tags invokation failed: %s"
+                             (with-current-buffer out-buffer
+                               (buffer-substring-no-properties (point-min) (point-max)))))
+                    (erase-buffer))))
+              (eproj/ctags-get-tags-from-buffer out-buffer proj t)))))
       ;; (message "Warning: no tag file for haskell project %s"
       ;;          (eproj-project/root proj))
       )))

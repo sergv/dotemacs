@@ -4,7 +4,8 @@
 ;;  [(aux-files
 ;;    [(tree <tree-root> <pattern>*)])]
 ;;  [(ignored-files <regexp>+)] - ignored filenames, <regexp>
-;;                                should match absolute file names
+;;                                should match absolute file names. Will be applied
+;;                                to file-list argument too.
 ;;
 ;;  ;; these are mostly for haskell
 ;;  [(tag-file <abs-or-rel-file>)]
