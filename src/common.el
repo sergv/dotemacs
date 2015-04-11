@@ -190,7 +190,7 @@ All predicates are called with full absolute paths."
                                  (cons path accum)
                                  accum)))
                    (dolist (entry (directory-files path
-                                                   t
+                                                   t ;; produce full names
                                                    directory-files-no-dot-files-regexp
                                                    t ;; don't sort
                                                    ))
@@ -848,6 +848,23 @@ write buffer contents back into file if flag DONT-WRITE is nil."
              items
              :initial-value init))
 
+(defun sep-by (sep items)
+  "Place SEP betweet elements in ITEMS list."
+  (assert (list? items))
+  (when items
+    (let* ((res (cons nil nil))
+           (tmp res))
+      (while items
+        (setf (car tmp) (car items))
+        (when (cdr items)
+          (setf (cdr tmp) (cons nil nil)
+                tmp (cdr tmp)
+                (car tmp) sep
+                (cdr tmp) (cons nil nil)
+                tmp (cdr tmp)))
+        (setf items (cdr items)))
+      res)))
+
 ;;;
 
 (defun generic/length (item)
@@ -921,9 +938,12 @@ end of END-LINE in current buffer."
   "List of directory names used by version-control systems.")
 
 (defparameter *ignored-directories*
-  (append *version-control-directories*
-          '(".cabal-sandbox"))
+  (append *version-control-directories*)
   "List of directory names to generally ignore.")
+
+(defparameter *ignored-directory-prefixes*
+  '(".cabal-sandbox")
+  "List of directory names to generally ignore as a prefixes.")
 
 (setf completion-ignored-extensions
       (append (map (lambda (x) (concat x "/")) *ignored-directories*)
