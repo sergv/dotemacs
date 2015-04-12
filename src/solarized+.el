@@ -185,6 +185,16 @@ Futher modified by Sergey Vinokurov."
 
        (haskell-operator-face        ((t (:foreground ,blue))))
        (haskell-interactive-face-compile-error ((t (:foreground ,red))))
+       (ghc-face-error               ((((supports :underline (:style wave)))
+                                       (:underline (:style wave :color ,red)))
+                                      (t (:inherit error))))
+       (ghc-face-warn                ((((supports :underline (:style wave)))
+                                       (:underline (:style wave :color ,orange)))
+                                      (t (:inherit warning))))
+       (ghc-face-hole                ((((supports :underline (:style wave)))
+                                       (:underline (:style wave :color ,violet)))
+                                      (t (:inherit bold))))
+
        ;; agda
        (agda2-highlight-bound-variable-face          ((t (:inherit default))))
        (agda2-highlight-coinductive-constructor-face ((t (:foreground ,yellow))))
