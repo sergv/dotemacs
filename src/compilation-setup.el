@@ -39,7 +39,8 @@ in compilation or related buffers")
     compilation-jump-to-next-error
     compilation-jump-to-prev-error
   *compilation-jump-error-regexp*
-  (unless (compilation-buffer-p (current-buffer))
+  (unless (or (compilation-buffer-p (current-buffer))
+              (eq? major-mode 'ghc-check-mode))
     (error "Not in a compilation buffer")))
 
 ;;; compilation info
@@ -88,11 +89,18 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
 
 (defun compilation/get-selected-error ()
   "Return filename, line and column for error or warning on current line
-(i.e. the selected one), depending on `compilation-error-regexp-alist'."
+\(i.e. the selected one), depending on `compilation-error-regexp-alist'."
   (save-excursion
     (save-match-data
-      (beginning-of-line)
-      (when-let (entry (find-if (comp #'looking-at #'car)
+      (when-let (entry (find-if (lambda (alist-entry)
+                                  (save-excursion
+                                    (let ((regexp (car alist-entry)))
+                                      (when (< 0 (length regexp))
+                                        ;; a bit hacky beginning-of-line call
+                                        (when (char=? (aref regexp 0) ?^)
+                                          (beginning-of-line))
+                                        (looking-at regexp)))))
+                                ;; (comp #'looking-at #'car)
                                 compilation-error-regexp-alist))
         (compilation/parse-matched-error-entry entry)))))
 

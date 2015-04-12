@@ -19,6 +19,16 @@
 (autoload 'haskell-setup "haskell-setup" "" nil nil)
 (autoload 'inferior-haskell-mode-setup "haskell-setup" "" nil nil)
 (autoload 'c2hs-mode "c2hs-mode" "" nil nil)
+(autoload 'ghc-check-mode "ghc-check-mode" "" nil nil)
+
+(autoload 'haskell-setup "haskell-setup" "" nil nil)
+(autoload 'haskell-compilation-setup "haskell-setup" "" nil nil)
+(autoload 'ghc-check-mode-setup "haskell-setup" "" nil nil)
+(autoload 'haskell-cabal-setup "haskell-setup" "" nil nil)
+(autoload 'hs-lint-setup "haskell-setup" "" nil nil)
+(autoload 'ghc-core-setup "haskell-setup" "" nil nil)
+(autoload 'hs-lint-setup "haskell-setup" "" nil nil)
+
 
 (add-to-list 'auto-mode-alist        '("\\.hcr\\'" . ghc-core-mode))
 (add-to-list 'auto-mode-alist        '("\\.cabal\\'" . haskell-cabal-mode))
@@ -34,14 +44,27 @@
 (defalias 'ghci 'switch-to-haskell)
 
 
-
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
-
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
+(add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
+(add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
+(add-hook 'ghc-check-mode-hook #'ghc-check-mode-setup)
+(add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
+(add-hook 'hs-lint-setup-hook #'hs-lint-setup)
+(add-hook 'ghc-core-mode-hook #'ghc-core-setup)
+(add-hook 'hs-lint-mode-hook #'hs-lint-setup)
 
 (autoload 'ghc-init "ghc" nil t)
 (autoload 'ghc-debug "ghc" nil t)
+
+(eval-after-load "ghc"
+  '(progn
+     ;; debug output will be in ghc-debug-buffer, "*GHC Debug*"
+     (setf ghc-debug t
+           ghc-ghc-options '("-isrc" "-dsuppress-module-prefixes")
+           ghc-display-error 'other-buffer
+           ghc-display-hole 'other-buffer)))
 
 (provide 'haskell-autoload)
 
