@@ -69,6 +69,31 @@ The `%s' placeholder is replaced by the current buffer's filename."
   :group 'haskell-compile
   :type 'boolean)
 
+(defconst haskell-compilation-error-filename-regexp
+  `(,(rx (group-n 1
+                  (+ (not (any ?\s ?\t ?\n ?\r)))
+                  (or ".hs"
+                      ".lhs"
+                      ".hsc"
+                      ".chs"
+                      ".alex"
+                      ".x"
+                      ".happy"
+                      ".y"))
+         ":"
+         (group-n 2
+                  (+ numeric))
+         ":"
+         (group-n 3
+                  (+ numeric))
+         (? "-"
+            (group-n 4
+                     (+ numeric)))
+         (or ")"
+             eol))
+    1 2 (3 . 4) 0) ;; info locus
+  )
+
 (defconst haskell-compilation-error-regexp-alist
   `((,(concat
        "^ *\\(?1:.+?\\.\\(?:hs\\|lhs\\|hsc\\|chs\\|alex\\|x\\|happy\\|y\\|ly\\)\\):"
@@ -81,12 +106,11 @@ The `%s' placeholder is replaced by the current buffer's filename."
      1 (2 . 3) (4 . 5) (6 . nil)) ;; error/warning locus
 
     ;; multiple declarations
-    ("^    \\(?:Declared at:\\|            \\) \\(?1:.+?\\.\\(?:hs\\|lhs\\|hsc\\|c2hs\\|alex\\|x\\|happy\\|y\\)\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
+    ("^    \\(?:\\(?:Declared\\|Defined\\) at:\\|            \\) \\(?1:.+?\\.\\(?:hs\\|lhs\\|hsc\\|c2hs\\|alex\\|x\\|happy\\|y\\)\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
      1 2 4 0) ;; info locus
 
-    ;; this is the weakest pattern as it's subject to line wrapping et al.
-    (" at \\(?1:.+?\\.\\(?:hs\\|lhs\\|hsc\\|c2hs\\|alex\\|x\\|happy\\|y\\)\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?[)]?$"
-     1 2 (4 . 5) 0)) ;; info locus
+    ,haskell-compilation-error-filename-regexp
+    )
   "Regexps used for matching GHC compile messages.
 See `compilation-error-regexp-alist' for semantics.")
 
