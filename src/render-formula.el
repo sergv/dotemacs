@@ -366,25 +366,20 @@ carried out on FORMULA-STR."
   nil ;; keymap
   :group util
   :global nil
-  (if render-formula-mode
-    (progn
-      (font-lock-add-keywords
-       nil
-       `((,+render-buffer-latex-re+
-          (1 'render-formula-regexp-face
-             ;; do override
-             t
-             ;; use lax match since group 1 may not always match
-             t)
-          (2 'render-formula-formula-face t ;; do override
-             ))))
-      (setq-local font-lock-multiline 'undecided))
-    (progn
-      (font-lock-remove-keywords
-       nil
-       `((,+render-buffer-latex-re+
-          (1 'render-formula-regexp-face t t)
-          (2 'render-formula-formula-face t)))))))
+  (let ((keywords
+         `((,+render-buffer-latex-re+
+            (1 'render-formula-regexp-face
+               ;; do override
+               t
+               ;; use lax match since group 1 may not always match
+               t)
+            (2 'render-formula-formula-face t ;; do override
+               )))))
+    (if render-formula-mode
+      (progn
+        (font-lock-add-keywords nil keywords)
+        (setq-local font-lock-multiline 'undecided))
+      (font-lock-remove-keywords nil keywords))))
 
 
 (provide 'render-formula)

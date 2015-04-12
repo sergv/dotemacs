@@ -162,8 +162,7 @@ error location - list of (filename line column)."
 
        ("<f9>"     recompile)
        ("`"        recompile)
-       ("SPC"      compile-goto-error)
-       ("o"        compile-goto-error))))
+       ("SPC"      compile-goto-error))))
 
 (provide 'compilation-setup)
 
