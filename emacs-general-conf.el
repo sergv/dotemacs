@@ -126,6 +126,8 @@
 
 (setq-default major-mode 'text-mode)
 
+(remove-hook 'temp-buffer-setup-hook #'help-mode-setup)
+
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)

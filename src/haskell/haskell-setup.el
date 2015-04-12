@@ -63,6 +63,11 @@
 (vim:defcmd vim:haskell-clear-buffer-and-load-file (nonrepeatable)
   (haskell-clear-buffer-and-load-file))
 
+(vim:defcmd vim:haskell-ghc-init (nonrepeatable)
+  (ghc-init))
+(vim:defcmd vim:haskell-ghc-check (nonrepeatable)
+  (ghc-check-syntax))
+
 
 (defun haskell-setup ()
   (init-common :use-yasnippet t
@@ -104,8 +109,8 @@
 
   ;; (turn-on-haskell-simple-indent)
 
-  (turn-on-haskell-doc-mode)
-  (setf haskell-doc-show-global-types t)
+  ;; (turn-on-haskell-doc-mode)
+  ;; (setf haskell-doc-show-global-types t)
 
   ;; it's not always a good idea to wait
   ;; (setf inferior-haskell-wait-and-jump t)
@@ -152,6 +157,9 @@
   (vim:local-emap "hlint" 'vim:hs-lint)
   (vim:local-emap "load" 'vim:inferior-haskell-load-file)
   (vim:local-emap "loadc" 'vim:haskell-clear-buffer-and-load-file)
+  (vim:local-emap "init" 'vim:haskell-ghc-init)
+  (vim:local-emap "check" 'vim:haskell-ghc-check)
+  (vim:local-emap "ch" 'vim:haskell-ghc-check)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"         inferior-haskell-send-decl)
@@ -160,7 +168,7 @@
     ("+"         input-unicode)
     ("SPC SPC"   switch-to-haskell)
     ("g w"       shm/goto-where)
-    ("`"         haskell-compile)
+    ;; ("`"         haskell-compile)
     ("C-`"       hs-lint))
 
   (haskell-bind-shm-bindings)
@@ -197,6 +205,7 @@
     ;; ("- h"     haskell-haddock-identifier)
     ;; ("- m"     haskell-haddock-module)
     ;; ("- g"     haskell-hoogle-at-point)
+    ("`"       ghc-display-errors)
     ("- ?"     ghc-display-errors)
     ("- y"     hayoo)
     ("- /"     ghc-complete)
@@ -327,8 +336,6 @@
 
   (haskell-abbrev+-setup :repl t))
 
-(add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
-
 (defun haskell-interactive-mode-setup ()
   ;; undo-tree is useless for ghci interaction
   ;; well I'm not sure now, I hope it's useful since it proved itself useful
@@ -363,7 +370,15 @@
 
   (haskell-abbrev+-setup :repl t))
 
-(add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
+(defun haskell-compilation-setup ()
+  (setq-local *compilation-jump-error-regexp*
+              +haskell-compile-error-or-warning-regexp+)
+  (def-keys-for-map haskell-compilation-mode-map
+    ("`"        recompile)
+    ("<return>" compilation/goto-error)
+    ("SPC"      compilation/goto-error-other-window)
+    ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
+    ("G"        vim-mock:motion-go-to-first-non-blank-end)))
 
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
@@ -375,7 +390,18 @@
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
     ("G"        vim-mock:motion-go-to-first-non-blank-end)))
 
-(add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
+(defun ghc-check-mode-setup ()
+  (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("<up>"     compilation-jump-to-prev-error)
+    ("<down>"   compilation-jump-to-next-error)
+    ("C-t"      compilation-jump-to-prev-error)
+    ("C-h"      compilation-jump-to-next-error)
+    ("<return>" compilation/goto-error)
+    ("SPC"      compilation/goto-error-other-window)
+    ;; ("<home>"   prev-f)
+    ;; ("<end>"    next-f)
+    ))
 
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet nil)
@@ -397,8 +423,6 @@
     ("`"               haskell-compile)
     ("<f9>"            haskell-compile)))
 
-(add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
-
 (defun hs-lint-setup ()
   (setq-local *compilation-jump-error-regexp*
               hs-lint-regex)
@@ -412,12 +436,8 @@
                  (list (format hs-lint-regex-orig "Warning")
                        1 2 3 1)))))
 
-(add-hook 'hs-lint-setup-hook #'hs-lint-setup)
-
 (defun ghc-core-setup ()
   (structured-haskell-mode -1))
-
-(add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 
 (defvar hs-lint-error-regex
   "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Error:")
@@ -451,8 +471,6 @@
     ("<down>" compilation-jump-to-next-error)
     ("t"      compilation-jump-to-prev-error)
     ("h"      compilation-jump-to-next-error)))
-
-(add-hook 'hs-lint-mode-hook #'hs-lint-setup)
 
 (provide 'haskell-setup)
 
