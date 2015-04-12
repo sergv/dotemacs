@@ -38,6 +38,9 @@
        ("v"        set-mark-command)
        ("y"        copy-region-as-kill)
 
+       ("<home>"   prev-f)
+       ("<end>"    next-f)
+
        ("<return>" compilation/goto-error)
        ("SPC"      compilation/goto-error-other-window)
        ("o"        compilation/goto-error-other-window))
