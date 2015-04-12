@@ -127,7 +127,7 @@ NB does not expect to cache values of ARGS that are nil."
                   (intersection args cache-args :test #'equal?))
           nil
           "defun-caching: CACHE-ARGS must be a subset of ARGS")
-  (let ((cache-var (gensym "cache"))
+  (let ((cache-var (gentemp "cache"))
         (query-var (gensym "query"))
         (hash-table-var (gensym "hash-table"))
         (value-var (gensym "value"))
