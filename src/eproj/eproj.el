@@ -939,12 +939,13 @@ symbol 'unresolved.")
          *ignored-directory-prefixes*)
         ))))
 
-(defvar eproj/find-available?
-  (and (not (platform-os-type? 'windows))
-       (executable-find "find")))
-
-(defvar eproj/busybox-available?
-  (executable-find "busybox"))
+(defvar eproj/find-program-type
+  (or (and (not (platform-os-type? 'windows))
+           (executable-find "find")
+           'find)
+      (and (executable-find "busybox")
+           'busybox))
+  "Can be either 'find, 'busybox or nil.")
 
 (defun eproj/find-rec (root
                        extensions
@@ -953,8 +954,7 @@ symbol 'unresolved.")
                        ignored-directory-prefixes)
   (when (null? extensions)
     (error "no extensions for project %s" root))
-  (if (or eproj/find-available?
-          eproj/busybox-available?)
+  (if eproj/find-program-type
     (let* ((ignored-dirs
             (nconc
              (map (lambda (dir) (list "-ipath" (concat "*/" dir)))
@@ -962,24 +962,33 @@ symbol 'unresolved.")
              (map (lambda (dir) (list "-ipath" (concat "*/" dir "*")))
                   ignored-directory-prefixes)))
            (ignored-files
-            (map (lambda (re) (list "-iregex" re))
+            (map (pcase eproj/find-program-type
+                   (`find
+                    (lambda (re) (list "-iregex" re)))
+                   (`busybox
+                    (lambda (re) (list "-regex" re)))
+                   (_
+                    (error "eproj/find-program-type has invalid value: %s" eproj/find-program-type)))
                  ignored-files-absolute-regexps))
            (exts
             (map (lambda (ext) (list "-iname" (concat "*." ext)))
                  extensions))
            (find-cmd
-            (cond
-              (eproj/find-available? "find")
-              (eproj/busybox-available? "busybox")))
+            (pcase eproj/find-program-type
+              (`find
+               "find")
+              (`busybox
+               "busybox")
+              (_
+               (error "eproj/find-program-type has invalid value: %s" eproj/find-program-type))))
            (cmd
             (util:flatten
-             (list (when (and (not eproj/find-available?)
-                              eproj/busybox-available?)
+             (list (when (eq? 'busybox eproj/find-program-type)
                      "find")
-                   (when eproj/find-available?
+                   (when (eq? 'find eproj/find-program-type)
                      '("-O3"))
                    root
-                   (when eproj/find-available?
+                   (when (eq? 'find eproj/find-program-type)
                      '("-regextype" "emacs"))
                    (when ignored-dirs
                      (list
@@ -1004,16 +1013,16 @@ symbol 'unresolved.")
                    "-print"))))
       (with-temp-buffer
         (with-disabled-undo
-          (with-inhibited-modification-hooks
-            (apply #'call-process
-                   find-cmd
-                   nil
-                   t
-                   nil
-                   cmd)
-            (split-into-lines
-             (buffer-substring-no-properties (point-min)
-                                             (point-max)))))))
+         (with-inhibited-modification-hooks
+          (apply #'call-process
+                 find-cmd
+                 nil
+                 t
+                 nil
+                 cmd)
+          (split-into-lines
+           (buffer-substring-no-properties (point-min)
+                                           (point-max)))))))
     (let ((ext-re (concat "\\."
                           (regexp-opt extensions)
                           "$"))
