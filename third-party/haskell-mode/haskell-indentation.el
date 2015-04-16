@@ -412,7 +412,7 @@ and indent when all of the following are true:
               (goto-char ps)
               (beginning-of-line)))
           (when (and (>= 2 (haskell-indentation-current-indentation))
-                     (not (looking-at ">\\s-*$")))
+                     (not (looking-at-p ">\\s-*$")))
             (forward-char 2)
             (throw 'return nil))
           (when (bobp)
@@ -1226,7 +1226,7 @@ line."
         ((looking-at "\\(→\\|←\\|∷\\|⇒\\)\\([^-:!#$%&*+./<=>?@\\\\^|~]\\|$\\)")
          (let ((tok (match-string-no-properties 1)))
            (or (cdr (assoc tok haskell-indentation-unicode-tokens)) tok)))
-        ((looking-at"[-:!#$%&*+./<=>?@\\\\^|~`]" )
+        ((looking-at-p "[-:!#$%&*+./<=>?@\\\\^|~`]")
          'operator)
         (t 'value)))
 
