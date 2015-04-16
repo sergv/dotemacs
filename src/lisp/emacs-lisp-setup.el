@@ -160,7 +160,9 @@
   (when (buffer-modified-p)
     (save-buffer))
   (when (and (eq major-mode 'emacs-lisp-mode)
-             (not no-byte-compile))
+             (not no-byte-compile)
+             (not (string= ".eproj-info"
+                           (file-name-nondirectory (buffer-file-name)))))
     (let ((file (buffer-file-name))
           (window-config (current-window-configuration)))
       (if (byte-compile-file file)
