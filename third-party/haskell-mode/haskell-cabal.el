@@ -353,11 +353,11 @@ OTHER-WINDOW use `find-file-other-window'."
   (save-excursion
     (beginning-of-line)
     (cond
-     ((looking-at haskell-cabal-subsection-header-regexp ) 'subsection-header)
-     ((looking-at haskell-cabal-section-header-regexp) 'section-header)
-     ((looking-at haskell-cabal-comment-regexp) 'comment)
-     ((looking-at haskell-cabal-empty-regexp ) 'empty)
-     ((looking-at haskell-cabal-conditional-regexp ) 'conditional)
+     ((looking-at-p haskell-cabal-subsection-header-regexp) 'subsection-header)
+     ((looking-at-p haskell-cabal-section-header-regexp) 'section-header)
+     ((looking-at-p haskell-cabal-comment-regexp) 'comment)
+     ((looking-at-p haskell-cabal-empty-regexp) 'empty)
+     ((looking-at-p haskell-cabal-conditional-regexp ) 'conditional)
      (t 'section-data))))
 
 (defun haskell-cabal-header-p ()
@@ -574,7 +574,7 @@ resulting buffer-content"
   "Does line only contain whitespaces and comments?"
   (save-excursion
     (beginning-of-line)
-    (looking-at "^[ \t]*\\(?:--.*\\)?$")))
+    (looking-at-p "^[ \t]*\\(?:--.*\\)?$")))
 
 (defun haskell-cabal-kill-indentation ()
   "Remove longest common whitespace prefix from each line"

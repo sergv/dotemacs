@@ -322,7 +322,7 @@ If `haskell-process-load-or-reload-prompt' is nil, accept `default'."
   (interactive)
   (with-current-buffer (haskell-session-interactive-buffer (haskell-session))
     (if (progn (goto-char (line-beginning-position))
-               (looking-at haskell-interactive-mode-error-regexp))
+               (looking-at-p haskell-interactive-mode-error-regexp))
         (progn (forward-line -1)
                (haskell-interactive-jump-to-error-line))
       (progn (goto-char (point-max))
