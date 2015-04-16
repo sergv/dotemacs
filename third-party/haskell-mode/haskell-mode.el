@@ -693,7 +693,7 @@ comment.  May return a qualified name."
           ;; Try to slurp qualification part first.
           (skip-syntax-forward "w_")
           (setq end (point))
-          (while (and (looking-at (rx "." upper))
+          (while (and (looking-at-p (rx "." upper))
                       (not (zerop (progn (forward-char)
                                          (skip-syntax-forward "w_")))))
             (setq end (point)))
@@ -1074,16 +1074,16 @@ To be added to `flymake-init-create-temp-buffer-copy'."
 (defun haskell-mode-try-insert-scc-at-point ()
   "Try to insert an SCC annotation at point.  Return true if
 successful, nil otherwise."
-  (if (or (looking-at "\\b\\|[ \t]\\|$")
+  (if (or (looking-at-p "\\b\\|[ \t]\\|$")
           ;; Allow SCC if point is on a non-letter with whitespace to the left
           (and (not (bolp))
                (save-excursion
                  (forward-char -1)
-                 (looking-at "[ \t]"))))
-      (let ((space-at-point (looking-at "[ \t]")))
+                 (looking-at-p "[ \t]"))))
+      (let ((space-at-point (looking-at-p "[ \t]")))
         (unless (and (not (bolp)) (save-excursion
                                     (forward-char -1)
-                                    (looking-at "[ \t]")))
+                                    (looking-at-p "[ \t]")))
           (insert " "))
         (insert "{-# SCC \"\" #-}")
         (unless space-at-point
