@@ -106,13 +106,12 @@ by `b/backup-interval'."
 
 (defun backup-all-buffers ()
   "Make backup of files in all buffers that have files :)."
-  (mapc #'make-backup
-        (remove-if-not (lambda (buf)
-                         (and (buffer-file-name buf)
-                              (buffer-local-value
-                               'b/has-unbackupped-changes
-                               buf)))
-                       (buffer-list))))
+  (dolist (buf (buffer-list))
+    (when (and (buffer-file-name buf)
+               (buffer-local-value
+                'b/has-unbackupped-changes
+                buf))
+      (make-backup buf))))
 
 
 (add-hook 'after-save-hook #'run-backup-as-needed)
