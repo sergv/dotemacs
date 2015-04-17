@@ -1407,6 +1407,14 @@ to deleted items. ITEMS will be mutated in order to obtain result."
                 tmp (cdr tmp)))))
     items))
 
+(defun fontify-merge-markers ()
+  (font-lock-add-keywords
+   nil
+   '(("^<<<<<<< .*$" 0 'font-lock-warning-face t)
+     ("^|||||||$" 0 'font-lock-warning-face t) ; "diff3" style
+     ("^=======$" 0 'font-lock-warning-face t)
+     ("^>>>>>>> .*$" 0 'font-lock-warning-face t))))
+
 (provide 'common)
 
 ;; Local Variables:
