@@ -25,8 +25,10 @@
 (defun shm/jump-to-slot ()
   "Jump to the next skeleton slot."
   (interactive)
-  (let ((os (sort (remove-if-not (lambda (o) (overlay-get o 'shm-evaporate-overlay))
-                                 (overlays-in (point) (point-max)))
+  (let ((os (sort (delete-if (lambda (o)
+                               (or (not (overlay-get o 'shm-evaporate-overlay))
+                                   (overlay-get o 'shm-disable-jumping)))
+                             (overlays-in (point) (point-max)))
                   (lambda (a b)
                     (< (overlay-start a)
                        (overlay-start b))))))
@@ -40,8 +42,10 @@
 (defun shm/jump-to-previous-slot ()
   "Jump to the previous skeleton slot."
   (interactive)
-  (let ((os (sort (remove-if-not (lambda (o) (overlay-get o 'shm-evaporate-overlay))
-                                 (overlays-in (point-min) (point)))
+  (let ((os (sort (delete-if (lambda (o)
+                               (or (not (overlay-get o 'shm-evaporate-overlay))
+                                   (overlay-get o 'shm-disable-jumping)))
+                             (overlays-in (point-min) (point)))
                   (lambda (a b)
                     (> (overlay-start a)
                        (overlay-start b))))))
@@ -52,7 +56,7 @@
             (goto-char (overlay-start (cadr os))))
         (goto-char (overlay-start (car os)))))))
 
-(defun shm/insert-undefined ()
+(defun shm/insert-undefined (&optional enable-jumping)
   "Insert undefined."
   (interactive)
   (let ((point (point)) (bumped nil))
@@ -60,15 +64,15 @@
                (not (bolp)))
       (shm-insert-string " ")
       (setq point (1+ point)))
-    (when (and (looking-at "[^])},; ]+_*")
+    (when (and (looking-at-p "[^])},; ]+_*")
                (not (eolp)))
       (shm-insert-string " ")
       (forward-char -1))
     (shm-insert-string "undefined")
-    (shm-evaporate point (point))
+    (shm-evaporate point (point) (not enable-jumping))
     (goto-char point)))
 
-(defun shm/insert-underscore ()
+(defun shm/insert-underscore (&optional enable-jumping)
   "Insert underscore."
   (interactive)
   (save-excursion
@@ -79,7 +83,7 @@
         (shm-insert-string " ")
         (forward-char -1))
       (shm-insert-string "_")
-      (shm-evaporate point (point)))))
+      (shm-evaporate point (point) (not enable-jumping)))))
 
 (defun shm-auto-insert-lambda ()
   "Insert template
@@ -87,10 +91,10 @@
 \_ -> undefined
 "
   (save-excursion
-    (shm/insert-underscore)
+    (shm/insert-underscore t)
     (forward-char)
     (insert " -> ")
-    (shm/insert-undefined)))
+    (shm/insert-undefined t)))
 
 (defun shm-auto-insert-do ()
   "Insert template
