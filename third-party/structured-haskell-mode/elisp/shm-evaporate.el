@@ -34,13 +34,14 @@
              (overlays-in (point) (1+ (point))))))
     (not (null os))))
 
-(defun shm-evaporate (beg end)
+(defun shm-evaporate (beg end &optional disable-cycling?)
   "Make the region evaporate when typed over."
   (interactive "r")
   (let ((o (make-overlay beg end nil nil nil)))
     (overlay-put o 'shm-evaporate-overlay t)
     (overlay-put o 'face 'shm-evaporate-face)
     (overlay-put o 'shm-evaporate t)
+    (overlay-put o 'shm-disable-jumping disable-cycling?)
     (overlay-put o 'priority 2)
     (overlay-put o 'modification-hooks '(shm-evaporate-modification-hook))
     (overlay-put o 'insert-in-front-hooks '(shm-evaporate-insert-before-hook))))
