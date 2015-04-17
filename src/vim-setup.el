@@ -186,7 +186,8 @@ like \"d w\".")
   ("g r"       rgrep-wrapper)
   ("g TAB"     nil)
   ("g n"       nil)
-  ("g t"       nil))
+  ("g t"       nil)
+  ("g #"       server-edit))
 
 ;;; visual keybindings
 
