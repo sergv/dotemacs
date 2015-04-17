@@ -74,6 +74,7 @@
                :use-nxhtml-menu nil
                :use-comment t
                :use-render-formula nil)
+  (smerge-mode +1)
   (add-hook 'after-save-hook
             (lambda ()
               (ignore-errors
@@ -405,6 +406,7 @@
 
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet nil)
+  (fontify-merge-markers)
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
@@ -415,6 +417,7 @@
   (vim:local-emap "c" 'vim:haskell-compile)
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc" 'vim:haskell-compile-choosing-command)
+
   (def-keys-for-map '(vim:normal-mode-local-keymap
                       vim:insert-mode-local-keymap)
     ("<tab>"           indent-relative-forward)
