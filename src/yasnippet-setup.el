@@ -88,7 +88,7 @@ simlifying encoding of several keys for one snippet."
 ;; this causes yasnippet to consider only *.snip files
 (redefun yas--subdirs (directory &optional file?)
   "Return subdirs or files of DIRECTORY according to FILE?."
-  (remove-if (lambda (file)
+  (delete-if (lambda (file)
                (let ((filename (file-name-nondirectory file)))
                  (or (string-match-pure? "^\\." filename)
                      (string-match-pure? "^#.*#$" filename)
