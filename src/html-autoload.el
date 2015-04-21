@@ -8,7 +8,7 @@
 
 (add-to-list 'load-path (concat +emacs-standalone-path+ "/nxhtml"))
 
-(require 'nxhtml-autostart)
+;; (require 'nxhtml-autostart)
 
 (add-hook 'rnc-mode-hook #'init-common)
 
@@ -29,33 +29,37 @@
 ;;                        "/xhtml-transitional-in-nxml/schemas.xml")
 ;;                rng-schema-locating-files-default))))
 
-(setf load-path
-      (remove-if (lambda (path)
-                   (string-match-pure? "/nxhtml/tests/?$"
-                                       path))
-                 load-path))
+(eval-after-load "nxhtml-autostart"
+  '(progn
+     (setf load-path
+           (remove-if (lambda (path)
+                        (string-match-pure? "/nxhtml/tests/?$"
+                                            path))
+                      load-path))
+     (setf auto-mode-alist
+           (cons (cons "\\.html\\'" 'nxhtml-mode)
+                 (remove* "\\.html\\'"
+                          auto-mode-alist
+                          :test #'string=
+                          :key #'car)))
 
-(setf auto-mode-alist
-      (cons (cons "\\.html\\'" 'nxhtml-mode)
-            (remove* "\\.html\\'"
-                     auto-mode-alist
-                     :test #'string=
-                     :key #'car)))
+     (setq hs-special-modes-alist
+           (assq-delete-all 'nxml-mode
+                            (assq-delete-all 'nxhtml-mode
+                                             hs-special-modes-alist)))
+     (dolist (mode '(nxml-mode nxhtml-mode))
+       (add-to-list 'hs-special-modes-alist
+                    `(,mode
+                      "<[^/>]>\\|<[^>]*"
+                      "</"
+                      "<!--" ;; won't work on its own; uses syntax table
+                      nxhtml-hs-forward-sexp-func
+                      nil)))
+     ))
+
+
 
 ;; hideshow special mode
-(setq hs-special-modes-alist
-      (assq-delete-all 'nxml-mode
-                       (assq-delete-all 'nxhtml-mode
-                                        hs-special-modes-alist)))
-(dolist (mode '(nxml-mode nxhtml-mode))
-  (add-to-list 'hs-special-modes-alist
-               `(,mode
-                 "<[^/>]>\\|<[^>]*"
-                 "</"
-                 "<!--" ;; won't work on its own; uses syntax table
-                 nxhtml-hs-forward-sexp-func
-                 nil)))
-
 
 (defparameter *hexcolour-keywords*
   '(("#[[:xdigit:]]\\{6\\}"

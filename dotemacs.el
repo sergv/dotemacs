@@ -81,7 +81,9 @@
 
   ;; it's usually already enabled by nxhtml autoloads
   ;; so action should be taken to turn it off
-  (nxhtml-menu-mode (if use-nxhtml-menu 1 -1))
+  (when (and (boundp 'nxhtml-menu-mode)
+             (fboundp 'nxhtml-menu-mode))
+    (nxhtml-menu-mode (if use-nxhtml-menu 1 -1)))
 
   (smartparens-buffer-local-setup)
 
