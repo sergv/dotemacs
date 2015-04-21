@@ -188,8 +188,10 @@
     ("C-<down>"        shm/swing-down)
     ("<tab>"           shm/tab)
     ("<backtab>"       shm/backtab)
-    ("C-t"             haskell-compilation-prev-error-other-window)
-    ("C-h"             haskell-compilation-next-error-other-window)
+    ("C-t"             ghc-goto-prev-error)
+    ("C-h"             ghc-goto-next-error)
+    ("M-t"             haskell-compilation-prev-error-other-window)
+    ("M-h"             haskell-compilation-next-error-other-window)
 
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
@@ -217,6 +219,7 @@
     ("- c"     ghc-case-split)
     ("- r"     ghc-refine)
     ("- a"     ghc-auto)
+    ("- s"     ghc-insert-template-or-signature)
 
     ("*"       search-for-haskell-symbol-at-point-forward)
     ("C-*"     search-for-haskell-symbol-at-point-forward-new-color)
