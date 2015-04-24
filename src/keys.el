@@ -55,7 +55,7 @@
   ("C-t"      nil)
   ("C-<down>" nil)
   ("C-<up>"   nil)
-  ("C-b"      icicle-buffer)
+  ("C-b"      ido-switch-buffer)
 
   ;; for icicle
   ("<M-tab>"  nil)

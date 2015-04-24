@@ -109,11 +109,11 @@ The value from `ibuffer-saved-filter-groups' is used."
          (if (null? ibuffer-saved-filter-groups)
            (error "No saved filters")
            (let ((completion-ignore-case t))
-             (icicle-completing-read "Switch to saved filter group: "
-                                     (append (mapcar #'car ibuffer-saved-filter-groups)
-                                             (mapcar #'car ibuffer-aux-filter-groups))
-                                     nil
-                                     t)))))
+             (ido-completing-read "Switch to saved filter group: "
+                                  (nconc (mapcar #'car ibuffer-saved-filter-groups)
+                                         (mapcar #'car ibuffer-aux-filter-groups))
+                                  nil
+                                  t)))))
        (aif (cdr-safe (assoc name ibuffer-saved-filter-groups))
          (setq ibuffer-filter-groups it)
          (aif (cdr-safe (assoc name ibuffer-aux-filter-groups))
@@ -183,8 +183,8 @@ a prefix argument reverses the meaning of that variable."
                                (completion-ignore-case t))
                            (when (null table)
                              (error "No buffers!"))
-                           (icicle-completing-read "Jump to buffer: "
-                                                   table nil t))
+                           (do-completing-read "Jump to buffer: "
+                                               table nil t))
                          (completing-read-buffer "Jump to buffer: " nil t)))))
        (when (not (string= "" name))
          (let (buf-point)

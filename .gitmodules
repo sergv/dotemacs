@@ -34,9 +34,6 @@
 [submodule "third-party/haskell-mode"]
         path = third-party/haskell-mode
         url = https://git.gitorious.org/sergv-emacs/haskell-mode.git
-[submodule "third-party/icicles"]
-        path = third-party/icicles
-        url = https://git.gitorious.org/sergv-emacs/icicles.git
 [submodule "third-party/lua-mode"]
         path = third-party/lua-mode
         url = https://github.com/immerrr/lua-mode.git

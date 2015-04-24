@@ -45,9 +45,9 @@ Argument SYM-NAME thing to find."
     (let* ((sym-at-point (symbol-at-point))
            (at-point (and sym-at-point (symbol-name sym-at-point))))
       (if current-prefix-arg
-        (icicle-completing-read "Symbol: "
-                                (elisp-slime-nav--all-navigable-symbol-names)
-                                nil t at-point)
+        (ido-completing-read "Symbol: "
+                             (elisp-slime-nav--all-navigable-symbol-names)
+                             nil t at-point)
         at-point))))
   (when sym-name
     (let ((sym (intern sym-name)))
@@ -60,10 +60,9 @@ Argument SYM-NAME thing to find."
          (find-library sym-name))
         ((facep sym)
          (find-face-definition sym))
-        (:else
-         (progn
-           (pop-tag-mark)
-           (error "Don't know how to find '%s'" sym)))))))
+        (t
+         (pop-tag-mark)
+         (error "Don't know how to find '%s'" sym))))))
 
 
 (provide 'elisp-slime-nav)

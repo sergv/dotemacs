@@ -188,11 +188,11 @@ in the current *Python* session."
            ;; got only one completion
            (setf completion (car completions)))
           (t
-           (setf completion (completing-read-vanilla ""
-                                                     completions
-                                                     nil
-                                                     nil
-                                                     pattern)))))
+           (setf completion (ido-completing-read ""
+                                                 completions
+                                                 nil
+                                                 nil
+                                                 pattern)))))
       (if (or (string= pattern completion)
               (= 0 (length completion)))
         (error "No completions found for \"%s\"" pattern)

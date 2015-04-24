@@ -20,7 +20,7 @@
 
 (setf magit-completing-read-function
       (lambda (prompt collection &optional predicate require-match initial-input hist def)
-        (completing-read-vanilla
+        (ido-completing-read
          (if (and def (> (length prompt) 2)
                   (string-equal ": " (substring prompt -2)))
            (format "%s (default %s): " (substring prompt 0 -2) def)
@@ -206,7 +206,7 @@ all otherwise."
     ("C-TAB"           magit-cycle-section)
     ("C-<tab>"         magit-cycle-section)
     ("'"               magit-goto-parent-section)
-    ("C-b"             icicle-buffer)
+    ("C-b"             ido-switch-buffer)
     ("<left>"          prev-w)
     ("<right>"         next-w)
     ("S-<left>"        swap-buffers-backward)
