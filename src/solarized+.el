@@ -492,7 +492,6 @@ Futher modified by Sergey Vinokurov."
        (magit-cherry-equivalent              ((t (:foreground ,magenta))))
 
        (minibuffer-prompt                    ((t (:foreground ,violet))))
-       (minimap-active-region-background     ((t (:inherit highlight))))
        (navigation-node-face                 ((t (:foreground ,magenta))))
        (paren-face-no-match                  ((t (:underline ,yellow))))
        (quack-pltish-class-defn-face         ((t (:foreground ,violet))))

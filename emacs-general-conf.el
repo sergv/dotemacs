@@ -58,10 +58,7 @@
         (haskell-compilation-mode . nil)
         (hs-lint-mode . nil)
 
-        (clojure-compilation-mode . nil)
-        (nrepl-popup-buffer-mode . nil)
-        (nrepl-macroexpansion-minor-mode . nil)
-        (nrepl-interaction-mode . nil)))
+        (clojure-compilation-mode . nil)))
 
 ;;;; modeline
 (setq-default mode-line-format

@@ -18,11 +18,6 @@
           "Display `comint-input-ring' items in another buffer."
           t)
 
-(autoload 'browse-nrepl-input-history
-          "browse-kill-ring"
-          "Display `nrepl-input-history' items in another buffer."
-          t)
-
 (autoload 'browse-haskell-interactive-input-history
           "browse-kill-ring"
           "Display `haskell-interactive-mode-history' items in another buffer."
