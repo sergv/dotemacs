@@ -16,7 +16,6 @@
 (require 'common)
 (require 'advices-util)
 (require 'macro-util)
-(require 'el-swank-fuzzy)
 (require 'lisp-utils)
 (require 'search)
 
@@ -691,8 +690,6 @@ This command assumes point is not in a string or comment."
     (setq-local whitespace-line-column 81)
     (setq-local whitespace-style '(face lines-tail tabs)))
   ;; (whitespace-mode 1)
-
-  (el-swank-set-completion-syntax 'lisp)
 
   (setq-local comment-style 'indent)
   (setq-local comment-start ";")

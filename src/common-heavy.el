@@ -95,7 +95,7 @@ if CASE-SENSETIVE is t."
 (defun input-unicode ()
   (interactive)
   (let* ((symbs (map 'char->string (extract-unicode)))
-         (symb (completing-read-vanilla "> " symbs)))
+         (symb (ido-completing-read "> " symbs)))
     (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
     (insert symb)))
 

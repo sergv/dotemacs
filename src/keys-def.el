@@ -56,14 +56,14 @@
 
 (defconst +vim-special-keys+
   '(("s"     vim:ex-read-command)
-    ("C-b"   icicle-buffer)
+    ("C-b"   ido-switch-buffer)
 
     ("g"     nil)
     ("g x"   smex)
     ("M-x"   smex)
     ("g e"   vim-mock:motion-bwd-word-end)
     ("g E"   vim-mock:motion-bwd-WORD-end)
-    ("g f"   icicle-file)
+    ("g f"   ido-find-file)
     ("g r"   rgrep-wrapper)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)
