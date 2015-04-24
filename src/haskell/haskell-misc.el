@@ -74,7 +74,9 @@
         (lambda (custom-build-dir)
           (if custom-build-dir
             (concat "--builddir " custom-build-dir " ")
-            "")))
+            "")
+          ;;""
+          ))
        (common-conf-opts
         (lambda (custom-build-dir)
           (concat (funcall mk-build-dir-arg custom-build-dir)
@@ -684,6 +686,11 @@ it's position in current window."
         )
       (ghc-goto-prev-error)
       )))
+
+(defun show-ghc-mod-errors-or-switch-to-haskell ()
+  (interactive)
+  (or (ghc-display-errors)
+      (switch-to-haskell)))
 
 (provide 'haskell-misc)
 
