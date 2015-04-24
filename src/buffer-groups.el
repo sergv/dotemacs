@@ -41,17 +41,7 @@
                         (mode . vhdl-mode)
                         (mode . ucf-mode)))
        (clojure-filter `(or (mode . clojure-mode)
-                            (mode . nrepl-mode)
-                            (mode . nrepl-popup-buffer-mode)
-                            (mode . nrepl-macroexpansion-minor-mode)
-                            (mode . nrepl-interaction-mode)
-                            (mode . nrepl-popup-buffer-mode)
-                            (mode . kibit-check-mode)
-                            (predicate
-                             .
-                             (and (string-match-pure? "^\\*.*nrepl.*\\*$" (buffer-name))
-                                  (memq major-mode '(text-mode
-                                                     fundamental-mode))))))
+                            (mode . kibit-check-mode)))
        (emacs-lisp-filter `(or (predicate
                                 .
                                 (and (memq major-mode

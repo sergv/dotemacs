@@ -49,10 +49,7 @@
                              calendar-mode
                              select-mode
 
-                             clojure-compilation-mode
-                             nrepl-popup-buffer-mode
-                             nrepl-macroexpansion-minor-mode
-                             nrepl-interaction-mode))
+                             clojure-compilation-mode))
 
 ;; these two are the same ones used for paredit
 (defadvice sp-forward-slurp-sexp
