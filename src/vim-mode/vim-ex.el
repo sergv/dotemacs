@@ -14,7 +14,6 @@
 (require 'vim-core)
 (require 'vim-compat)
 (require 'vim-motions)
-(require 'icicles-util)
 
 (defgroup vim-ex-mode nil
   "Configure ex-mode and search mode."
@@ -62,19 +61,36 @@
 
 (defparameter vim:ex-keymap
   (let ((map (make-sparse-keymap)))
-    (icicles-util/bind-minibuffer-keys map :sexp-keys nil)
     (def-keys-for-map map
-      ("?"        self-insert-command)
-      ("<tab>"    minibuffer-complete)
-      ("<return>" vim:ex-mode-exit)
-      ("RET"      vim:ex-mode-exit)
-      ("C-p"      icicle-yank-maybe-completing)
-      ("C-j"      vim:ex-mode-exit)
-      ("C-g"      vim:ex-mode-abort)
-      ("C-w"      backward-delete-word)
-      ("C-S-w"    backward-delete-word*)
-      ("<up>"     previous-history-element)
-      ("<down>"   next-history-element))
+      ("<escape>"      abort-recursive-edit)
+      ("C-w"           backward-delete-word)
+      ("C-S-w"         backward-delete-word*)
+      ("C-p"           vim:cmd-paste-before)
+      ("C-S-p"         browse-kill-ring)
+      ("M-p"           browse-kill-ring)
+      ("C-/"           nil)
+      ("C-v"           set-mark-command)
+      ("C-y"           copy-region-as-kill)
+      ("C-d"           kill-region)
+      ("C-f"           read-and-insert-filename)
+      ("<delete>"      delete-char)
+      ("<home>"        beginning-of-line)
+      ("<end>"         end-of-line)
+      ("SPC"           self-insert-command)
+      ("S-<delete>"    delete-whitespace-forward)
+      ("S-<backspace>" delete-whitespace-backward)
+      ("<backspace>"   delete-backward-char)
+
+      ("?"             self-insert-command)
+      ("<tab>"         minibuffer-complete)
+      ("<return>"      vim:ex-mode-exit)
+      ("RET"           vim:ex-mode-exit)
+      ("C-j"           vim:ex-mode-exit)
+      ("C-g"           vim:ex-mode-abort)
+      ("C-w"           backward-delete-word)
+      ("C-S-w"         backward-delete-word*)
+      ("<up>"          previous-history-element)
+      ("<down>"        next-history-element))
     ;; (define-key map " " vim:ex-expect-argument)
     ;; (define-key map "\d" 'vim:ex-delete-backward-char)
     ;; (define-key map (kbd "ESC ESC") 'vim:ex-mode-keyboard-escape-quit)
@@ -789,7 +805,6 @@ the offset and the new position."
             (`next-of-prev-subst  (error "Next-of-prev-subst not yet implemented"))
             (_                    (error "Invalid address: %s" address))))))))
 
-
 (defun vim:ex-read-command (&optional initial-input)
   "Starts ex-mode."
   (interactive)
@@ -797,13 +812,13 @@ the offset and the new position."
         (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read-vanilla ">"
-                                             ;; #'vim:ex-complete
-                                             vim:ex-commands
-                                             nil
-                                             nil
-                                             initial-input
-                                             'vim:ex-history)))
+      (let ((result (ido-completing-read ">"
+                                         ;; #'vim:ex-complete
+                                         vim:all-known-ex-commands
+                                         nil ;; predicate
+                                         nil ;; require-match
+                                         initial-input
+                                         'vim:ex-history)))
         (when (and result
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))
