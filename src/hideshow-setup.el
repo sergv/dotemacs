@@ -83,55 +83,6 @@
          (deactivate-mark)
          (run-if-fbound vim:visual-mode-exit)))
 
-     ;; this is a modification that handles case when
-     ;; hs-hide-comments-when-hiding-all is nil better
-     (defun hs-hide-all ()
-       "Hide all top level blocks, displaying only first and last lines.
-Move point to the beginning of the line, and run the normal hook
-`hs-hide-hook'.  See documentation for `run-hooks'.
-If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
-       (interactive)
-       (hs-life-goes-on
-        (save-excursion
-          (unless hs-allow-nesting
-            (hs-discard-overlays (point-min) (point-max)))
-          (goto-char (point-min))
-          (let ((spew (make-progress-reporter "Hiding all blocks..."
-                                              (point-min) (point-max)))
-                (re (concat "\\("
-                            hs-block-start-regexp
-                            "\\)"
-                            (if hs-hide-comments-when-hiding-all
-                              (concat "\\|\\("
-                                      hs-c-start-regexp
-                                      "\\)")
-                              ""))))
-            (while (re-search-forward re (point-max) t)
-
-              (cond
-                ((and (not hs-hide-comments-when-hiding-all)
-                      (lisp-point-inside-comment?))
-                 (forward-comment (point-max)))
-
-                ((not (null? (match-beginning 1)))
-                 ;; we have found a block beginning
-                 (goto-char (match-beginning 1))
-                 (if hs-hide-all-non-comment-function
-                   (funcall hs-hide-all-non-comment-function)
-                   (hs-hide-block-at-point t)))
-
-                (t
-                 ;; found a comment, probably
-                 (let ((c-reg (hs-inside-comment-p)))
-                   (when (and c-reg (car c-reg))
-                     (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
-                       (hs-hide-block-at-point t c-reg)
-                       (goto-char (nth 1 c-reg)))))))
-              (progress-reporter-update spew (point)))
-            (progress-reporter-done spew)))
-        (beginning-of-line)
-        (run-hooks 'hs-hide-hook)))
-
      ;; add check hs-block-start-mdata-select
      (redefun hs-forward-sexp (match-data arg)
        "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
