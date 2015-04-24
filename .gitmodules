@@ -1,12 +1,6 @@
 [submodule "third-party/agda-mode"]
         path = third-party/agda-mode
         url = https://github.com/jwiegley/agda-mode.git
-[submodule "third-party/ariadne-el"]
-        path = third-party/ariadne-el
-        url = https://github.com/manzyuk/ariadne-el.git
-[submodule "third-party/bert-el"]
-        path = third-party/bert-el
-        url = https://github.com/manzyuk/bert-el.git
 [submodule "third-party/browse-kill-ring"]
         path = third-party/browse-kill-ring
         url = https://git.gitorious.org/sergv-emacs/browse-kill-ring.git
@@ -76,9 +70,6 @@
 [submodule "standalone/magit"]
         path = standalone/magit
         url = https://git.gitorious.org/sergv-emacs/magit.git
-[submodule "standalone/nrepl.el"]
-        path = standalone/nrepl.el
-        url = https://git.gitorious.org/sergv-emacs/cider.git
 [submodule "standalone/nxhtml"]
         path = standalone/nxhtml
         url = https://git.gitorious.org/sergv-emacs/nxhtml.git
