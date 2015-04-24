@@ -136,7 +136,9 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
              vim:operator-pending-mode-keymap
              vim:motion-mode-keymap
              vim:override-keymap)
-  :command-function 'vim:normal-mode-command)
+  :command-function 'vim:normal-mode-command
+  :cursor '(hbar . 2))
+
 
 (defun vim:normal-mode-command (command)
   "Executes a motion or simple-command or prepares a complex command."
