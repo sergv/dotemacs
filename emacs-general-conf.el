@@ -320,8 +320,6 @@
 ;;   (maximize-frame))
 
 
-(eval-after-load "ring" '(require 'ring+))
-
 ;;;; aliases
 
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -339,7 +337,7 @@
 (defalias 'align 'align-regexp)
 (defalias 'toggle-wrap-lines 'toggle-truncate-lines)
 
-(defalias 'eshell (lambda () (inteeractive) (error "eshell is disabled")))
+(defalias 'eshell (lambda () (interactive) (error "eshell is disabled")))
 
 ;;;; Epilogue
 

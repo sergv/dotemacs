@@ -116,8 +116,8 @@ like \"d w\".")
   ("<home>"  prev-f)
   ("<end>"   next-f)
 
-  ("C-:"     icicle-pp-eval-expression)
-  ("C-b"     icicle-buffer)
+  ("C-:"     pp-eval-expression)
+  ("C-b"     ido-switch-buffer)
   ("C-h"     search-toggle-highlighting)
   ;; rebind "C-h" for terminals that refuse to send "C-h" and
   ;; send "C-<backspace>" instead
@@ -178,7 +178,7 @@ like \"d w\".")
   ("g s W"     vim:replace-WORD)
   ("g s s"     vim:replace-symbol-at-point)
 
-  ("g f"       icicle-file)
+  ("g f"       ido-find-file)
   ;; ("g g f"     find-filename-in-tree-recursive)
   ("g c c"     comment-util-comment-lines)
   ("g c u"     comment-util-uncomment-region)
@@ -222,8 +222,8 @@ like \"d w\".")
   ("C-+"           yank-next)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up)
-  ("C-b"           icicle-buffer)
-  ("C-:"           icicle-pp-eval-expression))
+  ("C-b"           ido-switch-buffer)
+  ("C-:"           pp-eval-expression))
 
 ;;; ex bindings and commands
 
@@ -247,7 +247,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:cmd-close (nonrepeatable keep-visual)
   "Close current window, just like C-x 0."
-  (icicle-delete-window nil))
+  (delete-window))
 
 (vim:emap "close" 'vim:cmd-close)
 (vim:emap "cl" 'vim:cmd-close)

@@ -218,7 +218,7 @@ inserted."
                                 #'strip-trailing-slash)
                           #'identity)
                         (expand-file-name
-                         (icicle-read-file-name "" nil ""))))
+                         (ido-read-file-name "" nil ""))))
          (output (if (and (eq major-mode 'org-mode)
                           (y-or-n-p "Insert link? "))
                    (concat "[[file:"
@@ -231,43 +231,19 @@ inserted."
 
 ;;;
 
-(defun completing-read-vanilla (prompt
-                                collection
-                                &optional
-                                predicate
-                                require-match
-                                initial-input
-                                hist-m@%=!$+&^*z
-                                def
-                                inherit-input-method)
-  "Perform `completing-read' of icicles using vanilla completion and remove any text
-properties from the result."
-  (let ((icicle-TAB-completion-methods '(vanilla))
-        (icicle-hide-common-match-in-Completions-flag nil))
-    (let ((result (icicle-completing-read prompt
-                                          collection
-                                          predicate
-                                          require-match
-                                          initial-input
-                                          hist-m@%=!$+&^*z
-                                          def
-                                          inherit-input-method)))
-      (substring-no-properties result))))
-
 (defun read-string-no-default (prompt
                                &optional
                                initial-input
                                hist-m@%=!$+&^*z
                                default-value
                                inherit-input-method)
-  "Similar to `read-string' or `icicle-read-string' but never includes
+  "Similar to `read-string' but never includes
 default into prompt."
-  (let ((icicle-default-in-prompt-format-function (lambda (&rest _) "")))
-    (icicle-read-string prompt
-                        initial-input
-                        hist-m@%=!$+&^*z
-                        default-value
-                        inherit-input-method)))
+  (read-string prompt
+               initial-input
+               hist-m@%=!$+&^*z
+               default-value
+               inherit-input-method))
 
 (defun emacs-forget-buffer-process ()
   "Emacs will not query about this process when killing."
@@ -830,10 +806,10 @@ write buffer contents back into file if flag DONT-WRITE is nil."
   "Split string into list of lines."
   (split-string str "\n" omit-nulls))
 
-(defun map (func xs &rest sequences)
+(defmacro map (func xs &rest sequences)
   (if (null? sequences)
-    (mapcar func xs)
-    (apply #'cl-mapcar func xs sequences)))
+    `(mapcar ,func ,xs)
+    `(apply #'cl-mapcar ,func ,xs ,@sequences)))
 
 (defsubst foldr (f init items)
   "F should take two arguments (item accum)."

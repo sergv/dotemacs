@@ -28,12 +28,12 @@ from \\label{...} and \\ref{...} constructs."
 
 (define-skeleton latex-insert-reference-skeleton
   "Insert \\ref{} construct and put prompt between angle brackets."
-  (completing-read-vanilla "Label: "
-                           (latex-get-labels-in-buffer)
-                           nil
-                           ;; I deliberately do not require match here to
-                           ;; enable not-yet-entered labels
-                           nil)
+  (ido-completing-read "Label: "
+                       (latex-get-labels-in-buffer)
+                       nil
+                       ;; I deliberately do not require match here to
+                       ;; enable not-yet-entered labels
+                       nil)
   "\\ref{" str "}")
 
 

@@ -10,9 +10,7 @@
 
 (defun diff-mode-setup ()
   (init-common :use-yasnippet nil
-               :use-comment nil)
-  (def-keys-for-map diff-mode-map
-    ("M-k" icicle-delete-window)))
+               :use-comment nil))
 
 (add-hook 'diff-mode-hook #'diff-mode-setup)
 
