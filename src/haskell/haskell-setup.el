@@ -167,7 +167,7 @@
     ("g c d"     comment-util-delete-commented-part)
     ("g c c"     haskell-comment-node)
     ("+"         input-unicode)
-    ("SPC SPC"   switch-to-haskell)
+    ("SPC SPC"   show-ghc-mod-errors-or-switch-to-haskell)
     ("g w"       shm/goto-where)
     ;; ("`"         haskell-compile)
     ("C-`"       hs-lint))
