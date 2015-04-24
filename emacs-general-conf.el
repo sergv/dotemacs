@@ -114,8 +114,8 @@
 ;;;; bunch of standard customizations
 
 (setq-default indent-tabs-mode nil) ;; never use tabs for indentation
-(setq-default cursor-type 'box)     ;; 'bar)
-(setf cursor-type 'box
+(setq-default cursor-type '(hbar . 2))     ;; 'bar)
+(setf cursor-type '(hbar . 2)
       ;; default-major-mode 'text-mode ;;'lisp-interaction-mode
       tab-width 4
       tab-always-indent t)
