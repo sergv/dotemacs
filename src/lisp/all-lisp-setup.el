@@ -32,25 +32,11 @@
 
 (add-to-list 'load-path (concat +emacs-standalone-path+
                                 "/clojure-mode"))
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/nrepl.el"))
 
 (require 'clojure-mode-autoload)
-(require 'nrepl-autoload)
-
-(setf nrepl-tab-command 'indent-for-tab-command
-      nrepl-history-size 100000
-      nrepl-history-file (concat +prog-data-path+ "/nrepl-history"))
-
-(put 'nrepl-server-command 'safe-local-variable #'string?)
-(make-variable-buffer-local 'nrepl-server-command)
-
 
 (autoload 'clojure-setup "clojure-setup")
 (add-hook 'clojure-mode-hook #'clojure-setup)
-
-(autoload 'nrepl-setup "clojure-setup")
-(add-hook 'nrepl-mode-hook #'nrepl-setup)
 
 (provide 'all-lisp-setup)
 
