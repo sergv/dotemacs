@@ -208,7 +208,8 @@ more than once"
       grep-files-aliases
       (let* ((make-compl-pattern (lambda (x) (concat "*." x)))
              (haskell-exts
-              (join-lines (map make-compl-pattern *haskell-extensions*)
+              (join-lines (map make-compl-pattern
+                               (cons "cabal" *haskell-extensions*))
                           " ")))
         `(("all"      . "*")
           ("el"       . "*.el")
