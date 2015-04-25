@@ -106,3 +106,6 @@
 [submodule "third-party/glsl-mode"]
         path = third-party/glsl-mode
         url = https://github.com/jimhourihan/glsl-mode.git
+[submodule "third-party/js2-mode"]
+	path = third-party/js2-mode
+	url = https://github.com/mooz/js2-mode.git

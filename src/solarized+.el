@@ -197,6 +197,11 @@ Futher modified by Sergey Vinokurov."
                                        (:underline (:style wave :color ,violet)))
                                       (t (:inherit bold))))
 
+       (js2-error                    ((t (:inherit ghc-face-error))))
+       (js2-warning                  ((t (:inherit ghc-face-warn))))
+       (js2-function-param           ((t (:inherit default))))
+       (js2-external-variable        ((t (:foreground ,orange))))
+
        ;; agda
        (agda2-highlight-bound-variable-face          ((t (:inherit default))))
        (agda2-highlight-coinductive-constructor-face ((t (:foreground ,yellow))))

@@ -100,6 +100,7 @@
                             (mode . nxhtml-muamo-mode)
                             (mode . css-mode)
                             (mode . js-mode)
+                            (mode . js2-mode)
                             (mode . django-nxhtml-mumamo-mode)
                             (mode . django-html-mumamo-mode)
                             (mode . rnc-mode)))
