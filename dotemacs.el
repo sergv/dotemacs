@@ -175,6 +175,8 @@
 (load-library "snippet-autoloads")
 (load-library "gnuplot-setup")
 (load-library "html-autoload")
+(load-library "js-setup")
+(load-library "css-setup")
 (load-library "latex-autoloads")
 (load-library "debsources-setup")
 (load-library "markdown-setup")
