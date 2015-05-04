@@ -227,10 +227,7 @@ in the current *Python* session."
                           ,(lambda (arg)
                              (python-forward-indentation-level))
                           nil)
-            (remove* 'python
-                     hs-special-modes-alist
-                     :key #'car
-                     :test #'eq?)))
+            (assq-delete-all 'python hs-special-modes-alist)))
 
 ;;; helper functions
 
@@ -473,7 +470,6 @@ greater indenation as current line."
 (defun inferior-python-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
-               :use-nxhtml-menu nil
                :sp-slurp-sexp-insert-space nil)
   (init-repl :create-keymaps nil)
   (comint-setup)

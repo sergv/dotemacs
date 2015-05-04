@@ -65,7 +65,6 @@
         vim:complex-command-override-local-keymap (make-sparse-keymap)))
 
 (defun* init-common (&key (use-yasnippet t)
-                          (use-nxhtml-menu nil)
                           (use-comment t)
                           (use-whitespace t)
                           (use-render-formula nil)
@@ -78,12 +77,6 @@
 
   (when use-yasnippet
     (yas-minor-mode-on))
-
-  ;; it's usually already enabled by nxhtml autoloads
-  ;; so action should be taken to turn it off
-  (when (and (boundp 'nxhtml-menu-mode)
-             (fboundp 'nxhtml-menu-mode))
-    (nxhtml-menu-mode (if use-nxhtml-menu 1 -1)))
 
   (smartparens-buffer-local-setup)
 

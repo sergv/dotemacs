@@ -8,6 +8,7 @@
 ;; Requirements:
 ;; Status:
 
+(require 'nxml-mode)
 
 (defvar-local *markup-tags-context-func*
   (lambda ()
@@ -16,6 +17,16 @@
   "Function that should return a pair ((start1 . end1) . (start2 . end2))
 containing the boundaries of the current start and end tag, or nil. Note that
 end1 and end2 should be exclusive ends of tags.")
+
+(defun my-nxml-forward-element (n)
+  (let ((nxml-sexp-element-flag (not (looking-at-p "<!--"))))
+    (condition-case nil
+        (progn
+          (message "start line: %s" (current-line))
+          (nxml-forward-balanced-item n)
+          (skip-to-indentation)
+          (message "end line: %s" (current-line)))
+      (error nil))))
 
 (eval-when-compile
   (defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
@@ -64,19 +75,22 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                                             ee pre-ee))))
           ;; if prev step yielded nothing
           (unless type
-            ;; scan one token at a time
-            (while (and (setf type (nxml-tokenize-forward))
-                        (not (memq type '(start-tag end-tag partial-end-tag))))
-              (setf tag-start (point)))
-            ;; if interesting tag was found
-            (when (memq type '(start-tag end-tag partial-end-tag))
-              (goto-char tag-start)
-              (with-html-tags-context pre-bb pre-be pre-eb pre-ee
-                                      (setf bb pre-bb
-                                            be pre-be
-                                            eb pre-eb
-                                            ee pre-ee)))))
-        (if (not (null? bb)) ;; if bb is non-nil then interesting type was found
+            (let (
+                  ;; (nxml-sexp-element-flag (not (looking-at-p "<!--")))
+                  )
+              ;; scan one token at a time
+              (while (and (setf type (nxml-tokenize-forward))
+                          (not (memq type '(start-tag end-tag partial-end-tag))))
+                (setf tag-start (point)))
+              ;; if interesting tag was found
+              (when (memq type '(start-tag end-tag partial-end-tag))
+                (goto-char tag-start)
+                (with-html-tags-context pre-bb pre-be pre-eb pre-ee
+                                        (setf bb pre-bb
+                                              be pre-be
+                                              eb pre-eb
+                                              ee pre-ee))))))
+        (if bb ;; if bb is non-nil then interesting type was found
           (let ((next-open (condition-case nil
                                (1- (scan-lists (point) 1 -1))
                              (error (point-max))))
@@ -146,14 +160,18 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                 :exclusive t
                 :do-not-adjust-point t)
 
+(defparameter *hexcolour-keywords*
+  '(("#[[:xdigit:]]\\{6\\}"
+     (0 (put-text-property (match-beginning 0)
+                           (match-end 0)
+                           'face (list :background
+                                       (match-string-no-properties 0)))))))
 
 (defun markup-setup ()
-  (init-common :use-nxhtml-menu t)
+  (init-common)
   (hl-tags-mode t)
-  (foldit-mode -1)
 
   (hs-minor-mode t)
-  (setq-local hs-set-up-overlay 'nxhtml-hs-set-up-overlay)
   (put 'hs-set-up-overlay 'permanent-local t)
 
   (modify-syntax-entry ?\" "\"")
@@ -163,10 +181,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"   sgml-skip-tag-backward)
     ("<down>" sgml-skip-tag-forward)
-    ("<up>"   sgml-skip-tag-backward)
-    ("<down>" sgml-skip-tag-forward)
-    ("<home>" sgml-skip-tag-backward)
-    ("<end>"  sgml-skip-tag-forward)
 
     ("z o"    hs-show-block)
     ("z c"    hs-hide-block)
@@ -193,7 +207,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     ("`"    browse-url-of-buffer)))
 
 
-(defun nxhtml-reindent-enclosing-tag ()
+(defun nxml-reindent-enclosing-tag ()
   (interactive)
   (let ((p (point-marker))
         (context (hl-tags-context-nxml-mode))
@@ -213,14 +227,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     (goto-char p)
     (move-marker p nil)))
 
-(defun nxhtml-setup ()
-  (html-setup)
-  (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode)
-
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("g <tab>" nxhtml-reindent-enclosing-tag)))
-
-
 (defun nxml-indent-buffer ()
   (interactive)
   (save-excursion
@@ -232,6 +238,50 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (defun nxml-setup ()
   (markup-setup)
   (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode))
+
+(defun web-mode-setup ()
+  (init-common)
+  (hs-minor-mode +1)
+
+  (put 'hs-set-up-overlay 'permanent-local t)
+
+  ;; set up nxml environment
+  (unless nxml-prolog-end (setq nxml-prolog-end (copy-marker (point-min))))
+  (unless nxml-scan-end (setq nxml-scan-end (copy-marker (point-min))))
+  ;; (add-hook 'after-change-functions 'nxml-after-change nil t)
+  (setq-local syntax-propertize-function #'nxml-after-change)
+
+  ;; (markup-setup)
+  (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode)
+  (setf web-mode-markup-indent-offset 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2
+        web-mode-enable-css-colorization t
+        web-mode-enable-comment-keywords t
+        web-mode-enable-current-element-highlight t
+        web-mode-enable-auto-indentation t
+        web-mode-enable-auto-closing t
+        web-mode-enable-auto-pairing t
+        web-mode-enable-auto-quoting t
+        web-mode-auto-close-style 2
+        web-mode-script-padding 2
+        web-mode-style-padding 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2)
+
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("z o" hs-show-block)
+    ("z c" hs-hide-block)
+    ("z C" hs-hide-all)
+    ("z O" hs-show-all))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap
+                     vim:motion-mode-local-keymap
+                     vim:operator-pending-mode-local-keymap)
+    ("m" vim:motion-jump-tag)
+
+    ("'" vim:nxml-backward-up-element)
+    ("q" vim:markup-forward-up-element)))
 
 (provide 'html-setup)
 
