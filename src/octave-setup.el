@@ -406,7 +406,6 @@ in GROUP-NUMS."
 
 (defun inferior-octave-setup ()
   (init-common :use-yasnippet nil
-               :use-nxhtml-menu nil
                :use-comment nil
                :sp-slurp-sexp-insert-space nil)
   (init-repl :bind-return (list vim:normal-mode-local-keymap

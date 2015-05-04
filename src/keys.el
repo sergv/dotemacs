@@ -99,7 +99,11 @@
        ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
        ("C-,"      pop-tag-mark)
        ("v"        set-mark-command)
-       ("y"        copy-region-as-kill))))
+       ("y"        copy-region-as-kill)
+       ("*"        search-for-symbol-at-point-forward)
+       ("C-*"      search-for-symbol-at-point-forward-new-color)
+       ("#"        search-for-symbol-at-point-backward)
+       ("C-#"      search-for-symbol-at-point-backward-new-color))))
 
 ;; view-mode
 (eval-after-load "view"
