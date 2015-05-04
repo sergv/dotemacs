@@ -704,7 +704,7 @@ regular expressions."
   "Disables the active search highlightings."
   (vim:delete-hl 'vim:search)
   (vim:delete-hl 'vim:provide)
-  (search-toggle-highlighting))
+  (search-disable-highlighting))
 
 (provide 'vim-search)
 
