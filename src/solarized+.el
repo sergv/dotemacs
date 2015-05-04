@@ -359,6 +359,15 @@ Futher modified by Sergey Vinokurov."
        (nxml-attribute-local-name            ((t (:foreground ,green))))
        (nxml-attribute-value                 ((t (:foreground ,yellow))))
 
+       (web-mode-current-element-highlight-face ((t (:inherit show-paren-match-face))))
+       (web-mode-html-tag-face               ((t (:inherit nxml-element-local-name))))
+       (web-mode-html-attr-name-face         ((t (:inherit nxml-attribute-local-name))))
+       (web-mode-html-attr-value-face        ((t (:inherit nxml-attribute-value))))
+       (web-mode-html-tag-bracket-face       ((t (:inherit default))))
+       (web-mode-html-attr-equal-face        ((t (:inherit default))))
+       (web-mode-doctype-face                ((t (:inherit font-lock-comment-face))))
+
+
        ;; emms
        (emms-playlist-selected-face          ((t (:foreground ,blue))))
        (emms-playlist-track-face             ((t (:inherit default))))

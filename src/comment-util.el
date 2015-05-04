@@ -87,6 +87,7 @@
     (html-mode             (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (sgml-mode             (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (markdown-mode         (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
+    (web-mode              (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     ;;(js2-mode              (one-line "//") (line-regexp "//+"))
     (js2-mode              (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
     (js-mode               (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))

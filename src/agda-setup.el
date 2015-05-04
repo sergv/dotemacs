@@ -43,7 +43,6 @@
 
 (defun agda-setup ()
   (init-common :use-yasnippet t
-               :use-nxhtml-menu nil
                :use-comment t
                :use-render-formula t)
   (setq-local vim:shift-width 2)
