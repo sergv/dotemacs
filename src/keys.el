@@ -182,6 +182,60 @@
 (define-cyrillic-keys)
 
 
+(def-keys-for-map (minibuffer-local-completion-map
+                   minibuffer-local-must-match-map
+                   minibuffer-local-filename-completion-map
+                   minibuffer-local-filename-must-match-map
+                   minibuffer-local-map
+                   minibuffer-local-isearch-map
+                   minibuffer-inactive-mode-map)
+  ("<escape>"          abort-recursive-edit)
+  ;; ("?"                 self-insert-command)
+
+  ("C-w"               backward-delete-word)
+  ("C-S-w"             backward-delete-word*)
+  ("C-p"               vim:cmd-paste-before)
+  ("C-S-p"             browse-kill-ring)
+  ("M-p"               browse-kill-ring)
+
+  ("C-/"               nil)
+  ("C-v"               set-mark-command)
+  ("C-y"               copy-region-as-kill)
+  ("C-d"               kill-region)
+  ("C-f"               read-and-insert-filename)
+
+  ("M-<tab>"           icicle-narrow-candidates)
+  ("C-<tab>"           icicle-apropos-complete-and-narrow)
+
+  ("<delete>"          delete-char)
+  ("<home>"            beginning-of-line)
+  ("<end>"             end-of-line)
+  ;; ("<next>"            icicle-next-prefix-candidate)
+  ;; ("<prior>"           icicle-previous-prefix-candidate)
+
+  ("C-SPC"             delete-minibuffer-contents)
+  ;; ("SPC"               self-insert-command)
+
+  ("S-<delete>"        delete-whitespace-forward)
+  ("S-<backspace>"     delete-whitespace-backward)
+  ("<backspace>"       delete-backward-char))
+
+(def-keys-for-map (minibuffer-local-map)
+  ;; in sexp-related situations "''" is quite rare pair
+  ("'"         self-insert-command)
+  ("M-<up>"    sp-splice-sexp-killing-backward)
+  ("M-<down>"  sp-splice-sexp-killing-forward)
+  ("C-)"       sp-forward-slurp-sexp)
+  ("C-<right>" sp-forward-slurp-sexp)
+  ("C-<left>"  sp-forward-barf-sexp)
+  ("C-("       sp-backward-slurp-sexp)
+  ("M-<left>"  sp-backward-slurp-sexp)
+  ("M-<right>" sp-backward-barf-sexp))
+
+
+(def-keys-for-map (completion-list-mode-map)
+  ("<up>"   previous-completion)
+  ("<down>" next-completion))
 
 (provide 'keys)
 
