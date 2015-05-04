@@ -413,7 +413,7 @@ the perfect point to do some house-keeping."
   ;;   (vim:clear-key-sequence)
   ;;   (vim:adjust-point)
   ;;   (vim:activate-normal-mode))
-  ;; (funcall vim:active-command-function cmd)
+
   (condition-case err
       (funcall vim:active-command-function cmd)
     (error

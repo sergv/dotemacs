@@ -44,7 +44,7 @@
 ;;;
 
 (defun prolog-inferior-setup ()
-  (init-common :use-yasnippet nil :use-nxhtml-menu nil :use-comment nil)
+  (init-common :use-yasnippet nil :use-comment nil)
   (init-repl :create-keymaps nil)
 
   ;; changed in prolog.el itself

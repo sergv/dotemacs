@@ -135,9 +135,9 @@
   (setf hs-special-modes-alist
         (cons `(c-mode ,hs-spec)
               (cons `(c++-mode ,hs-spec)
-                    (remove-if (comp (partial-first #'memq '(c-mode c++-mode))
-                                     #'first)
-                               hs-special-modes-alist)))))
+                    (assq-delete-all 'c-mode
+                                     (assq-delete-all 'c++-mode
+                                                      hs-special-modes-alist))))))
 
 (defun* cc-setup/set-up-c-basic-offset (&key (use-work-code-style nil))
   "Try to guess offset (`c-basic-offset') for current buffer or use value
