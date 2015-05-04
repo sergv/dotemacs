@@ -28,6 +28,7 @@
     +vim-special-keys+
     ("y"        nil)
 
+    (","        browse-kill-ring-delete)
     ("h"        browse-kill-ring-forward)
     ("t"        browse-kill-ring-previous)
     ("<down>"   browse-kill-ring-forward)

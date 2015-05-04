@@ -218,7 +218,14 @@ inserted."
                                 #'strip-trailing-slash)
                           #'identity)
                         (expand-file-name
-                         (ido-read-file-name "" nil ""))))
+                         (ido-read-file-name
+                          ""
+                          nil
+                          ""
+                          nil
+                          nil
+                          (lambda (x) (or (file-directory-p x)
+                                     (file-exists-p x)))))))
          (output (if (and (eq major-mode 'org-mode)
                           (y-or-n-p "Insert link? "))
                    (concat "[[file:"
