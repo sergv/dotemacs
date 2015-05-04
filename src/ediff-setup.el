@@ -26,17 +26,23 @@
       ediff-diff-options "--ignore-tab-expansion --ignore-space-change --ignore-blank-lines"
       ediff-patch-options "")
 
+(defun ediff-keymap-setup ()
+  (def-keys-for-map ediff-mode-map
+    ("h"        ediff-next-difference)
+    ("t"        ediff-previous-difference)
+    ("<home>"   prev-f)
+    ("<end>"    next-f)
+    ("<left>"   prev-w)
+    ("<right>"  next-w)
+    ("<down>"   ediff-next-difference)
+    ("<up>"     ediff-previous-difference)
+    ("<escape>" ediff-quit)))
+
 (eval-after-load
     "ediff"
   '(progn
      (add-hook 'ediff-keymap-setup-hook
-               (lambda ()
-                 (def-keys-for-map ediff-mode-map
-                   ("h"        ediff-next-difference)
-                   ("t"        ediff-previous-difference)
-                   ("<down>"   ediff-next-difference)
-                   ("<up>"     ediff-previous-difference)
-                   ("<escape>" ediff-quit))))))
+               #'ediff-keymap-setup)))
 
 (defun* ediff-diff-texts-recursive-edit (text-a
                                          text-b

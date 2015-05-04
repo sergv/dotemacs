@@ -45,6 +45,10 @@
       ido-ignore-extensions t ;; ignore extensions in `completion-ignored-extensions'
       ido-enable-last-directory-history nil
       ido-save-directory-list-file nil
+      ido-show-dot-for-dired t
+      ido-default-file-method 'selected-window
+      ido-default-buffer-method 'selected-window
+      ido-enable-dot-prefix t
       ido-ignore-buffers (list (rx "*"
                                    (or "Ibuffer"
                                        "Compile-Log"
@@ -65,9 +69,11 @@
 
 (ido-mode 1)
 
-(def-keys-for-map ido-file-completion-map
+(def-keys-for-map ido-common-completion-map
+  ("C-SPC"      ido-edit-input)
   ("C-w"        ido-up-directory)
   ("C-<return>" ido-select-text)
+  ("<C-return>" ido-select-text)
   ("<up>"       previous-history-element)
   ("<down>"     next-history-element))
 
