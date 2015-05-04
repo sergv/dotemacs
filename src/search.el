@@ -115,8 +115,7 @@ highlighting searches.")
   "Set up internal search variables for use of `search/next-impl',
 `search/prev-impl' etc for REGEX."
   (when reset-highlighting
-    (search/clean-all-overlays)
-    (search/reset-search-highlight-face-index))
+    (search-disable-highlighting))
   (setf *search-current-regexp* regex
         *search-start-marker* (point-marker)
         *search-init-buffer* (current-buffer)
@@ -132,25 +131,25 @@ highlighting searches.")
 (defun search-start-forward (&optional case-sensetive)
   "Initiate forward seach."
   (interactive (list current-prefix-arg))
-  (search/start 'forward "Search: " case-sensetive t))
+  (search/start 'forward "Search: " case-sensetive nil))
 
 (defun search-start-backward (&optional case-sensetive)
   "Initiate backward seach."
   (interactive (list current-prefix-arg))
-  (search/start 'backward "Search backward: " case-sensetive t))
+  (search/start 'backward "Search backward: " case-sensetive nil))
 
 
 (defun search-start-forward-new-color (&optional case-sensetive)
   "Initiate forward seach using new highlighting color."
   (interactive (list current-prefix-arg))
   (search/increment-search-highlight-face-index)
-  (search/start 'forward "Search: " case-sensetive nil))
+  (search-start-forward case-sensetive))
 
 (defun search-start-backward-new-color (&optional case-sensetive)
   "Initiate backward seach using new highlighting color."
   (interactive (list current-prefix-arg))
   (search/increment-search-highlight-face-index)
-  (search/start 'backward "Search backward: " case-sensetive nil))
+  (search-start-backward case-sensetive))
 
 
 (defun search/start (direction prompt case-sensetive reset-highlighting)
@@ -366,8 +365,8 @@ Highlighting starts at the beginning of buffer")
   (save-excursion
     (dolist (o *search-match-overlays*)
       (delete-overlay o))
-    (remove-overlays (point-min) (point-max) 'is-search-highlighting-overlay t)
-    (setf *search-match-overlays* nil)))
+    (setf *search-match-overlays* nil)
+    (remove-overlays (point-min) (point-max) 'is-search-highlighting-overlay t)))
 
 
 (defun search-return-to-start ()
@@ -381,13 +380,16 @@ Highlighting starts at the beginning of buffer")
   (interactive)
   (search/with-initiated-buffer
    (goto-char *search-start-marker*)
-   (search/clean-all-overlays))
+   (search/clean-overlays-with-face-index *search-highlight-face-index*))
   (exit-minibuffer))
 
 (defun search-done ()
   (interactive)
   (exit-minibuffer))
 
+(defun search-disable-highlighting ()
+  (search/clean-all-overlays)
+  (search/reset-search-highlight-face-index))
 
 (defun search-toggle-highlighting ()
   (interactive)
