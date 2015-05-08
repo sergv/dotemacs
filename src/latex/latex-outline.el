@@ -265,15 +265,11 @@ for use in utility functions."
   ;;(hide-body)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<up>"    outline-up-heading)
-    ("="       outline-up-heading)
-    ("<right>" outline-next-visible-heading)
-    ("<left>"  outline-previous-visible-heading)
-
-    ("z C"     latex-hide-all)
-    ("z c"     hide-subtree)
-    ("z O"     show-all)
-    ("z o"     show-subtree)))
+    ("'"   outline-up-heading)
+    ("z C" latex-hide-all)
+    ("z c" hide-subtree)
+    ("z O" show-all)
+    ("z o" show-subtree)))
 
 
 ;; Local Variables:

@@ -112,14 +112,16 @@
     (setq-local compilation-skip-threshold 0))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("C-`"    open-buffer-as-pdf)
-    ("`"      latex-compile)
-    ("S-<f9>" open-buffer-as-pdf)
-    ("<f9>"   latex-compile)
-    ("<f6>"   latex-toggle-preview-or-russian-spellcheck)
+    ("C-`"     open-buffer-as-pdf)
+    ("`"       latex-compile)
+    ("S-<f9>"  open-buffer-as-pdf)
+    ("<f9>"    latex-compile)
+    ("<f6>"    latex-toggle-preview-or-russian-spellcheck)
 
-    ("<home>" vim:motion-bwd-paragraph)
-    ("<end>"  vim:motion-fwd-paragraph))
+    ("<home>"  vim:motion-bwd-paragraph)
+    ("<end>"   vim:motion-fwd-paragraph)
+    ("<left>"  prev-w)
+    ("<right>" next-w))
 
   ;; (define-key vim:insert-mode-local-keymap (kbd "<f3>") LaTeX-math-keymap)
 
