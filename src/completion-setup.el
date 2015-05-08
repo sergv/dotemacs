@@ -69,13 +69,16 @@
 
 (ido-mode 1)
 
-(def-keys-for-map ido-common-completion-map
-  ("C-SPC"      ido-edit-input)
-  ("C-w"        ido-up-directory)
-  ("C-<return>" ido-select-text)
-  ("<C-return>" ido-select-text)
-  ("<up>"       previous-history-element)
-  ("<down>"     next-history-element))
+(defun ido-setup-custom-bindings ()
+  (def-keys-for-map ido-common-completion-map
+    ("C-SPC"      ido-edit-input)
+    ("C-w"        ido-up-directory)
+    ("C-<return>" ido-select-text)
+    ("<C-return>" ido-select-text)
+    ("<up>"       previous-history-element)
+    ("<down>"     next-history-element)))
+
+(add-hook 'ido-setup-hook #'ido-setup-custom-bindings)
 
 ;;;
 

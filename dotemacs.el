@@ -68,8 +68,10 @@
                           (use-comment t)
                           (use-whitespace t)
                           (use-render-formula nil)
+                          (use-hl-line t)
                           (sp-slurp-sexp-insert-space t))
   (linum-mode 1)
+  (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
     (comment-util-mode 1))
 
