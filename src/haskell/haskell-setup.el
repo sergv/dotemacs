@@ -72,7 +72,8 @@
 (defun haskell-setup ()
   (init-common :use-yasnippet t
                :use-comment t
-               :use-render-formula nil)
+               :use-render-formula nil
+               :use-hl-line nil)
   (smerge-mode +1)
   (add-hook 'after-save-hook
             (lambda ()
