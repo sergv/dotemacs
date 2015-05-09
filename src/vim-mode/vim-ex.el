@@ -87,8 +87,6 @@
       ("RET"           vim:ex-mode-exit)
       ("C-j"           vim:ex-mode-exit)
       ("C-g"           vim:ex-mode-abort)
-      ("C-w"           backward-delete-word)
-      ("C-S-w"         backward-delete-word*)
       ("<up>"          previous-history-element)
       ("<down>"        next-history-element))
     ;; (define-key map " " vim:ex-expect-argument)
@@ -809,8 +807,10 @@ the offset and the new position."
   "Starts ex-mode."
   (interactive)
   (let ((vim:ex-current-buffer (current-buffer))
-        (vim:ex-current-window (selected-window)))
-    (let ((minibuffer-local-completion-map vim:ex-keymap))
+        (vim:ex-current-window (selected-window))
+        (setup-hook ido-setup-hook))
+    (let ((minibuffer-local-completion-map vim:ex-keymap)
+          (ido-setup-hook (cons #'vim:ex-setup-ido-keymap setup-hook)))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
       (let ((result (ido-completing-read ">"
                                          ;; #'vim:ex-complete
@@ -823,6 +823,44 @@ the offset and the new position."
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))
 
+(defun vim:ex-setup-ido-keymap ()
+  (def-keys-for-map ido-common-completion-map
+    ("SPC"           self-insert-command)
+    ("<left>"        vim:ex-prev-match)
+    ("<right>"       vim:ex-next-match)
+    ("C-w"           backward-delete-word)
+    ("C-S-w"         backward-delete-word*)
+    ("C-p"           vim:cmd-paste-before)
+    ("C-S-p"         browse-kill-ring)
+    ("M-p"           browse-kill-ring)
+    ("C-f"           read-and-insert-filename)
+    ("<delete>"      delete-char)
+    ("<home>"        beginning-of-line)
+    ("<end>"         end-of-line)
+    ("S-<delete>"    delete-whitespace-forward)
+    ("S-<backspace>" delete-whitespace-backward)
+    ("<backspace>"   delete-backward-char)
+    ("<return>"      vim:ex-mode-exit)
+    ("RET"           vim:ex-mode-exit)
+    ("C-j"           vim:ex-mode-exit)
+    ("C-g"           vim:ex-mode-abort)
+
+    ;; ("C-<return>"  ido-select-text)
+    ;; ("<C-return>"  ido-select-text)
+    ("<up>"        previous-history-element)
+    ("<down>"      next-history-element)))
+
+(defun vim:ex-prev-match ()
+  (interactive)
+  (if ido-matches
+    (ido-prev-match)
+    (backward-char)))
+
+(defun vim:ex-next-match ()
+  (interactive)
+  (if ido-matches
+    (ido-next-match)
+    (forward-char)))
 
 (provide 'vim-ex)
 
