@@ -689,7 +689,18 @@ it's position in current window."
 
 (defun show-ghc-mod-errors-or-switch-to-haskell ()
   (interactive)
-  (or (ghc-display-errors)
+  (or (and (ghc-display-errors)
+           (progn
+             (when ghc-error-shown
+               (unless (string= (normalize-file-name ghc-error-file)
+                                (normalize-file-name buffer-file-name))
+                 (aif (compilation/find-buffer ghc-error-file)
+                   (progn
+                     (switch-to-buffer it)
+                     (goto-char (point-min))
+                     (ghc-goto-next-error))
+                   (error "Cannot jump to nonexistent file: %s" ghc-error-file))))
+             t))
       (switch-to-haskell)))
 
 (provide 'haskell-misc)
