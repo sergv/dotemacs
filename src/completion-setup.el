@@ -45,7 +45,7 @@
       ido-ignore-extensions t ;; ignore extensions in `completion-ignored-extensions'
       ido-enable-last-directory-history nil
       ido-save-directory-list-file nil
-      ido-show-dot-for-dired t
+      ido-show-dot-for-dired nil
       ido-default-file-method 'selected-window
       ido-default-buffer-method 'selected-window
       ido-enable-dot-prefix t
