@@ -63,7 +63,6 @@ Note: old tags file is removed before calling update command."
                                                        nil
                                                        "-0"
                                                        "-o-"
-                                                       "--ignore-encoding-errors"
                                                        "--nomerge")))
                       (error "fast-tags invokation failed: %s"
                              (with-current-buffer out-buffer
