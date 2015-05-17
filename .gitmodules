@@ -51,7 +51,7 @@
         url = https://github.com/nonsequitur/smex.git
 [submodule "third-party/ucf-mode"]
         path = third-party/ucf-mode
-        url = https://git.gitorious.org/sergv-emacs/emacs-ucf-mode.git
+        url = https://github.com/ewa/emacs-ucf-mode.git
 [submodule "third-party/undo-tree"]
         path = third-party/undo-tree
         url = https://github.com/emacsmirror/undo-tree.git
