@@ -390,6 +390,13 @@ Basically swap current point with previous one."
 
 (vim:emap "gadd" 'vim:git-add)
 
+(vim:defcmd vim:git-amend (nonrepeatable)
+  "Amend topmost git commit with all staged changes."
+  (save-window-excursion
+    (magit-with-refresh
+     (shell-command "git --no-pager commit --amend --reuse-message=HEAD"))))
+
+(vim:emap "amend" 'vim:git-amend)
 
 (vim:defcmd vim:ibuffer (nonrepeatable)
   "Open ibuffer buffer."
