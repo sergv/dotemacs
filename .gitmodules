@@ -78,7 +78,7 @@
         url = https://git.gitorious.org/sergv-emacs/python-el.git
 [submodule "third-party/structured-haskell-mode"]
         path = third-party/structured-haskell-mode
-        url = https://git.gitorious.org/sergv-emacs/structured-haskell-mode.git
+        url = https://github.com/sergv/structured-haskell-mode.git
 [submodule "third-party/yafolding.el"]
         path = third-party/yafolding.el
         url = https://git.gitorious.org/sergv-emacs/yafolding-el.git
