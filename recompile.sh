@@ -22,7 +22,6 @@ function update-dir-autoloads {
 
 update-dir-autoloads "standalone/clojure-mode" "clojure-mode-autoload.el"
 update-dir-autoloads "standalone/nrepl.el" "nrepl-autoload.el"
-update-dir-autoloads "third-party/haskell-mode" "haskell-mode-autoloads.el"
 update-dir-autoloads "third-party/smartparens" "smartparens-autoloads.el"
 
 mkdir -p "$emacs_dir/prog-data"

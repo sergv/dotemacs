@@ -6,7 +6,29 @@
 ;; Created: Thursday, 12 July 2012
 ;; Description:
 
-(load-library "haskell-mode-autoloads")
+(autoload 'ghc-core-create-core "ghc-core" nil t)
+(autoload 'ghc-core-mode "ghc-core" nil t)
+(autoload 'ghci-script-mode "ghci-script-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
+
+(add-to-list 'auto-mode-alist '("\\.cabal\\'" . haskell-cabal-mode))
+
+(autoload 'haskell-cabal-mode "haskell-cabal" nil t)
+(autoload 'haskell-cabal-guess-setting "haskell-cabal" nil t)
+(autoload 'haskell-cabal-get-dir "haskell-cabal" nil nil)
+(autoload 'haskell-cabal-visit-file "haskell-cabal" nil t)
+
+(autoload 'haskell-compile "haskell-compile" nil t)
+
+(autoload 'haskell-font-lock-choose-keywords "haskell-font-lock" nil nil)
+(autoload 'haskell-mode "haskell-mode" nil t)
+(autoload 'literate-haskell-mode "haskell-mode" nil t)
+
+(add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
+(add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
+(add-to-list 'completion-ignored-extensions ".hi")
+
+(autoload 'turn-on-haskell-unicode-input-method "haskell-unicode-input-method" nil t)
 
 (autoload 'ghc-prof-mode "ghc-prof-mode" nil t)
 (eval-after-load "ghc-prof-mode"
