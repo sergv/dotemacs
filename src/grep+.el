@@ -232,7 +232,11 @@ more than once"
           ("xml"      . "*.xml")
           ("hs"       . ,haskell-exts)
           ("haskell"  . ,haskell-exts)
-          ("py"       . "*.py *.pyx *.pxd *.pxi"))))
+          ("py"       . "*.py *.pyx *.pxd *.pxi")))
+
+      grep-find-ignored-directories
+      (append *ignored-directories*
+              (map (lambda (x) (concat x "*/")) *ignored-directory-prefixes*)))
 
 
 (defun rgrep-region (begin end ignore-case)
