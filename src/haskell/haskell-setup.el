@@ -169,6 +169,7 @@
     ("+"         input-unicode)
     ("SPC SPC"   show-ghc-mod-errors-or-switch-to-haskell)
     ("g w"       shm/goto-where)
+    ("`"         ghc-display-errors)
     ;; ("`"         haskell-compile)
     ("C-`"       hs-lint))
 
@@ -208,7 +209,6 @@
     ;; ("- h"     haskell-haddock-identifier)
     ;; ("- m"     haskell-haddock-module)
     ;; ("- g"     haskell-hoogle-at-point)
-    ("`"       ghc-display-errors)
     ("- ?"     ghc-display-errors)
     ("- y"     hayoo)
     ("- /"     ghc-complete)
