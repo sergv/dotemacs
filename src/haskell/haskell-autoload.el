@@ -29,6 +29,7 @@
 (add-to-list 'completion-ignored-extensions ".hi")
 
 (autoload 'turn-on-haskell-unicode-input-method "haskell-unicode-input-method" nil t)
+(autoload 'haskell-mode-after-save-handler "haskell" nil nil)
 
 (autoload 'ghc-prof-mode "ghc-prof-mode" nil t)
 (eval-after-load "ghc-prof-mode"
@@ -65,6 +66,7 @@
 
 (defalias 'ghci 'switch-to-haskell)
 
+(put 'shm-display-quarantine 'safe-local-variable #'booleanp)
 
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
