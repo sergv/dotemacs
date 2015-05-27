@@ -70,7 +70,7 @@
 
 
 (define-derived-mode alex-mode prog-mode "Alex"
-  ""
+  "Major mode for editing Alex files."
   (set (make-local-variable 'font-lock-defaults)
        '(alex-mode-font-lock-keywords
          nil ;; perform syntactic fontification
