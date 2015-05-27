@@ -412,6 +412,19 @@ we load it."
   (haskell-align-on-double-colons)
   (haskell-align-on-pragma-close))
 
+(defun haskell-define-align-bindings (keymap)
+  (def-keys-for-map keymap
+    ("g a"       nil)
+    ("g a a"     haskell-align-generic)
+    ("g a ="     haskell-align-on-equals)
+    ("g a - >"   haskell-align-on-arrows)
+    ("g a < -"   haskell-align-on-left-arrows)
+    ("g a |"     haskell-align-on-guards)
+    ("g a ,"     haskell-align-on-commas)
+    ("g a - -"   haskell-align-on-comments)
+    ("g a : :"   haskell-align-on-double-colons)
+    ("g a # - }" haskell-align-on-pragma-close)))
+
 ;;; define forward-haskell-symbol
 
 (defparameter forward-haskell-symbol-re

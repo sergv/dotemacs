@@ -9,6 +9,7 @@
 (require 'common)
 (require 'mmm-auto)
 (require 'happy-mode-autoload)
+(require 'haskell-misc)
 
 (setf mmm-global-mode 'maybe
       mmm-submode-decoration-level 0)
@@ -37,7 +38,8 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile)
-    ("`"    haskell-compile)))
+    ("`"    haskell-compile))
+  (haskell-define-align-bindings vim:visual-mode-local-keymap))
 
 (add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
 (add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
