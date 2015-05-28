@@ -446,7 +446,7 @@ obvious"
                                                                       (cdr ,bounds-var))))
                      (vim:save-position)
                      (goto-char (cdr ,bounds-var))
-                     ,@(when (not reset)
+                     ,@(unless reset
                          '((search/increment-search-highlight-face-index)))
                      (search/setup-search-for
                       (concat (unless ,non-strict-var
@@ -456,35 +456,11 @@ obvious"
                                 (funcall #',regex-end-func ,substr-var)))
                       ,direction
                       :case-sensetive t
-                      :reset-highlighting ,reset)
+                      :reset-highlighting nil)
                      (funcall #',action-after))))))))
     `(progn
        ,(funcall make-search-func name t)
-       ,(funcall make-search-func alt-name nil)
-       ;; (defun ,name (&optional ,non-strict-var)
-       ;;   (interactive (list current-prefix-arg))
-       ;;   (let ((,bounds-var (funcall #',bounds-func)))
-       ;;     (if (null ,bounds-var)
-       ;;       ,(when error-message `(error ,error-message))
-       ;;       (let ((,substr-var (buffer-substring-no-properties (car ,bounds-var)
-       ;;                                                          (cdr ,bounds-var))))
-       ;;         (vim:save-position)
-       ;;         (goto-char (cdr ,bounds-var))
-       ;;         (search/setup-search-for
-       ;;          (concat (unless ,non-strict-var
-       ;;                    (funcall #',regex-start-func ,substr-var))
-       ;;                  (regexp-quote ,substr-var)
-       ;;                  (unless ,non-strict-var
-       ;;                    (funcall #',regex-end-func ,substr-var)))
-       ;;          ,direction
-       ;;          :case-sensetive t
-       ;;          :reset-highlighting t)
-       ;;         (funcall #',action-after)))))
-       ;; (defun ,alt-name (&optional ,non-strict-var)
-       ;;   (interactive (list current-prefix-arg))
-       ;;   (search/increment-search-highlight-face-index)
-       ;;   (,name ,non-strict-var))
-       )))
+       ,(funcall make-search-func alt-name nil))))
 
 (autoload 'forward-haskell-symbol "haskell-misc" t)
 
