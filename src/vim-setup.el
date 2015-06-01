@@ -393,8 +393,16 @@ Basically swap current point with previous one."
 (vim:defcmd vim:git-amend (nonrepeatable)
   "Amend topmost git commit with all staged changes."
   (save-window-excursion
-    (magit-with-refresh
-     (shell-command "git --no-pager commit --amend --reuse-message=HEAD"))))
+    (call-process
+     "git"
+     nil
+     nil
+     nil
+     "--no-pager"
+     "commit"
+     "--amend"
+     "--reuse-message=HEAD")
+    (magit-refresh-all)))
 
 (vim:emap "amend" 'vim:git-amend)
 
