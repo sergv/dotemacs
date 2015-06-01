@@ -25,9 +25,11 @@
      (require 'ibuf-ext)
      (require 'buffer-groups)
 
-     (add-hook 'ibuffer-mode-hook
-               (lambda ()
-                 (ibuffer-switch-to-saved-filter-groups "default")))
+     (defun ibuffer-setup ()
+       (hl-line-mode +1)
+       (ibuffer-switch-to-saved-filter-groups "default"))
+
+     (add-hook 'ibuffer-mode-hook #'ibuffer-setup)
 
      (define-ibuffer-filter name-not-matches
          "Toggle current view to buffers with name not matching QUALIFIER."
