@@ -236,7 +236,7 @@ more than once"
 
       grep-find-ignored-directories
       (append *ignored-directories*
-              (map (lambda (x) (concat x "*/")) *ignored-directory-prefixes*)))
+              (map (lambda (x) (concat x "*")) *ignored-directory-prefixes*)))
 
 
 (defun rgrep-region (begin end ignore-case)
