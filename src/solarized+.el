@@ -409,6 +409,12 @@ Futher modified by Sergey Vinokurov."
        (antlr-font-lock-tokenref-face            ((t (:inherit font-lock-type-face))))
        (antlr-font-lock-literal-face             ((t (:inherit font-lock-constant-face))))
 
+       (prolog-redo-face                         ((t (:foreground ,violet))))
+       (prolog-exit-face                         ((t (:foreground ,green))))
+       (prolog-exception-face                    ((t (:foreground ,orange))))
+       (prolog-warning-face                      ((t (:inherit warning))))
+       (prolog-builtin-face                      ((t (:inherit font-lock-builtin-face))))
+
        (c-annotation-face                    ((t (:foreground ,violet))))
        (completions-common-part              ((t (:inherit match))))
        (csv-separator-face                   ((t (:foreground ,magenta))))
@@ -556,9 +562,10 @@ Futher modified by Sergey Vinokurov."
           org-drill-new-count-color    blue
           org-drill-done-count-color   green
           org-drill-failed-count-color magenta
-          org-drill-mature-count-color orange)
+          org-drill-mature-count-color orange
+          ansi-color-names-vector (vector base0 red green yellow blue magenta cyan base01)
+          ansi-color-map (ansi-color-make-color-map))
     (run-hooks 'color-theme-solarized+-theme-changed-hook)))
-
 
 (defparameter color-theme-solarized+-theme-changed-hook '()
   "Hook to run when theme changes")
