@@ -185,7 +185,7 @@ if inside parentheses."
                                (point)))
         (template (if (bound-and-true-p structured-haskell-repl-mode)
                       "if undefined then undefined else undefined"
-                    "if undefined\n   then undefined\n   else undefined")))
+                    "if undefined\n  then undefined\n  else undefined")))
     (shm-adjust-dependents (point) (- start (point)))
     (delete-region start (point))
     (shm-adjust-dependents (point) (length (car (last (split-string template "\n")))))
