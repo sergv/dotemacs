@@ -16,7 +16,11 @@
 
 (setf prolog-system 'swi)
 
-(add-to-list 'auto-mode-alist '("\\.pro$" . prolog-mode))
+(setf auto-mode-alist
+      (cons '("\\.pl$" . prolog-mode)
+            (cons '("\\.pro$" . prolog-mode)
+                  (remove-if (lambda (x) (eq? 'perl-mode (cdr x)))
+                             auto-mode-alist))))
 ;; (add-to-list 'auto-mode-alist '("\\.m$" . mercury-mode))
 
 
@@ -51,7 +55,9 @@
   ;; (modify-syntax-entry ?_ "_" prolog-mode-syntax-table)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"  comint-clear-prompt))
+    ("SPC SPC"  comint-clear-prompt)
+    ("C-n"      comint-previous-prompt)
+    ("C-t"      comint-next-prompt))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
