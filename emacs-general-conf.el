@@ -170,7 +170,8 @@
       magic-mode-regexp-match-limit 1000000
       suggest-key-bindings nil
 
-      load-prefer-newer t)
+      load-prefer-newer t
+      kill-ring-max 1000)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
