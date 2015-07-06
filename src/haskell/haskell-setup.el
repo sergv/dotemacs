@@ -433,7 +433,8 @@
                        1 2 3 1)))))
 
 (defun ghc-core-setup ()
-  (structured-haskell-mode -1))
+  (structured-haskell-mode -1)
+  (hl-line-mode +1))
 
 (defvar hs-lint-error-regex
   "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Error:")
