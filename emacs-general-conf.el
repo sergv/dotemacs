@@ -171,7 +171,8 @@
       suggest-key-bindings nil
 
       load-prefer-newer t
-      kill-ring-max 1000)
+      kill-ring-max 1000
+      save-interprogram-paste-before-kill nil)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))

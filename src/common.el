@@ -457,12 +457,12 @@ combinations"
           (or (elt state 3)
               (elt state 4)))))))
 
-(defun point-not-inside-string-or-comment? ()
+(defsubst point-not-inside-string-or-comment? ()
   (not (point-inside-string-or-comment?)))
 
 ;;;
 
-(defun assoc-value (key alist)
+(defsubst assoc-value (key alist)
   (cadr (assoc key alist)))
 
 (defun keyword-arglist-get-value (key keyword-arglist &optional default)
@@ -906,7 +906,7 @@ end of END-LINE in current buffer."
 
 (defparameter *ignored-file-name-endings*
   (append
-   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot" ".class" ".fasl" ".lo" ".la" ".gmo" ".mo" ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dex" ".gz" ".tar.gz" ".tar" ".bz2" ".tar.bz2" ".xz" ".tar.xz" ".7z" ".tar.7z")
+   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot" ".class" ".fasl" ".lo" ".la" ".gmo" ".mo" ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dex" ".gz" ".tar" ".bz2" ".xz" ".7z")
    (cond
      ((platform-os-type? 'linux)
       '(".so" ))
@@ -995,7 +995,7 @@ end of END-LINE in current buffer."
 
 (defparameter common/registered-filenames (make-hash-table :test #'equal)
   "Hashtable binding filename strings to themselves. Exists for memory
-optimization reasons.")
+optimization purposes.")
 
 (defun common/registered-filename (filename)
   (aif (gethash filename common/registered-filenames)
@@ -1397,6 +1397,13 @@ to deleted items. ITEMS will be mutated in order to obtain result."
      ("^|||||||$" 0 'font-lock-warning-face t) ; "diff3" style
      ("^=======$" 0 'font-lock-warning-face t)
      ("^>>>>>>> .*$" 0 'font-lock-warning-face t))))
+
+(defun kill-new-ignoring-duplicates (text)
+  "Similar to `kill-new', but does not append TEXT to `kill-ring' if
+topmost `kill-ring' item is equal to text."
+  (when (or (null kill-ring)
+            (not (string= text (car kill-ring))))
+    (kill-new text nil)))
 
 (provide 'common)
 
