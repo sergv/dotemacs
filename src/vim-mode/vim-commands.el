@@ -319,7 +319,7 @@ and switches to insert-mode."
                   (vim:motion-end-pos motion))))
        (if register
          (set-register register text)
-         (kill-new text))))))
+         (kill-new-ignoring-duplicates text))))))
 
 (vim:defcmd vim:cmd-yank-line (count register nonrepeatable)
   "Saves the next count lines into the kill-ring."
@@ -339,8 +339,7 @@ and switches to insert-mode."
                            txt)
         (if register
           (set-register register txt)
-          (kill-new txt nil ;; (list #'vim:yank-line-handler txt)
-                    ))))))
+          (kill-new-ignoring-duplicates txt))))))
 
 (vim:defcmd vim:cmd-yank-rectangle (motion register nonrepeatable)
   "Stores the rectangle defined by motion into the kill-ring."
@@ -377,7 +376,7 @@ and switches to insert-mode."
       (if register
         (progn
           (set-register register txt))
-        (kill-new txt nil)))
+        (kill-new-ignoring-duplicates txt)))
     (goto-line1 begrow)
     (move-to-column begcol)))
 
