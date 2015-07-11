@@ -130,6 +130,7 @@
 (menu-bar-mode -1)
 (line-number-mode +1)
 (column-number-mode +1)
+(fringe-mode (cons 1 0))
 
 (setf x-select-enable-clipboard t
       interprogram-paste-function
