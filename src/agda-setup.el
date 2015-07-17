@@ -80,8 +80,10 @@
     ;; constructor (if there is a unique type-correct choice).
     ("- r"             agda2-refine)
     ;; navigate between holes
+    ("- b"             agda2-previous-goal)
     ("- f"             agda2-next-goal)
-    ("- b"             agda2-previous-goal))
+    ("C-t"             agda2-previous-goal)
+    ("C-h"             agda2-next-goal))
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"               agda2-compute-normalised-region)
     ("g a ="           agda-align-on-equals)
