@@ -109,3 +109,6 @@
 [submodule "third-party/web-mode"]
         path = third-party/web-mode
         url = https://github.com/fxbois/web-mode.git
+[submodule "third-party/idris-mode"]
+	path = third-party/idris-mode
+	url = https://github.com/idris-hackers/idris-mode.git
