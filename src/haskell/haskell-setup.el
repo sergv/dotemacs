@@ -68,6 +68,13 @@
 (vim:defcmd vim:haskell-ghc-check (nonrepeatable)
   (ghc-check-syntax))
 
+(defun haskell-update-eproj-tags-on-save ()
+  (ignore-errors
+    (eproj-update-buffer-tags)))
+
+(defun haskell-ghc-mod-check-on-save ()
+  (check-errors
+   (ghc-check-syntax)))
 
 (defun haskell-setup ()
   (init-common :use-yasnippet t
@@ -75,12 +82,8 @@
                :use-render-formula nil
                :use-hl-line nil)
   (smerge-mode +1)
-  (add-hook 'after-save-hook
-            (lambda ()
-              (ignore-errors
-                (eproj-update-buffer-tags)))
-            nil
-            t)
+  (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
+  (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)
 
   ;; ghci interaction uses comint - same as shell mode
   (turn-on-font-lock)
