@@ -25,7 +25,8 @@
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
-  (vim:local-emap "load" 'vim:inferior-haskell-load-file)
+  (vim:local-emap "load" 'vim:idris-load-file)
+  (vim:local-emap "lo"   'vim:idris-load-file)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-t"             idris-previous-error)
     ("C-h"             idris-next-error)
@@ -63,11 +64,32 @@
     ("g a |"           agda-align-on-pipes)
     ("g a ,"           agda-align-on-commas)
     ("g a - -"         agda-align-on-comments)
-    ("g a :"           agda-align-on-colons))
-  (agda-abbrev+-setup))
+    ("g a :"           agda-align-on-colons)))
 
 (add-hook 'idris-mode-hook #'idris-setup)
 
+(defun idris-info-history-navigate-forward ()
+  (interactive)
+  (idris-info-history-forward)
+  (idris-info-show))
+
+(defun idris-info-history-navigate-backward ()
+  (interactive)
+  (idris-info-history-back)
+  (idris-info-show))
+
+(defun idris-info-setup ()
+  (def-keys-for-map idis-info-mode-map
+    ("<up>"   idris-info-history-navigate-backward)
+    ("<down>" idris-info-history-navigate-forward)))
+
+(add-hook 'idris-info-mode-hook #'idris-info-setup)
+
+(defun idris-compiler-notes-setup ()
+  (def-keys-for-map idris-compiler-notes-mode-map
+    ("SPC" push-button)))
+
+(add-hook 'idris-compiler-notes-mode-hook #'idris-compiler-notes-setup)
 
 (provide 'idris-setup)
 
