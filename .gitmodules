@@ -112,3 +112,6 @@
 [submodule "third-party/idris-mode"]
 	path = third-party/idris-mode
 	url = https://github.com/idris-hackers/idris-mode.git
+[submodule "third-party/prop-menu-el"]
+	path = third-party/prop-menu-el
+	url = https://github.com/david-christiansen/prop-menu-el.git
