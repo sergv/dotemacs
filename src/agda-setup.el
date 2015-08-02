@@ -41,6 +41,9 @@
 (make-align-function agda-align-on-colons
                      "\\(?::[^:]\\)")
 
+(vim:defcmd vim:agda-load-file (nonrepeatable)
+  (agda2-load))
+
 (defun agda-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -48,6 +51,8 @@
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
+  (vim:local-emap "load" 'vim:agda-load-file)
+  (vim:local-emap "lo"   'vim:agda-load-file)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g c d"           comment-util-delete-commented-part)
     ("<f6>"            agda2-load)

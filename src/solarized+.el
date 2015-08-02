@@ -197,11 +197,6 @@ Futher modified by Sergey Vinokurov."
                                        (:underline (:style wave :color ,violet)))
                                       (t (:inherit bold))))
 
-       (js2-error                    ((t (:inherit ghc-face-error))))
-       (js2-warning                  ((t (:inherit ghc-face-warn))))
-       (js2-function-param           ((t (:inherit default))))
-       (js2-external-variable        ((t (:foreground ,orange))))
-
        ;; agda
        (agda2-highlight-bound-variable-face          ((t (:inherit default))))
        (agda2-highlight-coinductive-constructor-face ((t (:foreground ,yellow))))
@@ -227,15 +222,29 @@ Futher modified by Sergey Vinokurov."
        (agda2-highlight-unsolved-constraint-face     ((t (:inherit warning :bold t))))
        (agda2-highlight-unsolved-meta-face           ((t (:inherit warning :bold t))))
 
+       ;; idris
+       (idris-semantic-module-face                   ((t (:inherit default))))
+       (idris-semantic-namespace-face                ((t (:inherit default))))
+
+       (idris-semantic-type-face                     ((t (:foreground ,yellow))))
+       (idris-semantic-data-face                     ((t (:foreground ,yellow))))
+       (idris-semantic-function-face                 ((t (:foreground ,blue))))
+       (idris-semantic-bound-face                    ((t (:inherit default))))
+       (idris-operator-face                          ((t (:foreground ,blue))))
+
        (shm-current-face             ((t (:background ,base02))))
        (shm-quarantine-face          ((((supports :underline (:style wave)))
                                        (:underline (:style wave :color ,base01)))
                                       (t (:underline ,base01))))
 
-
        (clojure-constant-face        ((t (:foreground ,cyan))))
        (clojure-java-interop-face    ((t (:foreground ,yellow))))
        (clojure-meta-type-annotation-face ((t (:foreground ,green))))
+
+       (js2-error                    ((t (:inherit ghc-face-error))))
+       (js2-warning                  ((t (:inherit ghc-face-warn))))
+       (js2-function-param           ((t (:inherit default))))
+       (js2-external-variable        ((t (:foreground ,orange))))
 
        ;; info
        (info-xref                    ((t (:foreground ,blue :underline t))))
