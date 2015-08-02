@@ -6,7 +6,6 @@
 ;; Created: long ago
 ;; Description:
 
-
 (require 'custom)
 (require 'common)
 (require 'comment-util)
@@ -63,18 +62,26 @@
 (vim:defcmd vim:haskell-clear-buffer-and-load-file (nonrepeatable)
   (haskell-clear-buffer-and-load-file))
 
+(defvar-local vim:haskell-check-on-save nil
+  "Whether to run `ghc-check' on saves.")
 (vim:defcmd vim:haskell-ghc-init (nonrepeatable)
-  (ghc-init))
+  (ghc-init)
+  (setq-local vim:haskell-check-on-save t))
 (vim:defcmd vim:haskell-ghc-check (nonrepeatable)
-  (ghc-check-syntax))
+  (ghc-check-syntax)
+  (setq-local vim:haskell-check-on-save t))
+(vim:defcmd vim:haskell-ghc-reset (nonrepeatable)
+  (ghc-reset)
+  (setq-local vim:haskell-check-on-save nil))
 
 (defun haskell-update-eproj-tags-on-save ()
   (ignore-errors
     (eproj-update-buffer-tags)))
 
 (defun haskell-ghc-mod-check-on-save ()
-  (check-errors
-   (ghc-check-syntax)))
+  (when vim:haskell-check-on-save
+    (ignore-errors
+      (ghc-check-syntax))))
 
 (defun haskell-setup ()
   (init-common :use-yasnippet t
@@ -98,10 +105,6 @@
   (modify-syntax-entry ?_ "_")
   (modify-syntax-entry ?\' "w")
   (modify-syntax-entry ?\@ "'")
-
-  ;; (setq-local vim:word "[:word:]_'")
-
-  ;; (modify-syntax-entry ?\` "\"")
 
   (setq-local eproj-symbnav/identifier-type 'haskell-symbol)
   (setq-local indent-region-function #'ignore)
@@ -135,10 +138,7 @@
                      "haskell-offset in .eproj-info must be an integer, but got %s"
                      hask-offset)
              hask-offset)
-           2)
-
-
-         ))
+           2)))
     (setq-local vim:shift-width       offset)
     (setq-local haskell-indent-offset offset)
     (setq-local haskell-indent-spaces offset)
@@ -151,19 +151,18 @@
   ;; don't skip any messages
   (setq-local compilation-skip-threshold 0)
 
-  ;; (ghc-init)
-
-  (vim:local-emap "core" 'vim:ghc-core-create-core)
-  (vim:local-emap "compile" 'vim:haskell-compile)
-  (vim:local-emap "c" 'vim:haskell-compile)
+  (vim:local-emap "core"     'vim:ghc-core-create-core)
+  (vim:local-emap "compile"  'vim:haskell-compile)
+  (vim:local-emap "c"        'vim:haskell-compile)
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
-  (vim:local-emap "cc" 'vim:haskell-compile-choosing-command)
-  (vim:local-emap "hlint" 'vim:hs-lint)
-  (vim:local-emap "load" 'vim:inferior-haskell-load-file)
-  (vim:local-emap "loadc" 'vim:haskell-clear-buffer-and-load-file)
-  (vim:local-emap "init" 'vim:haskell-ghc-init)
-  (vim:local-emap "check" 'vim:haskell-ghc-check)
-  (vim:local-emap "ch" 'vim:haskell-ghc-check)
+  (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
+  (vim:local-emap "hlint"    'vim:hs-lint)
+  (vim:local-emap "load"     'vim:inferior-haskell-load-file)
+  (vim:local-emap "loadc"    'vim:haskell-clear-buffer-and-load-file)
+  (vim:local-emap "init"     'vim:haskell-ghc-init)
+  (vim:local-emap "check"    'vim:haskell-ghc-check)
+  (vim:local-emap "ch"       'vim:haskell-ghc-check)
+  (vim:local-emap "reset"    'vim:haskell-ghc-reset)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"         inferior-haskell-send-decl)
@@ -207,11 +206,6 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ;; ("- t"     haskell-type)
-    ;; ("- i"     haskell-info)
-    ;; ("- h"     haskell-haddock-identifier)
-    ;; ("- m"     haskell-haddock-module)
-    ;; ("- g"     haskell-hoogle-at-point)
     ("- ?"     ghc-display-errors)
     ("- y"     hayoo)
     ("- /"     ghc-complete)
@@ -229,7 +223,6 @@
     ("#"       search-for-haskell-symbol-at-point-backward)
     ("C-#"     search-for-haskell-symbol-at-point-backward-new-color)
     ("'"       vim:shm/goto-parent)
-    ;; ("'"       haskell-move-up)
     ("g t"     haskell-node/move-to-topmost-start)
     ("g h"     haskell-node/move-to-topmost-end))
 
@@ -280,7 +273,7 @@
   (setup-outline-headers :header-symbol "-"
                          :length-min 3))
 
-;;; set up inferior-haskell-mode
+;;; Set up inferior-haskell-mode
 
 (defun inferior-haskell-mode-setup ()
   ;; undo-tree is useless for ghci interaction
@@ -409,10 +402,10 @@
   (setq-local indent-line-function
               (lambda ()
                 (indent-to standard-indent)))
-  (vim:local-emap "compile" 'vim:haskell-compile)
-  (vim:local-emap "c" 'vim:haskell-compile)
+  (vim:local-emap "compile"  'vim:haskell-compile)
+  (vim:local-emap "c"        'vim:haskell-compile)
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
-  (vim:local-emap "cc" 'vim:haskell-compile-choosing-command)
+  (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
 
   (def-keys-for-map '(vim:normal-mode-local-keymap
                       vim:insert-mode-local-keymap)
