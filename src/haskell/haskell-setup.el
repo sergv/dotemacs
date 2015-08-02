@@ -158,6 +158,7 @@
   (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
   (vim:local-emap "hlint"    'vim:hs-lint)
   (vim:local-emap "load"     'vim:inferior-haskell-load-file)
+  (vim:local-emap "lo"       'vim:inferior-haskell-load-file)
   (vim:local-emap "loadc"    'vim:haskell-clear-buffer-and-load-file)
   (vim:local-emap "init"     'vim:haskell-ghc-init)
   (vim:local-emap "check"    'vim:haskell-ghc-check)
