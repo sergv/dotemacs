@@ -197,6 +197,7 @@ all otherwise."
     ("r"               magit-refresh)
     ("T"               magit-tag-popup)
     ("R"               magit-rebase-popup)
+    ("X"               magit-reset-head-hard)
     ("SPC"             magit-visit-item-other-window)
     ("S-TAB"           magit-cycle-top-sections-visibility)
     ("<S-tab>"         magit-cycle-top-sections-visibility)
