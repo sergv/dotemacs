@@ -397,6 +397,7 @@
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet nil)
   (fontify-merge-markers)
+  (modify-syntax-entry ?- "_")
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
