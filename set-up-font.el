@@ -34,18 +34,21 @@
     (cond
       ((and (platform-os-type? 'linux)
             (platform-use? '(home asus-netbook work)))
-       '("-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+       '("-unknown-Input-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1"
+         "-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
          "-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
          "-unknown-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'linux)
             (platform-use? 'netbook))
-       '("-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+       '("-unknown-Input-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1"
+         "-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
          "-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
          "-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'windows)
             (platform-use? 'work))
        (append
-        '("-outline-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
+        '("-outline-Input-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
+          "-outline-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
           "-outline-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1")
         (if (and (<= (display-pixel-width) 1280)
                  (<= (display-pixel-height) 1024))
@@ -68,6 +71,7 @@
   (set-up-fonts/set-emacs-font-if-exists (first +emacs-fonts+)))
 
 (when *emacs-font*
+  (set-default-font *emacs-font*)
   (set-frame-font *emacs-font*)
 
   (add-hook 'after-make-frame-functions
