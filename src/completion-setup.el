@@ -39,7 +39,7 @@
 
 (setf ido-enable-flex-matching t
       ido-create-new-buffer 'always ;; don't prompt when opening nonexistent files
-      ido-file-extensions-order '(".hs" ".lhs" ".y" ".l" ".cabal" ".h" ".c" t)
+      ido-file-extensions-order '(".hs" ".lhs" ".y" ".l" ".cabal" ".idr" ".agda" ".h" ".c" t)
       ido-case-fold t ;; ignore case
       ido-everywhere t
       ido-ignore-extensions t ;; ignore extensions in `completion-ignored-extensions'
@@ -71,6 +71,7 @@
 
 (defun ido-setup-custom-bindings ()
   (def-keys-for-map ido-common-completion-map
+    ("SPC"        self-insert-command)
     ("C-SPC"      ido-edit-input)
     ("C-<return>" ido-select-text)
     ("<C-return>" ido-select-text)
