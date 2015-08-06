@@ -812,13 +812,13 @@ the offset and the new position."
     (let ((minibuffer-local-completion-map vim:ex-keymap)
           (ido-setup-hook (cons #'vim:ex-setup-ido-keymap setup-hook)))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (ido-completing-read ">"
-                                         ;; #'vim:ex-complete
-                                         vim:all-known-ex-commands
-                                         nil ;; predicate
-                                         nil ;; require-match
-                                         initial-input
-                                         'vim:ex-history)))
+      (let ((result (completing-read ">"
+                                     ;; #'vim:ex-complete
+                                     vim:all-known-ex-commands
+                                     nil     ;; predicate
+                                     nil     ;; require-match
+                                     initial-input
+                                     'vim:ex-history)))
         (when (and result
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))
