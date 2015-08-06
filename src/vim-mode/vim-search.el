@@ -25,30 +25,12 @@
                 (const :tag "Disable highlighting." nil))
   :group 'vim-ex-mode)
 
-(defcustom vim:search-case 'sensitive
-  "The case behaviour of the search command."
-  :type '(radio (const :tag "Case sensitive." 'sensitive)
-                (const :tag "Case insensitive." 'insensitive)
-                (const :tag "Smart case." 'smart))
-  :group 'vim-ex-mode)
-
 (defcustom vim:substitute-case 'sensitive
   "The case behaviour of the search command."
   :type '(radio (const :tag "Same as interactive search." nil)
                 (const :tag "Case sensitive." 'sensitive)
                 (const :tag "Case insensitive." 'insensitive)
                 (const :tag "Smart case." 'smart))
-  :group 'vim-ex-mode)
-
-(defcustom vim:search-interactive t
-  "If t search is interactive."
-  :type 'boolean
-  :group 'vim-ex-mode)
-
-(defcustom vim:search-highlight-all t
-  "If t and interactive search is enabled, all matches are
-highlighted."
-  :type 'boolean
   :group 'vim-ex-mode)
 
 (defcustom vim:substitute-highlight-all t
@@ -60,34 +42,6 @@ highlighted."
   "If t and substitute patterns are highlighted the replacement is shown interactively."
   :type 'boolean
   :group 'vim-ex-mode)
-
-
-(defconst vim:search-keymap (make-sparse-keymap)
-  "Keymap used in search-ex-mode.")
-
-(defparameter vim:search-history nil
-  "The history for the search command.")
-
-(defparameter vim:search-direction nil
-  "The direction of the current search, either 'forward or 'backward.")
-
-(defparameter vim:search-count nil
-  "The count if the current search.")
-
-(defparameter vim:search-start-point nil
-  "The point where the search started.")
-
-(defparameter vim:search-overlay nil
-  "The overlay for the current search result.")
-
-(defparameter vim:search-pattern nil
-  "The actual search pattern.")
-
-(defparameter vim:search-match-beg nil
-  "The beginning position of the last match.")
-
-(defparameter vim:search-match-end nil
-  "The end position of the last match.")
 
 (defparameter vim:substitute-pattern nil
   "The actual replacement.")
@@ -108,16 +62,6 @@ highlighted."
                                        :foreground "red")))
   "Face for interactive replacement text."
   :group 'vim-ex-mode)
-
-
-(define-key vim:search-keymap [return] #'vim:search-exit)
-(define-key vim:search-keymap (kbd "<M-escape>") #'vim:search-abort)
-(define-key vim:search-keymap (kbd "RET") #'vim:search-exit)
-(define-key vim:search-keymap (kbd "C-g") #'vim:search-abort)
-(define-key vim:search-keymap [up] #'previous-history-element)
-(define-key vim:search-keymap [down] #'next-history-element)
-(define-key vim:search-keymap (kbd "ESC") #'vim:search-abort)
-;; (define-key vim:search-keymap (kbd "\d") #'vim:ex-delete-backward-char)
 
 ;; A pattern.
 (defstruct (vim:pattern
@@ -194,8 +138,8 @@ will be case-insensitive."
                           (update-hook nil)
                           (match-hook nil))
   "Creates new highlighting object with a certain `name'."
-  (unless (symbolp name) (error "Excepted symbol as name of highlight"))
-  (when (assoc name vim:active-highlights-alist)
+  (assert (symbolp name) nil "Excepted symbol as name of highlight")
+  (when (vim:hl-active-p name)
     (vim:delete-hl name))
   (when (null vim:active-highlights-alist)
     (add-hook 'window-scroll-functions #'vim:hl-update-highlights-scroll nil t)
@@ -214,7 +158,8 @@ will be case-insensitive."
 
 (defun vim:delete-hl (name)
   "Removes the highlighting object with a certain `name'."
-  (let ((hl (cdr-safe (assoc name vim:active-highlights-alist))))
+  (assert (symbol? name))
+  (let ((hl (cdr-safe (assq name vim:active-highlights-alist))))
     (when hl
       (mapc #'delete-overlay (vim:hl-overlays hl))
       (setq vim:active-highlights-alist
@@ -227,13 +172,15 @@ will be case-insensitive."
 
 (defun vim:hl-active-p (name)
   "Returns t iff the highlight with a certain name is active."
-  (and (assoc name vim:active-highlights-alist) t))
+  (assert (symbol? name))
+  (and (assq name vim:active-highlights-alist) t))
 
 
 (defun vim:hl-change (name new-pattern)
   "Sets the regular expression of the highlighting object with
 name `name' to `new-regex'."
-  (let ((hl (cdr-safe (assoc name vim:active-highlights-alist))))
+  (assert (symbol? name))
+  (let ((hl (cdr-safe (assq name vim:active-highlights-alist))))
     (when hl
       (setf (vim:hl-pattern hl)
             (if (zerop (length new-pattern))
@@ -243,7 +190,8 @@ name `name' to `new-regex'."
 
 
 (defun vim:hl-set-region (name beg end)
-  (let ((hl (cdr-safe (assoc name vim:active-highlights-alist))))
+  (assert (symbol? name))
+  (let ((hl (cdr-safe (assq name vim:active-highlights-alist))))
     (when hl
       (setf (vim:hl-beg hl) beg
             (vim:hl-end hl) end)
@@ -321,10 +269,8 @@ name `name' to `new-regex'."
       (when (vim:hl-update-hook hl)
         (funcall (vim:hl-update-hook hl) result)))))
 
-
 (defparameter vim:hl-update-timer nil
   "Time used for updating highlights.")
-
 
 (defun vim:hl-idle-update ()
   "Triggers the timer to update the highlights in the current buffer."
@@ -337,19 +283,16 @@ name `name' to `new-regex'."
                        #'vim:hl-do-update-highlight
                        (current-buffer)))))
 
-
-(defun* vim:hl-do-update-highlight (&optional buffer)
+(defun vim:hl-do-update-highlight (&optional buffer)
   "Timer function, updating the highlights."
   (with-current-buffer buffer
     (vim:hl-update-highlights))
   (setq vim:hl-update-timer nil))
 
-
 (defun vim:hl-update-highlights-scroll (win begin)
   "Update highlights after scrolling in some window."
   (with-current-buffer (window-buffer)
     (vim:hl-idle-update)))
-
 
 (defun vim:hl-update-highlights-resize (frame)
   "Updates highlights after resizing a window."
@@ -357,7 +300,6 @@ name `name' to `new-regex'."
     (dolist (buf buffers)
       (with-current-buffer buf
         (vim:hl-idle-update)))))
-
 
 (defun* vim:search-find-next-pattern (pattern &optional
                                               (direction 'forward))
@@ -386,19 +328,18 @@ name `name' to `new-regex'."
 
 (defun vim:ex-pattern-argument-update ()
   (when vim:substitute-highlight-all
-    (multiple-value-bind (pattern replacement flags)
+    (multiple-value-bind (pattern replacement flag-str)
         (vim:parse-substitute vim:ex-arg)
-      (setq flags (append flags nil))
       (with-selected-window vim:ex-current-window
         (with-current-buffer vim:ex-current-buffer
           (setq vim:substitute-pattern
                 (and pattern
-                     (vim:make-pattern :regex pattern
-                                       :whole-line (memq ?g flags)
-                                       :case-fold (or (and (memq ?i flags) 'insensitive)
-                                                      (and (memq ?I flags) 'sensitive)
-                                                      vim:substitute-case
-                                                      vim:search-case)))
+                     (vim:make-pattern
+                      :regex pattern
+                      :whole-line (if flag-str (not (string-match-pure? "!g" flag-str)) t)
+                      :case-fold (or (and (string-match-pure? "i" flag-str) 'insensitive)
+                                     (and (string-match-pure? "I" flag-str) 'sensitive)
+                                     vim:substitute-case)))
                 vim:substitute-replacement replacement)
           (vim:hl-set-region 'vim:substitute
                              ;; first line
@@ -456,7 +397,7 @@ name `name' to `new-regex'."
              (last-line (if motion
                           (vim:motion-last-line motion)
                           (line-number-at-pos (point))))
-             (whole-line ;; (memq ?g flag-list)
+             (whole-line
               (if flag-str (not (string-match-pure? "!g" flag-str)) t))
              (confirm (and flag-list (memq ?c flag-list)))
              (ignore-case (and flag-list (memq ?i flag-list)))
@@ -466,8 +407,7 @@ name `name' to `new-regex'."
                        :whole-line whole-line
                        :case-fold (or (and ignore-case 'insensitive)
                                       (and dont-ignore-case 'sensitive)
-                                      vim:substitute-case
-                                      vim:search-case)))
+                                      vim:substitute-case)))
              (regex (vim:pattern-regex pattern))
              (last-point (point))
              (overlay (make-overlay (point) (point)))
@@ -668,42 +608,12 @@ regular expressions."
               (when (and flags-start flags-end)
                 (subseq str flags-start (min len flags-end)))))))
 
-;; ;; test cases for vim:parse-substitute-lowlevel
-;; (loop
-;;   for (str result) in
-;;      '(("/foo/bar"          ("foo" "bar" nil))
-;;        (",foo,bar"          ("foo" "bar" nil))
-;;        (",foo,bar,"         ("foo" "bar" nil))
-;;        ("/hello/world/gI"   ("hello" "world" "gI"))
-;;        ("/\"/\"/"           ("\"" "\"" nil))
-;;        ("         /    a  " ("    a  " nil nil))
-;;        ("/xyz"              ("xyz" nil nil))
-;;        (";xyz"              ("xyz" nil nil))
-;;        ("/x/y/gic   uuuu"   ("x" "y" "gic"))
-;;        ("/abc/\\/\\/\\/\\//g" ("abc" "\\/\\/\\/\\/" "g"))
-;;        ("/^\\(.*\\)$/\\\"\\1\\\"\\n/g"
-;;         ("^\\(.*\\)$" "\\\"\\1\\\"\\n" "g"))
-;;        (",hello ,/world ! world;/,g"
-;;         ("hello " "/world ! world;/" "g"))
-;;        ("/"
-;;         ("" ;; do we need to expect nil here??? this is quite unclear
-;;          nil nil))
-;;        ("/[A-Z]/foo/g"
-;;         ("[A-Z]" "foo" "g"))
-;;        ("/hello/world\\/g"
-;;         ("hello" "world\\/g" nil)))
-;;   unless (equal result (vim:parse-substitute-lowlevel str))
-;;   do (error "FAIL AT CASE: STR: %S; EXPECTED: %S, RECEIVED: %S"
-;;             str
-;;             result
-;;             (vim:parse-substitute-lowlevel str))
-;;   finally return 'success)
-
 ;; Related commands.
 (vim:defcmd vim:cmd-nohighlight (nonrepeatable)
   "Disables the active search highlightings."
   (vim:delete-hl 'vim:search)
   (vim:delete-hl 'vim:provide)
+  (vim:delete-hl 'vim:substitute)
   (search-disable-highlighting))
 
 (provide 'vim-search)
