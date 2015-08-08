@@ -573,7 +573,8 @@ Futher modified by Sergey Vinokurov."
           org-drill-failed-count-color magenta
           org-drill-mature-count-color orange
           ansi-color-names-vector (vector base0 red green yellow blue magenta cyan base01)
-          ansi-color-map (ansi-color-make-color-map))
+          ansi-color-map (ansi-color-make-color-map)
+          fci-rule-color base0)
     (run-hooks 'color-theme-solarized+-theme-changed-hook)))
 
 (defparameter color-theme-solarized+-theme-changed-hook '()

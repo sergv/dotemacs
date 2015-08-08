@@ -272,6 +272,11 @@
 
 (require 'keys-def)
 
+;;;; fill-column-indicator
+
+(setf fci-handle-truncate-lines nil
+      fci-rule-column 80)
+
 ;;;; customizations without dedicated setup file
 
 (eval-after-load "term" ;; ansi-term et al
