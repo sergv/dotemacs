@@ -115,3 +115,6 @@
 [submodule "third-party/prop-menu-el"]
 	path = third-party/prop-menu-el
 	url = https://github.com/david-christiansen/prop-menu-el.git
+[submodule "third-party/fill-column-indicator"]
+	path = third-party/fill-column-indicator
+	url = https://github.com/alpaker/Fill-Column-Indicator.git

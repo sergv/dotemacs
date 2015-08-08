@@ -74,6 +74,7 @@
   (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
     (comment-util-mode 1))
+  (fci-mode 1)
 
   ;; (set-buffer-file-coding-system 'utf-8-unix)
 
@@ -240,6 +241,8 @@
 (eval-after-load "ibuffer"
   '(progn
      (load-library "ibuffer-setup")))
+
+(require 'fill-column-indicator)
 
 (require 'fortunes)
 (random t)
