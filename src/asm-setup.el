@@ -7,9 +7,9 @@
 ;; Description:
 
 (defun asm-mode-setup ()
-  (init-common :use-yasnippet nil
-               :use-comment t
-               :use-whitespace t
+  (init-common :use-yasnippet      nil
+               :use-comment        t
+               :use-fci            t
                :use-render-formula t)
 
   ;; do not colorize tabs

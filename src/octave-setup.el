@@ -356,7 +356,8 @@ in GROUP-NUMS."
 (defun octave-setup ()
   (init-common :use-yasnippet t
                :use-render-formula t
-               :sp-slurp-sexp-insert-space nil)
+               :sp-slurp-sexp-insert-space nil
+               :use-fci t)
   (hs-minor-mode t)
 
   (setq-local yas/indent-line 'fixed)
@@ -407,7 +408,8 @@ in GROUP-NUMS."
 (defun inferior-octave-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
-               :sp-slurp-sexp-insert-space nil)
+               :sp-slurp-sexp-insert-space nil
+               :use-fci nil)
   (init-repl :bind-return (list vim:normal-mode-local-keymap
                                 vim:insert-mode-local-keymap
                                 inferior-octave-mode-map))

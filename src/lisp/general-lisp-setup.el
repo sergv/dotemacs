@@ -677,10 +677,11 @@ This command assumes point is not in a string or comment."
 
 ;;; Actual setup functions
 
-(defun* lisp-setup (&key (use-whitespace t))
+(defun* lisp-setup (&key (use-whitespace nil) (use-fci t))
   (init-common :use-yasnippet nil
-               :use-whitespace use-whitespace
-               :use-render-formula t)
+               :use-whitespace nil
+               :use-render-formula t
+               :use-fci use-fci)
   (rainbow-delimiters-mode 1)
   (hs-minor-mode 1)
   ;; hiding of comments is rather annoying feature when working with lisps
@@ -769,7 +770,7 @@ This command assumes point is not in a string or comment."
                          :length-min 3))
 
 (defun lisp-repl-setup ()
-  (lisp-setup :use-whitespace nil)
+  (lisp-setup :use-fci nil)
   (init-repl)
 
   (whitespace-mode -1)
