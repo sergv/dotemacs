@@ -15,7 +15,8 @@
 (defun lua-setup ()
   (init-common :use-yasnippet nil
                :use-render-formula t
-               :sp-slurp-sexp-insert-space nil)
+               :sp-slurp-sexp-insert-space nil
+               :use-fci t)
   (hs-minor-mode 1)
 
   (def-keys-for-map vim:normal-mode-local-keymap
