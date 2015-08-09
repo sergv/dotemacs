@@ -281,7 +281,7 @@
   ;; well I'm not sure now, I hope it's useful since it proved itself useful
   ;; for other repls
   ;; (undo-tree-mode -1)
-  (init-common :use-comment nil :use-yasnippet nil)
+  (init-common :use-comment nil :use-yasnippet nil :use-fci nil)
   (init-repl :create-keymaps nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
@@ -382,7 +382,7 @@
     ("G"        vim-mock:motion-go-to-first-non-blank-end)))
 
 (defun ghc-check-mode-setup ()
-  (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil)
+  (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil :use-fci nil)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"     compilation-jump-to-prev-error)
     ("<down>"   compilation-jump-to-next-error)

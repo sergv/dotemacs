@@ -369,7 +369,8 @@ greater indenation as current line."
 (defun python-setup ()
   (init-common :use-yasnippet t
                :use-render-formula t
-               :sp-slurp-sexp-insert-space nil)
+               :sp-slurp-sexp-insert-space nil
+               :use-fci t)
 
   (setq-local tab-width 4)
   (setq-local vim:shift-width 4)
@@ -470,7 +471,9 @@ greater indenation as current line."
 (defun inferior-python-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
-               :sp-slurp-sexp-insert-space nil)
+               :sp-slurp-sexp-insert-space nil
+               :use-whitespace nil
+               :use-fci nil)
   (init-repl :create-keymaps nil)
   (comint-setup)
   (comint-read-input-ring t)

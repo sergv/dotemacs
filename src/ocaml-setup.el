@@ -41,7 +41,7 @@
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula t
-               :use-whitespace t
+               :use-fci t
                :sp-slurp-sexp-insert-space nil)
   (def-keys-for-map tuareg-mode-map
     ("SPC SPC" switch-to-ocaml-repl)

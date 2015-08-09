@@ -68,14 +68,14 @@
 (defun gitignore-setup ()
   (init-common :use-yasnippet  nil
                :use-comment    t
-               :use-whitespace t))
+               :use-fci        t))
 
 (add-hook 'gitignore-mode-hook #'gitignore-setup)
 
 (defun gitconfig-setup ()
   (init-common :use-yasnippet  nil
                :use-comment    t
-               :use-whitespace t)
+               :use-fci        t)
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<tab>"       tab-to-tab-stop)
@@ -260,7 +260,7 @@ all otherwise."
 
 (defun magit-log-edit-mode-setup ()
   "Mode for editing commit message."
-  (init-common :use-yasnippet nil :use-comment nil)
+  (init-common :use-yasnippet nil :use-comment nil :use-fci t)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      magit-log-edit-mode-map)
@@ -319,7 +319,7 @@ all otherwise."
 
 (defun git-commit-mode-setup ()
   "Mode for editing commit message."
-  (init-common :use-yasnippet nil :use-comment nil)
+  (init-common :use-yasnippet nil :use-comment nil :use-fci t)
 
   (def-keys-for-map (git-commit-mode-map
                      magit-log-edit-mode-map)
