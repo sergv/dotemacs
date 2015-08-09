@@ -337,8 +337,8 @@ name `name' to `new-regex'."
                      (vim:make-pattern
                       :regex pattern
                       :whole-line (if flag-str (not (string-match-pure? "!g" flag-str)) t)
-                      :case-fold (or (and (string-match-pure? "i" flag-str) 'insensitive)
-                                     (and (string-match-pure? "I" flag-str) 'sensitive)
+                      :case-fold (or (and (string? flag-str) (string-match-pure? "i" flag-str) 'insensitive)
+                                     (and (string? flag-str) (string-match-pure? "I" flag-str) 'sensitive)
                                      vim:substitute-case)))
                 vim:substitute-replacement replacement)
           (vim:hl-set-region 'vim:substitute
