@@ -21,7 +21,8 @@
 (defun idris-setup ()
   (init-common :use-yasnippet t
                :use-comment t
-               :use-render-formula t)
+               :use-render-formula t
+               :use-fci t)
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)

@@ -66,6 +66,7 @@
 
 (defun* init-common (&key (use-yasnippet t)
                           (use-comment t)
+                          (use-fci t)
                           (use-whitespace t)
                           (use-render-formula nil)
                           (use-hl-line t)
@@ -74,7 +75,6 @@
   (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
     (comment-util-mode 1))
-  (fci-mode 1)
 
   ;; (set-buffer-file-coding-system 'utf-8-unix)
 
@@ -86,12 +86,12 @@
   (setf undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t)
 
-  (when use-whitespace
-    (whitespace-mode
-     (if (memq major-mode
-               +do-not-track-long-lines-modes+)
-       -1
-       +1)))
+  ;; (when use-whitespace
+  ;;   (whitespace-mode
+  ;;    (if (memq major-mode
+  ;;              +do-not-track-long-lines-modes+)
+  ;;      -1
+  ;;      +1)))
 
   (when use-render-formula
     (render-formula-mode 1))
@@ -124,7 +124,13 @@
     ("M-<left>"  sp-forward-barf-sexp)
     ("M-<right>" sp-backward-barf-sexp)
     ("M-<up>"    sp-splice-sexp-killing-backward)
-    ("M-<down>"  sp-splice-sexp-killing-forward)))
+    ("M-<down>"  sp-splice-sexp-killing-forward))
+
+  (when use-fci
+    (fci-mode (if (memq major-mode
+                        +do-not-track-long-lines-modes+)
+                -1
+                +1))))
 
 (defun* init-repl (&key (show-directory nil) (bind-return t) (create-keymaps nil) (bind-vim:motion-current-line t))
   (use-repl-modeline :show-directory show-directory)

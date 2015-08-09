@@ -20,7 +20,7 @@
 (setf clojure-max-backtracking 10)
 
 (defun clojure-setup ()
-  (lisp-setup :use-whitespace t)
+  (lisp-setup :use-fci t)
   (setq-local lisp-indent-function #'clojure-indent-function)
   (setq-local forward-sexp-function #'clojure-forward-sexp)
   (def-keys-for-map (vim:insert-mode-local-keymap
