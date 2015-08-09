@@ -1405,6 +1405,12 @@ topmost `kill-ring' item is equal to text."
             (not (string= text (car kill-ring))))
     (kill-new text nil)))
 
+(defun toggle-fci ()
+  "Disable and enable `fci-mode'."
+  (interactive)
+  (fci-mode -1)
+  (fci-mode +1))
+
 (provide 'common)
 
 ;; Local Variables:
