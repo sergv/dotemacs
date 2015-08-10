@@ -17,7 +17,7 @@
 
 (require 'org-loaddefs)
 
-
+(defvar session-globals-exclude nil)
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 
 (autoload 'org-toggle-display-style "org-mode-setup" "" t)
