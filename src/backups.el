@@ -18,7 +18,7 @@
 
 (defconst b/backup-directory (path-concat +prog-data-path+ "backup"))
 
-(defparameter b/backup-interval 3600
+(defparameter b/backup-interval 1800
   "Time interval in seconds to make backups on save.")
 
 (defparameter b/last-backup-time nil
@@ -26,10 +26,10 @@
 (make-variable-buffer-local 'b/last-backup-time)
 (set-default 'b/last-backup-time nil)
 
-(defparameter b/has-unbackupped-changes nil
+(defparameter b/has-unbacked-up-changes nil
   "Becomes true whenever you perform save that has no corresponding backup.")
-(make-variable-buffer-local 'b/has-unbackupped-changes)
-(set-default 'b/has-unbackupped-changes nil)
+(make-variable-buffer-local 'b/has-unbacked-up-changes)
+(set-default 'b/has-unbacked-up-changes nil)
 
 (defsubst b/get-time ()
   "Return current time as a number of seconds since epoch."
@@ -94,28 +94,26 @@ by `b/backup-interval'."
     (progn
       (make-backup)
       (setq b/last-backup-time (b/get-time)
-            b/has-unbackupped-changes nil))
-    (setq b/has-unbackupped-changes t)))
+            b/has-unbacked-up-changes nil))
+    (setq b/has-unbacked-up-changes t)))
 
-(defun backup-on-kill ()
+(defun backup-on-buffer-kill ()
   "Backup buffer if it has unsaved changes."
-  (when b/has-unbackupped-changes
+  (when b/has-unbacked-up-changes
     (make-backup)
     (setq b/last-backup-time (b/get-time)
-          b/has-unbackupped-changes nil)))
+          b/has-unbacked-up-changes nil)))
 
 (defun backup-all-buffers ()
   "Make backup of files in all buffers that have files :)."
   (dolist (buf (buffer-list))
     (when (and (buffer-file-name buf)
-               (buffer-local-value
-                'b/has-unbackupped-changes
-                buf))
+               (buffer-local-value 'b/has-unbacked-up-changes buf))
       (make-backup buf))))
 
 
 (add-hook 'after-save-hook #'run-backup-as-needed)
-(add-hook 'kill-buffer-hook #'backup-on-kill)
+(add-hook 'kill-buffer-hook #'backup-on-buffer-kill)
 (add-hook 'kill-emacs-hook #'backup-all-buffers)
 
 (provide 'backups)
