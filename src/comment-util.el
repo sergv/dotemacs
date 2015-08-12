@@ -562,17 +562,19 @@ commented parts and leave point unchanged."
          comment-format
          count
          (current-column)))
-      (when-let (node (shm-current-node))
-        (let ((node-count (count-lines (shm-node-start node)
-                                       (shm-node-end node))))
-          (save-excursion
-            (if (= 1 node-count)
-              (skip-to-indentation)
-              (goto-char (shm-node-start node)))
-            (comment-util--comment-n-lines-starting-at-col
-             comment-format
-             node-count
-             (current-column))))))))
+      (if structured-haskell-mode
+        (when-let (node (shm-current-node))
+          (let ((node-count (count-lines (shm-node-start node)
+                                         (shm-node-end node))))
+            (save-excursion
+              (if (= 1 node-count)
+                (skip-to-indentation)
+                (goto-char (shm-node-start node)))
+              (comment-util--comment-n-lines-starting-at-col
+               comment-format
+               node-count
+               (current-column)))))
+        (comment-util-comment-lines 1)))))
 
 
 (provide 'comment-util)
