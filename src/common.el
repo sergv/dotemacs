@@ -1411,6 +1411,8 @@ topmost `kill-ring' item is equal to text."
   (fci-mode -1)
   (fci-mode +1))
 
+(defalias 'fci #'toggle-fci)
+
 (provide 'common)
 
 ;; Local Variables:
