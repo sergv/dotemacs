@@ -274,7 +274,7 @@
 
 ;;;; fill-column-indicator
 
-(setf fci-handle-truncate-lines nil
+(setf fci-handle-truncate-lines t
       fci-rule-column 80)
 
 ;;;; customizations without dedicated setup file
