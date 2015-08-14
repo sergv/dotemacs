@@ -44,7 +44,6 @@
     inferior-scheme-mode
     prolog-inferior-mode
     comint-mode
-    org-mode
     inferior-octave-mode
     python-repl-mode
     inferior-haskell-mode
