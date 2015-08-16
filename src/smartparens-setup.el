@@ -12,6 +12,7 @@
 
 (smartparens-global-mode 1)
 
+(setq-default sp-autoskip-closing-pair 'always)
 (setf sp-highlight-pair-overlay nil
       sp-highlight-wrap-overlay nil
       sp-highlight-wrap-tag-overlay nil
@@ -20,6 +21,7 @@
       sp-navigate-reindent-after-up nil
       ;; following variable is buffer local, so it's set in mode-local setups
       ;; sp-autoskip-opening-pair
+      ;; sp-autoskip-closing-pair
       sp-autoinsert-if-followed-by-word t
       sp-autoinsert-if-followed-by-same 0
       sp-ignore-modes-list '(;; enable smartparens mode in minibuffer,

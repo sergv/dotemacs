@@ -470,7 +470,6 @@ the current topic."
     ("g o"     org-open-at-point)
 
     ("'"       org-mode-up-heading)
-    ("<up>"    org-mode-up-heading)
 
     ("<f6>"    org-toggle-display-style)
     ("<f9>"    org-latex-export-to-pdf)
