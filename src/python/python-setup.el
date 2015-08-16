@@ -370,10 +370,12 @@ greater indenation as current line."
   (init-common :use-yasnippet t
                :use-render-formula t
                :sp-slurp-sexp-insert-space nil
-               :use-fci t)
+               :use-fci t
+               :use-whitespace t)
 
   (setq-local tab-width 4)
   (setq-local vim:shift-width 4)
+  (setq-local whitespace-style '(face lines-tail))
 
   ;; ;; make ' a string delimiter
   ;; (modify-syntax-entry ?' "\"")

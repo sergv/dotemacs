@@ -66,7 +66,7 @@
 (defun* init-common (&key (use-yasnippet t)
                           (use-comment t)
                           (use-fci t)
-                          (use-whitespace t)
+                          (use-whitespace nil)
                           (use-render-formula nil)
                           (use-hl-line t)
                           (sp-slurp-sexp-insert-space t))
@@ -85,12 +85,11 @@
   (setf undo-tree-visualizer-timestamps    t
         undo-tree-visualizer-parent-buffer t)
 
-  ;; (when use-whitespace
-  ;;   (whitespace-mode
-  ;;    (if (memq major-mode
-  ;;              +do-not-track-long-lines-modes+)
-  ;;      -1
-  ;;      +1)))
+  (when use-whitespace
+    (when (memq major-mode
+                +do-not-track-long-lines-modes+)
+      (error "Shouldn't have enabled whitespace-mode in %s" major-mode))
+    (whitespace-mode 1))
 
   (when use-render-formula
     (render-formula-mode 1))
