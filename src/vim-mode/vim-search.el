@@ -315,13 +315,11 @@ name `name' to `new-regex'."
   (with-selected-window vim:ex-current-window
     (with-current-buffer vim:ex-current-buffer
       (vim:make-hl 'vim:substitute
-                   :update-hook #'vim:ex-pattern-update-ex-info
                    :match-hook (and vim:substitute-interactive-replace
                                     #'vim:ex-pattern-update-replacement))
       (vim:ex-pattern-argument-update))))
 
 (defun vim:ex-pattern-argument-deactivate ()
-  (vim:ex-set-info nil)
   (with-selected-window vim:ex-current-window
     (with-current-buffer vim:ex-current-buffer
       (vim:delete-hl 'vim:substitute))))
@@ -356,12 +354,6 @@ name `name' to `new-regex'."
                                  (line-end-position))
                                (line-end-position)))
           (vim:hl-change 'vim:substitute vim:substitute-pattern))))))
-
-(defun vim:ex-pattern-update-ex-info (result)
-  "Updates the ex-info string."
-  (vim:ex-set-info (pcase result
-                     ((or `t `nil) nil)
-                     (_            result))))
 
 (defun vim:ex-pattern-update-replacement (overlay)
   "Updates the replacement display."
