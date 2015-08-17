@@ -28,6 +28,67 @@
                                     nil
                                     nil
                                     "")))
+         (quote-input
+          (lambda (x)
+            (replace-regexp-in-string "\"" "\\\"" x)))
+         (start
+          (if monadic?
+            (let ((has-liftio?
+                   (save-match-data
+                     (save-excursion
+                       (goto-char (point-min))
+                       (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
+              (if has-liftio?
+                "liftIO $ putStrLn $ "
+                "putStrLn $ "))
+            "trace ("))
+         (end
+          (if monadic?
+            ""
+            ") $ "))
+         (prev-was-message? nil))
+    (insert start)
+
+    (while (and (setf user-input (funcall prompt-user))
+                (< 0 (length user-input)))
+      (let* ((current-is-message? (funcall is-message? user-input))
+             (should-merge-messages? prev-was-message?))
+        (if initial-insertion
+          (insert "\"")
+          (if should-merge-messages?
+            (delete-backward-char 1)
+            (insert " ++ \"")))
+        (insert
+         (if current-is-message?
+           (format "%s\""
+                   (funcall quote-input
+                            (replace-regexp-in-string "^[ \t]" "" user-input)))
+           (format "%s%s = \" ++ show %s"
+                   (if initial-insertion "" ", ")
+                   (funcall quote-input user-input)
+                   (if (string-match-pure? "[ \t]" user-input)
+                     (concat "(" user-input ")")
+                     user-input))))
+        (setf prev-was-message? current-is-message?))
+      (setf initial-insertion nil))
+    (insert end)))
+
+(defun haskell-insert-complex-info-template (&optional arg monadic?)
+  (interactive "P")
+  (let* ((start-position (point))
+         (user-input nil)
+         (initial-insertion t)
+         (is-message?
+          (lambda (x)
+            (and (not (zerop (length x)))
+                 (or (char= ?\s (aref x 0))
+                     (char= ?\t (aref x 0))))))
+         (prompt-user
+          (lambda ()
+            (read-string-no-default "Variable or message starting with space: "
+                                    nil
+                                    nil
+                                    "")))
          (has-liftio?
           (save-match-data
             (save-excursion
