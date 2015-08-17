@@ -744,6 +744,7 @@ return nil otherwise."
        ,@body)))
 
 (defmacro if-let (condition true-branch &optional false-branch)
+  "E.g. (if-let (x (assoc 'foo bar)) baz quux)"
   (assert (and (list? condition)
                (= 2 (length condition)))
           nil

@@ -13,8 +13,8 @@
 ;;; database stores all info in single file, but facilities
 ;;; for dealing with multiple files are provided
 
-(defparameter persistent-store-content nil ;; (make-hash-table :test #'equal :size 1024)
-  "Current contents of the database")
+(defvar persistent-store-content nil
+  "Current contents of the database. A hash table with :test type being 'eq.")
 
 (defparameter persistent-store-store-file
   (path-concat +prog-data-path+ "persistent-store")
@@ -24,10 +24,7 @@
   (concat persistent-store-store-file ".bak")
   "Filename of backup database store file")
 
-(defparameter persistent-store-flush-hook nil
-  "Functions that will be called before flush of contents to disc will take place")
-
-(defparameter persistent-store-loaded-content nil
+(defvar persistent-store-loaded-content nil
   "Contents of `persistent-store-store-file' than was used to set up
 `persistent-store-content'.")
 
@@ -36,7 +33,7 @@
   "Initialize database."
   (unless persistent-store-content
     (add-hook 'kill-emacs-hook #'persistent-store-flush-database)
-    (setf persistent-store-content (make-hash-table :test #'equal :size 1024))
+    (setf persistent-store-content (make-hash-table :test #'equal))
     (persistent-store-load-contents)))
 
 (defsubst persistent-store-put (key value)
@@ -68,95 +65,200 @@
     (insert-file-contents-literally filename)
     (buffer-substring-no-properties (point-min) (point-max))))
 
-(defun persistent-store-flush-database ()
-  "Flush db contents to file."
-  (run-hooks persistent-store-flush-hook)
-  (let ((content-list nil)
-        (current-file-content
-         (persistent-store-load-file persistent-store-store-file)))
-    (maphash (lambda (key value)
-               ;; store nil values too
-               (push (cons key value) content-list))
-             persistent-store-content)
-
-    (setf content-list (sort (copy-list content-list)
-                             (lambda (a b)
-                               (string< (symbol->string (car a))
-                                        (symbol->string (car b))))))
-    (with-temp-buffer
-      (goto-char (point-min))
-      (let ((print-level nil)
-            (print-length nil))
-        ;; (print content-list (current-buffer))
-        (pp content-list (current-buffer)))
-
-      (if (string= current-file-content
-                   persistent-store-loaded-content)
-        ;; file was not changed since we loaded data from it
-        (write-region (point-min) (point-max) persistent-store-store-file)
-        ;; file was changed since we loaded data from it
-        (let ((done nil))
-          (while (not done)
-            (let ((ch nil))
-              (while (not (member ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
-                (setf ch (read-key (format "Store file changed since last load, store anyway? [?hyYnNdDbB]: "))))
-              (cond
-                ((or (= ch 7)  ;; C-g, abort
-                     (= ch 27) ;; <escape>
-                     (char=? ch ?q)
-                     (char=? ch ?Q))
-                 (error "Store file not saved, *your data may get lost*"))
-                ((or (char=? ch ?y)
-                     (char=? ch ?Y))
-                 (write-region (point-min) (point-max) persistent-store-store-file)
-                 (setf persistent-store-loaded-content
-                       (buffer-substring-no-properties (point-min) (point-max))
-                       done t))
-                ((or (char=? ch ?n)
-                     (char=? ch ?N))
-                 (setf done t)
-                 ;; unwind stack, prevent emacs exit if any
-                 ;; by all means, let the user know, that he may loose data!
-                 (message "Store file not saved, *your data may get lost*")
-                 (sit-for 0.5))
-                ((or (char=? ch ?d)
-                     (char=? ch ?D))
-                 (ediff-diff-texts-recursive-edit
-                  persistent-store-loaded-content
-                  current-file-content
-                  :a-buf-name "Loaded contents (original file)"
-                  :b-buf-name "Current file contents")
-                 (sit-for 0.1))
-                ((or (char=? ch ?b)
-                     (char=? ch ?B))
-                 (write-region (point-min) (point-max)
-                               (read-file-name "Backup file name: "
-                                               (file-name-directory persistent-store-store-file)
-                                               persistent-store-backup-file))
-                 (setf done t))
-                ((or (char=? ch ?h)
-                     (char=? ch ?H)
-                     (char=? ch ?\?))
-                 (read-key
-                  (join-lines
-                   '("yY  - write your data to store file, nevermind that someone wrote something there"
-                     "nN  - do not write data, *your data may get lost*"
-                     "dD  - view diff between contents of store file loaded by you and current one"
-                     "bB  - write to backup file"
-                     "?hH - show this message"
-                     ""
-                     "Press any key to continue")
-                   "\n"))
-                 (sit-for 0.1))))))))))
-
 (defun persistent-store-load-contents ()
   "Load database contents from file."
-  (setf persistent-store-loaded-content
-        (persistent-store-load-file persistent-store-store-file))
-  (mapc (lambda (entry)
-          (puthash (car entry) (cdr entry) persistent-store-content))
-        (read persistent-store-loaded-content)))
+  (let* ((new-file-content (persistent-store-load-file persistent-store-store-file))
+         (new-content
+          (condition-case nil
+              (persistent-store-read-contents-from-string new-file-content)
+            (error
+             (error "Failed to read persistent-store's contents from file %s"
+                    persistent-store-store-file)))))
+    (setf persistent-store-loaded-content new-file-content
+          persistent-store-content new-content)))
 
+(defun persistent-store-read-contents-from-string (str)
+  (condition-case nil
+      (let ((tbl (make-hash-table :test #'eq)))
+        (mapc (lambda (entry)
+                (puthash (car entry) (cdr entry) tbl))
+              (read str))
+        tbl)
+    (error
+     (error "Failed to read persistent-store's contents from string"))))
+
+(defun persistent-store-write-contents-to-file (contents filename)
+  (with-temp-buffer
+    (goto-char (point-min))
+    (let ((print-level nil)
+          (print-length nil))
+      ;; (print new-content (current-buffer))
+      (pp contents (current-buffer))
+      (insert "\n\n;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; coding: utf-8
+;; mode: emacs-lisp
+;; End:"))
+    (write-region (point-min) (point-max) persistent-store-store-file)))
+
+(defvar persistent-store-merge-handlers nil
+  "Alist of (symbol-key . merge-function) pairs, where symbol-key
+is the key used in `persistent-store-get' and merge-function is
+function of two arguments that takes old and new entry and
+should produce merged entry or nil in case it fails to do so.")
+
+(defun persistent-store-try-merging-contents (old-contents new-contents)
+  "Try to merge two database contents into one. Return nil if it cannot be
+performed for some field."
+  (let ((done nil)
+        (failed nil)
+        (result nil))
+    (while (and (not done)
+                old-contents
+                new-contents)
+      (let* ((old-entry     (car old-contents))
+             (old-entry-key (car old-entry))
+             (new-entry     (car new-contents))
+             (new-entry-key (car new-entry)))
+        (cond
+          ((eq? old-entry-key new-entry-key)
+           (if (equal? old-entry new-entry)
+             (setf result
+                   (cons old-entry result))
+             (if-let (merge-handler (cdr-safe
+                                     (assoc old-entry-key
+                                            persistent-store-merge-handlers)))
+               (if-let (merged-entry (funcall merge-handler
+                                              old-entry
+                                              new-entry))
+                 (setf result
+                       (cons merged-entry
+                             result))
+                 ;; Abort if merge-handler failed to merge entries
+                 (setf done t
+                       failed t
+                       result nil))
+               ;; Abort if entries are different and there's no suitable
+               ;; merge handler.
+               (setf done t
+                     failed t
+                     result nil))))
+          ((persistent-store-symbol< old-entry-key new-entry-key)
+           ;; Store entries in reverse order because we're going to do
+           ;; nreverse at the end.
+           (setf result
+                 (cons new-entry
+                       (cons old-entry
+                             result))))
+          (t
+           ;; Store entries in reverse order because we're going to do
+           ;; nreverse at the end.
+           (setf result
+                 (cons old-entry
+                       (cons new-entry
+                             result))))))
+      (setf old-contents (cdr-safe old-contents)
+            new-contents (cdr-safe new-contents)))
+    (unless failed
+      (cond
+        ((null? new-contents)
+         (setf result (append (reverse old-contents) result)))
+        ((null? old-contents)
+         (setf result (append (reverse new-contents) result)))))
+    (nreverse result)))
+
+(defun persistent-store-symbol< (x y)
+  (string< (symbol->string x)
+           (symbol->string y)))
+
+(defun persistent-store-flush-database ()
+  "Flush db contents to file."
+  (let ((new-content nil)
+        (current-content-str
+         (persistent-store-load-file persistent-store-store-file))
+        (entries-sort-pred
+         (lambda (x y)
+           (persistent-store-symbol< (car x) (car y)))))
+    (maphash (lambda (key value)
+               ;; store nil values too
+               (push (cons key value) new-content))
+             persistent-store-content)
+
+    (setf new-content (sort (copy-list new-content)
+                            entries-sort-pred))
+    (if (string= current-content-str
+                 persistent-store-loaded-content)
+      ;; file was not changed since we loaded data from it
+      (persistent-store-write-contents-to-file new-content persistent-store-store-file)
+      ;; file was changed since we loaded data from it
+      (let ((merged-content
+             (persistent-store-try-merging-contents
+              (sort
+               (hash-table->alist
+                (persistent-store-read-contents-from-string current-content-str))
+               entries-sort-pred)
+              new-content)))
+        (if merged-content
+          (persistent-store-write-contents-to-file
+           merged-content
+           persistent-store-store-file)
+          (let ((done nil))
+            (while (not done)
+              (let ((ch nil))
+                (while (not (member ch '(?y ?n ?d ?b ?h ?\? ?Y ?N ?D ?B ?H 7 27 ?q ?Q)))
+                  (setf ch (read-key (format "Store file changed since last load, store anyway? [?hyYnNdDbB]: "))))
+                (cond
+                  ((or (= ch 7)  ;; C-g, abort
+                       (= ch 27) ;; <escape>
+                       (char=? ch ?q)
+                       (char=? ch ?Q))
+                   (error "Store file not saved, *your data may get lost*"))
+                  ((or (char=? ch ?y)
+                       (char=? ch ?Y))
+                   (persistent-store-write-contents-to-file
+                    new-content
+                    persistent-store-store-file)
+                   (setf persistent-store-loaded-content
+                         (buffer-substring-no-properties (point-min) (point-max))
+                         done t))
+                  ((or (char=? ch ?n)
+                       (char=? ch ?N))
+                   (setf done t)
+                   ;; unwind stack, prevent emacs exit if any
+                   ;; by all means, let the user know, that he may loose data!
+                   (message "Store file not saved, *your data may get lost*")
+                   (sit-for 0.5))
+                  ((or (char=? ch ?d)
+                       (char=? ch ?D))
+                   (ediff-diff-texts-recursive-edit
+                    persistent-store-loaded-content
+                    current-content-str
+                    :a-buf-name "Loaded contents (original file)"
+                    :b-buf-name "Current file contents")
+                   (sit-for 0.1))
+                  ((or (char=? ch ?b)
+                       (char=? ch ?B))
+                   (persistent-store-write-contents-to-file
+                    new-content
+                    (read-file-name "Backup file name: "
+                                    (file-name-directory persistent-store-store-file)
+                                    persistent-store-backup-file))
+                   (setf done t))
+                  ((or (char=? ch ?h)
+                       (char=? ch ?H)
+                       (char=? ch ?\?))
+                   (read-key
+                    (join-lines
+                     '("yY  - write your data to store file, nevermind that someone wrote something there"
+                       "nN  - do not write data, *your data may get lost*"
+                       "dD  - view diff between contents of store file loaded by you and current one"
+                       "bB  - write to backup file"
+                       "?hH - show this message"
+                       ""
+                       "Press any key to continue")
+                     "\n"))
+                   (sit-for 0.1)))))))))))
 
 (defun persistent-store-debug-print-content ()
   (interactive)
@@ -168,13 +270,9 @@
                  (incf counter))
                persistent-store-content))))
 
-(defun persistent-store-database-size ()
+(defsubst persistent-store-database-size ()
   "Return number of entries in database."
-  (let ((count 0))
-    (maphash (lambda (key value)
-               (incf count))
-             persistent-store-content)
-    count))
+  (hash-table-size persistent-store-content))
 
 
 (provide 'persistent-store)
