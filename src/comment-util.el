@@ -439,12 +439,13 @@ up and then comment the result."
        (current-column)))))
 
 (defun comment-util--on-commented-line? ()
-  "Return t if current line contains commented parts."
+  "Return t if current line is commented out."
   (if-let (line-comment (comment-format-one-line *comment-util-current-format*))
     (save-excursion
       (beginning-of-line)
       (skip-syntax-forward " ")
-      (looking-at-p line-comment))
+      (and (looking-at-p line-comment)
+           (not (point-inside-string?))))
     (save-excursion
       (let* ((state (parse-partial-sexp (line-beginning-position)
                                         (line-end-position)))
