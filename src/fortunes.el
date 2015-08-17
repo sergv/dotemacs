@@ -2159,6 +2159,16 @@ Queue is just a list actually."
       for i across vect
       collect (aref vect i))))
 
+(defun fortune/merge-fortune-queues (old new)
+  ;; Pick the longest list since it's the oldest one we're trying to preserve,
+  ;; most of the time.
+  (if (< (length old) (length new))
+    new
+    old))
+
+(push (cons 'fortunes-fortune-queue #'fortune/merge-fortune-queues)
+      persistent-store-merge-handlers)
+
 (defun fortune/get-next-fortune ()
   "Return next queued fortune using persistent queue and
 make up new queue if persistent one is empty."
