@@ -182,9 +182,10 @@ then Bar would be the result."
              (list
               (list "main"
                     (list
-                     (lambda () (yas-expand-snippet
-                                 (concat "main :: IO ()\nmain = do\n"
-                                         (make-string haskell-indent-offset ?\s) "$1"))))
+                     (lambda ()
+                       (yas-expand-snippet
+                        (concat "main :: IO ()\nmain = do\n"
+                                (make-string haskell-indent-offset ?\s) "$1"))))
                     #'point-not-inside-string-or-comment?)
               (list "## *"
                     (list
@@ -228,7 +229,7 @@ then Bar would be the result."
             (list (concat "^q" (make-re-with-optional-suffix "import" 2) "$")
                   (list expand-qualified-import-snippet-action)
                   import-expand-pred)
-            (list "\\<info\\>"
+            (list "\\<\\(info\\|trace\\)\\>"
                   (list
                    #'haskell-insert-info-template)
                   #'point-not-inside-string-or-comment?)
