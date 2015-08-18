@@ -395,7 +395,7 @@
     ))
 
 (defun haskell-cabal-setup ()
-  (init-common :use-comment t :use-yasnippet nil)
+  (init-common :use-comment t :use-yasnippet t)
   (fontify-merge-markers)
   (modify-syntax-entry ?- "_")
   (setq-local vim:shift-width 2)
@@ -404,18 +404,19 @@
   (setq-local indent-line-function
               (lambda ()
                 (indent-to standard-indent)))
+
   (vim:local-emap "compile"  'vim:haskell-compile)
   (vim:local-emap "c"        'vim:haskell-compile)
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
 
-  (def-keys-for-map '(vim:normal-mode-local-keymap
-                      vim:insert-mode-local-keymap)
-    ("<tab>"           indent-relative-forward)
-    ("S-<tab>"         indent-relative-backward)
-    ("S-<iso-lefttab>" indent-relative-backward)
-    ("`"               haskell-compile)
-    ("<f9>"            haskell-compile)))
+  (bind-tab-keys #'indent-relative-forward
+                 #'indent-relative-backward
+                 :enable-yasnippet t)
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("`"    haskell-compile)
+    ("<f9>" haskell-compile)))
 
 (defun hs-lint-setup ()
   (setq-local *compilation-jump-error-regexp*
