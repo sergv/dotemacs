@@ -162,6 +162,24 @@
            ("<return>"   comint-send-input)
            ("C-<return>" sp-newline)))))
 
+(defun* bind-tab-keys (tab-binding
+                       backtab-binding
+                       &key (enable-yasnippet nil))
+  (if enable-yasnippet
+    (progn
+      (setq-local yas-expand-fallback tab-binding)
+      (def-keys-for-map (vim:normal-mode-local-keymap
+                         vim:insert-mode-local-keymap)
+        ("<tab>" yas-expand-or-fallback)))
+    (dolist (kmap (list vim:normal-mode-local-keymap
+                        vim:insert-mode-local-keymap))
+      (define-key kmap (kbd "<tab>") tab-binding)))
+  (dolist (kmap (list vim:normal-mode-local-keymap
+                      vim:insert-mode-local-keymap))
+    (dolist (binding (list (kbd "<backtab>")
+                           (kbd "S-<tab>")
+                           (kbd "S-<iso-lefttab>")))
+      (define-key kmap binding backtab-binding))))
 
 (load-library "all-lisp-setup")
 (load-library "org-mode-autoload")

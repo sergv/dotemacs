@@ -157,7 +157,8 @@ Also propagate new offset to `vim:shift-width'."
 
 (defun* cc-setup (&key (define-special-keys t))
   (init-common :use-render-formula t
-               :sp-slurp-sexp-insert-space nil)
+               :sp-slurp-sexp-insert-space nil
+               :use-yasnippet t)
   (hs-minor-mode 1)
   (dtrt-indent-mode 1)
   (which-function-mode -1)
@@ -169,6 +170,7 @@ Also propagate new offset to `vim:shift-width'."
   (setq-local whitespace-style '(face tabs lines-tail))
   ;; affects only tab display
   (setf tab-width 4)
+  (setq-local yas-expand-fallback #'tab-to-tab-stop)
 
   (setf c-tab-always-indent t)
   (c-toggle-hungry-state 1)
@@ -199,6 +201,10 @@ Also propagate new offset to `vim:shift-width'."
     ("g a =" c-align-on-equals)
     ("g t"   c-beginning-of-defun)
     ("g h"   c-end-of-defun))
+
+  (bind-tab-keys #'tab-to-tab-stop
+                 #'tab-to-tab-stop-backward
+                 :enable-yasnippet t)
 
   (when define-special-keys
     (def-keys-for-map vim:normal-mode-local-keymap

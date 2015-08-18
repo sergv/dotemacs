@@ -9,16 +9,15 @@
 (require 'common)
 (require 'more-scheme)
 
-;; Yasnippet
-;; (require 'yasnippet)
-
 (setf yas-ignore-filenames-as-triggers t
       yas-snippet-dirs (concat +prog-data-path+ "/snippets")
       yas-prompt-functions '(yas-dropdown-prompt yas-completing-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
       ;; don't reactivate fields on undo/redo
-      yas-snippet-revival nil)
+      yas-snippet-revival nil
+      ;; Make `yas-expand' return nil if it fails to expand a snippet.
+      yas-fallback-behavior nil)
 
 (defun yas--parse-templates (&optional file)
   "Parse the templates in the current buffer. For every mention of
@@ -167,6 +166,14 @@ every org-self-insert-command when yasnippet's field happens to be located
 in org's headline."
        (yas--inhibit-overlay-hooks
          ad-do-it))))
+
+(defvar-local yas-expand-fallback
+  (lambda () (error "yas-expand-fallback not set to proper callback")))
+
+(defun yas-expand-or-fallback ()
+  (interactive)
+  (or (yas-expand)
+      (funcall yas-expand-fallback)))
 
 (provide 'yasnippet-setup)
 
