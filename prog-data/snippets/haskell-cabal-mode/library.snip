@@ -1,0 +1,16 @@
+# key: library
+# name: library section
+# --
+library
+  exposed-modules:   ${1:Foo}
+  other-modules:     ${2:Utils.Utils}
+${3:  hs-source-dirs:    ${4:src}
+}  build-depends:     base >= 4.7
+  default-language:  Haskell2010
+  ghc-options:       -W -Wall
+                     -fwarn-monomorphism-restriction
+                     -fno-warn-type-defaults
+                     -fno-warn-name-shadowing
+                     -ferror-spans
+                     -rtsopts
+${5:  build-tools:       ${6:alex happy c2hs}}
