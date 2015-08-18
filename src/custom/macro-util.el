@@ -349,25 +349,24 @@ in the same directory the current file is."
                                   (eval entry)
                                   entry)
                               (list (funcall def-key map key command))))))))
-    (let ((bindings
-           (loop
-             for map in (cond
-                          ((quoted? mode-map)
-                           (eval mode-map))
-                          ((list? mode-map)
-                           mode-map)
-                          (t (list mode-map)))
-             collecting `(if (not (null? ,map))
-                           (progn
-                             ,@(funcall process-key-command-list map key-command-list))
-                           ;; don't silently ignore potential problems
-                           (error ,(format "warning: map %s is nil" map))))))
+    (let* ((map-var (gensym "kmap"))
+           (bindings
+            `(dolist (,map-var
+                      (list
+                       ,@(cond
+                           ((list? mode-map)
+                            mode-map)
+                           (t (list mode-map)))))
+               (when (null? ,map-var)
+                 ;; don't silently ignore potential problems
+                 (error ,(format "warning: map %s is nil" map-var)))
+               ,@(funcall process-key-command-list map-var key-command-list))))
       (unless bindings
         (error "No keys bound for %S using following key-command-list %S"
                mode-map
                key-command-list))
       `(prog1 nil
-         ,@bindings))))
+         ,bindings))))
 
 (defmacro run-if-fbound (func)
   `(and (fboundp (quote ,func))

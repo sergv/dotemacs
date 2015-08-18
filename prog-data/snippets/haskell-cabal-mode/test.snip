@@ -1,0 +1,17 @@
+# key: test
+# name: test section
+# --
+test-suite ${1:test-name}
+  type:              exitcode-stdio-1.0
+  main-is:           ${2:test/Main.hs}
+  build-depends:     base,
+                     hunit, tasty, QuickCheck, tasty-quickcheck,
+                     ${3:my-package}
+  default-language:  Haskell2010
+  ghc-options:       -W -Wall
+                     -fwarn-monomorphism-restriction
+                     -fno-warn-type-defaults
+                     -fno-warn-name-shadowing
+                     -ferror-spans
+                     -rtsopts
+${4:  hs-source-dirs:    ${5:test}}
