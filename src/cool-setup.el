@@ -16,6 +16,8 @@
                        eol)
                    'cool-mode))
 
+(provide 'cool-setup)
+
 ;; Local Variables:
 ;; End:
 

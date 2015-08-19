@@ -8,9 +8,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/magit"))
-
 (require 'common)
 (require 'common-heavy)
 (require 'vim-mock)
@@ -18,59 +15,12 @@
 (require 'magit-blame)
 (require 'search)
 
-(setf magit-completing-read-function
-      (lambda (prompt collection &optional predicate require-match initial-input hist def)
-        (ido-completing-read
-         (if (and def (> (length prompt) 2)
-                  (string-equal ": " (substring prompt -2)))
-           (format "%s (default %s): " (substring prompt 0 -2) def)
-           prompt)
-         collection predicate require-match initial-input hist def))
-      magit-restore-window-configuration t
-      magit-commit-ask-to-stage nil
-      with-editor-emacsclient-executable nil
-      magit-status-buffer-name-format "*magit: %b*"
-      magit-diff-buffer-name-format "*magit-diff*"
-      magit-commit-buffer-name-format "*magit-commit*"
-      magit-log-buffer-name-format "*magit-log*"
-      magit-reflog-buffer-name-format "*magit-reflog*"
-      magit-branches-buffer-name-format "*magit-branches*"
-      magit-wazzup-buffer-name-format "*magit-wazzup*"
-      magit-cherry-buffer-name-format "*magit-cherry*"
-      ;; make magit-process buffers invisible by default
-      magit-process-buffer-name-format " *magit-process: %b*"
-      magit-process-log-max 256
-      magit-popup-show-help-section nil)
-
 ;;; gitignore
-
-(autoload 'gitignore-mode "gitignore-mode"
-          "Major mode for editing .gitignore files"
-          t)
-
-(add-to-list 'auto-mode-alist
-             (cons (rx (or ".gitignore"
-                           ".git/info/exclude")
-                       eol)
-                   'gitignore-mode))
-
-(autoload 'gitconfig-mode "gitconfig-mode"
-          "Major mode to edit .gitconfig files"
-          t)
-
-(add-to-list 'auto-mode-alist
-             (cons (rx (or ".gitconfig"
-                           ".gitmodules"
-                           ".git/config")
-                       eol)
-                   'gitconfig-mode))
 
 (defun gitignore-setup ()
   (init-common :use-yasnippet  nil
                :use-comment    t
                :use-fci        t))
-
-(add-hook 'gitignore-mode-hook #'gitignore-setup)
 
 (defun gitconfig-setup ()
   (init-common :use-yasnippet  nil
@@ -83,12 +33,8 @@
     ("S-<tab>"     tab-to-tab-stop-backward)
     ("S-<iso-tab>" tab-to-tab-stop-backward)))
 
-(add-hook 'gitconfig-mode-hook #'gitconfig-setup)
-
 ;;; magit
 
-;; show refined diffs for selected hunk
-(setf magit-diff-refine-hunk t)
 
 (defun magit-collect-unstaged-hunk-sections ()
   "Return all staged hunk sections in magit status buffer."
@@ -217,8 +163,6 @@ all otherwise."
     ("S-<home>"        swap-buffers-forward-through-frames)
     ("S-<end>"         swap-buffers-backward-through-frames)))
 
-(add-hook 'magit-mode-hook #'magit-mode-setup)
-
 (defun magit-bind-common-vimless-mode-keymap (map)
   (def-keys-for-map map
     +vim-special-keys+
@@ -250,15 +194,11 @@ all otherwise."
   ;; don't do (init-common) here since it's not so common mode
   (magit-bind-common-vimless-mode-keymap magit-status-mode-map))
 
-(add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
-
 (defun magit-log-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-log-mode-map)
   (def-keys-for-map magit-log-mode-map
     ("h" vim-mock:motion-down)
     ("t" vim-mock:motion-up)))
-
-(add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 
 (defun magit-log-edit-mode-setup ()
   "Mode for editing commit message."
@@ -277,47 +217,29 @@ all otherwise."
             t ;; local
             ))
 
-(add-hook 'magit-log-edit-mode-hook #'magit-log-edit-mode-setup)
-
 (defun magit-commit-mode-setup ()
   "Setup for commit browsing mode."
   (magit-bind-common-vimless-mode-keymap magit-commit-mode-map))
-
-(add-hook 'magit-commit-mode-hook #'magit-commit-mode-setup)
 
 (defun magit-diff-mode-setup ()
   "Setup for diff browsing mode."
   (magit-bind-common-vimless-mode-keymap magit-diff-mode-map))
 
-(add-hook 'magit-diff-mode-hook #'magit-diff-mode-setup)
-
-
 (defun magit-show-branches-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-show-branches-mode-map))
-
-(add-hook 'magit-show-branches-mode-hook #'magit-show-branches-mode-setup)
 
 (defun magit-branch-manager-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-branch-manager-mode-map))
 
-(add-hook 'magit-branch-manager-mode-hook #'magit-branch-manager-mode-setup)
-
 (defun magit-reflog-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-reflog-mode-map))
-
-(add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
 
 (defun magit-popup-setup ()
   (def-keys-for-map magit-popup-mode-map
     ("<escape>" magit-popup-quit)
     ("q"        magit-popup-quit)))
 
-(add-hook 'magit-popup-mode-hook #'magit-popup-setup)
-(add-hook 'magit-popup-sequence-mode-hook #'magit-popup-setup)
-
 ;;; git-modes
-
-(setf git-commit-confirm-commit t)
 
 (defun git-commit-mode-setup ()
   "Mode for editing commit message."
@@ -336,8 +258,6 @@ all otherwise."
   ;;           t ;; local
   ;;           )
   )
-
-(add-hook 'git-commit-mode-hook #'git-commit-mode-setup)
 
 (defun git-rebase-mode-setup ()
   (def-keys-for-map git-rebase-mode-map
@@ -364,8 +284,6 @@ all otherwise."
     ("s"        git-rebase-squash)
     ("f"        git-rebase-fixup)
     ("d"        git-rebase-kill-line)))
-
-(add-hook 'git-rebase-mode-hook #'git-rebase-mode-setup)
 
 ;; this mode has no hook
 (eval-after-load
@@ -420,10 +338,6 @@ Put it in `magit-key-mode-keymaps' for fast lookup."
 
          (push (cons for-group map) magit-key-mode-keymaps)
          map))))
-
-
-(defparameter *have-git?* (executable-find "git")
-  "Becomes t when git executable is accessible")
 
 (defvar-local git-repository nil
   "Path to root of git repository this buffer's file is member of, if any.")

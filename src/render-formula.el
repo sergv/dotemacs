@@ -306,11 +306,6 @@ carried out on FORMULA-STR."
              eval-result))
     formula-str))
 
-(defun test ()
-  (interactive)
-  (let ((comment "quux"))
-    (message "result = %s" (eval (car (read-from-string "comment")) t))))
-
 (defun render-buffer-off ()
   (save-excursion
     (with-disabled-undo
