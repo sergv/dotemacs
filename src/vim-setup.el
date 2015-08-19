@@ -390,6 +390,7 @@ Basically swap current point with previous one."
     (error "current buffer has no associated file")))
 
 (vim:emap "gadd" 'vim:git-add)
+(vim:emap "add" 'vim:git-add)
 
 (vim:defcmd vim:git-amend (nonrepeatable)
   "Amend topmost git commit with all staged changes."
@@ -421,18 +422,7 @@ Basically swap current point with previous one."
   (new-frame))
 
 (vim:emap "newf" 'vim:cmd-new-frame)
-
-(vim:defcmd vim:next-f (count nonrepeatable)
-  "Select next frame."
-  (next-f (or count 1)))
-
-(vim:emap "nf" 'vim:next-f)
-
-(vim:defcmd vim:prev-f (count nonrepeatable)
-  "Select previous frame."
-  (prev-f (or count 1)))
-
-(vim:emap "pf" 'vim:prev-f)
+(vim:emap "nf" 'vim:cmd-new-frame)
 
 ;; Buffer commands
 
@@ -451,15 +441,14 @@ Basically swap current point with previous one."
 (vim:emap "bdw" 'vim:remove-buffer-and-window)
 
 
-(vim:defcmd vim:multicommand
+(vim:defcmd vim:do-commands
   ((argument:text command) nonrepeatable)
   (mapc #'vim:ex-execute-command
         (split-string command
                       "[ ,]\\|&&"
                       t)))
 
-(vim:emap "m" 'vim:multicommand)
-(vim:emap "do" 'vim:multicommand)
+(vim:emap "do" 'vim:do-command)
 
 (provide 'vim-setup)
 
