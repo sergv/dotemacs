@@ -106,6 +106,22 @@
              (funcall build-command build-dir)
              sep
              (funcall test-command build-dir)))
+          (vanilla-noopt
+           ,(concat
+             "cd %s"
+             sep
+             (concat "cabal "
+                     "configure "
+                     "--disable-optimization"
+                     "--disable-library-profiling "
+                     (if (cabal-install-version-at-least? 1 22 0 0)
+                       "--disable-profiling "
+                       "--disable-executable-profiling ")
+                     (funcall common-conf-opts build-dir))
+             sep
+             (funcall build-command build-dir)
+             sep
+             (funcall test-command build-dir)))
           (test
            ,(concat
              "cd %s"
