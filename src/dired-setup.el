@@ -12,85 +12,79 @@
 
 (require 'set-up-paths)
 
-(autoload 'dired-single-buffer "dired-single" "" t)
+(require 'dired-single)
+(require 'dired-aux)
+(require 'dired-x)
 
-(eval-after-load
-    "dired"
-  '(progn
-     ;; (require 'dired-single)
-     (require 'dired-aux)
-     (require 'dired-x)
+(require 'dired-single)
+(setf image-dired-dir (path-concat +prog-data-path+ "image-dired"))
 
-     (require 'dired-single)
-     (setf image-dired-dir (path-concat +prog-data-path+ "image-dired"))
+(setf dired-omit-files
+      (rx (or (seq bol (? ".") "#") ;; emacs autosave files
+              (seq "~" eol)         ;; backup-files
+              ))
+      dired-omit-extensions
+      (append dired-latex-unclean-extensions
+              dired-tex-unclean-extensions
+              dired-bibtex-unclean-extensions
+              dired-texinfo-unclean-extensions))
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (dired-omit-mode 1)))
 
-     (setf dired-omit-files
-           (rx (or (seq bol (? ".") "#") ;; emacs autosave files
-                   (seq "~" eol)         ;; backup-files
-                   ))
-           dired-omit-extensions
-           (append dired-latex-unclean-extensions
-                   dired-tex-unclean-extensions
-                   dired-bibtex-unclean-extensions
-                   dired-texinfo-unclean-extensions))
-     (add-hook 'dired-mode-hook
-               (lambda ()
-                 (dired-omit-mode 1)))
+(def-keys-for-map dired-mode-map
+  +vim-special-keys+
+  ("h"        dired-cycle-files-forward)
+  ("t"        dired-cycle-files-backward)
+  ("<down>"   dired-cycle-files-forward)
+  ("<up>"     dired-cycle-files-backward)
+  ("p"        nil)
+  ("q"        nil)
+  ("e"        nil)
+  ("f"        nil)
+  ("o"        dired-do-open-marked)
+  ("Q"        dired-prompt-and-do-query-replace-regexp)
+  ("<return>" dired-single-buffer)
+  ("SPC"      dired-single-buffer-other-window)
+  ("^"        dired-single-up-directory)
+  ("r"        revert-buffer) ;; refresh
 
-     (def-keys-for-map dired-mode-map
-       +vim-special-keys+
-       ("h"        dired-cycle-files-forward)
-       ("t"        dired-cycle-files-backward)
-       ("<down>"   dired-cycle-files-forward)
-       ("<up>"     dired-cycle-files-backward)
-       ("p"        nil)
-       ("q"        nil)
-       ("e"        nil)
-       ("f"        nil)
-       ("o"        dired-do-open-marked)
-       ("Q"        dired-prompt-and-do-query-replace-regexp)
-       ("<return>" dired-single-buffer)
-       ("SPC"      dired-single-buffer-other-window)
-       ("^"        dired-single-up-directory)
-       ("r"        revert-buffer) ;; refresh
-
-       ("/"        search-start-forward)
-       ;; ? is already used by dired
-       ;; ("?"        search-start-backward)
-       )
+  ("/"        search-start-forward)
+  ;; ? is already used by dired
+  ;; ("?"        search-start-backward)
+  )
 
 
-     (defun dired--open ()
-       (let ((filename (dired-get-filename)) failure)
-         (condition-case err
-             (save-window-excursion
-               (save-excursion
-                 (find-file filename)))
-           (error (setq failure err)))
-         (if (not failure)
-           nil
-           (progn
-             (dired-log "Open error for %s:\n%s\n" filename failure)
-             (dired-make-relative filename)))))
+(defun dired--open ()
+  (let ((filename (dired-get-filename)) failure)
+    (condition-case err
+        (save-window-excursion
+          (save-excursion
+            (find-file filename)))
+      (error (setq failure err)))
+    (if (not failure)
+      nil
+      (progn
+        (dired-log "Open error for %s:\n%s\n" filename failure)
+        (dired-make-relative filename)))))
 
-     (defun dired-do-open-marked ()
-       "Just open currently makred files as emacs buffers without switching to
+(defun dired-do-open-marked ()
+  "Just open currently makred files as emacs buffers without switching to
 them."
-       (interactive)
-       (dired-map-over-marks-check #'dired--open
-                                   nil
-                                   'open
-                                   ;; don't redisplay dired after each file
-                                   nil))
+  (interactive)
+  (dired-map-over-marks-check #'dired--open
+                              nil
+                              'open
+                              ;; don't redisplay dired after each file
+                              nil))
 
-     (defun dired-single-buffer-other-window (&optional file-to-visit)
-       "Similar to `dired-single-buffer' but opens file window that the
+(defun dired-single-buffer-other-window (&optional file-to-visit)
+  "Similar to `dired-single-buffer' but opens file window that the
 current one."
-       (interactive)
-       (switch-to-buffer-other-window
-        (find-file-noselect (or file-to-visit
-                                (dired-get-file-for-visit)))))))
-
+  (interactive)
+  (switch-to-buffer-other-window
+   (find-file-noselect (or file-to-visit
+                           (dired-get-file-for-visit)))))
 
 (provide 'dired-setup)
 
