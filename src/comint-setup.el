@@ -67,22 +67,22 @@ in the buffer.  E.g.,
 
 If the interpreter is the csh,
     `comint-get-old-input' is the default:
- If `comint-use-prompt-regexp' is nil, then
- either return the current input field, if point is on an input
- field, or the current line, if point is on an output field.
- If `comint-use-prompt-regexp' is non-nil, then
- return the current line with any initial string matching the
- regexp `comint-prompt-regexp' removed.
+	If `comint-use-prompt-regexp' is nil, then
+	either return the current input field, if point is on an input
+	field, or the current line, if point is on an output field.
+	If `comint-use-prompt-regexp' is non-nil, then
+	return the current line with any initial string matching the
+	regexp `comint-prompt-regexp' removed.
     `comint-input-filter-functions' monitors input for \"cd\", \"pushd\", and
- \"popd\" commands.  When it sees one, it cd's the buffer.
+	\"popd\" commands.  When it sees one, it cd's the buffer.
     `comint-input-filter' is the default: returns t if the input isn't all white
- space.
+	space.
 
 If the Comint is Lucid Common Lisp,
     `comint-get-old-input' snarfs the sexp ending at point.
     `comint-input-filter-functions' does nothing.
     `comint-input-filter' returns nil if the input matches input-filter-regexp,
- which matches (1) all whitespace (2) :a, :c, etc.
+	which matches (1) all whitespace (2) :a, :c, etc.
 
 Similarly for Soar, Scheme, etc."
        (interactive)
@@ -92,7 +92,10 @@ Similarly for Soar, Scheme, etc."
              (widen)
              (let* ((pmark (process-mark proc))
                     (intxt (if (>= (point) (marker-position pmark))
-                             (progn (if comint-eol-on-send (end-of-line))
+                             (progn (if comint-eol-on-send
+                                      (if comint-use-prompt-regexp
+                                        (end-of-line)
+                                        (goto-char (field-end))))
                                     (buffer-substring pmark (point)))
                              (let ((copy (funcall comint-get-old-input)))
                                (goto-char pmark)
@@ -126,32 +129,32 @@ Similarly for Soar, Scheme, etc."
                                        (concat input "\n")))
 
                (let ((beg (marker-position pmark))
-                     (end (if no-newline (point) (1- (point))))
-                     (inhibit-modification-hooks t))
-                 (when (> end beg)
-                   (add-text-properties beg end
-                                        '(front-sticky t
-                                                       ;; fontification is disabled here
-                                                       ;; font-lock-face comint-highlight-input
-                                                       ))
-                   ;; disable this for I don't use mouse
-                   ;; (unless comint-use-prompt-regexp
-                   ;;   ;; Give old user input a field property of `input', to
-                   ;;   ;; distinguish it from both process output and unsent
-                   ;;   ;; input.  The terminating newline is put into a special
-                   ;;   ;; `boundary' field to make cursor movement between input
-                   ;;   ;; and output fields smoother.
-                   ;;   (add-text-properties
-                   ;;    beg end
-                   ;;    '(mouse-face highlight
-                   ;;      help-echo "mouse-2: insert after prompt as new input")))
-                   )
-                 (unless (or no-newline comint-use-prompt-regexp)
-                   ;; Cover the terminating newline
-                   (add-text-properties end (1+ end)
-                                        '(rear-nonsticky t
-                                                         field boundary
-                                                         inhibit-line-move-field-capture t))))
+                     (end (if no-newline (point) (1- (point)))))
+                 (with-silent-modifications
+                   (when (> end beg)
+                     (add-text-properties beg end
+                                          '(front-sticky t
+                                                         ;; fontification is disabled here
+                                                         ;; font-lock-face comint-highlight-input
+                                                         ))
+                     ;; Disable this since I don't use mouse.
+                     ;; (unless comint-use-prompt-regexp
+                     ;;   ;; Give old user input a field property of `input', to
+                     ;;   ;; distinguish it from both process output and unsent
+                     ;;   ;; input.  The terminating newline is put into a special
+                     ;;   ;; `boundary' field to make cursor movement between input
+                     ;;   ;; and output fields smoother.
+                     ;;   (add-text-properties
+                     ;;    beg end
+                     ;;    '(mouse-face highlight
+                     ;;                 help-echo "mouse-2: insert after prompt as new input")))
+                     )
+                   (unless (or no-newline comint-use-prompt-regexp)
+                     ;; Cover the terminating newline
+                     (add-text-properties end (1+ end)
+                                          '(rear-nonsticky t
+                                                           field boundary
+                                                           inhibit-line-move-field-capture t)))))
 
                (comint-snapshot-last-prompt)
 
@@ -172,9 +175,9 @@ Similarly for Soar, Scheme, etc."
                  (let ((echo-len (- comint-last-input-end
                                     comint-last-input-start)))
                    ;; Wait for all input to be echoed:
-                   (while (and (accept-process-output proc)
-                               (> (+ comint-last-input-end echo-len)
+                   (while (and (> (+ comint-last-input-end echo-len)
                                   (point-max))
+                               (accept-process-output proc)
                                (zerop
                                 (compare-buffer-substrings
                                  nil comint-last-input-start
