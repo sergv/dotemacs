@@ -1,4 +1,4 @@
-;; grep+.el --- -*- lexical-binding: t; -*-
+;; grep-setup.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -145,13 +145,6 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
                  (while (re-search-forward re end t)
                    (replace-match "."))))))))))
 
-(setf find-program
-      (if (and (platform-os-type? 'windows)
-               (platform-use? 'work)
-               (executable-find "unixfind"))
-        "unixfind"
-        "find"))
-
 (defun grep-set-up-error-regexp (buffer msg)
   "Set up `*compilation-jump-error-regexp*' from `compilation-error-regexp-alist'."
   (with-current-buffer buffer
@@ -192,50 +185,6 @@ more than once"
 
 (add-to-list 'compilation-finish-functions #'grep-set-up-error-regexp)
 
-(setf grep-command "grep -HnE -e "
-      grep-template
-      "grep <X> <C> -nH <E> -e '<R>' <F>"
-      grep-find-command
-      (format "%s . -type f -print0 | xargs -0 -e grep -HnE -e "
-              find-program)
-      grep-find-template
-      (format "%s \"<D>\" <X> -type f <F> -print0 | xargs -0 -e grep <C> -Hn <E> -e \"<R>\""
-              find-program)
-
-      grep-files-aliases
-      (let* ((make-compl-pattern (lambda (x) (concat "*." x)))
-             (haskell-exts
-              (join-lines (map make-compl-pattern
-                               (cons "cabal" *haskell-extensions*))
-                          " ")))
-        `(("all"      . "*")
-          ("el"       . "*.el")
-          ("c"        . "*.c")
-          ("h"        . "*.h")
-          ("ch"       . "*.c *.h")
-          ("hh"       . "*.hh *.hxx *.hpp *.h *.h++")
-          ("cc"       . "*.cc *.cxx *.cpp *.c *.c++")
-          ("cchh"     . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++ *.inl *.inc *.incl")
-          ("clj"      . "*.clj")
-          ("clojure"  . "*.clj")
-          ("java"     . "*.java")
-          ("mk"       . "[Mm]akefile* *.mk")
-          ("make"     . "[Mm]akefile* *.mk")
-          ("makefile" . "[Mm]akefile* *.mk")
-          ("tex"      . "*.tex")
-          ("texi"     . "*.texi")
-          ("asm"      . "*.s")
-          ("llvm"     . "*.ll")
-          ("xml"      . "*.xml")
-          ("hs"       . ,haskell-exts)
-          ("haskell"  . ,haskell-exts)
-          ("py"       . "*.py *.pyx *.pxd *.pxi")))
-
-      grep-find-ignored-directories
-      (append *ignored-directories*
-              (map (lambda (x) (concat x "*")) *ignored-directory-prefixes*)))
-
-
 (defun rgrep-region (begin end ignore-case)
   (interactive (list (region-beginning)
                      (region-end)
@@ -253,9 +202,9 @@ more than once"
                                    nil default-directory t)))
     (rgrep-wrapper regexp files dir ignore-case)))
 
-(provide 'grep+)
+(provide 'grep-setup)
 
 ;; Local Variables:
 ;; End:
 
-;; grep+.el ends here
+;; grep-setup.el ends here
