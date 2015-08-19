@@ -389,10 +389,7 @@
     ("C-t"      compilation-jump-to-prev-error)
     ("C-h"      compilation-jump-to-next-error)
     ("<return>" compilation/goto-error)
-    ("SPC"      compilation/goto-error-other-window)
-    ;; ("<home>"   prev-f)
-    ;; ("<end>"    next-f)
-    ))
+    ("SPC"      compilation/goto-error-other-window)))
 
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet t)

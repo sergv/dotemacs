@@ -14,22 +14,12 @@
   ("<f1>"     help-command)
   ("<f1> t"   nil)
   ("<f2>"     universal-argument)
-  ("<f3>"     prev-w)
-  ("<f4>"     next-w)
 
   ("<f5>"     revert-buffer)
   ("<f6>"     nil)
-  ("<f7>"     prev-f)
-  ("<f8>"     next-f)
 
   ("<f9>"     compile)
   ("<f10>"    shell)
-
-  ("S-<f3>"   swap-buffers-backward)
-  ("S-<f4>"   swap-buffers-forward)
-
-  ("S-<f7>"   swap-buffers-forward-through-frame)
-  ("S-<f8>"   swap-buffers-backward-through-frames)
 
   ("C-<f9>"   enlarge-window)
   ("C-<f10>"  shrink-window)
