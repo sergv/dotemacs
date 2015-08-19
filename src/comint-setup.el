@@ -8,6 +8,9 @@
 ;; Requirements:
 ;; Status:
 
+(setf comint-input-ignoredups t)
+(setq-default comint-input-ignoredups t)
+
 (eval-after-load
     "shell"
   '(progn
@@ -219,7 +222,6 @@ Similarly for Soar, Scheme, etc."
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)))
 
-
 (defun comint-clear-prompt () ;; shell-clear-prompt
   "Clear shell prompt from input."
   (interactive)
@@ -237,7 +239,6 @@ inclusively."
       (forward-line -1)
       (delete-region (point-min) (line-end-position))
       (delete-char 1))))
-
 
 (add-hook 'comint-mode-hook #'comint-setup)
 
