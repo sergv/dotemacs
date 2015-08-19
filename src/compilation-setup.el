@@ -165,9 +165,6 @@ error location - list of (filename line column)."
        ("v"        set-mark-command)
        ("y"        copy-region-as-kill)
 
-       ("<home>"   prev-f)
-       ("<end>"    next-f)
-
        ("<f9>"     recompile)
        ("`"        recompile)
        ("SPC"      compile-goto-error))))

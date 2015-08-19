@@ -55,8 +55,6 @@
        ("r"        revert-buffer) ;; refresh
 
        ("/"        search-start-forward)
-       ("<home>"   prev-f)
-       ("<end>"    next-f)
        ;; ? is already used by dired
        ;; ("?"        search-start-backward)
        )
