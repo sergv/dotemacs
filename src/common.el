@@ -1274,7 +1274,7 @@ the current buffer."
   (other-window (- n)))
 
 (defun swap-buffers-in-windows (win-a win-b)
-  "Swap buffers in window WIN-A and WIN-B."
+  "Swap buffers in windows WIN-A and WIN-B."
   (let* ((buf-a (current-buffer))
          (pos-a (with-selected-window win-a
                   (with-current-buffer buf-a
@@ -1312,7 +1312,7 @@ the current buffer."
          (prev-win (previous-window curr-win 0)))
     (swap-buffers-in-windows curr-win prev-win)))
 
-(defun swap-buffers-forward-through-frame ()
+(defun swap-buffers-forward-through-frames ()
   "Swap current buffer with selected buffer in the next frame."
   (interactive)
   (let* ((curr-win (selected-window))

@@ -213,7 +213,9 @@ all otherwise."
     ("S-<left>"        swap-buffers-backward)
     ("S-<right>"       swap-buffers-forward)
     ("<home>"          prev-f)
-    ("<end>"           next-f)))
+    ("<end>"           next-f)
+    ("S-<home>"        swap-buffers-forward-through-frames)
+    ("S-<end>"         swap-buffers-backward-through-frames)))
 
 (add-hook 'magit-mode-hook #'magit-mode-setup)
 
