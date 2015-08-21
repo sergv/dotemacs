@@ -127,6 +127,22 @@
   (autoload 'git-get-repository-root "git-setup")
   (autoload 'git-update-file-repository "git-setup"))
 
+(autoload 'magit-show-commit "magit" nil t)
+(autoload 'magit-status "magit" nil t)
+(autoload 'magit-stage-all "magit" nil t)
+(autoload 'magit-unstage-all "magit" nil t)
+(autoload 'magit-dired-jump "magit" nil t)
+(autoload 'magit-show "magit" nil t)
+(autoload 'magit-init "magit" nil t)
+(autoload 'magit-merge "magit" nil t)
+(autoload 'magit-log "magit" nil t)
+(autoload 'magit-mode "magit" nil t)
+(autoload 'magit-process-mode "magit" nil t)
+
+(autoload 'magit-blame-mode "magit-blame" nil t)
+(autoload 'magit-popup-mode "magit-popup")
+(autoload 'magit-popup-sequence-mode "magit-popup")
+
 (provide 'git-autoload)
 
 ;; Local Variables:
