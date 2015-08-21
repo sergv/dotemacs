@@ -11,18 +11,29 @@
 
 ;;; tag/symbol navigation (navigation over homes)
 
-(defparameter eproj-symbnav/homes-history (list nil nil)
-  "Two stacks of locations (previous next) from which
-`eproj-symbnav/go-to-symbol-home' was invoked.")
-
 (defparameter eproj-symbnav/previous-homes nil
-  "Previous locations from which symbol search was invoked.")
+  "Previous locations (markers) from which symbol search was invoked.")
 
 (defparameter eproj-symbnav/selected-loc nil
   "Home entry corresponding to the most recently visited tag.")
 
 (defparameter eproj-symbnav/next-homes nil
   "Next locations that were visited but now obscured by going back.")
+
+(defstruct (eproj-home-entry
+            (:conc-name eproj-home-entry/))
+  buffer
+  position ;; marker, not number
+  symbol ;; == name - string, or nil if this entry was not selected explicitly
+  )
+
+(defun eproj-home-entry=? (entry-a entry-b)
+  (and (eq? (eproj-home-entry/buffer entry-a)
+            (eproj-home-entry/buffer entry-b))
+       (= (eproj-home-entry/position entry-a)
+          (eproj-home-entry/position entry-b))
+       (eq? (eproj-home-entry/symbol entry-a)
+            (eproj-home-entry/symbol entry-b))))
 
 (defvar-local eproj-symbnav/identifier-type 'symbol
   "Type of identifiers to look for when retrieving name at point to
@@ -55,7 +66,8 @@ as accepted by `bounds-of-thing-at-point'.")
               ":"
               (save-excursion
                 (number->string
-                 (line-number-at-pos (eproj-home-entry/point entry))))))))
+                 (line-number-at-pos
+                  (marker-position (eproj-home-entry/position entry)))))))))
 
 (defun eproj-symbnav/describe ()
   (interactive)
@@ -70,21 +82,6 @@ as accepted by `bounds-of-thing-at-point'.")
         eproj-symbnav/selected-loc nil
         eproj-symbnav/next-homes nil))
 
-(defstruct (eproj-home-entry
-            (:conc-name eproj-home-entry/))
-  buffer
-  point
-  symbol ;; == name - string, or nil if this entry was not selected explicitly
-  )
-
-(defun eproj-home-entry=? (entry-a entry-b)
-  (and (eq? (eproj-home-entry/buffer entry-a)
-            (eproj-home-entry/buffer entry-b))
-       (= (eproj-home-entry/point entry-a)
-          (eproj-home-entry/point entry-b))
-       (eq? (eproj-home-entry/symbol entry-a)
-            (eproj-home-entry/symbol entry-b))))
-
 
 (defun eproj-symbnav/switch-to-home-entry (home-entry)
   (unless (buffer-live-p (eproj-home-entry/buffer home-entry))
@@ -92,7 +89,7 @@ as accepted by `bounds-of-thing-at-point'.")
           (find-file-noselect
            (buffer-file-name (eproj-home-entry/buffer home-entry)))))
   (switch-to-buffer (eproj-home-entry/buffer home-entry))
-  (goto-char (eproj-home-entry/point home-entry)))
+  (goto-char (eproj-home-entry/position home-entry)))
 
 (defun eproj-symbnav/resolve-synonym-modes (mode)
   "Replace modes that are similar to some other known modes"
@@ -111,7 +108,7 @@ as accepted by `bounds-of-thing-at-point'.")
          (orig-major-mode (eproj-symbnav/resolve-synonym-modes major-mode))
          (orig-file-name (expand-file-name buffer-file-name))
          (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
-                                                    :point (point)
+                                                    :position (point-marker)
                                                     :symbol nil))
          (jump-to-home
           (lambda (entry entry-proj)
@@ -133,7 +130,7 @@ as accepted by `bounds-of-thing-at-point'.")
               (message "")
               (setf eproj-symbnav/selected-loc
                     (make-eproj-home-entry :buffer (current-buffer)
-                                           :point (point)
+                                           :position (point-marker)
                                            :symbol (eproj-tag/symbol entry))))))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     ;; load tags if there're none
