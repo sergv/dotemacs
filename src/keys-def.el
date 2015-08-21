@@ -82,8 +82,8 @@
     ("<insert>" vim-mock:scroll-line-up)
     ("<delete>" vim-mock:scroll-line-down)
 
-    ("<home>"    prev-f)
-    ("<end>"     next-f)
+    ("<home>"    next-f)
+    ("<end>"     prev-f)
     ("S-<home>"  swap-buffers-forward-through-frames)
     ("S-<end>"   swap-buffers-backward-through-frames)
     ("<left>"    prev-w)
