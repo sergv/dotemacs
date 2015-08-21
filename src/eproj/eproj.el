@@ -947,6 +947,11 @@ symbol 'unresolved.")
            'busybox))
   "Can be either 'find, 'busybox or nil.")
 
+(defvar eproj/find-program-executable
+  (pcase eproj/find-program-type
+    (`find "find")
+    (`busybox "busybox")))
+
 (defun eproj/find-rec (root
                        extensions
                        ignored-files-absolute-regexps
@@ -968,19 +973,15 @@ symbol 'unresolved.")
                    (`busybox
                     (lambda (re) (list "-regex" re)))
                    (_
-                    (error "eproj/find-program-type has invalid value: %s" eproj/find-program-type)))
+                    (error "eproj/find-program-type has invalid value: %s"
+                           eproj/find-program-type)))
                  ignored-files-absolute-regexps))
            (exts
             (map (lambda (ext) (list "-iname" (concat "*." ext)))
                  extensions))
-           (find-cmd
-            (pcase eproj/find-program-type
-              (`find
-               "find")
-              (`busybox
-               "busybox")
-              (_
-               (error "eproj/find-program-type has invalid value: %s" eproj/find-program-type))))
+           (find-cmd (or eproj/find-program-executable
+                         (error "eproj/find-program-type has invalid value: %s"
+                                eproj/find-program-type)))
            (cmd
             (util:flatten
              (list (when (eq? 'busybox eproj/find-program-type)
