@@ -16,6 +16,8 @@
 (add-to-list 'load-path (concat +emacs-standalone-path+ "/tuareg"))
 (load "tuareg-site-file")
 
+(defalias 'ocaml-mode #'tuareg-mode)
+
 ;;; Helper function
 
 (define-switch-to-interpreter
@@ -25,7 +27,6 @@
   :doc "Pop to ocaml repl."
   :save-buffer t
   :error-msg "Can't switch to ocaml repl")
-
 
 (defun ocaml-indent-buffer ()
   (interactive)
