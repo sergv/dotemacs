@@ -11,8 +11,8 @@
   (def-keys-for-map ediff-mode-map
     ("h"        ediff-next-difference)
     ("t"        ediff-previous-difference)
-    ("<home>"   prev-f)
-    ("<end>"    next-f)
+    ("<home>"   next-f)
+    ("<end>"    prev-f)
     ("S-<home>" swap-buffers-forward-through-frames)
     ("S-<end>"  swap-buffers-backward-through-frames)
     ("<left>"   prev-w)
