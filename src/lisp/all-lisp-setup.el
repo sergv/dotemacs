@@ -15,7 +15,6 @@
 
 (defconst +lisp-modes+
   '(emacs-lisp-mode
-    clojure-mode
     lisp-mode)
   "List of modes that are considered to be lisp.")
 
@@ -27,16 +26,6 @@
 
 (autoload 'lisp-pos-is-beginning-of-sexp? "general-lisp-setup")
 (autoload 'lisp-pos-is-end-of-sexp? "general-lisp-setup")
-
-;;; clojure
-
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/clojure-mode"))
-
-(require 'clojure-mode-autoload)
-
-(autoload 'clojure-setup "clojure-setup")
-(add-hook 'clojure-mode-hook #'clojure-setup)
 
 (provide 'all-lisp-setup)
 

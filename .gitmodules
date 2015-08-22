@@ -64,9 +64,6 @@
 [submodule "standalone/auctex-dev"]
         path = standalone/auctex-dev
         url = https://github.com/jwiegley/auctex.git
-[submodule "standalone/clojure-mode"]
-        path = standalone/clojure-mode
-        url = https://git.gitorious.org/sergv-emacs/clojure-mode.git
 [submodule "standalone/magit"]
         path = standalone/magit
         url = https://git.gitorious.org/sergv-emacs/magit.git
