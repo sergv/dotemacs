@@ -737,7 +737,7 @@ block motions."
     (message "Stop recording keyboard macro in register '%c'" vim:current-macro))
   (set-register vim:current-macro last-kbd-macro))
 
-(vim:defcmd vim:cmd-execute-macro (count nonrepeatable (argument:char reg))
+(vim:defcmd vim:cmd-execute-macro (count (argument:char reg))
   "Executes the keyboard-macro in register `reg.'"
   (vim:reset-key-state)
   (let ((macro (vim:get-register reg)))
