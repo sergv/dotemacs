@@ -91,9 +91,6 @@
 [submodule "third-party/emacs_bat"]
         path = third-party/emacs_bat
         url = https://github.com/timepp/emacs_bat.git
-[submodule "standalone/org-mode"]
-        path = standalone/org-mode
-        url = https://github.com/jwiegley/org-mode.git
 [submodule "third-party/ghc-prof-mode"]
         path = third-party/ghc-prof-mode
         url = https://github.com/pxqr/ghc-prof-mode.git
@@ -118,3 +115,6 @@
 [submodule "third-party/fill-column-indicator"]
 	path = third-party/fill-column-indicator
 	url = https://github.com/alpaker/Fill-Column-Indicator.git
+[submodule "third-party/org-mode"]
+	path = third-party/org-mode
+	url = http://repo.or.cz/org-mode.git
