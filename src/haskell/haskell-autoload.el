@@ -82,6 +82,7 @@
 
 (autoload 'ghc-init "ghc" nil t)
 (autoload 'ghc-debug "ghc" nil t)
+(autoload 'ghc-display-errors "ghc" nil t)
 
 (eval-after-load "ghc"
   '(progn
