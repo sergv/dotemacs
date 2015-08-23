@@ -44,6 +44,9 @@
                :use-render-formula t
                :use-fci t
                :sp-slurp-sexp-insert-space nil)
+  (bind-tab-keys #'indent-for-tab-command
+                 nil
+                 :enable-yasnippet t)
   (def-keys-for-map tuareg-mode-map
     ("SPC SPC" switch-to-ocaml-repl)
     ("<f6>"    tuareg-eval-buffer)))

@@ -32,6 +32,9 @@
 
   (setq-local yas-indent-line 'fixed)
   (which-function-mode -1)
+  (bind-tab-keys #'indent-for-tab-command
+                 nil
+                 :enable-yasnippet t)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>" shell-run-file)

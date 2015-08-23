@@ -732,6 +732,18 @@ it's position in current window."
              t))
       (switch-to-haskell)))
 
+(defun haskell-shm-tab-or-indent-relative-forward ()
+  (interactive)
+  (if structured-haskell-mode
+    (shm/tab)
+    (indent-relative-forward)))
+
+(defun haskell-shm-backtab-or-indent-relative-backward ()
+  (interactive)
+  (if structured-haskell-mode
+    (shm/backtab)
+    (indent-relative-backward)))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
