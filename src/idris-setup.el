@@ -10,6 +10,8 @@
 (require 'agda-setup)
 
 (autoload 'idris-mode "idris-mode" "" t)
+(autoload 'eri-indent "eri" "" t)
+(autoload 'eri-indent-reverse "eri" "" t)
 
 (add-to-list ' auto-mode-alist '("\\.l?idr$" . idris-mode))
 
