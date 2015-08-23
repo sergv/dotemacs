@@ -457,9 +457,10 @@ the current topic."
   (set (make-local-variable 'yas-fallback-behavior)
        '(apply org-cycle))
 
+  (bind-tab-keys #'org-cycle
+                 #'org-shifttab
+                 :enable-yasnippet t)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("TAB"     org-cycle)
-    ("<tab>"   org-cycle)
     ("<print>" org-toggle-inline-images-and-formulae)
 
     ("C-."     org-open-at-point)
@@ -507,13 +508,9 @@ the current topic."
     ("$" vim:org-end-of-line))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("TAB"   yas-expand)
-    ("<tab>" yas-expand)
     ("SPC"   abbrev+-org-self-insert-or-expand-abbrev))
 
   (def-keys-for-map org-mode-map
-    ("TAB"   yas-expand)
-    ("<tab>" yas-expand)
     ("C-k"   nil)
     ("C-t"   org-todo)
     ("SPC"   abbrev+-org-self-insert-or-expand-abbrev)))

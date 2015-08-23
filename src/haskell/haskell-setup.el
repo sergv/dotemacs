@@ -151,6 +151,10 @@
   ;; don't skip any messages
   (setq-local compilation-skip-threshold 0)
 
+  (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
+                 #'haskell-shm-backtab-or-indent-relative-backward
+                 :enable-yasnippet t)
+
   (vim:local-emap "core"     'vim:ghc-core-create-core)
   (vim:local-emap "compile"  'vim:haskell-compile)
   (vim:local-emap "c"        'vim:haskell-compile)
@@ -177,6 +181,25 @@
     ("C-`"       hs-lint))
 
   (haskell-bind-shm-bindings)
+  (def-keys-for-map shm-map
+    ("("            nil)
+    ("["            nil)
+    ("{"            nil)
+    (")"            nil)
+    ("]"            nil)
+    ("}"            nil)
+    ("C-w"          nil)
+    ("M-w"          nil)
+    ("C-y"          nil)
+    ("M-y"          nil)
+    ("M-a"          nil)
+    ("M-k"          nil)
+    ("C-k"          nil)
+    ("<delete>"     nil)
+    ("<deletechar>" nil)
+    ("C-<return>"   shm/simple-indent-newline-same-col)
+    ("TAB"          nil)
+    ("<backtab>"    nil))
 
   (def-keys-for-map (vim:visual-mode-local-keymap
                      vim:insert-mode-local-keymap)
@@ -190,8 +213,6 @@
     ("C-u"             shm/insert-undefined)
     ("C-<up>"          shm/swing-up)
     ("C-<down>"        shm/swing-down)
-    ("<tab>"           shm/tab)
-    ("<backtab>"       shm/backtab)
     ("C-t"             ghc-goto-prev-error)
     ("C-h"             ghc-goto-next-error)
     ("M-t"             haskell-compilation-prev-error-other-window)
@@ -229,11 +250,7 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("C-/"     ghc-complete)
-    ;; ("<tab>"           haskell-simple-indent)
-    ;; ("S-<tab>"         haskell-simple-indent-backtab)
-    ;; ("<S-iso-lefttab>" haskell-simple-indent-backtab)
-    )
+    ("C-/"     ghc-complete))
 
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
 
@@ -249,24 +266,6 @@
     ("m" vim:motion-jump-haskell-item)
     ("'" vim:shm/goto-parent)
     ("q" vim:shm/goto-parent-end))
-
-  (def-keys-for-map shm-map
-    ("("            nil)
-    ("["            nil)
-    ("{"            nil)
-    (")"            nil)
-    ("]"            nil)
-    ("}"            nil)
-    ("C-w"          nil)
-    ("M-w"          nil)
-    ("C-y"          nil)
-    ("M-y"          nil)
-    ("M-a"          nil)
-    ("M-k"          nil)
-    ("C-k"          nil)
-    ("<delete>"     nil)
-    ("<deletechar>" nil)
-    ("C-<return>"   shm/simple-indent-newline-same-col))
 
   (haskell-setup-folding)
   (haskell-abbrev+-setup)
