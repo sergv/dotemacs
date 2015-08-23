@@ -18,7 +18,10 @@
                :use-comment t
                :use-render-formula nil
                :use-whitespace t
-               :sp-slurp-sexp-insert-space nil))
+               :sp-slurp-sexp-insert-space nil)
+  (bind-tab-keys #'tab-to-tab-stop
+                 #'tab-to-tab-stop-backward
+                 :enable-yasnippet t))
 
 (add-hook 'ucf-mode-hook #'ucf-setup)
 

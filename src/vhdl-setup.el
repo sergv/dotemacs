@@ -14,7 +14,10 @@
                :use-comment t
                :use-render-formula t
                :use-whitespace t
-               :sp-slurp-sexp-insert-space nil))
+               :sp-slurp-sexp-insert-space nil)
+  (bind-tab-keys #'vhdl-electric-tab
+                 nil
+                 :enable-yasnippet t))
 
 (add-hook 'vhdl-mode-hook #'vhdl-setup)
 

@@ -368,6 +368,10 @@ in GROUP-NUMS."
                                'display
                                " ... "))))
 
+  (bind-tab-keys #'tab-to-tab-stop
+                 #'tab-to-tab-stop-backward
+                 :enable-yasnippet t)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f6>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)

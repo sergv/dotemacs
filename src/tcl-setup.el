@@ -13,7 +13,10 @@
                :use-comment t
                :use-render-formula t
                :use-whitespace t
-               :sp-slurp-sexp-insert-space t))
+               :sp-slurp-sexp-insert-space t)
+  (bind-tab-keys #'tab-to-tab-stop
+                 #'tab-to-tab-stop-backward
+                 :enable-yasnippet t))
 
 (add-hook 'vhdl-mode-hook #'tcl-setup)
 
