@@ -31,7 +31,10 @@
                :use-comment t
                :use-render-formula t
                :use-whitespace t
-               :sp-slurp-sexp-insert-space nil))
+               :sp-slurp-sexp-insert-space nil)
+  (bind-tab-keys #'electric-verilog-tab
+                 nil
+                 :enable-yasnippet t))
 
 (add-hook 'verilog-mode-hook #'verilog-setup)
 
