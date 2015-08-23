@@ -1422,6 +1422,17 @@ topmost `kill-ring' item is equal to text."
 
 (defalias 'fci #'toggle-fci)
 
+;;;;
+
+(defsubst concatMap (f xs)
+  (mapcan (lambda (x) (copy-list (funcall f x))) xs))
+
+(defsubst concatMap! (f xs)
+  (mapcan (lambda (x) (funcall f x)) xs))
+
+(defsubst concat-lists (xss)
+  (foldl #'append nil xss))
+
 (provide 'common)
 
 ;; Local Variables:

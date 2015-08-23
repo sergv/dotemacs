@@ -40,7 +40,6 @@
 (require 'custom)
 (require 'common)
 (require 'custom-predicates)
-(require 'more-haskell)
 (require 'haskell-autoload)
 
 ;;; eproj-tag
