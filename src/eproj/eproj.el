@@ -944,11 +944,17 @@ symbol 'unresolved.")
            'find)
       (and (executable-find "busybox")
            'busybox))
-  "Can be either 'find, 'busybox or nil.")
+  "Type of find program that `eproj/find-program-executable' refers to.
+Valid values are:
+'find        - vanilla gnu find
+'cygwin-find - cygwin version of gnu find, requires special quoting due to
+               Windows and libcygwin*.dll
+'busybox     - find as found in busybox, does not have as many options as gnu
+               find.")
 
 (defvar eproj/find-program-executable
   (pcase eproj/find-program-type
-    (`find "find")
+    ((or `find `cygwin-find) "find")
     (`busybox "busybox")))
 
 (defun eproj/find-rec (root
@@ -967,7 +973,7 @@ symbol 'unresolved.")
                   ignored-directory-prefixes)))
            (ignored-files
             (map (pcase eproj/find-program-type
-                   (`find
+                   ((or `find `cygwin-find)
                     (lambda (re) (list "-iregex" re)))
                    (`busybox
                     (lambda (re) (list "-regex" re)))
@@ -985,10 +991,10 @@ symbol 'unresolved.")
             (util:flatten
              (list (when (eq? 'busybox eproj/find-program-type)
                      "find")
-                   (when (eq? 'find eproj/find-program-type)
+                   (when (memq eproj/find-program-type '(find cygwin-find))
                      '("-O3"))
                    root
-                   (when (eq? 'find eproj/find-program-type)
+                   (when (memq eproj/find-program-type '(find cygwin-find))
                      '("-regextype" "emacs"))
                    (when ignored-dirs
                      (list
@@ -1010,7 +1016,13 @@ symbol 'unresolved.")
                    "("
                    (sep-by "-o" exts)
                    ")"
-                   "-print"))))
+                   "-print")))
+           (w32-quote-process-args
+            (if (boundp 'w32-quote-process-args)
+              (pcase eproj/find-program-type
+                (`cygwin-find ?\\)
+                (_ w32-quote-process-args))
+              nil)))
       (with-temp-buffer
         (with-disabled-undo
          (with-inhibited-modification-hooks
