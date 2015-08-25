@@ -60,7 +60,28 @@
                               "-dsuppress-module-prefixes"
                               ;; "-dsuppress-type-signatures"
                               "-dsuppress-type-applications"
-                              "-dsuppress-coercions"))
+                              "-dsuppress-coercions"
+                              "-dppr-cols200"))
+
+(defun cleanup-stg ()
+  "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
+and indent them as singe line."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "srt:SRT:" nil t)
+      (skip-chars-backward "^\\\\")
+      (zap-to-char 1 ?\])
+      (delete-whitespace-forward)
+
+      (let ((line (line-number-at-pos)))
+        (while (not (= line
+                       (save-excursion
+                         (forward-sexp 1)
+                         (backward-char 1)
+                         (line-number-at-pos))))
+          (save-excursion
+            (join-line t)))))))
 
 (let* ((build-dir
         (cond
