@@ -17,9 +17,7 @@
 (defun latex-compile ()
   "Start compilation of LaTeX file."
   (interactive)
-  (if-buffer-has-file
-    (when (buffer-modified-p)
-      (save-buffer)))
+  (save-buffer-if-modified)
   (compilation-start compile-command
                      #'latex-compilation-mode))
 

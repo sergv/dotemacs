@@ -567,9 +567,7 @@ of code may be called more than once."
        ,doc
        (interactive)
        ,(when save-buffer
-          '(if-buffer-has-file
-             (when (buffer-modified-p)
-               (save-buffer))))
+          '(save-buffer-if-modified))
        (let ((,runned nil))
          (block ,done-block
 

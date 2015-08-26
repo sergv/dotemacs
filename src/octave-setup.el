@@ -150,8 +150,7 @@ Returns t unless search stops at the beginning or end of the buffer."
      (defun octave-load-current-file (&optional switch)
        "Send current buffer to octave process."
        (interactive "P")
-       (when (buffer-modified-p)
-         (save-buffer))
+       (save-buffer-if-modified)
        (let ((fname (file-name-nondirectory
                      (file-name-sans-extension
                       (buffer-file-name)))))
