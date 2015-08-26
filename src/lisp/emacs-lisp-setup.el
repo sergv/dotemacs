@@ -157,8 +157,7 @@
 
 (defun elisp-compile-and-move ()
   (interactive)
-  (when (buffer-modified-p)
-    (save-buffer))
+  (save-buffer-if-modified)
   (when (and (eq major-mode 'emacs-lisp-mode)
              (not no-byte-compile)
              (not (string= ".eproj-info"

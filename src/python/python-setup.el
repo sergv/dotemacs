@@ -334,6 +334,7 @@ greater indenation as current line."
 (defun python-run-script (&optional use-pypy)
   "Run script associated with current buffer."
   (interactive (list current-prefix-arg))
+  (save-buffer-if-modified)
   (compilation-start (concat (if use-pypy
                                "pypy"
                                python-exec)
