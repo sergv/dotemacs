@@ -454,9 +454,6 @@ the current topic."
 
 (defun org-mode-setup ()
   (init-common :use-yasnippet t :use-render-formula nil :use-fci t)
-  (set (make-local-variable 'yas-fallback-behavior)
-       '(apply org-cycle))
-
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)
@@ -483,10 +480,7 @@ the current topic."
     ;; hide everything except current entry and its parents
     ("z C"     hide-other)
 
-    ("j"       eval-last-sexp)
-
-    ("T"       org-forward-same-level)
-    ("N"       org-backward-same-level))
+    ("j"       eval-last-sexp))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"     eval-region))
