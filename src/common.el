@@ -1433,6 +1433,12 @@ topmost `kill-ring' item is equal to text."
 (defsubst concat-lists (xss)
   (foldl #'append nil xss))
 
+
+(defun save-buffer-if-modified ()
+  (if-buffer-has-file
+    (when (buffer-modified-p)
+      (save-buffer))))
+
 (provide 'common)
 
 ;; Local Variables:

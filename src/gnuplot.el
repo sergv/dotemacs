@@ -21,9 +21,7 @@
 
 (defun gnuplot-run ()
   (interactive)
-  (if-buffer-has-file
-    (when (buffer-modified-p)
-      (save-buffer)))
+  (save-buffer-if-modified)
   ;; if on moment of gnuplot-mode invokation buffer was fileless
   ;; but now it has file then set command...
   (unless compile-command
