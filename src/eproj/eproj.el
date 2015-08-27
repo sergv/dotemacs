@@ -210,7 +210,7 @@
     (puthash x x eproj/ctags-string-cache)))
 
 ;; tags parsing
-(defun eproj/ctags-get-tags-from-buffer (buffer proj &optional simple-format?)
+(defun eproj/ctags-get-tags-from-buffer (buffer &optional simple-format?)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command.
 
@@ -336,7 +336,7 @@ runtime but rather will be silently relied on)."
                                 root
                                 (funcall make-project-files)
                                 (current-buffer))
-      (prog1 (eproj/ctags-get-tags-from-buffer (current-buffer) proj)
+      (prog1 (eproj/ctags-get-tags-from-buffer (current-buffer))
         (erase-buffer)))))
 
 (defun eproj/clojure-load-procedure (proj make-project-files)
