@@ -97,6 +97,30 @@ as accepted by `bounds-of-thing-at-point'.")
     it
     mode))
 
+(defun eproj-symbnav/resolve-entry-file-in-project (entry proj)
+  (let ((file
+         (eproj-resolve-abs-or-rel-name (eproj-tag/file entry)
+                                        (eproj-project/root proj))))
+    (unless (file-exists-p file)
+      (error "file %s does not exist" file))
+    file))
+
+(defun eproj-symbnav/locate-entry-in-current-buffer (entry)
+  (goto-line (eproj-tag/line entry))
+  (save-match-data
+    (when (re-search-forward (regexp-quote (eproj-tag/symbol entry))
+                             (line-end-position)
+                             t)
+      (goto-char (match-beginning 0))))
+  ;; remove annoying "Mark set" message
+  (message ""))
+
+(defun eproj-symbnav/show-entry-in-other-window (entry entry-proj)
+  (find-file-other-window
+   (eproj-symbnav/resolve-entry-file-in-project entry
+                                                entry-proj))
+  (eproj-symbnav/locate-entry-in-current-buffer entry))
+
 (defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
   (interactive "P")
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
@@ -113,21 +137,11 @@ as accepted by `bounds-of-thing-at-point'.")
          (jump-to-home
           (lambda (entry entry-proj)
             (let ((file
-                   (eproj-resolve-abs-or-rel-name (eproj-tag/file entry)
-                                                  (eproj-project/root entry-proj))))
+                   (eproj-symbnav/resolve-entry-file-in-project entry entry-proj)))
               (push current-home-entry eproj-symbnav/previous-homes)
               (setf eproj-symbnav/next-homes nil)
-              (unless (file-exists-p file)
-                (error "file %s does not exist" file))
               (find-file file)
-              (goto-line (eproj-tag/line entry))
-              (save-match-data
-                (when (re-search-forward (regexp-quote (eproj-tag/symbol entry))
-                                         (line-end-position)
-                                         t)
-                  (goto-char (match-beginning 0))))
-              ;; remove annoying "Mark set" message
-              (message "")
+              (eproj-symbnav/locate-entry-in-current-buffer entry)
               (setf eproj-symbnav/selected-loc
                     (make-eproj-home-entry :buffer (current-buffer)
                                            :position (point-marker)
@@ -239,21 +253,29 @@ as accepted by `bounds-of-thing-at-point'.")
                         (funcall entry-tag (car entries))
                         (funcall entry-proj (car entries))))
               (t
-               (select-start-selection
-                entries
-                :buffer-name "Symbol homes"
-                :after-init #'ignore
-                :on-selection
-                (lambda (idx)
-                  (select-exit)
-                  (let ((entry (elt entries idx)))
-                    (funcall jump-to-home
-                             (funcall entry-tag entry)
-                             (funcall entry-proj entry))))
-                :predisplay-function
-                entry-string
-                :preamble-function
-                (lambda () "Choose symbol\n\n"))))))))
+               (let ((kmap (make-sparse-keymap)))
+                 (def-keys-for-map kmap
+                   ("SPC" (lambda () (interactive)
+                            (let ((entry (elt entries (select-get-selected-index))))
+                              (eproj-symbnav/show-entry-in-other-window
+                               (funcall entry-tag entry)
+                               (funcall entry-proj entry))))))
+                 (select-start-selection
+                  entries
+                  :buffer-name "Symbol homes"
+                  :after-init (lambda ()
+                                (select-extend-keymap kmap))
+                  :on-selection
+                  (lambda (idx)
+                    (select-exit)
+                    (let ((entry (elt entries idx)))
+                      (funcall jump-to-home
+                               (funcall entry-tag entry)
+                               (funcall entry-proj entry))))
+                  :predisplay-function
+                  entry-string
+                  :preamble-function
+                  (lambda () "Choose symbol\n\n")))))))))
 
 (defun eproj-symbnav/go-back ()
   (interactive)
