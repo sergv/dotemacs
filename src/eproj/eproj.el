@@ -159,12 +159,16 @@
     "function"
     "interface"))
 
-(defconst +ctags-aux-fields-re+
+(setf +ctags-aux-fields-re+
   (eval-when-compile
-    (concat "^\\("
+    ;; (concat "^\\("
+    ;;         (macroexpand
+    ;;          `(rx (or ,@+ctags-aux-fields+)))
+    ;;         "\\):\\(.*\\)$")
+    (concat "\\=\\("
             (macroexpand
              `(rx (or ,@+ctags-aux-fields+)))
-            "\\):\\(.*\\)$")))
+            "\\):\\(.*\\)")))
 
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
   (if (not (null *ctags-exec*))
@@ -220,46 +224,117 @@ runtime but rather will be silently relied on)."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
-      (let ((tags-table (make-hash-table :test #'equal)))
-        (while (not (eobp))
-          (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
-                     (looking-at +ctags-line-re+))
-            (let ((symbol (eproj/ctags-cache-string
-                           (match-string-no-properties 1)))
-                  (file (eproj/ctags-cache-string
-                         (match-string-no-properties 2)))
-                  (line (string->number (match-string-no-properties 3))))
-              (goto-char (match-end 0))
-              ;; now we're past ;"
-              (let* ((fields-str (buffer-substring-no-properties
-                                  (point)
-                                  (line-end-position)))
-                     (fields
-                      (if simple-format?
+      (let ((tags-table (make-hash-table :test #'equal :size 997))
+            (field-cache (make-hash-table :test #'equal))
+            (gc-cons-threshold (min (* 100 1024 1024)
+                                    (max gc-cons-threshold
+                                         ;; Every 1000 lines takes up 1 mb or so.
+                                         (/ (* (count-lines (point-min) (point-max)) 1024 1024)
+                                            1000)))))
+        (garbage-collect)
+        (if simple-format?
+          (while (not (eobp))
+            (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
+                       (looking-at +ctags-line-re+))
+              (let ((symbol (eproj/ctags-cache-string
+                             (match-string-no-properties 1)))
+                    (file (eproj/ctags-cache-string
+                           (match-string-no-properties 2)))
+                    (line (string->number (match-string-no-properties 3))))
+                (goto-char (match-end 0))
+                ;; now we're past ;"
+                (let* ((fields-str (buffer-substring-no-properties
+                                    (point)
+                                    (line-end-position)))
+                       (fields
                         (list (cons 'type
                                     (eproj/ctags-cache-string
-                                     (trim-whitespace fields-str))))
-                        (delq nil
-                              (map (lambda (entry)
-                                     (if (string-match +ctags-aux-fields-re+ entry)
-                                       (let ((identifier (match-string-no-properties 1 entry))
-                                             (value (match-string-no-properties 2 entry)))
-                                         ;; when value is nonempty
-                                         (when (< 0 (length value))
-                                           (cons (string->symbol identifier)
-                                                 (eproj/ctags-cache-string value))))
-                                       (error "invalid entry: %s" entry)))
-                                   (split-string fields-str "\t" t)))))
-                     (new-tag (make-eproj-tag
-                               symbol
-                               file
-                               line
-                               fields)))
-                (puthash symbol
-                         (cons new-tag
-                               (gethash symbol tags-table nil))
-                         tags-table))))
-          (forward-line 1))
+                                     (trim-whitespace fields-str)))))
+                       (new-tag (make-eproj-tag
+                                 symbol
+                                 file
+                                 line
+                                 fields)))
+                  (puthash symbol
+                           (cons new-tag
+                                 (gethash symbol tags-table nil))
+                           tags-table))))
+            (forward-line 1))
+          (while (not (eobp))
+            (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
+                       (looking-at +ctags-line-re+))
+              (let ((symbol (eproj/ctags-cache-string
+                             (match-string-no-properties 1)))
+                    (file (eproj/ctags-cache-string
+                           (match-string-no-properties 2)))
+                    (line (string->number (match-string-no-properties 3))))
+                (goto-char (match-end 0))
+                ;; now we're past ;"
+                (let* ((line-end-pos (line-end-position))
+                       (fields nil))
+                  (while (< (point) line-end-pos)
+                    (skip-chars-forward "\t")
+                    (let ((start (point)))
+                      (skip-chars-forward "^\t\n")
+                      (let ((end (point)))
+                        (save-excursion
+                          (goto-char start)
+                          (if (re-search-forward +ctags-aux-fields-re+ end t)
+                            (let ((identifier (match-string-no-properties 1))
+                                  (value (match-string-no-properties 2)))
+                              ;; when value is nonempty
+                              (when (not (string= "" value))
+                                (let ((new-field (cons (string->symbol identifier)
+                                                       (eproj/ctags-cache-string value))))
+                                  (push (aif (gethash new-field field-cache)
+                                          it
+                                          (puthash new-field new-field field-cache))
+                                        fields))))
+                            (error "invalid entry: %s" (buffer-substring-no-properties start end)))))))
+                  (forward-char)
+                  (puthash symbol
+                           (cons (make-eproj-tag
+                                  symbol
+                                  file
+                                  line
+                                  fields)
+                                 (gethash symbol tags-table nil))
+                           tags-table))
+                ;; (let* ((fields-str (buffer-substring-no-properties
+                ;;                     (point)
+                ;;                     (line-end-position)))
+                ;;        (fields
+                ;;         (if simple-format?
+                ;;           (list (cons 'type
+                ;;                       (eproj/ctags-cache-string
+                ;;                        (trim-whitespace fields-str))))
+                ;;           (delq nil
+                ;;                 (map (lambda (entry)
+                ;;                        (if (string-match +ctags-aux-fields-re+ entry)
+                ;;                          (let ((identifier (match-string-no-properties 1 entry))
+                ;;                                (value (match-string-no-properties 2 entry)))
+                ;;                            ;; when value is nonempty
+                ;;                            (when (not (string= "" value)) ;;(< 0 (length value))
+                ;;                              (let ((new-field
+                ;;                                     (cons (string->symbol identifier)
+                ;;                                           (eproj/ctags-cache-string value))))
+                ;;                                (aif (gethash new-field field-cache)
+                ;;                                  it
+                ;;                                  (puthash new-field new-field field-cache)))))
+                ;;                          (error "invalid entry: %s" entry)))
+                ;;                      (split-string fields-str "\t" t)))))
+                ;;        (new-tag (make-eproj-tag
+                ;;                  symbol
+                ;;                  file
+                ;;                  line
+                ;;                  fields)))
+                ;;   (puthash symbol
+                ;;            (cons new-tag
+                ;;                  (gethash symbol tags-table nil))
+                ;;            tags-table))
+                ))
+            ;; (forward-line 1)
+            ))
         tags-table))))
 
 ;;;; language definitions
