@@ -32,7 +32,7 @@ Note: old tags file is removed before calling update command."
                     (not (file-exists-p tag-file-path)))
             (error "Cannot find tag file %s at %s" tag-file tag-file-path))
           (for-buffer-with-file tag-file-path
-            (eproj/ctags-get-tags-from-buffer (current-buffer) proj t)))))
+            (eproj/ctags-get-tags-from-buffer (current-buffer) t)))))
     (progn
       (unless *fast-tags-exec*
         (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
@@ -68,7 +68,7 @@ Note: old tags file is removed before calling update command."
                              (with-current-buffer out-buffer
                                (buffer-substring-no-properties (point-min) (point-max)))))
                     (erase-buffer))))
-              (eproj/ctags-get-tags-from-buffer out-buffer proj t)))))
+              (eproj/ctags-get-tags-from-buffer out-buffer t)))))
       ;; (message "Warning: no tag file for haskell project %s"
       ;;          (eproj-project/root proj))
       )))
