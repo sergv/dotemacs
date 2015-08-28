@@ -59,14 +59,15 @@ Items will be passed to this function before insertion into buffer.")
   "Function that returns contents at the bottom of the buffer")
 
 (defvar select-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<up>")     #'select-move-selection-up)
-    (define-key map (kbd "<down>")   #'select-move-selection-down)
-    (define-key map (kbd "<return>") #'select-do-select)
-    (define-key map (kbd "<escape>") #'select-exit)
-    (define-key map (kbd "q")        #'select-exit)
-    (define-key map (kbd "C-q")      #'select-exit)
-    map))
+  (let ((kmap (make-sparse-keymap)))
+    (def-keys-for-map kmap
+      ("<up>"     select-move-selection-up)
+      ("<down>"   select-move-selection-down)
+      ("<return>" select-do-select)
+      ("<escape>" select-exit)
+      ("q"        select-exit)
+      ("C-q"      select-exit))
+    kmap))
 
 (define-derived-mode select-mode text-mode "Selection"
   "Major mode for queries in auxiliary buffer."
@@ -132,15 +133,15 @@ Items will be passed to this function before insertion into buffer.")
        (overlay-put select/selection-overlay
                     'font-lock-face
                     'select-selection-face)
-       (select-setup-items items :selected-item 0)
+       (select-setup-items items 0)
        (select-refresh-items)
        (funcall after-init)
 
        (set-buffer-modified-p nil)
        (setf buffer-read-only t)))))
 
-(defun* select-setup-items (items &key (selected-item 0))
-  (setf select/selected-item (or selected-item 0)
+(defun select-setup-items (items selected-item)
+  (setf select/selected-item selected-item
         select/items items
         select/item-positions (make-vector (length items) nil)))
 
@@ -264,7 +265,7 @@ Items will be passed to this function before insertion into buffer.")
   (kill-buffer select/selection-buffer)
   (select-finish-selection))
 
-;;; this is for invokers of select-mode
+;;; This is for users of select-mode.
 
 (defun select-extend-keymap (new-keymap)
   (use-local-map
@@ -274,6 +275,9 @@ Items will be passed to this function before insertion into buffer.")
   (propertize base
               'face 'bold
               'font-lock-face 'bold))
+
+(defsubst select-get-selected-index ()
+  select/selected-item)
 
 ;;; utilities
 
