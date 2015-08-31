@@ -11,6 +11,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'set-up-paths)
+(require 'custom)
 
 (require 'dired-single)
 (require 'dired-aux)
@@ -34,10 +35,13 @@
 
 (def-keys-for-map dired-mode-map
   +vim-special-keys+
+  +vi-search-keys+
   ("h"        dired-cycle-files-forward)
   ("t"        dired-cycle-files-backward)
   ("<down>"   dired-cycle-files-forward)
   ("<up>"     dired-cycle-files-backward)
+  ("k"        dired-unmark)
+  ("K"        dired-unmark-all-marks)
   ("p"        nil)
   ("q"        nil)
   ("e"        nil)
@@ -49,11 +53,9 @@
   ("^"        dired-single-up-directory)
   ("r"        revert-buffer) ;; refresh
 
-  ("/"        search-start-forward)
   ;; ? is already used by dired
   ;; ("?"        search-start-backward)
   )
-
 
 (defun dired--open ()
   (let ((filename (dired-get-filename)) failure)
@@ -85,6 +87,22 @@ current one."
   (switch-to-buffer-other-window
    (find-file-noselect (or file-to-visit
                            (dired-get-file-for-visit)))))
+
+(defun dired-cycle-files-forward (count)
+  "Cycle through file list forward selecting next entry"
+  (interactive "p")
+  (funcall
+   (make-cycle-on-lines-in-region 2 -1 forward
+                                  #'dired-next-line #'dired-previous-line)
+   count))
+
+(defun dired-cycle-files-backward (count)
+  "Cycle through file list backward selecting next entry"
+  (interactive "p")
+  (funcall
+   (make-cycle-on-lines-in-region 2 -1 backward
+                                  #'dired-next-line #'dired-previous-line)
+   count))
 
 (provide 'dired-setup)
 

@@ -59,23 +59,6 @@ DIRECTION may have value either 'forward or 'backward"
                           backward-func)
                        count))))))
 
-(defun dired-cycle-files-forward (count)
-  "Cycle through file list forward selecting next entry"
-  (interactive "p")
-  (funcall
-   (make-cycle-on-lines-in-region 2 -1 forward
-                                  #'dired-next-line #'dired-previous-line)
-   count))
-
-(defun dired-cycle-files-backward (count)
-  "Cycle through file list backward selecting next entry"
-  (interactive "p")
-  (funcall
-   (make-cycle-on-lines-in-region 2 -1 backward
-                                  #'dired-next-line #'dired-previous-line)
-   count))
-
-
 ;;; special definitons for occur
 
 (defun custom-occur-find-match (n direction &optional linewise)
@@ -111,7 +94,6 @@ DIRECTION may have value either 'forward or 'backward"
   "Move to the Nth (default 1) previous match in an Occur mode buffer."
   (interactive "p")
   (custom-occur-find-match n 'backward t))
-
 
 ;; Local Variables:
 ;; End:
