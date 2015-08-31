@@ -185,6 +185,7 @@ generate actual filter group.")
 
      (def-keys-for-map ibuffer-mode-map
        +vim-special-keys+
+       +vi-search-keys+
        ("C-k"      remove-buffer)
        ("C-S-k"    remove-buffer-and-window)
 
@@ -219,10 +220,6 @@ generate actual filter group.")
 
        ("C-z"      nil)
        ("v"        nil)
-       ("/"        search-start-forward)
-       ("u"        search-next)
-       ("U"        search-prev)
-
 
        ("<tab>"           ibuffer-forward-filter-group)
        ("<iso-lefttab>"   ibuffer-forward-filter-group)
