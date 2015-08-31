@@ -20,9 +20,14 @@ function update-dir-autoloads {
     emacs --batch --eval "(progn (setq generated-autoload-file \"$emacs_dir/$dir/$name\") (update-directory-autoloads \"$emacs_dir/$dir\"))"
 }
 
-update-dir-autoloads "standalone/clojure-mode" "clojure-mode-autoload.el"
-update-dir-autoloads "standalone/nrepl.el" "nrepl-autoload.el"
 update-dir-autoloads "third-party/smartparens" "smartparens-autoloads.el"
+if which make >/dev/null; then
+    pushd "third-party/org-mode"
+    make autoloads
+    popd
+else
+    echo "warning: 'make' not found, not updating autoloads for org mode" >&2
+fi
 
 mkdir -p "$emacs_dir/prog-data"
 
