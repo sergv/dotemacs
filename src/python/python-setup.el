@@ -427,8 +427,8 @@ greater indenation as current line."
     ("g t"      beginning-of-defun)
     ("g h"      end-of-defun)
 
-    ("<up>"     python-nav-backward-block)
-    ("<down>"   python-nav-forward-block)
+    ("C-<up>"   python-nav-backward-block)
+    ("C-<down>" python-nav-forward-block)
 
     ("="        python-nav-backward-up-list)
     ("q"        python-nav-up-list)
