@@ -133,7 +133,7 @@ and indent them as singe line."
              sep
              (concat "cabal "
                      "configure "
-                     "--disable-optimization"
+                     "--disable-optimization "
                      "--disable-library-profiling "
                      (if (cabal-install-version-at-least? 1 22 0 0)
                        "--disable-profiling "
