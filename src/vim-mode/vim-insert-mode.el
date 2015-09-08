@@ -81,8 +81,9 @@ where to insert a newline."
     (setq vim:insert-newline 'below))
   (if (eobp)
     (setq vim:insert-marker 'eob)
-    (setq vim:insert-marker (make-marker))
-    (move-marker vim:insert-marker (1+ (point))))
+    (progn
+      (setq vim:insert-marker (make-marker))
+      (move-marker vim:insert-marker (1+ (point)))))
   (vim:activate-insert-mode))
 
 (defun vim:insert-mode-command (command)
