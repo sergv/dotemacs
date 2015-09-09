@@ -440,6 +440,7 @@
 (vim:emap "nohlsearch" 'vim:cmd-nohighlight)
 (vim:emap "noh" "nohlsearch")
 (vim:emap "nh" "nohlsearch")
+(vim:emap "nhg" 'vim:cmd-nohighlight-everywhere)
 ;; (vim:emap "setmode" 'vim:cmd-setmode)
 
 ;; (vim:nmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)

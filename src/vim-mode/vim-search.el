@@ -608,6 +608,13 @@ regular expressions."
   (vim:delete-hl 'vim:substitute)
   (search-disable-highlighting))
 
+(vim:defcmd vim:cmd-nohighlight-everywhere (nonrepeatable)
+  "Disables the active search highlightings in all buffers."
+  (vim:delete-hl 'vim:search)
+  (vim:delete-hl 'vim:provide)
+  (vim:delete-hl 'vim:substitute)
+  (search-disable-all-highlighting))
+
 (provide 'vim-search)
 
 ;; Local Variables:
