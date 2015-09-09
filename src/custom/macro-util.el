@@ -801,6 +801,17 @@ return nil otherwise."
          (defvar ,var ,tmp-var ,doc))
        nil)))
 
+(defmacro defparameter-local (var &optional value doc)
+  "Similar to `defparameter' but defines buffer-local variables."
+  (let ((tmp-var (gensym "store")))
+    `(progn
+       (make-variable-buffer-local ',var)
+       (setf ,tmp-var ,value)
+       (if (boundp ',var)
+         (setf ,var ,tmp-var)
+         (defvar-local ,var ,tmp-var ,doc))
+       nil)))
+
 ;;; compatibility defines
 
 (unless (symbol-function 'defvar-local)
