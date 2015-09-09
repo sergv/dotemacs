@@ -97,29 +97,29 @@
                      'paredit-close-round)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("j"     eval-last-sexp)
-    ("- m"   expand-last-macro)
-    ("- M"   expand-last-macro-all)
+    ("j"       eval-last-sexp)
+    ("- m"     expand-last-macro)
+    ("- M"     expand-last-macro-all)
 
-    ("M-:"   nil)
-    ("C-:"   pp-eval-expression)
-    ("C-."   elisp-slime-nav-find-elisp-thing-at-point)
-    ("C-,"   pop-tag-mark)
-    ("g ."   elisp-slime-nav-find-elisp-thing-at-point)
-    ("g ,"   pop-tag-mark)
-    ("C-/"   lisp-complete-symbol)
+    ("M-:"     nil)
+    ("C-:"     pp-eval-expression)
+    ("C-."     elisp-slime-nav-find-elisp-thing-at-point)
+    ("C-,"     pop-tag-mark)
+    ("g ."     elisp-slime-nav-find-elisp-thing-at-point)
+    ("g ,"     pop-tag-mark)
+    ("C-<tab>" lisp-complete-symbol)
 
-    ("<tab>" indent-for-tab-command)
-    ("<f9>"  elisp-compile-and-move)
-    ("`"     elisp-compile-and-move))
+    ("<tab>"   indent-for-tab-command)
+    ("<f9>"    elisp-compile-and-move)
+    ("`"       elisp-compile-and-move))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("j"   eval-region))
+    ("j"       eval-region))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ;; ("C-SPC" lisp-complete-symbol)
-    ("<tab>" indent-for-tab-command)
-    ("C-/"   lisp-complete-symbol)
+    ("<tab>"   indent-for-tab-command)
+    ("C-<tab>" lisp-complete-symbol)
     ;; ("("     paredit-open-round)
     ;; (")"     paredit-close-round)
     ;; ("["     paredit-open-square)
@@ -128,10 +128,10 @@
     )
 
   (def-keys-for-map read-expression-map
-    ("<tab>" lisp-complete-symbol)
-    ("C-/"   lisp-complete-symbol)
-    ("C-w"   backward-delete-word)
-    ("C-S-w" backward-delete-word*))
+    ("<tab>"   lisp-complete-symbol)
+    ("C-/"     lisp-complete-symbol)
+    ("C-w"     backward-delete-word)
+    ("C-S-w"   backward-delete-word*))
 
   ;; should use global after-save-hook because of
   ;; backups
