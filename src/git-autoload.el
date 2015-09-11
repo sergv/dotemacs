@@ -112,6 +112,7 @@
 (autoload 'git-rebase-mode-setup "git-setup")
 (add-hook 'git-rebase-mode-hook #'git-rebase-mode-setup)
 
+(eval-after-load "magit" '(require 'git-setup))
 (eval-after-load "magit-key-mode" '(require 'git-setup))
 
 (autoload 'git-add "git-setup" nil t)
