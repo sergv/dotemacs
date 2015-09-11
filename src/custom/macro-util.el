@@ -808,7 +808,9 @@ return nil otherwise."
        (make-variable-buffer-local ',var)
        (setf ,tmp-var ,value)
        (if (boundp ',var)
-         (setf ,var ,tmp-var)
+         (progn
+           (setq-default ,var ,tmp-var)
+           (setf ,var ,tmp-var))
          (defvar-local ,var ,tmp-var ,doc))
        nil)))
 
