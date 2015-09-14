@@ -2163,6 +2163,10 @@ Queue is just a list actually."
   "Return next queued fortune using persistent queue and
 make up new queue if persistent one is empty."
   (let ((fortune-queue (persistent-store-get 'fortunes-fortune-queue)))
+    (while (and (not (null (car fortune-queue)))
+                (< (car fortune-queue)
+                   (length *fortunes*)))
+      (pop fortune-queue))
     (unless fortune-queue
       (setq fortune-queue (fortune/reschedule-queue)))
     (prog1 (aref *fortunes*
