@@ -76,6 +76,8 @@
 
 ;;;;
 
+(autoload 'pp-last-sexp "pp")
+
 (defun expand-last-macro ()
   (interactive)
   ;; taken from pp.el
