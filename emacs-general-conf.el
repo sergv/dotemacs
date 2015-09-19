@@ -174,7 +174,8 @@
       load-prefer-newer t
       kill-ring-max 1000
       save-interprogram-paste-before-kill nil
-      enable-recursive-minibuffer t)
+      enable-recursive-minibuffer t
+      ad-default-compilation-action 'always)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
