@@ -272,6 +272,7 @@ all otherwise."
     ("C-h"      git-rebase-move-line-down)
     ("C-t"      git-rebase-move-line-up)
     ("SPC"      git-rebase-show-commit)
+    ("g #"      with-editor-finish)
     ("<return>" with-editor-finish)
 
     ("n"        ignore)
