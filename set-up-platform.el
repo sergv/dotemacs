@@ -31,7 +31,8 @@ Range of platforms may be expanded (extended?) in the future.")
                '("~"))))
        (system-type-file
         (find-if (lambda (file)
-                   (and (file-exists-p file)
+                   (and file
+                        (file-exists-p file)
                         (file-executable-p file)))
                  (mapcan (lambda (prefix)
                            (list (concat prefix "/system_type.sh")
@@ -51,6 +52,8 @@ Range of platforms may be expanded (extended?) in the future.")
                                                (point-max))))))
           ((eq system-type 'windows-nt)
            '(windows work))
+          ((eq system-type 'gnu/linux)
+           '(linux home))
           (t
            '(linux home)))))
 
@@ -80,11 +83,9 @@ platform OS and usage."
   (cond ((platform-os-type? 'windows)
          (expand-file-name "~"))
         ((platform-os-type? 'linux)
-         (if (platform-use? '(home netbook asus-netbook))
-           "/home/sergey"
-           (expand-file-name "~")))
+         (expand-file-name "~"))
         (t
-         ;; fallback to make it work in unaccounted scenarios
+         ;; fallback to make it work in unanticipated scenarios
          (expand-file-name "~"))))
 
 (defun platform-dependent-executable (exec-name)
