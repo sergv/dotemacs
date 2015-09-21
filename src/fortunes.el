@@ -2164,7 +2164,7 @@ Queue is just a list actually."
 make up new queue if persistent one is empty."
   (let ((fortune-queue (persistent-store-get 'fortunes-fortune-queue)))
     (while (and (not (null (car fortune-queue)))
-                (< (car fortune-queue)
+                (> (car fortune-queue)
                    (length *fortunes*)))
       (pop fortune-queue))
     (unless fortune-queue
