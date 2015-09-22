@@ -252,6 +252,7 @@
 (load-library "eproj-setup")
 (load-library "xilinx-setup")
 (load-library "diff-mode-setup")
+(load-library "fci-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
@@ -262,17 +263,6 @@
 (eval-after-load "ibuffer"
   '(progn
      (load-library "ibuffer-setup")))
-
-(require 'fill-column-indicator)
-
-;; Tuesday, 15 September 2015 NB: it's somewhat expensive to toggle fci on every
-;; buffer switch, try to disable it in the future and see whether it's needed
-;; any more.
-(defadvice switch-to-buffer (after switch-to-buffer-toggle-fci activate compile)
-  "Check syntax with GHC when switching to a haskell-mode buffer."
-  (when fci-mode
-    (fci-mode -1)
-    (fci-mode +1)))
 
 (require 'fortunes)
 (random t)

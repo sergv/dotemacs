@@ -310,18 +310,22 @@ entries."
       (sessions/restore-global-variables (first (rest it)))
       (message "warning: session-entries without global variables information"))))
 
+(defvar sessions/load-buffers-hook nil
+  "Hook run after restoring session in `sessions/load-buffers'.")
+
 (defun sessions/load-buffers (file)
   "Load session from FILE's contents."
   (interactive "ffile to load session from: ")
   (if (file-exists? file)
-    (sessions/load-from-data
-     (with-temp-buffer
-       (insert-file-contents-literally file)
-       (read (buffer-substring-no-properties (point-min) (point-max)))
-       ;; (read (current-buffer))
-       ))
+    (progn
+      (sessions/load-from-data
+       (with-temp-buffer
+         (insert-file-contents-literally file)
+         (read (buffer-substring-no-properties (point-min) (point-max)))
+         ;; (read (current-buffer))
+         ))
+      (run-hooks 'sessions/load-buffers-hook))
     (message "warning: file %s does not exist" file)))
-
 
 (provide 'persistent-sessions)
 
