@@ -464,6 +464,19 @@
     ("t"      compilation-jump-to-prev-error)
     ("h"      compilation-jump-to-next-error)))
 
+(defun ghc-prof-mode-setup ()
+  (init-common :use-yasnippet nil
+               :use-comment nil
+               :use-fci nil
+               :use-whitespace nil
+               :use-render-formula nil
+               :use-hl-line t)
+  (kill-local-variable 'mode-name)
+  (kill-local-variable 'mode-line-format)
+  ;; Continue long lines past window's end, don't fol.
+  (toggle-truncate-lines +1)
+  (haskell-setup-folding))
+
 (provide 'haskell-setup)
 
 ;; Local Variables:
