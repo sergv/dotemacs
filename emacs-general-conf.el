@@ -330,7 +330,6 @@
 ;;;; aliases
 
 (fset 'yes-or-no-p 'y-or-n-p)
-(defalias 'rm 'delete-file)
 (defalias 'mv 'rename-file-and-buffer)
 (defalias 'cp 'copy-file-and-open)
 (defalias 'mv* 'rename-file)
