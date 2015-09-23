@@ -33,10 +33,13 @@
 (autoload 'switch-to-haskell "inf-haskell" nil t)
 
 (autoload 'ghc-prof-mode "ghc-prof-mode" nil t)
+(autoload 'ghc-prof-mode-setup "haskell-setup")
 (eval-after-load "ghc-prof-mode"
   '(progn
      (remove-hook 'haskell-mode-hook #'ghc-prof-highlight-current)
-     (add-hook 'ghc-prof-mode-hook #'ghc-prof-clear)))
+     (add-hook 'ghc-prof-mode-hook #'ghc-prof-clear)
+     (add-hook 'ghc-prof-mode-hook #'ghc-prof-mode-setup)))
+(add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-prof-mode))
 
 (defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot"))
 
