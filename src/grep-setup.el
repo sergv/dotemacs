@@ -185,13 +185,11 @@ more than once"
 
 (add-to-list 'compilation-finish-functions #'grep-set-up-error-regexp)
 
-(defun rgrep-region (begin end ignore-case)
-  (interactive (list (region-beginning)
-                     (region-end)
+(defun rgrep-region (str ignore-case)
+  (interactive (list (get-region-string-no-properties)
                      (and (not (null? current-prefix-arg))
                           (<= 16 (first current-prefix-arg)))))
-  (let* ((str (buffer-substring-no-properties begin end))
-         (regexp (read-string "Search for: "
+  (let* ((regexp (read-string "Search for: "
                               str
                               'grep-regexp-history
                               str)
