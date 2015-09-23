@@ -344,6 +344,16 @@ not exist after command is finished."
                (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
+(defun rm (filename)
+  (interactive (list (expand-file-name
+                      (read-file-name "Delete file: "
+                                      nil
+                                      buffer-file-name))))
+  (delete-file filename)
+  (let ((buf (find-buffer-visiting filename)))
+    (when (y-or-n? (format "Kill buffer %s?" (buffer-name buf)))
+      (kill-buffer buf))))
+
 ;;;
 
 (provide 'common-heavy)
