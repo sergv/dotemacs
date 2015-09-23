@@ -160,7 +160,8 @@ Contains single-line and region comments.")
 or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
   (if (region-active?)
-    (comment-util-comment-region (region-beginning) (region-end))
+    (let ((bounds (get-region-bounds)))
+      (comment-util-comment-region (first bounds) (second bounds)))
     (comment-util-comment-next-n-lines lines)))
 
 (defun comment-util-comment-region (begin end)
