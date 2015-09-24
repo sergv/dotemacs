@@ -1431,6 +1431,8 @@ topmost `kill-ring' item is equal to text."
     (when (buffer-modified-p)
       (save-buffer))))
 
+(autoload 'rm "common-heavy" "" t)
+
 (provide 'common)
 
 ;; Local Variables:
