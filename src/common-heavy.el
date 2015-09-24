@@ -349,9 +349,15 @@ not exist after command is finished."
                       (read-file-name "Delete file: "
                                       nil
                                       buffer-file-name))))
-  (delete-file filename)
   (let ((buf (find-buffer-visiting filename)))
-    (when (y-or-n? (format "Kill buffer %s?" (buffer-name buf)))
+    (delete-file filename)
+    (when (and (buffer-live-p buf)
+               (string=
+                (with-current-buffer buf
+                  (expand-file-name
+                   (buffer-file-name)))
+                filename)
+               (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
 ;;;
