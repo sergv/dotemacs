@@ -101,6 +101,8 @@ and indent them as singe line."
        (common-conf-opts
         (lambda (custom-build-dir)
           (concat (funcall mk-build-dir-arg custom-build-dir)
+                  "--disable-shared "
+                  "--disable-executable-dynamic "
                   "--enable-tests")))
        (build-command
         (lambda (custom-build-dir)
