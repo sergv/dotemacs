@@ -170,6 +170,7 @@
   (vim:local-emap "reset"    'vim:haskell-ghc-reset)
 
   (def-keys-for-map vim:normal-mode-local-keymap
+    ("\\"        vim:haskell-ghc-check)
     ("j"         inferior-haskell-send-decl)
     ("g c d"     comment-util-delete-commented-part)
     ("g c c"     haskell-comment-node)
