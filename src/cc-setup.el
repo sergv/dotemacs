@@ -178,6 +178,7 @@ Also propagate new offset to `vim:shift-width'."
   (c-toggle-auto-newline -1)
 
   (def-keys-for-map vim:normal-mode-local-keymap
+    ("g c d" comment-util-delete-commented-part)
     ("g TAB" c-indent-defun)
 
     ("g t"   c-beginning-of-defun)
