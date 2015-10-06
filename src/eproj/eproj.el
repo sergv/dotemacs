@@ -685,7 +685,11 @@ runtime but rather will be silently relied on)."
             (if made-files
               files
               (progn
-                (setf files (eproj-get-project-files proj)
+                (setf files (aif (eproj-project/aux-files-source proj)
+                              (nconc
+                               (eproj-get-project-files proj)
+                               (funcall it))
+                              (eproj-get-project-files proj))
                       made-files t)
                 files)))))
     (setf (eproj-project/tags proj)
