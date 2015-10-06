@@ -65,7 +65,7 @@
 (add-to-list 'auto-mode-alist        '("\\.lhs-boot\\'" . literate-haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
-(add-to-list 'auto-mode-alist        '("\\.hsc\\'" . haskell-c-mode))
+(add-to-list 'auto-mode-alist        '("\\.hsc\\'" . haskell-mode))
 (add-to-list 'auto-mode-alist        '("\\.chs\\'" . c2hs-mode))
 
 (defalias 'ghci 'switch-to-haskell)
