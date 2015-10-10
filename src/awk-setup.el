@@ -13,7 +13,8 @@
 (autoload 'awk-start "awk+" nil t)
 
 (defun awk-setup ()
-  (init-common :use-yasnippet nil)
+  (init-common :use-yasnippet nil
+               :use-whitespace 'tabs-only)
   (modify-syntax-entry ?\/ "\"")
   (add-hook 'after-save-hook #'make-script-file-exec)
 

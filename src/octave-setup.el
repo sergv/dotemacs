@@ -356,7 +356,8 @@ in GROUP-NUMS."
   (init-common :use-yasnippet t
                :use-render-formula t
                :sp-slurp-sexp-insert-space nil
-               :use-fci t)
+               :use-fci t
+               :use-whitespace 'tabs-only)
   (hs-minor-mode t)
 
   (setq-local yas/indent-line 'fixed)

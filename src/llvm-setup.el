@@ -16,7 +16,8 @@
 (defun llvm-mode-setup ()
   (init-common :use-yasnippet nil
                :use-comment t
-               :use-whitespace t
+               :use-whitespace 'tabs-only
+               :use-fci t
                :use-render-formula t))
 
 (add-hook 'llvm-mode-hook #'llvm-mode-setup)
@@ -31,7 +32,8 @@
 (defun tablegen-mode-setup ()
   (init-common :use-yasnippet nil
                :use-comment t
-               :use-whitespace t
+               :use-whitespace 'tabs-only
+               :use-fci t
                :use-render-formula t))
 
 (add-hook 'tablegen-mode-hook #'tablegen-mode-setup)

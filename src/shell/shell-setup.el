@@ -27,7 +27,9 @@
                      t))
 
 (defun shell-script-setup ()
-  (init-common :use-yasnippet t :use-whitespace nil :use-fci nil)
+  (init-common :use-yasnippet t
+               :use-whitespace 'tabs-only
+               :use-fci nil)
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
   (setq-local yas-indent-line 'fixed)

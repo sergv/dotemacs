@@ -24,7 +24,8 @@
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula t
-               :use-fci t)
+               :use-fci t
+               :use-whitespace 'tabs-only)
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)

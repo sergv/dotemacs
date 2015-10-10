@@ -679,7 +679,7 @@ This command assumes point is not in a string or comment."
 
 (defun* lisp-setup (&key (use-whitespace nil) (use-fci t))
   (init-common :use-yasnippet nil
-               :use-whitespace nil
+               :use-whitespace 'tabs-only
                :use-render-formula t
                :use-fci use-fci)
   (rainbow-delimiters-mode 1)

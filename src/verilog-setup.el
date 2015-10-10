@@ -30,7 +30,8 @@
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula t
-               :use-whitespace t
+               :use-whitespace 'tabs-only
+               :use-fci t
                :sp-slurp-sexp-insert-space nil)
   (bind-tab-keys #'electric-verilog-tab
                  nil

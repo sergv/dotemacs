@@ -12,7 +12,8 @@
 
 
 (defun wisent-grammar-mode-setup ()
-  (init-common :use-yasnippet nil)
+  (init-common :use-yasnippet nil
+               :use-whitespace 'tabs-only)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

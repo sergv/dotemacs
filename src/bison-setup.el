@@ -11,7 +11,9 @@
 (add-to-list 'auto-mode-alist '("\\.y\\'" . bison-mode))
 
 (defun bison-setup ()
-  (init-common :use-yasnippet nil :use-render-formula nil)
+  (init-common :use-yasnippet nil
+               :use-render-formula nil
+               :use-whitespace 'tabs-only)
   (hs-minor-mode 1))
 
 (add-hook 'bison-mode-hook #'bison-setup)
