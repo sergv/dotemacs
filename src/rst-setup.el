@@ -9,7 +9,9 @@
 ;; Status:
 
 (defun rst-setup ()
-  (init-common :use-render-formula t))
+  (init-common :use-render-formula t
+               :use-whitespace 'tabs-only
+               :use-fci t))
 
 (add-hook 'rst-mode-hook #'rst-setup)
 

@@ -113,7 +113,8 @@
                        t)))))
 
 (defun cmake-setup ()
-  (init-common :use-yasnippet nil))
+  (init-common :use-yasnippet nil
+               :use-whitespace 'tabs-only))
 
 (add-hook 'cmake-mode-hook #'cmake-setup)
 

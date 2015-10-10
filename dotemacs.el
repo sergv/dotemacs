@@ -65,7 +65,7 @@
 (defun* init-common (&key (use-yasnippet t)
                           (use-comment t)
                           (use-fci t)
-                          (use-whitespace nil)
+                          (use-whitespace nil) ;; can be t, nil, 'tabs-only
                           (use-render-formula nil)
                           (use-hl-line t)
                           (sp-slurp-sexp-insert-space t))
@@ -88,6 +88,8 @@
     (when (memq major-mode
                 +do-not-track-long-lines-modes+)
       (error "Shouldn't have enabled whitespace-mode in %s" major-mode))
+    (when (eq? use-whitespace 'tabs-only)
+      (setq-local whitespace-style '(face tabs)))
     (whitespace-mode 1))
 
   (when use-render-formula

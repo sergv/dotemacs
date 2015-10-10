@@ -25,7 +25,9 @@
 
 
 (defun prolog-setup ()
-  (init-common :use-yasnippet nil :use-render-formula t)
+  (init-common :use-yasnippet nil
+               :use-render-formula t
+               :use-whitespace 'tabs-only)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g <tab>" prolog-indent-predicate)

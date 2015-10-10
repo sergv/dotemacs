@@ -17,7 +17,8 @@
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula nil
-               :use-whitespace t
+               :use-whitespace 'tabs-only
+               :use-fci t
                :sp-slurp-sexp-insert-space nil)
   (bind-tab-keys #'tab-to-tab-stop
                  #'tab-to-tab-stop-backward

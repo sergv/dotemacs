@@ -19,7 +19,8 @@ otherwise."
                              nil)))
 
 (defun snippet-setup ()
-  (init-common :use-yasnippet nil)
+  (init-common :use-yasnippet nil
+               :use-whitespace 'tabs-only)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      snippet-mode-map)

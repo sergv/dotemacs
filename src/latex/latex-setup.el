@@ -72,7 +72,7 @@
 
 
 (defun latex-setup ()
-  (init-common)
+  (init-common :use-whitespace 'tabs-only)
   (tex-fold-mode 1)
 
   ;; (menu-bar-mode 1)
