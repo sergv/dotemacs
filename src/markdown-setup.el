@@ -18,7 +18,8 @@
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 
 (defun markdown-setup ()
-  (init-common :use-yasnippet nil))
+  (init-common :use-yasnippet nil
+               :use-whitespace 'tabs-only))
 
 (add-hook 'markdown-mode-hook #'markdown-setup)
 

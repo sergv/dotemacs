@@ -7,7 +7,7 @@
 ;; Description:
 
 (defun css-setup ()
-  (init-common))
+  (init-common :use-whitespace 'tabs-only))
 
 (add-hook 'css-mode-hook #'css-setup)
 

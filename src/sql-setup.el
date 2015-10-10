@@ -12,7 +12,7 @@
      (load-library "sql-indent")))
 
 (defun sql-setup ()
-  (init-common)
+  (init-common :use-whitespace 'tabs-only)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>" sql-send-buffer)

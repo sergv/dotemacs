@@ -12,7 +12,7 @@
 (autoload 'graphviz-dot-mode "graphviz-dot-mode" nil t)
 
 (defun graphviz-setup ()
-  (init-common)
+  (init-common :use-whitespace 'tabs-only)
   (local-set-key (kbd "<f9>") #'compile)
   (local-set-key (kbd "S-<f9>") #'graphviz-dot-preview)
   (local-set-key (kbd "`") #'compile)

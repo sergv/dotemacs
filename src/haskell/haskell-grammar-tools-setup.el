@@ -26,7 +26,10 @@
 (mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
 
 (defun haskell-grammar-tools-setup ()
-  (init-common :use-yasnippet nil :use-render-formula nil :use-fci t)
+  (init-common :use-yasnippet nil
+               :use-render-formula nil
+               :use-fci t
+               :use-whitespace 'tabs-only)
   (fontify-merge-markers)
   (hs-minor-mode 1)
   (setq-local vim:shift-width 2)
