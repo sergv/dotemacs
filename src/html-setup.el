@@ -168,7 +168,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                                        (match-string-no-properties 0)))))))
 
 (defun markup-setup ()
-  (init-common)
+  (init-common :use-whitespace 'tabs-only)
   (hl-tags-mode t)
 
   (hs-minor-mode t)
@@ -240,7 +240,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode))
 
 (defun web-mode-setup ()
-  (init-common)
+  (init-common :use-whitespace 'tabs-only)
   (hs-minor-mode +1)
 
   (put 'hs-set-up-overlay 'permanent-local t)

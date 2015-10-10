@@ -14,7 +14,7 @@
       js2-bounce-indent-p t)
 
 (defun js-setup ()
-  (init-common)
+  (init-common :use-whitespace 'tabs-only)
   (def-keys-for-map (vim:normal-mode-local-keymap)
     ("z c" js2-mode-hide-element)
     ("z o" js2-mode-show-element)

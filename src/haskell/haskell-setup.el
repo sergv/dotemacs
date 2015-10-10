@@ -87,7 +87,8 @@
   (init-common :use-yasnippet t
                :use-comment t
                :use-render-formula nil
-               :use-hl-line nil)
+               :use-hl-line nil
+               :use-whitespace 'tabs-only)
   (smerge-mode +1)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
   (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)

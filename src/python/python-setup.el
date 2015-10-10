@@ -371,8 +371,8 @@ greater indenation as current line."
   (init-common :use-yasnippet t
                :use-render-formula t
                :sp-slurp-sexp-insert-space nil
-               :use-fci t
-               :use-whitespace t)
+               :use-whitespace 'tabs-only
+               :use-fci t)
 
   (setq-local tab-width 4)
   (setq-local vim:shift-width 4)

@@ -453,7 +453,10 @@ the current topic."
   (render-formula-toggle-formulae))
 
 (defun org-mode-setup ()
-  (init-common :use-yasnippet t :use-render-formula nil :use-fci t)
+  (init-common :use-yasnippet t
+               :use-render-formula nil
+               :use-whitespace 'tabs-only
+               :use-fci t)
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)

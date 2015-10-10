@@ -13,7 +13,9 @@
 (setf antlr-font-lock-maximum-decoration t)
 
 (defun antlr-setup ()
-  (init-common :use-yasnippet nil :use-render-formula nil)
+  (init-common :use-yasnippet nil
+               :use-render-formula nil
+               :use-whitespace 'tabs-only)
   (hs-minor-mode 1))
 
 (add-hook 'antlr-mode-hook #'antlr-setup)

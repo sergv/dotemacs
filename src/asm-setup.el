@@ -10,7 +10,8 @@
   (init-common :use-yasnippet      nil
                :use-comment        t
                :use-fci            t
-               :use-render-formula t)
+               :use-render-formula t
+               :use-whitespace     'tabs-only)
 
   ;; do not colorize tabs
   (setq-local whitespace-style (remove 'tabs whitespace-style))
