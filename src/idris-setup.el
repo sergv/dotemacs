@@ -7,7 +7,7 @@
 ;; Description:
 
 (require 'common)
-(require 'agda-setup)
+(require 'agda-autoload)
 
 (autoload 'idris-mode "idris-mode" "" t)
 (autoload 'eri-indent "eri" "" t)

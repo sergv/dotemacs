@@ -7,7 +7,6 @@
 ;; Description:
 
 (require 'common)
-(require 'agda2)
 (require 'agda-abbrev+)
 
 (eval-after-load "agda-input"
@@ -104,8 +103,6 @@
     ("g a - -"         agda-align-on-comments)
     ("g a :"           agda-align-on-colons))
   (agda-abbrev+-setup))
-
-(add-hook 'agda2-mode-hook #'agda-setup)
 
 (defun agda2-compute-normalised-region (&optional arg)
   "Computes the normal form of the given expression.
