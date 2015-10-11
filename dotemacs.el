@@ -223,7 +223,7 @@
 (load-library "tcl-setup")
 (load-library "cool-setup")
 (load-library "haskell-grammar-tools-setup")
-(load-library "agda-setup")
+(load-library "agda-autoload")
 (load-library "idris-setup")
 (load-library "dos-setup")
 
