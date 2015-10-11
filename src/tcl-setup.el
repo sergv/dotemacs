@@ -19,7 +19,7 @@
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t))
 
-(add-hook 'vhdl-mode-hook #'tcl-setup)
+(add-hook 'tcl-mode-hook #'tcl-setup)
 
 (provide 'tcl-setup)
 
