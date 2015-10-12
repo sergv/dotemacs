@@ -13,12 +13,28 @@
 (autoload 'eri-indent "eri" "" t)
 (autoload 'eri-indent-reverse "eri" "" t)
 
+(setf ;; disable all sorts of banners
+ idris-interpreter-flags '("--nobanner")
+ idris-repl-banner-functions nil
+ ;; Disable helpful text in auxiliary Idris buffers.
+ ;; For advanced users.
+ ;; idris-show-help-text nil
+ )
+
 (add-to-list ' auto-mode-alist '("\\.l?idr$" . idris-mode))
 
 (modify-coding-system-alist 'file "\\.l?idr\\'" 'utf-8)
 
 (vim:defcmd vim:idris-load-file (nonrepeatable)
   (idris-load-file))
+
+(defun idris-pop-to-repl-or-start-a-new-one ()
+  (interactive)
+  (condition-case nil
+      (idris-pop-to-repl)
+    (error
+     (idris-repl)
+     (idris-pop-to-repl))))
 
 (defun idris-setup ()
   (init-common :use-yasnippet t
@@ -37,7 +53,7 @@
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-t"             idris-previous-error)
     ("C-h"             idris-next-error)
-    ("SPC SPC"         idris-pop-to-repl)
+    ("SPC SPC"         idris-pop-to-repl-or-start-a-new-one)
     ("g c d"           comment-util-delete-commented-part)
     ("+"               input-unicode)
 
@@ -93,6 +109,15 @@
     ("SPC" push-button)))
 
 (add-hook 'idris-compiler-notes-mode-hook #'idris-compiler-notes-setup)
+
+(defun idris-repl-setup ()
+  (init-repl :bind-return nil)
+  (def-keys-for-map idris-repl-mode-map
+    ;; ("<return>" idris-repl-return)
+    ("<up>"     idris-repl-backward-history)
+    ("<down>"   idris-repl-forward-history)))
+
+(add-hook 'idris-repl-mode-hook #'idris-repl-setup)
 
 (provide 'idris-setup)
 
