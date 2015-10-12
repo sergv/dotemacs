@@ -131,7 +131,10 @@
                 -1
                 +1))))
 
-(defun* init-repl (&key (show-directory nil) (bind-return t) (create-keymaps nil) (bind-vim:motion-current-line t))
+(defun* init-repl (&key (show-directory nil)
+                        (bind-return t)
+                        (create-keymaps nil)
+                        (bind-vim:motion-current-line t))
   (use-repl-modeline :show-directory show-directory)
   (setq-local *vim:do-not-adjust-point* t)
   (setq-local vim:insert-mode-exit-move-point 'dont-move-at-line-end)

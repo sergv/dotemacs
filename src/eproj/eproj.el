@@ -99,7 +99,7 @@
 
 ;;;; ctags facility
 
-(defparameter *ctags-exec* (executable-find "ctags"))
+(defparameter *ctags-exec* (executable-find "exuberant-ctags"))
 
 (defparameter *ctags-language-flags*
   '((c-mode
@@ -556,6 +556,7 @@ runtime but rather will be silently relied on)."
   related-projects ;; list of other project roots
   aux-files-source ;; list of other files or function that yields such list
   languages        ;; list of symbols - major-modes for related languages
+  cached-file-list ;; stores list of filenames, if file list is specified in .eproj-info
   )
 
 (defsubst eproj-project/get-aux-info (proj key)
@@ -764,7 +765,8 @@ variables accordingly."
                              :aux-info nil
                              :related-projects nil
                              :aux-files-source nil
-                             :languages nil)))
+                             :languages nil
+                             :cached-file-list nil)))
     (when (null proj)
       (error "Error while trying to obtain project for root %s" root))
     (eproj-populate-from-eproj-info! proj aux-info)
@@ -961,9 +963,7 @@ symbol 'unresolved.")
   ;; list of files does not change and may be cached.
   (let ((ignored-files-absolute-regexps
          (cdr-safe (assq 'ignored-files (eproj-project/aux-info proj)))))
-    (if-let (cached-files
-             (eproj-project/get-aux-info proj
-                                         'eproj-get-project-files/cached-files))
+    (if-let (cached-files (eproj-project/cached-file-list proj))
       cached-files
       ;; if there's file-list then read it and store to cache
       (if-let (file-list (eproj-project/get-aux-info proj 'file-list))
@@ -1001,9 +1001,7 @@ symbol 'unresolved.")
                               (and (stringp filename)
                                    (file-exists-p filename)))
                             resolved-files))
-              ;; add to cache
-              (push (list 'eproj-get-project-files/cached-files resolved-files)
-                    (eproj-project/aux-info proj))
+              (setf (eproj-project/cached-file-list proj) resolved-files)
               resolved-files)))
         (eproj/find-rec
          (eproj-project/root proj)
@@ -1258,6 +1256,26 @@ or `default-directory', if no file is visited."
     (or (when buffer-file-truename
           (file-name-directory buffer-file-truename))
         default-directory)))
+
+(defun eproj-get-matching-tags (proj tag-major-mode identifier search-with-regexp?)
+  "Get all tags from PROJ and its related projects from mode TAG-MAJOR-MODE
+whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
+is non-nil.
+
+Returns list of (tag . project) pairs."
+  (concatMap (lambda (proj)
+               (aif (rest-safe
+                     (assq tag-major-mode
+                           (eproj-project/tags proj)))
+                 (map (lambda (tag)
+                        (cons tag proj))
+                      (if search-with-regexp?
+                        (concat-lists
+                         (hash-table-entries-matching-re it identifier))
+                        (gethash identifier it nil)))
+                 nil))
+             (cons proj
+                   (eproj-get-all-related-projects proj))))
 
 (autoload 'eproj-symbnav/describe "eproj-symbnav" nil t)
 (autoload 'eproj-symbnav/reset "eproj-symbnav" nil t)

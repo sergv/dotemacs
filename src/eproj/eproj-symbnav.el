@@ -228,19 +228,29 @@ as accepted by `bounds-of-thing-at-point'.")
                          (list tag
                                (funcall tag->string tag tag-proj)
                                tag-proj)))
-                     (concatMap (lambda (proj)
-                                  (aif (rest-safe
-                                        (assq orig-major-mode
-                                              (eproj-project/tags proj)))
-                                    (map (lambda (tag)
-                                           (cons tag proj))
-                                         (if use-regexp
-                                           (concat-lists
-                                            (hash-table-entries-matching-re it identifier))
-                                           (gethash identifier it nil)))
-                                    nil))
-                                (cons proj
-                                      (eproj-get-all-related-projects proj))))
+                     (eproj-get-matching-tags proj
+                                              orig-major-mode
+                                              identifier
+                                              use-regexp))
+                ;; (map (lambda (tag-entry)
+                ;;        (destructuring-bind (tag . tag-proj)
+                ;;            tag-entry
+                ;;          (list tag
+                ;;                (funcall tag->string tag tag-proj)
+                ;;                tag-proj)))
+                ;;      (concatMap (lambda (proj)
+                ;;                   (aif (rest-safe
+                ;;                         (assq orig-major-mode
+                ;;                               (eproj-project/tags proj)))
+                ;;                     (map (lambda (tag)
+                ;;                            (cons tag proj))
+                ;;                          (if use-regexp
+                ;;                            (concat-lists
+                ;;                             (hash-table-entries-matching-re it identifier))
+                ;;                            (gethash identifier it nil)))
+                ;;                     nil))
+                ;;                 (cons proj
+                ;;                       (eproj-get-all-related-projects proj))))
                 (lambda (a b)
                   ;; compare results of tag->string
                   (string< (funcall entry-string a) (funcall entry-string b)))))))

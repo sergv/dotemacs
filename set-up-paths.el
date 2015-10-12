@@ -76,30 +76,30 @@ system restars.")
 (defalias 'strip-trailing-slash 'directory-file-name)
 
 (let ((%emacs-boot--find-rec-special
-        (lambda (path)
-          (let ((%emacs-boot--get-directory-contents
-               (lambda (dir)
-                 (remove-if (lambda (x) (member (file-name-nondirectory x) '("." "..")))
-                            (directory-files dir t))))
-              (do-not-visitp
-               (lambda (p)
-                 (member* (file-name-nondirectory (strip-trailing-slash p))
-                          '("SCCS" "RCS" "CVS" "MCVS" ".svn"
-                            ".git" ".hg" ".bzr" "_MTN" "_darcs"
-                            "{arch}")
-                          :test #'string=))))
-          (letrec ((collect-rec
-                    (lambda (path accum)
-                      (cond
-                        ((and (file-directory-p path)
-                              (not (funcall do-not-visitp path)))
-                         (reduce (lambda (acc p)
-                                   (funcall collect-rec p acc))
-                                 (funcall %emacs-boot--get-directory-contents path)
-                                 :initial-value (cons path accum)))
-                        (t
-                         accum)))))
-            (funcall collect-rec path nil))))))
+       (lambda (path)
+         (let ((do-not-visitp
+                (lambda (p)
+                  (member* (file-name-nondirectory (strip-trailing-slash p))
+                           '("SCCS" "RCS" "CVS" "MCVS" ".svn"
+                             ".git" ".hg" ".bzr" "_MTN" "_darcs"
+                             "{arch}")
+                           :test #'string=))))
+           (letrec ((collect-rec
+                     (lambda (path accum)
+                       (cond
+                         ((and (file-directory-p path)
+                               (not (funcall do-not-visitp path)))
+                          (reduce (lambda (acc p)
+                                    (funcall collect-rec p acc))
+                                  (directory-files path
+                                                   t ;; produce full names
+                                                   directory-files-no-dot-files-regexp
+                                                   t ;; don't sort
+                                                   )
+                                  :initial-value (cons path accum)))
+                         (t
+                          accum)))))
+             (funcall collect-rec path nil))))))
   (setf load-path
         (remove-duplicates
          (append
@@ -113,6 +113,8 @@ system restars.")
 ;; this must go to the end in order to give files in /src dir a chance
 ;; (add-to-list 'load-path +bytecode-lib+ t)
 (add-to-list 'load-path +color-themes-path+)
+
+(add-to-list 'exec-path +execs-path+)
 
 (provide 'set-up-paths)
 
