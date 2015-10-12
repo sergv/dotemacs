@@ -56,8 +56,12 @@ under ROOT directory."
 (defconst eproj-tests/project-with-c-files
   (expand-file-name (concat eproj-tests/project-dir "/project-with-c-files")))
 
-(defconst eproj-tests/project-with-eproj-file
-  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-eproj-file")))
+(defconst eproj-tests/project-with-eproj-file-and-tags-file
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-eproj-file-and-tags-file")))
+(defconst eproj-tests/project-with-file-list
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-file-list")))
+(defconst eproj-tests/project-with-ignored-files
+  (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-ignored-files")))
 
 (ert-deftest eproj-tests/eproj-get-all-related-projects ()
   (let* ((path eproj-tests/project-with-git-with-related)
@@ -143,7 +147,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-table
-     (eproj/ctags-get-tags-from-buffer (current-buffer) nil t)
+     (eproj/ctags-get-tags-from-buffer (current-buffer) t)
      (should-not (= 0 (hash-table-size tags-table)))
 
      (let ((tag1 (car-safe (gethash "foo1" tags-table))))
@@ -177,7 +181,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-table
-     (eproj/ctags-get-tags-from-buffer (current-buffer) nil t)
+     (eproj/ctags-get-tags-from-buffer (current-buffer) t)
      (should-not (= 0 (hash-table-size tags-table)))
 
      (let ((tag1 (car-safe (gethash "foo1" tags-table))))
@@ -198,8 +202,8 @@ foo3	%s	102	;\"	z
        (should (= 102 (eproj-tag/line tag3)))
        (should (equal (cons 'type "z") (assoc 'type (eproj-tag/properties tag3))))))))
 
-(ert-deftest eproj-tests/project-with-eproj-file ()
-  (let* ((path eproj-tests/project-with-eproj-file)
+(ert-deftest eproj-tests/project-with-eproj-file-and-tags-file ()
+  (let* ((path eproj-tests/project-with-eproj-file-and-tags-file)
          (proj (eproj-get-project-for-path path)))
     (should (not (null? (eproj/find-eproj-file-location path))))
     (should (not (null? (eproj/find-eproj-file-location (concat path "/Foo")))))
@@ -212,6 +216,33 @@ foo3	%s	102	;\"	z
                               :filep "\\.hs$"))
                    (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
 
+(ert-deftest eproj-tests/project-with-file-list ()
+  (let* ((path eproj-tests/project-with-file-list)
+         (proj (eproj-get-project-for-path path)))
+    (should (not (null? proj)))
+    (should (eproj-tests/paths=? path (eproj-project/root proj)))
+
+    (should (equal (eproj-tests/normalize-file-list
+                    (list (concat path "/Foo/Bar/Test.hs")))
+                   (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
+
+(ert-deftest eproj-tests/project-with-ignored-files ()
+  (let* ((path eproj-tests/project-with-ignored-files)
+         (proj (eproj-get-project-for-path path)))
+    (should (not (null? proj)))
+    (should (eproj-tests/paths=? path (eproj-project/root proj)))
+
+    (should (equal (eproj-tests/normalize-file-list
+                    (list (concat path "/Foo/Bar/IdentityMonad.hs")))
+                   (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
+    (should (eproj-get-matching-tags proj
+                                     'haskell-mode
+                                     "IdentityM"
+                                     nil))
+    (should-not (eproj-get-matching-tags proj
+                                         'haskell-mode
+                                         "IgnoredM"
+                                         nil))))
 
 (setf eproj-tests/tests
       '(eproj-tests/eproj-get-all-related-projects
@@ -221,14 +252,18 @@ foo3	%s	102	;\"	z
         eproj-tests/eproj/ctags-get-tags-from-buffer
         eproj-tests/eproj/ctags-get-tags-from-buffer/filenames-with-spaces
 
-        eproj-tests/project-with-eproj-file
-        ))
+        eproj-tests/project-with-eproj-file-and-tags-file
+        eproj-tests/project-with-file-list
+        eproj-tests/project-with-ignored-files))
 
 (let ((ert-debug-on-error nil))
   (eproj-reset-projects)
-  (ert (join-lines (map #'symbol->string eproj-tests/tests) "\\|")
+  (ert (join-lines (map (lambda (x) (concat "^" (symbol->string x) "$"))
+                        eproj-tests/tests)
+                   "\\|")
        ;; "eproj-tests/.*"
-       ))
+       )
+  nil)
 
 ;; Local Variables:
 ;; no-byte-compile: t
