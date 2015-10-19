@@ -73,6 +73,9 @@
 (vim:defcmd vim:haskell-ghc-reset (nonrepeatable)
   (ghc-reset)
   (setq-local vim:haskell-check-on-save nil))
+(vim:defcmd vim:haskell-ghc-reload (nonrepeatable)
+  (vim:haskell-ghc-reset)
+  (ghc-reload))
 
 (defun haskell-update-eproj-tags-on-save ()
   (ignore-errors
@@ -169,6 +172,7 @@
   (vim:local-emap "check"    'vim:haskell-ghc-check)
   (vim:local-emap "ch"       'vim:haskell-ghc-check)
   (vim:local-emap "reset"    'vim:haskell-ghc-reset)
+  (vim:local-emap "reload"   'vim:haskell-ghc-reload)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("\\"        vim:haskell-ghc-check)
