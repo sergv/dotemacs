@@ -28,6 +28,19 @@
 ;; never cache module alist to a file
 (setf inferior-haskell-module-alist-file nil)
 
+(defadvice shm-mode-start (after
+                           shm-enable-quarantine-display
+                           activate
+                           compile)
+  (setq-local shm-display-quarantine t))
+
+(defadvice shm-mode-stop (after
+                          shm-disable-quarantine-display
+                          activate
+                          compile)
+  (setq-local shm-display-quarantine nil))
+
+
 ;; ;; prevent paredit from reindenting Haskell lines
 ;; (dolist (func '(indent-region
 ;;                 indent-sexp
