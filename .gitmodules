@@ -3,7 +3,7 @@
         url = https://github.com/jwiegley/agda-mode.git
 [submodule "third-party/browse-kill-ring"]
         path = third-party/browse-kill-ring
-        url = https://git.gitorious.org/sergv-emacs/browse-kill-ring.git
+        url = https://github.com/sergv/browse-kill-ring.git
 [submodule "third-party/c2hs-mode"]
         path = third-party/c2hs-mode
         url = https://github.com/sergv/c2hs-mode.git
@@ -27,7 +27,7 @@
         url = https://github.com/magit/git-modes.git
 [submodule "third-party/haskell-mode"]
         path = third-party/haskell-mode
-        url = https://git.gitorious.org/sergv-emacs/haskell-mode.git
+        url = https://github.com/sergv/haskell-mode.git
 [submodule "third-party/lua-mode"]
         path = third-party/lua-mode
         url = https://github.com/immerrr/lua-mode.git
@@ -36,7 +36,7 @@
         url = https://github.com/defunkt/markdown-mode.git
 [submodule "third-party/paredit"]
         path = third-party/paredit
-        url = https://git.gitorious.org/sergv-emacs/paredit-el.git
+        url = https://github.com/sergv/paredit.git
 [submodule "third-party/rainbow-delimiters"]
         path = third-party/rainbow-delimiters
         url = https://github.com/jlr/rainbow-delimiters.git
@@ -45,7 +45,7 @@
         url = https://github.com/purcell/s.el.git
 [submodule "third-party/smartparens"]
         path = third-party/smartparens
-        url = https://git.gitorious.org/sergv-emacs/smartparens.git
+        url = https://github.com/sergv/smartparens.git
 [submodule "third-party/smex"]
         path = third-party/smex
         url = https://github.com/nonsequitur/smex.git
@@ -60,25 +60,25 @@
         url = https://github.com/capitaomorte/yasnippet.git
 [submodule "third-party/misc-modes"]
         path = third-party/misc-modes
-        url = https://git.gitorious.org/sergv-emacs/misc-modes.git
+        url = https://github.com/sergv/misc-modes.git
 [submodule "standalone/auctex-dev"]
         path = standalone/auctex-dev
         url = https://github.com/jwiegley/auctex.git
 [submodule "standalone/magit"]
         path = standalone/magit
-        url = https://git.gitorious.org/sergv-emacs/magit.git
+        url = https://github.com/sergv/magit.git
 [submodule "standalone/tuareg"]
         path = standalone/tuareg
         url = https://github.com/emacsmirror/tuareg.git
 [submodule "third-party/python/python.el"]
         path = third-party/python/python.el
-        url = https://git.gitorious.org/sergv-emacs/python-el.git
+        url = https://github.com/sergv/python.el.git
 [submodule "third-party/structured-haskell-mode"]
         path = third-party/structured-haskell-mode
         url = https://github.com/sergv/structured-haskell-mode.git
 [submodule "third-party/yafolding.el"]
         path = third-party/yafolding.el
-        url = https://git.gitorious.org/sergv-emacs/yafolding-el.git
+        url = https://github.com/sergv/yafolding.el.git
 [submodule "third-party/mmm-mode"]
         path = third-party/mmm-mode
         url = https://github.com/purcell/mmm-mode.git
