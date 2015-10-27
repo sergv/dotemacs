@@ -115,3 +115,9 @@
 [submodule "third-party/org-mode"]
 	path = third-party/org-mode
 	url = http://repo.or.cz/org-mode.git
+[submodule "third-party/org-reveal"]
+	path = third-party/org-reveal
+	url = https://github.com/yjwen/org-reveal.git
+[submodule "third-party/htmlize"]
+	path = third-party/htmlize
+	url = https://github.com/emacsmirror/htmlize.git
