@@ -19,7 +19,9 @@
 
 (defun markdown-setup ()
   (init-common :use-yasnippet nil
-               :use-whitespace 'tabs-only))
+               :use-whitespace 'tabs-only)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("'" outline-up-heading)))
 
 (add-hook 'markdown-mode-hook #'markdown-setup)
 
