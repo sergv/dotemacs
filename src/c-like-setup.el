@@ -162,49 +162,52 @@
 (add-hook 'idl-mode-hook #'idl-setup)
 
 (defun c++-file-magic-function ()
-  (let ((ext (file-name-extension (buffer-file-name))))
-    ;; check for null since .emacs doesn't have extension
-    (when (and ext
-               (member* ext '("h" "inl" "inc" "incl")
-                        :test #'string=))
-      (save-excursion
-        (save-match-data
-          (let ((search-result
-                 (re-search-forward (rx
-                                     (or "class"
-                                         "namespace"
-                                         "::"
-                                         ;; it's quite rare to see other template
-                                         ;; open brace styles so lets accomodate
-                                         ;; only for frequently used ones
-                                         (regex "template[[:space:]]*<")
-                                         (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
-                                    nil
-                                    t)))
-            search-result))))))
+  (if-buffer-has-file
+    (let ((ext (file-name-extension (buffer-file-name))))
+      ;; check for null since .emacs doesn't have extension
+      (when (and ext
+                 (member* ext '("h" "inl" "inc" "incl")
+                          :test #'string=))
+        (save-excursion
+          (save-match-data
+            (let ((search-result
+                   (re-search-forward (rx
+                                       (or "class"
+                                           "namespace"
+                                           "::"
+                                           ;; it's quite rare to see other template
+                                           ;; open brace styles so lets accomodate
+                                           ;; only for frequently used ones
+                                           (regex "template[[:space:]]*<")
+                                           (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
+                                      nil
+                                      t)))
+              search-result)))))))
 
 ;; this will make sure that *.h c++ header will be correctly handled
 (push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
 
 
 (defun glsl-file-magic-function ()
-  (let ((ext (file-name-extension (buffer-file-name))))
-    ;; check for null since .emacs doesn't have extension
-    (and ext
-         (or (and (string-match-pure? (rx bot
-                                          (or "vs"
-                                              "fs"
-                                              "gs")
-                                          eot)
-                                      ext)
-                  (looking-at-pure? (rxx ((wh (or whitespace (char ?\n))))
-                                      bot
-                                      (* anything)
-                                      "#"
-                                      (* wh)
-                                      "version"
-                                      (+ wh)
-                                      (+ (or digit ".")))))))))
+  (if-buffer-has-file
+    (let ((ext (and buffer-file-name
+                    (file-name-extension (buffer-file-name)))))
+      ;; check for null since .emacs doesn't have extension
+      (and ext
+           (or (and (string-match-pure? (rx bot
+                                            (or "vs"
+                                                "fs"
+                                                "gs")
+                                            eot)
+                                        ext)
+                    (looking-at-pure? (rxx ((wh (or whitespace (char ?\n))))
+                                        bot
+                                        (* anything)
+                                        "#"
+                                        (* wh)
+                                        "version"
+                                        (+ wh)
+                                        (+ (or digit "."))))))))))
 
 (push (cons #'glsl-file-magic-function #'glsl-mode) magic-mode-alist)
 
