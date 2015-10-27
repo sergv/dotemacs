@@ -15,6 +15,13 @@
 
 (require 'org-drill)
 
+;; for reveal.js presentations
+(require 'htmlize)
+(require 'ox-reveal)
+
+;; tangling
+(require 'ob)
+
 (def-keys-for-map global-map
   ("C-c l" org-store-link)
   ("C-c a" org-agenda))
@@ -83,6 +90,8 @@
       org-drill-save-buffers-after-drill-sessions-p nil ;; don't prompt for save
       ;; this may be useful when working with large amounts of items
       org-drill-add-random-noise-to-intervals-p t)
+
+(add-to-list 'org-babel-tangle-lang-exts '("haskell" . "hs"))
 
 ;;; eval-after-load's
 
@@ -166,7 +175,7 @@
         (clojure    . nil)
         (dot        . nil)
         (emacs-lisp . nil)
-        (haskell    . nil)
+        (haskell    . t)
         (js         . nil)
         (latex      . nil)
         (lisp       . nil)
@@ -322,6 +331,8 @@ which enable the original code blocks to be found."
              (goto-char end))
            (prog1 counter (message "detangled %d code blocks" counter)))))))
 
+
+
 ;;; common org-drill's question cards with math rendering
 ;;; and other setup
 
@@ -452,6 +463,19 @@ the current topic."
   (org-toggle-inline-images)
   (render-formula-toggle-formulae))
 
+(vim:defcmd vim:org-mode-make-revealjs-presentation (nonrepeatable)
+  (save-buffer)
+  (org-reveal-export-to-html)
+  (message "Done"))
+
+(vim:defcmd vim:org-mode-export (nonrepeatable)
+  (save-buffer)
+  (org-export-dispatch))
+
+(vim:defcmd vim:org-mode-tangle (nonrepeatable)
+  (save-buffer)
+  (org-babel-tangle))
+
 (defun org-mode-setup ()
   (init-common :use-yasnippet t
                :use-render-formula nil
@@ -460,6 +484,9 @@ the current topic."
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)
+  (vim:local-emap "reveal" 'vim:org-mode-make-revealjs-presentation)
+  (vim:local-emap "export" 'vim:org-mode-export)
+  (vim:local-emap "tangle" 'vim:org-mode-tangle)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<print>" org-toggle-inline-images-and-formulae)
 
