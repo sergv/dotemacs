@@ -62,6 +62,19 @@
         vim:motion-mode-local-keymap              (make-sparse-keymap)
         vim:complex-command-override-local-keymap (make-sparse-keymap)))
 
+(defvar disable-fci-mode? nil
+  "Variable to control, whether to enable `fci-mode' in new buffers
+or not.")
+
+(defmacro with-disabled-fci (&rest body)
+  (let ((old-val-var (gensym "Old-value")))
+    `(let ((,old-val-var disable-fci-mode?))
+       (unwind-protect
+           (progn
+             (setf disable-fci-mode? t)
+             ,@body)
+         (setf disable-fci-mode? ,old-val-var)))))
+
 (defun* init-common (&key (use-yasnippet t)
                           (use-comment t)
                           (use-fci t)
@@ -125,7 +138,8 @@
     ("M-<up>"    sp-splice-sexp-killing-backward)
     ("M-<down>"  sp-splice-sexp-killing-forward))
 
-  (when use-fci
+  (when (and use-fci
+             (not disable-fci-mode?))
     (fci-mode (if (memq major-mode
                         +do-not-track-long-lines-modes+)
                 -1
