@@ -89,7 +89,9 @@
       org-drill-maximum-duration 15                     ;; minutes
       org-drill-save-buffers-after-drill-sessions-p nil ;; don't prompt for save
       ;; this may be useful when working with large amounts of items
-      org-drill-add-random-noise-to-intervals-p t)
+      org-drill-add-random-noise-to-intervals-p t
+
+      org-src-preserve-indentation t)
 
 (add-to-list 'org-babel-tangle-lang-exts '("haskell" . "hs"))
 
@@ -293,11 +295,15 @@ Works on both Emacs and XEmacs."
     "org-src"
   '(progn
      (setf org-src-lang-modes
-           (cons (cons "scheme" 'scheme)
-                 (cons (cons "dot" 'graphviz-dot-mode)
-                       (remove-if (lambda (entry)
-                                    (string=? (car entry) "dot"))
-                                  org-src-lang-modes))))))
+           (cons (cons "haskell" 'haskell-mode)
+                 (cons (cons "scheme" 'scheme-mode)
+                       (cons (cons "dot" 'graphviz-dot-mode)
+                             (remove-if (lambda (entry)
+                                          (member (car entry)
+                                                  '("dot"
+                                                    "scheme"
+                                                    "haskell")))
+                                        org-src-lang-modes)))))))
 
 (eval-after-load
     "ob-tangle"
