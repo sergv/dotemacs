@@ -47,6 +47,7 @@
     (org-mode              (one-line "#")  (line-regexp "#+"))
     (prolog-mode           (one-line "%")  (line-regexp "%+"))
     (prolog-inferior-mode  (one-line "%")  (line-regexp "%+"))
+    (erlang-mode           (one-line "%")  (line-regexp "%+"))
     (c-mode                (one-line "//") (line-regexp "//+"))
     (cuda-mode             (one-line "//") (line-regexp "//+"))
     (tuareg-mode           (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
