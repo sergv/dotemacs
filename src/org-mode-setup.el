@@ -471,31 +471,42 @@ the current topic."
 
 (vim:defcmd vim:org-mode-make-revealjs-presentation (nonrepeatable)
   (save-buffer)
-  (org-reveal-export-to-html)
+  (with-disabled-fci
+   (org-reveal-export-to-html))
   (message "Done"))
 
 (vim:defcmd vim:org-mode-export (nonrepeatable)
   (save-buffer)
-  (org-export-dispatch))
+  (with-disabled-fci
+   (org-export-dispatch)))
 
 (vim:defcmd vim:org-mode-tangle (nonrepeatable)
   (save-buffer)
-  (org-babel-tangle))
+  (with-disabled-fci
+   (org-babel-tangle)))
+
+(vim:defcmd vim:org-mode-make-beamer-presentation (nonrepeatable)
+  (save-buffer)
+  (with-disabled-fci
+   (org-beamer-export-to-pdf)))
 
 (defun org-mode-setup ()
   (init-common :use-yasnippet t
                :use-render-formula nil
                :use-whitespace 'tabs-only
                :use-fci t)
+  (setq-local vim:shift-width 2)
+  (setq-local standard-indent 2)
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)
+  (vim:local-emap "beamer" 'vim:org-mode-make-beamer-presentation)
   (vim:local-emap "reveal" 'vim:org-mode-make-revealjs-presentation)
   (vim:local-emap "export" 'vim:org-mode-export)
   (vim:local-emap "tangle" 'vim:org-mode-tangle)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<print>" org-toggle-inline-images-and-formulae)
-
+    ("-"       vim:org-mode-make-beamer-presentation)
     ("C-."     org-open-at-point)
     ("C-,"     org-mark-ring-goto)
     ("g ."     org-open-at-point)
