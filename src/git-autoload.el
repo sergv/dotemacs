@@ -6,8 +6,9 @@
 ;; Created: Thursday, 20 August 2015
 ;; Description:
 
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/magit"))
+
+(add-to-load-path
+  (concat +emacs-standalone-path+ "/magit"))
 
 (setf magit-completing-read-function
       (lambda (prompt collection &optional predicate require-match initial-input hist def)

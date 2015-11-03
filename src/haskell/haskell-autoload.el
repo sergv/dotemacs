@@ -95,6 +95,27 @@
            ghc-display-error 'other-buffer
            ghc-display-hole 'other-buffer)))
 
+;; grammar tools autoloads
+
+(require 'happy-mode-autoload)
+
+(autoload 'alex-mode "alex-mode" nil t)
+
+(add-to-list 'auto-mode-alist '("\\.alex\\'" . alex-mode))
+(add-to-list 'auto-mode-alist '("\\.x\\'" . alex-mode))
+(mmm-add-mode-ext-class 'alex-mode "\\.x\\'" 'haskell-blocks)
+
+(add-to-list 'auto-mode-alist '("\\.happy\\'" . happy-mode))
+(add-to-list 'auto-mode-alist '("\\.ly\\'" . happy-mode))
+(add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
+(mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
+
+(autoload 'haskell-grammar-tools-setup "haskell-grammar-tools-setup")
+
+(add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
+(add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
+
+
 (provide 'haskell-autoload)
 
 ;; Local Variables:
