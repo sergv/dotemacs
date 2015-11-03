@@ -29,16 +29,12 @@
                         *python-font-lock-keywords*
                         'set)
 
-(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
-(add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-mode))
-
 (setf python-indent-offset 4)
 
 (defparameter python-exec "python3.3"
   "Python executable to use for script running.")
 (put 'python-exec 'safe-local-variable #'string?)
 (put 'python-shell-interpreter 'safe-local-variable #'string?)
-
 
 ;; (setf python-shell-buffer-name "python repl"
 ;;       python-shell-interpreter "python3.3" ;; "python2.7"
@@ -502,9 +498,6 @@ greater indenation as current line."
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"    comint-clear-prompt)))
-
-(add-hook 'python-mode-hook #'python-setup)
-(add-hook 'inferior-python-mode-hook #'inferior-python-setup)
 
 ;;; end
 

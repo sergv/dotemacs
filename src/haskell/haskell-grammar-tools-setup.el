@@ -8,22 +8,10 @@
 
 (require 'common)
 (require 'mmm-auto)
-(require 'happy-mode-autoload)
 (require 'haskell-misc)
 
 (setf mmm-global-mode 'maybe
       mmm-submode-decoration-level 0)
-
-(autoload 'alex-mode "alex-mode" nil t)
-
-(add-to-list 'auto-mode-alist '("\\.alex\\'" . alex-mode))
-(add-to-list 'auto-mode-alist '("\\.x\\'" . alex-mode))
-(mmm-add-mode-ext-class 'alex-mode "\\.x\\'" 'haskell-blocks)
-
-(add-to-list 'auto-mode-alist '("\\.happy\\'" . happy-mode))
-(add-to-list 'auto-mode-alist '("\\.ly\\'" . happy-mode))
-(add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
-(mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
 
 (defun haskell-grammar-tools-setup ()
   (init-common :use-yasnippet nil
@@ -43,9 +31,6 @@
     ("<f9>" haskell-compile)
     ("`"    haskell-compile))
   (haskell-define-align-bindings vim:visual-mode-local-keymap))
-
-(add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
-(add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
 
 (provide 'haskell-grammar-tools-setup)
 

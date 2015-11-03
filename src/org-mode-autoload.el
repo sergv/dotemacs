@@ -9,12 +9,6 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'set-up-paths)
-
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/org-mode/lisp"))
-(add-to-list 'load-path (concat +emacs-standalone-path+
-                                "/org-mode/contrib/lisp"))
-
 (require 'org-loaddefs)
 
 (defvar session-globals-exclude nil)
