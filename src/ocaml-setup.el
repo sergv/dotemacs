@@ -13,7 +13,8 @@
 
 ;;; Prelude
 
-(add-to-list 'load-path (concat +emacs-standalone-path+ "/tuareg"))
+(add-to-load-path
+  (concat +emacs-standalone-path+ "/tuareg"))
 (load "tuareg-site-file")
 
 (defalias 'ocaml-mode #'tuareg-mode)
