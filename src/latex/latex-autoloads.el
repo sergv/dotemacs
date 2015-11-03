@@ -12,10 +12,10 @@
 ;; (require 'tex-site)
 ;; (require 'preview-latex)
 
-(add-to-list 'load-path (concat +emacs-standalone-path+ "/auctex-dev"))
-(add-to-list 'load-path (concat +emacs-standalone-path+ "/auctex-dev/preview"))
-(add-to-list 'load-path (concat +emacs-standalone-path+ "/auctex-dev/style"))
-
+(add-to-load-path
+  (concat +emacs-standalone-path+ "/auctex-dev")
+  (concat +emacs-standalone-path+ "/auctex-dev/preview")
+  (concat +emacs-standalone-path+ "/auctex-dev/style"))
 
 (require 'tex-site)
 
