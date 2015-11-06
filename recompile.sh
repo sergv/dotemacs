@@ -20,6 +20,7 @@ function update-dir-autoloads {
     emacs --batch --eval "(progn (setq generated-autoload-file \"$emacs_dir/$dir/$name\") (update-directory-autoloads \"$emacs_dir/$dir\"))"
 }
 
+update-dir-autoloads "third-party/clojure-mode" "clojure-mode-autoloads.el"
 update-dir-autoloads "third-party/smartparens" "smartparens-autoloads.el"
 if which make >/dev/null; then
     pushd "third-party/org-mode"
@@ -29,13 +30,15 @@ else
     echo "warning: 'make' not found, not updating autoloads for org mode" >&2
 fi
 
-mkdir -p "$emacs_dir/prog-data"
+mkdir -p "${emacs_dir}/prog-data"
+# for fresh emacsen
+mkdir -p "${emacs_dir}/prog-data/themes"
 
-if [ ! -f "$emacs_dir/prog-data/persistent-store" ]; then
+if [[ ! -f "$emacs_dir/prog-data/persistent-store" ]]; then
     echo "()" >"$emacs_dir/prog-data/persistent-store"
 fi
 
-if [ ! -f "$emacs_dir/standalone/auctex-dev/tex-site.el" ]; then
+if [[ ! -f "$emacs_dir/standalone/auctex-dev/tex-site.el" ]]; then
     cat <<\QEOF >"$emacs_dir/standalone/auctex-dev/tex-site.el"
 ;;; tex-site.el - Site specific variables.  Don't edit.
 
@@ -515,8 +518,8 @@ QEOF
 
 fi
 
-[ -f "$emacs_dir/user-info.el" ] || touch "$emacs_dir/user-info.el"
-[ -f "$emacs_dir/machine-specific-setup.el" ] || touch "$emacs_dir/machine-specific-setup.el"
+[[ -f "$emacs_dir/user-info.el" ]] || touch "$emacs_dir/user-info.el"
+[[ -f "$emacs_dir/machine-specific-setup.el" ]] || touch "$emacs_dir/machine-specific-setup.el"
 
 emacs --batch --load recompile.el -f recompile-main
 
