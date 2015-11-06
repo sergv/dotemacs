@@ -121,3 +121,6 @@
 [submodule "third-party/htmlize"]
 	path = third-party/htmlize
 	url = https://github.com/emacsmirror/htmlize.git
+[submodule "third-party/clojure-mode"]
+	path = third-party/clojure-mode
+	url = https://github.com/clojure-emacs/clojure-mode.git
