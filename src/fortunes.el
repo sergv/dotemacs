@@ -2178,17 +2178,15 @@ make up new queue if persistent one is empty."
   (with-current-buffer (get-buffer "*scratch*")
     (with-disabled-undo
      (emacs-lisp-mode)
-     (comment-util-mode 1)
      (erase-buffer)
      (insert (fortune/get-next-fortune))
-     (comment-util-comment-region (point-min) (point-max))
      (save-match-data
        (goto-char (point-min))
-       (while (re-search-forward "^[ \t]+" nil t)
-         (replace-match "")))
-     (set-buffer-modified-p nil)
+       (while (re-search-forward "^[ \t]*" nil t)
+         (replace-match ";; ")))
      (goto-char (point-max))
-     (insert "\n\n\n"))))
+     (insert "\n\n\n")
+     (set-buffer-modified-p nil))))
 
 
 (provide 'fortunes)
