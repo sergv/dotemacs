@@ -378,10 +378,9 @@ runtime but rather will be silently relied on)."
 (defun eproj/c-tag->string (proj tag)
   (assert (eproj-tag-p tag))
   (concat (eproj-tag/symbol tag)
-          " "
           (awhen (assq 'kind (eproj-tag/properties tag))
             (concat
-             "["
+             " ["
              (cdr it)
              "]"))
           "\n"
@@ -392,6 +391,31 @@ runtime but rather will be silently relied on)."
           "\n"
           (eproj/extract-tag-line proj tag)
           "\n"))
+
+(defun eproj/java-tag->string (proj tag)
+  (assert (eproj-tag-p tag))
+  (concat (eproj-tag/symbol tag)
+          (awhen (assq 'kind (eproj-tag/properties tag))
+            (concat
+             " ["
+             (cdr it)
+             (awhen (assq 'access (eproj-tag/properties tag))
+               (concat "/" (cdr it)))
+             "]"))
+          "\n"
+          (awhen (assq 'class (eproj-tag/properties tag))
+            (concat (cdr it)
+                    "."
+                    (eproj-tag/symbol tag)
+                    "\n"))
+          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                         (eproj-project/root proj))
+          ":"
+          (number->string (eproj-tag/line tag))
+          "\n"
+          (when (eproj-tag/line tag)
+            (concat (eproj/extract-tag-line proj tag)
+                    "\n"))))
 
 (defun eproj/extract-tag-line (proj tag)
   "Fetch line where TAG is defined."
@@ -524,7 +548,7 @@ runtime but rather will be silently relied on)."
     :load-procedure
     (lambda (proj make-project-files)
       (eproj/load-ctags-project 'java-mode proj make-project-files))
-    :tag->string-procedure #'eproj/generic-tag->string
+    :tag->string-procedure #'eproj/java-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)))
