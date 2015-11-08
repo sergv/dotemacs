@@ -192,9 +192,7 @@ Also propagate new offset to `vim:shift-width'."
     ("z O"   hs-show-all)
 
     ("C-."   find-tag)
-    ("C-,"   pop-tag-mark)
-    ("g ."   find-tag)
-    ("g ,"   pop-tag-mark))
+    ("C-,"   pop-tag-mark))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("z c"   hs-hide-c-sexps-in-region)
@@ -203,6 +201,10 @@ Also propagate new offset to `vim:shift-width'."
     ("g a =" c-align-on-equals)
     ("g t"   c-beginning-of-defun)
     ("g h"   c-end-of-defun))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<backspace>" backward-delete-char))
 
   (bind-tab-keys #'tab-to-tab-stop
                  #'tab-to-tab-stop-backward

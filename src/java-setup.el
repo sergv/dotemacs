@@ -17,9 +17,12 @@
   (setf c-basic-offset 4)
   (setq-local vim:shift-width 4)
   (setq-local c-indentation-indent-style
-              (if (platform-use? 'work)
-                "java-standard"
-                "java-clojure"))
+              "java-standard"
+              ;; "java-clojure"
+              )
+  ;; indent with tabs
+  (setq-local whitespace-style '(face tabs space-after-tab space-before-tab))
+  (setq-local indent-tabs-mode t)
 
   (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"
