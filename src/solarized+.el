@@ -565,7 +565,9 @@ Futher modified by Sergey Vinokurov."
        (vim:substitute                       ((t (:underline ,magenta))))
        (warning                              ((t (:foreground ,orange))))
        (whitespace-line                      ((t (:underline ,red))))
-       (whitespace-tab                       ((t (:underline ,green))))
+       (whitespace-space-after-tab           ((t (:underline ,red))))
+       (whitespace-space-before-tab          ((t (:underline ,red))))
+       (whitespace-tab                       ((t (:underline ,base02))))
        (yas-field-highlight-face             ((t (:background ,light-cyan-green-background))))))
     (setf frame-background-mode        mode
           *color-theme-solarized-type* mode
