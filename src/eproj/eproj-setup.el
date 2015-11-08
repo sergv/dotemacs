@@ -13,8 +13,10 @@
 
 (eval-after-load "eproj"
   '(progn
-     (setf *ctags-exec*
-           (platform-dependent-executable (concat +execs-path+ "/exuberant-ctags")))))
+     (let ((ctags-exec
+            (platform-dependent-executable (concat +execs-path+ "/exuberant-ctags"))))
+       (when (file-exists? ctags-exec)
+         (setf *ctags-exec* ctags-exec)))))
 
 (add-to-list 'auto-mode-alist '("\\.eproj-info$" . emacs-lisp-mode))
 
