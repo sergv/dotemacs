@@ -214,11 +214,15 @@
   ("S-<backspace>"     delete-whitespace-backward)
   ("<backspace>"       delete-backward-char))
 
+;; (def-keys-for-map minibuffer-inactive-mode-map
+;;   ("?" self-insert-command))
+
 (def-keys-for-map (minibuffer-local-completion-map
                    minibuffer-local-must-match-map
                    minibuffer-local-filename-completion-map
                    minibuffer-local-filename-must-match-map)
-  ("SPC" self-insert-command))
+  ("SPC" self-insert-command)
+  ("?"   self-insert-command))
 
 (def-keys-for-map (minibuffer-local-map)
   ;; in sexp-related situations "''" is quite rare pair
@@ -231,7 +235,6 @@
   ("C-("       sp-backward-slurp-sexp)
   ("M-<left>"  sp-backward-slurp-sexp)
   ("M-<right>" sp-backward-barf-sexp))
-
 
 (def-keys-for-map (completion-list-mode-map)
   ("<up>"   previous-completion)
