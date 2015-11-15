@@ -8,13 +8,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defun %emacs-boot--string-trim-whitespace (str)
-  "Trim whitespaces from string"
-  (replace-regexp-in-string "^[ \t\n\r\v\f]+\\|[ \t\n\r\v\f]+$" "" str))
-
-(defun %emacs-boot--string->symbol (str)
-  (intern str))
-
 (defvar +platform+ nil
   "List of the form (<os> <use> <misc>), <misc> is optional,
 <os> may be 'linux or 'windows.
@@ -23,33 +16,27 @@ Range of platforms may be expanded (extended?) in the future.")
 
 (let* ((system-type-file-dirs
         (cond ((eq system-type 'windows-nt)
-               '("~"))
+               (list (expand-file-name "~")))
               ((memq system-type
                      '(gnu gnu/linux gnu/kfreebsd darwin))
-               '("/home/sergey" "~"))
+               (list "/home/sergey"
+                     (expand-file-name "~")))
               (t
-               '("~"))))
+               (list (expand-file-name "~")))))
        (system-type-file
         (find-if (lambda (file)
                    (and file
-                        (file-exists-p file)
-                        (file-executable-p file)))
-                 (mapcan (lambda (prefix)
-                           (list (concat prefix "/system_type.sh")
-                                 (when (eq system-type 'windows-nt)
-                                   (concat prefix "/system_type.cmd"))))
+                        (file-readable-p file)))
+                 (mapcar (lambda (prefix)
+                           (concat prefix "/system-type.el"))
                          system-type-file-dirs))))
   (setf +platform+
         (cond
-          ((not (null system-type-file))
-           (read
-            (with-temp-buffer
-              (call-process system-type-file
-                            nil
-                            (current-buffer))
-              (%emacs-boot--string-trim-whitespace
-               (buffer-substring-no-properties (point-min)
-                                               (point-max))))))
+          (system-type-file
+           (with-temp-buffer
+             (insert-file-contents-literally system-type-file)
+             (goto-char (point-min))
+             (read (current-buffer))))
           ((eq system-type 'windows-nt)
            '(windows work))
           ((eq system-type 'gnu/linux)
@@ -80,13 +67,7 @@ Range of platforms may be expanded (extended?) in the future.")
 (defun platform-dependent-root ()
   "Retrieve platform-dependent filesystem root for current combination of
 platform OS and usage."
-  (cond ((platform-os-type? 'windows)
-         (expand-file-name "~"))
-        ((platform-os-type? 'linux)
-         (expand-file-name "~"))
-        (t
-         ;; fallback to make it work in unanticipated scenarios
-         (expand-file-name "~"))))
+  (expand-file-name "~"))
 
 (defun platform-dependent-executable (exec-name)
   "Return EXEC-NAME, which must be a file name, transformed according to
