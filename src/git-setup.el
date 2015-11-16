@@ -127,6 +127,15 @@ all otherwise."
   (let ((current-prefix-arg t))
     (call-interactively #'magit-visit-item)))
 
+(defun magit-copy-section-text ()
+  (interactive)
+  (if-let (section (magit-current-section))
+    (kill-new-ignoring-duplicates
+     (buffer-substring-no-properties
+      (magit-section-beginning section)
+      (magit-section-end section)))
+    (error "No section selected")))
+
 (defun magit-mode-setup ()
   (setf truncate-lines nil)
 
@@ -138,6 +147,8 @@ all otherwise."
     ("k"               magit-unstage-item)
     ("K"               magit-unstage-all)
     (";"               magit-stage-item)
+    ("Y"               magit-cherry)
+    ("y"               magit-copy-section-text)
     ("D"               magit-discard)
     ("C"               magit-checkout)
     ("r"               magit-refresh)
