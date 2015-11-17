@@ -25,6 +25,7 @@ library
                      -ferror-spans
                      -rtsopts
 --  build-tools:       alex happy c2hs
+  ghc-prof-options:  -fprof-auto
 
 executable           ${filename no ext}
   main-is:           Main.hs
@@ -39,6 +40,7 @@ executable           ${filename no ext}
                      -ferror-spans
                      -rtsopts
 --  ghc-options:       -main-is MyMain
+  ghc-prof-options:  -fprof-auto
 
 test-suite ${filename no ext}-test
   type:              exitcode-stdio-1.0
@@ -54,4 +56,5 @@ test-suite ${filename no ext}-test
                      -ferror-spans
                      -rtsopts
 --  hs-source-dirs:    test
+  ghc-prof-options:  -fprof-auto
 
