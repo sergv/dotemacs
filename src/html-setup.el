@@ -167,9 +167,11 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                            'face (list :background
                                        (match-string-no-properties 0)))))))
 
-(defun markup-setup ()
+(defun markup-setup (tags-context-func)
   (init-common :use-whitespace 'tabs-only)
   (hl-tags-mode t)
+
+  (setq-local yas-fallback-behavior 'call-other-command)
 
   (hs-minor-mode t)
   (put 'hs-set-up-overlay 'permanent-local t)
@@ -177,6 +179,8 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (modify-syntax-entry ?\" "\"")
 
   (font-lock-add-keywords nil *hexcolour-keywords*)
+
+  (setq-local *markup-tags-context-func* tags-context-func)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"   sgml-skip-tag-backward)
@@ -200,12 +204,13 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     ("q" vim:markup-forward-up-element)))
 
 (defun html-setup ()
-  (markup-setup)
-  (setf *markup-tags-context-func* #'hl-tags-context-sgml-mode)
+  (markup-setup #'hl-tags-context-sgml-mode)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>" browse-url-of-buffer)
     ("`"    browse-url-of-buffer)))
 
+
+(setf nxml-slash-auto-complete-flag t)
 
 (defun nxml-reindent-enclosing-tag ()
   (interactive)
@@ -236,8 +241,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
              (cons 'nxml-mode #'nxml-indent-buffer))
 
 (defun nxml-setup ()
-  (markup-setup)
-  (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode))
+  (markup-setup #'hl-tags-context-nxml-mode))
 
 (defun web-mode-setup ()
   (init-common :use-whitespace 'tabs-only)
