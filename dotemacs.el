@@ -94,9 +94,6 @@ or not.")
 
   (smartparens-buffer-local-setup)
 
-  (setf undo-tree-visualizer-timestamps    t
-        undo-tree-visualizer-parent-buffer t)
-
   (when use-whitespace
     (when (memq major-mode
                 +do-not-track-long-lines-modes+)
