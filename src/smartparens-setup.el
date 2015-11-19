@@ -137,10 +137,13 @@ With negative argument move forward, still one level out."
 ;; html modes
 (sp-with-modes '(sgml-mode
                  html-mode
-                 xhtml-mode
-                 nxml-mode
                  xml-mode)
-  (sp-local-pair "<" ">")
+  (sp-local-pair "<" ">"))
+
+(sp-with-modes '(nxml-mode
+                 sgml-mode
+                 html-mode
+                 xml-mode)
   (sp-local-tag  "<" "<_>" "</_>" :transform 'sp-match-sgml-tags))
 
 (sp-local-pair 'awk-mode "/" "/")
