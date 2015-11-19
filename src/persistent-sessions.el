@@ -263,7 +263,9 @@ entries."
   "Load session from DATA."
   (let ((setup-buffer
          (lambda (point mode vars)
-           (setf mode (or mode default-major-mode))
+           (setf mode (or (and (fboundp mode)
+                               mode)
+                          default-major-mode))
            (goto-char point)
            (unless (eq? major-mode mode)
              (sessions/call-symbol-function mode))
