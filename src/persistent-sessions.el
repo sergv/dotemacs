@@ -132,6 +132,10 @@ entries."
   (dolist (bind bindings)
     (set (car bind) (cdr bind))))
 
+(defparameter sessions/ignored-temporary-buffers
+  '(dired-mode)
+  "Buffer with these modes should never be preserved across sessions.")
+
 (defparameter sessions/special-modes
   `((shell-mode
      (save ,(lambda (buf)
@@ -212,7 +216,7 @@ entries."
                            (with-current-buffer buf
                              (and (null? (buffer-file-name buf))
                                   (not (memq major-mode
-                                             '(dired-mode)))
+                                             sessions/ignored-temporary-buffers))
                                   (not (assq major-mode
                                              sessions/special-modes))
                                   (not (string-match-pure? "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
