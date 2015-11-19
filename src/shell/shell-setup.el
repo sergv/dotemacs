@@ -13,6 +13,7 @@
 (require 'comint-setup)
 (require 'shell-script-abbrev+)
 
+(autoload 'shell-command+ "common-heavy" nil t)
 (autoload 'shell-command-on-region+ "shell-command+" nil t)
 (fset 'shell-command-on-region 'shell-command-on-region+)
 
