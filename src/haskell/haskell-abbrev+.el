@@ -12,6 +12,15 @@
 (require 'shell-completion)
 (require 'shm-ast)
 
+(defun haskell-insert-followed-by-dollar? (pos)
+  "Check whether text after POS is followed by $."
+  (save-excursion
+    (goto-char pos)
+    (skip-syntax-forward " >")
+    (let ((c (char-after)))
+      (and (characterp c)
+           (char=? c ?$)))))
+
 (defun haskell-insert-info-template (&optional arg monadic?)
   (interactive "P")
   (let* ((start-position (point))
@@ -42,10 +51,12 @@
                 "liftIO $ putStrLn $ "
                 "putStrLn $ "))
             "trace ("))
+         (insert-dollar?
+          (not (haskell-insert-followed-by-dollar? start-position)))
          (end
           (if monadic?
             ""
-            ") $ "))
+            (concat ") " (if insert-dollar? "$ " ""))))
          (prev-was-message? nil))
     (insert start)
 
@@ -100,10 +111,12 @@
               "liftIO $ putStrLn $ "
               "putStrLn $ ")
             "trace ("))
+         (insert-dollar?
+          (not (haskell-insert-followed-by-dollar? start-position)))
          (end
           (if monadic?
             ""
-            ") $ ")))
+            (concat ") " (if insert-dollar? "$ " "")))))
     (insert start
             "intercalate \", \" ["
             ;; get name of function containing point
