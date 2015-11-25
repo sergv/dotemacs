@@ -477,19 +477,20 @@ If prefix arg \\[universal-argument] is given, just reload the previous file."
   "Submit the expression `inf-expr' to ghci and read the result."
   (let ((proc (inferior-haskell-process)))
     (with-current-buffer (process-buffer proc)
-      (let ((parsing-end                ; Remember previous spot.
-             (marker-position (process-mark proc))))
-        (inferior-haskell-send-command proc inf-expr)
-        ;; Find new point.
-        (inferior-haskell-wait-for-prompt proc)
-        (goto-char (point-max))
-        ;; Back up to the previous end-of-line.
-        (end-of-line 0)
-        ;; Extract the output
-        (buffer-substring-no-properties
-         (save-excursion (goto-char parsing-end)
-                         (line-beginning-position 2))
-         (point))))))
+      (save-excursion
+        (let ((parsing-end                ; Remember previous spot.
+               (marker-position (process-mark proc))))
+          (inferior-haskell-send-command proc inf-expr)
+          ;; Find new point.
+          (inferior-haskell-wait-for-prompt proc)
+          (goto-char (point-max))
+          ;; Back up to the previous end-of-line.
+          (end-of-line 0)
+          ;; Extract the output
+          (buffer-substring-no-properties
+           (save-excursion (goto-char parsing-end)
+                           (line-beginning-position 2))
+           (point)))))))
 
 ;;;###autoload
 (defun inferior-haskell-type (expr &optional insert-value)
