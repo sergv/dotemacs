@@ -115,8 +115,6 @@
 
   ;; ghci interaction uses comint - same as shell mode
   (turn-on-font-lock)
-  (font-lock-add-keywords nil
-                          '(("`[^`]+`" . font-lock-function-name-face)))
 
   ;; fix vim treatment of words for Haskell
 
