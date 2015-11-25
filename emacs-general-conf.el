@@ -104,7 +104,7 @@
 ;;;; modes without much customization
 (setq-default frame-background-mode 'light)
 
-(global-auto-revert-mode t)
+(global-auto-revert-mode 1)
 
 ;;;; saveplace - minor mode to remember positions in visited files
 (setq save-place-file (path-concat +prog-data-path+ "saveplace"))
