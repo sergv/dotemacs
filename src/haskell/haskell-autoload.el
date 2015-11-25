@@ -28,6 +28,9 @@
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
 (add-to-list 'completion-ignored-extensions ".hi")
 
+(autoload 'haskell-navigate-imports "haskell-navigate-imports" nil t)
+(autoload 'haskell-navigate-imports-return "haskell-navigate-imports" nil t)
+
 (autoload 'turn-on-haskell-unicode-input-method "haskell-unicode-input-method" nil t)
 (autoload 'haskell-mode-after-save-handler "haskell" nil nil)
 (autoload 'switch-to-haskell "inf-haskell" nil t)
