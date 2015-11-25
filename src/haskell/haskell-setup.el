@@ -90,6 +90,10 @@
   (vim:haskell-ghc-reset)
   (ghc-reload))
 
+(vim:defcmd vim:haskell-navigate-imports (nonrepeatable)
+  (haskell-navigate-imports)
+  (vim:save-position haskell-navigate-imports-start-point))
+
 (defun haskell-update-eproj-tags-on-save ()
   (ignore-errors
     (eproj-update-buffer-tags)))
@@ -197,7 +201,9 @@
     ("g w"       shm/goto-where)
     ("`"         ghc-display-errors)
     ;; ("`"         haskell-compile)
-    ("C-`"       hs-lint))
+    ("C-`"       hs-lint)
+    ("g i"       vim:haskell-navigate-imports)
+    ("g I"       haskell-navigate-imports-return))
 
   (haskell-bind-shm-bindings)
   (def-keys-for-map shm-map
