@@ -19,15 +19,18 @@
   (concat "\\b" haskell-regexen/conid
           "\\(?:\\." haskell-regexen/conid "\\)*\\b"))
 
-(defconst-set haskell-regexen/qvarid
+(defconst-set haskell-regexen/q/varid
   (concat "\\(" haskell-regexen/modid "\\)\\.\\(" haskell-regexen/varid "\\)"))
-(defconst-set haskell-regexen/qconid
+(defconst-set haskell-regexen/q/conid
   (concat haskell-regexen/modid "\\." haskell-regexen/conid))
 
-(defconst-set haskell-regexen/qvarid-or-conid
+(defconst-set haskell-regexen/q/varid-or-conid
   (concat haskell-regexen/modid "\\."
           "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 
+(defconst-set haskell-regexen/opt-q/varid-or-conid
+  (concat "\\(?:" haskell-regexen/modid "\\.\\)?"
+          "\\(?:" haskell-regexen/varid "\\|" haskell-regexen/conid "\\)"))
 ;; ;; (old-sym "[-!#$%&*+./<=>?@^|~:\\]+")
 ;; (defconst-set haskell-regexen/sym-constructor
 ;;    "\\(?::[-!#$%&*+./<=>?@^|~:\\]*\\)")
