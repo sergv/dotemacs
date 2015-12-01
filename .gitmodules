@@ -42,7 +42,7 @@
         url = https://github.com/jlr/rainbow-delimiters.git
 [submodule "third-party/s.el"]
         path = third-party/s.el
-        url = https://github.com/purcell/s.el.git
+        url = https://github.com/magnars/s.el.git
 [submodule "third-party/smartparens"]
         path = third-party/smartparens
         url = https://github.com/sergv/smartparens.git
