@@ -474,6 +474,11 @@ we load it."
        (looking-at-pure? haskell-abbrev+/language-pragma-prefix))
      (save-current-line-column
       (haskell-align-language-pragmas (point))))
+    ((save-excursion
+       (beginning-of-line)
+       (looking-at-pure? "import "))
+     (save-current-line-column
+      (haskell-sort-imports)))
     (t
      (error "Don't know how to reindent construct at point"))))
 
