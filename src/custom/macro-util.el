@@ -627,19 +627,23 @@ of code may be called more than once."
                     (concat "\\(?:"
                             align-str
                             "\\)")
-                    (macroexpand-all align-str))))
-    `(defun ,func ()
-       (interactive)
-       (when (region-active?)
-         (multiple-value-bind (start end) (get-region-bounds)
-           (align-regexp start
-                         end
-                         ,(if put-align-spaces-after-str
-                            (concat align-re spaces-re)
-                            (concat spaces-re align-re))
-                         1
-                         1
-                         ,repeat))))))
+                    (macroexpand-all align-str)))
+        (impl-func (string->symbol (format "%s/impl" func))))
+    `(progn
+       (defun ,impl-func (start end)
+         (align-regexp start
+                       end
+                       ,(if put-align-spaces-after-str
+                          (concat align-re spaces-re)
+                          (concat spaces-re align-re))
+                       1
+                       1
+                       ,repeat))
+       (defun ,func ()
+         (interactive)
+         (when (region-active?)
+           (multiple-value-bind (start end) (get-region-bounds)
+             (,impl-func start end)))))))
 
 (defmacro save-current-line-column (&rest body)
   "Save current line and column, execute BODY and go to saved line and column."
@@ -724,6 +728,14 @@ return nil otherwise."
   (declare (indent 0))
   `(let ((inhibit-redisplay t))
      ,@body))
+
+(defmacro* with-marker ((marker-var marker-init) &rest body)
+  (declare (indent 1))
+  `(let ((,marker-var ,marker-init))
+       (unwind-protect
+           (progn
+             ,@body)
+         (set-marker ,marker-var nil))))
 
 ;;; aif, awhen, if-let
 
