@@ -163,7 +163,14 @@ then Bar would be the result."
       (match-string 1 qualified-name)
       qualified-name)))
 
+(defconst haskell-abbrev+/language-pragma-prefix "{-# LANGUAGE")
+
+(defun haskell-abbrev+-align-language-pragmas ()
+  (save-current-line-column
+    (haskell-align-language-pragmas yas-snippet-beg)))
+
 (defun* haskell-abbrev+-setup (&key (repl nil))
+  (add-hook 'yas-after-exit-snippet-hook #'haskell-abbrev+-align-language-pragmas nil t)
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
                                      (and (not (point-inside-string-or-comment?))
                                           (or (null? c)
@@ -171,7 +178,8 @@ then Bar would be the result."
          (haskell-extensions haskell-language-extensions)
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
-         (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
+         (language-snippet (format "%s ${1:$\$(yas-choose-value '%S)} #-}$0"
+                                   haskell-abbrev+/language-pragma-prefix
                                    haskell-extensions))
          (ghc-flags (map (lambda (x)
                            (cond
@@ -196,15 +204,17 @@ then Bar would be the result."
               (list "main"
                     (list
                      (lambda ()
-                       (yas-expand-snippet
-                        (concat "main :: IO ()\nmain = do\n"
-                                (make-string haskell-indent-offset ?\s) "$1"))))
+                       (let ((indent (make-string haskell-indent-offset ?\s)))
+                         (yas-expand-snippet
+                          (concat "main :: IO ()\nmain = do\n"
+                                  indent "$1\n"
+                                  indent "return ()")))))
                     #'point-not-inside-string-or-comment?)
               (list "## *"
                     (list
                      (lambda () (yas-expand-snippet "{-# $1 #-}$0")))
                     #'point-not-inside-string-or-comment?)
-              (list "\\(?:#lang\\|langext\\)"
+              (list "\\(?:#lang\\(?:ext\\)?\\)"
                     (list
                      (lambda () (yas-expand-snippet language-snippet)))
                     #'point-not-inside-string-or-comment?)
