@@ -442,6 +442,7 @@ we load it."
 (make-align-function haskell-align-on-pragma-close
                      "#-}")
 
+
 (defun haskell-align-generic ()
   (interactive)
   (haskell-align-on-equals)
@@ -463,6 +464,44 @@ we load it."
     ("g a - -"   haskell-align-on-comments)
     ("g a : :"   haskell-align-on-double-colons)
     ("g a # - }" haskell-align-on-pragma-close)))
+
+(defun haskell-reindent-at-point ()
+  "Do some sensible reindentation depending on the current position in file."
+  (interactive)
+  (cond
+    ((save-excursion
+       (beginning-of-line)
+       (looking-at-pure? haskell-abbrev+/language-pragma-prefix))
+     (save-current-line-column
+      (haskell-align-language-pragmas (point))))
+    (t
+     (error "Don't know how to reindent construct at point"))))
+
+(defun haskell-align-language-pragmas-block (start end)
+  (assert (markerp start))
+  (assert (markerp end))
+  (haskell-align-on-pragma-close/impl start end)
+  (sort-lines nil start end))
+
+(defun haskell-align-language-pragmas (start)
+  (goto-char start)
+  (beginning-of-line)
+  (when (looking-at-p haskell-abbrev+/language-pragma-prefix)
+    (let ((p (point)))
+      (while (and (not (bob?))
+                  (looking-at-p haskell-abbrev+/language-pragma-prefix))
+        ;; Go to beginning of the previous line.
+        (beginning-of-line -1))
+      (with-marker (language-block-start (point-marker))
+        (goto-char p)
+        (while (and (not (eob?))
+                    (looking-at-p haskell-abbrev+/language-pragma-prefix))
+          ;; Go to beginning of the next line.
+          (beginning-of-line +2))
+        (with-marker (language-block-end (point-marker))
+          (haskell-align-language-pragmas-block
+           language-block-start
+           language-block-end))))))
 
 ;;; define forward-haskell-symbol
 

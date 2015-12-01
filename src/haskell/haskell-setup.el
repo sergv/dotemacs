@@ -201,7 +201,8 @@
     ;; ("`"         haskell-compile)
     ("C-`"       hs-lint)
     ("g i"       vim:haskell-navigate-imports)
-    ("g I"       haskell-navigate-imports-return))
+    ("g I"       haskell-navigate-imports-return)
+    ("g <tab>"   haskell-reindent-at-point))
 
   (haskell-bind-shm-bindings)
   (def-keys-for-map shm-map
