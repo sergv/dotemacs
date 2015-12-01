@@ -96,10 +96,7 @@
                 (column-number-mode
                  (2 " %c"))
                 (which-func-mode (" (" which-func-format ")"))
-                ;; this usually shows vim's current mode - hardly interesting
-                ;; for me
-                ;; global-mode-string
-                ))
+                global-mode-string))
 
 ;;;; modes without much customization
 (setq-default frame-background-mode 'light)
