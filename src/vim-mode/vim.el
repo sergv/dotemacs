@@ -159,8 +159,6 @@ given major-mode is created."
       (vim:initialize-keymaps t))
     (progn
       (vim:initialize-keymaps nil)
-      (setq global-mode-string
-            (delq 'vim:mode-string global-mode-string))
       (vim:activate-mode nil))))
 
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
@@ -173,10 +171,7 @@ given major-mode is created."
         (setq vim:active-mode nil)
         (vim-local-mode 1)
         ;; (vim:intercept-ESC-mode 1)
-        (vim:activate-mode mode)
-        (unless (memq 'vim:mode-string global-mode-string)
-          (setq global-mode-string
-                (append '("" vim:mode-string) (cdr global-mode-string))))))))
+        (vim:activate-mode mode)))))
 
 (provide 'vim)
 
