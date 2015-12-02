@@ -34,24 +34,21 @@
     (cond
       ((and (platform-os-type? 'linux)
             (platform-use? '(home asus-netbook work)))
-       '("-unknown-Iosevka Slab-normal-normal-normal-*-16-*-*-*-d-0-iso10646-1"
-         "-unknown-Input-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1"
-         "-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
-         "-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
-         "-unknown-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
+       '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+         "-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+         "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+         "-*-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'linux)
             (platform-use? 'netbook))
-       '("-unknown-Input-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1"
-         "-xos4-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
-         "-unknown-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
-         "-unknown-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
+       '("-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+         "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+         "-*-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
       ((and (platform-os-type? 'windows)
             (platform-use? 'work))
        (append
-        '("-unknown-Iosevka Slab-normal-normal-normal-*-16-*-*-*-d-0-iso10646-1"
-          "-outline-Input-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
-          "-outline-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
-          "-outline-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1")
+        '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+          "-*-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
+          "-*-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1")
         (if (and (<= (display-pixel-width) 1280)
                  (<= (display-pixel-height) 1024))
           '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
