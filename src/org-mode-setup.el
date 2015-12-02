@@ -101,12 +101,10 @@
     "org"
   '(progn
      (setf org-todo-keywords
-           '((sequence "TODO(t)" "WAITING(w!)" "STARTED(s!)" "|" "DONE(d!)")
+           '((sequence "TODO(t)" "|" "DONE(d!)")
              (sequence "|" "CANCELLED(c@)"))
            org-todo-keyword-faces
-           '(("WAITING"   . org-waiting)
-             ("STARTED"   . org-started)
-             ("CANCELLED" . org-cancelled)))
+           '(("CANCELLED" . org-cancelled)))
 
      ;; customize it to receive width and height arguments of inline image
      ;; (redefun org-display-inline-images (&optional include-linked refresh beg end)
