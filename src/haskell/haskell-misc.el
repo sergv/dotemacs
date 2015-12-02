@@ -496,13 +496,13 @@ we load it."
       (while (and (not (bob?))
                   (looking-at-p haskell-abbrev+/language-pragma-prefix))
         ;; Go to beginning of the previous line.
-        (beginning-of-line -1))
+        (backward-line))
       (with-marker (language-block-start (point-marker))
         (goto-char p)
         (while (and (not (eob?))
                     (looking-at-p haskell-abbrev+/language-pragma-prefix))
           ;; Go to beginning of the next line.
-          (beginning-of-line +2))
+          (forward-line))
         (with-marker (language-block-end (point-marker))
           (haskell-align-language-pragmas-block
            language-block-start
