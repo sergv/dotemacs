@@ -12,7 +12,7 @@
         url = https://github.com/emacsmirror/csv-mode.git
 [submodule "third-party/cuda-mode"]
         path = third-party/cuda-mode
-        url = https://github.com/sergv/cuda-mode.git
+        url = https://github.com/chachi/cuda-mode.git
 [submodule "third-party/cygwin-mount"]
         path = third-party/cygwin-mount
         url = https://github.com/emacsmirror/cygwin-mount.git
