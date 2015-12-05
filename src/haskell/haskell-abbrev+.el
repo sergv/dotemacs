@@ -256,7 +256,7 @@ then Bar would be the result."
                   (list
                    #'haskell-insert-info-template)
                   #'point-not-inside-string-or-comment?)
-            (list "\\<infom\\>"
+            (list "\\<info[Mm]\\>"
                   (list
                    #'haskell-insert-monadic-info-template)
                   #'point-not-inside-string-or-comment?)))))
