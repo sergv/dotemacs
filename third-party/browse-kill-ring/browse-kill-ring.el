@@ -803,41 +803,44 @@ If no such overlay, raise an error."
   "Move forward by ARG `kill-ring' entries."
   (interactive "p")
   (beginning-of-line)
-  (while (not (zerop arg))
-    (if (< arg 0)
-        (progn
-          (incf arg)
-          (if (overlays-at (point))
+  (let ((all-overlays (overlays-at (point))))
+    (while (not (zerop arg))
+      (if (< arg 0)
+          (progn
+            (incf arg)
+            (if all-overlays
+                (progn
+                  (goto-char (overlay-start (car all-overlays)))
+                  (goto-char (previous-overlay-change (point)))
+                  (goto-char (previous-overlay-change (point))))
               (progn
-                (goto-char (overlay-start (car (overlays-at (point)))))
-                (goto-char (previous-overlay-change (point)))
-                (goto-char (previous-overlay-change (point))))
-            (progn
-              (goto-char (1- (previous-overlay-change (point))))
-              (unless (bobp)
-                (goto-char (overlay-start (car (overlays-at (point)))))))))
-      (progn
-        (decf arg)
-        (if (overlays-at (point))
-            (progn
-              (goto-char (overlay-end (car (overlays-at (point)))))
-              (goto-char (next-overlay-change (point))))
-          (goto-char (next-overlay-change (point)))
-          (unless (eobp)
-            (goto-char (overlay-start (car (overlays-at (point))))))))))
-  ;; This could probably be implemented in a more intelligent manner.
-  ;; Perhaps keep track over the overlay we started from?  That would
-  ;; break when the user moved manually, though.
-  (when (and browse-kill-ring-highlight-current-entry
-             (overlays-at (point)))
-    (let ((overs (overlay-lists))
-          (current-overlay (car (overlays-at (point)))))
-      (mapcar #'(lambda (o)
-                  (overlay-put o 'face nil))
-              (nconc (car overs) (cdr overs)))
-      (overlay-put current-overlay 'face browse-kill-ring-current-entry-face)))
-  (when browse-kill-ring-recenter
-    (recenter 1)))
+                (goto-char (1- (previous-overlay-change (point))))
+                (unless (bobp)
+                  (goto-char (overlay-start (car (overlays-at (point)))))))))
+        (progn
+          (decf arg)
+          (if all-overlays
+              (progn
+                (goto-char (overlay-end (car all-overlays)))
+                (goto-char (next-overlay-change (point))))
+            (goto-char (next-overlay-change (point)))
+            (unless (eobp)
+              (goto-char (overlay-start (car (overlays-at (point)))))))))))
+
+  (let ((new-overlays (overlays-at (point))))
+    ;; This could probably be implemented in a more intelligent manner.
+    ;; Perhaps keep track over the overlay we started from?  That would
+    ;; break when the user moved manually, though.
+    (when (and browse-kill-ring-highlight-current-entry
+               new-overlays)
+      (let ((overs (overlay-lists))
+            (current-overlay (car new-overlays)))
+        (mapcar #'(lambda (o)
+                    (overlay-put o 'face nil))
+                (nconc (car overs) (cdr overs)))
+        (overlay-put current-overlay 'face browse-kill-ring-current-entry-face)))
+    (when browse-kill-ring-recenter
+      (recenter 1))))
 
 (defun browse-kill-ring-previous (&optional arg)
   "Move backward by ARG `*browse-kill-ring-ring-var*' entries."
