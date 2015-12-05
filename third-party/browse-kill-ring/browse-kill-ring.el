@@ -675,7 +675,7 @@ of the *Kill Ring*."
     (when browse-kill-ring-highlight-inserted-item
       (let ((o (make-overlay before-insert (point))))
         (overlay-put o 'face browse-kill-ring-inserted-item-face)
-        (sit-for 0.5)
+        (sit-for 0.1)
         (delete-overlay o)))))
 
 (defun browse-kill-ring-do-prepend-insert (buf pt)
