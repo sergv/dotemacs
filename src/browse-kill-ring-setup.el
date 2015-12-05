@@ -23,7 +23,23 @@
           "Display `haskell-interactive-mode-history' items in another buffer."
           t)
 
+(eval-after-load "browse-kill-ring"
+  '(progn
+     (advice-remove 'kill-new #'browse-kill-ring-no-kill-new-duplicates)))
+
 (defun browse-kill-ring-mode-setup ()
+  (setq-local mode-line-format
+              '(" %[%b%] "
+                (:eval (when buffer-read-only
+                         "(RO)"))
+                ("("
+                 mode-name
+                 (:eval (format "[%s items]"
+                                (generic/length (browse-kill-ring/get-ring-value))))
+                 ")")
+                (:eval
+                 (when (buffer-narrowed?)
+                   "(Narrowed)"))))
   (def-keys-for-map browse-kill-ring-mode-map
     +vim-special-keys+
     ("y"        nil)
@@ -40,7 +56,7 @@
     ("o"        browse-kill-ring-occur)
     ;; mnemonic "filter"
     ("f"        browse-kill-ring-occur)
-    ("SPC"      browse-kill-ring-insert-move-and-quit)
+    ("SPC"      browse-kill-ring-insert-and-quit)
 
     ("/"        browse-kill-ring-search-forward)
     ("?"        browse-kill-ring-search-backward)
