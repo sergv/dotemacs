@@ -68,8 +68,8 @@
   (haskell-compile nil))
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (haskell-compile t))
-(vim:defcmd vim:hs-lint (nonrepeatable)
-  (hs-lint))
+(vim:defcmd vim:haskell-lint (nonrepeatable)
+  (haskell-lint))
 (vim:defcmd vim:inferior-haskell-load-file (nonrepeatable)
   (inferior-haskell-load-file))
 (vim:defcmd vim:haskell-clear-buffer-and-load-file (nonrepeatable)
@@ -179,7 +179,7 @@
   (vim:local-emap "c"        'vim:haskell-compile)
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
-  (vim:local-emap "hlint"    'vim:hs-lint)
+  (vim:local-emap "hlint"    'vim:haskell-lint)
   (vim:local-emap "load"     'vim:inferior-haskell-load-file)
   (vim:local-emap "lo"       'vim:inferior-haskell-load-file)
   (vim:local-emap "loadc"    'vim:haskell-clear-buffer-and-load-file)
@@ -199,7 +199,7 @@
     ("g w"       shm/goto-where)
     ("`"         ghc-display-errors)
     ;; ("`"         haskell-compile)
-    ("C-`"       hs-lint)
+    ("C-`"       haskell-lint)
     ("g i"       vim:haskell-navigate-imports)
     ("g I"       haskell-navigate-imports-return)
     ("g <tab>"   haskell-reindent-at-point))
@@ -247,7 +247,7 @@
     ("<return>"        haskell-newline)
     ("<f6>"            inferior-haskell-load-file)
     ("<f9>"            haskell-compile)
-    ("S-<f9>"          hs-lint)
+    ("S-<f9>"          haskell-lint)
     ("C-<f6>"          haskell-clear-buffer-and-load-file))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
@@ -438,55 +438,55 @@
     ("`"    haskell-compile)
     ("<f9>" haskell-compile)))
 
-(defun hs-lint-setup ()
+(defun haskell-lint-setup ()
   (setq-local *compilation-jump-error-regexp*
-              hs-lint-regex)
+              haskell-lint-regex)
   ;; recognize possible error at the end
-  (let ((hs-lint-regex-orig
+  (let ((haskell-lint-regex-orig
          "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): %s:.*[\n\C-m]Found:[\n\C-m]\\s +.*[\n\C-m]Why not:[\n\C-m]\\s +.*[\n\C-m]"))
     (setq-local compilation-error-regex-alist
                 (list
-                 (list (format hs-lint-regex-orig "Error")
+                 (list (format haskell-lint-regex-orig "Error")
                        1 2 3 2)
-                 (list (format hs-lint-regex-orig "Warning")
+                 (list (format haskell-lint-regex-orig "Warning")
                        1 2 3 1)))))
 
 (defun ghc-core-setup ()
   (structured-haskell-mode -1)
   (hl-line-mode +1))
 
-(defvar hs-lint-error-regex
-  "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Error:")
-
-(defvar hs-lint-warning-regex
-  "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Warning:")
-
-(defun hs-lint-setup ()
-  (set (make-local-variable '*compilation-jump-error-regexp*)
-       (concat "\\("
-               hs-lint-error-regex
-               "\\)\\|\\("
-               hs-lint-warning-regex
-               "\\)"))
-  (setq-local compilation-error-regexp-alist
-              (list
-               (list hs-lint-error-regex
-                     1 ;; file-group
-                     2 ;; line-group
-                     3 ;; column-group
-                     2 ;; type - 2 - error
-                     )
-               (list hs-lint-warning-regex
-                     1 ;; file-group
-                     2 ;; line-group
-                     3 ;; column-group
-                     1 ;; type - 1 - warning
-                     )))
-  (def-keys-for-map hs-lint-mode-map
-    ("<up>"   compilation-jump-to-prev-error)
-    ("<down>" compilation-jump-to-next-error)
-    ("t"      compilation-jump-to-prev-error)
-    ("h"      compilation-jump-to-next-error)))
+;; (defvar haskell-lint-error-regex
+;;   "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Error:")
+;;
+;; (defvar haskell-lint-warning-regex
+;;   "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Warning:")
+;;
+;; (defun hs-lint-setup ()
+;;   (set (make-local-variable '*compilation-jump-error-regexp*)
+;;        (concat "\\("
+;;                hs-lint-error-regex
+;;                "\\)\\|\\("
+;;                hs-lint-warning-regex
+;;                "\\)"))
+;;   (setq-local compilation-error-regexp-alist
+;;               (list
+;;                (list hs-lint-error-regex
+;;                      1 ;; file-group
+;;                      2 ;; line-group
+;;                      3 ;; column-group
+;;                      2 ;; type - 2 - error
+;;                      )
+;;                (list hs-lint-warning-regex
+;;                      1 ;; file-group
+;;                      2 ;; line-group
+;;                      3 ;; column-group
+;;                      1 ;; type - 1 - warning
+;;                      )))
+;;   (def-keys-for-map hs-lint-mode-map
+;;     ("<up>"   compilation-jump-to-prev-error)
+;;     ("<down>" compilation-jump-to-next-error)
+;;     ("t"      compilation-jump-to-prev-error)
+;;     ("h"      compilation-jump-to-next-error)))
 
 (defun ghc-prof-mode-setup ()
   (init-common :use-yasnippet nil
