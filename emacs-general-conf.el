@@ -56,7 +56,7 @@
         (git-rebase-mode . nil)
         (undo-tree-visualizer-mode . nil)
         (haskell-compilation-mode . nil)
-        (hs-lint-mode . nil)
+        (haskell-lint-mode . nil)
 
         (clojure-compilation-mode . nil)))
 

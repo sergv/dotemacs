@@ -53,9 +53,8 @@
 (autoload 'haskell-compilation-setup "haskell-setup" "" nil nil)
 (autoload 'ghc-check-mode-setup "haskell-setup" "" nil nil)
 (autoload 'haskell-cabal-setup "haskell-setup" "" nil nil)
-(autoload 'hs-lint-setup "haskell-setup" "" nil nil)
+(autoload 'haskell-lint-setup "haskell-setup" "" nil nil)
 (autoload 'ghc-core-setup "haskell-setup" "" nil nil)
-(autoload 'hs-lint-setup "haskell-setup" "" nil nil)
 
 
 (add-to-list 'auto-mode-alist        '("\\.hcr\\'" . ghc-core-mode))
@@ -80,9 +79,8 @@
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 (add-hook 'ghc-check-mode-hook #'ghc-check-mode-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
-(add-hook 'hs-lint-setup-hook #'hs-lint-setup)
+(add-hook 'haskell-lint-setup-hook #'haskell-lint-setup)
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
-(add-hook 'hs-lint-mode-hook #'hs-lint-setup)
 
 (autoload 'ghc-init "ghc" nil t)
 (autoload 'ghc-debug "ghc" nil t)
