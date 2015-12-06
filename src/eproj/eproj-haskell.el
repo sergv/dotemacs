@@ -18,6 +18,8 @@ files.
 
 Note: old tags file is removed before calling update command."
   (assert (eproj-project-p proj))
+  (when eproj-verbose-tag-loading
+    (message "Loading haskell project %s" (eproj-project/root proj)))
   (if-let (tag-file-entry (assoc 'tag-file (eproj-project/aux-info proj)))
     (progn
       (unless (= (length tag-file-entry) 2)
@@ -32,7 +34,8 @@ Note: old tags file is removed before calling update command."
                     (not (file-exists-p tag-file-path)))
             (error "Cannot find tag file %s at %s" tag-file tag-file-path))
           (for-buffer-with-file tag-file-path
-            (eproj/ctags-get-tags-from-buffer (current-buffer) t)))))
+            (eproj/get-fast-tags-tags-from-buffer (current-buffer)
+                                                  eproj-verbose-tag-loading)))))
     (progn
       (unless *fast-tags-exec*
         (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
@@ -68,10 +71,71 @@ Note: old tags file is removed before calling update command."
                              (with-current-buffer out-buffer
                                (buffer-substring-no-properties (point-min) (point-max)))))
                     (erase-buffer))))
-              (eproj/ctags-get-tags-from-buffer out-buffer t)))))
+              (eproj/get-fast-tags-tags-from-buffer out-buffer
+                                                    eproj-verbose-tag-loading)))))
       ;; (message "Warning: no tag file for haskell project %s"
       ;;          (eproj-project/root proj))
       )))
+
+(defun eproj/get-fast-tags-tags-from-buffer (buffer &optional verbose)
+  "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
+BUFFER is expected to contain simplified output of ctags - fast-tags command.
+
+Function does not attempt to parse <key>=<value> pairs after ;\",
+and expects single character there instead (this isn't be checked at
+runtime but rather will be silently relied on)."
+  (with-current-buffer buffer
+    (save-match-data
+      (goto-char (point-min))
+      (let ((tags-table (make-hash-table :test #'equal :size 997))
+            (gc-cons-threshold (min (* 100 1024 1024)
+                                    (max gc-cons-threshold
+                                         ;; Every 1000 lines takes up 1 mb or so.
+                                         (/ (* (count-lines (point-min) (point-max)) 1024 1024)
+                                            1000))))
+            (total-tags-fraction (when verbose
+                                   (/ (count-lines (point-min) (point-max))
+                                      100)))
+            (tags-loaded-percents 0)
+            (n 0))
+        (garbage-collect)
+        (while (not (eobp))
+          (beginning-of-line)
+          (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
+                     (looking-at +ctags-line-re+))
+            (let ((symbol (eproj/ctags-cache-string
+                           (match-string-no-properties 1)))
+                  (file (eproj/ctags-cache-string
+                         (match-string-no-properties 2)))
+                  (line (string->number (match-string-no-properties 3))))
+              (goto-char (match-end 0))
+              ;; now we're past ;"
+              (let* ((fields-str (buffer-substring-no-properties
+                                  (point)
+                                  (line-end-position)))
+                     (fields
+                      (list (cons 'type
+                                  (eproj/ctags-cache-string
+                                   (trim-whitespace fields-str)))))
+                     (new-tag (make-eproj-tag
+                               symbol
+                               file
+                               line
+                               fields)))
+                (puthash symbol
+                         (cons new-tag
+                               (gethash symbol tags-table nil))
+                         tags-table))))
+          (forward-line 1)
+          (when verbose
+            (when (= n total-tags-fraction)
+              (incf tags-loaded-percents)
+              (when (= 0 (mod tags-loaded-percents 5))
+                  (message "loaded %d%% tags" tags-loaded-percents)
+                  (redisplay))
+              (setf n 0))
+            (incf n)))
+        tags-table))))
 
 (defun eproj/haskell-tag->string (proj tag)
   (assert (eproj-tag-p tag))
