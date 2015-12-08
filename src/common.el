@@ -279,7 +279,8 @@ default into prompt."
            (2 " %c"))
           ,@(when show-directory
               '("  "
-                (:eval default-directory))))))
+                (:eval default-directory)))
+          global-mode-string)))
 
 (defun re-group-matchedp (n)
   "Return non-nil if Nth group matched."
