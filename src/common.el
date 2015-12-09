@@ -1322,7 +1322,8 @@ the current buffer."
                                  ))
          (next-win (with-selected-frame next-frame
                      (selected-window))))
-    (swap-buffers-in-windows curr-win next-win)))
+    (swap-buffers-in-windows curr-win next-win)
+    (select-frame-set-input-focus next-frame)))
 
 (defun swap-buffers-backward-through-frames ()
   "Swap current buffer with selected buffer in the previous frame."
@@ -1333,7 +1334,8 @@ the current buffer."
                                      ))
          (prev-win (with-selected-frame prev-frame
                      (selected-window))))
-    (swap-buffers-in-windows curr-win prev-win)))
+    (swap-buffers-in-windows curr-win prev-win)
+    (select-frame-set-input-focus prev-frame)))
 
 (defun next-f (n)
   "Switch to Nth previous frame."
