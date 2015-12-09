@@ -418,6 +418,7 @@
   (init-common :use-comment t :use-yasnippet t)
   (fontify-merge-markers)
   (modify-syntax-entry ?- "_")
+  (modify-syntax-entry ?. "_")
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
