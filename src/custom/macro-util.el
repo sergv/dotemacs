@@ -66,8 +66,10 @@ actual call to function."
                              &key
                              (name nil)
                              (doc nil)
+                             (has-count t)
                              (call-n-times nil)
-                             (repeatable t))
+                             (repeatable t)
+                             (keep-visual nil))
   "Embed FUNC into vim framework of actions. FUNC may be symbol or
 actual call to function. If FUNC is a symbol and CALL-N-TIMES is nil
 then symbol should name function of one argument - prefix argument count.
@@ -87,20 +89,30 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
              (error "FUNC should be call to function (list) or symbol: %s"
                     func))))
          (action-name (if name name (intern (concat "vim:" func-name)))))
-    `(vim:defcmd ,action-name ,(append '(count)
+    `(vim:defcmd ,action-name ,(append (if has-count
+                                         '(count)
+                                         '())
                                        (if repeatable
                                          '()
-                                         '(nonrepeatable)))
+                                         '(nonrepeatable))
+                                       (if keep-visual
+                                         '(keep-visual)
+                                         '()))
        ,(if doc doc (format "Vimmized version of `%s'." func-name))
        ,(cond
-          ((not (null? call-n-times))
+          ((and has-count
+                (not (null? call-n-times)))
            (let ((counter (gensym)))
              `(dotimes (,counter (or count 1))
                 ,(if (symbolp func)
                    `(funcall #',func)
                    func))))
           ((symbolp func)
-           `(funcall #',func count))
+           `(funcall #',func
+                     ,@(append
+                        (if has-count
+                          '(count)
+                          '()))))
           (t
            func)))))
 
