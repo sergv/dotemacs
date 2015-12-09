@@ -255,20 +255,37 @@ Basically swap current point with previous one."
 (vim:emap "close" 'vim:cmd-close)
 (vim:emap "cl" 'vim:cmd-close)
 
-(vim:defcmd vim:cmd-split-vertically (nonrepeatable keep-visual)
-  "Split current window vertically, just like C-x 3."
-  ;; this is not a bug, function is correct!
-  (split-window-horizontally))
+(vimmize-function
+ split-window-horizontally
+ ;; this is not a bug, name is correct!
+ :name vim:cmd-split-vertically
+ :doc   "Split current window vertically, just like C-x 3."
+ :repeatable nil
+ :keep-visual t)
 
-(vim:defcmd vim:cmd-split-horizontally (nonrepeatable keep-visual)
-  "Split current window horizontally, just like C-x 2."
-  ;; this is not a bug, function is correct too!
-  (split-window-vertically))
+(vimmize-function
+ split-window-vertically
+  ;; this is not a bug, this name is correct too!
+ :name vim:cmd-split-horizontally
+ :doc "Split current window horizontally, just like C-x 2."
+ :repeatable nil
+ :keep-visual t)
+
+(autoload 'transpose-windows "common-heavy" nil t)
+
+(vimmize-function
+ transpose-windows
+ :name vim:transpose-windows
+ :has-count nil
+ :repeatable nil
+ :keep-visual t)
 
 (vim:emap "hsplit" 'vim:cmd-split-horizontally)
 (vim:emap "hs" 'vim:cmd-split-horizontally)
 (vim:emap "vsplit" 'vim:cmd-split-vertically)
 (vim:emap "vs" 'vim:cmd-split-vertically)
+(vim:emap "transpose" 'vim:transpose-windows)
+(vim:emap "tr" 'vim:transpose-windows)
 
 (vim:emap "write" 'vim:cmd-write-current-buffer)
 (vim:emap "w" 'vim:cmd-write-current-buffer)
