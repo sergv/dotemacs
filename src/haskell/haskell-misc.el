@@ -303,13 +303,6 @@ and indent them as singe line."
     (comint-send-input)))
 
 
-(defun haskell-yas-completing-prompt (prompt choices &optional display-fn)
-  "Call `yas-completing-prompt' with ignoring case during completion."
-  (let ((completion-ignore-case t))
-    (yas-completing-prompt prompt
-                           choices
-                           display-fn)))
-
 (put 'haskell-program-name 'safe-local-variable (lambda (x) (or (string? x) (list? x))))
 (put 'haskell-compile-command 'safe-local-variable #'string?)
 (put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
