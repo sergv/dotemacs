@@ -50,7 +50,11 @@
 (vim:defcmd vim:cmd-write-current-buffer (force nonrepeatable)
   "Saves current buffer."
   (with-current-buffer vim:ex-current-buffer
-    (unless (buffer-file-name)
+    (when (and
+           ;; If buffer is not an indirect buffer...
+           (null (buffer-base-buffer (current-buffer)))
+           ;; ... and does not have a file name.
+           (null (buffer-file-name)))
       (error "Please specify a file-name for this buffer!"))
     (save-buffer)))
 
