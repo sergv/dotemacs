@@ -387,6 +387,14 @@ not exist after command is finished."
         (if this-win-2nd (other-window 1))))
     (error "Must have exactly 2 windows to transpose")))
 
+(defun narrow-to-region-indirect (start end)
+  "Restrict editing in this buffer to the current region, indirectly."
+  (interactive "r")
+  (let ((buf (clone-indirect-buffer nil nil)))
+    (with-current-buffer buf
+      (narrow-to-region start end))
+      (switch-to-buffer buf)))
+
 ;;;
 
 (provide 'common-heavy)

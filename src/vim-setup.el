@@ -363,6 +363,17 @@ Basically swap current point with previous one."
 
 (vim:emap "no-tabs" 'vim:remove-tabs)
 
+(vim:defcmd vim:narrow-to-region-indirect (motion nonrepeatable)
+  (narrow-to-region-indirect
+   (if motion
+     (vim:motion-begin motion)
+     (point-min))
+   (if motion
+     (vim:motion-end motion)
+     (point-max))))
+
+(vim:emap "narrow-indirect" 'vim:narrow-to-region-indirect)
+(vim:emap "ni" 'vim:narrow-to-region-indirect)
 
 
 (vim:defcmd vim:indent (nonrepeatable)
