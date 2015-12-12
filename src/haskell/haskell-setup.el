@@ -141,9 +141,6 @@
   ;; it's not always a good idea to wait
   ;; (setf inferior-haskell-wait-and-jump t)
 
-  (setq-local yas-prompt-functions
-              (list #'haskell-yas-completing-prompt))
-
   (let ((offset
          (if-let (hask-offset
                   (ignore-errors
