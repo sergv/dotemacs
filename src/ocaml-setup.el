@@ -67,7 +67,6 @@
 (defun ocaml-interactive-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
-  (linum-mode 1)
   (def-keys-for-map tuareg-interactive-mode-map
     ("<return>"   ocaml-interactive-send-input)
     ("C-<return>" sp-newline)
