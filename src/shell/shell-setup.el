@@ -46,7 +46,6 @@
 
 (defun shell-setup ()
   (init-repl :show-directory t :create-keymaps t)
-  (linum-mode +1)
   (smartparens-mode +1)
   (hl-line-mode +1)
   (ansi-color-for-comint-mode-on)
