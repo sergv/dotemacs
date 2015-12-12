@@ -53,15 +53,7 @@
       shm-indent-point-after-adding-where-clause t
       shm-colon-enabled t
       shm-indent-use-chris-done-if-indent-style nil
-      inferior-haskell-find-project-root nil
-      ghc-core-program-args '("-O2"
-                              "-dsuppress-uniques"
-                              "-dsuppress-idinfo"
-                              "-dsuppress-module-prefixes"
-                              ;; "-dsuppress-type-signatures"
-                              "-dsuppress-type-applications"
-                              "-dsuppress-coercions"
-                              "-dppr-cols200"))
+      inferior-haskell-find-project-root nil)
 
 (defun cleanup-stg ()
   "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
