@@ -39,7 +39,7 @@ executable           ${filename no ext}
                      -fno-warn-name-shadowing
                      -ferror-spans
                      -rtsopts
---  ghc-options:       -main-is MyMain
+--                     -main-is MyMain
   ghc-prof-options:  -fprof-auto
 
 test-suite ${filename no ext}-test

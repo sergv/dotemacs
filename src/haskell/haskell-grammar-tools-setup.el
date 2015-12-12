@@ -14,12 +14,16 @@
       mmm-submode-decoration-level 0)
 
 (defun haskell-grammar-tools-setup ()
-  (init-common :use-yasnippet nil
+  (init-common :use-yasnippet t
                :use-render-formula nil
                :use-fci t
                :use-whitespace 'tabs-only)
   (fontify-merge-markers)
   (hs-minor-mode 1)
+  (vim:local-emap "compile"  'vim:haskell-compile)
+  (vim:local-emap "c"        'vim:haskell-compile)
+  (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
+  (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
@@ -30,7 +34,8 @@
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile)
     ("`"    haskell-compile))
-  (haskell-define-align-bindings vim:visual-mode-local-keymap))
+  (haskell-define-align-bindings vim:visual-mode-local-keymap)
+  (haskell-abbrev+-setup))
 
 (provide 'haskell-grammar-tools-setup)
 
