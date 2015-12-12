@@ -234,8 +234,6 @@ inserted."
                    path)))
     (insert output)))
 
-(autoload 'find-filename-in-tree-recursive "common-heavy" "" t)
-
 ;;;
 
 (defun read-string-no-default (prompt
@@ -487,11 +485,6 @@ structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
      (keyword-arglist-get-value key
                                 (cddr keyword-arglist)
                                 default))))
-
-;;;
-
-(autoload 'extract-unicode "common-heavy")
-(autoload 'input-unicode "common-heavy" "" t)
 
 ;;;
 
@@ -769,15 +762,6 @@ faster than byte-by-byte comparison of respecfive file contents."
                   (insert-file-contents file2)
                   (buffer-substring-no-properties (point-min) (point-max))))
       t)))
-
-;;;
-
-(autoload 'merge-emacs-configs "common-heavy")
-(autoload 'merge-emacs-configs-default "common-heavy" "" t)
-
-;;;
-
-(autoload 'remove-tabs "common-heavy" "" t)
 
 ;;;
 
@@ -1348,15 +1332,10 @@ the current buffer."
   (other-frame (- n)))
 
 
-(autoload 'start-file-manager "common-heavy" "" t)
-(autoload 'start-terminal-emulator "common-heavy" "" t)
-
 (defalias 'run-file-manager 'start-file-manager)
 
 (defalias 'run-terminal-emulator 'start-terminal-emulator)
 (defalias 'run-terminal 'start-terminal-emulator)
-
-(autoload 'remove-duplicates-from-sorted-list-by "common-heavy" "" nil)
 
 (defun gc-stats ()
   "Do garbage collection and pretty-print results for use in modeline."
@@ -1428,18 +1407,29 @@ topmost `kill-ring' item is equal to text."
 (defsubst concat-lists (xss)
   (foldl #'append nil xss))
 
-
 (defun save-buffer-if-modified ()
   (if-buffer-has-file
     (when (buffer-modified-p)
       (save-buffer))))
 
-(autoload 'rm "common-heavy" "" t)
+;; Heavy autoloads
+
+(autoload 'find-filename-in-tree-recursive "common-heavy" nil t)
+(autoload 'extract-unicode "common-heavy")
+(autoload 'input-unicode "common-heavy" nil t)
+(autoload 'merge-emacs-configs "common-heavy")
+(autoload 'merge-emacs-configs-default "common-heavy" nil t)
+(autoload 'remove-tabs "common-heavy" nil t)
+(autoload 'start-file-manager "common-heavy" nil t)
+(autoload 'start-terminal-emulator "common-heavy" nil t)
+(autoload 'remove-duplicates-from-sorted-list-by "common-heavy" nil nil)
+(autoload 'rm "common-heavy" nil t)
+(autoload 'transpose-windows "common-heavy" nil t)
+(autoload 'narrow-to-region-indirect "common-heavy" nil t)
 
 (provide 'common)
 
 ;; Local Variables:
 ;; End:
-
 
 ;; common.el ends here

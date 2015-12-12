@@ -271,8 +271,6 @@ Basically swap current point with previous one."
  :repeatable nil
  :keep-visual t)
 
-(autoload 'transpose-windows "common-heavy" nil t)
-
 (vimmize-function
  transpose-windows
  :name vim:transpose-windows
@@ -291,8 +289,10 @@ Basically swap current point with previous one."
 (vim:emap "w" 'vim:cmd-write-current-buffer)
 
 
+(autoload 'awk-exit "awk+")
+(autoload 'awk-on-region "awk+")
+
 (vim:defcmd vim:start-awk (motion nonrepeatable)
-  (require 'awk+)
   (when (get-buffer awk-buffer-name)
     (with-current-buffer (get-buffer awk-buffer-name)
       (awk-exit)))
