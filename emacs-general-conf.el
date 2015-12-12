@@ -153,9 +153,8 @@
       next-line-add-newlines nil
       read-file-name-completion-ignore-case t
 
-      auto-save-list-file-name  nil
-      auto-save-default         nil
-      linum-format "%d"
+      auto-save-list-file-name nil
+      auto-save-default nil
       search-whitespace-regexp nil ;; intuitive behavior for interactive regexps
       system-time-locale "C"
 
