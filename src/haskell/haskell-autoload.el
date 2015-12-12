@@ -11,6 +11,16 @@
 (autoload 'ghci-script-mode "ghci-script-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
 
+(setf ghc-core-program-args
+      '("-O2"
+        "-dsuppress-uniques"
+        "-dsuppress-idinfo"
+        "-dsuppress-module-prefixes"
+        ;; "-dsuppress-type-signatures"
+        "-dsuppress-type-applications"
+        "-dsuppress-coercions"
+        "-dppr-cols200"))
+
 (add-to-list 'auto-mode-alist '("\\.cabal\\'" . haskell-cabal-mode))
 
 (autoload 'haskell-cabal-mode "haskell-cabal" nil t)
