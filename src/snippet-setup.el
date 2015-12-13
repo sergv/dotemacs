@@ -24,10 +24,8 @@ otherwise."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      snippet-mode-map)
-    ("<f9>"    yas-load-snippet-buffer-no-kill)
-    ("S-<f9>"  yas-tryout-snippet)
-    ("`"       yas-load-snippet-buffer-no-kill)
-    ("C-`"     yas-tryout-snippet))
+    ("<f9>"   yas-load-snippet-buffer-no-kill)
+    ("S-<f9>" yas-tryout-snippet))
 
   (def-keys-for-map snippet-mode-map
     ("C-c C-c" nil)
