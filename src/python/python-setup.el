@@ -397,8 +397,6 @@ greater indenation as current line."
     ("<f6>"    python-shell-send-buffer)
     ("<f9>"    python-run-script)
     ("S-<f9>"  python-check)
-    ("`"       python-run-script)
-    ("C-`"     python-check)
 
     ("j"       python-shell-send-defun)
     ("M-?"     python-convolute-lines)

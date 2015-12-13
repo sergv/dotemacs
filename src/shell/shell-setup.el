@@ -40,8 +40,7 @@
                  :enable-yasnippet t)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>" shell-run-file)
-    ("`"    shell-run-file))
+    ("<f9>" shell-run-file))
   (shell-script-abbrev+-setup))
 
 (defun shell-setup ()
