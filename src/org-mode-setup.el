@@ -517,8 +517,6 @@ the current topic."
     ("<f6>"    org-toggle-display-style)
     ("<f9>"    org-latex-export-to-pdf)
     ("S-<f9>"  open-buffer-as-pdf)
-    ("`"       org-latex-export-to-pdf)
-    ("C-`"     open-buffer-as-pdf)
     ("z O"     show-all)
     ;; ("z o"   show-subtree)
     ("z c"     hide-subtree)
