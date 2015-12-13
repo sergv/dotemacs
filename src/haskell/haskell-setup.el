@@ -195,7 +195,6 @@
     ("SPC SPC"   show-ghc-mod-errors-or-switch-to-haskell)
     ("g w"       shm/goto-where)
     ("`"         ghc-display-errors)
-    ;; ("`"         haskell-compile)
     ("C-`"       haskell-lint)
     ("g i"       vim:haskell-navigate-imports)
     ("g I"       haskell-navigate-imports-return)
@@ -385,7 +384,6 @@
   (setq-local *compilation-jump-error-regexp*
               +haskell-compile-error-or-warning-regexp+)
   (def-keys-for-map haskell-compilation-mode-map
-    ("`"        recompile)
     ("<return>" compilation/goto-error)
     ("SPC"      compilation/goto-error-other-window)
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
@@ -395,7 +393,6 @@
   (setq-local *compilation-jump-error-regexp*
               +haskell-compile-error-or-warning-regexp+)
   (def-keys-for-map haskell-compilation-mode-map
-    ("`"        recompile)
     ("<return>" compilation/goto-error)
     ("SPC"      compilation/goto-error-other-window)
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
@@ -433,7 +430,6 @@
                  :enable-yasnippet t)
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("`"    haskell-compile)
     ("<f9>" haskell-compile)))
 
 (defun haskell-lint-setup ()

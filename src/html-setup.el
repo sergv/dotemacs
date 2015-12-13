@@ -206,8 +206,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (defun html-setup ()
   (markup-setup #'hl-tags-context-sgml-mode)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>" browse-url-of-buffer)
-    ("`"    browse-url-of-buffer)))
+    ("<f9>" browse-url-of-buffer)))
 
 
 (setf nxml-slash-auto-complete-flag t)

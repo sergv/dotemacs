@@ -27,9 +27,7 @@
                      vim:normal-mode-local-keymap)
     ("M-/"    complete-symbol)
     ("<f9>"   clojure-compile)
-    ("`"      clojure-compile)
-    ("S-<f9>" kibit)
-    ("C-`"    kibit))
+    ("S-<f9>" kibit))
 
   (setup-eproj-symbnav)
   (clojure-abbrev+-setup))
