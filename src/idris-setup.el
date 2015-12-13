@@ -54,7 +54,6 @@
     ("C-t"             idris-previous-error)
     ("C-h"             idris-next-error)
     ("SPC SPC"         idris-pop-to-repl-or-start-a-new-one)
-    ("g c d"           comment-util-delete-commented-part)
     ("+"               input-unicode)
 
     ("<f6>"            idris-load-file)

@@ -661,7 +661,6 @@ This command assumes point is not in a string or comment."
 (defparameter *lisp-vim-normal-mode-keybindings*
   '(("g c c"   lisp-comment-sexp)
     ("g c u"   lisp-uncomment-sexp)
-    ("g c d"   comment-util-delete-commented-part)
     ("g <tab>" sp-indent-defun)
     ("+"       input-unicode)))
 

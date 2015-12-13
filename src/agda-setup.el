@@ -58,7 +58,6 @@
   (vim:local-emap "load" 'vim:agda-load-file)
   (vim:local-emap "lo"   'vim:agda-load-file)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("g c d"           comment-util-delete-commented-part)
     ("<f6>"            agda2-load)
     ("<tab>"           eri-indent)
     ("S-<tab>"         eri-indent-reverse)
