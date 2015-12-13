@@ -183,6 +183,7 @@ like \"d w\".")
   ;; ("g g f"     find-filename-in-tree-recursive)
   ("g c c"     comment-util-comment-lines)
   ("g c u"     comment-util-uncomment-region)
+  ("g c d"     comment-util-delete-commented-part)
 
   ("g r"       rgrep-wrapper)
   ("g TAB"     nil)

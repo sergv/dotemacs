@@ -403,7 +403,6 @@ greater indenation as current line."
 
     ("SPC SPC" switch-to-python)
     ("g s s"   vim:replace-symbol-at-point)
-    ("g c d"   comment-util-delete-commented-part)
 
     ("z o"     hs-show-block)
     ("z c"     hs-hide-block)

@@ -32,7 +32,7 @@
                 (indent-to standard-indent)))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<f9>" haskell-compile))
+    ("<f9>"  haskell-compile))
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
   (haskell-abbrev+-setup))
 
