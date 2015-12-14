@@ -13,7 +13,9 @@
 (require 'common)
 (require 'compile)
 
-(setf compilation-always-kill t)
+(setf compilation-always-kill t
+      ;; don't ask - just save
+      compilation-ask-about-save nil)
 
 (defvar-local *compilation-jump-error-regexp*
   (rxx ((delim (or "/"

@@ -105,8 +105,6 @@
 
     ;; don't ask - just compile
     (setq-local compilation-read-command nil)
-    ;; don't ask - just save
-    (setq-local compilation-ask-about-save nil)
     (setq-local compilation-auto-jump-to-first-error nil)
     ;; don't skip any messages
     (setq-local compilation-skip-threshold 0))
