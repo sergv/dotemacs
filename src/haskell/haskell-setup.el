@@ -310,6 +310,8 @@
     ("<down>"   comint-next-input)
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)
+    ("C-h"      comint-next-prompt)
+    ("C-t"      comint-previous-prompt)
     ("C-<up>"   compilation-jump-to-prev-error)
     ("C-<down>" compilation-jump-to-next-error))
 
@@ -338,6 +340,8 @@
     ("<down>"   comint-next-input)
     ("C-<up>"   comint-previous-prompt)
     ("C-<down>" comint-next-prompt)
+    ("C-h"      comint-next-prompt)
+    ("C-t"      comint-previous-prompt)
     ("S-<up>"   compilation-jump-to-prev-error)
     ("S-<down>" compilation-jump-to-next-error))
 
