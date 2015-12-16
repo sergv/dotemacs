@@ -1,0 +1,12 @@
+#+TITLE:       ${filename no ext}
+#+DATE:        ${date}
+#+EMAIL:       ${email}
+#+DESCRIPTION: ${empty}
+#+KEYWORDS:    ${empty}
+#+STARTUP:     content
+#+STARTUP:     inlineimages
+
+# Disable treating underscores as subscripts
+#+OPTIONS: ^:nil
+
+
