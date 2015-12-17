@@ -49,12 +49,6 @@
                              (and (= patch  (third cabal-install-version))
                                   (<= aux (fourth cabal-install-version))))))))))
 
-(setf shm-insert-space-after-comma t
-      shm-indent-point-after-adding-where-clause t
-      shm-colon-enabled t
-      shm-indent-use-chris-done-if-indent-style nil
-      inferior-haskell-find-project-root nil)
-
 (defun cleanup-stg ()
   "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
 and indent them as singe line."
@@ -244,7 +238,21 @@ and indent them as singe line."
       ;;         (t
       ;;          (message "GHC not found")
       ;;          nil)))
-      )
+
+      ghc-core-program-args
+      '("-O2"
+        "-dsuppress-uniques"
+        "-dsuppress-idinfo"
+        "-dsuppress-module-prefixes"
+        ;; "-dsuppress-type-signatures"
+        "-dsuppress-type-applications"
+        "-dsuppress-coercions"
+        "-dppr-cols200")
+      shm-insert-space-after-comma t
+      shm-indent-point-after-adding-where-clause t
+      shm-colon-enabled t
+      shm-indent-use-chris-done-if-indent-style nil
+      inferior-haskell-find-project-root nil)
 
 (redefun haskell-interactive-prompt-regex ()
   "λ?> +")
@@ -255,31 +263,6 @@ and indent them as singe line."
                    haskell-compilation-error-regexp-alist)
               "\\|")
   "Regexp matching both errors and warnings.")
-
-
-;; for outline
-(defconst haskell-type-signature-regexp (rx (not (any ?: ?\n))
-                                            "::"
-                                            (group (or
-                                                    (not (any ?: ?\n))
-                                                    eol))))
-(defconst haskell-toplevel-signature-regexp (rx bol
-                                                (not (any ?\s))
-                                                (* nonl)
-                                                (or (not (any ?: ?\n))
-                                                    (seq (* whitespace)
-                                                         "\n"
-                                                         (+ whitespace)))
-                                                "::"
-                                                (group (or
-                                                        (not (any ?: ?\n))
-                                                        eol))))
-(defconst haskell-toplevel-data-declaration-regexp "^[ \t]*data[ \t]+\\(?:.\\|\n\\)+?=")
-(defconst haskell-toplevel-class-declaration-regexp "^[ \t]*class[ \t]+\\(?:.\\|\n\\)+?where")
-(defconst haskell-toplevel-instance-declaration-regexp "^[ \t]*instance[ \t]+\\(?:.\\|\n\\)+?where")
-(defconst haskell-main-function-regexp "^main[ \t]*=[ \t\n\r]*\\(?:do\\)?")
-(defconst haskell-commented-line-regexp "^[ \t]*-- ")
-
 
 (defconst haskell-module-quantification-regexp
   (let ((conid "\\b[[:upper:]][[:alnum:]'_]*\\b"))

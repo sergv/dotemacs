@@ -11,16 +11,6 @@
 (autoload 'ghci-script-mode "ghci-script-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
 
-(setf ghc-core-program-args
-      '("-O2"
-        "-dsuppress-uniques"
-        "-dsuppress-idinfo"
-        "-dsuppress-module-prefixes"
-        ;; "-dsuppress-type-signatures"
-        "-dsuppress-type-applications"
-        "-dsuppress-coercions"
-        "-dppr-cols200"))
-
 (add-to-list 'auto-mode-alist '("\\.cabal\\'" . haskell-cabal-mode))
 
 (autoload 'haskell-cabal-mode "haskell-cabal" nil t)
@@ -100,7 +90,7 @@
   '(progn
      ;; debug output will be in ghc-debug-buffer, "*GHC Debug*"
      (setf ghc-debug t
-           ghc-ghc-options '("-isrc" "-dsuppress-module-prefixes")
+           ghc-ghc-options '("-isrc" "-dsuppress-module-prefixes" "-i/tmp/dist/build")
            ghc-display-error 'other-buffer
            ghc-display-hole 'other-buffer)))
 
