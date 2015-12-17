@@ -227,7 +227,7 @@ before performing any jumps."
                (goto-char (point-min))
                (setf ,found-var ,forward-search))
              (if ,found-var
-               (goto-char (match-beginning 0))
+               (goto-char (match-end 0))
                (progn
                  (goto-char ,original-pos-var)
                  (next-line))))))
@@ -246,7 +246,7 @@ before performing any jumps."
                (goto-char (point-max))
                (setf ,found-var ,backward-search))
              (if ,found-var
-               (goto-char (match-beginning 0))
+               (goto-char (match-end 0))
                (progn
                  (goto-char ,original-pos-var)
                  (previous-line)))))))))
