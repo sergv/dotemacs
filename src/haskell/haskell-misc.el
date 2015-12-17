@@ -277,10 +277,6 @@ and indent them as singe line."
       shm-indent-use-chris-done-if-indent-style nil
       inferior-haskell-find-project-root nil)
 
-(redefun haskell-interactive-prompt-regex ()
-  "λ?> +")
-
-
 (defconst +haskell-compile-error-or-warning-regexp+
   (join-lines (map (lambda (x) (concat "\\(?:" (car x) "\\)"))
                    haskell-compilation-error-regexp-alist)
@@ -654,10 +650,9 @@ return nil otherwise."
   (let ((session (haskell-session)))
     (with-current-buffer (haskell-session-interactive-buffer session)
       (save-excursion
-        (goto-char (point-max))
         (forward-line -1)
         (let ((inhibit-read-only t))
-          (set-text-properties (point-min) (point-max) nil))
+          (set-text-properties (point-min) (point) nil))
         (remove-overlays (point-min) (line-end-position))
         (delete-region (point-min) (line-end-position))
         (haskell-session-set session 'next-error-region nil)
