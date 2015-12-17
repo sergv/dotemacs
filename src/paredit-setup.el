@@ -21,7 +21,7 @@
         activate
         compile)
        (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
-                  (whitespace-charp (char-after)))
+                  (whitespace-char? (char-after)))
          (delete-whitespace-forward)))
 
      (defadvice paredit-backward-slurp-sexp
@@ -30,7 +30,7 @@
         activate
         compile)
        (when (and (lisp-pos-is-end-of-sexp? (point))
-                  (whitespace-charp (char-before)))
+                  (whitespace-char? (char-before)))
          (delete-whitespace-backward)))
 
      ;; fix work in comments
