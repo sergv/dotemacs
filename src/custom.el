@@ -138,6 +138,8 @@ With argument COUNT, do this that many times."
                    (vim-mock:motion-bwd-WORD count)
                    (point))))
 
+(defsubst whitespace-char? (char)
+  (= ?\s (char-syntax char)))
 
 (defsubst whitespace-char-p (char)
   (or (char= char ?\s)
@@ -150,8 +152,9 @@ With argument COUNT, do this that many times."
   "Delete whitespaces forward until non-whitespace
 character found"
   (interactive)
-  (while (and (not (eobp))
-              (whitespace-char-p (char-after)))
+  (while (and (not (bobp))
+              (whitespace-char? (char-after))
+              (not (get-char-property (1- (point)) 'read-only)))
     (delete-char 1)))
 
 (defun delete-whitespace-backward ()
@@ -159,7 +162,8 @@ character found"
 character found"
   (interactive)
   (while (and (not (bobp))
-              (whitespace-char-p (char-before)))
+              (whitespace-char? (char-before))
+              (not (get-char-property (1- (point)) 'read-only)))
     (delete-char -1)))
 
 (defun delete-current-line ()
@@ -413,56 +417,9 @@ last non-whitespace character."
 
 ;;; tabbar stuff
 
-(defun swap-elements (i j xs)
-  "Swaps elements at positions I and J in list XS. Returns new list."
-  (if (or (null xs)
-          (= 1 (length xs))
-          (= i j))
-    xs
-    (if (< j i)
-      (swap-elements j i xs)
-      (when (and (< i (length xs))
-                 (< j (length xs)))
-        (nconc (subseq xs 0 i)
-               (list (nth j xs))
-               (subseq xs (1+ i) j)
-               (list (nth i xs))
-               (subseq xs (1+ j)))))))
-
 (defsubst init (xs)
   "Return all but last elements of XS."
   (nreverse (cdr-safe (reverse xs))))
-
-(defun move-element-left (i xs)
-  "Moves element on Ith position in list XS to I-1'th position, or
-appends it to XS tail if I = 0."
-  (if (>= i (length xs))
-    nil
-    (if (= i 0)
-      (append (cdr xs)
-              (list (car xs)))
-      (swap-elements (1- i) i xs))))
-
-(defun move-element-right (i xs)
-  "Moves element on Ith position in list XS to I+1'th position, or
-appends it to XS head if I = (length XS) - 1."
-  (if (>= i (length xs))
-    nil
-    (if (= i (1- (length xs)))
-      (cons (car (last xs))
-            (init xs))
-      (message "false")
-      (swap-elements (1+ i) i xs))))
-
-
-(defun vector-member (elem vec)
-  (let ((found nil)
-        (i 0))
-    (while (and (< i (length vec))
-                (not found))
-      (setq found (equal (aref vec i) elem)
-            i (1+ i)))
-    found))
 
 ;; Some useful abstractions to move based on
 ;; symbols representing direction
