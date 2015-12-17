@@ -1426,6 +1426,7 @@ topmost `kill-ring' item is equal to text."
 (autoload 'rm "common-heavy" nil t)
 (autoload 'transpose-windows "common-heavy" nil t)
 (autoload 'narrow-to-region-indirect "common-heavy" nil t)
+(autoload 'fontify-conflict-markers "common-heavy")
 
 (provide 'common)
 
