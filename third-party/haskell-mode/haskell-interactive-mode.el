@@ -297,7 +297,12 @@ SESSION, otherwise operate on the current buffer."
                                 'font-lock-face 'haskell-interactive-face-prompt
                                 'prompt t
                                 'read-only haskell-interactive-prompt-read-only
-                                'rear-nonsticky t)))
+                                'rear-nonsticky t
+
+                                ;; comint recipe
+                                'field 'output
+                                'front-sticky '(field inhibit-line-move-field-capture)
+                                'inhibit-line-move-field-capture t)))
         ;; At the time of writing, front-stickying the first char gives an error
         ;; Has unfortunate side-effect of being able to insert before the prompt
         (insert (substring prompt 0 1)
@@ -392,7 +397,7 @@ SESSION, otherwise operate on the current buffer."
 (defun haskell-interactive-mode-goto-end-point ()
   "Go to the 'end' of the buffer (before the prompt)."
   (goto-char haskell-interactive-mode-prompt-start)
-  (goto-char (line-beginning-position)))
+  (skip-chars-backward "^\n"))
 
 (defun haskell-interactive-mode-history-add (input)
   "Add INPUT to the history."
