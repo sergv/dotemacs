@@ -109,7 +109,7 @@
                :use-render-formula nil
                :use-hl-line nil
                :use-whitespace 'tabs-only)
-  (smerge-mode +1)
+  (fontify-conflict-markers)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
   (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)
 
@@ -354,6 +354,7 @@
   ;; (undo-tree-mode -1)
   (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil)
   (init-repl :create-keymaps t :bind-return nil :bind-vim:motion-current-line nil)
+  ;; very useful to automatically surround with spaces inserted operators
   (haskell-bind-shm-bindings)
 
   (def-keys-for-map vim:normal-mode-local-keymap
