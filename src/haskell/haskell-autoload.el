@@ -23,6 +23,8 @@
 (autoload 'haskell-font-lock-choose-keywords "haskell-font-lock" nil nil)
 (autoload 'haskell-mode "haskell-mode" nil t)
 (autoload 'literate-haskell-mode "haskell-mode" nil t)
+(autoload 'haskell-doc-mode "haskell-doc" nil t)
+(autoload 'turn-on-haskell-doc-mode "haskell-doc" nil t)
 
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
@@ -40,7 +42,7 @@
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
-(defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot"))
+(defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "happy" "y"))
 
 (autoload 'haskell-setup-folding "haskell-outline")
 
