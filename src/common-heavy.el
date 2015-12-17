@@ -395,6 +395,21 @@ not exist after command is finished."
       (narrow-to-region start end))
       (switch-to-buffer buf)))
 
+(defun fontify-conflict-markers (&optional mode)
+  "Fontify conflict markers produced by VCS systemts with warning face for MODE.
+If MODE is nil - fontify in current buffer."
+  (font-lock-add-keywords
+   mode
+   `((,(rx bol
+           (or "|||||||"
+               "======="
+               (seq (or "<<<<<<<"
+                        ">>>>>>>")
+                    " "
+                    (* any)))
+           eol)
+      0 'warning t))))
+
 ;;;
 
 (provide 'common-heavy)
