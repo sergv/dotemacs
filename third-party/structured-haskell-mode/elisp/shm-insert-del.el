@@ -36,22 +36,25 @@ Similar to `shm-insert-string'."
              (not (shm-literal-insertion)))
     ;; delete spaces backwards if there's operator or open paren char
     ;; somewhere
-    (let ((dist (save-excursion
-                  (let ((n (skip-syntax-backward " ")))
-                    (and (not (bobp))
-                         (or (memq (char-before (point))
-                                   shm/operator-chars)
-                             (char-equal (char-before (point))
-                                         ?\())
-                         (if (char-equal (char-before (point)) ?|)
-                           (not (string-match-p "^[ \t]*|"
-                                                (buffer-substring-no-properties
-                                                 (line-beginning-position)
-                                                 (- (point) 1))))
-                           t)
-                         n)))))
-      (when dist
-        (delete-forward-char dist))))
+    (let ((delete-whitespace?
+           (save-excursion
+             (skip-syntax-backward " ")
+             (and (not (bobp))
+                  (or (memq (char-before (point))
+                            shm/operator-chars)
+                      (char-equal (char-before (point))
+                                  ?\())
+                  (if (char-equal (char-before (point)) ?|)
+                    (not (string-match-p "^[ \t]*|"
+                                         (buffer-substring-no-properties
+                                          (line-beginning-position)
+                                          (- (point) 1))))
+                    t)))))
+      (when delete-whitespace?
+        (while (and (not (bobp))
+                    (= ?\s (char-syntax (char-before)))
+                    (not (get-char-property (1- (point)) 'read-only)))
+          (delete-char -1)))))
   (shm-insert-string (make-string 1 char)))
 
 (defun shm-on-empty-string-p ()
