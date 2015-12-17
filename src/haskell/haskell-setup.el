@@ -70,10 +70,8 @@
   (haskell-compile t))
 (vim:defcmd vim:haskell-lint (nonrepeatable)
   (haskell-lint))
-(vim:defcmd vim:inferior-haskell-load-file (nonrepeatable)
-  (inferior-haskell-load-file))
-(vim:defcmd vim:haskell-clear-buffer-and-load-file (nonrepeatable)
-  (haskell-clear-buffer-and-load-file))
+(vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
+  (haskell-process-load-file))
 
 (defvar-local vim:haskell-check-on-save nil
   "Whether to run `ghc-check' on saves.")
@@ -116,8 +114,9 @@
   ;; ghci interaction uses comint - same as shell mode
   (turn-on-font-lock)
 
-  ;; fix vim treatment of words for Haskell
+  ;; (haskell-doc-mode-setup)
 
+  ;; fix vim treatment of words for Haskell
   ;; note: do not include underscore into vim:word as this would cause
   ;; inefficiencies while navigating haskell identifiers
   (setq-local vim:word "[:word:]'")
@@ -134,12 +133,6 @@
   (setq-local abbrev+-fallback-function #'haskell-abbrev+-fallback-space)
 
   ;; (turn-on-haskell-simple-indent)
-
-  ;; (turn-on-haskell-doc-mode)
-  ;; (setf haskell-doc-show-global-types t)
-
-  ;; it's not always a good idea to wait
-  ;; (setf inferior-haskell-wait-and-jump t)
 
   (let ((offset
          (if-let (hask-offset
@@ -175,9 +168,9 @@
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
   (vim:local-emap "hlint"    'vim:haskell-lint)
-  (vim:local-emap "load"     'vim:inferior-haskell-load-file)
-  (vim:local-emap "lo"       'vim:inferior-haskell-load-file)
-  (vim:local-emap "loadc"    'vim:haskell-clear-buffer-and-load-file)
+  (vim:local-emap "load"     'vim:haskell-load-file-into-repl)
+  (vim:local-emap "lo"       'vim:haskell-load-file-into-repl)
+  ;; ghc-mod commands
   (vim:local-emap "init"     'vim:haskell-ghc-init)
   (vim:local-emap "check"    'vim:haskell-ghc-check)
   (vim:local-emap "ch"       'vim:haskell-ghc-check)
@@ -238,36 +231,35 @@
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
     ("<return>"        haskell-newline)
-    ("<f6>"            inferior-haskell-load-file)
+    ("<f6>"            haskell-process-load-file)
     ("<f9>"            haskell-compile)
-    ("S-<f9>"          haskell-lint)
-    ("C-<f6>"          haskell-clear-buffer-and-load-file))
+    ("S-<f9>"          haskell-lint))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("- ?"     ghc-display-errors)
-    ("- y"     hayoo)
-    ("- /"     ghc-complete)
-    ("- t"     ghc-show-type)
-    ("- i"     ghc-show-info)
-    ("- e"     ghc-expand-th)
-    ("- m"     ghc-insert-module)
-    ("- c"     ghc-case-split)
-    ("- r"     ghc-refine)
-    ("- a"     ghc-auto)
-    ("- s"     ghc-insert-template-or-signature)
+    ("- ?" ghc-display-errors)
+    ("- /" ghc-complete)
+    ("- t" ghc-show-type)
+    ("- i" ghc-show-info)
+    ("- e" ghc-expand-th)
+    ("- m" ghc-insert-module)
+    ("- c" ghc-case-split)
+    ("- r" ghc-refine)
+    ("- a" ghc-auto)
+    ("- s" ghc-insert-template-or-signature)
 
-    ("*"       search-for-haskell-symbol-at-point-forward)
-    ("C-*"     search-for-haskell-symbol-at-point-forward-new-color)
-    ("#"       search-for-haskell-symbol-at-point-backward)
-    ("C-#"     search-for-haskell-symbol-at-point-backward-new-color)
-    ("'"       vim:shm/goto-parent)
-    ("g t"     haskell-node/move-to-topmost-start)
-    ("g h"     haskell-node/move-to-topmost-end))
+    ("*"   search-for-haskell-symbol-at-point-forward)
+    ("C-*" search-for-haskell-symbol-at-point-forward-new-color)
+    ("#"   search-for-haskell-symbol-at-point-backward)
+    ("C-#" search-for-haskell-symbol-at-point-backward-new-color)
+    ("'"   vim:shm/goto-parent)
+    ("g t" haskell-node/move-to-topmost-start)
+    ("g h" haskell-node/move-to-topmost-end))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("C-/"     ghc-complete))
+    ("C-/"   ghc-complete)
+    ("C-SPC" ghc-complete))
 
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
 
@@ -363,9 +355,7 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      haskell-interactive-mode-map)
-    ("C-S-p" browse-kill-ring)
-    ;; ("<return>" inf-haskell-send-input-or-jump-to-error)
-    )
+    ("M-p" browse-comint-input-history))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      haskell-interactive-mode-map)
@@ -377,6 +367,8 @@
     ("<down>"   haskell-interactive-mode-history-next)
     ("<tab>"    haskell-interactive-mode-tab)
 
+    ("C-t"      haskell-interactive-jump-to-prev-prompt)
+    ("C-h"      haskell-interactive-jump-to-next-prompt)
     ("S-<up>"   haskell-interactive-jump-to-prev-prompt)
     ("S-<down>" haskell-interactive-jump-to-next-prompt))
 
