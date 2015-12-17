@@ -99,7 +99,7 @@
                 global-mode-string))
 
 ;;;; modes without much customization
-(setq-default frame-background-mode 'light)
+(setq-default frame-background-mode 'dark)
 
 (global-auto-revert-mode 1)
 
@@ -114,7 +114,7 @@
 (setq-default cursor-type 'box)     ;; 'bar)
 (setf cursor-type 'box
       ;; default-major-mode 'text-mode ;;'lisp-interaction-mode
-      tab-width 4
+      tab-width 2
       tab-always-indent t)
 (blink-cursor-mode -1)
 
