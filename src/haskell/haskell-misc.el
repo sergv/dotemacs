@@ -176,6 +176,18 @@ and indent them as singe line."
              sep
              (funcall test-command nil))))))
 
+(defun haskell-doc-mode-setup ()
+  ;; (haskell-doc-mode +1)
+  (turn-on-haskell-doc-mode)
+  (setq-default haskell-doc-show-global-types t)
+  (setq-default haskell-doc-show-reserved t)
+  (setq-default haskell-doc-show-prelude t)
+  (setq-default haskell-doc-show-strategy t)
+  (setq-default haskell-doc-show-user-defined t)
+  (setf haskell-doc-chop-off-context nil
+        haskell-doc-chop-off-fctname nil))
+
+
 (setf haskell-compile-command
       (or (getenv "HASKELL_COMPILE_COMMAND")
           (concat "ghc -W -Wall -fwarn-monomorphism-restriction "
@@ -194,6 +206,41 @@ and indent them as singe line."
           (error "failed to set up haskell-compile-cabal-build-command"))
       ;; "cd %s && cabal build --ghc-option=-ferror-spans && cabal test --show-details=always"
       ;; 'cabal-repl is good as well
+
+      haskell-process-suggest-remove-import-lines t
+      haskell-process-auto-import-loaded-modules t
+      ;; haskell-process-suggest-hoogle-imports t ;; may be cool
+      haskell-process-show-debug-tips nil
+      haskell-interactive-popup-errors nil
+      haskell-interactive-mode-eval-mode #'haskell-mode
+
+      ;; haskell-process
+      haskell-interactive-prompt "λ> "
+      ;; (propertize "λ> "
+      ;;             'front-sticky t
+      ;;             'rear-nonsticky t
+      ;;             'field t)
+      haskell-process-type 'cabal-repl
+      ;; haskell-process-type 'stack-ghci
+      haskell-process-log t
+      ;; don't prompt on starting repl
+      haskell-process-load-or-reload-prompt nil
+      haskell-process-show-debug-tips nil
+
+      haskell-process-suggest-haskell-docs-imports nil
+      haskell-process-suggest-hayoo-imports nil
+      haskell-process-suggest-hoogle-imports nil
+
+      haskell-process-suggest-add-package nil
+      haskell-process-suggest-remove-import-lines t
+      haskell-process-suggest-overloaded-strings nil
+
+      haskell-process-check-cabal-config-on-load t
+      haskell-process-auto-import-loaded-modules nil
+      haskell-interactive-popup-errors nil
+      ;; unsure
+      ;; haskell-interactive-mode-delete-superseded-errors nil
+
       haskell-process-type 'ghci
       haskell-process-path-ghci
       (if (platform-os-type? 'windows)
@@ -202,7 +249,11 @@ and indent them as singe line."
       haskell-process-args-ghci
       (let ((extensions '("-XLambdaCase" "-XTemplateHaskell" "-XOverloadedStrings"))
             ;; (opts "-fobject-code")
-            (opts '("-fbyte-code" "-odir" "/tmp/ghc" "-hidir" "/tmp/ghc"))
+            (opts (append
+                   '("-fbyte-code" "-odir" "/tmp/ghc" "-hidir" "/tmp/ghc")
+                   (if (platform-os-type? 'windows)
+                     '("-i/tmp/dist/build")
+                     nil)))
             (rts-opts '("+RTS" "-M1G")))
         (append (if (platform-os-type? 'windows)
                   "--interactive"
@@ -210,34 +261,6 @@ and indent them as singe line."
                 extensions
                 opts
                 rts-opts))
-
-      haskell-process-suggest-remove-import-lines t
-      haskell-process-auto-import-loaded-modules t
-      ;; haskell-process-suggest-hoogle-imports t ;; may be cool
-      haskell-process-show-debug-tips nil
-      haskell-interactive-popup-errors nil
-      haskell-interactive-mode-eval-mode #'haskell-mode
-      ;; Propertize so that later haskell-interactive-mode.el will catch
-      ;; these properties up when inserting prompt.
-      haskell-interactive-prompt "λ> "
-
-      ;; haskell-program-name
-      ;; (let ((extensions "-XLambdaCase -XTemplateHaskell -XOverloadedStrings")
-      ;;       ;; (opts "-fobject-code")
-      ;;       (opts "-fbyte-code -odir /tmp/ghc -hidir /tmp/ghc")
-      ;;       (rts-opts "+RTS -M1G"))
-      ;;   (cond ((platform-os-type? 'windows)
-      ;;          (join-lines (list "ghc" "--interactive" extensions opts rts-opts)
-      ;;                      " "))
-      ;;         ((executable-find "ghci")
-      ;;          (join-lines (list "ghci" extensions opts rts-opts)
-      ;;                      " "))
-      ;;         ((executable-find "ghc")
-      ;;          (join-lines (list "ghc" "--interactive" extensions opts rts-opts)
-      ;;                      " "))
-      ;;         (t
-      ;;          (message "GHC not found")
-      ;;          nil)))
 
       ghc-core-program-args
       '("-O2"
@@ -616,15 +639,6 @@ return nil otherwise."
     (shm/space)
     (insert " ")))
 
-(defun haskell-clear-buffer-and-load-file ()
-  "Switch to ghci, clear it and load current file."
-  (interactive)
-  (when (buffer-live-p inferior-haskell-buffer)
-    (with-current-buffer inferior-haskell-buffer
-      (goto-char (point-max))
-      (comint-clear-buffer-above-prompt)))
-  (inferior-haskell-load-file))
-
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
 
 (defun haskell-interactive-clear-prompt ()
@@ -756,6 +770,8 @@ it's position in current window."
   (or (and (ghc-display-errors)
            (progn
              (when ghc-error-shown
+               ;; If error is about file other than we're currently visiting
+               ;; then jump to that file.
                (unless (string= (normalize-file-name ghc-error-file)
                                 (normalize-file-name buffer-file-name))
                  (aif (compilation/find-buffer ghc-error-file)
@@ -765,7 +781,7 @@ it's position in current window."
                      (ghc-goto-next-error))
                    (error "Cannot jump to nonexistent file: %s" ghc-error-file))))
              t))
-      (switch-to-haskell)))
+      (haskell-process-load-file)))
 
 (defun haskell-shm-tab-or-indent-relative-forward ()
   (interactive)
