@@ -322,21 +322,15 @@
 ;;
 ;;   (maximize-frame))
 
-
 ;;;; aliases
 
 (fset 'yes-or-no-p 'y-or-n-p)
 (defalias 'mv 'rename-file-and-buffer)
 (defalias 'cp 'copy-file-and-open)
-(defalias 'mv* 'rename-file)
-(defalias 'cp* 'copy-file)
 (defalias 'mkdir 'make-directory)
 (defalias 'rmdir 'delete-directory)
 (defalias 'qrr 'query-replace-regexp)
-(defalias 'open 'find-file)
-(defalias 'openo 'find-file-other-window)
 (defalias 'unnarrow 'widen)
-(defalias 'align 'align-regexp)
 (defalias 'toggle-wrap-lines 'toggle-truncate-lines)
 
 (defalias 'eshell (lambda () (interactive) (error "eshell is disabled")))
