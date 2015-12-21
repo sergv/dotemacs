@@ -12,6 +12,7 @@
 (require 'ert)
 
 (require 'eproj)
+(require 'eproj-haskell)
 
 
 (defun eproj-tests/non-special-files (path)
@@ -147,7 +148,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-table
-     (eproj/ctags-get-tags-from-buffer (current-buffer) t)
+     (eproj/get-fast-tags-tags-from-buffer (current-buffer))
      (should-not (= 0 (hash-table-size tags-table)))
 
      (let ((tag1 (car-safe (gethash "foo1" tags-table))))
@@ -181,7 +182,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-table
-     (eproj/ctags-get-tags-from-buffer (current-buffer) t)
+     (eproj/get-fast-tags-tags-from-buffer (current-buffer))
      (should-not (= 0 (hash-table-size tags-table)))
 
      (let ((tag1 (car-safe (gethash "foo1" tags-table))))
