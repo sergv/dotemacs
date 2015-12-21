@@ -102,6 +102,25 @@
                                                    ;; performing navigation
   )
 
+(defun* mk-eproj-lang (&key mode
+                            extensions
+                            load-procedure
+                            tag->string-procedure
+                            synonym-modes
+                            normalize-identifier-before-navigation-procedure)
+  (make-eproj-language
+   :mode mode
+   :extensions extensions
+   :extension-re (concat "\\."
+                          (regexp-opt extensions)
+                          "$")
+   :load-procedure
+   load-procedure
+   :tag->string-procedure tag->string-procedure
+   :synonym-modes synonym-modes
+   :normalize-identifier-before-navigation-procedure
+   normalize-identifier-before-navigation-procedure))
+
 ;;;; ctags facility
 
 (defparameter *ctags-exec* (executable-find "exuberant-ctags"))
@@ -413,12 +432,9 @@ BUFFER is expected to contain output of ctags command."
 
 (defparameter eproj/languages
   (list
-   (make-eproj-language
+   (mk-eproj-lang
     :mode 'haskell-mode
     :extensions *haskell-extensions*
-    :extension-re (concat "\\."
-                          (regexp-opt *haskell-extensions*)
-                          "$")
     :load-procedure
     (lambda (proj make-project-files)
       (eproj/load-haskell-project proj make-project-files))
@@ -428,12 +444,9 @@ BUFFER is expected to contain output of ctags command."
                      c2hs-mode)
     :normalize-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification)
-   (make-eproj-language
+   (mk-eproj-lang
     :mode 'c-mode
     :extensions '("c" "h")
-    :extension-re (rx "."
-                      (or "c" "h")
-                      eol)
     :load-procedure
     (lambda (proj make-project-files)
       (eproj/load-ctags-project 'c-mode proj make-project-files))
@@ -441,7 +454,7 @@ BUFFER is expected to contain output of ctags command."
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
-   (make-eproj-language
+   (mk-eproj-lang
     :mode 'c++-mode
     :extensions '("c"
                   "cc"
@@ -456,21 +469,6 @@ BUFFER is expected to contain output of ctags command."
                   "inl"
                   "inc"
                   "incl")
-    :extension-re (rx "."
-                      (or "c"
-                          "cc"
-                          "cxx"
-                          "cpp"
-                          "c++"
-                          "h"
-                          "hh"
-                          "hxx"
-                          "hpp"
-                          "h++"
-                          "inl"
-                          "inc"
-                          "incl")
-                      eol)
     :load-procedure
     (lambda (proj make-project-files)
       (eproj/load-ctags-project 'c++-mode proj make-project-files))
@@ -478,12 +476,9 @@ BUFFER is expected to contain output of ctags command."
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
-   (make-eproj-language
+   (mk-eproj-lang
     :mode 'python-mode
     :extensions '("py" "pyx" "pxd" "pxi")
-    :extension-re (rx "."
-                      (or "py" "pyx" "pxd" "pxi")
-                      eol)
     :load-procedure
     (lambda (proj make-project-files)
       (eproj/load-ctags-project 'python-mode proj make-project-files))
@@ -491,24 +486,17 @@ BUFFER is expected to contain output of ctags command."
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
-   (make-eproj-language
+   (mk-eproj-lang
     :mode 'clojure-mode
     :extensions '("clj" "java")
-    :extension-re (rx "."
-                      (or "clj"
-                          "java")
-                      eol)
     :load-procedure #'eproj/clojure-load-procedure
     :tag->string-procedure #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
-   (make-eproj-language
+   (mk-eproj-lang
     :mode 'java-mode
     :extensions '("java")
-    :extension-re (rx "."
-                      (or "java")
-                      eol)
     :load-procedure
     (lambda (proj make-project-files)
       (eproj/load-ctags-project 'java-mode proj make-project-files))
