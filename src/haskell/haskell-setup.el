@@ -351,6 +351,7 @@
   (init-repl :create-keymaps t
              :bind-return nil
              :bind-vim:motion-current-line nil)
+  (structured-haskell-mode -1)
   ;; very useful to automatically surround with spaces inserted operators
   (haskell-bind-shm-bindings)
 
