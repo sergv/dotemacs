@@ -35,6 +35,7 @@
 
 (autoload 'turn-on-haskell-unicode-input-method "haskell-unicode-input-method" nil t)
 (autoload 'haskell-mode-after-save-handler "haskell" nil nil)
+(autoload 'haskell-process-load-file "haskell" nil t)
 (autoload 'switch-to-haskell "inf-haskell" nil t)
 
 (autoload 'ghc-profiling-mode "ghc-profiling-mode" nil t)
