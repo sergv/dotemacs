@@ -139,7 +139,9 @@ With argument COUNT, do this that many times."
                    (point))))
 
 (defsubst whitespace-char? (char)
-  (= ?\s (char-syntax char)))
+  (or (= char ?\n)
+      (= char ?\r)
+      (= ?\s (char-syntax char))))
 
 (defsubst whitespace-char-p (char)
   (or (char= char ?\s)
