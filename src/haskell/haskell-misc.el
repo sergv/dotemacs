@@ -241,7 +241,6 @@ and indent them as singe line."
       ;; unsure
       ;; haskell-interactive-mode-delete-superseded-errors nil
 
-      haskell-process-type 'ghci
       haskell-process-path-ghci
       (if (platform-os-type? 'windows)
         "ghc"
