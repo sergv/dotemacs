@@ -29,12 +29,14 @@
       magit-branches-buffer-name-format "*magit-branches*"
       magit-wazzup-buffer-name-format "*magit-wazzup*"
       magit-cherry-buffer-name-format "*magit-cherry*"
-      ;; make magit-process buffers invisible by default
+      ;; Make magit-process buffers invisible by default.
       magit-process-buffer-name-format " *magit-process: %b*"
       magit-process-log-max 256
       magit-popup-show-help-section nil
-      ;; show refined diffs for selected hunk
-      magit-diff-refine-hunk t)
+      ;; Show refined diffs for selected hunk>
+      magit-diff-refine-hunk t
+      ;; Save any modified files before opening `magit-status'.
+      magit-save-some-buffers 'dontask)
 
 (autoload 'gitignore-mode "gitignore-mode"
           "Major mode for editing .gitignore files"
