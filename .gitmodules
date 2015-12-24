@@ -83,7 +83,8 @@
 	ignore = untracked
 [submodule "third-party/yafolding.el"]
         path = third-party/yafolding.el
-        url = https://github.com/sergv/yafolding.el.git
+        url = https://github.com/zenozeng/yafolding.el.git
+	ignore = untracked
 [submodule "third-party/mmm-mode"]
         path = third-party/mmm-mode
         url = https://github.com/purcell/mmm-mode.git
