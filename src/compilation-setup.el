@@ -161,6 +161,7 @@ error location - list of (filename line column)."
        ("M-p"      nil)
        ("q"        remove-buffer)
        ("C-c C-c"  kill-compilation)
+       ("m"        vim-mock:motion-jump-item)
 
        ("C-v"      set-mark-command)
        ("C-y"      copy-region-as-kill)
