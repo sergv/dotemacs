@@ -434,7 +434,9 @@ BUFFER is expected to contain output of ctags command."
   (list
    (mk-eproj-lang
     :mode 'haskell-mode
-    :extensions *haskell-extensions*
+    :extensions (filter (comp #'not
+                              (partial-first #'member '("x" "alex" "y" "happy" "ly")))
+                        *haskell-extensions*)
     :load-procedure
     (lambda (proj make-project-files)
       (eproj/load-haskell-project proj make-project-files))
