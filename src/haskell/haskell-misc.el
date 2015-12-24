@@ -210,16 +210,10 @@ and indent them as singe line."
       haskell-process-suggest-remove-import-lines t
       haskell-process-auto-import-loaded-modules t
       ;; haskell-process-suggest-hoogle-imports t ;; may be cool
-      haskell-process-show-debug-tips nil
-      haskell-interactive-popup-errors nil
       haskell-interactive-mode-eval-mode #'haskell-mode
 
       ;; haskell-process
       haskell-interactive-prompt "λ> "
-      ;; (propertize "λ> "
-      ;;             'front-sticky t
-      ;;             'rear-nonsticky t
-      ;;             'field t)
       haskell-process-type 'cabal-repl
       ;; haskell-process-type 'stack-ghci
       haskell-process-log t
@@ -238,6 +232,8 @@ and indent them as singe line."
       haskell-process-check-cabal-config-on-load t
       haskell-process-auto-import-loaded-modules nil
       haskell-interactive-popup-errors nil
+      ;; Don't show types for data without Show instance>
+      haskell-interactive-types-for-show-ambiguous nil
       ;; unsure
       ;; haskell-interactive-mode-delete-superseded-errors nil
 
@@ -662,12 +658,14 @@ return nil otherwise."
     haskell-interactive-jump-to-prev-prompt
   (haskell-interactive-prompt-regex))
 
-(defun haskell-bind-shm-bindings ()
+(defun* haskell-bind-shm-bindings (&key bind-colon)
+  (when bind-colon
+    (def-keys-for-map vim:insert-mode-local-keymap
+      (":" shm/:)))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("-"   shm/hyphen)
     ("#"   shm/hash)
     (","   shm/comma)
-    (":"   shm/:)
     ("="   shm/=)
 
     ("C-=" input-unicode)
