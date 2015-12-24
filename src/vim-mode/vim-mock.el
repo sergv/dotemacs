@@ -135,6 +135,27 @@
    (min (line-end-position)
         (+ (point) (or count 1)))))
 
+(defun vim-mock:motion-jump-item ()
+  (interactive)
+  (let* ((next-open
+          (condition-case nil
+              (1- (scan-lists (point) 1 -1))
+            (error (point-max))))
+         (next-close
+          (condition-case nil
+              (1- (scan-lists (point) 1 +1))
+            (error (point-max))))
+         (pos (min next-open next-close)))
+    (when (>= pos (line-end-position))
+      (error "No matching item found on the current line"))
+    (if (= pos next-open)
+      (progn
+        (goto-char pos)
+        (forward-list)
+        (backward-char))
+      (progn
+        (goto-char (1+ pos))
+        (backward-list)))))
 
 (provide 'vim-mock)
 
