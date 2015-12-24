@@ -190,7 +190,7 @@
     ("g I"     haskell-navigate-imports-return)
     ("g <tab>" haskell-reindent-at-point))
 
-  (haskell-bind-shm-bindings)
+  (haskell-bind-shm-bindings :bind-colon t)
   (def-keys-for-map shm-map
     ("("            nil)
     ("["            nil)
@@ -353,7 +353,7 @@
              :bind-vim:motion-current-line nil)
   (structured-haskell-mode -1)
   ;; very useful to automatically surround with spaces inserted operators
-  (haskell-bind-shm-bindings)
+  (haskell-bind-shm-bindings :bind-colon nil)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  haskell-interactive-clear-prompt))
