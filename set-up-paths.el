@@ -50,6 +50,9 @@
   "Path to temporary directory, contents of which may be removed on
 system restars.")
 
+(defconst +tmp-global-path+ temporary-file-directory
+  "Path to temporary files that are visible across different emacs instances.")
+
 (make-directory +tmp-path+ t)
 
 (setf temporary-file-directory +tmp-path+
