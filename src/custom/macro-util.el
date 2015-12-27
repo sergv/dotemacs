@@ -770,16 +770,14 @@ return nil otherwise."
                (= 2 (length condition)))
           nil
           "if-let error: invalid condition: %s" condition)
-  (if (list? condition)
-    (let ((tmp-var (gensym "cond-var"))
-          (cond-var (first condition))
-          (expr (first (rest condition))))
-      `(let ((,tmp-var ,expr))
-         (if ,tmp-var
-           (let ((,cond-var ,tmp-var))
-             ,true-branch)
-           ,false-branch)))
-    (error "not implemented yet")))
+  (let ((tmp-var (gensym "cond-var"))
+        (cond-var (first condition))
+        (expr (first (rest condition))))
+    `(let ((,tmp-var ,expr))
+       (if ,tmp-var
+         (let ((,cond-var ,tmp-var))
+           ,true-branch)
+         ,false-branch))))
 
 (defmacro when-let (condition &rest body)
   (declare (indent 1))

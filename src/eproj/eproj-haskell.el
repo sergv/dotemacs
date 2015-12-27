@@ -10,74 +10,48 @@
 
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
-(defun eproj/load-haskell-project (proj make-project-files)
-  "Load haskell project PROJ according to definitions in .eproj-info file.
-
-NB MAKE-PROJECT-FILES should be a function of 0 arguments that returns a list of
-files.
-
-Note: old tags file is removed before calling update command."
+(defun eproj/create-haskell-tags (proj make-project-files parse-tags-proc)
   (assert (eproj-project-p proj))
-  (when eproj-verbose-tag-loading
-    (message "Loading haskell project %s" (eproj-project/root proj)))
-  (if-let (tag-file-entry (assoc 'tag-file (eproj-project/aux-info proj)))
-    (progn
-      (unless (= (length tag-file-entry) 2)
-        (error "invalid 'tag-file entry in %s project: %s"
-               (eproj-project/root proj)
-               tag-file-entry))
-      (let ((tag-file (cadr tag-file-entry)))
-        (assert (stringp tag-file))
-        (let ((tag-file-path (eproj-resolve-abs-or-rel-name tag-file
-                                                            (eproj-project/root proj))))
-          (when (or (null tag-file-path)
-                    (not (file-exists-p tag-file-path)))
-            (error "Cannot find tag file %s at %s" tag-file tag-file-path))
-          (for-buffer-with-file tag-file-path
-            (eproj/get-fast-tags-tags-from-buffer (current-buffer)
-                                                  eproj-verbose-tag-loading)))))
-    (progn
-      (unless *fast-tags-exec*
-        (error "Cannot load haskell project, fast-tags executable not found and no tag-file specified"))
-      (with-temp-buffer
-        (with-disabled-undo
-          (with-inhibited-modification-hooks
-            (let ((out-buffer (current-buffer))
-                  (ext-re (eproj-language/extension-re
-                           (gethash 'haskell-mode eproj/languages-table))))
-              (with-temp-buffer
-                (with-disabled-undo
-                  (with-inhibited-modification-hooks
-                    (let ((files
-                           (filter
-                            (lambda (file)
-                              (string-match-pure? ext-re file))
-                            (funcall make-project-files))))
-                      (when files
-                        (insert (car files))
-                        (dolist (file (cdr files))
-                          (insert "\0" file))))
-                    (when (not (= 0
-                                  (call-process-region (point-min)
-                                                       (point-max)
-                                                       *fast-tags-exec*
-                                                       nil
-                                                       out-buffer
-                                                       nil
-                                                       "-0"
-                                                       "-o-"
-                                                       "--nomerge")))
-                      (error "fast-tags invokation failed: %s"
-                             (with-current-buffer out-buffer
-                               (buffer-substring-no-properties (point-min) (point-max)))))
-                    (erase-buffer))))
-              (eproj/get-fast-tags-tags-from-buffer out-buffer
-                                                    eproj-verbose-tag-loading)))))
-      ;; (message "Warning: no tag file for haskell project %s"
-      ;;          (eproj-project/root proj))
-      )))
+  ;; (when eproj-verbose-tag-loading
+  ;;   (message "Creating haskell tags for project %s" (eproj-project/root proj)))
+  (unless *fast-tags-exec*
+    (error "Cannot load haskell project, fast-tags executable not found (and no tag-file specified)"))
+  (with-temp-buffer
+    (with-disabled-undo
+     (with-inhibited-modification-hooks
+      (let ((out-buffer (current-buffer))
+            (ext-re (eproj-language/extension-re
+                     (gethash 'haskell-mode eproj/languages-table))))
+        (with-temp-buffer
+          (with-disabled-undo
+           (with-inhibited-modification-hooks
+            (dolist (file (funcall make-project-files))
+              (when (string-match-p ext-re file)
+                (insert file "\n")))
+            ;; (when-let (files
+            ;;            (filter
+            ;;             (lambda (file)
+            ;;               (string-match-pure? ext-re file))
+            ;;             (funcall make-project-files)))
+            ;;   (insert (car files))
+            ;;   (dolist (file (cdr files))
+            ;;     (insert "\0" file)))
+            (unless (= 0
+                       (call-process-region (point-min)
+                                            (point-max)
+                                            *fast-tags-exec*
+                                            nil
+                                            out-buffer
+                                            nil
+                                            "-o-"
+                                            "--nomerge"))
+              (error "fast-tags invokation failed: %s"
+                     (with-current-buffer out-buffer
+                       (buffer-substring-no-properties (point-min) (point-max)))))
+            (erase-buffer))))
+        (funcall parse-tags-proc out-buffer))))))
 
-(defun eproj/get-fast-tags-tags-from-buffer (buffer &optional verbose)
+(defun eproj/get-fast-tags-tags-from-buffer (buffer)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain simplified output of ctags - fast-tags command.
 
@@ -93,7 +67,7 @@ runtime but rather will be silently relied on)."
                                          ;; Every 1000 lines takes up 1 mb or so.
                                          (/ (* (count-lines (point-min) (point-max)) 1024 1024)
                                             1000))))
-            (total-tags-fraction (when verbose
+            (total-tags-fraction (when eproj-verbose-tag-loading
                                    (/ (count-lines (point-min) (point-max))
                                       100)))
             (tags-loaded-percents 0)
@@ -127,7 +101,7 @@ runtime but rather will be silently relied on)."
                                (gethash symbol tags-table nil))
                          tags-table))))
           (forward-line 1)
-          (when verbose
+          (when eproj-verbose-tag-loading
             (when (= n total-tags-fraction)
               (incf tags-loaded-percents)
               (when (= 0 (mod tags-loaded-percents 5))
