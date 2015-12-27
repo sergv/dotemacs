@@ -7,23 +7,23 @@
 ;; Description:
 ;;
 ;; Format of .eproj-info
-;; ([(languages <langs>)] - it's not a good practice to omit this; if it's empty
-;;                          then no attempt will be made to infer languages used
-;;  [(project-type <proj-type>)]
-;;  [(related <abs-or-rel-dir>*])
-;;  [(aux-files
-;;    [(tree <tree-root> <pattern>*)])]
-;;  [(ignored-files <regexp>+)] - ignored filenames, <regexp>
-;;                                should match absolute file names. Will be applied
-;;                                to file-list argument too.
-;;  [(file-list <abs-or-rel-file>)] - filename listing all files in lisp format,
-;;                                    e.g. ("foo" "c:/bar.txt" "../quux.log")
+;; [(languages <langs>)] - it's not a good practice to omit this; if it's empty
+;;                         then no attempt will be made to infer languages used
+;; [(related <abs-or-rel-dir>*])
+;; [(aux-files
+;;   [(tree <tree-root> <pattern>*)])]
+;; [(ignored-files <regexp>+)] - ignored filenames, <regexp>
+;;                               should match absolute file names. Will be applied
+;;                               to file-list argument too.
+;; [(file-list <abs-or-rel-file>)] - filename listing all files in lisp format,
+;;                                   e.g. ("foo" "c:/bar.txt" "../quux.log")
 ;;
-;;  ;; these are mostly for haskell
-;;  [(tag-file <abs-or-rel-file>)]
+;; [(create-tag-files <t-or-nil>)] - whether to cache tags in tag files for this project
+;;
+;; ;; these are mostly for haskell
+;; [(tag-file <abs-or-rel-file>)]
 ;;
 ;; [...] - optional directive
-;; {...} - grouping directive
 ;; <abs-or-rel-dir> - absolute or relative path to directory
 ;; <abs-or-rel-file> - absolute or relative path to file
 ;; <langs> - list of major-mode symbols
@@ -31,8 +31,6 @@
 ;;               agains inferred project type
 ;; <tree-root> - absolute path to existing directory
 ;; <pattern> - regular expression
-;; <command> - emacs string representation of shell command to update tag
-;;             file corresponding to tag-file entry
 ;; <arg> - emacs strings, arguments to the command
 
 (eval-when-compile (require 'cl-lib))
@@ -89,11 +87,20 @@
   mode
   extensions ;; list of <ext> strings
   extension-re
-  load-procedure
-  ;; function taking two arguments, eproj/project structure and
-  ;; function of zero arguments returning list of files to load from.
-  ;; Returns hashtable of (<identifier> . <eproj-tags>) bindings for specified
-  ;; files, <eproj-tags> is a list of tags
+  create-tags-procedure
+  ;; Function taking three arguments:
+  ;; 1. current eproj/project structure
+  ;; 2. function of zero arguments returning list of files to load from
+  ;; 3. function of one argument - a buffer, that should parse tags from the
+  ;; passed buffer.
+  ;;
+  ;; Returns whatever the third function returned.
+  parse-tags-procedure
+  ;; Function taking single argument - buffer with tag text to parse,
+  ;; created by e.g. create-tags-procedure.
+  ;; Should return hash table of tags - hashtable of (<identifier> . <eproj-tags>)
+  ;; bindings for specified files, <eproj-tags> is a list of tags
+
   tag->string-procedure ;; function of one argument returning string
   synonym-modes ;; list of symbols, these modes will resolve to this language
                 ;; during tag search
@@ -104,7 +111,8 @@
 
 (defun* mk-eproj-lang (&key mode
                             extensions
-                            load-procedure
+                            create-tags-procedure
+                            parse-tags-procedure
                             tag->string-procedure
                             synonym-modes
                             normalize-identifier-before-navigation-procedure)
@@ -112,10 +120,10 @@
    :mode mode
    :extensions extensions
    :extension-re (concat "\\."
-                          (regexp-opt extensions)
-                          "$")
-   :load-procedure
-   load-procedure
+                         (regexp-opt extensions)
+                         "$")
+   :create-tags-procedure create-tags-procedure
+   :parse-tags-procedure parse-tags-procedure
    :tag->string-procedure tag->string-procedure
    :synonym-modes synonym-modes
    :normalize-identifier-before-navigation-procedure
@@ -196,14 +204,17 @@
             "\\):\\(.*\\)")))
 
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
-  (if (not (null *ctags-exec*))
-    (with-current-buffer out-buffer
-      (goto-char (point-max))
-      (unless (looking-at-pure? "^$")
-        (insert "\n"))
-      (let ((ext-re (eproj-language/extension-re
-                     (gethash lang-mode eproj/languages-table))))
-        (with-temp-buffer
+  (unless *ctags-exec*
+    (error "ctags executable not found"))
+  (with-current-buffer out-buffer
+    (goto-char (point-max))
+    (unless (looking-at-pure? "^$")
+      (insert "\n"))
+    (let ((ext-re (eproj-language/extension-re
+                   (gethash lang-mode eproj/languages-table))))
+      (with-temp-buffer
+        (with-disabled-undo
+         (with-inhibited-modification-hooks
           (cd root-dir)
           (dolist (file files)
             (when (string-match-p ext-re file)
@@ -226,8 +237,7 @@
                                  (error "unknown ctags language: %s" lang-mode)))))
             (error "ctags invokation failed: %s"
                    (with-current-buffer out-buffer
-                     (buffer-substring-no-properties (point-min) (point-max))))))))
-    (error "ctags executable not found")))
+                     (buffer-substring-no-properties (point-min) (point-max)))))))))))
 
 (defparameter eproj/ctags-string-cache
   (make-hash-table :test #'equal :size 997 :weakness t))
@@ -239,7 +249,7 @@
     (puthash x x eproj/ctags-string-cache)))
 
 ;; tags parsing
-(defun eproj/ctags-get-tags-from-buffer (buffer &optional verbose)
+(defun eproj/ctags-get-tags-from-buffer (buffer)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command."
   (with-current-buffer buffer
@@ -252,7 +262,7 @@ BUFFER is expected to contain output of ctags command."
                                          ;; Every 1000 lines takes up 1 mb or so.
                                          (/ (* (count-lines (point-min) (point-max)) 1024 1024)
                                             1000))))
-            (total-tags-fraction (when verbose
+            (total-tags-fraction (when eproj-verbose-tag-loading
                                    (/ (count-lines (point-min) (point-max))
                                       100)))
             (tags-loaded-percents 0)
@@ -300,7 +310,7 @@ BUFFER is expected to contain output of ctags command."
                          tags-table)))
 
             ;; (forward-line 1)
-            (when verbose
+            (when eproj-verbose-tag-loading
               (when (= n total-tags-fraction)
                 (incf tags-loaded-percents)
                 (when (= 0 (mod tags-loaded-percents 5))
@@ -401,33 +411,26 @@ BUFFER is expected to contain output of ctags command."
       (current-line))))
 
 
-(defun eproj/load-ctags-project (lang-mode proj make-project-files)
-  (let ((root (eproj-project/root proj)))
-    (with-temp-buffer
-      (when eproj-verbose-tag-loading
-        (message "Running ctags for %s in project %s"
-                 lang-mode
-                 (eproj-project/root proj)))
-      (redisplay)
-      (eproj/run-ctags-on-files lang-mode
-                                root
-                                (funcall make-project-files)
-                                (current-buffer))
-      (when eproj-verbose-tag-loading
-        (message "Loading %s tags in project %s"
-                 lang-mode
-                 (eproj-project/root proj)))
-      (redisplay)
-      (prog1 (eproj/ctags-get-tags-from-buffer (current-buffer) eproj-verbose-tag-loading)
-        (erase-buffer)))))
+(defun eproj/load-ctags-project (lang-mode proj make-project-files parse-tags-proc)
+  (with-temp-buffer
+    ;; (when eproj-verbose-tag-loading
+    ;;   (message "Running ctags for %s in project %s"
+    ;;            lang-mode
+    ;;            (eproj-project/root proj))
+    ;;   (redisplay))
+    (eproj/run-ctags-on-files lang-mode
+                              (eproj-project/root proj)
+                              (funcall make-project-files)
+                              (current-buffer))
+    ;; (when eproj-verbose-tag-loading
+    ;;   (message "Loading %s tags in project %s"
+    ;;            lang-mode
+    ;;            (eproj-project/root proj)
+    ;;            (redisplay)))
+    (prog1 (funcall parse-tags-proc (current-buffer))
+      (erase-buffer))))
 
-(defun eproj/clojure-load-procedure (proj make-project-files)
-  (assert (eproj-project-p proj))
-  (when (memq 'java-mode (eproj-project/languages proj))
-    (eproj/load-ctags-project 'java-mode proj make-project-files))
-  )
-
-(autoload 'eproj/load-haskell-project "eproj-haskell" nil nil)
+(autoload 'eproj/create-haskell-tags "eproj-haskell" nil nil)
 (autoload 'eproj/haskell-tag->string "eproj-haskell" nil nil)
 
 (defparameter eproj/languages
@@ -437,9 +440,10 @@ BUFFER is expected to contain output of ctags command."
     :extensions (filter (comp #'not
                               (partial-first #'member '("x" "alex" "y" "happy" "ly")))
                         *haskell-extensions*)
-    :load-procedure
-    (lambda (proj make-project-files)
-      (eproj/load-haskell-project proj make-project-files))
+    :create-tags-procedure
+    #'eproj/create-haskell-tags
+    :parse-tags-procedure
+    #'eproj/get-fast-tags-tags-from-buffer
     :tag->string-procedure #'eproj/haskell-tag->string
     :synonym-modes '(literate-haskell-mode
                      haskell-c-mode
@@ -449,9 +453,11 @@ BUFFER is expected to contain output of ctags command."
    (mk-eproj-lang
     :mode 'c-mode
     :extensions '("c" "h")
-    :load-procedure
-    (lambda (proj make-project-files)
-      (eproj/load-ctags-project 'c-mode proj make-project-files))
+    :create-tags-procedure
+    (lambda (proj make-project-files parse-tags-proc)
+      (eproj/load-ctags-project 'c-mode proj make-project-files parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
     :tag->string-procedure #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -471,9 +477,11 @@ BUFFER is expected to contain output of ctags command."
                   "inl"
                   "inc"
                   "incl")
-    :load-procedure
-    (lambda (proj make-project-files)
-      (eproj/load-ctags-project 'c++-mode proj make-project-files))
+    :create-tags-procedure
+    (lambda (proj make-project-files parse-tags-proc)
+      (eproj/load-ctags-project 'c++-mode proj make-project-files parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
     :tag->string-procedure #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -481,9 +489,11 @@ BUFFER is expected to contain output of ctags command."
    (mk-eproj-lang
     :mode 'python-mode
     :extensions '("py" "pyx" "pxd" "pxi")
-    :load-procedure
-    (lambda (proj make-project-files)
-      (eproj/load-ctags-project 'python-mode proj make-project-files))
+    :create-tags-procedure
+    (lambda (proj make-project-files parse-tags-proc)
+      (eproj/load-ctags-project 'python-mode proj make-project-files parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
     :tag->string-procedure #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -491,7 +501,12 @@ BUFFER is expected to contain output of ctags command."
    (mk-eproj-lang
     :mode 'clojure-mode
     :extensions '("clj" "java")
-    :load-procedure #'eproj/clojure-load-procedure
+    :create-tags-procedure
+    (lambda (proj make-project-files parse-tags-proc)
+      ;; Use Java mode for now since there's no dedicated Clojure config yet.
+      (eproj/load-ctags-project 'java-mode proj make-project-files parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
     :tag->string-procedure #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -499,9 +514,11 @@ BUFFER is expected to contain output of ctags command."
    (mk-eproj-lang
     :mode 'java-mode
     :extensions '("java")
-    :load-procedure
-    (lambda (proj make-project-files)
-      (eproj/load-ctags-project 'java-mode proj make-project-files))
+    :create-tags-procedure
+    (lambda (proj make-project-files parse-tags-proc)
+      (eproj/load-ctags-project 'java-mode proj make-project-files parse-tags-proc))
+    :parse-tags-procedure
+    #'eproj/ctags-get-tags-from-buffer
     :tag->string-procedure #'eproj/java-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -530,18 +547,28 @@ BUFFER is expected to contain output of ctags command."
   root
   aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries)
   tags ;; list of (language-major-mode . <tags-table>);
-  ;; <tags-table> - hashtable of (symbol-str . eproj-tag) bindings
+       ;; <tags-table> - hashtable of (symbol-str . eproj-tag) bindings
   related-projects ;; list of other project roots
   aux-files-source ;; list of other files or function that yields such list
   languages        ;; list of symbols - major-modes for related languages
   cached-file-list ;; stores list of filenames, if file list is specified in .eproj-info
+  ignored-files-regexps ;; list of absolute filename regexps to ignore in current
+                        ;; project
+  file-list-filename    ;; list of files, if specified in aux-info via 'file-list
+  create-tag-files      ;; boolean, whether to cache tags for this project
+                        ;; in files
   )
 
-(defsubst eproj-project/get-aux-info (proj key)
+(defsubst eproj-project/query-aux-info (aux-info key)
   "Retrieve aux-data associated with a KEY in the project PROJ."
-  (cadr-safe
-   (assq key
-         (eproj-project/aux-info proj))))
+  (let ((entry (assq key aux-info)))
+    (assert (or (null? entry)
+                (= (length entry) 2)))
+    (cadr-safe entry))
+  ;; (cadr-safe
+  ;;  (assq key
+  ;;        (eproj-project/aux-info proj)))
+  )
 
 (defun eproj-project/aux-files (proj)
   (aif (eproj-project/aux-files-source proj)
@@ -609,37 +636,71 @@ BUFFER is expected to contain output of ctags command."
                  (eproj-project/root proj)
                  mode))
         (if-let (old-tags (cdr-safe (assoc mode (eproj-project/tags proj))))
-          (eproj-with-language-load-proc mode load-proc
-            (let ((new-tags (funcall load-proc proj (lambda () (list fname)))))
-              ;; filter all tags values to remove any tags
-              ;; related to current buffer
-              (maphash (lambda (symbol-str tags)
-                         (puthash symbol-str
-                                  (filter non-fname-tag-func
-                                          tags)
-                                  old-tags))
-                       old-tags)
-              (hash-table-merge-with!
-               (lambda (symbol-str tags-old tags-new)
-                 (append tags-old
-                         tags-new))
-               old-tags
-               new-tags)))
+          (let ((new-tags
+                 (eproj/load-tags-for-mode
+                  proj
+                  mode
+                  (lambda () (list fname))
+                  ;; Ignore tag files since we want to reload tags for a
+                  ;; single file and collect tags exactly in the file, not
+                  ;; the cached ones!
+                  :consider-tag-files nil)))
+            (maphash (lambda (symbol-str tags)
+                       (puthash symbol-str
+                                (filter non-fname-tag-func
+                                        tags)
+                                old-tags))
+                     old-tags)
+            (hash-table-merge-with!
+             (lambda (symbol-str tags-old tags-new)
+               (append tags-old
+                       tags-new))
+             old-tags
+             new-tags))
           (error "Project %s does not have tags for %s"
                  (eproj-project/root proj)
                  mode))))))
 
-;; (defun eproj-get-aux-info-for-buffer-project (key)
-;;   "Query aux info for current buffer's project for KEY."
-;;   (rest-safe (assoc key
-;;                     (eproj-project/aux-info
-;;                      (eproj-get-project-for-buf (current-buffer))))))
+(defun eproj/tag-file-name (proj mode)
+  "Return absolute path for tag file for project PROJ and language mode MODE to
+cache tags in."
+  (concat +tmp-global-path+
+          "/tags-"
+          (sha1 (eproj-project/root proj))
+          "-"
+          (format "%s" mode)))
+
+(defun* eproj/load-tags-for-mode (proj mode make-project-files &key (consider-tag-files t))
+  (if-let* (lang
+            (gethash mode eproj/languages-table)
+            create-tags-procedure (eproj-language/create-tags-procedure lang)
+            parse-tags-procedure (eproj-language/parse-tags-procedure lang))
+    (if (and consider-tag-files
+             (eproj-project/create-tag-files proj))
+      (let ((tag-file (eproj/tag-file-name proj mode)))
+        (if (file-exists-p tag-file)
+          (with-temp-buffer
+            (insert-file-contents-literally tag-file)
+            (funcall parse-tags-procedure (current-buffer)))
+          (funcall create-tags-procedure
+                   proj
+                   make-project-files
+                   (lambda (buf)
+                     (write-region (point-min) (point-max) tag-file)
+                     (funcall parse-tags-procedure buf)))))
+      (funcall create-tags-procedure
+               proj
+               make-project-files
+               parse-tags-procedure))
+    (error "Failed loading tags for mode %s: cannot resolve language" mode)))
 
 (defmacro eproj-with-language-load-proc (lang-mode-var
                                          load-proc-var
                                          &rest
                                          body)
-  "Execute BODY with LOAD-PROC-VAR bound to load procedure for mode in LANG-MODE-VAR."
+  "Execute BODY with LOAD-PROC-VAR bound to load procedure for mode in LANG-MODE-VAR.
+Load procedure takes two arguments - projcet and procedure of 0 arguments returning
+list of project files."
   (declare (indent 2))
   (let ((lang-var (gensym "lang")))
     `(progn
@@ -665,7 +726,7 @@ BUFFER is expected to contain output of ctags command."
               files
               (progn
                 (setf files (aif (eproj-project/aux-files-source proj)
-                              (nconc
+                              (append
                                (eproj-get-project-files proj)
                                (funcall it))
                               (eproj-get-project-files proj))
@@ -673,32 +734,45 @@ BUFFER is expected to contain output of ctags command."
                 files)))))
     (setf (eproj-project/tags proj)
           (map (lambda (lang-mode)
-                 (eproj-with-language-load-proc lang-mode load-proc
-                   (let ((new-tags (funcall load-proc proj make-project-files-func)))
-                     (assert (and (not (null new-tags))
-                                  (hash-table-p new-tags)))
-                     (when (= 0 (hash-table-count new-tags))
-                       (error "Warning while reloading: project %s loaded no tags for language %s"
-                              (eproj-project/root proj)
-                              lang-mode))
-                     (cons lang-mode new-tags))))
+                 (let ((new-tags (eproj/load-tags-for-mode proj
+                                                           lang-mode
+                                                           make-project-files-func
+                                                           :consider-tag-files t)))
+                   (assert (and (not (null new-tags))
+                                (hash-table-p new-tags)))
+                   (when (= 0 (hash-table-count new-tags))
+                     (error "Warning while reloading: project %s loaded no tags for language %s"
+                            (eproj-project/root proj)
+                            lang-mode))
+                   (cons lang-mode new-tags)))
                (eproj-project/languages proj))))
   nil)
 
 (defun eproj-populate-from-eproj-info! (proj aux-info)
   (let ((languages (aif (cdr-safe (assq 'languages aux-info))
                      it
-                     (begin
+                     (progn
                        (message "warning: no languages defined for project %s"
                                 (eproj-project/root proj))
-                       nil))))
+                       nil)))
+        (ignored-files-regexps
+         (cdr-safe (assq 'ignored-files aux-info)))
+        (file-list-filename
+         (awhen (eproj-project/query-aux-info aux-info 'file-list)
+           (let ((fname (eproj-resolve-abs-or-rel-name it (eproj-project/root proj))))
+             (when (or (null fname)
+                       (not (file-exists-p fname)))
+               (error "File list filename does not exist: %s" fname))
+             fname)))
+        (create-tag-files
+         (eproj-project/query-aux-info aux-info 'create-tag-files)))
     (setf (eproj-project/aux-info proj) aux-info
-          (eproj-project/related-projects proj)
-          (eproj-get-related-projects (eproj-project/root proj) aux-info)
-          (eproj-project/aux-files-source proj)
-          (eproj-make-aux-files-constructor (eproj-project/root proj) aux-info)
-          (eproj-project/languages proj)
-          languages)
+          (eproj-project/related-projects proj) (eproj-get-related-projects (eproj-project/root proj) aux-info)
+          (eproj-project/aux-files-source proj) (eproj-make-aux-files-constructor (eproj-project/root proj) aux-info)
+          (eproj-project/languages proj) languages
+          (eproj-project/ignored-files-regexps proj) ignored-files-regexps
+          (eproj-project/file-list-filename proj) file-list-filename
+          (eproj-project/create-tag-files proj) create-tag-files)
     (eproj-reload-tags proj)
     nil))
 
@@ -744,7 +818,8 @@ variables accordingly."
                              :related-projects nil
                              :aux-files-source nil
                              :languages nil
-                             :cached-file-list nil)))
+                             :cached-file-list nil
+                             :ignored-files-regexps nil)))
     (when (null proj)
       (error "Error while trying to obtain project for root %s" root))
     (eproj-populate-from-eproj-info! proj aux-info)
@@ -835,34 +910,12 @@ variables accordingly."
 
 ;;;; utilities
 
-(defun eproj-get-project (root aux-info)
-  (aif (gethash root *eproj-projects* nil)
-    it
-    (let ((proj (eproj-make-project root aux-info)))
-      (puthash (eproj-project/root proj)
-               proj
-               *eproj-projects*)
-      proj)))
-
+;; Get <initial-project-root> for project governing PATH.
 (defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache (path)
-  "Get (<initial-project-root> <project-type> <aux-info>) triple for project
-governing PATH."
-  (if-let (initial-root (eproj/find-eproj-file-location path))
-    initial-root
+  (aif (eproj/find-eproj-file-location path)
+    it
     (error "File .eproj-info not found when looking from %s directory"
            path)))
-
-(defun eproj-get-initial-project-root-and-aux-info (path)
-  "Get (<initial-project-root> <project-type> <aux-info>) triple for project
-governing PATH."
-  (let ((initial-root (eproj-get-initial-project-root path)))
-    (if-let (proj (gethash initial-root *eproj-projects* nil))
-      (values initial-root (eproj-project/aux-info proj))
-      (if-let (eproj-info-file (eproj-get-eproj-info-from-dir initial-root))
-        (values initial-root
-                (eproj-read-eproj-info-file eproj-info-file))
-        (error ".eproj-info file does not exist at %s"
-               initial-root)))))
 
 (defmacro eproj/evaluate-with-caching-buffer-local-var (value-expr
                                                         buffer-expr
@@ -900,9 +953,8 @@ variable or symbol 'unresolved.")
 (defun eproj-get-initial-project-root-for-buf (buffer)
   "Retrieve root for project that would contain BUFFER's content."
   (eproj/evaluate-with-caching-buffer-local-var
-   (condition-case nil
-        (eproj-get-initial-project-root (eproj--get-buffer-directory buffer))
-      (error nil))
+   (ignore-errors
+     (eproj-get-initial-project-root (eproj--get-buffer-directory buffer)))
    buffer
    eproj/buffer-initial-project-root-cache
    #'stringp))
@@ -930,68 +982,72 @@ symbol 'unresolved.")
           nil
           "Cannot get eproj project for nonexisting path: %s"
           path)
-  (multiple-value-bind (initial-root aux-info)
-      (eproj-get-initial-project-root-and-aux-info path)
-    (eproj-get-project initial-root
-                       aux-info)))
+  ;; Try looking for project with PATH root, if there's none then construct
+  ;; proper initial project root by looking for .eproj-info file and try with
+  ;; those.
+  (if-let (path-proj (gethash path *eproj-projects* nil))
+    path-proj
+    (let ((initial-root (eproj-get-initial-project-root path)))
+      (if-let (proj (gethash initial-root *eproj-projects* nil))
+        proj
+        (if-let (eproj-info-file (eproj-get-eproj-info-from-dir initial-root))
+          (let ((proj (eproj-make-project initial-root
+                                          (eproj-read-eproj-info-file eproj-info-file))))
+            (puthash (eproj-project/root proj)
+                     proj
+                     *eproj-projects*)
+            proj)
+          (error ".eproj-info file does not exist at %s"
+                 initial-root))))))
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type."
   ;; Cached files are necessarily from file-list and intended for projects whose
   ;; list of files does not change and may be cached.
-  (let ((ignored-files-absolute-regexps
-         (cdr-safe (assq 'ignored-files (eproj-project/aux-info proj)))))
-    (if-let (cached-files (eproj-project/cached-file-list proj))
-      cached-files
-      ;; if there's file-list then read it and store to cache
-      (if-let (file-list (eproj-project/get-aux-info proj 'file-list))
-        (let ((file-list-filename (eproj-resolve-abs-or-rel-name
-                                   file-list
-                                   (eproj-project/root proj))))
-          (when (or (null file-list-filename)
-                    (not (file-exists-p file-list-filename)))
-            (error "Cannot find file list: filename %s at %s" file-list file-list-filename))
-          (let ((filter-ignored-files
-                 (lambda (files)
-                   (aif ignored-files-absolute-regexps
-                     (let ((regexp
-                            (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
-                                       it
-                                       "\\|")))
-                       (filter (lambda (fname)
-                                 (not (string-match-p regexp fname)))
-                               files))
-                     files)))
-                (list-of-files
-                 (with-temp-buffer
-                   (insert-file-contents-literally file-list-filename)
-                   (goto-char (point-min))
-                   (read (current-buffer)))))
-            (assert (listp list-of-files))
-            (let ((resolved-files
-                   (funcall filter-ignored-files
-                            (map (lambda (filename)
-                                   (eproj-resolve-abs-or-rel-name
-                                    filename
-                                    (eproj-project/root proj)))
-                                 list-of-files))))
-              (assert (all? (lambda (filename)
-                              (and (stringp filename)
-                                   (file-exists-p filename)))
-                            resolved-files))
-              (setf (eproj-project/cached-file-list proj) resolved-files)
-              resolved-files)))
-        (eproj/find-rec
-         (eproj-project/root proj)
-         (concatMap (lambda (lang)
-                      (assert (symbolp lang))
-                      (eproj-language/extensions
-                       (gethash lang eproj/languages-table)))
-                    (eproj-project/languages proj))
-         ignored-files-absolute-regexps
-         *ignored-directories*
-         *ignored-directory-prefixes*)
-        ))))
+  (if-let (cached-files (eproj-project/cached-file-list proj))
+    cached-files
+    ;; if there's file-list then read it and store to cache
+    (if-let (file-list-filename (eproj-project/file-list-filename proj))
+      (let ((filter-ignored-files
+             (lambda (files)
+               (aif (eproj-project/ignored-files-regexps proj)
+                 (let ((regexp
+                        (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
+                                   it
+                                   "\\|")))
+                   (filter (lambda (fname)
+                             (not (string-match-p regexp fname)))
+                           files))
+                 files)))
+            (list-of-files
+             (with-temp-buffer
+               (insert-file-contents-literally file-list-filename)
+               (goto-char (point-min))
+               (read (current-buffer)))))
+        (assert (listp list-of-files))
+        (let ((resolved-files
+               (funcall filter-ignored-files
+                        (map (lambda (filename)
+                               (eproj-resolve-abs-or-rel-name
+                                filename
+                                (eproj-project/root proj)))
+                             list-of-files))))
+          (assert (all? (lambda (filename)
+                          (and (stringp filename)
+                               (file-exists-p filename)))
+                        resolved-files))
+          (setf (eproj-project/cached-file-list proj) resolved-files)
+          resolved-files))
+      (eproj/find-rec
+       (eproj-project/root proj)
+       (concatMap (lambda (lang)
+                    (assert (symbolp lang))
+                    (eproj-language/extensions
+                     (gethash lang eproj/languages-table)))
+                  (eproj-project/languages proj))
+       (eproj-project/ignored-files-regexps proj)
+       *ignored-directories*
+       *ignored-directory-prefixes*))))
 
 (defvar eproj/find-program-type
   (or (and (not (platform-os-type? 'windows))
@@ -1118,20 +1174,19 @@ Valid values are:
   "Return list of roots of related project for folder ROOT and AUX-INFO.
 AUX-INFO is expected to be a list with entry (related { <abs-path> | <rel-path> }* ).
 Returns nil if no relevant entry found in AUX-INFO."
-  (let ((project-root root))
-    (when-let (related-entry (cdr-safe (assq 'related aux-info)))
-      (map (lambda (path)
-             (assert (stringp path) nil
-                     "invalid entry under related clause, string expected %s"
-                     path)
-             (cond ((file-directory-p path)
-                    path)
-                   ((file-directory-p (expand-file-name path project-root))
-                    (expand-file-name path project-root))
-                   (t
-                    (error "invalid related-project entry: non-existing absolute nor relative directory: %s"
-                           path))))
-           related-entry))))
+  (awhen (cdr-safe (assq 'related aux-info))
+    (map (lambda (path)
+           (assert (stringp path) nil
+                   "invalid entry under related clause, string expected %s"
+                   path)
+           (progn ;; condition-case err
+               (eproj-resolve-abs-or-rel-name path root)
+             ;; (error
+             ;;  (error "invalid related-project entry: non-existing absolute/relative directory: %s\n%s"
+             ;;         path
+             ;;         err))
+             ))
+         it)))
 
 (defun eproj-make-aux-files-constructor (root aux-info)
   "Make up function that will return list of absolute names for auxiliary files
@@ -1176,7 +1231,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
                                                  (string-match-p regexp path))
                                                patterns)))))
                           (t
-                           nil)))
+                           (error "Invalid 'aux-files entry: 'tree clause not found"))))
                   aux-files-entry))))))
 
 (defun eproj/find-eproj-file-location (path)
@@ -1193,15 +1248,17 @@ AUX-INFO is expected to be a list of zero or more constructs:
   (letrec ((collect
             (lambda (projs visited items)
               (if projs
-                (if (member* (car projs) visited
-                             :test #'eproj-project/root=)
-                  (funcall collect (cdr projs) visited items)
-                  (funcall collect
-                           (append (map #'eproj-get-project-for-path
-                                        (eproj-project/related-projects (car projs)))
-                                   (cdr projs))
-                           (cons (car projs) visited)
-                           (cons (car projs) items)))
+                (let ((p (car projs))
+                      (ps (cdr projs)))
+                  (if (member* p visited
+                               :test #'eproj-project/root=)
+                    (funcall collect ps visited items)
+                    (funcall collect
+                             (append (map #'eproj-get-project-for-path
+                                          (eproj-project/related-projects p))
+                                     ps)
+                             (cons p visited)
+                             (cons p items))))
                 items))))
     (assert (eproj-project-p proj) nil
             "Not a eproj-project structure: %s" proj)
@@ -1211,6 +1268,9 @@ AUX-INFO is expected to be a list of zero or more constructs:
              (list proj)
              nil)))
 
+;; If PATH is existing absoute file then return it, otherwise try to check
+;; whether it's existing file relative to DIR and return that. Report error if
+;; both conditions don't hold.
 (defun-caching eproj-resolve-abs-or-rel-name (path dir) eproj-resolve-abs-or-rel-name/reset-cache (path dir)
   (if (or (file-exists-p path)
           (file-directory-p path))
