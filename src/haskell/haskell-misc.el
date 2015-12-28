@@ -656,7 +656,8 @@ return nil otherwise."
 (define-circular-jumps
     haskell-interactive-jump-to-next-prompt
     haskell-interactive-jump-to-prev-prompt
-  (haskell-interactive-prompt-regex))
+  (haskell-interactive-prompt-regex)
+  :jump-to-end t)
 
 (defun* haskell-bind-shm-bindings (&key bind-colon)
   (when bind-colon
