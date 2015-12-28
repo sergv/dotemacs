@@ -191,11 +191,12 @@ NB does not expect to cache values of ARGS that are nil."
 
 ;;; circular jumps
 
-(defmacro define-circular-jumps (forward-name
-                                 backward-name
-                                 regex
-                                 &optional
-                                 init)
+(defmacro* define-circular-jumps (forward-name
+                                  backward-name
+                                  regex
+                                  &key
+                                  (init nil)
+                                  (jump-to-end nil))
   "Define two functions, FORWARD-NAME and BACKWARD-NAME to perform
 jumps on REGEX with wraparound in buffer. INIT form will be executed
 before performing any jumps."
@@ -227,7 +228,9 @@ before performing any jumps."
                (goto-char (point-min))
                (setf ,found-var ,forward-search))
              (if ,found-var
-               (goto-char (match-end 0))
+               (goto-char ,(if jump-to-end
+                             '(match-end 0)
+                             '(match-beginning 0)))
                (progn
                  (goto-char ,original-pos-var)
                  (next-line))))))
@@ -246,7 +249,9 @@ before performing any jumps."
                (goto-char (point-max))
                (setf ,found-var ,backward-search))
              (if ,found-var
-               (goto-char (match-end 0))
+               (goto-char ,(if jump-to-end
+                             '(match-end 0)
+                             '(match-beginning 0)))
                (progn
                  (goto-char ,original-pos-var)
                  (previous-line)))))))))
