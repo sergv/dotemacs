@@ -41,6 +41,7 @@ in compilation or related buffers")
     compilation-jump-to-next-error
     compilation-jump-to-prev-error
   *compilation-jump-error-regexp*
+  :init
   (unless (or (compilation-buffer-p (current-buffer))
               (eq? major-mode 'ghc-check-mode))
     (error "Not in a compilation buffer")))
