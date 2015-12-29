@@ -245,7 +245,7 @@ and indent them as singe line."
       (let ((extensions '("-XLambdaCase" "-XTemplateHaskell" "-XOverloadedStrings"))
             ;; (opts "-fobject-code")
             (opts (append
-                   '("-fbyte-code" "-odir" "/tmp/ghc" "-hidir" "/tmp/ghc")
+                   '("-fbyte-code" "-Wwarn" "-odir" "/tmp/ghc" "-hidir" "/tmp/ghc")
                    (if (platform-os-type? 'windows)
                      '("-i/tmp/dist/build")
                      nil)))
