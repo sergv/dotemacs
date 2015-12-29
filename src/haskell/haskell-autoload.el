@@ -93,7 +93,7 @@
   '(progn
      ;; debug output will be in ghc-debug-buffer, "*GHC Debug*"
      (setf ghc-debug t
-           ghc-ghc-options '("-isrc" "-dsuppress-module-prefixes" "-i/tmp/dist/build")
+           ghc-ghc-options '("-isrc" "-Wwarn" "-dsuppress-module-prefixes" "-i/tmp/dist/build")
            ghc-display-error 'other-buffer
            ghc-display-hole 'other-buffer)))
 
