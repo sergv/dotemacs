@@ -416,7 +416,9 @@ Basically swap current point with previous one."
     (progn
       (git-update-file-repository)
       (if git-repository
-        (git-add)
+        (progn
+          (save-some-buffers)
+          (git-add))
         (error "File %s is not under git VCS" it)))
     (error "current buffer has no associated file")))
 
