@@ -127,7 +127,12 @@
 (menu-bar-mode -1)
 (line-number-mode +1)
 (column-number-mode +1)
-(fringe-mode (cons 1 0))
+(fringe-mode (cons 0 0))
+
+;; Get rid of annoying message on emacs start, from
+;; http://yann.hodique.info/blog/rant-obfuscation-in-emacs/
+(put 'inhibit-startup-echo-area-message 'saved-value
+     (setq inhibit-startup-echo-area-message (user-login-name)))
 
 (setf x-select-enable-clipboard t
       interprogram-paste-function
@@ -147,6 +152,7 @@
 
       require-final-newline t
       inhibit-startup-message t
+      inhibit-startup-screen t
       frame-title-format '("%f")
       scroll-step 1
       case-fold-search nil ;; do not ignore case during search
