@@ -28,20 +28,13 @@
             (dolist (file (funcall make-project-files))
               (when (string-match-p ext-re file)
                 (insert file "\n")))
-            ;; (when-let (files
-            ;;            (filter
-            ;;             (lambda (file)
-            ;;               (string-match-pure? ext-re file))
-            ;;             (funcall make-project-files)))
-            ;;   (insert (car files))
-            ;;   (dolist (file (cdr files))
-            ;;     (insert "\0" file)))
             (unless (= 0
                        (call-process-region (point-min)
                                             (point-max)
                                             *fast-tags-exec*
                                             nil
-                                            out-buffer
+                                            ;; Discard error output from fast-tags
+                                            (out-buffer nil)
                                             nil
                                             "-o-"
                                             "--nomerge"))
