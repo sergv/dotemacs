@@ -67,10 +67,6 @@
         path = standalone/auctex-dev
         url = https://github.com/jwiegley/auctex.git
 	ignore = all
-[submodule "standalone/magit"]
-        path = standalone/magit
-        url = https://github.com/sergv/magit.git
-	ignore = untracked
 [submodule "standalone/tuareg"]
         path = standalone/tuareg
         url = https://github.com/emacsmirror/tuareg.git
@@ -133,4 +129,8 @@
 [submodule "third-party/clojure-mode"]
 	path = third-party/clojure-mode
 	url = https://github.com/clojure-emacs/clojure-mode.git
+	ignore = untracked
+[submodule "third-party/magit"]
+	path = third-party/magit
+	url = https://github.com/magit/magit.git
 	ignore = untracked
