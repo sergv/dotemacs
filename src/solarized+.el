@@ -465,9 +465,13 @@ Futher modified by Sergey Vinokurov."
 
        ;; stable magit fontification
        (git-rebase-hash                      ((t (:foreground ,red))))
+       (magit-blame-heading                  ((t (:inherit highlight))))
        (magit-log-graph                      ((t (:foreground ,magenta))))
        (magit-log-sha1                       ((t (:foreground ,orange))))
-       (magit-diff-hunk-header               ((t (:inherit highlight))))
+       (magit-diff-hunk-heading              ((t (:inherit highlight))))
+       (magit-diff-hunk-heading-highlight    ((t (:inherit magit-diff-hunk-heading))))
+       (magit-diff-hunk-heading-selection    ((t (:inherit magit-diff-hunk-heading
+                                                           :underline t))))
        (magit-log-head-label-bisect-bad      ((t (:foreground ,red))))
        (magit-log-head-label-bisect-good     ((t (:foreground ,green))))
        (magit-log-head-label-default         ((t (:foreground ,base01 :box t))))
@@ -495,6 +499,7 @@ Futher modified by Sergey Vinokurov."
        (magit-section-heading                ((t (:inherit bold))))
        (magit-file-heading                   ((t (:inherit diff-file-header))))
        (magit-hash                           ((t (:foreground ,orange :background nil))))
+       (magit-blame-hash                     ((t (:inherit magit-hash))))
        (magit-head                           ((t (:foreground ,orange :background nil))))
        (magit-branch-local                   ((t (:foreground ,blue :box t))))
        (magit-branch-remote                  ((t (:foreground ,yellow :box t))))

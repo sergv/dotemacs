@@ -6,12 +6,12 @@
 ;; Created: long ago
 ;; Description:
 
-
 (require 'util-vim-replace)
 (require 'completion-setup)
 (require 'smartparens-setup)
 (require 'search)
 (require 'common)
+(require 'keys-def)
 
 ;;; configuration variables
 
@@ -58,34 +58,38 @@ like \"d w\".")
   ("]" vim:motion-bwd-paragraph)
   ("[" vim:motion-fwd-paragraph))
 
+(defconst +vim-navigation-keys+
+  `(("d"         vim:motion-left)
+    ("h"         vim:motion-down)
+    ("t"         vim:motion-up)
+    ("n"         vim:motion-right)
+
+    (";"         vim:motion-repeat-last-find)
+    (":"         vim:motion-repeat-last-find-opposite)
+
+    ("C-:"       pp-eval-expression)
+    ("g x"       smex)
+    ("<down>"    vim:motion-fwd-paragraph)
+    ("<up>"      vim:motion-bwd-paragraph)
+
+    ,@+vim-interbuffer-navigation-keys+))
+
+(defconst +vim-normal-mode-navigation-keys+
+  '(("'"   sp-backward-up-sexp)
+    ("]"   vim:motion-bwd-paragraph)
+    ("["   vim:motion-fwd-paragraph)
+    ("s"   vim:ex-read-command)
+    ("g f" ido-find-file)
+    ("g r" rgrep-wrapper)))
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:visual-mode-keymap)
+  +vim-navigation-keys+
+  +vim-search-keys+
+  +vim-search-extended-keys+
+
   (","       vim:cmd-delete)
-
-  ("d"       vim:motion-left)
-  ("h"       vim:motion-down)
-  ("t"       vim:motion-up)
-  ("n"       vim:motion-right)
   ("l"       vim:cmd-change-char)
-
-  (";"       vim:motion-repeat-last-find)
-  (":"       vim:motion-repeat-last-find-opposite)
-
-  ("/"       search-start-forward)
-  ("C-/"     search-start-forward-new-color)
-  ("?"       search-start-backward)
-  ("C-?"     search-start-backward-new-color)
-  ("u"       search-next)
-  ("U"       search-prev)
-  ("*"       search-for-symbol-at-point-forward)
-  ("C-*"     search-for-symbol-at-point-forward-new-color)
-  ("#"       search-for-symbol-at-point-backward)
-  ("C-#"     search-for-symbol-at-point-backward-new-color)
-  ;; ("g *"     search-for-word-at-point-forward)
-  ;; ("g M-*"   search-for-word-at-point-forward-new-color)
-  ;; ("g #"     search-for-word-at-point-backward)
-  ;; ("g M-#"   search-for-word-at-point-backward-new-color)
 
   ("-"       vim:cmd-negate-or-paste-pop)
   ("="       vim:cmd-paste-pop-next)
@@ -110,36 +114,13 @@ like \"d w\".")
   ("S"       sp-split-sexp)
   ("g J"     sp-join-sexp)
   ("g j"     nil)
-  ("g q"     nil)
-  ("g x"     smex)
-
-  ("C-:"     pp-eval-expression)
-  ("C-b"     ido-switch-buffer)
-  ("C-h"     search-toggle-highlighting)
-  ;; rebind "C-h" for terminals that refuse to send "C-h" and
-  ;; send "C-<backspace>" instead
-  ("C-<backspace>" search-toggle-highlighting)
-  ("<C-backspace>" search-toggle-highlighting)
-
-  ("<home>"    next-f)
-  ("<end>"     prev-f)
-  ("S-<home>"  swap-buffers-forward-through-frames)
-  ("S-<end>"   swap-buffers-backward-through-frames)
-  ("<down>"    vim:motion-fwd-paragraph)
-  ("<up>"      vim:motion-bwd-paragraph)
-  ("<left>"    prev-w)
-  ("<right>"   next-w)
-  ("S-<left>"  swap-buffers-backward)
-  ("S-<right>" swap-buffers-forward))
+  ("g q"     nil))
 
 ;;; normal mode keybindigs
 
 (def-keys-for-map vim:normal-mode-keymap
+  +vim-normal-mode-navigation-keys+
   ("C-y"       nil)
-  ("s"         vim:ex-read-command)
-  ("'"         sp-backward-up-sexp)
-  ("]"         vim:motion-bwd-paragraph)
-  ("["         vim:motion-fwd-paragraph)
   ;; names of these two functions are swapped for unknown reason
   ;; anyway, so don't change order
   ("{"         scroll-up)
@@ -179,13 +160,11 @@ like \"d w\".")
   ("g s W"     vim:replace-WORD)
   ("g s s"     vim:replace-symbol-at-point)
 
-  ("g f"       ido-find-file)
   ;; ("g g f"     find-filename-in-tree-recursive)
   ("g c c"     comment-util-comment-lines)
   ("g c u"     comment-util-uncomment-region)
   ("g c d"     comment-util-delete-commented-part)
 
-  ("g r"       rgrep-wrapper)
   ("g TAB"     nil)
   ("g n"       nil)
   ("g t"       nil)
@@ -404,11 +383,21 @@ Basically swap current point with previous one."
 (vim:emap "g" 'vim:magit)
 
 
-(vim:defcmd vim:git-blame (nonrepeatable)
+(vim:defcmd vim:blame (nonrepeatable)
   "Run `magit-blame-mode'."
-  (magit-blame-mode 'toggle))
+  (call-interactively #'magit-blame)
+  (vim:activate-blame-mode))
 
-(vim:emap "blame" 'vim:git-blame)
+(vim:emap "blame" 'vim:blame)
+
+(vim:defcmd vim:blame-quit (nonrepeatable)
+  "Stop `magit-blame-mode'."
+  (unwind-protect
+      (call-interactively #'magit-blame-quit)
+    (unless magit-blame-mode
+      (vim:activate-normal-mode))))
+
+(vim:emap "blame-quit" 'vim:blame-quit)
 
 (vim:defcmd vim:git-add (nonrepeatable)
   "Run git add on current file."

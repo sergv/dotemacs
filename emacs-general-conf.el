@@ -48,6 +48,8 @@
         (magit-branch-manager-mode . nil)
         (magit-commit-mode . nil)
         (magit-diff-mode . nil)
+        (magit-refs-mode . nil)
+        (magit-revision-mode . nil)
         (org-agenda-mode . nil)
         (image-mode . nil)
         (calendar-mode . nil)
@@ -62,7 +64,7 @@
 
 ;;;; modeline
 (setq-default mode-line-format
-              '(" %[%b%] "
+              '("%[%b%] "
                 ;; if buffer has assigned file and is modified
                 (:eval (when (and (buffer-file-name)
                                   (buffer-modified-p))
