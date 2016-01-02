@@ -24,14 +24,14 @@
   "Essential vi movement keys")
 
 (defconst +vi-keys+
-  (append +vi-essential-keys+
-          '(("/"   search-start-forward)
-            ("C-/" search-start-forward-new-color)
-            ("?"   search-start-backward)
-            ("C-?" search-start-backward-new-color)))
+  `(,@+vi-essential-keys+
+    ("/"   search-start-forward)
+    ("C-/" search-start-forward-new-color)
+    ("?"   search-start-backward)
+    ("C-?" search-start-backward-new-color))
   "Essential vi movement keys plus search keys")
 
-(defconst +vi-search-keys+
+(defconst +vim-search-keys+
   '(("/"   search-start-forward)
     ("C-/" search-start-forward-new-color)
     ("?"   search-start-backward)
@@ -46,7 +46,13 @@
   "Vi key for searching from search.el, probably should not be used without
 `+vim-special-keys+'.")
 
-(defconst +vim-word-motion-keys+
+(defconst +vim-search-extended-keys+
+  '(("*"   search-for-symbol-at-point-forward)
+    ("C-*" search-for-symbol-at-point-forward-new-color)
+    ("#"   search-for-symbol-at-point-backward)
+    ("C-#" search-for-symbol-at-point-backward-new-color)))
+
+(defconst +vim-mock:word-motion-keys+
   '(("w" vim-mock:motion-fwd-word)
     ("b" vim-mock:motion-bwd-word)
     ("W" vim-mock:motion-fwd-WORD)
@@ -54,8 +60,19 @@
     ("e" vim-mock:motion-fwd-word-end)
     ("E" vim-mock:motion-fwd-WORD-end)))
 
+(defconst +vim-interbuffer-navigation-keys+
+  '(("C-b"       ido-switch-buffer)
+    ("<home>"    next-f)
+    ("<end>"     prev-f)
+    ("S-<home>"  swap-buffers-forward-through-frames)
+    ("S-<end>"   swap-buffers-backward-through-frames)
+    ("<left>"    prev-w)
+    ("<right>"   next-w)
+    ("S-<left>"  swap-buffers-backward)
+    ("S-<right>" swap-buffers-forward)))
+
 (defconst +vim-special-keys+
-  '(("s"     vim:ex-read-command)
+  `(("s"     vim:ex-read-command)
     ("C-b"   ido-switch-buffer)
 
     ("g"     nil)
@@ -82,14 +99,7 @@
     ("<insert>" vim-mock:scroll-line-up)
     ("<delete>" vim-mock:scroll-line-down)
 
-    ("<home>"    next-f)
-    ("<end>"     prev-f)
-    ("S-<home>"  swap-buffers-forward-through-frames)
-    ("S-<end>"   swap-buffers-backward-through-frames)
-    ("<left>"    prev-w)
-    ("<right>"   next-w)
-    ("S-<left>"  swap-buffers-backward)
-    ("S-<right>" swap-buffers-forward)
+    ,@+vim-interbuffer-navigation-keys+
     ;; ("v"   set-mark-command)
     ;; ("y"   copy-region-as-kill)
     ))

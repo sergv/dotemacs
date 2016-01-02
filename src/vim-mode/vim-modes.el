@@ -30,7 +30,6 @@
 (defvar-local vim:emulation-mode-alist nil
   "List of all keymaps used by some modes.")
 
-
 (defun vim:update-mode-line (ident)
   "Updates the mode-line to show the specified identifier `ident'."
   ;; Not used, so avoid unnecessary updates. Still, may come handy someday.
@@ -38,12 +37,10 @@
   ;; (force-mode-line-update)
   )
 
-
 (defun vim:mode-name (mode)
   "Converts a mode-name to vim-mode naming conventions, e.g.
 'normal is converted to 'vim:normal-mode."
   (string->symbol (concat "vim:" (symbol->string mode) "-mode")))
-
 
 (defun vim:activate-mode (mode)
   "Activates a certain vim-mode, disabling the currently active one."
@@ -51,7 +48,6 @@
     (funcall vim:active-mode -1))
   (when mode
     (funcall (vim:mode-name mode) 1)))
-
 
 (defmacro vim:set-keymaps (vim-mode-name keymaps)
   "Does setting up of keymaps for the current mode."
@@ -113,7 +109,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
            (setq vim:active-command-function
                  ,(if command-function
                     command-function
-                    #'vim:default-command-function))
+                    '#'vim:default-command-function))
            (vim:set-cursor ,cursor-name)
            (,update-keymaps-func-name))
          ,@(progn
@@ -134,7 +130,6 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
          (vim:set-keymaps ',mode-name ,keymaps)))))
 
 (font-lock-add-keywords 'emacs-lisp-mode '("vim:define-mode"))
-
 
 (provide 'vim-modes)
 

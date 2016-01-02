@@ -185,7 +185,7 @@ generate actual filter group.")
 
      (def-keys-for-map ibuffer-mode-map
        +vim-special-keys+
-       +vi-search-keys+
+       +vim-search-keys+
        ("C-k"      remove-buffer)
        ("C-S-k"    remove-buffer-and-window)
 
