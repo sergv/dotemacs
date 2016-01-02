@@ -61,7 +61,7 @@
   (let ((m (make-sparse-keymap)))
     (def-keys-for-map m
       +vim-special-keys+
-      +vim-word-motion-keys+
+      +vim-mock:word-motion-keys+
       ("SPC"      compilation/goto-error-other-window)
       ("<return>" compilation/goto-error)
       ("o"        compilation/goto-error-other-window))

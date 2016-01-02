@@ -6,10 +6,6 @@
 ;; Created: Thursday, 20 August 2015
 ;; Description:
 
-
-(add-to-load-path
-  (concat +emacs-standalone-path+ "/magit"))
-
 (setf magit-completing-read-function
       (lambda (prompt collection &optional predicate require-match initial-input hist def)
         (ido-completing-read
@@ -18,25 +14,18 @@
            (format "%s (default %s): " (substring prompt 0 -2) def)
            prompt)
          collection predicate require-match initial-input hist def))
-      magit-restore-window-configuration t
+      ;;magit-restore-window-configuration t
+      magit-refs-show-commit-count 'all
       magit-commit-ask-to-stage nil
-      with-editor-emacsclient-executable nil
-      magit-status-buffer-name-format "*magit: %b*"
-      magit-diff-buffer-name-format "*magit-diff*"
-      magit-commit-buffer-name-format "*magit-commit*"
-      magit-log-buffer-name-format "*magit-log*"
-      magit-reflog-buffer-name-format "*magit-reflog*"
-      magit-branches-buffer-name-format "*magit-branches*"
-      magit-wazzup-buffer-name-format "*magit-wazzup*"
-      magit-cherry-buffer-name-format "*magit-cherry*"
-      ;; Make magit-process buffers invisible by default.
-      magit-process-buffer-name-format " *magit-process: %b*"
+      ;; with-editor-emacsclient-executable nil
       magit-process-log-max 256
-      magit-popup-show-help-section nil
+      magit-popup-show-common-commands nil
       ;; Show refined diffs for selected hunk>
       magit-diff-refine-hunk t
       ;; Save any modified files before opening `magit-status'.
-      magit-save-some-buffers 'dontask)
+      magit-save-repository-buffers 'dontask
+
+      magit-blame-heading-format "%.7H %-15a %C %s")
 
 (autoload 'gitignore-mode "gitignore-mode"
           "Major mode for editing .gitignore files"
@@ -69,41 +58,23 @@
 (autoload 'magit-current-section-is-whitespace-only? "git-setup")
 (autoload 'magit-stage-non-whitespace-changes "git-setup" nil t)
 (autoload 'magit-stage-matching-changes "git-setup")
-(autoload 'magit-cycle-sections-visibility "git-setup")
-(autoload 'magit-cycle-top-sections-visibility "git-setup")
-(autoload 'magit-visit-item-other-window "git-setup")
-
-(autoload 'magit-mode-setup "git-setup")
-(add-hook 'magit-mode-hook #'magit-mode-setup)
-
-(autoload 'magit-status-mode-setup "git-setup")
-(add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
-
-(autoload 'magit-log-mode-setup "git-setup")
-(add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
-
-(autoload 'magit-log-edit-mode-setup "git-setup")
-(add-hook 'magit-log-edit-mode-hook #'magit-log-edit-mode-setup)
-
-(autoload 'magit-commit-mode-setup "git-setup")
-(add-hook 'magit-commit-mode-hook #'magit-commit-mode-setup)
+;; (autoload 'magit-visit-item-other-window "git-setup")
 
 (autoload 'magit-diff-mode-setup "git-setup")
 (add-hook 'magit-diff-mode-hook #'magit-diff-mode-setup)
-
-(autoload 'magit-show-branches-mode-setup "git-setup")
-(add-hook 'magit-show-branches-mode-hook #'magit-show-branches-mode-setup)
-
-(autoload 'magit-branch-manager-mode-setup "git-setup")
-(add-hook 'magit-branch-manager-mode-hook #'magit-branch-manager-mode-setup)
-
-(autoload 'magit-reflog-mode-setup "git-setup")
-(add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
-
+(autoload 'magit-log-mode-setup "git-setup")
+(add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 (autoload 'magit-popup-setup "git-setup")
 (add-hook 'magit-popup-mode-hook #'magit-popup-setup)
 (add-hook 'magit-popup-sequence-mode-hook #'magit-popup-setup)
-
+(autoload 'magit-revision-mode-setup "git-setup")
+(add-hook 'magit-revision-mode-hook #'magit-revision-mode-setup)
+(autoload 'magit-refs-mode-setup "git-setup")
+(add-hook 'magit-refs-mode-hook #'magit-refs-mode-setup)
+(autoload 'magit-reflog-mode-setup "git-setup")
+(add-hook 'magit-reflog-mode-hook #'magit-reflog-mode-setup)
+(autoload 'magit-status-mode-setup "git-setup")
+(add-hook 'magit-status-mode-hook #'magit-status-mode-setup)
 
 ;; git-modes
 
@@ -116,7 +87,6 @@
 (add-hook 'git-rebase-mode-hook #'git-rebase-mode-setup)
 
 (eval-after-load "magit" '(require 'git-setup))
-(eval-after-load "magit-key-mode" '(require 'git-setup))
 
 (autoload 'git-add "git-setup" nil t)
 

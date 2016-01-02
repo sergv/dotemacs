@@ -35,7 +35,7 @@
 
 (def-keys-for-map dired-mode-map
   +vim-special-keys+
-  +vi-search-keys+
+  +vim-search-keys+
   ("h"        dired-cycle-files-forward)
   ("t"        dired-cycle-files-backward)
   ("<down>"   dired-cycle-files-forward)

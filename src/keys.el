@@ -80,8 +80,9 @@
   '(progn
      (def-keys-for-map help-mode-map
        +vi-keys+
-       +vi-search-keys+
-       +vim-word-motion-keys+
+       +vim-search-keys+
+       +vim-search-extended-keys+
+       +vim-mock:word-motion-keys+
        +vim-special-keys+
        ("SPC"      help-follow)
        ("<up>"     help-go-back)
@@ -89,11 +90,7 @@
        ("C-."      elisp-slime-nav-find-elisp-thing-at-point)
        ("C-,"      pop-tag-mark)
        ("v"        set-mark-command)
-       ("y"        copy-region-as-kill)
-       ("*"        search-for-symbol-at-point-forward)
-       ("C-*"      search-for-symbol-at-point-forward-new-color)
-       ("#"        search-for-symbol-at-point-backward)
-       ("C-#"      search-for-symbol-at-point-backward-new-color))))
+       ("y"        copy-region-as-kill))))
 
 ;; view-mode
 (eval-after-load "view"
@@ -106,7 +103,7 @@
      (def-keys-for-map custom-mode-map
        +vi-keys+
        +vim-special-keys+
-       +vim-word-motion-keys+
+       +vim-mock:word-motion-keys+
        ("- w"      customize-save-customized)
        ("w"        vim:motion-fwd-word)
        ("b"        vim:motion-bwd-word)
@@ -118,7 +115,7 @@
      (def-keys-for-map Custom-mode-map
        +vi-keys+
        +vim-special-keys+
-       +vim-word-motion-keys+
+       +vim-mock:word-motion-keys+
        ("- w"      customize-save-customized)
        ("w"        vim:motion-fwd-word)
        ("b"        vim:motion-bwd-word)

@@ -127,11 +127,11 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
   (setq vim:current-force-motion-type 'block))
 
 
-(vim:define-keymap normal-mode "normal mode" &map-command nmap)
+(vim:define-keymap normal-mode "normal mode" :map-command nmap)
 
 (vim:define-mode normal "VIM normal mode\n\nNormal mode keymap:\n\\{vim:normal-mode-keymap}\n\nOperator pending mode keymap:\n\\{vim:operator-pending-mode-keymap}\n\nMotion mode keymap:\n\\{vim:motion-mode-keymap}\n\nOverride keymap:\n\\{vim:override-keymap}"
   :ident "N"
-                                        ; :message "-- NORMAL --"
+  ;; :message "-- NORMAL --"
   :keymaps '(vim:normal-mode-keymap
              vim:operator-pending-mode-keymap
              vim:motion-mode-keymap

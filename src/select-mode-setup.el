@@ -15,8 +15,8 @@
 (defun select-mode-setup ()
   (def-keys-for-map select-mode-map
     +vi-essential-keys+
-    +vi-search-keys+
-    +vim-word-motion-keys+
+    +vim-search-keys+
+    +vim-mock:word-motion-keys+
     +vim-special-keys+
 
     ("h" select-move-selection-down)

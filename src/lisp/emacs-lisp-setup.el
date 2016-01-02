@@ -178,7 +178,7 @@
   (def-keys-for-map debugger-mode-map
     +vi-essential-keys+
     +vim-special-keys+
-    +vim-word-motion-keys+
+    +vim-mock:word-motion-keys+
     ("<escape>" exit-recursive-edit)
     ("m"        vim:motion-jump-item)))
 

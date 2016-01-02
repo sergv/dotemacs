@@ -21,9 +21,9 @@
   '(progn
      (def-keys-for-map grep-mode-map
        +vi-keys+
-       +vi-search-keys+
+       +vim-search-keys+
        +vim-special-keys+
-       +vim-word-motion-keys+
+       +vim-mock:word-motion-keys+
        ("h"        compilation-jump-to-next-error)
        ("t"        compilation-jump-to-prev-error)
        ("<up>"     compilation-jump-to-prev-error)
