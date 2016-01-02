@@ -14,6 +14,7 @@
 (require 'magit)
 (require 'magit-blame)
 (require 'search)
+(require 'vim-setup)
 
 ;;; gitignore
 
@@ -36,7 +37,6 @@
 
 ;;; magit
 
-
 (defun magit-collect-unstaged-hunk-sections ()
   "Return all staged hunk sections in magit status buffer."
   (save-excursion
@@ -51,8 +51,8 @@
       (magit-section-expand-all magit-root-section)
       (prog1 (sort (funcall collect magit-root-section)
                    (lambda (section-a section-b)
-                     (< (magit-section-beginning section-a)
-                        (magit-section-beginning section-b))))))))
+                     (< (magit-section-start section-a)
+                        (magit-section-start section-b))))))))
 
 (defun magit-current-section-is-whitespace-only? ()
   (interactive)
@@ -61,7 +61,7 @@
              (if (and (eq? 'hunk (magit-section-type hunk))
                       (patch-whitespace-only-change?
                        (buffer-substring-no-properties
-                        (magit-section-beginning hunk)
+                        (magit-section-start hunk)
                         (magit-section-end hunk))))
                "IS"
                "IS NOT"))))
@@ -77,7 +77,7 @@
          (filter pred
                  (map (lambda (hunk)
                         (buffer-substring-no-properties
-                         (magit-section-beginning hunk)
+                         (magit-section-start hunk)
                          (magit-section-end hunk)))
                       (reverse (magit-collect-unstaged-hunk-sections))))))
     (dolist (patch matching-patches)
@@ -87,124 +87,63 @@
                   (find-if (lambda (section)
                              (string= patch
                                       (buffer-substring-no-properties
-                                       (magit-section-beginning section)
+                                       (magit-section-start section)
                                        (magit-section-end section))
                                       ))
                            sections))
         (magit-apply-hunk-item hunk "--cached"))))
   nil)
 
-
-
-(defadvice magit-log-edit-cleanup
-  (before
-   magit-log-edit-cleanup-clean-trailing-whitespace
-   activate
-   compile)
-  (delete-trailing-whitespace+))
-
-(defun magit-cycle-sections-visibility (section)
-  "Cycle visibility of childrens of SECTION in folling manner: if the're in the
-same state (e.g. all collapsed or shown) then cycle all to next state, and hide
-all otherwise."
-  (let* ((children (magit-section-children section))
-         (all-equal (= 1
-                       (length (remove-duplicates (map #'magit-section-hidden children)
-                                                  :test #'equal?)))))
-    (save-excursion
-      (dolist (child children)
-        (goto-char (magit-section-beginning child))
-        (if all-equal
-          (magit-cycle-section)
-          (magit-hide-section))))))
-
-(defun magit-cycle-top-sections-visibility ()
-  "Cycle visibility of sections across all buffer."
-  (interactive)
-  (magit-cycle-sections-visibility magit-root-section))
-
-(defun magit-visit-item-other-window ()
-  (interactive)
-  (let ((current-prefix-arg t))
-    (call-interactively #'magit-visit-item)))
-
-(defun magit-copy-section-text ()
-  (interactive)
-  (if-let (section (magit-current-section))
-    (kill-new-ignoring-duplicates
-     (buffer-substring-no-properties
-      (magit-section-beginning section)
-      (magit-section-end section)))
-    (error "No section selected")))
-
-(defun magit-mode-setup ()
-  (setf truncate-lines nil)
-
-  ;; here we do have vim mode enabled
-  ;; (def-keys-for-map magit-mode-map
-  ;;   +vim-special-keys+)
-  (def-keys-for-map magit-mode-map
-    ("s"               vim:ex-read-command)
-    ("k"               magit-unstage-item)
-    ("K"               magit-unstage-all)
-    (";"               magit-stage-item)
-    ("Y"               magit-cherry)
-    ("y"               magit-copy-section-text)
-    ("D"               magit-discard)
-    ("C"               magit-checkout)
-    ("r"               magit-refresh)
-    ("T"               magit-tag-popup)
-    ("R"               magit-rebase-popup)
-    ("X"               magit-reset-head-hard)
-    ("SPC"             magit-visit-item-other-window)
-    ("S-TAB"           magit-cycle-top-sections-visibility)
-    ("<S-tab>"         magit-cycle-top-sections-visibility)
-    ("S-<tab>"         magit-cycle-top-sections-visibility)
-    ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
-    ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
-    ("C-TAB"           magit-cycle-section)
-    ("C-<tab>"         magit-cycle-section)
-    ("'"               magit-goto-parent-section)
-    ("C-b"             ido-switch-buffer)
-    ("<left>"          prev-w)
-    ("<right>"         next-w)
-    ("S-<left>"        swap-buffers-backward)
-    ("S-<right>"       swap-buffers-forward)
-    ("<home>"          prev-f)
-    ("<end>"           next-f)
-    ("S-<home>"        swap-buffers-forward-through-frames)
-    ("S-<end>"         swap-buffers-backward-through-frames)))
+;; (defun magit-visit-thing-other-window ()
+;;   (interactive)
+;;   (let ((current-prefix-arg t))
+;;     (call-interactively #'magit-visit-thing)))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
+  (def-keys-for-map (magit-unstaged-section-map
+                     magit-file-section-map
+                     magit-hunk-section-map
+                     magit-staged-section-map
+                     magit-untracked-section-map
+                     magit-mode-map
+                     map)
+    ("u" nil)
+    ("s" vim:ex-read-command)
+    (";" magit-stage)
+    ("k" magit-unstage))
   (def-keys-for-map map
     +vim-special-keys+
-    +vi-search-keys+
+    +vim-search-keys+
     ("?"               magit-dispatch-popup) ;; override "?" from vim search
-    ("r"               magit-refresh)
-
-    ("s"               vim:ex-read-command)
-    (";"               magit-stage-item)
-    ("k"               magit-unstage-item)
-    ("K"               magit-unstage-all)
-    ("D"               magit-discard)
-    ("p"               magit-stash-popup)
+    ("<down>"          magit-section-forward)
+    ("<up>"            magit-section-backward)
+    ("h"               magit-section-forward)
+    ("t"               magit-section-backward)
     ("T"               magit-tag-popup)
-    ("<down>"          magit-goto-next-section)
-    ("<up>"            magit-goto-previous-section)
-    ("h"               magit-goto-next-section)
-    ("t"               magit-goto-previous-section)
+    ("n"               magit-notes-popup)
+    ("'"               magit-section-up)
 
-    ("SPC"             magit-visit-item-other-window)
-    ("S-TAB"           magit-cycle-top-sections-visibility)
-    ("<S-iso-lefttab>" magit-cycle-top-sections-visibility)
-    ("S-<iso-lefttab>" magit-cycle-top-sections-visibility)
-    ("C-TAB"           magit-cycle-section)
-    ("C-<tab>"         magit-cycle-section)))
+    ("p"               magit-stash-popup)
+    ("H"               magit-refresh)
 
-(defun magit-status-mode-setup ()
-  "`magit-status' switches to window with this mode"
-  ;; don't do (init-common) here since it's not so common mode
-  (magit-bind-common-vimless-mode-keymap magit-status-mode-map))
+    ("k"               magit-unstage)
+    ("K"               magit-unstage-all)
+
+    ;; TODO: magit-discard
+    ;; ("D"               magit-discard)
+
+    ;; ("SPC"             magit-visit-thing-other-window)
+    ("TAB"             magit-section-cycle)
+    ("<tab>"           magit-section-cycle)
+    ("S-TAB"           magit-section-cycle-global)
+    ("<S-tab>"         magit-section-cycle-global)
+    ("S-<tab>"         magit-section-cycle-global)
+    ("<S-iso-lefttab>" magit-section-cycle-global)
+    ("S-<iso-lefttab>" magit-section-cycle-global)))
+
+(defun magit-diff-mode-setup ()
+  "Setup for diff browsing mode."
+  (magit-bind-common-vimless-mode-keymap magit-diff-mode-map))
 
 (defun magit-log-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-log-mode-map)
@@ -212,44 +151,24 @@ all otherwise."
     ("h" vim-mock:motion-down)
     ("t" vim-mock:motion-up)))
 
-(defun magit-log-edit-mode-setup ()
-  "Mode for editing commit message."
-  (init-common :use-yasnippet nil :use-comment nil :use-fci t)
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     magit-log-edit-mode-map)
-    ("C-c C-q" magit-log-edit-cancel-log-message)
-    ("<up>"    log-edit-previous-comment)
-    ("<down>"  log-edit-next-comment)
-    ("M-p"     nil))
-
-  (add-hook 'kill-buffer-hook
-            #'magit-log-edit-cancel-log-message
-            t ;; append
-            t ;; local
-            ))
-
-(defun magit-commit-mode-setup ()
-  "Setup for commit browsing mode."
-  (magit-bind-common-vimless-mode-keymap magit-commit-mode-map))
-
-(defun magit-diff-mode-setup ()
-  "Setup for diff browsing mode."
-  (magit-bind-common-vimless-mode-keymap magit-diff-mode-map))
-
-(defun magit-show-branches-mode-setup ()
-  (magit-bind-common-vimless-mode-keymap magit-show-branches-mode-map))
-
-(defun magit-branch-manager-mode-setup ()
-  (magit-bind-common-vimless-mode-keymap magit-branch-manager-mode-map))
-
-(defun magit-reflog-mode-setup ()
-  (magit-bind-common-vimless-mode-keymap magit-reflog-mode-map))
-
 (defun magit-popup-setup ()
   (def-keys-for-map magit-popup-mode-map
     ("<escape>" magit-popup-quit)
     ("q"        magit-popup-quit)))
+(defun magit-refs-mode-setup ()
+  (magit-bind-common-vimless-mode-keymap magit-refs-mode-map))
+
+(defun magit-reflog-mode-setup ()
+  (magit-bind-common-vimless-mode-keymap magit-reflog-mode-map))
+
+(defun magit-revision-mode-setup ()
+  "Setup for commit browsing mode."
+  (magit-bind-common-vimless-mode-keymap magit-revision-mode-map))
+
+(defun magit-status-mode-setup ()
+  "`magit-status' switches to window with this mode"
+  ;; don't do (init-common) here since it's not so common mode
+  (magit-bind-common-vimless-mode-keymap magit-status-mode-map))
 
 ;;; git-modes
 
@@ -257,24 +176,16 @@ all otherwise."
   "Mode for editing commit message."
   (init-common :use-yasnippet nil :use-comment nil :use-fci t)
 
-  (def-keys-for-map (git-commit-mode-map
-                     magit-log-edit-mode-map)
+  (def-keys-for-map git-commit-mode-map
     ("C-c C-q" magit-log-edit-cancel-log-message)
     ("<up>"    log-edit-previous-comment)
     ("<down>"  log-edit-next-comment)
-    ("M-p"     nil))
-
-  ;; (add-hook 'kill-buffer-hook
-  ;;           #'magit-log-edit-cancel-log-message
-  ;;           t ;; append
-  ;;           t ;; local
-  ;;           )
-  )
+    ("M-p"     nil)))
 
 (defun git-rebase-mode-setup ()
   (def-keys-for-map git-rebase-mode-map
     +vi-keys+
-    +vim-word-motion-keys+
+    +vim-mock:word-motion-keys+
     +vim-special-keys+
     ("C-k"      nil) ;; its kill buffer in global map
     ("q"        with-editor-cancel)
@@ -298,59 +209,6 @@ all otherwise."
     ("f"        git-rebase-fixup)
     ("d"        git-rebase-kill-line)))
 
-;; this mode has no hook
-(eval-after-load
-    "magit-key-mode"
-  '(progn
-     ;; add quitting with <escape>
-     (redefun magit-key-mode-build-keymap (for-group)
-       "Construct a normal looking keymap for the key mode to use.
-Put it in `magit-key-mode-keymaps' for fast lookup."
-       (let* ((options (magit-key-mode-options-for-group for-group))
-              (actions (cdr (assoc 'actions options)))
-              (switches (cdr (assoc 'switches options)))
-              (arguments (cdr (assoc 'arguments options)))
-              (map (make-sparse-keymap)))
-         (suppress-keymap map 'nodigits)
-         ;; ret dwim
-         (define-key map (kbd "RET") 'magit-key-mode-exec-at-point)
-         ;; tab jumps to the next "button"
-         (define-key map (kbd "TAB") 'magit-key-mode-jump-to-next-exec)
-
-         ;; all maps should `quit' with `C-g' or `q'
-         (define-key map (kbd "C-g") `(lambda ()
-                                        (interactive)
-                                        (magit-key-mode-command nil)))
-         (define-key map (kbd "<escape>") `(lambda ()
-                                             (interactive)
-                                             (magit-key-mode-command nil)))
-         (define-key map (kbd "q")   `(lambda ()
-                                        (interactive)
-                                        (magit-key-mode-command nil)))
-         ;; run help
-         (define-key map (kbd "?") `(lambda ()
-                                      (interactive)
-                                      (magit-key-mode-help ',for-group)))
-
-         (let ((defkey (lambda (k action)
-                         (when (and (lookup-key map (car k))
-                                    (not (numberp (lookup-key map (car k)))))
-                           (message "Warning: overriding binding for `%s' in %S"
-                                    (car k) for-group)
-                           (ding)
-                           (sit-for 2))
-                         (define-key map (car k)
-                           `(lambda () (interactive) ,action)))))
-           (dolist (k actions)
-             (funcall defkey k `(magit-key-mode-command ',(nth 2 k))))
-           (dolist (k switches)
-             (funcall defkey k `(magit-key-mode-toggle-option ',for-group ,(nth 2 k))))
-           (dolist (k arguments)
-             (funcall defkey k `(magit-key-mode-add-argument
-                                 ',for-group ,(nth 2 k) ',(nth 3 k)))))
-
-         (push (cons for-group map) magit-key-mode-keymaps)
-         map))))
 
 (defvar-local git-repository nil
   "Path to root of git repository this buffer's file is member of, if any.")
@@ -477,11 +335,42 @@ under git version control."
   (interactive)
   (unless buffer-file-name
     (error "Current buffer has no file"))
-  (shell-command (concat "git add " (shell-quote-argument buffer-file-name))))
+  (magit-stage-file buffer-file-name)
+  ;; (shell-command (concat "git add " (shell-quote-argument buffer-file-name)))
+  )
+
+(vim:define-keymap blame-mode "blame mode")
+
+(vim:define-mode blame "VIM git blame mode\n\nBlame mode keymap:\n\\{vim:blame-mode-keymap}"
+  :ident "B"
+  ;; :message "-- BLAME --"
+  :keymaps '(vim:blame-mode-keymap
+             vim:operator-pending-mode-keymap
+             vim:motion-mode-keymap
+             ;; vim:override-keymap
+             )
+  :command-function #'vim:normal-mode-command
+  :cursor 'hbar)
+
+(def-keys-for-map vim:blame-mode-keymap
+  +vim-interbuffer-navigation-keys+
+  +vim-normal-mode-navigation-keys+
+  +vim-search-keys+
+  +vim-search-extended-keys+
+  ("b"        magit-blame-popup)
+  ("h"        magit-blame-next-chunk)
+  ("H"        magit-blame-next-chunk-same-commit)
+  ("t"        magit-blame-previous-chunk)
+  ("T"        magit-blame-previous-chunk-same-commit)
+  ("y"        magit-blame-copy-hash)
+
+  ;; ("C-h"      magit-blame-next-chunk)
+  ("<down>"   vim:motion-down)
+  ;; ("C-t"      magit-blame-previous-chunk)
+  ("<up>"     vim:motion-up)
+  ("<escape>" vim:blame-quit)
+  ("q"        vim:blame-quit))
 
 (provide 'git-setup)
-
-;; Local Variables:
-;; End:
 
 ;; git-setup.el ends here

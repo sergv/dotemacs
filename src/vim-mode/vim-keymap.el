@@ -42,10 +42,10 @@ the variable where the keymap is stored. If the variable contains
     (when parent (set-keymap-parent kmap parent))
     kmap))
 
-(defmacro vim:define-keymap (name
-                             doc
-                             &key
-                             map-command)
+(defmacro* vim:define-keymap (name
+                              doc
+                              &key
+                              map-command)
   "Defines global and local keymaps for a mode with name
 vim:`name'-[local-]keymap and a map command vim:`map-command'
 and vim:local-`map-command'."
