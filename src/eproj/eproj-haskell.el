@@ -34,7 +34,7 @@
                                             *fast-tags-exec*
                                             nil
                                             ;; Discard error output from fast-tags
-                                            (out-buffer nil)
+                                            (list out-buffer nil)
                                             nil
                                             "-o-"
                                             "--nomerge"))
