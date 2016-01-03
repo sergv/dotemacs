@@ -22,7 +22,6 @@ library
                      -fwarn-monomorphism-restriction
                      -fno-warn-type-defaults
                      -fno-warn-name-shadowing
-                     -ferror-spans
                      -rtsopts
 --  build-tools:       alex happy c2hs
   ghc-prof-options:  -fprof-auto
@@ -37,7 +36,6 @@ executable           ${filename no ext}
                      -fwarn-monomorphism-restriction
                      -fno-warn-type-defaults
                      -fno-warn-name-shadowing
-                     -ferror-spans
                      -rtsopts
 --                     -main-is MyMain
   ghc-prof-options:  -fprof-auto
@@ -53,7 +51,6 @@ test-suite ${filename no ext}-test
                      -fwarn-monomorphism-restriction
                      -fno-warn-type-defaults
                      -fno-warn-name-shadowing
-                     -ferror-spans
                      -rtsopts
 --  hs-source-dirs:    test
   ghc-prof-options:  -fprof-auto
