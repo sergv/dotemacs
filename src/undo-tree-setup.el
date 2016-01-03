@@ -31,6 +31,7 @@
        ("d"         undo-tree-visualize-switch-branch-left)
        ("n"         undo-tree-visualize-switch-branch-right)
        ("SPC"       undo-tree-visualizer-toggle-timestamps)
+       ("T"         undo-tree-visualizer-toggle-diff)
        ("<left>"    prev-w)
        ("<right>"   next-w)
        ("S-<left>"  swap-buffers-backward)
