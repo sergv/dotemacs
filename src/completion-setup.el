@@ -10,6 +10,8 @@
 
 (require 'common)
 
+;; Vanilla completion
+
 (setf read-buffer-completion-ignore-case t)
 
 (defun completing-read-buffer (prompt &optional default require-match)
@@ -27,8 +29,7 @@
       completion-category-overrides '()
       read-buffer-function #'completing-read-buffer)
 
-;; convenient command completer
-
+;; Smex - convenient command completer
 (setf smex-history-length 100
       smex-save-file (concat +prog-data-path+ "/smex-items")
       smex-auto-update (not (platform-use? 'work))
@@ -37,6 +38,37 @@
 (autoload 'smex "smex" "" t)
 (autoload 'smex-major-mode-commands "smex" "" t)
 
+;; pcomplete
+
+(setf pcomplete-dir-ignore (rx bol (or "." "..") "/")
+      ;; directory-files-no-dot-files-regexp
+      pcomplete-ignore-case t
+      pcomplete-autolist nil
+      pcomplete-recexact nil
+      pcomplete-cycle-completions t
+      pcomplete-command-completion-function
+      (lambda ()
+        (pcomplete-here
+         (pcomplete-entries nil
+                            (lambda (filename)
+                              (or (file-executable-p filename)
+                                  (string-match-pure? (rx (or ".hs"
+                                                              ".sh"
+                                                              ".py"
+                                                              ".exe"
+                                                              ".bat"
+                                                              ".cmd")
+                                                          eol)
+                                                      filename)))))))
+
+(eval-after-load "pcomplete"
+  '(progn
+     (require 'pcmpl-gnu)
+     (require 'pcmpl-linux)
+     (require 'pcmpl-rpm)
+     (require 'pcmpl-unix)))
+
+;; Ido
 (setf ido-enable-flex-matching t
       ido-create-new-buffer 'always ;; don't prompt when opening nonexistent files
       ido-file-extensions-order '(".hs" ".lhs" ".y" ".l" ".cabal" ".idr" ".agda" ".h" ".c" t)
@@ -82,21 +114,6 @@
     ("C-w"        ido-up-directory)))
 
 (add-hook 'ido-setup-hook #'ido-setup-custom-bindings)
-
-;;;
-
-;; (defun ido-setup ()
-;;   ;; bind keys to ido-completion-map here, etc
-;;   (def-keys-for-map (;; ido-common-completion-map
-;;                      ;;ido-completion-map
-;;                      ido-file-completion-map
-;;                      )
-;;     ("C-w" ido-up-directory))
-;;
-;;   (def-keys-for-map ido-completion-map
-;;     ("<f6>" ido-toggle-regexp)))
-
-;; (add-hook 'ido-setup-hook #'ido-setup)
 
 (provide 'completion-setup)
 
