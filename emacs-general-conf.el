@@ -255,10 +255,6 @@
 
 (setq color-theme-libraries
       (directory-files +color-themes-path+ t "^color-theme")
-      color-theme-directory (concat +emacs-config-path+
-                                    "/src/color-theme-6.6.0/themes/")
-      color-theme-libraries (list (concat +emacs-config-path+
-                                          "/src/color-theme-6.6.0/themes/color-theme-library.el"))
       color-theme-load-all-themes nil)
 (require 'solarized+)
 
