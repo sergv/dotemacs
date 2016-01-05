@@ -7,32 +7,8 @@
 ;; Description:
 
 (require 'pcomplete)
+(require 'completion-setup)
 (require 'haskell-misc)
-
-(eval-after-load "pcomplete"
-  '(progn
-     (require 'pcmpl-gnu)
-     (require 'pcmpl-linux)
-     (require 'pcmpl-rpm)
-     (require 'pcmpl-unix)
-
-     (setf pcomplete-autolist nil
-           pcomplete-recexact nil
-           pcomplete-cycle-completions t
-           pcomplete-command-completion-function
-           (lambda ()
-             (pcomplete-here
-              (pcomplete-entries nil
-                                 (lambda (filename)
-                                   (or (file-executable-p filename)
-                                       (string-match-pure? (rx (or ".hs"
-                                                                   ".sh"
-                                                                   ".py"
-                                                                   ".exe"
-                                                                   ".bat"
-                                                                   ".cmd")
-                                                               eol)
-                                                           filename)))))))))
 
 (defun pcmpl-git-commits ()
   "Return list of commits to complete against."
