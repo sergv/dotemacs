@@ -284,23 +284,10 @@ or not.")
 (fortune-init-scratch-buf)
 
 
+(load-library "solarized")
 (require 'theme-changer)
-(change-theme #'color-theme-solarized+-light
-              #'color-theme-solarized+-dark)
-
-;; test faces for readability
-;; (progn
-;;   (load-file "~/emacs/color-lab.elc")
-;;   (load-file "~/emacs/shr-color.elc")
-;;   (mapc #'(lambda (entry)
-;;             (let* ((colors (list
-;;                             (cadr entry)
-;;                             (caddr entry)))
-;;                    (result (shr-color-visible (car colors) (cadr colors) t)))
-;;               (when (not (equal colors result))
-;;                 (message "face %S transform from %S to %S" (car entry) colors result))))
-;;         '((face-name "bg" "fg")))
-;;   nil)
+(change-theme #'solarized-light
+              #'solarized-dark)
 
 (put 'downcase-region 'disabled nil)
 (put 'erase-buffer 'disabled nil)
