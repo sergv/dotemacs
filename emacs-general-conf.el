@@ -102,7 +102,7 @@
                 global-mode-string))
 
 ;;;; modes without much customization
-(setq-default frame-background-mode 'dark)
+(setq-default frame-background-mode nil)
 
 (global-auto-revert-mode 1)
 
@@ -254,12 +254,6 @@
 (setf calendar-location-name "Kiev Ukraine"
       calendar-latitude 50.4500
       calendar-longitude 30.5233)
-
-(setq color-theme-libraries
-      (directory-files +color-themes-path+ t "^color-theme")
-      color-theme-load-all-themes nil)
-(require 'solarized+)
-
 
 (setf font-lock-maximum-decoration
       ;; there are three decoration levels, 1 being the minimum

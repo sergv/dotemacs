@@ -8,7 +8,7 @@
 
 (require 'common)
 (require 'more-clojure)
-(require 'solarized+)
+(require 'solarized)
 
 (defparameter *formula-images-cache* (make-hash-table :test 'equal))
 
@@ -18,7 +18,7 @@
   (ignore-errors
     (clear-image-cache)))
 
-(add-hook 'color-theme-solarized+-theme-changed-hook
+(add-hook 'solarized-theme-mode-changed-hook
           #'render-buffer-flush-cache)
 
 
