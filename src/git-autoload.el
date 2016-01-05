@@ -26,7 +26,8 @@
       magit-save-repository-buffers 'dontask
 
       magit-blame-heading-format "%.7H %-15a %C %s"
-      magit-push-always-verify nil)
+      magit-push-always-verify nil
+      magit-revert-buffers 'silent)
 
 (autoload 'gitignore-mode "gitignore-mode"
           "Major mode for editing .gitignore files"
