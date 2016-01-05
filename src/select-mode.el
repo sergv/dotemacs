@@ -295,7 +295,7 @@ Items will be passed to this function before insertion into buffer.")
   (let ((store (gensym)))
     `(let ((,store (buffer-modified-p)))
        (unwind-protect
-           (begin
+           (progn
              ,@body)
          (set-buffer-modified-p ,store)))))
 

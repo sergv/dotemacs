@@ -7,7 +7,6 @@
 ;; Description:
 
 (require 'common)
-(require 'more-scheme)
 
 (setf yas-ignore-filenames-as-triggers t
       yas-snippet-dirs (concat +prog-data-path+ "/snippets")

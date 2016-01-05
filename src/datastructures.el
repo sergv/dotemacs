@@ -41,7 +41,7 @@
              ;; insert it.
              (not (funcall lt-pred item (first items))))
       set
-      (begin
+      (progn
         (setf (rest tmp) (cons item items))
         (make-sorted-set :items (rest res-items)
                          :lt-pred (sorted-set/lt-pred set)

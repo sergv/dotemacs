@@ -8,7 +8,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'custom)
 (require 'common)
 (require 'advices-util)
 (require 'all-lisp-setup)

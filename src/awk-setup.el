@@ -8,7 +8,7 @@
 ;; Requirements:
 ;; Status:
 
-(require 'custom)
+(require 'common)
 
 (autoload 'awk-start "awk+" nil t)
 

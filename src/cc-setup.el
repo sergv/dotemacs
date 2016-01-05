@@ -8,9 +8,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'custom)
-
-(require 'more-clojure)
+(require 'common)
 (require 'ctypes)
 (require 'find-file)
 (require 'etags)

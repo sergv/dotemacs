@@ -7,7 +7,6 @@
 ;; Description:
 
 (require 'common)
-(require 'more-clojure)
 (require 'solarized)
 
 (defparameter *formula-images-cache* (make-hash-table :test 'equal))
