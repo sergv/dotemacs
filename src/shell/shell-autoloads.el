@@ -16,8 +16,7 @@
 (autoload 'shell-script-setup "shell-setup")
 
 (mapc (lambda (x) (add-hook x #'shell-script-setup))
-      '(makefile-mode-hook
-        cmake-mode-hook
+      '(cmake-mode-hook
         shell-script-mode-hook
         sh-mode-hook
         sh-script-mode-hook

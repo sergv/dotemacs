@@ -91,8 +91,9 @@ or not.")
   (smartparens-buffer-local-setup)
 
   (when use-whitespace
-    (when (memq major-mode
-                +do-not-track-long-lines-modes+)
+    (when (and (not (eq? use-whitespace 'tabs-only))
+               (memq major-mode
+                     +do-not-track-long-lines-modes+))
       (error "Shouldn't have enabled whitespace-mode in %s" major-mode))
     (when (eq? use-whitespace 'tabs-only)
       (setq-local whitespace-style '(face tabs)))
@@ -235,6 +236,7 @@ or not.")
 (load-library "agda-autoload")
 (load-library "idris-setup")
 (load-library "dos-setup")
+(load-library "make-setup")
 
 (load-library "search-autoload")
 (load-library "compilation-setup")
