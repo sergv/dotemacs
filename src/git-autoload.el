@@ -62,6 +62,8 @@
 
 (autoload 'magit-diff-mode-setup "git-setup")
 (add-hook 'magit-diff-mode-hook #'magit-diff-mode-setup)
+(autoload 'magit-stash-mode-setup "git-setup")
+(add-hook 'magit-stash-mode-hook #'magit-diff-mode-setup)
 (autoload 'magit-log-mode-setup "git-setup")
 (add-hook 'magit-log-mode-hook #'magit-log-mode-setup)
 (autoload 'magit-popup-setup "git-setup")
