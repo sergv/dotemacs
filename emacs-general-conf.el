@@ -48,6 +48,7 @@
         (magit-branch-manager-mode . nil)
         (magit-commit-mode . nil)
         (magit-diff-mode . nil)
+        (magit-stash-mode . nil)
         (magit-refs-mode . nil)
         (magit-revision-mode . nil)
         (org-agenda-mode . nil)
