@@ -180,7 +180,8 @@
       kill-ring-max 1000
       save-interprogram-paste-before-kill nil
       enable-recursive-minibuffer t
-      ad-default-compilation-action 'always)
+      ad-default-compilation-action 'always
+      echo-keystrokes 0.01)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
