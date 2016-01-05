@@ -367,7 +367,7 @@ Basically swap current point with previous one."
   "Show git status for current file's repository."
   (aif (buffer-file-name)
     (if *have-git?*
-      (begin
+      (progn
         (git-update-file-repository)
         (if git-repository
           (magit-status git-repository)
@@ -375,7 +375,7 @@ Basically swap current point with previous one."
             (message "File %s is not under git VCS" it)
             (magit-status))))
       (magit-status (file-name-nondirectory it)))
-    (begin
+    (progn
       (message "Warning: current buffer has no associated file")
       (magit-status default-directory))))
 

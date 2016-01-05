@@ -9,7 +9,7 @@
 
 ;; set up shell scripting files and shell interaction mode
 
-(require 'custom)
+(require 'common)
 (require 'comint-setup)
 (require 'shell-script-abbrev+)
 

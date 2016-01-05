@@ -10,6 +10,7 @@
 
 (require 'common)
 (require 'ert)
+(require 'datastructures)
 
 (ert-deftest datastructures-tests/sorted-set-creation ()
   (let ((lt #'<))

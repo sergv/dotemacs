@@ -7,7 +7,7 @@
 ;; Description:
 
 
-(require 'custom)
+(require 'common)
 (require 'keys-def)
 
 (def-keys-for-map global-map

@@ -35,9 +35,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'custom)
 (require 'common)
-(require 'custom-predicates)
 (require 'haskell-autoload)
 
 ;;; configurable parameters
@@ -709,7 +707,7 @@ list of project files."
                "invalid language mode = %s" ,lang-mode-var)
        (if-let (,lang-var (gethash ,lang-mode-var eproj/languages-table))
          (if-let (,load-proc-var (eproj-language/load-procedure ,lang-var))
-           (begin
+           (progn
              ,@body)
            (error "No load procedure defined for language %s"
                   ,lang-mode-var))

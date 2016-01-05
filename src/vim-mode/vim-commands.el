@@ -456,7 +456,7 @@ and else negates meaning of the next command (e.g. vim:cmd-join-lines will split
       (current-kill (or count 1))
       (funcall (vim:paste-info-command vim:last-paste)
                :count (vim:paste-info-count vim:last-paste)))
-    (begin
+    (progn
       (message "Next command will be negated")
       (setf vim:next-command-negated? t
             prefix-arg current-prefix-arg))))
@@ -592,7 +592,7 @@ indented according to the current mode."
 (vim:defcmd vim:cmd-join-lines (count)
   "Join `count' lines with a minimum of two lines."
   (if vim:next-command-negated?
-    (begin
+    (progn
       (dotimes (i (or count 1))
         (split-line))
       (setf vim:next-command-negated? nil))
