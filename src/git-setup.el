@@ -150,6 +150,10 @@
   "Setup for diff browsing mode."
   (magit-bind-common-vimless-mode-keymap magit-diff-mode-map))
 
+(defun magit-stash-mode-setup ()
+  "Setup for stash browsing mode."
+  (magit-bind-common-vimless-mode-keymap magit-stash-mode-map))
+
 (defun magit-log-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-log-mode-map)
   (def-keys-for-map magit-log-mode-map
