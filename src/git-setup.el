@@ -139,7 +139,12 @@
     ("<S-tab>"         magit-section-cycle-global)
     ("S-<tab>"         magit-section-cycle-global)
     ("<S-iso-lefttab>" magit-section-cycle-global)
-    ("S-<iso-lefttab>" magit-section-cycle-global)))
+    ("S-<iso-lefttab>" magit-section-cycle-global)
+
+    ("C-1"             magit-section-show-level-1-all)
+    ("C-2"             magit-section-show-level-2-all)
+    ("C-3"             magit-section-show-level-3-all)
+    ("C-4"             magit-section-show-level-4-all)))
 
 (defun magit-diff-mode-setup ()
   "Setup for diff browsing mode."
