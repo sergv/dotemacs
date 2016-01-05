@@ -8,10 +8,8 @@
 ;; Requirements:
 ;; Status:
 
-(require 'custom)
-(require 'custom-predicates)
-(require 'more-scheme)
 (require 'macro-util)
+(require 'custom-predicates)
 
 (defsubst remap-interval (a b c d x)
   "Remap x from [a, b] into [c, d]"
@@ -1098,10 +1096,10 @@ See also `indent-relative-maybe'."
             (when (> (current-column) start-column)
               (backward-char 1))
             (if (eq? direction 'forward)
-              (begin
+              (progn
                 (skip-chars-forward "^ \t" end)
                 (skip-chars-forward " \t" end))
-              (begin
+              (progn
                 (skip-chars-backward " \t" end)
                 (skip-chars-backward "^ \t" end)))
             (unless (= (point) end)
@@ -1270,7 +1268,7 @@ the current buffer."
                   (with-current-buffer buf-b
                     (point)))))
     (if (eq? buf-b buf-a)
-      (begin
+      (progn
         (with-selected-window win-a
           (with-current-buffer buf-a
             (goto-char pos-b)))
@@ -1278,7 +1276,7 @@ the current buffer."
         (with-selected-window win-b
           (with-current-buffer buf-b
             (goto-char pos-a))))
-      (begin
+      (progn
         (switch-to-buffer buf-b)
         (select-window win-b)
         (switch-to-buffer buf-a)))))
@@ -1412,8 +1410,647 @@ topmost `kill-ring' item is equal to text."
     (when (buffer-modified-p)
       (save-buffer))))
 
+;;;;
+
+(defun current-column ()
+  "Return current column - integer number."
+  (- (point) (line-beginning-position)))
+
+(defun quoted? (x)
+  (eq 'quote (car-safe x)))
+
+(defun remove-buffer (&optional buffer-or-name)
+  "Remove buffer completely bypassing all its prompt functions.
+Save buffer if it has assigned file and this file exists on disk."
+  (interactive)
+  (let ((old-functions kill-buffer-query-functions)
+        (kill-buffer-query-functions nil))
+    (if-buffer-has-file
+      (when (file-exists? (buffer-file-name))
+        (save-buffer)))
+    (kill-buffer buffer-or-name)
+    (setq kill-buffer-query-functions old-functions)))
+
+(defun remove-buffer-and-window ()
+  "Remove buffer and close it's window"
+  (interactive)
+  (remove-buffer)
+  (delete-window))
+
+(defun make-file-executable (file-name)
+  "Make file FILE-NAME executable by adding all the executable bits to it's mode."
+  (set-file-modes file-name (logior #o111 (file-modes file-name))))
+
+(defun make-script-file-exec ()
+  "Make buffer file executable if it's a shell script."
+  (and (not (file-executable-p buffer-file-name))
+       (save-excursion
+         (save-restriction
+           (widen)
+           (goto-char (point-min))
+           ;; first alternative - unix shell shebang
+           ;; second alternative - emacs "shebang"
+           (looking-at-pure? "^\\(?:#!\\|:;[ \t]*exec\\)")))
+       (make-file-executable buffer-file-name)
+       (shell-command (concat "chmod u+x \"" buffer-file-name "\""))
+       (message
+        (concat "Saved as script: " buffer-file-name))))
+
+(defun dired-single-up-directory ()
+  (interactive)
+  (dired-single-buffer ".."))
+
+
+(defun reindent-region (start end)
+  "custom function that reindents region, differs from indent-region
+ with silent behavior( i.e. no messages)"
+  (save-excursion
+    (let ((lnum 0)
+          (lines (count-lines start end)))
+      (goto-char start)
+      (while (< lnum lines)
+        (incf lnum)
+        (indent-for-tab-command)
+        (forward-line 1)))))
+
+(defun yank-and-reindent ()
+  "Function pastes most recently yanked or killed text
+ant reindents it."
+  (interactive)
+  (yank)
+  (reindent-region (region-beginning) (region-end))
+  (goto-char (region-end)))
+
+(defun yank-previous ()
+  (interactive)
+  (yank-pop))
+
+(defun yank-next ()
+  (interactive)
+  (yank-pop 1))
+
+(defun yank-previous-and-reindent ()
+  (interactive)
+  (yank-previous)
+  (reindent-region (region-beginning) (region-end))
+  (goto-char (region-end)))
+
+(defun yank-next-and-reindent ()
+  (interactive)
+  (yank-next)
+  (yank-pop 1)
+  (reindent-region (region-beginning) (region-end))
+  (goto-char (region-end)))
+
+
+(defun delete-word (count)
+  "Delete characters forward until encountering the end of a word.
+With argument COUNT, do this that many times."
+  (interactive "p")
+  (delete-region (point)
+                 (progn
+                   ;; (vim-mock:motion-fwd-word count)
+                   (forward-word arg)
+                   (point))))
+
+(defun delete-word* (count)
+  "Delete characters backard until encountering the end of a word.
+With argument COUNT, do this that many times."
+  (interactive "p")
+  (delete-region (point)
+                 (progn
+                   (vim-mock:motion-fwd-WORD count)
+                   (point))))
+
+(defun backward-delete-word (count)
+  "Delete characters backward until encountering the beginning of a word.
+With argument COUNT, do this that many times."
+  (interactive "p")
+  (delete-region (point)
+                 (progn
+                   ;; (vim-mock:motion-bwd-word count)
+                   (backward-word count)
+                   (point))))
+
+(defun backward-delete-word* (count)
+  "Delete characters backward until encountering the beginning of a word.
+With argument COUNT, do this that many times."
+  (interactive "p")
+  (delete-region (point)
+                 (progn
+                   (vim-mock:motion-bwd-WORD count)
+                   (point))))
+
+(defsubst whitespace-char? (char)
+  (or (= char ?\n)
+      (= char ?\r)
+      (= ?\s (char-syntax char))))
+
+(defsubst whitespace-char-p (char)
+  (or (char= char ?\s)
+      (char= char ?\n)
+      (char= char ?\t)))
+
+(defalias 'whitespace-charp 'whitespace-char-p)
+
+(defun delete-whitespace-forward ()
+  "Delete whitespaces forward until non-whitespace
+character found"
+  (interactive)
+  (while (and (not (bobp))
+              (whitespace-char? (char-after))
+              (not (get-char-property (1- (point)) 'read-only)))
+    (delete-char 1)))
+
+(defun delete-whitespace-backward ()
+  "Delete whitespaces backward until non-whitespace
+character found"
+  (interactive)
+  (while (and (not (bobp))
+              (whitespace-char? (char-before))
+              (not (get-char-property (1- (point)) 'read-only)))
+    (delete-char -1)))
+
+(defun delete-current-line ()
+  "Delete line where point is currently positioned including
+trailing newline"
+  (beginning-of-line)
+  (while (and (not (eobp))
+              (not (char= ?\n (char-after))))
+    (delete-char 1))
+  (unless (eobp)
+    (delete-char 1)))
+
+(defsubst current-line ()
+  "Return line point is currently on."
+  (buffer-substring-no-properties (line-beginning-position)
+                                  (line-end-position)))
+
+(defsubst current-line-with-properties ()
+  "Return line point is currently on."
+  (buffer-substring (line-beginning-position)
+                    (line-end-position)))
+
+(defsubst skip-to-indentation ()
+  "Move point to first non-whitespace character of line,
+lighter than `back-to-indentation'."
+  (beginning-of-line nil)
+  (skip-syntax-forward " " (line-end-position))
+  (backward-prefix-chars))
+
+(defun indentation-size ()
+  "Return indentation size for current line."
+  (save-excursion
+    (skip-to-indentation)
+    (current-column)))
+
+(defsubst count-lines1 (begin end)
+  "Return line count in region like `count-lines' but don't
+confuse when point is not at the beginning of line"
+  (+ (count-lines begin end)
+     (if (equal (current-column) 0)
+       1
+       0)))
+
+(defsubst backward-line (&optional count)
+  "Call `forward-line' in the opposite direction"
+  (forward-line (- (or count 1))))
+
+
+
+(defun trim-whitespace (str)
+  "Trim leading and tailing whitespace from STR."
+  (when str
+    (save-match-data
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "\\(?:^[ \t\v\f\n]*\\|[ \t\v\f\n]*$\\)" "" s)))))
+
+(defun remove-whitespace (str)
+  "Remove all occurences of various whitespace characters from string."
+  (save-match-data
+    (let ((s (if (symbolp str)
+               (symbol-name str)
+               str)))
+      (replace-regexp-in-string "[ \t\v\f\n]+" "" s))))
+
+(defun trim-whitespace-left (str)
+  "Trim leading whitespace from STR."
+  (when str
+    (save-match-data
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "^[ \t\v\f\n]*" "" s)))))
+
+(defun trim-whitespace-right (str)
+  "Trim trailing whitespace from STR."
+  (when str
+    (save-match-data
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string "[ \t\v\f\n]*$" "" s)))))
+
+
+(defsubst goto-line1 (line)
+  "Set point at the beginning of line LINE counting from line 1 at
+beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" as
+`goto-line' does."
+  (goto-char (point-min))
+  (forward-line (1- line)))
+
+
+(defun dired-prompt-and-do-query-replace-regexp (re str)
+  (interactive "Mregexp: \nMreplacement string: ")
+  (dired-do-query-replace-regexp re str))
+
+
+(defun util:pwd (&optional insert)
+  "If called without prefix argument then show current
+working directory, otherwise insert absolute path to
+current working directory at point."
+  (interactive (list current-prefix-arg))
+  (let ((dir (expand-file-name default-directory)))
+    (if insert
+      (insert dir)
+      (message "Directory %s" dir))))
+
+;; abandon old and non-flexible pwd function
+;; (fset 'pwd 'util:pwd)
+
+(defun file-contents-matches-re (filename re)
+  "Return t if file FILENAME exists and it contents matches RE."
+  (when (file-exists? filename)
+    (save-match-data
+      (with-temp-buffer
+        (insert-file-contents filename)
+        (goto-char (point-min))
+        (when (search-forward-regexp re nil t)
+          t)))))
+
+
+(defun util:flatten (xs)
+  "Transform list XS that possibly consists of nested list
+into flat list"
+  (if (listp xs)
+    (mapcan (lambda (x) (util:flatten x)) xs)
+    (list xs)))
+
+;;;;
+
+;; Originally from stevey, adapted to support moving to a new directory.
+(defun rename-file-and-buffer (new-name)
+  "Renames both current buffer and file it's visiting to NEW-NAME."
+  (interactive
+   (let ((fname (buffer-file-name)))
+     (unless fname
+       (error "Buffer '%s' is not visiting a file" (buffer-name)))
+     (list (read-file-name (format "Rename %s to: " (file-name-nondirectory
+                                                     fname))))))
+  (when (equal new-name "")
+    (error "Aborted rename"))
+  (setq new-name (if (file-directory-p new-name)
+                   (expand-file-name (file-name-nondirectory
+                                      (buffer-file-name))
+                                     new-name)
+                   (expand-file-name new-name)))
+  ;; If the file isn't saved yet, skip the file rename, but still update the
+  ;; buffer name and visited file.
+  (when (file-exists-p (buffer-file-name))
+    (rename-file (buffer-file-name) new-name 1))
+  (let ((was-modified (buffer-modified-p)))
+    ;; This also renames the buffer, and works with uniquify
+    (set-visited-file-name new-name)
+    (if was-modified
+      (save-buffer)
+      ;; Clear buffer-modified flag caused by set-visited-file-name
+      (set-buffer-modified-p nil))
+    (message "Renamed to %s" new-name)))
+
+(defun copy-file-and-open (new-name)
+  "Copy curretn file to NEW-NAME and open it."
+  (interactive
+   (let ((fname (buffer-file-name)))
+     (unless fname
+       (error "Buffer '%s' is not visiting a file" (buffer-name)))
+     (list (read-file-name (format "Copy %s to: " (file-name-nondirectory
+                                                   fname))))))
+  (when (equal new-name "")
+    (error "Aborted copy"))
+  (setf new-name (if (file-directory-p new-name)
+                   (expand-file-name (file-name-nondirectory
+                                      (buffer-file-name))
+                                     new-name)
+                   (expand-file-name new-name)))
+  ;; If the file isn't saved yet, skip the file rename, but still update the
+  ;; buffer name and visited file.
+  (when (file-exists-p (buffer-file-name))
+    (copy-file (buffer-file-name) new-name 1 nil t t)
+    (find-file new-name)
+    (message "Copied to %s" new-name)))
+
+(defun delete-file-or-directory (name)
+  "Delete NAME if it's either file or directory."
+  (interactive)
+  (let ((entity (strip-trailing-slash
+                 (expand-file-name
+                  (read-file-name "File or directory to delete: "
+                                  default-directory
+                                  ""
+                                  t)))))
+    (cond
+      ((file-directory-p entity)
+       (when (and (directory-files dir
+                                   nil
+                                   directory-files-no-dot-files-regexp
+                                   t)
+                  (y-or-n-p "Directory not empty, really delete? "))
+         (delete-directory entity t)))
+      ((file-regular-p entity)
+       (delete-file entity))
+      (t
+       (error "Name %s designates neither file nor directory")))))
+
+;;; rotate list functions, very old...
+
+(defun rotate-entry-list (listvar)
+  "Rotate list of any etries such that list '(X Y Z) becomes '(Y Z X)"
+  (set listvar (let ((value (symbol-value listvar)))
+                 (cond ((null? value) nil)
+                       ((null? (cdr value)) value)
+                       (t (let ((new-list (cdr value)))
+                            (setcdr value nil)
+                            (nconc new-list value)
+                            new-list))))))
+
+(defun rotate-entry-list-backward (listvar)
+  "Rotate list of any etries such that list '(X Y Z) becomes '(Z X Y)"
+  (set listvar (let ((value (symbol-value listvar)))
+                 (cond ((null? value) nil)
+                       ((null? (cdr value)) value)
+                       (t (while (cddr value)
+                            (setq value (cdr value)))
+                          (let ((last-elem (cdr value)))
+                            (setcdr last-elem (symbol-value listvar))
+                            (setcdr value nil)
+                            last-elem))))))
+
+;;;;
+
+(defvar-local inhibit-delete-trailing-whitespace nil
+  "Whether function `delete-trailing-whitespace+' should do actual deletion.")
+
+(defun toggle-inhibit-delete-trailing-whitespace ()
+  "Toggle `inhibit-delete-trailing-whitespace' option."
+  (interactive)
+  (if (setf inhibit-delete-trailing-whitespace
+            (not inhibit-delete-trailing-whitespace))
+    (message "Inhibition enabled")
+    (message "Inhibition disabled")))
+
+(defun inhibit-delete-trailing-whitespace? ()
+  "Function that says whether trailing whitespace should be deleted for current
+buffer."
+  (or inhibit-delete-trailing-whitespace
+      (eq? major-mode 'diff-mode)))
+
+(defun delete-trailing-whitespace+ ()
+  "This function removes spaces and tabs on every line after
+last non-whitespace character."
+  (unless (inhibit-delete-trailing-whitespace?)
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward "[ \t]+$" nil t)
+          (delete-region (match-beginning 0) (match-end 0)))))))
+
+;;; tabbar stuff
+
+(defsubst init (xs)
+  "Return all but last elements of XS."
+  (nreverse (cdr-safe (reverse xs))))
+
+;; Some useful abstractions to move based on
+;; symbols representing direction
+
+(defsubst direction-to-num (dir)
+  "Translate direction symbol to numeric representation suitable
+for passing to Emacs native functions."
+  (cond
+    ((eq dir 'forward)
+     1)
+    ((eq dir 'backward)
+     -1)
+    (t
+     nil)))
+
+(defun* move-by-line (direction &optional (count 1))
+  "Move COUNT lines in specified direction, which could
+have 'forward or 'backward value."
+  (forward-line (* count (direction-to-num direction))))
+
+(defun* move-by-line-backward (direction &optional (count 1))
+  "Move COUNT lines backwards in specified direction, which could
+have 'forward or 'backward value."
+  (backward-line (* count (direction-to-num direction))))
+
+(defsubst char= (a b)
+  (char-equal a b))
+
+(defun cadr-safe (x)
+  (car-safe (cdr-safe x)))
+
+(defun cddr-safe (x)
+  (cdr-safe (cdr-safe x)))
+
+;;;;
+
+(defsubst string->symbol (str)
+  (intern str))
+
+(defsubst symbol->string (sym)
+  (symbol-name sym))
+
+(defsubst char->string (char)
+  (char-to-string char))
+
+(defsubst string->char (str)
+  (string-to-char str))
+
+
+(defsubst number->string (n)
+  (number-to-string n))
+
+(defsubst string->number (str)
+  (string-to-number str))
+
+
+(defsubst string->list (str)
+  (coerce str 'list))
+
+(defsubst list->string (items)
+  (coerce items 'string))
+
+(defsubst vector->list (str)
+  (coerce str 'list))
+
+(defsubst list->vector (items)
+  (coerce items 'vector))
+
+(defsubst int-vector->string (v)
+  "Convernt vector of integers to string."
+  (coerce v 'string))
+
+(defsubst char=? (a b)
+  (char-equal a b))
+
+(defun any? (pred items)
+  "Returns t if pred returns t for any element of ITEMS."
+  ;; (funcall #'some pred items)
+  (let ((done nil)
+        (result nil))
+    (while (and (not done)
+                (not (null? items)))
+      (aif (funcall pred (first items))
+        (setf done t
+              result it)
+        (setf items (rest items))))
+    result))
+
+(defun all? (pred items)
+  "Returns t if pred returns t for all elements of ITEMS."
+  ;; (funcall #'every pred items)
+  (let ((result t))
+    (while (and (not (null? result))
+                (not (null? items)))
+      (aif (funcall pred (first items))
+        (setf items (rest items))
+        (setf result nil)))
+    result))
+
+;;;;
+
+(defsubst first-safe (x)
+  (car-safe x))
+
+(defsubst rest-safe (x)
+  (cdr-safe x))
+
+(defsubst filter (pred seq &rest args)
+  (apply #'remove-if-not pred seq args))
+
+(defmacro more-clojure/comp-impl (functions
+                                  fallback-function
+                                  use-apply-for-last-func)
+  "Optimization trick to expand chains of composed functions instead of
+using loop as in `more-clojure/comp'. But if expansion could not be done (e.g.
+some of FUNCTIONSS is an expression that is expected to be evaluated right
+where comp is called) then FALLBACK-FUNCTION will be used."
+  (block cannot-optimize
+    (let* ((args-var (gensym "args-var"))
+           (strip-quotation
+            (lambda (x)
+              (if (and (list? x)
+                       (not (null? x))
+                       (memq (first x) '(quote function)))
+                (first (rest x))
+                x)))
+           (make-call
+            (lambda (expr last-arg use-apply funcs)
+              (let ((call-form (if use-apply 'apply 'funcall)))
+                (pcase expr
+                  (`(,(or `function `quote) ,func)
+                   (if (and (not use-apply)
+                            (symbol? func))
+                     `(,func ,last-arg)
+                     `(,call-form ,expr ,last-arg)))
+                  (`(,(or `partial `apply-partially) ,func . ,args)
+                   (let ((f (funcall strip-quotation func)))
+                     (if (and (not use-apply)
+                              (symbol? f))
+                       `(,f ,@args ,last-arg)
+                       `(,call-form ,func ,@args ,last-arg))))
+                  (`(partial-first ,func . ,args)
+                   (let ((f (funcall strip-quotation func)))
+                     (if (and (not use-apply)
+                              (symbol? f))
+                       `(,f ,last-arg ,@args)
+                       `(,call-form ,func ,last-arg ,@args))))
+                  (_
+                   (cl-return-from cannot-optimize
+                     `(,(funcall strip-quotation fallback-function)
+                       ,@functions))))))))
+      (letrec ((iter
+                (lambda (funcs)
+                  (funcall make-call
+                           (first funcs)
+                           (if (not (null? (rest funcs)))
+                             (funcall iter (rest funcs))
+                             args-var)
+                           (and (null? (rest funcs))
+                                use-apply-for-last-func)
+                           funcs))))
+        `(lambda
+           ,(if use-apply-for-last-func
+              (list &rest ,args-var)
+              (list args-var))
+           ,(funcall iter functions))))))
+
+(defun more-clojure/comp (f &rest funcs)
+  "Fallback function composition routine."
+  (let ((functions (reverse (cons f funcs))))
+    (lambda (arg)
+      (let ((result (funcall (first functions) arg)))
+        (dolist (func (rest functions))
+          (setf result (funcall func result)))
+        result))))
+
+(defmacro comp (f &rest funcs)
+  "More or less intelligent creator of function compositions that can
+optimize away common use cases."
+  `(more-clojure/comp-impl ,(cons f funcs)
+                           more-clojure/comp
+                           nil))
+
+(defun more-clojure/comp* (f &rest funcs)
+  "Fallback function composition routine, creates lambdas in runtime."
+  (let ((functions (reverse (cons f funcs))))
+    (lambda (arg)
+      (let ((result (apply (first functions) arg)))
+        (dolist (func (rest functions))
+          (setf result (funcall func result)))
+        result))))
+
+(defmacro comp* (f &rest funcs)
+  "Similar to `comp' but uses `apply' for last function."
+  `(more-clojure/comp-impl ,(cons f funcs)
+                           more-clojure/comp*
+                           t))
+
+(defalias 'partial #'apply-partially)
+
+(defun partial-first (f &rest args)
+  "Just like `partial' but adds ARGS at the end of argument list when
+F will be called."
+  (lambda (&rest more-args)
+    (apply f (append more-args args))))
+
+;;;;
+
+(defun open-buffer-as-pdf ()
+  "Open current buffer's pdf file, if any, in suitable pdf viewer program
+(e.g. okular for linux)."
+  (interactive)
+  (let ((doc-name (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
+    (if (file-exists? doc-name)
+      (start-process-shell-command "okular - tex preview"
+                                   nil
+                                   (concat "okular"
+                                           " "
+                                           (shell-quote-argument doc-name)))
+      (error "No pdf file found"))))
+
+;;;;
+
 ;; Heavy autoloads
 
+(autoload 'shell-command+ "common-heavy" nil t)
 (autoload 'find-filename-in-tree-recursive "common-heavy" nil t)
 (autoload 'extract-unicode "common-heavy")
 (autoload 'input-unicode "common-heavy" nil t)

@@ -196,6 +196,7 @@ specifies the value of ERROR-BUFFER."
       (delete-file error-file))
     exit-status))
 
+(provide 'shell-command+)
 
 ;; Local Variables:
 ;; End:

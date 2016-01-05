@@ -6,10 +6,8 @@
 ;; Created: long ago
 ;; Description:
 
-(require 'custom)
 (require 'common)
 (require 'comment-util)
-(require 'custom-predicates)
 (require 'browse-kill-ring-setup)
 
 (require 'align)

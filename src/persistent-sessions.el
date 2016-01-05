@@ -9,7 +9,6 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
-(require 'more-clojure)
 (require 'fortunes)
 (require 'revive-minimal)
 

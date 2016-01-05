@@ -726,7 +726,7 @@ return nil otherwise."
   (let ((store (gensym)))
     `(let ((,store (buffer-modified-p)))
        (unwind-protect
-           (begin
+           (progn
              ,@body)
          (set-buffer-modified-p ,store)))))
 

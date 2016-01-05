@@ -10,8 +10,6 @@
 
 (require 'set-up-paths)
 (require 'common)
-(require 'custom-predicates)
-(require 'more-scheme)
 
 (require 'vim)
 (vim-mode 1)

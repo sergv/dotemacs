@@ -8,12 +8,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'custom)
-;; (require 'common)
 (require 'custom-predicates)
-(require 'more-scheme)
 (require 'macro-util)
-
 
 (defun find-filename-in-tree-recursive (&optional case-sensetive)
   "Read filename regexp and try to find it in current dir's tree or in trees

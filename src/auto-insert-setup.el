@@ -6,16 +6,12 @@
 ;; Created: long ago
 ;; Description:
 
-(require 'custom)
 (require 'common)
-(require 'more-clojure)
 
 (setf auto-insert-directory (concat +prog-data-path+ "/auto-insert")
       auto-insert 'other
-      auto-insert-query nil)
-
-
-(setf auto-insert-alist
+      auto-insert-query nil
+      auto-insert-alist
       (map (lambda (spec)
              (let ((actions (cdr spec)))
                (cons (car spec)
@@ -60,7 +56,6 @@
              ("\\.scm$"     . ["insert.scm"   auto-insert-update])
              ("\\.\\(?:l\\|cl\\|asd\\|lsp\\|lisp\\|clisp\\)$"
               . ["insert.lisp" auto-insert-update]))))
-
 
 (defparameter auto-insert-fields
   (list

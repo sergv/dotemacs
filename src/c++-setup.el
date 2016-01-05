@@ -10,7 +10,6 @@
 (require 'cc-setup)
 (require 'c++-abbrev+)
 (require 'select-mode)
-(require 'more-clojure)
 (require 'eproj-setup)
 (require 'c-indentation)
 

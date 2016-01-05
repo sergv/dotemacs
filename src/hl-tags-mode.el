@@ -117,10 +117,10 @@ boundaries of the current start and end tag , or nil."
   "Toggle hl-tags-mode."
   nil "" nil
   (if hl-tags-mode
-    (begin
+    (progn
       (add-hook 'post-command-hook 'hl-tags-update nil t)
       (add-hook 'change-major-mode-hook 'hl-tags-hide nil t))
-    (begin
+    (progn
       (remove-hook 'post-command-hook 'hl-tags-update t)
       (remove-hook 'change-major-mode-hook 'hl-tags-hide t)
       (hl-tags-hide))))
