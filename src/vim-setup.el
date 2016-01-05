@@ -373,7 +373,7 @@ Basically swap current point with previous one."
           (magit-status git-repository)
           (progn
             (message "File %s is not under git VCS" it)
-            (magit-status default-directory))))
+            (magit-status))))
       (magit-status (file-name-nondirectory it)))
     (begin
       (message "Warning: current buffer has no associated file")
@@ -403,12 +403,9 @@ Basically swap current point with previous one."
   "Run git add on current file."
   (aif (buffer-file-name)
     (progn
-      (git-update-file-repository)
-      (if git-repository
-        (progn
-          (save-some-buffers)
-          (git-add))
-        (error "File %s is not under git VCS" it)))
+      (save-some-buffers)
+      (git-add)
+      (git-update-file-repository))
     (error "current buffer has no associated file")))
 
 (vim:emap "gadd" 'vim:git-add)

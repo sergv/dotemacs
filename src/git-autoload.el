@@ -25,7 +25,8 @@
       ;; Save any modified files before opening `magit-status'.
       magit-save-repository-buffers 'dontask
 
-      magit-blame-heading-format "%.7H %-15a %C %s")
+      magit-blame-heading-format "%.7H %-15a %C %s"
+      magit-push-always-verify nil)
 
 (autoload 'gitignore-mode "gitignore-mode"
           "Major mode for editing .gitignore files"
