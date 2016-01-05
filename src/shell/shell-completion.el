@@ -71,37 +71,6 @@
                                  "\n"
                                  t)))))))
 
-;;; dsl draft
-
-;; dsl example
-;; ("branch"
-;;  ;; alternatives
-;;  (or (* (or (xor "--color"
-;;                  "--no-color")
-;;             ;; these xors lift this dsl into context-sensetive domain
-;;             (xor "-r"
-;;                  "-a")
-;;             "--list"
-;;             (xor ("-v"
-;;                   (opt "--abbrev"))
-;;                  "--noabbrev")
-;;             ))
-;;      ("--unset-upstream"
-;;       (eval (pcmpl-git-get-refs "heads")))
-;;      ((xor "-m" "-M")
-;;       (eval (pcmpl-git-get-refs "heads"))
-;;       (eval (pcmpl-git-get-refs "heads")))
-;;      ((xor "-d" "-D")
-;;       (? "-r")
-;;       (+ (eval (pcmpl-git-get-refs "heads"))))))
-
-;; how about
-
-;; ("foo"
-;;  (* (or "-a"
-;;         "-b"))
-;;  (* (eval (pcomplete-entries))))
-
 ;;; simple pcomplete macro
 
 (defmacro* defpcmpl (name definition &key (evaluate-definition nil))
@@ -164,23 +133,26 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                           (filter (comp #'not positional-def?) defs))
                          (names
                           (map #'(lambda (x) (if (list? x) (first x) (list x)))
-                               positional-defs)))
+                               positional-defs))
+                         (pcomplete-arg-var (gensym "pcomplete-arg")))
                     `(progn
                        ,@(when names
                            (list `(pcomplete-here ',names)))
 
-                       (cond ,@(map (lambda (def)
-                                      (funcall process-positional
-                                               def
-                                               level))
-                                    positional-defs)
-                             ,@(when (not (null? other-defs))
-                                 (list `(t
-                                         ,@(map (lambda (def)
-                                                  (funcall process
-                                                           def
-                                                           level))
-                                                other-defs))))))))))
+                       (let ((,pcomplete-arg-var (pcomplete-arg ,level)))
+                         (cond ,@(map (lambda (def)
+                                        (funcall process-positional
+                                                 def
+                                                 pcomplete-arg-var
+                                                 level))
+                                      positional-defs)
+                               ,@(when (not (null? other-defs))
+                                   (list `(t
+                                           ,@(map (lambda (def)
+                                                    (funcall process
+                                                             def
+                                                             level))
+                                                  other-defs)))))))))))
              (process-opts
               (lambda (definition)
                 (let* ((info (rest definition))
@@ -286,14 +258,18 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                            (t
                                             ,(cadr args)))))))))))))
              (process-positional
-              (lambda (definition level)
+              (lambda (definition pcomplete-arg-var level)
                 (let ((name (first definition)))
                   (assert (or (string? name)
                               (and (list? name)
                                    (all? #'string? name))))
-                  `(,(if (string? name)
-                       `(string= (pcomplete-arg ,level) ,name)
-                       `(member (pcomplete-arg ,level) ,name))
+                  `(,(cond
+                       ((string? name)
+                        `(string= ,pcomplete-arg-var ,name))
+                       ((list? name)
+                        `(member ,pcomplete-arg-var ,name))
+                       (t
+                        (error "Invalid name while processing positional option: %s" name)))
                     ,@(awhen (cadr-safe definition)
                         (list (funcall process
                                        it
