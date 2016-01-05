@@ -11,7 +11,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'set-up-paths)
-(require 'custom)
+(require 'common)
 
 (require 'dired-single)
 (require 'dired-aux)

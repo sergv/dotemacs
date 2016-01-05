@@ -164,7 +164,7 @@ as accepted by `bounds-of-thing-at-point'.")
                (if use-regexp
                  (string-match-p identifier next-symbol)
                  (string= identifier next-symbol))))
-      (begin
+      (progn
         (eproj-symbnav/switch-to-home-entry next-home-entry)
         (push current-home-entry
               eproj-symbnav/previous-homes)
@@ -291,7 +291,7 @@ as accepted by `bounds-of-thing-at-point'.")
   (interactive)
   (if (null eproj-symbnav/previous-homes)
     (error "no more previous go-to-definition entries")
-    (begin
+    (progn
       (when (or (null eproj-symbnav/next-homes)
                 (and (not (null eproj-symbnav/next-homes))
                      (not (eproj-home-entry=? eproj-symbnav/selected-loc

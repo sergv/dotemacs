@@ -13,7 +13,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'custom)
 (require 'common)
 
 (defconst b/backup-directory (path-concat +prog-data-path+ "backup"))

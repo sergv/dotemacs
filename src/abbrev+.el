@@ -8,7 +8,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'custom)
+(require 'common)
 
 (defvar-local abbrev+-abbreviations
   (list
