@@ -1100,6 +1100,7 @@ Valid values are:
             (util:flatten
              (list (when (eq? 'busybox eproj/find-program-type)
                      "find")
+                   "-L"
                    (when (memq eproj/find-program-type '(find cygwin-find))
                      '("-O3"))
                    root
