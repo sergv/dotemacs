@@ -17,10 +17,10 @@
       grep-template
       "grep <X> <C> -nH <E> -e '<R>' <F>"
       grep-find-command
-      (format "%s -O3 . -type f -print0 | xargs -0 -e grep -HnE -e "
+      (format "%s -L -O3 . -type f -print0 | xargs -0 -e grep -HnE -e "
               find-program)
       grep-find-template
-      (format "%s -O3 \"<D>\" <X> -type f <F> -print0 | xargs -0 -e grep <C> -Hn <E> -e \"<R>\""
+      (format "%s -L -O3 \"<D>\" <X> -type f <F> -print0 | xargs -0 -e grep <C> -Hn <E> -e \"<R>\""
               find-program)
 
       grep-files-aliases
