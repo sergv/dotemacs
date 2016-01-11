@@ -408,6 +408,7 @@
 
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet t)
+  (haskell-setup-folding)
   (fontify-merge-markers)
   (modify-syntax-entry ?- "_")
   (modify-syntax-entry ?. "_")
@@ -426,6 +427,8 @@
   (bind-tab-keys #'indent-relative-forward
                  #'indent-relative-backward
                  :enable-yasnippet t)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("'" yafolding-go-parent-element))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile)))

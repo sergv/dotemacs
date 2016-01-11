@@ -11,6 +11,13 @@
 (require 'haskell-misc)
 (require 'search)
 
+(defadvice yafolding-go-parent-element
+    (after
+     yafolding-go-parent-element/skip-whitespace
+     activate
+     compile)
+  (skip-to-indentation))
+
 (setf yafolding-show-fringe-marks nil)
 
 (search-def-autoexpand-advices
@@ -19,6 +26,7 @@
 
 (defun haskell-setup-folding ()
   (hs-minor-mode +1)
+  (yafolding-mode +1)
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table
                           'selective-display
