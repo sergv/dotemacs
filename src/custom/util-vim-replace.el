@@ -79,55 +79,9 @@
 With prefix argument puts symbol at point also in substitute part"
   (util:ex-customized-substitute-command
    (util:construct-ex-replace-command
-    (symbol-name (symbol-at-point))
+    (thing-at-point 'symbol)
     :symbol t
     :fill-replace (not current-prefix-arg))))
-
-
-;; ;; all this code duplication stuff probably could be reduced to
-;; ;; one or two macro's but as for now (11.08.11, 11:28) I'm too tired
-;; ;; to invent any macro's
-;;
-;; (defun* util:construct-convenient-ex-replace-command (str &key
-;;                                                           (word nil)
-;;                                                           (symbol nil))
-;;   (let ((clean-str (trim-whitespace str)))
-;;     (concat
-;;      (util:construct-ex-replace-command clean-str
-;;                                         :word word
-;;                                         :symbol symbol)
-;;      clean-str)))
-;;
-;;
-;; (vim:defcmd vim:convenient-replace-word (count nonrepeatable)
-;;   (util:ex-customized-substitute-command
-;;    (util:construct-convenient-ex-replace-command
-;;     (util:get-str-covered-by-vim-motion
-;;      (save-excursion
-;;        (vim:motion-inner-word :count (or count 1))))
-;;     :word t)))
-;;
-;; (vim:defcmd vim:convenient-replace-WORD (count nonrepeatable)
-;;   (util:ex-customized-substitute-command
-;;    (util:construct-convenient-ex-replace-command
-;;     (util:get-str-covered-by-vim-motion
-;;      (save-excursion
-;;        (vim:motion-inner-WORD :count (or count 1)))))))
-;;
-;; (vim:defcmd vim:convenient-replace-selected (nonrepeatable)
-;;   (when (vim:visual-mode-p)
-;;     (util:ex-customized-substitute-command
-;;      (util:construct-convenient-ex-replace-command
-;;       (buffer-substring-no-properties
-;;        (region-beginning)
-;;        (region-end))))))
-;;
-;; (vim:defcmd vim:lisp-convenient-replace-symbol (nonrepeatable)
-;;   "Partially construct vim ex-replace command from symbol at point."
-;;   (util:ex-customized-substitute-command
-;;    (util:construct-convenient-ex-replace-command
-;;     (symbol-at-point)
-;;     :symbol t)))
 
 (provide 'util-vim-replace)
 

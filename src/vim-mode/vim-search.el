@@ -475,14 +475,13 @@ name `name' to `new-regex'."
             ;; clean-up the overlay
             (delete-overlay overlay)))))))
 
-
 (defun vim:substitute-quote (text)
   "Just quote backslash for now because it has special meaning and all other
 special characters are introduced via backlash only."
-  (replace-in-string text
-                     "\\\\"     ;; single backslash
-                     "\\\\\\\\" ;; double backslash
-                     ))
+  (replace-regexp-in-string "\\\\"      ;; single backslash
+                            "\\\\\\\\"  ;; double backslash
+                            text
+                            ))
 
 (defun vim:parse-substitute (text)
   "Parse ex command line in TEXT and return triple
