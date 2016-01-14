@@ -71,6 +71,12 @@
     ("S-<left>"  swap-buffers-backward)
     ("S-<right>" swap-buffers-forward)))
 
+(defconst +vim-character-navigation-keys+
+  '(("C-<down>"  forward-line)
+    ("C-<up>"    backward-line)
+    ("C-<right>" forward-char)
+    ("C-<left>"  backward-char)))
+
 (defconst +vim-special-keys+
   `(("s"     vim:ex-read-command)
     ("C-b"   ido-switch-buffer)
@@ -100,6 +106,8 @@
     ("<delete>" vim-mock:scroll-line-down)
 
     ,@+vim-interbuffer-navigation-keys+
+    ,@+vim-character-navigation-keys+
+
     ;; ("v"   set-mark-command)
     ;; ("y"   copy-region-as-kill)
     ))
