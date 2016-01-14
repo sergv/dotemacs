@@ -172,6 +172,9 @@
 
 (defun magit-revision-mode-setup ()
   "Setup for commit browsing mode."
+  (fci-mode -1)
+  ;; Do show continuation lines.
+  (setq-local truncate-lines nil)
   (magit-bind-common-vimless-mode-keymap magit-revision-mode-map))
 
 (defun magit-status-mode-setup ()
