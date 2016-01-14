@@ -1612,8 +1612,9 @@ confuse when point is not at the beginning of line"
        1
        0)))
 
-(defsubst backward-line (&optional count)
+(defun backward-line (&optional count)
   "Call `forward-line' in the opposite direction"
+  (interactive)
   (forward-line (- (or count 1))))
 
 
