@@ -72,7 +72,8 @@ like \"d w\".")
     ("<down>"    vim:motion-fwd-paragraph)
     ("<up>"      vim:motion-bwd-paragraph)
 
-    ,@+vim-interbuffer-navigation-keys+))
+    ,@+vim-interbuffer-navigation-keys+
+    ,@+vim-character-navigation-keys+))
 
 (defconst +vim-normal-mode-navigation-keys+
   '(("'"   sp-backward-up-sexp)
