@@ -125,6 +125,7 @@
 
     ("p"               magit-stash-popup)
     ("H"               magit-refresh)
+    ("R"               magit-discard)
 
     ("k"               magit-unstage)
     ("K"               magit-unstage-all)
