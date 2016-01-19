@@ -115,8 +115,8 @@
     +vim-special-keys+
     +vim-search-keys+
     ("?"               magit-dispatch-popup) ;; override "?" from vim search
-    ("<down>"          magit-section-forward)
-    ("<up>"            magit-section-backward)
+    ("<down>"          forward-line)
+    ("<up>"            backward-line)
     ("h"               magit-section-forward)
     ("t"               magit-section-backward)
     ("T"               magit-tag-popup)
