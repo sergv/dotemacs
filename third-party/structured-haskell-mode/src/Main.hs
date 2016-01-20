@@ -183,8 +183,8 @@ post mode x =
   case cast x of
     Just (QuasiQuote (base :: SrcSpanInfo) qname content) ->
       case parseExpWithMode mode content of
-        ParseOk ex -> genHSE mode (fmap (redelta qname base) ex)
-        ParseFailed _ e -> error e
+        ParseOk ex      -> genHSE mode (fmap (redelta qname base) ex)
+        ParseFailed _ e -> []
     _ -> []
 
 -- | Apply a delta to the positions in the given span from the base.
