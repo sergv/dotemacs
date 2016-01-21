@@ -122,6 +122,7 @@
     ("T"               magit-tag-popup)
     ("n"               magit-notes-popup)
     ("'"               magit-section-up)
+    ("\\"              magit-discard)
 
     ("p"               magit-stash-popup)
     ("H"               magit-refresh)
