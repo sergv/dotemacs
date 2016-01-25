@@ -27,7 +27,11 @@
 
       magit-blame-heading-format "%.7H %-15a %C %s"
       magit-push-always-verify nil
-      magit-revert-buffers 'silent)
+      magit-revert-buffers 'silent
+      magit-log-arguments '("--graph" "--color" "--decorate" "-n256" "--show-signature")
+      ;; ;; don't confirm when discarding
+      ;; magit-no-confirm '(discard)
+      )
 
 (autoload 'gitignore-mode "gitignore-mode"
           "Major mode for editing .gitignore files"
