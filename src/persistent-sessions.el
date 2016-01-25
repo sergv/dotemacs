@@ -132,7 +132,22 @@ entries."
     (set (car bind) (cdr bind))))
 
 (defparameter sessions/ignored-temporary-buffers
-  '(dired-mode)
+  '(dired-mode
+    magit-diff-mode
+    magit-revision-mode
+    magit-mode
+    magit-popup-mode
+    magit-stashes-mode
+    magit-stash-mode
+    magit-status-mode
+    magit-refs-mode
+    magit-merge-preview-mode
+    magit-process-mode
+    magit-rebase-mode
+    magit-log-mode
+    magit-log-select-mode
+    magit-cherry-mode
+    magit-reflog-mode)
   "Buffer with these modes should never be preserved across sessions.")
 
 (defparameter sessions/special-modes
@@ -211,16 +226,7 @@ entries."
                       (sessions/get-buffer-variables buf)
                       major-mode
                       (buffer-substring-no-properties (point-min) (point-max)))))
-                 (filter (lambda (buf)
-                           (with-current-buffer buf
-                             (and (null? (buffer-file-name buf))
-                                  (not (memq major-mode
-                                             sessions/ignored-temporary-buffers))
-                                  (not (assq major-mode
-                                             sessions/special-modes))
-                                  (not (string-match-pure? "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
-                                                           (buffer-name buf))))))
-                         buffers)))
+                 (filter #'sessions/is-temporary-buffer? buffers)))
            (special-buffer-data
             (remq nil
                   (map (lambda (buf)
@@ -254,6 +260,16 @@ entries."
 
       (write-region (point-min) (point-max) file)
       (make-file-executable file))))
+
+(defun sessions/is-temporary-buffer? (buf)
+  (with-current-buffer buf
+    (and (null? (buffer-file-name buf))
+         (not (memq major-mode
+                    sessions/ignored-temporary-buffers))
+         (not (assq major-mode
+                    sessions/special-modes))
+         (not (string-match-pure? "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
+                                  (buffer-name buf))))))
 
 (defun sessions/call-symbol-function (sym)
   "Call function bound to symbol SYM, autoloading it if necessary."
