@@ -131,7 +131,7 @@ entries."
   (dolist (bind bindings)
     (set (car bind) (cdr bind))))
 
-(defparameter sessions/ignored-temporary-buffers
+(defparameter sessions/ignored-temporary-buffer-modes
   '(dired-mode
     magit-diff-mode
     magit-revision-mode
@@ -265,7 +265,7 @@ entries."
   (with-current-buffer buf
     (and (null? (buffer-file-name buf))
          (not (memq major-mode
-                    sessions/ignored-temporary-buffers))
+                    sessions/ignored-temporary-buffer-modes))
          (not (assq major-mode
                     sessions/special-modes))
          (not (string-match-pure? "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
@@ -303,15 +303,15 @@ entries."
             (cadr it)))
     (awhen (assq 'temporary-buffers session-entries)
       (mapc (lambda (entry)
-              (let ((buf
-                     (get-buffer-create
-                      (session-entry/buffer-name entry))))
-                (with-current-buffer buf
-                  (insert (session-entry/other-data entry))
-                  (funcall setup-buffer
-                           (session-entry/point entry)
-                           (session-entry/major-mode entry)
-                           (session-entry/variables entry)))))
+              (unless (memq (session-entry/major-mode entry) sessions/ignored-temporary-buffer-modes)
+                (let ((buf (get-buffer-create
+                            (session-entry/buffer-name entry))))
+                  (with-current-buffer buf
+                    (insert (session-entry/other-data entry))
+                    (funcall setup-buffer
+                             (session-entry/point entry)
+                             (session-entry/major-mode entry)
+                             (session-entry/variables entry))))))
             (cadr it)))
     (aif (assq 'special-buffers session-entries)
       (map (lambda (saved-info)
