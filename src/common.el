@@ -1823,10 +1823,6 @@ last non-whitespace character."
 
 ;;; tabbar stuff
 
-(defsubst init (xs)
-  "Return all but last elements of XS."
-  (nreverse (cdr-safe (reverse xs))))
-
 ;; Some useful abstractions to move based on
 ;; symbols representing direction
 
