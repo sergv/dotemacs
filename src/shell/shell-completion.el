@@ -79,6 +79,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
   (declare (indent 1))
   (assert (string-match-pure? "pcomplete/" (symbol->string name)))
   (let ((got-end-of-flags-var (gensym "got-end-of-flags"))
+        (last-arg-var (gensym "last-arg"))
         (last-arg-starts-with-single-dash-var (gensym "last-arg-starts-with-single-dash?"))
         (last-arg-starts-with-two-dashes-var (gensym "last-arg-starts-with-two-dashes?")))
     (letrec ((process
@@ -251,10 +252,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                        it
                                        (+ level 1)))))))))
       `(defun ,name ()
-         (let* ((,last-arg-starts-with-single-dash-var
-                 (string-match-pure? "^-\\([^-]\\|$\\)" (pcomplete-arg 'last)))
+         (let* ((,last-arg-var (pcomplete-arg 'last))
+                (,last-arg-starts-with-single-dash-var
+                 (string-match-pure? "^-\\([^-]\\|$\\)" ,last-arg-var))
                 (,last-arg-starts-with-two-dashes-var
-                 (string-match-pure? "^--\\([^-]\\|$\\)" (pcomplete-arg 'last)))
+                 (string-match-pure? "^--\\([^-]\\|$\\)" ,last-arg-var))
                 (,got-end-of-flags-var
                  (and (not ,last-arg-starts-with-two-dashes-var)
                       (member "--" pcomplete-args))))
@@ -2019,6 +2021,27 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-s"
                "-e")
         (args (pcomplete-here (pcomplete-entries)))))
+
+(defpcmpl pcomplete/find
+  (opts
+   (flags
+    "-H"
+    "-L"
+    "-P"
+    "-O3"
+    ("-maxdepth" (pcomplete-here '("1" "2" "3")))
+    ("-mindepth" (pcomplete-here '("1" "2" "3")))
+    "-a"
+    "-o"
+    "-not"
+    "-iname"
+    "-name"
+    "-path"
+    ("-type" (pcomplete-here '("f" "d")))
+    "-print"
+    "-print0")
+   (args
+    (pcomplete-here* (pcomplete-dirs)))))
 
 ;;;###autoload
 (defpcmpl pcomplete/busybox
