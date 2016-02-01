@@ -169,7 +169,10 @@ like \"d w\".")
   ("g TAB"     nil)
   ("g n"       nil)
   ("g t"       nil)
-  ("g #"       server-edit))
+  ("g #"       server-edit)
+
+  ("<f5>"      vim:revert-buffer)
+  ("H"         vim:revert-buffer))
 
 ;;; visual keybindings
 
@@ -469,6 +472,9 @@ Basically swap current point with previous one."
                       t)))
 
 (vim:emap "do" 'vim:do-command)
+
+(vim:defcmd vim:revert-buffer (nonrepeatable)
+  (revert-buffer))
 
 (provide 'vim-setup)
 
