@@ -93,6 +93,11 @@
                           (count-lines (point-min)
                                        (point-max))))
                   "(%p)"))
+                (:eval
+                 (when (region-active?)
+                   (multiple-value-bind (start end) (get-region-bounds)
+                     (format " [%s]"
+                             (count-lines start end)))))
                 (column-number-mode
                  (2 " %c"))
                 (which-func-mode (" (" which-func-format ")"))
