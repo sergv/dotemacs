@@ -163,7 +163,7 @@
 
 (defun c++-file-magic-function ()
   (if-buffer-has-file
-    (let ((ext (file-name-extension (buffer-file-name))))
+    (let ((ext (file-name-extension buffer-file-name)))
       ;; check for null since .emacs doesn't have extension
       (when (and ext
                  (member* ext '("h" "inl" "inc" "incl")
@@ -191,7 +191,7 @@
 (defun glsl-file-magic-function ()
   (if-buffer-has-file
     (let ((ext (and buffer-file-name
-                    (file-name-extension (buffer-file-name)))))
+                    (file-name-extension buffer-file-name))))
       ;; check for null since .emacs doesn't have extension
       (and ext
            (or (and (string-match-pure? (rx bot

@@ -152,8 +152,7 @@ Returns t unless search stops at the beginning or end of the buffer."
        (interactive "P")
        (save-buffer-if-modified)
        (let ((fname (file-name-nondirectory
-                     (file-name-sans-extension
-                      (buffer-file-name)))))
+                     (file-name-sans-extension buffer-file-name))))
          (with-temp-buffer
            (insert fname)
            (save-window-excursion

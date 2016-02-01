@@ -65,7 +65,7 @@
 (setq-default mode-line-format
               '("%[%b%] "
                 ;; if buffer has assigned file and is modified
-                (:eval (when (and (buffer-file-name)
+                (:eval (when (and buffer-file-name
                                   (buffer-modified-p))
                          "(+)"))
                 (:eval (when buffer-read-only

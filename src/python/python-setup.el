@@ -335,7 +335,7 @@ greater indenation as current line."
                                "pypy"
                                python-exec)
                              " "
-                             (file-name-nondirectory (buffer-file-name)))
+                             (file-name-nondirectory buffer-file-name))
                      #'python-run-mode))
 
 (define-compilation-mode python-run-mode "Python run"

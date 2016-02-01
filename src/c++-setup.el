@@ -19,7 +19,7 @@
 
 (defun c++-find-related-file ()
   (interactive)
-  (let* ((filename   (buffer-file-name (current-buffer)))
+  (let* ((filename   buffer-file-name)
          (path       (split-string filename "/"))
          (ext        (file-name-extension filename))
          (file-dir   (file-name-directory filename))

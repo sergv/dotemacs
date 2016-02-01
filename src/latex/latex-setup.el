@@ -84,7 +84,7 @@
   ;; compilation setup
   (if-buffer-has-file
     (setq-local compile-command
-                (let* ((input-file (buffer-file-name))
+                (let* ((input-file buffer-file-name)
                        (result-name (concat
                                      (file-name-sans-extension
                                       (file-name-nondirectory input-file))
