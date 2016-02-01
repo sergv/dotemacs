@@ -10,6 +10,7 @@
 
 (require 'macro-util)
 (require 'custom-predicates)
+(require 'dash)
 
 (defsubst remap-interval (a b c d x)
   "Remap x from [a, b] into [c, d]"
@@ -410,11 +411,11 @@ by doing (clear-string STRING)."
 (defun permutations (list)
   (if (null list)
     (list nil)
-    (mapcan (lambda (item)
-              (map (lambda (x)
-                     (cons item x))
-                   (permutations (remove item list))))
-            list)))
+    (-mapcat (lambda (item)
+               (-map (lambda (x)
+                       (cons item x))
+                     (permutations (remove item list))))
+             list)))
 
 
 (defun combinations (n k)
@@ -429,9 +430,9 @@ combinations"
                 (loop
                   for i from start to end
                   nconcing
-                  (map (lambda (rest)
-                         (cons i rest))
-                       (funcall collect (1- start) (1- i))))))))
+                  (-map (lambda (rest)
+                          (cons i rest))
+                        (funcall collect (1- start) (1- i))))))))
     (funcall collect (1- k) (1- n))))
 
 (defun* sum (seq &key (key #'identity) (start 0) (end nil))
@@ -515,22 +516,20 @@ tabbar, etc")
                                buf
                                (buffer-name buf))))
         ;; ((string? buf)
-        ;;  (any? (lambda (re)
-        ;;          (string-match-pure? re buf))
-        ;;        *invisible-buffers*))
+        ;;  (-any? (lambda (re)
+        ;;           (string-match-pure? re buf))
+        ;;         *invisible-buffers*))
         ;; ((buffer? buf)
-        ;;  (any? (lambda (re)
-        ;;          (string-match-pure? re (buffer-name buf)))
-        ;;        *invisible-buffers*))
+        ;;  (-any? (lambda (re)
+        ;;           (string-match-pure? re (buffer-name buf)))
+        ;;         *invisible-buffers*))
         (t
          (error "wrong argument type - not a string nor a buffer: %s"
                 buf))))
 
 (defun visible-buffers ()
   "Get list of buffers that are not invisible."
-  (filter (lambda (buf)
-            (not (invisible-buffer? buf)))
-          (buffer-list)))
+  (--filter (not (invisible-buffer? it)) (buffer-list)))
 
 (add-invisible-buffer (rx
                        bol
@@ -549,11 +548,10 @@ tabbar, etc")
 ;;;
 
 (defun for-buffers-with-mode (mode func)
-  (mapc func
-        (filter (lambda (buf)
-                  (with-current-buffer buf
-                    (eq? major-mode mode)))
-                (buffer-list))))
+  (dolist (buf (buffer-list))
+    (when (with-current-buffer buf
+            (eq? major-mode mode))
+      (funcall func buf))))
 
 ;;;
 
@@ -921,15 +919,15 @@ end of END-LINE in current buffer."
   "List of directory names to generally ignore as a prefixes.")
 
 (setf completion-ignored-extensions
-      (append (map (lambda (x) (concat x "/")) *ignored-directories*)
+      (append (-map (lambda (x) (concat x "/")) *ignored-directories*)
               *ignored-file-name-endings*)
       grep-find-ignored-files
       (append (list ".#*"
                     "*.exe"
                     "*.prof")
-              (map (lambda (x)
-                     (concat "*" x))
-                   *ignored-file-name-endings*)))
+              (-map (lambda (x)
+                      (concat "*" x))
+                    *ignored-file-name-endings*)))
 
 ;;;
 
@@ -1132,15 +1130,15 @@ See also `indent-relative-maybe'."
     (set-window-parameter window
                           'prev-buffers
                           (cons (window-buffer window)
-                                (filter #'buffer-live-p
-                                        (window-parameter window 'prev-buffers))))))
+                                (-filter #'buffer-live-p
+                                         (window-parameter window 'prev-buffers))))))
 
 (defun switch-to-prev-buffer-in-window ()
   "Switch to previous alive buffer for selected window, if there's one."
   (interactive)
   (let* ((window (selected-window))
-         (prev-bufs (filter #'buffer-live-p
-                            (window-parameter window 'prev-buffers))))
+         (prev-bufs (-filter #'buffer-live-p
+                             (window-parameter window 'prev-buffers))))
     (if (null? prev-bufs)
       (error "no alive previous buffers to switch to")
       (switch-to-buffer (car prev-bufs)))))
@@ -1345,7 +1343,7 @@ the current buffer."
                              (* size used)))))
          (to-mb (lambda (x) (when x (/ x (* 1024 1024)))))
          ;; (extract-used (lambda (x) (car-safe (cdr-safe (cdr-safe x)))))
-         (bytes-used (sum (map entry->bytes stats))))
+         (bytes-used (sum (-map entry->bytes stats))))
     (format "[%sMb/cons %sMb/vec %sMb/heap %sMb]"
             (funcall to-mb bytes-used)
             (funcall (comp to-mb entry->bytes) (assoc 'conses stats))
@@ -1396,15 +1394,6 @@ topmost `kill-ring' item is equal to text."
 
 ;;;;
 
-(defsubst concatMap (f xs)
-  (mapcan (lambda (x) (copy-list (funcall f x))) xs))
-
-(defsubst concatMap! (f xs)
-  (mapcan (lambda (x) (funcall f x)) xs))
-
-(defsubst concat-lists (xss)
-  (foldl #'append nil xss))
-
 (defun save-buffer-if-modified ()
   (if-buffer-has-file
     (when (buffer-modified-p)
@@ -1415,9 +1404,6 @@ topmost `kill-ring' item is equal to text."
 (defun current-column ()
   "Return current column - integer number."
   (- (point) (line-beginning-position)))
-
-(defun quoted? (x)
-  (eq 'quote (car-safe x)))
 
 (defun remove-buffer (&optional buffer-or-name)
   "Remove buffer completely bypassing all its prompt functions.
@@ -1661,17 +1647,6 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
   (interactive "Mregexp: \nMreplacement string: ")
   (dired-do-query-replace-regexp re str))
 
-
-(defun util:pwd (&optional insert)
-  "If called without prefix argument then show current
-working directory, otherwise insert absolute path to
-current working directory at point."
-  (interactive (list current-prefix-arg))
-  (let ((dir (expand-file-name default-directory)))
-    (if insert
-      (insert dir)
-      (message "Directory %s" dir))))
-
 ;; abandon old and non-flexible pwd function
 ;; (fset 'pwd 'util:pwd)
 
@@ -1684,14 +1659,6 @@ current working directory at point."
         (goto-char (point-min))
         (when (search-forward-regexp re nil t)
           t)))))
-
-
-(defun util:flatten (xs)
-  "Transform list XS that possibly consists of nested list
-into flat list"
-  (if (listp xs)
-    (mapcan (lambda (x) (util:flatten x)) xs)
-    (list xs)))
 
 ;;;;
 
@@ -1896,30 +1863,6 @@ have 'forward or 'backward value."
 (defsubst char=? (a b)
   (char-equal a b))
 
-(defun any? (pred items)
-  "Returns t if pred returns t for any element of ITEMS."
-  ;; (funcall #'some pred items)
-  (let ((done nil)
-        (result nil))
-    (while (and (not done)
-                (not (null? items)))
-      (aif (funcall pred (first items))
-        (setf done t
-              result it)
-        (setf items (rest items))))
-    result))
-
-(defun all? (pred items)
-  "Returns t if pred returns t for all elements of ITEMS."
-  ;; (funcall #'every pred items)
-  (let ((result t))
-    (while (and (not (null? result))
-                (not (null? items)))
-      (aif (funcall pred (first items))
-        (setf items (rest items))
-        (setf result nil)))
-    result))
-
 ;;;;
 
 (defsubst first-safe (x)
@@ -1927,9 +1870,6 @@ have 'forward or 'backward value."
 
 (defsubst rest-safe (x)
   (cdr-safe x))
-
-(defsubst filter (pred seq &rest args)
-  (apply #'remove-if-not pred seq args))
 
 (defmacro more-clojure/comp-impl (functions
                                   fallback-function

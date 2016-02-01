@@ -16,28 +16,29 @@
 
 ;;; elisp fontification and indentation
 
-(font-lock-add-keywords 'emacs-lisp-mode
-                        (map (lambda (x)
-                               (list (concat "(\\(" x "\\)\\_>")
-                                     1
-                                     'font-lock-keyword-face))
-                             '("aif"
-                               "awhen"
-                               "begin"
-                               "if-let"
-                               "when-let"
-                               "def-keys-for-map"
-                               "defvar-local"
-                               "rxx"
-                               "redefun"
-                               "with-disabled-undo"
-                               "with-current-frame"
-                               "with-preserved-buffer-modified-p"
-                               "with-inhibited-modification-hooks"
-                               "with-inhibited-read-only"
-                               "with-hidden-comments"
-                               "with-hidden-cloze-hints"
-                               "with-hidden-cloze-text")))
+(font-lock-add-keywords
+ 'emacs-lisp-mode
+ (-map (lambda (x)
+         (list (concat "(\\(" x "\\)\\_>")
+               1
+               'font-lock-keyword-face))
+       '("aif"
+         "awhen"
+         "begin"
+         "if-let"
+         "when-let"
+         "def-keys-for-map"
+         "defvar-local"
+         "rxx"
+         "redefun"
+         "with-disabled-undo"
+         "with-current-frame"
+         "with-preserved-buffer-modified-p"
+         "with-inhibited-modification-hooks"
+         "with-inhibited-read-only"
+         "with-hidden-comments"
+         "with-hidden-cloze-hints"
+         "with-hidden-cloze-text")))
 
 
 (put 'redefun 'doc-string-elt 3)

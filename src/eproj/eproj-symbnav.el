@@ -72,9 +72,9 @@ as accepted by `bounds-of-thing-at-point'.")
 (defun eproj-symbnav/describe ()
   (interactive)
   (message "Previous homes: %s\nSelected loc: %s\nNext homes: %s\n"
-           (map #'eproj-symbnav/show-home eproj-symbnav/previous-homes)
+           (-map #'eproj-symbnav/show-home eproj-symbnav/previous-homes)
            (eproj-symbnav/show-home eproj-symbnav/selected-loc)
-           (map #'eproj-symbnav/show-home eproj-symbnav/next-homes)))
+           (-map #'eproj-symbnav/show-home eproj-symbnav/next-homes)))
 
 (defun eproj-symbnav/reset ()
   (interactive)
@@ -216,41 +216,41 @@ as accepted by `bounds-of-thing-at-point'.")
                 ;;   (loop
                 ;;     with identifiers =
                 ;;     (if use-regexp
-                ;;       (concat-lists
+                ;;       (-concat
                 ;;        (hash-table-entries-matching-re it identifier))
                 ;;       (gethash identifier it nil))
                 ;;     for tag in identifiers
                 ;;     collect (cons tag
                 ;;                   (funcall tag->string tag))))
-                (map (lambda (tag-entry)
-                       (destructuring-bind (tag . tag-proj)
-                           tag-entry
-                         (list tag
-                               (funcall tag->string tag tag-proj)
-                               tag-proj)))
-                     (eproj-get-matching-tags proj
-                                              orig-major-mode
-                                              identifier
-                                              use-regexp))
-                ;; (map (lambda (tag-entry)
-                ;;        (destructuring-bind (tag . tag-proj)
-                ;;            tag-entry
-                ;;          (list tag
-                ;;                (funcall tag->string tag tag-proj)
-                ;;                tag-proj)))
-                ;;      (concatMap (lambda (proj)
-                ;;                   (aif (rest-safe
-                ;;                         (assq orig-major-mode
-                ;;                               (eproj-project/tags proj)))
-                ;;                     (map (lambda (tag)
+                (-map (lambda (tag-entry)
+                        (destructuring-bind (tag . tag-proj)
+                            tag-entry
+                          (list tag
+                                (funcall tag->string tag tag-proj)
+                                tag-proj)))
+                      (eproj-get-matching-tags proj
+                                               orig-major-mode
+                                               identifier
+                                               use-regexp))
+                ;; (-map (lambda (tag-entry)
+                ;;         (destructuring-bind (tag . tag-proj)
+                ;;             tag-entry
+                ;;           (list tag
+                ;;                 (funcall tag->string tag tag-proj)
+                ;;                 tag-proj)))
+                ;;       (-mapcat (lambda (proj)
+                ;;                  (aif (rest-safe
+                ;;                        (assq orig-major-mode
+                ;;                              (eproj-project/tags proj)))
+                ;;                    (-map (lambda (tag)
                 ;;                            (cons tag proj))
                 ;;                          (if use-regexp
-                ;;                            (concat-lists
+                ;;                            (-concat
                 ;;                             (hash-table-entries-matching-re it identifier))
                 ;;                            (gethash identifier it nil)))
-                ;;                     nil))
-                ;;                 (cons proj
-                ;;                       (eproj-get-all-related-projects proj))))
+                ;;                    nil))
+                ;;                (cons proj
+                ;;                      (eproj-get-all-related-projects proj))))
                 (lambda (a b)
                   ;; compare results of tag->string
                   (string< (funcall entry-string a) (funcall entry-string b)))))))

@@ -435,9 +435,8 @@ BUFFER is expected to contain output of ctags command."
   (list
    (mk-eproj-lang
     :mode 'haskell-mode
-    :extensions (filter (comp #'not
-                              (partial-first #'member '("x" "alex" "y" "happy" "ly")))
-                        *haskell-extensions*)
+    :extensions (--filter (not (member it '("x" "alex" "y" "happy" "ly")))
+                          *haskell-extensions*)
     :create-tags-procedure
     #'eproj/create-haskell-tags
     :parse-tags-procedure
@@ -642,8 +641,7 @@ BUFFER is expected to contain output of ctags command."
                   :consider-tag-files nil)))
             (maphash (lambda (symbol-str tags)
                        (puthash symbol-str
-                                (filter non-fname-tag-func
-                                        tags)
+                                (-filter non-fname-tag-func tags)
                                 old-tags))
                      old-tags)
             (hash-table-merge-with!
@@ -728,19 +726,19 @@ list of project files."
                       made-files t)
                 files)))))
     (setf (eproj-project/tags proj)
-          (map (lambda (lang-mode)
-                 (let ((new-tags (eproj/load-tags-for-mode proj
-                                                           lang-mode
-                                                           make-project-files-func
-                                                           :consider-tag-files t)))
-                   (assert (and (not (null new-tags))
-                                (hash-table-p new-tags)))
-                   (when (= 0 (hash-table-count new-tags))
-                     (error "Warning while reloading: project %s loaded no tags for language %s"
-                            (eproj-project/root proj)
-                            lang-mode))
-                   (cons lang-mode new-tags)))
-               (eproj-project/languages proj))))
+          (-map (lambda (lang-mode)
+                  (let ((new-tags (eproj/load-tags-for-mode proj
+                                                            lang-mode
+                                                            make-project-files-func
+                                                            :consider-tag-files t)))
+                    (assert (and (not (null new-tags))
+                                 (hash-table-p new-tags)))
+                    (when (= 0 (hash-table-count new-tags))
+                      (error "Warning while reloading: project %s loaded no tags for language %s"
+                             (eproj-project/root proj)
+                             lang-mode))
+                    (cons lang-mode new-tags)))
+                (eproj-project/languages proj))))
   nil)
 
 (defun eproj-populate-from-eproj-info! (proj aux-info)
@@ -833,11 +831,11 @@ variables accordingly."
                          (lambda (a b)
                            (string< (car a)
                                     (car b))))))
-        (map (lambda (entry)
-               (destructuring-bind (root . proj) entry
-                 (eproj-descibe-proj buf proj nil t)
-                 (insert (make-string 80 ?\-) "\n")))
-             projs))
+        (-map (lambda (entry)
+                (destructuring-bind (root . proj) entry
+                  (eproj-descibe-proj buf proj nil t)
+                  (insert (make-string 80 ?\-) "\n")))
+              projs))
       (goto-char (point-min)))))
 
 (defun eproj-describe-buffer-project ()
@@ -863,14 +861,14 @@ variables accordingly."
         (insert indent related-proj "\n"))
       (when describe-buffers
         (insert "buffers:\n")
-        (dolist (buf (filter (lambda (buf)
-                               (condition-case nil
-                                   (string=
-                                    (eproj-project/root proj)
-                                    (eproj-project/root
-                                     (eproj-get-project-for-buf buf)))
-                                 (error nil)))
-                             (visible-buffers)))
+        (dolist (buf (-filter (lambda (buf)
+                                (condition-case nil
+                                    (string=
+                                     (eproj-project/root proj)
+                                     (eproj-project/root
+                                      (eproj-get-project-for-buf buf)))
+                                  (error nil)))
+                              (visible-buffers)))
           (insert indent (buffer-name buf) "\n")))
       (insert "number of tags loaded: "
               (let ((tag-count 0))
@@ -1010,9 +1008,9 @@ symbol 'unresolved.")
                         (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
                                    it
                                    "\\|")))
-                   (filter (lambda (fname)
-                             (not (string-match-p regexp fname)))
-                           files))
+                   (-filter (lambda (fname)
+                              (not (string-match-p regexp fname)))
+                            files))
                  files)))
             (list-of-files
              (with-temp-buffer
@@ -1022,24 +1020,23 @@ symbol 'unresolved.")
         (assert (listp list-of-files))
         (let ((resolved-files
                (funcall filter-ignored-files
-                        (map (lambda (filename)
-                               (eproj-resolve-abs-or-rel-name
-                                filename
-                                (eproj-project/root proj)))
-                             list-of-files))))
-          (assert (all? (lambda (filename)
-                          (and (stringp filename)
-                               (file-exists-p filename)))
-                        resolved-files))
+                        (-map (lambda (filename)
+                                (eproj-resolve-abs-or-rel-name
+                                 filename
+                                 (eproj-project/root proj)))
+                              list-of-files))))
+          (assert (--all? (and (stringp it)
+                               (file-exists-p it))
+                          resolved-files))
           (setf (eproj-project/cached-file-list proj) resolved-files)
           resolved-files))
       (eproj/find-rec
        (eproj-project/root proj)
-       (concatMap (lambda (lang)
-                    (assert (symbolp lang))
-                    (eproj-language/extensions
-                     (gethash lang eproj/languages-table)))
-                  (eproj-project/languages proj))
+       (-mapcat (lambda (lang)
+                  (assert (symbolp lang))
+                  (eproj-language/extensions
+                   (gethash lang eproj/languages-table)))
+                (eproj-project/languages proj))
        (eproj-project/ignored-files-regexps proj)
        *ignored-directories*
        *ignored-directory-prefixes*))))
@@ -1073,33 +1070,33 @@ Valid values are:
   (if eproj/find-program-type
     (let* ((ignored-dirs
             (nconc
-             (map (lambda (dir) (list "-ipath" (concat "*/" dir)))
-                  ignored-directories)
-             (map (lambda (dir) (list "-ipath" (concat "*/" dir "*")))
-                  ignored-directory-prefixes)))
+             (-map (lambda (dir) (list "-ipath" (concat "*/" dir)))
+                   ignored-directories)
+             (-map (lambda (dir) (list "-ipath" (concat "*/" dir "*")))
+                   ignored-directory-prefixes)))
            (ignored-files
-            (map (pcase eproj/find-program-type
-                   ((or `find `cygwin-find)
-                    (lambda (re) (list "-iregex" re)))
-                   (`busybox
-                    (lambda (re) (list "-regex" re)))
-                   (_
-                    (error "eproj/find-program-type has invalid value: %s"
-                           eproj/find-program-type)))
-                 ignored-files-absolute-regexps))
+            (-map (pcase eproj/find-program-type
+                    ((or `find `cygwin-find)
+                     (lambda (re) (list "-iregex" re)))
+                    (`busybox
+                     (lambda (re) (list "-regex" re)))
+                    (_
+                     (error "eproj/find-program-type has invalid value: %s"
+                            eproj/find-program-type)))
+                  ignored-files-absolute-regexps))
            (exts
-            (map (lambda (ext) (list "-iname" (concat "*." ext)))
-                 extensions))
+            (-map (lambda (ext) (list "-iname" (concat "*." ext)))
+                  extensions))
            (find-cmd (or eproj/find-program-executable
                          (error "eproj/find-program-type has invalid value: %s"
                                 eproj/find-program-type)))
            (cmd
-            (util:flatten
+            (-flatten
              (list (when (eq? 'busybox eproj/find-program-type)
                      "find")
                    "-L"
                    (when (memq eproj/find-program-type '(find cygwin-find))
-                     '("-O3"))
+                     "-O3")
                    root
                    (when (memq eproj/find-program-type '(find cygwin-find))
                      '("-regextype" "emacs"))
@@ -1171,18 +1168,18 @@ Valid values are:
 AUX-INFO is expected to be a list with entry (related { <abs-path> | <rel-path> }* ).
 Returns nil if no relevant entry found in AUX-INFO."
   (awhen (cdr-safe (assq 'related aux-info))
-    (map (lambda (path)
-           (assert (stringp path) nil
-                   "invalid entry under related clause, string expected %s"
-                   path)
-           (progn ;; condition-case err
-               (eproj-resolve-abs-or-rel-name path root)
-             ;; (error
-             ;;  (error "invalid related-project entry: non-existing absolute/relative directory: %s\n%s"
-             ;;         path
-             ;;         err))
-             ))
-         it)))
+    (-map (lambda (path)
+            (assert (stringp path) nil
+                    "invalid entry under related clause, string expected %s"
+                    path)
+            (progn ;; condition-case err
+              (eproj-resolve-abs-or-rel-name path root)
+              ;; (error
+              ;;  (error "invalid related-project entry: non-existing absolute/relative directory: %s\n%s"
+              ;;         path
+              ;;         err))
+              ))
+          it)))
 
 (defun eproj-make-aux-files-constructor (root aux-info)
   "Make up function that will return list of absolute names for auxiliary files
@@ -1202,33 +1199,32 @@ AUX-INFO is expected to be a list of zero or more constructs:
       (lambda ()
         (with-temp-buffer
           (cd project-root)
-          (mapcan (lambda (item)
-                    (assert (listp item) nil
-                            "invalid entry under aux-files clause, list expected: %s"
-                            item)
-                    (cond ((eq (car-safe item) 'tree)
-                           (let ((tree-root (cadr-safe item))
-                                 (patterns (cddr-safe item)))
-                             (assert (and (not (null tree-root))
-                                          (file-exists-p tree-root)
-                                          (file-directory-p tree-root))
-                                     nil
-                                     "Invalid tree root under aux-files/tree clause: %s"
-                                     tree-root)
-                             (assert (and (listp patterns)
-                                          (not (null patterns)))
-                                     nil
-                                     "Invalid patterns under aux-files/tree clause: %s"
-                                     patterns)
-                             (find-rec tree-root
-                                       :filep
-                                       (lambda (path)
-                                         (any? (lambda (regexp)
-                                                 (string-match-p regexp path))
-                                               patterns)))))
-                          (t
-                           (error "Invalid 'aux-files entry: 'tree clause not found"))))
-                  aux-files-entry))))))
+          (-mapcat (lambda (item)
+                     (assert (listp item) nil
+                             "invalid entry under aux-files clause, list expected: %s"
+                             item)
+                     (cond ((eq (car-safe item) 'tree)
+                            (let ((tree-root (cadr-safe item))
+                                  (patterns (cddr-safe item)))
+                              (assert (and (not (null tree-root))
+                                           (file-exists-p tree-root)
+                                           (file-directory-p tree-root))
+                                      nil
+                                      "Invalid tree root under aux-files/tree clause: %s"
+                                      tree-root)
+                              (assert (and (listp patterns)
+                                           (not (null patterns)))
+                                      nil
+                                      "Invalid patterns under aux-files/tree clause: %s"
+                                      patterns)
+                              (find-rec tree-root
+                                        :filep
+                                        (lambda (path)
+                                          (--any? (string-match-p it path)
+                                                  patterns)))))
+                           (t
+                            (error "Invalid 'aux-files entry: 'tree clause not found"))))
+                   aux-files-entry))))))
 
 (defun eproj/find-eproj-file-location (path)
   "Find closest directory parent of PATH that contains .eproj-info file."
@@ -1250,8 +1246,8 @@ AUX-INFO is expected to be a list of zero or more constructs:
                                :test #'eproj-project/root=)
                     (funcall collect ps visited items)
                     (funcall collect
-                             (append (map #'eproj-get-project-for-path
-                                          (eproj-project/related-projects p))
+                             (append (-map #'eproj-get-project-for-path
+                                           (eproj-project/related-projects p))
                                      ps)
                              (cons p visited)
                              (cons p items))))
@@ -1259,8 +1255,8 @@ AUX-INFO is expected to be a list of zero or more constructs:
     (assert (eproj-project-p proj) nil
             "Not a eproj-project structure: %s" proj)
     (funcall collect
-             (map #'eproj-get-project-for-path
-                  (eproj-project/related-projects proj))
+             (-map #'eproj-get-project-for-path
+                   (eproj-project/related-projects proj))
              (list proj)
              nil)))
 
@@ -1297,19 +1293,20 @@ whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
 is non-nil.
 
 Returns list of (tag . project) pairs."
-  (concatMap (lambda (proj)
-               (aif (rest-safe
-                     (assq tag-major-mode
-                           (eproj-project/tags proj)))
-                 (map (lambda (tag)
-                        (cons tag proj))
-                      (if search-with-regexp?
-                        (concat-lists
-                         (hash-table-entries-matching-re it identifier))
-                        (gethash identifier it nil)))
-                 nil))
-             (cons proj
-                   (eproj-get-all-related-projects proj))))
+  (-mapcat (lambda (proj)
+             (aif (rest-safe
+                   (assq tag-major-mode
+                         (eproj-project/tags proj)))
+               (-map (lambda (tag)
+                       (cons tag proj))
+                     (if search-with-regexp?
+                       (apply
+                        #'-concat
+                        (hash-table-entries-matching-re it identifier))
+                       (gethash identifier it nil)))
+               nil))
+           (cons proj
+                 (eproj-get-all-related-projects proj))))
 
 (autoload 'eproj-symbnav/describe "eproj-symbnav" nil t)
 (autoload 'eproj-symbnav/reset "eproj-symbnav" nil t)

@@ -85,9 +85,8 @@
                  (when (buffer-narrowed?)
                    "(Narrowed)"))
                 " "
-                (:eval
-                 (when vc-mode
-                   (concat vc-mode " ")))
+                (vc-mode
+                 (concat vc-mode " "))
                 (line-number-mode
                  ("%l/"
                   (:eval (number-to-string

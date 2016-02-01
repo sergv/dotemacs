@@ -43,9 +43,8 @@ if CASE-SENSETIVE is t."
                           (lambda (p)
                             (or (version-control-directory?
                                  (file-name-nondirectory p))
-                                (any? (lambda (subdir)
-                                        (string-prefix? subdir p))
-                                      subdirs-visited)))))
+                                (--any? (string-prefix? it p)
+                                        subdirs-visited)))))
           (when (not (null? files))
             (setf found? t))
           (push subdir subdirs-visited)
@@ -77,20 +76,13 @@ if CASE-SENSETIVE is t."
   ;; note - every single bit of this function is made to let this function
   ;; work as fast as it can an as large buffers as possible
   ;; (on 2k lines performance is acceptable)
-  (let ((filter*
-         (lambda (pred items)
-           (let ((result nil))
-             (dolist (item items)
-               (if (funcall pred item)
-                 (push item result)))
-             result))))
-    (let ((chars (string->list (buffer-substring-no-properties (point-min)
-                                                               (point-max)))))
-      (sort (remove-duplicates (funcall filter* (lambda (c) (< 127 c)) chars)) '<))))
+  (let ((chars (string->list (buffer-substring-no-properties (point-min)
+                                                             (point-max)))))
+    (sort (remove-duplicates (--filter (< 127 it) chars)) #'<)))
 
 (defun input-unicode ()
   (interactive)
-  (let* ((symbs (map 'char->string (extract-unicode)))
+  (let* ((symbs (-map #'char->string (extract-unicode)))
          (symb (ido-completing-read "> " symbs)))
     (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
     (insert symb)))
@@ -112,27 +104,26 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
         (ignored-dirs-re (concat "\\(?:^\\|/\\)"
                                  (regexp-opt *ignored-directories*)
                                  "/.*$")))
-    (dolist (p (map (lambda (p)
-                      (file-relative-name p new-config-dir))
-                    (find-rec new-config-dir
-                              :filep
-                              (lambda (p)
-                                (let ((fname (file-name-nondirectory p)))
-                                  (and (or (string-match-pure? "^.*\\.el$"
-                                                               fname)
-                                           (string-match-pure? "^.*/?scripts/.*$"
-                                                               p)
-                                           ;; yasnippet snippets
-                                           (string-match-pure? "^.*/?snippets/.*$"
-                                                               p))
-                                       ;; emacs locks?
-                                       (not (string-match-pure? "^\\.#.*"
-                                                                fname))
-                                       ;; various binary files
-                                       (not (string-match-pure? ignored-files-re
-                                                                fname))
-                                       (not (string-match-pure? ignored-dirs-re
-                                                                fname))))))))
+    (dolist (p (--map (file-relative-name it new-config-dir)
+                      (find-rec new-config-dir
+                                :filep
+                                (lambda (p)
+                                  (let ((fname (file-name-nondirectory p)))
+                                    (and (or (string-match-pure? "^.*\\.el$"
+                                                                 fname)
+                                             (string-match-pure? "^.*/?scripts/.*$"
+                                                                 p)
+                                             ;; yasnippet snippets
+                                             (string-match-pure? "^.*/?snippets/.*$"
+                                                                 p))
+                                         ;; emacs locks?
+                                         (not (string-match-pure? "^\\.#.*"
+                                                                  fname))
+                                         ;; various binary files
+                                         (not (string-match-pure? ignored-files-re
+                                                                  fname))
+                                         (not (string-match-pure? ignored-dirs-re
+                                                                  fname))))))))
       (let* ((new  (concat new-config-dir "/" p))
              (curr (concat curr-config-dir "/" p)))
         (message "Files %s and %s" new curr)
@@ -207,13 +198,13 @@ number of spaces equal to `tab-width'."
                                 (if (= 0 (length line))
                                   line
                                   (remove-whitespace (subseq line 1)))))
-           (old (join-lines (map cleanup-diff-line
-                                 (filter (funcall make-filter ?-)
-                                         lines))
+           (old (join-lines (-map cleanup-diff-line
+                                  (-filter (funcall make-filter ?-)
+                                           lines))
                             "\n"))
-           (new (join-lines (map cleanup-diff-line
-                                 (filter (funcall make-filter ?+)
-                                         lines))
+           (new (join-lines (-map cleanup-diff-line
+                                  (-filter (funcall make-filter ?+)
+                                           lines))
                             "\n")))
       (string=? old new))))
 
@@ -278,9 +269,9 @@ number of spaces equal to `tab-width'."
   "Definitions of various executables that can be started in particular folder.")
 
 (defun custom/run-first-matching-exec (execs)
-  (assert (all? (lambda (exec)
-                  (not (null? (gethash exec custom/exec-with-directory-runners))))
-                execs))
+  (assert (-all? (lambda (exec)
+                   (not (null? (gethash exec custom/exec-with-directory-runners))))
+                 execs))
   (let ((dir (expand-file-name
               (aif buffer-file-name
                 (file-name-directory it)

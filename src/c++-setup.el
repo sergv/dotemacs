@@ -53,13 +53,13 @@
                                (t
                                 nil)))
                (alternative-names
-                (map (comp (partial #'concat
-                                    (file-name-sans-extension file-nodir)
-                                    "."))
-                     alt-exts))
+                (--map (concat (file-name-sans-extension file-nodir)
+                               "."
+                               it)
+                       alt-exts))
                (alt-names-in-same-dir
-                (map (comp (partial #'concat file-dir "/"))
-                     alternative-names)))
+                (--map (concat file-dir "/" it)
+                       alternative-names)))
           (aif (find-if #'file-exists? alt-names-in-same-dir)
             (progn
               (puthash filename it *c++-related-file-cache*)
@@ -102,11 +102,8 @@
                      (apply-partially #'select-make-bold-separator
                                       "--------\n"))))
                 (error "No %s file found for %s"
-                       (map (comp (partial #'concat "*."))
-                            alt-exts)
+                       (--map (concat "*." it) alt-exts)
                        filename)))))))))
-
-
 
 (defun c++-setup ()
   (cc-setup :define-special-keys t)

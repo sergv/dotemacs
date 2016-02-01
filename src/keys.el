@@ -148,30 +148,28 @@
                         (t
                          (let ((p (funcall choices (cdr list))))
                            (append p
-                                   (map (lambda (x) (cons (car list) x))
-                                        p))))))))
+                                   (--map (cons (car list) it) p))))))))
     (let ((modifiers (remove nil
                              (funcall choices '(control meta super hyper)))))
-      (mapcar*
+      (-zip-with
        (lambda (r e) ;; R and E are matching Russian and English keysyms
          ;; iterate over modifiers
-         (mapc (lambda (mods)
-                 (define-key input-decode-map
-                   (vector (append mods (list r))) (vector (append mods (list e)))))
-               modifiers)
+         (dolist (mods modifiers)
+           (define-key input-decode-map
+             (vector (append mods (list r))) (vector (append mods (list e)))))
          ;; finally, if Russian key maps nowhere,
          ;; remap it to the English key without any modifiers
          ;; note: local-function-key-map may come in handy
          (define-key function-key-map (vector r) (vector e)))
-       "йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
-       "',.pyfgcrl/=aoeuidhtns-;qjkxbmwv\"<>PYFGCRL?+AOEUIDHTNS_:QJKXBMWV"
-
+       (string->list
+        "йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ")
+       (string->list
+        "',.pyfgcrl/=aoeuidhtns-;qjkxbmwv\"<>PYFGCRL?+AOEUIDHTNS_:QJKXBMWV")
        ;; "йцукенгшщзхъфывапролджэячсмитьбю"
        ;; "qwertyuiop[]asdfghjkl;'zxcvbnm,."
        ))))
 
 (define-cyrillic-keys)
-
 
 (def-keys-for-map (minibuffer-local-completion-map
                    minibuffer-local-must-match-map

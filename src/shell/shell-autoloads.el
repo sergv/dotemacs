@@ -15,14 +15,14 @@
 
 (autoload 'shell-script-setup "shell-setup")
 
-(mapc (lambda (x) (add-hook x #'shell-script-setup))
-      '(cmake-mode-hook
-        shell-script-mode-hook
-        sh-mode-hook
-        sh-script-mode-hook
-        conf-space-mode-hook
-        conf-mode-hook
-        conf-xdefaults-mode-hook))
+(dolist (mode '(cmake-mode-hook
+                shell-script-mode-hook
+                sh-mode-hook
+                sh-script-mode-hook
+                conf-space-mode-hook
+                conf-mode-hook
+                conf-xdefaults-mode-hook))
+  (add-hook mode #'shell-script-setup))
 
 (autoload 'pcomplete/git "shell-completion" nil t)
 (autoload 'pcomplete/runghc "shell-completion" nil t)

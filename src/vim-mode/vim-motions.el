@@ -438,10 +438,10 @@ counted."
   (let ((boundaries-loc boundaries))
     (lambda (direction)
       (let ((positions
-             (mapcan (lambda (bnd)
-                       (let ((pos (funcall bnd direction)))
-                         (when pos (list pos))))
-                     boundaries-loc)))
+             (delq nil
+                   (-map (lambda (bnd)
+                           (funcall bnd direction))
+                         boundaries-loc))))
         (when positions
           (apply (pcase direction
                    (`fwd #'min)
