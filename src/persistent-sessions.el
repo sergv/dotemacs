@@ -52,29 +52,28 @@ on values of said variables.")
 (defun sessions/get-buffer-variables (buffer)
   "Get buffer's local variables that should be saved."
   (with-current-buffer buffer
-    (concatMap! (lambda (entry)
-                  (let ((pred (car entry))
-                        (vars (cdr entry)))
-                    (when (funcall pred buffer)
-                      (map (lambda (var)
-                             (when (and (boundp var)
-                                        (local-variable? var))
-                               (cons var (symbol-value var))))
-                           vars))))
-                *sessions-buffer-variables*)))
+    (-mapcat (lambda (entry)
+               (let ((pred (car entry))
+                     (vars (cdr entry)))
+                 (when (funcall pred buffer)
+                   (-map (lambda (var)
+                           (when (and (boundp var)
+                                      (local-variable? var))
+                             (cons var (symbol-value var))))
+                         vars))))
+             *sessions-buffer-variables*)))
 
 (defun sessions/restore-buffer-variables (buffer bindings)
   "Restore variables captured in BINDINGS for buffer BUFFER."
   (with-current-buffer buffer
-    (mapc (lambda (entry)
-            (let ((pred (car entry))
-                  (vars (cdr entry)))
-              (when (funcall pred buffer)
-                (dolist (bind bindings)
-                  (let ((var (car bind)))
-                    (when (memq var vars)
-                      (set var (cdr bind))))))))
-          *sessions-buffer-variables*)))
+    (dolist (entry *sessions-buffer-variables*)
+      (let ((pred (car entry))
+            (vars (cdr entry)))
+        (when (funcall pred buffer)
+          (dolist (bind bindings)
+            (let ((var (car bind)))
+              (when (memq var vars)
+                (set var (cdr bind))))))))))
 
 (defparameter *sessions-global-variables* '(log-edit-comment-ring
                                             vim:ex-history
@@ -119,12 +118,12 @@ on values of said variables.")
   "Get global variables that should be saved in form of sequence of (var . value)
 entries."
   (remq nil
-        (map (lambda (var)
-               (when (boundp var)
-                 (cons var (sessions/strip-text-properties
-                            (sessions/truncate-long-sequences
-                             (symbol-value var))))))
-             *sessions-global-variables*)))
+        (-map (lambda (var)
+                (when (boundp var)
+                  (cons var (sessions/strip-text-properties
+                             (sessions/truncate-long-sequences
+                              (symbol-value var))))))
+              *sessions-global-variables*)))
 
 (defun sessions/restore-global-variables (bindings)
   "Restore global variables from BINDINGS."
@@ -201,44 +200,44 @@ entries."
                       concating
                       (concat
                        (join-lines
-                        (map (lambda (x) (concat ";; " x))
-                             (split-into-lines (fortune/get-next-fortune))))
+                        (-map (lambda (x) (concat ";; " x))
+                              (split-into-lines (fortune/get-next-fortune))))
                        "\n;;\n"))))
     (print '(require 'persistent-sessions) (current-buffer))
     (let* ((buffers (buffer-list))
            (buffer-data
-            (map (lambda (buf)
-                   (with-current-buffer buf
-                     (make-session-entry
-                      (abbreviate-file-name buffer-file-name)
-                      (point)
-                      (sessions/get-buffer-variables buf)
-                      major-mode
-                      nil)))
-                 (filter (comp #'not #'null? #'buffer-file-name)
-                         buffers)))
+            (-map (lambda (buf)
+                    (with-current-buffer buf
+                      (make-session-entry
+                       (abbreviate-file-name buffer-file-name)
+                       (point)
+                       (sessions/get-buffer-variables buf)
+                       major-mode
+                       nil)))
+                  (--filter (not (null? (buffer-file-name it)))
+                           buffers)))
            (temporary-buffer-data
-            (map (lambda (buf)
-                   (with-current-buffer buf
-                     (make-session-entry
-                      (buffer-name buf)
-                      (point)
-                      (sessions/get-buffer-variables buf)
-                      major-mode
-                      (buffer-substring-no-properties (point-min) (point-max)))))
-                 (filter #'sessions/is-temporary-buffer? buffers)))
+            (-map (lambda (buf)
+                    (with-current-buffer buf
+                      (make-session-entry
+                       (buffer-name buf)
+                       (point)
+                       (sessions/get-buffer-variables buf)
+                       major-mode
+                       (buffer-substring-no-properties (point-min) (point-max)))))
+                  (-filter #'sessions/is-temporary-buffer? buffers)))
            (special-buffer-data
             (remq nil
-                  (map (lambda (buf)
-                         (with-current-buffer buf
-                           (when-let* (spec-entry
-                                       (assq major-mode
-                                             sessions/special-modes)
-                                       save-func (cadr-safe (assq 'save spec-entry)))
-                             (list major-mode
-                                   (buffer-name buf)
-                                   (funcall save-func buf)))))
-                       buffers)))
+                  (-map (lambda (buf)
+                          (with-current-buffer buf
+                            (when-let* (spec-entry
+                                        (assq major-mode
+                                              sessions/special-modes)
+                                        save-func (cadr-safe (assq 'save spec-entry)))
+                              (list major-mode
+                                    (buffer-name buf)
+                                    (funcall save-func buf)))))
+                        buffers)))
            (frame-data
             (revive-plus:window-configuration-printable)))
       (insert "(sessions/load-from-data\n")
@@ -314,15 +313,15 @@ entries."
                              (session-entry/variables entry))))))
             (cadr it)))
     (aif (assq 'special-buffers session-entries)
-      (map (lambda (saved-info)
-             (let ((mmode (first saved-info))
-                   (buffer-name (second saved-info))
-                   (special-data (third saved-info)))
-               (when-let* (spec-entry
-                           (assq mmode sessions/special-modes)
-                           restore-func (cadr-safe (assq 'restore spec-entry)))
-                 (funcall restore-func buffer-name special-data))))
-           (cadr it))
+      (-map (lambda (saved-info)
+              (let ((mmode (first saved-info))
+                    (buffer-name (second saved-info))
+                    (special-data (third saved-info)))
+                (when-let* (spec-entry
+                            (assq mmode sessions/special-modes)
+                            restore-func (cadr-safe (assq 'restore spec-entry)))
+                  (funcall restore-func buffer-name special-data))))
+            (cadr it))
       (message "warning: session-entries without special buffer information"))
     (aif (assq 'frames session-entries)
       (revive-plus:restore-window-configuration (first (rest it)))

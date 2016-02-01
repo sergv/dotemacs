@@ -53,7 +53,7 @@ returns in major modes from list MODES. Do nothing if MODES is empty.
 Also perform synchronization such that no retursive calls of EXPAND-FUNC
 will be possible."
   (let ((adv-name (util/make-joined-name func "-expand-on-search"))
-        (mode-list (util:flatten
+        (mode-list (-flatten
                     (util/eval-if-symbol modes))))
     (when (not (null? mode-list))
       `(make-light-synchronizing-advice

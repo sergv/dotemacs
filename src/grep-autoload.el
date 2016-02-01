@@ -24,11 +24,10 @@
               find-program)
 
       grep-files-aliases
-      (let* ((make-compl-pattern (lambda (x) (concat "*." x)))
-             (haskell-exts
-              (join-lines (map make-compl-pattern
-                               (cons "cabal" *haskell-extensions*))
-                          " ")))
+      (let ((haskell-exts
+             (join-lines (--map (concat "*." it)
+                                (cons "cabal" *haskell-extensions*))
+                         " ")))
         `(("all"      . "*")
           ("el"       . "*.el")
           ("c"        . "*.c")
@@ -54,7 +53,7 @@
 
       grep-find-ignored-directories
       (append *ignored-directories*
-              (map (lambda (x) (concat x "*")) *ignored-directory-prefixes*)))
+              (--map (concat it "*") *ignored-directory-prefixes*)))
 
 
 (autoload 'grep-set-up-error-regexp "grep-setup")

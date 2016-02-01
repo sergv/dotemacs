@@ -83,8 +83,8 @@
                  (buffer-substring-no-properties
                   (magit-section-start hunk)
                   (magit-section-end hunk)))
-               (filter pred
-                       (reverse (magit-collect-unstaged-hunk-sections))))))
+               (-filter pred
+                        (reverse (magit-collect-unstaged-hunk-sections))))))
     (dolist (patch matching-patches)
       (when-let* (sections
                   (magit-collect-unstaged-hunk-sections)

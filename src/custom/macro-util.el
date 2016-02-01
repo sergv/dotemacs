@@ -134,7 +134,7 @@ NB does not expect to cache values of ARGS that are nil."
   (assert (symbol? func))
   (assert (symbol? reset-cache-func))
   (assert (list? cache-args))
-  (assert (all? #'symbol? cache-args))
+  (assert (-all? #'symbol? cache-args))
   (assert (equal? cache-args
                   (intersection args cache-args :test #'equal?))
           nil
@@ -333,6 +333,9 @@ in the same directory the current file is."
                      '("makefile" "Makefile" "MAKEFILE"))
            ,@body)))))
 
+
+(defun quoted? (x)
+  (eq 'quote (car-safe x)))
 
 (defmacro def-keys-for-map (mode-map &rest key-command-list)
   (declare (indent nil))

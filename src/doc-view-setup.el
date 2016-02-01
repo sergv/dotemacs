@@ -29,11 +29,9 @@
        'doc-view-documents
        (cons (cons fname
                    (doc-view-current-page))
-             (filter (lambda (entry)
-                       (not (string=? fname
-                                      (car entry))))
-                     (persistent-store-get 'doc-view-documents
-                                           nil)))))))
+             (--filter (not (string=? fname (car it)))
+                       (persistent-store-get 'doc-view-documents
+                                             nil)))))))
 
 (defun doc-view-setup ()
   (setf mode-line-format

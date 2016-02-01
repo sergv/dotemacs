@@ -23,9 +23,9 @@
 
   :make-variable-list (lambda (list)
                         (join-lines
-                         (map (lambda (var-name)
-                                (concat "(pp-to-string " var-name ")"))
-                              list))))
+                         (-map (lambda (var-name)
+                                 (concat "(pp-to-string " var-name ")"))
+                               list))))
 
 
 (defun emacs-lisp-abbrev+-setup ()

@@ -16,7 +16,7 @@
 
 (defun completing-read-buffer (prompt &optional default require-match)
   (completing-read prompt
-                   (map #'buffer-name (visible-buffers))
+                   (-map #'buffer-name (visible-buffers))
                    nil
                    require-match
                    nil

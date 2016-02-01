@@ -120,8 +120,8 @@ Returns t unless search stops at the beginning or end of the buffer."
              (insert-before-markers
               (join-lines (append
                            (if octave-send-echo-input (list line) (list ""))
-                           (map 'inferior-octave-strip-ctrl-g
-                                inferior-octave-output-list)
+                           (-map #'inferior-octave-strip-ctrl-g
+                                 inferior-octave-output-list)
                            (list inferior-octave-output-string)))))
            (run-hooks 'inferior-octave-on-output-hook)))
        (when octave-send-show-buffer
