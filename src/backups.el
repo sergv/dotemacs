@@ -73,7 +73,7 @@
   (setq buf (or buf (current-buffer)))
   (with-current-buffer buf
     (if-buffer-has-file
-      (let* ((file (buffer-file-name))
+      (let* ((file buffer-file-name)
              (dest (path-concat b/backup-directory
                                 (b/make-backup-name file))))
         (when (file-exists? file)

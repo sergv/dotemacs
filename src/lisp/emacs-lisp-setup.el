@@ -162,10 +162,9 @@
   (when (and (eq major-mode 'emacs-lisp-mode)
              (not no-byte-compile)
              (not (string= ".eproj-info"
-                           (file-name-nondirectory (buffer-file-name)))))
-    (let ((file (buffer-file-name))
-          (window-config (current-window-configuration)))
-      (if (byte-compile-file file)
+                           (file-name-nondirectory buffer-file-name))))
+    (let ((window-config (current-window-configuration)))
+      (if (byte-compile-file buffer-file-name)
         (progn
           (kill-buffer "*Compile-Log*")
           ;; restore window config

@@ -1426,7 +1426,7 @@ Save buffer if it has assigned file and this file exists on disk."
   (let ((old-functions kill-buffer-query-functions)
         (kill-buffer-query-functions nil))
     (if-buffer-has-file
-      (when (file-exists? (buffer-file-name))
+      (when (file-exists? buffer-file-name)
         (save-buffer)))
     (kill-buffer buffer-or-name)
     (setq kill-buffer-query-functions old-functions)))
@@ -1699,22 +1699,21 @@ into flat list"
 (defun rename-file-and-buffer (new-name)
   "Renames both current buffer and file it's visiting to NEW-NAME."
   (interactive
-   (let ((fname (buffer-file-name)))
-     (unless fname
+   (progn
+     (unless buffer-file-name
        (error "Buffer '%s' is not visiting a file" (buffer-name)))
      (list (read-file-name (format "Rename %s to: " (file-name-nondirectory
-                                                     fname))))))
+                                                     buffer-file-name))))))
   (when (equal new-name "")
     (error "Aborted rename"))
   (setq new-name (if (file-directory-p new-name)
-                   (expand-file-name (file-name-nondirectory
-                                      (buffer-file-name))
+                   (expand-file-name (file-name-nondirectory buffer-file-name)
                                      new-name)
                    (expand-file-name new-name)))
   ;; If the file isn't saved yet, skip the file rename, but still update the
   ;; buffer name and visited file.
-  (when (file-exists-p (buffer-file-name))
-    (rename-file (buffer-file-name) new-name 1))
+  (when (file-exists-p buffer-file-name)
+    (rename-file buffer-file-name new-name 1))
   (let ((was-modified (buffer-modified-p)))
     ;; This also renames the buffer, and works with uniquify
     (set-visited-file-name new-name)
@@ -1725,24 +1724,24 @@ into flat list"
     (message "Renamed to %s" new-name)))
 
 (defun copy-file-and-open (new-name)
-  "Copy curretn file to NEW-NAME and open it."
+  "Copy current file to NEW-NAME and open it."
   (interactive
-   (let ((fname (buffer-file-name)))
-     (unless fname
+   (progn
+     (unless buffer-file-name
        (error "Buffer '%s' is not visiting a file" (buffer-name)))
      (list (read-file-name (format "Copy %s to: " (file-name-nondirectory
-                                                   fname))))))
+                                                   buffer-file-name))))))
   (when (equal new-name "")
     (error "Aborted copy"))
   (setf new-name (if (file-directory-p new-name)
                    (expand-file-name (file-name-nondirectory
-                                      (buffer-file-name))
+                                      buffer-file-name)
                                      new-name)
                    (expand-file-name new-name)))
   ;; If the file isn't saved yet, skip the file rename, but still update the
   ;; buffer name and visited file.
-  (when (file-exists-p (buffer-file-name))
-    (copy-file (buffer-file-name) new-name 1 nil t t)
+  (when (file-exists-p buffer-file-name)
+    (copy-file buffer-file-name new-name 1 nil t t)
     (find-file new-name)
     (message "Copied to %s" new-name)))
 
@@ -2034,7 +2033,7 @@ F will be called."
   "Open current buffer's pdf file, if any, in suitable pdf viewer program
 (e.g. okular for linux)."
   (interactive)
-  (let ((doc-name (concat (file-name-sans-extension (buffer-file-name)) ".pdf")))
+  (let ((doc-name (concat (file-name-sans-extension buffer-file-name) ".pdf")))
     (if (file-exists? doc-name)
       (start-process-shell-command "okular - tex preview"
                                    nil

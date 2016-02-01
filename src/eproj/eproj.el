@@ -618,16 +618,13 @@ BUFFER is expected to contain output of ctags command."
          (proj (gethash root *eproj-projects* nil)))
     (when (not (null proj))
       (let* ((proj (eproj-get-project-for-buf (current-buffer)))
-             (buf (current-buffer))
-             (fname (expand-file-name (buffer-file-name buf)))
+             (fname (expand-file-name buffer-file-name))
              (non-fname-tag-func
               (lambda (tag)
                 (not (string= fname
                               (expand-file-name
                                (eproj-tag/file tag))))))
-             (mode (eproj-symbnav/resolve-synonym-modes
-                    (with-current-buffer buf
-                      major-mode))))
+             (mode (eproj-symbnav/resolve-synonym-modes major-mode)))
         (unless (memq mode
                       (eproj-project/languages proj))
           (error "Project %s does not manage %s files"
