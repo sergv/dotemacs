@@ -1145,8 +1145,7 @@ if there's no region."
 (defun get-region-bounds ()
   "Return pair of region bounds, (begin end), depending
 on currently active vim highlight mode."
-  (if (and (run-if-fbound vim:visual-mode-p)
-           (not (eq? vim:visual-mode-type 'block)))
+  (if (run-if-fbound vim:visual-mode-p)
     (cond
       ((eq? vim:visual-mode-type 'normal)
        (values (region-beginning) (region-end)))
@@ -1158,7 +1157,7 @@ on currently active vim highlight mode."
                  (goto-char (region-end))
                  (line-end-position))))
       (t
-       (error "Invalid vim:visual-mode-type: %s" vim:visual-mode-type)))
+       (values (region-beginning) (region-end))))
     (values (region-beginning) (region-end))))
 
 ;;;
