@@ -124,6 +124,7 @@
 
     ("p"               magit-stash-popup)
     ("H"               magit-refresh)
+    ("<f5>"            magit-refresh)
     ("R"               magit-discard)
     ("M"               vim:jump-to-prev-saved-position)
     ("O"               magit-remote-popup)
