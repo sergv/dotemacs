@@ -375,27 +375,6 @@ by doing (clear-string STRING)."
         (message nil)
         (or pass default "")))))
 
-;;;; some ring functions
-
-(defun* ring-delete-all (item ring &key (test #'equal))
-  "Remove all elements of RING for which TEST invoked with ITEM returns t."
-  ;; elements should be removed starting from the end
-  (dotimes (i (ring-length ring))
-    (let ((j (- (ring-length ring) (1+ i))))
-      (when (funcall test item (ring-ref ring j))
-        (ring-remove ring j)))))
-
-(defun* ring-member (item ring &key (test #'equal))
-  (let ((i 0)
-        (member nil))
-    (while (and (< i (ring-length ring))
-                (not member))
-      (setf member (funcall test
-                            item
-                            (ring-ref ring i)))
-      (incf i))
-    member))
-
 ;;; combinatorics
 
 (defun factorial (x)
@@ -850,7 +829,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 
 (defun* generic/member (item sequence &key (test #'equal))
   (cond ((ring? sequence)
-         (ring-member item sequence :test test))
+         (ring-member sequence item :test test))
         ((list? sequence)
          (cl-member item sequence :test test))
         (t
