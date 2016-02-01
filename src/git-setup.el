@@ -120,20 +120,16 @@
     ("T"               magit-tag-popup)
     ("n"               magit-notes-popup)
     ("'"               magit-section-up)
-    ("\\"              magit-discard)
 
     ("p"               magit-stash-popup)
     ("H"               magit-refresh)
     ("<f5>"            magit-refresh)
-    ("R"               magit-discard)
+    ("\\"              magit-discard)
     ("M"               vim:jump-to-prev-saved-position)
     ("O"               magit-remote-popup)
 
     ("k"               magit-unstage)
     ("K"               magit-unstage-all)
-
-    ;; TODO: magit-discard
-    ;; ("D"               magit-discard)
 
     ;; ("SPC"             magit-visit-thing-other-window)
     ("TAB"             magit-section-cycle)
