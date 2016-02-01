@@ -51,7 +51,8 @@
   ("<return>" dired-single-buffer)
   ("SPC"      dired-single-buffer-other-window)
   ("^"        dired-single-up-directory)
-  ("r"        revert-buffer) ;; refresh
+  ("H"        revert-buffer) ;; refresh
+  ("<f5>"     revert-buffer)
 
   ;; ? is already used by dired
   ;; ("?"        search-start-backward)
