@@ -131,7 +131,7 @@ With prefix argument allows to select different profile."
     (setf command (if (not (null? clojure-compile/lein-command))
                     clojure-compile/lein-command
                     (clojure-lein/read-variable-from-project-clj
-                     (buffer-file-name)
+                     buffer-file-name
                      'clojure-compile/lein-command)))
     (assert (not (null? command)))
     (compilation-start (format command

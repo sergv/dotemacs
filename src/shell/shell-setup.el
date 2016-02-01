@@ -23,8 +23,7 @@
   (interactive)
   (compilation-start (concat "./"
                              (file-name-nondirectory
-                              (shell-quote-argument
-                               (buffer-file-name))))
+                              (shell-quote-argument buffer-file-name)))
                      t))
 
 (defun shell-script-setup ()

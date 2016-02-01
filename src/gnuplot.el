@@ -30,7 +30,7 @@
             (concat gnuplot-program
                     " "
                     (shell-quote-argument
-                     (buffer-file-name))))))
+                     buffer-file-name)))))
   ;; but if buffer is still fileless then signal error
   (if compile-command
     (compilation-start compile-command
@@ -186,7 +186,7 @@ lines."
          (concat gnuplot-program
                  " "
                  (shell-quote-argument
-                  (buffer-file-name))))))
+                  buffer-file-name)))))
 
 
 (provide 'gnuplot)

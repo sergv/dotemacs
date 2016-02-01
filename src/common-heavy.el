@@ -17,7 +17,7 @@ obtained by following upward in filesystem. Do case-sensitive name matches
 if CASE-SENSETIVE is t."
   (interactive (list current-prefix-arg))
   (let* ((filename-re (read-string-no-default "filename regexp: " ""))
-         (path (reverse (split-string (aif (buffer-file-name (current-buffer))
+         (path (reverse (split-string (aif buffer-file-name
                                         (file-name-directory it)
                                         (expand-file-name default-directory))
                                       "/"
@@ -282,8 +282,8 @@ number of spaces equal to `tab-width'."
                   (not (null? (gethash exec custom/exec-with-directory-runners))))
                 execs))
   (let ((dir (expand-file-name
-              (if (buffer-file-name)
-                (file-name-directory (buffer-file-name))
+              (aif buffer-file-name
+                (file-name-directory it)
                 default-directory))))
     (letrec ((iter
               (lambda (execs)
@@ -326,17 +326,16 @@ not exist after command is finished."
   (interactive (list
                 (read-shell-command "Shell command: " nil nil
                                     (let ((filename
-                                           (cond
-                                             (buffer-file-name)
-                                             ((eq major-mode 'dired-mode)
-                                              (dired-get-filename nil t)))))
-                                      (and filename (file-relative-name filename))))
+                                           (when (and (not buffer-file-name)
+                                                      (eq major-mode 'dired-mode))
+                                             (dired-get-filename nil t))))
+                                      (and filename
+                                           (file-relative-name filename))))
                 current-prefix-arg
                 shell-command-default-error-buffer))
-  (let ((buf (current-buffer))
-        (filename (buffer-file-name)))
+  (let ((buf (current-buffer)))
     (shell-command command output-buffer error-buffer)
-    (when (and (not (file-exists? filename))
+    (when (and (not (file-exists? buffer-file-name))
                (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
@@ -350,8 +349,7 @@ not exist after command is finished."
     (when (and (buffer-live-p buf)
                (string=
                 (with-current-buffer buf
-                  (expand-file-name
-                   (buffer-file-name)))
+                  (expand-file-name buffer-file-name))
                 filename)
                (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
