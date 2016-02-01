@@ -61,16 +61,16 @@
   (list
    (list "filename" (lambda ()
                       (file-name-nondirectory
-                       (buffer-file-name))))
+                       buffer-file-name)))
    (list "filename no ext" (lambda ()
                              (file-name-sans-extension
                               (file-name-nondirectory
-                               (buffer-file-name)))))
+                               buffer-file-name))))
    (list "filename no ext uppercase" (lambda ()
                                        (upcase
                                         (file-name-sans-extension
                                          (file-name-nondirectory
-                                          (buffer-file-name))))))
+                                          buffer-file-name)))))
    (list "date"      (partial #'format-time-string
                               "%A, %e %B %Y"))
    (list "date year" (partial #'format-time-string
@@ -80,7 +80,7 @@
    (list "clojure-path-to-ns"
          (lambda ()
            (save-match-data
-             (let ((name (buffer-file-name)))
+             (let ((name buffer-file-name))
                (if (string-match "^.*/src\\(?:/clojure\\)?/\\(.*\\)\\.clj$" name)
                  (replace-regexp-in-string "/"
                                            "."
@@ -90,7 +90,7 @@
          (lambda ()
            (let* ((root
                    (locate-dominating-file
-                    (file-name-directory (buffer-file-name))
+                    (file-name-directory buffer-file-name)
                     (lambda (dir)
                       (or (not (string-match-pure? "[A-Z][a-zA-Z0-9_']*"
                                                    (file-name-nondirectory
@@ -120,7 +120,7 @@
                                                   (expand-file-name root))
                                                  (file-name-sans-extension
                                                   (expand-file-name
-                                                   (buffer-file-name)))
+                                                   buffer-file-name))
                                                  :starting-at 1)))
              (replace-regexp-in-string "/" "." raw-name))))
    (list "empty" (lambda () "")))

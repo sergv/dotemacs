@@ -210,7 +210,7 @@ entries."
             (map (lambda (buf)
                    (with-current-buffer buf
                      (make-session-entry
-                      (abbreviate-file-name (buffer-file-name buf))
+                      (abbreviate-file-name buffer-file-name)
                       (point)
                       (sessions/get-buffer-variables buf)
                       major-mode

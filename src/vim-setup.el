@@ -366,7 +366,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
-  (aif (buffer-file-name)
+  (aif buffer-file-name
     (if *have-git?*
       (progn
         (git-update-file-repository)
@@ -402,7 +402,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:git-add (nonrepeatable)
   "Run git add on current file."
-  (aif (buffer-file-name)
+  (if buffer-file-name
     (progn
       (save-some-buffers)
       (git-add)

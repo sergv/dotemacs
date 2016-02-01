@@ -14,7 +14,7 @@
   "Saves the lines from `begin' to `end' to file `file-name'."
   (with-current-buffer vim:ex-current-buffer
     (when (null file-name)
-      (setq file-name (buffer-file-name))
+      (setq file-name buffer-file-name)
       (unless file-name
         (error "Please specify a file-name for this buffer!")))
 
@@ -31,10 +31,10 @@
 
       (cond
         ((and (null beg-pos)
-              (string= file-name (buffer-file-name)))
+              (string= file-name buffer-file-name))
          (save-buffer))
         ((and (null beg-pos)
-              (null (buffer-file-name)))
+              (null buffer-file-name))
          (write-file file-name (not force)))
         (t
          (write-region beg-pos end-pos file-name append nil nil (not force)))))))
@@ -54,7 +54,7 @@
            ;; If buffer is not an indirect buffer...
            (null (buffer-base-buffer (current-buffer)))
            ;; ... and does not have a file name.
-           (null (buffer-file-name)))
+           (null buffer-file-name))
       (error "Please specify a file-name for this buffer!"))
     (save-buffer)))
 
@@ -66,8 +66,8 @@
   "Visits a certain file."
   (if file
     (find-file file)
-    (when (buffer-file-name)
-      (find-file (buffer-file-name)))))
+    (when buffer-file-name
+      (find-file buffer-file-name))))
 
 (vim:defcmd vim:cmd-show-buffers (nonrepeatable)
   "Shows the buffer-list."
