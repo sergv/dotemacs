@@ -151,7 +151,7 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
     (when (eq? major-mode 'grep-mode)
       (setf *compilation-jump-error-regexp*
             "^./\\(?:[^/]+/\\)*[^/:]+\.[a-zA-Z0-9_]+:[0-9]+:"
-            ;; (join-lines (map #'car compilation-error-regexp-alist)
+            ;; (join-lines (-map #'car compilation-error-regexp-alist)
             ;;             "\\|")
             ))))
 

@@ -76,31 +76,31 @@ git repository root"
        (if *have-git?*
          (let ((roots (sort
                        (remove-duplicates
-                        (map #'strip-trailing-slash
-                             (delq nil
-                                   (map (lambda (buf)
-                                          (with-current-buffer buf
-                                            (git-update-file-repository)
-                                            git-repository))
-                                        (buffer-list))))
+                        (-map #'strip-trailing-slash
+                              (delq nil
+                                    (-map (lambda (buf)
+                                            (with-current-buffer buf
+                                              (git-update-file-repository)
+                                              git-repository))
+                                          (buffer-list))))
                         :test #'string-equal)
                        #'string<)))
-           (map (lambda (repo-root)
-                  (cons (format "git:%s" repo-root)
-                        `((git-repository-root . ,repo-root))))
-                roots))
+           (-map (lambda (repo-root)
+                   (cons (format "git:%s" repo-root)
+                         `((git-repository-root . ,repo-root))))
+                 roots))
          (error "No git installed on the system")))
 
      (defun ibuffer-generate-filter-group-by-eproj ()
        "Create ibuffer buffer-group specification based on each buffer's
 git repository root"
-       (map (lambda (root)
-              (cons (format "eproj:%s" root)
-                    `((eproj-root . ,root))))
-            (sort
-             (map #'eproj-project/root
-                  (hash-table-values *eproj-projects*))
-             #'string<)))
+       (-map (lambda (root)
+               (cons (format "eproj:%s" root)
+                     `((eproj-root . ,root))))
+             (sort
+              (-map #'eproj-project/root
+                    (hash-table-values *eproj-projects*))
+              #'string<)))
 
      ;; make it handle ibuffer-aux-fliter-groups and use case-insensetive completion
      (redefun ibuffer-switch-to-saved-filter-groups (name)

@@ -39,13 +39,13 @@
                         "\\(?:" type "\\)"
                         "/\\(.*\\)")))
         (delq nil
-              (map (lambda (ref)
-                     (when (string-match? re ref)
-                       (match-string-no-properties 1 ref)))
-                   (split-string (buffer-substring-no-properties (point-min)
-                                                                 (point-max))
-                                 "\n"
-                                 t)))))))
+              (-map (lambda (ref)
+                      (when (string-match? re ref)
+                        (match-string-no-properties 1 ref)))
+                    (split-string (buffer-substring-no-properties (point-min)
+                                                                  (point-max))
+                                  "\n"
+                                  t)))))))
 
 ;;; simple pcomplete macro
 
@@ -103,33 +103,30 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             (or (string? (first def))
                                 (and
                                  (list? (first def))
-                                 (all? #'string? (first def))))))
+                                 (-all? #'string? (first def))))))
                          (positional-defs
-                          (filter positional-def? defs))
+                          (-filter positional-def? defs))
                          (other-defs
-                          (filter (comp #'not positional-def?) defs))
+                          (--filter (not (funcall positional-def? it)) defs))
                          (names
-                          (map #'(lambda (x) (if (list? x) (first x) (list x)))
-                               positional-defs))
+                          (-map (lambda (x) (if (list? x) (first x) (list x)))
+                                positional-defs))
                          (pcomplete-arg-var (gensym "pcomplete-arg")))
                     `(progn
                        ,@(when names
                            (list `(pcomplete-here ',names)))
 
                        (let ((,pcomplete-arg-var (pcomplete-arg ,level)))
-                         (cond ,@(map (lambda (def)
-                                        (funcall process-positional
-                                                 def
-                                                 pcomplete-arg-var
-                                                 level))
-                                      positional-defs)
+                         (cond ,@(-map (lambda (def)
+                                         (funcall process-positional
+                                                  def
+                                                  pcomplete-arg-var
+                                                  level))
+                                       positional-defs)
                                ,@(when (not (null? other-defs))
                                    (list `(t
-                                           ,@(map (lambda (def)
-                                                    (funcall process
-                                                             def
-                                                             level))
-                                                  other-defs)))))))))))
+                                           ,@(--map (funcall process it level)
+                                                    other-defs)))))))))))
              (process-opts
               (lambda (definition)
                 (let* ((info (rest definition))
@@ -160,47 +157,45 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             ;; todo: use -1 here instead of last?
                             `((string= (pcomplete-arg 'last -1) ,name)
                               ,compl)))))
-                  (assert (all? (lambda (entry)
-                                  (and (list? entry)
-                                       (not (null? entry))
-                                       (memq (first entry) '(flags args))))
-                                info)
+                  (assert (-all? (lambda (entry)
+                                   (and (list? entry)
+                                        (not (null? entry))
+                                        (memq (first entry) '(flags args))))
+                                 info)
                           nil
                           "<opts> clause must contain either (flags ...) or (args ...) entries only: %S"
                           info)
-                  (assert (all? (comp (partial #'string-match-pure?
-                                               "^--?[^-].*")
-                                      get-flag-name)
-                                flags)
+                  (assert (-all? (comp (partial #'string-match-pure?
+                                                "^--?[^-].*")
+                                       get-flag-name)
+                                 flags)
                           nil
                           "All flags names must start with dash or two dashes: %S\nFailed flags: %S"
                           flags
-                          (filter (comp #'not
-                                        (partial #'string-match-pure?
-                                                 "^--?[^-].*")
-                                        get-flag-name)
-                                  flags))
-                  (let ((short (filter short-flag?
-                                       (map get-flag-name flags)))
-                        (short-complex (filter (lambda (flag)
-                                                 (and (funcall short-flag?
+                          (--filter (not (string-match-pure? "^--?[^-].*"
+                                                             (get-flag-name it)))
+                                    flags))
+                  (let ((short (-filter short-flag?
+                                        (-map get-flag-name flags)))
+                        (short-complex (-filter (lambda (flag)
+                                                  (and (funcall short-flag?
+                                                                (funcall get-flag-name
+                                                                         flag))
+                                                       (funcall complex-flag? flag)))
+                                                flags))
+                        (long (-mapcat (lambda (flag)
+                                         (save-match-data
+                                           (if (string-match? "=$" flag)
+                                             (list flag (replace-match "" nil nil flag))
+                                             (list flag))))
+                                       (-filter long-flag?
+                                                (-map get-flag-name flags))))
+                        (long-complex (-filter (lambda (flag)
+                                                 (and (funcall long-flag?
                                                                (funcall get-flag-name
                                                                         flag))
                                                       (funcall complex-flag? flag)))
-                                               flags))
-                        (long (concatMap (lambda (flag)
-                                           (save-match-data
-                                             (if (string-match? "=$" flag)
-                                               (list flag (replace-match "" nil nil flag))
-                                               (list flag))))
-                                         (filter long-flag?
-                                                 (map get-flag-name flags))))
-                        (long-complex (filter (lambda (flag)
-                                                (and (funcall long-flag?
-                                                              (funcall get-flag-name
-                                                                       flag))
-                                                     (funcall complex-flag? flag)))
-                                              flags)))
+                                               flags)))
                     (when (or (not (null? short))
                               (not (null? long))
                               (not (null? args)))
@@ -229,9 +224,9 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                  (list `(t
                                          (cond
                                            ,@(when (not (null? short-complex))
-                                               (map expand-complex short-complex))
+                                               (-map expand-complex short-complex))
                                            ,@(when (not (null? long-complex))
-                                               (map expand-complex long-complex))
+                                               (-map expand-complex long-complex))
                                            (t
                                             ,(cadr args)))))))))))))
              (process-positional
@@ -239,7 +234,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                 (let ((name (first definition)))
                   (assert (or (string? name)
                               (and (list? name)
-                                   (all? #'string? name))))
+                                   (-all? #'string? name))))
                   `(,(cond
                        ((string? name)
                         `(string= ,pcomplete-arg-var ,name))
@@ -1339,12 +1334,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                         "--reorder-goals"
                         "--shadow-installed-packages"))
          (program-options-flags
-          (concatMap (lambda (p)
-                       `((,(concat "--" p)
-                          (pcomplete-here (pcmpl-entries-ignoring-common)))
-                         ,(concat "--" p "-option")
-                         ,(concat "--" p "-options")))
-                     programs))
+          (-mapcat (lambda (p)
+                     `((,(concat "--" p)
+                        (pcomplete-here (pcmpl-entries-ignoring-common)))
+                       ,(concat "--" p "-option")
+                       ,(concat "--" p "-options")))
+                   programs))
          (run-flags `(,@help-verbosity-flags
                       ,@builddir-flags
                       "-j"
@@ -2040,6 +2035,23 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     ("-type" (pcomplete-here '("f" "d")))
     "-print"
     "-print0")
+   (args
+    (pcomplete-here* (pcomplete-dirs)))))
+
+(defpcmpl pcomplete/du
+  (opts
+   (flags
+    ("-d" (pcomplete-here '("1" "2" "3")))
+    ("--max-depth" (pcomplete-here '("1" "2" "3")))
+    "-h"
+    "--human-readable"
+    "--inodes"
+    "--help"
+    "-a"
+    "--all"
+    "-L"
+    "--dereference"
+    )
    (args
     (pcomplete-here* (pcomplete-dirs)))))
 

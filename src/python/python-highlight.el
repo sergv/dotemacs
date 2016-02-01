@@ -455,27 +455,27 @@ pretty symbol. Intended for use in `font-lock-keywords' and
                               nil)))))
 
           ;;make pretty lambdas and other pretty symbols
-          (map (lambda (entry)
-                 (let ((re (car entry))
-                       (char (cadr entry)))
-                   `(,re
-                     (0 (unless (python-highlight-disable-pretty-symbols?
-                                 (match-beginning 0))
-                          (compose-region (match-beginning 0)
-                                          (match-end 0)
-                                          ,char)
-                          nil)))))
-               '(("\\_<lambda\\_>"         ?λ)
-                 ("\\_<for\\_>"            ?∀)
-                 ("\\_<int\\_>"            ?ℤ)
-                 ("\\_<float\\_>"          ?ℝ)
-                 ("\\_<complex\\_>"        ?ℂ)
-                 ("[ \t]*\\*\\*[ \t]*2\\>" ?²)
-                 ("\\_<and\\_>"            ?∧)
-                 ("\\_<or\\_>"             ?∨)
-                 ("<="                     ?≤)
-                 (">="                     ?≥)
-                 ("\\_<sum\\_>"            ?∑)))
+          (-map (lambda (entry)
+                  (let ((re (car entry))
+                        (char (cadr entry)))
+                    `(,re
+                      (0 (unless (python-highlight-disable-pretty-symbols?
+                                  (match-beginning 0))
+                           (compose-region (match-beginning 0)
+                                           (match-end 0)
+                                           ,char)
+                           nil)))))
+                '(("\\_<lambda\\_>"         ?λ)
+                  ("\\_<for\\_>"            ?∀)
+                  ("\\_<int\\_>"            ?ℤ)
+                  ("\\_<float\\_>"          ?ℝ)
+                  ("\\_<complex\\_>"        ?ℂ)
+                  ("[ \t]*\\*\\*[ \t]*2\\>" ?²)
+                  ("\\_<and\\_>"            ?∧)
+                  ("\\_<or\\_>"             ?∨)
+                  ("<="                     ?≤)
+                  (">="                     ?≥)
+                  ("\\_<sum\\_>"            ?∑)))
 
           ;; ensure that pretty symbols go away as soon as we type something after any of them
           (list

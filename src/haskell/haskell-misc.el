@@ -271,8 +271,8 @@ and indent them as singe line."
       inferior-haskell-find-project-root nil)
 
 (defconst +haskell-compile-error-or-warning-regexp+
-  (join-lines (map (lambda (x) (concat "\\(?:" (car x) "\\)"))
-                   haskell-compilation-error-regexp-alist)
+  (join-lines (--map (concat "\\(?:" (car it) "\\)")
+                     haskell-compilation-error-regexp-alist)
               "\\|")
   "Regexp matching both errors and warnings.")
 
