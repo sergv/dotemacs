@@ -181,17 +181,17 @@ then Bar would be the result."
          (language-snippet (format "%s ${1:$\$(yas-choose-value '%S)} #-}$0"
                                    haskell-abbrev+/language-pragma-prefix
                                    haskell-extensions))
-         (ghc-flags (map (lambda (x)
-                           (cond
-                             ((string? x)
-                              x)
-                             ((and (list? x)
-                                   (not (null? x)))
-                              (first x))
-                             (t
-                              (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
-                                     x))))
-                         pcomplete-ghc-flags))
+         (ghc-flags (-map (lambda (x)
+                            (cond
+                              ((string? x)
+                               x)
+                              ((and (list? x)
+                                    (not (null? x)))
+                               (first x))
+                              (t
+                               (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
+                                      x))))
+                          pcomplete-ghc-flags))
          (options-snippet (format "{-# OPTIONS_GHC ${1:$\$(yas-choose-value '%S)} #-}$0"
                                   ghc-flags))
          (default-options-snippet (format "{-# OPTIONS_GHC -Wall -fwarn-monomorphism-restriction ${1:$\$(yas-choose-value '%S)} #-}$0"

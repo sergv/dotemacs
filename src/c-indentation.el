@@ -103,8 +103,8 @@
 
 (defparameter c-indentation-indent-styles
   (alist->hash-table
-   (filter (comp #'not #'null?)
-           c-indentation-indent-styles-alist)))
+   (--filter (not (null? it))
+             c-indentation-indent-styles-alist)))
 
 (defparameter c-indentation-indent-style (caar c-indentation-indent-styles-alist)
   "Indent style to use.")
@@ -117,8 +117,7 @@
   (when change-indent-style
     (setf c-indentation-indent-style
           (completing-read "Choose style: "
-                           (map #'car
-                                (hash-table->alist c-indentation-indent-styles))
+                           (hash-table-keys c-indentation-indent-styles)
                            nil
                            t ;; require match
                            nil

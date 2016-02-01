@@ -104,12 +104,10 @@ pnm utils suite.")
                                   render-formula-conversion-errors-buf))
            (packages
             (append +render-formula-standard-packages+
-                    (foldl #'append
-                           '()
-                           (map #'cdr
-                                (filter (lambda (cond-spec)
-                                          (funcall (car cond-spec) str))
-                                        +render-formula-conditional-packages+))))))
+                    (-mapcat #'cdr
+                             (-filter (lambda (cond-spec)
+                                        (funcall (car cond-spec) str))
+                                      +render-formula-conditional-packages+)))))
 
       (dolist (buf (cons conversion-error-buf latex-bufs))
         (with-current-buffer buf
@@ -171,9 +169,9 @@ pnm utils suite.")
       (if (if +render-formula-use-dvipng+
             (= 0
                (call-process "dvipng"
-                             nil ;; infile
+                             nil                  ;; infile
                              conversion-error-buf ;; buffer
-                             nil ;; display
+                             nil                  ;; display
                              "-T"
                              "tight"
                              "-D"
@@ -183,9 +181,9 @@ pnm utils suite.")
                              img-file))
             (and (= 0
                     (call-process "dvi2ps"
-                                  nil ;; infile
+                                  nil                  ;; infile
                                   conversion-error-buf ;; buffer
-                                  nil ;; display
+                                  nil                  ;; display
                                   "-R"
                                   (number->string dpi)
                                   "-c"
@@ -193,9 +191,9 @@ pnm utils suite.")
                                   dvi-file))
                  (= 0
                     (call-process +render-formula-ps-to-png-exec+
-                                  nil ;; infile
+                                  nil                  ;; infile
                                   conversion-error-buf ;; buffer
-                                  nil ;; display
+                                  nil                  ;; display
                                   ;; make all background transparent
                                   ;; "--transparent" (apply 'format "rgb:%02x/%02x/%02x" bg-color)
                                   "--dpi"

@@ -22,21 +22,21 @@ of `compilation-mode'."
                 (,(cdr group) ,face nil lax-match))
               `((,group ,face nil lax-match)))))
          (fontification-regexps
-          (map (lambda (entry)
-                 (destructuring-bind (regexp file line column type) entry
-                   `(,regexp
-                     (,file
-                      ,(cond
-                         ((or (equal? type nil)
-                              (equal? type 2))
-                          'compilation-error-face)
-                         ((equal? type 1)
-                          'compilation-warning-face)
-                         ((equal? type 0)
-                          'compilation-info-face)))
-                     ,@(funcall maybe-pair-group line 'compilation-line-face nil)
-                     ,@(funcall maybe-pair-group column 'compilation-column-face t))))
-               regexp-alist)))
+          (-map (lambda (entry)
+                  (destructuring-bind (regexp file line column type) entry
+                    `(,regexp
+                      (,file
+                       ,(cond
+                          ((or (equal? type nil)
+                               (equal? type 2))
+                           'compilation-error-face)
+                          ((equal? type 1)
+                           'compilation-warning-face)
+                          ((equal? type 0)
+                           'compilation-info-face)))
+                      ,@(funcall maybe-pair-group line 'compilation-line-face nil)
+                      ,@(funcall maybe-pair-group column 'compilation-column-face t))))
+                regexp-alist)))
     (setq-local *compilation-jump-error-regexp*
                 (caar regexp-alist))
     (set (make-local-variable 'compilation-error-regexp-alist)

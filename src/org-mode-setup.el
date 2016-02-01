@@ -33,9 +33,9 @@
       org-agenda-skip-deadline-if-done t
       org-agenda-skip-scheduled-if-done t
       org-agenda-start-on-weekday nil
-      org-agenda-files (filter #'file-exists?
-                               (list (concat +emacs-config-path+ "/todo.org")
-                                     "/home/sergey/projects/todo.org"))
+      org-agenda-files (-filter #'file-exists?
+                                (list (concat +emacs-config-path+ "/todo.org")
+                                      "/home/sergey/projects/todo.org"))
       ;; notes are stored in descending date order - most recent always at top
       org-reverse-note-order t
       org-enforce-todo-dependencies t
@@ -364,9 +364,8 @@ into images."
        (org-drill-hide-subheadings-if
         ;; return nil if subheading is to be revealed
         (lambda ()
-          (not (any? (lambda (tag)
-                       (member tag *org-drill-hint-tags*))
-                     (org-get-tags-at))))))
+          (not (--any? (member it *org-drill-hint-tags*)
+                       (org-get-tags-at))))))
      (ignore-errors
        (org-display-inline-images t))
      (org-cycle-hide-drawers 'all)

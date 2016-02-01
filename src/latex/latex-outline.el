@@ -115,10 +115,10 @@ List will be in order of appearance of environments in region."
                   (dotimes (i (cdr v))
                     (push (cons env-name (car v)) result))))
               table)
-     (map #'car
-          (sort result
-                (lambda (a b)
-                  (< (cdr a) (cdr b))))))))
+     (-map #'car
+           (sort result
+                 (lambda (a b)
+                   (< (cdr a) (cdr b))))))))
 
 
 (defun latex-type-of-section-at-point ()
