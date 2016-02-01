@@ -166,6 +166,7 @@
   (def-keys-for-map magit-popup-mode-map
     ("<escape>" magit-popup-quit)
     ("q"        magit-popup-quit)))
+
 (defun magit-refs-mode-setup ()
   (magit-bind-common-vimless-mode-keymap magit-refs-mode-map))
 
@@ -190,10 +191,14 @@
   "Mode for editing commit message."
   (init-common :use-yasnippet nil :use-comment nil :use-fci t)
 
-  (def-keys-for-map git-commit-mode-map
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap
+                     git-commit-mode-map)
     ("C-c C-q" magit-log-edit-cancel-log-message)
-    ("<up>"    log-edit-previous-comment)
-    ("<down>"  log-edit-next-comment)
+    ("<up>"    git-commit-prev-message ;; log-edit-previous-comment
+     )
+    ("<down>"  git-commit-next-message ;; log-edit-next-comment
+     )
     ("M-p"     nil)))
 
 (defun git-rebase-mode-setup ()
