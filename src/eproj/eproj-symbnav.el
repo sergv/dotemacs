@@ -130,7 +130,12 @@ as accepted by `bounds-of-thing-at-point'.")
                        (read-regexp "enter regexp to search for")
                        (eproj-symbnav/identifier-at-point nil)))
          (orig-major-mode (eproj-symbnav/resolve-synonym-modes major-mode))
-         (orig-file-name (expand-file-name buffer-file-name))
+         (orig-file-name (cond
+                           (buffer-file-name
+                            (expand-file-name buffer-file-name))
+                           ((and (boundp 'magit-buffer-file-name)
+                                 magit-buffer-file-name)
+                            (expand-file-name magit-buffer-file-name))))
          (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
                                                     :position (point-marker)
                                                     :symbol nil))
