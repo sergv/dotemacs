@@ -256,7 +256,6 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("C-/"   ghc-complete)
     ("C-SPC" ghc-complete))
 
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
