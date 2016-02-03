@@ -103,11 +103,11 @@
 
 (defparameter c-indentation-indent-styles
   (alist->hash-table
-   (--filter (not (null? it))
-             c-indentation-indent-styles-alist)))
+   (remq nil
+         c-indentation-indent-styles-alist)))
 
 (defparameter c-indentation-indent-style (caar c-indentation-indent-styles-alist)
-  "Indent style to use.")
+  "Default indent style to use.")
 
 (defparameter c-indentation-style-history nil)
 
