@@ -43,6 +43,9 @@
 (defalias 'pcomplete/la 'pcomplete/ls)
 (defalias 'pcomplete/ll 'pcomplete/ls)
 
+(unless (getenv "SHELL")
+  (setenv "SHELL" shell-file-name))
+
 ;; Local Variables:
 ;; End:
 

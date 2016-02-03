@@ -124,6 +124,8 @@
        ("<down>"   widget-forward)
        ("<up>"     widget-backward))))
 
+(def-keys-for-map completion-list-mode-map
+  ("<escape>" quit-window))
 
 (def-keys-for-map occur-mode-map
   ("<up>"   custom-occur-prev)
