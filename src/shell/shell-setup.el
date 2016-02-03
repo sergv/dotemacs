@@ -6,7 +6,6 @@
 ;; Created: long ago
 ;; Description:
 
-
 ;; set up shell scripting files and shell interaction mode
 
 (require 'common)
@@ -17,6 +16,13 @@
 (autoload 'shell-command-on-region+ "shell-command+" nil t)
 (fset 'shell-command-on-region 'shell-command-on-region+)
 
+;; Configure `shell-dynamic-complete-functions' because default ordering
+;; there is not optimal.
+(setf shell-dynamic-complete-functions
+      `(shell-environment-variable-completion
+        shell-command-completion
+        pcomplete-completions-at-point
+        comint-filename-completion))
 
 (defun shell-run-file ()
   "Run buffer's script file."
@@ -47,6 +53,7 @@
   (smartparens-mode +1)
   (hl-line-mode +1)
   (ansi-color-for-comint-mode-on)
+  (setq-local comint-scroll-to-bottom-on-input t)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output
@@ -56,8 +63,7 @@
                      vim:insert-mode-local-keymap
                      shell-mode-map)
     ("C-SPC"    comint-clear-buffer-above-prompt)
-    ("<tab>"    pcomplete)
-    ("C-/"      pcomplete)
+    ("<tab>"    completion-at-point)
 
     ("M-p"      browse-comint-input-history)
 
@@ -76,16 +82,9 @@
     ("C-<left>"  vim:sp-backward-slurp-sexp)
     ("C-<right>" vim:sp-forward-slurp-sexp)
     ("M-<left>"  sp-absorb-sexp)
-    ("M-<right>" sp-emit-sexp))
+    ("M-<right>" sp-emit-sexp)))
 
-  (setf comint-scroll-to-bottom-on-input t))
 
-(cond ((and (platform-os-type? 'windows)
-            (platform-use? 'work)
-            (file-exists? "C:/GnuWin32/bin/bash.exe"))
-       (setf shell-file-name "C:/GnuWin32/bin/bash.exe"))
-      ((null? (getenv "SHELL"))
-       (setenv "SHELL" shell-file-name)))
 
 (provide 'shell-setup)
 
