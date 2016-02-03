@@ -266,6 +266,7 @@ or not.")
 (load-library "xilinx-setup")
 (load-library "diff-mode-setup")
 (load-library "fci-setup")
+(load-library "p4-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes

@@ -134,3 +134,6 @@
 	path = third-party/magit
 	url = https://github.com/magit/magit.git
 	ignore = untracked
+[submodule "third-party/p4.el"]
+	path = third-party/p4.el
+	url = https://github.com/gareth-rees/p4.el.git
