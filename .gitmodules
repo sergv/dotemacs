@@ -19,7 +19,7 @@
 [submodule "third-party/dash.el"]
         path = third-party/dash.el
         url = https://github.com/magnars/dash.el.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/graphviz-dot-mode"]
         path = third-party/graphviz-dot-mode
         url = https://github.com/ppareit/graphviz-dot-mode.git
@@ -38,7 +38,7 @@
 [submodule "third-party/paredit"]
         path = third-party/paredit
         url = https://github.com/sergv/paredit.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/rainbow-delimiters"]
         path = third-party/rainbow-delimiters
         url = https://github.com/jlr/rainbow-delimiters.git
@@ -66,7 +66,7 @@
 [submodule "standalone/auctex-dev"]
         path = standalone/auctex-dev
         url = https://github.com/jwiegley/auctex.git
-	ignore = all
+        ignore = all
 [submodule "standalone/tuareg"]
         path = standalone/tuareg
         url = https://github.com/emacsmirror/tuareg.git
@@ -76,30 +76,30 @@
 [submodule "third-party/structured-haskell-mode"]
         path = third-party/structured-haskell-mode
         url = https://github.com/sergv/structured-haskell-mode.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/yafolding.el"]
         path = third-party/yafolding.el
         url = https://github.com/zenozeng/yafolding.el.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/mmm-mode"]
         path = third-party/mmm-mode
         url = https://github.com/purcell/mmm-mode.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/happy-mode"]
         path = third-party/happy-mode
         url = https://github.com/sergv/happy-mode.git
 [submodule "third-party/emacs_bat"]
         path = third-party/emacs_bat
         url = https://github.com/timepp/emacs_bat.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/ghc-mod"]
         path = third-party/ghc-mod
         url = https://github.com/sergv/ghc-mod.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/glsl-mode"]
         path = third-party/glsl-mode
         url = https://github.com/jimhourihan/glsl-mode.git
-	ignore = untracked
+        ignore = untracked
 [submodule "third-party/js2-mode"]
         path = third-party/js2-mode
         url = https://github.com/mooz/js2-mode.git
@@ -107,33 +107,36 @@
         path = third-party/web-mode
         url = https://github.com/fxbois/web-mode.git
 [submodule "third-party/idris-mode"]
-	path = third-party/idris-mode
-	url = https://github.com/sergv/idris-mode.git
+        path = third-party/idris-mode
+        url = https://github.com/sergv/idris-mode.git
 [submodule "third-party/prop-menu-el"]
-	path = third-party/prop-menu-el
-	url = https://github.com/david-christiansen/prop-menu-el.git
-	ignore = untracked
+        path = third-party/prop-menu-el
+        url = https://github.com/david-christiansen/prop-menu-el.git
+        ignore = untracked
 [submodule "third-party/fill-column-indicator"]
-	path = third-party/fill-column-indicator
-	url = https://github.com/alpaker/Fill-Column-Indicator.git
-	ignore = untracked
+        path = third-party/fill-column-indicator
+        url = https://github.com/alpaker/Fill-Column-Indicator.git
+        ignore = untracked
 [submodule "third-party/org-mode"]
-	path = third-party/org-mode
-	url = http://repo.or.cz/org-mode.git
+        path = third-party/org-mode
+        url = http://repo.or.cz/org-mode.git
 [submodule "third-party/org-reveal"]
-	path = third-party/org-reveal
-	url = https://github.com/yjwen/org-reveal.git
+        path = third-party/org-reveal
+        url = https://github.com/yjwen/org-reveal.git
 [submodule "third-party/htmlize"]
-	path = third-party/htmlize
-	url = https://github.com/emacsmirror/htmlize.git
+        path = third-party/htmlize
+        url = https://github.com/emacsmirror/htmlize.git
 [submodule "third-party/clojure-mode"]
-	path = third-party/clojure-mode
-	url = https://github.com/clojure-emacs/clojure-mode.git
-	ignore = untracked
+        path = third-party/clojure-mode
+        url = https://github.com/clojure-emacs/clojure-mode.git
+        ignore = untracked
 [submodule "third-party/magit"]
-	path = third-party/magit
-	url = https://github.com/magit/magit.git
-	ignore = untracked
+        path = third-party/magit
+        url = https://github.com/magit/magit.git
+        ignore = untracked
 [submodule "third-party/p4.el"]
-	path = third-party/p4.el
-	url = https://github.com/gareth-rees/p4.el.git
+        path = third-party/p4.el
+        url = https://github.com/gareth-rees/p4.el.git
+[submodule "third-party/yaml-mode"]
+        path = third-party/yaml-mode
+        url = https://github.com/yoshiki/yaml-mode.git
