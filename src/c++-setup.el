@@ -11,8 +11,7 @@
 (require 'c++-abbrev+)
 (require 'select-mode)
 (require 'eproj-setup)
-(require 'c-indentation)
-
+(require 'clang-format)
 
 (defparameter *c++-related-file-cache*
   (make-hash-table :test 'equal))
@@ -78,76 +77,44 @@
                              :filep (lambda (p)
                                       (string= alternative-name
                                                (file-name-nondirectory p))))
-                (if (= 1 (length it))
-                  (progn
-                    (puthash filename (car it) *c++-related-file-cache*)
-                    (puthash (car it) filename *c++-related-file-cache*)
-                    (find-file (car it)))
-                  (let ((choices it))
-                    (select-start-selection
-                     choices
-                     :buffer-name "select file"
-                     :on-selection
-                     (lambda (idx)
-                       (let ((alt-file (elt choices idx)))
-                         (select-exit)
-                         (puthash filename alt-file *c++-related-file-cache*)
-                         (puthash alt-file filename *c++-related-file-cache*)
-                         (find-file alt-file)))
-                     :predisplay-function
-                     (lambda (x) (concat x "\n"))
-                     :preamble-function
-                     (lambda () (concat "Select desired alternative file\n"))
-                     :separator-function
-                     (apply-partially #'select-make-bold-separator
-                                      "--------\n"))))
+                (pcase it
+                  (`(,related)
+                   (puthash filename related *c++-related-file-cache*)
+                   (puthash related filename *c++-related-file-cache*)
+                   (find-file related))
+                  (choices
+                   (select-start-selection
+                    choices
+                    :buffer-name "select file"
+                    :on-selection
+                    (lambda (idx)
+                      (let ((alt-file (elt choices idx)))
+                        (select-exit)
+                        (puthash filename alt-file *c++-related-file-cache*)
+                        (puthash alt-file filename *c++-related-file-cache*)
+                        (find-file alt-file)))
+                    :predisplay-function
+                    (lambda (x) (concat x "\n"))
+                    :preamble-function
+                    (lambda () (concat "Select desired alternative file\n"))
+                    :separator-function
+                    (apply-partially #'select-make-bold-separator
+                                     "--------\n"))))
                 (error "No %s file found for %s"
                        (--map (concat "*." it) alt-exts)
                        filename)))))))))
+
+(defun c++-indentation-indent-buffer ()
+  (clang-format-buffer))
 
 (defun c++-setup ()
   (cc-setup :define-special-keys t)
   (cc-setup/set-up-c-basic-offset :use-work-code-style t)
   (setf hs-forward-sexp-func #'c-hideshow-forward-sexp)
-  (when (platform-use? 'work)
-    (setq-local c-indentation-indent-style "sophia"))
-  (if-buffer-has-file
-    (setq-local compile-command
-                (let* ((fname  (file-name-nondirectory buffer-file-name))
-                       (target (file-name-sans-extension fname)))
-                  (join-lines (list "g++"
-                                    ;; "-std=c++0x"
-                                    "-W"
-                                    "-Wall"
-                                    "-Wextra"
-                                    "-Weffc++"
-                                    "-Wold-style-cast"
-                                    "-Woverloaded-virtual"
-                                    "-Wconversion"
-                                    "-Wuninitialized"
-                                    "-Wshadow"
-                                    "-pedantic"
-                                    "-O2"
-                                    "-I."
-                                    "-o"
-                                    target
-                                    fname)
-                              " "))))
-
-  (if-has-makefile-command
-   (set (make-local-variable 'compile-command)
-        (concat "make " (file-name-sans-extension
-                         (file-name-nondirectory buffer-file-name)))))
-
-  (when (platform-use? 'work)
-    (def-keys-for-map vim:normal-mode-local-keymap
-      ("SPC SPC" c++-find-related-file)))
-
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC" c++-find-related-file))
   (c++-abbrev+-setup)
-  (setup-eproj-symbnav)
-  (setup-outline-headers :header-start "/"
-                         :header-symbol "*"
-                         :length-min 3))
+  (setup-eproj-symbnav))
 
 
 (provide 'c++-setup)
