@@ -8,6 +8,7 @@
 ;; Requirements:
 ;; Status:
 
+(autoload 'snippet-mode "yasnippet" nil t)
 (add-to-list 'auto-mode-alist '("\\.snip\\'" . snippet-mode))
 
 (autoload 'snippet-setup "snippet-setup")
