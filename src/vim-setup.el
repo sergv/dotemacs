@@ -381,7 +381,7 @@ Basically swap current point with previous one."
       (magit-status (file-name-nondirectory it)))
     (progn
       (message "Warning: current buffer has no associated file")
-      (magit-status default-directory))))
+      (magit-status))))
 
 (vim:emap "magit" 'vim:magit)
 (vim:emap "g" 'vim:magit)
