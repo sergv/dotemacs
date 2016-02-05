@@ -15,7 +15,7 @@
                :use-hl-line t)
   ;; Display every line as a single screen line.
   (setq-local truncate-lines t)
-  (haskell-setup-folding))
+  (haskell-setup-folding :enable-hs-minor-mode nil))
 
 (provide 'ghc-profiling-mode)
 
