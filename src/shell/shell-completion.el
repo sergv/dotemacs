@@ -12,8 +12,8 @@
 
 (defun pcmpl-git-commits ()
   "Return list of commits to complete against."
-  (append '("HEAD")
-          (pcmpl-git-get-refs "heads\\|tags")))
+  (cons "HEAD"
+        (pcmpl-git-get-refs "heads\\|tags")))
 
 (defun pcmpl-git-commits-and-files ()
   "Return list of commits to complete against."
@@ -265,12 +265,14 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
   "Like `pcomplete-entries' but ignores files mathing RE."
   (let ((pcomplete-file-ignore re)
         (pcomplete-dir-ignore
-         (regexp-opt *version-control-directories*)))
+         (eval-when-compile (regexp-opt *version-control-directories*))))
     (pcomplete-entries)))
 
 (defun pcmpl-entries-ignoring-common ()
-  (pcmpl-entries-ignoring (concat (regexp-opt *ignored-file-name-endings*)
-                                  "$")))
+  (pcmpl-entries-ignoring
+   (eval-when-compile
+     (concat (regexp-opt *ignored-file-name-endings*)
+             "\\'"))))
 
 ;;; Version control
 
@@ -928,26 +930,24 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;; Haskell
 
-(defun pcmpl-haskell-source-or-obj-files (&optional ignore-obj)
-  (pcmpl-entries-ignoring
-   (concat
-    (regexp-opt (if ignore-obj
-                  *ignored-file-name-endings*
-                  (remove-if (lambda (ext)
-                               (string-match-pure? (rx "."
-                                                       (or "o"
-                                                           "p_o"
-                                                           "p_hi"
-                                                           "prof_o"
-                                                           "hi"
-                                                           "so"
-                                                           "a"
-                                                           "lib"
-                                                           "dll")
-                                                       eol)
-                                                   ext))
-                             *ignored-file-name-endings*)))
-    "$")))
+(defun pcmpl-haskell-source-or-obj-files ()
+  (pcomplete-entries
+   (eval-when-compile
+     (concat
+      "\\."
+      (regexp-opt
+       (append
+        `("o"
+          "p_o"
+          "p_hi"
+          "hi"
+          "so"
+          "a"
+          ,@(when (platform-os-type? 'windows)
+              '("lib"
+                "dll")))
+        *haskell-extensions*))
+      "\\'"))))
 
 ;;;###autoload
 (defpcmpl pcomplete/runghc
@@ -1613,7 +1613,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-tf"
           "-y"
           "-c")
-   (args (pcomplete-here (pcomplete-entries ".*\\.hp\\'")))))
+   (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
 ;;; C, low-level stuff
 
