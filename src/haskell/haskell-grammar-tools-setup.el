@@ -30,11 +30,15 @@
   (setq-local indent-line-function
               (lambda ()
                 (indent-to standard-indent)))
+  (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
+                 #'haskell-shm-backtab-or-indent-relative-backward
+                 :enable-yasnippet t)
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<f9>"  haskell-compile))
+    ("<f9>" haskell-compile))
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
-  (haskell-abbrev+-setup))
+  (haskell-abbrev+-setup)
+  (haskell-setup-folding))
 
 (provide 'haskell-grammar-tools-setup)
 
