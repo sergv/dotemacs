@@ -24,8 +24,9 @@
  (yafolding-show-element)
  (haskell-mode))
 
-(defun haskell-setup-folding ()
-  (hs-minor-mode +1)
+(defun* haskell-setup-folding (&key (enable-hs-minor-mode t))
+  (when enable-hs-minor-mode
+    (hs-minor-mode +1))
   (yafolding-mode +1)
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table
