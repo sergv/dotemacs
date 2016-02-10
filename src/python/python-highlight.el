@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'solarized)
 
 (defface python-keyword-face
   '((t (:inherit font-lock-keyword-face)))
@@ -17,7 +18,7 @@
   "Face to highlight python builtin functions.")
 
 (defface python-warnings-and-errors-face
-  '((t (:foreground "#cb4b16")))
+  `((t (:foreground ,+solarized-orange+)))
   "Face to highlight warious python runtime warning and error objects.")
 
 (defface python-decorator-face
@@ -143,11 +144,6 @@
            "self")
           symbol-end)
      (0 'python-keyword-face))
-    ;; what was this?
-    ;; (,(rx symbol-start
-    ;;       (group (or "else:" "except:" "finally:" "try:" "lambda:"))
-    ;;       (regexp "[ \n\t(]"))
-    ;;  1 'python-keyword-face)
     (,(rx symbol-start
           (or "__debug__"
               "__import__"
@@ -401,106 +397,105 @@ pretty symbol. Intended for use in `font-lock-keywords' and
         (get-text-property (point) 'disable-pretty-symbols))))
 
 (defconst +python-pretty-symbols+
-  (append (list (list (rx (or (seq
-                               (group symbol-start
-                                      "is"
-                                      symbol-end)
-                               (+ whitespace)
-                               (? (group symbol-start
-                                         "not"
-                                         symbol-end)))
-                              (seq
-                               (group symbol-start
-                                      "not"
-                                      symbol-end
-                                      (+ whitespace))
-                               (? (group symbol-start
-                                         "in"
-                                         symbol-end)))
-                              (seq (group symbol-start
-                                          "in"
-                                          symbol-end))))
+  `((,(rx (or (seq
+               (group symbol-start
+                      "is"
+                      symbol-end)
+               (+ whitespace)
+               (? (group symbol-start
+                         "not"
+                         symbol-end)))
+              (seq
+               (group symbol-start
+                      "not"
+                      symbol-end
+                      (+ whitespace))
+               (? (group symbol-start
+                         "in"
+                         symbol-end)))
+              (seq (group symbol-start
+                          "in"
+                          symbol-end))))
 
-                      '(0 (unless (python-highlight-disable-pretty-symbols?
-                                   (match-beginning 0))
-                            (let ((match-1 (re-group-matched? 1))
-                                  (match-2 (re-group-matched? 2))
-                                  (match-3 (re-group-matched? 3))
-                                  (match-4 (re-group-matched? 4))
-                                  (match-5 (re-group-matched? 5)))
-                              (if match-1
-                                (if match-2
-                                  ;; 1 and 2
-                                  (compose-region (match-beginning 0)
-                                                  (match-end 0)
-                                                  ?≢)
-                                  ;; 1 and ~2
-                                  (compose-region (match-beginning 1)
-                                                  (match-end 1)
-                                                  ?≡))
-                                (if match-3
-                                  (if match-4
-                                    ;; 3 and 4
-                                    (compose-region (match-beginning 0)
-                                                    (match-end 0)
-                                                    ?∉)
-                                    ;; 3 and ~4
-                                    (compose-region (match-beginning 0)
-                                                    (match-end 0)
-                                                    ?¬))
-                                  ;; 5
-                                  (compose-region (match-beginning 0)
-                                                  (match-end 0)
-                                                  ?∈)))
-                              nil)))))
+     (0 (unless (python-highlight-disable-pretty-symbols?
+                 (match-beginning 0))
+          (let ((match-1 (re-group-matched? 1))
+                (match-2 (re-group-matched? 2))
+                (match-3 (re-group-matched? 3))
+                (match-4 (re-group-matched? 4))
+                (match-5 (re-group-matched? 5)))
+            (if match-1
+              (if match-2
+                ;; 1 and 2
+                (compose-region (match-beginning 0)
+                                (match-end 0)
+                                ?≢)
+                ;; 1 and ~2
+                (compose-region (match-beginning 1)
+                                (match-end 1)
+                                ?≡))
+              (if match-3
+                (if match-4
+                  ;; 3 and 4
+                  (compose-region (match-beginning 0)
+                                  (match-end 0)
+                                  ?∉)
+                  ;; 3 and ~4
+                  (compose-region (match-beginning 0)
+                                  (match-end 0)
+                                  ?¬))
+                ;; 5
+                (compose-region (match-beginning 0)
+                                (match-end 0)
+                                ?∈)))
+            nil))))
 
-          ;;make pretty lambdas and other pretty symbols
-          (-map (lambda (entry)
-                  (let ((re (car entry))
-                        (char (cadr entry)))
-                    `(,re
-                      (0 (unless (python-highlight-disable-pretty-symbols?
-                                  (match-beginning 0))
-                           (compose-region (match-beginning 0)
-                                           (match-end 0)
-                                           ,char)
-                           nil)))))
-                '(("\\_<lambda\\_>"         ?λ)
-                  ("\\_<for\\_>"            ?∀)
-                  ("\\_<int\\_>"            ?ℤ)
-                  ("\\_<float\\_>"          ?ℝ)
-                  ("\\_<complex\\_>"        ?ℂ)
-                  ("[ \t]*\\*\\*[ \t]*2\\>" ?²)
-                  ("\\_<and\\_>"            ?∧)
-                  ("\\_<or\\_>"             ?∨)
-                  ("<="                     ?≤)
-                  (">="                     ?≥)
-                  ("\\_<sum\\_>"            ?∑)))
-
-          ;; ensure that pretty symbols go away as soon as we type something after any of them
-          (list
-           (list (concat "\\(?:\\_<\\("
-                         (join-lines '("lambda"
-                                       "for"
-                                       ;; hack
-                                       "int"
-                                       "float"
-                                       "complex"
-                                       "and"
-                                       "or"
-                                       "not"
-                                       "[ \t]*\\*\\*[ \t]*2"
-                                       "is"
-                                       "sum")
-                                     "\\|")
-                         "\\)[a-zA-Z_0-9]\\)"
-                         "\\|"
-                         "\\(?:in[^t \t\n\r]\\)")
-                 '(0 (unless (python-highlight-disable-pretty-symbols?
+    ;; Make pretty lambdas and other pretty symbols.
+    ,@(-map (lambda (entry)
+              (let ((re (car entry))
+                    (char (cadr entry)))
+                `(,re
+                  (0 (unless (python-highlight-disable-pretty-symbols?
                               (match-beginning 0))
-                       (decompose-region (match-beginning 0)
-                                         (match-end 0))
+                       (compose-region (match-beginning 0)
+                                       (match-end 0)
+                                       ,char)
                        nil)))))
+            '(("\\_<lambda\\_>"         ?λ)
+              ("\\_<for\\_>"            ?∀)
+              ("\\_<int\\_>"            ?ℤ)
+              ("\\_<float\\_>"          ?ℝ)
+              ("\\_<complex\\_>"        ?ℂ)
+              ("[ \t]*\\*\\*[ \t]*2\\>" ?²)
+              ("\\_<and\\_>"            ?∧)
+              ("\\_<or\\_>"             ?∨)
+              ("<="                     ?≤)
+              (">="                     ?≥)
+              ("\\_<sum\\_>"            ?∑)))
+
+    ;; ensure that pretty symbols go away as soon as we type something after any of them
+    (,(concat "\\(?:\\_<\\("
+              (join-lines '("lambda"
+                            "for"
+                            ;; hack
+                            "int"
+                            "float"
+                            "complex"
+                            "and"
+                            "or"
+                            "not"
+                            "[ \t]*\\*\\*[ \t]*2"
+                            "is"
+                            "sum")
+                          "\\|")
+              "\\)[a-zA-Z_0-9]\\)"
+              "\\|"
+              "\\(?:in[^t \t\n\r]\\)")
+     (0 (unless (python-highlight-disable-pretty-symbols?
+                 (match-beginning 0))
+          (decompose-region (match-beginning 0)
+                            (match-end 0))
+          nil))))
   "Pretty symbols for various keywords, e.g. λ for lambda.")
 
 ;; small test suite
