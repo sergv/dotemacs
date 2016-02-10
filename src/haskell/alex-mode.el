@@ -72,11 +72,7 @@
 (define-derived-mode alex-mode prog-mode "Alex"
   "Major mode for editing Alex files."
   (set (make-local-variable 'font-lock-defaults)
-       '(alex-mode-font-lock-keywords
-         nil ;; perform syntactic fontification
-         nil ;; do not ignore case
-         nil ;; no special syntax provided
-         ))
+       '(alex-mode-font-lock-keywords))
 
   (setq-local paragraph-start (concat "^$\\|" page-delimiter))
   (setq-local paragraph-separate paragraph-start)
