@@ -11,6 +11,7 @@
 ;; for ghc flags to OPTIONS_GHC
 (require 'shell-completion)
 (require 'shm-ast)
+(require 'haskell-completions)
 
 (defun haskell-insert-followed-by-dollar? (pos)
   "Check whether text after POS is followed by $."
@@ -181,6 +182,8 @@ then Bar would be the result."
          (language-snippet (format "%s ${1:$\$(yas-choose-value '%S)} #-}$0"
                                    haskell-abbrev+/language-pragma-prefix
                                    haskell-extensions))
+         (pragma-snippet (format "{-# ${1:$\$(yas-choose-value '%S) #-}$0"
+                                 haskell-completions-pragma-names))
          (ghc-flags (-map (lambda (x)
                             (cond
                               ((string? x)
@@ -212,9 +215,17 @@ then Bar would be the result."
                     #'point-not-inside-string-or-comment?)
               (list "## *"
                     (list
-                     (lambda () (yas-expand-snippet "{-# $1 #-}$0")))
+                     (lambda () (yas-expand-snippet pragma-snippet)))
                     #'point-not-inside-string-or-comment?)
-              (list "\\(?:#lang\\(?:ext\\)?\\)"
+              (list "##?scc *"
+                    (list
+                     (lambda () (yas-expand-snippet "{-# SCC \"${1:cost center name}\" #-}$0")))
+                    #'point-not-inside-string-or-comment?)
+              (list "##?dump *"
+                    (list
+                     (lambda () (yas-expand-snippet "{-# OPTIONS_GHC -ddump-simpl -dsuppress-uniques -dsuppress-idinfo -dsuppress-module-prefixes -dsuppress-type-applications -dsuppress-coercions -dppr-cols200 #-}$0")))
+                    #'point-not-inside-string-or-comment?)
+              (list "\\(?:#lang\\)"
                     (list
                      (lambda () (yas-expand-snippet language-snippet)))
                     #'point-not-inside-string-or-comment?)
@@ -222,7 +233,7 @@ then Bar would be the result."
                     (list
                      (lambda () (yas-expand-snippet options-snippet)))
                     #'point-not-inside-string-or-comment?)
-              (list "#\\(?:opts?-def\\|dopts?\\)"
+              (list "#\\(?:opts?-def\\)"
                     (list
                      (lambda () (yas-expand-snippet default-options-snippet)))
                     #'point-not-inside-string-or-comment?))
