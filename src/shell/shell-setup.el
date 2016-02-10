@@ -16,14 +16,6 @@
 (autoload 'shell-command-on-region+ "shell-command+" nil t)
 (fset 'shell-command-on-region 'shell-command-on-region+)
 
-;; Configure `shell-dynamic-complete-functions' because default ordering
-;; there is not optimal.
-(setf shell-dynamic-complete-functions
-      `(shell-environment-variable-completion
-        shell-command-completion
-        pcomplete-completions-at-point
-        comint-filename-completion))
-
 (defun shell-run-file ()
   "Run buffer's script file."
   (interactive)
@@ -62,29 +54,27 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      shell-mode-map)
-    ("C-SPC"    comint-clear-buffer-above-prompt)
-    ("<tab>"    completion-at-point)
+    ("C-SPC"     comint-clear-buffer-above-prompt)
+    ("<tab>"     pcomplete)
 
-    ("M-p"      browse-comint-input-history)
+    ("M-p"       browse-comint-input-history)
 
-    ("C-w"      backward-delete-word)
-    ("C-S-w"    backward-delete-word*)
+    ("C-w"       backward-delete-word)
+    ("C-S-w"     backward-delete-word*)
 
-    ("C-t"      comint-previous-prompt)
-    ("C-h"      comint-next-prompt)
-    ("<up>"     comint-previous-input)
-    ("<down>"   comint-next-input)
-    ("C-<up>"   comint-previous-prompt)
-    ("C-<down>" comint-next-prompt)
+    ("C-t"       comint-previous-prompt)
+    ("C-h"       comint-next-prompt)
+    ("<up>"      comint-previous-input)
+    ("<down>"    comint-next-input)
+    ("C-<up>"    comint-previous-prompt)
+    ("C-<down>"  comint-next-prompt)
 
-    ("C-c C-k"  comint-kill-subjob)
+    ("C-c C-k"   comint-kill-subjob)
 
     ("C-<left>"  vim:sp-backward-slurp-sexp)
     ("C-<right>" vim:sp-forward-slurp-sexp)
     ("M-<left>"  sp-absorb-sexp)
     ("M-<right>" sp-emit-sexp)))
-
-
 
 (provide 'shell-setup)
 
