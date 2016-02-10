@@ -1384,9 +1384,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "--disable-executable-dynamic"
                             "--enable-executable-profiling"
                             "--disable-executable-profiling"
-                            ,@(when (cabal-install-version-at-least? 1 22 0 0)
-                                '("--enable-profiling"
-                                  "--disable-profiling"))
+                            "--enable-profiling"
+                            "--disable-profiling"
                             "-O"
                             "--enable-optimization"
                             "--enable-optimization=0"
