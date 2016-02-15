@@ -153,20 +153,7 @@ and indent them as singe line."
         haskell-doc-chop-off-fctname nil))
 
 
-(setf haskell-compile-command
-      (or (getenv "HASKELL_COMPILE_COMMAND")
-          (concat "ghc -W -Wall -fwarn-monomorphism-restriction "
-                  "-ferror-spans -fforce-recomp "
-                  (when (platform-os-type? 'linux)
-                    ;; needed for ghc 7.4 and gold linker
-                    "-rtsopts -pgml /usr/bin/gcc ")
-                  (format "-hidir %s " +haskell-tmp-path+)
-                  (format "-odir %s " +haskell-tmp-path+)
-                  (format "-tmpdir %s " +haskell-tmp-path+)
-                  ;; llvm
-                  ;; "-fllvm -optlc-O3 -optlo-O3 "
-                  "-c \"%s\""))
-      haskell-compile-cabal-build-command
+(setf haskell-compile-cabal-build-command
       (or (cadr-safe (assoc 'vanilla haskell-compile-cabal-build-command-presets))
           (error "failed to set up haskell-compile-cabal-build-command"))
       ;; "cd %s && cabal build --ghc-option=-ferror-spans && cabal test --show-details=always"
@@ -179,7 +166,7 @@ and indent them as singe line."
 
       ;; haskell-process
       haskell-interactive-prompt "λ> "
-      haskell-process-type 'cabal-repl
+      haskell-process-type 'auto
       ;; haskell-process-type 'stack-ghci
       haskell-process-log t
       ;; don't prompt on starting repl
@@ -202,26 +189,6 @@ and indent them as singe line."
       ;; unsure
       ;; haskell-interactive-mode-delete-superseded-errors nil
 
-      haskell-process-path-ghci
-      (if (platform-os-type? 'windows)
-        "ghc"
-        "ghci")
-      haskell-process-args-ghci
-      (let ((extensions '("-XLambdaCase" "-XTemplateHaskell" "-XOverloadedStrings"))
-            ;; (opts "-fobject-code")
-            (opts (append
-                   '("-fbyte-code" "-Wwarn" "-odir" "/tmp/ghc" "-hidir" "/tmp/ghc")
-                   (if (platform-os-type? 'windows)
-                     '("-i/tmp/dist/build")
-                     nil)))
-            (rts-opts '("+RTS" "-M1G")))
-        (append (if (platform-os-type? 'windows)
-                  "--interactive"
-                  nil)
-                extensions
-                opts
-                rts-opts))
-
       ghc-core-program-args
       '("-O2"
         "-dsuppress-uniques"
@@ -236,6 +203,34 @@ and indent them as singe line."
       shm-colon-enabled t
       shm-indent-use-chris-done-if-indent-style nil
       inferior-haskell-find-project-root nil)
+
+;; Ghci flags
+(let* ((extensions '("-XLambdaCase" "-XOverloadedStrings" "-XTemplateHaskell" "-XQuasiQuotes"))
+       (ghc-options (append
+                     '("--ghc-option=-ferror-spans"
+                       "--ghc-option=-Wwarn")
+                     (--map (concat "--ghc-option=" it) extensions))))
+  (setf haskell-process-path-ghci
+        (if (platform-os-type? 'windows)
+          "ghc"
+          "ghci")
+        haskell-process-args-ghci
+        (let ((opts (append
+                     '("-fbyte-code" "-Wwarn")
+                     (if (platform-os-type? 'windows)
+                       nil
+                       '("-i/tmp/dist/build"
+                         "-odir" "/tmp/ghc"
+                         "-hidir" "/tmp/ghc"))))
+              (rts-opts '("+RTS" "-M8G")))
+          (append (if (platform-os-type? 'windows)
+                    "--interactive"
+                    nil)
+                  extensions
+                  opts
+                  rts-opts))
+        haskell-process-args-cabal-repl ghc-options
+        haskell-process-args-stack-ghci ghc-options))
 
 (defconst +haskell-compile-error-or-warning-regexp+
   (join-lines (--map (concat "\\(?:" (car it) "\\)")
