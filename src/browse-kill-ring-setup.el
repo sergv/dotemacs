@@ -56,7 +56,7 @@
     ("o"        browse-kill-ring-occur)
     ;; mnemonic "filter"
     ("f"        browse-kill-ring-occur)
-    ("SPC"      browse-kill-ring-insert-and-quit)
+    ("SPC"      browse-kill-ring-insert-move-and-quit)
 
     ("/"        browse-kill-ring-search-forward)
     ("?"        browse-kill-ring-search-backward)
