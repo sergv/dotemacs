@@ -55,6 +55,8 @@
   ;; changed in prolog.el itself
   ;; (modify-syntax-entry ?_ "_" prolog-mode-syntax-table)
 
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
     ("C-n"      comint-previous-prompt)
@@ -66,7 +68,6 @@
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
-    ("C-SPC"    comint-clear-buffer-above-prompt)
 
     ("M-p"      browse-comint-input-history)
     ("<return>" comint-send-input)

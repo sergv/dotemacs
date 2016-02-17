@@ -778,6 +778,8 @@ This command assumes point is not in a string or comment."
   (setq-local comint-use-prompt-regexp nil)
   (setq-local comint-prompt-regexp "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
 
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))
 
@@ -786,8 +788,6 @@ This command assumes point is not in a string or comment."
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
-    ("C-SPC"    comint-clear-buffer-above-prompt)
-    ;; ("S-SPC"    comint-clear-buffer-above-prompt)
 
     ("M-p"      browse-comint-input-history)
 
@@ -797,7 +797,6 @@ This command assumes point is not in a string or comment."
     ("C-<down>" comint-next-prompt)
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)))
-
 
 (provide 'general-lisp-setup)
 

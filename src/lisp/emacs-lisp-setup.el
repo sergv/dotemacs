@@ -24,7 +24,6 @@
                'font-lock-keyword-face))
        '("aif"
          "awhen"
-         "begin"
          "if-let"
          "when-let"
          "def-keys-for-map"
@@ -45,7 +44,6 @@
 
 (defparameter *emacs-lisp-indent-specs*
   '((autoload nil)
-    (begin 0)
     (if 1)
     (loop 0)
     (cond 0)

@@ -476,6 +476,10 @@ Basically swap current point with previous one."
 (vim:defcmd vim:revert-buffer (nonrepeatable)
   (revert-buffer))
 
+
+(vim:defcmd vim:comint-clear-buffer-above-prompt (nonrepeatable)
+  (comint-clear-buffer-above-prompt))
+
 (provide 'vim-setup)
 
 ;; Local Variables:
