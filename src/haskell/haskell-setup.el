@@ -13,7 +13,9 @@
 (require 'align)
 (require 'compilation-setup)
 (require 'eproj)
+(require 'company-eproj)
 (require 'shell-setup)
+(require 'company-mode-setup)
 
 (require 'haskell-checkers)
 (require 'shm)
@@ -107,6 +109,8 @@
                :use-render-formula nil
                :use-hl-line nil
                :use-whitespace 'tabs-only)
+  (company-mode +1)
+  (setq-local company-backends '(company-eproj))
   (fontify-conflict-markers)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
   (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)
@@ -227,6 +231,7 @@
     ("C-h"             ghc-goto-next-error)
     ("M-t"             haskell-compilation-prev-error-other-window)
     ("M-h"             haskell-compilation-next-error-other-window)
+    ("C-SPC"           company-complete)
 
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
@@ -238,7 +243,6 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
     ("- ?" ghc-display-errors)
-    ("- /" ghc-complete)
     ("- t" ghc-show-type)
     ("- i" ghc-show-info)
     ("- e" ghc-expand-th)
@@ -255,10 +259,6 @@
     ("'"   vim:shm/goto-parent)
     ("g t" haskell-node/move-to-topmost-start)
     ("g h" haskell-node/move-to-topmost-end))
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("C-SPC" ghc-complete))
 
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
 

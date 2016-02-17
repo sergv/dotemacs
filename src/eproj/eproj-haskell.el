@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'eproj)
+(require 'eproj-ctags)
 
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
@@ -104,6 +105,20 @@ runtime but rather will be silently relied on)."
             (incf n)))
         tags-table))))
 
+(defun eproj/haskell-tag-kind (tag)
+  (pcase (cdr-safe (assoc 'type (eproj-tag/properties tag)))
+    ("m" "Module")
+    ("f" "Function")
+    ("c" "Class")
+    ("t" "Type")
+    ("C" "Constructor")
+    ("o" "Operator")
+    ("p" "Pattern")
+    ("F" "Type family")
+    (_
+     (error "Invalid haskell tag property %s"
+            (eproj-tag/properties tag)))))
+
 (defun eproj/haskell-tag->string (proj tag)
   (assert (eproj-tag-p tag))
   (let* ((type (cdr-safe (assoc 'type (eproj-tag/properties tag))))
@@ -113,46 +128,38 @@ runtime but rather will be silently relied on)."
             (_   nil))))
     (concat (eproj-tag/symbol tag)
             " ["
-            (pcase type
-              ("m" "Module")
-              ("f" "Function")
-              ("c" "Class")
-              ("t" "Type")
-              ("C" "Constructor")
-              ("o" "Operator")
-              ("p" "Pattern")
-              ("F" "Type family")
-              (_
-               (error "Invalid haskell tag property %s"
-                      (eproj-tag/properties tag))))
+            (eproj/haskell-tag-kind tag)
             "]\n"
             (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
                                            (eproj-project/root proj))
             ":"
             (number->string (eproj-tag/line tag))
             "\n"
-            (if is-module?
-              ""
-              (concat
-               (eproj/haskell-extract-tag-signature proj tag)
-               "\n")))))
+            (awhen (eproj/haskell-extract-tag-signature proj tag)
+              (concat it "\n")))))
 
 (defun eproj/haskell-extract-tag-signature (proj tag)
   "Fetch line where TAG is defined."
   (assert (eproj-tag-p tag) nil "Eproj tag is required.")
-  (for-buffer-with-file
-      (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
-                                     (eproj-project/root proj))
-    (save-excursion
-      (goto-line1 (eproj-tag/line tag))
-      (eproj/haskel-extract-block)
-      ;; alternative implementation with regexps
-      ;; (save-match-data
-      ;;   (goto-line1 (eproj-tag/line tag))
-      ;;   (if (looking-at "^\\([^ \t\n\r\f\v].* ::\\(?: .*\n\\|\n\\)\\(?:^[ \t]+.+\n\\)*\\)")
-      ;;     (match-string-no-properties 1)
-      ;;     (current-line)))
-      )))
+  (let* ((type (cdr-safe (assoc 'type (eproj-tag/properties tag))))
+         (is-module?
+          (pcase type
+            ("m" t)
+            (_   nil))))
+    (unless is-module?
+      (for-buffer-with-file
+          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
+                                         (eproj-project/root proj))
+        (save-excursion
+          (goto-line1 (eproj-tag/line tag))
+          (eproj/haskel-extract-block)
+          ;; alternative implementation with regexps
+          ;; (save-match-data
+          ;;   (goto-line1 (eproj-tag/line tag))
+          ;;   (if (looking-at "^\\([^ \t\n\r\f\v].* ::\\(?: .*\n\\|\n\\)\\(?:^[ \t]+.+\n\\)*\\)")
+          ;;     (match-string-no-properties 1)
+          ;;     (current-line)))
+          )))))
 
 (defun eproj/haskel-extract-block ()
   "Extract indented Haskell block that starts on the current line."
