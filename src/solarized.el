@@ -533,6 +533,17 @@ Futher modified by Sergey Vinokurov."
             (smerge-other                         ((t (:underline (:style wave :color ,red)))))
             (smerge-markers                       ((t (:inherit highlight))))
 
+            (company-tooltip                      ((t (:foreground ,base1 :background ,base02
+                                                                   :box (:line-width 1 :color ,base1)))))
+            (company-tooltip-selection            ((t (:underline (:style wave :color ,orange)))))
+            (company-tooltip-common               ((t (:foreground ,violet))))
+            (company-tooltip-annotation           ((t (:foreground ,green))))
+            (company-scrollbar-fg                 ((t (:background ,base1))))
+            (company-scrollbar-bg                 ((t (:foreground ,base1 :background ,base02))))
+            (company-preview-search               ((t (:inherit lazy-highlight))))
+            (company-preview                      ((t (:foreground ,yellow))))
+            (company-preview-common               ((t (:foreground ,orange))))
+
             (minibuffer-prompt                    ((t (:foreground ,violet))))
             (navigation-node-face                 ((t (:foreground ,magenta))))
             (paren-face-no-match                  ((t (:underline ,yellow))))
