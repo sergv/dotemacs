@@ -479,11 +479,12 @@ greater indenation as current line."
   (setf tab-width 4)
   (setq-local forward-sexp-function nil)
 
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("M-p"        browse-comint-input-history)
 
-    ("C-SPC"      comint-clear-buffer-above-prompt)
     ("<up>"       comint-previous-input)
     ("<down>"     comint-next-input)
     ("C-<up>"     comint-previous-prompt)

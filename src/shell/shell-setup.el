@@ -47,6 +47,8 @@
   (ansi-color-for-comint-mode-on)
   (setq-local comint-scroll-to-bottom-on-input t)
 
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output
     ("SPC SPC" comint-clear-prompt))
@@ -54,7 +56,6 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      shell-mode-map)
-    ("C-SPC"     comint-clear-buffer-above-prompt)
     ("<tab>"     pcomplete)
 
     ("M-p"       browse-comint-input-history)
