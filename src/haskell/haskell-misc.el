@@ -737,7 +737,9 @@ it's position in current window."
                      (ghc-goto-next-error))
                    (error "Cannot jump to nonexistent file: %s" ghc-error-file))))
              t))
-      (haskell-process-load-file)))
+      (progn
+        (haskell-process-load-file)
+        (haskell-interactive-bring))))
 
 (defun haskell-shm-tab-or-indent-relative-forward ()
   (interactive)
