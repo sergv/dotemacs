@@ -99,7 +99,8 @@
   ;; Should return hash table of tags - hashtable of (<identifier> . <eproj-tags>)
   ;; bindings for specified files, <eproj-tags> is a list of tags
 
-  tag->string-procedure ;; function of one argument returning string
+  show-tag-kind-procedure ;; function of one argument, a tag, returning string or nil
+  tag->string-procedure ;; function of one argument, a tag, returning string
   synonym-modes ;; list of symbols, these modes will resolve to this language
                 ;; during tag search
   normalize-identifier-before-navigation-procedure ;; Possibly strip unneeded
@@ -111,6 +112,7 @@
                             extensions
                             create-tags-procedure
                             parse-tags-procedure
+                            show-tag-kind-procedure
                             tag->string-procedure
                             synonym-modes
                             normalize-identifier-before-navigation-procedure)
@@ -122,203 +124,16 @@
                          "$")
    :create-tags-procedure create-tags-procedure
    :parse-tags-procedure parse-tags-procedure
+   :show-tag-kind-procedure show-tag-kind-procedure
    :tag->string-procedure tag->string-procedure
    :synonym-modes synonym-modes
    :normalize-identifier-before-navigation-procedure
    normalize-identifier-before-navigation-procedure))
 
-;;;; ctags facility
-
-(defparameter *ctags-exec* (executable-find "exuberant-ctags"))
-
-(defparameter *ctags-language-flags*
-  '((c-mode
-     "--language-force=c"
-     "--c-kinds=-cdefgmnpstuv"
-     "--c-kinds=+defgmstuv"
-     "--fields=+SzkK"
-     "--extra=+q")
-    (c++-mode
-     "--language-force=c++"
-     "--c++-kinds=+cdefgmnpstuv"
-     "--fields=+iaSzkK"
-     "--extra=+q")
-    (python-mode
-     "--language-force=python"
-     "--python-kinds=+cfmvi"
-     "--fields=+SzkK")
-    (java-mode
-     "--language-force=java"
-     "--java-kinds=+cefgimp"
-     "--fields=+iaSzkK")))
-
-
-(defconst +ctags-line-re+
-  (rx bol
-      ;; tag name, *can* contain spaces
-      ;; (cf C++'s "operator =" tag produced by ctags.)
-      (group (+ (not (any ?\t ?\n))))
-      "\t"
-      ;; filename, *can* contain spaces
-      (group (+ (not (any ?\t ?\n))))
-      "\t"
-      (or (group (+ digit))
-          (or (seq "/^"
-                   (+ (or (not (any ?\n ?/))
-                          "\\\\/"))
-                   "$/")
-              (seq "?^"
-                   (+ (or (not (any ?\n ?/))
-                          "\\/"))
-                   "$?")))
-      (or (seq (* (any ?\s ?\t))
-               ";\"")
-          eol)))
-
-(defconst +ctags-aux-fields+
-  '("kind"
-    "access"
-    "class"
-    "file"
-    "signature"
-    "namespace"
-    "struct"
-    "enum"
-    "union"
-    "inherits"
-    "typeref"
-    "function"
-    "interface"))
-
-(setf +ctags-aux-fields-re+
-  (eval-when-compile
-    ;; (concat "^\\("
-    ;;         (macroexpand
-    ;;          `(rx (or ,@+ctags-aux-fields+)))
-    ;;         "\\):\\(.*\\)$")
-    (concat "\\=\\("
-            (macroexpand
-             `(rx (or ,@+ctags-aux-fields+)))
-            "\\):\\(.*\\)")))
-
-(defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
-  (unless *ctags-exec*
-    (error "ctags executable not found"))
-  (with-current-buffer out-buffer
-    (goto-char (point-max))
-    (unless (looking-at-pure? "^$")
-      (insert "\n"))
-    (let ((ext-re (eproj-language/extension-re
-                   (gethash lang-mode eproj/languages-table))))
-      (with-temp-buffer
-        (with-disabled-undo
-         (with-inhibited-modification-hooks
-          (cd root-dir)
-          (dolist (file files)
-            (when (string-match-p ext-re file)
-              (insert file "\n")))
-          (when (not (= 0
-                        (apply #'call-process-region
-                               (point-min)
-                               (point-max)
-                               *ctags-exec*
-                               nil
-                               out-buffer
-                               nil
-                               "-f"
-                               "-"
-                               "-L"
-                               "-"
-                               "--excmd=number"
-                               (aif (rest-safe (assq lang-mode *ctags-language-flags*))
-                                 it
-                                 (error "unknown ctags language: %s" lang-mode)))))
-            (error "ctags invokation failed: %s"
-                   (with-current-buffer out-buffer
-                     (buffer-substring-no-properties (point-min) (point-max)))))))))))
-
-(defparameter eproj/ctags-string-cache
-  (make-hash-table :test #'equal :size 997 :weakness t))
-
-(defsubst eproj/ctags-cache-string (x)
-  (assert (stringp x))
-  (if-let (cached-x (gethash x eproj/ctags-string-cache))
-    cached-x
-    (puthash x x eproj/ctags-string-cache)))
-
-;; tags parsing
-(defun eproj/ctags-get-tags-from-buffer (buffer)
-  "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
-BUFFER is expected to contain output of ctags command."
-  (with-current-buffer buffer
-    (save-match-data
-      (goto-char (point-min))
-      (let ((tags-table (make-hash-table :test #'equal :size 997))
-            (field-cache (make-hash-table :test #'equal))
-            (gc-cons-threshold (min (* 100 1024 1024)
-                                    (max gc-cons-threshold
-                                         ;; Every 1000 lines takes up 1 mb or so.
-                                         (/ (* (count-lines (point-min) (point-max)) 1024 1024)
-                                            1000))))
-            (total-tags-fraction (when eproj-verbose-tag-loading
-                                   (/ (count-lines (point-min) (point-max))
-                                      100)))
-            (tags-loaded-percents 0)
-            (n 0))
-        (garbage-collect)
-        (while (not (eobp))
-          (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
-                     (looking-at +ctags-line-re+))
-            (let ((symbol (eproj/ctags-cache-string
-                           (match-string-no-properties 1)))
-                  (file (eproj/ctags-cache-string
-                         (match-string-no-properties 2)))
-                  (line (string->number (match-string-no-properties 3))))
-              (goto-char (match-end 0))
-              ;; now we're past ;"
-              (let* ((line-end-pos (line-end-position))
-                     (fields nil))
-                (while (< (point) line-end-pos)
-                  (skip-chars-forward "\t")
-                  (let ((start (point)))
-                    (skip-chars-forward "^\t\n")
-                    (let ((end (point)))
-                      (save-excursion
-                        (goto-char start)
-                        (if (re-search-forward +ctags-aux-fields-re+ end t)
-                          (let ((identifier (match-string-no-properties 1))
-                                (value (match-string-no-properties 2)))
-                            ;; when value is nonempty
-                            (when (not (string= "" value))
-                              (let ((new-field (cons (string->symbol identifier)
-                                                     (eproj/ctags-cache-string value))))
-                                (push (aif (gethash new-field field-cache)
-                                        it
-                                        (puthash new-field new-field field-cache))
-                                      fields))))
-                          (error "invalid entry: %s" (buffer-substring-no-properties start end)))))))
-                (forward-char)
-                (puthash symbol
-                         (cons (make-eproj-tag
-                                symbol
-                                file
-                                line
-                                fields)
-                               (gethash symbol tags-table nil))
-                         tags-table)))
-
-            ;; (forward-line 1)
-            (when eproj-verbose-tag-loading
-              (when (= n total-tags-fraction)
-                (incf tags-loaded-percents)
-                (when (= 0 (mod tags-loaded-percents 5))
-                  (message "loaded %d%% tags" tags-loaded-percents)
-                  (redisplay))
-                (setf n 0))
-              (incf n))))
-        tags-table))))
-
 ;;;; language definitions
+
+(defun eproj/generic-tag-kind (tag)
+  (format "%s" (eproj-tag/properties tag)))
 
 (defun eproj/generic-tag->string (proj tag)
   (assert (eproj-tag-p tag))
@@ -330,7 +145,7 @@ BUFFER is expected to contain output of ctags command."
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
-          (format "%s" (eproj-tag/properties tag))
+          (eproj/generic-tag-kind tag)
           "\n")
   ;; (lambda (entry)
   ;;   (let ((delim (cadr (assq orig-major-mode
@@ -356,14 +171,14 @@ BUFFER is expected to contain output of ctags command."
   ;;             (ctags-tag-line entry))))
   )
 
+(defun eproj/c-tag-kind (tag)
+  (cdr-safe (assq 'kind (eproj-tag/properties tag))))
+
 (defun eproj/c-tag->string (proj tag)
   (assert (eproj-tag-p tag))
   (concat (eproj-tag/symbol tag)
-          (awhen (assq 'kind (eproj-tag/properties tag))
-            (concat
-             " ["
-             (cdr it)
-             "]"))
+          (awhen (eproj/c-tag-kind tag)
+            (concat " [" it "]"))
           "\n"
           (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
                                          (eproj-project/root proj))
@@ -373,16 +188,17 @@ BUFFER is expected to contain output of ctags command."
           (eproj/extract-tag-line proj tag)
           "\n"))
 
+(defun eproj/java-tag-kind (tag)
+  (concat
+   (cdr-safe (assq 'kind (eproj-tag/properties tag)))
+   (awhen (assq 'access (eproj-tag/properties tag))
+     (concat "/" (cdr it)))))
+
 (defun eproj/java-tag->string (proj tag)
   (assert (eproj-tag-p tag))
   (concat (eproj-tag/symbol tag)
-          (awhen (assq 'kind (eproj-tag/properties tag))
-            (concat
-             " ["
-             (cdr it)
-             (awhen (assq 'access (eproj-tag/properties tag))
-               (concat "/" (cdr it)))
-             "]"))
+          (awhen (eproj/java-tag-kind tag)
+            (concat " [" it "]"))
           "\n"
           (awhen (assq 'class (eproj-tag/properties tag))
             (concat (cdr it)
@@ -428,9 +244,6 @@ BUFFER is expected to contain output of ctags command."
     (prog1 (funcall parse-tags-proc (current-buffer))
       (erase-buffer))))
 
-(autoload 'eproj/create-haskell-tags "eproj-haskell" nil nil)
-(autoload 'eproj/haskell-tag->string "eproj-haskell" nil nil)
-
 (defparameter eproj/languages
   (list
    (mk-eproj-lang
@@ -441,6 +254,7 @@ BUFFER is expected to contain output of ctags command."
     #'eproj/create-haskell-tags
     :parse-tags-procedure
     #'eproj/get-fast-tags-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/haskell-tag-kind
     :tag->string-procedure #'eproj/haskell-tag->string
     :synonym-modes '(literate-haskell-mode
                      haskell-c-mode
@@ -455,6 +269,7 @@ BUFFER is expected to contain output of ctags command."
       (eproj/load-ctags-project 'c-mode proj make-project-files parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/c-tag-kind
     :tag->string-procedure #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -479,6 +294,7 @@ BUFFER is expected to contain output of ctags command."
       (eproj/load-ctags-project 'c++-mode proj make-project-files parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/c-tag-kind
     :tag->string-procedure #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -491,6 +307,7 @@ BUFFER is expected to contain output of ctags command."
       (eproj/load-ctags-project 'python-mode proj make-project-files parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/generic-tag-kind
     :tag->string-procedure #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -504,6 +321,7 @@ BUFFER is expected to contain output of ctags command."
       (eproj/load-ctags-project 'java-mode proj make-project-files parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/generic-tag-kind
     :tag->string-procedure #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -516,6 +334,7 @@ BUFFER is expected to contain output of ctags command."
       (eproj/load-ctags-project 'java-mode proj make-project-files parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
+    :show-tag-kind-procedure #'eproj/java-tag-kind
     :tag->string-procedure #'eproj/java-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
@@ -535,6 +354,12 @@ BUFFER is expected to contain output of ctags command."
     table)
   "Used by eproj-symbnav facility.")
 
+(defun eproj/resolve-synonym-modes (mode)
+  "Replace modes that are similar to some other known modes"
+  (aif (gethash mode eproj/synonym-modes-table)
+    it
+    mode))
+
 ;;; eproj-project
 
 ;;;; projects themselves
@@ -542,7 +367,7 @@ BUFFER is expected to contain output of ctags command."
 (defstruct (eproj-project
             (:conc-name eproj-project/))
   root
-  aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries)
+  aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries
   tags ;; list of (language-major-mode . <tags-table>);
        ;; <tags-table> - hashtable of (symbol-str . eproj-tag) bindings
   related-projects ;; list of other project roots
@@ -623,7 +448,7 @@ BUFFER is expected to contain output of ctags command."
                 (not (string= fname
                               (expand-file-name
                                (eproj-tag/file tag))))))
-             (mode (eproj-symbnav/resolve-synonym-modes major-mode)))
+             (mode (eproj/resolve-synonym-modes major-mode)))
         (unless (memq mode
                       (eproj-project/languages proj))
           (error "Project %s does not manage %s files"
@@ -686,28 +511,6 @@ cache tags in."
                make-project-files
                parse-tags-procedure))
     (error "Failed loading tags for mode %s: cannot resolve language" mode)))
-
-(defmacro eproj-with-language-load-proc (lang-mode-var
-                                         load-proc-var
-                                         &rest
-                                         body)
-  "Execute BODY with LOAD-PROC-VAR bound to load procedure for mode in LANG-MODE-VAR.
-Load procedure takes two arguments - projcet and procedure of 0 arguments returning
-list of project files."
-  (declare (indent 2))
-  (let ((lang-var (gensym "lang")))
-    `(progn
-       (assert (symbolp ,lang-mode-var)
-               nil
-               "invalid language mode = %s" ,lang-mode-var)
-       (if-let (,lang-var (gethash ,lang-mode-var eproj/languages-table))
-         (if-let (,load-proc-var (eproj-language/load-procedure ,lang-var))
-           (progn
-             ,@body)
-           (error "No load procedure defined for language %s"
-                  ,lang-mode-var))
-         (error "No eproj/language defined for language %s"
-                ,lang-mode-var)))))
 
 (defun eproj-reload-tags (proj)
   "Reload tags for PROJ."
@@ -1308,9 +1111,15 @@ Returns list of (tag . project) pairs."
            (cons proj
                  (eproj-get-all-related-projects proj))))
 
+
+(autoload 'eproj/create-haskell-tags "eproj-haskell" nil nil)
+(autoload 'eproj/haskell-tag->string "eproj-haskell" nil nil)
+
+(autoload 'eproj/run-ctags-on-files "eproj-ctags")
+(autoload 'eproj/run-ctags-on-files "eproj-ctags")
+
 (autoload 'eproj-symbnav/describe "eproj-symbnav" nil t)
 (autoload 'eproj-symbnav/reset "eproj-symbnav" nil t)
-(autoload 'eproj-symbnav/resolve-synonym-modes "eproj-symbnav" nil t)
 (autoload 'eproj-symbnav/go-to-symbol-home "eproj-symbnav" nil t)
 (autoload 'eproj-symbnav/go-back "eproj-symbnav" nil t)
 (autoload 'setup-eproj-symbnav "eproj-symbnav" nil nil)

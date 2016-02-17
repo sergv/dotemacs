@@ -11,7 +11,8 @@
 (require 'common)
 (require 'ctypes)
 (require 'find-file)
-(require 'etags)
+(require 'eproj)
+(require 'company-eproj)
 
 (require 'dtrt-indent) ;; indent offset guesser
 
@@ -158,9 +159,12 @@ Also propagate new offset to `vim:shift-width'."
                :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
                :use-whitespace 'tabs-only)
+  (fontify-conflict-markers)
   (hs-minor-mode 1)
   (dtrt-indent-mode 1)
   (which-function-mode -1)
+  (company-mode +1)
+  (setq-local company-backends '(company-eproj))
 
   (modify-syntax-entry ?_ "_")
   (modify-syntax-entry ?# ".")
@@ -198,6 +202,7 @@ Also propagate new offset to `vim:shift-width'."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
+    ("C-SPC"       company-complete)
     ("<backspace>" backward-delete-char))
 
   (bind-tab-keys #'tab-to-tab-stop
