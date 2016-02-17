@@ -46,7 +46,7 @@ as accepted by `bounds-of-thing-at-point'.")
       (let ((bounds (bounds-of-thing-at-point eproj-symbnav/identifier-type)))
         (cond ((not (null bounds))
                (funcall (eproj-language/normalize-identifier-before-navigation-procedure
-                         (gethash (eproj-symbnav/resolve-synonym-modes major-mode)
+                         (gethash (eproj/resolve-synonym-modes major-mode)
                                   eproj/languages-table))
                         (buffer-substring-no-properties (car bounds)
                                                         (cdr bounds))))
@@ -91,12 +91,6 @@ as accepted by `bounds-of-thing-at-point'.")
   (switch-to-buffer (eproj-home-entry/buffer home-entry))
   (goto-char (eproj-home-entry/position home-entry)))
 
-(defun eproj-symbnav/resolve-synonym-modes (mode)
-  "Replace modes that are similar to some other known modes"
-  (aif (gethash mode eproj/synonym-modes-table)
-    it
-    mode))
-
 (defun eproj-symbnav/resolve-entry-file-in-project (entry proj)
   (let ((file
          (eproj-resolve-abs-or-rel-name (eproj-tag/file entry)
@@ -129,7 +123,7 @@ as accepted by `bounds-of-thing-at-point'.")
          (identifier (if use-regexp
                        (read-regexp "enter regexp to search for")
                        (eproj-symbnav/identifier-at-point nil)))
-         (orig-major-mode (eproj-symbnav/resolve-synonym-modes major-mode))
+         (effective-major-mode (eproj/resolve-synonym-modes major-mode))
          (orig-file-name (cond
                            (buffer-file-name
                             (expand-file-name buffer-file-name))
@@ -154,16 +148,16 @@ as accepted by `bounds-of-thing-at-point'.")
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     ;; load tags if there're none
     (unless (or (eproj-project/tags proj)
-                (assq orig-major-mode (eproj-project/tags proj)))
+                (assq effective-major-mode (eproj-project/tags proj)))
       (eproj-reload-project! proj)
       (unless (eproj-project/tags proj)
         (error "Project %s loaded no names\nProject: %s"
                (eproj-project/root proj)
                proj))
-      (unless (assq orig-major-mode (eproj-project/tags proj))
+      (unless (assq effective-major-mode (eproj-project/tags proj))
         (error "No names in project %s for language %s"
                (eproj-project/root proj)
-               orig-major-mode)))
+               effective-major-mode)))
     (if (and next-home-entry
              (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
                (if use-regexp
@@ -176,9 +170,9 @@ as accepted by `bounds-of-thing-at-point'.")
         (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
       (let* ((entry->string
               (eproj-language/tag->string-procedure
-               (aif (gethash orig-major-mode eproj/languages-table)
+               (aif (gethash effective-major-mode eproj/languages-table)
                  it
-                 (error "unsupported language %s" orig-major-mode))))
+                 (error "unsupported language %s" effective-major-mode))))
              (expanded-project-root
               (expand-file-name (eproj-project/root proj)))
              (tag->string
@@ -214,7 +208,7 @@ as accepted by `bounds-of-thing-at-point'.")
                 ;;   for project in (cons proj
                 ;;                        (eproj-get-all-related-projects proj))
                 ;;   for check = (rest-safe
-                ;;                (assq orig-major-mode
+                ;;                (assq effective-major-mode
                 ;;                      (eproj-project/tags project)))
                 ;;   if check
                 ;;   nconc
@@ -234,7 +228,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                 (funcall tag->string tag tag-proj)
                                 tag-proj)))
                       (eproj-get-matching-tags proj
-                                               orig-major-mode
+                                               effective-major-mode
                                                identifier
                                                use-regexp))
                 ;; (-map (lambda (tag-entry)
@@ -245,7 +239,7 @@ as accepted by `bounds-of-thing-at-point'.")
                 ;;                 tag-proj)))
                 ;;       (-mapcat (lambda (proj)
                 ;;                  (aif (rest-safe
-                ;;                        (assq orig-major-mode
+                ;;                        (assq effective-major-mode
                 ;;                              (eproj-project/tags proj)))
                 ;;                    (-map (lambda (tag)
                 ;;                            (cons tag proj))

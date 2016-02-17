@@ -13,6 +13,7 @@
 (require 'emacs-lisp-abbrev+)
 (require 'emacs-lisp-highlight)
 (require 'elisp-slime-nav)
+(require 'company-mode-setup)
 
 ;;; elisp fontification and indentation
 
@@ -90,6 +91,8 @@
 
 (defun emacs-lisp-setup ()
   (lisp-setup)
+  (company-mode +1)
+  (setq-local company-backends '(company-elisp))
 
   (emacs-lisp-highlight-keywords)
 
@@ -108,7 +111,6 @@
     ("C-,"     pop-tag-mark)
     ("g ."     elisp-slime-nav-find-elisp-thing-at-point)
     ("g ,"     pop-tag-mark)
-    ("C-<tab>" lisp-complete-symbol)
 
     ("<tab>"   indent-for-tab-command)
     ("<f9>"    elisp-compile-and-move))
@@ -117,9 +119,7 @@
     ("j"       eval-region))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ;; ("C-SPC" lisp-complete-symbol)
     ("<tab>"   indent-for-tab-command)
-    ("C-<tab>" lisp-complete-symbol)
     ;; ("("     paredit-open-round)
     ;; (")"     paredit-close-round)
     ;; ("["     paredit-open-square)
@@ -127,9 +127,12 @@
     ;; ("\""    paredit-doublequote)
     )
 
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("C-SPC" company-complete))
+
   (def-keys-for-map read-expression-map
     ("<tab>"   lisp-complete-symbol)
-    ("C-/"     lisp-complete-symbol)
     ("C-w"     backward-delete-word)
     ("C-S-w"   backward-delete-word*))
 
