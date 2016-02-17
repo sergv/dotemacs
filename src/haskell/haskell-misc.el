@@ -159,6 +159,9 @@ and indent them as singe line."
       ;; "cd %s && cabal build --ghc-option=-ferror-spans && cabal test --show-details=always"
       ;; 'cabal-repl is good as well
 
+      ;; Don't kill any associated buffers when issuing `haskell-session-kill'.
+      haskell-ask-also-kill-buffers nil
+
       haskell-process-suggest-remove-import-lines t
       haskell-process-auto-import-loaded-modules t
       ;; haskell-process-suggest-hoogle-imports t ;; may be cool
