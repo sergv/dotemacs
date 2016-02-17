@@ -70,6 +70,8 @@
   (haskell-lint))
 (vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
   (haskell-process-load-file))
+(vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
+  (haskell-interactive-clear-buffer-above-prompt))
 
 (defvar-local vim:haskell-check-on-save nil
   "Whether to run `ghc-check' on saves.")
@@ -289,9 +291,9 @@
   (init-common :use-comment nil :use-yasnippet nil :use-fci nil)
   (init-repl :create-keymaps nil)
 
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
-    ("C-SPC"    comint-clear-buffer-above-prompt)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
 
@@ -323,7 +325,6 @@
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
-    ("C-SPC"    comint-clear-buffer-above-prompt)
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
@@ -352,6 +353,8 @@
   ;; very useful to automatically surround with spaces inserted operators
   (haskell-bind-shm-bindings :bind-colon nil)
 
+  (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
+
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  haskell-interactive-clear-prompt))
 
@@ -362,7 +365,6 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      haskell-interactive-mode-map)
-    ("C-SPC"    haskell-interactive-clear-buffer-above-prompt)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
 

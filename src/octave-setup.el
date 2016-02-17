@@ -421,6 +421,8 @@ in GROUP-NUMS."
   (setf inferior-octave-prompt
         "^\\(octave\\(\\|.bin\\|.exe\\)\\(-[.0-9]+\\)?\\(:[0-9]+\\)?\\|^debug\\)?>+ ")
 
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+
   (def-keys-for-map inferior-octave-mode-map
     ("M-/"      comint-dynamic-complete)
     ("<up>"     comint-previous-input)
@@ -432,9 +434,7 @@ in GROUP-NUMS."
 
     ("C-S-p"    browse-kill-ring)
     ("M-p"      browse-comint-input-history)
-    ("SPC SPC"  comint-clear-prompt)
-
-    ("C-SPC"    comint-clear-buffer-above-prompt)))
+    ("SPC SPC"  comint-clear-prompt)))
 
 (add-hook 'inferior-octave-mode-hook #'inferior-octave-setup)
 

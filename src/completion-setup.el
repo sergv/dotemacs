@@ -71,7 +71,7 @@
 ;; Ido
 (setf ido-enable-flex-matching t
       ido-create-new-buffer 'always ;; don't prompt when opening nonexistent files
-      ido-file-extensions-order '(".hs" ".lhs" ".y" ".l" ".cabal" ".idr" ".agda" ".h" ".c" t)
+      ido-file-extensions-order '(".hs" ".lhs" ".y" ".l" ".x" ".cabal" ".yaml" ".idr" ".agda" ".h" ".c" t)
       ido-case-fold t ;; ignore case
       ido-everywhere t
       ido-ignore-extensions t ;; ignore extensions in `completion-ignored-extensions'

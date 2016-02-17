@@ -67,11 +67,11 @@
 (defun ocaml-interactive-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
+  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
     ("<return>"   ocaml-interactive-send-input)
     ("C-<return>" sp-newline)
     ("SPC SPC"    comint-clear-prompt)
-    ("C-SPC"      comint-clear-buffer-above-prompt)
     ("<f6>"       tuareg-interrupt-ocaml)))
 
 (add-hook 'tuareg-interactive-mode-hook #'ocaml-interactive-setup)
