@@ -366,10 +366,10 @@
 
 (defstruct (eproj-project
             (:conc-name eproj-project/))
-  root
+  root     ;; normalized directory name
   aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries
-  tags ;; list of (language-major-mode . <tags-table>);
-       ;; <tags-table> - hashtable of (symbol-str . eproj-tag) bindings
+  tags     ;; list of (language-major-mode . <tags-table>);
+           ;; <tags-table> - hashtable of (symbol-str . eproj-tag) bindings
   related-projects ;; list of other project roots
   aux-files-source ;; list of other files or function that yields such list
   languages        ;; list of symbols - major-modes for related languages
@@ -521,10 +521,10 @@ cache tags in."
             (if made-files
               files
               (progn
-                (setf files (aif (eproj-project/aux-files-source proj)
+                (setf files (aif (eproj-project/aux-files proj)
                               (append
                                (eproj-get-project-files proj)
-                               (funcall it))
+                               it)
                               (eproj-get-project-files proj))
                       made-files t)
                 files)))))
@@ -834,15 +834,15 @@ symbol 'unresolved.")
           (setf (eproj-project/cached-file-list proj) resolved-files)
           resolved-files))
       (eproj/find-rec
-       (eproj-project/root proj)
-       (-mapcat (lambda (lang)
-                  (assert (symbolp lang))
-                  (eproj-language/extensions
-                   (gethash lang eproj/languages-table)))
-                (eproj-project/languages proj))
-       (eproj-project/ignored-files-regexps proj)
-       *ignored-directories*
-       *ignored-directory-prefixes*))))
+       :root (eproj-project/root proj)
+       :extensions (-mapcat (lambda (lang)
+                              (assert (symbolp lang))
+                              (eproj-language/extensions
+                               (gethash lang eproj/languages-table)))
+                            (eproj-project/languages proj))
+       :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
+       :ignored-directories *ignored-directories*
+       :ignored-directory-prefixes *ignored-directory-prefixes*))))
 
 (defvar eproj/find-program-type
   (or (and (not (platform-os-type? 'windows))
@@ -863,11 +863,12 @@ Valid values are:
     ((or `find `cygwin-find) "find")
     (`busybox "busybox")))
 
-(defun eproj/find-rec (root
-                       extensions
-                       ignored-files-absolute-regexps
-                       ignored-directories
-                       ignored-directory-prefixes)
+(defun* eproj/find-rec (&key
+                        root
+                        extensions
+                        ignored-files-absolute-regexps
+                        ignored-directories
+                        ignored-directory-prefixes)
   (when (null? extensions)
     (error "no extensions for project %s" root))
   (if eproj/find-program-type
