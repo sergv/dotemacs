@@ -602,7 +602,10 @@ Futher modified by Sergey Vinokurov."
           org-drill-mature-count-color orange
           ansi-color-names-vector (vector base0 red green yellow blue magenta cyan base01)
           ansi-color-map (ansi-color-make-color-map)
-          fci-rule-color base0)
+          fci-rule-color base0
+          ansi-term-color-vector
+          [base3 base01 +solarized-red+ +solarized-green+ +solarized-yellow+
+           +solarized-blue+ +solarized-magenta+ +solarized-cyan+ base0])
     (run-hooks 'solarized-theme-mode-changed-hook)))
 
 (defun solarized/uniquify-alist (old-list)
