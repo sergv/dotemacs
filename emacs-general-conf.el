@@ -280,11 +280,7 @@
 
 (eval-after-load "term" ;; ansi-term et al
   '(progn
-     (setf ansi-term-color-vector
-           ["#fdf6e3" "#586475" "#dc322f" "#859900" "#b58900"
-            "#268bd2" "#d33682" "#2aa198" "#839496"]
-           term-buffer-maximum-size 0 ;; don't truncate anything
-           )))
+     (require 'term-setup)))
 
 (defadvice scroll-up (around
                       scroll-up-preserve-column
@@ -301,6 +297,10 @@
   (let ((col (current-column)))
     ad-do-it
     (move-to-column col)))
+
+(def-keys-for-map read-passwd-map
+  ("C-p" yank)
+  ("M-p" yank))
 
 ;; (unless noninteractive
 ;;
