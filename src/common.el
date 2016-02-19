@@ -331,14 +331,6 @@ combinations"
                         (funcall collect (1- start) (1- i))))))))
     (funcall collect (1- k) (1- n))))
 
-(defun* sum (seq &key (key #'identity) (start 0) (end nil))
-  (reduce #'+
-          seq
-          :initial-value 0
-          :key key
-          :start start
-          :end end))
-
 ;;;
 
 (defun point-inside-string? ()
@@ -1238,7 +1230,7 @@ the current buffer."
                              (* size used)))))
          (to-mb (lambda (x) (when x (/ x (* 1024 1024)))))
          ;; (extract-used (lambda (x) (car-safe (cdr-safe (cdr-safe x)))))
-         (bytes-used (sum (-map entry->bytes stats))))
+         (bytes-used (-sum (-map entry->bytes stats))))
     (format "[%sMb/cons %sMb/vec %sMb/heap %sMb]"
             (funcall to-mb bytes-used)
             (funcall (comp to-mb entry->bytes) (assoc 'conses stats))
