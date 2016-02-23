@@ -454,7 +454,7 @@ counted."
   (let ((boundaries-loc boundaries))
     (let ((find-best (lambda (get-object first-better)
                        (let (obj1)
-                         (dolist (obj2 (map get-object boundaries-loc))
+                         (dolist (obj2 (-map get-object boundaries-loc))
                            (multiple-value-bind (b1 e1) obj1
                              (multiple-value-bind (b2 e2) obj2
                                (setq obj1

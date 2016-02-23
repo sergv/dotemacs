@@ -691,11 +691,6 @@ write buffer contents back into file if flag DONT-WRITE is nil."
   "Split string into list of lines."
   (split-string str "\n" omit-nulls))
 
-(defmacro map (func xs &rest sequences)
-  (if (null? sequences)
-    `(mapcar ,func ,xs)
-    `(apply #'cl-mapcar ,func ,xs ,@sequences)))
-
 (defsubst foldr (f init items)
   "F should take two arguments (item accum)."
   (cl-reduce f

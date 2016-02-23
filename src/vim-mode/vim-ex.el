@@ -365,7 +365,7 @@ has been pressed."
            ;; all-completions, append exclamation marks
            (`t
             (if force
-              (map (lambda (x) (concat x "!")) result)
+              (--map (concat it "!") result)
               (let (newresult)
                 (dolist (r result)
                   (push r newresult)
@@ -387,8 +387,8 @@ has been pressed."
            ((stringp result) (if flag result (concat range cmd spaces result)))
            ((listp result) (if flag
                              result
-                             (map (lambda (x) (concat range cmd spaces x))
-                                  result)))
+                             (--map (concat range cmd spaces it)
+                                    result)))
            (t (error "Completion returned unexpected value"))))))))
 
 (defun vim:ex-complete-command (cmd predicate flag)
@@ -435,8 +435,8 @@ has been pressed."
 (defun vim:ex-complete-buffer-argument (arg predicate flag)
   "Called to complete a buffer name argument."
   (when arg
-    (let ((buffers (map (lambda (buffer) (cons (buffer-name buffer) nil))
-                        (buffer-list t))))
+    (let ((buffers (--map (cons (buffer-name it) nil)
+                          (buffer-list t))))
       (cond
         ((null flag)
          (try-completion arg buffers predicate))

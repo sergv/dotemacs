@@ -79,9 +79,9 @@ simlifying encoding of several keys for one snippet."
       (setq template (yas--read-lisp (concat "(progn" template ")"))))
     (when group
       (setq group (split-string group "\\.")))
-    (map (lambda (key)
-           (list key template name condition group expand-env file binding uuid))
-         keys)))
+    (-map (lambda (key)
+            (list key template name condition group expand-env file binding uuid))
+          keys)))
 
 ;; this causes yasnippet to consider only *.snip files
 (redefun yas--subdirs (directory &optional file?)
