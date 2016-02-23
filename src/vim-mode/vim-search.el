@@ -200,7 +200,7 @@ name `name' to `new-regex'."
 
 (defun* vim:hl-update-highlights ()
   "Updates the overlays of all active highlights."
-  (dolist (hl (map #'cdr vim:active-highlights-alist))
+  (dolist (hl (-map #'cdr vim:active-highlights-alist))
     (let ((old-ovs (vim:hl-overlays hl))
           new-ovs
           (pattern (vim:hl-pattern hl))
@@ -296,7 +296,7 @@ name `name' to `new-regex'."
 
 (defun vim:hl-update-highlights-resize (frame)
   "Updates highlights after resizing a window."
-  (let ((buffers (delete-dups (map #'window-buffer (window-list frame)))))
+  (let ((buffers (delete-dups (-map #'window-buffer (window-list frame)))))
     (dolist (buf buffers)
       (with-current-buffer buf
         (vim:hl-idle-update)))))
