@@ -111,37 +111,43 @@ and symbol, specifying selection type. Currently, selection type may be either
 "
   (assert (< 0 (length items)))
   (assert item-show-function)
-  (setf select/init-window-config (current-window-configuration)
-        select/init-window (selected-window)
-        select/init-buffer (current-buffer)
-        ;; display-related items
-        select/item-show-function item-show-function
-        select/preamble-function preamble-function
-        select/epilogue-function epilogue-function
-        select/separator-function separator-function
-        select/on-selection-function on-selection)
-  (with-current-buffer (switch-to-buffer-other-window buffer-name)
-    (select/with-disabled-undo
-      (setf select/selection-buffer (current-buffer))
+  (let ((init-buffer (current-buffer))
+        (init-window (selected-window))
+        (init-window-config (current-window-configuration)))
+    (with-current-buffer (switch-to-buffer-other-window buffer-name)
+      (select/with-disabled-undo
+        (setf select/init-window-config init-window-config
+              select/init-window init-window
+              select/init-buffer init-buffer
+              ;; display-related items
+              select/item-show-function item-show-function
+              select/preamble-function preamble-function
+              select/epilogue-function epilogue-function
+              select/separator-function separator-function
+              select/on-selection-function on-selection)
 
-      (select-mode)
+        (setf select/selection-buffer (current-buffer))
 
-      (setf select/selection-overlay (make-overlay (point-min) (point-min)))
-      (overlay-put select/selection-overlay
-                   'face
-                   'select-selection-face)
-      (overlay-put select/selection-overlay
-                   'font-lock-face
-                   'select-selection-face)
-      (select-setup-items items 0)
-      (select-render-items)
-      (when after-init
-        (funcall after-init))
+        (select-mode)
 
-      (set-buffer-modified-p nil)
-      (read-only-mode +1)
-      ;; (setf buffer-read-only t)
-      )))
+        (setf select/selection-overlay (make-overlay (point-min) (point-min)))
+        (overlay-put select/selection-overlay
+                     'face
+                     'select-selection-face)
+        (overlay-put select/selection-overlay
+                     'font-lock-face
+                     'select-selection-face)
+        (select-setup-items items 0)
+        (select/with-preserved-buffer-modified-p
+          (select/with-inhibited-read-only
+            (select-render-items)))
+        (when after-init
+          (funcall after-init))
+
+        (set-buffer-modified-p nil)
+        (read-only-mode +1)
+        ;; (setf buffer-read-only t)
+        ))))
 
 (defun select-setup-items (items selected-item)
   (setf select/selected-item selected-item
@@ -171,26 +177,22 @@ and symbol, specifying selection type. Currently, selection type may be either
              (insert (funcall select/item-show-function item))
              (let ((end (point)))
                (setf (aref select/item-positions index) (cons start end)))))))
-    (with-current-buffer select/selection-buffer
-      (select/with-disabled-undo
-        (select/with-preserved-buffer-modified-p
-          (select/with-inhibited-read-only
-            (erase-buffer)
-            (goto-char (point-min))
-            (insert (funcall select/preamble-function))
+    (erase-buffer)
+    (goto-char (point-min))
+    (insert (funcall select/preamble-function))
 
-            (funcall insert-nth-item 0 (elt select/items 0))
-            (let ((sep (when select/separator-function
-                         (funcall select/separator-function)))
-                  (i 1))
-              (loop
-                for i from 1 to (- (length select/items) 1)
-                do
-                (let ((item (elt select/items i)))
-                  (when sep (insert sep))
-                  (funcall insert-nth-item i item))))
-            (insert (funcall select/epilogue-function))
-            (select/move-selection-to select/selected-item)))))))
+    (funcall insert-nth-item 0 (elt select/items 0))
+    (let ((sep (when select/separator-function
+                 (funcall select/separator-function)))
+          (i 1))
+      (loop
+        for i from 1 to (- (length select/items) 1)
+        do
+        (let ((item (elt select/items i)))
+          (when sep (insert sep))
+          (funcall insert-nth-item i item))))
+    (insert (funcall select/epilogue-function))
+    (select/move-selection-to select/selected-item)))
 
 (defun select/update-selected-item ()
   "Set selected item based on the point position inside buffer."
