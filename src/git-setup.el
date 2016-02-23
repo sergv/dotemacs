@@ -220,6 +220,7 @@
     ("k"        git-rebase-undo)
     ("x"        git-rebase-exec)
     ("r"        git-rebase-reword)
+    ("w"        git-rebase-reword)
     ("e"        git-rebase-edit)
     ("s"        git-rebase-squash)
     ("f"        git-rebase-fixup)
