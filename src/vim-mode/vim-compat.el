@@ -239,11 +239,11 @@ Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
 meaning as for `replace-match'."
     (let ((match (match-string 0 string)))
       (save-match-data
-        (set-match-data (map (lambda (x)
-                               (if (numberp x)
-                                 (- x (match-beginning 0))
-                                 x))
-                             (match-data t)))
+        (set-match-data (-map (lambda (x)
+                                (if (numberp x)
+                                  (- x (match-beginning 0))
+                                  x))
+                              (match-data t)))
         (replace-match replacement fixedcase literal match subexp)))))
 
 
@@ -293,11 +293,8 @@ of a match for REGEXP."
     (if enable
       (vim:normalize-minor-mode-map-alist)
       (setq minor-mode-map-alist
-            (remq nil
-                  (map (lambda (x)
-                         (unless (assq (car x) vim:emulation-mode-alist) x))
-                       minor-mode-map-alist)))))))
-
+            (--filter (not (assq (car it) vim:emulation-mode-alist))
+                     minor-mode-map-alist))))))
 
 (when vim:xemacs-p
   (unless (fboundp 'line-number-at-pos)
@@ -309,10 +306,10 @@ of a match for REGEXP."
     (setq minor-mode-map-alist
           (apply #'append
                  vim:emulation-mode-alist
-                 (map (lambda (x)
-                        (unless (assq (car x) vim:emulation-mode-alist)
-                          (list x)))
-                      minor-mode-map-alist))))
+                 (-map (lambda (x)
+                         (unless (assq (car x) vim:emulation-mode-alist)
+                           (list x)))
+                       minor-mode-map-alist))))
 
   (defadvice add-minor-mode (after vim:add-minor-mode
                                    (toggle name &optional keymap after toggle-fun)
@@ -545,7 +542,7 @@ See `%s' for more information on %s."
                          (setq child (window-next-child child)))
                        (cons t
                              (cons (window-edges win)
-                                   (map subwindows (reverse w-list))))))
+                                   (-map subwindows (reverse w-list))))))
                     ((window-first-vchild win)
                      (let (w-list
                            (child (window-first-vchild win)))
@@ -554,7 +551,7 @@ See `%s' for more information on %s."
                          (setq child (window-next-child child)))
                        (cons nil
                              (cons (window-edges win)
-                                   (map subwindows (reverse w-list))))))
+                                   (-map subwindows (reverse w-list))))))
                     (t win))))))
       (list (funcall subwindows root) mini))))
 

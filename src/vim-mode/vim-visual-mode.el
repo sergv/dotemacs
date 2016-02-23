@@ -189,9 +189,9 @@
                                                 transient-mark-mode)
         vim:visual-old-global-variables
         ;; Remember which system variables weren't buffer local
-        (remq nil (map (lambda (variable)
-                         (and (local-variable-p variable) variable))
-                       vim:visual-temporary-local-variables)))
+        (remq nil (-map (lambda (variable)
+                          (and (local-variable-p variable) variable))
+                        vim:visual-temporary-local-variables)))
 
   ;; The make them all buffer local, too.
   (mapc #'make-local-variable vim:visual-temporary-local-variables)
@@ -316,10 +316,10 @@ This function is also responsible for setting the X-selection."
      (vim:x-set-selection nil (car vim:visual-overlays)))
     ((< 1 (length vim:visual-overlays))
      (let ((text (join-lines
-                  (map (lambda (ov)
-                         (buffer-substring-no-properties (overlay-start ov)
-                                                         (overlay-end ov)))
-                       vim:visual-overlays))))
+                  (-map (lambda (ov)
+                          (buffer-substring-no-properties (overlay-start ov)
+                                                          (overlay-end ov)))
+                        vim:visual-overlays))))
        (vim:x-set-selection nil text)))))
 
 (defun vim:visual-highlight-normal (start end)
@@ -446,7 +446,7 @@ This function is also responsible for setting the X-selection."
 
 (defun vim:visual-delete-overlays (overlays)
   "Deletes all overlays in `overlays'."
-  (map #'delete-overlay overlays))
+  (mapc #'delete-overlay overlays))
 
 (defun vim:visual-current-motion ()
   "Returns a motion representing the current region."
