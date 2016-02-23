@@ -686,7 +686,8 @@ buffer if no such buffer exists."
     `(let ((,exec-func (lambda () ,@body)))
        (if-let (,buf-var (get-file-buffer ,filename))
          (with-current-buffer ,buf-var
-           (funcall ,exec-func))
+           (save-excursion
+             (funcall ,exec-func)))
          (with-temp-buffer
            (insert-file-contents ,filename
                                  t ;; make current buffer visit inserted file

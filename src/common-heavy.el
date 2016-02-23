@@ -56,10 +56,14 @@ if CASE-SENSETIVE is t."
             (find-file (car files))
             (select-start-selection files
                                     :on-selection
-                                    (lambda (idx)
+                                    (lambda (idx selection-type)
                                       (select-exit)
-                                      (find-file (nth idx files)))
-                                    :predisplay-function
+                                      (funcall
+                                       (pcase selection-type
+                                         (`same-window  #'find-file)
+                                         (`other-window #'find-file-other-window))
+                                       (nth idx files)))
+                                    :item-show-function
                                     (lambda (x)
                                       (concat "file: " (file-name-nondirectory x) "\n"
                                               x "\n"))
