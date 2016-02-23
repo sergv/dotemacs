@@ -116,10 +116,9 @@ path, in which case filename with suffix equal to FILENAME will be tried."
                 (visible-buffers))
     it
     (when (file-exists? filename)
-      (cond ((get-file-buffer filename)
-             (get-file-buffer filename))
-            (t
-             (find-file-noselect filename))))))
+      (aif (get-file-buffer filename)
+        it
+        (find-file-noselect filename)))))
 
 (defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing

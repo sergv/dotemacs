@@ -833,139 +833,17 @@ symbol 'unresolved.")
                           resolved-files))
           (setf (eproj-project/cached-file-list proj) resolved-files)
           resolved-files))
-      (eproj/find-rec
+      (find-rec*
        :root (eproj-project/root proj)
-       :extensions (-mapcat (lambda (lang)
-                              (assert (symbolp lang))
-                              (eproj-language/extensions
-                               (gethash lang eproj/languages-table)))
-                            (eproj-project/languages proj))
+       :extensions-globs (-mapcat (lambda (lang)
+                                    (assert (symbolp lang))
+                                    (--map (concat "*." it)
+                                           (eproj-language/extensions
+                                            (gethash lang eproj/languages-table))))
+                                  (eproj-project/languages proj))
        :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
        :ignored-directories *ignored-directories*
        :ignored-directory-prefixes *ignored-directory-prefixes*))))
-
-(defvar eproj/find-program-type
-  (or (and (not (platform-os-type? 'windows))
-           (executable-find "find")
-           'find)
-      (and (executable-find "busybox")
-           'busybox))
-  "Type of find program that `eproj/find-program-executable' refers to.
-Valid values are:
-'find        - vanilla gnu find
-'cygwin-find - cygwin version of gnu find, requires special quoting due to
-               Windows and libcygwin*.dll
-'busybox     - find as found in busybox, does not have as many options as gnu
-               find.")
-
-(defvar eproj/find-program-executable
-  (pcase eproj/find-program-type
-    ((or `find `cygwin-find) "find")
-    (`busybox "busybox")))
-
-(defun* eproj/find-rec (&key
-                        root
-                        extensions
-                        ignored-files-absolute-regexps
-                        ignored-directories
-                        ignored-directory-prefixes)
-  (when (null? extensions)
-    (error "no extensions for project %s" root))
-  (if eproj/find-program-type
-    (let* ((ignored-dirs
-            (nconc
-             (-map (lambda (dir) (list "-ipath" (concat "*/" dir)))
-                   ignored-directories)
-             (-map (lambda (dir) (list "-ipath" (concat "*/" dir "*")))
-                   ignored-directory-prefixes)))
-           (ignored-files
-            (-map (pcase eproj/find-program-type
-                    ((or `find `cygwin-find)
-                     (lambda (re) (list "-iregex" re)))
-                    (`busybox
-                     (lambda (re) (list "-regex" re)))
-                    (_
-                     (error "eproj/find-program-type has invalid value: %s"
-                            eproj/find-program-type)))
-                  ignored-files-absolute-regexps))
-           (exts
-            (-map (lambda (ext) (list "-iname" (concat "*." ext)))
-                  extensions))
-           (find-cmd (or eproj/find-program-executable
-                         (error "eproj/find-program-type has invalid value: %s"
-                                eproj/find-program-type)))
-           (cmd
-            (-flatten
-             (list (when (eq? 'busybox eproj/find-program-type)
-                     "find")
-                   "-L"
-                   (when (memq eproj/find-program-type '(find cygwin-find))
-                     "-O3")
-                   root
-                   (when (memq eproj/find-program-type '(find cygwin-find))
-                     '("-regextype" "emacs"))
-                   (when ignored-dirs
-                     (list
-                      "-type" "d"
-                      "("
-                      (sep-by "-o" ignored-dirs)
-                      ")"
-                      "-prune"
-                      "-o"))
-                   (when ignored-files
-                     (list
-                      "-type" "f"
-                      "("
-                      (sep-by "-o" ignored-files)
-                      ")"
-                      "-prune"
-                      "-o"))
-                   "-type" "f"
-                   "("
-                   (sep-by "-o" exts)
-                   ")"
-                   "-print")))
-           (w32-quote-process-args
-            (if (boundp 'w32-quote-process-args)
-              (pcase eproj/find-program-type
-                (`cygwin-find ?\\)
-                (_ w32-quote-process-args))
-              nil)))
-      (with-temp-buffer
-        (with-disabled-undo
-         (with-inhibited-modification-hooks
-          (apply #'call-process
-                 find-cmd
-                 nil
-                 t
-                 nil
-                 cmd)
-          (split-into-lines
-           (buffer-substring-no-properties (point-min)
-                                           (point-max)))))))
-    (let ((ext-re (concat "\\."
-                          (regexp-opt extensions)
-                          "$"))
-          (ignored-files-absolute-re
-           (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
-                      ignored-files-absolute-regexps
-                      "\\|"))
-          (ignored-dirs-re
-           (concat "\\(?:/\\|^\\)\\(?:"
-                   (regexp-opt ignored-directories)
-                   "\\)\\(?:/\\|$\\)")))
-      (find-rec root
-                :filep
-                (if ignored-files-absolute-regexps
-                  (lambda (path)
-                    (and (string-match-p ext-re path)
-                         (not (string-match-p ignored-files-absolute-re path))))
-                  (lambda (path)
-                    (string-match-p ext-re path)))
-                :do-not-visitp
-                (lambda (path)
-                  (string-match-pure? ignored-dirs-re
-                                      (file-name-nondirectory path)))))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.

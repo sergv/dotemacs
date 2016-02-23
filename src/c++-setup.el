@@ -87,13 +87,17 @@
                     choices
                     :buffer-name "select file"
                     :on-selection
-                    (lambda (idx)
+                    (lambda (idx selection-type)
                       (let ((alt-file (elt choices idx)))
                         (select-exit)
                         (puthash filename alt-file *c++-related-file-cache*)
                         (puthash alt-file filename *c++-related-file-cache*)
-                        (find-file alt-file)))
-                    :predisplay-function
+                        (funcall
+                         (pcase selection-type
+                           (`same-window  #'find-file)
+                           (`other-window #'find-file-other-window))
+                         alt-file)))
+                    :item-show-function
                     (lambda (x) (concat x "\n"))
                     :preamble-function
                     (lambda () (concat "Select desired alternative file\n"))

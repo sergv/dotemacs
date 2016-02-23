@@ -152,59 +152,6 @@ of random numbers from RANDOM-GEN."
                               "\\)\\(?:/\\|$\\)")
                       filepath))
 
-(defun* find-rec (path
-                  &key
-                  (filep (lambda (p) t))
-                  (dirp  (lambda (p) nil))
-                  (do-not-visitp
-                   (lambda (p)
-                     (version-control-directory?
-                      (file-name-nondirectory p)))))
-  "Collect files and/or directories under PATH recursively.
-
-Collect files and directories which satisfy FILEP and
-DIRP respectively in directories which don't satisfy DO-NOT-VISITP.
-By default, version-control specific directories are omitted, e.g. .git etc.
-
-All predicates are called with full absolute paths."
-  (when (stringp filep)
-    (setf filep
-          (let ((regexp-local filep))
-            (lambda (p) (string-match-p regexp-local p)))))
-  (when (stringp dirp)
-    (setf dirp
-          (let ((regexp-local dirp))
-            (lambda (p) (string-match-p regexp-local p)))))
-  (when (stringp do-not-visitp)
-    (setf do-not-visitp
-          (let ((regexp-local do-not-visitp))
-            (lambda (p) (string-match-p regexp-local p)))))
-
-  (letrec ((collect-rec
-            (lambda (path accum)
-              (cond
-                ((and (not (funcall do-not-visitp path))
-                      (file-directory-p path))
-                 (let ((result (if (funcall dirp path)
-                                 (cons path accum)
-                                 accum)))
-                   (dolist (entry (directory-files path
-                                                   t ;; produce full names
-                                                   directory-files-no-dot-files-regexp
-                                                   t ;; don't sort
-                                                   ))
-                     (cond
-                       ((file-directory-p entry)
-                        (setf result (funcall collect-rec entry result)))
-                       ((funcall filep entry)
-                        (push entry result))))
-                   result))
-                ((funcall filep path)
-                 (cons path accum))
-                (t
-                 accum)))))
-    (funcall collect-rec path nil)))
-
 (defun read-and-insert-filename (&optional nondir-only?)
   "Read filename with completion from user and insert it at point.
 Of course directory names are also supported.
@@ -703,23 +650,6 @@ write buffer contents back into file if flag DONT-WRITE is nil."
   (cl-reduce f
              items
              :initial-value init))
-
-(defun sep-by (sep items)
-  "Place SEP betweet elements in ITEMS list."
-  (assert (list? items))
-  (when items
-    (let* ((res (cons nil nil))
-           (tmp res))
-      (while items
-        (setf (car tmp) (car items))
-        (when (cdr items)
-          (setf (cdr tmp) (cons nil nil)
-                tmp (cdr tmp)
-                (car tmp) sep
-                (cdr tmp) (cons nil nil)
-                tmp (cdr tmp)))
-        (setf items (cdr items)))
-      res)))
 
 ;;;
 
@@ -1866,6 +1796,17 @@ F will be called."
 
 ;;;;
 
+(defun mk-regexp-from-alts (alts)
+  (when alts
+    (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
+               alts
+               "\\|")))
+
+(defun globs-to-regexp (globs)
+  (mk-regexp-from-alts (-map #'wildcard-to-regexp globs)))
+
+;;;;
+
 ;; Heavy autoloads
 
 (autoload 'shell-command+ "common-heavy" nil t)
@@ -1882,6 +1823,10 @@ F will be called."
 (autoload 'transpose-windows "common-heavy" nil t)
 (autoload 'narrow-to-region-indirect "common-heavy" nil t)
 (autoload 'fontify-conflict-markers "common-heavy")
+
+(autoload 'find-rec-do "find-files")
+(autoload 'find-rec "find-files")
+(autoload 'find-rec* "find-files")
 
 (provide 'common)
 
