@@ -22,7 +22,7 @@
 (defvar select/selected-item nil
   "Index (number) of selected item")
 (defvar select/items nil
-  "List of possible selections")
+  "Vector of possible selections")
 (defvar select/selection-overlay nil
   "Overlay that displays ")
 (defvar select/selection-buffer nil
@@ -46,7 +46,7 @@ bar
 ---------------
 baz
 <...>")
-(defvar select/predisplay-function #'identity
+(defvar select/item-show-function #'identity
   "This should be a function of one item to be displayed.
 
 Items will be passed to this function before insertion into buffer.")
@@ -63,7 +63,8 @@ Items will be passed to this function before insertion into buffer.")
     (def-keys-for-map kmap
       ("<up>"     select-move-selection-up)
       ("<down>"   select-move-selection-down)
-      ("<return>" select-do-select)
+      ("<return>" select-do-select-same-window)
+      ("SPC"      select-do-select-other-window)
       ("<escape>" select-exit)
       ("q"        select-exit)
       ("C-q"      select-exit))
@@ -90,59 +91,63 @@ Items will be passed to this function before insertion into buffer.")
   )
 
 ;; TODO: add option to use recursive edit?
+;; API for user
 (defun* select-start-selection (items
                                 &key
                                 (buffer-name "Selection")
-                                (after-init #'ignore)
+                                after-init
                                 (on-selection #'ignore)
-                                (predisplay-function
-                                 (lambda (x) (concat x "\n")))
+                                item-show-function
                                 (preamble-function (lambda () ""))
                                 (epilogue-function (lambda () ""))
                                 (separator-function
                                  (lambda ()
                                    (select-make-bold-separator "--------\n"))))
-  "Initiate select session."
+  "Initiate select session.
+
+ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS collection
+and symbol, specifying selection type. Currently, selection type may be either
+'same-window or 'other-window.
+"
   (assert (< 0 (length items)))
-  (let ((win-config (current-window-configuration))
-        (init-win (selected-window))
-        (init-buf (current-buffer)))
-    (with-current-buffer (switch-to-buffer-other-window buffer-name)
-      (select/with-disabled-undo
-       (setf select/selection-buffer (current-buffer))
+  (assert item-show-function)
+  (setf select/init-window-config (current-window-configuration)
+        select/init-window (selected-window)
+        select/init-buffer (current-buffer)
+        ;; display-related items
+        select/item-show-function item-show-function
+        select/preamble-function preamble-function
+        select/epilogue-function epilogue-function
+        select/separator-function separator-function
+        select/on-selection-function on-selection)
+  (with-current-buffer (switch-to-buffer-other-window buffer-name)
+    (select/with-disabled-undo
+      (setf select/selection-buffer (current-buffer))
 
-       (setf select/init-window-config win-config
-             select/init-window init-win
-             select/init-buffer init-buf)
-       (select-mode)
+      (select-mode)
 
-       ;; display-related items
-       (when predisplay-function
-         (setf select/predisplay-function predisplay-function))
-       (when preamble-function
-         (setf select/preamble-function preamble-function))
-       (when epilogue-function
-         (setf select/epilogue-function epilogue-function))
+      (setf select/selection-overlay (make-overlay (point-min) (point-min)))
+      (overlay-put select/selection-overlay
+                   'face
+                   'select-selection-face)
+      (overlay-put select/selection-overlay
+                   'font-lock-face
+                   'select-selection-face)
+      (select-setup-items items 0)
+      (select-render-items)
+      (when after-init
+        (funcall after-init))
 
-       (setf select/separator-function separator-function
-             select/on-selection-function on-selection
-             select/selection-overlay (make-overlay (point-min) (point-min)))
-       (overlay-put select/selection-overlay
-                    'face
-                    'select-selection-face)
-       (overlay-put select/selection-overlay
-                    'font-lock-face
-                    'select-selection-face)
-       (select-setup-items items 0)
-       (select-refresh-items)
-       (funcall after-init)
-
-       (set-buffer-modified-p nil)
-       (setf buffer-read-only t)))))
+      (set-buffer-modified-p nil)
+      (read-only-mode +1)
+      ;; (setf buffer-read-only t)
+      )))
 
 (defun select-setup-items (items selected-item)
   (setf select/selected-item selected-item
-        select/items items
+        select/items (if (listp items)
+                       (select/list->vector items)
+                       items)
         select/item-positions (make-vector (length items) nil)))
 
 
@@ -158,36 +163,34 @@ Items will be passed to this function before insertion into buffer.")
                   end)
     (force-mode-line-update)))
 
-(defun select-refresh-items ()
+(defun select-render-items ()
   "It's assumed that this function is only called inside select buffer."
-  (let ((insert-item
-         (lambda (item)
+  (let ((insert-nth-item
+         (lambda (index item)
            (let ((start (point)))
-             (insert (funcall select/predisplay-function item))
-             (values start (point))))))
+             (insert (funcall select/item-show-function item))
+             (let ((end (point)))
+               (setf (aref select/item-positions index) (cons start end)))))))
     (with-current-buffer select/selection-buffer
       (select/with-disabled-undo
-       (select/with-preserved-buffer-modified-p
-        (select/with-inhibited-read-only
-         (erase-buffer)
-         (goto-char (point-min))
-         (insert (funcall select/preamble-function))
+        (select/with-preserved-buffer-modified-p
+          (select/with-inhibited-read-only
+            (erase-buffer)
+            (goto-char (point-min))
+            (insert (funcall select/preamble-function))
 
-         (multiple-value-bind (start end)
-             (funcall insert-item (car select/items))
-           (setf (aref select/item-positions 0) (cons start end)))
-         (let ((sep (when select/separator-function
-                      (funcall select/separator-function))))
-           (loop
-             for i from 1
-             for item in (cdr select/items)
-             do (when sep (insert sep))
-             (multiple-value-bind (start end)
-                 (funcall insert-item item)
-               (setf (aref select/item-positions i) (cons start end)))))
-         (insert (funcall select/epilogue-function))
-         (select/move-selection-to select/selected-item)))))))
-
+            (funcall insert-nth-item 0 (elt select/items 0))
+            (let ((sep (when select/separator-function
+                         (funcall select/separator-function)))
+                  (i 1))
+              (loop
+                for i from 1 to (- (length select/items) 1)
+                do
+                (let ((item (elt select/items i)))
+                  (when sep (insert sep))
+                  (funcall insert-nth-item i item))))
+            (insert (funcall select/epilogue-function))
+            (select/move-selection-to select/selected-item)))))))
 
 (defun select/update-selected-item ()
   "Set selected item based on the point position inside buffer."
@@ -214,7 +217,6 @@ Items will be passed to this function before insertion into buffer.")
         (select/move-selection-to select/selected-item :move-point nil))
       (move-overlay select/selection-overlay (point-min) (point-min)))))
 
-
 (defun select-move-selection-up ()
   (interactive)
   (setf select/selected-item
@@ -231,11 +233,18 @@ Items will be passed to this function before insertion into buffer.")
           (+ select/selected-item 1)))
   (select/move-selection-to select/selected-item))
 
-(defun select-do-select ()
-  (interactive)
+(defun select-do-select (selection-type)
   (if select/on-selection-function
-    (funcall select/on-selection-function select/selected-item)
+    (funcall select/on-selection-function select/selected-item selection-type)
     (error "No on-selection function defined")))
+
+(defun select-do-select-same-window ()
+  (interactive)
+  (select-do-select 'same-window))
+
+(defun select-do-select-other-window ()
+  (interactive)
+  (select-do-select 'other-window))
 
 (defun select-finish-selection ()
   (when select/selection-buffer
@@ -255,7 +264,7 @@ Items will be passed to this function before insertion into buffer.")
             select/selection-buffer      nil
 
             select/separator-function    err
-            select/predisplay-function   err
+            select/item-show-function    err
             select/on-selection-function err
             select/preamble-function     err
             select/epilogue-function     err))))
@@ -322,6 +331,9 @@ START is inclusive and END is exclusive in ITEMS."
               (t
                (setf start (+ mid 1))))))
     start))
+
+(defsubst select/list->vector (items)
+  (coerce items 'vector))
 
 (provide 'select-mode)
 
