@@ -269,6 +269,8 @@ or not.")
 (load-library "p4-setup")
 (load-library "company-mode-setup")
 
+(autoload 'egrep "egrep" nil t)
+
 ;; load keys after everything to ensure that nothing will be rebond
 ;; after it finishes
 (load-library "keys")

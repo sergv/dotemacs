@@ -199,92 +199,58 @@ as accepted by `bounds-of-thing-at-point'.")
               ;; I'm not entirely sure where duplicates come from, but it's cheap
               ;; to remove them and at the same time I'm reluctant to tweak my
               ;; Emacs because of it's dynamically-typed lisp.
-              (remove-duplicates-from-sorted-list-by
-               (lambda (a b)
-                 ;; compare results of tag->string
-                 (string= (funcall entry-string a) (funcall entry-string b)))
-               (sort
-                ;; (loop
-                ;;   for project in (cons proj
-                ;;                        (eproj-get-all-related-projects proj))
-                ;;   for check = (rest-safe
-                ;;                (assq effective-major-mode
-                ;;                      (eproj-project/tags project)))
-                ;;   if check
-                ;;   nconc
-                ;;   (loop
-                ;;     with identifiers =
-                ;;     (if use-regexp
-                ;;       (-concat
-                ;;        (hash-table-entries-matching-re it identifier))
-                ;;       (gethash identifier it nil))
-                ;;     for tag in identifiers
-                ;;     collect (cons tag
-                ;;                   (funcall tag->string tag))))
-                (-map (lambda (tag-entry)
-                        (destructuring-bind (tag . tag-proj)
-                            tag-entry
-                          (list tag
-                                (funcall tag->string tag tag-proj)
-                                tag-proj)))
-                      (eproj-get-matching-tags proj
-                                               effective-major-mode
-                                               identifier
-                                               use-regexp))
-                ;; (-map (lambda (tag-entry)
-                ;;         (destructuring-bind (tag . tag-proj)
-                ;;             tag-entry
-                ;;           (list tag
-                ;;                 (funcall tag->string tag tag-proj)
-                ;;                 tag-proj)))
-                ;;       (-mapcat (lambda (proj)
-                ;;                  (aif (rest-safe
-                ;;                        (assq effective-major-mode
-                ;;                              (eproj-project/tags proj)))
-                ;;                    (-map (lambda (tag)
-                ;;                            (cons tag proj))
-                ;;                          (if use-regexp
-                ;;                            (-concat
-                ;;                             (hash-table-entries-matching-re it identifier))
-                ;;                            (gethash identifier it nil)))
-                ;;                    nil))
-                ;;                (cons proj
-                ;;                      (eproj-get-all-related-projects proj))))
+              (list->vector
+               (remove-duplicates-from-sorted-list-by
                 (lambda (a b)
                   ;; compare results of tag->string
-                  (string< (funcall entry-string a) (funcall entry-string b)))))))
-        (cond ((null entries)
-               (error "No entries for %s %s"
-                      (if use-regexp "regexp" "identifier")
-                      identifier))
-              ((null (cdr entries))
-               (funcall jump-to-home
-                        (funcall entry-tag (car entries))
-                        (funcall entry-proj (car entries))))
-              (t
-               (let ((kmap (make-sparse-keymap)))
-                 (def-keys-for-map kmap
-                   ("SPC" (lambda () (interactive)
-                            (let ((entry (elt entries (select-get-selected-index))))
-                              (eproj-symbnav/show-entry-in-other-window
-                               (funcall entry-tag entry)
-                               (funcall entry-proj entry))))))
-                 (select-start-selection
-                  entries
-                  :buffer-name "Symbol homes"
-                  :after-init (lambda ()
-                                (select-extend-keymap kmap))
-                  :on-selection
-                  (lambda (idx)
-                    (select-exit)
-                    (let ((entry (elt entries idx)))
-                      (funcall jump-to-home
-                               (funcall entry-tag entry)
-                               (funcall entry-proj entry))))
-                  :predisplay-function
-                  entry-string
-                  :preamble-function
-                  (lambda () "Choose symbol\n\n")))))))))
+                  (string= (funcall entry-string a) (funcall entry-string b)))
+                (sort
+                 (-map (lambda (tag-entry)
+                         (destructuring-bind (tag . tag-proj)
+                             tag-entry
+                           (list tag
+                                 (funcall tag->string tag tag-proj)
+                                 tag-proj)))
+                       (eproj-get-matching-tags proj
+                                                effective-major-mode
+                                                identifier
+                                                use-regexp))
+                 (lambda (a b)
+                   ;; compare results of tag->string
+                   (string< (funcall entry-string a) (funcall entry-string b))))))))
+        (pcase (length entries)
+          (`0
+           (error "No entries for %s %s"
+                  (if use-regexp "regexp" "identifier")
+                  identifier))
+          (`1
+           (funcall jump-to-home
+                    (funcall entry-tag (elt entries 0))
+                    (funcall entry-proj (elt entries 0))))
+          (_
+           (let ((kmap (make-sparse-keymap)))
+             (def-keys-for-map kmap
+               ("SPC" (lambda () (interactive)
+                        (let ((entry (elt entries (select-get-selected-index))))
+                          (eproj-symbnav/show-entry-in-other-window
+                           (funcall entry-tag entry)
+                           (funcall entry-proj entry))))))
+             (select-start-selection
+              entries
+              :buffer-name "Symbol homes"
+              :after-init (lambda ()
+                            (select-extend-keymap kmap))
+              :on-selection
+              (lambda (idx selection-type)
+                (select-exit)
+                (let ((entry (elt entries idx)))
+                  (funcall jump-to-home
+                           (funcall entry-tag entry)
+                           (funcall entry-proj entry))))
+              :item-show-function
+              entry-string
+              :preamble-function
+              (lambda () "Choose symbol\n\n")))))))))
 
 (defun eproj-symbnav/go-back ()
   (interactive)
