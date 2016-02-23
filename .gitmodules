@@ -146,3 +146,6 @@
 [submodule "third-party/f.el"]
 	path = third-party/f.el
 	url = https://github.com/rejeep/f.el.git
+[submodule "third-party/with-editor"]
+	path = third-party/with-editor
+	url = https://github.com/magit/with-editor.git
