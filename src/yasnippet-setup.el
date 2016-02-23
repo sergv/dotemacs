@@ -163,7 +163,7 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
        "Solution to problem of `org-fix-tags-on-the-fly' being called after
 every org-self-insert-command when yasnippet's field happens to be located
 in org's headline."
-       (yas--inhibit-overlay-hooks
+       (let ((yas--inhibit-overlay-hooks t))
          ad-do-it))))
 
 (defvar-local yas-expand-fallback
