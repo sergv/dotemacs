@@ -678,48 +678,48 @@ return nil otherwise."
   "Select next error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (unless (buffer-live-p (get-buffer haskell-compilation-buffer))
+  (if (buffer-live-p (get-buffer haskell-compilation-buffer))
+    (let ((win (get-buffer-window haskell-compilation-buffer
+                                  t ;; all-frames
+                                  )))
+      (if (window-live-p win)
+        (if-let (err (with-selected-window win
+                       (with-current-buffer haskell-compilation-buffer
+                         (compilation-jump-to-next-error)
+                         (compilation/get-selected-error))))
+          (compilation/jump-to-error err nil)
+          (ghc-goto-next-error)
+          ;; (error "No errors found in compilation buffer")
+          )
+        (ghc-goto-next-error)
+        ))
     (ghc-goto-next-error)
     ;; (error "Buffer %s is not live" haskell-compilation-buffer)
-    )
-  (let ((win (get-buffer-window haskell-compilation-buffer
-                                t ;; all-frames
-                                )))
-    (if (window-live-p win)
-      (if-let (err (with-selected-window win
-                     (with-current-buffer haskell-compilation-buffer
-                       (compilation-jump-to-next-error)
-                       (compilation/get-selected-error))))
-        (compilation/jump-to-error err nil)
-        (ghc-goto-next-error)
-        ;; (error "No errors found in compilation buffer")
-        )
-      (ghc-goto-next-error)
-      )))
+    ))
 
 (defun haskell-compilation-prev-error-other-window ()
   "Select previous error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (unless (buffer-live-p (get-buffer haskell-compilation-buffer))
+  (if (buffer-live-p (get-buffer haskell-compilation-buffer))
+    (let ((win (get-buffer-window haskell-compilation-buffer
+                                  t ;; all-frames
+                                  )))
+      (if (window-live-p win)
+        (if-let (err
+                 (with-selected-window win
+                   (with-current-buffer haskell-compilation-buffer
+                     (compilation-jump-to-prev-error)
+                     (compilation/get-selected-error))))
+          (compilation/jump-to-error err nil)
+          (ghc-goto-prev-error)
+          ;; (error "No errors found in compilation buffer")
+          )
+        (ghc-goto-prev-error)
+        ))
     (ghc-goto-prev-error)
     ;; (error "Buffer %s is not live" haskell-compilation-buffer)
-    )
-  (let ((win (get-buffer-window haskell-compilation-buffer
-                                t ;; all-frames
-                                )))
-    (if (window-live-p win)
-      (if-let (err
-               (with-selected-window win
-                 (with-current-buffer haskell-compilation-buffer
-                   (compilation-jump-to-prev-error)
-                   (compilation/get-selected-error))))
-        (compilation/jump-to-error err nil)
-        (ghc-goto-prev-error)
-        ;; (error "No errors found in compilation buffer")
-        )
-      (ghc-goto-prev-error)
-      )))
+    ))
 
 (defun show-ghc-mod-errors-or-switch-to-haskell ()
   (interactive)
