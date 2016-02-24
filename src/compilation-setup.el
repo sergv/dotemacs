@@ -48,8 +48,15 @@ in compilation or related buffers")
 
 ;;; compilation info
 
+(defstruct (compilation-caller-info
+            (:conc-name compilation-caller-info/))
+  mode   ;; Mode from which compilation was started.
+  compile-command
+  buffer ;; Buffer from where compilation was started.
+  )
+
 (defparameter *compile-caller-info* nil
-  "Alist containing information about buffer, major mode etc.
+  "Structure containing information about buffer, major mode etc.
 from where current compile command was invoked. Should be cleared
 up by functions in compilation-finish-functions.")
 
@@ -59,9 +66,12 @@ up by functions in compilation-finish-functions.")
                               compile)
   "Record information about caller of compile command into
 `*compile-caller-info*'"
-  (setf *compile-caller-info* `((mode . ,major-mode)
-                                (compile-command . ,compile-command)
-                                (buffer . ,(current-buffer)))))
+  (setf *compile-caller-info*
+        (make-compilation-caller-info
+         :mode major-mode
+         :compile-command compile-command
+         :buffer (current-buffer)
+         )))
 
 (defstruct (compilation-error
             (:conc-name compilation-error/))
