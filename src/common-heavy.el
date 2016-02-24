@@ -399,6 +399,21 @@ If MODE is nil - fontify in current buffer."
            eol)
       0 'warning t))))
 
+(defun resolve-obs-or-rel-filename (path dir)
+  "Try to come up with filename that refers to existing file and contains
+PATH and, maybe, DIR as it's parts."
+  (if (or (file-exists-p path)
+          (file-directory-p path))
+    path
+    (if (file-name-absolute-p path)
+      (error "Non-existing absolute file name: %s, probably something went wrong" path)
+      (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
+        (if (or (file-exists-p abs-path)
+                (file-directory-p abs-path))
+          abs-path
+          (error "File %s does not exist, try `eproj-update-buffer-project'"
+                 abs-path))))))
+
 ;;;
 
 (provide 'common-heavy)
