@@ -51,7 +51,8 @@ All predicates are called with full absolute paths."
   (let* ((accum nil)
          (record-path (lambda (path) (push path accum))))
     (find-rec-do
-     :filep file
+     path
+     :filep filep
      :dirp dirp
      :do-not-visitp do-not-visitp
      :file-action record-path
