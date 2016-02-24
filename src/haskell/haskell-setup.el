@@ -174,6 +174,7 @@
   (vim:local-emap "hlint"    'vim:haskell-lint)
   (vim:local-emap "load"     'vim:haskell-load-file-into-repl)
   (vim:local-emap "lo"       'vim:haskell-load-file-into-repl)
+  (vim:local-emap "l"        'vim:haskell-load-file-into-repl)
   ;; ghc-mod commands
   (vim:local-emap "init"     'vim:haskell-ghc-init)
   (vim:local-emap "check"    'vim:haskell-ghc-check)
@@ -183,7 +184,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("\\"      vim:haskell-ghc-check)
-    ("j"       inferior-haskell-send-decl)
+    ("j"       vim:haskell-load-file-into-repl)
     ("g c c"   haskell-comment-node)
     ("+"       input-unicode)
     ("SPC SPC" show-ghc-mod-errors-or-switch-to-haskell)
