@@ -1823,6 +1823,7 @@ F will be called."
 (autoload 'transpose-windows "common-heavy" nil t)
 (autoload 'narrow-to-region-indirect "common-heavy" nil t)
 (autoload 'fontify-conflict-markers "common-heavy")
+(autoload 'resolve-obs-or-rel-filename "common-heavy")
 
 (autoload 'find-rec-do "find-files")
 (autoload 'find-rec "find-files")
