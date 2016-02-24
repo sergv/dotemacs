@@ -63,6 +63,12 @@ up by functions in compilation-finish-functions.")
                                 (compile-command . ,compile-command)
                                 (buffer . ,(current-buffer)))))
 
+(defstruct (compilation-error
+            (:conc-name compilation-error/))
+  compilation-root-directory
+  filename
+  line-number
+  column-number)
 
 (defun compilation/parse-matched-error-entry (entry)
   "Parse ENTRY and return (<filename> [<line>] [<column>]) of previously matched
@@ -77,18 +83,35 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
           (funcall strip-cons (car-safe (cdr-safe (cdr entry)))))
          (column-group
           (funcall strip-cons (car-safe (cdr-safe (cdr-safe (cdr entry)))))))
-    (values (normalize-file-name (match-string-no-properties file-group))
-            (when (and (not (null? line-group))
-                       ;; it turns out that someone may put lambdas here,
-                       ;; e.g. grep...
-                       (integer? line-group))
-              (string->number (match-string-no-properties line-group)))
-            (when (and (not (null? column-group))
-                       ;; it turns out that someone may put lambdas here,
-                       ;; e.g. grep...
-                       (integer? column-group))
-              (- (string->number (match-string-no-properties column-group))
-                 compilation-first-column)))))
+    ;; (values (normalize-file-name (match-string-no-properties file-group))
+    ;;         (when (and (not (null? line-group))
+    ;;                    ;; it turns out that someone may put lambdas here,
+    ;;                    ;; e.g. grep...
+    ;;                    (integer? line-group))
+    ;;           (string->number (match-string-no-properties line-group)))
+    ;;         (when (and (not (null? column-group))
+    ;;                    ;; it turns out that someone may put lambdas here,
+    ;;                    ;; e.g. grep...
+    ;;                    (integer? column-group))
+    ;;           (- (string->number (match-string-no-properties column-group))
+    ;;              compilation-first-column)))
+    (make-compilation-error
+     :compilation-root-directory default-directory
+     :filename
+     (normalize-file-name (match-string-no-properties file-group))
+     :line-number
+     (when (and (not (null? line-group))
+                ;; it turns out that someone may put lambdas here,
+                ;; e.g. grep...
+                (integer? line-group))
+       (string->number (match-string-no-properties line-group)))
+     :column-number
+     (when (and (not (null? column-group))
+                ;; it turns out that someone may put lambdas here,
+                ;; e.g. grep...
+                (integer? column-group))
+       (- (string->number (match-string-no-properties column-group))
+          compilation-first-column)))))
 
 (defun compilation/get-selected-error ()
   "Return filename, line and column for error or warning on current line
@@ -107,7 +130,7 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
                                 compilation-error-regexp-alist))
         (compilation/parse-matched-error-entry entry)))))
 
-(defun compilation/find-buffer (filename)
+(defun compilation/find-buffer (filename compilation-directory)
   "Get buffer that corresponds to FILENAME, which may be neither full nor relative
 path, in which case filename with suffix equal to FILENAME will be tried."
   (assert (not (= 0 (length filename))))
@@ -115,25 +138,26 @@ path, in which case filename with suffix equal to FILENAME will be tried."
                   (string-suffix? filename (buffer-file-name buf)))
                 (visible-buffers))
     it
-    (when (file-exists? filename)
-      (aif (get-file-buffer filename)
+    (let ((resolved-filename (resolve-obs-or-rel-filename filename compilation-directory)))
+      (aif (get-file-buffer resolved-filename)
         it
-        (find-file-noselect filename)))))
+        (find-file-noselect resolved-filename)))))
 
 (defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing
 error location - list of (filename line column)."
-  (destructuring-bind (filename line column) err
-    (aif (compilation/find-buffer filename)
+  (let ((filename (compilation-error/filename err)))
+    (aif (compilation/find-buffer filename
+                                  (compilation-error/compilation-root-directory err))
       (funcall (if other-window
                  #'switch-to-buffer-other-window
                  #'switch-to-buffer)
                it)
-      (error "File %s not found" filename))
+      (error "Buffer for file %s not found" filename))
     (vim:save-position)
-    (goto-line line)
-    (when column
-      (move-to-column column))))
+    (goto-line (compilation-error/line-number err))
+    (awhen (compilation-error/column-number err)
+      (move-to-column it))))
 
 (defun compilation/goto-error ()
   "Jump to location of error or warning (file, line and column) in current window."

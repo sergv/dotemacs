@@ -946,17 +946,7 @@ AUX-INFO is expected to be a list of zero or more constructs:
 ;; whether it's existing file relative to DIR and return that. Report error if
 ;; both conditions don't hold.
 (defun-caching eproj-resolve-abs-or-rel-name (path dir) eproj-resolve-abs-or-rel-name/reset-cache (path dir)
-  (if (or (file-exists-p path)
-          (file-directory-p path))
-    path
-    (if (file-name-absolute-p path)
-      (error "Non-existing absolute file name: %s, probably something went wrong" path)
-      (let ((abs-path (concat (eproj-normalize-file-name dir) "/" path)))
-        (if (or (file-exists-p abs-path)
-                (file-directory-p abs-path))
-          abs-path
-          (error "File %s does not exist, try `eproj-update-buffer-project'"
-                 abs-path))))))
+  (resolve-obs-or-rel-filename path dir))
 
 (defun-caching eproj-normalize-file-name (path) eproj-normalize-file-name/reset-cache (path)
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
