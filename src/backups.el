@@ -43,10 +43,8 @@
   (unless (file-name-absolute-p abs-filename)
     (error "b/make-backup-name: error: absolute filename expected"))
   (let* ((file (file-name-nondirectory abs-filename))
-         (time (format-time-string (if (platform-os-type? 'linux)
-                                     "%H:%M %d %b %Y"
-                                     "%H_%M %d %b %Y")))
-         (half-name (concat file " - " time " - "))
+         (time (format-time-string "%Y-%m-%d %H-%M"))
+         (half-name (concat file " " time " "))
          (extension ".bak")
          ;; we have to deal with utf8 strings and limit of
          ;; 256 bytes (on ext4) of filename length, so
@@ -60,7 +58,7 @@
       (setq directory (b/shorten-path-from-root directory)))
     (concat half-name
             (if (platform-os-type? 'linux)
-              (replace-regexp-in-string "/" ":" directory)
+              (replace-regexp-in-string "/" "%" directory)
               nil)
             extension)))
 
