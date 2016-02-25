@@ -183,7 +183,7 @@ then Bar would be the result."
                                    haskell-abbrev+/language-pragma-prefix
                                    haskell-extensions))
          (pragma-snippet (format "{-# ${1:$\$(yas-choose-value '%S)} $2 #-}$0"
-                                 haskell-completions-pragma-names))
+                                 haskell-completions--pragma-names))
          (ghc-flags (-map (lambda (x)
                             (cond
                               ((string? x)
