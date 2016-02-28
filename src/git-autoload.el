@@ -121,6 +121,7 @@
 (autoload 'magit-mode "magit" nil t)
 (autoload 'magit-process-mode "magit" nil t)
 
+(autoload 'magit-blame "magit-blame" nil t)
 (autoload 'magit-blame-mode "magit-blame" nil t)
 (autoload 'magit-popup-mode "magit-popup")
 (autoload 'magit-popup-sequence-mode "magit-popup")
