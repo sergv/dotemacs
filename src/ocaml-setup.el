@@ -69,6 +69,7 @@
              :sp-slurp-sexp-insert-space nil)
   (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
+    ("C-SPC"      vim:comint-clear-buffer-above-prompt)
     ("<return>"   ocaml-interactive-send-input)
     ("C-<return>" sp-newline)
     ("SPC SPC"    comint-clear-prompt)
