@@ -467,31 +467,30 @@ has been pressed."
 (defun vim:ex-execute-command (cmdline)
   "Called to execute the current command."
   (interactive)
-  (multiple-value-bind (range cmd spaces arg beg end force)
+  (multiple-value-bind (range cmd spaces arg start-line end-line force)
       (vim:ex-split-cmdline cmdline)
     (setq vim:ex-cmd cmd)
     (setf arg (vim:strip-ex-info arg))
     (let ((cmd vim:ex-cmd)
           (motion (cond
-                    ((and beg end)
+                    ((and start-line end-line)
                      (vim:make-motion :begin (save-excursion
-                                               (goto-line1 beg)
+                                               (goto-line start-line)
                                                (line-beginning-position))
                                       :end (save-excursion
-                                             (goto-line1 end)
+                                             (goto-line end-line)
                                              (line-beginning-position))
                                       :has-begin t
                                       :type 'linewise))
-                    (beg
-                     (vim:make-motion :begin (save-excursion
-                                               (goto-line1 beg)
-                                               (line-beginning-position))
-                                      :end (save-excursion
-                                             (goto-line1 beg)
-                                             (line-beginning-position))
-                                      :has-begin t
-                                      :type 'linewise))))
-          (count (and (not end) beg)))
+                    (start-line
+                     (let ((beg-pos (save-excursion
+                                      (goto-line start-line)
+                                      (line-beginning-position))))
+                       (vim:make-motion :begin beg-pos
+                                        :end beg-pos
+                                        :has-begin t
+                                        :type 'linewise)))))
+          (count (and (not end-line) start-line)))
       (setq cmd (vim:ex-binding cmd))
       (when (zerop (length arg))
         (setq arg nil))
@@ -509,7 +508,7 @@ has been pressed."
                (`complex (setq parameters
                                (cons :motion (cons motion parameters))))
                (`simple
-                (when end
+                (when end-line
                   (error "Command does not take a range: %s" vim:ex-cmd))
                 (when (vim:cmd-count-p cmd)
                   (setq parameters
@@ -520,8 +519,8 @@ has been pressed."
                                            parameters)))))
                (_ (error "Unexpected command-type bound to %s" vim:ex-cmd)))
              (apply cmd parameters))
-            (beg
-             (vim:motion-go-to-first-non-blank-beg :count (or end beg)))
+            (start-line
+             (vim:motion-go-to-first-non-blank-beg :count (or end-line start-line)))
             (t
              (error "Unknown command: %s" vim:ex-cmd))))))))
 
