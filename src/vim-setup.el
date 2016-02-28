@@ -285,10 +285,10 @@ Basically swap current point with previous one."
     (deactivate-mark)
     (run-if-fbound vim:visual-mode-exit))
   (awk-on-region (if motion
-                   (vim:motion-begin motion)
+                   (vim:motion-begin-pos motion)
                    (line-beginning-position))
                  (if motion
-                   (vim:motion-end motion)
+                   (vim:motion-end-pos motion)
                    (line-end-position))))
 
 (vim:emap "awk" 'vim:start-awk)
@@ -339,10 +339,10 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:remove-tabs (motion nonrepeatable)
   (remove-tabs (if motion
-                 (vim:motion-begin motion)
+                 (vim:motion-begin-pos motion)
                  (line-beginning-position))
                (if motion
-                 (vim:motion-end motion)
+                 (vim:motion-end-pos motion)
                  (line-end-position))))
 
 (vim:emap "no-tabs" 'vim:remove-tabs)
@@ -350,10 +350,10 @@ Basically swap current point with previous one."
 (vim:defcmd vim:narrow-to-region-indirect (motion nonrepeatable)
   (narrow-to-region-indirect
    (if motion
-     (vim:motion-begin motion)
+     (vim:motion-begin-pos motion)
      (point-min))
    (if motion
-     (vim:motion-end motion)
+     (vim:motion-end-pos motion)
      (point-max))))
 
 (vim:emap "narrow-indirect" 'vim:narrow-to-region-indirect)
@@ -475,7 +475,6 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:revert-buffer (nonrepeatable)
   (revert-buffer))
-
 
 (vim:defcmd vim:comint-clear-buffer-above-prompt (nonrepeatable)
   (comint-clear-buffer-above-prompt))
