@@ -481,21 +481,22 @@ greater indenation as current line."
 
   (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
 
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC"  comint-clear-prompt))
+
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("M-p"        browse-comint-input-history)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("M-p"      browse-comint-input-history)
 
-    ("<up>"       comint-previous-input)
-    ("<down>"     comint-next-input)
-    ("C-<up>"     comint-previous-prompt)
-    ("C-<down>"   comint-next-prompt)
-    ("S-<up>"     comint-previous-prompt)
-    ("S-<down>"   comint-next-prompt)
+    ("<up>"     comint-previous-input)
+    ("<down>"   comint-next-input)
+    ("C-<up>"   comint-previous-prompt)
+    ("C-<down>" comint-next-prompt)
+    ("S-<up>"   comint-previous-prompt)
+    ("S-<down>" comint-next-prompt)
 
-    ("<tab>"      python-complete))
-
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"    comint-clear-prompt)))
+    ("<tab>"    python-complete)))
 
 ;;; end
 

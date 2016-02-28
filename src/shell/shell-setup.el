@@ -56,6 +56,7 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      shell-mode-map)
+    ("C-SPC"     vim:comint-clear-buffer-above-prompt)
     ("<tab>"     pcomplete)
 
     ("M-p"       browse-comint-input-history)

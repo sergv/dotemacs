@@ -65,6 +65,7 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      prolog-inferior-mode-map)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
