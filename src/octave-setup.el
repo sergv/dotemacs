@@ -424,6 +424,7 @@ in GROUP-NUMS."
   (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
 
   (def-keys-for-map inferior-octave-mode-map
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
     ("M-/"      comint-dynamic-complete)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

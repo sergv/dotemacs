@@ -310,22 +310,23 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      inferior-haskell-mode-map)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
     ("M-p"      browse-comint-input-history)
     ("<return>" inf-haskell-send-input-or-jump-to-error))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("- t"     haskell-type)
-    ("- i"     haskell-info)
-    ("- h"     haskell-haddock-identifier)
-    ("- m"     haskell-haddock-module)
-    ("- g"     haskell-hoogle-at-point)
-    ("- y"     haskell-hayoo-at-point))
+    ("- t" haskell-type)
+    ("- i" haskell-info)
+    ("- h" haskell-haddock-identifier)
+    ("- m" haskell-haddock-module)
+    ("- g" haskell-hoogle-at-point)
+    ("- y" haskell-hayoo-at-point))
 
   (def-keys-for-map inferior-haskell-mode-map
-    ("C-w"      backward-delete-word)
-    ("C-S-w"    backward-delete-word*)
-    ("<tab>"    nil)
+    ("C-w"   backward-delete-word)
+    ("C-S-w" backward-delete-word*)
+    ("<tab>" nil)
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
@@ -362,7 +363,8 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      haskell-interactive-mode-map)
-    ("M-p" browse-comint-input-history))
+    ("C-SPC" vim:comint-clear-buffer-above-prompt)
+    ("M-p"   browse-comint-input-history))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      haskell-interactive-mode-map)
