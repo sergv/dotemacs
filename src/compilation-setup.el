@@ -90,9 +90,9 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
                          (car x)
                          x)))
          (line-group
-          (funcall strip-cons (car-safe (cdr-safe (cdr entry)))))
+          (funcall strip-cons (cadr-safe (cdr entry))))
          (column-group
-          (funcall strip-cons (car-safe (cdr-safe (cdr-safe (cdr entry)))))))
+          (funcall strip-cons (cadr-safe (cdr-safe (cdr entry))))))
     ;; (values (normalize-file-name (match-string-no-properties file-group))
     ;;         (when (and (not (null? line-group))
     ;;                    ;; it turns out that someone may put lambdas here,
@@ -110,34 +110,42 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
      :filename
      (normalize-file-name (match-string-no-properties file-group))
      :line-number
-     (when (and (not (null? line-group))
+     (when (and line-group
                 ;; it turns out that someone may put lambdas here,
                 ;; e.g. grep...
                 (integer? line-group))
-       (string->number (match-string-no-properties line-group)))
+       (awhen (match-string-no-properties line-group)
+         (string->number it)))
      :column-number
-     (when (and (not (null? column-group))
+     (when (and column-group
                 ;; it turns out that someone may put lambdas here,
                 ;; e.g. grep...
                 (integer? column-group))
-       (- (string->number (match-string-no-properties column-group))
-          compilation-first-column)))))
+       (awhen (match-string-no-properties column-group)
+         (- (string->number it)
+            compilation-first-column))))))
 
 (defun compilation/get-selected-error ()
   "Return filename, line and column for error or warning on current line
 \(i.e. the selected one), depending on `compilation-error-regexp-alist'."
   (save-excursion
     (save-match-data
-      (when-let (entry (find-if (lambda (alist-entry)
+      (when-let (entry (find-if (lambda (entry)
                                   (save-excursion
-                                    (let ((regexp (car alist-entry)))
+                                    (let ((regexp (car entry)))
                                       (when (< 0 (length regexp))
-                                        ;; a bit hacky beginning-of-line call
-                                        (when (char=? (aref regexp 0) ?^)
-                                          (beginning-of-line))
-                                        (looking-at regexp)))))
-                                ;; (comp #'looking-at #'car)
-                                compilation-error-regexp-alist))
+                                        (or (looking-at regexp)
+                                            (progn
+                                              (beginning-of-line)
+                                              (looking-at regexp)))))))
+                                (-map (lambda (entry)
+                                        (if (symbolp entry)
+                                          (cdr-safe
+                                           (assq
+                                            entry
+                                            compilation-error-regexp-alist-alist))
+                                          entry))
+                                      compilation-error-regexp-alist)))
         (compilation/parse-matched-error-entry entry)))))
 
 (defun compilation/find-buffer (filename compilation-directory)
