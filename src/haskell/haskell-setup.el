@@ -391,15 +391,6 @@
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
     ("G"        vim-mock:motion-go-to-first-non-blank-end)))
 
-(defun haskell-compilation-setup ()
-  (setq-local *compilation-jump-error-regexp*
-              +haskell-compile-error-or-warning-regexp+)
-  (def-keys-for-map haskell-compilation-mode-map
-    ("<return>" compilation/goto-error)
-    ("SPC"      compilation/goto-error-other-window)
-    ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
-    ("G"        vim-mock:motion-go-to-first-non-blank-end)))
-
 (defun ghc-check-mode-setup ()
   (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil :use-fci nil)
   (def-keys-for-map vim:normal-mode-local-keymap
