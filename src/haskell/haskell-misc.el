@@ -236,8 +236,11 @@ and indent them as singe line."
         haskell-process-args-stack-ghci ghc-options))
 
 (defconst +haskell-compile-error-or-warning-regexp+
-  (join-lines (--map (concat "\\(?:" (car it) "\\)")
-                     haskell-compilation-error-regexp-alist)
+  (join-lines (append
+               (--map (concat "\\(?:" (car it) "\\)")
+                      haskell-compilation-error-regexp-alist)
+               (--map (concat "\\(?:" (second it) "\\)")
+                      compilation-error-regexp-alist-alist))
               "\\|")
   "Regexp matching both errors and warnings.")
 
