@@ -479,6 +479,25 @@ Basically swap current point with previous one."
 (vim:defcmd vim:comint-clear-buffer-above-prompt (nonrepeatable)
   (comint-clear-buffer-above-prompt))
 
+(vim:defcmd vim:shell-command-on-region (motion nonrepeatable (argument:text command))
+  (let ((buf (current-buffer)))
+    (shell-command-on-region
+     (if motion
+       (vim:motion-begin-pos motion)
+       (line-beginning-position))
+     (if motion
+       (vim:motion-end-pos motion)
+       (line-end-position))
+     command
+     nil ;; output buffer
+     t   ;; replace
+     )
+    (when (and (not (file-exists? buffer-file-name))
+               (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
+      (kill-buffer buf))))
+
+(vim:emap "!" 'vim:shell-command-on-region)
+
 (provide 'vim-setup)
 
 ;; Local Variables:
