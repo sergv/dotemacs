@@ -83,6 +83,12 @@
 (defparameter vim:global-marks-alist nil
   "Global marks.")
 
+;; Definitions of custom errors
+
+(define-error 'vim/end-of-buffer "End of buffer")
+(define-error 'vim/beginning-of-buffer "Beginning of buffer")
+(define-error 'vim/no-such-object "No such object")
+
 (defun vim:local-mark-p (mark-char)
   "Returns t if `mark-char' is a local mark."
   (or (and (>= mark-char ?a) (<= mark-char ?z))
@@ -96,29 +102,22 @@
 
 (defun vim:special-mark-p (mark-char)
   "Returns t if `mark-char' is one of the special marks ( ) { }."
-  (member mark-char '(?\( ?\) ?{ ?})))
+  (member mark-char '(?\( ?\) ?\{ ?\})))
 
 (defconst vim:special-mark-functions-alist
   '((?\( . vim:motion-bwd-sentence)
     (?\) . vim:motion-fwd-sentence)
-    (?{  . vim:motion-bwd-paragraph)
-    (?}  . vim:motion-fwd-paragraph))
+    (?\{ . vim:motion-bwd-paragraph)
+    (?\} . vim:motion-fwd-paragraph))
   "Assocative list for special marks to corresponding functions.")
 
-;; my function
 (defsubst vim:save-position (&optional pos)
   "Save position to ' mark register."
-  ;; (vim:set-mark ?g pos)
-  ;; (vim:set-mark ?G pos)
-  (vim:set-mark ?' pos)
-  ;; (vim:set-mark ?` pos)
-  )
+  (vim:set-mark ?' pos))
 
 (defsubst vim:save-in-function-position (&optional pos)
   "Save position in function."
-  (vim:save-position pos)
-  ;; (vim:set-mark ?d pos)
-  )
+  (vim:save-position pos))
 
 (defun vim:set-mark (mark-char &optional pos)
   "Sets the mark `mark-char' to `pos' or (point)."
@@ -502,7 +501,7 @@ contained in the first text-object before or at point."
         ;; can't move further if already at the end of buffer
         (when (and (not (vim:operator-pending-mode-p))
                    (>= start (1- (point-max))))
-          (signal 'end-of-buffer nil))
+          (signal 'vim/end-of-buffer nil))
         ;; go to the end of the (possibly) current object
         (let ((pos (funcall boundary 'fwd)))
           (if pos (goto-char pos)
@@ -533,7 +532,7 @@ contained in the first text-object before or at point."
   (when (> n 0)
     (when (and (not (vim:operator-pending-mode-p))
                (>= (point) (1- (point-max))))
-      (signal 'end-of-buffer nil))
+      (signal 'vim/end-of-buffer nil))
     (dotimes (i n)
       (if linewise (forward-line) (forward-char))
       (goto-char (or (funcall boundary 'fwd) (point-max))))))
@@ -547,7 +546,7 @@ contained in the first text-object after or at point. If the
 parameter is 'bwd the function should return the first position
 contained in the first text-object before or at point."
   (when (> n 0)
-    (when (bobp) (signal 'beginning-of-buffer nil))
+    (when (bobp) (signal 'vim/beginning-of-buffer nil))
     (dotimes (i n)
       (if linewise (forward-line -1) (backward-char))
       (goto-char (or (funcall boundary 'bwd) (point-min))))))
@@ -564,7 +563,7 @@ contained in the first text-object before or at point."
     (when (> n 0)
       (let ((start (point)))
         ;; can't move further if already at the beginning of buffer
-        (when (eobp) (signal 'beginning-of-buffer nil))
+        (when (eobp) (signal 'vim/beginning-of-buffer nil))
         ;; go to the beginning of the (possibly) current object
         (let ((pos (funcall boundary 'bwd)))
           (if pos (goto-char pos)
@@ -689,7 +688,7 @@ text-object before or at point."
       ;; select current ...
       (save-excursion
         (multiple-value-bind (b e) (funcall sel 'fwd)
-          (unless b (signal 'no-such-object nil))
+          (unless b (signal 'vim/no-such-object nil))
           (dotimes (i (1- n))
             (goto-char e)
             (funcall forward +1)
@@ -1025,14 +1024,14 @@ text-object before or at point."
 
 (vim:defmotion vim:motion-fwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs forward."
-  (if (eobp) (signal 'end-of-buffer nil)
+  (if (eobp) (signal 'vim/end-of-buffer nil)
       (dotimes (i (or count 1))
         (goto-char (or (vim:boundary-paragraph 'fwd) (point-max)))
         (forward-line))))
 
 (vim:defmotion vim:motion-bwd-paragraph (exclusive count)
   "Move the cursor `count' paragraphs backward."
-  (if (bobp) (signal 'beginning-of-buffer nil)
+  (if (bobp) (signal 'vim/beginning-of-buffer nil)
       (dotimes (i (or count 1))
         (goto-char (or (vim:boundary-paragraph 'bwd) (point-min)))
         (forward-line -1))))
@@ -1150,7 +1149,7 @@ but only on the current line."
                                              (or close-qt open-qt))))
     (cond
       ;; no quote found
-      ((not bounds) (signal 'no-such-object nil))
+      ((not bounds) (signal 'vim/no-such-object nil))
       ;; point is in visual mode on one of both quotes
       ;; or quoted text is empty
       ((or (>= 1 (- (cdr bounds) (car bounds)))
@@ -1171,7 +1170,7 @@ but only on the current line."
             (not (= (point) (mark)))
             (or (>= (car bounds) (min (point) (mark)))
                 (<= (cdr bounds) (max (point) (mark)))))
-       (signal 'no-such-object nil))
+       (signal 'vim/no-such-object nil))
       (t
        (goto-char
         (if (and (vim:visual-mode-p) (< (point) (mark)))
@@ -1209,7 +1208,7 @@ but only on the current line."
                                                (or close-qt open-qt))))
       (cond
         ;; nothing found
-        ((not bounds) (signal 'no-such-object nil))
+        ((not bounds) (signal 'vim/no-such-object nil))
         ;; extend whitespaces to the right
         ((save-excursion
            (goto-char (1+ (cdr bounds)))
@@ -1258,7 +1257,7 @@ but only on the current line."
   "Select text between two quotes."
   (let ((bounds (vim:bounds-of-string (point))))
     (if (not bounds)
-      (signal 'no-such-object nil)
+      (signal 'vim/no-such-object nil)
       (multiple-value-bind (beg end) bounds
         (cond
           ;; point is in visual mode on one of both quotes
@@ -1281,7 +1280,7 @@ but only on the current line."
                 (not (= (point) (mark)))
                 (or (>= beg (min (point) (mark)))
                     (<= end (max (point) (mark)))))
-           (signal 'no-such-object nil))
+           (signal 'vim/no-such-object nil))
           (t
            (goto-char
             (if (and (vim:visual-mode-p) (< (point) (mark)))
@@ -1341,7 +1340,7 @@ but only on the current line."
                             :end end
                             :type 'inclusive))))
       ;; nothing found
-      (signal 'no-such-object nil))))
+      (signal 'vim/no-such-object nil))))
 
 (defconst vim:motion-single-quote-syntax-table
   (let ((tbl (make-syntax-table)))
@@ -1464,7 +1463,7 @@ jumps to the corresponding one."
           (decf cnt))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
-      (signal 'no-such-object (list "No closing of block found.")))))
+      (signal 'vim/no-such-object (list "No closing of block found.")))))
 
 (defun vim:backward-beginning-of-block (open-re close-re count)
   "Go to the `count'-th previous unmatched beginning of block."
@@ -1478,7 +1477,7 @@ jumps to the corresponding one."
           (incf cnt))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
-      (signal 'no-such-object (list "No opening of block found.")))))
+      (signal 'vim/no-such-object (list "No opening of block found.")))))
 
 (vim:defmotion vim:motion-forward-closing-parenthesis (exclusive count)
   "Go to the `count'-th next unmatched closing )."
@@ -1521,7 +1520,7 @@ jumps to the corresponding one."
            (decf cnt)))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
-      (signal 'no-such-object (list "No closing of block found.")))))
+      (signal 'vim/no-such-object (list "No closing of block found.")))))
 
 (vim:defmotion vim:motion-backward-preprocessor-if (exclusive count)
   "Go the the `count'-th next unmatched #else or #if."
@@ -1540,7 +1539,7 @@ jumps to the corresponding one."
            (incf cnt)))))
     (if (zerop cnt)
       (goto-char (match-beginning 0))
-      (signal 'no-such-object (list "No opening of block found.")))))
+      (signal 'vim/no-such-object (list "No opening of block found.")))))
 
 (vim:defmotion vim:motion-backward-opening-comment (exclusive count)
   "Go to the `count'-th previous unmatched opening /*."
