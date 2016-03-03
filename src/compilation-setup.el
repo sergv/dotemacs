@@ -213,6 +213,9 @@ error location - list of (filename line column)."
        ("<f9>"     recompile)
        ("SPC"      compile-goto-error))))
 
+(vim:defcmd vim:recompile (nonrepeatable)
+  (recompile))
+
 (provide 'compilation-setup)
 
 ;; Local Variables:
