@@ -385,6 +385,8 @@
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
               +haskell-compile-error-or-warning-regexp+)
+
+  (vim:local-emap "c" 'vim:recompile)
   (def-keys-for-map haskell-compilation-mode-map
     ("<return>" compilation/goto-error)
     ("SPC"      compilation/goto-error-other-window)
