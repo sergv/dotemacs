@@ -100,7 +100,6 @@
         (vector (copy-event last-command-event))
         keys)))))
 
-
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:deactivate-mark 'deactivate-mark))
  (vim:xemacs-p (defalias 'vim:deactivate-mark 'zmacs-deactivate-region)))
@@ -186,10 +185,6 @@
                         (menu-event-p event))))
         (dispatch-event event))
       event))))
-
-
-
-
 
 (vim:emacsen
  (vim:emacs-p (defalias 'vim:char-p 'integerp))

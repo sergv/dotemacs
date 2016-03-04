@@ -22,6 +22,14 @@
           (when fill-replace
             (vim:substitute-quote str))))
 
+(defun vim:substitute-quote (text)
+  "Just quote backslash for now because it has special meaning and all other
+special characters are introduced via backlash only."
+  (replace-regexp-in-string "\\\\"      ;; single backslash
+                            "\\\\\\\\"  ;; double backslash
+                            text
+                            ))
+
 
 
 (defsubst util:get-str-covered-by-vim-motion (motion)

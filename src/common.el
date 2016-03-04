@@ -1254,11 +1254,6 @@ Save buffer if it has assigned file and this file exists on disk."
        (message
         (concat "Saved as script: " buffer-file-name))))
 
-(defun dired-single-up-directory ()
-  (interactive)
-  (dired-single-buffer ".."))
-
-
 (defun reindent-region (start end)
   "custom function that reindents region, differs from indent-region
  with silent behavior( i.e. no messages)"
@@ -1453,14 +1448,6 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
 `goto-line' does."
   (goto-char (point-min))
   (forward-line (1- line)))
-
-
-(defun dired-prompt-and-do-query-replace-regexp (re str)
-  (interactive "Mregexp: \nMreplacement string: ")
-  (dired-do-query-replace-regexp re str))
-
-;; abandon old and non-flexible pwd function
-;; (fset 'pwd 'util:pwd)
 
 (defun file-contents-matches-re (filename re)
   "Return t if file FILENAME exists and it contents matches RE."
