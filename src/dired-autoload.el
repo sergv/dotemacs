@@ -8,6 +8,9 @@
 
 
 (autoload 'dired-single-buffer "dired-single" "" t)
+(autoload 'dired-setup "dired-setup")
+
+(add-hook 'dired-mode-hook #'dired-setup)
 
 (eval-after-load "dired" '(require 'dired-setup))
 

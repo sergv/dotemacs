@@ -16,8 +16,10 @@
 (require 'dired-single)
 (require 'dired-aux)
 (require 'dired-x)
-
 (require 'dired-single)
+
+(require 'vim-setup)
+
 (setf image-dired-dir (path-concat +prog-data-path+ "image-dired"))
 
 (setf dired-omit-files
@@ -47,7 +49,7 @@
   ("e"        nil)
   ("f"        nil)
   ("o"        dired-do-open-marked)
-  ("Q"        dired-prompt-and-do-query-replace-regexp)
+  ("Q"        dired-do-query-replace-regexp)
   ("<return>" dired-single-buffer)
   ("SPC"      dired-single-buffer-other-window)
   ("^"        dired-single-up-directory)
@@ -59,17 +61,15 @@
   )
 
 (defun dired--open ()
-  (let ((filename (dired-get-filename)) failure)
+  (let ((filename (dired-get-filename)))
     (condition-case err
         (save-window-excursion
           (save-excursion
-            (find-file filename)))
-      (error (setq failure err)))
-    (if (not failure)
-      nil
-      (progn
-        (dired-log "Open error for %s:\n%s\n" filename failure)
-        (dired-make-relative filename)))))
+            (find-file filename)
+            nil))
+      (error
+       (dired-log "Open error for %s:\n%s\n" filename err)
+       (dired-make-relative filename)))))
 
 (defun dired-do-open-marked ()
   "Just open currently makred files as emacs buffers without switching to
@@ -80,6 +80,19 @@ them."
                               'open
                               ;; don't redisplay dired after each file
                               nil))
+
+(defun dired-do-substitute (substitute-command)
+  (interactive "sEx command: ")
+  (dolist (filename (dired-get-marked-files nil nil 'dired-nondirectory-p))
+    (find-file filename)
+    (for-buffer-with-file filename
+      (let ((vim:ex-current-buffer (current-buffer))
+            (vim:ex-current-window (or (get-buffer-window (current-buffer))
+                                       (selected-window))))
+        (vim:ex-execute-command substitute-command)))))
+
+(vim:defcmd vim:dired-do-substitute ((argument:text command) nonrepeatable)
+  (dired-do-substitute command))
 
 (defun dired-single-buffer-other-window (&optional file-to-visit)
   "Similar to `dired-single-buffer' but opens file window that the
@@ -104,6 +117,14 @@ current one."
    (make-cycle-on-lines-in-region 2 -1 backward
                                   #'dired-next-line #'dired-previous-line)
    count))
+
+(defun dired-single-up-directory ()
+  (interactive)
+  (dired-single-buffer ".."))
+
+(defun dired-setup ()
+  (vim:local-emap "ss" 'vim:dired-do-substitute)
+  (vim:local-emap "sub" 'vim:dired-do-substitute))
 
 (provide 'dired-setup)
 
