@@ -303,20 +303,18 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:apply-to-selected-buffers
   ((argument:text command) nonrepeatable)
-  (let ((exec-command
-         (lambda (buf)
-           (let ((window (or (get-buffer-window buf)
-                             (selected-window))))
-             (with-current-buffer buf
-               (with-selected-window window
-                 ;; adapted from vim:ex-read-command
-                 (let ((vim:ex-current-buffer buf)
-                       (vim:ex-current-window window)
-                       (cmd (trim-whitespace-left command)))
-                   (if (and cmd
-                            (not (zero? (length cmd))))
-                     (vim:ex-execute-command cmd)
-                     (error "invalid command \"%s\"" cmd)))))))))
+  (assert command)
+  (let* ((cmd (trim-whitespace-left command))
+         (exec-command
+          (lambda (buf)
+            (let ((window (or (get-buffer-window buf)
+                              (selected-window))))
+              (with-current-buffer buf
+                (with-selected-window window
+                  ;; adapted from vim:ex-read-command
+                  (let ((vim:ex-current-buffer buf)
+                        (vim:ex-current-window window))
+                    (vim:ex-execute-command cmd))))))))
     (cond ((eq? major-mode 'ibuffer-mode)
            (mapc exec-command
                  (ibuffer-get-marked-buffers)))
