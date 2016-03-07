@@ -131,6 +131,8 @@
 
     ("k"               magit-unstage)
     ("K"               magit-unstage-all)
+    ("x"               magit-reset-soft)
+    ("X"               magit-reset-hard)
 
     ;; ("SPC"             magit-visit-thing-other-window)
     ("TAB"             magit-section-cycle)
