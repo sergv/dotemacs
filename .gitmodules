@@ -63,10 +63,6 @@
 [submodule "third-party/misc-modes"]
         path = third-party/misc-modes
         url = https://github.com/sergv/misc-modes.git
-[submodule "standalone/auctex-dev"]
-        path = standalone/auctex-dev
-        url = https://github.com/jwiegley/auctex.git
-        ignore = all
 [submodule "standalone/tuareg"]
         path = standalone/tuareg
         url = https://github.com/emacsmirror/tuareg.git
@@ -141,11 +137,15 @@
         path = third-party/yaml-mode
         url = https://github.com/yoshiki/yaml-mode.git
 [submodule "third-party/company-mode"]
-	path = third-party/company-mode
-	url = https://github.com/company-mode/company-mode.git
+        path = third-party/company-mode
+        url = https://github.com/company-mode/company-mode.git
 [submodule "third-party/f.el"]
-	path = third-party/f.el
-	url = https://github.com/rejeep/f.el.git
+        path = third-party/f.el
+        url = https://github.com/rejeep/f.el.git
 [submodule "third-party/with-editor"]
-	path = third-party/with-editor
-	url = https://github.com/magit/with-editor.git
+        path = third-party/with-editor
+        url = https://github.com/magit/with-editor.git
+[submodule "third-party/auctex"]
+        path = third-party/auctex
+        url = http://git.savannah.gnu.org/r/auctex.git
+        ignore = all
