@@ -93,6 +93,37 @@
 
       org-src-preserve-indentation t)
 
+(setf org-entities-user
+      '(("triangleleft"   ;; name
+         "\\triangleleft" ;; LaTeX
+         t                ;; math mode
+         "&#x25c1;"       ;; html
+         "<|"             ;; ascii
+         "<|"             ;; latin1
+         "◁"              ;; utf8
+         )
+        ("triangleright"
+         "\\triangleright"
+         t
+         "&#x25b7;"
+         "|>"
+         "|>"
+         "▷")
+        ("lbrace"
+         "\\lbrace"
+         t
+         "&#123;"
+         "{"
+         "{"
+         "{")
+        ("rbrace"
+         "\\rbrace"
+         t
+         "&#125;"
+         "}"
+         "}"
+         "}")))
+
 (add-to-list 'org-babel-tangle-lang-exts '("haskell" . "hs"))
 
 ;;; eval-after-load's
