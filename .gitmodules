@@ -63,9 +63,6 @@
 [submodule "third-party/misc-modes"]
         path = third-party/misc-modes
         url = https://github.com/sergv/misc-modes.git
-[submodule "standalone/tuareg"]
-        path = standalone/tuareg
-        url = https://github.com/emacsmirror/tuareg.git
 [submodule "third-party/python/python.el"]
         path = third-party/python/python.el
         url = https://github.com/sergv/python.el.git
@@ -149,3 +146,6 @@
         path = third-party/auctex
         url = http://git.savannah.gnu.org/r/auctex.git
         ignore = all
+[submodule "third-party/tuareg"]
+        path = third-party/tuareg
+        url = https://github.com/ocaml/tuareg.git
