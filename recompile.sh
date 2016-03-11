@@ -12,7 +12,7 @@ else
     EMACS_DIR=$(pwd)
     popd >/dev/null
 fi
-emacs_dir="${EMACS_DIR}"
+emacs_dir=${1:-"${EMACS_DIR}"}
 
 function update-dir-autoloads {
     local dir="$1"
@@ -604,7 +604,7 @@ fi
 [[ -f "$emacs_dir/user-info.el" ]] || touch "$emacs_dir/user-info.el"
 [[ -f "$emacs_dir/machine-specific-setup.el" ]] || touch "$emacs_dir/machine-specific-setup.el"
 
-emacs --batch --load recompile.el -f recompile-main
+emacs --batch --load recompile.el --eval "(recompile-main \"$emacs_dir\")"
 
 
 exit 0
