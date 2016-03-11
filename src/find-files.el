@@ -26,7 +26,8 @@ folder."
             (lambda (path)
               (cond
                 ((file-directory-p path)
-                 (unless (funcall do-not-visitp path)
+                 (when (or (null do-not-visitp)
+                           (not (funcall do-not-visitp path)))
                    (mapc go (directory-files path
                                              t ;; produce full names
                                              directory-files-no-dot-files-regexp
