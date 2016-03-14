@@ -13,6 +13,5 @@ ${4:  other-modules:     ${5:Utils.Utils}
                      -fwarn-monomorphism-restriction
                      -fno-warn-type-defaults
                      -fno-warn-name-shadowing
-                     -ferror-spans
                      -rtsopts
                      ${8:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}
