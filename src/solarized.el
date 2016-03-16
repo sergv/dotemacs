@@ -237,9 +237,9 @@ Futher modified by Sergey Vinokurov."
 
             (idris-semantic-type-face                     ((t (:foreground ,yellow))))
             (idris-semantic-data-face                     ((t (:foreground ,yellow))))
-            (idris-semantic-function-face                 ((t (:foreground ,blue))))
+            (idris-semantic-function-face                 ((t (:inherit font-lock-function-name-face))))
             (idris-semantic-bound-face                    ((t (:inherit default))))
-            (idris-operator-face                          ((t (:foreground ,blue))))
+            (idris-operator-face                          ((t (:inherit haskell-operator-face))))
 
             (shm-current-face             ((t (:background ,base02))))
             (shm-quarantine-face          ((((supports :underline (:style wave)))
