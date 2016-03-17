@@ -106,16 +106,18 @@ and second being actual substituted text."
         until entry
         do
         (goto-char start)
-        (cond
-          ((string? syntax)
-           (skip-syntax-backward syntax))
-          ((list? syntax)
-           (dolist (s syntax)
-             (skip-syntax-backward s)))
-          (t
-           (error "invalid syntax: %s" syntax)))
-        (setf str (buffer-substring-no-properties (point) start)
-              entry (abbrev+-get-substitution str)))
+        (skip-syntax-backward " " (line-beginning-position))
+        (let ((beginning (point)))
+          (cond
+            ((string? syntax)
+             (skip-syntax-backward syntax))
+            ((list? syntax)
+             (dolist (s syntax)
+               (skip-syntax-backward s)))
+            (t
+             (error "invalid syntax: %s" syntax)))
+          (setf str (buffer-substring-no-properties (point) beginning)
+                entry (abbrev+-get-substitution str))))
       (if entry
         (let ((action (second entry))
               (predicate (third entry))
