@@ -31,8 +31,9 @@
 ;; ******************************************************************
 
 (setq compilation-auto-jump-to-first-error nil
-      whitespace-line-column 81
-      whitespace-style '(face lines-tail tabs)
+      whitespace-style '(face tabs)
+      ;; whitespace-line-column 81
+      ;; whitespace-style '(face lines-tail tabs)
       whitespace-global-modes nil)
 
 (defconst +do-not-track-long-lines-modes+
