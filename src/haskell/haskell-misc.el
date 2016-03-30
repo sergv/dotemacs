@@ -677,6 +677,30 @@ return nil otherwise."
 
 (defparameter haskell-compilation-buffer "*haskell-compilation*")
 
+(defun haskell-compilation-use-selected-error-or-jump-to-next (win jump-to-next-err-func)
+  "Either return error currently selected in the haskell compilation buffer, if
+point is not located on it, or return the next error if current position argees
+with the position of the selected error."
+  (let ((buf (current-buffer))
+        (line (line-number-at-pos)))
+    (with-selected-window win
+      (with-current-buffer haskell-compilation-buffer
+        (let ((selected-err (compilation/get-selected-error)))
+          (if selected-err
+            (if (and
+                 (eq (compilation/find-buffer selected-err)
+                     buf)
+                 (equal (compilation-error/line-number selected-err)
+                        line))
+              ;; If we're already on the selected error then jump to next error.
+              (progn
+                (funcall jump-to-next-err-func)
+                (compilation/get-selected-error))
+              selected-err)
+            (progn
+              (funcall jump-to-next-err-func)
+              (compilation/get-selected-error))))))))
+
 (defun haskell-compilation-next-error-other-window ()
   "Select next error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
@@ -686,10 +710,9 @@ it's position in current window."
                                   t ;; all-frames
                                   )))
       (if (window-live-p win)
-        (if-let (err (with-selected-window win
-                       (with-current-buffer haskell-compilation-buffer
-                         (compilation-jump-to-next-error)
-                         (compilation/get-selected-error))))
+        (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
+                      win
+                      #'compilation-jump-to-next-error))
           (compilation/jump-to-error err nil)
           (ghc-goto-next-error)
           ;; (error "No errors found in compilation buffer")
@@ -709,11 +732,9 @@ it's position in current window."
                                   t ;; all-frames
                                   )))
       (if (window-live-p win)
-        (if-let (err
-                 (with-selected-window win
-                   (with-current-buffer haskell-compilation-buffer
-                     (compilation-jump-to-prev-error)
-                     (compilation/get-selected-error))))
+        (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
+                      win
+                      #'compilation-jump-to-prev-error))
           (compilation/jump-to-error err nil)
           (ghc-goto-prev-error)
           ;; (error "No errors found in compilation buffer")
