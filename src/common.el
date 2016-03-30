@@ -728,7 +728,7 @@ end of END-LINE in current buffer."
   "List of directory names to generally ignore.")
 
 (defparameter *ignored-directory-prefixes*
-  '(".cabal-sandbox")
+  '(".cabal-sandbox" ".stack-work")
   "List of directory names to generally ignore as a prefixes.")
 
 (setf completion-ignored-extensions
