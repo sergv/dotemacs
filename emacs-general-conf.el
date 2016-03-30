@@ -121,6 +121,7 @@
       ;; default-major-mode 'text-mode ;;'lisp-interaction-mode
       tab-width 2
       tab-always-indent t)
+(setq-default major-mode 'text-mode)
 (blink-cursor-mode -1)
 
 (setq-default major-mode 'text-mode)
