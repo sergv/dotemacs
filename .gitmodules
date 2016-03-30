@@ -4,9 +4,6 @@
 [submodule "third-party/browse-kill-ring"]
         path = third-party/browse-kill-ring
         url = https://github.com/sergv/browse-kill-ring.git
-[submodule "third-party/c2hs-mode"]
-        path = third-party/c2hs-mode
-        url = https://github.com/sergv/c2hs-mode.git
 [submodule "third-party/csv-mode"]
         path = third-party/csv-mode
         url = https://github.com/emacsmirror/csv-mode.git
