@@ -70,14 +70,26 @@ and indent them as singe line."
        (build-command
         (lambda (custom-build-dir)
           (concat
-           "cabal build " (funcall mk-build-dir-arg custom-build-dir) "--ghc-options=\"-j4 -ferror-spans\"")))
+           "cabal build " (funcall mk-build-dir-arg custom-build-dir) "--ghc-options=\"-j4\"")))
        (test-command
         (lambda (custom-build-dir)
           (concat
            "cabal test " (funcall mk-build-dir-arg custom-build-dir) "--show-details=always")))
-       (sep " && \\\n"))
+       (sep " && \\\n")
+
+       (stack-command
+        (lambda (cmd)
+          (format "cd %%s && stack %s --ghc-options=\"-j4 +RTS -A64m -H128m -n2m -RTS\"" cmd))))
   (setf haskell-compile-cabal-build-command-presets
         `((vanilla
+           ,(funcall stack-command "build"))
+          (stack
+           ,(funcall stack-command "build"))
+          (test
+           ,(funcall stack-command "test"))
+          (bench
+           ,(funcall stack-command "bench"))
+          (cabal-vanilla
            ,(concat
              "cd %s"
              sep
@@ -89,7 +101,7 @@ and indent them as singe line."
              (funcall build-command build-dir)
              sep
              (funcall test-command build-dir)))
-          (vanilla-noopt
+          (cabal-vanilla-noopt
            ,(concat
              "cd %s"
              sep
@@ -102,17 +114,17 @@ and indent them as singe line."
              (funcall build-command build-dir)
              sep
              (funcall test-command build-dir)))
-          (test
+          (cabal-test
            ,(concat
              "cd %s"
              sep
              (funcall test-command build-dir)))
-          (clean
+          (cabal-clean
            ,(concat
              "cd %s"
              sep
              "cabal clean --builddir " build-dir))
-          (prof
+          (cabal-prof
            ,(concat
              "cd %s"
              sep
@@ -126,7 +138,7 @@ and indent them as singe line."
              (funcall test-command build-dir)))
           ;; hpc command must use local dist build directory, it won't
           ;; work with absolute paths.
-          (hpc
+          (cabal-hpc
            ,(concat
              "cd %s"
              sep
