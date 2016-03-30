@@ -288,7 +288,8 @@
                   "h++"
                   "inl"
                   "inc"
-                  "incl")
+                  "incl"
+                  "ino")
     :create-tags-procedure
     (lambda (proj make-project-files parse-tags-proc)
       (eproj/load-ctags-project 'c++-mode proj make-project-files parse-tags-proc))
