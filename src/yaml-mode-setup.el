@@ -12,7 +12,21 @@
 (add-to-list 'auto-mode-alist '("\\.clang-format$" . yaml-mode))
 
 (defun yaml-setup ()
-  (init-common :use-render-formula t))
+  (init-common :use-render-formula nil)
+  (bind-tab-keys #'indent-relative-forward
+                 #'indent-relative-backward
+                 :enable-yasnippet t)
+  (if-buffer-has-file
+    (when (string-match-pure? "^stack.*\\.yaml$"
+                              (file-name-nondirectory (buffer-file-name)))
+      (vim:local-emap "compile"  'vim:haskell-compile)
+      (vim:local-emap "c"        'vim:haskell-compile)
+      (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
+      (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
+
+      (def-keys-for-map (vim:normal-mode-local-keymap
+                         vim:insert-mode-local-keymap)
+        ("<f9>" haskell-compile)))))
 
 (add-hook 'yaml-mode-hook #'yaml-setup)
 
