@@ -83,6 +83,10 @@ and indent them as singe line."
   (setf haskell-compile-cabal-build-command-presets
         `((vanilla
            ,(funcall stack-command "build"))
+          (prof
+           ,(funcall stack-command "build --profile"))
+          (clean
+           ,(funcall stack-command "clean"))
           (stack
            ,(funcall stack-command "build"))
           (test
