@@ -1832,6 +1832,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-c")
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
+(defpcmpl pcomplete/hp2pdf
+  (opts
+   (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
+
 (defpcmpl pcomplete/stack
   (let ((standard-flags
          '("--help"
