@@ -61,7 +61,7 @@ executable ${filename no ext}
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
---    -main-is MyMain
+--     -main-is MyMain
   ghc-prof-options:
     -fprof-auto
 
