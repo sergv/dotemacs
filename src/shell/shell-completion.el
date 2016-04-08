@@ -62,6 +62,56 @@
                              "\n"
                              t)))))))
 
+(defstruct (pcmpl-flag
+            (:conc-name pcmpl-flag/)
+            (:constructor pcmpl-flag/create))
+  names           ;; Nonempty list of strings
+  completion-expr ;; Closed expression to generate completions, may be nil
+  )
+
+(defun* make-pcmpl-flag (&key names completion-expr)
+  (assert (or (string? names)
+              (-all? #'string? names)))
+  (pcmpl-flag/create :names names :completion-expr completion-expr))
+
+(defun pcpmpl/make-name-regex (flag)
+  (assert (pcmpl-flag-p flag))
+  (regexp-opt (pcmpl-flag/names flag)))
+
+(defun pcmpl/make-flags-names-regex (flags)
+  (regexp-opt (-mapcat #'pcmpl-flag/names flags)))
+
+(defun pcmpl/make-flags (raw-flag-specs)
+  "RAW-FLAG-SPECS is a list of either strings or 1- or 2-element lists where
+first item is flag name and second is completion expression. Flag name can
+be either singular string or a list of strings."
+  (-map
+   (lambda (entry)
+     (cond
+       ((string? entry)
+        (make-pcmpl-flag
+         :names (list entry)
+         :completion-expr nil))
+       ((and entry
+             (list? entry)
+             (= 2 (length entry)))
+        (let ((flag-name (first entry))
+              (compl-expr (cadr-safe entry)))
+          (assert (or (string? flag-name)
+                      (and
+                       (list? flag-name)
+                       (-all? #'string? flag-name)))
+                  nil
+                  "process-opts: invalid flag name: %s"
+                  flag-name)
+          (make-pcmpl-flag :names (if (string? flag-name)
+                                    (list flag-name)
+                                    flag-name)
+                           :completion-expr compl-expr)))
+       (t
+        (error "process-opts: invalid entry %s" entry))))
+   raw-flag-specs))
+
 ;;; simple pcomplete macro
 
 (defmacro* defpcmpl (name definition &key (evaluate-definition nil))
@@ -110,6 +160,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                        (funcall process-opts definition))
                       (t
                        (error "process: unsupported definition: %S" definition)))))
+             ;; Alternatives
              (process-or
               (lambda (definition positional-depth)
                 (when-let (defs (rest definition))
@@ -126,7 +177,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                          (names
                           (-map (lambda (x) (if (list? x) (first x) (list x)))
                                 positional-defs))
-                         (pcomplete-arg-var (gensym "pcomplete-arg")))
+                         (pcomplete-arg-var (gensym "positional-arg")))
                     `(progn
                        ,@(when names
                            (list `(pcomplete-here ',names)))
@@ -142,37 +193,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                    (list `(t
                                            ,@(--map (funcall process it positional-depth)
                                                     other-defs)))))))))))
+             ;; -s and --long flags followed by positional arguments
              (process-opts
               (lambda (definition)
-                (let* ((info (rest definition))
-                       (flags (cdr-safe (assoc 'flags info)))
-                       (args (assoc 'args info))
-                       (get-flag-name
-                        (lambda (flag)
-                          (cond ((string? flag)
-                                 flag)
-                                ((and (list? flag)
-                                      (not (null? flag))
-                                      (string? (first flag)))
-                                 (first flag))
-                                (t
-                                 (error "process-opts: invalid flag, not string or non-empty list with string as a first element: %S" flag)))))
-                       (complex-flag? (lambda (flag) (list? flag)))
-                       (short-flag? (comp (partial #'string-match-pure? "^-[^-].*")))
-                       (long-flag? (comp (partial #'string-match-pure? "^--[^-].*")))
-                       (previous-arg-var (gensym "previous-arg"))
-                       (expand-complex
-                        (lambda (flag-def)
-                          (assert (and (list? flag-def)
-                                       (= 2 (length flag-def)))
-                                  nil
-                                  "invalid flag def, (<name> <compl>) expected: %S"
-                                  flag-def)
-                          (let ((name (first flag-def))
-                                (compl (second flag-def)))
-                            `((string= ,previous-arg-var ;; (pcomplete-arg 1) ;; (pcomplete-arg 'last -1)
-                                       ,name)
-                              ,compl)))))
+                (let ((info (rest definition)))
                   (assert (-all? (lambda (entry)
                                    (and (list? entry)
                                         (not (null? entry))
@@ -181,80 +205,50 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                           nil
                           "<opts> clause must contain either (flags ...) or (args ...) entries only: %S"
                           info)
-                  (assert (-all? (comp (partial #'string-match-pure?
-                                                "^--?[^-].*")
-                                       get-flag-name)
-                                 flags)
-                          nil
-                          "All flags names must start with dash or two dashes: %S\nFailed flags: %S"
-                          flags
-                          (--filter (not (string-match-pure? "^--?[^-].*"
-                                                             (get-flag-name it)))
-                                    flags))
-                  (let* ((short (-filter short-flag?
-                                         (-map get-flag-name flags)))
-                         (short-complex (-filter (lambda (flag)
-                                                   (and (funcall short-flag?
-                                                                 (funcall get-flag-name
-                                                                          flag))
-                                                        (funcall complex-flag? flag)))
-                                                 flags))
-                         (long (-mapcat (lambda (flag)
-                                          (save-match-data
-                                            (if (string-match? "=$" flag)
-                                              (list flag (replace-match "" nil nil flag))
-                                              (list flag))))
-                                        (-filter long-flag?
-                                                 (-map get-flag-name flags))))
-                         (long-complex (-filter (lambda (flag)
-                                                  (and (funcall long-flag?
-                                                                (funcall get-flag-name
-                                                                         flag))
-                                                       (funcall complex-flag? flag)))
-                                                flags))
-                         (needs-short-complex? (not (null? short-complex)))
-                         (needs-long-complex? (not (null? long-complex)))
-                         (needs-previous-arg-var? (or needs-short-complex?
-                                                      needs-long-complex?)))
-                    (when (or (not (null? short))
-                              (not (null? long))
-                              (not (null? args)))
-                      `(while
-                           (cond
-                             ,@(when short
-                                 (list
-                                  `((and (not ,got-end-of-flags-var)
-                                         ,last-arg-starts-with-single-dash-var)
-                                    (pcomplete-here '(,@short
-                                                      ;; ,@long
-                                                      )))))
-                             ,@(when long
-                                 (list
-                                  `((and (not ,got-end-of-flags-var)
-                                         ,last-arg-starts-with-two-dashes-var)
-                                    (pcomplete-here '(,@long)))))
-                             ,@(when (or args
-                                         needs-short-complex?
-                                         needs-long-complex?)
-                                 (when args
-                                   (assert (cadr args)
-                                           nil
-                                           "Meaningless (args ...) clause without completion action, (args <action>) expected: %s"
-                                           args))
-                                 (list `(t
-                                         (let (,@(when needs-previous-arg-var?
-                                                   (list
-                                                    `(,previous-arg-var
-                                                      (pcomplete-arg 1)
-                                                      ;; (pcomplete-arg 'last -1)
-                                                      ))))
-                                           (cond
-                                             ,@(when needs-short-complex?
-                                                 (-map expand-complex short-complex))
-                                             ,@(when needs-long-complex?
-                                                 (-map expand-complex long-complex))
-                                             (t
-                                              ,(cadr args))))))))))))))
+                  (let* ((flags (pcmpl/make-flags (cdr-safe (assoc 'flags info))))
+                         ;; Positional arguments.
+                         (args (assoc 'args info)))
+                    (assert (--all? (-all? (comp (partial #'string-match-pure? "^--?[^-].*"))
+                                           (pcmpl-flag/names it))
+                                    flags)
+                            nil
+                            "All flags names must start with dash or two dashes: %S\nFailed flags: %S"
+                            flags
+                            (--filter (not (string-match-pure? "^--?[^-].*$"
+                                                               (pcmpl-flag/names it)))
+                                      flags))
+                    (when args
+                      (assert (cdr args)
+                              nil
+                              "Meaningless (args ...) clause without completion action, (args <action>) expected: %s"
+                              args))
+                    (when (or flags args)
+                      (multiple-value-bind (flags-with-args flags-rest)
+                          (-separate #'pcmpl-flag/completion-expr flags)
+                        (multiple-value-bind (single-dash-flags double-dash-flags)
+                            (--separate (string-match-pure? "^-[^-]" it)
+                                        (-mapcat #'pcmpl-flag/names flags))
+                          `(while t
+                             (unless ,got-end-of-flags-var
+                               (cond
+                                 ,@(when flags-rest
+                                     (list
+                                      `((pcomplete-match ,(pcmpl/make-flags-names-regex flags-rest)))))
+                                 ,@(-map (lambda (flag)
+                                           `((pcomplete-match ,(pcpmpl/make-name-regex flag))
+                                             ,@(awhen (pcmpl-flag/completion-expr flag) (list it))))
+                                         flags-with-args)
+                                 ,@(when single-dash-flags
+                                     (list
+                                      `(,last-arg-starts-with-single-dash-var
+                                        (pcomplete-here ',single-dash-flags))))
+                                 ,@(when double-dash-flags
+                                     (list
+                                      `(,last-arg-starts-with-two-dashes-var
+                                        (pcomplete-here ',double-dash-flags))))
+                                 (t nil)))
+                             ,@(cdr args)))))))))
+             ;; Positional arguments for subcommands
              (process-positional
               (lambda (definition pcomplete-arg-var positional-depth)
                 (let ((name (first definition)))
@@ -280,7 +274,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                  (string-match-pure? "^--\\([^-]\\|$\\)" ,last-arg-var))
                 (,got-end-of-flags-var
                  (and (not ,last-arg-starts-with-two-dashes-var)
-                      (member "--" pcomplete-args))))
+                      (member "--" (-take pcomplete-last pcomplete-args)))))
            ,(funcall process
                      (if evaluate-definition
                        (eval definition t)
