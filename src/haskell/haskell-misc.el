@@ -704,7 +704,9 @@ with the position of the selected error."
         (let ((selected-err (compilation/get-selected-error)))
           (if selected-err
             (if (and
-                 (eq (compilation/find-buffer selected-err)
+                 (eq (compilation/find-buffer
+                      (compilation-error/filename selected-err)
+                      (compilation-error/compilation-root-directory selected-err))
                      buf)
                  (equal (compilation-error/line-number selected-err)
                         line))
@@ -770,7 +772,7 @@ it's position in current window."
                ;; then jump to that file.
                (unless (string= (normalize-file-name ghc-error-file)
                                 (normalize-file-name buffer-file-name))
-                 (aif (compilation/find-buffer ghc-error-file)
+                 (aif (compilation/find-buffer ghc-error-file default-directory)
                    (progn
                      (switch-to-buffer it)
                      (goto-char (point-min))
