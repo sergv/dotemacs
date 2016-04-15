@@ -148,28 +148,29 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
                                       compilation-error-regexp-alist)))
         (compilation/parse-matched-error-entry entry)))))
 
-(defun compilation/find-buffer (err)
-  "Get buffer that corresponds to FILENAME of ERR, which may be neither full nor
+(defun compilation/find-buffer (filename root)
+  "Get buffer that corresponds to FILENAME, which may be neither full nor
 relative path. In case it's neither, the filename with suffix equal to FILENAME
 will searched for."
-  (let ((filename (compilation-error/filename err)))
-    (assert (not (= 0 (length filename))))
-    (aif (find-if (lambda (buf)
-                    (string-suffix? filename (buffer-file-name buf)))
-                  (visible-buffers))
-      it
-      (let ((resolved-filename
-             (resolve-obs-or-rel-filename
-              filename
-              (compilation-error/compilation-root-directory err))))
-        (aif (get-file-buffer resolved-filename)
-          it
-          (find-file-noselect resolved-filename))))))
+  (assert (not (= 0 (length filename))))
+  (aif (find-if (lambda (buf)
+                  (string-suffix? filename (buffer-file-name buf)))
+                (visible-buffers))
+    it
+    (let ((resolved-filename
+           (resolve-obs-or-rel-filename
+            filename
+            root)))
+      (aif (get-file-buffer resolved-filename)
+        it
+        (find-file-noselect resolved-filename)))))
 
 (defun compilation/jump-to-error (err &optional other-window)
   "Jump to source of compilation error. ERR should be structure describing
 error location - list of (filename line column)."
-  (aif (compilation/find-buffer err)
+  (aif (compilation/find-buffer
+        (compilation-error/filename err)
+        (compilation-error/compilation-root-directory err))
     (funcall (if other-window
                #'switch-to-buffer-other-window
                #'switch-to-buffer)
