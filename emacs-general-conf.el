@@ -58,7 +58,7 @@
         (undo-tree-visualizer-mode . nil)
         (haskell-compilation-mode . nil)
         (haskell-lint-mode . nil)
-
+        (latex-compilation-mode . nil)
         (clojure-compilation-mode . nil)))
 
 ;;;; modeline
