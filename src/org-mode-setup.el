@@ -490,7 +490,7 @@ the current topic."
     ("'"       org-mode-up-heading)
 
     ("<f6>"    org-toggle-display-style)
-    ("<f9>"    org-latex-export-to-pdf)
+    ("<f9>"    vim:org-latex-export-to-pdf)
     ("S-<f9>"  open-buffer-as-pdf)
     ("z O"     show-all)
     ;; ("z o"   show-subtree)
