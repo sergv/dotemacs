@@ -78,9 +78,6 @@
   (assert (pcmpl-flag-p flag))
   (regexp-opt (pcmpl-flag/names flag)))
 
-(defun pcmpl/make-flags-names-regex (flags)
-  (regexp-opt (-mapcat #'pcmpl-flag/names flags)))
-
 (defun pcmpl/make-flags (raw-flag-specs)
   "RAW-FLAG-SPECS is a list of either strings or 1- or 2-element lists where
 first item is flag name and second is completion expression. Flag name can
@@ -206,6 +203,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                           "<opts> clause must contain either (flags ...) or (args ...) entries only: %S"
                           info)
                   (let* ((flags (pcmpl/make-flags (cdr-safe (assoc 'flags info))))
+                         (flags-with-args (-filter #'pcmpl-flag/completion-expr flags))
                          ;; Positional arguments.
                          (args (assoc 'args info)))
                     (assert (--all? (-all? (comp (partial #'string-match-pure? "^--?[^-].*"))
@@ -223,31 +221,26 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                               "Meaningless (args ...) clause without completion action, (args <action>) expected: %s"
                               args))
                     (when (or flags args)
-                      (multiple-value-bind (flags-with-args flags-rest)
-                          (-separate #'pcmpl-flag/completion-expr flags)
-                        (multiple-value-bind (single-dash-flags double-dash-flags)
-                            (--separate (string-match-pure? "^-[^-]" it)
-                                        (-mapcat #'pcmpl-flag/names flags))
-                          `(while t
-                             (unless ,got-end-of-flags-var
-                               (cond
-                                 ,@(when flags-rest
-                                     (list
-                                      `((pcomplete-match ,(pcmpl/make-flags-names-regex flags-rest)))))
-                                 ,@(-map (lambda (flag)
-                                           `((pcomplete-match ,(pcpmpl/make-name-regex flag))
-                                             ,@(awhen (pcmpl-flag/completion-expr flag) (list it))))
-                                         flags-with-args)
-                                 ,@(when single-dash-flags
-                                     (list
-                                      `(,last-arg-starts-with-single-dash-var
-                                        (pcomplete-here ',single-dash-flags))))
-                                 ,@(when double-dash-flags
-                                     (list
-                                      `(,last-arg-starts-with-two-dashes-var
-                                        (pcomplete-here ',double-dash-flags))))
-                                 (t nil)))
-                             ,@(cdr args)))))))))
+                      (multiple-value-bind (single-dash-flags double-dash-flags)
+                          (--separate (string-match-pure? "^-[^-]" it)
+                                      (-mapcat #'pcmpl-flag/names flags))
+                        `(while t
+                           (unless ,got-end-of-flags-var
+                             (cond
+                               ,@(-map (lambda (flag)
+                                         `((pcomplete-match ,(pcpmpl/make-name-regex flag))
+                                           ,@(awhen (pcmpl-flag/completion-expr flag) (list it))))
+                                       flags-with-args)
+                               ,@(when single-dash-flags
+                                   (list
+                                    `(,last-arg-starts-with-single-dash-var
+                                      (pcomplete-here ',single-dash-flags))))
+                               ,@(when double-dash-flags
+                                   (list
+                                    `(,last-arg-starts-with-two-dashes-var
+                                      (pcomplete-here ',double-dash-flags))))
+                               (t nil)))
+                           ,@(cdr args))))))))
              ;; Positional arguments for subcommands
              (process-positional
               (lambda (definition pcomplete-arg-var positional-depth)
