@@ -114,8 +114,6 @@
     ("<f9>"    latex-compile)
     ("<f6>"    latex-toggle-preview-or-russian-spellcheck)
 
-    ("<home>"  vim:motion-bwd-paragraph)
-    ("<end>"   vim:motion-fwd-paragraph)
     ("<left>"  prev-w)
     ("<right>" next-w))
 
