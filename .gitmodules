@@ -143,3 +143,6 @@
 [submodule "third-party/tuareg"]
         path = third-party/tuareg
         url = https://github.com/ocaml/tuareg.git
+[submodule "third-party/agda-mode"]
+        path = third-party/agda-mode
+        url = https://github.com/sergv/agda-mode.git
