@@ -1,6 +1,3 @@
-[submodule "third-party/agda-mode"]
-        path = third-party/agda-mode
-        url = https://github.com/jwiegley/agda-mode.git
 [submodule "third-party/browse-kill-ring"]
         path = third-party/browse-kill-ring
         url = https://github.com/sergv/browse-kill-ring.git
