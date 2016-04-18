@@ -110,11 +110,13 @@
 (add-hook 'idris-compiler-notes-mode-hook #'idris-compiler-notes-setup)
 
 (defun idris-repl-setup ()
-  (init-repl :bind-return nil)
+  (init-repl :bind-return nil :create-keymaps t)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC" idris-repl-delete-current-input))
   (def-keys-for-map idris-repl-mode-map
     ;; ("<return>" idris-repl-return)
-    ("<up>"     idris-repl-backward-history)
-    ("<down>"   idris-repl-forward-history)))
+    ("<up>"   idris-repl-backward-history)
+    ("<down>" idris-repl-forward-history)))
 
 (add-hook 'idris-repl-mode-hook #'idris-repl-setup)
 
