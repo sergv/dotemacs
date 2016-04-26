@@ -52,10 +52,11 @@
        (c-c++-filter `(or (mode . c-mode)
                           (mode . c++-mode)
                           (mode . glsl-mode)))
-       (ocaml-filter `(or (mode . tuareg-mode)
-                          (mode . tuareg-interactive-mode)
-                          (name . ,(rx "*ocaml-toplevel*"
-                                       (? "<" (+ digit) ">")))))
+       (ml-filter `(or (mode . sml-mode)
+                       (mode . tuareg-mode)
+                       (mode . tuareg-interactive-mode)
+                       (name . ,(rx "*\\(?:ocaml\\|sml\\)-repl*"
+                                    (? "<" (+ digit) ">")))))
        (octave-filter `(or (mode . octave-mode)
                            (mode . inferiro-octave-mode)
                            (name . ,(rx "*Octave*"
@@ -186,7 +187,7 @@
       ("clojure"    ,clojure-filter)
       ("emacs lisp" ,emacs-lisp-filter)
       ("c/c++"      ,c-c++-filter)
-      ("ocaml"      ,ocaml-filter)
+      ("ml"         ,ml-filter)
       ("octave"     ,octave-filter)
       ("python"     ,python-filter)
 
