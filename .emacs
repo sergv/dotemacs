@@ -15,8 +15,6 @@
 (setq gc-cons-threshold (* 5 1024 1024)
       gc-cons-percentage 0.01)
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Customizations done by emacs customize routine
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -25,15 +23,8 @@
 (provide 'custom-variables-defined)
 
 (unless (featurep 'dotemacs)
-  (dolist (path (cl-remove-duplicates
-                 (append
-                  (list "/home/sergey/emacs"
-                        (expand-file-name "~/emacs"))
-                  (when (eq system-type 'windows-nt)
-                    (list
-                     ;; unfortunately Windows has no reasonable symlinks
-                     (expand-file-name "~/.emacs.d"))))
-                 :test #'string=))
+  (dolist (path (list (expand-file-name "~/emacs")
+                      (expand-file-name "~/.emacs.d")))
     (when (and (file-exists-p path)
                (file-directory-p path))
       (add-to-list 'load-path path)))
