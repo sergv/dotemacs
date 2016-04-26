@@ -43,12 +43,12 @@
        '("-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
          "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
          "-*-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
-      ((and (platform-os-type? 'windows)
-            (platform-use? 'work))
+      ((platform-os-type? 'windows)
        (append
         '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
           "-*-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
-          "-*-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1")
+          "-*-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
+          "-raster-Terminus-normal-normal-normal-mono-20-*-*-*-c-*-iso8859-1")
         (if (and (<= (display-pixel-width) 1280)
                  (<= (display-pixel-height) 1024))
           '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
