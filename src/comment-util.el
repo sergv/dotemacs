@@ -50,6 +50,7 @@
     (c-mode                (one-line "//") (line-regexp "//+"))
     (cuda-mode             (one-line "//") (line-regexp "//+"))
     (tuareg-mode           (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
+    (sml-mode              (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
     (makefile-mode         (one-line "#")  (line-regexp "#+"))
     (makefile-gmake-mode   (one-line "#")  (line-regexp "#+"))
     (makefile-automake-mode (one-line "#")  (line-regexp "#+"))
