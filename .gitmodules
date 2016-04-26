@@ -146,3 +146,7 @@
 [submodule "third-party/agda-mode"]
         path = third-party/agda-mode
         url = https://github.com/sergv/agda-mode.git
+[submodule "third-party/sml-mode"]
+        path = third-party/sml-mode
+        url = https://github.com/emacsmirror/sml-mode.git
+        ignore = untracked

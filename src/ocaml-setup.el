@@ -23,7 +23,7 @@
 
 (define-switch-to-interpreter
   switch-to-ocaml-repl
-  ("*ocaml-toplevel*")
+  ("*ocaml-repl*")
   (tuareg-run-ocaml)
   :doc "Pop to ocaml repl."
   :save-buffer t
@@ -48,7 +48,7 @@
   (bind-tab-keys #'indent-for-tab-command
                  nil
                  :enable-yasnippet t)
-  (def-keys-for-map tuareg-mode-map
+  (def-keys-for-map (vim:normal-mode-local-keymap)
     ("SPC SPC" switch-to-ocaml-repl)
     ("<f6>"    tuareg-eval-buffer)))
 
