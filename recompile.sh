@@ -22,6 +22,7 @@ function update-dir-autoloads {
 
 update-dir-autoloads "third-party/clojure-mode" "clojure-mode-autoloads.el"
 update-dir-autoloads "third-party/smartparens" "smartparens-autoloads.el"
+update-dir-autoloads "third-party/sml-mode" "sml-mode-autoloads.el"
 if which make >/dev/null; then
     pushd "third-party/org-mode"
     make autoloads

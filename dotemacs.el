@@ -238,6 +238,7 @@ or not.")
 (load-library "idris-setup")
 (load-library "dos-setup")
 (load-library "make-setup")
+(load-library "sml-setup")
 
 (load-library "search-autoload")
 (load-library "compilation-setup")
