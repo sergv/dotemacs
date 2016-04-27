@@ -338,8 +338,6 @@
 (defalias 'unnarrow 'widen)
 (defalias 'toggle-wrap-lines 'toggle-truncate-lines)
 
-(defalias 'eshell (lambda () (interactive) (error "eshell is disabled")))
-
 ;;;; Epilogue
 
 (provide 'emacs-general-conf)
