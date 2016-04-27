@@ -64,10 +64,12 @@ Range of platforms may be expanded (extended?) in the future.")
         (t
          (error "invalid use argument: %s" use))))
 
-(defun platform-dependent-root ()
+(defmacro platform-dependent-root ()
   "Retrieve platform-dependent filesystem root for current combination of
 platform OS and usage."
-  (expand-file-name "~"))
+  (if (platform-os-type? 'windows)
+    '(directory-file-name (expand-file-name "~/"))
+    '(expand-file-name "~")))
 
 (defun platform-dependent-executable (exec-name)
   "Return EXEC-NAME, which must be a file name, transformed according to
