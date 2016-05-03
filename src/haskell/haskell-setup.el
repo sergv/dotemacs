@@ -405,6 +405,7 @@
 
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet t)
+  (setq-local yas-indent-line 'fixed)
   (haskell-setup-folding)
   (fontify-merge-markers)
   (modify-syntax-entry ?- "_")
