@@ -10,6 +10,64 @@
 (require 'completion-setup)
 (require 'haskell-misc)
 
+;; Use this to debug completion functions
+;; (defun pcomplete/test ()
+;;   (message "pcomplete-args = %s"
+;;            (pp-to-string (-map #'strip-text-properties pcomplete-args)))
+;;   (let* ((last-arg
+;;           (pcomplete-arg 'last))
+;;          (last-arg-starts-with-single-dash
+;;           (string-match-pure\? "^-\\([^-]\\|$\\)" last-arg))
+;;          (last-arg-starts-with-two-dashes
+;;           (string-match-pure\? "^--\\([^-]\\|$\\)" last-arg))
+;;          (got-end-of-flags
+;;           (and
+;;            (not last-arg-starts-with-two-dashes)
+;;            (member "--"
+;;                    (-take pcomplete-last pcomplete-args)))))
+;;     (message "last-arg = %s, last-arg-starts-with-single-dash = %s, got-end-of-flags = %s"
+;;              (pp-to-string (strip-text-properties last-arg))
+;;              (pp-to-string last-arg-starts-with-single-dash)
+;;              (pp-to-string got-end-of-flags))
+;;     (pcomplete-here '("setup"))
+;;     (let ((n 0)
+;;           (pcomplete-arg-idx nil))
+;;       (while (progn
+;;                ;; (message "n = %s"
+;;                ;;          (pp-to-string n))
+;;                ;; (message "(pcomplete-arg 1) = %s"
+;;                ;;          (pp-to-string (strip-text-properties (pcomplete-arg 1))))
+;;                ;; (message "(pcomplete-arg 0) = %s"
+;;                ;;          (pp-to-string (strip-text-properties (pcomplete-arg 0))))
+;;                ;; (message "(pcomplete-arg) = %s"
+;;                ;;          (pp-to-string (strip-text-properties (pcomplete-arg))))
+;;                ;; (message "pcomplete-index = %s, pcomplete-stub = %s"
+;;                ;;          (pp-to-string pcomplete-index)
+;;                ;;          (pp-to-string pcomplete-stub))
+;;                (cond
+;;                  ((pcomplete-match "--stack-yaml" pcomplete-arg-idx)
+;;                   (pcomplete-here (pcomplete-entries "\\.yaml\\'")))
+;;                  ((string-match-p "^--" (pcomplete-arg))
+;;                   (message "doing (pcomplete-here '(\"--stack-yaml\"))")
+;;                   (pcomplete-here '("--stack-yaml")))
+;;                  (t nil)))
+;;         (incf n)
+;;         ;; (pcomplete-here '("--stack-yaml"))
+;;         ;; (pcomplete-here (pcomplete-entries "\\.yaml\\'"))
+;;         )
+;;       (message "After loop: n = %s"
+;;                (pp-to-string n))
+;;       ;; (while t
+;;       ;;   (pcomplete-here (pcomplete-entries "\\.\\(?:hs\\|md\\|cabal\\)\\'"))
+;;       ;;   ;; (pcomplete-here '("--stack-yaml"))
+;;       ;;   ;; (pcomplete-here (pcomplete-entries "\\.yaml\\'"))
+;;       ;;   )
+;;       )))
+;;
+;; (defun strip-text-properties (txt)
+;;   (set-text-properties 0 (length txt) nil txt)
+;;   txt)
+
 (defun pcmpl-git-commits ()
   "Return list of commits to complete against."
   (cons "HEAD"
@@ -140,10 +198,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 <opts> stands for given flags followed by args, no more positional arguments."
   (declare (indent 1))
   (assert (string-match-pure? "pcomplete/" (symbol->string name)))
-  (let ((got-end-of-flags-var (gensym "got-end-of-flags"))
-        (last-arg-var (gensym "last-arg"))
-        (last-arg-starts-with-single-dash-var (gensym "last-arg-starts-with-single-dash?"))
-        (last-arg-starts-with-two-dashes-var (gensym "last-arg-starts-with-two-dashes?")))
+  (let ((got-end-of-flags-var (gensym "got-end-of-flags")))
     (letrec ((process
               (lambda (definition positional-depth)
                 (assert (and (list? definition)
@@ -224,23 +279,28 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                       (multiple-value-bind (single-dash-flags double-dash-flags)
                           (--separate (string-match-pure? "^-[^-]" it)
                                       (-mapcat #'pcmpl-flag/names flags))
-                        `(while t
-                           (unless ,got-end-of-flags-var
-                             (cond
-                               ,@(-map (lambda (flag)
-                                         `((pcomplete-match ,(pcpmpl/make-name-regex flag))
-                                           ,@(awhen (pcmpl-flag/completion-expr flag) (list it))))
-                                       flags-with-args)
-                               ,@(when single-dash-flags
-                                   (list
-                                    `(,last-arg-starts-with-single-dash-var
-                                      (pcomplete-here ',single-dash-flags))))
-                               ,@(when double-dash-flags
-                                   (list
-                                    `(,last-arg-starts-with-two-dashes-var
-                                      (pcomplete-here ',double-dash-flags))))
-                               (t nil)))
-                           ,@(cdr args))))))))
+                        `(while
+                             (unless ,got-end-of-flags-var
+                               (let ((current-arg (pcomplete-arg)))
+                                 (cond
+                                   ,@(-map (lambda (flag)
+                                             `((pcomplete-match ,(pcpmpl/make-name-regex flag))
+                                               ,@(awhen (pcmpl-flag/completion-expr flag) (list it))))
+                                           flags-with-args)
+                                   ,@(when single-dash-flags
+                                       (list
+                                        `((string-match-p "^-\\([^-]\\|$\\)" current-arg)
+                                          (pcomplete-here ',single-dash-flags))))
+                                   ,@(when double-dash-flags
+                                       (list
+                                        `((string-match-p "^--" current-arg)
+                                          (pcomplete-here ',double-dash-flags))))
+                                   (t
+                                    ,@(if (cdr args)
+                                        (cdr args)
+                                        ;; Return nil to while loop to show that
+                                        ;; there are no more completions.
+                                        '(nil)))))))))))))
              ;; Positional arguments for subcommands
              (process-positional
               (lambda (definition pcomplete-arg-var positional-depth)
@@ -260,14 +320,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                        it
                                        (+ positional-depth 1)))))))))
       `(defun ,name ()
-         (let* ((,last-arg-var (pcomplete-arg 'last))
-                (,last-arg-starts-with-single-dash-var
-                 (string-match-pure? "^-\\([^-]\\|$\\)" ,last-arg-var))
-                (,last-arg-starts-with-two-dashes-var
-                 (string-match-pure? "^--\\([^-]\\|$\\)" ,last-arg-var))
-                (,got-end-of-flags-var
-                 (and (not ,last-arg-starts-with-two-dashes-var)
-                      (member "--" (-take pcomplete-last pcomplete-args)))))
+         (let ((,got-end-of-flags-var
+                (member "--" (-take pcomplete-last pcomplete-args))))
            ,(funcall process
                      (if evaluate-definition
                        (eval definition t)
