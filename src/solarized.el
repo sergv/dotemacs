@@ -350,6 +350,11 @@ Futher modified by Sergey Vinokurov."
             (rainbow-delimiters-depth-9-face      ((t (:foreground ,magenta))))
             (rainbow-delimiters-unmatched-face    ((t (:background ,magenta))))
 
+            (reb-match-0      ((t (:inherit bold))))
+            (reb-match-1      ((t (:inherit search-red-face))))
+            (reb-match-2      ((t (:inherit search-yellow-face))))
+            (reb-match-3      ((t (:inherit search-cyan-face))))
+
             ;; rainbow delimiters
             ;; (rainbow-delimiters-depth-1-face      ((t (:foreground ,magenta))))
             ;; (rainbow-delimiters-depth-2-face      ((t (:foreground ,violet))))
