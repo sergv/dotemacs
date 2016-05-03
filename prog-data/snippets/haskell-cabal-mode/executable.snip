@@ -3,15 +3,22 @@
 # key: exe
 # name: executable section
 # --
-executable           ${1:test}
-  main-is:           ${2:Main.hs}
-  build-depends:     base >= 4.7, ${3:my-module}
-${4:  other-modules:     ${5:Utils.Utils}
-}${6:  hs-source-dirs:    ${7:src}
-}  default-language:  Haskell2010
-  ghc-options:       -W -Wall
-                     -fwarn-monomorphism-restriction
-                     -fno-warn-type-defaults
-                     -fno-warn-name-shadowing
-                     -rtsopts
-                     ${8:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}
+executable ${1:test}
+  main-is:
+    ${2:Main.hs}
+  build-depends:
+    base >= 4.7,
+    ${3:my-module}
+${4:  other-modules:
+    ${5:Utils.Utils}
+}${6:  hs-source-dirs:
+    ${7:src}
+}  default-language:
+    Haskell2010
+  ghc-options:
+    -Wall
+    -fwarn-monomorphism-restriction
+    -fno-warn-type-defaults
+    -fno-warn-name-shadowing
+    -rtsopts
+    ${8:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}

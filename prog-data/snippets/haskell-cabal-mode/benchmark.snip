@@ -3,12 +3,18 @@
 # name: benchmark section
 # --
 benchmark ${1:benchmark-name}
-  type:                exitcode-stdio-1.0
-  main-is:             ${2:benchmark/Main.hs}
-  build-depends:       base >=4.7, ${3:my-package}
-  default-language:    Haskell2010
-  ghc-options:         -W -Wall
-                       -main-is BenchmarkMain
-                       -fwarn-monomorphism-restriction
-                       -fno-warn-name-shadowing
-                       -rtsopts
+  type:
+    exitcode-stdio-1.0
+  main-is:
+    ${2:benchmark/Main.hs}
+  build-depends:
+    base >=4.7,
+    ${3:my-package}
+  default-language:
+    Haskell2010
+  ghc-options:
+    -Wall
+    -main-is ${4:BenchmarkMain}
+    -fwarn-monomorphism-restriction
+    -fno-warn-name-shadowing
+    -rtsopts
