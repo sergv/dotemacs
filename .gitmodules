@@ -150,3 +150,6 @@
         path = third-party/sml-mode
         url = https://github.com/emacsmirror/sml-mode.git
         ignore = untracked
+[submodule "third-party/flycheck"]
+	path = third-party/flycheck
+	url = https://github.com/flycheck/flycheck.git
