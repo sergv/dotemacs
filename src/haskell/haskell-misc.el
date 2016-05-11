@@ -226,9 +226,9 @@ and indent them as singe line."
 ;; Ghci flags
 (let* ((extensions '("-XLambdaCase" "-XOverloadedStrings" "-XTemplateHaskell" "-XQuasiQuotes"))
        (ghc-options (append
-                     '("--ghc-option=-ferror-spans"
-                       "--ghc-option=-Wwarn")
-                     (--map (concat "--ghc-option=" it) extensions))))
+                     '("-ferror-spans"
+                       "-Wwarn")
+                     extensions)))
   (setf haskell-process-path-ghci
         (if (platform-os-type? 'windows)
           "ghc"
@@ -248,8 +248,8 @@ and indent them as singe line."
                   extensions
                   opts
                   rts-opts))
-        haskell-process-args-cabal-repl ghc-options
-        haskell-process-args-stack-ghci ghc-options))
+        haskell-process-args-cabal-repl (--map (concat "--ghc-option=" it) ghc-options)
+        haskell-process-args-stack-ghci (--map (concat "--ghc-options=" it) ghc-options)))
 
 (defconst +haskell-compile-error-or-warning-regexp+
   (join-lines (append
