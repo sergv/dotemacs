@@ -2567,6 +2567,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    ("which"
     (opts (args (pcomplete/which))))))
 
+(defpcmpl pcomplete/untar
+  (opts
+   (args
+    (pcomplete-here* (pcomplete-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\)\\)?\\'")))))
+
 (provide 'shell-completion)
 
 ;; Local Variables:
