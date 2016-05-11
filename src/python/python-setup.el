@@ -31,7 +31,7 @@
 
 (setf python-indent-offset 4)
 
-(defparameter python-exec "python3.3"
+(defparameter python-exec "python3"
   "Python executable to use for script running.")
 (put 'python-exec 'safe-local-variable #'string?)
 (put 'python-shell-interpreter 'safe-local-variable #'string?)
@@ -83,7 +83,7 @@
 
 ;; ipython setup
 (setf python-shell-buffer-name "python repl"
-      python-shell-interpreter "ipython" ;; "ipython3" ;; "ipython"
+      python-shell-interpreter "ipython3" ;; "ipython"
       python-shell-internal-buffer-name " ipython-repl-internal"
       python-shell-interpreter-args "--pprint --color-info --colors Linux --nosep --no-confirm-exit --deep-reload"
 
@@ -491,6 +491,8 @@ greater indenation as current line."
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
+    ("C-t"      comint-previous-prompt)
+    ("C-h"      comint-next-prompt)
     ("C-<up>"   comint-previous-prompt)
     ("C-<down>" comint-next-prompt)
     ("S-<up>"   comint-previous-prompt)
