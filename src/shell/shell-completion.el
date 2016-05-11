@@ -1877,6 +1877,17 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
   (opts
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
+(defpcmpl pcomplete/hp2pretty
+  (opts
+   (flags
+    "--uniform-scale=none"
+    "--uniform-scale=time"
+    "--uniform-scale=memory"
+    "--uniform-scale=both")
+   (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
+
+(defalias 'pcomplete/hp2svg 'pcomplete/hp2pretty)
+
 (defpcmpl pcomplete/stack
   (let ((standard-flags
          '("--help"
