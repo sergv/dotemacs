@@ -425,45 +425,6 @@ nor comment."
 
 ;;;; list navigation, realign let
 
-(eval-after-load
-    "lisp"
-  '(progn
-     ;; once this was an advice, but it's cleaner to redefine this up-list thing
-     ;; since backward-up-list uses up-list to do it's job
-     ;; only one advice is necessary
-     (redefun up-list (&optional arg)
-       "Move forward out of one level of parentheses.
-With ARG, do this that many times.
-A negative argument means move backward but still to a less deep spot.
-This command assumes point is not in a string or comment."
-       (interactive "^p")
-       (let ((str-or-comm-start (lisp-position-inside-string-or-comment (point))))
-         (when str-or-comm-start
-           ;; jump out of string/comment
-           (goto-char (max (point-min) (1- str-or-comm-start))))
-         ;; unless we're moved to correct destination, perform move
-         (when (or
-                ;; if we're not in string/comment then move is necessary
-                (not str-or-comm-start)
-                ;; if were're in string/comment then check if we
-                ;; still have to do any moves
-                (not (lisp-pos-is-beginning-of-sexp? (point))))
-           (setf arg (or arg 1))
-           (let ((inc (if (> arg 0) 1 -1))
-                 pos)
-             (while (/= arg 0)
-               (if (null forward-sexp-function)
-                 (goto-char (or (scan-lists (point) inc 1) (buffer-end arg)))
-                 (condition-case err
-                     (while (progn (setq pos (point))
-                                   (forward-sexp inc)
-                                   (/= (point) pos)))
-                   (scan-error (goto-char (nth (if (> arg 0) 3 2) err))))
-                 (if (= (point) pos)
-                   (signal 'scan-error
-                           (list "Unbalanced parentheses" (point) (point)))))
-               (setq arg (- arg inc)))))))))
-
 (defun realign-let ()
   "Realign let/setq/setf/etc form at point."
   (interactive)
