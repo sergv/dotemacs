@@ -73,6 +73,11 @@
   (cons "HEAD"
         (pcmpl-git-get-refs "heads\\|tags")))
 
+(defun pcmpl-git-branch-names ()
+  "Return list of branch names to complete against."
+  (cons "HEAD"
+        (pcmpl-git-branch-names)))
+
 (defun pcmpl-git-commits-and-files ()
   "Return list of commits to complete against."
   (append (pcmpl-git-commits)
@@ -436,8 +441,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
        (opts
         (flags "-q"
                "--quiet"
-               ("-b" (pcomplete-here (pcmpl-git-get-refs "heads")))
-               ("-B" (pcomplete-here (pcmpl-git-get-refs "heads")))
+               (("-b" "-B" "--orphan") (pcomplete-here (pcmpl-git-branch-names)))
                "-l"
                "--detach"
                "-t"
@@ -977,7 +981,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--follow-tags")
         (args
          (pcomplete-here (pcmpl-git-get-remotes))
-         (pcomplete-here (pcmpl-git-get-refs "heads")))))
+         (pcomplete-here (pcmpl-git-branch-names)))))
       ("rebase"
        (opts
         (flags "-i"
@@ -993,7 +997,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           (flags
            "-v"
            "--verbose"
-           ("-t" (pcomplete-here (pcmpl-git-get-refs "heads")))
+           ("-t" (pcomplete-here (pcmpl-git-branch-names)))
            "-f"
            "--tags"
            "--no-tags"
@@ -1249,15 +1253,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-M"
 
     "-hcsuf"
-    ("-hidir" (pcomplete-here (pcomplete-dirs)))
     "-hisuf"
     "-o"
-    ("-odir" (pcomplete-here (pcomplete-dirs)))
     "-ohi"
     "-osuf"
-    ("-studdir" (pcomplete-here (pcomplete-dirs)))
-    ("-dumpdir" (pcomplete-here (pcomplete-dirs)))
-    ("-outputdir" (pcomplete-here (pcomplete-dirs)))
+    (("-i" "-I" "-L" "-hidir" "-odir" "-tmpdir" "-hpcdir" "-studdir" "-dumpdir" "-outputdir") (pcomplete-here (pcomplete-dirs)))
 
     "-keep-hc-file"
     "-keep-hc-files"
@@ -1266,10 +1266,6 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-keep-s-file"
     "-keep-s-files"
     "-keep-tmp-files"
-
-    ("-tmpdir" (pcomplete-here (pcomplete-dirs)))
-
-    ("-i" (pcomplete-here (pcomplete-dirs)))
 
     "-ddump-hi"
     "-ddump-hi-diffs"
@@ -1396,16 +1392,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-fprof-count-entries"
     "-ticky"
 
-
     "-fhpc"
-    ("-hpcdir" (pcomplete-here (pcomplete-dirs)))
 
     "-F"
 
     "-cpp"
     "-D"
     "-U"
-    ("-I" (pcomplete-here (pcomplete-dirs)))
 
     "-fasm"
     "-fllvm"
@@ -1420,7 +1413,6 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-framework"
     "-framework-path"
     "-l"
-    ("-L" (pcomplete-here (pcomplete-dirs)))
     "-main-is"
     "--mk-dll"
     "-no-hs-main"
@@ -1617,19 +1609,21 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             "-w"
                             "--with-compiler"
                             "--with-hc-pkg"
-                            ("--prefix" (pcomplete-here (pcomplete-dirs)))
-                            ("--bindir" (pcomplete-here (pcomplete-dirs)))
-                            ("--libdir" (pcomplete-here (pcomplete-dirs)))
-                            ("--libsubdir" (pcomplete-here (pcomplete-dirs)))
-                            ("--libexecdir" (pcomplete-here (pcomplete-dirs)))
-                            ("--datadir" (pcomplete-here (pcomplete-dirs)))
-                            ("--datasubdir" (pcomplete-here (pcomplete-dirs)))
-                            ("--docdir" (pcomplete-here (pcomplete-dirs)))
-                            ("--htmldir" (pcomplete-here (pcomplete-dirs)))
-                            ("--haddockdir" (pcomplete-here (pcomplete-dirs)))
-                            ("--sysconfdir" (pcomplete-here (pcomplete-dirs)))
-                            ("-b" (pcomplete-here (pcomplete-dirs)))
-                            ("--scratchdir" (pcomplete-here (pcomplete-dirs)))
+                            (("--prefix"
+                              "--bindir"
+                              "--libdir"
+                              "--libsubdir"
+                              "--libexecdir"
+                              "--datadir"
+                              "--datasubdir"
+                              "--docdir"
+                              "--htmldir"
+                              "--haddockdir"
+                              "--sysconfdir"
+                              "-b"
+                              "--scratchdir")
+                             (pcomplete-here (pcomplete-dirs)))
+
                             "--program-prefix"
                             "--program-suffix"
                             "--enable-library-vanilla"
@@ -1663,9 +1657,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                             ("--package-db" (pcomplete-here (pcmpl-entries-ignoring-common)))
                             "-f"
                             "--flags"
-                            ("--extra-include-dirs" (pcomplete-here (pcomplete-dirs)))
-                            ("--extra-lib-dirs" (pcomplete-here (pcomplete-dirs)))
-                            ("--extra-prog-path" (pcomplete-here (pcomplete-dirs)))
+                            (("--extra-include-dirs" "--extra-lib-dirs" "--extra-prog-path")
+                             (pcomplete-here (pcomplete-dirs)))
                             "--enable-tests"
                             "--disable-tests"
                             "--enable-library-coverage"
@@ -1709,9 +1702,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--haddock-html-location=URL"
                "--haddock-executables"
                "--haddock-internal"
-               ("--haddock-css" (pcomplete-here (pcmpl-entries-ignoring-common)))
+               (("--haddock-css" "--haddock-hscolour-css") (pcomplete-here (pcmpl-entries-ignoring-common)))
                "--haddock-hyperlink-source"
-               ("--haddock-hscolour-css" (pcomplete-here (pcmpl-entries-ignoring-common)))
                "--haddock-contents-location")))
       ("update"
        (opts
@@ -1734,8 +1726,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("get"
        (opts
         (flags ,@help-verbosity-flags
-               ("-d" (pcomplete-here (pcomplete-dirs)))
-               ("--destdir" (pcomplete-here (pcomplete-dirs)))
+               (("-d" "--destdir") (pcomplete-here (pcomplete-dirs)))
                "-s"
                "--source-repository"
                "--source-repository=head"
@@ -2244,8 +2235,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
           "-static"
 
-          ("-I" (pcomplete-here (pcomplete-dirs)))
-          ("-L" (pcomplete-here (pcomplete-dirs)))
+          (("-I" "-L") (pcomplete-here (pcomplete-dirs)))
           "-Os"
           "-O2"
           "-O3"
@@ -2396,8 +2386,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              "--dump-po-strings"
              "--dump-strings"
              "--help"
-             ("--init-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
-             ("--rcfile" (pcomplete-here (pcmpl-entries-ignoring-common)))
+             (("--init-file" "--rcfile") (pcomplete-here (pcmpl-entries-ignoring-common)))
              "-l"
              "--login"
              "--noediting"
@@ -2457,11 +2446,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-x"
           "--exclude="
           "-X"
-          ("--exclude-from" (pcomplete-here (pcmpl-entries-ignoring-common)))
           "-S"
-          ("--starting-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
-          ("--from-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
-          ("--to-file" (pcomplete-here (pcmpl-entries-ignoring-common)))
+          (("--exclude-from" "--starting-file" "--from-file" "--to-file") (pcomplete-here (pcmpl-entries-ignoring-common)))
           "-i"
           "--ignore-case"
           "-E"
@@ -2517,8 +2503,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-L"
     "-P"
     "-O3"
-    ("-maxdepth" (pcomplete-here '("1" "2" "3")))
-    ("-mindepth" (pcomplete-here '("1" "2" "3")))
+    (("-maxdepth" "-mindepth") (pcomplete-here '("1" "2" "3")))
     "-a"
     "-o"
     "-not"
@@ -2534,8 +2519,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 (defpcmpl pcomplete/du
   (opts
    (flags
-    ("-d" (pcomplete-here '("1" "2" "3")))
-    ("--max-depth" (pcomplete-here '("1" "2" "3")))
+    (("-d" "--max-depth") (pcomplete-here '("1" "2" "3")))
     "-h"
     "--human-readable"
     "--inodes"
