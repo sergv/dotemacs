@@ -130,6 +130,15 @@ system restars.")
   (or (seq bow (or "tests" "doc" "examples") eol)
       "ghc-mod/doc/presentation/auto"
       "haskell-mode/tests/compat"
+      "haskell-mode/tests"
+      "js2-mode/tests"
+      "mmm-mode/tests"
+      "markdown-mode/tests"
+      "auctex/tests"
+      "company-mode/test"
+      "smartparens/tests"
+      "flycheck/test"
+      (seq "ghc-mod/.stack-work" (* any))
       (seq "org-mode"
            (or "/mk"
                "/testing"))
