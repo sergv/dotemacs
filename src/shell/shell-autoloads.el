@@ -10,6 +10,13 @@
 
 (add-to-list 'auto-mode-alist '("\\.xbindkeysrc$" . shell-script-mode))
 
+(add-to-list 'display-buffer-alist
+             '("^\\*Async Shell Command\\*" . (display-buffer-no-window)))
+
+(add-to-list 'display-buffer-alist
+             '("^\\*shell.*\\*" . (display-buffer-same-window)))
+
+
 (autoload 'shell-setup "shell-setup")
 (add-hook 'shell-mode-hook #'shell-setup)
 
