@@ -303,8 +303,6 @@
   ("C-p" yank)
   ("M-p" yank))
 
-(add-to-list 'display-buffer-alist '("^*Async Shell Command*" . (display-buffer-no-window)))
-
 ;; (unless noninteractive
 ;;
 ;;   (defun maximize-frame (&optional frame)
