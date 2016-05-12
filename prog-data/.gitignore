@@ -1,0 +1,12 @@
+backup/**
+tmp/**
+python-tmp/**
+imaxima-tmp/**
+auto-save-list/**
+cedet/**
+image-dired/**
+smex-items
+python_history
+saveplace
+eshell/history
+eshell/lastdir
