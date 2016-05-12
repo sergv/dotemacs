@@ -89,6 +89,8 @@
 (vim:defcmd vim:haskell-ghc-reload (nonrepeatable)
   (vim:haskell-ghc-reset)
   (ghc-reload))
+(vim:defcmd vim:haskell-flycheck (nonrepeatable)
+  (flycheck-buffer))
 
 (vim:defcmd vim:haskell-navigate-imports (nonrepeatable)
   (haskell-navigate-imports)
@@ -99,7 +101,8 @@
     (eproj-update-buffer-tags)))
 
 (defun haskell-ghc-mod-check-on-save ()
-  (when vim:haskell-check-on-save
+  (when (and vim:haskell-check-on-save
+             (fboundp #'ghc-check-syntax))
     (ignore-errors
       (ghc-check-syntax))))
 
@@ -112,6 +115,7 @@
   (company-mode +1)
   (setq-local company-backends '(company-eproj))
   (fontify-conflict-markers)
+  (flycheck-mode)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
   (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)
 
@@ -179,6 +183,8 @@
   (vim:local-emap "init"     'vim:haskell-ghc-init)
   (vim:local-emap "check"    'vim:haskell-ghc-check)
   (vim:local-emap "ch"       'vim:haskell-ghc-check)
+  (vim:local-emap "flycheck" 'vim:haskell-flycheck)
+  (vim:local-emap "flyc"     'vim:haskell-flycheck)
   (vim:local-emap "reset"    'vim:haskell-ghc-reset)
   (vim:local-emap "reload"   'vim:haskell-ghc-reload)
 
@@ -228,10 +234,10 @@
     ("C-u"             shm/insert-undefined)
     ("C-<up>"          shm/swing-up)
     ("C-<down>"        shm/swing-down)
-    ("C-t"             ghc-goto-prev-error)
-    ("C-h"             ghc-goto-next-error)
-    ("M-t"             haskell-compilation-prev-error-other-window)
-    ("M-h"             haskell-compilation-next-error-other-window)
+    ("C-t"             haskell-compilation-prev-error-other-window)
+    ("C-h"             haskell-compilation-next-error-other-window)
+    ("M-t"             ghc-goto-prev-error)
+    ("M-h"             ghc-goto-next-error)
     ("C-SPC"           company-complete)
 
     ("S-<tab>"         nil)

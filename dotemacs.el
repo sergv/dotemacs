@@ -270,6 +270,7 @@ or not.")
 (load-library "fci-setup")
 (load-library "p4-setup")
 (load-library "company-mode-setup")
+(load-library "flycheck-setup")
 
 (autoload 'egrep "egrep" nil t)
 

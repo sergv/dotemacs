@@ -17,12 +17,17 @@ emacs_dir=${1:-"${EMACS_DIR}"}
 function update-dir-autoloads {
     local dir="$1"
     local name="$2"
+    if [[ ! -d "$dir" ]]; then
+        echo "update-dir-autoloads: directory $dir does not exist"
+        exit 1
+    fi
     emacs --batch --eval "(progn (setq generated-autoload-file \"$emacs_dir/$dir/$name\") (update-directory-autoloads \"$emacs_dir/$dir\"))"
 }
 
 update-dir-autoloads "third-party/clojure-mode" "clojure-mode-autoloads.el"
 update-dir-autoloads "third-party/smartparens" "smartparens-autoloads.el"
 update-dir-autoloads "third-party/sml-mode" "sml-mode-autoloads.el"
+update-dir-autoloads "third-party/flycheck" "flycheck-autoloads.el"
 if which make >/dev/null; then
     pushd "third-party/org-mode"
     make autoloads
