@@ -153,3 +153,6 @@
 [submodule "third-party/flycheck"]
 	path = third-party/flycheck
 	url = https://github.com/flycheck/flycheck.git
+[submodule "third-party/flycheck-haskell"]
+	path = third-party/flycheck-haskell
+	url = https://github.com/sergv/flycheck-haskell.git

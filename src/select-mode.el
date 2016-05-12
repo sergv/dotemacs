@@ -96,13 +96,13 @@ Items will be passed to this function before insertion into buffer.")
                                 &key
                                 (buffer-name "Selection")
                                 after-init
-                                (on-selection #'ignore)
+                                (on-selection 'ignore)
                                 item-show-function
                                 (preamble-function (lambda () ""))
                                 (epilogue-function (lambda () ""))
                                 (separator-function
                                  (lambda ()
-                                   (select-make-bold-separator "--------\n"))))
+                                   select--bold-separator)))
   "Initiate select session.
 
 ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS collection
@@ -336,6 +336,8 @@ START is inclusive and END is exclusive in ITEMS."
 
 (defsubst select/list->vector (items)
   (coerce items 'vector))
+
+(defvar select--bold-separator (select-make-bold-separator "--------\n"))
 
 (provide 'select-mode)
 
