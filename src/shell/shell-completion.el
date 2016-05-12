@@ -1864,10 +1864,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-c")
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
+;;;###autoload
 (defpcmpl pcomplete/hp2pdf
   (opts
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
+;;;###autoload
 (defpcmpl pcomplete/hp2pretty
   (opts
    (flags
@@ -1877,8 +1879,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--uniform-scale=both")
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
+;;;###autoload
 (defalias 'pcomplete/hp2svg 'pcomplete/hp2pretty)
 
+;;;###autoload
 (defpcmpl pcomplete/stack
   (let ((standard-flags
          '("--help"
@@ -2496,6 +2500,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-e")
         (args (pcomplete-here (pcomplete-entries)))))
 
+;;;###autoload
 (defpcmpl pcomplete/find
   (opts
    (flags
@@ -2516,6 +2521,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (args
     (pcomplete-here* (pcomplete-dirs)))))
 
+;;;###autoload
 (defpcmpl pcomplete/du
   (opts
    (flags
@@ -2562,6 +2568,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    ("which"
     (opts (args (pcomplete/which))))))
 
+;;;###autoload
 (defpcmpl pcomplete/untar
   (opts
    (args
