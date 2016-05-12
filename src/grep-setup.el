@@ -51,6 +51,7 @@
        "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>.
 Fixed version. Also recognized <E>, which will be replaced by -E or -F depending
 on whether supplied patterns is regexp or fixed string."
+       (setf dir (or dir "."))
        (setf *grep-latest-dir* dir)
        (save-match-data
          (let* ((command template)
