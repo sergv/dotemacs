@@ -1,7 +1,7 @@
 EMACS = emacs
 EMACSFLAGS =
 GHC = ghc
-GHCFLAGS = -Wall -Werror -O1
+GHCFLAGS = -Wall -Werror -O2
 HLINT = hlint
 HLINTFLAGS =
 CASK = cask
