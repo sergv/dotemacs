@@ -338,11 +338,27 @@ in the same directory the current file is."
   (eq 'quote (car-safe x)))
 
 (defmacro def-keys-for-map (mode-map &rest key-command-list)
+  "Bind keys specified by KEY-COMMAND-LIST into map MODE-MAP. MODE-MAP can be
+either a single map or a list of maps.
+
+KEY-COMMAND-LIST can be list of the following:
+1. Symbols - they will be treated as variables and their contents treated as
+another KEY-COMMAND-LIST spliced in place of a variable;
+2. Entries - 2-element lists (KEYS COMMAND) where:
+2.a. KEYS    - string or list of string defining keys, in `kbd' format;
+2.b. COMMAND - symbol or inline interactive lambda to be invoked on pressing a key.
+"
   (declare (indent nil))
   (letrec ((def-key
              (lambda (map key command)
+               (assert (or (string? key)
+                           (vector? key)
+                           (symbol? key))
+                       nil
+                       "Invalid key: %s"
+                       key)
                `(define-key ,map
-                  ,(eval `(kbd ,key))
+                  ,key
                   ,(cond
                      ((and (list? command)
                            (or (eq? 'function (car command))
@@ -368,7 +384,15 @@ in the same directory the current file is."
                                 (if (quoted? entry)
                                   (eval entry)
                                   entry)
-                              (list (funcall def-key map key command))))))))
+                              (cond
+                                ((list? key)
+                                 (list
+                                  `(dolist (key ',(--map (eval `(kbd ,it)) key))
+                                     ,(funcall def-key map 'key command))))
+                                ((string? key)
+                                 (list (funcall def-key map (eval `(kbd ,key)) command)))
+                                (t
+                                 (error "Invalid key: %s" key)))))))))
     (let* ((map-var (gensym "kmap"))
            (bindings
             `(dolist (,map-var

@@ -75,22 +75,36 @@
 (vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
   (haskell-interactive-clear-buffer-above-prompt))
 
-(defvar-local vim:haskell-check-on-save nil
-  "Whether to run `ghc-check' on saves.")
-(vim:defcmd vim:haskell-ghc-init (nonrepeatable)
-  (ghc-init)
-  (setq-local vim:haskell-check-on-save t))
-(vim:defcmd vim:haskell-ghc-check (nonrepeatable)
-  (ghc-check-syntax)
-  (setq-local vim:haskell-check-on-save t))
-(vim:defcmd vim:haskell-ghc-reset (nonrepeatable)
-  (ghc-reset)
-  (setq-local vim:haskell-check-on-save nil))
-(vim:defcmd vim:haskell-ghc-reload (nonrepeatable)
-  (vim:haskell-ghc-reset)
-  (ghc-reload))
-(vim:defcmd vim:haskell-flycheck (nonrepeatable)
+;; Ghc-mod stuff
+;; (defvar-local vim:haskell-check-on-save nil
+;;   "Whether to run `ghc-check' on saves.")
+;; (vim:defcmd vim:haskell-ghc-init (nonrepeatable)
+;;   (ghc-init)
+;;   (setq-local vim:haskell-check-on-save t))
+;; (vim:defcmd vim:haskell-ghc-check (nonrepeatable)
+;;   (ghc-check-syntax)
+;;   (setq-local vim:haskell-check-on-save t))
+;; (vim:defcmd vim:haskell-ghc-reset (nonrepeatable)
+;;   (ghc-reset)
+;;   (setq-local vim:haskell-check-on-save nil))
+;; (vim:defcmd vim:haskell-ghc-reload (nonrepeatable)
+;;   (vim:haskell-ghc-reset)
+;;   (ghc-reload))
+;;
+;; (defun haskell-ghc-mod-check-on-save ()
+;;   (when (and vim:haskell-check-on-save
+;;              (fboundp #'ghc-check-syntax))
+;;     (ignore-errors
+;;       (ghc-check-syntax))))
+
+(vim:defcmd vim:haskell-flycheck-run (nonrepeatable)
   (flycheck-buffer))
+(vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
+  (flycheck-haskell-configure))
+(vim:defcmd vim:haskell-flycheck-clear (nonrepeatable)
+  (flycheck-clear))
+(vim:defcmd vim:haskell-flycheck-list-errors (nonrepeatable)
+  (flycheck-list-errors))
 
 (vim:defcmd vim:haskell-navigate-imports (nonrepeatable)
   (haskell-navigate-imports)
@@ -99,12 +113,6 @@
 (defun haskell-update-eproj-tags-on-save ()
   (ignore-errors
     (eproj-update-buffer-tags)))
-
-(defun haskell-ghc-mod-check-on-save ()
-  (when (and vim:haskell-check-on-save
-             (fboundp #'ghc-check-syntax))
-    (ignore-errors
-      (ghc-check-syntax))))
 
 (defun haskell-setup ()
   (init-common :use-yasnippet t
@@ -117,7 +125,7 @@
   (fontify-conflict-markers)
   (flycheck-mode)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
-  (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)
+  ;; (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)
 
   ;; ghci interaction uses comint - same as shell mode
   (turn-on-font-lock)
@@ -179,17 +187,19 @@
   (vim:local-emap "load"     'vim:haskell-load-file-into-repl)
   (vim:local-emap "lo"       'vim:haskell-load-file-into-repl)
   (vim:local-emap "l"        'vim:haskell-load-file-into-repl)
-  ;; ghc-mod commands
-  (vim:local-emap "init"     'vim:haskell-ghc-init)
-  (vim:local-emap "check"    'vim:haskell-ghc-check)
-  (vim:local-emap "ch"       'vim:haskell-ghc-check)
-  (vim:local-emap "flycheck" 'vim:haskell-flycheck)
-  (vim:local-emap "flyc"     'vim:haskell-flycheck)
-  (vim:local-emap "reset"    'vim:haskell-ghc-reset)
-  (vim:local-emap "reload"   'vim:haskell-ghc-reload)
+  ;; quick check commands
+  (vim:local-emap "init"      'vim:haskell-flycheck-configure)
+  (vim:local-emap "configure" 'vim:haskell-flycheck-configure)
+  (vim:local-emap "conf"      'vim:haskell-flycheck-configure)
+  (vim:local-emap "check"     'vim:haskell-flycheck-run)
+  (vim:local-emap "ch"        'vim:haskell-flycheck-run)
+  (vim:local-emap "clear"     'vim:haskell-flycheck-clear)
+  (vim:local-emap "reset"     'vim:haskell-flycheck-clear)
+  (vim:local-emap "errors"    'vim:haskell-flycheck-list-errors)
+  (vim:local-emap "errs"      'vim:haskell-flycheck-list-errors)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("\\"      vim:haskell-ghc-check)
+    ("\\"      vim:haskell-flycheck-run)
     ("j"       vim:haskell-load-file-into-repl)
     ("g c c"   haskell-comment-node)
     ("+"       input-unicode)
@@ -236,8 +246,6 @@
     ("C-<down>"        shm/swing-down)
     ("C-t"             haskell-compilation-prev-error-other-window)
     ("C-h"             haskell-compilation-next-error-other-window)
-    ("M-t"             ghc-goto-prev-error)
-    ("M-h"             ghc-goto-next-error)
     ("C-SPC"           company-complete)
 
     ("S-<tab>"         nil)
@@ -439,16 +447,7 @@
 
 (defun haskell-lint-setup ()
   (setq-local *compilation-jump-error-regexp*
-              haskell-lint-regex)
-  ;; recognize possible error at the end
-  (let ((haskell-lint-regex-orig
-         "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): %s:.*[\n\C-m]Found:[\n\C-m]\\s +.*[\n\C-m]Why not:[\n\C-m]\\s +.*[\n\C-m]"))
-    (setq-local compilation-error-regex-alist
-                (list
-                 (list (format haskell-lint-regex-orig "Error")
-                       1 2 3 2)
-                 (list (format haskell-lint-regex-orig "Warning")
-                       1 2 3 1)))))
+              haskell-lint-regex))
 
 (defun ghc-core-setup ()
   (structured-haskell-mode -1)
