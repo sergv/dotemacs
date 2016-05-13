@@ -85,15 +85,16 @@
                 (:eval
                  (when (buffer-narrowed?)
                    "(Narrowed)"))
+                vc-mode
+                (:eval
+                 (awhen (flycheck-pretty-mode-line)
+                   (concat " (" it ")")))
                 " "
-                (vc-mode
-                 (concat vc-mode " "))
                 (line-number-mode
                  ("%l/"
                   (:eval (number-to-string
                           (count-lines (point-min)
-                                       (point-max))))
-                  "(%p)"))
+                                       (point-max))))))
                 (:eval
                  (when (region-active?)
                    (multiple-value-bind (start end) (get-region-bounds)
