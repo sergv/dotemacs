@@ -246,6 +246,19 @@ Futher modified by Sergey Vinokurov."
                                             (:underline (:style wave :color ,base01)))
                                            (t (:underline ,base01))))
 
+            (flycheck-error               ((((supports :underline (:style wave)))
+                                            :underline (:style wave :color ,red :bold t))
+                                           (t
+                                            :underline t :inherit error)))
+            (flycheck-warning             ((((supports :underline (:style wave)))
+                                            :underline (:style wave :color ,orange :bold t))
+                                           (t
+                                            :underline t :inherit warning)))
+            (flycheck-info                ((((supports :underline (:style wave)))
+                                            :underline (:style wave :color ,green :bold t))
+                                           (t
+                                            :underline t :inherit success)))
+
             (clojure-constant-face        ((t (:foreground ,cyan))))
             (clojure-java-interop-face    ((t (:foreground ,yellow))))
             (clojure-meta-type-annotation-face ((t (:foreground ,green))))
@@ -567,6 +580,7 @@ Futher modified by Sergey Vinokurov."
             (show-paren-match                     ((t (:underline ,magenta))))
             (show-paren-match-face                ((t (:inherit show-paren-match))))
             (show-paren-mismatch-face             ((t (:inherit rainbow-delimiters-unmatched-face))))
+            (success                              ((t (:foreground ,green :bolt t))))
             (tabbar-button-face                   ((t (:inherit tabbar-default-face
                                                                 :box (:line-width 2
                                                                                   :color "white"
@@ -589,7 +603,7 @@ Futher modified by Sergey Vinokurov."
             (vim:lazy-highlight                   ((t (:inherit lazy-highlight))))
             (vim:search                           ((t (:background ,light-cyan-green-background))))
             (vim:substitute                       ((t (:underline ,magenta))))
-            (warning                              ((t (:foreground ,orange))))
+            (warning                              ((t (:foreground ,orange :bold t))))
             (whitespace-line                      ((t (:underline ,red))))
             (whitespace-space-after-tab           ((t (:underline ,red))))
             (whitespace-space-before-tab          ((t (:underline ,red))))
@@ -600,17 +614,17 @@ Futher modified by Sergey Vinokurov."
       (solarized/install-faces faces))
 
     (setf ;; frame-background-mode        mode
-          *color-theme-solarized-type* mode
-          org-drill-new-count-color    blue
-          org-drill-done-count-color   green
-          org-drill-failed-count-color magenta
-          org-drill-mature-count-color orange
-          ansi-color-names-vector (vector base0 red green yellow blue magenta cyan base01)
-          ansi-color-map (ansi-color-make-color-map)
-          fci-rule-color base0
-          ansi-term-color-vector
-          [base3 base01 +solarized-red+ +solarized-green+ +solarized-yellow+
-           +solarized-blue+ +solarized-magenta+ +solarized-cyan+ base0])
+     *color-theme-solarized-type* mode
+     org-drill-new-count-color    blue
+     org-drill-done-count-color   green
+     org-drill-failed-count-color magenta
+     org-drill-mature-count-color orange
+     ansi-color-names-vector (vector base0 red green yellow blue magenta cyan base01)
+     ansi-color-map (ansi-color-make-color-map)
+     fci-rule-color base0
+     ansi-term-color-vector
+     [base3 base01 +solarized-red+ +solarized-green+ +solarized-yellow+
+            +solarized-blue+ +solarized-magenta+ +solarized-cyan+ base0])
     (run-hooks 'solarized-theme-mode-changed-hook)))
 
 (defun solarized/uniquify-alist (old-list)
