@@ -185,7 +185,8 @@
       save-interprogram-paste-before-kill nil
       enable-recursive-minibuffer t
       ad-default-compilation-action 'always
-      echo-keystrokes 0.01)
+      echo-keystrokes 0.01
+      warning-minimum-level :error)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
