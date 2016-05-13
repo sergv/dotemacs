@@ -43,6 +43,7 @@
 (autoload 'pcomplete/hp2pretty "shell-completion" nil t)
 (autoload 'pcomplete/hp2svg "shell-completion" nil nil)
 (autoload 'pcomplete/stack "shell-completion" nil t)
+(autoload 'pcomplete/hlint "shell-completion" nil t)
 
 (autoload 'pcomplete/nm "shell-completion" nil t)
 (autoload 'pcomplete/gcc "shell-completion" nil t)
