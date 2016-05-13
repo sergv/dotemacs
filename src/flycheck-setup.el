@@ -6,6 +6,9 @@
 ;; Created: Thursday, 12 May 2016
 ;; Description:
 
+(eval-when-compile
+  (require 'let-alist))
+
 (require 'flycheck-autoloads)
 
 (autoload 'flycheck-haskell-setup "flycheck-haskell" nil nil)
@@ -16,6 +19,23 @@
       flycheck-highlighting-mode 'lines
       flycheck-completing-read-function #'ido-completing-read
       flycheck-display-errors-delay 0)
+
+(defun flycheck-pretty-mode-line ()
+  (when (and (boundp 'flycheck-last-status-change)
+             (boundp 'flycheck-mode)
+             flycheck-mode)
+    (pcase flycheck-last-status-change
+      (`not-checked "unchecked")
+      (`no-checker  "no-checker")
+      (`running     "running")
+      (`errored     "error while checking")
+      (`finished
+       (let-alist (flycheck-count-errors flycheck-current-errors)
+         (when (or .error .warning .info)
+           (format "e %d/w %d/i %d" (or .error 0) (or .warning 0) (or .info 0)))))
+      (`interrupted "interrupted")
+      (`suspicious  "suspicious")
+      (_ "unknown"))))
 
 (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
 
