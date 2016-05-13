@@ -1193,6 +1193,14 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;; Haskell
 
+(defun pcmpl-haskell-source-files ()
+  (pcomplete-entries
+   (eval-when-compile
+     (concat
+      "\\."
+      (regexp-opt *haskell-extensions*)
+      "\\'"))))
+
 (defun pcmpl-haskell-source-or-obj-files ()
   (pcomplete-entries
    (eval-when-compile
@@ -2102,6 +2110,60 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
         (flags
          ,@standard-flags)))))
   :evaluate-definition t)
+
+;;;###autoload
+(defpcmpl pcomplete/hlint
+  (opts
+   (flags "-v"
+          "--verbose"
+          "-q"
+          "--quiet"
+          (("-r" "--report" "-h" "--hint") (pcomplete-here (pcomplete-entries)))
+          "-w"
+          "--with"
+          "-i"
+          "--ignore"
+          "-s"
+          "--show"
+          "-e"
+          "--extension"
+          "-X"
+          "--language"
+          "-u"
+          "--utf8"
+          "--encoding"
+          "--cross"
+          "-f"
+          "--find"
+          "-d"
+          "--datadir"
+          "-p"
+          "--path"
+          "--cpp-define"
+          ("--cpp-include" (pcomplete-here (pcomplete-dirs)))
+          ("--cpp-file" (pcomplete-here (pcomplete-entries)))
+          "--cpp-simple"
+          "--cpp-ansi"
+          "--json"
+          "--no-summary"
+          "--no-exit-code"
+          "--serialise"
+          "--refactor"
+          "--refactor-options"
+          "--with-refactor"
+
+          "-c"
+          "--color"
+          "--color=always"
+          "--color=never"
+          "--color=auto"
+          "--colour"
+
+          "--help"
+          "--numeric-version"
+          "-V"
+          "--version")
+   (args (pcomplete-here (pcmpl-haskell-source-files)))))
 
 ;;; C, low-level stuff
 
