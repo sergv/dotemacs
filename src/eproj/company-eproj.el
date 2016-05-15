@@ -12,16 +12,11 @@
 
 (defun company-eproj (command &optional arg &rest ignored)
   (interactive (list 'interactive))
-  (message "command = %s"
-           (pp-to-string command))
   (pcase command
     (`interacative (company-begin-backend 'company-eproj))
     (`prefix (and (not (company-in-string-or-comment))
                   (company-grab-symbol)))
     (`candidates
-     (message "(current-buffer) = %s, arg = %s"
-              (pp-to-string (current-buffer))
-              arg)
      (let* ((completion-ignore-case company-eproj-ignore-case)
             (proj (eproj-get-project-for-buf (current-buffer)))
             (related-projs (eproj-get-all-related-projects proj))
@@ -51,9 +46,6 @@
                                                        tags)))
                                              (all-completions arg table)))
                                   tag-tables)))
-       (message "tag-tables sizes = %s, all-matches = %s"
-                (-map #'hash-table-size tag-tables)
-                (pp-to-string all-matches))
        all-matches
        )
      ;; (remove-if-not
