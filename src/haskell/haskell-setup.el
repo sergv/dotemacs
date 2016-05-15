@@ -136,7 +136,6 @@
   ;; note: do not include underscore into vim:word as this would cause
   ;; inefficiencies while navigating haskell identifiers
   (setq-local vim:word "[:word:]'")
-  (modify-syntax-entry ?_ "_")
   (modify-syntax-entry ?\' "w")
   (modify-syntax-entry ?\@ "'")
 
