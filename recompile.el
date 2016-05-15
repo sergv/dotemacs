@@ -31,10 +31,9 @@
   (let* ((dotemacs-init-file
           (find-if #'file-exists-p
                    (mapcan (lambda (x) (list (concat emacs-dir "/" x)
-                                             (concat emacs-dir "/../" x)
-                                             (concat "~" x)))
+                                        (concat emacs-dir "/../" x)
+                                        (concat "~" x)))
                            '(".emacs"))))
-
          (detach-hooks
           (lambda ()
             (mapc (lambda (func)
@@ -47,39 +46,41 @@
                     save-place-kill-emacs-hook
                     backup-all-buffers
                     persistent-store-flush-database))))
-         (dirs (mapcar (lambda (x) (concat emacs-dir "/" x))
-                       '("third-party"
-                         "src"
-                         "standalone")))
          (more-files
           (list dotemacs-init-file)))
 
-    ;; load init file to get find-rec
+    ;; load init file to get path detection from set-up-paths.el
     (load-library dotemacs-init-file)
     (funcall detach-hooks)
-    (let ((files-to-recompile
-           (remove-if
-            (lambda (x)
-              (member* (file-name-nondirectory x) *ignored-files*
-                       :test #'string=))
+    (let* ((dirs
             (append
-             more-files
-             (mapcan (lambda (dir)
-                       (find-rec dir
-                                 :filep
-                                 (lambda (x)
-                                   (and (string-match-pure? "\\.el$" x)
-                                        (not (string-match-pure? "^ob-.*\\.el$"
-                                                                 (file-name-nondirectory x)))
-                                        (not (string-match-pure? "^\\..*el$"
-                                                                 (file-name-nondirectory x)))))))
-                     dirs))))
-          ;; (byte-compile-warning-types
-          ;;  '(redefine callargs free-vars unresolved obsolete noruntime
-          ;;             interactive-only make-local mapcar
-          ;;             constants suspicious lexical))
-          )
+             (find-elisp-dirs (concat emacs-dir "/src"))
+             (find-elisp-dirs (concat emacs-dir "/third-party")
+                              set-up-paths--ignored-third-party-el-dirs-re)))
+           (files-to-recompile
+            (remove-if
+             (lambda (x)
+               (let ((fname (file-name-nondirectory x)))
+                 (or (member fname *ignored-files*)
+                     ;; (string-match-pure? "^ob-.*\\.el$" fname)
+                     (string-match-pure? "^\\..*el$" fname))))
+             (append
+              more-files
+              (mapcan (lambda (dir)
+                        (directory-files dir
+                                         t ;; produce full names
+                                         "^.*\\.el\\'"
+                                         nil ;; do sort
+                                         ))
+                      dirs))))
+           ;; (byte-compile-warning-types
+           ;;  '(redefine callargs free-vars unresolved obsolete noruntime
+           ;;             interactive-only make-local mapcar
+           ;;             constants suspicious lexical))
+           )
+      ;; (message "recompiling files:")
       (dolist (file files-to-recompile)
+        ;; (message "%s" file)
         (byte-compile-file file)))
     (funcall detach-hooks)))
 
