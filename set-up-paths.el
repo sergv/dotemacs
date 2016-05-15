@@ -40,10 +40,6 @@
     (file-name-directory (executable-find "emacs"))))
   "Path to directory with programs executables files.")
 
-(defconst +color-themes-path+
-  (concat +prog-data-path+ "/themes")
-  "Path to color themes")
-
 (defconst +tmp-path+ (make-temp-name (if (platform-os-type? 'windows)
                                        (concat +prog-data-path+ "/tmp")
                                        "/tmp/emacs-tmp-"))
@@ -79,75 +75,76 @@ system restars.")
                   :initial-value 'load-path
                   :from-end t)))
 
-(defmacro add-to-load-path-recursively (directory &optional ignored-dir-re)
-  (setf ignored-dir-re
-        (eval ignored-dir-re))
+(defun find-elisp-dirs (root &optional ignored-dirs-re)
+  "Recursively find directories containing elisp files starting at ROOT. Omit
+directories whose absolute path matches IGNORED-DIR-RE."
+  (let ((ignored-dirs
+         '("CVS" ".svn" ".git" ".hg" ".bzr" "_darcs"
+           ".cabal-sandbox" "dist" ".stack-work"
+           ".cask")))
+    (let ((dirs nil))
+      (letrec ((collect-dirs
+                (lambda (path)
+                  (when
+                      (and (file-directory-p path)
+                           (not
+                            (member (file-name-nondirectory (strip-trailing-slash path))
+                                    ignored-dirs)))
+                    (let ((has-elisp-files? nil))
+                      (dolist (p (directory-files path
+                                                  t ;; produce full names
+                                                  directory-files-no-dot-files-regexp
+                                                  t ;; don't sort
+                                                  ))
+                        (if (file-regular-p p)
+                          (when (string-match-p ".*\\.\\(elc?\\|emacs\\)$" p)
+                            (setf has-elisp-files? t))
+                          (funcall collect-dirs p)))
+                      (when (and has-elisp-files?
+                                 (or (null ignored-dirs-re)
+                                     (not (string-match-p ignored-dirs-re
+                                                          path))))
+                        (push path dirs)))))))
+        (funcall collect-dirs root)
+        dirs))))
+
+(defmacro add-to-load-path-recursively (root &optional ignored-dirs-re)
   (let* ((prefix-len (length +emacs-config-path+))
-         (ignored-dirs
-          '("CVS" ".svn" ".git" ".hg" ".bzr" "_darcs"
-            ".cabal-sandbox"
-            "dist"))
-         (find-dirs
-          (lambda (path)
-            (let ((dirs nil))
-              (letrec ((collect-dirs
-                        (lambda (path)
-                          (when
-                              (and (file-directory-p path)
-                                   (not
-                                    (member (file-name-nondirectory (strip-trailing-slash path))
-                                            ignored-dirs)))
-                            (let ((has-elisp-files? nil))
-                              (dolist (p (directory-files path
-                                                          t ;; produce full names
-                                                          directory-files-no-dot-files-regexp
-                                                          t ;; don't sort
-                                                          ))
-                                (cond
-                                  ((file-regular-p p)
-                                   (when (string-match-p ".*\\.\\(elc?\\|emacs\\)$" p)
-                                     (setf has-elisp-files? t)))
-                                  (t
-                                   (funcall collect-dirs p))))
-                              (when (and has-elisp-files?
-                                         (or (null ignored-dir-re)
-                                             (not (string-match-p ignored-dir-re
-                                                                  path))))
-                                (push path dirs)))))))
-                (funcall collect-dirs path)
-                (mapcar (lambda (dir)
-                          `(concat +emacs-config-path+ ,(concat "/" dir)))
-                        (mapcar (lambda (dir)
-                                  (substring dir (+ prefix-len 1)))
-                                dirs))))))
-         (dirs (funcall find-dirs (concat +emacs-config-path+ directory))))
+         (dirs (mapcar (lambda (dir)
+                         `(concat +emacs-config-path+ ,(concat "/" dir)))
+                       (mapcar (lambda (dir)
+                                 (substring dir (+ prefix-len 1)))
+                               (find-elisp-dirs (concat +emacs-config-path+ root) (eval ignored-dirs-re))))))
     `(add-to-load-path ,@dirs)))
 
+(defvar set-up-paths--ignored-third-party-el-dirs-re
+  (rx
+   (or (seq bow (or "tests" "doc" "examples" ".cask" ".stack-work.*") eol)
+       "auctex/tests"
+       "clojure-mode/test"
+       "company-mode/test"
+       (seq "f.el/" (or "bin" "test"))
+       "flycheck-haskell/test"
+       (seq "flycheck/" (or ".cask" "test"))
+       "ghc-mod/doc/presentation/auto"
+       (seq "ghc-mod/.stack-work" (* any))
+       (seq "haskell-mode/" (or "tests" "tests/compat"))
+       "js2-mode/tests"
+       "magit/t"
+       "markdown-mode/tests"
+       "mmm-mode/tests"
+       (seq "org-mode/" (or "mk" "testing"))
+       "s.el/dev"
+       "smartparens/tests")))
+
 (add-to-load-path-recursively "/src")
+
 (add-to-load-path-recursively
  "/third-party"
- (rx
-  (or (seq bow (or "tests" "doc" "examples") eol)
-      "ghc-mod/doc/presentation/auto"
-      "haskell-mode/tests/compat"
-      "haskell-mode/tests"
-      "js2-mode/tests"
-      "mmm-mode/tests"
-      "markdown-mode/tests"
-      "auctex/tests"
-      "company-mode/test"
-      "smartparens/tests"
-      "flycheck/test"
-      (seq "ghc-mod/.stack-work" (* any))
-      (seq "org-mode"
-           (or "/mk"
-               "/testing"))
-      "smartparens/")))
+ set-up-paths--ignored-third-party-el-dirs-re)
 
 ;; this must go to the end in order to give files in /src dir a chance
 ;; (add-to-list 'load-path +bytecode-lib+ t)
-
-(add-to-load-path +color-themes-path+)
 
 (add-to-list 'exec-path +execs-path+)
 
