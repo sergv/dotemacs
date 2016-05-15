@@ -291,9 +291,7 @@ or not.")
 
 
 (load-library "solarized")
-(require 'theme-changer)
-(change-theme #'solarized-light
-              #'solarized-dark)
+(solarized-dark)
 
 (put 'downcase-region 'disabled nil)
 (put 'erase-buffer 'disabled nil)
