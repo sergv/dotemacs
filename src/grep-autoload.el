@@ -62,6 +62,9 @@
 
 (eval-after-load "grep" '(require 'grep-setup))
 
+(autoload 'egrep "egrep" nil t)
+(autoload 'egrep-region "egrep" nil t)
+
 (provide 'grep-autoload)
 
 ;; Local Variables:

@@ -101,20 +101,38 @@ match IGNORED-FILE-GLOBS."
                regexp
                (mapconcat #'identity exts-globs " "))))))
 
+(defun egrep--read-files (regexp)
+  (split-string (grep-read-files regexp)
+                "[ \t\n\r\f\v]+"
+                t))
+
 (defun egrep (regexp exts-globs dir &optional ignore-case)
   (interactive
    (let ((regexp (grep-read-regexp)))
      (list
       regexp
-      (split-string (grep-read-files regexp)
-                    "[ \t\n\r\f\v]+"
-                    t)
+      (egrep--read-files regexp)
       (read-directory-name "Base directory: "
                            nil default-directory t)
       (and current-prefix-arg
            (<= 4 (first current-prefix-arg))))))
   (assert (listp exts-globs))
   (egrep-search regexp exts-globs grep-find-ignored-files dir ignore-case))
+
+(defun egrep-region (str exts-globs dir &optional ignore-case)
+  (interactive
+   (let ((regexp
+          (read-regexp "Search for"
+                       (get-region-string-no-properties)
+                       'grep-regexp-history)))
+     (list
+      regexp
+      (egrep--read-files regexp)
+      (read-directory-name "Base directory: "
+                           nil default-directory t)
+      (and current-prefix-arg
+           (<= 4 (first current-prefix-arg))))))
+  (egrep str exts-globs dir ignore-case))
 
 (provide 'egrep)
 
