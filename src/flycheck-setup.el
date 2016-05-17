@@ -34,7 +34,7 @@
          (when (or .error .warning .info)
            (format "e %d/w %d/i %d" (or .error 0) (or .warning 0) (or .info 0)))))
       (`interrupted "interrupted")
-      (`suspicious  "suspicious")
+      (`suspicious  "suspicious output from checker")
       (_ "unknown"))))
 
 (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)

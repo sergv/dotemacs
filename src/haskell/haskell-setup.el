@@ -99,10 +99,14 @@
 
 (vim:defcmd vim:haskell-flycheck-run (nonrepeatable)
   (flycheck-buffer))
+(vim:defcmd vim:haskell-flycheck-compile (nonrepeatable)
+  (call-interactively #'flycheck-compile))
 (vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
   (flycheck-haskell-configure))
 (vim:defcmd vim:haskell-flycheck-clear (nonrepeatable)
-  (flycheck-clear))
+  (flycheck-clear
+   t ;; interrupt running process
+   ))
 (vim:defcmd vim:haskell-flycheck-list-errors (nonrepeatable)
   (flycheck-list-errors))
 
@@ -190,6 +194,8 @@
   (vim:local-emap "init"      'vim:haskell-flycheck-configure)
   (vim:local-emap "configure" 'vim:haskell-flycheck-configure)
   (vim:local-emap "conf"      'vim:haskell-flycheck-configure)
+  (vim:local-emap "f"         'vim:haskell-flycheck-run)
+  (vim:local-emap "ff"        'vim:haskell-flycheck-compile)
   (vim:local-emap "check"     'vim:haskell-flycheck-run)
   (vim:local-emap "ch"        'vim:haskell-flycheck-run)
   (vim:local-emap "clear"     'vim:haskell-flycheck-clear)
