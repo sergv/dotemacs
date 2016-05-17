@@ -8,7 +8,9 @@
 
 (defmacro defconst-set (var val)
   (declare (indent 1))
-  `(setq ,var ,val))
+  `(defconst ,var ,val)
+  ;; `(setq ,var ,val)
+  )
 
 (defconst-set haskell-regexen/varid
   "\\(?:_\\|\\b[[:lower:]]\\)[[:alnum:]'_#]*")
@@ -87,6 +89,8 @@
           haskell-regexen/reservedsym
           "\\)"
           "\\(?:$\\|[^-!#$%&*+./<=>?@^|~:\\]\\)"))
+
+(defconst-set haskell-regexen/pragma-start "{-#")
 
 (provide 'haskell-regexen)
 

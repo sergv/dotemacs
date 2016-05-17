@@ -414,6 +414,22 @@ PATH and, maybe, DIR as it's parts."
           (error "File %s does not exist, try `eproj-update-buffer-project'"
                  abs-path))))))
 
+(defun remove-duplicates-sorted (xs eq-func)
+  "Remove duplicates from sorted list in linear time."
+  (let ((ys xs))
+    (while ys
+      (if (and (cdr ys)
+               (funcall eq-func (car ys) (cadr ys)))
+        (setf (cdr ys) (cddr ys))
+        (setf ys (cdr ys)))))
+  xs)
+
+(defun remove-duplicates-sorting (xs eq-func comparison)
+  "Sort XS using COMPARISON function and remove duplicates from the result
+using EQ-FUNC to determine equal elements."
+  (assert (list? xs))
+  (remove-duplicates-sorted (sort xs comparison) eq-func))
+
 ;;;
 
 (provide 'common-heavy)

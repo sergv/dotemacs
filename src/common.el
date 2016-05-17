@@ -1792,6 +1792,14 @@ F will be called."
 (defun globs-to-regexp (globs)
   (mk-regexp-from-alts (-map #'wildcard-to-regexp globs)))
 
+(defun ci-looking-at (regexp)
+  (let ((case-fold-search t))
+    (looking-at regexp)))
+
+(defun ci-looking-at-p (regexp)
+  (let ((case-fold-search t))
+    (looking-at-p regexp)))
+
 ;;;;
 
 ;; Heavy autoloads
@@ -1811,6 +1819,8 @@ F will be called."
 (autoload 'narrow-to-region-indirect "common-heavy" nil t)
 (autoload 'fontify-conflict-markers "common-heavy")
 (autoload 'resolve-obs-or-rel-filename "common-heavy")
+(autoload 'remove-duplicates-sorted "common-heavy")
+(autoload 'remove-duplicates-sorting "common-heavy")
 
 (autoload 'find-rec-do "find-files")
 (autoload 'find-rec "find-files")

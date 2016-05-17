@@ -432,45 +432,95 @@ we load it."
 (defun haskell-reindent-at-point ()
   "Do some sensible reindentation depending on the current position in file."
   (interactive)
-  (cond
-    ((save-excursion
-       (beginning-of-line)
-       (looking-at-pure? haskell-abbrev+/language-pragma-prefix))
-     (save-current-line-column
-      (haskell-align-language-pragmas (point))))
-    ((save-excursion
-       (beginning-of-line)
-       (looking-at-pure? "import "))
-     (save-current-line-column
-      (haskell-sort-imports)))
-    (t
-     (error "Don't know how to reindent construct at point"))))
-
-(defun haskell-align-language-pragmas-block (start end)
-  (assert (markerp start))
-  (assert (markerp end))
-  (haskell-align-on-pragma-close/impl start end)
-  (sort-lines nil start end))
+  (save-match-data
+    (cond
+      ((save-excursion
+         (beginning-of-line)
+         (looking-at-pure? haskell-abbrev+/language-pragma-prefix))
+       (save-current-line-column
+        (haskell-align-language-pragmas (point))))
+      ((and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
+            (save-excursion
+              (re-search-backward haskell-regexen/pragma-start nil t)
+              (looking-at-pure? haskell-abbrev+/language-pragma-prefix)))
+       (save-current-line-column
+        (haskell-align-language-pragmas (point))))
+      ((save-excursion
+         (beginning-of-line)
+         (looking-at-pure? "import "))
+       (save-current-line-column
+        (haskell-sort-imports)))
+      (t
+       (error "Don't know how to reindent construct at point")))))
 
 (defun haskell-align-language-pragmas (start)
+  (save-match-data
+    (goto-char start)
+    ;; Find beginning of pragma the point is in.
+    (message "(eq (get-char-property (point) 'face) 'haskell-pragma-face) = %s"
+             (pp-to-string (eq (get-char-property (point) 'face) 'haskell-pragma-face)))
+    (when (eq (get-char-property (point) 'face) 'haskell-pragma-face)
+      (re-search-backward haskell-regexen/pragma-start))
+    ;; Navigate up while we're still getting LANGUAGE pragmas.
+    (beginning-of-line)
+    (while (and (not (bob?))
+                (looking-at-p haskell-abbrev+/language-pragma-prefix))
+      ;; Go to beginning of the previous line.
+      (backward-line))
+    ;; Skip whitespace and possible comments to the beginning of pragma.
+    (re-search-forward haskell-regexen/pragma-start)
+    (goto-char (match-beginning 0))
+    (let ((pragma-block-start (point))
+          (pragma-block-end nil)
+          (exts nil)
+          (done nil))
+      ;; Collect all extensions from all pragmas
+      (while (not done)
+        (aif (haskell--parse-language-pragma (point) (point-max))
+          (progn
+            (setf exts (append it exts)
+                  pragma-block-end (point))
+            (forward-line 1)
+            (if (eob?)
+              (setf done t)
+              (beginning-of-line))
+            ;; (skip-syntax-forward " >")
+            )
+          (setf done t)))
+      (goto-char pragma-block-start)
+      (delete-region pragma-block-start pragma-block-end)
+      (setf exts (sort exts #'string<))
+      (when exts
+        (insert (format "{-# LANGUAGE %s #-}" (first exts)))
+        (dolist (e (cdr exts))
+          (insert "\n")
+          (insert (format "{-# LANGUAGE %s #-}" e))))
+      (haskell-align-on-pragma-close/impl pragma-block-start (point)))))
+
+(defun haskell--parse-language-pragma (start end)
+  "Parse single LANGUAGE pragma within START-END region and return its
+extensions as a list of strings. Leaves point at the end of pragma"
   (goto-char start)
-  (beginning-of-line)
-  (when (looking-at-p haskell-abbrev+/language-pragma-prefix)
-    (let ((p (point)))
-      (while (and (not (bob?))
-                  (looking-at-p haskell-abbrev+/language-pragma-prefix))
-        ;; Go to beginning of the previous line.
-        (backward-line))
-      (with-marker (language-block-start (point-marker))
-        (goto-char p)
-        (while (and (not (eob?))
-                    (looking-at-p haskell-abbrev+/language-pragma-prefix))
-          ;; Go to beginning of the next line.
-          (forward-line))
-        (with-marker (language-block-end (point-marker))
-          (haskell-align-language-pragmas-block
-           language-block-start
-           language-block-end))))))
+  (when (looking-at haskell-abbrev+/language-pragma-prefix)
+    (let ((pragma-end (min
+                       end
+                       (save-excursion
+                         (forward-sexp)
+                         (point)))))
+      (goto-char (match-end 0))
+      (let ((contents-start (point)))
+        (goto-char pragma-end)
+        (skip-chars-backward "#}\-" start)
+        ;; (skip-chars-forward "^#}\-" pragma-end)
+        (let* ((contents (buffer-substring-no-properties contents-start
+                                                         (point)))
+               (exts
+                (split-string contents
+                              "[, \t\n\r]+"
+                              t ;; omit nulls
+                              )))
+          (goto-char pragma-end)
+          exts)))))
 
 ;;; define forward-haskell-symbol
 
