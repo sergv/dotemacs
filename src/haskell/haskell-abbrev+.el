@@ -164,7 +164,17 @@ then Bar would be the result."
       (match-string 1 qualified-name)
       qualified-name)))
 
-(defconst haskell-abbrev+/language-pragma-prefix "{-# LANGUAGE")
+(defconst haskell-abbrev+/language-pragma-prefix
+  (rx
+   "{-# "
+   (char ?l ?L)
+   (char ?a ?A)
+   (char ?n ?N)
+   (char ?g ?G)
+   (char ?u ?U)
+   (char ?a ?A)
+   (char ?g ?G)
+   (char ?e ?E)))
 
 (defun haskell-abbrev+-align-language-pragmas ()
   (save-current-line-column
