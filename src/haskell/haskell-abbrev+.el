@@ -189,8 +189,7 @@ then Bar would be the result."
          (haskell-extensions haskell-language-extensions)
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
-         (language-snippet (format "%s ${1:$\$(yas-choose-value '%S)} #-}$0"
-                                   haskell-abbrev+/language-pragma-prefix
+         (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
                                    haskell-extensions))
          (pragma-snippet (format "{-# ${1:$\$(yas-choose-value '%S)} $2 #-}$0"
                                  (remove-duplicates
