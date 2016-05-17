@@ -18,14 +18,14 @@
 (defun eproj-tests/non-special-files (path)
   "Construct list of non-special files (i.e. that probably would be under version control)
 under ROOT directory."
-  (filter (comp #'not
-                (partial-first #'member '(".gitignore" ".eproj-info"))
-                #'file-name-nondirectory)
-          (filter (comp #'not #'file-directory?)
-                  (directory-files path t directory-files-no-dot-files-regexp))))
+  (-filter (comp #'not
+                 (partial-first #'member '(".gitignore" ".eproj-info"))
+                 #'file-name-nondirectory)
+           (-filter (comp #'not #'file-directory?)
+                    (directory-files path t directory-files-no-dot-files-regexp))))
 
 (defun eproj-tests/normalize-file-list (items)
-  (sort (map (comp #'strip-trailing-slash #'expand-file-name) items) #'string<))
+  (sort (-map (comp #'strip-trailing-slash #'expand-file-name) items) #'string<))
 
 (defun eproj-tests/normalize-string-list (items)
   (sort (copy-list items) #'string<))
@@ -70,15 +70,15 @@ under ROOT directory."
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
     (should (not (null? (eproj-project/related-projects proj))))
     (should (equal (eproj-tests/normalize-file-list
-                    (map #'eproj-project/root
-                         (cons proj
-                               (eproj-get-all-related-projects proj))))
+                    (-map #'eproj-project/root
+                          (cons proj
+                                (eproj-get-all-related-projects proj))))
                    (eproj-tests/normalize-file-list
-                    (filter #'file-directory?
-                            (directory-files
-                             eproj-tests/folder-with-related-projects
-                             t
-                             directory-files-no-dot-files-regexp)))))))
+                    (-filter #'file-directory?
+                             (directory-files
+                              eproj-tests/folder-with-related-projects
+                              t
+                              directory-files-no-dot-files-regexp)))))))
 
 (ert-deftest eproj-tests/aux-files ()
   (let* ((path eproj-tests/project-with-aux-files)
@@ -89,12 +89,12 @@ under ROOT directory."
     (should (equal (eproj-tests/normalize-file-list
                     (eproj-project/aux-files proj))
                    (eproj-tests/normalize-file-list
-                    (filter #'file-regular?
-                            (directory-files
-                             (concat eproj-tests/project-with-aux-files
-                                     "/aux-files")
-                             t
-                             directory-files-no-dot-files-regexp)))))))
+                    (-filter #'file-regular?
+                             (directory-files
+                              (concat eproj-tests/project-with-aux-files
+                                      "/aux-files")
+                              t
+                              directory-files-no-dot-files-regexp)))))))
 
 (ert-deftest eproj-tests/tags-of-c-files ()
   (let* ((path eproj-tests/project-with-c-files)
@@ -214,7 +214,7 @@ foo3	%s	102	;\"	z
 
     (should (equal (eproj-tests/normalize-file-list
                     (find-rec path
-                              :filep "\\.hs$"))
+                              :filep (lambda (path) (string-match-p "\\.hs$" path))))
                    (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
 
 (ert-deftest eproj-tests/project-with-file-list ()
@@ -257,14 +257,16 @@ foo3	%s	102	;\"	z
         eproj-tests/project-with-file-list
         eproj-tests/project-with-ignored-files))
 
-(let ((ert-debug-on-error nil))
-  (eproj-reset-projects)
-  (ert (join-lines (map (lambda (x) (concat "^" (symbol->string x) "$"))
-                        eproj-tests/tests)
-                   "\\|")
-       ;; "eproj-tests/.*"
-       )
-  nil)
+;; (let ((ert-debug-on-error nil))
+;;   (eproj-reset-projects)
+;;   (ert (join-lines (-map (lambda (x) (concat "^" (symbol->string x) "$"))
+;;                         eproj-tests/tests)
+;;                    "\\|")
+;;        ;; "eproj-tests/.*"
+;;        )
+;;   nil)
+
+(ert "eproj-tests/.*")
 
 ;; Local Variables:
 ;; no-byte-compile: t

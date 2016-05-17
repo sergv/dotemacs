@@ -11,124 +11,6 @@
 (require 'common)
 (require 'ert)
 
-(ert-deftest haskell-tests/toplevel-signature-regexp ()
-  "Test that `haskell-toplevel-signature-regexp' really occuring signatures."
-  (should (string-match-pure? haskell-toplevel-signature-regexp
-                              "\
-rootPath :: FilePath -> ModuleName l -> FilePath"))
-  (should (string-match-pure? haskell-toplevel-signature-regexp
-                              "\
-modNameToPath
-  :: FilePath -- ^ root path
-  -> ModuleNameS -- ^ module name
-  -> FilePath -- ^ module path"))
-  )
-
-(ert-deftest haskell-tests/haskell-peg-parse-string ()
-  (should (haskell-peg-parse-string
-           (type-name)
-           "Int"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "Int#"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "Double#"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "Map Int Int"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "Map Int Super_Int'"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "Map.Map Int Int"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "Map.Map Int T.Text"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "(a, b)"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "(# a, b #)"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "(# a, Int# #)"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "IO ()"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "IO [ Maybe (foo, Bar Baz a,   Quux   Xuuq      )    ]"))
-  (should (haskell-peg-parse-string
-           (type-name newline)
-           "IO [Maybe (foo, Bar Baz a, Fizz Buzz)]\nfibur"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "(a -> b)"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "(f a -> b)"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "((a -> b) -> f a -> f b)"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "a -> b"))
-  (should (haskell-peg-parse-string
-           (type-name)
-           "(a -> (b, c -> d -> e))"))
-
-  (should (haskell-peg-parse-string
-           (type-name)
-           "[Token] -> Maybe (Token, [Token])"))
-
-  (should (haskell-peg-parse-string
-           (func-name)
-           "(>>=#)")))
-
-(ert-deftest haskell-tests/haskell-parse-signature ()
-  (should (haskell-parse-signature
-           "extractInfixConstructor :: [Token] -> Maybe (Token, [Token])"))
-  (should (haskell-parse-signature
-           "extractInfixConstructor :: (Num a) => [a] -> Maybe (Token, [Token])"))
-  (should (haskell-parse-signature
-           "extractInfixConstructor :: (Num a, Num z) => [Foo a z] -> Maybe (Token, [Token])"))
-
-  (should (haskell-parse-signature
-           "f :: Int# -> Double#"))
-  (should (haskell-parse-signature
-           "f :: (# Int#, Int# #) -> Double#"))
-  (should (haskell-parse-signature
-           "f, g, h :: a -> b"))
-  (should (haskell-parse-signature
-           "(+) :: a -> b"))
-  (should (haskell-parse-signature
-           "(+), (*), (<*>) :: a -> b"))
-  (should (haskell-parse-signature
-           "(+), (*), (<*>), f, g, h :: a -> b"))
-
-  (should (haskell-parse-signature
-           "(+), (*), (<*>), f, g, h :: (Real a, Show b) => a -> b"))
-
-  (should (haskell-parse-signature
-           "(>>=#) :: (Monad m) => m b -> (b -> m c) -> m c"))
-  (should (haskell-parse-signature
-           "(>>=#) :: (M.Monad m) => m b -> (b -> m c) -> m c"))
-  (should (haskell-parse-signature
-           "search :: Map.Map k v -> k -> v"))
-  (should (haskell-parse-signature
-           "search :: (Ord k) => Map.Map k v -> k -> v")))
-
-
 (ert-deftest haskell-tests/abbrev+-extract-module-name ()
   (should (string= (haskell-abbrev+-extract-mod-name "Foo.Bar")
                    "Bar"))
@@ -137,21 +19,110 @@ modNameToPath
   (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
                    "Quux")))
 
-(setf haskell-tests/tests
-      '(haskell-tests/toplevel-signature-regexp
-        haskell-tests/haskell-peg-parse-string
-        haskell-tests/haskell-parse-signature
-        haskell-tests/abbrev+-extract-module-name))
+(defmacro haskell-tests--setup-buffer (setup contents expected)
+  (declare (indent 1))
+  `(save-match-data
+     (with-temp-buffer
+       (insert ,contents)
+       (goto-char (point-min))
+       (re-search-forward "_|_")
+       (replace-match "")
+       (haskell-mode)
+       (font-lock-fontify-buffer)
+       ,setup
+       (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                      ,expected)))))
 
-(let ((ert-debug-on-error nil))
-  (eproj-reset-projects)
-  (ert (join-lines (map (comp #'regexp-quote #'symbol->string)
-                        haskell-tests/tests)
-                   "\\|")
-       ;; "haskell-tests/.*"
-       )
-  nil)
+(ert-deftest haskell-tests/haskell-align-language-pragmas ()
+  (haskell-tests--setup-buffer
+      (haskell-align-language-pragmas (point))
+    "
 
+{-# language
+             Safe, FlexibleContexts _|_ #-}
+
+"
+    "
+
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Safe             #-}
+
+")
+
+  (haskell-tests--setup-buffer
+      (haskell-align-language-pragmas (point))
+    "
+-- foobar
+{-# language
+             Safe, FlexibleContexts _|_ #-}
+
+"
+    "
+-- foobar
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Safe             #-}
+
+")
+
+  (haskell-tests--setup-buffer
+      (haskell-align-language-pragmas (point))
+    "
+
+{-# language
+   Safe _|_
+ , FlexibleContexts
+ #-}
+
+"
+    "
+
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Safe             #-}
+
+")
+
+  (haskell-tests--setup-buffer
+      (haskell-align-language-pragmas (point))
+    "
+-- foo
+{-# language
+   Safe _|_
+ , FlexibleContexts
+ #-}
+-- bar
+"
+    "
+-- foo
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Safe             #-}
+-- bar
+")
+
+  (haskell-tests--setup-buffer
+      (haskell-align-language-pragmas (point))
+
+    "{-# LANGUAGE Safe #-}
+{-# LANGUAGE AlternativeLayoutRule _|_ #-}
+{-# LANGUAGE AllowAmbiguousTypes   #-}"
+    "{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE AlternativeLayoutRule #-}
+{-# LANGUAGE Safe                  #-}")
+
+  )
+
+(ert "haskell-tests/.*")
+
+;; (setf haskell-tests/tests
+;;       '(haskell-tests/abbrev+-extract-module-name))
+;;
+;; (let ((ert-debug-on-error nil))
+;;   (eproj-reset-projects)
+;;   (ert (join-lines (-map (comp #'regexp-quote #'symbol->string)
+;;                          haskell-tests/tests)
+;;                    "\\|")
+;;        ;; "haskell-tests/.*"
+;;        )
+;;   nil)
 
 ;; Local Variables:
 ;; no-byte-compile: t
