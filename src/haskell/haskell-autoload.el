@@ -22,6 +22,8 @@
 (autoload 'literate-haskell-mode "haskell-mode" nil t)
 (autoload 'haskell-doc-mode "haskell-doc" nil t)
 (autoload 'turn-on-haskell-doc-mode "haskell-doc" nil t)
+(autoload 'haskell-doc-current-info "haskell-doc")
+(autoload 'haskell-doc-show-type "haskell-doc" nil t)
 
 (autoload 'haskell-navigate-imports "haskell-navigate-imports" nil t)
 (autoload 'haskell-navigate-imports-return "haskell-navigate-imports" nil t)
