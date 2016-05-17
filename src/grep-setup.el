@@ -193,9 +193,7 @@ more than once"
   (let* ((regexp (read-string "Search for: "
                               str
                               'grep-regexp-history
-                              str)
-                 ;; (grep-read-regexp)
-                 )
+                              str))
          (files (grep-read-files regexp))
          (dir (read-directory-name "Base directory: "
                                    nil default-directory t)))
