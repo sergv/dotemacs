@@ -92,13 +92,14 @@
         datastructures-tests/sorted-set-union
         datastructures-tests/sorted-set-intersection))
 
+(ert "datastructures-tests/.*")
 
-(let ((ert-debug-on-error nil))
-  (eproj-reset-projects)
-  (ert (join-lines (map #'symbol->string datastructures-tests/tests) "\\|")
-       ;; "haskell-tests/.*"
-       )
-  nil)
+;; (let ((ert-debug-on-error nil))
+;;   (eproj-reset-projects)
+;;   (ert (join-lines (map #'symbol->string datastructures-tests/tests) "\\|")
+;;        ;; "haskell-tests/.*"
+;;        )
+;;   nil)
 
 ;; Local Variables:
 ;; End:

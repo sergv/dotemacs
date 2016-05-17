@@ -191,6 +191,50 @@
                     (funcall make-list 5)
                     #'ignore)))))
 
+(ert-deftest common-tests/remove-duplicates-sorted ()
+  (should (equal
+           (remove-duplicates-sorted nil #'string=)
+           nil))
+  (should (equal
+           (remove-duplicates-sorted '("a") #'string=)
+           '("a")))
+  (should (equal
+           (remove-duplicates-sorted '("a" "a") #'string=)
+           '("a")))
+  (should (equal
+           (remove-duplicates-sorted '("a" "b") #'string=)
+           '("a" "b")))
+  (should (equal
+           (remove-duplicates-sorted '("a" "a" "b") #'string=)
+           '("a" "b")))
+  (should (equal
+           (remove-duplicates-sorted '("a" "b" "a") #'string=)
+           '("a" "b" "a")))
+
+  (should (equal
+           (remove-duplicates-sorted '("a" "b" "c") #'string=)
+           '("a" "b" "c")))
+  (should (equal
+           (remove-duplicates-sorted '("b" "c" "a") #'string=)
+           '("b" "c" "a"))))
+
+(ert-deftest common-tests/remove-duplicates-sorting ()
+  (should (equal
+           (remove-duplicates-sorting (copy-list '("a" "b" "c"))
+                                      #'string=
+                                      #'string<)
+           '("a" "b" "c")))
+  (should (equal
+           (remove-duplicates-sorting (copy-list '("b" "c" "a"))
+                                      #'string=
+                                      #'string<)
+           '("a" "b" "c")))
+  (should (equal
+           (remove-duplicates-sorting (copy-list '("b" "c" "a" "b" "c"))
+                                      #'string=
+                                      #'string<)
+           '("a" "b" "c"))))
+
 (ert "common-tests/.*")
 
 (provide 'common-tests)
