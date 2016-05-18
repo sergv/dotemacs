@@ -20,6 +20,7 @@
 [submodule "third-party/git-modes"]
         path = third-party/git-modes
         url = https://github.com/magit/git-modes.git
+        ignore = untracked
 [submodule "third-party/haskell-mode"]
         path = third-party/haskell-mode
         url = https://github.com/sergv/haskell-mode.git
@@ -35,7 +36,7 @@
         ignore = untracked
 [submodule "third-party/rainbow-delimiters"]
         path = third-party/rainbow-delimiters
-        url = https://github.com/jlr/rainbow-delimiters.git
+        url = https://github.com/Fanael/rainbow-delimiters.git
 [submodule "third-party/s.el"]
         path = third-party/s.el
         url = https://github.com/magnars/s.el.git
@@ -51,6 +52,7 @@
 [submodule "third-party/undo-tree"]
         path = third-party/undo-tree
         url = https://github.com/emacsmirror/undo-tree.git
+        ignore = untracked
 [submodule "third-party/yasnippet"]
         path = third-party/yasnippet
         url = https://github.com/capitaomorte/yasnippet.git
@@ -133,9 +135,11 @@
 [submodule "third-party/f.el"]
         path = third-party/f.el
         url = https://github.com/rejeep/f.el.git
+        ignore = untracked
 [submodule "third-party/with-editor"]
         path = third-party/with-editor
         url = https://github.com/magit/with-editor.git
+        ignore = untracked
 [submodule "third-party/auctex"]
         path = third-party/auctex
         url = http://git.savannah.gnu.org/r/auctex.git
@@ -146,6 +150,7 @@
 [submodule "third-party/agda-mode"]
         path = third-party/agda-mode
         url = https://github.com/sergv/agda-mode.git
+        ignore = untracked
 [submodule "third-party/sml-mode"]
         path = third-party/sml-mode
         url = https://github.com/emacsmirror/sml-mode.git
