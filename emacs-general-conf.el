@@ -303,8 +303,11 @@
     (move-to-column col)))
 
 (def-keys-for-map read-passwd-map
-  ("C-p" yank)
-  ("M-p" yank))
+  ("C-p" yank))
+
+(awhen (get-buffer "*Messages*")
+  (with-current-buffer it
+    (read-only-mode -1)))
 
 ;; (unless noninteractive
 ;;
