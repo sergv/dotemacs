@@ -988,7 +988,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-x"
                "--interactive"
                "--exec"
-               "--no-ff")
+               "--no-ff"
+               "--abort"
+               "--continue"
+               "--skip")
         (args (pcomplete-here (pcmpl-git-rev)))))
       ("remote"
        (or
