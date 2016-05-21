@@ -6,22 +6,31 @@
 ;; Created: Saturday, 24 August 2013
 ;; Description:
 
-(require 'smartparens)
 (require 'smartparens-autoloads)
 (require 'macro-util)
 
 (smartparens-global-mode 1)
 
 (setq-default sp-autoskip-closing-pair 'always)
+;; do not autoinsert new pairs when in stringlike expression
+(setq-default sp-autoskip-opening-pair t)
+
+(setf sp-navigate-consider-stringlike-sexp
+      (append
+       '(org-mode
+         latex-mode
+         plain-tex-mode
+         LaTeX-mode
+         ;; for /.../
+         awk-mode)
+       sp-navigate-consider-stringlike-sexp))
+
 (setf sp-highlight-pair-overlay nil
       sp-highlight-wrap-overlay nil
       sp-highlight-wrap-tag-overlay nil
-      sp-navigate-consider-sgml-tags '(html-mode xhtml-mode xml-mode nxml-mode)
+      sp-navigate-consider-sgml-tags '(html-mode xhtml-mode xml-mode nxml-mode web-mode)
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
-      ;; following variable is buffer local, so it's set in mode-local setups
-      ;; sp-autoskip-opening-pair
-      ;; sp-autoskip-closing-pair
       sp-ignore-modes-list '(;; enable smartparens mode in minibuffer,
                              ;; and let it bind keys for currently active
                              ;; pairs, then auxiliary keys later in icicle setup
@@ -48,7 +57,7 @@
                              image-mode
                              calendar-mode
                              select-mode
-
+                             haskell-compilation-mode
                              clojure-compilation-mode))
 
 ;; these two are the same ones used for paredit
@@ -70,13 +79,6 @@
              (whitespace-char? (char-before)))
     (delete-whitespace-backward)))
 
-(defun smartparens-buffer-local-setup ()
-  "Set up buffer-local options for smartparens."
-  ;; do not autoinsert new pairs when in stringlike expression
-  (setq-local sp-autoskip-opening-pair t)
-  (setq-local sp-autoskip-closing-pair 'always)
-  (setq-local sp-navigate-consider-stringlike-sexp-in-buffer t))
-
 (defun sp-backward-up-sexp (&optional arg interactive)
   "Move backward one level of parenthesis.
 
@@ -94,9 +96,8 @@ With negative argument move forward, still one level out."
                 :exclusive t
                 :do-not-adjust-point t)
 
-
 (defun sp-in-minibuffer? (id action context)
-  (not (null? (active-minibuffer-window))))
+  (minibufferp))
 
 ;; do not autoinsert ' pair if the point is preceeded by word.  This
 ;; will handle the situation when ' is used as a contraction symbol in
@@ -106,7 +107,7 @@ With negative argument move forward, still one level out."
 
 ;; emacs is lisp hacking enviroment, so we set up some most common
 ;; lisp modes too
-(sp-with-modes sp--lisp-modes
+(sp-with-modes sp-lisp-modes
   ;; disable ', it's the quote character!
   (sp-local-pair "'" nil :actions nil)
   ;; also only use the pseudo-quote inside strings where it serve as
@@ -118,31 +119,10 @@ With negative argument move forward, still one level out."
 ;; automatically.  If you want to call sp-local-pair outside this
 ;; macro, you MUST supply the major mode argument.
 
-;; LaTeX modes
-(sp-with-modes '(tex-mode
-                 plain-tex-mode
-                 latex-mode
-                 LaTeX-mode
-                 ;; quite a math mode
-                 org-mode)
-  ;; math modes, yay.  The :actions are provided automatically if
-  ;; these pairs do not have global definition.
-  (sp-local-pair "$" "$")
-  (sp-local-pair "\\[" "\\]")
-  (sp-local-pair "`" "'" :unless '(sp-in-minibuffer?))
-  (sp-local-tag "\\b" "\\begin{_}" "\\end{_}"))
+(eval-after-load "latex"    '(require 'smartparens-latex))
+(eval-after-load "tex-mode" '(require 'smartparens-latex))
+(eval-after-load "org-mode" '(require 'smartparens-latex))
 
-;; html modes
-(sp-with-modes '(sgml-mode
-                 html-mode
-                 xml-mode)
-  (sp-local-pair "<" ">"))
-
-(sp-with-modes '(nxml-mode
-                 sgml-mode
-                 html-mode
-                 xml-mode)
-  (sp-local-tag  "<" "<_>" "</_>" :transform 'sp-match-sgml-tags))
 
 (sp-local-pair 'awk-mode "/" "/")
 
@@ -167,13 +147,17 @@ With negative argument move forward, still one level out."
                  :post-handlers '(:add cc-mode-open-block)))
 
 (sp-with-modes '(haskell-mode
+                 literate-haskell-mode
                  haskell-c-mode
                  haskell-cabal-mode
                  haskell-interactive-mode
                  inferior-haskell-mode)
-  ;; ' is identifier part in Haskell, and characters are rare enough
-  ;; to make manual entering '' pair feasible
-  (sp-local-pair "'" nil :actions nil)
+  ;; ;; ' is identifier part in Haskell, and characters are rare enough
+  ;; ;; to make manual entering '' pair feasible
+  ;; (sp-local-pair "'" nil :actions nil)
+  (sp-local-pair "{-#" "#-}")
+  (sp-local-pair "'" nil :unless '(sp-point-after-word-p))
+
   (sp-local-pair "\\(" nil :when '(sp-in-string-p))
   (sp-local-pair "\\\\(" nil :when '(sp-in-string-p))
   (sp-local-pair "`" "`" :actions '(insert wrap)))
@@ -203,8 +187,14 @@ With negative argument move forward, still one level out."
 (vimmize-function sp-backward-kill-char
                   :name vim:sp-backward-kill-char)
 
-;; (defun smartparens-setup ()
-;;   (def-keys-for-map ))
+
+;; After starting emacs the first input via minibuffer does not have
+;; smartparens-mode enabled. This forces minibuffer to always have
+;; smartparens enabled.
+(defun smartparens-minibuffer-setup ()
+  (smartparens-mode +1))
+
+(add-hook 'minibuffer-setup-hook #'smartparens-minibuffer-setup)
 
 (provide 'smartparens-setup)
 

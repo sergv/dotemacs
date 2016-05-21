@@ -237,12 +237,6 @@
     ("TAB"          nil)
     ("<backtab>"    nil))
 
-  (def-keys-for-map (vim:visual-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("(" sp--self-insert-command)
-    ("[" sp--self-insert-command)
-    ("{" sp--self-insert-command))
-
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-w"             shm/backward-kill-word)

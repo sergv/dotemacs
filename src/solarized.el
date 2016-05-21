@@ -147,7 +147,6 @@ Futher modified by Sergey Vinokurov."
                                             (:background ,base02))
                                            (t :inverse-video t)))
             (menu                         ((t (:foreground ,base0 :background ,base02))))
-            (minibuffer-prompt            ((t (:foreground ,blue))))
             (mode-line                    ((t (:foreground ,base1 :background ,base02
                                                            :box (:line-width 1 :color ,base1)))))
             (mode-line-buffer-id          ((t (:foreground ,base1))))
