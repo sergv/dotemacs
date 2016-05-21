@@ -51,50 +51,8 @@
                    ;;   (py-goto-beyond-block)
                    ;;   (skip-chars-backward " \t\n"))
                    ))
-
-(eval-after-load
-    "octave-mod"
+(eval-after-load "octave"
   '(progn
-     ;; use parse-partial-sexp, not ppss
-     (redefun octave-not-in-string-or-comment-p ()
-       "Return t if point is not inside an Octave string or comment."
-       (save-excursion
-         (let* ((end (point))
-                (begin (line-beginning-position))
-                (state (parse-partial-sexp begin
-                                           end))
-                (inside-string? (nth 3 state))
-                (inside-comment? (nth 4 state)))
-           (not (or inside-string? inside-comment?)))))
-
-     ;; use looking-at-p
-     (redefun octave-beginning-of-defun (&optional arg)
-       "Move backward to the beginning of an Octave function.
-With positive ARG, do it that many times.  Negative argument -N means
-move forward to Nth following beginning of a function.
-Returns t unless search stops at the beginning or end of the buffer."
-       (let* ((arg (or arg 1))
-              (inc (if (> arg 0) 1 -1))
-              (found nil)
-              (case-fold-search nil)
-              (prev-pos (point))
-              (start-pos (point)))
-         (and (not (eobp))
-              (not (and (> arg 0) (looking-at-p "\\_<function\\_>")))
-              (skip-syntax-forward "w"))
-         (while (and (/= arg 0)
-                     (setq found
-                           (re-search-backward "\\_<function\\_>" inc t)))
-           (when (octave-not-in-string-or-comment-p)
-             (decf arg inc)
-             (setf prev-pos (match-beginning 0))))
-         (if found
-           (goto-char prev-pos)
-           (goto-char start-pos))
-         t))
-
-
-
      (defvar inferior-octave-on-output-hook nil
        "Hook to run after any output arrived from process.")
 
@@ -107,6 +65,8 @@ Returns t unless search stops at the beginning or end of the buffer."
              (string (buffer-substring-no-properties beg end))
              line)
          (with-current-buffer inferior-octave-buffer
+           ;; http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00095.html
+           (compilation-forget-errors)
            (setq inferior-octave-output-list nil)
            (while (not (string-equal string ""))
              (if (string-match "\n" string)
@@ -118,18 +78,18 @@ Returns t unless search stops at the beginning or end of the buffer."
              (while inferior-octave-receive-in-progress
                (accept-process-output proc))
              (insert-before-markers
-              (join-lines (append
-                           (if octave-send-echo-input (list line) (list ""))
-                           (-map #'inferior-octave-strip-ctrl-g
-                                 inferior-octave-output-list)
-                           (list inferior-octave-output-string)))))
+              (mapconcat 'identity
+                         (append
+                          (if octave-send-echo-input (list line) (list ""))
+                          inferior-octave-output-list
+                          (list inferior-octave-output-string))
+                         "\n")))
            (run-hooks 'inferior-octave-on-output-hook)))
-       (when octave-send-show-buffer
+       (if octave-send-show-buffer
          (display-buffer inferior-octave-buffer)))
 
      (add-hook 'inferior-octave-on-output-hook
                #'octave-highlight-errors)
-
 
      ;; my own functions
 
@@ -423,19 +383,23 @@ in GROUP-NUMS."
 
   (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
 
-  (def-keys-for-map inferior-octave-mode-map
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC"  comint-clear-prompt))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap
+                     inferior-octave-mode-map)
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
     ("M-/"      comint-dynamic-complete)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
-    ("S-<up>"   octave-jump-to-prev-prompt)
-    ("S-<down>" octave-jump-to-next-prompt)
-    ("C-<up>"   octave-jump-to-prev-error)
-    ("C-<down>" octave-jump-to-next-error)
+    ("C-t"      octave-jump-to-prev-prompt)
+    ("C-h"      octave-jump-to-next-prompt)
+    ("M-t"      octave-jump-to-prev-error)
+    ("M-h"      octave-jump-to-next-error)
 
     ("C-S-p"    browse-kill-ring)
-    ("M-p"      browse-comint-input-history)
-    ("SPC SPC"  comint-clear-prompt)))
+    ("M-p"      browse-comint-input-history)))
 
 (add-hook 'inferior-octave-mode-hook #'inferior-octave-setup)
 
@@ -444,10 +408,10 @@ in GROUP-NUMS."
   "Wrap around `inferior-octave-output-filter' by adding a call to
 run `inferior-octave-on-output-hook'."
   (unwind-protect
-      (inferior-octave-output-filter proc string)
+      (comint-output-filter proc string)
     (run-hooks 'inferior-octave-on-output-hook)))
 
-(add-hook 'inferior-octave-startup-hook
+(add-hook 'inferior-octave-mode-hook
           (lambda ()
             (set-process-filter inferior-octave-process
                                 'inferior-octave-custom-output-filter)))
