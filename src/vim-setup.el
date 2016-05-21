@@ -30,20 +30,30 @@ like \"d w\".")
 
 ;; redefine motions
 
-(dolist (keymap (list vim:normal-mode-keymap
-                      vim:visual-mode-keymap
-                      vim:operator-pending-mode-keymap
-                      vim:motion-mode-keymap))
-  (def-keys-for-map keymap
-    ("g g" vim:motion-go-to-first-non-blank-beg)
-    ("G"   vim:motion-go-to-first-non-blank-end)
-    ("j"   nil)
+(def-keys-for-map (vim:normal-mode-keymap
+                   vim:visual-mode-keymap
+                   vim:operator-pending-mode-keymap
+                   vim:motion-mode-keymap)
+  ("0"   vim:motion-beginning-of-line-or-digit-argument)
+  ("1"   vim:digit-argument)
+  ("2"   vim:digit-argument)
+  ("3"   vim:digit-argument)
+  ("4"   vim:digit-argument)
+  ("5"   vim:digit-argument)
+  ("6"   vim:digit-argument)
+  ("7"   vim:digit-argument)
+  ("8"   vim:digit-argument)
+  ("9"   vim:digit-argument)
 
-    ("%"   nil)
-    ;; short for matching
-    ("m"   vim:motion-jump-item)
+  ("g g" vim:motion-go-to-first-non-blank-beg)
+  ("G"   vim:motion-go-to-first-non-blank-end)
+  ("j"   nil)
 
-    ("q"   sp-up-sexp)))
+  ("%"   nil)
+  ;; short for matching
+  ("m"   vim:motion-jump-item)
+
+  ("q"   sp-up-sexp))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
   ("is" vim:motion-inner-symbol)
