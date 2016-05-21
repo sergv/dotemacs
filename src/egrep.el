@@ -12,6 +12,9 @@
 (require 'find-files)
 (require 'macro-util)
 
+(autoload 'grep-read-files "grep")
+(autoload 'grep-read-regexp "grep")
+
 (defstruct (egrep-match
             (:conc-name egrep-match/))
   file          ;; Absolute file name.
