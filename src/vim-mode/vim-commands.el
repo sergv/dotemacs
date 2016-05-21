@@ -685,7 +685,6 @@ block motions."
   (unless vim:repeat-events
     (error "Nothing to repeat"))
   (vim:reset-key-state)
-  ;;(dotimes (i (or count 1))
   (let ((repeat-events vim:repeat-events)
         (current-key-sequence vim:current-key-sequence)
         vim:repeat-events
@@ -743,6 +742,16 @@ block motions."
   (let ((macro (vim:get-register reg)))
     (vim:set-register ?\@ macro)
     (execute-kbd-macro macro count)))
+
+(defun vim:digit-argument (arg)
+  "Wrapper around `digit-argument' that does the necessary bookkeeping to
+maintain `vim:current-key-sequence' in order. That is needed to make
+`vim:cmd-repeat' and visual block mode work as expected."
+  (interactive "P")
+  (call-interactively #'digit-argument arg)
+  (setf vim:current-key-sequence
+        (vconcat vim:current-key-sequence
+                 (vim:this-command-keys))))
 
 (provide 'vim-commands)
 
