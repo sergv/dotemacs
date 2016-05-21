@@ -13,17 +13,19 @@
 
 (autoload 'flycheck-haskell-setup "flycheck-haskell" nil nil)
 
-;; Don't show errors on fringes.
-(setf flycheck-indication-mode nil
-      ;; Highlight whole line with error
-      flycheck-highlighting-mode 'lines
-      flycheck-completing-read-function #'ido-completing-read
-      flycheck-display-errors-delay 0)
+(eval-after-load "flycheck"
+  '(progn
+     ;; Don't show errors on fringes.
+     (setf flycheck-indication-mode nil
+           ;; Highlight whole line with error
+           flycheck-highlighting-mode 'lines
+           flycheck-completing-read-function #'ido-completing-read
+           flycheck-display-errors-delay 0)))
 
 (defun flycheck-pretty-mode-line ()
-  (when (and (boundp 'flycheck-last-status-change)
-             (boundp 'flycheck-mode)
-             flycheck-mode)
+  (when (and (boundp 'flycheck-mode)
+             flycheck-mode
+             (boundp 'flycheck-last-status-change))
     (pcase flycheck-last-status-change
       (`not-checked "unchecked")
       (`no-checker  "no-checker")
