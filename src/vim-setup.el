@@ -177,23 +177,21 @@ like \"d w\".")
 ;;; visual keybindings
 
 (def-keys-for-map vim:visual-mode-keymap
-  ("TAB"      indent-region)
-  ("<tab>"    indent-region)
-  ("s"        vim:visual-ex-read-command)
-  ("k"        vim:cmd-make-downcase)
-  ("K"        vim:cmd-make-upcase)
+  ("TAB"     indent-region)
+  ("<tab>"   indent-region)
+  ("s"       vim:visual-ex-read-command)
+  ("k"       vim:cmd-make-downcase)
+  ("K"       vim:cmd-make-upcase)
 
-  ("g c c"    comment-util-comment-region)
-  ("g c u"    comment-util-uncomment-region-simple)
+  ("g c c"   comment-util-comment-region)
+  ("g c u"   comment-util-uncomment-region-simple)
 
-  ("SPC SPC"  vim:visual-exchange-point-and-mark)
+  ("SPC SPC" vim:visual-exchange-point-and-mark)
 
-  ("g r"      rgrep-region)
-  ("g s"      vim:replace-selected)
-  ("'"        sp--self-insert-command)
-  ("\""       sp--self-insert-command)
-  ("]"        sp--self-insert-command)
-  ("["        sp--self-insert-command))
+  ("g r"     rgrep-region)
+  ("g s"     vim:replace-selected)
+  ("]"       self-insert-command)
+  ("["       self-insert-command))
 
 ;;; insert mode keybindings
 
