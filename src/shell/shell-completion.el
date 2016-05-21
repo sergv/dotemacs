@@ -2639,6 +2639,42 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (args
     (pcomplete-here* (pcomplete-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\)\\)?\\'")))))
 
+;;;###autoload
+(defpcmpl pcomplete/ln
+  (opts
+   (flags
+    "-b"
+    "--backup"
+    "-d"
+    "-f"
+    "--directory"
+    "-f"
+    "--force"
+    "-i"
+    "--interactive"
+    "-L"
+    "--logical"
+    "-n"
+    "--no-dereference"
+    "-P"
+    "--physical"
+    "-r"
+    "--relative"
+    "-s"
+    "--symbolic"
+    "-S"
+    "--suffix"
+    (("-t" "--target-directony") (pcomplete-here (pcomplete-dirs)))
+    "-T"
+    "--no-target-directony"
+    "-v"
+    "--verbose"
+    "--help"
+    "--version")
+   (args
+    (pcomplete-here (pcmpl-entries-ignoring-common))
+    (pcomplete-here (pcmpl-entries-ignoring-common)))))
+
 (provide 'shell-completion)
 
 ;; Local Variables:
