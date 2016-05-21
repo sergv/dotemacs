@@ -70,7 +70,7 @@ like 'dd', 'yy',... .")
 (defun vim:operator-pending-activate ()
   (cond
     (vim:operator-pending-mode
-     (setq vim:operator-repeat-last-event (vector last-command-event))
+     (setf vim:operator-repeat-last-event (vector last-command-event))
      (vim:map vim:operator-repeat-last-event 'vim:motion-lines
               :keymap vim:operator-repeat-keymap)
      (add-hook 'post-command-hook 'vim:operator-pending-mode-exit))
@@ -97,13 +97,14 @@ like 'dd', 'yy',... .")
                       vim:cmd-force-linewise
                       vim:cmd-force-blockwise))
     (progn
-      (setq vim:current-key-sequence
+      (setf vim:current-key-sequence
             (vconcat vim:current-key-sequence (vim:this-command-keys)))
       (funcall command))
     (unwind-protect
         (pcase (vim:cmd-type command)
-          (`simple  (error "No simple-commands allowed in operator-pending mode"))
-          (`complex (error "No complex-commands allowed in operator-pending mode"))
+          (`simple  (error "No simple commands allowed in operator-pending mode"))
+          (`complex (error "No complex commands allowed in operator-pending mode"))
+          (`special (error "No special commands allowed in operator-pending mode"))
           (_        (vim:normal-execute-complex-command command)))
 
       (when (vim:operator-pending-mode-p)
@@ -114,17 +115,17 @@ like 'dd', 'yy',... .")
   "Forces the operator to be characterwise.
 If the old motion type was linewise, the motion will become exclusive.
 If the old motion type was already characterwise exclusive/inclusive will be toggled."
-  (setq vim:current-force-motion-type 'char))
+  (setf vim:current-force-motion-type 'char))
 
 
 (vim:defcmd vim:cmd-force-linewise (nonrepeatable)
   "Forces the operator to be linewise."
-  (setq vim:current-force-motion-type 'linewise))
+  (setf vim:current-force-motion-type 'linewise))
 
 
 (vim:defcmd vim:cmd-force-blockwise (nonrepeatable)
   "Forces the operator to be blockwise."
-  (setq vim:current-force-motion-type 'block))
+  (setf vim:current-force-motion-type 'block))
 
 
 (vim:define-keymap normal-mode "normal mode" :map-command nmap)
@@ -150,13 +151,13 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
 (defun vim:normal-execute-motion (command)
   "Executes a motion."
-  (setq vim:current-motion command)
+  (setf vim:current-motion command)
 
   (when current-prefix-arg
-    (setq vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
+    (setf vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
 
   (when (vim:cmd-char-arg-p command)
-    (setq vim:current-motion-arg (read-char-exclusive)))
+    (setf vim:current-motion-arg (read-char-exclusive)))
 
   (vim:execute-current-motion)
 
@@ -168,9 +169,9 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 (defun vim:normal-execute-simple-command (command)
   "Executes a simple command."
   (when current-prefix-arg
-    (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
+    (setf vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
   (when (vim:cmd-char-arg-p command)
-    (setq vim:current-cmd-arg (read-char-exclusive)))
+    (setf vim:current-cmd-arg (read-char-exclusive)))
   (let* ((parameters nil)
          (vim:last-undo buffer-undo-list)
          (repeatable? (vim:cmd-repeatable-p command))
@@ -190,7 +191,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
       (push :register parameters))
     (vim:apply-save-buffer (vim:cmd-function command) parameters)
     (when repeatable?
-      (setq vim:repeat-events events))
+      (setf vim:repeat-events events))
     (vim:connect-undos vim:last-undo))
   (vim:reset-key-state)
   (vim:clear-key-sequence)
@@ -199,32 +200,33 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 (defun vim:normal-prepare-complex-command (command)
   "Prepares a complex command, switching to operator-pending mode."
   (when current-prefix-arg
-    (setq vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
+    (setf vim:current-cmd-count (prefix-numeric-value current-prefix-arg)))
 
-  (setq vim:current-cmd command)
-  (setq vim:current-key-sequence (vconcat vim:current-key-sequence (vim:this-command-keys)))
+  (setf vim:current-cmd command
+        vim:current-key-sequence (vconcat vim:current-key-sequence
+                                          (vim:this-command-keys)))
   (vim:activate-operator-pending-mode))
 
 (defun vim:normal-execute-complex-command (motion-command)
   "Executes a complex command with a certain motion command."
-  (setq vim:current-motion motion-command)
+  (setf vim:current-motion motion-command)
 
   (when current-prefix-arg
-    (setq vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
+    (setf vim:current-motion-count (prefix-numeric-value current-prefix-arg)))
 
   (when (or vim:current-motion-count vim:current-cmd-count)
-    (setq vim:current-motion-count (* (or vim:current-cmd-count 1)
+    (setf vim:current-motion-count (* (or vim:current-cmd-count 1)
                                       (or vim:current-motion-count 1)))
-    (setq vim:current-cmd-count nil))
+    (setf vim:current-cmd-count nil))
 
   (when (vim:cmd-char-arg-p motion-command)
-    (setq vim:current-motion-arg (read-char-exclusive)))
+    (setf vim:current-motion-arg (read-char-exclusive)))
 
   (let* ((vim:last-undo buffer-undo-list)
-         (key (concat vim:current-key-sequence (vim:this-command-keys)))
-         (entry (and vim:complex-command-override-local-keymap
-                     (lookup-key vim:complex-command-override-local-keymap
-                                 key)))
+         (entry (when vim:complex-command-override-local-keymap
+                  (let ((key (concat vim:current-key-sequence (vim:this-command-keys))))
+                    (lookup-key vim:complex-command-override-local-keymap
+                                key))))
          (repeatable? (vim:cmd-repeatable-p vim:current-cmd))
          (events (if repeatable?
                    (vconcat vim:current-key-sequence
@@ -242,7 +244,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
         (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
                                  :motion (vim:get-current-cmd-motion))))
     (when repeatable?
-      (setq vim:repeat-events events))
+      (setf vim:repeat-events events))
     (vim:connect-undos vim:last-undo))
 
   (vim:reset-key-state)
