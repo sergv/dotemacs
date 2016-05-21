@@ -59,6 +59,7 @@
 (autoload 'pcomplete/du "shell-completion" nil t)
 (autoload 'pcomplete/busybox "shell-completion" nil t)
 (autoload 'pcomplete/untar "shell-completion" nil t)
+(autoload 'pcomplete/ln "shell-completion" nil t)
 
 (defalias 'pcomplete/l 'pcomplete/ls)
 (defalias 'pcomplete/la 'pcomplete/ls)
