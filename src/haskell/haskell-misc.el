@@ -17,6 +17,7 @@
 
 (require 'abbrev+)
 (require 'haskell-compile)
+(require 'haskell-regexen)
 (require 'compilation-setup)
 
 ;;; definitions
@@ -457,8 +458,6 @@ we load it."
   (save-match-data
     (goto-char start)
     ;; Find beginning of pragma the point is in.
-    (message "(eq (get-char-property (point) 'face) 'haskell-pragma-face) = %s"
-             (pp-to-string (eq (get-char-property (point) 'face) 'haskell-pragma-face)))
     (when (eq (get-char-property (point) 'face) 'haskell-pragma-face)
       (re-search-backward haskell-regexen/pragma-start))
     ;; Navigate up while we're still getting LANGUAGE pragmas.
