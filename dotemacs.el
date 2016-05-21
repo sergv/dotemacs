@@ -89,8 +89,6 @@ or not.")
   (when use-yasnippet
     (yas-minor-mode-on))
 
-  (smartparens-buffer-local-setup)
-
   (when use-whitespace
     (when (and (not (eq? use-whitespace 'tabs-only))
                (memq major-mode
