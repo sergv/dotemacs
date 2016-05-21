@@ -502,6 +502,7 @@ Symbol is defined as a chunk of text recognized by
 
 (define-obsolete-variable-alias 'sp--lisp-modes 'sp-lisp-modes "2015-11-08")
 
+;;;###autoload
 (defcustom sp-lisp-modes '(
                            cider-repl-mode
                            clojure-mode

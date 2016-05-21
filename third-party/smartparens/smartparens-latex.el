@@ -105,6 +105,7 @@ ID, ACTION, CONTEXT."
                  plain-tex-mode
                  latex-mode
                  LaTeX-mode
+                 org-mode
                  )
   (sp-local-pair "`" "'"
                  :actions '(:rem autoskip)
