@@ -20,6 +20,10 @@
 (require 'haskell-regexen)
 (require 'compilation-setup)
 
+(require 'flycheck)
+(require 'flycheck-haskell)
+(require 'flycheck-setup)
+
 ;;; definitions
 
 (defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode c2hs-mode)
@@ -222,7 +226,11 @@ and indent them as singe line."
       shm-indent-point-after-adding-where-clause t
       shm-colon-enabled t
       shm-indent-use-chris-done-if-indent-style nil
-      inferior-haskell-find-project-root nil)
+      inferior-haskell-find-project-root nil
+
+      ;; Flycheck
+      flycheck-ghc-args '("-O0")
+      flycheck-ghc-no-user-package-database t)
 
 ;; Ghci flags
 (let* ((extensions '("-XLambdaCase" "-XOverloadedStrings" "-XTemplateHaskell" "-XQuasiQuotes"))
