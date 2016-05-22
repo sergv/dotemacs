@@ -238,7 +238,7 @@ also space out any neccessary spacing."
              (looking-back "\\\\"))
         (insert "\""))
        ((shm-find-overlay 'shm-quarantine)
-        (sp--self-insert-command arg))
+        (self-insert-command arg))
        ;; "…|…"
        ((shm-in-string)
         (cond
