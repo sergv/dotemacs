@@ -73,6 +73,8 @@ stick it to the previous operator on line."
                (or (bobp)
                    (and (not (char-equal (char-before) ?\s))
                         (not (char-equal (char-before) ?\())
+                        (not (and (char-equal char ?|)
+                                  (char-equal (char-before) ?\[)))
                         (not (memq (char-before) shm/operator-chars)))
                    ;; Distance ourselves from | that is a potential guard.
                    (char-equal (char-before) ?|)))
@@ -84,6 +86,8 @@ stick it to the previous operator on line."
       (when (or (eobp)
                 (and (not (char-equal (char-after) ?\s))
                      (not (char-equal (char-after) ?\)))
+                     (not (and (char-equal char ?|)
+                               (char-equal (char-after) ?\])))
                      (not (memq (char-after) shm/operator-chars))))
         (shm-insert-string " ")))))
 
