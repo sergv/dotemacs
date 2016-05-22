@@ -45,9 +45,7 @@
                     doc-view-save-pages-on-kill
                     save-place-kill-emacs-hook
                     backup-all-buffers
-                    persistent-store-flush-database))))
-         (more-files
-          (list dotemacs-init-file)))
+                    persistent-store-flush-database)))))
 
     ;; load init file to get path detection from set-up-paths.el
     (load-library dotemacs-init-file)
@@ -57,6 +55,13 @@
              (find-elisp-dirs (concat emacs-dir "/src"))
              (find-elisp-dirs (concat emacs-dir "/third-party")
                               set-up-paths--ignored-third-party-el-dirs-re)))
+           (more-files
+            (cons dotemacs-init-file
+                  (directory-files emacs-dir
+                                   t ;; absolute paths
+                                   ".*\\.el\\'"
+                                   t ;; don't sort
+                                   )))
            (files-to-recompile
             (remove-if
              (lambda (x)
@@ -80,7 +85,6 @@
            )
       ;; (message "recompiling files:")
       (dolist (file files-to-recompile)
-        ;; (message "%s" file)
         (byte-compile-file file)))
     (funcall detach-hooks)))
 
