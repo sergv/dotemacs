@@ -115,7 +115,7 @@ node."
   (if (memq (char-after) '(?\) ?\] ?\}))
     (forward-char)
     (shm-with-fallback
-     sp--self-insert-command
+     self-insert-command
      (if (or (shm-literal-insertion)
              (not (null insert-literally)))
        (shm-insert-string ")")
@@ -128,7 +128,7 @@ node."
   (if (memq (char-after) '(?\) ?\] ?\}))
     (forward-char)
     (shm-with-fallback
-     sp--self-insert-command
+     self-insert-command
      (if (or (shm-literal-insertion)
              (not (null? insert-literally)))
        (shm-insert-string "]")
@@ -141,7 +141,7 @@ node."
   (if (memq (char-after) '(?\) ?\] ?\}))
     (forward-char)
     (shm-with-fallback
-     sp--self-insert-command
+     self-insert-command
      (if (or (shm-literal-insertion)
              (not (null? insert-literally)))
        (shm-insert-string "}")
