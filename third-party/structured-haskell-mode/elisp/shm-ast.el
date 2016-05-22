@@ -353,7 +353,7 @@ expected to work."
    ;; Otherwise we just do our line-based hack.
    (t
     (save-excursion
-      (let* ((skip-at-start-re (rx (or "#" "--" "|]")))
+      (let* ((skip-at-start-re (rx (or "#" "--" "|]" "\\")))
              (start (or (flet
                             ((jump ()
                                    (search-backward-regexp "^[^ \n]" nil t 1)
