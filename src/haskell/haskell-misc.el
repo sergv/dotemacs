@@ -75,7 +75,7 @@ and indent them as singe line."
        (build-command
         (lambda (custom-build-dir)
           (concat
-           "cabal build " (funcall mk-build-dir-arg custom-build-dir) "--ghc-options=\"-j4\"")))
+           "cabal build " (funcall mk-build-dir-arg custom-build-dir))))
        (test-command
         (lambda (custom-build-dir)
           (concat
@@ -84,7 +84,7 @@ and indent them as singe line."
 
        (stack-command
         (lambda (cmd)
-          (format "cd %%s && stack %s --ghc-options=\"-j4 +RTS -A64m -H128m -n2m -RTS\"" cmd))))
+          (format "cd %%s && stack %s --ghc-options=\"-j4 +RTS -A64m -H256m -n2m -RTS\"" cmd))))
   (setf haskell-compile-cabal-build-command-presets
         `((vanilla
            ,(funcall stack-command "build"))
@@ -96,6 +96,8 @@ and indent them as singe line."
            ,(funcall stack-command "build"))
           (test
            ,(funcall stack-command "test"))
+          (build-tests
+           ,(funcall stack-command "test --no-run-tests"))
           (bench
            ,(funcall stack-command "bench"))
           (cabal-vanilla
