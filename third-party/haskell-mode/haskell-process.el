@@ -175,6 +175,7 @@ HPTYPE is the result of calling `'haskell-process-type`' function."
   (when haskell-process-log
     (let* ((append-to (get-buffer-create "*haskell-process-log*")))
       (with-current-buffer append-to
+        (text-mode)
         ;; point should follow insertion so that it stays at the end
         ;; of the buffer
         (setq-local window-point-insertion-type t)
