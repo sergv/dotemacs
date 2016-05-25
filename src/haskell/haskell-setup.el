@@ -426,7 +426,6 @@
   (setq-local yas-indent-line 'fixed)
   (haskell-setup-folding)
   (fontify-merge-markers)
-  (modify-syntax-entry ?- "_")
   (modify-syntax-entry ?. "_")
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
