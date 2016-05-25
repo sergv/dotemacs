@@ -208,6 +208,8 @@ error location - list of (filename line column)."
        ("q"        remove-buffer)
        ("C-c C-c"  kill-compilation)
        ("m"        vim-mock:motion-jump-item)
+       ("0"        vim-mock:motion-beginning-of-line)
+       ("$"        vim-mock:motion-end-of-line)
 
        ("C-v"      set-mark-command)
        ("C-y"      copy-region-as-kill)
