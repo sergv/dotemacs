@@ -404,6 +404,8 @@
 
   (vim:local-emap "c" 'vim:recompile)
   (def-keys-for-map haskell-compilation-mode-map
+    +vim-interbuffer-navigation-keys+
+    +vim-special-keys+
     ("<return>" compilation/goto-error)
     ("SPC"      compilation/goto-error-other-window)
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
