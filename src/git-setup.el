@@ -202,6 +202,7 @@
     ("M-p"     nil)))
 
 (defun git-rebase-mode-setup ()
+  (hl-line-mode +1)
   (def-keys-for-map git-rebase-mode-map
     +vi-keys+
     +vim-mock:word-motion-keys+
