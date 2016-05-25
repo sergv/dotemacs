@@ -157,6 +157,14 @@
         (goto-char (1+ pos))
         (backward-list)))))
 
+(defun vim-mock:motion-beginning-of-line ()
+  (interactive)
+  (beginning-of-line))
+
+(defun vim-mock:motion-end-of-line ()
+  (interactive)
+  (end-of-line))
+
 (provide 'vim-mock)
 
 ;; Local Variables:
