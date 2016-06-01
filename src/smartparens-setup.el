@@ -31,6 +31,7 @@
       sp-navigate-consider-sgml-tags '(html-mode xhtml-mode xml-mode nxml-mode web-mode)
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
+      sp-wrap-entire-symbol 'globally
       sp-ignore-modes-list '(;; enable smartparens mode in minibuffer,
                              ;; and let it bind keys for currently active
                              ;; pairs, then auxiliary keys later in icicle setup
@@ -59,6 +60,44 @@
                              select-mode
                              haskell-compilation-mode
                              clojure-compilation-mode))
+
+(sp-select-next-thing-exchange nil nil)
+
+(defun sp-wrap-or-insert (pair-open)
+  "Wrap the following expression with PAIR.
+
+This function is a non-interactive helper.  To use this function
+interactively, bind the following lambda to a key:
+
+ (lambda (&optional arg) (interactive \"P\") (sp-wrap-with-pair \"(\"))
+
+This lambda accepts the same prefix arguments as
+`sp-select-next-thing'.
+
+If region is active and `use-region-p' returns true, the region
+is wrapped instead.  This is useful with selection functions in
+`evil-mode' to wrap regions with pairs."
+  (let* ((arg (or current-prefix-arg 1))
+         (p (point))
+         (sel (unless (sp--region-active?)
+                (sp-select-next-thing-exchange arg nil)))
+         (active-pair (--first (equal (car it) pair-open) sp-pair-list))
+         (rb (sp--region-beginning))
+         (re (sp--region-end)))
+    ;; If point is not in the symbol then don't wrap the next symbol, but
+    ;; insert pair at point instead.
+    (if (< p rb)
+      (progn
+        (goto-char p)
+        (sp-insert-pair pair-open))
+      (progn
+        (goto-char re)
+        (insert (cdr active-pair))
+        (goto-char rb)
+        (insert (car active-pair))
+        (if (sp--region-active?)
+          (sp--indent-region rb re)
+          (sp-get sel (sp--indent-region :beg :end)))))))
 
 ;; these two are the same ones used for paredit
 (defadvice sp-forward-slurp-sexp
