@@ -200,8 +200,21 @@ like \"d w\".")
 
   ("g r"     rgrep-region)
   ("g s"     vim:replace-selected)
-  ("]"       self-insert-command)
-  ("["       self-insert-command))
+  (("(" ")") vim:wrap-parens)
+  (("[" "]") vim:wrap-braces)
+  (("{" "}") vim:wrap-brackets))
+
+(vim:defcmd vim:wrap-parens (nonrepeatable)
+  "Wrap region in (...)."
+  (sp-wrap-or-insert "("))
+
+(vim:defcmd vim:wrap-braces (nonrepeatable)
+  "Wrap region in [...]."
+  (sp-wrap-or-insert "["))
+
+(vim:defcmd vim:wrap-brackets (nonrepeatable)
+  "Wrap region in {...}."
+  (sp-wrap-or-insert "{"))
 
 ;;; insert mode keybindings
 
@@ -218,7 +231,11 @@ like \"d w\".")
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up)
   ("C-b"           ido-switch-buffer)
-  ("C-:"           pp-eval-expression))
+  ("C-:"           pp-eval-expression)
+
+  ("("             vim:wrap-parens)
+  ("["             vim:wrap-braces)
+  ("{"             vim:wrap-brackets))
 
 ;;; ex bindings and commands
 

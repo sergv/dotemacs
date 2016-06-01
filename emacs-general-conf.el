@@ -187,7 +187,8 @@
       enable-recursive-minibuffer t
       ad-default-compilation-action 'always
       echo-keystrokes 0.01
-      warning-minimum-level :error)
+      warning-minimum-level :error
+      use-empty-active-region t)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
