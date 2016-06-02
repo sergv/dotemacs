@@ -26,7 +26,7 @@
 
 ;;; definitions
 
-(defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode c2hs-mode)
+(defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode haskell-c2hs-mode)
   "List of modes that use haskell syntax.")
 
 (defconst +haskell-tmp-path+ (concat +tmp-path+ "/haskell-tmp"))
