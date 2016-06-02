@@ -258,7 +258,7 @@
     :tag->string-procedure #'eproj/haskell-tag->string
     :synonym-modes '(literate-haskell-mode
                      haskell-c-mode
-                     c2hs-mode)
+                     haskell-c2hs-mode)
     :normalize-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification)
    (mk-eproj-lang
