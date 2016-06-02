@@ -61,8 +61,6 @@
                              haskell-compilation-mode
                              clojure-compilation-mode))
 
-(sp-select-next-thing-exchange nil nil)
-
 (defun sp-wrap-or-insert (pair-open)
   "Wrap the following expression with PAIR.
 
