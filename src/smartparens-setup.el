@@ -77,25 +77,26 @@ is wrapped instead.  This is useful with selection functions in
 `evil-mode' to wrap regions with pairs."
   (let* ((arg (or current-prefix-arg 1))
          (p (point))
-         (sel (unless (sp--region-active?)
-                (sp-select-next-thing-exchange arg nil)))
-         (active-pair (--first (equal (car it) pair-open) sp-pair-list))
-         (rb (sp--region-beginning))
-         (re (sp--region-end)))
-    ;; If point is not in the symbol then don't wrap the next symbol, but
-    ;; insert pair at point instead.
-    (if (< p rb)
-      (progn
-        (goto-char p)
-        (sp-insert-pair pair-open))
-      (progn
-        (goto-char re)
-        (insert (cdr active-pair))
-        (goto-char rb)
-        (insert (car active-pair))
+         (active-pair (--first (equal (car it) pair-open) sp-pair-list)))
+    (destructuring-bind (start . end)
         (if (sp--region-active?)
-          (sp--indent-region rb re)
-          (sp-get sel (sp--indent-region :beg :end)))))))
+          (cons (sp--region-beginning) (sp--region-end))
+          (or (bounds-of-thing-at-point 'symbol)
+              (cons p p)))
+      (with-marker (start-marker (copy-marker start))
+        (with-marker (end-marker (copy-marker end))
+          ;; If point is not in the symbol then don't wrap the next symbol, but
+          ;; insert pair at point instead.
+          (if (< p start)
+            (progn
+              (goto-char p)
+              (sp-insert-pair pair-open))
+            (progn
+              (goto-char end)
+              (insert (cdr active-pair))
+              (goto-char start)
+              (insert (car active-pair))
+              (sp--indent-region start end))))))))
 
 ;; these two are the same ones used for paredit
 (defadvice sp-forward-slurp-sexp
