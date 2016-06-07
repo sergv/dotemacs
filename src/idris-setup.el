@@ -36,6 +36,16 @@
      (idris-repl)
      (idris-pop-to-repl))))
 
+(vim:defcmd vim:idris-previous-error (nonrepeatable)
+  (idris-previous-error)
+  (pop-to-buffer idris-notes-buffer-name
+                 '(display-buffer-reuse-window)))
+
+(vim:defcmd vim:idris-next-error (nonrepeatable)
+  (idris-next-error)
+  (pop-to-buffer idris-notes-buffer-name
+                 '(display-buffer-reuse-window)))
+
 (defun idris-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -50,9 +60,10 @@
                  :enable-yasnippet t)
   (vim:local-emap "load" 'vim:idris-load-file)
   (vim:local-emap "lo"   'vim:idris-load-file)
+  (vim:local-emap "l"    'vim:idris-load-file)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("C-t"             idris-previous-error)
-    ("C-h"             idris-next-error)
+    ("C-t"             vim:idris-previous-error)
+    ("C-h"             vim:idris-next-error)
     ("SPC SPC"         idris-pop-to-repl-or-start-a-new-one)
     ("+"               input-unicode)
 
