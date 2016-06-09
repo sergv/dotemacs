@@ -467,9 +467,7 @@ we load it."
 (defun haskell-align-language-pragmas (start)
   (save-match-data
     (goto-char start)
-    ;; Find beginning of pragma the point is in.
-    (when (eq (get-char-property (point) 'face) 'haskell-pragma-face)
-      (re-search-backward haskell-regexen/pragma-start))
+    (assert (looking-at-p haskell-abbrev+/language-pragma-prefix))
     ;; Navigate up while we're still getting LANGUAGE pragmas.
     (beginning-of-line)
     (while (and (not (bob?))
