@@ -709,7 +709,7 @@ end of END-LINE in current buffer."
 
 (defparameter *ignored-file-name-endings*
   (append
-   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o" "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot" ".class" ".fasl" ".lo" ".la" ".gmo" ".mo" ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dex" ".gz" ".tar" ".bz2" ".xz" ".7z")
+   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o" "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot" ".class" ".fasl" ".lo" ".la" ".gmo" ".mo" ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dex" ".gz" ".tar" ".bz2" ".xz" ".7z" ".ibc" ".agdai")
    (cond
      ((platform-os-type? 'linux)
       '(".so"))
