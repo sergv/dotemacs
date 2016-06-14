@@ -19,7 +19,7 @@
  ;; Disable helpful text in auxiliary Idris buffers.
  ;; For advanced users.
  ;; idris-show-help-text nil
- )
+ idris-stay-in-current-window-on-compiler-error t)
 
 (add-to-list ' auto-mode-alist '("\\.l?idr$" . idris-mode))
 
@@ -52,9 +52,12 @@
                :use-render-formula t
                :use-fci t
                :use-whitespace 'tabs-only)
+  (yafolding-mode +1)
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
+  (setq-local indent-region-function #'ignore)
+  (setq-local indent-line-function #'ignore)
   (bind-tab-keys #'eri-indent
                  #'eri-indent-reverse
                  :enable-yasnippet t)
@@ -68,6 +71,7 @@
     ("+"               input-unicode)
 
     ("<f6>"            idris-load-file)
+    ("- l"             idris-load-file)
     ("- t"             idris-type-at-point)
     ("- d"             idris-docs-at-point)
     ("- / t"           idris-type-search)
@@ -84,7 +88,12 @@
     ;; (define-key map (kbd "C-c C-m c") 'idris-show-core-term)
     ;; (define-key map (kbd "C-c C-b C-p") 'idris-open-package-file)
     ;; (define-key map (kbd "C-c C-b p") 'idris-open-package-file)
-    )
+
+    ("z C"             yafolding-hide-all)
+    ("z c"             haskell-hide-indented-or-sexp)
+    ("z O"             yafolding-show-all)
+    ("z o"             haskell-show-indented-or-sexp)
+    ("z T"             yafolding-toggle-all))
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"               idris-normalize-term)
     ("g a ="           agda-align-on-equals)
@@ -93,7 +102,8 @@
     ("g a |"           agda-align-on-pipes)
     ("g a ,"           agda-align-on-commas)
     ("g a - -"         agda-align-on-comments)
-    ("g a :"           agda-align-on-colons)))
+    ("g a :"           agda-align-on-colons)
+    ("z c"             yafolding-hide-region)))
 
 (add-hook 'idris-mode-hook #'idris-setup)
 
@@ -123,8 +133,12 @@
 (defun idris-repl-setup ()
   (init-repl :bind-return nil :create-keymaps t)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC" idris-repl-delete-current-input))
-  (def-keys-for-map idris-repl-mode-map
+    ("SPC SPC" idris-repl-delete-current-input)
+    ("C-t"     comint-previous-prompt)
+    ("C-h"     comint-next-prompt))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     idris-repl-mode-map)
+    ("C-SPC"  idris-repl-clear-buffer)
     ;; ("<return>" idris-repl-return)
     ("<up>"   idris-repl-backward-history)
     ("<down>" idris-repl-forward-history)))
