@@ -429,8 +429,10 @@
   (haskell-setup-folding)
   (fontify-merge-markers)
   (modify-syntax-entry ?. "_")
-  (setq-local vim:shift-width 2)
-  (setq-local standard-indent 2)
+  (let ((width 2))
+    (setq-local vim:shift-width width)
+    (setq-local standard-indent width)
+    (setq-local tab-width width))
   (setq-local tab-always-indent t)
   (setq-local indent-line-function
               (lambda ()
@@ -441,8 +443,8 @@
   (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
 
-  (bind-tab-keys #'indent-relative-forward
-                 #'indent-relative-backward
+  (bind-tab-keys #'tab-to-tab-stop
+                 #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("'" yafolding-go-parent-element))
