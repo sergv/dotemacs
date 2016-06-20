@@ -192,7 +192,7 @@ or not.")
                            (kbd "S-<iso-lefttab>")))
       (define-key kmap binding backtab-binding))))
 
-(load-library "all-lisp-setup")
+(load-library "lisp-autoloads")
 (load-library "org-mode-autoload")
 (load-library "persistent-sessions-autoloads")
 
