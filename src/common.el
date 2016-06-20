@@ -1821,6 +1821,7 @@ F will be called."
 (autoload 'resolve-obs-or-rel-filename "common-heavy")
 (autoload 'remove-duplicates-sorted "common-heavy")
 (autoload 'remove-duplicates-sorting "common-heavy")
+(autoload 'remove-duplicates-hashing "common-heavy")
 
 (autoload 'find-rec-do "find-files")
 (autoload 'find-rec "find-files")
