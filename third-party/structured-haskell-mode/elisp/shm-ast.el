@@ -356,15 +356,20 @@ expected to work."
       (let* ((skip-at-start-re (rx (or "#" "--" "|]" "\\")))
              (start (or (flet
                             ((jump ()
-                                   (search-backward-regexp "^[^ \n]" nil t 1)
-                                   (cond
-                                    ((save-excursion (beginning-of-line)
-                                                     (and (not (bobp))
-                                                          (looking-at-p skip-at-start-re)))
-                                     (jump))
-                                    (t (unless (or (looking-at-p "^-}$")
-                                                   (looking-at-p "^{-$"))
-                                         (point))))))
+                                   (let ((start (point))
+                                         moved)
+                                     (search-backward-regexp "^[^ \n]" nil t 1)
+                                     (setf moved (not (= start (point))))
+
+                                     (cond
+                                       ((and moved
+                                             (save-excursion (beginning-of-line)
+                                                             (and (not (bobp))
+                                                                  (looking-at-p skip-at-start-re))))
+                                        (jump))
+                                       (t (unless (or (looking-at-p "^-}$")
+                                                      (looking-at-p "^{-$"))
+                                            (point)))))))
                           (goto-char (line-end-position))
                           (jump))
                         0))
