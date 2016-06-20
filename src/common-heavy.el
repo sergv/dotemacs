@@ -430,6 +430,15 @@ using EQ-FUNC to determine equal elements."
   (assert (list? xs))
   (remove-duplicates-sorted (sort xs comparison) eq-func))
 
+(defun remove-duplicates-hashing (xs eq-func)
+  "Sort XS using COMPARISON function and remove duplicates from the result
+using EQ-FUNC to determine equal elements."
+  (assert (list? xs))
+  (let ((tbl (make-hash-table :test eq-func)))
+    (dolist (x xs)
+      (puthash x (gethash x tbl x) tbl))
+    (hash-table-values tbl)))
+
 ;;;
 
 (provide 'common-heavy)
