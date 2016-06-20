@@ -369,6 +369,7 @@
              :bind-return nil
              :bind-vim:motion-current-line nil)
   (structured-haskell-mode -1)
+  (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
   (haskell-bind-shm-bindings :bind-colon nil)
 
