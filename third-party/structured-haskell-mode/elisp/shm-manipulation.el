@@ -42,9 +42,10 @@ Strings: \"x|y\" -> \"x\" \"y\"
                      nil
                    (shm-insert-string " "))
                  (shm-insert-string "$")
-                 (if (looking-at " ")
+                 (if (looking-at-p " ")
                      nil
-                   (shm-insert-string " ")))))))
+                     (shm-insert-string " "))))
+        (shm-insert-char-surrounding-with-spaces ?\$))))
 
 (defun shm/add-operand ()
   "When in an infix application, figure out the operator and add
