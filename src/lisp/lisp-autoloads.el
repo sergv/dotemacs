@@ -1,4 +1,4 @@
-;; all-lisp-setup.el --- -*- lexical-binding: t; -*-
+;; lisp-autoloads.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -21,6 +21,7 @@
 
 (autoload 'lisp-setup "general-lisp-setup")
 (autoload 'lisp-repl-setup "general-lisp-setup")
+(add-hook 'lisp-mode-hook #'lisp-setup)
 
 (autoload 'emacs-lisp-setup "emacs-lisp-setup")
 (add-hook 'emacs-lisp-mode-hook #'emacs-lisp-setup)
@@ -33,9 +34,9 @@
 (autoload 'clojure-setup "clojure-setup")
 (add-hook 'clojure-mode-hook #'clojure-setup)
 
-(provide 'all-lisp-setup)
+(provide 'lisp-autoloads)
 
 ;; Local Variables:
 ;; End:
 
-;; all-lisp-setup.el ends here
+;; lisp-autoloads.el ends here

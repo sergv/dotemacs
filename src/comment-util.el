@@ -10,7 +10,7 @@
 
 (require 'common)
 (require 'advices-util)
-(require 'all-lisp-setup)
+(require 'lisp-autoloads)
 
 (defadvice:auto-comment sp-newline)
 ;; paredit-newline's advice is defined in
