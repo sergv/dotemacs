@@ -12,11 +12,9 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'all-lisp-setup)
 (require 'common)
 (require 'advices-util)
 (require 'macro-util)
-(require 'lisp-utils)
 (require 'search)
 
 (require 'eldoc)

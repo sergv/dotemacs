@@ -9,7 +9,7 @@
 (require 'common)
 
 (setf yas-ignore-filenames-as-triggers t
-      yas-snippet-dirs (concat +prog-data-path+ "/snippets")
+      yas-snippet-dirs (list (concat +prog-data-path+ "/snippets"))
       yas-prompt-functions '(yas-ido-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
@@ -149,7 +149,7 @@ Otherwise deletes a character normally by calling `delete-backward-char'."
 
 ;; (yas-compile-directory yas-snippet-dirs)
 ;; now load snippets using enhanced functions (re)defined above
-(yas-load-directory yas-snippet-dirs)
+(mapc #'yas-load-directory yas-snippet-dirs)
 
 (eval-after-load
     "org"
