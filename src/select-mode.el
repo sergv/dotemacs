@@ -65,9 +65,10 @@ Items will be passed to this function before insertion into buffer.")
       ("<down>"   select-move-selection-down)
       ("<return>" select-do-select-same-window)
       ("SPC"      select-do-select-other-window)
-      ("<escape>" select-exit)
-      ("q"        select-exit)
-      ("C-q"      select-exit))
+      ("<escape>" select-hide)
+      ("q"        select-hide)
+      ("C-q"      select-hide)
+      ("C-g"      select-hide))
     kmap))
 
 (define-derived-mode select-mode text-mode "Selection"
@@ -270,6 +271,10 @@ and symbol, specifying selection type. Currently, selection type may be either
             select/on-selection-function err
             select/preamble-function     err
             select/epilogue-function     err))))
+
+(defun select-hide ()
+  (interactive)
+  (bury-buffer select/selection-buffer))
 
 (defun select-exit ()
   (interactive)
