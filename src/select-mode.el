@@ -274,7 +274,7 @@ and symbol, specifying selection type. Currently, selection type may be either
 
 (defun select-hide ()
   (interactive)
-  (bury-buffer select/selection-buffer))
+  (call-interactively #'bury-buffer))
 
 (defun select-exit ()
   (interactive)
