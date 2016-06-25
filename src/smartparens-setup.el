@@ -81,7 +81,10 @@ is wrapped instead.  This is useful with selection functions in
     (destructuring-bind (start . end)
         (if (sp--region-active?)
           (cons (sp--region-beginning) (sp--region-end))
-          (or (bounds-of-thing-at-point 'symbol)
+          (or (-when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
+                (if (= p (cdr sym-bounds))
+                  nil ;; don't wrap if we are at the end of symbol
+                  sym-bounds))
               (cons p p)))
       (with-marker (start-marker (copy-marker start))
         (with-marker (end-marker (copy-marker end))
