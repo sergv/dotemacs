@@ -1800,6 +1800,9 @@ F will be called."
   (let ((case-fold-search t))
     (looking-at-p regexp)))
 
+(defun buffer-visible-p (buf)
+  (not (null (get-buffer-window buf t))))
+
 ;;;;
 
 ;; Heavy autoloads
