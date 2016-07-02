@@ -8,6 +8,7 @@
 
 (require 'select-mode)
 (require 'eproj)
+(provide 'eproj-customization)
 
 ;;; tag/symbol navigation (navigation over homes)
 
@@ -158,7 +159,8 @@ as accepted by `bounds-of-thing-at-point'.")
         (error "No names in project %s for language %s"
                (eproj-project/root proj)
                effective-major-mode)))
-    (if (and next-home-entry
+    (if (and eproj-symbnav-remember-choices
+             next-home-entry
              (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
                (if use-regexp
                  (string-match-p identifier next-symbol)
