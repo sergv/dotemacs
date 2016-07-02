@@ -77,28 +77,6 @@
 (vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
   (haskell-interactive-clear-buffer-above-prompt))
 
-;; Ghc-mod stuff
-;; (defvar-local vim:haskell-check-on-save nil
-;;   "Whether to run `ghc-check' on saves.")
-;; (vim:defcmd vim:haskell-ghc-init (nonrepeatable)
-;;   (ghc-init)
-;;   (setq-local vim:haskell-check-on-save t))
-;; (vim:defcmd vim:haskell-ghc-check (nonrepeatable)
-;;   (ghc-check-syntax)
-;;   (setq-local vim:haskell-check-on-save t))
-;; (vim:defcmd vim:haskell-ghc-reset (nonrepeatable)
-;;   (ghc-reset)
-;;   (setq-local vim:haskell-check-on-save nil))
-;; (vim:defcmd vim:haskell-ghc-reload (nonrepeatable)
-;;   (vim:haskell-ghc-reset)
-;;   (ghc-reload))
-;;
-;; (defun haskell-ghc-mod-check-on-save ()
-;;   (when (and vim:haskell-check-on-save
-;;              (fboundp #'ghc-check-syntax))
-;;     (ignore-errors
-;;       (ghc-check-syntax))))
-
 (vim:defcmd vim:haskell-flycheck-run (nonrepeatable)
   (flycheck-buffer))
 (vim:defcmd vim:haskell-flycheck-compile (nonrepeatable)
@@ -132,7 +110,6 @@
   (fontify-conflict-markers)
   (flycheck-mode)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
-  ;; (add-hook 'after-save-hook #'haskell-ghc-mod-check-on-save nil t)
 
   ;; ghci interaction uses comint - same as shell mode
   (turn-on-font-lock)
@@ -212,7 +189,7 @@
     ("j"       vim:haskell-load-file-into-repl)
     ("g c c"   haskell-comment-node)
     ("+"       input-unicode)
-    ("SPC SPC" show-ghc-mod-errors-or-switch-to-haskell)
+    ("SPC SPC" haskell-misc/switch-to-haskell)
     ("g w"     shm/goto-where)
     ("`"       ghc-display-errors)
     ("C-`"     haskell-lint)

@@ -81,10 +81,6 @@
         path = third-party/emacs_bat
         url = https://github.com/timepp/emacs_bat.git
         ignore = untracked
-[submodule "third-party/ghc-mod"]
-        path = third-party/ghc-mod
-        url = https://github.com/sergv/ghc-mod.git
-        ignore = untracked
 [submodule "third-party/glsl-mode"]
         path = third-party/glsl-mode
         url = https://github.com/jimhourihan/glsl-mode.git
