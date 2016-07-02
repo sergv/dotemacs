@@ -776,77 +776,42 @@ with the position of the selected error."
               (funcall jump-to-next-err-func)
               (compilation/get-selected-error))))))))
 
+(defun haskell-compilation-go-navigate-errors (jump-to-next-err-func fallback)
+  "Navigate errors in `haskell-compilation-buffer'."
+  (if (buffer-live-p (get-buffer haskell-compilation-buffer))
+    (let ((win (get-buffer-window haskell-compilation-buffer
+                                  t ;; all-frames
+                                  )))
+      (if (and win
+               (window-live-p win))
+        (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
+                      win
+                      jump-to-next-err-func))
+            (compilation/jump-to-error err nil)
+          (funcall fallback))
+        (funcall fallback)))
+    (funcall fallback)))
+
 (defun haskell-compilation-next-error-other-window ()
   "Select next error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (let ((fallback
-         (lambda ()
-           (when (or (not (fboundp #'ghc-goto-next-error))
-                     (not (ghc-goto-next-error)))
-             (flycheck-next-error)))))
-    (if (buffer-live-p (get-buffer haskell-compilation-buffer))
-      (let ((win (get-buffer-window haskell-compilation-buffer
-                                    t ;; all-frames
-                                    )))
-        (if (window-live-p win)
-          (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
-                        win
-                        #'compilation-jump-to-next-error))
-              (compilation/jump-to-error err nil)
-            (funcall fallback)
-            ;; (error "No errors found in compilation buffer")
-            )
-          (funcall fallback)))
-      (funcall fallback)
-      ;; (error "Buffer %s is not live" haskell-compilation-buffer)
-      )))
+  (haskell-compilation-go-navigate-errors
+   #'compilation-jump-to-next-error
+   #'flycheck-next-error))
 
 (defun haskell-compilation-prev-error-other-window ()
   "Select previous error in `haskell-compilation-buffer' buffer and jump to
 it's position in current window."
   (interactive)
-  (let ((fallback
-         (lambda ()
-           (when (or (not (fboundp #'ghc-goto-prev-error))
-                     (not (ghc-goto-prev-error)))
-             (flycheck-previous-error)))))
-    (if (buffer-live-p (get-buffer haskell-compilation-buffer))
-      (let ((win (get-buffer-window haskell-compilation-buffer
-                                    t ;; all-frames
-                                    )))
-        (if (window-live-p win)
-          (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
-                        win
-                        #'compilation-jump-to-prev-error))
-              (compilation/jump-to-error err nil)
-            (funcall fallback)
-            ;; (error "No errors found in compilation buffer")
-            )
-          (funcall fallback)))
-      (funcall fallback)
-      ;; (error "Buffer %s is not live" haskell-compilation-buffer)
-      )))
+  (haskell-compilation-go-navigate-errors
+   #'compilation-jump-to-prev-error
+   #'flycheck-previous-error))
 
-(defun show-ghc-mod-errors-or-switch-to-haskell ()
+(defun haskell-misc/switch-to-haskell ()
   (interactive)
-  (or (and (ghc-display-errors)
-           (progn
-             (when ghc-error-shown
-               ;; If error is about file other than we're currently visiting
-               ;; then jump to that file.
-               (unless (string= (normalize-file-name ghc-error-file)
-                                (normalize-file-name buffer-file-name))
-                 (aif (compilation/find-buffer ghc-error-file default-directory)
-                   (progn
-                     (switch-to-buffer it)
-                     (goto-char (point-min))
-                     (ghc-goto-next-error))
-                   (error "Cannot jump to nonexistent file: %s" ghc-error-file))))
-             t))
-      (progn
-        (haskell-process-load-file)
-        (haskell-interactive-bring))))
+  (haskell-process-load-file)
+  (haskell-interactive-bring))
 
 (defun haskell-shm-tab-or-indent-relative-forward ()
   (interactive)
