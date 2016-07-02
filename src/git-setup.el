@@ -23,17 +23,27 @@
                :use-comment    t
                :use-fci        t))
 
+(make-align-function gitconfig-align-on-equals "=")
+
+(defun gitconfig-align-generic ()
+  (interactive)
+  (gitconfig-align-on-equals))
+
 (defun gitconfig-setup ()
-  (init-common :use-yasnippet  nil
-               :use-comment    t
-               :use-fci        t)
+  (init-common :use-yasnippet nil
+               :use-comment   t
+               :use-fci       t)
   (setq-local indent-tabs-mode nil)
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<tab>"       tab-to-tab-stop)
     ("<backtab>"   tab-to-tab-stop-backward)
     ("S-<tab>"     tab-to-tab-stop-backward)
-    ("S-<iso-tab>" tab-to-tab-stop-backward)))
+    ("S-<iso-tab>" tab-to-tab-stop-backward))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
+    ("g a ="       gitconfig-align-on-equals)
+    ("g a a"       gitconfig-align-generic)))
 
 ;;; magit
 
