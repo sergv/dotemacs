@@ -89,7 +89,7 @@ and indent them as singe line."
         `((vanilla
            ,(funcall stack-command "build"))
           (prof
-           ,(funcall stack-command "build --profile"))
+           ,(funcall stack-command "build --profile --test --no-run-tests"))
           (clean
            ,(funcall stack-command "clean"))
           (stack
