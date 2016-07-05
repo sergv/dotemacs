@@ -8,7 +8,7 @@
 
 (require 'select-mode)
 (require 'eproj)
-(provide 'eproj-customization)
+(require 'eproj-customization)
 
 ;;; tag/symbol navigation (navigation over homes)
 
