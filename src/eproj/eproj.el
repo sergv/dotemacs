@@ -407,6 +407,10 @@
   (string= (eproj-project/root proj-a)
            (eproj-project/root proj-b)))
 
+(defun eproj-project/root< (proj-a proj-b)
+  (string< (eproj-project/root proj-a)
+           (eproj-project/root proj-b)))
+
 (defparameter *eproj-projects*
   (make-hash-table :test #'equal)
   "Hash table mapping project roots to projects.")
@@ -918,30 +922,36 @@ AUX-INFO is expected to be a list of zero or more constructs:
     (awhen (locate-dominating-file dir ".eproj-info")
       (eproj-normalize-file-name it))))
 
-(defun eproj-get-all-related-projects (proj)
-  "Return eproj-project structures of projects realted to PROJ except PROJ itself."
-  (letrec ((collect
-            (lambda (projs visited items)
-              (if projs
-                (let ((p (car projs))
-                      (ps (cdr projs)))
-                  (if (member* p visited
-                               :test #'eproj-project/root=)
-                    (funcall collect ps visited items)
-                    (funcall collect
-                             (append (-map #'eproj-get-project-for-path
-                                           (eproj-project/related-projects p))
-                                     ps)
-                             (cons p visited)
-                             (cons p items))))
-                items))))
-    (assert (eproj-project-p proj) nil
-            "Not a eproj-project structure: %s" proj)
-    (funcall collect
-             (-map #'eproj-get-project-for-path
-                   (eproj-project/related-projects proj))
-             (list proj)
-             nil)))
+(defvar eproj/default-projects (make-hash-table :test #'eq)
+  "Hash table mapping major mode symbols to lists of project roots, that should
+be regarded as related projects when looking for tags in said major mode from any
+project.")
+
+(defun eproj-get-all-related-projects (proj major-mode)
+  "Return eproj-project structures of projects realted to PROJ including PROJ itself."
+  (assert (eproj-project-p proj) nil
+          "Not a eproj-project structure: %s" proj)
+  (let ((items nil)
+        (visited (let ((tbl (make-hash-table :test #'equal)))
+                   (puthash (eproj-project/root proj) t tbl)
+                   tbl))
+        (projs (-map #'eproj-get-project-for-path
+                     (append
+                      (gethash major-mode eproj/default-projects nil)
+                      (eproj-project/related-projects proj)))))
+    (while projs
+      (let* ((p (pop projs))
+             (root (eproj-project/root p)))
+        (unless (gethash root visited nil)
+          (setf projs (append (-map #'eproj-get-project-for-path
+                                    (eproj-project/related-projects p))
+                              projs)
+                (gethash root visited) t)
+          (push p items))))
+    (remove-duplicates-sorting
+     (cons proj items)
+     #'eproj-project/root=
+     #'eproj-project/root<)))
 
 ;; If PATH is existing absoute file then return it, otherwise try to check
 ;; whether it's existing file relative to DIR and return that. Report error if
@@ -978,8 +988,7 @@ Returns list of (tag . project) pairs."
                         (hash-table-entries-matching-re it identifier))
                        (gethash identifier it nil)))
                nil))
-           (cons proj
-                 (eproj-get-all-related-projects proj))))
+           (eproj-get-all-related-projects proj tag-major-mode)))
 
 
 (autoload 'eproj/create-haskell-tags "eproj-haskell" nil nil)
