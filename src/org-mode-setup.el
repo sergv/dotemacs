@@ -489,9 +489,6 @@ the current topic."
 
     ("'"       org-mode-up-heading)
 
-    ("<f6>"    org-toggle-display-style)
-    ("<f9>"    vim:org-latex-export-to-pdf)
-    ("S-<f9>"  open-buffer-as-pdf)
     ("z O"     show-all)
     ;; ("z o"   show-subtree)
     ("z c"     hide-subtree)
@@ -505,7 +502,10 @@ the current topic."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("C-/"        pcomplete)
+    ("<f6>"       org-toggle-display-style)
+    ("<f9>"       vim:org-latex-export-to-pdf)
+    ("S-<f9>"     open-buffer-as-pdf)
+    ("C-SPC"      pcomplete)
     ("<C-return>" org-meta-return)
     ("<C-down>"   org-metadown)
     ("<C-up>"     org-metaup)

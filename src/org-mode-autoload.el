@@ -24,12 +24,15 @@
 (autoload 'org-agenda-mode-setup "org-mode-setup")
 (add-hook 'org-agenda-mode-hook #'org-agenda-mode-setup)
 
-
 (autoload 'htmlize-buffer "htmlize" nil t)
 (autoload 'htmlize-region "htmlize" nil t)
 (autoload 'htmlize-file "htmlize" nil t)
 (autoload 'htmlize-many-files "htmlize" nil t)
 (autoload 'htmlize-many-files-dired "htmlize" nil t)
+
+(eval-after-load "org"
+  '(progn
+     (require 'org-mode-setup)))
 
 (provide 'org-mode-autoload)
 
