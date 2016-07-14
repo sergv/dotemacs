@@ -39,12 +39,11 @@ match IGNORED-FILE-GLOBS."
             (lambda (filename)
               (for-buffer-with-file filename
                 (goto-char (point-min))
-                (let ((local-matches nil))
+                (let ((local-matches nil)
+                      (case-fold-search ignore-case))
                   (while (re-search-forward regexp nil t)
                     (let* ((line-start-pos (line-beginning-position))
-                           (line (current-line-with-properties)
-                                 ;; (current-line)
-                                 )
+                           (line (current-line-with-properties))
                            (start-column
                             (- (match-beginning 0) line-start-pos))
                            (end-column
@@ -60,20 +59,20 @@ match IGNORED-FILE-GLOBS."
                              :file filename
                              :line-number line-number
                              :column-number start-column
-                             ;; :line line
                              :select-entry
                              (let ((short-file-name (file-relative-name filename
                                                                         dir))
                                    (line-number-string (number->string line-number)))
-
-                               ;; (put-text-property 0 (length short-file-name))
                                (concat (propertize short-file-name 'face 'compilation-info)
                                        ":"
                                        (propertize line-number-string 'face 'compilation-line-number)
                                        ":"
                                        line
                                        "\n")))
-                            local-matches)))
+                            local-matches))
+                    ;; Jump to end of line in order to show at most one match per
+                    ;; line.
+                    (end-of-line))
                   (nreverse local-matches))))
             files))))
     (select-start-selection
@@ -125,7 +124,11 @@ match IGNORED-FILE-GLOBS."
 (defun egrep-region (str exts-globs dir &optional ignore-case)
   (interactive
    (let ((regexp
-          (read-regexp "Search for"
+          (read-regexp (format
+                        "%s for"
+                        (if ignore-case
+                          "Case-insensetive search"
+                          "Search"))
                        (get-region-string-no-properties)
                        'grep-regexp-history)))
      (list
