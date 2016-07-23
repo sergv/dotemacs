@@ -38,6 +38,8 @@
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
+(autoload 'intero-mode "intero" nil t)
+
 (defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "happy" "y"))
 
 (autoload 'haskell-setup-folding "haskell-outline")
