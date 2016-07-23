@@ -83,7 +83,8 @@
   (call-interactively #'flycheck-compile))
 (vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
   (flycheck-haskell-clear-config-cache)
-  (flycheck-haskell-configure))
+  (flycheck-haskell-configure)
+  (flycheck-buffer))
 (vim:defcmd vim:haskell-flycheck-clear (nonrepeatable)
   (flycheck-clear
    t ;; interrupt running process
