@@ -698,6 +698,20 @@ return nil otherwise."
   (haskell-interactive-prompt-regex)
   :jump-to-end t)
 
+(defun haskell/smart-$ ()
+  "Swap parens with a dollar."
+  (interactive)
+  (let ((start-pos nil))
+    (when (save-excursion
+            (skip-syntax-forward " ")
+            (when (char= (char-after) ?\()
+              (setf start-pos (point))
+              t))
+      (goto-char start-pos)
+      (forward-char)
+      (sp-splice-sexp-killing-backward))
+    (shm-insert-char-surrounding-with-spaces ?\$)))
+
 (defun* haskell-bind-shm-bindings (&key bind-colon)
   (when bind-colon
     (def-keys-for-map vim:insert-mode-local-keymap
@@ -717,7 +731,7 @@ return nil otherwise."
     (">"   shm/>)
     ("!"   shm/!)
     ("@"   shm/@)
-    ("$"   shm/$)
+    ("$"   haskell/smart-$)
     ("%"   shm/%)
     ("^"   shm/^)
     ("&"   shm/&)
