@@ -80,7 +80,7 @@ simlifying encoding of several keys for one snippet."
     (when group
       (setq group (split-string group "\\.")))
     (-map (lambda (key)
-            (list key template name condition group expand-env file binding uuid))
+            (list key template (concat name "/" key) condition group expand-env file binding uuid))
           keys)))
 
 ;; this causes yasnippet to consider only *.snip files
@@ -88,13 +88,13 @@ simlifying encoding of several keys for one snippet."
   "Return subdirs or files of DIRECTORY according to FILE?."
   (delete-if (lambda (file)
                (let ((filename (file-name-nondirectory file)))
-                 (or (string-match-pure? "^\\." filename)
-                     (string-match-pure? "^#.*#$" filename)
-                     (string-match-pure? "~$" filename)
+                 (or (string-match-p "^\\." filename)
+                     (string-match-p "^#.*#$" filename)
+                     (string-match-p "~$" filename)
                      (if file?
                        (or (file-directory-p file)
                            ;; modified here
-                           (not (string-match-pure? "\\.snip$" filename)))
+                           (not (string-match-p "\\.snip$" filename)))
                        (not (file-directory-p file))))))
              (directory-files directory t)))
 
@@ -110,7 +110,10 @@ simlifying encoding of several keys for one snippet."
     (with-temp-buffer
       (dolist (file (yas--subdirs directory 'no-subdirs-just-files))
         (when (file-readable-p file)
-          (insert-file-contents file nil nil nil t)
+          ;; Erase the buffer instead of passing non-nil REPLACE to
+          ;; `insert-file-contents' (avoids Emacs bug #23659).
+          (erase-buffer)
+          (insert-file-contents file)
           (dolist (template (yas--parse-templates file))
             (push template snippet-defs)))))
     (when snippet-defs
