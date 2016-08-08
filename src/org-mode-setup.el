@@ -128,14 +128,20 @@
 
 ;;; eval-after-load's
 
+(defface org-started
+  '((t (:inherit default)))
+  "Face to highlight started tasks."
+  :group 'org-mode)
+
 (eval-after-load
     "org"
   '(progn
      (setf org-todo-keywords
-           '((sequence "TODO(t)" "|" "DONE(d!)")
+           '((sequence "TODO(t)" "STARTED(s)" "|" "DONE(d!)")
              (sequence "|" "CANCELLED(c@)"))
            org-todo-keyword-faces
-           '(("CANCELLED" . org-cancelled)))
+           '(("STARTED"   . org-started)
+             ("CANCELLED" . org-cancelled)))
 
      ;; customize it to receive width and height arguments of inline image
      ;; (redefun org-display-inline-images (&optional include-linked refresh beg end)
