@@ -112,6 +112,11 @@ and indent them as singe line."
              (funcall build-command build-dir)
              sep
              (funcall test-command build-dir)))
+          (cabal-build
+           ,(concat
+             "cd %s"
+             sep
+             (funcall build-command build-dir)))
           (cabal-vanilla-noopt
            ,(concat
              "cd %s"
