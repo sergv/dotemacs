@@ -41,6 +41,7 @@
              vim:motion-mode-keymap)
   :command-function 'vim:visual-mode-command
   :cursor 'hollow)
+
 (add-hook 'vim:visual-mode-on-hook 'vim:visual-mode-activate)
 (add-hook 'vim:visual-mode-off-hook 'vim:visual-mode-deactivate)
 
@@ -108,8 +109,9 @@
           (`block    (message "-- VISUAL BLOCK --"))
           (_         (error "Unknown visual mode type: %s"
                             vim:visual-mode-type)))))
-    (setq vim:visual-mode-type type)
-    (vim:activate-visual-mode)))
+    (progn
+      (setq vim:visual-mode-type type)
+      (vim:activate-visual-mode))))
 
 (defun vim:visual-toggle-mode (type)
   "Switches to visual mode of certain type or deactivates the mode."
@@ -227,11 +229,11 @@
 (defun vim:visual-execute-command (command)
   "Called to execute a command in visual mode."
   ;; save the last region
-  (setq vim:visual-last-begin (cons (line-number-at-pos (mark t))
+  (setf vim:visual-last-begin (cons (line-number-at-pos (mark t))
                                     (save-excursion
                                       (goto-char (mark t))
-                                      (current-column))))
-  (setq vim:visual-last-end (cons (line-number-at-pos (point))
+                                      (current-column)))
+        vim:visual-last-end (cons (line-number-at-pos (point))
                                   (current-column)))
   (vim:set-mark ?< (save-excursion
                      (goto-line1 (car vim:visual-last-begin))
@@ -510,18 +512,18 @@ This function is also responsible for setting the X-selection."
         ;; this is really a dirty hack
         (setq vim:current-key-sequence "i")
       (vim:cmd-insert :count 1)
-      (add-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies))
+      (add-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies nil t))
     (`linewise
      ;; TODO: ensure the right command is run on repetition.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "I")
      (vim:cmd-Insert :count 1)
-     (add-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies)))
+     (add-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies nil t)))
   (setq vim:visual-last-insert-undo vim:last-insert-undo))
 
 (defun vim:insert-block-copies ()
   "Called to repeat the last block-insert."
-  (remove-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies)
+  (remove-hook 'vim:normal-mode-on-hook 'vim:insert-block-copies t)
   (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
         (begcol (vim:visual-insert-info-column vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
@@ -538,7 +540,7 @@ This function is also responsible for setting the X-selection."
 
 (defun vim:insert-linewise-copies ()
   "Called to repeat the last linewise-insert."
-  (remove-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies)
+  (remove-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies t)
   (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
     (save-excursion
@@ -566,18 +568,18 @@ This function is also responsible for setting the X-selection."
         ;; this is really a dirty hack
         (setq vim:current-key-sequence "a")
       (vim:cmd-append :count 1)
-      (add-hook 'vim:normal-mode-on-hook 'vim:append-block-copies))
+      (add-hook 'vim:normal-mode-on-hook 'vim:append-block-copies nil t))
     (`linewise
      ;; TODO: ensure the right command is run on repeation.
      ;; this is really a dirty hack
      (setq vim:current-key-sequence "A")
      (vim:cmd-Append :count 1)
-     (add-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies)))
+     (add-hook 'vim:normal-mode-on-hook 'vim:insert-linewise-copies nil t)))
   (setq vim:visual-last-insert-undo vim:last-insert-undo))
 
 (defun vim:append-block-copies ()
   "Called to repeat the last block-insert."
-  (remove-hook 'vim:normal-mode-on-hook 'vim:append-block-copies)
+  (remove-hook 'vim:normal-mode-on-hook 'vim:append-block-copies nil t)
   (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
         (endcol (vim:visual-insert-info-column vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
