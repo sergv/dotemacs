@@ -82,18 +82,6 @@
 (add-hook 'haskell-lint-setup-hook #'haskell-lint-setup)
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 
-(autoload 'ghc-init "ghc" nil t)
-(autoload 'ghc-debug "ghc" nil t)
-(autoload 'ghc-display-errors "ghc" nil t)
-
-(eval-after-load "ghc"
-  '(progn
-     ;; debug output will be in ghc-debug-buffer, "*GHC Debug*"
-     (setf ghc-debug t
-           ghc-ghc-options '("-isrc" "-Wwarn" "-dsuppress-module-prefixes" "-i/tmp/dist/build")
-           ghc-display-error 'other-buffer
-           ghc-display-hole 'other-buffer)))
-
 ;; grammar tools autoloads
 
 (require 'happy-mode-autoload)
