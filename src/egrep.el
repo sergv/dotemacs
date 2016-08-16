@@ -104,6 +104,8 @@ match IGNORED-FILE-GLOBS."
                (mapconcat #'identity exts-globs " "))))))
 
 (defun egrep--read-files (regexp)
+  "Query user for list of glob patterns to search in and return list of
+string patterns."
   (split-string (grep-read-files regexp)
                 "[ \t\n\r\f\v]+"
                 t))
@@ -123,21 +125,23 @@ match IGNORED-FILE-GLOBS."
 
 (defun egrep-region (str exts-globs dir &optional ignore-case)
   (interactive
-   (let ((regexp
-          (read-regexp (format
-                        "%s for"
-                        (if ignore-case
-                          "Case-insensetive search"
-                          "Search"))
-                       (get-region-string-no-properties)
-                       'grep-regexp-history)))
+   (let* ((ignore-case?
+           (and current-prefix-arg
+                (<= 4 (first current-prefix-arg))))
+          (regexp
+           (read-regexp (format
+                         "%s for"
+                         (if ignore-case?
+                           "Case-insensetive search"
+                           "Search"))
+                        (get-region-string-no-properties)
+                        'grep-regexp-history)))
      (list
       regexp
       (egrep--read-files regexp)
       (read-directory-name "Base directory: "
                            nil default-directory t)
-      (and current-prefix-arg
-           (<= 4 (first current-prefix-arg))))))
+      ignore-case?)))
   (egrep str exts-globs dir ignore-case))
 
 (provide 'egrep)
