@@ -14,6 +14,8 @@
           "Save all buffers that have physical file assigned into FILE."
           t)
 
+(autoload 'sessions/load-from-data "persistent-sessions")
+
 (provide 'persistent-sessions-autoloads)
 
 ;; Local Variables:
