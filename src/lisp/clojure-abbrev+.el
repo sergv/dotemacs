@@ -15,31 +15,45 @@
                             "%%\\1"
                             x))
 
-(define-lisp-print-info-skeleton
-    clojure-print-info-skeleton
-  :doc "Insert call to print and format to show some variable values and messages."
-  :print-begin "(print (format "
+(defun clojure-print-info-template ()
+  "Insert call to print and format to show some variable values and messages."
+  (interactive)
+  (let ((start
+         (lambda ()
+           (insert "(print (format \"")))
+        (end
+         (lambda (var-list)
+           (insert "\\n\"\n")
+           (insert (join-lines (-map #'clojure-util/quote-format-arguments
+                                     var-list)))
+           (insert "))")))
+        (format
+         (lambda (user-input) (insert user-input " = %s"))))
+    (insert-info-format-template
+     :start start
+     :end end
+     :format format
+     :reindent-at-end #'prog-indent-sexp)))
 
-  :format-print-value "%s"
-  :format-string-start "\""
-  :format-string-end "\\n\""
-  :print-end "))"
-  :msg-transform #'clojure-util/quote-format-arguments
-
-  :make-variable-list join-lines)
-
-(define-lisp-print-info-skeleton
-    clojure-android-log-skeleton
-  :doc "Insert call to android log to show some variable values and messages."
-  :print-begin "(log "
-
-  :format-print-value "%s"
-  :format-string-start "\""
-  :format-string-end "\""
-  :print-end ")"
-  :msg-transform #'clojure-util/quote-format-arguments
-
-  :make-variable-list join-lines)
+(defun clojure-android-log-template ()
+  "Insert call to android log to show some variable values and messages."
+  (interactive)
+  (let ((start
+         (lambda ()
+           (insert "(log \"")))
+        (end
+         (lambda (var-list)
+           (insert "\"\n")
+           (insert (join-lines (-map #'clojure-util/quote-format-arguments
+                                     var-list)))
+           (insert ")")))
+        (format
+         (lambda (user-input) (insert user-input " = %s"))))
+    (insert-info-format-template
+     :start start
+     :end end
+     :format format
+     :reindent-at-end #'prog-indent-sexp)))
 
 (defun clojure-abbrev+-setup ()
   (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
@@ -47,12 +61,12 @@
         abbrev+-abbreviations
         (list
          (list "\\_<info\\_>"
-               (list #'clojure-print-info-skeleton)
+               (list #'clojure-print-info-template)
                (lambda ()
                  (and (not (lisp-point-inside-string-or-comment?))
                       (not (lisp-prev-pos-is-beginning-of-list? (point))))))
          (list "\\_<log\\_>"
-               (list #'clojure-android-log-skeleton)
+               (list #'clojure-android-log-template)
                (lambda ()
                  (and (not (lisp-point-inside-string-or-comment?))
                       (not (lisp-prev-pos-is-beginning-of-list? (point))))))))

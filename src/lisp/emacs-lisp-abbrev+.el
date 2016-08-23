@@ -10,23 +10,26 @@
 
 (require 'general-lisp-setup)
 (require 'abbrev+)
+(require 'common)
 
-
-(define-lisp-print-info-skeleton
-    emacs-lisp-print-info-skeleton
-  :doc "Call to message to print some variables and messages."
-  :print-begin "(message "
-
-  :format-print-value "%s"
-  :format-string-start "\""
-  :format-string-end "\""
-
-  :make-variable-list (lambda (list)
-                        (join-lines
-                         (-map (lambda (var-name)
-                                 (concat "(pp-to-string " var-name ")"))
-                               list))))
-
+(defun emacs-lisp-print-info-template ()
+  (interactive)
+  (let ((start
+         (lambda ()
+           (insert "(message \"")))
+        (end
+         (lambda (var-list)
+           (insert "\"\n")
+           (insert (join-lines (--map (concat "(pp-to-string " it ")")
+                                      var-list)))
+           (insert ")")))
+        (format
+         (lambda (user-input) (insert user-input " = %s"))))
+    (insert-info-format-template
+     :start start
+     :end end
+     :format format
+     :reindent-at-end #'prog-indent-sexp)))
 
 (defun emacs-lisp-abbrev+-setup ()
   (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
@@ -115,7 +118,7 @@
                   ("buffer" 2)))
                "(with-temp-buffer")
          (list "\\_<info\\_>"
-               (list #'emacs-lisp-print-info-skeleton)
+               (list #'emacs-lisp-print-info-template)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))
                           (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
 

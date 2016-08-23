@@ -26,16 +26,16 @@ from \\label{...} and \\ref{...} constructs."
            collect (match-string-no-properties 1))
          :test #'string=)))))
 
-(define-skeleton latex-insert-reference-skeleton
+(defun latex-insert-reference-template ()
   "Insert \\ref{} construct and put prompt between angle brackets."
-  (ido-completing-read "Label: "
-                       (latex-get-labels-in-buffer)
-                       nil
-                       ;; I deliberately do not require match here to
-                       ;; enable not-yet-entered labels
-                       nil)
-  "\\ref{" str "}")
-
+  (let ((label
+         (ido-completing-read "Label: "
+                              (latex-get-labels-in-buffer)
+                              nil
+                              ;; I deliberately do not require match here to
+                              ;; enable not-yet-entered labels
+                              nil)))
+    (insert "\\ref{" label "}")))
 
 (defun latex-setup-abbrev+ ()
   (setf abbrev+-skip-syntax '("^ >")
@@ -46,13 +46,13 @@ from \\label{...} and \\ref{...} constructs."
          (list (rx "\\" "и") "\\item")
          (list (rx "\\" "r" (? "e" (? "f")))
                (list
-                #'latex-insert-reference-skeleton))
+                #'latex-insert-reference-template))
          (list (rx "\\" "щ" (? "в" (? "н")))
                (list
-                #'latex-insert-reference-skeleton))
+                #'latex-insert-reference-template))
          (list (rx "\\" "р" (? "е" (? "ф")))
                (list
-                #'latex-insert-reference-skeleton))))
+                #'latex-insert-reference-template))))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))

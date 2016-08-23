@@ -55,8 +55,6 @@
     (def-keys-for-map 1)
     (condition-case 2)
     (rxx 1)
-    (define-print-info-skeleton 1)
-    (define-lisp-print-info-skeleton 1)
     (define-derived-mode 3)
     (redefun defun)
     (with-disabled-undo nil)
