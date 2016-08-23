@@ -528,56 +528,6 @@ nor comment."
 
 ;;;; other
 
-(defmacro* define-lisp-print-info-skeleton (name
-                                            &key
-                                            (doc nil)
-                                            (print-begin "(format t ")
-                                            (make-variable-list
-                                             #'join-lines)
-                                            (msg-transform nil)
-                                            (format-print-value "~a")
-                                            (format-string-start "\"")
-                                            (format-string-end "~%\"")
-                                            (insert-entity-name-procedure nil)
-                                            (print-end ")"))
-  `(define-print-info-skeleton
-       ,name
-     :doc ,doc
-     :insert-entity-name-procedure
-     ,(if insert-entity-name-procedure
-        insert-entity-name-procedure
-        (lambda (beginning)
-          (save-excursion
-            (condition-case nil
-                (progn (goto-char beginning)
-                       (save-excursion
-                         ;; this throws error if no enclosing list found
-                         (backward-up-list))
-                       (beginning-of-defun)
-                       (forward-symbol 1)
-                       (paredit-skip-whitespace t)
-                       (let ((symbol (symbol-at-point)))
-                         (if symbol
-                           (concat ,(if msg-transform
-                                      `(funcall ,msg-transform (symbol-name symbol))
-                                      '(symbol-name symbol))
-                                   ": ")
-                           "")))
-              ;; no enclosing list was found, so use no name here
-              (error "")))))
-     :print-begin ,print-begin
-     :print-end ,print-end
-
-     :indent-after-func prog-indent-sexp
-     :make-variable-list ,make-variable-list
-     :msg-transform ,msg-transform
-
-     :format-print-value ,format-print-value
-     :format-string-start ,format-string-start
-     :format-string-end ,format-string-end
-
-     :insert-newline-before-var-list t))
-
 (defun lisp-reindent-defun ()
   "Indent the current defun."
   (interactive)

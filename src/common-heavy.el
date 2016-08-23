@@ -441,6 +441,83 @@ using EQ-FUNC to determine equal elements."
 
 ;;;
 
+(defun* insert-info-format-template
+    (&key
+     start
+     end    ;; takes list of variable names in order defined by user
+     format ;; format specifier, e.g. %s
+     (reindent-at-end #'ignore)
+     (quote-message #'identity))
+  (let* ((beginning (point))
+         (var-list nil)
+         (insert-message
+          (lambda (is-initial-insertion? user-input)
+            (insert user-input)))
+         (insert-variable
+          (lambda (is-initial-insertion? user-input)
+            (unless is-initial-insertion?
+              (insert ", "))
+            (funcall format user-input)
+            (push user-input var-list))))
+    (insert-info-template
+     :start start
+     :end (lambda ()
+            (funcall end (reverse var-list))
+            (save-excursion
+              (goto-char beginning)
+              (funcall reindent-at-end)))
+     :insert-continuation #'ignore
+     :insert-message insert-message
+     :insert-variable insert-variable)))
+
+(defun* insert-info-template
+    (&key
+     start
+     end
+     insert-continuation
+     insert-message
+     insert-variable)
+  (cl-assert (functionp start))
+  (cl-assert (functionp end))
+  (cl-assert (functionp insert-continuation))
+  (cl-assert (functionp insert-message))
+  (cl-assert (functionp insert-variable))
+  (let ((start-position (point))
+        (user-input nil)
+        (is-initial-insertion? t)
+        (prev-was-message? nil)
+        (is-message?
+         (lambda (x)
+           (and (not (zerop (length x)))
+                (or (char= ?\s (aref x 0))
+                    (char= ?\t (aref x 0))))))
+        (prompt-user
+         (lambda ()
+           (read-string-no-default "Variable or message starting with space: "
+                                   nil
+                                   nil
+                                   ""))))
+    (funcall start)
+    (while (and (setf user-input (funcall prompt-user))
+                (< 0 (length user-input)))
+      (let* ((current-is-message? (funcall is-message? user-input))
+             (should-merge-messages? prev-was-message?))
+        (unless is-initial-insertion?
+          (funcall insert-continuation
+                   should-merge-messages?))
+        (if current-is-message?
+          (funcall insert-message
+                   is-initial-insertion?
+                   (replace-regexp-in-string "^[ \t]" "" user-input))
+          (funcall insert-variable
+                   is-initial-insertion?
+                   user-input))
+        (setf prev-was-message? current-is-message?))
+      (setf is-initial-insertion? nil))
+    (funcall end)))
+
+;;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:

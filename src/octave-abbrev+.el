@@ -7,62 +7,66 @@
 ;; Description:
 
 (require 'macro-util)
+(require 'common)
 
-(define-print-info-skeleton
-    octave-debug-message-skeleton
-  :doc "Insert call to printf statement to print some variables and messages
+(defun octave-print-info-template ()
+  "Insert call to printf statement to print some variables and messages
 while interactively prompting for variables/messages."
-  :print-begin "printf("
-  :print-end ");"
+  (interactive)
+  (let* ((entity-name (octave--function-name-at-point (point)))
+         (start
+          (lambda ()
+            (insert "printf(\"" entity-name)))
+         (end
+          (lambda (var-list)
+            (insert "\\n\"")
+            (when (< 0 (length var-list))
+              (insert
+               (concat ", "
+                       (mapconcat (lambda (x)
+                                    (concat "num2str(" x ")"))
+                                  var-list
+                                  ", "))))
+            (insert ");")))
+         (format
+          (lambda (user-input) (insert (upcase user-input) " = %s"))))
+    (insert-info-format-template
+     :start start
+     :end end
+     :format format
+     :reindent-at-end #'prog-indent-sexp)))
 
-  :indent-after-func nil
-  :insert-newline-before-var-list nil
-  :msg-transform #'upcase
-
-  :format-print-value "%s"
-  :format-string-start "\""
-  :format-string-end "\\n\""
-
-  :insert-entity-name-procedure
-  (lambda (beginning)
-    (save-excursion
-      (save-match-data
-        (goto-char beginning)
-        (if (= 0 (current-column))
-          ""
-          (condition-case nil
-              (progn
-                (beginning-of-defun)
-                (when (looking-at
-                       (rxx ((name (regex "[a-zA-Z_][a-zA-Z0-9_]*"))
-                             (arg-name name))
-                         "function"
-                         (??
-                          (* whitespace)
-                          arg-name
-                          (* ","
-                             (* whitespace)
-                             arg-name)
-                          (* whitespace)
-                          "=")
-                         (* whitespace)
-                         (group
-                          name)
-                         (* whitespace)
-                         "("))
-                  (concat
-                   (upcase (match-string 1))
-                   ": ")))
-            (error ""))))))
-
-  :make-variable-list (lambda (list)
-                        (if (< 0 (length list))
-                          (concat ", "
-                                  (mapconcat (lambda (x)
-                                               (concat "num2str(" x ")"))
-                                             list
-                                             ", "))
-                          "")))
+(defun octave--function-name-at-point (position)
+  "Get name of function that contains POSITION."
+  (save-excursion
+    (save-match-data
+      (goto-char position)
+      (if (= 0 (current-column))
+        ""
+        (condition-case nil
+            (progn
+              (beginning-of-defun)
+              (when (looking-at
+                     (rxx ((name (regex "[a-zA-Z_][a-zA-Z0-9_]*"))
+                           (arg-name name))
+                       "function"
+                       (??
+                        (* whitespace)
+                        arg-name
+                        (* ","
+                           (* whitespace)
+                           arg-name)
+                        (* whitespace)
+                        "=")
+                       (* whitespace)
+                       (group
+                        name)
+                       (* whitespace)
+                       "("))
+                (concat
+                 (upcase (match-string 1))
+                 ": ")))
+          (error ""))))))
 
 (defun octave-abbrev+-setup ()
   (setf abbrev+-skip-syntax '("w" "w_" "^ >")
@@ -75,7 +79,7 @@ while interactively prompting for variables/messages."
                #'point-not-inside-string-or-comment?)
          (list "\\<info\\>"
                (list
-                #'octave-debug-message-skeleton)
+                #'octave-print-info-template)
                #'point-not-inside-string-or-comment?)))
 
   (def-keys-for-map vim:insert-mode-local-keymap
