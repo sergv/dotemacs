@@ -11,43 +11,50 @@
 (require 'macro-util)
 (require 'common)
 
-(define-print-info-skeleton
-    python-info-message-skeleton
-  :doc "Insert call to print statement to print some variables and messages while
+(defun python-print-info-template ()
+  "Insert call to print statement to print some variables and messages while
 interactively prompting for variables/messages."
-  :print-begin "print("
-  :print-end ")"
+  (interactive)
+  (let* ((entity-name (python--function-name-at-position (point)))
+         (quote-message
+          (lambda (x) (replace-regexp-in-string (rx "\"") "\\\"" x)))
+         (start
+          (lambda ()
+            (insert "print(\"" entity-name)))
+         (end
+          (lambda (var-list)
+            (insert "\"")
+            (when (< 0 (length var-list))
+              (insert
+               ".format("
+               (join-lines var-list ", ")
+               ")"))
+            (insert ")")))
+         (format
+          (lambda (user-input) (insert (funcall quote-message user-input) " = {}"))))
+    (insert-info-format-template
+     :start start
+     :end end
+     :format format
+     :reindent-at-end #'prog-indent-sexp
+     :quote-message quote-message)))
 
-  :indent-after-func nil
-  :insert-newline-before-var-list nil
-  :msg-transform (lambda (x) (replace-regexp-in-string (rx "\"") "\\\"" x))
-
-  :format-print-value "{}"
-  :format-string-start "\""
-  :format-string-end "\""
-
-  :insert-entity-name-procedure
-  (lambda (beginning)
-    (save-excursion
-      (save-match-data
-        (goto-char beginning)
-        (if (= 0 (current-column))
-          ""
-          (condition-case nil
-              (progn
-                (beginning-of-defun)
-                (when (looking-at "def[ \t]+\\([a-zA-Z_][a-zA-Z0-9_]*\\)")
-                  (concat
-                   (upcase (match-string 1))
-                   ": ")))
-            (error ""))))))
-
-  :make-variable-list
-  (lambda (list)
-    (concat ".format("
-            (join-lines list ", ")
-            ")")))
-
+(defun python--function-name-at-position (position)
+  "Find out python function name that contains POSITION. Return empty
+string on error"
+  (save-excursion
+    (save-match-data
+      (goto-char position)
+      (if (= 0 (current-column))
+        ""
+        (condition-case nil
+            (progn
+              (beginning-of-defun)
+              (when (looking-at "def[ \t]+\\([a-zA-Z_][a-zA-Z0-9_]*\\)")
+                (concat
+                 (upcase (match-string 1))
+                 ": ")))
+          (error ""))))))
 
 
 (defun python-abbrev+-setup ()
@@ -71,7 +78,7 @@ interactively prompting for variables/messages."
                #'point-not-inside-string-or-comment?)
          (list "\\<info\\>"
                (list
-                #'python-info-message-skeleton)
+                #'python-print-info-template)
                #'point-not-inside-string-or-comment?)
          ;; print_function
          (list "\\<pr\\(?:i\\(?:nt\\)?\\)?_f\\(?:u\\(?:n\\(?:c\\(?:t\\(?:i\\(?:on?\\)?\\)?\\)?\\)?\\)?\\)?\\>"

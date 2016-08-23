@@ -9,25 +9,22 @@
 (require 'macro-util)
 (require 'abbrev+)
 
-(define-print-info-skeleton
-    shell-script-info-message-skeleton
-  :doc "Call echo to show current some messages/values of specified variables."
-  :print-begin "echo "
-  :print-end ""
-
-  :indent-after-func nil
-  :insert-newline-before-var-list nil
-
-  :format-print-value (lambda (msg) (concat msg " = ${" msg "}"))
-  :format-string-start "\""
-  :format-string-end "\""
-
-  :insert-entity-name-procedure
-  (constantly nil)
-
-  :make-variable-list
-  (constantly nil))
-
+(defun shell-script-info-message-template ()
+  "Call echo to show current some messages/values of specified variables."
+  (interactive)
+  (let ((start
+         (lambda ()
+           (insert "echo \"")))
+        (end
+         (lambda (var-list)
+           (insert "\"")))
+        (format
+         (lambda (user-input)
+           (insert user-input " = ${" user-input "}"))))
+    (insert-info-format-template
+     :start start
+     :end end
+     :format format)))
 
 (defun shell-script-abbrev+-setup ()
   (setf abbrev+-skip-syntax '("w_" "w_(" ;;"^ >"
@@ -35,7 +32,7 @@
         abbrev+-abbreviations
         (list
          (list "\\_<info\\_>"
-               (list #'shell-script-info-message-skeleton)
+               (list #'shell-script-info-message-template)
                (lambda () (and (not (lisp-point-inside-string-or-comment?))
                           (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
 

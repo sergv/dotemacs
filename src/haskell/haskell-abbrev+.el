@@ -12,6 +12,7 @@
 (require 'shell-completion)
 (require 'shm-ast)
 (require 'haskell-completions)
+(require 'common)
 
 (defun haskell-insert-followed-by-dollar? (pos)
   "Check whether text after POS is followed by $."
@@ -25,125 +26,55 @@
 (defun haskell-insert-info-template (&optional arg monadic?)
   (interactive "P")
   (let* ((start-position (point))
-         (user-input nil)
-         (initial-insertion t)
-         (is-message?
-          (lambda (x)
-            (and (not (zerop (length x)))
-                 (or (char= ?\s (aref x 0))
-                     (char= ?\t (aref x 0))))))
-         (prompt-user
-          (lambda ()
-            (read-string-no-default "Variable or message starting with space: "
-                                    nil
-                                    nil
-                                    "")))
+         (insert-dollar?
+          (not (haskell-insert-followed-by-dollar? start-position)))
+         (start
+          (if monadic?
+            (lambda ()
+              (let ((has-liftio?
+                     (save-match-data
+                       (save-excursion
+                         (goto-char (point-min))
+                         (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
+                (insert
+                 (if has-liftio?
+                   "liftIO $ putStrLn $ \""
+                   "putStrLn $ \""))))
+            (lambda ()
+              (insert "trace (\""))))
+         (end
+          (if monadic?
+            (lambda ()
+              (insert ""))
+            (lambda () (insert ") " (if insert-dollar? "$ " "")))))
          (quote-input
           (lambda (x)
             (replace-regexp-in-string "\"" "\\\"" x)))
-         (start
-          (if monadic?
-            (let ((has-liftio?
-                   (save-match-data
-                     (save-excursion
-                       (goto-char (point-min))
-                       (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
-              (if has-liftio?
-                "liftIO $ putStrLn $ "
-                "putStrLn $ "))
-            "trace ("))
-         (insert-dollar?
-          (not (haskell-insert-followed-by-dollar? start-position)))
-         (end
-          (if monadic?
-            ""
-            (concat ") " (if insert-dollar? "$ " ""))))
-         (prev-was-message? nil))
-    (insert start)
-
-    (while (and (setf user-input (funcall prompt-user))
-                (< 0 (length user-input)))
-      (let* ((current-is-message? (funcall is-message? user-input))
-             (should-merge-messages? prev-was-message?))
-        (if initial-insertion
-          (insert "\"")
-          (if should-merge-messages?
-            (delete-backward-char 1)
-            (insert " ++ \"")))
-        (insert
-         (if current-is-message?
-           (format "%s\""
-                   (funcall quote-input
-                            (replace-regexp-in-string "^[ \t]" "" user-input)))
-           (format "%s%s = \" ++ show %s"
-                   (if initial-insertion "" ", ")
-                   (funcall quote-input user-input)
-                   (if (string-match-pure? "[ \t]" user-input)
-                     (concat "(" user-input ")")
-                     user-input))))
-        (setf prev-was-message? current-is-message?))
-      (setf initial-insertion nil))
-    (insert end)))
-
-(defun haskell-insert-complex-info-template (&optional arg monadic?)
-  (interactive "P")
-  (let* ((start-position (point))
-         (user-input nil)
-         (initial-insertion t)
-         (is-message?
-          (lambda (x)
-            (and (not (zerop (length x)))
-                 (or (char= ?\s (aref x 0))
-                     (char= ?\t (aref x 0))))))
-         (prompt-user
-          (lambda ()
-            (read-string-no-default "Variable or message starting with space: "
-                                    nil
-                                    nil
-                                    "")))
-         (has-liftio?
-          (save-match-data
-            (save-excursion
-              (goto-char (point-min))
-              (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t))))
-         (start
-          (if monadic?
-            (if has-liftio?
-              "liftIO $ putStrLn $ "
-              "putStrLn $ ")
-            "trace ("))
-         (insert-dollar?
-          (not (haskell-insert-followed-by-dollar? start-position)))
-         (end
-          (if monadic?
-            ""
-            (concat ") " (if insert-dollar? "$ " "")))))
-    (insert start
-            "intercalate \", \" ["
-            ;; get name of function containing point
-            ;; this form evaluates to string which would be function name
-            ;; (funcall ,(funcall make-func-call make-entity-name)
-            ;;          start-position)
-            )
-
-    (while (and (setf user-input (funcall prompt-user))
-                (< 0 (length user-input)))
-      (unless initial-insertion
-        (insert ", "))
-      (if (funcall is-message? user-input)
-        (insert "\""
-                (replace-regexp-in-string "^[ \t]+" "" user-input)
-                "\"")
-        (insert "\""
-                user-input
-                " = \" ++ "
-                "show "
-                (if (string-match-pure? "[ \t]" user-input)
-                  (concat "(" user-input ")")
-                  user-input)))
-      (setf initial-insertion nil))
-    (insert "]"
-            end)))
+         (insert-continuation
+          (lambda (should-merge-messages?)
+            (if should-merge-messages?
+              (delete-backward-char 1)
+              (insert " ++ \""))))
+         (insert-message
+          (lambda (is-initial-insertion? user-input)
+            (message "inserting message, user-input = %s" user-input)
+            (insert (format "%s\"" (funcall quote-input user-input)))))
+         (insert-variable
+          (lambda (is-initial-insertion? user-input)
+            (message "inserting variable, user-input = %s" user-input)
+            (insert
+             (format "%s%s = \" ++ show %s"
+                     (if is-initial-insertion? "" ", ")
+                     (funcall quote-input user-input)
+                     (if (string-match-pure? "[ \t]" user-input)
+                       (concat "(" user-input ")")
+                       user-input))))))
+    (insert-info-template
+     :start start
+     :end end
+     :insert-continuation insert-continuation
+     :insert-message insert-message
+     :insert-variable insert-variable)))
 
 (defun haskell-insert-monadic-info-template (&optional arg)
   (interactive "P")
