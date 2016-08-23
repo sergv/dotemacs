@@ -1825,6 +1825,8 @@ F will be called."
 (autoload 'remove-duplicates-sorted "common-heavy")
 (autoload 'remove-duplicates-sorting "common-heavy")
 (autoload 'remove-duplicates-hashing "common-heavy")
+(autoload 'insert-info-template "common-heavy")
+(autoload 'insert-info-format-template "common-heavy")
 
 (autoload 'find-rec-do "find-files")
 (autoload 'find-rec "find-files")
