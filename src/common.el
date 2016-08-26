@@ -1624,9 +1624,11 @@ have 'forward or 'backward value."
 ;;;;
 
 (defsubst string->symbol (str)
+  "Convert string STR to symbol."
   (intern str))
 
 (defsubst symbol->string (sym)
+  "Convert symbol SYM to string."
   (symbol-name sym))
 
 (defsubst char->string (char)
