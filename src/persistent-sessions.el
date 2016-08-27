@@ -367,14 +367,17 @@ entries."
       (insert "'(\n")
       (dolist (entry session)
         (cond
-          ((eq (car-safe entry) 'buffers)
-           (insert "(buffers")
+          ((memq (car-safe entry) '(buffers temporary-buffers special-buffers global-variables))
+           (insert (format "(%s\n" (car entry)))
            (insert "(")
            (dolist (buf-entry (cadr entry))
-             (print buf-entry (current-buffer)))
+             (insert (sessions/pp-to-string buf-entry nil))
+             ;; (print buf-entry (current-buffer))
+             )
            (insert "))\n"))
           (t
-           (print entry (current-buffer))
+           (insert (sessions/pp-to-string entry nil))
+           ;; (print entry (current-buffer))
            (insert "\n"))))
       (insert "))\n")
       (insert "\n\n;; Local Variables:
@@ -576,6 +579,46 @@ entries."
     (let ((var (car bind)))
       (when (memq var vars)
         (set var (sessions/versioned/restore-value version (cdr bind)))))))
+
+(defun sessions/pp-to-string (object &optional indent)
+  "Return a string containing the pretty-printed representation of OBJECT.
+OBJECT can be any Lisp object.  Quoting characters are used as needed
+to make output that `read' can handle, whenever this is possible."
+  (with-temp-buffer
+    (lisp-mode-variables nil)
+    (set-syntax-table emacs-lisp-mode-syntax-table)
+    (let ((print-escape-newlines pp-escape-newlines)
+          (print-quoted t))
+      (prin1 object (current-buffer)))
+    (sessions/pp-buffer indent)
+    (buffer-string)))
+
+(defun sessions/pp-buffer (&optional indent)
+  "Prettify the current buffer with printed representation of a Lisp object."
+  (goto-char (point-min))
+  (while (not (eobp))
+    ;; (message "%06d" (- (point-max) (point)))
+    (cond
+     ((ignore-errors (down-list 1) t)
+      (save-excursion
+        (backward-char 1)
+        (skip-chars-backward "'`#^")
+        (when (and (not (bobp)) (memq (char-before) '(?\s ?\t ?\n)))
+          (delete-region
+           (point)
+           (progn (skip-chars-backward " \t\n") (point)))
+          (insert "\n"))))
+     ((ignore-errors (up-list 1) t)
+      (while (looking-at-p "\\s)")
+        (forward-char 1))
+      (delete-region
+       (point)
+       (progn (skip-chars-forward " \t\n") (point)))
+      (insert ?\n))
+     (t (goto-char (point-max)))))
+  (goto-char (point-min))
+  (when indent
+    (indent-sexp)))
 
 (provide 'persistent-sessions)
 
