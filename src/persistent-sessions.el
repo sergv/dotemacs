@@ -77,13 +77,7 @@ on values of said variables.")
                (let ((pred (car entry))
                      (vars (cdr entry)))
                  (when (funcall pred buffer)
-                   (-map (lambda (var)
-                           (when (and (boundp var)
-                                      (local-variable? var))
-                             (cons var
-                                   (sessions/store-value
-                                    (symbol-value var)))))
-                         vars))))
+                   (sessions/store-buffer-local-variables buffer vars))))
              *sessions-buffer-variables*)))
 
 (defun sessions/restore-buffer-variables (version buffer bindings)
@@ -92,23 +86,28 @@ on values of said variables.")
     (dolist (entry *sessions-buffer-variables*)
       (let ((pred (car entry))
             (vars (cdr entry)))
-        (when (funcall pred buffer)
-          (dolist (bind bindings)
-            (let ((var (car bind)))
-              (when (memq var vars)
-                (set var (sessions/versioned/restore-value version (cdr bind)))))))))))
+        (when (and (funcall pred buffer)
+                   bindings)
+          (sessions/versioned/restore-buffer-local-variables
+           version
+           buffer
+           vars
+           bindings))))))
 
 
 (defparameter *sessions-special-variables*
   `((structured-haskell-mode
      ,(lambda (buffer)
         (with-current-buffer buffer
-          (and (boundp 'structured-haskell-mode)
-               structured-haskell-mode)))
+          (when (memq major-mode +haskell-syntax-modes+)
+            (and (boundp 'structured-haskell-mode)
+                 structured-haskell-mode))))
      ,(lambda (buffer value)
         (with-current-buffer buffer
-          (structured-haskell-mode
-           (if value +1 -1)))))))
+          (when (memq major-mode +haskell-syntax-modes+)
+            (when (not (equal structured-haskell-mode value))
+              (structured-haskell-mode
+               (if value +1 -1)))))))))
 
 (defun sessions/get-special-buffer-variables (buffer)
   (-map (lambda (entry)
@@ -181,6 +180,16 @@ entries."
     magit-reflog-mode)
   "Buffer with these modes should never be preserved across sessions.")
 
+(defparameter sessions/local-vars/haskell-compilation-mode
+  '(compilation-error-regexp-alist
+    *compilation-jump-error-regexp*
+    compilation-filter-hook
+    font-lock-keywords
+    compilation-directory
+    compilation-arguments
+    mode-line-process)
+  "Local variables to store for `haskell-compilation-mode' buffers.")
+
 (defparameter sessions/special-modes
   `((shell-mode
      (save ,(lambda (buf)
@@ -188,10 +197,7 @@ entries."
                 (with-inhibited-read-only
                  (goto-char (point-max))
                  (forward-line -1)
-                 (list (list 'contents
-                             ;; collect properties as well
-                             (sessions/store-string
-                              (buffer-substring (point-min) (point-max))))
+                 (list (list 'contents (sessions/store-buffer-contents buf))
                        (list 'current-dir
                              (sessions/store-string
                               (expand-file-name default-directory)))
@@ -202,17 +208,63 @@ entries."
                    (sessions/report-and-ignore-asserts
                      (aif (assq 'contents saved-data)
                        (with-current-buffer buf
-                         (with-inhibited-read-only
-                          (with-inhibited-modification-hooks
-                           (with-inhibited-redisplay
-                             (goto-char (point-min))
-                             (insert (sessions/versioned/restore-string version (second it)))
-                             (insert "\n\n")))))
+                         (sessions/versioned/restore-buffer-contents
+                          version
+                          buf
+                          (cadr it)
+                          (lambda () (insert "\n\n"))))
                        (message "shell-restore: no 'contents")))
                    (shell buf)
                    (accept-process-output (get-buffer-process buf)
                                           5 ;; Time to wait in seconds.
                                           )
+                   (sessions/report-and-ignore-asserts
+                     (let ((current-dir
+                            (cadr-safe
+                             (assq 'current-dir saved-data))))
+                       (aif current-dir
+                         (progn
+                           (goto-char (point-max))
+                           (insert "cd \""
+                                   (sessions/versioned/restore-string version current-dir)
+                                   "\"")
+                           (comint-send-input))
+                         (message "shell-restore: no 'current-dir"))))
+                   (sessions/report-and-ignore-asserts
+                     (aif (cadr-safe (assq 'comint-input-ring saved-data))
+                       (setf comint-input-ring
+                             (sessions/versioned/restore-ring version it))
+                       (message "shell-restore: no 'comint-input-ring")))))))
+    (haskell-compilation-mode
+     (save ,(lambda (buf)
+              (with-current-buffer buf
+                (save-excursion
+                  (with-inhibited-read-only
+                   (list (list 'contents (sessions/store-buffer-contents buf))
+                         (list 'local-variables
+                               (sessions/store-buffer-local-variables
+                                buf
+                                sessions/local-vars/haskell-compilation-mode))))))))
+     (restore ,(lambda (version buffer-name saved-data)
+                 (let ((buf (get-buffer-create buffer-name)))
+                   (with-current-buffer buf
+                     (sessions/report-and-ignore-asserts
+                       (aif (cadr-safe (assq 'contents saved-data))
+                         (sessions/versioned/restore-buffer-contents
+                          version
+                          buf
+                          it
+                          (lambda () (insert "\n\n"))))
+                       (message "haskell-compilation-restore: no 'contents"))
+                     (haskell-compilation-mode)
+                     (sessions/report-and-ignore-asserts
+                       (aif (cadr-safe (assq 'local-variables saved-data))
+                         (sessions/versioned/restore-buffer-local-variables
+                          version
+                          buf
+                          sessions/local-vars/haskell-compilation-mode
+                          it)
+                         (message "haskell-compilation-restore: no 'local-variables"))))
                    (sessions/report-and-ignore-asserts
                      (let ((current-dir
                             (cadr-safe
@@ -244,7 +296,9 @@ entries."
 
 (defun sessions/save-buffers/make-session ()
   "Make session to save later"
-  (let* ((buffers (buffer-list))
+  (let* ((max-lisp-eval-depth 1000)
+         (print-circle t)
+         (buffers (buffer-list))
          (buffer-data
           (-map (lambda (buf)
                   (with-current-buffer buf
@@ -409,8 +463,8 @@ entries."
                       version
                       (second saved-info)))
                     (special-data (third saved-info)))
-                (when-let* (spec-entry   (assq mmode sessions/special-modes)
-                                         restore-func (cadr-safe (assq 'restore spec-entry)))
+                (when-let* (spec-entry (assq mmode sessions/special-modes)
+                           restore-func (cadr-safe (assq 'restore spec-entry)))
                   (funcall restore-func version buffer-name special-data))))
             (cadr it))
       (message "sessions/load-from-data: no 'special-buffers field"))
@@ -449,6 +503,8 @@ entries."
 
 (defun sessions/strip-text-properties (val)
   (cond
+    ((stringp val)
+     (substring-no-properties val))
     ((ring-p val)
      (let ((result (make-ring (ring-size val))))
        (dotimes (n (ring-length val))
@@ -456,8 +512,6 @@ entries."
                       (sessions/strip-text-properties
                        (ring-ref val n))))
        result))
-    ((stringp val)
-     (substring-no-properties val))
     (t
      val)))
 
@@ -479,6 +533,49 @@ entries."
        (subseq val 0 (min max-size (length val))))
       (t
        val))))
+
+(defun sessions/store-buffer-contents (buf)
+  (with-current-buffer buf
+    ;; collect properties as well
+    (sessions/store-string
+     (buffer-substring (point-min) (point-max))
+     ;; Ignored text properties that cause problems when reading because its
+     ;; values are self-referencing circular structures.
+     '(compilation-message))))
+
+(defun sessions/versioned/restore-buffer-contents (version buf encoded-data &optional after-insert)
+  (with-current-buffer buf
+    (with-inhibited-read-only
+     (with-inhibited-modification-hooks
+      (with-inhibited-redisplay
+        (goto-char (point-min))
+        (insert (sessions/versioned/restore-string version encoded-data))
+        (when after-insert
+          (funcall after-insert)))))))
+
+(defun sessions/store-buffer-local-variables (buffer vars)
+  (with-current-buffer buffer
+    (list 'buffer-local-vars
+          (remq nil
+                (-map (lambda (var)
+                        (when (and (boundp var)
+                                   (local-variable-p var))
+                          (cons var
+                                (sessions/store-value
+                                 (symbol-value var)))))
+                      vars)))))
+
+(defun sessions/versioned/restore-buffer-local-variables (version buffer vars encoded-bindings)
+  (sessions/assert-with-args
+   (and encoded-bindings
+        (listp encoded-bindings)
+        (eq (car encoded-bindings) 'buffer-local-vars))
+   "Invalid buffer-local variables: %s"
+   encoded-bindings)
+  (dolist (bind (cadr encoded-bindings))
+    (let ((var (car bind)))
+      (when (memq var vars)
+        (set var (sessions/versioned/restore-value version (cdr bind)))))))
 
 (provide 'persistent-sessions)
 

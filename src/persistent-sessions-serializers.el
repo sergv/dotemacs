@@ -138,14 +138,16 @@ can allows value to be decoded back fully.)"
 
 ;;;; Store/restore strings
 
-(defun sessions/store-string (str &optional do-not-store-properties)
+(defun sessions/store-string (str &optional do-not-store-properties ignored-text-properties)
   (list 'string
-        (split-string (base64-encode-string (sessions/strip-text-properties str))
+        (split-string (base64-encode-string (string-as-unibyte (sessions/strip-text-properties str)))
                       "\n"
                       t)
         (if do-not-store-properties
           nil
-          (sessions/get-all-text-properties-in-string str))))
+          (sessions/get-all-text-properties-in-string str
+                                                      ignored-text-properties))
+        (multibyte-string-p str)))
 
 (defun sessions/versioned/restore-string (version encoded-data)
   (sessions/restore-string encoded-data))
@@ -154,7 +156,8 @@ can allows value to be decoded back fully.)"
   (sessions/assert (eq 'string (car encoded-data))
                    "Invalid tag of encoded string")
   (let ((base64-lines (cadr encoded-data))
-        (props (caddr encoded-data)))
+        (props (caddr encoded-data))
+        (is-multibyte (cadddr encoded-data)))
     (sessions/assert-with-args base64-lines
                                "Error while restoring string from encoded data: %s"
                                encoded-data)
@@ -162,8 +165,12 @@ can allows value to be decoded back fully.)"
            (with-temp-buffer
              (dolist (line base64-lines)
                (insert line))
-             (base64-decode-string
-              (buffer-substring-no-properties (point-min) (point-max))))))
+             (funcall
+              (if is-multibyte
+                #'string-as-multibyte
+                #'identity)
+              (base64-decode-string
+               (buffer-substring-no-properties (point-min) (point-max)))))))
       (sessions/apply-properties-to-string props str)
       str)))
 
@@ -242,7 +249,7 @@ can allows value to be decoded back fully.)"
           new-ranges)
     position-ranges))
 
-(defun sessions/get-all-text-properties-in-string (string)
+(defun sessions/get-all-text-properties-in-string (string ignored-text-properties)
   "Get all text properties from STRING."
   (let* ((end (length string))
          (props (text-properties-at 0 string))
@@ -255,21 +262,22 @@ can allows value to be decoded back fully.)"
           (loop
             for (key value) on props by #'cddr
             do
-            (let ((value-table
-                   (gethash key
-                            properties
-                            (make-hash-table :test #'equal))))
-              (puthash value
-                       (sessions/position-ranges/add-range
-                        start
-                        end
-                        (gethash value
-                                 value-table
-                                 (sessions/empty-position-ranges)))
-                       value-table)
-              (puthash key
-                       value-table
-                       properties))))
+            (unless (memq key ignored-text-properties)
+              (let ((value-table
+                     (gethash key
+                              properties
+                              (make-hash-table :test #'equal))))
+                (puthash value
+                         (sessions/position-ranges/add-range
+                          start
+                          end
+                          (gethash value
+                                   value-table
+                                   (sessions/empty-position-ranges)))
+                         value-table)
+                (puthash key
+                         value-table
+                         properties)))))
         (setf props (text-properties-at change-pos string)
               pos change-pos)))
     (let ((results nil))
