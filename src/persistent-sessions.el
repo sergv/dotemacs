@@ -10,9 +10,10 @@
 
 (require 'common)
 (require 'fortunes)
-(require 'revive-minimal)
-(require 'persistent-sessions-serializers)
 (require 'persistent-sessions-error-reporting)
+(require 'persistent-sessions-serializers)
+(require 'pp)
+(require 'revive-minimal)
 
 (setf revive-plus:all-frames t
       revive:save-variables-mode-local-private
