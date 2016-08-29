@@ -25,7 +25,9 @@ under ROOT directory."
                     (directory-files path t directory-files-no-dot-files-regexp))))
 
 (defun eproj-tests/normalize-file-list (items)
-  (sort (-map (comp #'strip-trailing-slash #'expand-file-name) items) #'string<))
+  (remove-duplicates-sorted
+   (sort (-map (comp #'strip-trailing-slash #'expand-file-name) items) #'string<)
+   #'string=))
 
 (defun eproj-tests/normalize-string-list (items)
   (sort (copy-list items) #'string<))
@@ -72,7 +74,7 @@ under ROOT directory."
     (should (equal (eproj-tests/normalize-file-list
                     (-map #'eproj-project/root
                           (cons proj
-                                (eproj-get-all-related-projects proj))))
+                                (eproj-get-all-related-projects proj nil))))
                    (eproj-tests/normalize-file-list
                     (-filter #'file-directory?
                              (directory-files
@@ -100,8 +102,8 @@ under ROOT directory."
   (let* ((path eproj-tests/project-with-c-files)
          (proj (eproj-get-project-for-path path))
          (tags-table
-          (cdr-safe (assoc 'c-mode
-                           (eproj-project/tags proj))))
+          (cdr-safe (assq 'c-mode
+                          (eproj-project/tags proj))))
          (project-names
           '("bigint"
             "bigint_list_s"
@@ -135,7 +137,7 @@ under ROOT directory."
      (let ((,table-var ,ctags-get-tags-from-buffer-invokation))
        ,@body)))
 
-(ert-deftest eproj-tests/eproj/ctags-get-tags-from-buffer ()
+(ert-deftest eproj-tests/eproj/get-fast-tags-from-buffer ()
   (let ((test-filename "foo.bar"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
@@ -155,21 +157,21 @@ foo3	%s	102	;\"	z
        (should tag1)
        (should (string=? test-filename (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
-       (should (equal (cons 'type "x") (assoc 'type (eproj-tag/properties tag1)))))
+       (should (equal (cons 'type "x") (assq 'type (eproj-tag/properties tag1)))))
 
      (let ((tag2 (car-safe (gethash "foo2" tags-table))))
        (should tag2)
        (should (string=? test-filename (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
-       (should (equal (cons 'type "y") (assoc 'type (eproj-tag/properties tag2)))))
+       (should (equal (cons 'type "y") (assq 'type (eproj-tag/properties tag2)))))
 
      (let ((tag3 (car-safe (gethash "foo3" tags-table))))
        (should tag3)
        (should (string=? test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
-       (should (equal (cons 'type "z") (assoc 'type (eproj-tag/properties tag3))))))))
+       (should (equal (cons 'type "z") (assq 'type (eproj-tag/properties tag3))))))))
 
-(ert-deftest eproj-tests/eproj/ctags-get-tags-from-buffer/filenames-with-spaces ()
+(ert-deftest eproj-tests/eproj/get-fast-tags-from-buffer/filenames-with-spaces ()
   (let ((test-filename "/home/admin/my projects/test project/hello.c"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
@@ -189,19 +191,49 @@ foo3	%s	102	;\"	z
        (should tag1)
        (should (string=? test-filename (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
-       (should (equal (cons 'type "x") (assoc 'type (eproj-tag/properties tag1)))))
+       (should (equal (cons 'type "x") (assq 'type (eproj-tag/properties tag1)))))
 
      (let ((tag2 (car-safe (gethash "foo2" tags-table))))
        (should tag2)
        (should (string=? test-filename (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
-       (should (equal (cons 'type "y") (assoc 'type (eproj-tag/properties tag2)))))
+       (should (equal (cons 'type "y") (assq 'type (eproj-tag/properties tag2)))))
 
      (let ((tag3 (car-safe (gethash "foo3" tags-table))))
        (should tag3)
        (should (string=? test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
-       (should (equal (cons 'type "z") (assoc 'type (eproj-tag/properties tag3))))))))
+       (should (equal (cons 'type "z") (assq 'type (eproj-tag/properties tag3))))))))
+
+
+(ert-deftest eproj-tests/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags ()
+  (let ((test-filename "/home/sergey/Test.hs"))
+    (eproj-tests/test-ctags-get-tags-from-buffer
+     (format
+      "\
+Identity	%s	100;\"	C
+Identity	%s	101 ;\"	t
+test	%s	102	;\"	f
+"
+      test-filename
+      test-filename
+      test-filename)
+     tags-table
+     (eproj/get-fast-tags-tags-from-buffer (current-buffer))
+     (should-not (= 0 (hash-table-size tags-table)))
+
+     (let ((type-tag (car-safe (gethash "Identity" tags-table))))
+       (should type-tag)
+       (should (string=? test-filename (eproj-tag/file type-tag)))
+       (should (= 101 (eproj-tag/line type-tag)))
+       (should (equal (cons 'type "t") (assq 'type (eproj-tag/properties type-tag)))))
+
+     (let ((function-tag (car-safe (gethash "test" tags-table))))
+       (should function-tag)
+       (should (string=? test-filename (eproj-tag/file function-tag)))
+       (should (= 102 (eproj-tag/line function-tag)))
+       (should (equal (cons 'type "f") (assq 'type (eproj-tag/properties function-tag))))))))
+
 
 (ert-deftest eproj-tests/project-with-eproj-file-and-tags-file ()
   (let* ((path eproj-tests/project-with-eproj-file-and-tags-file)
@@ -266,7 +298,9 @@ foo3	%s	102	;\"	z
 ;;        )
 ;;   nil)
 
-(ert "eproj-tests/.*")
+(progn
+  (ert "eproj-tests/.*")
+  nil)
 
 ;; Local Variables:
 ;; no-byte-compile: t
