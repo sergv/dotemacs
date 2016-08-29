@@ -12,6 +12,10 @@
 (autoload 'select-mode "select-mode" nil t)
 (autoload 'select-start-selection "select-mode")
 
+(eval-after-load "select-mode"
+  '(progn
+     (setf select-restore-windows-configuration-on-hide t)))
+
 (defun select-mode-setup ()
   (def-keys-for-map select-mode-map
     +vi-essential-keys+

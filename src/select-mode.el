@@ -11,6 +11,13 @@
 
 (eval-when-compile (require 'cl-lib))
 
+;; Config variables
+
+(defvar select-restore-windows-configuration-on-hide nil
+  "Whether to restore windows configuration prior to selection buffer appearance (t)
+or just to bury selection buffer, leaving it's windows inplace (nil).)")
+
+;; Global state
 
 (defvar select/init-window-config nil)
 (defvar select/init-window nil
@@ -249,13 +256,16 @@ and symbol, specifying selection type. Currently, selection type may be either
   (interactive)
   (select-do-select 'other-window))
 
+(defun select/restore-window-config ()
+  (when select/init-window-config
+    (set-window-configuration select/init-window-config)
+    ;; (select-window select/init-window)
+    (setf select/init-window-config nil
+          select/init-window nil)))
+
 (defun select-finish-selection ()
   (when select/selection-buffer
-    (when select/init-window-config
-      (set-window-configuration select/init-window-config)
-      ;; (select-window select/init-window)
-      (setf select/init-window-config nil
-            select/init-window nil))
+    (select/restore-window-config)
     (when select/selection-overlay
       (delete-overlay select/selection-overlay)
       (setf select/selection-overlay nil))
@@ -274,7 +284,9 @@ and symbol, specifying selection type. Currently, selection type may be either
 
 (defun select-hide ()
   (interactive)
-  (call-interactively #'bury-buffer))
+  (if select-restore-windows-configuration-on-hide
+    (select/restore-window-config)
+    (call-interactively #'bury-buffer)))
 
 (defun select-exit ()
   (interactive)
