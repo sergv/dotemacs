@@ -10,6 +10,7 @@
 
 (require 'custom-predicates)
 (require 'macro-util)
+(require 'dash)
 
 (defun find-filename-in-tree-recursive (&optional case-sensetive)
   "Read filename regexp and try to find it in current dir's tree or in trees
@@ -515,6 +516,70 @@ using EQ-FUNC to determine equal elements."
         (setf prev-was-message? current-is-message?))
       (setf is-initial-insertion? nil))
     (funcall end)))
+
+;;;;
+
+;; Nested hash tables that allow to aggregate data differently.
+(defstruct (nested-hash-tables
+            (:constructor make--nested-hash-tables)
+            (:conc-name nested-hash-tables/))
+  data        ;; chain of hash-tables
+  field-specs ;; list of (<lamda to get key value> <comparison-pred>) entries
+  )
+
+(defun mk-nested-hash-tables (field-specs)
+  (cl-assert (and field-specs
+                  (listp field-specs)
+                  (--any? (and (listp it)
+                               (functionp (car it))
+                               (functionp (cadr it)))
+                          field-specs)))
+  (make--nested-hash-tables
+   :data (make-hash-table :test (cadr (car field-specs)))
+   :field-specs field-specs))
+
+(defun nested-hash-tables/add-kv! (key value hash-tables)
+  (let ((table (nested-hash-tables/data hash-tables)))
+    (loop
+      for spec-entry on (nested-hash-tables/field-specs hash-tables)
+      do
+      (let* ((spec (car spec-entry))
+             (get-key (car spec))
+             (next-spec (cdr spec-entry))
+             (current-level-key (funcall get-key key))
+             (next-value
+              (if next-spec
+                (or (gethash current-level-key table)
+                    (make-hash-table :test (cadr spec)))
+                value)))
+        (puthash current-level-key
+                 next-value
+                 table)
+        (setf table next-value))))
+  hash-tables)
+
+(defun nested-hash-tables/add! (key hash-tables)
+  (nested-hash-tables/add-kv! key key hash-tables))
+
+(defun nested-hash-tables/maphash (f hash-tables)
+  (let ((user-value-depth
+         (length (nested-hash-tables/field-specs hash-tables))))
+    (letrec ((handle-data
+              (lambda (depth)
+                (lambda (key value)
+                  (if (= depth user-value-depth)
+                    (funcall f key value)
+                    (maphash (funcall handle-data (+ depth 1))
+                             value))))))
+      (maphash (funcall handle-data 1)
+               (nested-hash-tables/data hash-tables)))))
+
+(defun nested-hash-tables->alist (hash-tables)
+  (let ((result nil))
+    (nested-hash-tables/maphash (lambda (k v)
+                                  (push (cons k v) result))
+                                hash-tables)
+    result))
 
 ;;;
 
