@@ -6,6 +6,7 @@
 ;; Created: Saturday, 28 February 2015
 ;; Description:
 
+(require 'common-heavy)
 (require 'eproj)
 (require 'eproj-ctags)
 
@@ -55,7 +56,16 @@ runtime but rather will be silently relied on)."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
-      (let ((tags-table (make-hash-table :test #'equal :size 997))
+      (let ((tags-tables
+             (mk-nested-hash-tables
+              (list
+               (list #'(lambda (tag)
+                         (cdr (assq 'type (eproj-tag/properties tag))))
+                     #'equal)
+               (list #'(lambda (tag)
+                         (list (eproj-tag/symbol tag)
+                               (eproj-tag/file tag)))
+                     #'equal))))
             (gc-cons-threshold (min (* 100 1024 1024)
                                     (max gc-cons-threshold
                                          ;; Every 1000 lines takes up 1 mb or so.
@@ -90,23 +100,74 @@ runtime but rather will be silently relied on)."
                                file
                                line
                                fields)))
-                (puthash symbol
-                         (cons new-tag
-                               (gethash symbol tags-table nil))
-                         tags-table))))
+                (nested-hash-tables/add!
+                 new-tag
+                 tags-tables)
+                ;; (puthash symbol
+                ;;          (cons new-tag (gethash symbol tags-table nil))
+                ;;          tags-table)
+                )))
           (forward-line 1)
           (when eproj-verbose-tag-loading
             (when (= n total-tags-fraction)
               (incf tags-loaded-percents)
               (when (= 0 (mod tags-loaded-percents 5))
-                  (message "loaded %d%% tags" tags-loaded-percents)
-                  (redisplay))
+                (message "loaded %d%% tags" tags-loaded-percents)
+                (redisplay))
               (setf n 0))
             (incf n)))
-        tags-table))))
+        (let* ((result-table (make-hash-table :test #'equal :size 997))
+               (add-tag-to-result
+                (lambda (tag)
+                  (puthash (eproj-tag/symbol tag)
+                           (cons tag
+                                 (gethash (eproj-tag/symbol tag)
+                                          result-table
+                                          nil))
+                           result-table)))
+               (data (nested-hash-tables/data tags-tables))
+               (constructors-tags
+                (gethash "C" data nil))
+               (type-tags
+                (gethash "t" data nil)))
+          (remhash "C" data)
+          ;; Add all non-constructor tags.
+          (maphash (lambda (_ tags-table)
+                     (maphash (lambda (k tag)
+                                (funcall add-tag-to-result tag))
+                              tags-table))
+                   data)
+          ;; Add constructor tags while filter out thouse that are already covered
+          ;; by type tags.
+          (when (and constructors-tags
+                     type-tags)
+            (maphash (lambda (name-and-file tag)
+                       (unless (gethash name-and-file type-tags)
+                         (funcall add-tag-to-result tag)))
+                     constructors-tags))
+          result-table)))))
+
+(defun eproj-haskell/compare-tags-ignoring-line-numbers (x y)
+  "Compare eproj tags for less-than, without taking line numbers into account."
+  (pcase x
+    (`(,sym-x ,file-x ,line-x . ((type . ,typ-x)))
+     (pcase y
+       (`(,sym-y ,file-y ,line-y . ((type . ,typ-y)))
+        (if (string< sym-x sym-y)
+          t
+          (and (string= sym-x sym-y)
+               (if (string< file-x file-y)
+                 t
+                 (and (string= file-x file-y)
+                      (string< typ-x typ-y))))))
+       (_
+        (error "invalid tag: %s" y))))
+    (_
+     (error "invalid tag: %s" x))))
+
 
 (defun eproj/haskell-tag-kind (tag)
-  (pcase (cdr-safe (assoc 'type (eproj-tag/properties tag)))
+  (pcase (cdr-safe (assq 'type (eproj-tag/properties tag)))
     ("m" "Module")
     ("f" "Function")
     ("c" "Class")
@@ -121,7 +182,7 @@ runtime but rather will be silently relied on)."
 
 (defun eproj/haskell-tag->string (proj tag)
   (assert (eproj-tag-p tag))
-  (let* ((type (cdr-safe (assoc 'type (eproj-tag/properties tag))))
+  (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))
          (is-module?
           (pcase type
             ("m" t)
@@ -141,7 +202,7 @@ runtime but rather will be silently relied on)."
 (defun eproj/haskell-extract-tag-signature (proj tag)
   "Fetch line where TAG is defined."
   (assert (eproj-tag-p tag) nil "Eproj tag is required.")
-  (let* ((type (cdr-safe (assoc 'type (eproj-tag/properties tag))))
+  (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))
          (is-module?
           (pcase type
             ("m" t)
