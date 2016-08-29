@@ -75,6 +75,7 @@
 (defsubst eproj-tag/line (tag-struct)
   (caddr tag-struct))
 
+;; Return associative list of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
   (cdddr tag-struct))
 
