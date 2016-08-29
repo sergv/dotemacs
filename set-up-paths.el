@@ -123,18 +123,21 @@ directories whose absolute path matches IGNORED-DIR-RE."
        "auctex/tests"
        "clojure-mode/test"
        "company-mode/test"
+       "dash.el/dev"
        (seq "f.el/" (or "bin" "test"))
        "flycheck-haskell/test"
        (seq "flycheck/" (or ".cask" "test"))
        "ghc-mod/doc/presentation/auto"
        (seq "ghc-mod/.stack-work" (* any))
-       (seq "haskell-mode/" (or "tests" "tests/compat"))
+       (seq "haskell-mode/" (or "doc/gifcasts" "tests" "tests/compat"))
        "js2-mode/tests"
+       "lua-mode/test"
        "magit/t"
        "markdown-mode/tests"
        "mmm-mode/tests"
        (seq "org-mode/" (or "mk" "testing"))
        "s.el/dev"
+       "smartparens/test"
        "smartparens/tests")))
 
 (add-to-load-path-recursively "/src")
