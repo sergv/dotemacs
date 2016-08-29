@@ -9,6 +9,8 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'ert)
+(require 'common)
+(require 'common-heavy)
 
 ;; note: use of #'equal? as equality predicate is
 ;; inconsistent with lesser-than predicate (i.e. common-tests/pair<)
@@ -235,7 +237,42 @@
                                       #'string<)
            '("a" "b" "c"))))
 
-(ert "common-tests/.*")
+(ert-deftest common-tests/nested-hash-tables ()
+  (let ((tables
+         (mk-nested-hash-tables
+          (list
+           (list #'cadr #'equal)
+           (list #'car #'equal)))))
+    (nested-hash-tables/add! '(foo bar baz)
+                             tables)
+    (nested-hash-tables/add! '(quux bar baz)
+                             tables)
+    (should
+     (equal
+      (nested-hash-tables->alist tables)
+      '((quux quux bar baz)
+        (foo  foo bar baz))))))
+
+(ert-deftest common-tests/nested-hash-tables-2 ()
+  (let ((tables
+         (mk-nested-hash-tables
+          (list
+           (list #'cadr #'equal)
+           (list #'car #'equal)
+           (list #'identity #'equal)))))
+    (nested-hash-tables/add! '(foo bar baz)
+                             tables)
+    (nested-hash-tables/add! '(quux bar baz)
+                             tables)
+    (should
+     (equal
+      (nested-hash-tables->alist tables)
+      '(((quux bar baz) quux bar baz)
+        ((foo bar baz)  foo bar baz))))))
+
+(progn
+  (ert "common-tests/.*")
+  nil)
 
 (provide 'common-tests)
 
