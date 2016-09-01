@@ -268,12 +268,32 @@ and indent them as singe line."
         haskell-process-args-stack-ghci (--map (concat "--ghc-options=" it) ghc-options)))
 
 (defconst +haskell-compile-error-or-warning-regexp+
-  (join-lines (append
-               (--map (concat "\\(?:" (car it) "\\)")
-                      haskell-compilation-error-regexp-alist)
-               (--map (concat "\\(?:" (second it) "\\)")
-                      compilation-error-regexp-alist-alist))
-              "\\|")
+  (mapconcat
+   (lambda (entry) (concat "\\(?:" entry "\\)"))
+   (-map #'car
+         (--filter (let* ((type-field (car (cddddr it)))
+                          (error-or-warning?
+                           (cond
+                             ((null type-field)
+                              t)
+                             ((numberp type-field)
+                              (<= 1 type-field))
+                             ((and (consp type-field)
+                                   type-field
+                                   (numberp (car type-field)))
+                              (<= 1 (car type-field)))
+                             (t
+                              (message "Invalid entry type in haskell-compilation-error-regexp-alist: %s, entry: %s"
+                                       type-field
+                                       it)
+                              nil))))
+                     error-or-warning?)
+                   (append
+                    haskell-compilation-error-regexp-alist
+                    (-map #'cdr
+                          (--filter (memq (car it) '(4bssd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft))
+                                    compilation-error-regexp-alist-alist)))))
+   "\\|")
   "Regexp matching both errors and warnings.")
 
 (defconst haskell-module-quantification-regexp
