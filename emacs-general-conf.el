@@ -188,7 +188,10 @@
       ad-default-compilation-action 'always
       echo-keystrokes 0.01
       warning-minimum-level :error
-      use-empty-active-region t)
+      use-empty-active-region t
+
+      ;; Disable this to speed up rendering of long lines.
+      bidi-display-reordering nil)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
