@@ -75,14 +75,16 @@ match IGNORED-FILE-GLOBS."
                     (end-of-line))
                   (nreverse local-matches))))
             files))))
+    (when (= (length matches) 0)
+      (error "No matches for regexp \"%s\" across files %s"
+             regexp
+             (mapconcat #'identity exts-globs ", ")))
     (select-start-selection
      matches
      :buffer-name "*grep*"
      :on-selection
      (lambda (idx selection-type)
-       ;; (select-exit)
        (let ((match (elt matches idx)))
-         ;; (find-file (egrep-match/file match))
          (let ((buf (aif (find-buffer-visiting (egrep-match/file match))
                       it
                       (find-file-noselect (egrep-match/file match)))))
@@ -96,7 +98,7 @@ match IGNORED-FILE-GLOBS."
      :item-show-function
      #'egrep-match/select-entry
      :separator-function
-     (lambda () nil)
+     (constantly nil)
      :preamble-function
      (lambda ()
        (format "Browse matches for `%s' in files matching %s\n\n"
