@@ -96,7 +96,7 @@ The `%s' placeholder is replaced by the current buffer's filename."
 
 (defconst haskell-compilation-error-regexp-alist
   `((,(concat
-       "^\\(?1:[^ ].*?\\.\\(?:hs\\|lhs\\|hsc\\|chs\\|alex\\|x\\|happy\\|y\\|ly\\)\\):"
+       "^\\(?1:[^ \n\r\v\t\f].*?\\.\\(?:hs\\|lhs\\|hsc\\|chs\\|alex\\|x\\|happy\\|y\\|ly\\)\\):"
        "\\(?:"
        "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
        "\\|"
