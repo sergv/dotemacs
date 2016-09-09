@@ -468,6 +468,51 @@ the current topic."
   (save-buffer)
   (org-latex-export-to-pdf))
 
+(defun org-mode-show-level-1 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 1))
+
+(defun org-mode-show-level-2 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 2))
+
+(defun org-mode-show-level-3 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 3))
+
+(defun org-mode-show-level-4 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 4))
+
+(defun org-mode-show-level-5 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 5))
+
+(defun org-mode-show-level-6 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 6))
+
+(defun org-mode-show-level-7 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 7))
+
+(defun org-mode-show-level-8 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 8))
+
+(defun org-mode-show-level-9 ()
+  (interactive)
+  (outline-hide-subtree)
+  (outline-show-children 9))
+
 (defun org-mode-setup ()
   (init-common :use-yasnippet t
                :use-render-formula nil
@@ -492,13 +537,23 @@ the current topic."
 
     ("'"       org-mode-up-heading)
 
-    ("z O"     show-all)
+    ("z O"     outline-show-all)
     ;; ("z o"   show-subtree)
-    ("z c"     hide-subtree)
+    ("z c"     outline-hide-subtree)
     ;; hide everything except current entry and its parents
-    ("z C"     hide-other)
+    ("z C"     outline-hide-other)
 
-    ("j"       eval-last-sexp))
+    ("j"       eval-last-sexp)
+
+    ("1"       org-mode-show-level-1)
+    ("2"       org-mode-show-level-2)
+    ("3"       org-mode-show-level-3)
+    ("4"       org-mode-show-level-4)
+    ("5"       org-mode-show-level-5)
+    ("6"       org-mode-show-level-6)
+    ("7"       org-mode-show-level-7)
+    ("8"       org-mode-show-level-8)
+    ("9"       org-mode-show-level-9))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"     eval-region))
