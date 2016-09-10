@@ -1474,15 +1474,22 @@ sp--looking-* functions more than once should wrap them all in
 
 (defun sp--evil-normal-state-p ()
   "Check to see if the current `evil-state' is in normal mode."
-  (and (fboundp 'evil-normal-state-p) (evil-normal-state-p)))
+  (or (and (fboundp 'evil-normal-state-p) (evil-normal-state-p))
+      (and (fboundp 'vim:normal-mode-p) (vim:normal-mode-p))))
 
 (defun sp--evil-motion-state-p ()
   "Check to see if the current `evil-state' is in motion mode."
-  (and (fboundp 'evil-motion-state-p) (evil-motion-state-p)))
+  (or (and (fboundp 'evil-motion-state-p) (evil-motion-state-p))
+      (and (fboundp 'vim:motion-mode-p (vim:motion-mode-p)))))
 
 (defun sp--evil-visual-state-p ()
   "Check to see if the current `evil-state' is in visual mode."
-  (and (fboundp 'evil-visual-state-p) (evil-visual-state-p)))
+  (or (and (fboundp 'evil-visual-state-p) (evil-visual-state-p))
+      (sp--visual-mode-active?)))
+
+(defun sp--visual-mode-active? ()
+  (and (fboundp 'vim:visual-mode-p)
+       (vim:visual-mode-p)))
 
 (defun sp-point-in-blank-line (&optional p)
   "Return non-nil if line at point is blank (whitespace only).
