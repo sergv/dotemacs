@@ -6,12 +6,12 @@
 ;; Created: long ago
 ;; Description:
 
-(require 'util-vim-replace)
-(require 'completion-setup)
-(require 'smartparens-setup)
-(require 'search)
 (require 'common)
+(require 'completion-setup)
 (require 'keys-def)
+(require 'search)
+(require 'smartparens-setup)
+(require 'util-vim-replace)
 
 ;;; configuration variables
 
@@ -306,9 +306,9 @@ Basically swap current point with previous one."
     (with-current-buffer (get-buffer awk-buffer-name)
       (awk-exit)))
   ;; turn visual mode off
-  (when (region-active?)
+  (when (region-active-p)
     (deactivate-mark)
-    (run-if-fbound vim:visual-mode-exit))
+    (vim:visual-mode-exit))
   (awk-on-region (if motion
                    (vim:motion-begin-pos motion)
                    (line-beginning-position))

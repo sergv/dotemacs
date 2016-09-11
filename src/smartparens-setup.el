@@ -79,8 +79,8 @@ is wrapped instead.  This is useful with selection functions in
          (p (point))
          (active-pair (--first (equal (car it) pair-open) sp-pair-list)))
     (destructuring-bind (start . end)
-        (if (sp--region-active?)
-          (cons (sp--region-beginning) (sp--region-end))
+        (if (region-active-p)
+          (cons (region-beginning) (region-end))
           (or (-when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
                 (if (= p (cdr sym-bounds))
                   nil ;; don't wrap if we are at the end of symbol
