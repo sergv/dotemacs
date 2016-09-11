@@ -160,7 +160,7 @@ Contains single-line and region comments.")
   "Comment LINES lines eiter up if argument LINES is positive
 or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
-  (if (region-active?)
+  (if (region-active-p)
     (let ((bounds (get-region-bounds)))
       (comment-util-comment-region (first bounds) (second bounds)))
     (comment-util-comment-next-n-lines lines)))
@@ -368,7 +368,6 @@ be used only for vim-visual-mode of the vim-mode package."
                        ;;  (beginning-of-line)
                        ;;  (looking-at-p "^$"))
                        )))
-
     (when (> lines 0)
       ;; this is the zeroth iteration at which we shouldn't
       ;; update column and use supplied one
@@ -376,7 +375,6 @@ be used only for vim-visual-mode of the vim-mode package."
       (insert comment-str)
       (forward-line 1)
       (incf lines -1)
-
       (while (> lines 0)
         (cond
           ((funcall empty-line?)
@@ -388,7 +386,6 @@ be used only for vim-visual-mode of the vim-mode package."
            (insert comment-str)))
         (forward-line 1)
         (incf lines -1)))))
-
 
 (defun comment-util-delete-comment ()
   "Delete comments (e.g. //, ;) after point if any."
@@ -431,9 +428,7 @@ up and then comment the result."
                   ;; do not skip newlines!
                   (skip-syntax-forward " ")
                   (lisp-pos-is-end-of-sexp? (point))))
-        ;; (insert "\n")
         (reindent-then-newline-and-indent)))
-
     (save-excursion
       (comment-util--comment-n-lines-starting-at-col
        ";; " ;; bad hack, hard-coded lisp comment... ;; survived for a long time...

@@ -40,20 +40,6 @@
                           compile)
   (setq-local shm-display-quarantine nil))
 
-
-;; ;; prevent paredit from reindenting Haskell lines
-;; (dolist (func '(indent-region
-;;                 indent-sexp
-;;                 lisp-indent-line ;; ?
-;;                 ))
-;;   (eval
-;;    `(defadvice ,func (around
-;;                       ,(util/make-joined-name func "-block-haskell-indentation")
-;;                       activate
-;;                       compile)
-;;       (unless (eq major-mode 'haskell-mode)
-;;         ad-do-it))))
-
 (vimmize-motion shm/goto-parent
                 :name vim:shm/goto-parent
                 :exclusive nil)

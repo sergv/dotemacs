@@ -28,9 +28,9 @@
       (skip-syntax-forward ")" ;; close delimiters
                            )))
   ;; turn visual mode off
-  (when (region-active?)
+  (when (region-active-p)
     (deactivate-mark)
-    (run-if-fbound vim:visual-mode-exit)))
+    (vim:visual-mode-exit)))
 
 (defun hs-hide-sexps-in-region (begin end)
   (interactive "r")
@@ -43,9 +43,9 @@
       (skip-syntax-forward ")" ;; skip close delimiters
                            )))
   ;; turn visual mode off
-  (when (region-active?)
+  (when (region-active-p)
     (deactivate-mark)
-    (run-if-fbound vim:visual-mode-exit)))
+    (vim:visual-mode-exit)))
 
 ;; todo: these two are quite similar to `hs-hide-sexps-in-region' and
 ;; `hs-show-sexps-in-region'
@@ -59,9 +59,9 @@
         (hs-show-block t)
         (skip-chars-forward "}"))))
   ;; turn visual mode off
-  (when (region-active?)
+  (when (region-active-p)
     (deactivate-mark)
-    (run-if-fbound vim:visual-mode-exit)))
+    (vim:visual-mode-exit)))
 
 (defun hs-hide-c-sexps-in-region (begin end)
   (interactive "r")
@@ -75,9 +75,9 @@
       (skip-chars-forward "}") ;; close delimiters
       ))
   ;; turn visual mode off
-  (when (region-active?)
+  (when (region-active-p)
     (deactivate-mark)
-    (run-if-fbound vim:visual-mode-exit)))
+    (vim:visual-mode-exit)))
 
 ;; add check hs-block-start-mdata-select
 (redefun hs-forward-sexp (match-data arg)

@@ -443,10 +443,6 @@
 (vim:emap "nhg" 'vim:cmd-nohighlight-everywhere)
 ;; (vim:emap "setmode" 'vim:cmd-setmode)
 
-;; (vim:nmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
-;; (vim:vmap (vector vim:down-mouse-1) 'vim:visual-mouse-clicked)
-
-
 (provide 'vim-maps)
 
 ;; Local Variables:

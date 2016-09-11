@@ -111,15 +111,17 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'macro-util))
 
-(let ((load-path (cons (expand-file-name ".") load-path)))
-  (require 'vim-core)
-  (require 'vim-compat)
-  (require 'vim-normal-mode)
-  (require 'vim-keymap)
-  (require 'vim-maps))
+(require 'custom)
 
+(require 'vim-compat)
+(require 'vim-core)
+(require 'vim-keymap)
+(require 'vim-maps)
+(require 'vim-normal-mode)
 
 (defgroup vim-mode nil
   "A VIM emulation mode."
@@ -136,11 +138,53 @@
   :group 'vim-mode-general)
 
 (defcustom vim:initial-modes
-  '((gud-mode . window)
-    (sldb-mode . window)
-    (reftex-select-bib-mode . window)
-    (help-mode . normal)
-    (Info-mode . normal))
+  (alist->hash-table
+   '((Custom-mode . nil)
+     (browse-kill-ring-mode . nil)
+     (calendar-mode . nil)
+     (clojure-compilation-mode . nil)
+     (compilation-mode . nil)
+     (completion-list-mode . nil)
+     (debugger-mode . nil)
+     (dired-mode . nil)
+     (doc-view-mode . nil)
+     (ediff-mode . nil)
+     (emms-playlist-mode . nil)
+     (flycheck-error-list-mode . nil)
+     (fundamental-mode . nil)
+     (git-rebase-mode . nil)
+     (grep-mode . nil)
+     (haskell-compilation-mode . nil)
+     (haskell-lint-mode . nil)
+     (help-mode . nil)
+     (ibuffer-mode . nil)
+     (image-mode . nil)
+     (isearch-mode . nil)
+     (latex-compilation-mode . nil)
+     (magit-branch-manager-mode . nil)
+     (magit-commit-mode . nil)
+     (magit-diff-mode . nil)
+     (magit-key-mode . nil)
+     (magit-log-mode . nil)
+     (magit-popup-mode . nil)
+     (magit-popup-sequence-mode . nil)
+     (magit-refs-mode . nil)
+     (magit-revision-mode . nil)
+     (magit-show-branches-mode . nil)
+     (magit-stash-mode . nil)
+     (magit-status-mode . nil)
+     (minimap-mode . nil)
+     (occur-mode . nil)
+     (org-agenda-mode . nil)
+     (select-mode . nil)
+     (sldb-mode . nil)
+     (slime-fuzzy-completions-mode . nil)
+     (slime-inspector-mode . nil)
+     (slime-repl-mode . normal)
+     (slime-xref-mode . nil)
+     (text-mode . normal)
+     (undo-tree-visualizer-mode . nil))
+   #'eq)
   "Associated list of (major-mode . vim:mode) which specifies the
 vim sub-mode in which vim-mode should start when a buffer with the
 given major-mode is created."
@@ -153,7 +197,6 @@ given major-mode is created."
   :lighter " VIM"
   :init-value nil
   :global nil
-
   (if vim-local-mode
     (progn
       (vim:initialize-keymaps t))
@@ -165,13 +208,13 @@ given major-mode is created."
 
 (defun vim:initialize ()
   (unless (vim:minibuffer-p)
-    (let ((mode (cdr (or (assoc major-mode vim:initial-modes)
-                         (cons t vim:default-initial-mode)))))
-      (when mode
-        (setq vim:active-mode nil)
-        (vim-local-mode 1)
-        ;; (vim:intercept-ESC-mode 1)
-        (vim:activate-mode mode)))))
+    (awhen (if (hash-table-member-p major-mode vim:initial-modes)
+             (gethash major-mode vim:initial-modes nil)
+             vim:default-initial-mode)
+      (setq vim:active-mode nil)
+      (vim-local-mode 1)
+      ;; (vim:intercept-ESC-mode 1)
+      (vim:activate-mode it))))
 
 (provide 'vim)
 

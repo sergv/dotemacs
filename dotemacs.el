@@ -291,25 +291,23 @@ or not.")
 (load-library "solarized")
 (solarized-dark)
 
-(put 'downcase-region 'disabled nil)
-(put 'erase-buffer 'disabled nil)
-(put 'eval-expression 'disabled nil)
-(put 'narrow-to-defun 'disabled nil)
-(put 'narrow-to-page 'disabled nil)
-(put 'narrow-to-region 'disabled nil)
-(put 'set-goal-column 'disabled nil)
-(put 'upcase-region 'disabled nil)
-(put 'dired-find-alternate-file 'disabled nil)
+(dolist (func '(downcase-region
+                erase-buffer
+                eval-expression
+                narrow-to-defun
+                narrow-to-page
+                narrow-to-region
+                set-goal-column
+                upcase-region
+                dired-find-alternate-file))
+  (put func 'disabled nil))
 
 (require 'package)
 (let ((package-load-list '((melpa t))))
   (package-initialize))
 
-(provide 'dotemacs)
-
 (unless (featurep 'custom-variables-defined)
   (load-library ".emacs"))
-
 
 
 (let ((user-info-file
@@ -330,6 +328,8 @@ or not.")
 
 (when (platform-os-type? 'windows)
   (load-library "windows-setup"))
+
+(provide 'dotemacs)
 
 ;; Local Variables:
 ;; End:
