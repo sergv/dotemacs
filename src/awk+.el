@@ -233,11 +233,11 @@ with id value of `awk-program-id'."
   (when (get-buffer awk-buffer-name)
     (with-current-buffer (get-buffer awk-buffer-name)
       (awk-exit)))
-  (if (region-active?)
+  (if (region-active-p)
     (let ((begin (region-beginning))
           (end   (region-end)))
       (deactivate-mark)
-      (run-if-fbound vim:visual-mode-exit)
+      (vim:visual-mode-exit)
       (awk-on-region begin end))
     (awk-on-region (point-min) (point-max))))
 

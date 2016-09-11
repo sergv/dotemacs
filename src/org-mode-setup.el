@@ -225,46 +225,7 @@
         (scheme     . nil)
         (sh         . nil)
         (sql        . nil)
-        (sqlite     . nil)))
-     ;; (org-babel-do-load-languages
-     ;;  'org-babel-load-languages
-     ;;  '((C          . t)
-     ;;    (clojure    . t)
-     ;;    (dot        . t)
-     ;;    (emacs-lisp . t)
-     ;;    (haskell    . t)
-     ;;    (js         . nil)
-     ;;    (latex      . t)
-     ;;    (lisp       . nil)
-     ;;    (ocaml      . t)
-     ;;    (octave     . t)
-     ;;    (org        . t)
-     ;;    (oz         . nil)
-     ;;    (python     . t)
-     ;;    (R          . nil)
-     ;;    (scheme     . t)
-     ;;    (sh         . nil)
-     ;;    (sql        . nil)
-     ;;    (sqlite     . nil)))
-     ))
-
-(eval-after-load
-    "org-comat"
-  '(progn
-     ;; add handling of vim's region
-     (redefun org-region-active-p ()
-       "Is `transient-mark-mode' on and the region active?
-Works on both Emacs and XEmacs."
-       (unless org-ignore-region
-         (cond
-           ((featurep 'xemacs)
-            (and zmacs-regions (region-active-p)))
-           ((region-active?)
-            t)
-           ((fboundp 'use-region-p)
-            (use-region-p))
-           (t
-            (and transient-mark-mode mark-active)))))))
+        (sqlite     . nil)))))
 
 (eval-after-load
     "org-src"
@@ -556,7 +517,7 @@ the current topic."
     ("9"       org-mode-show-level-9))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("j"     eval-region))
+    ("j"       eval-region))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

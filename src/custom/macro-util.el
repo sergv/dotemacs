@@ -412,11 +412,6 @@ another KEY-COMMAND-LIST spliced in place of a variable;
       `(prog1 nil
          ,bindings))))
 
-(defmacro run-if-fbound (func)
-  `(and (fboundp (quote ,func))
-        (,func)))
-
-
 (defmacro make-highlight-procedure (name regexp after-found-predicate)
   `(defun ,name (limit)
      (let (match-data-to-set)
@@ -547,7 +542,7 @@ of code may be called more than once."
                        ,repeat))
        (defun ,func ()
          (interactive)
-         (when (region-active?)
+         (when (region-active-p)
            (multiple-value-bind (start end) (get-region-bounds)
              (,impl-func start end)))))))
 

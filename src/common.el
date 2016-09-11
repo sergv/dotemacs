@@ -447,6 +447,11 @@ main table and value in aux table."
                (puthash k v table-main)))
            table-aux))
 
+(defsubst hash-table-member-p (key table)
+  (let ((value-missing '#:value-missing))
+    (not
+     (eq value-missing
+         (gethash key table value-missing)))))
 ;;;
 
 ;; this may be useful for something
@@ -958,28 +963,35 @@ See also `indent-relative-maybe'."
 
 ;;;
 
-(defun region-active? ()
-  "Return t if region, either plain or vim's, is active."
-  ;; TODO consider using mark-active
-  (or (region-active-p)
-      (run-if-fbound vim:visual-mode-p)))
+;; (defadvice region-active-p (around
+;;                             region-active-p/take-vim-visual-mode-into-account
+;;                             activate
+;;                             compile)
+;;
+;;   ad-do-it
+;;   (or
+;;       (vim:visual-mode-p)))
+;;
+;; (defadvice use-region-p (around
+;;                          use-region-p/take-vim-visual-mode-into-account
+;;                          activate
+;;                          compile)
+;;   (or ad-do-it
+;;       (vim:visual-mode-p)))
 
 (defun get-region-string-no-properties ()
   "Get string currently selected by a region, or nil
 if there's no region."
-  (if (region-active?)
+  (if (region-active-p)
     (buffer-substring-no-properties
      (region-beginning)
-     (+ (if (run-if-fbound vim:visual-mode-p)
-          1
-          0)
-        (region-end)))
-    nil))
+     (region-end))
+    (error "Region not active")))
 
 (defun get-region-bounds ()
   "Return pair of region bounds, (begin end), depending
 on currently active vim highlight mode."
-  (if (run-if-fbound vim:visual-mode-p)
+  (if (vim:visual-mode-p)
     (cond
       ((eq? vim:visual-mode-type 'normal)
        (values (region-beginning) (region-end)))
