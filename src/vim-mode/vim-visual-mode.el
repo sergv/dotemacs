@@ -86,15 +86,17 @@
 
 ;;; Commands that deactivate the mark (and so visual-mode).
 (defconst vim:visual-deactivate-mark-commands
-  '(clear-rectangle
-    clipboard-kill-ring-save
-    copy-rectangle
-    copy-rectangle-to-register
-    kill-rectangle
-    open-rectangle
-    string-rectangle
-    yank-rectangle
-    keyboard-quit))
+  (alist->hash-table
+   '((clear-rectangle . t)
+     (clipboard-kill-ring-save . t)
+     (copy-rectangle . t)
+     (copy-rectangle-to-register . t)
+     (kill-rectangle . t)
+     (open-rectangle . t)
+     (string-rectangle . t)
+     (yank-rectangle . t)
+     (keyboard-quit . t))
+   #'eq))
 
 (defun vim:activate-visual (type)
   "Activates visual-mode with certain type."
@@ -289,7 +291,7 @@
 (defun vim:visual-post-command ()
   (when (vim:visual-mode-p)
     (if (or (vim:do-deactivate-mark)
-            (memq this-command vim:visual-deactivate-mark-commands))
+            (gethash this-command vim:visual-deactivate-mark-commands nil))
       (condition-case nil
           (vim:visual-mode-exit)
         (error nil))
@@ -666,74 +668,20 @@ current line."
           vim:visual-last-mark  nil
           vim:visual-new-point  nil)))
 
-(defun vim:visual-mouse-clicked (event)
-  "Dispatches singe, double, triple or quad clicks."
-  (interactive "e")
-  (pcase (vim:mouse-click-count event)
-    (2 (vim:visual-drag-mouse-region event 'word))
-    (3 (vim:visual-drag-mouse-region event 'linewise))
-    (4 (vim:visual-drag-mouse-region event 'block))
-    (_ (vim:visual-drag-mouse-region event 'char))))
+(defun region-active-p/take-vim-visual-mode-into-account (is-active)
+  "This function advices `region-active-p' to teach it about vim's visual mode."
+  (or is-active
+      (vim:visual-mode-p)))
 
-(defun vim:visual-drag-mouse-region (event mode)
-  "Update visual-region during mouse-motion."
-  (vim:visual-mode-exit)
-  (select-window (vim:mouse-event-window event))
-  (let ((start-pos (vim:mouse-event-point event)))
-    (when start-pos
-      (goto-char start-pos)
-      (pcase mode
-        (`word
-         (vim:visual-toggle-normal)
-         (multiple-value-bind (p m) (vim:visual-get-word-region start-pos start-pos)
-           (set-mark m)
-           (goto-char p))
-         (vim:visual-highlight-region))
-        (`linewise
-         (vim:visual-toggle-linewise)
-         (vim:visual-highlight-region))
-        (`block
-            (vim:visual-toggle-block)
-          (vim:visual-highlight-region)))
-      (vim:track-mouse
-       (catch 'exit
-         (while t
-           (let ((ev (vim:read-event)))
-             (cond
-               ((vim:mouse-movement-p ev)
-                (let ((end-pos (vim:mouse-event-point ev)))
-                  (when end-pos
-                    (when (and (not (vim:visual-mode-p))
-                               (/= start-pos end-pos))
-                      (if (eq mode 'linewise)
-                        (vim:visual-toggle-linewise)
-                        (vim:visual-toggle-normal)))
-                    (when (vim:visual-mode-p)
-                      (if (eq mode 'word)
-                        (multiple-value-bind (p m) (vim:visual-get-word-region end-pos start-pos)
-                          (set-mark m)
-                          (goto-char p))
-                        (set-mark start-pos)
-                        (goto-char end-pos))
-                      (vim:visual-highlight-region)))))
-               ((vim:mouse-event-p ev) (throw 'exit nil))
-               (t
-                (push ev unread-command-events)
-                (let* ((keyseq (read-key-sequence nil))
-                       (cmd (key-binding keyseq)))
-                  (call-interactively cmd)
-                  (unless (vim:visual-mode-p)
-                    (throw 'exit nil))))))))))))
+(advice-add 'region-active-p :filter-return #'region-active-p/take-vim-visual-mode-into-account)
+(advice-add 'use-region-p :filter-return #'region-active-p/take-vim-visual-mode-into-account)
 
-(defun vim:visual-get-word-region (point-pos mark-pos)
-  "Returns the start and end position of the word-wise region."
-  (let ((point-motion (save-excursion (goto-char point-pos) (vim:motion-inner-word)))
-        (mark-motion (save-excursion (goto-char mark-pos) (vim:motion-inner-word))))
-    (if (< point-pos mark-pos)
-      (values (vim:motion-begin point-motion)
-              (vim:motion-end mark-motion))
-      (values (vim:motion-end point-motion)
-              (vim:motion-begin mark-motion)))))
+(defun region-end/fix-range-for-vim (position)
+  (if (vim:visual-mode-p)
+    (+ position 1)
+    position))
+
+(advice-add 'region-end :filter-return #'region-end/fix-range-for-vim)
 
 (provide 'vim-visual-mode)
 

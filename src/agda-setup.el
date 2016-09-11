@@ -109,7 +109,7 @@ The scope used for the expression is that of the last point inside the current
 top-level module.
 With a prefix argument \"abstract\" is ignored during the computation."
   (interactive "P")
-  (assert (region-active?))
+  (assert (region-active-p))
   (multiple-value-bind (start end) (get-region-bounds)
     (let* ((expr (buffer-substring-no-properties start end))
            (cmd (concat "Cmd_compute_toplevel"
