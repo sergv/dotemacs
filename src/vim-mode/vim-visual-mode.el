@@ -215,7 +215,7 @@
     (setq transient-mark-mode vim:visual-old-transient-mark-mode))
   (vim:visual-delete-overlays vim:visual-overlays)
   (mapc #'kill-local-variable vim:visual-old-global-variables)
-  (vim:deactivate-mark))
+  (deactivate-mark))
 
 (defun vim:visual-mode-command (command)
   "Executes a command in visual mode."
@@ -320,13 +320,13 @@ This function is also responsible for setting the X-selection."
   (when (eq window-system 'x)
     (cond
       ((= 1 (length vim:visual-overlays))
-       (vim:x-set-selection nil (car vim:visual-overlays)))
+       (x-set-selection nil (car vim:visual-overlays)))
       ((< 1 (length vim:visual-overlays))
        (let ((text (join-lines
                     (--map (buffer-substring-no-properties (overlay-start it)
                                                            (overlay-end it))
                            vim:visual-overlays))))
-         (vim:x-set-selection nil text))))))
+         (x-set-selection nil text))))))
 
 (defun vim:visual-highlight-normal (start end)
   "Adjusts the normal region between `start' and `end'."

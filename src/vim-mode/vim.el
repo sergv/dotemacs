@@ -207,7 +207,7 @@ given major-mode is created."
 (define-globalized-minor-mode vim-mode vim-local-mode vim:initialize)
 
 (defun vim:initialize ()
-  (unless (vim:minibuffer-p)
+  (unless (minibufferp)
     (awhen (if (hash-table-member-p major-mode vim:initial-modes)
              (gethash major-mode vim:initial-modes nil)
              vim:default-initial-mode)

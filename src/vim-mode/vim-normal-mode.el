@@ -98,7 +98,7 @@ like 'dd', 'yy',... .")
                       vim:cmd-force-blockwise))
     (progn
       (setf vim:current-key-sequence
-            (vconcat vim:current-key-sequence (vim:this-command-keys)))
+            (vconcat vim:current-key-sequence (this-command-keys-vector)))
       (funcall command))
     (unwind-protect
         (pcase (vim:cmd-type command)
@@ -177,7 +177,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
          (repeatable? (vim:cmd-repeatable-p command))
          (events (if repeatable?
                    (vconcat vim:current-key-sequence
-                            (vim:this-command-keys))
+                            (this-command-keys-vector))
                    nil)))
     (when (vim:cmd-count-p command)
       (push vim:current-cmd-count parameters)
@@ -204,7 +204,7 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
   (setf vim:current-cmd command
         vim:current-key-sequence (vconcat vim:current-key-sequence
-                                          (vim:this-command-keys)))
+                                          (this-command-keys-vector)))
   (vim:activate-operator-pending-mode))
 
 (defun vim:normal-execute-complex-command (motion-command)
@@ -224,13 +224,13 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
 
   (let* ((vim:last-undo buffer-undo-list)
          (entry (when vim:complex-command-override-local-keymap
-                  (let ((key (concat vim:current-key-sequence (vim:this-command-keys))))
+                  (let ((key (concat vim:current-key-sequence (this-command-keys-vector))))
                     (lookup-key vim:complex-command-override-local-keymap
                                 key))))
          (repeatable? (vim:cmd-repeatable-p vim:current-cmd))
          (events (if repeatable?
                    (vconcat vim:current-key-sequence
-                            (vim:this-command-keys))
+                            (this-command-keys-vector))
                    nil)))
     (if (and entry
              (or (symbol? entry)

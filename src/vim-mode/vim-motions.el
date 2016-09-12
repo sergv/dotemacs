@@ -91,14 +91,14 @@
 
 (defun vim:local-mark-p (mark-char)
   "Returns t if `mark-char' is a local mark."
-  (or (and (>= mark-char ?a) (<= mark-char ?z))
-      (member mark-char '(?` ?' ?, ?\" ?^ ?. ?< ?>))))
+  (or (and (>= mark-char ?\a) (<= mark-char ?\z))
+      (member mark-char '(?\` ?\' ?\, ?\" ?\^ ?\. ?\< ?\>))))
 
 (defun vim:global-mark-p (mark-char)
   "Returns t if `mark-char' is a global mark."
   (or
-   (and (>= mark-char ?A) (<= mark-char ?Z))
-   (and (>= mark-char ?a) (<= mark-char ?z))))
+   (and (>= mark-char ?A) (<= mark-char ?\Z))
+   (and (>= mark-char ?a) (<= mark-char ?\z))))
 
 (defun vim:special-mark-p (mark-char)
   "Returns t if `mark-char' is one of the special marks ( ) { }."
