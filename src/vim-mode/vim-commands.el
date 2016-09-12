@@ -751,7 +751,7 @@ maintain `vim:current-key-sequence' in order. That is needed to make
   (call-interactively #'digit-argument arg)
   (setf vim:current-key-sequence
         (vconcat vim:current-key-sequence
-                 (vim:this-command-keys))))
+                 (this-command-keys-vector))))
 
 (provide 'vim-commands)
 

@@ -439,13 +439,13 @@ pattern and replace matches with REPLACEMENT.
           (cond
             (whole-line
              ;; this one is easy, just use the built in function
-             (vim:perform-replace regex replacement confirm t nil nil nil
-                                  (save-excursion
-                                    (goto-line1 first-line)
-                                    (line-beginning-position))
-                                  (save-excursion
-                                    (goto-line1 last-line)
-                                    (line-end-position))))
+             (perform-replace regex replacement confirm t nil nil nil
+                              (save-excursion
+                                (goto-line1 first-line)
+                                (line-beginning-position))
+                              (save-excursion
+                                (goto-line1 last-line)
+                                (line-end-position))))
             (let ((nreplaced 0))
               (if confirm
                 (progn
