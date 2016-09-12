@@ -129,8 +129,6 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
          "This function should be called after setting up local keymaps."
          (vim:set-keymaps ',mode-name ,keymaps)))))
 
-(font-lock-add-keywords 'emacs-lisp-mode '("vim:define-mode"))
-
 (provide 'vim-modes)
 
 ;; Local Variables:

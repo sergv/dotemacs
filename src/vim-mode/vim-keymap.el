@@ -68,8 +68,6 @@ and vim:local-`map-command'."
                ,(concat "Maps the sequence of events `keys' to a `command' in keymap "
                         lockeym)
                (vim:map keys command :keymap ',(intern lockeym))))))))
-(font-lock-add-keywords 'emacs-lisp-mode '("vim:define-keymap"))
-
 
 ;; Interception of ESC event. The ESC event is intercepted. If not
 ;; followed by another key, i.e. not used as a prefix-key, the event
