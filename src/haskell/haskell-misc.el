@@ -729,7 +729,8 @@ return nil otherwise."
   (let ((start-pos nil))
     (when (save-excursion
             (skip-syntax-forward " ")
-            (when (char= (char-after) ?\()
+            (when (and (char-after)
+                       (char= (char-after) ?\())
               (setf start-pos (point))
               t))
       (goto-char start-pos)
