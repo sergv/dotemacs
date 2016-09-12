@@ -168,8 +168,6 @@
       vim:mouse-click-count))
   ))
 
-(font-lock-add-keywords 'emacs-lisp-mode '("vim:track-mouse"))
-
 (vim:emacsen
  (vim:emacs-p
   (defalias 'vim:read-event 'read-event))

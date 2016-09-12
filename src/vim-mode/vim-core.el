@@ -357,7 +357,6 @@ and the (default) type of the motion."
                             :begin ,current-pos
                             :end (point)
                             :type ,type))))))
-(font-lock-add-keywords 'emacs-lisp-mode '("\\_<vim:do-motion\\_>"))
 
 (defun vim:adjust-end-of-line-position (pos)
   "If pos is an end-of-line returns pos - 1 and pos otherwise."
