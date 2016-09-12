@@ -399,8 +399,8 @@ has been pressed."
                        (try-completion cmd vim:ex-commands predicate)))
       ((eq t flag) (append (all-completions cmd vim:ex-local-commands predicate)
                            (all-completions cmd vim:ex-commands predicate)))
-      ((eq 'lambda flag) (or (vim:test-completion cmd vim:ex-local-commands predicate)
-                             (vim:test-completion cmd vim:ex-commands predicate))))))
+      ((eq 'lambda flag) (or (test-completion cmd vim:ex-local-commands predicate)
+                             (test-completion cmd vim:ex-commands predicate))))))
 
 (defun vim:ex-complete-argument (arg predicate flag)
   "Called to complete the current argument w.r.t. the current command."
@@ -443,7 +443,7 @@ has been pressed."
         ((eq t flag)
          (all-completions arg buffers predicate))
         ((eq 'lambda flag)
-         (vim:test-completion arg buffers predicate))))))
+         (test-completion arg buffers predicate))))))
 
 (defun vim:ex-complete-text-argument (arg predicate flag)
   "Called to complete standard argument, therefore does nothing."
@@ -532,44 +532,44 @@ Returns four values: (cmd beg end force) where
   `beg' is the first line of the index range
   `end' is the last line of the index range
   `force' is non-nil iff an exclamation mark followed the command."
-  (let (begin
-         (begin-off 0)
-         sep
-         end
-         (end-off 0)
-         (pos 0)
-         (cmd nil))
-    (multiple-value-bind (beg npos) (vim:ex-parse-address text pos)
-      (when npos
-        (setq begin beg
-              pos npos)))
-    (multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
-      (when npos
-        (unless begin (setq begin 'current-line))
-        (setq begin-off off
-              pos npos)))
-    (when (and (< pos (length text))
-               (or (= (aref text pos) ?\,)
-                   (= (aref text pos) ?\;)))
-      (setq sep (aref text pos))
-      (incf pos)
-      (multiple-value-bind (e npos) (vim:ex-parse-address text pos)
+  (save-match-data
+    (let (begin
+          (begin-off 0)
+          sep
+          end
+          (end-off 0)
+          (pos 0)
+          (cmd nil))
+      (multiple-value-bind (beg npos) (vim:ex-parse-address text pos)
         (when npos
-          (setq end e
+          (setq begin beg
                 pos npos)))
       (multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
         (when npos
-          (unless end (setq end 'current-line))
-          (setq end-off off
-                pos npos))))
-    ;; handle the special '%' range
-    (when (or (eq begin 'all) (eq end 'all))
-      (setq begin 'first-line
-            begin-off 0
-            end 'last-line
-            end-off 0
-            sep ?,))
-    (save-match-data
+          (unless begin (setq begin 'current-line))
+          (setq begin-off off
+                pos npos)))
+      (when (and (< pos (length text))
+                 (or (= (aref text pos) ?\,)
+                     (= (aref text pos) ?\;)))
+        (setq sep (aref text pos))
+        (incf pos)
+        (multiple-value-bind (e npos) (vim:ex-parse-address text pos)
+          (when npos
+            (setq end e
+                  pos npos)))
+        (multiple-value-bind (off npos) (vim:ex-parse-offset text pos)
+          (when npos
+            (unless end (setq end 'current-line))
+            (setq end-off off
+                  pos npos))))
+      ;; handle the special '%' range
+      (when (or (eq begin 'all) (eq end 'all))
+        (setq begin 'first-line
+              begin-off 0
+              end 'last-line
+              end-off 0
+              sep ?,))
       (when (= pos (or (string-match *ex-commands-re-cache*
                                      ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
                                      text pos)
@@ -590,22 +590,22 @@ the range and the new position."
     ((= pos (or (string-match "[0-9]+" text pos) -1))
      (values (cons 'abs (string-to-number (match-string 0 text)))
              (match-end 0)))
-    ((= (aref text pos) ?$)
+    ((= (aref text pos) ?\$)
      (values 'last-line (1+ pos)))
     ((= (aref text pos) ?\%)
      (values 'all (1+ pos)))
-    ((= (aref text pos) ?.)
+    ((= (aref text pos) ?\.)
      (values 'current-line (1+ pos)))
-    ((= (aref text pos) ?')
+    ((= (aref text pos) ?\')
      (if (>= (1+ pos) (length text))
        nil
        (values `(mark ,(aref text (1+ pos))) (+ 2 pos))))
-    ((= (aref text pos) ?/)
+    ((= (aref text pos) ?\/)
      (when (string-match "\\([^/]+\\|\\\\.\\)\\(?:/\\|$\\)"
                          text (1+ pos))
        (values (cons 're-fwd (match-string 1 text))
                (match-end 0))))
-    ((= (aref text pos) ??)
+    ((= (aref text pos) ?\?)
      (when (string-match "\\([^?]+\\|\\\\.\\)\\(?:?\\|$\\)"
                          text (1+ pos))
        (values (cons 're-bwd (match-string 1 text))
@@ -613,9 +613,9 @@ the range and the new position."
     ((and (= (aref text pos) ?\\)
           (< pos (1- (length text))))
      (case (aref text (1+ pos))
-       (?/ (values 'next-of-prev-search (1+ pos)))
-       (?? (values 'prev-of-prev-search (1+ pos)))
-       (?& (values 'next-of-prev-subst (1+ pos)))))
+       (?\/ (values 'next-of-prev-search (1+ pos)))
+       (?\? (values 'prev-of-prev-search (1+ pos)))
+       (?\& (values 'next-of-prev-subst (1+ pos)))))
     (t nil)))
 
 (defun vim:ex-parse-offset (text pos)
@@ -657,6 +657,7 @@ the offset and the new position."
              (vim:ex-get-line (cdr address))))))
       (t
        (+ offset
+          ;; NB car-safe is essential here to ignore non-lists
           (pcase (or (car-safe base) base)
             (`abs (cdr base))
             ;; TODO: (1- ...) may be wrong if the match is the empty string

@@ -149,7 +149,7 @@
         (pcase flag
           (`nil    (try-completion mode modes predicate))
           (`t      (all-completions mode modes predicate))
-          (`lambda (vim:test-completion mode modes predicate)))))))
+          (`lambda (test-completion mode modes predicate)))))))
 
 (vim:define-arg-handler 'mode
   :complete 'vim:ex-complete-mode-argument)
