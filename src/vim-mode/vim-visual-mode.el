@@ -307,21 +307,26 @@ This function is also responsible for setting the X-selection."
   (let ((start (min (point) (mark t)))
         (end (max (point) (mark t))))
     (pcase vim:visual-mode-type
-      (`normal   (vim:visual-highlight-normal start end))
-      (`linewise (vim:visual-highlight-linewise start end))
+      (`normal
+       ;; Must highlight region ourselves because emacs will not extend region
+       ;; to include last character.
+       (vim:visual-highlight-normal start end))
+      (`linewise
+       ;; Linewise must be shown by us because Emacs will only highlight
+       ;; region between mark and cursor.
+       (vim:visual-highlight-linewise start end))
       (`block    (vim:visual-highlight-block start end))
       (_         (error "Unknown visual mode %s" vim:visual-mode-type))))
-  (cond
-    ((not (eq window-system 'x)) nil)
-    ((= 1 (length vim:visual-overlays))
-     (vim:x-set-selection nil (car vim:visual-overlays)))
-    ((< 1 (length vim:visual-overlays))
-     (let ((text (join-lines
-                  (-map (lambda (ov)
-                          (buffer-substring-no-properties (overlay-start ov)
-                                                          (overlay-end ov)))
-                        vim:visual-overlays))))
-       (vim:x-set-selection nil text)))))
+  (when (eq window-system 'x)
+    (cond
+      ((= 1 (length vim:visual-overlays))
+       (vim:x-set-selection nil (car vim:visual-overlays)))
+      ((< 1 (length vim:visual-overlays))
+       (let ((text (join-lines
+                    (--map (buffer-substring-no-properties (overlay-start it)
+                                                           (overlay-end it))
+                           vim:visual-overlays))))
+         (vim:x-set-selection nil text))))))
 
 (defun vim:visual-highlight-normal (start end)
   "Adjusts the normal region between `start' and `end'."
@@ -367,11 +372,9 @@ This function is also responsible for setting the X-selection."
           (end-col (save-excursion
                      (goto-char end)
                      (current-column))))
-      (if (> start-col end-col)
-        (setq start-col (prog1
-                            end-col
-                          (setq end-col start-col))
-              start (save-excursion
+      (when (> start-col end-col)
+        (cl-rotatef start-col end-col)
+        (setq start (save-excursion
                       (goto-char start)
                       (move-to-column start-col nil)
                       (point))
@@ -381,7 +384,7 @@ This function is also responsible for setting the X-selection."
                     (point))))
       ;; Force a redisplay so we can do reliable window start/end
       ;; calculations.
-      (sit-for 0)
+      (redisplay)
       (let* ((old vim:visual-overlays)
              (new nil)
              overlay
@@ -417,10 +420,11 @@ This function is also responsible for setting the X-selection."
                 (move-overlay overlay row-start row-end)
                 (setq new (cons overlay new)
                       old (cdr old)))
-              (setq overlay (make-overlay row-start row-end))
-              (overlay-put overlay 'face 'vim:visual-region)
-              (overlay-put overlay 'priority 99)
-              (setq new (cons overlay new))))
+              (progn
+                (setq overlay (make-overlay row-start row-end))
+                (overlay-put overlay 'face 'vim:visual-region)
+                (overlay-put overlay 'priority 99)
+                (setq new (cons overlay new)))))
           (forward-line 1))
         ;; Trim old trailing overlays.
         (vim:visual-delete-overlays old)
@@ -668,17 +672,36 @@ current line."
 (defun region-active-p/take-vim-visual-mode-into-account (is-active)
   "This function advices `region-active-p' to teach it about vim's visual mode."
   (or is-active
-      (vim:visual-mode-p)))
+      (and (vim:visual-mode-p)
+           (not (eq vim:visual-mode-type 'block)))))
 
 (advice-add 'region-active-p :filter-return #'region-active-p/take-vim-visual-mode-into-account)
 (advice-add 'use-region-p :filter-return #'region-active-p/take-vim-visual-mode-into-account)
 
-(defun region-end/fix-range-for-vim (position)
-  (if (vim:visual-mode-p)
-    (+ position 1)
-    position))
+(defun region-beginning/fix-start-for-vim (region-start)
+  (if (and (vim:visual-mode-p)
+           (eq vim:visual-mode-type 'linewise))
+    (save-excursion
+      (goto-char region-start)
+      (line-beginning-position))
+    region-start))
 
-(advice-add 'region-end :filter-return #'region-end/fix-range-for-vim)
+(advice-add 'region-beginning :filter-return #'region-beginning/fix-start-for-vim)
+
+(defun region-end/fix-end-for-vim (region-end)
+  (if (vim:visual-mode-p)
+    (pcase vim:visual-mode-type
+      (`normal
+       (+ region-end 1))
+      (`linewise
+       (save-excursion
+         (goto-char region-end)
+         (line-end-position)))
+      (_
+       region-end))
+    region-end))
+
+(advice-add 'region-end :filter-return #'region-end/fix-end-for-vim)
 
 (provide 'vim-visual-mode)
 
