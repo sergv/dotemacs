@@ -129,7 +129,7 @@ where to insert a newline."
   (when (and (not (eq this-command 'vim:intercept-ESC))
 	     (functionp this-command))
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
-                                            (vim:this-command-keys)))))
+                                            (this-command-keys-vector)))))
 
 
 (provide 'vim-insert-mode)

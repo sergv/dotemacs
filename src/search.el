@@ -175,10 +175,9 @@ Highlighting starts at the beginning of buffer")
   (add-hook 'minibuffer-setup-hook #'search/minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'search/minibuffer-exit)
   (let ((init-regexp
-         (if (region-active-p)
+         (when (region-active-p)
            (regexp-quote
-            (get-region-string-no-properties))
-           nil)))
+            (get-region-string-no-properties)))))
     (setf search/current-regexp init-regexp)
     (search--with-initiated-buffer
      (search/update init-regexp))
