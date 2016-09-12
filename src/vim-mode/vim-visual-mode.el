@@ -160,15 +160,12 @@
                vim:visual-last-begin
                vim:visual-last-end)
     (error "No former visual selection"))
-
   (setq vim:visual-reactivate-last-region t)
   (vim:activate-visual vim:visual-mode-type))
 
 (defun vim:visual-mode-activate ()
   "Called when visual mode is activated."
-
   (setq cursor-type vim:visual-mode-cursor)
-
   (if vim:visual-reactivate-last-region
     (progn
       (set-mark (save-excursion

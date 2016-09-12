@@ -311,11 +311,6 @@ look at vim-core.el."
              (vim:execute-command ',name)
              (apply (get ',name 'function) args)))))))
 
-(font-lock-add-keywords
- 'emacs-lisp-mode
- '("vim:defcmd" "vim:defmotion"))
-
-
 (provide 'vim-macs)
 
 ;; Local Variables:
