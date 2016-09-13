@@ -1692,7 +1692,7 @@ using loop as in `more-clojure/comp'. But if expansion could not be done (e.g.
 some of FUNCTIONSS is an expression that is expected to be evaluated right
 where comp is called) then FALLBACK-FUNCTION will be used."
   (block cannot-optimize
-    (let* ((args-var (gensym "args-var"))
+    (let* ((args-var '#:args)
            (strip-quotation
             (lambda (x)
               (if (and (list? x)

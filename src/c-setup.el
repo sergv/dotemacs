@@ -34,11 +34,6 @@
                                           fname)
                                     " ")))))
 
-  (if-has-makefile-command
-   (setq-local compile-command
-               (concat "make " (file-name-sans-extension
-                                (file-name-nondirectory buffer-file-name)))))
-
   (def-keys-for-map vim:visual-mode-local-keymap
     ("- m" c-macro-expand))
   (c-abbrev+-setup)
