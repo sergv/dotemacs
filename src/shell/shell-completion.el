@@ -203,7 +203,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 <opts> stands for given flags followed by args, no more positional arguments."
   (declare (indent 1))
   (assert (string-match-pure? "pcomplete/" (symbol->string name)))
-  (let ((got-end-of-flags-var (gensym "got-end-of-flags")))
+  (let ((got-end-of-flags-var '#:got-end-of-flags))
     (letrec ((process
               (lambda (definition positional-depth)
                 (assert (and (list? definition)
@@ -234,7 +234,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                          (names
                           (-map (lambda (x) (if (list? x) (first x) (list x)))
                                 positional-defs))
-                         (pcomplete-arg-var (gensym "positional-arg")))
+                         (pcomplete-arg-var '#:positional-arg))
                     `(progn
                        ,@(when names
                            (list `(pcomplete-here ',names)))

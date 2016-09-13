@@ -18,7 +18,7 @@
                                      release-action)
   "Define advice ADV-NAME around FUNC that will surround calls to FUNC
 with locking over LOCK-VAR"
-  (let ((acquired-var (gensym "acquired?")))
+  (let ((acquired-var '#:is-acquired))
     `(defadvice ,func (around ,adv-name activate compile)
        (let ((,acquired-var (and (not ,lock-var)
                                  ,acquire-pred)))

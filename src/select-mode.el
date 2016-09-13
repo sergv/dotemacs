@@ -311,7 +311,7 @@ and symbol, specifying selection type. Currently, selection type may be either
 
 (defmacro select/with-disabled-undo (&rest body)
   (declare (indent 0))
-  (let ((store (gensym)))
+  (let ((store '#:store))
     `(let ((,store buffer-undo-list)
            ;; this disables further undo recording
            (buffer-undo-list t))
@@ -320,7 +320,7 @@ and symbol, specifying selection type. Currently, selection type may be either
 (defmacro select/with-preserved-buffer-modified-p (&rest body)
   "Execute BODY and restore `buffer-modified-p' flag after its done."
   (declare (indent 0))
-  (let ((store (gensym)))
+  (let ((store '#:store))
     `(let ((,store (buffer-modified-p)))
        (unwind-protect
            (progn
