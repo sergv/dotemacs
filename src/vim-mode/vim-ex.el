@@ -678,6 +678,9 @@ the offset and the new position."
             (`next-of-prev-subst  (error "Next-of-prev-subst not yet implemented"))
             (_                    (error "Invalid address: %s" address))))))))
 
+(defconst vim--ex-propmt ">"
+  "Prompt shape for ex mode.")
+
 (defun vim:ex-read-command (&optional initial-input)
   "Starts ex-mode."
   (interactive)
@@ -687,7 +690,7 @@ the offset and the new position."
     (let ((minibuffer-local-completion-map vim:ex-keymap)
           (ido-setup-hook (cons #'vim:ex-setup-ido-keymap setup-hook)))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read ">"
+      (let ((result (completing-read vim--ex-propmt
                                      ;; #'vim:ex-complete
                                      vim:all-known-ex-commands
                                      nil     ;; predicate
