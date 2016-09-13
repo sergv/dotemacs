@@ -32,7 +32,7 @@ end1 and end2 should be exclusive ends of tags.")
   (defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
     "Execute BODY with BB, BE, EB and EE bound to enclonig tags' boundaries
 if such tag can be found."
-    (let ((test-var (gensym)))
+    (let ((test-var '#:test))
       `(let ((,test-var (funcall *markup-tags-context-func*)))
          (if ,test-var
            (destructuring-bind ((,bb . ,be) . (,eb . ,ee))

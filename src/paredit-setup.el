@@ -139,8 +139,8 @@ execution.
 
 This macro is similar to `vim:do-motion'."
   (declare (indent 1))
-  (let ((current-pos (gensym))
-        (motion-var (gensym)))
+  (let ((current-pos '#:current-pos)
+        (motion-var '#:motion-var))
     `(let ((,current-pos (point))
            (,motion-var (progn ,@body)))
        (unless (vim:motion-p ,motion-var)

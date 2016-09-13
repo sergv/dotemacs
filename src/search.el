@@ -452,9 +452,9 @@ Highlighting starts at the beginning of buffer")
                                          (error-message nil))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
-  (let* ((bounds-var (gensym "bounds"))
-         (substr-var (gensym "substr"))
-         (non-strict-var (gensym "non-strict"))
+  (let* ((bounds-var '#:bounds)
+         (substr-var '#:substr)
+         (non-strict-var '#:non-strict)
          (make-search-func
           (lambda (name reset)
             `(defun ,name (&optional ,non-strict-var)

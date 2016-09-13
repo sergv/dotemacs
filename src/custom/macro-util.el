@@ -102,7 +102,7 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
        ,(cond
           ((and has-count
                 (not (null? call-n-times)))
-           (let ((counter (gensym)))
+           (let ((counter '#:counter))
              `(dotimes (,counter (or count 1))
                 ,(if (symbolp func)
                    `(funcall #',func)
@@ -140,10 +140,9 @@ NB does not expect to cache values of ARGS that are nil."
           nil
           "defun-caching: CACHE-ARGS must be a subset of ARGS")
   (let ((cache-var (gentemp "cache"))
-        (query-var (gensym "query"))
-        (hash-table-var (gensym "hash-table"))
-        (value-var (gensym "value"))
-        (not-present-sym `(quote ,(gensym "not-present")))
+        (query-var '#:query)
+        (hash-table-var '#:hash-table)
+        (value-var '#:value)
         (empty-table-expr '(make-hash-table :test #'equal)))
     `(progn
        (defvar ,cache-var ,empty-table-expr)
@@ -170,7 +169,7 @@ NB does not expect to cache values of ARGS that are nil."
              ,query-var
              (let ((,value-var (progn ,@body)))
                ,(funcall (foldr (lambda (x mk-value-to-put)
-                                  (let ((table-var (gensym "table")))
+                                  (let ((table-var '#:table))
                                     (lambda (table)
                                       `(let ((,table-var ,table))
                                          (puthash ,x
@@ -320,19 +319,6 @@ current buffer. INIT form will be executed before performing any jumps."
   `(when buffer-file-name
      ,@body))
 
-(defmacro if-has-makefile-command (&rest body)
-  "Execute BODY if current file is listed in some makefile
-in the same directory the current file is."
-  (let ((fname-var (gensym))
-        (fname-re-var (gensym)))
-    `(if-buffer-has-file
-       (let* ((,fname-var (file-name-nondirectory buffer-file-name))
-              (,fname-re-var (concat "\\<" ,fname-var)))
-         (when (some (lambda (makefile)
-                       (file-contents-matches-re makefile ,fname-re-var))
-                     '("makefile" "Makefile" "MAKEFILE"))
-           ,@body)))))
-
 
 (defun quoted? (x)
   (eq 'quote (car-safe x)))
@@ -370,7 +356,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                      (t
                       (list 'quote command))))))
            (process-key-command-list
-            (lambda (map key-command-list)
+            (lambda (map-var key-command-list)
               (loop
                 for entry in key-command-list
                 if (symbol? entry)
@@ -379,7 +365,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                       (eval entry)
                                       entry)
                 appending (if (symbol? entry)
-                            (funcall process-key-command-list map (eval entry))
+                            (funcall process-key-command-list map-var (eval entry))
                             (destructuring-bind (key command)
                                 (if (quoted? entry)
                                   (eval entry)
@@ -388,12 +374,12 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                 ((list? key)
                                  (list
                                   `(dolist (key ',(--map (eval `(kbd ,it)) key))
-                                     ,(funcall def-key map 'key command))))
+                                     ,(funcall def-key map-var 'key command))))
                                 ((string? key)
-                                 (list (funcall def-key map (eval `(kbd ,key)) command)))
+                                 (list (funcall def-key map-var (eval `(kbd ,key)) command)))
                                 (t
                                  (error "Invalid key: %s" key)))))))))
-    (let* ((map-var (gensym "kmap"))
+    (let* ((map-var '#:keymap)
            (bindings
             `(dolist (,map-var
                       (list
@@ -458,12 +444,12 @@ mean that this piece of code failed to yield proper buffer name at the
 moment of call so it would be skipped on current iteration. Piece
 of code may be called more than once."
   (assert (< 0 try-count))
-  (let ((switch (gensym))
-        (tries (gensym))
-        (called-interpreter (gensym))
-        (done-block (gensym))
-        (runned (gensym))
-        (tmp (gensym)))
+  (let ((switch '#:switch)
+        (tries '#:tries)
+        (called-interpreter '#:called-interpreter)
+        (done-block '#:done-block)
+        (runned '#:runned)
+        (tmp '#:tmp))
     `(defun ,name ()
        ,doc
        (interactive)
@@ -548,8 +534,8 @@ of code may be called more than once."
 
 (defmacro save-current-line-column (&rest body)
   "Save current line and column, execute BODY and go to saved line and column."
-  (let ((line-var (gensym "line"))
-        (column-var (gensym "column")))
+  (let ((line-var '#:line)
+        (column-var '#:column))
     `(let ((,line-var (count-lines1 (point-min) (point)))
            (,column-var (current-column)))
        (unwind-protect
@@ -562,8 +548,8 @@ of code may be called more than once."
 opened in some buffer, then reuse it, and insert its contents in temporary
 buffer if no such buffer exists."
   (declare (indent 1))
-  (let ((buf-var (gensym))
-        (exec-func (gensym)))
+  (let ((buf-var '#:buf)
+        (exec-func '#:exec-func))
     `(let ((,exec-func (lambda () ,@body)))
        (if-let (,buf-var (get-file-buffer ,filename))
          (with-current-buffer ,buf-var
@@ -580,7 +566,7 @@ buffer if no such buffer exists."
 result of `find-first-matching' respectively, if such result is non-nil, and
 return nil otherwise."
   (declare (indent 4))
-  (let ((res-var (gensym)))
+  (let ((res-var '#:result))
     `(when-let (,res-var (find-first-matching ,pred ,items))
        (multiple-value-bind (,item-var ,pred-value-var) ,res-var
          ,@body))))
@@ -589,7 +575,7 @@ return nil otherwise."
 
 (defmacro with-current-frame (frame &rest body)
   (declare (indent 1))
-  (let ((selected (gensym)))
+  (let ((selected '#:selected))
     `(let ((,selected ,frame))
        (select-frame ,frame)
        (unwind-protect
@@ -599,7 +585,7 @@ return nil otherwise."
 
 (defmacro with-disabled-undo (&rest body)
   (declare (indent 0))
-  (let ((store (gensym)))
+  (let ((store '#:store))
     `(let ((,store buffer-undo-list)
            ;; this disables further undo recording
            (buffer-undo-list t))
@@ -608,7 +594,7 @@ return nil otherwise."
 (defmacro with-preserved-buffer-modified-p (&rest body)
   "Execute BODY and restore `buffer-modified-p' flag after its done."
   (declare (indent 0))
-  (let ((store (gensym)))
+  (let ((store '#:store))
     `(let ((,store (buffer-modified-p)))
        (unwind-protect
            (progn
@@ -660,9 +646,9 @@ return nil otherwise."
                (= 2 (length condition)))
           nil
           "if-let error: invalid condition: %s" condition)
-  (let ((tmp-var (gensym "cond-var"))
-        (cond-var (first condition))
-        (expr (first (rest condition))))
+  (let ((tmp-var '#:cond-var)
+        (cond-var (car condition))
+        (expr (cadr condition)))
     `(let ((,tmp-var ,expr))
        (if ,tmp-var
          (let ((,cond-var ,tmp-var))
@@ -705,7 +691,7 @@ return nil otherwise."
 
 (defmacro defparameter (var &optional value doc)
   "Just like CL's defparameter, sets variable value when evaluated."
-  (let ((tmp-var (gensym "store")))
+  (let ((tmp-var '#:store))
     `(progn
        (setf ,tmp-var ,value)
        (if (boundp ',var)
@@ -715,7 +701,7 @@ return nil otherwise."
 
 (defmacro defparameter-local (var &optional value doc)
   "Similar to `defparameter' but defines buffer-local variables."
-  (let ((tmp-var (gensym "store")))
+  (let ((tmp-var '#:store))
     `(progn
        (make-variable-buffer-local ',var)
        (setf ,tmp-var ,value)
