@@ -402,7 +402,7 @@ greater indenation as current line."
     ("M-?"     python-convolute-lines)
 
     ("SPC SPC" switch-to-python)
-    ("g s s"   vim:replace-symbol-at-point)
+    ("g s s"   vim-replace-symbol-at-point)
 
     ("z o"     hs-show-block)
     ("z c"     hs-hide-block)
