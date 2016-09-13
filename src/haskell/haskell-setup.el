@@ -6,24 +6,20 @@
 ;; Created: long ago
 ;; Description:
 
-(require 'common)
-(require 'comment-util)
-(require 'browse-kill-ring-setup)
-
 (require 'align)
+(require 'browse-kill-ring-setup)
+(require 'comment-util)
+(require 'common)
+(require 'company-eproj)
+(require 'company-mode-setup)
 (require 'compilation-setup)
 (require 'eproj)
-(require 'company-eproj)
-(require 'shell-setup)
-(require 'company-mode-setup)
-
-(require 'haskell-checkers)
-(require 'shm)
-
 (require 'haskell-abbrev+)
 (require 'haskell-misc)
 (require 'haskell-outline)
 (require 'haskell-shm)
+(require 'shell-setup)
+(require 'shm)
 
 ;; never cache module alist to a file
 (setf inferior-haskell-module-alist-file nil)
