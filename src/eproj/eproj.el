@@ -723,9 +723,8 @@ variables accordingly."
                                                         buffer-expr
                                                         caching-var
                                                         value-predicate)
-
-  (let* ((buffer-var (gensym "buffer"))
-         (is-nil (gensym "is-nil"))
+  (let* ((buffer-var '#:buffer)
+         (is-nil '#:is-nil)
          (is-nil-value `(quote ,is-nil)))
     `(let ((,buffer-var ,buffer-expr))
        (with-current-buffer ,buffer-var
