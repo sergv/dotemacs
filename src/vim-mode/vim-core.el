@@ -344,8 +344,8 @@ returned. Otherwise a new vim:motion is created depending on the
 position of (point) before and after executing the motion command
 and the (default) type of the motion."
   (declare (indent 1))
-  (let ((current-pos #:current-pos)
-        (motion #:motion))
+  (let ((current-pos '#:current-pos)
+        (motion '#:motion))
     `(let ((,current-pos (point))
            (,motion ,expression))
        (if (vim:motion-p ,motion)

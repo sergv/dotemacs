@@ -12,7 +12,7 @@
 
 (defmacro vim:kbdmacro-to-command (events)
   "Creates a command passing prefix-argument to given keyboard-macro `events'."
-  (let ((arg (make-symbol "arg")))
+  (let ((arg '#:arg))
     `(lambda (,arg)
        (interactive "P")
        (execute-kbd-macro
