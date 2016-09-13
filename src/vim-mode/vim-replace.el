@@ -1,4 +1,4 @@
-;; util-vim-replace.el --- -*- lexical-binding: t; -*-
+;; vim-replace.el --- -*- lexical-binding: t; -*-
 
 ;; Copyright (C) Sergey Vinokurov
 ;;
@@ -6,10 +6,10 @@
 ;; Created: long ago
 ;; Description:
 
-
 (require 'vim-core)
+(require 'vim-ex)
 
-(defun* util:construct-ex-replace-command (str
+(defun* vim--construct-ex-replace-command (str
                                            &key
                                            (word nil)
                                            (symbol nil)
@@ -20,9 +20,9 @@
           (cond (word "\\>") (symbol "\\_>"))
           ","
           (when fill-replace
-            (vim:substitute-quote str))))
+            (vim--substitute-quote str))))
 
-(defun vim:substitute-quote (text)
+(defun vim--substitute-quote (text)
   "Just quote backslash for now because it has special meaning and all other
 special characters are introduced via backlash only."
   (replace-regexp-in-string "\\\\"      ;; single backslash
@@ -31,18 +31,18 @@ special characters are introduced via backlash only."
                             ))
 
 
+(defsubst vim--get-str-covered-by-motion (motion)
+  (buffer-substring-no-properties
+   (vim:motion-begin-pos motion)
+   (vim:motion-end-pos motion)))
 
-(defsubst util:get-str-covered-by-vim-motion (motion)
-  (buffer-substring-no-properties (vim:motion-begin-pos motion)
-                                  (vim:motion-end-pos motion)))
-
-(defun util:ex-customized-substitute-command (str)
+(defun vim--start-ex-with-customized-substitute-command (str)
   (interactive)
   (let ((vim:ex-current-buffer (current-buffer))
         (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read ":"
+      (let ((result (completing-read vim--ex-propmt
                                      'vim:ex-complete
                                      nil
                                      nil
@@ -52,49 +52,44 @@ special characters are introduced via backlash only."
                    (not (zerop (length result))))
           (vim:ex-execute-command result))))))
 
-
-(vim:defcmd vim:replace-word (nonrepeatable)
+(vim:defcmd vim-replace-word (nonrepeatable)
   "Partially construct vim ex-replace command from word at point."
-  (util:ex-customized-substitute-command
-   (util:construct-ex-replace-command
-    (util:get-str-covered-by-vim-motion
+  (vim--start-ex-with-customized-substitute-command
+   (vim--construct-ex-replace-command
+    (vim--get-str-covered-by-motion
      (save-excursion
        (vim:motion-inner-word)))
     :word t
     :fill-replace (not current-prefix-arg))))
 
-(vim:defcmd vim:replace-WORD (nonrepeatable)
+(vim:defcmd vim-replace-WORD (nonrepeatable)
   "Partially construct vim ex-replace command from WORD at point."
-  (util:ex-customized-substitute-command
-   (util:construct-ex-replace-command
-    (util:get-str-covered-by-vim-motion
+  (vim--start-ex-with-customized-substitute-command
+   (vim--construct-ex-replace-command
+    (vim--get-str-covered-by-motion
      (save-excursion
        (vim:motion-inner-WORD))))
    :fill-replace (not current-prefix-arg)))
 
-(vim:defcmd vim:replace-selected (nonrepeatable)
+(vim:defcmd vim-replace-selected (nonrepeatable)
   "Partially construct vim ex-replace command from selected region."
-  (when (vim:visual-mode-p)
-    (util:ex-customized-substitute-command
-     (util:construct-ex-replace-command
-      (buffer-substring-no-properties
-       (region-beginning)
-       (1+ (region-end)))
-      :fill-replace (not current-prefix-arg)))))
+  (vim--start-ex-with-customized-substitute-command
+   (vim--construct-ex-replace-command
+    (get-region-string-no-properties)
+    :fill-replace (not current-prefix-arg))))
 
-(vim:defcmd vim:replace-symbol-at-point (nonrepeatable)
+(vim:defcmd vim-replace-symbol-at-point (nonrepeatable)
   "Partially construct vim ex-replace command from symbol at point.
 With prefix argument puts symbol at point also in substitute part"
-  (util:ex-customized-substitute-command
-   (util:construct-ex-replace-command
+  (vim--start-ex-with-customized-substitute-command
+   (vim--construct-ex-replace-command
     (thing-at-point 'symbol)
     :symbol t
     :fill-replace (not current-prefix-arg))))
 
-(provide 'util-vim-replace)
-
+(provide 'vim-replace)
 
 ;; Local Variables:
 ;; End:
 
-;; util-vim-replace.el ends here
+;; vim-replace.el ends here

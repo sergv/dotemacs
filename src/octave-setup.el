@@ -335,7 +335,7 @@ in GROUP-NUMS."
     ("<f6>"    octave-load-current-file)
     ("SPC SPC" switch-to-octave)
     ("g <tab>" octave-indent-defun)
-    ("g s s"   vim:replace-symbol-at-point)
+    ("g s s"   vim-replace-symbol-at-point)
 
     ("j"       octave-send-line)
     ("J"       octave-send-defun)

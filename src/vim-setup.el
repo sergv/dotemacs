@@ -11,7 +11,7 @@
 (require 'keys-def)
 (require 'search)
 (require 'smartparens-setup)
-(require 'util-vim-replace)
+(require 'vim-replace)
 
 ;;; configuration variables
 
@@ -167,9 +167,9 @@ like \"d w\".")
   ("C-p"       yank)
   ("C-S-p"     browse-kill-ring)
 
-  ("g s w"     vim:replace-word)
-  ("g s W"     vim:replace-WORD)
-  ("g s s"     vim:replace-symbol-at-point)
+  ("g s w"     vim-replace-word)
+  ("g s W"     vim-replace-WORD)
+  ("g s s"     vim-replace-symbol-at-point)
 
   ;; ("g g f"     find-filename-in-tree-recursive)
   ("g c c"     comment-util-comment-lines)
@@ -199,7 +199,7 @@ like \"d w\".")
   ("SPC SPC" vim:visual-exchange-point-and-mark)
 
   ("g r"     rgrep-region)
-  ("g s"     vim:replace-selected)
+  ("g s"     vim-replace-selected)
   (("(" ")") vim:wrap-parens)
   (("[" "]") vim:wrap-braces)
   (("{" "}") vim:wrap-brackets))

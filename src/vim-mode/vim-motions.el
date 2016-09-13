@@ -164,13 +164,14 @@
   "Sets the change mark . to `beg'."
   (vim:set-mark ?. beg))
 
-(add-hook 'vim-mode-on-hook
-          (lambda ()
-            (add-hook 'before-change-functions 'vim:set-change-mark)))
+(defun vim--register-set-change-mark-function ()
+  (add-hook 'before-change-functions 'vim:set-change-mark))
 
-(add-hook 'vim-mode-off-hook
-          (lambda ()
-            (remove-hook 'before-change-functions 'vim:set-change-mark)))
+(defun vim--unregister-set-change-mark-function ()
+  (remove-hook 'before-change-functions 'vim:set-change-mark))
+
+(add-hook 'vim-mode-on-hook #'vim--register-set-change-mark-function)
+(add-hook 'vim-mode-off-hook #'vim--unregister-set-change-mark-function)
 
 (vim:defmotion vim:motion-left (exclusive count)
   "Move the cursor count characters left."
