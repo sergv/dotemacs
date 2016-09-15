@@ -8,14 +8,17 @@
 ;; Requirements:
 ;; Status:
 
-
+;;;###autoload
 (autoload 'debsources-mode "debsources" "Start debsources mode.")
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("sources\\.list\\'" . debsources-mode))
 
+;;;###autoload
 (defun debsources-setup ()
   (init-common :use-yasnippet nil))
 
+;;;###autoload
 (add-hook 'debsources-mode-hook #'debsources-setup)
 
 (provide 'debsources-setup)

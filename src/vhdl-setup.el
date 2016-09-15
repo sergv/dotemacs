@@ -8,7 +8,7 @@
 
 (require 'common)
 
-
+;;;###autoload
 (defun vhdl-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -20,6 +20,7 @@
                  nil
                  :enable-yasnippet t))
 
+;;;###autoload
 (add-hook 'vhdl-mode-hook #'vhdl-setup)
 
 (provide 'vhdl-setup)

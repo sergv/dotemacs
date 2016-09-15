@@ -6,10 +6,9 @@
 ;; Created: long ago
 ;; Description:
 
-(require 'search)
-(require 'yafolding)
 (require 'haskell-misc)
 (require 'search)
+(require 'yafolding)
 
 (defadvice yafolding-go-parent-element
     (after
@@ -24,6 +23,7 @@
  (yafolding-show-element)
  (haskell-mode))
 
+;;;###autoload
 (defun* haskell-setup-folding (&key (enable-hs-minor-mode t))
   (when enable-hs-minor-mode
     (hs-minor-mode +1))
@@ -42,12 +42,14 @@
   (def-keys-for-map vim:visual-mode-local-keymap
     ("z c" yafolding-hide-region)))
 
+;;;###autoload
 (defun haskell-hide-indented-or-sexp ()
   (interactive)
   (if (haskell-outline-on-sexp?)
     (hs-hide-block)
     (yafolding-hide-element)))
 
+;;;###autoload
 (defun haskell-show-indented-or-sexp ()
   (interactive)
   (if (haskell-outline-on-sexp?)

@@ -112,6 +112,7 @@ string patterns."
                 "[ \t\n\r\f\v]+"
                 t))
 
+;;;###autoload
 (defun egrep (regexp exts-globs dir &optional ignore-case)
   (interactive
    (let ((regexp (grep-read-regexp)))
@@ -125,6 +126,7 @@ string patterns."
   (assert (listp exts-globs))
   (egrep-search regexp exts-globs grep-find-ignored-files dir ignore-case))
 
+;;;###autoload
 (defun egrep-region (str exts-globs dir &optional ignore-case)
   (interactive
    (let* ((ignore-case?

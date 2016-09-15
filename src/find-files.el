@@ -8,6 +8,7 @@
 
 (require 'dash)
 
+;;;###autoload
 (defun* find-rec-do (path
                      &key
                      (filep (lambda (p) t))
@@ -37,6 +38,7 @@ folder."
                 (t nil)))))
     (funcall go path)))
 
+;;;###autoload
 (defun* find-rec (path
                   &key
                   (filep (lambda (p) t))
@@ -80,6 +82,7 @@ Valid values are:
     ((or `find `cygwin-find) "find")
     (`busybox "busybox")))
 
+;;;###autoload
 (defun* find-rec* (&key
                    root
                    extensions-globs

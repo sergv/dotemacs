@@ -20,6 +20,11 @@
 
 (require 'vim-setup)
 
+;;;###autoload
+(autoload 'dired-single-buffer "dired-single" "" t)
+;;;###autoload
+(autoload 'dired-setup "dired-setup")
+
 (setf image-dired-dir (path-concat +prog-data-path+ "image-dired"))
 
 (setf dired-omit-files
@@ -122,9 +127,13 @@ current one."
   (interactive)
   (dired-single-buffer ".."))
 
+;;;###autoload
 (defun dired-setup ()
   (vim:local-emap "ss" 'vim:dired-do-substitute)
   (vim:local-emap "sub" 'vim:dired-do-substitute))
+
+;;;###autoload
+(add-hook 'dired-mode-hook #'dired-setup)
 
 (provide 'dired-setup)
 

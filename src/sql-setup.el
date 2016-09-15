@@ -6,11 +6,12 @@
 ;; Created: Friday, 20 January 2012
 ;; Description:
 
-
+;;;###autoload
 (eval-after-load "sql"
   '(progn
      (load-library "sql-indent")))
 
+;;;###autoload
 (defun sql-setup ()
   (init-common :use-whitespace 'tabs-only)
 
@@ -25,8 +26,8 @@
   (def-keys-for-map vim:visual-mode-local-keymap
     ("<f9>" sql-send-region)))
 
+;;;###autoload
 (add-hook 'sql-mode-hook #'sql-setup)
-
 
 (provide 'sql-setup)
 

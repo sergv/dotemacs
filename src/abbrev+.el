@@ -91,7 +91,7 @@ and second being actual substituted text."
             t))))
     (values insert-spacep (buffer-substring-no-properties start (point)))))
 
-
+;;;###autoload
 (defun abbrev+-expand (&optional dont-expand)
   "Expand text before point that matches against one of regular expressions in
 `abbrev-abbreviations'. Returns nil if nothing was substituted."
@@ -164,17 +164,19 @@ and second being actual substituted text."
   "Fallback function called by `abbrev+-insert-space-or-expand-abbrev'
 if no expansion was produced.")
 
+;;;###autoload
 (defun abbrev+-insert-space-or-expand-abbrev (&optional dont-expand)
   (interactive (list current-prefix-arg))
   (unless (abbrev+-expand dont-expand)
     (funcall abbrev+-fallback-function)))
 
+;;;###autoload
 (defun abbrev+-org-self-insert-or-expand-abbrev (&optional dont-expand)
   (interactive (list current-prefix-arg))
   (unless (abbrev+-expand dont-expand)
     (org-self-insert-command 1)))
 
-(defun make-re-with-optional-suffix (str suffix-len)
+(defun abbrev+--make-re-with-optional-suffix (str suffix-len)
   (letrec ((make-suffix
             (lambda (list)
               (if (null list)
@@ -201,11 +203,10 @@ a list of the (partN suffix-lengthN) elements, resulting re would
 match part1-part2-...-partN with optional dashes and suffix
 recognition."
   (concat "("
-          (mapconcat (lambda (x) (make-re-with-optional-suffix (car x) (cadr x)))
+          (mapconcat (lambda (x) (abbrev+--make-re-with-optional-suffix (car x) (cadr x)))
                      name-parts
                      "-?")
           "\\_>"))
-
 
 (provide 'abbrev+)
 

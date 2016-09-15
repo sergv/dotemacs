@@ -10,8 +10,7 @@
 
 (require 'common)
 
-(autoload 'awk-start "awk+" nil t)
-
+;;;###autoload
 (defun awk-setup ()
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only)
@@ -22,7 +21,10 @@
     ("g t" c-awk-beginning-of-defun)
     ("g h" c-awk-end-of-defun)))
 
+;;;###autoload
 (add-hook 'awk-mode-hook #'awk-setup)
+
+(provide 'awk-setup)
 
 ;; Local Variables:
 ;; End:

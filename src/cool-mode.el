@@ -76,6 +76,7 @@
           symbol-end)
      (0 font-lock-constant-face))))
 
+;;;###autoload
 (define-derived-mode cool-mode prog-mode "Cool"
   "Major mode to edit .gitconfig files"
   (setq-local comment-start "--+")
@@ -87,6 +88,15 @@
               '(cool-font-lock-keywords
                 nil ;; perform syntactic fontification (e.g. strings, comments)
                 )))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist
+             (cons (rx (or ".cl"
+                           ".cool")
+                       eol)
+                   'cool-mode))
+
+(provide 'cool-mode)
 
 ;; Local Variables:
 ;; End:

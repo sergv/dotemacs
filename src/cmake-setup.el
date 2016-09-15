@@ -6,11 +6,13 @@
 ;; Created: Tuesday,  6 November 2012
 ;; Description:
 
+;;;###autoload
 (setq auto-mode-alist
       (append '(("CMakeLists\\.txt\\'" . cmake-mode)
                 ("\\.cmake\\'" . cmake-mode))
               auto-mode-alist))
 
+;;;###autoload
 (autoload 'cmake-mode "cmake-mode" nil t)
 
 (defparameter cmake-keywords-re
@@ -100,6 +102,7 @@
        (* whitespace)))
   "Regexp to mach CMake keywords followed by whitespace.")
 
+;;;###autoload
 (defun cmake-normalize-style ()
   (interactive)
   (save-match-data
@@ -112,12 +115,13 @@
                                " ")
                        t)))))
 
+;;;###autoload
 (defun cmake-setup ()
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only))
 
+;;;###autoload
 (add-hook 'cmake-mode-hook #'cmake-setup)
-
 
 (provide 'cmake-setup)
 

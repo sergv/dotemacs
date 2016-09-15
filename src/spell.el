@@ -12,6 +12,14 @@
 (require 'flyspell)
 (require 'ispell)
 
+;; (global-set-key [f1] 'ispell-word)
+;; (global-set-key [f7] 'ispell-buffer); проверить орфографию в текущем буфере
+;; (global-set-key [f8] 'ispell-region)
+;; (global-set-key [f9] 'auto-fill-mode); вкл/выкл автозаполнения
+;; (global-set-key [f10] 'flyspell-english)
+;; (global-set-key [f11] 'flyspell-russian)
+;; (global-set-key [f12] 'flyspell-mode); вкл/выкл проверки орфографии "на ходу"
+
 (setf ispell-program-name "aspell"
 
       ;; my dictionary-alist, using for redefinition russian dictionary
@@ -53,6 +61,7 @@
       ;; '("--sug-mode=fast")
       )
 
+;;;###autoload
 (defun flyspell-russian ()
   (interactive)
   (flyspell-mode t)
@@ -61,6 +70,7 @@
   (message "Russian dictionary - Spell Checking completed."))
 
 ;; English
+;;;###autoload
 (defun flyspell-english ()
   (interactive)
   (flyspell-mode t)
@@ -69,13 +79,13 @@
   (message "English dictionary - Spell Checking completed."))
 
 
+;;;###autoload
 (add-hook 'text-mode-hook 'flyspell-mode)
 
 (setf ispell-have-new-look t
       ispell-enable-tex-parser t
       ;; flyspell-delay 1
       flyspell-always-use-popup t)
-
 
 (provide 'spell)
 
