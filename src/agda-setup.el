@@ -6,8 +6,9 @@
 ;; Created: Wednesday, 14 May 2014
 ;; Description:
 
-(require 'common)
 (require 'agda-abbrev+)
+(require 'agda2)
+(require 'common)
 
 (eval-after-load "agda-input"
   `(progn
@@ -22,27 +23,35 @@
      (push '("top" "⊤") agda-input-translations)
      (agda-input-setup)))
 
+;;;###autoload (autoload 'agda-align-on-equals "agda-setup.el" nil t)
 (make-align-function agda-align-on-equals
                      "=[^=]"
                      :require-one-or-more-spaces t)
+;;;###autoload (autoload 'agda-align-on-arrows "agda-setup.el" nil t)
 (make-align-function agda-align-on-arrows
                      "\\(?:->\\|→\\)\\(?: \\|$\\)")
+;;;###autoload (autoload 'agda-align-on-left-arrows "agda-setup.el" nil t)
 (make-align-function agda-align-on-left-arrows
                      "\\(?:<-\\|←\\)\\(?: \\|$\\)")
+;;;###autoload (autoload 'agda-align-on-pipes "agda-setup.el" nil t)
 (make-align-function agda-align-on-pipes
                      "|\\(?:[^|]\\|$\\)"
                      :require-one-or-more-spaces t)
+;;;###autoload (autoload 'agda-align-on-commas "agda-setup.el" nil t)
 (make-align-function agda-align-on-commas
                      ",\\(?:[^,\)]\\|$\\)")
+;;;###autoload (autoload 'agda-align-on-comments "agda-setup.el" nil t)
 (make-align-function agda-align-on-comments
                      "--+\\(?: \\|$\\)"
                      :require-one-or-more-spaces t)
+;;;###autoload (autoload 'agda-align-on-colons "agda-setup.el" nil t)
 (make-align-function agda-align-on-colons
                      "\\(?::[^:]\\)")
 
 (vim:defcmd vim:agda-load-file (nonrepeatable)
   (agda2-load))
 
+;;;###autoload
 (defun agda-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -102,6 +111,9 @@
     ("g a - -"         agda-align-on-comments)
     ("g a :"           agda-align-on-colons))
   (agda-abbrev+-setup))
+
+;;;###autoload
+(add-hook 'agda2-mode-hook #'agda-setup)
 
 (defun agda2-compute-normalised-region (&optional arg)
   "Computes the normal form of the given expression.

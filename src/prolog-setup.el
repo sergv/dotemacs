@@ -10,12 +10,16 @@
 
 (require 'browse-kill-ring-setup)
 
+;;;###autoload
 (autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)
+;;;###autoload
 (autoload 'prolog-mode "prolog" "Major mode for editing Prolog programs." t)
+;;;###autoload
 (autoload 'mercury-mode "prolog" "Major mode for editing Mercury programs." t)
 
 (setf prolog-system 'swi)
 
+;;;###autoload
 (setf auto-mode-alist
       (cons '("\\.pl$" . prolog-mode)
             (cons '("\\.pro$" . prolog-mode)
@@ -23,7 +27,7 @@
                              auto-mode-alist))))
 ;; (add-to-list 'auto-mode-alist '("\\.m$" . mercury-mode))
 
-
+;;;###autoload
 (defun prolog-setup ()
   (init-common :use-yasnippet nil
                :use-render-formula t
@@ -37,6 +41,7 @@
 
     ("<f6>"    prolog-consult-file)))
 
+;;;###autoload (autoload 'switch-to-prolog "prolog-setup" nil t)
 (define-switch-to-interpreter
   switch-to-prolog
   ("*prolog*")
@@ -45,9 +50,9 @@
   :save-buffer t
   :error-msg "Can't switch to prolog interpreter")
 
-
 ;;;
 
+;;;###autoload
 (defun prolog-inferior-setup ()
   (init-common :use-yasnippet nil :use-comment nil :use-fci nil)
   (init-repl :create-keymaps nil)
@@ -80,12 +85,15 @@
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)))
 
+;;;###autoload
 (defun restart-prolog ()
   "Restart prolog process."
   (interactive)
   (run-prolog t))
 
+;;;###autoload
 (add-hook 'prolog-mode-hook #'prolog-setup)
+;;;###autoload
 (add-hook 'prolog-inferior-mode-hook #'prolog-inferior-setup)
 
 (provide 'prolog-setup)

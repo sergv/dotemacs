@@ -20,8 +20,8 @@
 (defadvice:auto-comment vim:cmd-insert-line-above)
 (defadvice:auto-comment haskell-newline)
 
-
-(defparameter +comment-util-comment-format-alist+
+;;;###autoload
+(defvar +comment-util-comment-format-alist+
   '((haskell-mode          (one-line "--") (line-regexp "--+"))
     (haskell-c-mode        (one-line "--") (line-regexp "--+"))
     (haskell-c2hs-mode     (one-line "--") (line-regexp "--+"))
@@ -119,6 +119,7 @@ Contains single-line and region comments.")
 (defvar-local *comment-util-current-format* nil
   "Comment format for current buffer.")
 
+;;;###autoload
 (define-minor-mode comment-util-mode
   "Minor mode to handle comments in various languages."
   nil
@@ -156,6 +157,7 @@ Contains single-line and region comments.")
   line-regexp)
 
 ;;; User-interface functions
+;;;###autoload
 (defun comment-util-comment-lines (lines)
   "Comment LINES lines eiter up if argument LINES is positive
 or down if LINES is negative or comment whole region if region is active."
@@ -165,6 +167,7 @@ or down if LINES is negative or comment whole region if region is active."
       (comment-util-comment-region (first bounds) (second bounds)))
     (comment-util-comment-next-n-lines lines)))
 
+;;;###autoload
 (defun comment-util-comment-region (begin end)
   "Comment region between BEGIN and END position inserting region comments if
 they are defined for current mode or one-line comments otherwise."
@@ -174,6 +177,7 @@ they are defined for current mode or one-line comments otherwise."
       (comment-util-comment-chunk-region begin end)
       (comment-util--comment-lined-region begin end))))
 
+;;;###autoload
 (defun comment-util-uncomment-region ()
   "Uncomment region at point commented either with line comments or block comments."
   (interactive)
@@ -195,6 +199,7 @@ they are defined for current mode or one-line comments otherwise."
 ;;; These two functions require somewhat special threat because
 ;;; the're used /only/ in vim visual mode
 
+;;;###autoload
 (defun comment-util-uncomment-region-simple (begin end)
   "Uncomment region between begin and end presumably commented with
 line comments. If that's not the case then do nothing. Should
@@ -401,6 +406,7 @@ be used only for vim-visual-mode of the vim-mode package."
 
 ;;;;; Some lisp-specific comment functions, inspired by paredit.el
 
+;;;###autoload
 (defun lisp-comment-sexp (&optional count)
   "If point is at the beginning of the sexp then comment it, else
 move one comment up using `backward-up-list' and comment resulting
@@ -492,6 +498,7 @@ commented parts and leave point unchanged."
         (setf end (line-end-position)))
       (values start end))))
 
+;;;###autoload
 (defun comment-util-delete-commented-part ()
   "Delete all adjacent lines that are commented by line regexps."
   (interactive)
@@ -521,6 +528,7 @@ commented parts and leave point unchanged."
           (when (bobp)
             (funcall clear-comment)))))))
 
+;;;###autoload
 (defun lisp-uncomment-sexp ()
   (interactive)
   (multiple-value-bind (start end)
@@ -544,9 +552,10 @@ commented parts and leave point unchanged."
                  (lisp-pos-is-beginning-of-sexp? (point)))
         (delete-whitespace-forward)))))
 
-
+;;;###autoload
 (autoload 'shm-current-node "shm" "" nil)
 
+;;;###autoload
 (defun haskell-comment-node (&optional count)
   "Similar to `lisp-comment-sexp' buf for current haskell node."
   (interactive (list current-prefix-arg))
@@ -573,7 +582,6 @@ commented parts and leave point unchanged."
                node-count
                (current-column)))))
         (comment-util-comment-lines 1)))))
-
 
 (provide 'comment-util)
 

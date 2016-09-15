@@ -16,8 +16,12 @@
 (require 'browse-kill-ring-setup)
 (require 'eproj-setup)
 
+;;;###autoload
+(require 'clojure-mode-autoloads)
+
 (setf clojure-max-backtracking 10)
 
+;;;###autoload
 (defun clojure-setup ()
   (lisp-setup :use-fci t)
   (setq-local lisp-indent-function #'clojure-indent-function)
@@ -31,6 +35,9 @@
 
   (setup-eproj-symbnav)
   (clojure-abbrev+-setup))
+
+;;;###autoload
+(add-hook 'clojure-mode-hook #'clojure-setup)
 
 (provide 'clojure-setup)
 

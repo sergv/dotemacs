@@ -13,14 +13,14 @@
 
 ;;; Prelude
 
-(add-to-load-path
-  (concat +emacs-standalone-path+ "/tuareg"))
+;;;###autoload
 (load "tuareg-site-file")
 
 (defalias 'ocaml-mode #'tuareg-mode)
 
 ;;; Helper function
 
+;;;###autoload (autoload 'switch-to-ocaml-repl "ocaml-setup" nil t)
 (define-switch-to-interpreter
   switch-to-ocaml-repl
   ("*ocaml-repl*")
@@ -29,16 +29,19 @@
   :save-buffer t
   :error-msg "Can't switch to ocaml repl")
 
+;;;###autoload
 (defun ocaml-indent-buffer ()
   (interactive)
   (save-excursion
     (indent-whole-buffer)))
 
+;;;###autoload
 (add-to-list '*mode-buffer-indent-function-alist*
              (cons 'tuareg-mode #'ocaml-indent-buffer))
 
 ;;; ocaml-setup
 
+;;;###autoload
 (defun ocaml-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -52,6 +55,7 @@
     ("SPC SPC" switch-to-ocaml-repl)
     ("<f6>"    tuareg-eval-buffer)))
 
+;;;###autoload
 (add-hook 'tuareg-mode-hook #'ocaml-setup)
 
 ;;; ocaml repl
@@ -64,6 +68,7 @@
   (comint-send-input)
   (goto-char (point-max)))
 
+;;;###autoload
 (defun ocaml-interactive-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
@@ -75,9 +80,8 @@
     ("SPC SPC"    comint-clear-prompt)
     ("<f6>"       tuareg-interrupt-ocaml)))
 
+;;;###autoload
 (add-hook 'tuareg-interactive-mode-hook #'ocaml-interactive-setup)
-
-;;; end
 
 (provide 'ocaml-setup)
 

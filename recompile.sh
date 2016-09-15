@@ -15,19 +15,31 @@ fi
 emacs_dir=${1:-"${EMACS_DIR}"}
 
 function update-dir-autoloads {
-    local dir="$1"
-    local name="$2"
-    if [[ ! -d "$dir" ]]; then
-        echo "update-dir-autoloads: directory $dir does not exist"
-        exit 1
-    fi
-    emacs --batch --eval "(progn (setq generated-autoload-file \"$emacs_dir/$dir/$name\") (update-directory-autoloads \"$emacs_dir/$dir\"))"
+    local name="$1"
+    shift 1
+    local dirs=""
+    for dir in "${@}"; do
+        if [[ ! -d "$dir" ]]; then
+            echo "update-dir-autoloads: directory $dir does not exist"
+            exit 1
+        fi
+        if [[ -z "$dirs" ]]; then
+            dirs="\"$emacs_dir/$dir\""
+        else
+            dirs="\"$emacs_dir/$dir\" $dirs"
+        fi
+    done
+    emacs --batch --eval "(progn (toggle-debug-on-error) (setq generated-autoload-file \"$emacs_dir/$name\") (update-directory-autoloads $dirs) (message (concat \"Updated autoloads in \" $dirs)))"
 }
 
-update-dir-autoloads "third-party/clojure-mode" "clojure-mode-autoloads.el"
-update-dir-autoloads "third-party/smartparens" "smartparens-autoloads.el"
-update-dir-autoloads "third-party/sml-mode" "sml-mode-autoloads.el"
-update-dir-autoloads "third-party/flycheck" "flycheck-autoloads.el"
+update-dir-autoloads "src/local-autoloads.el" "src" "src/lisp" "src/haskell" "src/latex" "src/shell"
+
+echo "recompile.sh: exiting prematurely"
+exit 1
+update-dir-autoloads "third-party/clojure-mode/clojure-mode-autoloads.el" "third-party/clojure-mode"
+update-dir-autoloads "third-party/smartparens/smartparens-autoloads.el" "third-party/smartparens"
+update-dir-autoloads "third-party/sml-mode/sml-mode-autoloads.el" "third-party/sml-mode"
+update-dir-autoloads "third-party/flycheck/flycheck-autoloads.el" "third-party/flycheck"
 if which make >/dev/null; then
     pushd "third-party/org-mode"
     make autoloads

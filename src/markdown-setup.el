@@ -10,19 +10,25 @@
 
 (eval-when-compile (require 'cl-lib))
 
+;;;###autoload
 (autoload 'markdown-mode "markdown-mode"
           "Major mode for editing Markdown files" t)
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 
+;;;###autoload
 (defun markdown-setup ()
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("'" outline-up-heading)))
 
+;;;###autoload
 (add-hook 'markdown-mode-hook #'markdown-setup)
 
 (provide 'markdown-setup)

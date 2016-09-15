@@ -8,25 +8,29 @@
 ;; Requirements:
 ;; Status:
 
-(autoload 'browse-kill-ring
-          "browse-kill-ring"
-          "Display `kill-ring' items in another buffer."
-          t)
+(require 'browse-kill-ring)
 
-(autoload 'browse-comint-input-history
-          "browse-kill-ring"
-          "Display `comint-input-ring' items in another buffer."
-          t)
+;;;###autoload
+(defun browse-kill-ring ()
+  (interactive)
+  (browse-kill-ring-start-for-variable 'kill-ring "*Kill Ring*"))
 
-(autoload 'browse-haskell-interactive-input-history
-          "browse-kill-ring"
-          "Display `haskell-interactive-mode-history' items in another buffer."
-          t)
+;;;###autoload
+(defun browse-eshell-input-history ()
+  (interactive)
+  (browse-kill-ring-start-for-variable 'eshell-history-ring "*Eshell History*"))
 
-(eval-after-load "browse-kill-ring"
-  '(progn
-     (advice-remove 'kill-new #'browse-kill-ring-no-kill-new-duplicates)))
+;;;###autoload
+(defun browse-comint-input-history ()
+  (interactive)
+  (browse-kill-ring-start-for-variable 'comint-input-ring "*Comint Input History*"))
 
+;;;###autoload
+(defun browse-haskell-interactive-input-history ()
+  (interactive)
+  (browse-kill-ring-start-for-variable 'haskell-interactive-mode-history "*Haskell interactive history*"))
+
+;;;###autoload
 (defun browse-kill-ring-mode-setup ()
   (setq-local mode-line-format
               '(" %[%b%] "
@@ -35,7 +39,7 @@
                 ("("
                  mode-name
                  (:eval (format "[%s items]"
-                                (generic/length (browse-kill-ring/get-ring-value))))
+                                (generic/length (browse-kill-ring--get-ring-value))))
                  ")")
                 (:eval
                  (when (buffer-narrowed?)
@@ -43,7 +47,6 @@
   (def-keys-for-map browse-kill-ring-mode-map
     +vim-special-keys+
     ("y"        nil)
-
     (","        browse-kill-ring-delete)
     ("h"        browse-kill-ring-forward)
     ("t"        browse-kill-ring-previous)
@@ -68,6 +71,7 @@
 
     ("<escape>" browse-kill-ring-quit)))
 
+;;;###autoload
 (add-hook 'browse-kill-ring-mode-hook #'browse-kill-ring-mode-setup)
 
 (provide 'browse-kill-ring-setup)

@@ -24,6 +24,12 @@
 (require 'rainbow-delimiters)
 (require 'paredit-autoload)
 
+;;;###autoload
+(defconst +lisp-modes+
+  '(emacs-lisp-mode
+    clojure-mode
+    lisp-mode)
+  "List of modes that are considered to be lisp.")
 
 (eval-after-load
     'rainbow-delimiters
@@ -585,6 +591,7 @@ nor comment."
 
 ;;; Actual setup functions
 
+;;;###autoload
 (defun* lisp-setup (&key (use-whitespace nil) (use-fci t))
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only
@@ -677,6 +684,10 @@ nor comment."
   (setup-outline-headers :header-symbol ";"
                          :length-min 3))
 
+;;;###autoload
+(add-hook 'lisp-mode-hook #'lisp-setup)
+
+;;;###autoload
 (defun lisp-repl-setup ()
   (lisp-setup :use-fci nil)
   (init-repl)
