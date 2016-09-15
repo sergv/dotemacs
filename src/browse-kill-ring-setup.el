@@ -60,6 +60,7 @@
     ;; mnemonic "filter"
     ("f"        browse-kill-ring-occur)
     ("SPC"      browse-kill-ring-insert-move-and-quit)
+    ("<return>" browse-kill-ring-insert-and-quit)
 
     ("/"        browse-kill-ring-search-forward)
     ("?"        browse-kill-ring-search-backward)
