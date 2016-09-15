@@ -6,11 +6,12 @@
 ;; Created: Tuesday, 11 September 2012
 ;; Description:
 
-
+;;;###autoload
 (defun calendar-mode-setup ()
   (def-keys-for-map calendar-mode-map
     +vim-special-keys+))
 
+;;;###autoload
 (add-hook 'calendar-mode-hook #'calendar-mode-setup)
 
 (provide 'calendar-mode-setup)

@@ -6,6 +6,7 @@
 ;; Created: Saturday, 18 July 2015
 ;; Description:
 
+(require 'yafolding)
 (require 'common)
 
 ;;;###autoload

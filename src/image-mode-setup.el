@@ -6,6 +6,7 @@
 ;; Created: Thursday,  6 September 2012
 ;; Description:
 
+;;;###autoload
 (defun image-mode-setup ()
   (def-keys-for-map image-mode-map
     +vim-special-keys+
@@ -20,6 +21,7 @@
     ("<up>"    image-scroll-up)
     ("<right>" image-forward-hscroll)))
 
+;;;###autoload
 (add-hook 'image-mode-hook #'image-mode-setup)
 
 (provide 'image-mode-setup)

@@ -65,6 +65,7 @@
         (cons (hl-tags-sgml-pair (car boundaries))
               (hl-tags-sgml-pair (cdr boundaries)))))))
 
+;;;###autoload
 (defun hl-tags-context-nxml-mode ()
   (ignore-errors
     (save-excursion
@@ -113,6 +114,7 @@ boundaries of the current start and end tag , or nil."
     (delete-overlay hl-tags-start-overlay)
     (delete-overlay hl-tags-end-overlay)))
 
+;;;###autoload
 (define-minor-mode hl-tags-mode
   "Toggle hl-tags-mode."
   nil "" nil

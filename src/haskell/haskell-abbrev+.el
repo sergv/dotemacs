@@ -7,12 +7,13 @@
 ;; Description:
 
 (require 'abbrev+)
+(require 'common)
+(require 'haskell-completions)
 (require 'haskell-misc)
+(require 'shm-ast)
+
 ;; for ghc flags to OPTIONS_GHC
 (require 'shell-completion)
-(require 'shm-ast)
-(require 'haskell-completions)
-(require 'common)
 
 (defun haskell-insert-followed-by-dollar? (pos)
   "Check whether text after POS is followed by $."
@@ -194,16 +195,16 @@ then Bar would be the result."
             (list "^hp\\(?:s\\|l\\)\\{1,2\\}$" "hPutStr"
                   #'point-not-inside-string-or-comment?)
 
-            (list (concat "^" (make-re-with-optional-suffix "import" 2) "$")
+            (list (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) "$")
                   "import"
                   import-expand-pred)
-            (list (concat "^" (make-re-with-optional-suffix "import" 2) "m$")
+            (list (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) "m$")
                   "import Data.Map (Map)\nimport qualified Data.Map as M"
                   import-expand-pred)
-            (list (concat "^" (make-re-with-optional-suffix "import" 2) "q$")
+            (list (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) "q$")
                   (list expand-qualified-import-snippet-action)
                   import-expand-pred)
-            (list (concat "^q" (make-re-with-optional-suffix "import" 2) "$")
+            (list (concat "^q" (abbrev+--make-re-with-optional-suffix "import" 2) "$")
                   (list expand-qualified-import-snippet-action)
                   import-expand-pred)
             (list "\\<\\(info\\|trace\\)\\>"

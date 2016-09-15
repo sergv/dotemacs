@@ -6,9 +6,11 @@
 ;; Created: Saturday, 29 September 2012
 ;; Description:
 
+;;;###autoload
 (defun telnet-mode-setup ()
   (init-common :use-yasnippet nil :use-comment nil))
 
+;;;###autoload
 (add-hook 'telnet-mode-hook #'telnet-mode-setup)
 
 (provide 'telnet-mode-setup)

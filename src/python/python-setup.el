@@ -18,9 +18,14 @@
 (require 'macro-util)
 (require 'outline-headers)
 
+(require 'python)
 (require 'python-abbrev+)
 (require 'python-highlight)
-(require 'python)
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+;;;###autoload
+(add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-mode))
 
 (font-lock-add-keywords 'python-mode
                         *python-font-lock-keywords*
@@ -363,6 +368,7 @@ greater indenation as current line."
 
 ;;; actual setups
 
+;;;###autoload
 (defun python-setup ()
   (init-common :use-yasnippet t
                :use-render-formula t
@@ -451,6 +457,10 @@ greater indenation as current line."
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
   (setup-eproj-symbnav))
 
+;;;###autoload
+(add-hook 'python-mode-hook #'python-setup)
+
+;;;###autoload (autoload 'switch-to-python "python-setup" nil t)
 (define-switch-to-interpreter
   switch-to-python
   ((concat "*" python-shell-buffer-name "*"))
@@ -460,7 +470,7 @@ greater indenation as current line."
   :error-msg "Can't switch to python repl"
   :try-count 2)
 
-
+;;;###autoload
 (defun inferior-python-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
@@ -500,7 +510,8 @@ greater indenation as current line."
 
     ("<tab>"    python-complete)))
 
-;;; end
+;;;###autoload
+(add-hook 'inferior-python-mode-hook #'inferior-python-setup)
 
 (provide 'python-setup)
 

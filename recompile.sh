@@ -29,13 +29,11 @@ function update-dir-autoloads {
             dirs="\"$emacs_dir/$dir\" $dirs"
         fi
     done
-    emacs --batch --eval "(progn (toggle-debug-on-error) (setq generated-autoload-file \"$emacs_dir/$name\") (update-directory-autoloads $dirs) (message (concat \"Updated autoloads in \" $dirs)))"
+    emacs --batch --eval "(progn (toggle-debug-on-error) (setq generated-autoload-file \"$emacs_dir/$name\") (update-directory-autoloads $dirs) (message (concat \"Updated autoloads in \" (mapconcat #'identity (list $dirs) \", \"))))"
 }
 
-update-dir-autoloads "src/local-autoloads.el" "src" "src/lisp" "src/haskell" "src/latex" "src/shell"
+update-dir-autoloads "src/local-autoloads.el" "src" "src/eproj" "src/haskell" "src/latex" "src/lisp" "src/python" "src/shell" "third-party/yafolding.el"
 
-echo "recompile.sh: exiting prematurely"
-exit 1
 update-dir-autoloads "third-party/clojure-mode/clojure-mode-autoloads.el" "third-party/clojure-mode"
 update-dir-autoloads "third-party/smartparens/smartparens-autoloads.el" "third-party/smartparens"
 update-dir-autoloads "third-party/sml-mode/sml-mode-autoloads.el" "third-party/sml-mode"

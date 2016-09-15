@@ -8,6 +8,7 @@
 
 (require 'common)
 
+;;;###autoload
 (defun tcl-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -19,6 +20,7 @@
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t))
 
+;;;###autoload
 (add-hook 'tcl-mode-hook #'tcl-setup)
 
 (provide 'tcl-setup)

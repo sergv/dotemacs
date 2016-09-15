@@ -18,11 +18,8 @@
 (require 'search)
 
 (require 'eldoc)
-(require 'paredit)
-(require 'align-let)
 (require 'outline-headers)
 (require 'rainbow-delimiters)
-(require 'paredit-autoload)
 
 ;;;###autoload
 (defconst +lisp-modes+

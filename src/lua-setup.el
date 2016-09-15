@@ -6,26 +6,23 @@
 ;; Created: Sunday, 23 September 2012
 ;; Description:
 
-
+;;;###autoload
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+;;;###autoload
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 
-
+;;;###autoload
 (defun lua-setup ()
   (init-common :use-yasnippet nil
                :use-render-formula t
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
-  (hs-minor-mode 1)
+  (hs-minor-mode-setup))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("z o" hs-show-block)
-    ("z c" hs-hide-block)
-    ("z C" hs-hide-all)
-    ("z O" hs-show-all)))
-
+;;;###autoload
 (add-hook 'lua-mode-hook #'lua-setup)
 
 (provide 'lua-setup)

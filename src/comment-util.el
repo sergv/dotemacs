@@ -10,7 +10,6 @@
 
 (require 'common)
 (require 'advices-util)
-(require 'lisp-autoloads)
 
 (defadvice:auto-comment sp-newline)
 ;; paredit-newline's advice is defined in
@@ -20,7 +19,6 @@
 (defadvice:auto-comment vim:cmd-insert-line-above)
 (defadvice:auto-comment haskell-newline)
 
-;;;###autoload
 (defvar +comment-util-comment-format-alist+
   '((haskell-mode          (one-line "--") (line-regexp "--+"))
     (haskell-c-mode        (one-line "--") (line-regexp "--+"))
@@ -90,7 +88,6 @@
     (sgml-mode             (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (markdown-mode         (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (web-mode              (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
-    ;;(js2-mode              (one-line "//") (line-regexp "//+"))
     (js2-mode              (one-line "//") (line-regexp "//+"))
     (js-mode               (one-line "//") (line-regexp "//+"))
     (css-mode              (one-line "//") (line-regexp "//+"))

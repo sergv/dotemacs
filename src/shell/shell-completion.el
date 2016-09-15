@@ -174,6 +174,7 @@ be either singular string or a list of strings."
 
 ;;; simple pcomplete macro
 
+;;;###autoload
 (defmacro* defpcmpl (name definition &key (evaluate-definition nil))
   "Define completion function NAME which should start with pcomplete/.
 DEFINITION is described by the following grammar:
@@ -351,7 +352,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;; Version control
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/git "shell-completion" nil t)
 (defpcmpl pcomplete/git
   (or ("add"
        (opts
@@ -1223,17 +1224,17 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
         *haskell-extensions*))
       "\\'"))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/runghc "shell-completion" nil t)
 (defpcmpl pcomplete/runghc
   (opts
    (args (pcomplete-here (pcmpl-haskell-source-or-obj-files)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/runhaskell "shell-completion" nil t)
 (defpcmpl pcomplete/runhaskell
   (opts
    (args (pcomplete-here (pcmpl-haskell-source-or-obj-files t)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete-ghc-flags "shell-completion" nil)
 (defparameter pcomplete-ghc-flags
   '("-?"
     "-help"
@@ -1543,14 +1544,14 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-fno-ghci-history"
     "-fno-ghci-sandbox"))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/ghc "shell-completion" nil t)
 (defpcmpl pcomplete/ghc
   `(opts
     (flags ,@pcomplete-ghc-flags)
     (args (pcomplete-here (pcmpl-haskell-source-or-obj-files))))
   :evaluate-definition t)
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/cabal "shell-completion" nil t)
 (defpcmpl pcomplete/cabal
   (let* ((programs '("alex"
                      "ar"
@@ -1854,7 +1855,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("help")))
   :evaluate-definition t)
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/hp2ps "shell-completion" nil t)
 (defpcmpl pcomplete/hp2ps
   (opts
    (flags "-b"
@@ -1875,12 +1876,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-c")
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/hp2pdf "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pdf
   (opts
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/hp2pretty "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pretty
   (opts
    (flags
@@ -1890,10 +1891,10 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--uniform-scale=both")
    (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/hp2svg "shell-completion" nil nil)
 (defalias 'pcomplete/hp2svg 'pcomplete/hp2pretty)
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/stack "shell-completion" nil t)
 (defpcmpl pcomplete/stack
   (let ((standard-flags
          '("--help"
@@ -2114,7 +2115,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
          ,@standard-flags)))))
   :evaluate-definition t)
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/hlint "shell-completion" nil t)
 (defpcmpl pcomplete/hlint
   (opts
    (flags "-v"
@@ -2170,7 +2171,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;; C, low-level stuff
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/nm "shell-completion" nil t)
 (defpcmpl pcomplete/nm
   (opts
    (flags "-a"
@@ -2232,7 +2233,6 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "--version")
    (args (pcomplete-here (pcomplete-entries)))))
 
-
 (defun pcmpl-gcc-assembler-flags ()
   '())
 
@@ -2242,7 +2242,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 (defun pcmpl-gcc-linker-flags ()
   '())
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/gcc "shell-completion" nil t)
 (defpcmpl pcomplete/gcc
   (opts
    (flags "-pass-exit-codes"
@@ -2315,12 +2315,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;; simpler definitions, vanilla Unix & GNU tools
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/cp "shell-completion" nil t)
 (defpcmpl pcomplete/cp
   (opts (flags "-r")
         (args (pcomplete-here (pcomplete-entries)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/ls "shell-completion" nil t)
 (defpcmpl pcomplete/ls
   (opts (flags "-a"
                "--all"
@@ -2407,12 +2407,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--version")
         (args (pcomplete-here (pcomplete-entries)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/cat "shell-completion" nil t)
 (defpcmpl pcomplete/cat
   (opts (flags "--help")
         (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/mv "shell-completion" nil t)
 (defpcmpl pcomplete/mv
   (opts (flags "--backup"
                "-b"
@@ -2437,7 +2437,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--version")
         (args (pcomplete-here (pcomplete-entries)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/bash "shell-completion" nil t)
 (defpcmpl pcomplete/bash
   (let ((short-options nil))
     `(opts
@@ -2468,7 +2468,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
   :evaluate-definition t)
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/diff "shell-completion" nil t)
 (defpcmpl pcomplete/diff
   (opts
    (flags "--normal"
@@ -2546,11 +2546,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "--version")
    (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/source "shell-completion" nil t)
 (defpcmpl pcomplete/source
   (opts (args (pcomplete-here (pcmpl-entries-ignoring-common)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/ssh-add "shell-completion" nil t)
 (defpcmpl pcomplete/ssh-add
   (opts (flags "-l"
                "-L"
@@ -2565,7 +2565,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-e")
         (args (pcomplete-here (pcomplete-entries)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/find "shell-completion" nil t)
 (defpcmpl pcomplete/find
   (opts
    (flags
@@ -2586,7 +2586,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (args
     (pcomplete-here* (pcomplete-dirs)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/du "shell-completion" nil t)
 (defpcmpl pcomplete/du
   (opts
    (flags
@@ -2603,7 +2603,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (args
     (pcomplete-here* (pcomplete-dirs)))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/busybox "shell-completion" nil t)
 (defpcmpl pcomplete/busybox
   (or
    ("bash"
@@ -2633,13 +2633,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    ("which"
     (opts (args (pcomplete/which))))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/untar "shell-completion" nil t)
 (defpcmpl pcomplete/untar
   (opts
    (args
     (pcomplete-here* (pcomplete-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\)\\)?\\'")))))
 
-;;;###autoload
+;;;###autoload (autoload 'pcomplete/ln "shell-completion" nil t)
 (defpcmpl pcomplete/ln
   (opts
    (flags
@@ -2674,6 +2674,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (args
     (pcomplete-here (pcmpl-entries-ignoring-common))
     (pcomplete-here (pcmpl-entries-ignoring-common)))))
+
+;;;###autoload
+(defalias 'pcomplete/l 'pcomplete/ls)
+;;;###autoload
+(defalias 'pcomplete/la 'pcomplete/ls)
+;;;###autoload
+(defalias 'pcomplete/ll 'pcomplete/ls)
 
 (provide 'shell-completion)
 
