@@ -342,7 +342,7 @@
                      vim:insert-mode-local-keymap
                      haskell-interactive-mode-map)
     ("C-SPC" vim:comint-clear-buffer-above-prompt)
-    ("M-p"   browse-comint-input-history))
+    ("M-p"   browse-haskell-interactive-input-history))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      haskell-interactive-mode-map)
