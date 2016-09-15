@@ -8,13 +8,14 @@
 ;; Requirements:
 ;; Status:
 
+;;;###autoload
 (defun rst-setup ()
   (init-common :use-render-formula t
                :use-whitespace 'tabs-only
                :use-fci t))
 
+;;;###autoload
 (add-hook 'rst-mode-hook #'rst-setup)
-
 
 (provide 'rst-setup)
 

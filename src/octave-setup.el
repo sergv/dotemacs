@@ -12,6 +12,7 @@
 (require 'octave-abbrev+)
 (require 'browse-kill-ring-setup)
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.\\(?:m\\|octaverc\\)$" . octave-mode))
 
 ;; (vimmize-motion octave-beginning-of-line)
@@ -51,6 +52,7 @@
                    ;;   (py-goto-beyond-block)
                    ;;   (skip-chars-backward " \t\n"))
                    ))
+
 (eval-after-load "octave"
   '(progn
      (defvar inferior-octave-on-output-hook nil
@@ -308,9 +310,9 @@ in GROUP-NUMS."
                                     'compilation-column-number)))
              (goto-char (match-end 0))))))))
 
-
 ;;;
 
+;;;###autoload
 (defun octave-setup ()
   (init-common :use-yasnippet t
                :use-render-formula t
@@ -363,11 +365,12 @@ in GROUP-NUMS."
   ;;   ("$" vim:octave-end-of-line))
   (octave-abbrev+-setup))
 
+;;;###autoload
 (add-hook 'octave-mode-hook #'octave-setup)
-
 
 ;;;
 
+;;;###autoload
 (defun inferior-octave-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
@@ -401,9 +404,11 @@ in GROUP-NUMS."
     ("C-S-p"    browse-kill-ring)
     ("M-p"      browse-comint-input-history)))
 
+;;;###autoload
 (add-hook 'inferior-octave-mode-hook #'inferior-octave-setup)
 
 
+;;;###autoload
 (defun inferior-octave-custom-output-filter (proc string)
   "Wrap around `inferior-octave-output-filter' by adding a call to
 run `inferior-octave-on-output-hook'."
@@ -411,6 +416,7 @@ run `inferior-octave-on-output-hook'."
       (comint-output-filter proc string)
     (run-hooks 'inferior-octave-on-output-hook)))
 
+;;;###autoload
 (add-hook 'inferior-octave-mode-hook
           (lambda ()
             (set-process-filter inferior-octave-process

@@ -6,7 +6,9 @@
 ;; Created: Monday, 15 February 2016
 ;; Description:
 
+;;;###autoload
 (autoload 'company-mode "company" nil t)
+;;;###autoload
 (autoload 'company-begin-backend "company" nil t)
 
 (setf company-idle-delay nil ;; disable auto-completion
@@ -19,16 +21,21 @@
 ;; cf https://github.com/company-mode/company-mode/issues/180
 (defvar-local company-fci-mode-on-p nil)
 
+;;;###autoload
 (defun company-turn-off-fci (&rest ignore)
   (when (boundp 'fci-mode)
     (setq company-fci-mode-on-p fci-mode)
     (when fci-mode (fci-mode -1))))
 
+;;;###autoload
 (defun company-maybe-turn-on-fci (&rest ignore)
   (when company-fci-mode-on-p (fci-mode 1)))
 
+;;;###autoload
 (add-hook 'company-completion-started-hook #'company-turn-off-fci)
+;;;###autoload
 (add-hook 'company-completion-finished-hook #'company-maybe-turn-on-fci)
+;;;###autoload
 (add-hook 'company-completion-cancelled-hook #'company-maybe-turn-on-fci)
 
 (provide 'company-mode-setup)

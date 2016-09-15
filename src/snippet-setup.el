@@ -6,6 +6,12 @@
 ;; Created: long ago
 ;; Description:
 
+;;;###autoload
+(autoload 'snippet-mode "yasnippet" nil t)
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.snip\\'" . snippet-mode))
+
 (defun yas-load-snippet-buffer-no-kill (&optional prompt-table)
   "Load snippet from current buffer. If PROMPT-TABLE is non-nil then
 propmt user for snippet table to load into and try to infer one
@@ -18,6 +24,7 @@ otherwise."
                                        buffer-file-name)))
                              nil)))
 
+;;;###autoload
 (defun snippet-setup ()
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only)
@@ -31,6 +38,8 @@ otherwise."
     ("C-c C-c" nil)
     ("C-c C-t" nil)))
 
+;;;###autoload
+(add-hook 'snippet-mode-hook #'snippet-setup)
 
 (provide 'snippet-setup)
 

@@ -6,6 +6,7 @@
 ;; Created: Wednesday,  9 May 2012
 ;; Description:
 
+(require 'comment-util)
 
 (defvar-local outline-headers/min-header-length nil
   "Minimum number of `outline-headers/section-symbol''s allowed in header.")

@@ -62,6 +62,7 @@ in buffer from where `awk' was invoked.")
 in buffer from where `awk' was invoked.")
 
 
+;;;###autoload
 (defun awk-on-region (begin end)
   "Initialize awk+ on selected region."
   (setf awk-original-input (buffer-substring-no-properties begin end)
@@ -96,7 +97,6 @@ in buffer from where `awk' was invoked.")
     (re-search-forward "<_>")
     (replace-match ""))
   (set-buffer-modified-p nil))
-
 
 (defun awk-restore-original-input ()
   "Restore original input from buffer."
@@ -152,8 +152,6 @@ in place of input."
       (move-overlay awk-overlay
                     (marker-position awk-output-begin)
                     awk-output-end-pos))))
-
-
 
 
 (defparameter awk-programs (make-hash-table :test #'equal :size 257)
@@ -226,6 +224,7 @@ with id value of `awk-program-id'."
 
 ;;; user functions
 
+;;;###autoload
 (defun awk-start ()
   "Start awk interaction using selected region or whole buffer."
   (interactive)
@@ -240,7 +239,6 @@ with id value of `awk-program-id'."
       (vim:visual-mode-exit)
       (awk-on-region begin end))
     (awk-on-region (point-min) (point-max))))
-
 
 (provide 'awk+)
 

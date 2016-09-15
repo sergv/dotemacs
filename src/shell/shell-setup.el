@@ -12,10 +12,27 @@
 (require 'comint-setup)
 (require 'shell-script-abbrev+)
 
+;;;###autoload
+(unless (getenv "SHELL")
+  (setenv "SHELL" shell-file-name))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.xbindkeysrc$" . shell-script-mode))
+
+;;;###autoload
+(add-to-list 'display-buffer-alist
+             '("^\\*Async Shell Command\\*" . (display-buffer-no-window)))
+
+;;;###autoload
+(add-to-list 'display-buffer-alist
+             '("^\\*shell.*\\*" . (display-buffer-same-window)))
+
+
 (autoload 'shell-command+ "common-heavy" nil t)
 (autoload 'shell-command-on-region+ "shell-command+" nil t)
 (fset 'shell-command-on-region 'shell-command-on-region+)
 
+;;;###autoload
 (defun shell-run-file ()
   "Run buffer's script file."
   (interactive)
@@ -24,6 +41,7 @@
                               (shell-quote-argument buffer-file-name)))
                      t))
 
+;;;###autoload
 (defun shell-script-setup ()
   (init-common :use-yasnippet t
                :use-whitespace 'tabs-only
@@ -40,6 +58,17 @@
     ("<f9>" shell-run-file))
   (shell-script-abbrev+-setup))
 
+;;;###autoload
+(dolist (mode '(cmake-mode-hook
+                shell-script-mode-hook
+                sh-mode-hook
+                sh-script-mode-hook
+                conf-space-mode-hook
+                conf-mode-hook
+                conf-xdefaults-mode-hook))
+  (add-hook mode #'shell-script-setup))
+
+;;;###autoload
 (defun shell-setup ()
   (init-repl :show-directory t :create-keymaps t)
   (smartparens-mode +1)
@@ -77,6 +106,9 @@
     ("C-<right>" vim:sp-forward-slurp-sexp)
     ("M-<left>"  sp-absorb-sexp)
     ("M-<right>" sp-emit-sexp)))
+
+;;;###autoload
+(add-hook 'shell-mode-hook #'shell-setup)
 
 (provide 'shell-setup)
 

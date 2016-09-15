@@ -6,11 +6,15 @@
 ;; Created: Friday, 20 April 2012
 ;; Description:
 
+;;;###autoload
 (autoload 'yaml-mode "yaml-mode.el" "Simple mode to edit YAML." t)
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.clang-format$" . yaml-mode))
 
+;;;###autoload
 (defun yaml-setup ()
   (init-common :use-render-formula nil)
   (bind-tab-keys #'indent-relative-forward
@@ -28,6 +32,7 @@
                          vim:insert-mode-local-keymap)
         ("<f9>" haskell-compile)))))
 
+;;;###autoload
 (add-hook 'yaml-mode-hook #'yaml-setup)
 
 (provide 'yaml-mode-setup)

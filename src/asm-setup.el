@@ -6,6 +6,7 @@
 ;; Created: Thursday, 15 November 2012
 ;; Description:
 
+;;;###autoload
 (defun asm-mode-setup ()
   (init-common :use-yasnippet      nil
                :use-comment        t
@@ -18,6 +19,7 @@
   (def-keys-for-map asm-mode-map
     (";" nil)))
 
+;;;###autoload
 (add-hook 'asm-mode-hook #'asm-mode-setup)
 
 (provide 'asm-mode-setup)

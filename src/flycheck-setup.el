@@ -9,8 +9,15 @@
 (eval-when-compile
   (require 'let-alist))
 
+(provide 'flycheck-setup)
+
+;;;###autoload
+(eval-after-load "flycheck" '(require 'flycheck-setup))
+
+;;;###autoload
 (require 'flycheck-autoloads)
 
+;;;###autoload
 (autoload 'flycheck-haskell-setup "flycheck-haskell" nil nil)
 
 (eval-after-load "flycheck"
@@ -39,8 +46,10 @@
       (`suspicious  "suspicious output from checker")
       (_ "unknown"))))
 
+;;;###autoload
 (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
 
+;;;###autoload
 (defun flycheck-error-list-setup ()
   (def-keys-for-map flycheck-error-list-mode-map
     +vim-search-keys+
@@ -50,6 +59,7 @@
     ("H"            flycheck-error-list-check-source)
     ("<escape>"     quit-window)))
 
+;;;###autoload
 (add-hook 'flycheck-error-list-mode-hook #'flycheck-error-list-setup)
 
 (defadvice flycheck-display-error-messages
@@ -60,8 +70,6 @@
   (unless (buffer-live-p flycheck-error-message-buffer)
     (with-current-buffer (get-buffer-create flycheck-error-message-buffer)
       (text-mode))))
-
-(provide 'flycheck-setup)
 
 ;; Local Variables:
 ;; End:

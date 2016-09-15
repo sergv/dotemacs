@@ -6,9 +6,11 @@
 ;; Created: Saturday, 25 April 2015
 ;; Description:
 
+;;;###autoload
 (defun css-setup ()
   (init-common :use-whitespace 'tabs-only))
 
+;;;###autoload
 (add-hook 'css-mode-hook #'css-setup)
 
 (provide 'css-setup)
