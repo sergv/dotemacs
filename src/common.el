@@ -664,15 +664,19 @@ write buffer contents back into file if flag DONT-WRITE is nil."
         ((or (list? item)
              (vector? item)
              (string? item))
-         (length item))))
+         (length item))
+        (t
+         (error "Cannot determine generic length of item %s" item))))
 
-(defun* generic/member (item sequence &key (test #'equal))
+(defun generic/member (item sequence test)
   (cond ((ring? sequence)
          (ring-member sequence item :test test))
         ((list? sequence)
          (cl-member item sequence :test test))
         (t
-         (error "Not implemented yet"))))
+         (error "Cannot determine generic membership of item %s in sequence %s"
+                item
+                sequence))))
 
 ;;;
 
@@ -991,6 +995,8 @@ if there's no region."
 (defun get-region-bounds ()
   "Return pair of region bounds, (begin end), depending
 on currently active vim highlight mode."
+  (unless (region-active-p)
+    (error "Region not active"))
   (if (vim:visual-mode-p)
     (cond
       ((eq? vim:visual-mode-type 'normal)
