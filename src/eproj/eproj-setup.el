@@ -16,10 +16,7 @@
      (let ((ctags-exec
             (platform-dependent-executable (concat +execs-path+ "/exuberant-ctags"))))
        (when (file-exists? ctags-exec)
-         (setf *ctags-exec* ctags-exec)))
-
-     (when (platform-os-type? 'linux)
-       (puthash 'haskell-mode '("/home/sergey/projects/haskell/packages/") eproj/default-projects))))
+         (setf *ctags-exec* ctags-exec)))))
 
 (add-to-list 'auto-mode-alist '("\\.eproj-info$" . emacs-lisp-mode))
 
