@@ -79,8 +79,8 @@
   (message "English dictionary - Spell Checking completed."))
 
 
-;;;###autoload
-(add-hook 'text-mode-hook 'flyspell-mode)
+;; ;;;###autoload
+;; (add-hook 'text-mode-hook 'flyspell-mode)
 
 (setf ispell-have-new-look t
       ispell-enable-tex-parser t
