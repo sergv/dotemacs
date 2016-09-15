@@ -142,22 +142,26 @@ Highlighting starts at the beginning of buffer")
 
 ;;;; main search interface
 
+;;;###autoload
 (defun search-start-forward (&optional case-sensetive)
   "Initiate forward seach."
   (interactive (list current-prefix-arg))
   (search/start-minibuffer-search 'forward "Search: " case-sensetive))
 
+;;;###autoload
 (defun search-start-backward (&optional case-sensetive)
   "Initiate backward seach."
   (interactive (list current-prefix-arg))
   (search/start-minibuffer-search 'backward "Search backward: " case-sensetive))
 
+;;;###autoload
 (defun search-start-forward-new-color (&optional case-sensetive)
   "Initiate forward seach using new highlighting color."
   (interactive (list current-prefix-arg))
   (search/increment-search-highlight-face-index)
   (search-start-forward case-sensetive))
 
+;;;###autoload
 (defun search-start-backward-new-color (&optional case-sensetive)
   "Initiate backward seach using new highlighting color."
   (interactive (list current-prefix-arg))
@@ -231,6 +235,7 @@ Highlighting starts at the beginning of buffer")
        ;; swallow an error or we'll be kicked out of the hook
        (error nil)))))
 
+;;;###autoload
 (defun search-abort ()
   (interactive)
   (search--with-initiated-buffer
@@ -238,10 +243,12 @@ Highlighting starts at the beginning of buffer")
    (search/clean-overlays-with-face-index search/highlight-face-index))
   (exit-minibuffer))
 
+;;;###autoload
 (defun search-done ()
   (interactive)
   (exit-minibuffer))
 
+;;;###autoload
 (defun search-return-to-start ()
   "Jump to place where current search session was started."
   (interactive)
@@ -295,11 +302,13 @@ Highlighting starts at the beginning of buffer")
      :save-position nil
      :case-sensetive (buffer-local-value 'search/case-sensetive *search-init-buffer*))))
 
+;;;###autoload
 (defun search-next ()
   (interactive)
   (search/optionally-use-info-from-last-search)
   (search/lookup-next))
 
+;;;###autoload
 (defun search-prev ()
   (interactive)
   (search/optionally-use-info-from-last-search)
@@ -410,6 +419,7 @@ Highlighting starts at the beginning of buffer")
       (search/clean-all-overlays)
       (search/reset-search-highlight-face-index))))
 
+;;;###autoload
 (defun search-toggle-highlighting ()
   "Hoggle highlighting of matches in current buffer."
   (interactive)
@@ -425,8 +435,8 @@ Highlighting starts at the beginning of buffer")
 
 ;;;
 
-(defmacro search-def-autoexpand-advices (expand-command
-                                         modes)
+;;;###autoload
+(defmacro search-def-autoexpand-advices (expand-command modes)
   `(progn
      ,@(loop
          for command in '(search/next-from-minibuf
@@ -500,6 +510,8 @@ obvious"
     "\\>"
     ""))
 
+;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward "search" nil t)
+;;;###autoload (autoload 'search-for-haskell-symbol-at-point-forward-new-color "search" nil t)
 (search/make-search-for-thing search-for-haskell-symbol-at-point-forward
                               search-for-haskell-symbol-at-point-forward-new-color
                               (bounds-of-thing-at-point 'haskell-symbol)
@@ -509,6 +521,8 @@ obvious"
                               :regex-end-func search-for-haskell-symbol-at-point-regex-end-func
                               :error-message "No symbol at point")
 
+;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward "search" nil t)
+;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward-new-color "search" nil t)
 (search/make-search-for-thing search-for-haskell-symbol-at-point-backward
                               search-for-haskell-symbol-at-point-backward-new-color
                               (bounds-of-thing-at-point 'haskell-symbol)
@@ -519,6 +533,8 @@ obvious"
                               :error-message "No symbol at point")
 
 ;; Lispocentric searches
+;;;###autoload (autoload 'search-for-symbol-at-point-forward "search" nil t)
+;;;###autoload (autoload 'search-for-symbol-at-point-forward-new-color "search" nil t)
 (search/make-search-for-thing search-for-symbol-at-point-forward
                               search-for-symbol-at-point-forward-new-color
                               (bounds-of-thing-at-point 'symbol)
@@ -526,6 +542,8 @@ obvious"
                               'forward
                               :error-message "No symbol at point")
 
+;;;###autoload (autoload 'search-for-symbol-at-point-backward "search" nil t)
+;;;###autoload (autoload 'search-for-symbol-at-point-backward-new-color "search" nil t)
 (search/make-search-for-thing search-for-symbol-at-point-backward
                               search-for-symbol-at-point-backward-new-color
                               (bounds-of-thing-at-point 'symbol)
@@ -541,6 +559,8 @@ obvious"
     (cons (vim:motion-begin-pos m)
           (vim:motion-end-pos m))))
 
+;;;###autoload (autoload 'search-for-word-at-point-forward "search" nil t)
+;;;###autoload (autoload 'search-for-word-at-point-forward-new-color "search" nil t)
 (search/make-search-for-thing search-for-word-at-point-forward
                               search-for-word-at-point-forward-new-color
                               (util:get-bounds-covered-by-vim-motion
@@ -551,6 +571,8 @@ obvious"
                               :regex-end-func (constantly "\\>")
                               :error-message "No word at point")
 
+;;;###autoload (autoload 'search-for-word-at-point-backward "search" nil t)
+;;;###autoload (autoload 'search-for-word-at-point-backward-new-color "search" nil t)
 (search/make-search-for-thing search-for-word-at-point-backward
                               search-for-word-at-point-backward-new-color
                               (util:get-bounds-covered-by-vim-motion

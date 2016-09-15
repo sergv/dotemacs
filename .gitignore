@@ -71,3 +71,5 @@ last-wconf
 *.aux
 *-session
 
+src/local-autoloads.el
+src/local-autoloads.el~

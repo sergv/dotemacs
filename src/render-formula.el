@@ -11,12 +11,14 @@
 
 (defparameter *formula-images-cache* (make-hash-table :test 'equal))
 
+;;;###autoload
 (defun render-buffer-flush-cache ()
   (setf *formula-images-cache* (make-hash-table :test 'equal)
         *formula-index* 0)
   (ignore-errors
     (clear-image-cache)))
 
+;;;###autoload
 (add-hook 'solarized-theme-mode-changed-hook
           #'render-buffer-flush-cache)
 
@@ -60,6 +62,7 @@ pnm utils suite.")
          t ;; parents
          ))
 
+;;;###autoload
 (defun* render-formula (str &key
                             (point-size 10)
                             (font-size "normalsize")
@@ -336,6 +339,7 @@ carried out on FORMULA-STR."
                       'read-only "Disable latex images first"))
                (goto-char (match-end 0)))))))))))
 
+;;;###autoload
 (defun render-formula-toggle-formulae ()
   (interactive)
   (if render-buffer-rendered?
@@ -351,6 +355,7 @@ carried out on FORMULA-STR."
   '((t (:foreground "blue")))
   "Face to highlight latex code between \$\$'s.")
 
+;;;###autoload
 (define-minor-mode render-formula-mode
   "Minor mode for rendering latex formulas in buffer as images."
   nil ;; init

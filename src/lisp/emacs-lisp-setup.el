@@ -86,7 +86,7 @@
   ;; taken from pp.el
   (insert (pp-to-string (macroexpand-all (pp-last-sexp)))))
 
-
+;;;###autoload
 (defun emacs-lisp-setup ()
   (lisp-setup)
   (company-mode +1)
@@ -138,6 +138,9 @@
   ;; backups
   (add-hook 'after-save-hook #'elisp-compile-and-move)
   (emacs-lisp-abbrev+-setup))
+
+;;;###autoload
+(add-hook 'emacs-lisp-mode-hook #'emacs-lisp-setup)
 
 (eval-after-load "edebug"
   '(progn
