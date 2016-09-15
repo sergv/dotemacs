@@ -10,9 +10,12 @@
 
 (require 'common)
 
+;;;###autoload
 (autoload 'ucf-mode "ucf-mode" nil t)
+;;;###autoload
 (add-to-list 'auto-mode-alist '(".ucf\\'" . ucf-mode))
 
+;;;###autoload
 (defun ucf-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -24,6 +27,7 @@
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t))
 
+;;;###autoload
 (add-hook 'ucf-mode-hook #'ucf-setup)
 
 (provide 'xilinx-setup)

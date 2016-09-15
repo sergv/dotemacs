@@ -10,6 +10,32 @@
 
 (require 'nxml-mode)
 
+;;;###autoload
+(autoload 'web-mode "web-mode" nil t)
+;;;###autoload
+(autoload 'nxml-tokenize-forward "nxml-mode" nil nil)
+;;;###autoload
+(autoload 'sgml-skip-tag-backward "sgml-mode" nil t)
+;;;###autoload
+(autoload 'sgml-skip-tag-forward "sgml-mode" nil t)
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.x?html?\\'" . web-mode))
+
+;;;###autoload
+(add-to-list 'magic-mode-alist '("<[ ?]*xml " . nxml-mode))
+
+(dolist (mode '(nxml-mode web-mode))
+  (setf hs-special-modes-alist
+        (cons `(,mode
+                "<[^/>]>\\|<[^>]*"
+                "</"
+                "<!--" ;; won't work on its own; uses syntax table
+                my-nxml-forward-element
+                nil)
+              (assq-delete-all mode hs-special-modes-alist))))
+
+
 (defvar-local *markup-tags-context-func*
   (lambda ()
     (error "no `*markup-tags-context-func*' function specified for %s mode"
@@ -18,6 +44,7 @@
 containing the boundaries of the current start and end tag, or nil. Note that
 end1 and end2 should be exclusive ends of tags.")
 
+;;;###autoload
 (defun my-nxml-forward-element (n)
   (let ((nxml-sexp-element-flag (not (looking-at-p "<!--"))))
     (condition-case nil
@@ -40,6 +67,7 @@ if such tag can be found."
              ,on-found)
            ,on-not-found)))))
 
+;;;###autoload (autoload 'vim:motion-jump-tag "html-setup" "" t)
 (vim:defmotion vim:motion-jump-tag (inclusive)
   "If point is positioned inside tag then jump to the beginning
 of the matching tag, else fallback to `vim:motion-jump-item'."
@@ -145,16 +173,19 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                                               'rng-mouse-first-error))))
              (t " Valid")))))
 
+;;;###autoload (autoload 'vim:nxml-backward-up-element "html-setup" "" t)
 (vimmize-motion nxml-backward-up-element
                 :name vim:nxml-backward-up-element
                 :exclusive nil)
 
+;;;###autoload
 (defun markup-forward-up-element ()
   "Similar to `vim:lisp-up-list' - jump to the end of enclosing tag exclusively."
   (interactive)
   (with-html-tags-context bb be eb ee
                           (goto-char ee)))
 
+;;;###autoload (autoload 'vim:markup-forward-up-element "html-setup" "" t)
 (vimmize-motion markup-forward-up-element
                 :name vim:markup-forward-up-element
                 :exclusive t
@@ -167,6 +198,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                            'face (list :background
                                        (match-string-no-properties 0)))))))
 
+;;;###autoload
 (defun markup-setup (tags-context-func)
   (init-common :use-whitespace 'tabs-only)
   (hl-tags-mode t)
@@ -203,14 +235,20 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     ("'" vim:nxml-backward-up-element)
     ("q" vim:markup-forward-up-element)))
 
+;;;###autoload
 (defun html-setup ()
   (markup-setup #'hl-tags-context-sgml-mode)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f9>" browse-url-of-buffer)))
 
+;;;###autoload
+(add-hook 'html-mode-hook #'html-setup)
+;;;###autoload
+(add-hook 'sgml-mode-hook #'html-setup)
 
 (setf nxml-slash-auto-complete-flag t)
 
+;;;###autoload
 (defun nxml-reindent-enclosing-tag ()
   (interactive)
   (let ((p (point-marker))
@@ -239,12 +277,17 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (add-to-list '*mode-buffer-indent-function-alist*
              (cons 'nxml-mode #'nxml-indent-buffer))
 
+;;;###autoload
 (defun nxml-setup ()
   (markup-setup #'hl-tags-context-nxml-mode))
 
+;;;###autoload
+(add-hook 'nxml-mode-hook #'nxml-setup)
+
+;;;###autoload
 (defun web-mode-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (hs-minor-mode +1)
+  (setup-hs-minor-mode)
 
   (put 'hs-set-up-overlay 'permanent-local t)
 
@@ -272,11 +315,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
         web-mode-css-indent-offset 2
         web-mode-code-indent-offset 2)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("z o" hs-show-block)
-    ("z c" hs-hide-block)
-    ("z C" hs-hide-all)
-    ("z O" hs-show-all))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap
                      vim:motion-mode-local-keymap
@@ -285,6 +323,10 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 
     ("'" vim:nxml-backward-up-element)
     ("q" vim:markup-forward-up-element)))
+
+;;;###autoload
+(add-hook 'web-mode-hook #'web-mode-setup)
+
 
 (provide 'html-setup)
 

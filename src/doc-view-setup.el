@@ -21,7 +21,9 @@
        ("n" image-forward-hscroll)
        ("p" nil))))
 
+;;;###autoload
 (autoload 'doc-view-current-page "doc-view" "" nil 'macro)
+
 (defun doc-view-save-page ()
   (if-buffer-has-file
     (let ((fname (file-name-nondirectory buffer-file-name)))
@@ -33,6 +35,7 @@
                        (persistent-store-get 'doc-view-documents
                                              nil)))))))
 
+;;;###autoload
 (defun doc-view-setup ()
   (setf mode-line-format
         '(" %[%b%] "
@@ -55,15 +58,19 @@
       (doc-view-goto-page (cdr it))))
 
   (add-hook 'kill-buffer-hook 'doc-view-save-page nil t))
+
 ;; this hook actually exists in doc-view.el, albeit undeclared
+;;;###autoload
 (add-hook 'doc-view-mode-hook 'doc-view-setup)
 
+;;;###autoload
 (defun doc-view-save-pages-on-kill ()
   (for-buffers-with-mode 'doc-view-mode
                          (lambda (buf)
                            (with-current-buffer buf
                              (doc-view-save-page)))))
 
+;;;###autoload
 (add-hook 'kill-emacs-hook 'doc-view-save-pages-on-kill)
 
 (provide 'doc-view-setup)

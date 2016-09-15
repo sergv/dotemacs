@@ -7,7 +7,6 @@
 ;; Description:
 
 (require 'agda-abbrev+)
-(require 'agda2)
 (require 'common)
 
 (eval-after-load "agda-input"
@@ -22,6 +21,9 @@
      (push '("bottom" "⊥") agda-input-translations)
      (push '("top" "⊤") agda-input-translations)
      (agda-input-setup)))
+
+;;;###autoload
+(require 'agda2)
 
 ;;;###autoload (autoload 'agda-align-on-equals "agda-setup.el" nil t)
 (make-align-function agda-align-on-equals

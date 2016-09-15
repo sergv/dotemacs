@@ -6,6 +6,11 @@
 ;; Created: Tuesday, 17 July 2012
 ;; Description:
 
+(provide 'hideshow-setup)
+
+;;;###autoload
+(eval-after-load "hideshow" '(require 'hideshow-setup))
+
 (defadvice byte-compile-file (around
                               byte-compile-file-hideshow-off
                               activate
@@ -17,6 +22,7 @@
 (add-hook 'ediff-prepare-buffer-hook 'turn-off-hideshow)
 (add-hook 'vc-before-checkin-hook 'turn-off-hideshow)
 
+;;;###autoload
 (defun hs-show-sexps-in-region (begin end)
   (interactive "r")
   (save-excursion
@@ -32,6 +38,7 @@
     (deactivate-mark)
     (vim:visual-mode-exit)))
 
+;;;###autoload
 (defun hs-hide-sexps-in-region (begin end)
   (interactive "r")
   (save-excursion
@@ -49,6 +56,7 @@
 
 ;; todo: these two are quite similar to `hs-hide-sexps-in-region' and
 ;; `hs-show-sexps-in-region'
+;;;###autoload
 (defun hs-show-c-sexps-in-region (begin end)
   (interactive "r")
   (save-excursion
@@ -63,6 +71,7 @@
     (deactivate-mark)
     (vim:visual-mode-exit)))
 
+;;;###autoload
 (defun hs-hide-c-sexps-in-region (begin end)
   (interactive "r")
   (save-excursion
@@ -88,9 +97,6 @@ Original match data is restored upon return."
     (when hs-block-start-mdata-select
       (goto-char (match-beginning hs-block-start-mdata-select)))
     (funcall hs-forward-sexp-func arg)))
-
-
-(provide 'hideshow-setup)
 
 ;; Local Variables:
 ;; End:

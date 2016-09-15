@@ -42,8 +42,6 @@
 
 (defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "happy" "y"))
 
-(autoload 'haskell-setup-folding "haskell-outline")
-
 (autoload 'haskell-setup "haskell-setup")
 (autoload 'inferior-haskell-mode-setup "haskell-setup")
 (autoload 'haskell-c2hs-mode "haskell-c2hs" nil t)

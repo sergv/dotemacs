@@ -9,6 +9,7 @@
 (require 'common)
 (require 'mmm-auto)
 (require 'haskell-misc)
+(require 'haskell-outline)
 
 (setf mmm-global-mode 'maybe
       mmm-submode-decoration-level 0)

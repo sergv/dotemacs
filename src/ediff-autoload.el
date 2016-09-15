@@ -26,18 +26,10 @@
       ediff-diff-options "--ignore-tab-expansion --ignore-space-change --ignore-blank-lines"
       ediff-patch-options "")
 
-(autoload 'ediff-keymap-setup "ediff-setup")
-
 (eval-after-load
     "ediff"
   '(progn
      (add-hook 'ediff-keymap-setup-hook #'ediff-keymap-setup)))
-
-(autoload 'ediff-diff-texts-recursive-edit "ediff-setup")
-(autoload 'ediff-diff-files-recursive-edit "ediff-setup")
-(autoload 'ediff/line-in-buffer? "ediff-setup")
-(autoload 'ediff/read-line-in-buffer "ediff-setup")
-(autoload 'ediff-two-regions "ediff-setup")
 
 (provide 'ediff-autoload)
 

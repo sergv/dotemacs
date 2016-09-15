@@ -6,6 +6,7 @@
 ;; Created: Thursday, 19 November 2015
 ;; Description:
 
+(require 'haskell-outline)
 (require 'solarized)
 
 (defface ghc-profiling-expensive-face

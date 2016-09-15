@@ -7,6 +7,7 @@
 ;; Description:
 
 
+;;;###autoload
 (defun ediff-keymap-setup ()
   (def-keys-for-map ediff-mode-map
     ("h"        ediff-next-difference)
@@ -21,6 +22,7 @@
     ("<up>"     ediff-previous-difference)
     ("<escape>" ediff-quit)))
 
+;;;###autoload
 (defun* ediff-diff-texts-recursive-edit (text-a
                                          text-b
                                          &key
@@ -61,6 +63,7 @@ Register quick exit function and show difference in recursive edit."
         (kill-buffer buf-b)
         (fset 'ediff-quit orig-ediff-quit)))))
 
+;;;###autoload
 (defun* ediff-diff-files-recursive-edit (file-a
                                          file-b
                                          &key
@@ -89,6 +92,7 @@ window configuration on end of ediff session."
           (set-window-configuration win-conf)
           (fset 'ediff-quit orig-ediff-quit))))))
 
+;;;###autoload
 (defun ediff/line-in-buffer? (buffer line-num)
   (with-current-buffer buffer
     (let ((line-min 1)
@@ -96,6 +100,7 @@ window configuration on end of ediff session."
       (and (<= line-min line-num)
            (<= line-num line-max)))))
 
+;;;###autoload
 (defun ediff/read-line-in-buffer (prompt
                                   buffer
                                   error-func)
@@ -104,6 +109,7 @@ window configuration on end of ediff session."
       (funcall error-func num line-min line-max))
     num))
 
+;;;###autoload
 (defun ediff-two-regions (buffer-a start-a end-a buffer-b start-b end-b)
   (interactive
    (let* ((buffer-a (completing-read-buffer "Buffer A to diff: " nil t))

@@ -9,13 +9,17 @@
 (require 'common)
 (require 'keys-def)
 
+;;;###autoload
 (autoload 'select-mode "select-mode" nil t)
+;;;###autoload
 (autoload 'select-start-selection "select-mode")
 
+;;;###autoload
 (eval-after-load "select-mode"
   '(progn
      (setf select-restore-windows-configuration-on-hide t)))
 
+;;;###autoload
 (defun select-mode-setup ()
   (def-keys-for-map select-mode-map
     +vi-essential-keys+
@@ -26,6 +30,7 @@
     ("h" select-move-selection-down)
     ("t" select-move-selection-up)))
 
+;;;###autoload
 (add-hook 'select-mode-hook #'select-mode-setup)
 
 (provide 'select-mode-setup)
