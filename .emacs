@@ -8,10 +8,10 @@
 ;; 1e4   recursion depth is quite safe since:
 ;; 1.6e4 still works
 ;; 2e4   makes emacs crash
-(setq max-lisp-eval-depth 10000
+(setq max-lisp-eval-depth 1000
       ;; to handle all unwind-protects and similar stuff
       ;; in deep recursion
-      max-specpdl-size    42000)
+      max-specpdl-size    5000)
 
 ;; speeds up startup time considerably, worth to use
 (setq gc-cons-threshold (* 5 1024 1024)
