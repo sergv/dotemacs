@@ -583,40 +583,6 @@ well."
   (interactive)
   (browse-kill-ring-insert-and-move t))
 
-(defun browse-kill-ring-prepend-insert (&optional quit)
-  "Like `browse-kill-ring-insert', but it places the entry at the beginning
-of the buffer as opposed to point."
-  (interactive "P")
-  (browse-kill-ring-do-prepend-insert (current-buffer)
-                                      (point))
-  (when quit
-    (browse-kill-ring-quit)))
-
-(defun browse-kill-ring-prepend-insert-and-quit ()
-  "Like `browse-kill-ring-prepend-insert', but close the *Kill Ring* buffer."
-  (interactive)
-  (browse-kill-ring-prepend-insert t))
-
-(defun browse-kill-ring-prepend-insert-and-move (&optional quit)
-  "Like `browse-kill-ring-prepend-insert', but move the entry to the front
-of the *Kill Ring*."
-  (interactive "P")
-  (let ((buf (current-buffer))
-        (pt (point)))
-    (browse-kill-ring-do-prepend-insert buf pt)
-    (let ((str (browse-kill-ring-current-string buf pt)))
-      (browse-kill-ring-delete)
-      (browse-kill-ring--kill-new str)))
-  (if quit
-      (browse-kill-ring-quit)
-    (browse-kill-ring-update)))
-
-(defun browse-kill-ring-prepend-insert-move-and-quit ()
-  "Like `browse-kill-ring-prepend-insert-and-move', but close the
-*Kill Ring* buffer."
-  (interactive)
-  (browse-kill-ring-prepend-insert-and-move t))
-
 (defun browse-kill-ring-insert-and-highlight (str)
   "Helper function to insert text at point, highlighting it if appropriate."
   (let ((before-insert (point)))
@@ -939,7 +905,6 @@ You most likely do not want to call `browse-kill-ring-mode' directly; use
   (define-key browse-kill-ring-mode-map (kbd "o") 'browse-kill-ring-insert-and-move)
   (define-key browse-kill-ring-mode-map (kbd "x") 'browse-kill-ring-insert-and-delete)
   (define-key browse-kill-ring-mode-map (kbd "u") 'browse-kill-ring-insert-and-quit)
-  (define-key browse-kill-ring-mode-map (kbd "b") 'browse-kill-ring-prepend-insert)
   (define-key browse-kill-ring-mode-map (kbd "a") 'browse-kill-ring-append-insert))
 
 (define-derived-mode browse-kill-ring-edit-mode fundamental-mode
