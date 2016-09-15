@@ -8,8 +8,6 @@
 
 (require 'common)
 
-;; (autoload 'verilog-mode "verilog-mode")
-
 (setf verilog-indent-level             4
       verilog-indent-level-module      4
       verilog-indent-level-declaration 4
@@ -25,7 +23,7 @@
       verilog-auto-lineup              'all
       verilog-highlight-p1800-keywords t)
 
-
+;;;###autoload
 (defun verilog-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -37,6 +35,7 @@
                  nil
                  :enable-yasnippet t))
 
+;;;###autoload
 (add-hook 'verilog-mode-hook #'verilog-setup)
 
 (provide 'verilog-setup)

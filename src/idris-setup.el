@@ -7,10 +7,12 @@
 ;; Description:
 
 (require 'common)
-(require 'agda-autoload)
 
+;;;###autoload
 (autoload 'idris-mode "idris-mode" "" t)
+;;;###autoload
 (autoload 'eri-indent "eri" "" t)
+;;;###autoload
 (autoload 'eri-indent-reverse "eri" "" t)
 
 (setf ;; disable all sorts of banners
@@ -21,13 +23,16 @@
  ;; idris-show-help-text nil
  idris-stay-in-current-window-on-compiler-error t)
 
+;;;###autoload
 (add-to-list ' auto-mode-alist '("\\.l?idr$" . idris-mode))
 
+;;;###autoload
 (modify-coding-system-alist 'file "\\.l?idr\\'" 'utf-8)
 
 (vim:defcmd vim:idris-load-file (nonrepeatable)
   (idris-load-file))
 
+;;;###autoload
 (defun idris-pop-to-repl-or-start-a-new-one ()
   (interactive)
   (condition-case nil
@@ -46,6 +51,7 @@
   (pop-to-buffer idris-notes-buffer-name
                  '(display-buffer-reuse-window)))
 
+;;;###autoload
 (defun idris-setup ()
   (init-common :use-yasnippet t
                :use-comment t
@@ -105,31 +111,39 @@
     ("g a :"           agda-align-on-colons)
     ("z c"             yafolding-hide-region)))
 
+;;;###autoload
 (add-hook 'idris-mode-hook #'idris-setup)
 
+;;;###autoload
 (defun idris-info-history-navigate-forward ()
   (interactive)
   (idris-info-history-forward)
   (idris-info-show))
 
+;;;###autoload
 (defun idris-info-history-navigate-backward ()
   (interactive)
   (idris-info-history-back)
   (idris-info-show))
 
+;;;###autoload
 (defun idris-info-setup ()
   (def-keys-for-map idis-info-mode-map
     ("<up>"   idris-info-history-navigate-backward)
     ("<down>" idris-info-history-navigate-forward)))
 
+;;;###autoload
 (add-hook 'idris-info-mode-hook #'idris-info-setup)
 
+;;;###autoload
 (defun idris-compiler-notes-setup ()
   (def-keys-for-map idris-compiler-notes-mode-map
     ("SPC" push-button)))
 
+;;;###autoload
 (add-hook 'idris-compiler-notes-mode-hook #'idris-compiler-notes-setup)
 
+;;;###autoload
 (defun idris-repl-setup ()
   (init-repl :bind-return nil :create-keymaps t)
   (def-keys-for-map vim:normal-mode-local-keymap
@@ -143,6 +157,7 @@
     ("<up>"   idris-repl-backward-history)
     ("<down>" idris-repl-forward-history)))
 
+;;;###autoload
 (add-hook 'idris-repl-mode-hook #'idris-repl-setup)
 
 (provide 'idris-setup)

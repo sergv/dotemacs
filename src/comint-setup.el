@@ -8,6 +8,19 @@
 ;; Requirements:
 ;; Status:
 
+(provide 'comint-setup)
+
+;;;###autoload
+(setf comint-input-ignoredups t)
+;;;###autoload
+(setq-default comint-input-ignoredups t)
+
+;;;###autoload
+(eval-after-load "shell" '(require 'comint-setup))
+;;;###autoload
+(eval-after-load "comint" '(require 'comint-setup))
+
+
 (eval-after-load
     "shell"
   '(progn
@@ -209,6 +222,7 @@ Similarly for Soar, Scheme, etc."
                ;; but that scrolled the buffer in undesirable ways.
                (run-hook-with-args 'comint-output-filter-functions "")))))))
 
+;;;###autoload
 (defun comint-setup ()
   (def-keys-for-map comint-mode-map
     ("<up>"     comint-previous-input)
@@ -218,6 +232,10 @@ Similarly for Soar, Scheme, etc."
     ("S-<up>"   comint-previous-prompt)
     ("S-<down>" comint-next-prompt)))
 
+;;;###autoload
+(add-hook 'comint-mode-hook #'comint-setup)
+
+;;;###autoload
 (defun comint-clear-prompt () ;; shell-clear-prompt
   "Clear shell prompt from input."
   (interactive)
@@ -226,6 +244,7 @@ Similarly for Soar, Scheme, etc."
                     (line-end-position)))
     (delete-region (point) (line-end-position))))
 
+;;;###autoload
 (defun comint-clear-buffer-above-prompt () ;; shell-clear-buffer
   "Clear everything between start of buffer and line above current one
 inclusively."
@@ -235,8 +254,6 @@ inclusively."
       (forward-line -1)
       (delete-region (point-min) (line-end-position))
       (delete-char 1))))
-
-(provide 'comint-setup)
 
 ;; Local Variables:
 ;; End:
