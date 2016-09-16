@@ -248,9 +248,7 @@ or not.")
                 dired-find-alternate-file))
   (put func 'disabled nil))
 
-(require 'package)
-(let ((package-load-list '((melpa t))))
-  (package-initialize))
+(provide 'start)
 
 (unless (featurep 'custom-variables-defined)
   (load-library ".emacs"))
@@ -274,8 +272,6 @@ or not.")
 
 (when (platform-os-type? 'windows)
   (load-library "windows-setup"))
-
-(provide 'dotemacs)
 
 ;; Local Variables:
 ;; End:
