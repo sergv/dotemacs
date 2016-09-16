@@ -1,6 +1,4 @@
 
-;; (package-initialize)
-
 (eval-when-compile (require 'cl-lib))
 
 (require 'cl)
@@ -9,8 +7,7 @@
 ;; 1.6e4 still works
 ;; 2e4   makes emacs crash
 (setq max-lisp-eval-depth 1000
-      ;; to handle all unwind-protects and similar stuff
-      ;; in deep recursion
+      ;; Handle all unwind-protects and other resources in deep recursion
       max-specpdl-size    5000)
 
 ;; speeds up startup time considerably, worth to use
@@ -24,19 +21,13 @@
 
 (provide 'custom-variables-defined)
 
-(unless (featurep 'dotemacs)
-  (dolist (path (list (expand-file-name "~/emacs")
-                      (expand-file-name "~/.emacs.d")))
+(unless (featurep 'start)
+  (dolist (path (list (expand-file-name "~/emacs/src")
+                      (expand-file-name "~/.emacs.d/src")))
     (when (and (file-exists-p path)
                (file-directory-p path))
       (add-to-list 'load-path path)))
-
-  (load-library "dotemacs"))
-
-;; do not squander the memory
-;; (setq gc-cons-threshold (* 5 1024 1024)
-;;       gc-cons-percentage 0.10)
-
+  (load-library "start"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Custom function declarations
