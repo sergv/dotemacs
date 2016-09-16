@@ -616,12 +616,10 @@ QEOF
 
 fi
 
+# [[ -f "$emacs_dir/src/user-info.el" ]] || touch "$emacs_dir/src/user-info.el"
+# [[ -f "$emacs_dir/src/machine-specific-setup.el" ]] || touch "$emacs_dir/src/machine-specific-setup.el"
 
-[[ -f "$emacs_dir/user-info.el" ]] || touch "$emacs_dir/user-info.el"
-[[ -f "$emacs_dir/machine-specific-setup.el" ]] || touch "$emacs_dir/machine-specific-setup.el"
-
-emacs --batch --load recompile.el --eval "(recompile-main \"$emacs_dir\")"
-
+emacs --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\")"
 
 exit 0
 
