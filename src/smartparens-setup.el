@@ -193,11 +193,8 @@ With negative argument move forward, still one level out."
                  haskell-cabal-mode
                  haskell-interactive-mode
                  inferior-haskell-mode)
-  ;; ;; ' is identifier part in Haskell, and characters are rare enough
-  ;; ;; to make manual entering '' pair feasible
-  ;; (sp-local-pair "'" nil :actions nil)
   (sp-local-pair "{-#" "#-}")
-  (sp-local-pair "'" nil :unless '(sp-point-after-word-p))
+  (sp-local-pair "'" nil :actions '(insert) :unless '(sp-point-after-word-p/ext))
 
   (sp-local-pair "\\(" nil :when '(sp-in-string-p))
   (sp-local-pair "\\\\(" nil :when '(sp-in-string-p))
