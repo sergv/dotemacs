@@ -11,7 +11,6 @@
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
 
-
 (defconst +emacs-config-path+
   (find-if (lambda (p) (and (file-accessible-directory-p p)))
            (list
