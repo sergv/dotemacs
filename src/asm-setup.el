@@ -6,6 +6,25 @@
 ;; Created: Thursday, 15 November 2012
 ;; Description:
 
+;; TODO add nasm-mode
+
+;;;###autoload
+(autoload 'nasm-mode "nasm-mode" nil t)
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.asm\\'" . nasm-mode))
+
+;;;###autoload
+(defun nasm-mode-setup ()
+  (init-common :use-yasnippet      nil
+               :use-comment        t
+               :use-fci            t
+               :use-render-formula t
+               :use-whitespace     'tabs-only))
+
+;;;###autoload
+(add-hook 'nasm-mode-hook #'nasm-mode-setup)
+
 ;;;###autoload
 (defun asm-mode-setup ()
   (init-common :use-yasnippet      nil
