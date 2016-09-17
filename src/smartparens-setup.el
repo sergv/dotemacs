@@ -194,7 +194,7 @@ With negative argument move forward, still one level out."
                  haskell-interactive-mode
                  inferior-haskell-mode)
   (sp-local-pair "{-#" "#-}")
-  (sp-local-pair "'" nil :actions '(insert) :unless '(sp-point-after-word-p/ext))
+  (sp-local-pair "'" nil :actions '(insert) :unless '(sp-point-after-word-p))
 
   (sp-local-pair "\\(" nil :when '(sp-in-string-p))
   (sp-local-pair "\\\\(" nil :when '(sp-in-string-p))
