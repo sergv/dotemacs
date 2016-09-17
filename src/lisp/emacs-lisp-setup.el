@@ -8,12 +8,12 @@
 ;; Requirements:
 ;; Status:
 
-(require 'general-lisp-setup)
-(require 'find-func)
+(require 'company-mode-setup)
+(require 'elisp-slime-nav)
 (require 'emacs-lisp-abbrev+)
 (require 'emacs-lisp-highlight)
-(require 'elisp-slime-nav)
-(require 'company-mode-setup)
+(require 'find-func)
+(require 'general-lisp-setup)
 
 ;;; elisp fontification and indentation
 
