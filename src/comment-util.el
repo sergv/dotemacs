@@ -98,6 +98,7 @@
     (lua-mode              (one-line "--") (line-regexp "--+"))
     (xmodmap-mode          (one-line "!") (line-regexp "!+"))
     (asm-mode              (one-line ";") (line-regexp ";+"))
+    (nasm-mode             (one-line ";") (line-regexp ";+"))
     (llvm-mode             (one-line ";") (line-regexp ";+"))
     (tablegen-mode         (one-line "//") (line-regexp "//+"))
     (verilog-mode          (one-line "//") (line-regexp "//+"))
