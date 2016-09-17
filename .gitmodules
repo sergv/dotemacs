@@ -160,5 +160,8 @@
         url = https://github.com/sergv/flycheck-haskell.git
         ignore = untracked
 [submodule "third-party/intero"]
-	path = third-party/intero
-	url = https://github.com/commercialhaskell/intero.git
+        path = third-party/intero
+        url = https://github.com/commercialhaskell/intero.git
+[submodule "third-party/nasm-mode"]
+        path = third-party/nasm-mode
+        url = https://github.com/skeeto/nasm-mode.git
