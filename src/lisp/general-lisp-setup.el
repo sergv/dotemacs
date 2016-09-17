@@ -12,14 +12,14 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'common)
 (require 'advices-util)
-(require 'macro-util)
-(require 'search)
-
+(require 'common)
 (require 'eldoc)
+(require 'macro-util)
 (require 'outline-headers)
+(require 'paredit-setup)
 (require 'rainbow-delimiters)
+(require 'search)
 
 ;;;###autoload
 (defconst +lisp-modes+
