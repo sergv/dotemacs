@@ -20,7 +20,6 @@
                :use-fci t
                :use-whitespace 'tabs-only)
   (fontify-merge-markers)
-  (hs-minor-mode 1)
   (vim:local-emap "compile"  #'vim:haskell-compile)
   (vim:local-emap "c"        #'vim:haskell-compile)
   (vim:local-emap "ccompile" #'vim:haskell-compile-choosing-command)
@@ -39,7 +38,7 @@
     ("<f9>" haskell-compile))
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
   (haskell-abbrev+-setup)
-  (haskell-setup-folding))
+  (haskell-setup-folding :enable-hs-minor-mode t))
 
 (provide 'haskell-grammar-tools-setup)
 

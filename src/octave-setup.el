@@ -319,7 +319,7 @@ in GROUP-NUMS."
                :sp-slurp-sexp-insert-space nil
                :use-fci t
                :use-whitespace 'tabs-only)
-  (hs-minor-mode t)
+  (setup-hs-minor-mode)
 
   (setq-local yas/indent-line 'fixed)
   (setq-local hs-set-up-overlay
@@ -345,12 +345,7 @@ in GROUP-NUMS."
     ("g a ,"   octave-align-on-commas)
 
     ("g t"     (lambda () (interactive) (octave-beginning-of-defun)))
-    ("g h"     end-of-defun)
-
-    ("z o"     hs-show-block)
-    ("z c"     hs-hide-block)
-    ("z C"     hs-hide-all)
-    ("z O"     hs-show-all))
+    ("g h"     end-of-defun))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g a ="   octave-align-on-equals)

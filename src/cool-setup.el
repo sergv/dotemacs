@@ -14,7 +14,7 @@
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
-  (hs-minor-mode-setup))
+  (setup-hs-minor-mode))
 
 ;;;###autoload
 (add-hook 'cool-mode-hook #'cool-setup)

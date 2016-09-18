@@ -26,7 +26,7 @@
 ;;;###autoload
 (defun* haskell-setup-folding (&key (enable-hs-minor-mode t))
   (when enable-hs-minor-mode
-    (hs-minor-mode +1))
+    (setup-hs-minor-mode))
   (yafolding-mode +1)
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table
