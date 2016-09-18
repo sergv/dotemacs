@@ -375,6 +375,7 @@ greater indenation as current line."
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
+  (setup-hs-minor-mode)
 
   (setq-local tab-width 4)
   (setq-local vim:shift-width 4)
@@ -388,7 +389,6 @@ greater indenation as current line."
   ;; make . a symbol constituent, mostly for me too
   (modify-syntax-entry ?. ".")
 
-  (hs-minor-mode 1)
   (setf hs-block-end-regexp nil)
 
   ;; By default this is set to `python-nav-forward-sexp' which is too
@@ -408,12 +408,7 @@ greater indenation as current line."
     ("M-?"     python-convolute-lines)
 
     ("SPC SPC" switch-to-python)
-    ("g s s"   vim-replace-symbol-at-point)
-
-    ("z o"     hs-show-block)
-    ("z c"     hs-hide-block)
-    ("z C"     python-hide-all)
-    ("z O"     hs-show-all))
+    ("g s s"   vim-replace-symbol-at-point))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("<f6>"  python-shell-send-region)

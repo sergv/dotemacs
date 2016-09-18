@@ -160,7 +160,7 @@ Also propagate new offset to `vim:shift-width'."
                :use-yasnippet t
                :use-whitespace 'tabs-only)
   (fontify-conflict-markers)
-  (hs-minor-mode 1)
+  (setup-hs-minor-mode)
   (dtrt-indent-mode 1)
   (which-function-mode -1)
   (company-mode +1)
@@ -184,13 +184,7 @@ Also propagate new offset to `vim:shift-width'."
     ("g TAB" c-indent-defun)
 
     ("g t"   c-beginning-of-defun)
-    ("g h"   c-end-of-defun)
-
-    ("z o"   hs-show-block)
-    ("z v"   hs-show-block)
-    ("z c"   hs-hide-block)
-    ("z C"   hs-hide-all)
-    ("z O"   hs-show-all))
+    ("g h"   c-end-of-defun))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("z c"   hs-hide-c-sexps-in-region)
