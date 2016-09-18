@@ -484,11 +484,11 @@ the current topic."
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)
-  (vim:local-emap "beamer" 'vim:org-mode-make-beamer-presentation)
-  (vim:local-emap "reveal" 'vim:org-mode-make-revealjs-presentation)
-  (vim:local-emap "export" 'vim:org-mode-export)
-  (vim:local-emap "tangle" 'vim:org-mode-tangle)
-  (vim:local-emap "pdf"    'vim:org-latex-export-to-pdf)
+  (vim:local-emap "beamer" #'vim:org-mode-make-beamer-presentation)
+  (vim:local-emap "reveal" #'vim:org-mode-make-revealjs-presentation)
+  (vim:local-emap "export" #'vim:org-mode-export)
+  (vim:local-emap "tangle" #'vim:org-mode-tangle)
+  (vim:local-emap "pdf"    #'vim:org-latex-export-to-pdf)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<print>" org-toggle-inline-images-and-formulae)
     ("-"       vim:org-mode-make-beamer-presentation)
