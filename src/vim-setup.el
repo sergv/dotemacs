@@ -11,6 +11,7 @@
 (require 'keys-def)
 (require 'search)
 (require 'smartparens-setup)
+(require 'vim-ex)
 (require 'vim-replace)
 
 ;;; configuration variables
@@ -254,15 +255,15 @@ Basically swap current point with previous one."
   "Close all window except current one, just like C-x 1."
   (delete-other-windows))
 
-(vim:emap "only" 'vim:cmd-only)
-(vim:emap "on" 'vim:cmd-only)
+(vim:emap "only" #'vim:cmd-only)
+(vim:emap "on" #'vim:cmd-only)
 
 (vim:defcmd vim:cmd-close (nonrepeatable keep-visual)
   "Close current window, just like C-x 0."
   (delete-window))
 
-(vim:emap "close" 'vim:cmd-close)
-(vim:emap "cl" 'vim:cmd-close)
+(vim:emap "close" #'vim:cmd-close)
+(vim:emap "cl" #'vim:cmd-close)
 
 (vimmize-function
  split-window-horizontally
@@ -287,15 +288,15 @@ Basically swap current point with previous one."
  :repeatable nil
  :keep-visual t)
 
-(vim:emap "hsplit" 'vim:cmd-split-horizontally)
-(vim:emap "hs" 'vim:cmd-split-horizontally)
-(vim:emap "vsplit" 'vim:cmd-split-vertically)
-(vim:emap "vs" 'vim:cmd-split-vertically)
-(vim:emap "transpose" 'vim:transpose-windows)
-(vim:emap "tr" 'vim:transpose-windows)
+(vim:emap "hsplit" #'vim:cmd-split-horizontally)
+(vim:emap "hs" #'vim:cmd-split-horizontally)
+(vim:emap "vsplit" #'vim:cmd-split-vertically)
+(vim:emap "vs" #'vim:cmd-split-vertically)
+(vim:emap "transpose" #'vim:transpose-windows)
+(vim:emap "tr" #'vim:transpose-windows)
 
-(vim:emap "write" 'vim:cmd-write-current-buffer)
-(vim:emap "w" 'vim:cmd-write-current-buffer)
+(vim:emap "write" #'vim:cmd-write-current-buffer)
+(vim:emap "w" #'vim:cmd-write-current-buffer)
 
 
 (autoload 'awk-exit "awk+")
@@ -316,7 +317,7 @@ Basically swap current point with previous one."
                    (vim:motion-end-pos motion)
                    (line-end-position))))
 
-(vim:emap "awk" 'vim:start-awk)
+(vim:emap "awk" #'vim:start-awk)
 
 ;; this is absolutely necessary to make vim recognize local keymaps
 ;; on it's first entrance into some mode
@@ -346,7 +347,7 @@ Basically swap current point with previous one."
           (t
            (error "command works in ibuffer-mode only")))))
 
-(vim:emap "in-bufs" 'vim:apply-to-selected-buffers)
+(vim:emap "in-bufs" #'vim:apply-to-selected-buffers)
 
 
 (autoload 'render-buffer "render-formula" "" t)
@@ -356,7 +357,7 @@ Basically swap current point with previous one."
     (latex-toggle-preview)
     (render-formula-toggle-formulae)))
 
-(vim:emap "latex" 'vim:render-latex)
+(vim:emap "latex" #'vim:render-latex)
 
 
 
@@ -368,7 +369,7 @@ Basically swap current point with previous one."
                  (vim:motion-end-pos motion)
                  (line-end-position))))
 
-(vim:emap "no-tabs" 'vim:remove-tabs)
+(vim:emap "no-tabs" #'vim:remove-tabs)
 
 (vim:defcmd vim:narrow-to-region-indirect (motion nonrepeatable)
   (narrow-to-region-indirect
@@ -379,8 +380,8 @@ Basically swap current point with previous one."
      (vim:motion-end-pos motion)
      (point-max))))
 
-(vim:emap "narrow-indirect" 'vim:narrow-to-region-indirect)
-(vim:emap "ni" 'vim:narrow-to-region-indirect)
+(vim:emap "narrow-indirect" #'vim:narrow-to-region-indirect)
+(vim:emap "ni" #'vim:narrow-to-region-indirect)
 
 
 (vim:defcmd vim:indent (nonrepeatable)
@@ -388,7 +389,7 @@ Basically swap current point with previous one."
     (funcall (cdr it))
     (error "No indentation function defined for %s" major-mode)))
 
-(vim:emap "indent" 'vim:indent)
+(vim:emap "indent" #'vim:indent)
 
 (vim:defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
@@ -406,8 +407,8 @@ Basically swap current point with previous one."
       (message "Warning: current buffer has no associated file")
       (magit-status))))
 
-(vim:emap "magit" 'vim:magit)
-(vim:emap "g" 'vim:magit)
+(vim:emap "magit" #'vim:magit)
+(vim:emap "g" #'vim:magit)
 
 
 (vim:defcmd vim:blame (nonrepeatable)
@@ -415,7 +416,7 @@ Basically swap current point with previous one."
   (call-interactively #'magit-blame)
   (vim:activate-blame-mode))
 
-(vim:emap "blame" 'vim:blame)
+(vim:emap "blame" #'vim:blame)
 
 (vim:defcmd vim:blame-quit (nonrepeatable)
   "Stop `magit-blame-mode'."
@@ -424,7 +425,7 @@ Basically swap current point with previous one."
     (unless magit-blame-mode
       (vim:activate-normal-mode))))
 
-(vim:emap "blame-quit" 'vim:blame-quit)
+(vim:emap "blame-quit" #'vim:blame-quit)
 
 (vim:defcmd vim:git-add (nonrepeatable)
   "Run git add on current file."
@@ -435,8 +436,7 @@ Basically swap current point with previous one."
       (git-update-file-repository))
     (error "current buffer has no associated file")))
 
-(vim:emap "gadd" 'vim:git-add)
-(vim:emap "add" 'vim:git-add)
+(vim:emap "add" #'vim:git-add)
 
 (vim:defcmd vim:git-amend (nonrepeatable)
   "Amend topmost git commit with all staged changes."
@@ -452,14 +452,14 @@ Basically swap current point with previous one."
      "--reuse-message=HEAD")
     (magit-refresh-all)))
 
-(vim:emap "amend" 'vim:git-amend)
+(vim:emap "amend" #'vim:git-amend)
 
 (vim:defcmd vim:ibuffer (nonrepeatable)
   "Open ibuffer buffer."
   (ibuffer))
 
-(vim:emap "ibuffer" 'vim:ibuffer)
-(vim:emap "ib" 'vim:ibuffer)
+(vim:emap "ibuffer" #'vim:ibuffer)
+(vim:emap "ib" #'vim:ibuffer)
 
 ;; Frame commands
 
@@ -467,8 +467,8 @@ Basically swap current point with previous one."
   "Pops up a new frame."
   (new-frame))
 
-(vim:emap "newf" 'vim:cmd-new-frame)
-(vim:emap "nf" 'vim:cmd-new-frame)
+(vim:emap "newf" #'vim:cmd-new-frame)
+(vim:emap "nf" #'vim:cmd-new-frame)
 
 ;; Buffer commands
 
@@ -476,15 +476,15 @@ Basically swap current point with previous one."
   "Remove current buffer."
   (remove-buffer buf))
 
-(vim:emap "rb" 'vim:remove-buffer)
-(vim:emap "bd" 'vim:remove-buffer)
+(vim:emap "rb" #'vim:remove-buffer)
+(vim:emap "bd" #'vim:remove-buffer)
 
 (vim:defcmd vim:remove-buffer-and-window (nonrepeatable)
   "Remove current buffer and close its window."
   (remove-buffer-and-window))
 
-(vim:emap "rbw" 'vim:remove-buffer-and-window)
-(vim:emap "bdw" 'vim:remove-buffer-and-window)
+(vim:emap "rbw" #'vim:remove-buffer-and-window)
+(vim:emap "bdw" #'vim:remove-buffer-and-window)
 
 
 (vim:defcmd vim:do-commands
@@ -494,7 +494,7 @@ Basically swap current point with previous one."
                       "[ ,]\\|&&"
                       t)))
 
-(vim:emap "do" 'vim:do-command)
+(vim:emap "do" #'vim:do-commands)
 
 (vim:defcmd vim:revert-buffer (nonrepeatable)
   (revert-buffer))
@@ -520,7 +520,7 @@ Basically swap current point with previous one."
                  (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
         (kill-buffer buf)))))
 
-(vim:emap "!" 'vim:shell-command-on-region)
+(vim:emap "!" #'vim:shell-command-on-region)
 
 (provide 'vim-setup)
 

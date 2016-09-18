@@ -23,10 +23,10 @@
   (if-buffer-has-file
     (when (string-match-pure? "^stack.*\\.yaml$"
                               (file-name-nondirectory (buffer-file-name)))
-      (vim:local-emap "compile"  'vim:haskell-compile)
-      (vim:local-emap "c"        'vim:haskell-compile)
-      (vim:local-emap "ccompile" 'vim:haskell-compile-choosing-command)
-      (vim:local-emap "cc"       'vim:haskell-compile-choosing-command)
+      (vim:local-emap "compile"  #'vim:haskell-compile)
+      (vim:local-emap "c"        #'vim:haskell-compile)
+      (vim:local-emap "ccompile" #'vim:haskell-compile-choosing-command)
+      (vim:local-emap "cc"       #'vim:haskell-compile-choosing-command)
 
       (def-keys-for-map (vim:normal-mode-local-keymap
                          vim:insert-mode-local-keymap)

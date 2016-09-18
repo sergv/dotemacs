@@ -76,7 +76,7 @@
   (ansi-color-for-comint-mode-on)
   (setq-local comint-scroll-to-bottom-on-input t)
 
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ;; clear all previous output
