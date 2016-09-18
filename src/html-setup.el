@@ -201,11 +201,11 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun markup-setup (tags-context-func)
   (init-common :use-whitespace 'tabs-only)
+  (setup-hs-minor-mode)
   (hl-tags-mode t)
 
   (setq-local yas-fallback-behavior 'call-other-command)
 
-  (hs-minor-mode t)
   (put 'hs-set-up-overlay 'permanent-local t)
 
   (modify-syntax-entry ?\" "\"")
@@ -217,12 +217,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<up>"   sgml-skip-tag-backward)
     ("<down>" sgml-skip-tag-forward)
-
-    ("z o"    hs-show-block)
-    ("z c"    hs-hide-block)
-    ("z C"    hs-hide-all)
-    ("z O"    hs-show-all)
-
     ;; ("q"      markup-forward-up-element)
     )
 

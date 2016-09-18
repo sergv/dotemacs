@@ -20,7 +20,7 @@
   (init-common :use-yasnippet nil
                :use-render-formula nil
                :use-whitespace 'tabs-only)
-  (hs-minor-mode 1))
+  (setup-hs-minor-mode))
 
 ;;;###autoload
 (add-hook 'antlr-mode-hook #'antlr-setup)
