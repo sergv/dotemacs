@@ -52,7 +52,7 @@
 (defun inferior-sml-mode-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt))
+  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt))
 
 ;;;###autoload
 (add-hook 'inferior-sml-mode-hook #'inferior-sml-mode-setup)

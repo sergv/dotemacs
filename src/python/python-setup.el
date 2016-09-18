@@ -396,8 +396,8 @@ greater indenation as current line."
   ;; (causes noticeable delay on inserting (, " or """)
   (setq-local forward-sexp-function nil)
 
-  (vim:local-emap "load" 'vim:python-shell-send-buffer)
-  (vim:local-emap "l" 'vim:python-shell-send-buffer)
+  (vim:local-emap "load" #'vim:python-shell-send-buffer)
+  (vim:local-emap "l"    #'vim:python-shell-send-buffer)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<f6>"    python-shell-send-buffer)
@@ -489,7 +489,7 @@ greater indenation as current line."
   (setf tab-width 4)
   (setq-local forward-sexp-function nil)
 
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))

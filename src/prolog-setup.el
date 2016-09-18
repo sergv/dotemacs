@@ -60,7 +60,7 @@
   ;; changed in prolog.el itself
   ;; (modify-syntax-entry ?_ "_" prolog-mode-syntax-table)
 
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)

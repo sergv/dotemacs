@@ -695,7 +695,7 @@ nor comment."
   (setq-local comint-use-prompt-regexp nil)
   (setq-local comint-prompt-regexp "^[^> \n\t\r\f\v]*\\(>+:?\\|[*?]+\\) *")
 
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt))

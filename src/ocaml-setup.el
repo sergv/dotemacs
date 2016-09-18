@@ -72,7 +72,7 @@
 (defun ocaml-interactive-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
-  (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
+  (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
     ("C-SPC"      vim:comint-clear-buffer-above-prompt)
     ("<return>"   ocaml-interactive-send-input)
