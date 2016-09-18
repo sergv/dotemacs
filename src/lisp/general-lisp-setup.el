@@ -595,7 +595,7 @@ nor comment."
                :use-render-formula t
                :use-fci use-fci)
   (rainbow-delimiters-mode 1)
-  (hs-minor-mode 1)
+  (setup-hs-minor-mode)
   ;; hiding of comments is rather annoying feature when working with lisps
   (setq-local hs-hide-comments-when-hiding-all nil)
 
@@ -631,12 +631,7 @@ nor comment."
     ;; but currently only aligns lets, setqs etc
     ("g a"      nil)
     ("g a a"    realign-let)
-    ("g a l"    realign-let)
-
-    ("z o"      hs-show-block)
-    ("z c"      hs-hide-block)
-    ("z C"      hs-hide-all)
-    ("z O"      hs-show-all))
+    ("g a l"    realign-let))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("g a"      nil)

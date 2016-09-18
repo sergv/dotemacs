@@ -20,7 +20,7 @@
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
-  (hs-minor-mode-setup))
+  (setup-hs-minor-mode))
 
 ;;;###autoload
 (add-hook 'lua-mode-hook #'lua-setup)
