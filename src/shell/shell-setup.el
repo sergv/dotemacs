@@ -46,6 +46,7 @@
   (init-common :use-yasnippet t
                :use-whitespace 'tabs-only
                :use-fci nil)
+  (setup-hs-minor-mode)
   (add-hook 'after-save-hook #'make-script-file-exec nil t)
 
   (setq-local yas-indent-line 'fixed)
