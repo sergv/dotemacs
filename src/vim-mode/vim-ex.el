@@ -19,11 +19,11 @@
   "Configure ex-mode and search mode."
   :group 'vim-mode)
 
-(defparameter vim:ex-commands nil
-  "List of pairs (command . function).")
+(defparameter vim:ex-commands (make-hash-table :test #'equal)
+  "Hash table, keys are string commands, values are functions.")
 
 (defvar-local vim:ex-local-commands nil
-  "List of pairs (command . function).")
+  "Buffer-local version of `vim:ex-commands'.")
 
 (defparameter vim:ex-minibuffer nil
   "The currenty active ex minibuffer.")
@@ -86,37 +86,71 @@ except for the info message."
   (with-current-buffer vim:ex-minibuffer
     (vim:strip-ex-info (buffer-substring (minibuffer-prompt-end) (point-max)))))
 
-(defparameter *ex-commands-re-cache* nil
+(defvar vim-ex--global-commands-re-cache nil
   "This variable contains optimized regexp that matches
 currently defined ex commands. Should be updated with
-`ex-commands-re-cache-update' when new ex commands being defined.")
+`vim-ex--map-command' when new ex commands being defined.")
 
-(defparameter vim:all-known-ex-commands nil
+(defvar-local vim-ex--local-commands-re-cache nil
+  "Local variont of `vim-ex--global-commands-re-cache' that includes both global and
+local commands.")
+
+(defparameter vim:all-known-global-ex-commands nil
   "List of strings of all known ex-mode commands.")
 
-(defun ex-commands-re-cache-update (keys)
-  "Updates `*ex-commands-re-cache*' with current ex-commands."
-  (add-to-list 'vim:all-known-ex-commands keys)
-  (setf *ex-commands-re-cache*
-        (concat "\\("
-                (regexp-opt vim:all-known-ex-commands)
-                "\\)\\(!\\)?")))
+(defvar-local vim:all-known-local-ex-commands nil
+  "Buffer-local version of `vim:all-known-global-ex-commands' that includes local
+commands only.")
+
+(defvar-local vim:all-known-local-and-global-ex-commands nil
+  "Buffer-local version of `vim:all-known-global-ex-commands' that includes both local
+and global commands.")
+
+(defun vim-ex--map-command (local keys command tbl)
+  "Updates `vim-ex--global-commands-re-cache' and `vim-ex--local-commands-re-cache' with
+current ex-commands."
+  (cl-assert (hash-table-p tbl))
+  (cond
+    ((stringp command)
+     (aif (gethash command tbl)
+       (progn
+         (cl-assert (or (functionp it)
+                        (vectorp it)))
+         (puthash keys it tbl))
+       (error "Keys do not refer to command: %s" keys)))
+    ((or (functionp command)
+         (vectorp command))
+     (puthash keys command tbl))
+    (t
+     (error "Cannot emap command: %S of type %s"
+            command
+            (type-of command))))
+  (if local
+    (progn
+      (add-to-list 'vim:all-known-local-ex-commands keys)
+      (setf vim:all-known-local-and-global-ex-commands
+            (append vim:all-known-local-ex-commands
+                    vim:all-known-global-ex-commands))
+      (setf vim-ex--local-commands-re-cache
+            (concat "\\("
+                    (regexp-opt vim:all-known-local-and-global-ex-commands)
+                    "\\)\\(!\\)?")))
+    (progn
+      (add-to-list 'vim:all-known-global-ex-commands keys)
+      (setf vim-ex--global-commands-re-cache
+            (concat "\\("
+                    (regexp-opt vim:all-known-global-ex-commands)
+                    "\\)\\(!\\)?")))))
 
 (defun vim:emap (keys command)
   "Maps an ex-command to some function."
-  (let ((binding (assoc keys vim:ex-commands)))
-    (if binding
-      (setcdr binding command)
-      (add-to-list 'vim:ex-commands (cons keys command))))
-  (ex-commands-re-cache-update keys))
+  (vim-ex--map-command nil keys command vim:ex-commands))
 
 (defun vim:local-emap (keys command)
   "Maps an ex-command to some function buffer-local."
-  (let ((binding (assoc keys vim:ex-local-commands)))
-    (if binding
-      (setcdr binding command)
-      (add-to-list 'vim:ex-local-commands (cons keys command)))
-    (ex-commands-re-cache-update keys)))
+  (unless vim:ex-local-commands
+    (setf vim:ex-local-commands (make-hash-table :test #'equal)))
+  (vim-ex--map-command t keys command vim:ex-local-commands))
 
 (defun vim:ex-binding (cmd)
   "Returns the current binding of `cmd'. If no such
@@ -139,8 +173,10 @@ the symbol 'incomplete is returned."
                    ;; more than one inexact completion found
                    (t 'incomplete))))
          (while (and c (stringp c))
-           (setq c (or (cdr-safe (assoc c vim:ex-local-commands))
-                       (cdr-safe (assoc c vim:ex-commands)))))
+           (setq c (or (gethash c vim:ex-commands)
+                       (and
+                        vim:ex-local-commands
+                        (gethash c vim:ex-local-commands)))))
          c)))))
 
 (defsubst vim:ex-binding-p (binding)
@@ -570,10 +606,16 @@ Returns four values: (cmd beg end force) where
               end 'last-line
               end-off 0
               sep ?,))
-      (when (= pos (or (string-match *ex-commands-re-cache*
-                                     ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
-                                     text pos)
-                       -1))
+      (when (= pos (or
+                    (if vim-ex--local-commands-re-cache
+                      (string-match vim-ex--local-commands-re-cache
+                                    text
+                                    pos)
+                      (string-match vim-ex--global-commands-re-cache
+                                    ;; "\\([a-zA-Z0-9_]+\\)\\(!\\)?"
+                                    text
+                                    pos))
+                    -1))
         (setq cmd (cons (match-beginning 1) (match-end 1))))
       (multiple-value-bind (start end)
           (vim:ex-get-range (and begin (cons begin begin-off))
@@ -692,7 +734,8 @@ the offset and the new position."
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
       (let ((result (completing-read vim--ex-propmt
                                      ;; #'vim:ex-complete
-                                     vim:all-known-ex-commands
+                                     (or vim:all-known-local-and-global-ex-commands
+                                         vim:all-known-global-ex-commands)
                                      nil     ;; predicate
                                      nil     ;; require-match
                                      initial-input
