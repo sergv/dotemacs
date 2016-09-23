@@ -19,30 +19,39 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)")
 
 ;; Global state
 
-(defvar select--init-window-config nil)
-(defvar select--init-window nil
+(defvar-local select--init-window-config nil)
+(defvar-local select--init-window nil
   "Window from which select-mode's instance was invoked")
-(defvar select--init-buffer nil
+(defvar-local select--init-buffer nil
   "Buffer from which select-mode's instance was invoked")
 
 
-(defvar select--selected-item nil
+(defvar-local select--selected-item nil
   "Index (number) of selected item")
-(defvar select--items nil
+(defvar-local select--items nil
   "Vector of possible selections")
-(defvar select--selection-overlay nil
+(defvar-local select--item-positions nil
+  "Vector of positions for tracking current selection.")
+
+(defvar-local select--selection-overlay nil
   "Overlay that displays ")
-(defvar select--selection-buffer nil
-  "Buffer where selection takes place")
 
 (defface select-selection-face '((t (:inherit secondary-selection)))
   "Face to highlight currently selected item")
 
-;; (defface select-selection-face '((t (:bold t)))
-;;   "Face to highlight currently selected item")
+(defvar-local select--item-show-function #'identity
+  "This should be a function of one item to be displayed.
 
+Items will be passed to this function before insertion into buffer.")
 
-(defvar select--separator-function (lambda () "")
+(defvar-local select--on-selection-function #'ignore
+  "This should be a function of one argument - index of currently selected item.")
+(defvar-local select--preamble-function (lambda () "")
+  "Function that returns contents at the top of the buffer")
+(defvar-local select--epilogue-function (lambda () "")
+  "Function that returns contents at the bottom of the buffer")
+
+(defvar-local select--separator-function (lambda () "")
   "Function of no arguments that returns current separator to use.
 
 Separator is used like this
@@ -53,17 +62,11 @@ bar
 ---------------
 baz
 <...>")
-(defvar select--item-show-function #'identity
-  "This should be a function of one item to be displayed.
 
-Items will be passed to this function before insertion into buffer.")
-
-(defvar select--on-selection-function #'ignore
-  "This should be a function of one argument - index of currently selected item.")
-(defvar select--preamble-function (lambda () "")
-  "Function that returns contents at the top of the buffer")
-(defvar select--epilogue-function (lambda () "")
-  "Function that returns contents at the bottom of the buffer")
+(defun select-make-bold-separator (base)
+  (propertize base
+              'face 'bold
+              'font-lock-face 'bold))
 
 (defvar select--bold-separator (select-make-bold-separator "--------\n"))
 
@@ -168,52 +171,48 @@ ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS coll
 and symbol, specifying selection type. Currently, selection type may be either
 'same-window or 'other-window.
 "
-  (assert (< 0 (length items)))
-  (assert item-show-function)
+  (cl-assert (< 0 (length items)))
+  (cl-assert item-show-function)
   (let ((init-buffer (current-buffer))
         (init-window (selected-window))
         (init-window-config (current-window-configuration)))
     (with-current-buffer (switch-to-buffer-other-window buffer-name)
       (select--with-disabled-undo
-       (setf select--init-window-config init-window-config
-             select--init-window init-window
-             select--init-buffer init-buffer
-             ;; display-related items
-             select--item-show-function item-show-function
-             select--preamble-function preamble-function
-             select--epilogue-function epilogue-function
-             select--separator-function separator-function
-             select--on-selection-function on-selection)
+        (select-mode)
 
-       (setf select--selection-buffer (current-buffer))
+        (setq-local select--init-window-config init-window-config)
+        (setq-local select--init-window init-window)
+        (setq-local select--init-buffer init-buffer)
+        ;; display-related items
+        (setq-local select--item-show-function item-show-function)
+        (setq-local select--on-selection-function on-selection)
+        (setq-local select--preamble-function preamble-function)
+        (setq-local select--epilogue-function epilogue-function)
+        (setq-local select--separator-function separator-function)
 
-       (select-mode)
+        (setq-local select--selected-item 0)
+        (setq-local select--items (if (listp items)
+                                    (select--list->vector items)
+                                    items))
+        (setq-local select--item-positions (make-vector (length items) nil))
 
-       (setf select--selection-overlay (make-overlay (point-min) (point-min)))
-       (overlay-put select--selection-overlay
-                    'face
-                    'select-selection-face)
-       (overlay-put select--selection-overlay
-                    'font-lock-face
-                    'select-selection-face)
-       (select-setup-items items 0)
-       (select--with-preserved-buffer-modified-p
-        (select--with-inhibited-read-only
-         (select--render-items select--items)))
-       (when after-init
-         (funcall after-init))
+        (setq-local select--selection-overlay (make-overlay (point-min) (point-min)))
+        (overlay-put select--selection-overlay
+                     'face
+                     'select-selection-face)
+        (overlay-put select--selection-overlay
+                     'font-lock-face
+                     'select-selection-face)
+        (select--with-preserved-buffer-modified-p
+          (select--with-inhibited-read-only
+            (select--render-items select--items)))
+        (when after-init
+          (funcall after-init))
 
-       (set-buffer-modified-p nil)
-       (read-only-mode +1)
-       ;; (setf buffer-read-only t)
-       ))))
-
-(defun select-setup-items (items selected-item)
-  (setf select--selected-item selected-item
-        select--items (if (listp items)
-                        (select--list->vector items)
-                        items)
-        select--item-positions (make-vector (length items) nil)))
+        (set-buffer-modified-p nil)
+        (read-only-mode +1)
+        ;; (setf buffer-read-only t)
+        ))))
 
 
 (defun* select--move-selection-to (idx &key (move-point t))
@@ -239,24 +238,14 @@ and symbol, specifying selection type. Currently, selection type may be either
     (erase-buffer)
     (goto-char (point-min))
     (insert (funcall select--preamble-function))
-
-    ;; (funcall insert-item 0 (elt items 0))
     (let ((sep (when select--separator-function
-                 (funcall select--separator-function)))
-          (i 1))
+                 (funcall select--separator-function))))
       (loop
         for item being the elements of items using (index i)
         do
         (unless (= i 0)
           (when sep (insert sep)))
-        (funcall insert-item i item))
-      ;; (loop
-      ;;   for i from 1 to (- (length items) 1)
-      ;;   do
-      ;;   (let ((item (elt items i)))
-      ;;     (when sep (insert sep))
-      ;;     (funcall insert-item i item)))
-      )
+        (funcall insert-item i item)))
     (insert (funcall select--epilogue-function))
     (select--move-selection-to select--selected-item)))
 
@@ -281,7 +270,7 @@ and symbol, specifying selection type. Currently, selection type may be either
              (funcall pos-inside-pos-pair pos
                       (aref select--item-positions selection-idx)))
       (progn
-        (setf select--selected-item selection-idx)
+        (setq-local select--selected-item selection-idx)
         (select--move-selection-to select--selected-item :move-point nil))
       (move-overlay select--selection-overlay (point-min) (point-min)))))
 
@@ -322,23 +311,22 @@ and symbol, specifying selection type. Currently, selection type may be either
           select--init-window nil)))
 
 (defun select-finish-selection ()
-  (when select--selection-buffer
-    (select--restore-window-config)
-    (when select--selection-overlay
-      (delete-overlay select--selection-overlay)
-      (setf select--selection-overlay nil))
-    (let ((err (lambda (&rest args)
-                 (error "Some function not set, check your use of select-mode"))))
-      (setf select--init-buffer           nil
-            select--selected-item         nil
-            select--items                 nil
-            select--selection-buffer      nil
-
-            select--separator-function    err
-            select--item-show-function    err
-            select--on-selection-function err
-            select--preamble-function     err
-            select--epilogue-function     err))))
+  (select--restore-window-config)
+  (when select--selection-overlay
+    (delete-overlay select--selection-overlay)
+    (setq-local select--selection-overlay nil))
+  ;; (let ((err (lambda (&rest args)
+  ;;              (error "Some function not set, check your use of select-mode"))))
+  ;;   (setf select--init-buffer           nil
+  ;;         select--selected-item         nil
+  ;;         select--items                 nil
+  ;;
+  ;;         select--separator-function    err
+  ;;         select--item-show-function    err
+  ;;         select--on-selection-function err
+  ;;         select--preamble-function     err
+  ;;         select--epilogue-function     err))
+  )
 
 (defun select-hide ()
   (interactive)
@@ -348,19 +336,14 @@ and symbol, specifying selection type. Currently, selection type may be either
 
 (defun select-exit ()
   (interactive)
-  (kill-buffer select--selection-buffer)
-  (select-finish-selection))
+  (select-finish-selection)
+  (kill-buffer))
 
 ;;; This is for users of select-mode.
 
 (defun select-extend-keymap (new-keymap)
   (use-local-map
    (make-composed-keymap new-keymap select-mode-map)))
-
-(defun select-make-bold-separator (base)
-  (propertize base
-              'face 'bold
-              'font-lock-face 'bold))
 
 (defsubst select-get-selected-index ()
   select--selected-item)
