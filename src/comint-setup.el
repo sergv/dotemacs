@@ -11,7 +11,8 @@
 (provide 'comint-setup)
 
 ;;;###autoload
-(setf comint-input-ignoredups t)
+(setf comint-input-ignoredups t
+      comint-input-ring-size 2048)
 ;;;###autoload
 (setq-default comint-input-ignoredups t)
 
