@@ -431,6 +431,7 @@ using EQ-FUNC to determine equal elements."
   (assert (list? xs))
   (remove-duplicates-sorted (sort xs comparison) eq-func))
 
+;;;###autoload
 (defun remove-duplicates-hashing (xs eq-func)
   "Sort XS using COMPARISON function and remove duplicates from the result
 using EQ-FUNC to determine equal elements."

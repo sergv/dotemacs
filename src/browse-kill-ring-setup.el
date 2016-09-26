@@ -10,6 +10,9 @@
 
 (require 'browse-kill-ring)
 
+(setf browse-kill-ring-display-duplicates nil
+      browse-kill-ring-maximum-display-length 80)
+
 ;;;###autoload
 (defun browse-kill-ring ()
   (interactive)
