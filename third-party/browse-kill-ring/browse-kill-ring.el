@@ -996,13 +996,18 @@ directly; use `browse-kill-ring' instead.
     (insert "\n")))
 
 (defun browse-kill-ring-insert-as-separated (items)
-  (while (cdr items)
-    (browse-kill-ring-insert-as-separated-1 (car items) t)
-    (setq items (cdr items)))
-  (when items
-    (browse-kill-ring-insert-as-separated-1 (car items) nil)))
+  (let ((separator (propertize browse-kill-ring-separator
+                               'browse-kill-ring-extra t
+                               'browse-kill-ring-separator t))
+        (tmp (cdr items)))
+    (while tmp
+      (browse-kill-ring-insert-as-separated-1 (car items) separator)
+      (setq items tmp
+            tmp (cdr items)))
+    (when items
+      (browse-kill-ring-insert-as-separated-1 (car items) nil))))
 
-(defun browse-kill-ring-insert-as-separated-1 (origitem separatep)
+(defun browse-kill-ring-insert-as-separated-1 (origitem separator)
   (let* ((item (browse-kill-ring-elide origitem))
          (len (length item)))
     (browse-kill-ring-add-overlays-for origitem
@@ -1014,10 +1019,8 @@ directly; use `browse-kill-ring' instead.
     ;; - INOUE Hiroyuki <dombly@kc4.so-net.ne.jp>
     (let ((inhibit-read-only t))
       (insert "\n")
-      (when separatep
-        (insert (propertize browse-kill-ring-separator
-                            'browse-kill-ring-extra t
-                            'browse-kill-ring-separator t))
+      (when separator
+        (insert separator)
         (insert "\n")))))
 
 (defun browse-kill-ring-occur (regexp)
@@ -1103,8 +1106,7 @@ directly; use `browse-kill-ring' instead.
       (browse-kill-ring-mode)
       (when (eq browse-kill-ring-display-style 'one-line)
         (setq truncate-lines t))
-      (let ((inhibit-read-only t))
-        (erase-buffer))
+      (erase-buffer)
       (setq browse-kill-ring-original-buffer orig-buf
             browse-kill-ring-original-buffer-position
             (with-current-buffer orig-buf
@@ -1124,10 +1126,10 @@ directly; use `browse-kill-ring' instead.
                       #'copy-sequence)
                     (browse-kill-ring--to-list
                      (browse-kill-ring--get-ring-value)))))
-        (when (not browse-kill-ring-display-duplicates)
-          (setq items (cl-delete-duplicates items :test #'equal)))
         (when (stringp regexp)
           (setq items (--filter (string-match-p regexp it) items)))
+        (when (not browse-kill-ring-display-duplicates)
+          (setq items (remove-duplicates-hashing items #'equal)))
         (funcall (or (cdr (assq browse-kill-ring-display-style
                                 browse-kill-ring-display-styles))
                      (error "Invalid `browse-kill-ring-display-style': %s"
