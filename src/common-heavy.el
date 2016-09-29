@@ -230,66 +230,77 @@ number of spaces equal to `tab-width'."
 
 ;;;
 
-(defparameter custom/exec-with-directory-runners
-  (let ((tbl (make-hash-table :test #'equal))
-        (make-starter
-         (lambda (exec args)
-           (assert (string? exec))
-           (assert (list? args))
-           (let ((cmdline (join-lines (cons exec args) " ")))
-             (lambda (dir)
-               (async-shell-command (concat cmdline " " (shell-quote-argument dir)))))))
-        (standard-starter
-         (lambda (exec)
-           (lambda (dir)
-             (async-shell-command (join-lines (list exec
-                                                    (shell-quote-argument dir))
-                                              " "))))))
-    (puthash "thunar" (funcall make-starter "thunar" '()) tbl)
-    (puthash "nautilus" (funcall make-starter "nautilus" '()) tbl)
-    (puthash "exo-open"
-             (funcall make-starter
-                      "exo-open"
-                      '("--launch"
-                        "TerminalEmulator"
-                        "--working-directory"))
-             tbl)
-    (puthash "konsole"
-             (funcall make-starter
-                      "konsole"
-                      '("--workdir"))
-             tbl)
-    (puthash "xfce4-terminal"
-             (funcall make-starter
-                      "xfce4-terminal"
-                      '("--default-working-directory"))
-             tbl)
-    (puthash "explorer"
-             (funcall make-starter
-                      "C:\\Windows\\explorer.exe"
-                      '())
-             tbl)
+(cl-defstruct (exec-spec
+               (:conc-name exec-spec--))
+  path
+  args)
 
+(defparameter custom--known-executables
+  (let ((tbl (make-hash-table :test #'equal)))
+    (cond
+      ((platform-os-type? 'linux)
+       (puthash "thunar"
+                (make-exec-spec
+                 :path "thunar"
+                 :args nil)
+                tbl)
+       (puthash "nautilus"
+                (make-exec-spec
+                 :path "nautilus"
+                 :args nil)
+                tbl)
+       (puthash "exo-open"
+                (make-exec-spec
+                 :path "exo-open"
+                 :args '("--launch"
+                         "TerminalEmulator"
+                         "--working-directory"))
+                tbl)
+       (puthash "konsole"
+                (make-exec-spec
+                 :path "konsole"
+                 :args '("--workdir"))
+                tbl)
+       (puthash "xfce4-terminal"
+                (make-exec-spec
+                 :path "xfce4-terminal"
+                 :args '("--default-working-directory"))
+                tbl))
+      ((platform-os-type? 'windows)
+       (puthash "explorer"
+                (make-exec-spec
+                 :path "C:\\Windows\\explorer.exe"
+                 :args nil)
+                tbl)))
     tbl)
   "Definitions of various executables that can be started in particular folder.")
 
 (defun custom/run-first-matching-exec (execs)
-  (assert (-all? (lambda (exec)
-                   (not (null? (gethash exec custom/exec-with-directory-runners))))
-                 execs))
   (let ((dir (expand-file-name
               (aif buffer-file-name
                 (file-name-directory it)
                 default-directory))))
-    (letrec ((iter
-              (lambda (execs)
-                (when (not (null? execs))
-                  (if (executable-find (car execs))
-                    (funcall (gethash (car execs)
-                                      custom/exec-with-directory-runners)
-                             dir)
-                    (funcall iter (cdr execs)))))))
-      (funcall iter execs))))
+    (block 'found
+      (dolist (exec execs)
+        (let ((exec-spec (gethash exec custom--known-executables)))
+          (if exec-spec
+            (let ((path (exec-spec--path exec-spec))
+                  (args (exec-spec--args exec-spec)))
+              (cl-assert (stringp path) nil "Invalid executabel path: %s" path)
+              (cl-assert (-every-p #'stringp args) nil "Invalid executable args: %s" args)
+              (when (or (executable-find exec)
+                        (and (file-name-absolute-p (exec-spec--path exec-spec))
+                             (file-exists-p (exec-spec--path exec-spec))))
+                (async-shell-command (concat (join-lines (cons path args) " ")
+                                             " "
+                                             (shell-quote-argument dir)))
+                (return-from 'found)))
+            (error "No specification found for exec-spec %s" exec))
+          (if (or (executable-find exec))
+            (funcall (gethash (car execs)
+                              custom--known-executables)
+                     dir)
+            (funcall iter (cdr execs))))))))
 
 (defun start-file-manager ()
   "Start suitable file manager in folder associated with current buffer."
