@@ -34,7 +34,7 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)")
   "Vector of positions for tracking current selection.")
 
 (defvar-local select--selection-overlay nil
-  "Overlay that displays ")
+  "Overlay that displays currently selected item.")
 
 (defface select-selection-face '((t (:inherit secondary-selection)))
   "Face to highlight currently selected item")
@@ -203,21 +203,16 @@ and symbol, specifying selection type. Currently, selection type may be either
         (overlay-put select--selection-overlay
                      'font-lock-face
                      'select-selection-face)
-        (select--with-preserved-buffer-modified-p
-          (select--with-inhibited-read-only
-            (select--render-items select--items)))
+        (select--render-items select--items)
         (when after-init
           (funcall after-init))
 
         (set-buffer-modified-p nil)
-        (read-only-mode +1)
-        ;; (setf buffer-read-only t)
-        ))))
-
+        (read-only-mode +1)))))
 
 (defun* select--move-selection-to (idx &key (move-point t))
-  (assert (and (<= 0 idx)
-               (< idx (length select--items))))
+  (cl-assert (and (<= 0 idx)
+                  (< idx (length select--items))))
   (destructuring-bind (start . end)
       (aref select--item-positions idx)
     (when move-point
@@ -254,7 +249,7 @@ and symbol, specifying selection type. Currently, selection type may be either
   (let* ((pos (point))
          (pos-inside-pos-pair
           (lambda (pos pos-pair)
-            (assert (< (car pos-pair) (cdr pos-pair)))
+            (cl-assert (< (car pos-pair) (cdr pos-pair)))
             (and (<= (car pos-pair) pos)
                  (< pos (cdr pos-pair)))))
          (selection-idx
@@ -264,7 +259,7 @@ and symbol, specifying selection type. Currently, selection type may be either
                           (length select--item-positions)
                           pos-inside-pos-pair
                           (lambda (pos pos-pair)
-                            (assert (< (car pos-pair) (cdr pos-pair)))
+                            (cl-assert (< (car pos-pair) (cdr pos-pair)))
                             (< pos (car pos-pair))))))
     (if (and selection-idx
              (funcall pos-inside-pos-pair pos
@@ -303,41 +298,31 @@ and symbol, specifying selection type. Currently, selection type may be either
   (interactive)
   (select-do-select 'other-window))
 
-(defun select--restore-window-config ()
+(defun select--restore-window-config (reset)
   (when select--init-window-config
     (set-window-configuration select--init-window-config)
     ;; (select-window select--init-window)
-    (setf select--init-window-config nil
-          select--init-window nil)))
+    (when reset
+      (setf select--init-window-config nil
+            select--init-window nil))))
 
 (defun select-finish-selection ()
-  (select--restore-window-config)
   (when select--selection-overlay
     (delete-overlay select--selection-overlay)
     (setq-local select--selection-overlay nil))
-  ;; (let ((err (lambda (&rest args)
-  ;;              (error "Some function not set, check your use of select-mode"))))
-  ;;   (setf select--init-buffer           nil
-  ;;         select--selected-item         nil
-  ;;         select--items                 nil
-  ;;
-  ;;         select--separator-function    err
-  ;;         select--item-show-function    err
-  ;;         select--on-selection-function err
-  ;;         select--preamble-function     err
-  ;;         select--epilogue-function     err))
-  )
+  (select--restore-window-config t))
 
 (defun select-hide ()
   (interactive)
   (if select-restore-windows-configuration-on-hide
-    (select--restore-window-config)
+    (select--restore-window-config nil)
     (call-interactively #'bury-buffer)))
 
 (defun select-exit ()
   (interactive)
-  (select-finish-selection)
-  (kill-buffer))
+  (let ((buf (current-buffer)))
+    (select-finish-selection)
+    (kill-buffer buf)))
 
 ;;; This is for users of select-mode.
 
