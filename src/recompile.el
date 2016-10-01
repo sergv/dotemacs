@@ -29,7 +29,12 @@
 (defun recompile-main (emacs-dir)
   ;; (dolist (file files-to-recompile)
   ;;   (load-library file))
-  (assert emacs-dir)
+  (cl-assert emacs-dir)
+  (cl-proclaim '(optimize (speed 3) (safety 0)))
+  (message "cl--optimize-speed = %s"
+           (pp-to-string cl--optimize-speed))
+  (message "cl--optimize-safety = %s"
+           (pp-to-string cl--optimize-safety))
   (setf emacs-dir (expand-file-name emacs-dir))
   (let* ((init-file
           (find-if #'file-exists-p
