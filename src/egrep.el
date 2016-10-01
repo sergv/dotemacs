@@ -123,7 +123,7 @@ string patterns."
                            nil default-directory t)
       (and current-prefix-arg
            (<= 4 (first current-prefix-arg))))))
-  (assert (listp exts-globs))
+  (cl-assert (listp exts-globs))
   (egrep-search regexp exts-globs grep-find-ignored-files dir ignore-case))
 
 ;;;###autoload

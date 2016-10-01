@@ -51,10 +51,10 @@
   "Union two sets, SET1 and SET2 whose lt-than predicates must be consistest.
 Item equality is determined using LT-THAN:
 X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
-  (assert (equal? (sorted-set/lt-pred set1)
-                  (sorted-set/lt-pred set2))
-          nil
-          "Cannot merge sets with different lt predicates")
+  (cl-assert (equal? (sorted-set/lt-pred set1)
+                     (sorted-set/lt-pred set2))
+             nil
+             "Cannot merge sets with different lt predicates")
   (let* ((result (cons nil nil))
          (tmp result)
          (lt-than (sorted-set/lt-pred set1))
@@ -96,10 +96,10 @@ X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
   "Intersect two sets, SET1 and SET2 whose lt-than predicates must be consistest.
 Item equality is determined using LT-THAN:
 X ~ Y == (and (not (lt-than X Y)) (not (lt-than Y X)))."
-  (assert (equal? (sorted-set/lt-pred set1)
-                  (sorted-set/lt-pred set2))
-          nil
-          "Cannot merge sets with different lt predicates")
+  (cl-assert (equal? (sorted-set/lt-pred set1)
+                     (sorted-set/lt-pred set2))
+             nil
+             "Cannot merge sets with different lt predicates")
   (let* ((result (cons nil nil))
          (tmp result)
          (lt-than (sorted-set/lt-pred set1))

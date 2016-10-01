@@ -13,7 +13,7 @@
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
 (defun eproj/create-haskell-tags (proj make-project-files parse-tags-proc)
-  (assert (eproj-project-p proj))
+  (cl-assert (eproj-project-p proj))
   ;; (when eproj-verbose-tag-loading
   ;;   (message "Creating haskell tags for project %s" (eproj-project/root proj)))
   (unless *fast-tags-exec*
@@ -181,7 +181,7 @@ runtime but rather will be silently relied on)."
             (eproj-tag/properties tag)))))
 
 (defun eproj/haskell-tag->string (proj tag)
-  (assert (eproj-tag-p tag))
+  (cl-assert (eproj-tag-p tag))
   (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))
          (is-module?
           (pcase type
@@ -201,7 +201,7 @@ runtime but rather will be silently relied on)."
 
 (defun eproj/haskell-extract-tag-signature (proj tag)
   "Fetch line where TAG is defined."
-  (assert (eproj-tag-p tag) nil "Eproj tag is required.")
+  (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
   (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))
          (is-module?
           (pcase type

@@ -138,7 +138,7 @@ will be case-insensitive."
                           (update-hook nil)
                           (match-hook nil))
   "Creates new highlighting object with a certain `name'."
-  (assert (symbolp name) nil "Excepted symbol as name of highlight")
+  (cl-assert (symbolp name) nil "Excepted symbol as name of highlight")
   (when (vim:hl-active-p name)
     (vim:delete-hl name))
   (when (null vim:active-highlights-alist)
@@ -158,7 +158,7 @@ will be case-insensitive."
 
 (defun vim:delete-hl (name)
   "Removes the highlighting object with a certain `name'."
-  (assert (symbol? name))
+  (cl-assert (symbol? name))
   (let ((hl (cdr-safe (assq name vim:active-highlights-alist))))
     (when hl
       (mapc #'delete-overlay (vim:hl-overlays hl))
@@ -172,14 +172,14 @@ will be case-insensitive."
 
 (defun vim:hl-active-p (name)
   "Returns t iff the highlight with a certain name is active."
-  (assert (symbol? name))
+  (cl-assert (symbol? name))
   (and (assq name vim:active-highlights-alist) t))
 
 
 (defun vim:hl-change (name new-pattern)
   "Sets the regular expression of the highlighting object with
 name `name' to `new-regex'."
-  (assert (symbol? name))
+  (cl-assert (symbol? name))
   (let ((hl (cdr-safe (assq name vim:active-highlights-alist))))
     (when hl
       (setf (vim:hl-pattern hl)
@@ -190,7 +190,7 @@ name `name' to `new-regex'."
 
 
 (defun vim:hl-set-region (name beg end)
-  (assert (symbol? name))
+  (cl-assert (symbol? name))
   (let ((hl (cdr-safe (assq name vim:active-highlights-alist))))
     (when hl
       (setf (vim:hl-beg hl) beg
