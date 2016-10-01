@@ -26,6 +26,7 @@
 
 ;;; definitions
 
+;;;###autoload
 (defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode haskell-c2hs-mode)
   "List of modes that use haskell syntax.")
 
