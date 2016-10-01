@@ -50,8 +50,8 @@
                      file-regular-p
                      local-variable-p))
     (let ((old-name (symbol-name command)))
-      (assert (= (aref old-name (1- (length old-name)))
-                 (string-to-char "p")))
+      (cl-assert (= (aref old-name (1- (length old-name)))
+                    (string-to-char "p")))
       (let* ((new-name (replace-regexp-in-string "-?p$"
                                                  "?"
                                                  old-name))

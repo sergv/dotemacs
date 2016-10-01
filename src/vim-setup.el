@@ -329,7 +329,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:apply-to-selected-buffers
   ((argument:text command) nonrepeatable)
-  (assert command)
+  (cl-assert command)
   (let* ((cmd (trim-whitespace-left command))
          (exec-command
           (lambda (buf)

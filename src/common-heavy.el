@@ -52,7 +52,7 @@ if CASE-SENSETIVE is t."
           (setf path (cdr path))))
       (if found?
         (progn
-          (assert (not (null? files)))
+          (cl-assert (not (null? files)))
           (if (= 1 (length files))
             (find-file (car files))
             (select-start-selection files
@@ -134,7 +134,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
         (message "Files %s and %s" new curr)
         (condition-case err
             (progn
-              (assert (file-exists? new))
+              (cl-assert (file-exists? new))
               (if (file-exists? curr)
                 (if (different-files-fast? new curr)
                   (let ((new-buf  (find-file-noselect new))
@@ -159,7 +159,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
   (interactive)
   (let ((current-conf-dir +emacs-config-path+)
         (new-conf-dir (concat +emacs-config-path+ "/tmp/emacs")))
-    (assert (file-directory? current-conf-dir))
+    (cl-assert (file-directory? current-conf-dir))
     (if (not (file-directory? new-conf-dir))
       (error "Config under %s not found" new-conf-dir)
       (merge-emacs-configs new-conf-dir current-conf-dir))))
@@ -439,14 +439,14 @@ PATH and, maybe, DIR as it's parts."
 (defun remove-duplicates-sorting (xs eq-func comparison)
   "Sort XS using COMPARISON function and remove duplicates from the result
 using EQ-FUNC to determine equal elements."
-  (assert (list? xs))
+  (cl-assert (list? xs))
   (remove-duplicates-sorted (sort xs comparison) eq-func))
 
 ;;;###autoload
 (defun remove-duplicates-hashing (xs eq-func)
   "Sort XS using COMPARISON function and remove duplicates from the result
 using EQ-FUNC to determine equal elements."
-  (assert (list? xs))
+  (cl-assert (list? xs))
   (let ((tbl (make-hash-table :test eq-func)))
     (dolist (x xs)
       (puthash x (gethash x tbl x) tbl))

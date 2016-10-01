@@ -15,7 +15,7 @@
                                                     var)
   "Read value of file-local variable VAR from project.clj file SOURCE-FILE is
 governed by."
-  (assert (symbol? var))
+  (cl-assert (symbol? var))
   (if-let (project-root (locate-dominating-file source-file
                                                 +leiningen-project-file+))
     (let ((project-file (concat project-root "/" +leiningen-project-file+)))
