@@ -85,29 +85,6 @@ baz
 
 ;;; utilities
 
-(defmacro select--with-disabled-undo (&rest body)
-  (declare (indent 0))
-  (let ((store '#:store))
-    `(let ((,store buffer-undo-list)
-           ;; this disables further undo recording
-           (buffer-undo-list t))
-       ,@body)))
-
-(defmacro select--with-preserved-buffer-modified-p (&rest body)
-  "Execute BODY and restore `buffer-modified-p' flag after its done."
-  (declare (indent 0))
-  (let ((store '#:store))
-    `(let ((,store (buffer-modified-p)))
-       (unwind-protect
-           (progn
-             ,@body)
-         (set-buffer-modified-p ,store)))))
-
-(defmacro select--with-inhibited-read-only (&rest body)
-  (declare (indent 0))
-  `(let ((inhibit-read-only t))
-     ,@body))
-
 (defun select--bisect (item items start end eq? less?)
   "Binary search. Returns index into vector ITEMS.
 LESS? is predicate on items and elements of ITEMS.
@@ -177,38 +154,40 @@ and symbol, specifying selection type. Currently, selection type may be either
         (init-window (selected-window))
         (init-window-config (current-window-configuration)))
     (with-current-buffer (switch-to-buffer-other-window buffer-name)
-      (select--with-disabled-undo
-        (select-mode)
+      (select-mode)
 
-        (setq-local select--init-window-config init-window-config)
-        (setq-local select--init-window init-window)
-        (setq-local select--init-buffer init-buffer)
-        ;; display-related items
-        (setq-local select--item-show-function item-show-function)
-        (setq-local select--on-selection-function on-selection)
-        (setq-local select--preamble-function preamble-function)
-        (setq-local select--epilogue-function epilogue-function)
-        (setq-local select--separator-function separator-function)
+      ;; Disable undo tracking in this buffer
+      (setq-local buffer-undo-list t)
 
-        (setq-local select--selected-item 0)
-        (setq-local select--items (if (listp items)
-                                    (select--list->vector items)
-                                    items))
-        (setq-local select--item-positions (make-vector (length items) nil))
+      (setq-local select--init-window-config init-window-config)
+      (setq-local select--init-window init-window)
+      (setq-local select--init-buffer init-buffer)
+      ;; display-related items
+      (setq-local select--item-show-function item-show-function)
+      (setq-local select--on-selection-function on-selection)
+      (setq-local select--preamble-function preamble-function)
+      (setq-local select--epilogue-function epilogue-function)
+      (setq-local select--separator-function separator-function)
 
-        (setq-local select--selection-overlay (make-overlay (point-min) (point-min)))
-        (overlay-put select--selection-overlay
-                     'face
-                     'select-selection-face)
-        (overlay-put select--selection-overlay
-                     'font-lock-face
-                     'select-selection-face)
-        (select--render-items select--items)
-        (when after-init
-          (funcall after-init))
+      (setq-local select--selected-item 0)
+      (setq-local select--items (if (listp items)
+                                  (select--list->vector items)
+                                  items))
+      (setq-local select--item-positions (make-vector (length items) nil))
 
-        (set-buffer-modified-p nil)
-        (read-only-mode +1)))))
+      (setq-local select--selection-overlay (make-overlay (point-min) (point-min)))
+      (overlay-put select--selection-overlay
+                   'face
+                   'select-selection-face)
+      (overlay-put select--selection-overlay
+                   'font-lock-face
+                   'select-selection-face)
+      (select--render-items select--items)
+      (when after-init
+        (funcall after-init))
+
+      (set-buffer-modified-p nil)
+      (read-only-mode +1))))
 
 (defun* select--move-selection-to (idx &key (move-point t))
   (cl-assert (and (<= 0 idx)
