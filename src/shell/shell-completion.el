@@ -133,12 +133,12 @@
   )
 
 (defun* make-pcmpl-flag (&key names completion-expr)
-  (assert (or (string? names)
-              (-all? #'string? names)))
+  (cl-assert (or (string? names)
+                 (-all? #'string? names)))
   (pcmpl-flag/create :names names :completion-expr completion-expr))
 
 (defun pcpmpl/make-name-regex (flag)
-  (assert (pcmpl-flag-p flag))
+  (cl-assert (pcmpl-flag-p flag))
   (regexp-opt (pcmpl-flag/names flag)))
 
 (defun pcmpl/make-flags (raw-flag-specs)
@@ -157,13 +157,13 @@ be either singular string or a list of strings."
              (= 2 (length entry)))
         (let ((flag-name (first entry))
               (compl-expr (cadr-safe entry)))
-          (assert (or (string? flag-name)
-                      (and
-                       (list? flag-name)
-                       (-all? #'string? flag-name)))
-                  nil
-                  "process-opts: invalid flag name: %s"
-                  flag-name)
+          (cl-assert (or (string? flag-name)
+                         (and
+                          (list? flag-name)
+                          (-all? #'string? flag-name)))
+                     nil
+                     "process-opts: invalid flag name: %s"
+                     flag-name)
           (make-pcmpl-flag :names (if (string? flag-name)
                                     (list flag-name)
                                     flag-name)
@@ -203,15 +203,15 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 <opts> stands for given flags followed by args, no more positional arguments."
   (declare (indent 1))
-  (assert (string-match-pure? "pcomplete/" (symbol->string name)))
+  (cl-assert (string-match-pure? "pcomplete/" (symbol->string name)))
   (let ((got-end-of-flags-var '#:got-end-of-flags))
     (letrec ((process
               (lambda (definition positional-depth)
-                (assert (and (list? definition)
-                             (not (null? definition)))
-                        nil
-                        "invalid definition %s"
-                        definition)
+                (cl-assert (and (list? definition)
+                                (not (null? definition)))
+                           nil
+                           "invalid definition %s"
+                           definition)
                 (cond ((eq? 'or (first definition))
                        (funcall process-or definition positional-depth))
                       ((eq? 'opts (first definition))
@@ -255,32 +255,32 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              (process-opts
               (lambda (definition)
                 (let ((info (rest definition)))
-                  (assert (-all? (lambda (entry)
-                                   (and (list? entry)
-                                        (not (null? entry))
-                                        (memq (first entry) '(flags args))))
-                                 info)
-                          nil
-                          "<opts> clause must contain either (flags ...) or (args ...) entries only: %S"
-                          info)
+                  (cl-assert (-all? (lambda (entry)
+                                      (and (list? entry)
+                                           (not (null? entry))
+                                           (memq (first entry) '(flags args))))
+                                    info)
+                             nil
+                             "<opts> clause must contain either (flags ...) or (args ...) entries only: %S"
+                             info)
                   (let* ((flags (pcmpl/make-flags (cdr-safe (assoc 'flags info))))
                          (flags-with-args (-filter #'pcmpl-flag/completion-expr flags))
                          ;; Positional arguments.
                          (args (assoc 'args info)))
-                    (assert (--all? (-all? (comp (partial #'string-match-pure? "^--?[^-].*"))
-                                           (pcmpl-flag/names it))
-                                    flags)
-                            nil
-                            "All flags names must start with dash or two dashes: %S\nFailed flags: %S"
-                            flags
-                            (--filter (not (string-match-pure? "^--?[^-].*$"
-                                                               (pcmpl-flag/names it)))
-                                      flags))
+                    (cl-assert (--all? (-all? (comp (partial #'string-match-pure? "^--?[^-].*"))
+                                              (pcmpl-flag/names it))
+                                       flags)
+                               nil
+                               "All flags names must start with dash or two dashes: %S\nFailed flags: %S"
+                               flags
+                               (--filter (not (string-match-pure? "^--?[^-].*$"
+                                                                  (pcmpl-flag/names it)))
+                                         flags))
                     (when args
-                      (assert (cdr args)
-                              nil
-                              "Meaningless (args ...) clause without completion action, (args <action>) expected: %s"
-                              args))
+                      (cl-assert (cdr args)
+                                 nil
+                                 "Meaningless (args ...) clause without completion action, (args <action>) expected: %s"
+                                 args))
                     (when (or flags args)
                       (multiple-value-bind (single-dash-flags double-dash-flags)
                           (--separate (string-match-pure? "^-[^-]" it)
@@ -311,9 +311,9 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              (process-positional
               (lambda (definition pcomplete-arg-var positional-depth)
                 (let ((name (first definition)))
-                  (assert (or (string? name)
-                              (and (list? name)
-                                   (-all? #'string? name))))
+                  (cl-assert (or (string? name)
+                                 (and (list? name)
+                                      (-all? #'string? name))))
                   `(,(cond
                        ((string? name)
                         `(string= ,pcomplete-arg-var ,name))

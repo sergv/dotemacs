@@ -52,7 +52,7 @@ Range of platforms may be expanded (extended?) in the future.")
 
 
 (defun platform-os-type? (os-type)
-  (assert (and (listp +platform+) (not (null +platform+))))
+  (cl-assert (and (listp +platform+) (not (null +platform+))))
   (eq (car +platform+) os-type))
 
 (defun platform-use? (use)

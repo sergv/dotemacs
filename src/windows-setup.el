@@ -8,7 +8,7 @@
 
 (require 'common)
 
-(assert (platform-os-type? 'windows) "Not on windows platform!")
+(cl-assert (platform-os-type? 'windows) "Not on windows platform!")
 
 (add-to-list 'exec-suffixes ".sh")
 

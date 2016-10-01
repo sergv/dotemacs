@@ -493,7 +493,7 @@ we load it."
 (defun haskell-align-language-pragmas (start)
   (save-match-data
     (goto-char start)
-    (assert (looking-at-p haskell-abbrev+/language-pragma-prefix))
+    (cl-assert (looking-at-p haskell-abbrev+/language-pragma-prefix))
     ;; Navigate up while we're still getting LANGUAGE pragmas.
     (beginning-of-line)
     (while (and (not (bob?))
@@ -770,7 +770,7 @@ return nil otherwise."
     ("~"   shm/~)))
 
 (defun haskell-prof-search-column (column pred)
-  (assert (< 0 column))
+  (cl-assert (< 0 column))
   (save-match-data
     (let ((column-re
            (concat "^\\(?:[ \t]*[^ \t]+\\)"
@@ -782,7 +782,7 @@ return nil otherwise."
                                 (match-string-no-properties 1))))))))
 
 (defun haskell-prof-search-individual-time (minimum-fraction)
-  (assert (numberp minimum-fraction))
+  (cl-assert (numberp minimum-fraction))
   (haskell-prof-search-column
    4
    (lambda (x)

@@ -70,20 +70,20 @@ pnm utils suite.")
                             (background-color nil)
                             (dpi 150))
   "Returns latex formula from STR rendered as image."
-  (assert (member font-size
-                  '("tiny"
-                    "scriptsize"
-                    "footnotesize"
-                    "small"
-                    "normalsize"
-                    "large"
-                    "Large"
-                    "LARGE"
-                    "huge"
-                    "Huge"))
-          nil
-          "invalid font-size: %s"
-          font-size)
+  (cl-assert (member font-size
+                     '("tiny"
+                       "scriptsize"
+                       "footnotesize"
+                       "small"
+                       "normalsize"
+                       "large"
+                       "Large"
+                       "LARGE"
+                       "huge"
+                       "Huge"))
+             nil
+             "invalid font-size: %s"
+             font-size)
   (aif (gethash str *formula-images-cache* nil)
     it
     (let* ((left-eq-numbering? nil)
@@ -296,7 +296,7 @@ carried out on FORMULA-STR."
                (cond
                  ((eq? (car command-cell) 'remove)
                   (foldl (lambda (s rx)
-                           (assert (string? rx))
+                           (cl-assert (string? rx))
                            (render-buffer/remove-all-matches rx s))
                          str
                          (cdr command-cell)))

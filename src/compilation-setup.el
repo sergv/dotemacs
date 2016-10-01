@@ -152,7 +152,7 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
   "Get buffer that corresponds to FILENAME, which may be neither full nor
 relative path. In case it's neither, the filename with suffix equal to FILENAME
 will searched for."
-  (assert (not (= 0 (length filename))))
+  (cl-assert (not (= 0 (length filename))))
   (aif (find-if (lambda (buf)
                   (string-suffix? filename (buffer-file-name buf)))
                 (visible-buffers))
