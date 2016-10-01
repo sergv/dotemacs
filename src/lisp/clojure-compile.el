@@ -133,7 +133,7 @@ With prefix argument allows to select different profile."
                     (clojure-lein/read-variable-from-project-clj
                      buffer-file-name
                      'clojure-compile/lein-command)))
-    (assert (not (null? command)))
+    (cl-assert (not (null? command)))
     (compilation-start (format command
                                clojure-compile/current-profile)
                        #'clojure-compilation-mode

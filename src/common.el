@@ -330,7 +330,7 @@ tabbar, etc")
   "Regexp that is synced with `*invisible-buffers*' variable.")
 
 (defun add-invisible-buffer (buf-re)
-  (assert (string? buf-re))
+  (cl-assert (string? buf-re))
   (add-to-list '*invisible-buffers* buf-re)
   (let ((buf-re-with-group
          (concat "\\(?:" buf-re "\\)")))
@@ -464,16 +464,16 @@ main table and value in aux table."
 ;;   (and (list? item) (not (null? item)) (eq? (car item) 'ntree-node)))
 ;;
 ;; (defun ntree-node-value (node)
-;;   (assert (ntree-node? node))
+;;   (cl-assert (ntree-node? node))
 ;;   (cadr node))
 ;;
 ;; (defun ntree-node-children (node)
-;;   (assert (ntree-node? node))
+;;   (cl-assert (ntree-node? node))
 ;;   (cddr node))
 ;;
 ;;
 ;; (defun print-ntree (node)
-;;   (assert (ntree-node? node))
+;;   (cl-assert (ntree-node? node))
 ;;   (letrec ((print-node
 ;;              (lambda (node prefix)
 ;;                (insert prefix

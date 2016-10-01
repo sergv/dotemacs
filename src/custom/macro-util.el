@@ -131,14 +131,14 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
 CACHE-ARGS, which should be a list.
 
 NB does not expect to cache values of ARGS that are nil."
-  (assert (symbol? func))
-  (assert (symbol? reset-cache-func))
-  (assert (list? cache-args))
-  (assert (-all? #'symbol? cache-args))
-  (assert (equal? cache-args
-                  (intersection args cache-args :test #'equal?))
-          nil
-          "defun-caching: CACHE-ARGS must be a subset of ARGS")
+  (cl-assert (symbol? func))
+  (cl-assert (symbol? reset-cache-func))
+  (cl-assert (list? cache-args))
+  (cl-assert (-all? #'symbol? cache-args))
+  (cl-assert (equal? cache-args
+                     (intersection args cache-args :test #'equal?))
+             nil
+             "defun-caching: CACHE-ARGS must be a subset of ARGS")
   (let ((cache-var (gentemp "cache"))
         (query-var '#:query)
         (hash-table-var '#:hash-table)
@@ -337,12 +337,12 @@ another KEY-COMMAND-LIST spliced in place of a variable;
   (declare (indent nil))
   (letrec ((def-key
              (lambda (map key command)
-               (assert (or (string? key)
-                           (vector? key)
-                           (symbol? key))
-                       nil
-                       "Invalid key: %s"
-                       key)
+               (cl-assert (or (string? key)
+                              (vector? key)
+                              (symbol? key))
+                          nil
+                          "Invalid key: %s"
+                          key)
                `(define-key ,map
                   ,key
                   ,(cond
@@ -417,7 +417,7 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                                      (default-count 1))
   `(defun ,(make-symbol (concat (symbol-name orig-func)
                                 prefix))
-     (&optional count)
+       (&optional count)
      ,(format "This function applies `%s' COUNT times."
               (symbol-name orig-func))
      (interactive "p")
@@ -443,7 +443,7 @@ stands for piece of code that may return symbol/string or nil. Nil would
 mean that this piece of code failed to yield proper buffer name at the
 moment of call so it would be skipped on current iteration. Piece
 of code may be called more than once."
-  (assert (< 0 try-count))
+  (cl-assert (< 0 try-count))
   (let ((switch '#:switch)
         (tries '#:tries)
         (called-interpreter '#:called-interpreter)
@@ -552,9 +552,9 @@ buffer if no such buffer exists."
         (exec-func '#:exec-func))
     `(let ((,exec-func (lambda () ,@body)))
        (if-let (,buf-var (get-file-buffer ,filename))
-         (with-current-buffer ,buf-var
-           (save-excursion
-             (funcall ,exec-func)))
+           (with-current-buffer ,buf-var
+             (save-excursion
+               (funcall ,exec-func)))
          (with-temp-buffer
            (insert-file-contents ,filename
                                  t ;; make current buffer visit inserted file
@@ -620,10 +620,10 @@ return nil otherwise."
 (defmacro* with-marker ((marker-var marker-init) &rest body)
   (declare (indent 1))
   `(let ((,marker-var ,marker-init))
-       (unwind-protect
-           (progn
-             ,@body)
-         (set-marker ,marker-var nil))))
+     (unwind-protect
+         (progn
+           ,@body)
+       (set-marker ,marker-var nil))))
 
 ;;; aif, awhen, if-let
 
@@ -642,10 +642,10 @@ return nil otherwise."
 
 (defmacro if-let (condition true-branch &optional false-branch)
   "E.g. (if-let (x (assoc 'foo bar)) baz quux)"
-  (assert (and (list? condition)
-               (= 2 (length condition)))
-          nil
-          "if-let error: invalid condition: %s" condition)
+  (cl-assert (and (list? condition)
+                  (= 2 (length condition)))
+             nil
+             "if-let error: invalid condition: %s" condition)
   (let ((tmp-var '#:cond-var)
         (cond-var (car condition))
         (expr (cadr condition)))
@@ -661,24 +661,24 @@ return nil otherwise."
 
 (defmacro when-let* (conditions &rest body)
   (declare (indent 1))
-  (assert (and (list? conditions)
-               (evenp (length conditions))))
+  (cl-assert (and (list? conditions)
+                  (evenp (length conditions))))
   (if (null? conditions)
     `(progn ,@body)
     `(when-let (,(first conditions)
                 ,(second conditions))
        (when-let* ,(cddr conditions)
-                  ,@body))))
+         ,@body))))
 
 (defmacro if-let* (conditions true-branch &optional false-branch)
   "E.g.
 (if-let (foo 1
-         bar 2
-         baz 3)
-  (+ foo bar baz)
+             bar 2
+             baz 3)
+    (+ foo bar baz)
   'failed)))))"
   (declare (indent 1))
-  (assert (and (list? conditions)
+  (cl-assert (and (list? conditions)
                (evenp (length conditions))))
   (if (null? conditions)
     true-branch

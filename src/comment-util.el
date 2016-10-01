@@ -39,6 +39,7 @@
     (cl-mode               (one-line ";;") (line-regexp ";+"))
     (lisp-mode             (one-line ";;") (line-regexp ";+"))
     (emacs-lisp-mode       (one-line ";;") (line-regexp ";+"))
+    (elisp-byte-code-mode  (one-line ";;") (line-regexp ";+"))
     (inferior-emacs-lisp-mode (one-line ";;") (line-regexp ";+"))
     (lisp-interaction-mode (one-line ";;") (line-regexp ";+"))
     (org-mode              (one-line "#")  (line-regexp "#+"))
@@ -475,14 +476,14 @@ commented parts and leave point unchanged."
              (move-by-line-backward dir)
              ;; we're returned backwards onto line with comments
              ;; which is a known fact
-             (assert (comment-util--on-commented-line?)
-                     nil
-                     "line number: %s;\nline: %s;\nprevious line: %s"
-                     (count-lines1 (point-min) (point))
-                     (current-line)
-                     (save-excursion
-                       (move-by-line dir)
-                       (current-line)))))))
+             (cl-assert (comment-util--on-commented-line?)
+                        nil
+                        "line number: %s;\nline: %s;\nprevious line: %s"
+                        (count-lines1 (point-min) (point))
+                        (current-line)
+                        (save-excursion
+                          (move-by-line dir)
+                          (current-line)))))))
     (let ((pos (line-beginning-position))
           start
           end)

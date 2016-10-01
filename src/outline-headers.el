@@ -34,7 +34,7 @@
 (defun outline-headers-count-header-symbols ()
   "Return number of `outline-headers/section-symbol' symbols in header
 at point."
-  (assert (looking-at-p outline-headers/header-re))
+  (cl-assert (looking-at-p outline-headers/header-re))
   (save-match-data
     (if (looking-at outline-headers/header-re)
       (- (match-end 1) (match-beginning 1))
@@ -95,20 +95,20 @@ headings."
     (when (< 1 (length header-symbol))
       (error "setup-outline-headers: error: fetched header-symbol from comment-util but it's length is greater than 1: \"%s\" and no other header-symbol was provided"
              header-symbol)))
-  (assert (and (string? header-symbol)
-               (= 1 (length header-symbol)))
-          nil
-          "header-symbol must be string of length 1")
-  (assert (string? header-start)
-          nil
-          "header-start must be string")
-  (assert (string? header-end)
-          nil
-          "header-end must be string")
-  (assert (and (integer? length-min)
-               (>= length-min 1))
-          nil
-          "length-min must be integer >= 1")
+  (cl-assert (and (string? header-symbol)
+                  (= 1 (length header-symbol)))
+             nil
+             "header-symbol must be string of length 1")
+  (cl-assert (string? header-start)
+             nil
+             "header-start must be string")
+  (cl-assert (string? header-end)
+             nil
+             "header-end must be string")
+  (cl-assert (and (integer? length-min)
+                  (>= length-min 1))
+             nil
+             "length-min must be integer >= 1")
 
   (setf outline-headers/section-start     header-start
         outline-headers/section-symbol    (regexp-quote header-symbol)
