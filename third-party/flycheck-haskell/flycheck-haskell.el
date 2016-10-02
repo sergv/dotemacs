@@ -93,8 +93,16 @@ and otherwise fall back to standard `runghc'."
   (expand-file-name "get-cabal-configuration.hs" flycheck-haskell-directory)
   "The helper to dump the Cabal configuration.")
 
+(defconst flycheck-compiled-haskell-helper
+  (expand-file-name "get-cabal-configuration" flycheck-haskell-directory)
+  "The helper to dump the Cabal configuration.")
+
 (defconst flycheck-haskell-flags-helper
   (expand-file-name "get-flags.hs" flycheck-haskell-directory)
+  "The helper to get compiler flags for the Cabal helper.")
+
+(defconst flycheck-haskell-compiled-flags-helper
+  (expand-file-name "get-flags" flycheck-haskell-directory)
   "The helper to get compiler flags for the Cabal helper.")
 
 (defun flycheck-haskell-runghc-command (args)
@@ -107,10 +115,12 @@ Take the base command from `flycheck-haskell-runghc-command'."
   "Get GHC flags to run the Cabal helper."
   (ignore-errors
     (apply #'process-lines
-           (flycheck-haskell-runghc-command
-            (list flycheck-haskell-flags-helper)))))
+           (if (file-exists-p flycheck-haskell-compiled-flags-helper)
+             (list flycheck-haskell-compiled-flags-helper)
+             (flycheck-haskell-runghc-command
+              (list flycheck-haskell-flags-helper))))))
 
-(defun flycheck-haskell-read-cabal-configuration (cabal-file)
+(defun flycheck-haskell-read-cabal-configuration-interpreted (cabal-file)
   "Read the Cabal configuration from CABAL-FILE."
   (let* ((args (append (flycheck-haskell--get-flags)
                        (list flycheck-haskell-helper cabal-file)))
@@ -122,6 +132,24 @@ Take the base command from `flycheck-haskell-runghc-command'."
         (retcode (message "Reading Haskell configuration failed with exit code %s and output:\n%s"
                           retcode (buffer-string))
                  nil)))))
+
+(defun flycheck-haskell-read-cabal-configuration-compiled (cabal-file)
+  (with-temp-buffer
+    (pcase (call-process flycheck-haskell-compiled-flags-helper
+                         nil
+                         t
+                         nil
+                         cabal-file)
+      (0 (goto-char (point-min))
+         (read (current-buffer)))
+      (retcode (message "Reading Haskell configuration failed with exit code %s and output:\n%s"
+                        retcode (buffer-string))
+               nil))))
+
+(defun flycheck-haskell-read-cabal-configuration (cabal-file)
+  (if (file-exists-p flycheck-haskell-compiled-flags-helper)
+    (flycheck-haskell-read-cabal-configuration-compiled cabal-file)
+    (flycheck-haskell-read-cabal-configuration-interpreted cabal-file)))
 
 
 ;;; Cabal configuration caching
