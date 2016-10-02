@@ -165,3 +165,6 @@
 [submodule "third-party/nasm-mode"]
         path = third-party/nasm-mode
         url = https://github.com/skeeto/nasm-mode.git
+[submodule "third-party/bert-el"]
+	path = third-party/bert-el
+	url = https://github.com/manzyuk/bert-el.git
