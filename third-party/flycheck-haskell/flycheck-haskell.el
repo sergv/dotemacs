@@ -94,7 +94,10 @@ and otherwise fall back to standard `runghc'."
   "The helper to dump the Cabal configuration.")
 
 (defconst flycheck-compiled-haskell-helper
-  (expand-file-name "get-cabal-configuration" flycheck-haskell-directory)
+  (let ((base-name (expand-file-name "get-cabal-configuration" flycheck-haskell-directory)))
+    (-find #'file-executable-p
+           (--map (concat base-name it)
+                  exec-suffixes)))
   "The helper to dump the Cabal configuration.")
 
 (defconst flycheck-haskell-flags-helper
@@ -102,7 +105,10 @@ and otherwise fall back to standard `runghc'."
   "The helper to get compiler flags for the Cabal helper.")
 
 (defconst flycheck-haskell-compiled-flags-helper
-  (expand-file-name "get-flags" flycheck-haskell-directory)
+  (let ((base-name (expand-file-name "get-flags" flycheck-haskell-directory)))
+    (-find #'file-executable-p
+           (--map (concat base-name it)
+                  exec-suffixes)))
   "The helper to get compiler flags for the Cabal helper.")
 
 (defun flycheck-haskell-runghc-command (args)
@@ -115,7 +121,7 @@ Take the base command from `flycheck-haskell-runghc-command'."
   "Get GHC flags to run the Cabal helper."
   (ignore-errors
     (apply #'process-lines
-           (if (file-exists-p flycheck-haskell-compiled-flags-helper)
+           (if flycheck-haskell-compiled-flags-helper
              (list flycheck-haskell-compiled-flags-helper)
              (flycheck-haskell-runghc-command
               (list flycheck-haskell-flags-helper))))))
@@ -147,7 +153,7 @@ Take the base command from `flycheck-haskell-runghc-command'."
                nil))))
 
 (defun flycheck-haskell-read-cabal-configuration (cabal-file)
-  (if (file-exists-p flycheck-haskell-compiled-flags-helper)
+  (if flycheck-haskell-compiled-flags-helper
     (flycheck-haskell-read-cabal-configuration-compiled cabal-file)
     (flycheck-haskell-read-cabal-configuration-interpreted cabal-file)))
 
@@ -329,5 +335,6 @@ path as well."
 ;; indent-tabs-mode: nil
 ;; coding: utf-8
 ;; End:
+
 
 ;;; flycheck-haskell.el ends here
