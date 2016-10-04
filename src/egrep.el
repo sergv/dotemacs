@@ -101,9 +101,11 @@ match IGNORED-FILE-GLOBS."
      (constantly nil)
      :preamble-function
      (lambda ()
-       (format "Browse matches for `%s' in files matching %s\n\n"
+       (format "Browse matches for `%s' in files matching %s starting at directory %s\n\n"
                regexp
-               (mapconcat #'identity exts-globs " "))))))
+               (mapconcat #'identity exts-globs " ")
+               dir))
+     :working-directory dir)))
 
 (defun egrep--read-files (regexp)
   "Query user for list of glob patterns to search in and return list of
