@@ -141,21 +141,32 @@ START is inclusive and END is exclusive in ITEMS."
                                 (epilogue-function (lambda () ""))
                                 (separator-function
                                  (lambda ()
-                                   select--bold-separator)))
+                                   select--bold-separator))
+                                (working-directory nil))
   "Initiate select session.
 
 ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS collection
 and symbol, specifying selection type. Currently, selection type may be either
 'same-window or 'other-window.
+
+WORKING-DIRECTORY can be either string specifying a directory or nil, in which
+case `default-directory' will be used.
 "
   (cl-assert (< 0 (length items)))
   (cl-assert item-show-function)
+  (cl-assert (or (null working-directory)
+                 (and (stringp working-directory)
+                      (file-directory-p working-directory))))
   (let ((init-buffer (current-buffer))
         (init-window (selected-window))
-        (init-window-config (current-window-configuration)))
+        (init-window-config (current-window-configuration))
+        (working-dir (or working-directory
+                         default-directory)))
     (with-current-buffer (switch-to-buffer-other-window buffer-name)
+      (read-only-mode -1)
       (select-mode)
 
+      (cd working-dir)
       ;; Disable undo tracking in this buffer
       (setq-local buffer-undo-list t)
 
