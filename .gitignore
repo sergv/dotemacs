@@ -12,11 +12,7 @@ packages/**
 scripts/**
 standalone/**
 test/**
-third-party/**
 tmp/**
-
-!third-party/antlr-mode.el
-!third-party/bison-mode.el
 
 # haskell-mode is already under git
 src/haskell/haskell-mode
