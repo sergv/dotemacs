@@ -735,8 +735,11 @@ return nil otherwise."
               (setf start-pos (point))
               t))
       (goto-char start-pos)
-      (forward-char)
-      (sp-splice-sexp-killing-backward))
+      ;; delete parenthesized sexp
+      (save-excursion
+        (forward-sexp)
+        (delete-char -1))
+      (delete-char 1))
     (shm-insert-char-surrounding-with-spaces ?\$)))
 
 (defun* haskell-bind-shm-bindings (&key bind-colon)
