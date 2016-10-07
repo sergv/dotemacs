@@ -74,16 +74,15 @@ Ordering is lexicographic."
        "Create ibuffer buffer-group specification based on each buffer's
 git repository root"
        (if *have-git?*
-         (let ((roots (sort
-                       (remove-duplicates
-                        (-map #'strip-trailing-slash
-                              (delq nil
-                                    (-map (lambda (buf)
-                                            (with-current-buffer buf
-                                              (git-update-file-repository)
-                                              git-repository))
-                                          (buffer-list))))
-                        :test #'string-equal)
+         (let ((roots (remove-duplicates-sorting
+                       (-map #'strip-trailing-slash
+                             (delq nil
+                                   (-map (lambda (buf)
+                                           (with-current-buffer buf
+                                             (git-update-file-repository)
+                                             git-repository))
+                                         (buffer-list))))
+                       #'string=
                        #'string<)))
            (-map (lambda (repo-root)
                    (cons (format "git:%s" repo-root)
