@@ -124,10 +124,10 @@ then Bar would be the result."
          (language-snippet (format "{-# LANGUAGE ${1:$\$(yas-choose-value '%S)} #-}$0"
                                    haskell-extensions))
          (pragma-snippet (format "{-# ${1:$\$(yas-choose-value '%S)} $2 #-}$0"
-                                 (remove-duplicates
-                                  (sort
-                                   (cons "SCC" haskell-completions--pragma-names)
-                                   #'string<))))
+                                 (remove-duplicates-sorting
+                                  (cons "SCC" haskell-completions--pragma-names)
+                                  #'string=
+                                  #'string<)))
          (ghc-flags (-map (lambda (x)
                             (cond
                               ((string? x)
