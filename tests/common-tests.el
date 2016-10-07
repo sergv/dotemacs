@@ -237,6 +237,24 @@
                                       #'string<)
            '("a" "b" "c"))))
 
+(ert-deftest common-tests/remove-duplicates-hashing ()
+  (should (equal
+           (remove-duplicates-hashing (copy-list '("a" "b" "c"))
+                                      #'equal)
+           '("a" "b" "c")))
+  (should (equal
+           (remove-duplicates-hashing (copy-list '("b" "c" "a"))
+                                      #'equal)
+           '("b" "c" "a")))
+  (should (equal
+           (remove-duplicates-hashing (copy-list '("b" "c" "a" "b" "c"))
+                                      #'equal)
+           '("b" "c" "a")))
+  (should (equal
+           (remove-duplicates-hashing (copy-list '("a" "a" "b" "b" "c" "c"))
+                                      #'equal)
+           '("a" "b" "c"))))
+
 (ert-deftest common-tests/nested-hash-tables ()
   (let ((tables
          (mk-nested-hash-tables

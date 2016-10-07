@@ -83,7 +83,7 @@ if CASE-SENSETIVE is t."
   ;; (on 2k lines performance is acceptable)
   (let ((chars (string->list (buffer-substring-no-properties (point-min)
                                                              (point-max)))))
-    (sort (remove-duplicates (--filter (< 127 it) chars)) #'<)))
+    (remove-duplicates-sorting (--filter (< 127 it) chars) #'= #'<)))
 
 (defun input-unicode ()
   (interactive)
@@ -444,13 +444,18 @@ using EQ-FUNC to determine equal elements."
 
 ;;;###autoload
 (defun remove-duplicates-hashing (xs eq-func)
-  "Sort XS using COMPARISON function and remove duplicates from the result
-using EQ-FUNC to determine equal elements."
-  (cl-assert (list? xs))
-  (let ((tbl (make-hash-table :test eq-func)))
-    (dolist (x xs)
-      (puthash x (gethash x tbl x) tbl))
-    (hash-table-values tbl)))
+  "Remove duplicates from the XS using EQ-FUNC to determine equal elements."
+  (let* ((tbl (make-hash-table :test eq-func))
+         (tmp (cons nil nil))
+         (result tmp))
+    (mapc (lambda (x)
+            (unless (gethash x tbl)
+              (let ((new-link (cons x nil)))
+                (puthash x t tbl)
+                (setf (cdr tmp) new-link
+                      tmp new-link))))
+          xs)
+    (cdr result)))
 
 ;;;
 
