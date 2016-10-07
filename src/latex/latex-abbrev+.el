@@ -20,11 +20,11 @@ from \\label{...} and \\ref{...} constructs."
     (save-excursion
       (save-match-data
         (goto-char (point-min))
-        (remove-duplicates
+        (remove-duplicates-hashing
          (loop
            while (re-search-forward label-re nil t)
            collect (match-string-no-properties 1))
-         :test #'string=)))))
+         #'equal)))))
 
 (defun latex-insert-reference-template ()
   "Insert \\ref{} construct and put prompt between angle brackets."
