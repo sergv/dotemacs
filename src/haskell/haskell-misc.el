@@ -237,7 +237,7 @@ and indent them as singe line."
       inferior-haskell-find-project-root nil
 
       ;; Flycheck
-      flycheck-ghc-args '("-O0" "-fno-warn-name-shadowing")
+      flycheck-ghc-args '("-O0" "-fno-warn-name-shadowing" "-fno-warn-type-defaults")
       flycheck-ghc-no-user-package-database t)
 
 ;; Ghci flags
