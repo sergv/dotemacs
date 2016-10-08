@@ -141,7 +141,7 @@ Take the base command from `flycheck-haskell-runghc-command'."
 
 (defun flycheck-haskell-read-cabal-configuration-compiled (cabal-file)
   (with-temp-buffer
-    (pcase (call-process flycheck-haskell-compiled-flags-helper
+    (pcase (call-process flycheck-compiled-haskell-helper
                          nil
                          t
                          nil
