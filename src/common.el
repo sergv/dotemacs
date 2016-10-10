@@ -1368,7 +1368,7 @@ With argument COUNT, do this that many times."
   "Delete whitespaces forward until non-whitespace
 character found"
   (interactive)
-  (while (and (not (bobp))
+  (while (and (not (eobp))
               (whitespace-char? (char-after))
               (not (get-char-property (1- (point)) 'read-only)))
     (delete-char 1)))
