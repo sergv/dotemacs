@@ -78,11 +78,16 @@
 
 (defun shm-literal-insertion ()
   "Should a node have literal insertion?"
-  (or (shm-in-string-or-comment)
-      (shm-in-char)
-      (and (memq (char-before) '(?\' ?\\))
-           (char-equal (char-after) ?\'))
-      (and (memq (char-before) '(?\" ?\\))
-           (char-equal (char-after) ?\"))))
+  (let ((before (char-before))
+        (after (char-after)))
+    (or (shm-in-string-or-comment)
+        (shm-in-char)
+        (and
+         before
+         after
+         (and (memq before '(?\' ?\\))
+              (char-equal after ?\'))
+         (and (memq before '(?\" ?\\))
+              (char-equal after ?\"))))))
 
 (provide 'shm-in)
