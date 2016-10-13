@@ -190,7 +190,7 @@ cancel ex-mode."
   (if (and (>= n 1)
            (zerop (length (minibuffer-contents))))
     (exit-minibuffer))
-  (delete-backward-char n))
+  (delete-char (- n)))
 
 (defstruct (vim:arg-handler
             (:constructor vim:make-arg-handler))
