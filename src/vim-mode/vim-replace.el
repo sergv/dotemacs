@@ -14,6 +14,8 @@
                                            (word nil)
                                            (symbol nil)
                                            (fill-replace nil))
+  (unless str
+    (error "No string for replace"))
   (concat "%s,"
           (cond (word "\\<") (symbol "\\_<"))
           (regexp-quote str)
