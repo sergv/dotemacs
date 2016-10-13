@@ -328,10 +328,9 @@ entries."
           (remq nil
                 (-map (lambda (buf)
                         (with-current-buffer buf
-                          (when-let* (spec-entry
-                                      (assq major-mode
-                                            sessions/special-modes)
-                                      save-func (cadr-safe (assq 'save spec-entry)))
+                          (when-let ((spec-entry (assq major-mode
+                                                       sessions/special-modes))
+                                     (save-func (cadr-safe (assq 'save spec-entry))))
                             (list major-mode
                                   (sessions/store-string
                                    (buffer-name buf))
@@ -467,8 +466,8 @@ entries."
                       version
                       (second saved-info)))
                     (special-data (third saved-info)))
-                (when-let* (spec-entry (assq mmode sessions/special-modes)
-                           restore-func (cadr-safe (assq 'restore spec-entry)))
+                (when-let ((spec-entry (assq mmode sessions/special-modes))
+                           (restore-func (cadr-safe (assq 'restore spec-entry))))
                   (funcall restore-func version buffer-name special-data))))
             (cadr it))
       (message "sessions/load-from-data: no 'special-buffers field"))

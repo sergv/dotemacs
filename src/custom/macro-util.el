@@ -640,36 +640,6 @@ return nil otherwise."
      (when it
        ,@body)))
 
-(defmacro when-let* (conditions &rest body)
-  (declare (indent 1))
-  (cl-assert (and (list? conditions)
-                  (evenp (length conditions))))
-  (if (null? conditions)
-    `(progn ,@body)
-    `(when-let (,(first conditions)
-                ,(second conditions))
-       (when-let* ,(cddr conditions)
-         ,@body))))
-
-(defmacro if-let* (conditions true-branch &optional false-branch)
-  "E.g.
-(if-let (foo 1
-             bar 2
-             baz 3)
-    (+ foo bar baz)
-  'failed)))))"
-  (declare (indent 1))
-  (cl-assert (and (list? conditions)
-               (evenp (length conditions))))
-  (if (null? conditions)
-    true-branch
-    `(if-let (,(first conditions)
-              ,(second conditions))
-       (if-let* ,(cddr conditions)
-                ,true-branch
-                ,false-branch)
-       ,false-branch)))
-
 (defmacro defparameter (var &optional value doc)
   "Just like CL's defparameter, sets variable value when evaluated."
   (let ((tmp-var '#:store))
