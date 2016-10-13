@@ -130,23 +130,23 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
 \(i.e. the selected one), depending on `compilation-error-regexp-alist'."
   (save-excursion
     (save-match-data
-      (when-let (entry (find-if (lambda (entry)
-                                  (save-excursion
-                                    (let ((regexp (car entry)))
-                                      (when (< 0 (length regexp))
-                                        (or (looking-at regexp)
-                                            (progn
-                                              (beginning-of-line)
-                                              (looking-at regexp)))))))
-                                (-map (lambda (entry)
-                                        (if (symbolp entry)
-                                          (cdr-safe
-                                           (assq
-                                            entry
-                                            compilation-error-regexp-alist-alist))
-                                          entry))
-                                      compilation-error-regexp-alist)))
-        (compilation/parse-matched-error-entry entry)))))
+      (when-let (err-entry (find-if (lambda (entry)
+                                      (save-excursion
+                                        (let ((regexp (car entry)))
+                                          (when (< 0 (length regexp))
+                                            (or (looking-at regexp)
+                                                (progn
+                                                  (beginning-of-line)
+                                                  (looking-at regexp)))))))
+                                    (-map (lambda (entry)
+                                            (if (symbolp entry)
+                                                (cdr-safe
+                                                 (assq
+                                                  entry
+                                                  compilation-error-regexp-alist-alist))
+                                              entry))
+                                          compilation-error-regexp-alist)))
+        (compilation/parse-matched-error-entry err-entry)))))
 
 (defun compilation/find-buffer (filename root)
   "Get buffer that corresponds to FILENAME, which may be neither full nor
