@@ -78,9 +78,9 @@ baz
       ("<return>" select-do-select-same-window)
       ("SPC"      select-do-select-other-window)
       ("<escape>" select-hide)
-      ("q"        select-hide)
-      ("C-q"      select-hide)
-      ("C-g"      select-hide))
+      ("q"        select-exit)
+      ("C-q"      select-exit)
+      ("C-g"      select-exit))
     kmap))
 
 ;;; utilities
