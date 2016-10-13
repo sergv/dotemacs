@@ -640,25 +640,6 @@ return nil otherwise."
      (when it
        ,@body)))
 
-(defmacro if-let (condition true-branch &optional false-branch)
-  "E.g. (if-let (x (assoc 'foo bar)) baz quux)"
-  (cl-assert (and (list? condition)
-                  (= 2 (length condition)))
-             nil
-             "if-let error: invalid condition: %s" condition)
-  (let ((tmp-var '#:cond-var)
-        (cond-var (car condition))
-        (expr (cadr condition)))
-    `(let ((,tmp-var ,expr))
-       (if ,tmp-var
-         (let ((,cond-var ,tmp-var))
-           ,true-branch)
-         ,false-branch))))
-
-(defmacro when-let (condition &rest body)
-  (declare (indent 1))
-  `(if-let ,condition (progn ,@body)))
-
 (defmacro when-let* (conditions &rest body)
   (declare (indent 1))
   (cl-assert (and (list? conditions)
@@ -711,19 +692,6 @@ return nil otherwise."
            (setf ,var ,tmp-var))
          (defvar-local ,var ,tmp-var ,doc))
        nil)))
-
-;;; compatibility defines
-
-(unless (symbol-function 'defvar-local)
-  ;; taken verbatim from subr.el of emacs 24.3
-  (defmacro defvar-local (var val &optional docstring)
-    "Define VAR as a buffer-local variable with default value VAL.
-Like `defvar' but additionally marks the variable as being automatically
-buffer-local wherever it is set."
-    (declare (debug defvar) (doc-string 3))
-    ;; Can't use backquote here, it's too early in the bootstrap.
-    (list 'progn (list 'defvar var val docstring)
-          (list 'make-variable-buffer-local (list 'quote var)))))
 
 ;;; end
 
