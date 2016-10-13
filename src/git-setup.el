@@ -96,15 +96,13 @@
                (-filter pred
                         (reverse (magit-collect-unstaged-hunk-sections))))))
     (dolist (patch matching-patches)
-      (when-let* (sections
-                  (magit-collect-unstaged-hunk-sections)
-                  hunk
-                  (find-if (lambda (section)
-                             (string= patch
-                                      (buffer-substring-no-properties
-                                       (magit-section-start section)
-                                       (magit-section-end section))))
-                           sections))
+      (when-let ((sections (magit-collect-unstaged-hunk-sections))
+                 (hunk (find-if (lambda (section)
+                                  (string= patch
+                                           (buffer-substring-no-properties
+                                            (magit-section-start section)
+                                            (magit-section-end section))))
+                                sections)))
         (magit-apply-hunk hunk "--cached")))))
 
 (defun magit-bind-common-vimless-mode-keymap (map)
