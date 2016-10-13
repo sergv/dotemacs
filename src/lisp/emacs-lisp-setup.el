@@ -45,13 +45,9 @@
 
 (defparameter *emacs-lisp-indent-specs*
   '((autoload nil)
-    (if 1)
     (loop 0)
     (cond 0)
-    (aif 1)
     (awhen 1)
-    (if-let 1)
-    (when-let 1)
     (def-keys-for-map 1)
     (condition-case 2)
     (rxx 1)
