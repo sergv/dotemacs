@@ -256,8 +256,12 @@ This function should be called whenever the minibuffer is exited."
 
 (defun vim:ex-stop-session ()
   "Deinitializes the minibuffer when ex-mode is stopped."
-  (let ((arg-deactivate (and vim:ex-arg-handler (vim:arg-handler-deactivate vim:ex-arg-handler))))
-    (when arg-deactivate (funcall arg-deactivate)))
+  (when-let (arg-deactivate (and vim:ex-arg-handler
+                                 (vim:arg-handler-deactivate vim:ex-arg-handler)))
+    (with-demoted-errors
+        (format "vim:ex-change: error when activating handler %s: %%s"
+                vim:ex-arg-handler)
+      (funcall arg-deactivate)))
   (remove-hook 'after-change-functions #'vim:ex-change t)
   (vim:ex-teardown))
 
@@ -292,9 +296,12 @@ argument handler. Gets called on every minibuffer change."
                vim:ex-arg arg
                vim:ex-range (cons beg end))
          ;; ... deactivate old handler ...
-         (let ((arg-deactivate (and vim:ex-arg-handler
-                                    (vim:arg-handler-deactivate vim:ex-arg-handler))))
-           (when arg-deactivate (funcall arg-deactivate)))
+         (when-let (arg-deactivate (and vim:ex-arg-handler
+                                        (vim:arg-handler-deactivate vim:ex-arg-handler)))
+           (with-demoted-errors
+               (format "vim:ex-change: error when activating handler %s: %%s"
+                       vim:ex-arg-handler)
+             (funcall arg-deactivate)))
          ;; ... activate and store new handler ...
          (let ((cmd (vim:ex-binding cmd)))
            (cond
@@ -306,9 +313,12 @@ argument handler. Gets called on every minibuffer change."
              (t
               (setq vim:ex-arg-handler
                     (and cmd (vim:ex-get-arg-handler cmd)))
-              (let ((arg-activate (and vim:ex-arg-handler
-                                       (vim:arg-handler-activate vim:ex-arg-handler))))
-                (when arg-activate (funcall arg-activate)))))))
+              (when-let (arg-activate (and vim:ex-arg-handler
+                                           (vim:arg-handler-activate vim:ex-arg-handler)))
+                (with-demoted-errors
+                    (format "vim:ex-change: error when activating handler %s: %%s"
+                            vim:ex-arg-handler)
+                  (funcall arg-activate)))))))
         ((or (not (string= vim:ex-arg arg))
              (not (equal (cons beg end) vim:ex-range)))
          ;; command remained the same, but argument or range changed
