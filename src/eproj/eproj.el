@@ -495,10 +495,9 @@ cache tags in."
           (format "%s" mode)))
 
 (defun* eproj/load-tags-for-mode (proj mode make-project-files &key (consider-tag-files t))
-  (if-let* (lang
-            (gethash mode eproj/languages-table)
-            create-tags-procedure (eproj-language/create-tags-procedure lang)
-            parse-tags-procedure (eproj-language/parse-tags-procedure lang))
+  (if-let ((lang (gethash mode eproj/languages-table))
+           (create-tags-procedure (eproj-language/create-tags-procedure lang))
+           (parse-tags-procedure (eproj-language/parse-tags-procedure lang)))
     (if (and consider-tag-files
              (eproj-project/create-tag-files proj))
       (let ((tag-file (eproj/tag-file-name proj mode)))

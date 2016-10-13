@@ -660,31 +660,31 @@ return nil otherwise."
              (shm/newline-indent)
              (shm/simple-indent-newline-same-col)))))
     (when (memq major-mode +haskell-syntax-modes+)
-      (if-let* (enclosing-sig-node (haskell-enclosing-TypeSig-node)
-                func-name-node (haskell-TypeSig-function-name-node enclosing-sig-node))
-        (let ((func-name (buffer-substring-no-properties
-                          (shm-node-start func-name-node)
-                          (shm-node-end func-name-node)))
-              (indentation (save-excursion
-                             (goto-char (shm-node-start func-name-node))
-                             (current-column)))
-              (p (point))
-              (sig-end (shm-node-end enclosing-sig-node)))
-          (funcall indent)
-          ;; Maybe consider using this function instead?
-          ;; (shm/simple-indent-newline-same-col)
-          (when (and
-                 (= p sig-end)
-                 (not
-                  (save-excursion
-                    (forward-line)
-                    (skip-syntax-forward "->")
-                    (looking-at-pure? (concat (regexp-quote func-name)
-                                              "\\_>")))))
-            (delete-region (line-beginning-position) (point))
-            (insert (make-string indentation ?\s)
-                    func-name
-                    " ")))
+      (if-let ((enclosing-sig-node (haskell-enclosing-TypeSig-node))
+               (func-name-node (haskell-TypeSig-function-name-node enclosing-sig-node)))
+          (let ((func-name (buffer-substring-no-properties
+                            (shm-node-start func-name-node)
+                            (shm-node-end func-name-node)))
+                (indentation (save-excursion
+                               (goto-char (shm-node-start func-name-node))
+                               (current-column)))
+                (p (point))
+                (sig-end (shm-node-end enclosing-sig-node)))
+            (funcall indent)
+            ;; Maybe consider using this function instead?
+            ;; (shm/simple-indent-newline-same-col)
+            (when (and
+                   (= p sig-end)
+                   (not
+                    (save-excursion
+                      (forward-line)
+                      (skip-syntax-forward "->")
+                      (looking-at-pure? (concat (regexp-quote func-name)
+                                                "\\_>")))))
+              (delete-region (line-beginning-position) (point))
+              (insert (make-string indentation ?\s)
+                      func-name
+                      " ")))
         ;; indent in either case, the key is to indent
         ;; *after* parsing signature on current line
         (funcall indent)))))
