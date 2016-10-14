@@ -62,7 +62,6 @@ much on shifts in point of view as on the orderly development of our
 current concepts.
 -- Alan Perlis"
 
-
    "Functions delay binding: data structures induce binding. Moral:
 Structure data late in the programming process.
 -- Alan Perlis, Epigrams on Programming"
@@ -550,15 +549,6 @@ They are a superb high-level documentation.
   ["Беду ни праздностью, ни ленью не поправишь.
 -- Мигель де Сервантес"
 
-   "Робкий отказ tar.
-Дерзкое согласие apt-get
-Застенчивый комплимент bash
-Невыносимое хамство git
-Жаркий секс с make
-Извращения с ghc
-
-Linux. It is your only woman."
-
    "Богатство — не в самом обладании богатством,
 а в умении целесообразно пользоваться им.
 -- Мигель де Сервантес"
@@ -753,6 +743,15 @@ as much as you planned.
    "Magic is real, unless declared integer.
 -- the collected sayings of Wiz Zumwalt"
 
+   "Робкий отказ tar.
+Дерзкое согласие apt-get
+Застенчивый комплимент bash
+Невыносимое хамство git
+Жаркий секс с make
+Извращения с ghc
+
+Linux. It is your only woman."
+
    "To those accustomed to the precise, structured methods of conventional
 system development, exploratory development techniques may seem messy,
 inelegant, and unsatisfying.  But it's a question of congruence:
@@ -826,7 +825,6 @@ benighted heathens who cling to this barbarous belief, that the days
 of thy program may be long even though the days of thy current machine
 be short.
 -- Henry Spencer, The Ten Commandments for C Programmers"
-
 
    "After all is said and done, more is said than done.
 -- Aesop"
@@ -1479,82 +1477,11 @@ One Thing to place them in environments and bind them,
 In the Lambda Order they are all first-class.
 -- The TI PC Scheme Manual"
 
-   " Howe's Law:
-Everyone has a scheme that will not work."
-
-   "===  ALL USERS PLEASE NOTE  ========================
-
-Compiler optimizations have been made to macro expand LET into a WITHOUT-
-INTERRUPTS special form so that it can PUSH things into a stack in the
-LET-OPTIMIZATION area, SETQ the variables and then POP them back when it's
-done.  Don't worry about this unless you use multiprocessing.
-Note that LET *could* have been defined by:
-
-        (LET ((LET '`(LET ((LET ',LET))
-                        ,LET)))
-        `(LET ((LET ',LET))
-                ,LET))
-
-This is believed to speed up execution by as much as a factor of 1.01 or
-3.50 depending on whether you believe our friendly marketing representatives.
-This code was written by a new programmer here (we snatched him away from
-Itty Bitti Machines where we was writting COUGHBOL code) so to give him
-confidence we trusted his vows of \"it works pretty well\" and installed it."
-
-   "You know you've been sitting in front of your Lisp machine too long
-when you go out to the junk food machine and start wondering how to
-make it give you the CADR of Item H so you can get that yummie
-chocolate cupcake that's stuck behind the disgusting vanilla one."
-
    "If your thesis is utter vacuous
 Use first-order predicate calculus.
         With sufficient formality
         The sheerist banality
 Will be hailed by the critics: \"Miraculous!\""
-
-   "Posted to comp.lang.scheme on January 17, 1996, for Scheme's twentieth
-birthday:
-                           ((I m a g i n e)
-                         (shriram@cs.rice.edu)
-                   (((Imagine there's no FORTRAN)
-                       (It's easy if you try)
-               (No SML below us) (Above us only Y)
-              (Imagine all              the people)
-             (Living for                their Chez))
-          ((Imagine there's          no memory leaks)
-                                 (It isn't hard to do)
-                                  (Nothing to malloc(3)
-                                        or free(3) for)
-                                   (And no (void *) too)
-                                 (Imagine all the people)
-                                  (Living in parentheses))
-                               ((You may say I'm a Schemer)
-                                 (But I'm not the only one)
-                             (I hope someday you'll join us)
-                                   (And the world will be as
-                            (lambda (f) (lambda (x) (f x)))))
-                              ((Imagine those   continuations)
-                             (I wonder              if you can)
-                       (No need for              C or pointers)
-                   (A brotherhood                        of Dan)
-                    (Imagine all                      the people)
-                    (GCing all                          the world))
-               ((You may say                          I'm a Schemer)
-              (But I'm not                              the only one)
-         (I hope someday                                you'll join us)
-        (And the world                                        will be as
-    (lambda (f)                                     (lambda (x) (f x)))))))
--- Shriram Krishnamurthi"
-
-   "Reflecting in those things that might have been:
-How Isaac Newton further far has seen
-confronting that vast Ocean of Unknown
-the shoulders that he stands on are his own.
-First on his left, then his remaining hand
-the half-dimensioned fractal of the strand.
-Dreams (that he is dreaming in a dream)
-the lithe recursive calculus of Scheme.
--- John Carolan"
 
    "Artificial intelligence, like fusion power, has been ten years away for the
 last 30 years.
@@ -1579,16 +1506,6 @@ Will divide, multiply, and subtract.
 If the input was short of exact.
 -- Gigo"
 
-   "/* TWO LEVEL EMPTY DO NEST */
-FUTILE: PROCEDURE OPTIONS(MAIN);
-    DCL (I,J) FIXED DEC;
-    DO I = 1 TO 10000 BY 1;
-         DO J = 1 TO 10000 BY 1;
-              END; END; END FUTILE;
-
--- An Introduction to Programming
-  Richard Conway and David Gries"
-
    "Nobody can fix the economy.  Nobody can be trusted with their finger on the
 button.  Nobody's perfect.  VOTE FOR NOBODY."
 
@@ -1601,12 +1518,6 @@ I'm probably wrong."
    "One of the things every sorcerer will tell you, is that if you have
 the name of a spirit, you have power over it.
 -- Gerald Jay Sussman"
-
-   "ITEM 163 (Sussman):
-
-To exchange two variables in LISP without using a third variable:
-
-(SETQ X (PROG2 0 Y (SETQ Y X)))"
 
    "There's no sense in being precise, when you don't even know what
 you're talking about.
@@ -1625,11 +1536,6 @@ has regarded as a disadvantage.
 someone else already knew.
 -- Peter Landin"
 
-   "Language designers are not intellectuals. They're not as interested in
-thinking as you might hope. They just want to get a language done and
-start using it.
--- Dave Moon"
-
    "Man did not weave the web of life;
 he is merely a strand in it.
 Whatever he does to the web, he does to himself.
@@ -1641,11 +1547,6 @@ hope, you who enter!]
                                 Dante Alighieri (1265-1321)
        _La Divina Commedia [The Divine Comedy]_ (1310-1321)
                                   ``Inferno'' canto 3, l. 1"
-
-   "It is a good thing for an uneducated man to read books
-of quotations.
-                          Sir Winston Churchill (1874-1965)
-                               _My Early Life_ (1930) ch. 9"
 
    "Misquotation is, in fact, the pride and privilege of
 the learned.  A widely-read man never quotes accurately,
@@ -1715,7 +1616,7 @@ So create.
                          — Richard Feynman"
 
    "A vocabulary of truth and simplicity will be of service
-throughout your life
+throughout your life.
                          — Winston Churchill"
 
    "Simplicity is the nature of great souls.
@@ -1745,7 +1646,7 @@ the earth and all temporary nature.
    "Nothing is true, but that which is simple.
                          — Johann Wolfgang von Goethe"
 
-   "Simplicity is the glory of expression
+   "Simplicity is the glory of expression.
                          — Walt Whitman"
 
    "[As a new professor] at Cornell, I'd work on preparing my courses, and I'd
@@ -1788,7 +1689,7 @@ twice as fast as the wobble rate -- two to one. ...
 I went on to work out equations of wobbles. Then I thought about how
 electron orbits start to move in relativity. Then there's the Dirac Equation
 in electrodynamics. And then quantum electrodynamics. And before I knew it
-(it was a very short time) I was \"playing\" -- working, really -- with the
+\(it was a very short time\) I was \"playing\" -- working, really -- with the
 same old problem that I loved so much, that I had stopped working on when I
 went to Los Alamos: my thesis-type problems; all those old-fashioned,
 wonderful things.
@@ -1799,8 +1700,8 @@ resist it! There was no importance to what I was doing, but ultimately
 there was. The diagrams and the whole business that I got the Nobel Prize
 for came from that piddling around with the wobbling plate.
 
-                                    Richard Feynman
-                                    Surely You're Joking, Mr. Feynman, p 92"
+Richard Feynman
+Surely You're Joking, Mr. Feynman, p 92"
 
    "Coming back to where you started is not the same as never leaving.
 — Terry Pratchett"
@@ -1824,14 +1725,10 @@ computer to do.
    "Be kind, for everyone you meet is fighting a hard battle.
 -- Plato"
 
-   "The aim of a programminglanguage - to turn ideas into software,
-quickly and faithfully
--- John Chambers"
-
-   "Никто не должен быть жертвой собственной биографии
+   "Никто не должен быть жертвой собственной биографии.
 -- Джордж Келли"
 
-   "Я не то, что со мной случилось, я — то, чем я решил стать
+   "Я не то, что со мной случилось, я — то, чем я решил стать.
 -- Карл Густав Юнг"
 
    "Но, боль превозмогая, с края пучины серной,
@@ -1852,7 +1749,7 @@ including, but not limited to, frustration, disgust, system abends, disk
 head-crashes, general malfeasance, floods, fires, shark attack, nerve
 gas, locust infestation, cyclones, hurricanes, tsunamis, local
 electromagnetic disruptions, hydraulic brake system failure, invasion,
-hashing collisions, normal wear and tear of friction surfaces, comic
+hashing collisions, normal wear and tear of friction surfaces, cosmic
 radiation, inadvertent destruction of sensitive electronic components,
 windstorms, the Riders of Nazgul, infuriated chickens, malfunctioning
 mechanical or electrical sexual devices, premature activation of the
@@ -1899,39 +1796,28 @@ stove-lid.  She will never sit down on a hot stove-lid again-and that is
 well; but also she will never sit down on a cold one anymore.
 -- Mark Twain \(Samuel Langhorne Clemens, 1835-1910\)"
 
-   "After a time, you may find that \"having\" is not so pleasing a thing,
-after all, as \"wanting.\"  It is not logical, but it is often true.
--- Spock, \"Amok Time\", stardate 3372.7"
-
    "As in certain cults it is possible to kill a process
 if you know its true name.
 -- Ken Thompson and Dennis M. Ritchie"
 
-   "If someone asks me who I am, and if I'm among ordinary people, I tell them
-I'm a computer hacker.  If I'm among computer people I tell them I'm a
-Unix hacker.  If I'm among Unix people I tell them I'm a Linux hacker.  And
-if I'm among Linux people I tell them I'm a Lisp hacker.  It's nice to be
-different.
--- James A. Crippen "
-
-   "On two occasions I have been asked \[by members of Parliament!\], `Pray,
+   "On two occasions I have been asked \[by members of Parliament!\], ``Pray,
 Mr.Babbage, if you put into the machine wrong figures, will the right
-answers come out?'  I am not able rightly to apprehend the kind of
+answers come out?''  I am not able rightly to apprehend the kind of
 confusion of ideas that could provoke such a question.
 -- Charles Babbage"
 
    "Save the environment.  Create a closure today.
 -- Cormac Flanagan"
 
-   "We can found no scientific discipline, nor a healthy profession on the
+   "We can find no scientific discipline, nor a healthy profession on the
 technical mistakes of the Department of Defense and IBM.
 -- Edsger Dijkstra"
 
    "Price Wang's programmer was coding software.  His fingers danced upon
 the keyboard.  The program compiled without an error message, and the program
 ran like a gentle wind.
-        Excellent!\" the Price exclaimed, \"Your technique is faultless!\"
-        \"Technique?\" said the programmer, turning from his terminal, \"What I
+Excellent!\" the Price exclaimed, \"Your technique is faultless!\"
+\"Technique?\" said the programmer, turning from his terminal, \"What I
 follow is the Tao -- beyond all technique.  When I first began to program I
 would see before me the whole program in one mass.  After three years I no
 longer saw this mass.  Instead, I used subroutines.  But now I see nothing.
@@ -1942,34 +1828,14 @@ coming, I slow down, I watch silently.  Then I change a single line of code
 and the difficulties vanish like puffs of idle smoke.  I then compile the
 program.  I sit still and let the joy of the work fill my being.  I close my
 eyes for a moment and then log off.\"
-        Price Wang said, \"Would that all of my programmers were as wise!\"
+Price Wang said, \"Would that all of my programmers were as wise!\"
 -- Geoffrey James, \"The Tao of Programming\""
-
-   "A novice was trying to fix a broken lisp machine by turning the power
-off and on.  Knight, seeing what the student was doing spoke sternly,
-\"You cannot fix a machine by just power-cycling it with no understanding
-of what is going wrong.\"  Knight turned the machine off and on.  The
-machine worked."
-
-   "\"So, when you typed in the date, it exploded into a sheet of blue
-flame and burned the entire admin wing to the ground? Yes, that's a
-known bug. We'll be fixing it in the next release. Until then, try not
-to use European date format, and keep an extinguisher handy.\"
--- slam@pobox.com \(Tequila Rapide\)"
 
    "The Art of the Metaobject Protocol is the best book written in
 computing in ten years. Java and C++ make you think that the new ideas
 are like the old ones. Java is the most distressing thing to hit
 computing since MS-DOS.
 -- Alan Kay \(at OOPSLA97 - http://www.cc.gatech.edu/fac/mark.guzdial/squeak/oopsla.html\)"
-
-   "I have seen things you people wouldn't believe: a
-Racal Norsk on fire in the basement at the University of Oslo.  a
-Symbolics 3600 dropped on the floor while moving the
-comp.sci. department.  Lisp classes given without any course credits.
-All these moments will be lost in time, like Teco.  Time to go for
-Java.
--- Bjorn Remseth, who posted this in c.l.l. 2003-04-09"
 
    "... What is actually happening, I am afraid, is that we all tell each
 other and ourselves that software engineering techniques should be
@@ -1997,11 +1863,6 @@ doesn't do the thing he ought to do, and so the expert isn't prepared
 for him; he does the thing he ought not to do and often it catches the
 expert out and ends him on the spot.
 -- Mark Twain"
-
-   "The big bang way only works for god, everybody else has to use evolution.
--- David Moon
-From one of the \"dynamic languages wizards\" panels - see
-http://www.ai.mit.edu/projects/dynlangs/wizards-panels.html"
 
    "The best way to have a good idea is to have a lot of
 ideas and throw the bad ones away.
@@ -2084,48 +1945,45 @@ of the week debugging Monday's code.
 feedback is the treatment.
 -- Kent Beck"
 
-"Everything that can be invented has been invented.
+   "Everything that can be invented has been invented.
 -- Charles H. Duell, Commissioner, U.S. Office of Patents"
 
-"I think there’s a world market for about 5 computers.
+   "I think there’s a world market for about 5 computers.
 -- Thomas J. Watson, Chairman of the Board, IBM"
 
-
-"It would appear that we have reached the limits of what it is
+   "It would appear that we have reached the limits of what it is
 possible to achieve with computer technology, although one should be careful
 with such statements, as they tend to sound pretty silly in 5 years.
 -- John Von Neumann"
 
-"Controlling complexity is the essence of computer programming.
+   "Controlling complexity is the essence of computer programming.
 -- Brian Kernigan"
 
-"Complexity kills.  It sucks the life out of developers,
+   "Complexity kills.  It sucks the life out of developers,
 it makes products difficult to plan, build and test,
 it introduces security challenges,
 and it causes end-user and administrator frustration.
 -- Ray Ozzie"
 
-"There are two ways of constructing a software design.
+   "There are two ways of constructing a software design.
 One way is to make it so simple that there are obviously no deficiencies.
 And the other way is to make it so complicated that there are no obvious
 deficiencies.
 -- C.A.R. Hoare"
 
-"True innovation often comes from the small startup who is lean enough to launch
+   "True innovation often comes from the small startup who is lean enough to launch
 a market but lacks the heft to own it.
 -- Timm Martin"
+
+   "Nearly everything is really interesting if you go into it deeply enough.
+-- Feynman"
 
 ]
   "Good and nice fortunes.")
 
-(defparameter *other-quotes*
-  ["Money is a powerful aphrodisiac. But flowers work almost as well.
--— Lazarus Long"])
-
 (defparameter *fortunes*
   (vconcat *perlis-quotes*
-           *good-fortunes*
-           *other-quotes*))
+           *good-fortunes*))
 
 (defun fortune (fortune-source)
   "Return random fortune from FORTUNE-SOURCE sequence"
