@@ -137,32 +137,37 @@ on values of said variables.")
 
 
 (defparameter *sessions-global-variables*
-  '(log-edit-comment-ring
-    vim:ex-history
-    read-expression-history
-    *search-minibuffer-history*
-    haskell-compile-cabal-build-command
-    haskell-compile--build-presets-history)
+  (alist->hash-table
+   '((log-edit-comment-ring . t)
+     (vim:ex-history . t)
+     (read-expression-history . t)
+     (*search-minibuffer-history* . t)
+     (haskell-compile-cabal-build-command . t)
+     (haskell-compile--build-presets-history . t)))
   "List of global variables to save in session file.")
 
 (defun sessions/get-global-variables ()
   "Get global variables that should be saved in form of sequence of (var . value)
 entries."
-  (remq nil
-        (-map (lambda (var)
-                (when (boundp var)
-                  (cons var
-                        (sessions/store-value
-                         (sessions/truncate-long-sequences
-                          (symbol-value var))))))
-              *sessions-global-variables*)))
+  (let ((result nil))
+    (maphash (lambda (var v)
+               (when (and v
+                          (boundp var))
+                 (push (cons var
+                             (sessions/store-value
+                              (sessions/truncate-long-sequences
+                               (symbol-value var))))
+                       result)))
+             *sessions-global-variables*)
+    result))
 
 (defun sessions/restore-global-variables (version bindings)
   "Restore global variables from BINDINGS."
   (dolist (bind bindings)
-    (set (car bind)
-         (sessions/versioned/restore-value version (cdr bind)))))
-
+    (let ((var (car bind)))
+      (when (gethash var *sessions-global-variables*))
+      (set var
+           (sessions/versioned/restore-value version (cdr bind))))))
 
 (defparameter sessions/ignored-temporary-buffer-modes
   '(dired-mode
