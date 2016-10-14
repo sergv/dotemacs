@@ -228,11 +228,7 @@ or not.")
   '(progn
      (load-library "ibuffer-setup")))
 
-(require 'fortunes)
-(random t)
-(setq initial-scratch-message nil)
-(fortune-init-scratch-buf)
-
+(fortunes-init-scratch-buffer)
 
 (load-library "solarized")
 (solarized-dark)
