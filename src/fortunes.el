@@ -8,8 +8,9 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'common)
 (require 'comment-util)
+(require 'common)
+(require 'dash)
 (require 'persistent-store)
 
 (defparameter *perlis-quotes*
@@ -1985,15 +1986,7 @@ a market but lacks the heft to own it.
   (vconcat *perlis-quotes*
            *good-fortunes*))
 
-(defun fortune (fortune-source)
-  "Return random fortune from FORTUNE-SOURCE sequence"
-  (let* ((i (random (length fortune-source)))
-         (str (aref fortune-source i)))
-    (if (called-interactively-p nil)
-      (message str)
-      str)))
-
-(defun fortune/reschedule-queue ()
+(defun fortune--reschedule-queue ()
   "Return queue that with all indices of fortunes
 in `*fortunes*' shuffled in random order.
 
@@ -2007,17 +2000,18 @@ Queue is just a list actually."
       for i across vect
       collect (aref vect i))))
 
-(defun fortune/merge-fortune-queues (old new)
+(defun fortune--merge-fortune-queues (old new)
   ;; Pick the longest list since it's the oldest one we're trying to preserve,
   ;; most of the time.
   (if (< (length old) (length new))
     new
     old))
 
-(push (cons 'fortunes-fortune-queue #'fortune/merge-fortune-queues)
+(push (cons 'fortunes-fortune-queue #'fortune--merge-fortune-queues)
       persistent-store-merge-handlers)
 
-(defun fortune/get-next-fortune ()
+;;;###autoload
+(defun fortunes-get-next-fortune ()
   "Return next queued fortune using persistent queue and
 make up new queue if persistent one is empty."
   (let ((fortune-queue (persistent-store-get 'fortunes-fortune-queue)))
@@ -2026,26 +2020,23 @@ make up new queue if persistent one is empty."
                    (length *fortunes*)))
       (pop fortune-queue))
     (unless fortune-queue
-      (setq fortune-queue (fortune/reschedule-queue)))
+      (setq fortune-queue (fortune--reschedule-queue)))
     (prog1 (aref *fortunes*
                  (car fortune-queue))
       (persistent-store-put 'fortunes-fortune-queue (cdr fortune-queue)))))
 
-(defun fortune-init-scratch-buf ()
+;;;###autoload
+(defun fortunes-init-scratch-buffer ()
   "Put fortune into scratch buffer."
-  (with-current-buffer (get-buffer "*scratch*")
-    (with-disabled-undo
-     (emacs-lisp-mode)
-     (erase-buffer)
-     (insert (fortune/get-next-fortune))
-     (save-match-data
-       (goto-char (point-min))
-       (while (re-search-forward "^[ \t]*" nil t)
-         (replace-match ";; ")))
-     (goto-char (point-max))
-     (insert "\n\n\n")
-     (set-buffer-modified-p nil))))
+  (random t)
+  (setf initial-scratch-message
+        (fortunes-comment-out-fortune (fortunes-get-next-fortune))))
 
+;;;###autoload
+(defun fortunes-comment-out-fortune (fortune-text)
+  (join-lines
+   (--map (concat ";; " it)
+          (split-into-lines fortune-text))))
 
 (provide 'fortunes)
 

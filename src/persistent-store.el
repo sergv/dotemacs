@@ -51,15 +51,6 @@
   "Remove entry from database."
   (remhash key persistent-store-content))
 
-;; (defun persistent-store-query (pred)
-;;   "Return list of values for whose keys PRED returns t."
-;;   (let ((result nil))
-;;     (maphash (lambda (key value)
-;;                (if (funcall pred key)
-;;                  (push value result)))
-;;              persistent-store-content)
-;;     result))
-
 (defun persistent-store-load-file (filename)
   (with-temp-buffer
     (insert-file-contents-literally filename)
@@ -273,7 +264,6 @@ performed for some field."
 (defsubst persistent-store-database-size ()
   "Return number of entries in database."
   (hash-table-size persistent-store-content))
-
 
 (provide 'persistent-store)
 
