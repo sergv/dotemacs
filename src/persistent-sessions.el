@@ -136,10 +136,13 @@ on values of said variables.")
                 entry)))))
 
 
-(defparameter *sessions-global-variables* '(log-edit-comment-ring
-                                            vim:ex-history
-                                            read-expression-history
-                                            *search-minibuffer-history*)
+(defparameter *sessions-global-variables*
+  '(log-edit-comment-ring
+    vim:ex-history
+    read-expression-history
+    *search-minibuffer-history*
+    haskell-compile-cabal-build-command
+    haskell-compile--build-presets-history)
   "List of global variables to save in session file.")
 
 (defun sessions/get-global-variables ()
