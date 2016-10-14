@@ -9,7 +9,6 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
-(require 'fortunes)
 (require 'persistent-sessions-error-reporting)
 (require 'persistent-sessions-serializers)
 (require 'pp)
@@ -357,9 +356,8 @@ entries."
                       for i from 0 to 5
                       concating
                       (concat
-                       (join-lines
-                        (-map (lambda (x) (concat ";; " x))
-                              (split-into-lines (fortune/get-next-fortune))))
+                       (fortunes-comment-out-fortune
+                        (fortunes-get-next-fortune))
                        "\n;;\n"))))
     (print '(require 'persistent-sessions) (current-buffer))
     (let ((session (sessions/save-buffers/make-session)))
