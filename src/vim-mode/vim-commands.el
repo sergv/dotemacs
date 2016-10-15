@@ -435,7 +435,7 @@ and switches to insert-mode."
   )
 
 (defparameter vim:last-paste nil
-  "Information of the latest paste.")
+  "Information of the latest paste as a `vim:paste-info' structure.")
 
 (vim:defcmd vim:cmd-negate-or-paste-pop (count)
   "Cycle through the kill-ring like yank-pop if previous command was yank or paste-pop,
@@ -512,16 +512,13 @@ and else negates meaning of the next command (e.g. vim:cmd-join-lines will split
            (vim:cmd-paste-before :count count :register register)
            (when at-eob
              ;; we have to remove the final newline and update paste-info
-             (goto-char (third vim:last-paste))
+             (goto-char (vim:paste-info-begin vim:last-paste))
              (delete-backward-char 1)
-             (setf (vim:paste-info-begin vim:last-paste)
-                   (max (point-min) (1- (vim:paste-info-begin vim:last-paste)))
-
-                   (vim:paste-info-end vim:last-paste)
-                   (1- (vim:paste-info-end vim:last-paste))
-
-                   (vim:paste-info-at-eob vim:last-paste)
-                   t))
+             (setf
+              (vim:paste-info-begin vim:last-paste)  (max (point-min)
+                                                          (1- (vim:paste-info-begin vim:last-paste)))
+              (vim:paste-info-end vim:last-paste)    (1- (vim:paste-info-end vim:last-paste))
+              (vim:paste-info-at-eob vim:last-paste) t))
            (vim:motion-first-non-blank)))
 
         (`vim:yank-block-handler
@@ -578,13 +575,13 @@ indented according to the current mode."
                   (save-excursion
                     (goto-line1 endln)
                     (line-end-position))))
-
-          (indent-region (vim:paste-info-begin vim:last-paste)
-                         (vim:paste-info-end vim:last-paste))
-          (setf (vim:paste-info-end vim:last-paste)
-                (save-excursion
-                  (goto-line1 endln)
-                  (line-beginning-position))))
+          (progn
+            (indent-region (vim:paste-info-begin vim:last-paste)
+                           (vim:paste-info-end vim:last-paste))
+            (setf (vim:paste-info-end vim:last-paste)
+                  (save-excursion
+                    (goto-line1 endln)
+                    (line-beginning-position)))))
         (vim:motion-first-non-blank))))
   (setf (vim:paste-info-command vim:last-paste)
         'vim:cmd-paste-behind-and-indent))
