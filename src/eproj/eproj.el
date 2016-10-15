@@ -33,7 +33,9 @@
 ;; <pattern> - regular expression
 ;; <arg> - emacs strings, arguments to the command
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (require 'common)
 (require 'haskell-autoload)

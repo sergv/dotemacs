@@ -6,6 +6,8 @@
 ;; Created: long ago
 ;; Description:
 
+(eval-when-compile (require 'subr-x))
+
 (require 'align)
 (require 'browse-kill-ring-setup)
 (require 'comment-util)

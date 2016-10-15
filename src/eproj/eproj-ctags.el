@@ -8,6 +8,8 @@
 
 ;;;; ctags facility
 
+(eval-when-compile (require 'subr-x))
+
 (defparameter *ctags-exec* (executable-find "exuberant-ctags"))
 
 (defparameter *ctags-language-flags*

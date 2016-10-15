@@ -6,7 +6,9 @@
 ;; Created: long ago
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (defun util/make-joined-name (orig-symbol suffix-str &optional prefix-str)
   (intern (concat prefix-str (symbol-name orig-symbol) suffix-str)))

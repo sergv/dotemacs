@@ -6,6 +6,8 @@
 ;; Created: Saturday, 24 August 2013
 ;; Description:
 
+(eval-when-compile (require 'subr-x))
+
 (require 'smartparens-autoloads)
 (require 'macro-util)
 
