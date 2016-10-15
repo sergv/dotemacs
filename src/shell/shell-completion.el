@@ -6,6 +6,8 @@
 ;; Created: Tuesday,  4 December 2012
 ;; Description:
 
+(eval-when-compile (require 'subr-x))
+
 (require 'pcomplete)
 (require 'completion-setup)
 (require 'haskell-misc)

@@ -6,7 +6,9 @@
 ;; Created: Wednesday, 23 January 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (require 'common)
 (require 'persistent-sessions-error-reporting)

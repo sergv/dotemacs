@@ -8,6 +8,8 @@
 ;; Requirements:
 ;; Status:
 
+(eval-when-compile (require 'subr-x))
+
 (require 'macro-util)
 (require 'custom-predicates)
 (require 'dash)

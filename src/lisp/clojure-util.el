@@ -6,7 +6,9 @@
 ;; Created: Sunday,  7 April 2013
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 (require 'common)
 
 (defconst +leiningen-project-file+ "project.clj")
