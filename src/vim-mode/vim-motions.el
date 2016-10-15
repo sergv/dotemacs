@@ -48,7 +48,9 @@
 ;;   - alternatively operator pending mode could never ding, but then
 ;;     all motions have to be valid even in case of erros
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (require 'vim-defs)
 (require 'vim-macs)

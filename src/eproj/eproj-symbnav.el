@@ -6,6 +6,8 @@
 ;; Created: Saturday, 28 February 2015
 ;; Description:
 
+(eval-when-compile (require 'subr-x))
+
 (require 'select-mode)
 (require 'eproj)
 (require 'eproj-customization)

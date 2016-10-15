@@ -6,7 +6,9 @@
 ;; Created: Thursday, 26 April 2012
 ;; Description:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (require 'common)
 (require 'common-heavy)
