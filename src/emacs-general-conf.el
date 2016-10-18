@@ -39,7 +39,8 @@
                    "(Narrowed)"))
                 vc-mode
                 (:eval
-                 (awhen (flycheck-pretty-mode-line)
+                 (awhen (and (fboundp #'flycheck-pretty-mode-line)
+                             (flycheck-pretty-mode-line))
                    (concat " (" it ")")))
                 " "
                 (line-number-mode
