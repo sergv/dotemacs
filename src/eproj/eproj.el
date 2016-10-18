@@ -247,6 +247,8 @@
     (prog1 (funcall parse-tags-proc (current-buffer))
       (erase-buffer))))
 
+(autoload 'eproj/get-fast-tags-tags-from-buffer "eproj-haskell")
+
 (defparameter eproj/languages
   (list
    (mk-eproj-lang
