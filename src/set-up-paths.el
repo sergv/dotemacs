@@ -18,7 +18,8 @@
             (concat (platform-dependent-root) "/.emacs.d")))
   "Path to root for emacs configuration.")
 
-(when (null +emacs-config-path+)
+(when (or (null +emacs-config-path+)
+          (not (stringp +emacs-config-path+)))
   (error "No accessible directory found for +emacs-config-path+"))
 
 (defconst +emacs-standalone-path+
@@ -32,11 +33,13 @@
 (defconst +execs-path+
   ;; note: execs are somewhat external to emacs, so it's
   ;; reasonable for them to be somewhere outside
-  (find-if #'file-directory-p
+  (find-if (lambda (p) (and p (file-directory-p p)))
    (list
     (concat +emacs-config-path+ "/../execs")
     (concat +emacs-config-path+ "/execs")
-    (file-name-directory (executable-find "emacs"))))
+    (let ((emacs-exec (executable-find "emacs")))
+      (when emacs-exec
+        (file-name-directory emacs-exec)))))
   "Path to directory with programs executables files.")
 
 (defconst +tmp-path+ (make-temp-name (if (platform-os-type? 'windows)
