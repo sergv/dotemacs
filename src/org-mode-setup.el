@@ -479,6 +479,7 @@ the current topic."
                :use-render-formula nil
                :use-whitespace 'tabs-only
                :use-fci t)
+  (typography-setup)
   (setq-local vim:shift-width 2)
   (setq-local standard-indent 2)
   (bind-tab-keys #'org-cycle
