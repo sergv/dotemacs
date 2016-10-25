@@ -73,6 +73,7 @@
 
 (defun latex-setup ()
   (init-common :use-whitespace 'tabs-only)
+  (typography-setup)
   (tex-fold-mode 1)
 
   ;; (menu-bar-mode 1)
@@ -134,7 +135,6 @@
   (latex-set-up-document-start-marker)
   (latex-setup-folding)
   (latex-setup-abbrev+))
-
 
 (provide 'latex-setup)
 
