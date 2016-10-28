@@ -18,11 +18,54 @@
 (defstruct (egrep-match
             (:conc-name egrep-match/))
   file          ;; Absolute file name.
-  line-number   ;; Integer.
-  column-number ;; Integer.
-  ;; line          ;; String with match highlighted.
+  start-pos     ;; Integer. Buffer position of match start.
+  end-pos       ;; Integer. Buffer position of match end.
   select-entry  ;; String with filename, line number and match highlighted
   )
+
+(defun egrep--make-match-entry (file-name match-start match-end)
+  "Make text entry for current match that can be shown to the user.
+
+MATCH-START and MATCH-END are match bounds in the current buffer"
+  (save-excursion
+    (goto-char match-start)
+    (let* ((line-start-pos
+            (line-beginning-position))
+           (line-number (line-number-at-pos))
+           (line-end-pos
+            (save-excursion
+              (goto-char match-end)
+              (line-end-position)))
+           (matched-text (buffer-substring line-start-pos
+                                           line-end-pos)))
+      (put-text-property
+       (- match-start line-start-pos)
+       (- match-end line-start-pos)
+       'face
+       'lazy-highlight
+       matched-text)
+      (let* ((header
+              (concat file-name
+                      ":"
+                      (propertize (number->string line-number)
+                                  'face 'compilation-line-number)
+                      ":"))
+             (header-space (make-string (length header) ?\s))
+             (lines (split-into-lines matched-text nil)))
+        (cl-assert lines)
+        (concat header
+                (if lines
+                    (concat
+                     (car lines)
+                     (if (cdr lines)
+                         (concat "\n"
+                                 (mapconcat (lambda (line)
+                                              (concat header-space line))
+                                            (cdr lines)
+                                            "\n"))
+                       ""))
+                  "!error: no lines in the block!")
+                "\n")))))
 
 (defun egrep-search (regexp exts-globs ignored-exts-globs dir ignore-case)
   "Search for REGEXP in files under directory DIR that match FILE-GLOBS and don't
@@ -39,41 +82,31 @@ match IGNORED-FILE-GLOBS."
             (lambda (filename)
               (for-buffer-with-file filename
                 (goto-char (point-min))
-                (let ((local-matches nil)
-                      (case-fold-search ignore-case))
+                (let* ((result-ptr (cons nil nil))
+                       (local-matches result-ptr)
+                       (case-fold-search ignore-case)
+                       (short-file-name
+                        (propertize (file-relative-name filename dir)
+                                    'face 'compilation-info)))
                   (while (re-search-forward regexp nil t)
-                    (let* ((line-start-pos (line-beginning-position))
-                           (line (current-line-with-properties))
-                           (start-column
-                            (- (match-beginning 0) line-start-pos))
-                           (end-column
-                            (- (match-end 0) line-start-pos))
-                           (line-number (count-lines (point-min) (point))))
-                      (put-text-property
-                       start-column
-                       end-column
-                       'face
-                       'lazy-highlight
-                       line)
-                      (push (make-egrep-match
-                             :file filename
-                             :line-number line-number
-                             :column-number start-column
-                             :select-entry
-                             (let ((short-file-name (file-relative-name filename
-                                                                        dir))
-                                   (line-number-string (number->string line-number)))
-                               (concat (propertize short-file-name 'face 'compilation-info)
-                                       ":"
-                                       (propertize line-number-string 'face 'compilation-line-number)
-                                       ":"
-                                       line
-                                       "\n")))
-                            local-matches))
-                    ;; Jump to end of line in order to show at most one match per
-                    ;; line.
-                    (end-of-line))
-                  (nreverse local-matches))))
+                    (let* ((match-start (match-beginning 0))
+                           (match-end (match-end 0))
+                           (entry
+                            (egrep--make-match-entry short-file-name
+                                                     match-start
+                                                     match-end)))
+                      (setf (cdr local-matches)
+                            (cons (make-egrep-match
+                                   :file filename
+                                   :start-pos match-start
+                                   :end-pos match-end
+                                   :select-entry entry)
+                                  nil))
+                      (setf local-matches (cdr local-matches))
+                      ;; Jump to end of line in order to show at most one match per
+                      ;; line.
+                      (end-of-line)))
+                  (cdr result-ptr))))
             files))))
     (when (= (length matches) 0)
       (error "No matches for regexp \"%s\" across files %s"
@@ -86,22 +119,21 @@ match IGNORED-FILE-GLOBS."
      (lambda (idx selection-type)
        (let ((match (elt matches idx)))
          (let ((buf (aif (find-buffer-visiting (egrep-match/file match))
-                      it
-                      (find-file-noselect (egrep-match/file match)))))
+                         it
+                         (find-file-noselect (egrep-match/file match)))))
            (funcall
             (pcase selection-type
               (`same-window  #'switch-to-buffer)
               (`other-window #'switch-to-buffer-other-window))
             buf)
-           (goto-line (egrep-match/line-number match))
-           (move-to-column (egrep-match/column-number match)))))
+           (goto-char (egrep-match/start-pos match)))))
      :item-show-function
      #'egrep-match/select-entry
      :separator-function
      (constantly nil)
      :preamble-function
      (lambda ()
-       (format "Browse matches for `%s' in files matching %s starting at directory %s\n\n"
+       (format "Browse matches for ‘%s’ in files matching %s starting at directory %s\n\n"
                regexp
                (mapconcat #'identity exts-globs " ")
                dir))
