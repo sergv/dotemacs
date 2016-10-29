@@ -168,6 +168,9 @@ With negative argument move forward, still one level out."
 
 (sp-local-pair 'awk-mode "/" "/")
 
+(sp-pair "‘" "’" :actions '(insert wrap))
+(sp-pair "“" "”" :actions '(insert wrap))
+
 ;; /* */ is needed by c mode (and related ones) only
 (sp-pair "/*" nil :actions nil)
 
