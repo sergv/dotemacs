@@ -854,10 +854,27 @@ it's position in current window."
    #'compilation-jump-to-prev-error
    #'flycheck-previous-error))
 
-(defun haskell-misc/switch-to-haskell ()
-  (interactive)
-  (haskell-process-load-file)
-  (haskell-interactive-bring))
+(defvar haskell-misc--switch-to-haskell-process-type-history nil)
+
+(defun haskell-misc-switch-to-haskell (&optional query-for-process-type)
+  (interactive "P")
+  (let* ((process-type
+          (if query-for-process-type
+              (string->symbol
+               (ido-completing-read "Process type: "
+                                    '("auto"
+                                      "cabal-repl"
+                                      "stack-ghci"
+                                      "ghci")
+                                    nil ;; predicate
+                                    t   ;; require match
+                                    (symbol->string haskell-process-type) ;; initial-input
+                                    'haskell-misc--switch-to-haskell-process-type-history
+                                    ))
+            haskell-process-type))
+         (haskell-process-type process-type))
+    (haskell-process-load-file)
+    (haskell-interactive-bring)))
 
 (defun haskell-shm-tab-or-indent-relative-forward ()
   (interactive)
