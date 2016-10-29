@@ -16,9 +16,6 @@
 (require 'browse-kill-ring-setup)
 (require 'eproj-setup)
 
-;;;###autoload
-(require 'clojure-mode-autoloads)
-
 (setf clojure-max-backtracking 10)
 
 ;;;###autoload

@@ -7,7 +7,6 @@
 ;; Description:
 
 (require 'common)
-(require 'sml-mode-autoloads)
 
 (setf sml-indent-level 2)
 

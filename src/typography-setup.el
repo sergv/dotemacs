@@ -8,6 +8,11 @@
 
 (require 'typopunct)
 
+;;;###autoload
+(eval-after-load "typopunct"
+  '(progn
+     (require 'typography-setup)))
+
 (setq-default typopunct-buffer-language 'english)
 
 ;;;###autoload
