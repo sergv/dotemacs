@@ -15,9 +15,6 @@
 (eval-after-load "flycheck" '(require 'flycheck-setup))
 
 ;;;###autoload
-(require 'flycheck-autoloads)
-
-;;;###autoload
 (autoload 'flycheck-haskell-setup "flycheck-haskell" nil nil)
 
 (eval-after-load "flycheck"
