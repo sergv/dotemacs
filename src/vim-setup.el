@@ -203,7 +203,11 @@ like \"d w\".")
   ("g s"     vim-replace-selected)
   (("(" ")") vim:wrap-parens)
   (("[" "]") vim:wrap-braces)
-  (("{" "}") vim:wrap-brackets))
+  (("{" "}") vim:wrap-brackets)
+
+
+  ("C-'"     vim:wrap-typographical-single-quotes)
+  ("C-\""    vim:wrap-typographical-double-quotes))
 
 (vim:defcmd vim:wrap-parens (nonrepeatable)
   "Wrap region in (...)."
@@ -216,6 +220,14 @@ like \"d w\".")
 (vim:defcmd vim:wrap-brackets (nonrepeatable)
   "Wrap region in {...}."
   (sp-wrap-or-insert "{"))
+
+(vim:defcmd vim:wrap-typographical-single-quotes (nonrepeatable)
+  "Wrap region in ‘...’."
+  (sp-wrap-or-insert "‘"))
+
+(vim:defcmd vim:wrap-typographical-double-quotes (nonrepeatable)
+  "Wrap region in “...”."
+  (sp-wrap-or-insert "“"))
 
 ;;; insert mode keybindings
 
