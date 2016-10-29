@@ -227,8 +227,6 @@ like \"d w\".")
   ("C-r"           nil)
   ("C-p"           yank)
   ("C-S-p"         browse-kill-ring)
-  ("C--"           yank-previous)
-  ("C-+"           yank-next)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up)
   ("C-b"           ido-switch-buffer)
@@ -236,7 +234,10 @@ like \"d w\".")
 
   ("("             vim:wrap-parens)
   ("["             vim:wrap-braces)
-  ("{"             vim:wrap-brackets))
+  ("{"             vim:wrap-brackets)
+  ("C-'"           typopunct-insert-single-quotation-mark)
+  ("C-\""          typopunct-insert-quotation-mark)
+  ("C--"           typopunct-insert-typographical-dashes))
 
 ;;; ex bindings and commands
 
