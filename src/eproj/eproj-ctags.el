@@ -10,7 +10,9 @@
 
 (eval-when-compile (require 'subr-x))
 
-(defparameter *ctags-exec* (executable-find "exuberant-ctags"))
+(defparameter *ctags-exec*
+  (or (executable-find "exuberant-ctags")
+      (executable-find "ctags-exuberant")))
 
 (defparameter *ctags-language-flags*
   '((c-mode
