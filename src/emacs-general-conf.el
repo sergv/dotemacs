@@ -135,7 +135,7 @@
       suggest-key-bindings nil
 
       load-prefer-newer t
-      kill-ring-max 1000
+      kill-ring-max 512
       save-interprogram-paste-before-kill nil
       enable-recursive-minibuffer t
       ad-default-compilation-action 'always
