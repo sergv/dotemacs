@@ -8,6 +8,8 @@
 
 (require 'typopunct)
 
+(provide 'typography-setup)
+
 ;;;###autoload
 (eval-after-load "typopunct"
   '(progn
@@ -18,8 +20,6 @@
 ;;;###autoload
 (defun typography-setup ()
   (typopunct-mode 1))
-
-(provide 'typography-setup)
 
 ;; Local Variables:
 ;; End:
