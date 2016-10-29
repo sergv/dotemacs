@@ -8,7 +8,6 @@
 
 (eval-when-compile (require 'subr-x))
 
-(require 'smartparens-autoloads)
 (require 'macro-util)
 
 (smartparens-global-mode 1)

@@ -32,12 +32,29 @@ function update-dir-autoloads {
     emacs --batch --eval "(progn (toggle-debug-on-error) (setq generated-autoload-file \"$emacs_dir/$name\") (update-directory-autoloads $dirs) (message (concat \"Updated autoloads in \" (mapconcat #'identity (list $dirs) \", \"))))"
 }
 
-update-dir-autoloads "src/local-autoloads.el" "src" "src/eproj" "src/haskell" "src/latex" "src/lisp" "src/python" "src/shell" "third-party/yafolding.el"
+rm -f \
+   "src/local-autoloads.el" \
+   "third-party/clojure-mode/clojure-mode-autoloads.el" \
+   "third-party/smartparens/smartparens-autoloads.el"  \
+   "third-party/sml-mode/sml-mode-autoloads.el" \
+   "third-party/flycheck/flycheck-autoloads.el"
 
-update-dir-autoloads "third-party/clojure-mode/clojure-mode-autoloads.el" "third-party/clojure-mode"
-update-dir-autoloads "third-party/smartparens/smartparens-autoloads.el" "third-party/smartparens"
-update-dir-autoloads "third-party/sml-mode/sml-mode-autoloads.el" "third-party/sml-mode"
-update-dir-autoloads "third-party/flycheck/flycheck-autoloads.el" "third-party/flycheck"
+update-dir-autoloads \
+    "src/local-autoloads.el" \
+    "src" \
+    "src/eproj" \
+    "src/haskell" \
+    "src/latex" \
+    "src/lisp" \
+    "src/python" \
+    "src/shell" \
+    "third-party/yafolding.el" \
+    "third-party/misc-modes" \
+    "third-party/clojure-mode" \
+    "third-party/smartparens" \
+    "third-party/sml-mode" \
+    "third-party/flycheck"
+
 if which make >/dev/null; then
     pushd "third-party/org-mode"
     make autoloads
