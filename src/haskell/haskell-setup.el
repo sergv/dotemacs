@@ -174,7 +174,7 @@
     ("j"       vim:haskell-load-file-into-repl)
     ("g c c"   haskell-comment-node)
     ("+"       input-unicode)
-    ("SPC SPC" haskell-misc/switch-to-haskell)
+    ("SPC SPC" haskell-misc-switch-to-haskell)
     ("g w"     shm/goto-where)
     ("`"       ghc-display-errors)
     ("C-`"     haskell-lint)
