@@ -12,6 +12,7 @@
 (require 'macro-util)
 (require 'dash)
 
+;;;###autoload
 (defun find-filename-in-tree-recursive (&optional case-sensetive)
   "Read filename regexp and try to find it in current dir's tree or in trees
 obtained by following upward in filesystem. Do case-sensitive name matches
@@ -77,6 +78,7 @@ if CASE-SENSETIVE is t."
 
 ;;;
 
+;;;###autoload
 (defun extract-unicode ()
   ;; note - every single bit of this function is made to let this function
   ;; work as fast as it can an as large buffers as possible
@@ -85,6 +87,7 @@ if CASE-SENSETIVE is t."
                                                              (point-max)))))
     (remove-duplicates-sorting (--filter (< 127 it) chars) #'= #'<)))
 
+;;;###autoload
 (defun input-unicode ()
   (interactive)
   (let* ((symbs (-map #'char->string (extract-unicode)))
@@ -94,6 +97,7 @@ if CASE-SENSETIVE is t."
 
 ;;;
 
+;;;###autoload
 (defun merge-emacs-configs (new-config-dir curr-config-dir)
   "Merge changes from NEW-CONFIG-DIR into CURR-CONFIG-DIR by successively calling
 ediff on files that differ and saving files in CURR-CONFIG-DIR that were updated
@@ -154,6 +158,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
                     curr
                     err)))))))
 
+;;;###autoload
 (defun merge-emacs-configs-default ()
   "Merge from +emacs-config-path+/tmp/emacs into `+emacs-config-path+'."
   (interactive)
@@ -166,6 +171,7 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
 
 ;;;
 
+;;;###autoload
 (defun remove-tabs (start end)
   "Replace all tab characters in region between START and END with
 number of spaces equal to `tab-width'."
@@ -182,6 +188,7 @@ number of spaces equal to `tab-width'."
 
 ;;;
 
+;;;###autoload
 (defun patch-whitespace-only-change? (patch)
   "Check whether given PATCH in unified format represents whitespace-only change."
   (save-match-data
@@ -213,6 +220,7 @@ number of spaces equal to `tab-width'."
                             "\n")))
       (string=? old new))))
 
+;;;###autoload
 (defun remove-duplicates-from-sorted-list-by (eq-pred xs)
   "Remove consecutive elements of xs for which eq-pred returns t."
   (when (not (null? xs))
@@ -275,6 +283,7 @@ number of spaces equal to `tab-width'."
     tbl)
   "Definitions of various executables that can be started in particular folder.")
 
+;;;###autoload
 (defun custom/run-first-matching-exec (execs)
   (let ((dir (expand-file-name
               (aif buffer-file-name
@@ -302,6 +311,7 @@ number of spaces equal to `tab-width'."
                      dir)
             (funcall iter (cdr execs))))))))
 
+;;;###autoload
 (defun start-file-manager ()
   "Start suitable file manager in folder associated with current buffer."
   (interactive)
@@ -315,6 +325,7 @@ number of spaces equal to `tab-width'."
        (t
         (error "unknown platform - no known file managers"))))))
 
+;;;###autoload
 (defun start-terminal-emulator ()
   "Start suitable terminal emulator in folder associated with current buffer."
   (interactive)
@@ -327,6 +338,7 @@ number of spaces equal to `tab-width'."
 
 ;;;
 
+;;;###autoload
 (defun shell-command+ (command &optional output-buffer error-buffer)
   "Just like `shell-command' but asks to remove current buffer if its file does
 not exist after command is finished."
@@ -346,6 +358,7 @@ not exist after command is finished."
                (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
+;;;###autoload
 (defun rm (filename)
   (interactive (list (expand-file-name
                       (read-file-name "Delete file: "
@@ -361,6 +374,7 @@ not exist after command is finished."
                (y-or-n? (format "Kill buffer %s?" (buffer-name buf))))
       (kill-buffer buf))))
 
+;;;###autoload
 (defun transpose-windows ()
   "From http://www.emacswiki.org/emacs/ToggleWindowSplit."
   (interactive)
@@ -388,6 +402,7 @@ not exist after command is finished."
         (if this-win-2nd (other-window 1))))
     (error "Must have exactly 2 windows to transpose")))
 
+;;;###autoload
 (defun narrow-to-region-indirect (start end)
   "Restrict editing in this buffer to the current region, indirectly."
   (interactive "r")
@@ -396,6 +411,7 @@ not exist after command is finished."
       (narrow-to-region start end))
       (switch-to-buffer buf)))
 
+;;;###autoload
 (defun fontify-conflict-markers (&optional mode)
   "Fontify conflict markers produced by VCS systemts with warning face for MODE.
 If MODE is nil - fontify in current buffer."
@@ -411,6 +427,7 @@ If MODE is nil - fontify in current buffer."
            eol)
       0 'warning t))))
 
+;;;###autoload
 (defun resolve-obs-or-rel-filename (path dir)
   "Try to come up with filename that refers to existing file and contains
 PATH and, maybe, DIR as it's parts."
@@ -426,6 +443,7 @@ PATH and, maybe, DIR as it's parts."
           (error "File %s does not exist, try `eproj-update-buffer-project'"
                  abs-path))))))
 
+;;;###autoload
 (defun remove-duplicates-sorted (xs eq-func)
   "Remove duplicates from sorted list in linear time."
   (let ((ys xs))
@@ -436,6 +454,7 @@ PATH and, maybe, DIR as it's parts."
         (setf ys (cdr ys)))))
   xs)
 
+;;;###autoload
 (defun remove-duplicates-sorting (xs eq-func comparison)
   "Sort XS using COMPARISON function and remove duplicates from the result
 using EQ-FUNC to determine equal elements."
@@ -544,6 +563,7 @@ using EQ-FUNC to determine equal elements."
   field-specs ;; list of (<lamda to get key value> <comparison-pred>) entries
   )
 
+;;;###autoload
 (defun mk-nested-hash-tables (field-specs)
   (cl-assert (and field-specs
                   (listp field-specs)
@@ -555,6 +575,7 @@ using EQ-FUNC to determine equal elements."
    :data (make-hash-table :test (cadr (car field-specs)))
    :field-specs field-specs))
 
+;;;###autoload
 (defun nested-hash-tables/add-kv! (key value hash-tables)
   (let ((table (nested-hash-tables/data hash-tables)))
     (loop
@@ -575,9 +596,11 @@ using EQ-FUNC to determine equal elements."
         (setf table next-value))))
   hash-tables)
 
+;;;###autoload
 (defun nested-hash-tables/add! (key hash-tables)
   (nested-hash-tables/add-kv! key key hash-tables))
 
+;;;###autoload
 (defun nested-hash-tables/maphash (f hash-tables)
   (let ((user-value-depth
          (length (nested-hash-tables/field-specs hash-tables))))
@@ -591,6 +614,7 @@ using EQ-FUNC to determine equal elements."
       (maphash (funcall handle-data 1)
                (nested-hash-tables/data hash-tables)))))
 
+;;;###autoload
 (defun nested-hash-tables->alist (hash-tables)
   (let ((result nil))
     (nested-hash-tables/maphash (lambda (k v)
