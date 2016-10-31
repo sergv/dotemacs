@@ -624,6 +624,21 @@ using EQ-FUNC to determine equal elements."
 
 ;;;
 
+;;;###autoload
+(defun copy-file-name-to-clipboard ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (if filename
+        (progn
+          (kill-new filename)
+          (message "Copied buffer file name '%s' to the clipboard." filename))
+      (error "Currrent buffer has no filename"))))
+
+;;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:
