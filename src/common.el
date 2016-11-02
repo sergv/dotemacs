@@ -1825,16 +1825,6 @@ F will be called."
 (defun buffer-visible-p (buf)
   (not (null (get-buffer-window buf t))))
 
-;;;;
-
-(defun setup-hs-minor-mode ()
-  (hs-minor-mode 1)
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("z o" hs-show-block)
-    ("z c" hs-hide-block)
-    ("z C" hs-hide-all)
-    ("z O" hs-show-all)))
-
 ;; Heavy autoloads
 
 (autoload 'shell-command+ "common-heavy" nil t)
