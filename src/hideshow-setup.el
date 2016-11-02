@@ -88,6 +88,16 @@
     (deactivate-mark)
     (vim:visual-mode-exit)))
 
+;;;###autoload
+(defun setup-hs-minor-mode ()
+  (hs-minor-mode 1)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("z o" hs-show-block)
+    ("z c" hs-hide-block)
+    ("z C" hs-hide-all)
+    ("z O" hs-show-all)))
+
+
 ;; add check hs-block-start-mdata-select
 (redefun hs-forward-sexp (match-data arg)
   "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
