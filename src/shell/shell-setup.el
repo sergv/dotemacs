@@ -10,6 +10,7 @@
 
 (require 'common)
 (require 'comint-setup)
+(require 'dirtrack)
 (require 'shell-script-abbrev+)
 
 ;;;###autoload
@@ -74,6 +75,9 @@
   (init-repl :show-directory t :create-keymaps t)
   (smartparens-mode +1)
   (hl-line-mode +1)
+  (dirtrack-mode +1)
+
+  (setf dirtrack-list '("^[^:]+:\\([^$]+\\)[$#]" 1))
   (ansi-color-for-comint-mode-on)
   (setq-local comint-scroll-to-bottom-on-input t)
 
