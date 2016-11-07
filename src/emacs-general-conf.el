@@ -10,6 +10,7 @@
 
 (require 'set-up-paths)
 (require 'common)
+(require 'mode-line-line-count)
 
 (require 'vim)
 (vim-mode 1)
@@ -45,9 +46,7 @@
                 " "
                 (line-number-mode
                  ("%l/"
-                  (:eval (number-to-string
-                          (count-lines (point-min)
-                                       (point-max))))))
+                  (:eval (mode-line-show-line-count))))
                 (:eval
                  (when (region-active-p)
                    (multiple-value-bind (start end) (get-region-bounds)
