@@ -356,7 +356,7 @@ entries."
 
 (defun sessions/save-buffers (file)
   "Save all buffers that have physical file assigned into FILE."
-  (interactive "Ffile to save session in: ")
+  (interactive "FFile to save session in: ")
   (with-temp-buffer
     (insert ":;exec emacs --load \"$0\"\n\n")
     (insert ";:;exec gdb -ex \"run\" --args emacs --load \"$0\"\n\n")
@@ -491,7 +491,7 @@ entries."
 
 (defun sessions/load-buffers (file)
   "Load session from FILE's contents."
-  (interactive "ffile to load session from: ")
+  (interactive "fFile to load session from: ")
   (if (file-exists? file)
     (progn
       (sessions/load-from-data
