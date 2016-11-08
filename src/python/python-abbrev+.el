@@ -20,7 +20,8 @@ interactively prompting for variables/messages."
           (lambda (x) (replace-regexp-in-string (rx "\"") "\\\"" x)))
          (start
           (lambda ()
-            (insert "print(\"" entity-name)))
+            (insert "print(\""
+                    (or entity-name ""))))
          (end
           (lambda (var-list)
             (insert "\"")
