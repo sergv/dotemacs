@@ -8,6 +8,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'persistent-sessions)
 (require 'persistent-sessions-error-reporting)
 (require 'persistent-sessions-serializers)
 
@@ -27,7 +28,7 @@
   (let ((test-string "foo bar"))
     (put-text-property 0 1 'foo 'bar test-string)
     (put-text-property 4 6 'quux 'baz test-string)
-    (let ((props (sessions/get-all-text-properties-in-string test-string)))
+    (let ((props (sessions/get-all-text-properties-in-string test-string nil)))
       (should (listp props))
       (should (= 2 (length props)))
       (should (equal (car props) '(quux baz ((4 . 6)))))
@@ -37,7 +38,7 @@
   (let ((test-string "foo bar"))
     (put-text-property 0 7 'foo 'bar test-string)
     (put-text-property 4 7 'quux 'baz test-string)
-    (let ((props (sessions/get-all-text-properties-in-string test-string)))
+    (let ((props (sessions/get-all-text-properties-in-string test-string nil)))
       (should (listp props))
       (should (= 2 (length props)))
       (should (equal (car props) '(quux baz ((4 . 7)))))
@@ -60,7 +61,7 @@
            (converted-string
             (sessions/versioned/restore-value nil encoded-string)))
       (should (listp encoded-string))
-      (should (equal 3 (length encoded-string)))
+      (should (equal 4 (length encoded-string)))
       (should (eq 'string (car encoded-string)))
       (should (listp (cadr encoded-string)))
       (should (listp (caddr encoded-string)))
@@ -162,10 +163,10 @@ pairs."
                       x
                       y)))))))
 
-(progn
-  (ert "persistent-sessions-tests/.*")
-  ;; (ert #'persistent-sessions-tests/sessions/get-all-text-properties-in-string-2)
-  nil)
+;; (progn
+;;   (ert "persistent-sessions-tests/.*")
+;;   ;; (ert #'persistent-sessions-tests/sessions/get-all-text-properties-in-string-2)
+;;   nil)
 
 (provide 'persistent-sessions-tests)
 

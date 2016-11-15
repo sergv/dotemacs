@@ -298,9 +298,9 @@ test	%s	102	;\"	f
 ;;        )
 ;;   nil)
 
-(progn
-  (ert "eproj-tests/.*")
-  nil)
+;; (progn
+;;   (ert "eproj-tests/.*")
+;;   nil)
 
 ;; Local Variables:
 ;; no-byte-compile: t

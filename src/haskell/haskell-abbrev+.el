@@ -87,6 +87,7 @@
       qualified-name
       (substring qualified-name 0 1))))
 
+;;;###autoload
 (defun haskell-abbrev+-extract-mod-name (qualified-name)
   "Extract module name from QUALIFIED-NAME, e.g. if QUALIFIED-NAME = Foo.Bar
 then Bar would be the result."
