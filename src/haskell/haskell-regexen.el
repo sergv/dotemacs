@@ -91,6 +91,7 @@
           "\\(?:$\\|[^-!#$%&*+./<=>?@^|~:\\]\\)"))
 
 (defconst-set haskell-regexen/pragma-start "{-#")
+(defconst-set haskell-regexen/pragma-end "#-}")
 
 (provide 'haskell-regexen)
 
