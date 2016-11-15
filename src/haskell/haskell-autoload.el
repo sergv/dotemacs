@@ -54,17 +54,19 @@
 (autoload 'haskell-lint-setup "haskell-setup")
 (autoload 'ghc-core-setup "haskell-setup")
 
-(add-to-list 'auto-mode-alist        '("\\.ghci\\'" . ghci-script-mode))
-(add-to-list 'auto-mode-alist        '("\\.hcr\\'" . ghc-core-mode))
-(add-to-list 'auto-mode-alist        '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
-(add-to-list 'auto-mode-alist        '("\\.\\(?:[gh]s\\|hi\\)\\'" . haskell-mode))
-(add-to-list 'auto-mode-alist        '("\\.l[gh]s\\'" . literate-haskell-mode))
-(add-to-list 'auto-mode-alist        '("\\.hs-boot\\'" . haskell-mode))
-(add-to-list 'auto-mode-alist        '("\\.lhs-boot\\'" . literate-haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
+(add-to-list 'auto-mode-alist '("\\.hcr\\'" . ghc-core-mode))
+(add-to-list 'auto-mode-alist '("cabal\\.config.*\\'" . haskell-cabal-mode))
+(add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(?:[gh]s\\|hi\\)\\'" . haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.l[gh]s\\'" . literate-haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.hs-boot\\'" . haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.lhs-boot\\'" . literate-haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.hsc\\'" . haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.chs\\'" . haskell-c2hs-mode))
+
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
-(add-to-list 'auto-mode-alist        '("\\.hsc\\'" . haskell-mode))
-(add-to-list 'auto-mode-alist        '("\\.chs\\'" . haskell-c2hs-mode))
 
 (defalias 'ghci 'switch-to-haskell)
 
