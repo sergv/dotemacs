@@ -121,10 +121,6 @@
 
 
 
-(defparameter *python-font-lock-keywords* nil
-  "Additional expressions to highlight in Python mode.")
-
-
 (defconst +python-standard-keywords+
   `((,(rx symbol-start
           (or
@@ -513,16 +509,18 @@ pretty symbol. Intended for use in `font-lock-keywords' and
 ;; x ** 2 + y**2 + z **2 - w** 2
 ;;
 
-(setq *python-font-lock-keywords*
-      (append +python-standard-keywords+
-              +python-highlight-constants+
-              +python-highlight-procedures+
-              +python-pretty-symbols+)
-      *python-repl-font-lock-keywords*
-      (append +python-highlight-constants+
-              ;; +python-pretty-symbols+
-              ))
+(defparameter *python-font-lock-keywords*
+  (append +python-standard-keywords+
+          +python-highlight-constants+
+          +python-highlight-procedures+
+          +python-pretty-symbols+)
+  "Additional expressions to highlight in Python mode.")
 
+(defparameter *python-repl-font-lock-keywords*
+  (append +python-standard-keywords+
+          +python-highlight-constants+
+          ;; +python-pretty-symbols+
+          ))
 
 (provide 'python-highlight)
 
