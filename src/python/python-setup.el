@@ -31,7 +31,7 @@
                         *python-font-lock-keywords*
                         'set)
 (font-lock-add-keywords 'inferior-python-mode
-                        *python-font-lock-keywords*
+                        *python-repl-font-lock-keywords*
                         'set)
 
 (setf python-indent-offset 4)
@@ -103,7 +103,7 @@
       python-shell-enable-font-lock t
 
       python-shell-completion-setup-code
-      "from IPython.core.completerlib import module_completion"
+      "\n\nfrom IPython.core.completerlib import module_completion"
       python-shell-completion-module-string-code
       "';'.join(module_completion(\"\"\"%s\"\"\"))\n"
       python-shell-completion-string-code
@@ -116,7 +116,7 @@
               ))
 
 (defparameter python-setup-pprint-code
-  "import pprint
+  "\n\nimport pprint
 import sys
 
 orig_displayhook = sys.displayhook
@@ -132,7 +132,7 @@ def pprint_displayhook(value):
 #__builtins__.pprint_off = lambda: setattr(sys, 'displayhook', orig_displayhook)
 ")
 (defparameter python-setup-numpy-code
-  "try:
+  "\n\ntry:
     import numpy as np
 except ImportError:
     print(\"Numpy is not accessible\")")
@@ -455,11 +455,20 @@ greater indenation as current line."
 ;;;###autoload
 (add-hook 'python-mode-hook #'python-setup)
 
+;; (defun python--assemble-shell-command ()
+;;   "Calculate the string used to execute the inferior Python process."
+;;   (let ((process-environment (python-shell-calculate-process-environment))
+;;         (exec-path (python-shell-calculate-exec-path)))
+;;     (format "%s %s"
+;;             (executable-find python-shell-interpreter)
+;;             python-shell-interpreter-args)))
+
 ;;;###autoload (autoload 'switch-to-python "python-setup" nil t)
 (define-switch-to-interpreter
   switch-to-python
   ((concat "*" python-shell-buffer-name "*"))
-  (run-python (python-shell-assemble-command))
+  (run-python ;; (python--assemble-shell-command)
+   )
   :doc "Pop to python repl."
   :save-buffer t
   :error-msg "Can't switch to python repl"
