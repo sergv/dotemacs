@@ -209,8 +209,10 @@
     ("C-u"             shm/insert-undefined)
     ("C-<up>"          shm/swing-up)
     ("C-<down>"        shm/swing-down)
-    ("C-t"             haskell-compilation-prev-error-other-window)
-    ("C-h"             haskell-compilation-next-error-other-window)
+    ("C-t"             flycheck-previous-error)
+    ("C-h"             flycheck-next-error)
+    ("M-t"             haskell-compilation-prev-error-other-window)
+    ("M-h"             haskell-compilation-next-error-other-window)
     ("C-SPC"           company-complete)
 
     ("S-<tab>"         nil)
