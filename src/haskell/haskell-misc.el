@@ -243,6 +243,9 @@ and indent them as singe line."
       shm-indent-use-chris-done-if-indent-style nil
       inferior-haskell-find-project-root nil
 
+      haskell-interactive-prompt-read-only t
+      haskell-interactive-mode-read-only t
+
       ;; Flycheck
       flycheck-ghc-args '("-O0" "-fno-warn-name-shadowing" "-fno-warn-type-defaults")
       flycheck-ghc-no-user-package-database t)

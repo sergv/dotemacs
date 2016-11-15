@@ -48,12 +48,13 @@ update-dir-autoloads \
     "src/lisp" \
     "src/python" \
     "src/shell" \
-    "third-party/yafolding.el" \
-    "third-party/misc-modes" \
     "third-party/clojure-mode" \
+    "third-party/flycheck" \
+    "third-party/haskell-mode" \
+    "third-party/misc-modes" \
     "third-party/smartparens" \
     "third-party/sml-mode" \
-    "third-party/flycheck"
+    "third-party/yafolding.el"
 
 if which make >/dev/null; then
     pushd "third-party/org-mode"
