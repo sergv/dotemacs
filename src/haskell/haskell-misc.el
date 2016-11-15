@@ -268,7 +268,7 @@ and indent them as singe line."
                        '("-i/tmp/dist/build"
                          "-odir" "/tmp/ghc"
                          "-hidir" "/tmp/ghc"))))
-              (rts-opts '("+RTS" "-M8G")))
+              (rts-opts '("+RTS" "-M8G" "-RTS")))
           (append (if (platform-os-type? 'windows)
                     "--interactive"
                     nil)
@@ -880,6 +880,7 @@ it's position in current window."
    #'flycheck-previous-error))
 
 (defvar haskell-misc--switch-to-haskell-process-type-history nil)
+(defvar haskell-misc--switch-to-haskell-ghci-command-history nil)
 
 (defun haskell-misc-switch-to-haskell (&optional query-for-process-type)
   (interactive "P")
@@ -890,16 +891,35 @@ it's position in current window."
                                     '("auto"
                                       "cabal-repl"
                                       "stack-ghci"
-                                      "ghci")
+                                      "ghci"
+                                      "ghci-custom-command")
                                     nil ;; predicate
                                     t   ;; require match
                                     (symbol->string haskell-process-type) ;; initial-input
                                     'haskell-misc--switch-to-haskell-process-type-history
                                     ))
             haskell-process-type))
-         (haskell-process-type process-type))
-    (haskell-process-load-file)
-    (haskell-interactive-bring)))
+         (edit-command? (eq process-type 'ghci-custom-command))
+         (haskell-process-type
+          (if edit-command?
+              'ghci
+            process-type))
+         (old-wrapper haskell-process-wrapper-function))
+    (let ((haskell-process-wrapper-function
+           (lambda (args)
+             (let ((transformed-args (funcall old-wrapper args))
+                   (enable-recursive-minibuffer t))
+               (if edit-command?
+                   (split-shell-command-into-arguments
+                    (read-shell-command
+                     "Ghci command: "
+                     (join-lines transformed-args " ")
+                     'haskell-misc--switch-to-haskell-ghci-command-history))
+                 transformed-args)))))
+      (when (and buffer-file-name
+                 (member (file-name-extension buffer-file-name) *haskell-extensions*))
+        (haskell-process-load-file))
+      (haskell-interactive-bring))))
 
 (defun haskell-shm-tab-or-indent-relative-forward ()
   (interactive)
