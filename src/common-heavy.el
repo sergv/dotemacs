@@ -637,6 +637,49 @@ using EQ-FUNC to determine equal elements."
           (message "Copied buffer file name '%s' to the clipboard." filename))
       (error "Currrent buffer has no filename"))))
 
+;;;###autoload
+(defun split-shell-command-into-arguments (command)
+  "Split command by space, while taking quotation into account. Strips commas
+around individual arguments."
+  (let ((result nil)
+        (word nil)
+        (string-start nil)
+        (i 0)
+        (len (length command)))
+    (while (< i len)
+      (let ((c (aref command i)))
+        (if string-start
+            (pcase c
+              (?\\
+               (let ((next (aref command (+ i 1))))
+                 (if (and (char= string-start ?\")
+                          (char= next ?\"))
+                     (progn
+                       (push next word)
+                       (incf i 2))
+                   (progn
+                     (push c word)
+                     (incf i)))))
+              (_
+               (if (char= c string-start)
+                   (setf string-start nil)
+                 (push c word))
+               (incf i)))
+          (progn
+            (pcase c
+              (`?\s
+               (when word
+                 (push (list->string (nreverse word)) result)
+                 (setf word nil)))
+              ((or `?\" `?\')
+               (setf string-start c))
+              (_
+               (push c word)))
+            (incf i)))))
+    (when word
+      (push (list->string (nreverse word)) result))
+    (nreverse result)))
+
 ;;;
 
 (provide 'common-heavy)

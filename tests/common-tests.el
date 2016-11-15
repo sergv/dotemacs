@@ -288,9 +288,69 @@
       '(((quux bar baz) quux bar baz)
         ((foo bar baz)  foo bar baz))))))
 
-(progn
-  (ert "common-tests/.*")
-  nil)
+(ert-deftest common-tests/split-shell-command-into-arguments-1 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo bar baz")
+    '("foo" "bar" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-2 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo    bar     baz   ")
+    '("foo" "bar" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-3 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo \"bar\" baz")
+    '("foo" "bar" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-4 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo 'bar quux' baz")
+    '("foo" "bar quux" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-5 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo \"bar quux\" baz")
+    '("foo" "bar quux" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-6 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo \"bar 'quux'\" baz")
+    '("foo" "bar 'quux'" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-7 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo \"bar \\\"quux\\\"\" baz")
+    '("foo" "bar \"quux\"" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-8 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo 'bar '\"'\"'quux' baz")
+    '("foo" "bar 'quux" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-9 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo \"bar \"\"quux\" baz")
+    '("foo" "bar quux" "baz"))))
+
+(ert-deftest common-tests/split-shell-command-into-arguments-10 ()
+  (should
+   (equal
+    (split-shell-command-into-arguments "foo \"bar \"'quux' baz")
+    '("foo" "bar quux" "baz"))))
+
+;; (progn
+;;   (ert "common-tests/.*")
+;;   nil)
 
 (provide 'common-tests)
 

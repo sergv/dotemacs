@@ -414,7 +414,9 @@
                  #'tab-to-tab-stop-backward
                  :enable-yasnippet t)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("'" yafolding-go-parent-element))
+    ("'"       yafolding-go-parent-element)
+    ("SPC SPC" haskell-misc-switch-to-haskell))
+
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile)))
