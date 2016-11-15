@@ -48,9 +48,9 @@
 
 ;; (unintern 'persistent-store-tests/test-merging)
 
-(progn
-  (ert "persistent-store-tests/.*")
-  nil)
+;; (progn
+;;   (ert "persistent-store-tests/.*")
+;;   nil)
 
 (provide 'persistent-store-tests)
 

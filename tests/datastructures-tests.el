@@ -92,7 +92,7 @@
         datastructures-tests/sorted-set-union
         datastructures-tests/sorted-set-intersection))
 
-(ert "datastructures-tests/.*")
+;; (ert "datastructures-tests/.*")
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)

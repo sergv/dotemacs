@@ -500,14 +500,25 @@ we load it."
       (t
        (error "Don't know how to reindent construct at point")))))
 
+(defun haskell-align-language-pragmas--point-inside-pragma (point)
+  (save-excursion
+    (save-match-data
+      (when (re-search-forward haskell-regexen/pragma-end nil t)
+        (let ((end (point)))
+          (backward-sexp)
+          (let ((start (point)))
+            (and (<= start point)
+                 (<= point end))))))))
+
 (defun haskell-align-language-pragmas (start)
   (save-match-data
     (goto-char start)
-    (cl-assert (looking-at-p haskell-abbrev+/language-pragma-prefix))
+    ;; (cl-assert (looking-at-p haskell-abbrev+/language-pragma-prefix))
     ;; Navigate up while we're still getting LANGUAGE pragmas.
     (beginning-of-line)
     (while (and (not (bob?))
-                (looking-at-p haskell-abbrev+/language-pragma-prefix))
+                (or (looking-at-p haskell-abbrev+/language-pragma-prefix)
+                    (haskell-align-language-pragmas--point-inside-pragma (point))))
       ;; Go to beginning of the previous line.
       (backward-line))
     ;; Skip whitespace and possible comments to the beginning of pragma.
@@ -520,16 +531,16 @@ we load it."
       ;; Collect all extensions from all pragmas
       (while (not done)
         (aif (haskell--parse-language-pragma (point) (point-max))
-          (progn
-            (setf exts (append it exts)
-                  pragma-block-end (point))
-            (forward-line 1)
-            (if (eob?)
-              (setf done t)
-              (beginning-of-line))
-            ;; (skip-syntax-forward " >")
-            )
-          (setf done t)))
+             (progn
+               (setf exts (append it exts)
+                     pragma-block-end (point))
+               (forward-line 1)
+               (if (eob?)
+                   (setf done t)
+                 (beginning-of-line))
+               ;; (skip-syntax-forward " >")
+               )
+             (setf done t)))
       (goto-char pragma-block-start)
       (delete-region pragma-block-start pragma-block-end)
       (setf exts (sort exts #'string<))

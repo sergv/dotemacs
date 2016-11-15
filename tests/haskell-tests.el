@@ -8,6 +8,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'haskell-abbrev+)
 (require 'common)
 (require 'ert)
 
@@ -110,7 +111,7 @@
 
   )
 
-(ert "haskell-tests/.*")
+;; (ert "haskell-tests/.*")
 
 ;; (setf haskell-tests/tests
 ;;       '(haskell-tests/abbrev+-extract-module-name))
