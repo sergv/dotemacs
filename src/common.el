@@ -1364,8 +1364,6 @@ With argument COUNT, do this that many times."
       (char= char ?\n)
       (char= char ?\t)))
 
-(defalias 'whitespace-charp 'whitespace-char-p)
-
 (defun delete-whitespace-forward ()
   "Delete whitespaces forward until non-whitespace
 character found"
