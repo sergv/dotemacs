@@ -752,12 +752,29 @@ return nil otherwise."
       (delete-char 1))
     (shm-insert-char-surrounding-with-spaces ?\$)))
 
-(defun* haskell-bind-shm-bindings (&key bind-colon)
+(defun haskell--ghci-shm/hyphen (&optional prefix)
+  "Version of `shm/hyphen' for ghci."
+  (interactive "p")
+  (let ((entering-command?
+         (save-excursion
+           (beginning-of-line)
+           ;; skip whitespace
+           (skip-syntax-forward "-")
+           (let ((c (char-after)))
+             (and c
+                  (char= c ?:))))))
+    (if entering-command?
+        (self-insert-command prefix)
+      (shm/hyphen prefix))))
+
+(defun* haskell-bind-shm-bindings (&key bind-colon bind-hyphen)
   (when bind-colon
     (def-keys-for-map vim:insert-mode-local-keymap
       (":" shm/:)))
+  (when bind-hyphen
+    (def-keys-for-map vim:insert-mode-local-keymap
+      ("-" shm/hyphen)))
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"   shm/hyphen)
     ("#"   shm/hash)
     (","   shm/comma)
     ("="   shm/=)
