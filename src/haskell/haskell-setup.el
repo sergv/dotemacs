@@ -182,7 +182,7 @@
     ("g I"     haskell-navigate-imports-return)
     ("g <tab>" haskell-reindent-at-point))
 
-  (haskell-bind-shm-bindings :bind-colon t)
+  (haskell-bind-shm-bindings :bind-colon t :bind-hyphen t)
   (def-keys-for-map shm-map
     ("("            nil)
     ("["            nil)
@@ -335,18 +335,21 @@
   (structured-haskell-mode -1)
   (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
-  (haskell-bind-shm-bindings :bind-colon nil)
+  (haskell-bind-shm-bindings :bind-colon nil :bind-hyphen nil)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  haskell-interactive-clear-prompt))
 
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("-"        haskell--ghci-shm/hyphen))
+
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
                      haskell-interactive-mode-map)
-    ("C-SPC" vim:comint-clear-buffer-above-prompt)
-    ("M-p"   browse-haskell-interactive-input-history))
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("M-p"      browse-haskell-interactive-input-history))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      haskell-interactive-mode-map)
