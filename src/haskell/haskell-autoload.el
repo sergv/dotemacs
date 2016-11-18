@@ -38,6 +38,20 @@
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
+(autoload 'vim:ghc-core-create-core "haskell-setup" nil t)
+(autoload 'vim:haskell-compile "haskell-setup" nil t)
+(autoload 'vim:haskell-compile-choosing-command "haskell-setup" nil t)
+(autoload 'vim:haskell-lint "haskell-setup" nil t)
+(autoload 'vim:haskell-load-file-into-repl "haskell-setup" nil t)
+(autoload 'vim:haskell-set-target "haskell-setup" nil t)
+(autoload 'vim:haskell-interactive-clear-buffer-above-prompt "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-run "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-compile "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-configure "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-clear "haskell-setup" nil t)
+(autoload 'vim:haskell-flycheck-list-errors "haskell-setup" nil t)
+(autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
+
 (autoload 'intero-mode "intero" nil t)
 
 (defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "happy" "y"))
