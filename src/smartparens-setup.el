@@ -204,6 +204,9 @@ With negative argument move forward, still one level out."
   (sp-local-pair "\\\\(" nil :when '(sp-in-string-p))
   (sp-local-pair "`" "`" :actions '(insert wrap)))
 
+(sp-with-modes '(markdown-mode)
+  (sp-local-pair "`" "`" :actions '(insert wrap)))
+
 (sp-with-modes '(shell-mode)
   (sp-local-pair "\"" "\"" :actions '(insert wrap)))
 
