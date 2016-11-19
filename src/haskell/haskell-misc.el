@@ -890,6 +890,38 @@ it's position in current window."
    #'compilation-jump-to-prev-error
    #'flycheck-previous-error))
 
+(defun haskell-misc--flycheck-goto-error-with-wraparound (forward?)
+  (interactive)
+  (let* ((direction-code (if forward? 1 -1))
+         (wrapped? nil)
+         (error-position
+          (let ((pos (flycheck-next-error-pos direction-code nil)))
+            (if pos
+                pos
+              (save-excursion
+                (goto-char (if forward?
+                               (point-min)
+                             (point-max)))
+                (setf wrapped? t)
+                (flycheck-next-error-pos direction-code nil))))))
+    (unless error-position
+      (error "No more errors"))
+    (when wrapped?
+      (message "Wrapped at the %s of buffer"
+               (if forward?
+                   "end"
+                 "beginning")))
+    (goto-char error-position)
+    (flycheck-display-error-at-point)))
+
+(defun haskell-misc--flycheck-previous-error-with-wraparound ()
+  (interactive)
+  (haskell-misc--flycheck-goto-error-with-wraparound nil))
+
+(defun haskell-misc--flycheck-next-error-with-wraparound ()
+  (interactive)
+  (haskell-misc--flycheck-goto-error-with-wraparound t))
+
 (defvar haskell-misc--switch-to-haskell-process-type-history nil)
 (defvar haskell-misc--switch-to-haskell-ghci-command-history nil)
 
