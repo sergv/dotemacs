@@ -223,7 +223,7 @@ name `name' to `new-regex'."
                       (goto-char begin)
                       ;; set the overlays for the current highlight, reusing old overlays
                       ;; (if possible)
-                      (while (and (vim:search-find-next-pattern pattern)
+                      (while (and (vim:search-find-next-pattern pattern t)
                                   (< (match-beginning 0) (match-end 0))
                                   (<= (match-end 0) end))
                         (when (or (vim:pattern-whole-line pattern)
@@ -252,7 +252,7 @@ name `name' to `new-regex'."
               ;; maybe the match could just not be found somewhere else?
               (save-excursion
                 (goto-char (vim:hl-beg hl))
-                (if (and (vim:search-find-next-pattern pattern)
+                (if (and (vim:search-find-next-pattern pattern t)
                          (< (match-end 0) (vim:hl-end hl)))
                   (setq result (format "Match in line %d" (line-number-at-pos (match-beginning 0))))
                   (setq result "No match")))))
@@ -301,14 +301,12 @@ name `name' to `new-regex'."
       (with-current-buffer buf
         (vim:hl-idle-update)))))
 
-(defun* vim:search-find-next-pattern (pattern &optional
-                                              (direction 'forward))
+(defun* vim:search-find-next-pattern (pattern is-forward?)
   "Looks for the next occurrence of pattern in a certain direction."
   (let ((case-fold-search (eq (vim:pattern-case-fold pattern) 'insensitive)))
-    (pcase direction
-      (`forward  (re-search-forward (vim:pattern-regex pattern) nil t))
-      (`backward (re-search-backward (vim:pattern-regex pattern) nil t))
-      (_         (error "Unknown search direction: %s" direction)))))
+    (if is-forward
+        (re-search-forward (vim:pattern-regex pattern) nil t)
+      (re-search-backward (vim:pattern-regex pattern) nil t))))
 
 ;; Substitute
 (defun vim:ex-pattern-argument-activate ()
