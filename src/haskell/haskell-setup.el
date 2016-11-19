@@ -52,8 +52,6 @@
   (haskell-compile nil))
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (haskell-compile t))
-(vim:defcmd vim:haskell-lint (nonrepeatable)
-  (haskell-lint))
 (vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
   (haskell-process-load-file))
 (vim:defcmd vim:haskell-set-target (nonrepeatable)
@@ -151,7 +149,6 @@
   (vim:local-emap "c"         #'vim:haskell-compile)
   (vim:local-emap "ccompile"  #'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc"        #'vim:haskell-compile-choosing-command)
-  (vim:local-emap "hlint"     #'vim:haskell-lint)
   (vim:local-emap "load"      #'vim:haskell-load-file-into-repl)
   (vim:local-emap "lo"        #'vim:haskell-load-file-into-repl)
   (vim:local-emap "l"         #'vim:haskell-load-file-into-repl)
@@ -160,7 +157,6 @@
   (vim:local-emap "init"      #'vim:haskell-flycheck-configure)
   (vim:local-emap "configure" #'vim:haskell-flycheck-configure)
   (vim:local-emap "conf"      #'vim:haskell-flycheck-configure)
-  (vim:local-emap "f"         #'vim:haskell-flycheck-run)
   (vim:local-emap "ff"        #'vim:haskell-flycheck-compile)
   (vim:local-emap "check"     #'vim:haskell-flycheck-run)
   (vim:local-emap "ch"        #'vim:haskell-flycheck-run)
@@ -176,8 +172,6 @@
     ("+"       input-unicode)
     ("SPC SPC" haskell-misc-switch-to-haskell)
     ("g w"     shm/goto-where)
-    ("`"       ghc-display-errors)
-    ("C-`"     haskell-lint)
     ("g i"     vim:haskell-navigate-imports)
     ("g I"     haskell-navigate-imports-return)
     ("g <tab>" haskell-reindent-at-point))
@@ -219,12 +213,10 @@
     ("<S-iso-lefttab>" nil)
     ("<return>"        haskell-newline)
     ("<f6>"            haskell-process-load-file)
-    ("<f9>"            haskell-compile)
-    ("S-<f9>"          haskell-lint))
+    ("<f9>"            haskell-compile))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("- ?" ghc-display-errors)
     ("- t" ghc-show-type)
     ("- i" ghc-show-info)
     ("- e" ghc-expand-th)
@@ -421,46 +413,9 @@
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile)))
 
-(defun haskell-lint-setup ()
-  (setq-local *compilation-jump-error-regexp*
-              haskell-lint-regex))
-
 (defun ghc-core-setup ()
   (structured-haskell-mode -1)
   (hl-line-mode +1))
-
-;; (defvar haskell-lint-error-regex
-;;   "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Error:")
-;;
-;; (defvar haskell-lint-warning-regex
-;;   "^\\(.*?\\) *:\\([0-9]+\\):\\([0-9]+\\): Warning:")
-;;
-;; (defun hs-lint-setup ()
-;;   (set (make-local-variable '*compilation-jump-error-regexp*)
-;;        (concat "\\("
-;;                hs-lint-error-regex
-;;                "\\)\\|\\("
-;;                hs-lint-warning-regex
-;;                "\\)"))
-;;   (setq-local compilation-error-regexp-alist
-;;               (list
-;;                (list hs-lint-error-regex
-;;                      1 ;; file-group
-;;                      2 ;; line-group
-;;                      3 ;; column-group
-;;                      2 ;; type - 2 - error
-;;                      )
-;;                (list hs-lint-warning-regex
-;;                      1 ;; file-group
-;;                      2 ;; line-group
-;;                      3 ;; column-group
-;;                      1 ;; type - 1 - warning
-;;                      )))
-;;   (def-keys-for-map hs-lint-mode-map
-;;     ("<up>"   compilation-jump-to-prev-error)
-;;     ("<down>" compilation-jump-to-next-error)
-;;     ("t"      compilation-jump-to-prev-error)
-;;     ("h"      compilation-jump-to-next-error)))
 
 (defun ghc-prof-mode-setup ()
   (init-common :use-yasnippet nil
