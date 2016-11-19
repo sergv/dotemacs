@@ -91,7 +91,7 @@
   (company-mode +1)
   (setq-local company-backends '(company-eproj))
   (fontify-conflict-markers)
-  (flycheck-mode)
+  (flycheck-mode +1)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
   ;; ghci interaction uses comint - same as shell mode
@@ -203,8 +203,8 @@
     ("C-u"             shm/insert-undefined)
     ("C-<up>"          shm/swing-up)
     ("C-<down>"        shm/swing-down)
-    ("C-t"             flycheck-previous-error)
-    ("C-h"             flycheck-next-error)
+    ("C-t"             haskell-misc--flycheck-previous-error-with-wraparound)
+    ("C-h"             haskell-misc--flycheck-next-error-with-wraparound)
     ("M-t"             haskell-compilation-prev-error-other-window)
     ("M-h"             haskell-compilation-next-error-other-window)
     ("C-SPC"           company-complete)
