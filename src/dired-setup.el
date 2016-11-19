@@ -111,16 +111,24 @@ current one."
   "Cycle through file list forward selecting next entry"
   (interactive "p")
   (funcall
-   (make-cycle-on-lines-in-region 2 -1 forward
-                                  #'dired-next-line #'dired-previous-line)
+   (make-cycle-on-lines-in-region
+    2
+    -1
+    t
+    #'dired-next-line
+    #'dired-previous-line)
    count))
 
 (defun dired-cycle-files-backward (count)
   "Cycle through file list backward selecting next entry"
   (interactive "p")
   (funcall
-   (make-cycle-on-lines-in-region 2 -1 backward
-                                  #'dired-next-line #'dired-previous-line)
+   (make-cycle-on-lines-in-region
+    2
+    -1
+    nil
+    #'dired-next-line
+    #'dired-previous-line)
    count))
 
 (defun dired-single-up-directory ()
