@@ -465,37 +465,38 @@ commented parts and leave point unchanged."
   (let ((move-while-commented
          ;; return position of the beginning of the last line in direction
          ;; that is still has commented parts
-         (lambda (dir)
-           (beginning-of-line)
-           (while (and (comment-util--on-commented-line?)
-                       (not (if (eq? dir 'backward)
-                              (bobp)
-                              (eobp))))
-             (move-by-line dir))
-           (when (not (if (eq? dir 'backward)
-                        (bobp)
-                        (eobp)))
-             (move-by-line-backward dir)
-             ;; we're returned backwards onto line with comments
-             ;; which is a known fact
-             (cl-assert (comment-util--on-commented-line?)
-                        nil
-                        "line number: %s;\nline: %s;\nprevious line: %s"
-                        (count-lines1 (point-min) (point))
-                        (current-line)
-                        (save-excursion
-                          (move-by-line dir)
-                          (current-line)))))))
+         (lambda (forward?)
+           (let ((dir (if forward? +1 -1)))
+             (beginning-of-line)
+             (while (and (comment-util--on-commented-line?)
+                         (not (if forward?
+                                  (eobp)
+                                (bobp))))
+               (forward-line dir))
+             (when (not (if forward?
+                            (eobp)
+                          (bobp)))
+               (backward-line dir)
+               ;; we're returned backwards onto line with comments
+               ;; which is a known fact
+               (cl-assert (comment-util--on-commented-line?)
+                          nil
+                          "line number: %s;\nline: %s;\nprevious line: %s"
+                          (count-lines1 (point-min) (point))
+                          (current-line)
+                          (save-excursion
+                            (forward-line dir)
+                            (current-line))))))))
     (let ((pos (line-beginning-position))
           start
           end)
       (save-excursion
         (forward-line -1)
-        (funcall move-while-commented 'backward)
+        (funcall move-while-commented nil)
         (setf start (line-beginning-position))
 
         (goto-char pos)
-        (funcall move-while-commented 'forward)
+        (funcall move-while-commented t)
         (setf end (line-end-position)))
       (values start end))))
 
