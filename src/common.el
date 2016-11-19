@@ -884,15 +884,15 @@ arguments and indent current buffer. See also `+buffer-indent-temporary-filename
 (defun indent-relative-forward ()
   "Indent forwards similarly to `indent-relative'."
   (interactive)
-  (indent-relative+ 'forward))
+  (indent-relative+ t))
 
 (defun indent-relative-backward ()
   "Indent backwards similarly to `indent-relative'."
   (interactive)
-  (indent-relative+ 'backward))
+  (indent-relative+ nil))
 
 ;; inspired by indent-relative for v24.3.1
-(defun indent-relative+ (direction)
+(defun indent-relative+ (forward?)
   "Space out to under next indent point in previous nonblank line.
 An indent point is a non-whitespace character following whitespace.
 The following line shows the indentation points in this line.
@@ -909,7 +909,7 @@ See also `indent-relative-maybe'."
       (save-excursion
         (beginning-of-line)
         (when (re-search-backward "^[^\n]" nil t)
-          (let ((end (if (eq? direction 'forward)
+          (let ((end (if forward?
                        (min (+ (line-end-position) 1)
                             (point-max))
                        (line-beginning-position))))
@@ -917,7 +917,7 @@ See also `indent-relative-maybe'."
             ;; Is start-column inside a tab on this line?
             (when (> (current-column) start-column)
               (backward-char 1))
-            (if (eq? direction 'forward)
+            (if forward?
               (progn
                 (skip-chars-forward "^ \t" end)
                 (skip-chars-forward " \t" end))
@@ -930,7 +930,7 @@ See also `indent-relative-maybe'."
         (indent
          (indent-to! indent)
          (move-to-column indent))
-        ((eq? direction 'forward)
+        (forward?
          (tab-to-tab-stop))))))
 
 (defun tab-to-tab-stop-backward ()
@@ -1603,32 +1603,6 @@ last non-whitespace character."
         (goto-char (point-min))
         (while (re-search-forward "[ \t]+$" nil t)
           (delete-region (match-beginning 0) (match-end 0)))))))
-
-;;; tabbar stuff
-
-;; Some useful abstractions to move based on
-;; symbols representing direction
-
-(defsubst direction-to-num (dir)
-  "Translate direction symbol to numeric representation suitable
-for passing to Emacs native functions."
-  (cond
-    ((eq dir 'forward)
-     1)
-    ((eq dir 'backward)
-     -1)
-    (t
-     nil)))
-
-(defun* move-by-line (direction &optional (count 1))
-  "Move COUNT lines in specified direction, which could
-have 'forward or 'backward value."
-  (forward-line (* count (direction-to-num direction))))
-
-(defun* move-by-line-backward (direction &optional (count 1))
-  "Move COUNT lines backwards in specified direction, which could
-have 'forward or 'backward value."
-  (backward-line (* count (direction-to-num direction))))
 
 (defsubst char= (a b)
   (char-equal a b))

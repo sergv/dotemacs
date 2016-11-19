@@ -166,14 +166,14 @@ generate actual filter group.")
        "Cycle through buffer list forward selecting next buffer"
        (interactive "p")
        (funcall
-        (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 forward)
+        (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 t)
         count))
 
      (defun ibuffer-cycle-buffers-backward (count)
        "Cycle through buffer list backward selecting next buffer"
        (interactive "p")
        (funcall
-        (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 backward)
+        (make-cycle-on-lines-in-region (if ibuffer-filter-groups 2 3) 2 nil)
         count))
 
      (defun ibuffer-visit-buffer-other-window (&optional single)
