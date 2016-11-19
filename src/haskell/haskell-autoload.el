@@ -41,7 +41,6 @@
 (autoload 'vim:ghc-core-create-core "haskell-setup" nil t)
 (autoload 'vim:haskell-compile "haskell-setup" nil t)
 (autoload 'vim:haskell-compile-choosing-command "haskell-setup" nil t)
-(autoload 'vim:haskell-lint "haskell-setup" nil t)
 (autoload 'vim:haskell-load-file-into-repl "haskell-setup" nil t)
 (autoload 'vim:haskell-set-target "haskell-setup" nil t)
 (autoload 'vim:haskell-interactive-clear-buffer-above-prompt "haskell-setup" nil t)
@@ -65,7 +64,6 @@
 (autoload 'haskell-compilation-setup "haskell-setup")
 (autoload 'ghc-check-mode-setup "haskell-setup")
 (autoload 'haskell-cabal-setup "haskell-setup")
-(autoload 'haskell-lint-setup "haskell-setup")
 (autoload 'ghc-core-setup "haskell-setup")
 
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
@@ -93,7 +91,6 @@
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 (add-hook 'ghc-check-mode-hook #'ghc-check-mode-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
-(add-hook 'haskell-lint-setup-hook #'haskell-lint-setup)
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 
 ;; grammar tools autoloads
