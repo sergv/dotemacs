@@ -73,7 +73,7 @@
                                          (file-name-nondirectory
                                           buffer-file-name)))))
    (list "date"      (partial #'format-time-string
-                              "%A, %e %B %Y"))
+                              "%e %B %Y"))
    (list "date year" (partial #'format-time-string
                               "%Y"))
    (list "author" (lambda () user-full-name))
