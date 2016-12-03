@@ -76,6 +76,8 @@
   (typography-setup)
   (tex-fold-mode 1)
 
+  (setup-indent-size 2)
+
   ;; (menu-bar-mode 1)
   (setq latex:preview nil)
 

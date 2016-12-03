@@ -481,8 +481,7 @@ the current topic."
                :use-whitespace 'tabs-only
                :use-fci t)
   (typography-setup)
-  (setq-local vim:shift-width 2)
-  (setq-local standard-indent 2)
+  (setup-indent-size 2)
   (bind-tab-keys #'org-cycle
                  #'org-shifttab
                  :enable-yasnippet t)

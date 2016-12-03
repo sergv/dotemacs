@@ -388,11 +388,7 @@
   (haskell-setup-folding)
   (fontify-merge-markers)
   (modify-syntax-entry ?. "_")
-  (let ((width 2))
-    (setq-local vim:shift-width width)
-    (setq-local standard-indent width)
-    (setq-local tab-width width))
-  (setq-local tab-always-indent t)
+  (setup-indent-size 2)
   (setq-local indent-line-function
               (lambda ()
                 (indent-to standard-indent)))

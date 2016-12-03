@@ -104,7 +104,7 @@
   "Commands"
   :group 'vim-mode)
 
-(defcustom vim:shift-width 8
+(defcustom vim:shift-width 2
   "The number of columns for shifting commands like < or >."
   :type 'integer
   :group 'vim-commands)
