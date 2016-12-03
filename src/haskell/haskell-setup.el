@@ -176,6 +176,9 @@
     ("g I"     haskell-navigate-imports-return)
     ("g <tab>" haskell-reindent-at-point))
 
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("`" vim:wrap-backticks))
+
   (haskell-bind-shm-bindings :bind-colon t :bind-hyphen t)
   (def-keys-for-map shm-map
     ("("            nil)
