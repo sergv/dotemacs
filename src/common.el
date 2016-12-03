@@ -1797,6 +1797,12 @@ F will be called."
 (defun buffer-visible-p (buf)
   (not (null (get-buffer-window buf t))))
 
+(defun setup-indent-size (width)
+  (setq-local vim:shift-width width)
+  (setq-local standard-indent width)
+  (setq-local tab-width width)
+  (setq-local tab-always-indent t))
+
 ;; Heavy autoloads
 
 (autoload 'shell-command+ "common-heavy" nil t)
