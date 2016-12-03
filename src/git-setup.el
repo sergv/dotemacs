@@ -18,6 +18,20 @@
 (require 'search)
 (require 'vim-setup)
 
+;;; Magit redefinitions
+
+(redefun magit-reset-soft (commit)
+  "Reset the head to COMMIT, but not the index and working tree.
+\n(git reset --soft REVISION)"
+  (interactive (list (magit-read-branch-or-commit-prompt-for-previous-commit-first "Soft reset to")))
+  (magit-reset-internal "--soft" commit))
+
+(defun magit-read-branch-or-commit-prompt-for-previous-commit-first (prompt &optional secondary-default)
+  (or (magit-completing-read prompt (cons "HEAD^" (cons "HEAD" (magit-list-refnames)))
+                             nil nil nil 'magit-revision-history
+                             nil)
+      (user-error "Nothing selected")))
+
 ;;; gitignore
 
 (defun gitignore-setup ()
