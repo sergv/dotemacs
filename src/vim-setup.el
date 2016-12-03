@@ -188,6 +188,8 @@ like \"d w\".")
 ;;; visual keybindings
 
 (def-keys-for-map vim:visual-mode-keymap
+  ("'"       self-insert-command)
+
   ("TAB"     indent-region)
   ("<tab>"   indent-region)
   ("s"       vim:visual-ex-read-command)
@@ -228,6 +230,10 @@ like \"d w\".")
 (vim:defcmd vim:wrap-typographical-double-quotes (nonrepeatable)
   "Wrap region in “...”."
   (sp-wrap-or-insert "“"))
+
+(vim:defcmd vim:wrap-backticks (nonrepeatable)
+  "Wrap region in `...`."
+  (sp-wrap-or-insert "`"))
 
 ;;; insert mode keybindings
 

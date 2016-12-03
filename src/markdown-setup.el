@@ -28,7 +28,9 @@
   (typography-setup)
   (setup-indent-size 2)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("'" outline-up-heading)))
+    ("'" outline-up-heading))
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("`" vim:wrap-backticks)))
 
 ;;;###autoload
 (add-hook 'markdown-mode-hook #'markdown-setup)
