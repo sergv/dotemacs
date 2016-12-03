@@ -60,9 +60,7 @@
                :use-fci t
                :use-whitespace 'tabs-only)
   (yafolding-mode +1)
-  (setq-local vim:shift-width 2)
-  (setq-local standard-indent 2)
-  (setq-local tab-always-indent t)
+  (setup-indent-size 2)
   (setq-local indent-region-function #'ignore)
   (setq-local indent-line-function #'ignore)
   (bind-tab-keys #'eri-indent

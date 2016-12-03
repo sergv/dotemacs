@@ -377,8 +377,7 @@ greater indenation as current line."
                :use-fci t)
   (setup-hs-minor-mode)
 
-  (setq-local tab-width 4)
-  (setq-local vim:shift-width 4)
+  (setup-indent-size 4)
   (setq-local whitespace-style '(face lines-tail))
 
   ;; ;; make ' a string delimiter

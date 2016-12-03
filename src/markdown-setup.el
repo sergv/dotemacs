@@ -26,6 +26,7 @@
   (init-common :use-yasnippet nil
                :use-whitespace 'tabs-only)
   (typography-setup)
+  (setup-indent-size 2)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("'" outline-up-heading)))
 
