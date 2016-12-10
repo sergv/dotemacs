@@ -59,9 +59,6 @@
 [submodule "third-party/misc-modes"]
         path = third-party/misc-modes
         url = https://github.com/sergv/misc-modes.git
-[submodule "third-party/python/python.el"]
-        path = third-party/python/python.el
-        url = https://github.com/sergv/python.el.git
 [submodule "third-party/structured-haskell-mode"]
         path = third-party/structured-haskell-mode
         url = https://github.com/sergv/structured-haskell-mode.git
