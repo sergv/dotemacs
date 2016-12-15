@@ -127,7 +127,7 @@
                                  "else")
                              symbol-end)
                         "{"))
-                nil
+                0
                 "/[*/]"
                 #'c-hideshow-forward-sexp
                 nil)))
