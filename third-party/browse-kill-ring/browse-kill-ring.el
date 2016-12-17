@@ -929,8 +929,9 @@ directly; use `browse-kill-ring' instead.
     (let* ((target (overlay-get (car overs)
                                 'browse-kill-ring-target))
            (target-cell
-             (generic/member target (browse-kill-ring--get-ring-value)
-                             :test #'equal)))
+            (generic/member target
+                            (browse-kill-ring--get-ring-value)
+                            #'equal)))
       (unless target-cell
         (error "Item deleted from the %s" browse-kill-ring--ring-var))
       (switch-to-buffer (get-buffer-create "*Kill Ring Edit*"))
