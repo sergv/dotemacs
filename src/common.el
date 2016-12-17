@@ -204,30 +204,6 @@ default into prompt."
     (when p
       (set-process-query-on-exit-flag p nil))))
 
-(defun* use-repl-modeline (&key (show-column t) (show-directory nil))
-  "Set up `mode-line' for use in vairous repl."
-  (setf mode-line-format
-        `(" %[%b%] "
-          ("(%m"
-           mode-line-process
-           ")")
-          (:eval
-           (when (buffer-narrowed?)
-             "(Narrowed)"))
-          " "
-          (line-number-mode
-           ("%l/"
-            (:eval (number-to-string
-                    (count-lines (point-min)
-                                 (point-max))))
-            "(%p)"))
-          (column-number-mode
-           (2 " %c"))
-          ,@(when show-directory
-              '("  "
-                (:eval default-directory)))
-          global-mode-string)))
-
 (defun re-group-matchedp (n)
   "Return non-nil if Nth group matched."
   (match-beginning n))

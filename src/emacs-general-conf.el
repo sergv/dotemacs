@@ -10,52 +10,9 @@
 
 (require 'set-up-paths)
 (require 'common)
-(require 'mode-line-line-count)
 
 (require 'vim)
 (vim-mode 1)
-
-;;;; modeline
-(setq-default mode-line-format
-              '("%[%b%] "
-                ;; if buffer has assigned file and is modified
-                (:eval (when (and buffer-file-name
-                                  (buffer-modified-p))
-                         "(+)"))
-                (:eval (when buffer-read-only
-                         "(RO)"))
-                ("("
-                 mode-name
-                 mode-line-process
-                 ")")
-                (:eval
-                 (case (coding-system-eol-type buffer-file-coding-system)
-                   ;; here should be unix but it is most of the time so
-                   ;; there's no reason to say obvious things
-                   (0 "")
-                   (1 "(dos)")
-                   (2 "(mac)")))
-                (:eval
-                 (when (buffer-narrowed?)
-                   "(Narrowed)"))
-                vc-mode
-                (:eval
-                 (awhen (and (fboundp #'flycheck-pretty-mode-line)
-                             (flycheck-pretty-mode-line))
-                   (concat " (" it ")")))
-                " "
-                (line-number-mode
-                 ("%l/"
-                  (:eval (mode-line-show-line-count))))
-                (:eval
-                 (when (region-active-p)
-                   (multiple-value-bind (start end) (get-region-bounds)
-                     (format " [%s]"
-                             (count-lines start end)))))
-                (column-number-mode
-                 (2 " %c"))
-                (which-func-mode (" (" which-func-format ")"))
-                global-mode-string))
 
 ;;;; modes without much customization
 (setq-default frame-background-mode nil)

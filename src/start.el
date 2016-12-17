@@ -24,6 +24,7 @@
 (persistent-store-init)
 
 (load-library "backups")
+(load-library "mode-line-setup")
 (load-library "emacs-general-conf")
 
 (load-library "local-autoloads")
