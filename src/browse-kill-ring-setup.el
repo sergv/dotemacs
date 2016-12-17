@@ -41,7 +41,7 @@
                          "(RO)"))
                 ("("
                  mode-name
-                 (:eval (format "[%s items]"
+                 (:eval (format "[%d items]"
                                 (generic/length (browse-kill-ring--get-ring-value))))
                  ")")
                 (:eval
