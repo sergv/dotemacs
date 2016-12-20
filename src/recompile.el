@@ -22,7 +22,8 @@
                  "ob-oz.el"
                  "dbl.el"
                  "setup-imaxima-imath.el"
-                 "common-lisp-setup.el"))
+                 "common-lisp-setup.el"
+                 "icicles-rcodetools.el"))
       (puthash x t tbl))
     tbl))
 
