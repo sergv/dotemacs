@@ -94,6 +94,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(require 'macro-util)
+
 (require 'vim-defs)
 (require 'vim-macs)
 (require 'vim-core)
@@ -437,34 +439,27 @@ and switches to insert-mode."
 (defparameter vim:last-paste nil
   "Information of the latest paste as a `vim:paste-info' structure.")
 
-(vim:defcmd vim:cmd-negate-or-paste-pop (count)
+(defun vim:cmd-paste-pop (count)
   "Cycle through the kill-ring like yank-pop if previous command was yank or paste-pop,
 and else negates meaning of the next command (e.g. vim:cmd-join-lines will split them)."
-  (if (and (member last-command '(yank
-                                  vim:cmd-negate-or-paste-pop
-                                  vim:cmd-paste-pop-next
-                                  vim:cmd-paste-before
-                                  vim:cmd-paste-behind
-                                  vim:cmd-paste-before-and-indent
-                                  vim:cmd-paste-behind-and-indent))
-           vim:last-paste)
-    (when vim:last-paste
-      (funcall (or yank-undo-function #'delete-region)
-               (vim:paste-info-begin vim:last-paste)
-               (vim:paste-info-end vim:last-paste))
-      (goto-char (vim:paste-info-point vim:last-paste))
-      (current-kill (or count 1))
-      (funcall (vim:paste-info-command vim:last-paste)
-               :count (vim:paste-info-count vim:last-paste)))
-    (progn
-      (message "Next command will be negated")
-      (setf vim:next-command-negated? t
-            prefix-arg current-prefix-arg))))
+  (when vim:last-paste
+    (funcall (or yank-undo-function #'delete-region)
+             (vim:paste-info-begin vim:last-paste)
+             (vim:paste-info-end vim:last-paste))
+    (goto-char (vim:paste-info-point vim:last-paste))
+    (current-kill (or count 1))
+    (funcall (vim:paste-info-command vim:last-paste)
+             :count (vim:paste-info-count vim:last-paste))))
 
-(vim:defcmd vim:cmd-paste-pop-next (count)
+(vim:defcmd vim:cmd-paste-pop-prev (count)
   "Cycles through the kill-ring like yank-pop."
   (setq this-command last-command)
-  (vim:cmd-negate-or-paste-pop :count (- (or count 1))))
+  (vim:cmd-paste-pop (or count 1)))
+
+(vim:defcmd vim:cmd-paste-pop-next (count)
+  "Cycles through the kill-ring like `yank-pop'."
+  (setq this-command last-command)
+  (vim:cmd-paste-pop (- (or count 1))))
 
 (vim:defcmd vim:cmd-paste-before (count register)
   "Pastes the latest yanked text before the cursor position."
@@ -588,13 +583,12 @@ indented according to the current mode."
 
 (vim:defcmd vim:cmd-join-lines (count)
   "Join `count' lines with a minimum of two lines."
-  (if vim:next-command-negated?
-    (progn
-      (dotimes (i (or count 1))
+  (setf count (or count 1))
+  (if (< count 0)
+      (dotimes (i (abs count))
         (split-line))
-      (setf vim:next-command-negated? nil))
     (save-match-data
-      (dotimes (i (max 1 (1- (or count 1))))
+      (dotimes (i (max 1 (1- count)))
         (when (re-search-forward "\\(\\s-*\\)\\(\n\\s-*\\)\\()?\\)")
           (delete-region (match-beginning 2)
                          (match-end 2))
@@ -610,17 +604,19 @@ indented according to the current mode."
 
 (vim:defcmd vim:cmd-shift-left (motion)
   "Shift the lines covered by `motion' leftwards."
-  (goto-line1 (vim:motion-first-line motion))
-  (indent-rigidly (line-beginning-position)
-                  (line-end-position (vim:motion-line-count motion))
-                  (- vim:shift-width)))
+  (save-current-line-column
+   (goto-line1 (vim:motion-first-line motion))
+   (indent-rigidly (line-beginning-position)
+                   (line-end-position (vim:motion-line-count motion))
+                   (- vim:shift-width))))
 
 (vim:defcmd vim:cmd-shift-right (motion)
   "Shift the lines covered by `motion' rightwards."
-  (goto-line1 (vim:motion-first-line motion))
-  (indent-rigidly (line-beginning-position)
-                  (line-end-position (vim:motion-line-count motion))
-                  vim:shift-width))
+  (save-current-line-column
+   (goto-line1 (vim:motion-first-line motion))
+   (indent-rigidly (line-beginning-position)
+                   (line-end-position (vim:motion-line-count motion))
+                   vim:shift-width)))
 
 (vim:defcmd vim:cmd-toggle-case (motion)
   "Toggles the case of all characters defined by `motion'."
@@ -740,6 +736,17 @@ block motions."
     (vim:set-register ?\@ macro)
     (execute-kbd-macro macro count)))
 
+(defun vim:universal-argument-minus (arg)
+  "Wrapper around `universal-argument-minus' that does the necessary
+bookkeeping to maintain `vim:current-key-sequence' in order. That is needed
+to make `vim:cmd-repeat' and visual block mode work as expected."
+  (interactive "P")
+  ;; (call-interactively #'universal-argument-minus arg)
+  (call-interactively #'negative-argument arg)
+  (setf vim:current-key-sequence
+        (vconcat vim:current-key-sequence
+                 (this-command-keys-vector))))
+
 (defun vim:digit-argument (arg)
   "Wrapper around `digit-argument' that does the necessary bookkeeping to
 maintain `vim:current-key-sequence' in order. That is needed to make
@@ -749,6 +756,10 @@ maintain `vim:current-key-sequence' in order. That is needed to make
   (setf vim:current-key-sequence
         (vconcat vim:current-key-sequence
                  (this-command-keys-vector))))
+
+(define-key universal-argument-map [remap digit-argument] 'vim:digit-argument)
+(define-key universal-argument-map [?-] 'vim:universal-argument-minus)
+(define-key universal-argument-map [kp-subtract] 'vim:universal-argument-minus)
 
 (provide 'vim-commands)
 
