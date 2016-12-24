@@ -102,8 +102,8 @@
   ;; Should return hash table of tags - hashtable of (<identifier> . <eproj-tags>)
   ;; bindings for specified files, <eproj-tags> is a list of tags
 
-  show-tag-kind-procedure ;; function of one argument, a tag, returning string or nil
-  tag->string-procedure ;; function of one argument, a tag, returning string
+  show-tag-kind-procedure ;; function that takes a tag and returs a string
+  tag->string-func ;; function of one argument, a tag, returning string
   synonym-modes ;; list of symbols, these modes will resolve to this language
   ;; during tag search
   normalize-identifier-before-navigation-procedure ;; Possibly strip unneeded
@@ -116,7 +116,7 @@
                             create-tags-procedure
                             parse-tags-procedure
                             show-tag-kind-procedure
-                            tag->string-procedure
+                            tag->string-func
                             synonym-modes
                             normalize-identifier-before-navigation-procedure)
   (make-eproj-language
@@ -128,7 +128,7 @@
    :create-tags-procedure create-tags-procedure
    :parse-tags-procedure parse-tags-procedure
    :show-tag-kind-procedure show-tag-kind-procedure
-   :tag->string-procedure tag->string-procedure
+   :tag->string-func tag->string-func
    :synonym-modes synonym-modes
    :normalize-identifier-before-navigation-procedure
    normalize-identifier-before-navigation-procedure))
@@ -260,7 +260,7 @@
     :parse-tags-procedure
     #'eproj/get-fast-tags-tags-from-buffer
     :show-tag-kind-procedure #'eproj/haskell-tag-kind
-    :tag->string-procedure #'eproj/haskell-tag->string
+    :tag->string-func #'eproj/haskell-tag->string
     :synonym-modes '(literate-haskell-mode
                      haskell-c-mode
                      haskell-c2hs-mode)
@@ -275,7 +275,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-procedure #'eproj/c-tag->string
+    :tag->string-func #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
@@ -301,7 +301,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-procedure #'eproj/c-tag->string
+    :tag->string-func #'eproj/c-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
@@ -314,7 +314,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-procedure #'eproj/generic-tag->string
+    :tag->string-func #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
@@ -328,7 +328,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-procedure #'eproj/generic-tag->string
+    :tag->string-func #'eproj/generic-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)
@@ -341,7 +341,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/java-tag-kind
-    :tag->string-procedure #'eproj/java-tag->string
+    :tag->string-func #'eproj/java-tag->string
     :synonym-modes nil
     :normalize-identifier-before-navigation-procedure
     #'identity)))
