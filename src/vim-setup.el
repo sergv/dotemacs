@@ -109,7 +109,6 @@ like \"d w\".")
   ("+"       vim:cmd-paste-pop-next)
   ("X"       vim:cmd-delete-char-backward)
   ("M"       vim:jump-to-prev-saved-position)
-  ("J"       vim:cmd-join-lines)
 
   ("g u"     undo-tree-visualize)
 
@@ -166,6 +165,7 @@ like \"d w\".")
   ("D"         vim:delete-current-line)
   ("k"         undo-tree-undo)
   ("K"         undo-tree-redo)
+  ("J"         vim:cmd-join-lines)
 
   ("C-p"       yank)
   ("C-S-p"     browse-kill-ring)
@@ -209,6 +209,7 @@ like \"d w\".")
   (("[" "]") vim:wrap-braces)
   (("{" "}") vim:wrap-brackets)
 
+  ("J"       vim:cmd-join)
 
   ("C-'"     vim:wrap-typographical-single-quotes)
   ("C-\""    vim:wrap-typographical-double-quotes))
