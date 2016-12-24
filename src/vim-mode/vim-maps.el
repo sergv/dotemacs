@@ -365,7 +365,7 @@
 (vim:vmap "y" #'vim:cmd-yank)
 (vim:vmap "Y" #'vim:cmd-yank)
 
-(vim:vmap "J" #'vim:cmd-join)
+;; (vim:vmap "J" #'vim:cmd-join)
 
 (vim:vmap "<" #'vim:cmd-shift-left)
 (vim:vmap ">" #'vim:cmd-shift-right)
