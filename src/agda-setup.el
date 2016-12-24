@@ -75,8 +75,6 @@
     ("+"               input-unicode)
     ("C-."             agda2-goto-definition-keyboard)
     ("C-,"             agda2-go-back)
-    ("g ."             agda2-goto-definition-keyboard)
-    ("g ,"             agda2-go-back)
     ;; zoom in into hole, show its goal and context
     ("- ,"             agda2-goal-and-context)
     ;; same as ", ," but tries to infer type of current hole's contents
