@@ -124,7 +124,7 @@ as accepted by `bounds-of-thing-at-point'.")
          (case-fold-search (and (not (null current-prefix-arg))
                                 (<= 16 (car current-prefix-arg))))
          (identifier (if use-regexp
-                       (read-regexp "enter regexp to search for")
+                         (read-regexp "enter regexp to search for")
                        (eproj-symbnav/identifier-at-point nil)))
          (effective-major-mode (eproj/resolve-synonym-modes major-mode))
          (orig-file-name (cond
@@ -165,23 +165,69 @@ as accepted by `bounds-of-thing-at-point'.")
              next-home-entry
              (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
                (if use-regexp
-                 (string-match-p identifier next-symbol)
+                   (string-match-p identifier next-symbol)
                  (string= identifier next-symbol))))
-      (progn
-        (eproj-symbnav/switch-to-home-entry next-home-entry)
-        (push current-home-entry
-              eproj-symbnav/previous-homes)
-        (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
-      (let* ((entry->string
-              (eproj-language/tag->string-procedure
-               (aif (gethash effective-major-mode eproj/languages-table)
-                 it
-                 (error "unsupported language %s" effective-major-mode))))
+        (progn
+          (eproj-symbnav/switch-to-home-entry next-home-entry)
+          (push current-home-entry
+                eproj-symbnav/previous-homes)
+          (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
+      (let* ((lang (aif (gethash effective-major-mode eproj/languages-table)
+                        it
+                        (error "unsupported language %s" effective-major-mode)))
+             (entry->string-func (eproj-language/tag->string-func lang))
+             (show-tag-kind-procedure (eproj-language/show-tag-kind-procedure lang))
+             (tag->sort-token
+              (lambda (tag)
+                (list
+                 (eproj-tag/symbol tag)
+                 (funcall show-tag-kind-procedure tag)
+                 (eproj-tag/file tag)
+                 (eproj-tag/line tag))))
+             (sort-tokens=
+              (lambda (x y)
+                (let ((symbol-x (first x))
+                      (symbol-y (first y))
+                      (tag-kind-x (second x))
+                      (tag-kind-y (second y))
+                      (file-x (third x))
+                      (file-y (third y))
+                      (line-x (fourth x))
+                      (line-y (fourth y)))
+                  (and (string= symbol-x symbol-y)
+                       (string= tag-kind-x tag-kind-y)
+                       (string= file-x file-y)
+                       (= line-x line-y)))))
+             (sort-tokens<
+              (lambda (x y)
+                (let ((symbol-x (first x))
+                      (symbol-y (first y))
+                      (tag-kind-x (second x))
+                      (tag-kind-y (second y))
+                      (file-x (third x))
+                      (file-y (third y))
+                      (line-x (fourth x))
+                      (line-y (fourth y)))
+                  (cl-assert (stringp symbol-x))
+                  (cl-assert (stringp symbol-y))
+                  (cl-assert (stringp tag-kind-x))
+                  (cl-assert (stringp tag-kind-y))
+                  (cl-assert (stringp file-x))
+                  (cl-assert (stringp file-y))
+                  (cl-assert (numberp line-x))
+                  (cl-assert (numberp line-y))
+                  (or (string< symbol-x symbol-y)
+                      (and (string= symbol-x symbol-y)
+                           (or (string< tag-kind-x tag-kind-y)
+                               (and (string= tag-kind-x tag-kind-y)
+                                    (or (string< file-x file-y)
+                                        (and (string= file-x file-y)
+                                             (< line-x line-y))))))))))
              (expanded-project-root
               (expand-file-name (eproj-project/root proj)))
              (tag->string
-              (lambda (tag tag-proj)
-                (let ((txt (funcall entry->string tag-proj tag))
+              (lambda (tag-proj tag)
+                (let ((txt (funcall entry->string-func tag-proj tag))
                       (expanded-tag-file
                        (expand-file-name
                         (eproj-resolve-abs-or-rel-name
@@ -199,29 +245,32 @@ as accepted by `bounds-of-thing-at-point'.")
              (entry-tag #'first)
              (entry-string #'second)
              (entry-proj #'third)
+             (entry-sort-token #'fourth)
              (entries
               ;; I'm not entirely sure where duplicates come from, but it's cheap
               ;; to remove them and at the same time I'm reluctant to tweak my
               ;; Emacs because of it's dynamically-typed lisp.
               (list->vector
-               (remove-duplicates-from-sorted-list-by
-                (lambda (a b)
-                  ;; compare results of tag->string
-                  (string= (funcall entry-string a) (funcall entry-string b)))
-                (sort
+               (sort
+                (remove-duplicates-by-hashing-projections
+                 entry-sort-token
+                 #'equal
                  (-map (lambda (tag-entry)
                          (destructuring-bind (tag . tag-proj)
                              tag-entry
                            (list tag
-                                 (funcall tag->string tag tag-proj)
-                                 tag-proj)))
+                                 (funcall tag->string tag-proj tag)
+                                 tag-proj
+                                 (funcall tag->sort-token tag))))
                        (eproj-get-matching-tags proj
                                                 effective-major-mode
                                                 identifier
-                                                use-regexp))
-                 (lambda (a b)
-                   ;; compare results of tag->string
-                   (string< (funcall entry-string a) (funcall entry-string b))))))))
+                                                use-regexp)))
+                (lambda (a b)
+                  ;; compare results of tag->sort-token
+                  (funcall sort-tokens<
+                           (funcall entry-sort-token a)
+                           (funcall entry-sort-token b)))))))
         (pcase (length entries)
           (`0
            (error "No entries for %s %s"
