@@ -103,8 +103,6 @@
     ("C-:"     pp-eval-expression)
     ("C-."     elisp-slime-nav-find-elisp-thing-at-point)
     ("C-,"     pop-tag-mark)
-    ("g ."     elisp-slime-nav-find-elisp-thing-at-point)
-    ("g ,"     pop-tag-mark)
 
     ("<tab>"   indent-for-tab-command)
     ("<f9>"    elisp-compile-and-move))
