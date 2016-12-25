@@ -324,14 +324,17 @@ entries."
          (temporary-buffer-data
           (-map (lambda (buf)
                   (with-current-buffer buf
-                    (make-session-entry
-                     (sessions/store-string (buffer-name buf))
-                     (point)
-                     (sessions/get-buffer-variables buf)
-                     major-mode
-                     (sessions/store-string
-                      (buffer-substring (point-min) (point-max)))
-                     (sessions/get-special-buffer-variables buf))))
+                    (let ((drop-properties?
+                           (memq major-mode '(markdown-mode))))
+                      (make-session-entry
+                       (sessions/store-string (buffer-name buf) drop-properties?)
+                       (point)
+                       (sessions/get-buffer-variables buf)
+                       major-mode
+                       (sessions/store-string
+                        (buffer-substring (point-min) (point-max))
+                        drop-properties?)
+                       (sessions/get-special-buffer-variables buf)))))
                 (-filter #'sessions/is-temporary-buffer? buffers)))
          (special-buffer-data
           (remq nil
