@@ -58,11 +58,9 @@
               (insert " ++ \""))))
          (insert-message
           (lambda (is-initial-insertion? user-input)
-            (message "inserting message, user-input = %s" user-input)
             (insert (format "%s\"" (funcall quote-input user-input)))))
          (insert-variable
           (lambda (is-initial-insertion? user-input)
-            (message "inserting variable, user-input = %s" user-input)
             (insert
              (format "%s%s = \" ++ show %s"
                      (if is-initial-insertion? "" ", ")
