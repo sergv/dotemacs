@@ -8,9 +8,10 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'common)
 (require 'cc-setup)
+(require 'common)
 (require 'eproj-setup)
+(require 'java-abbrev+)
 
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
@@ -27,7 +28,8 @@
   (setup-eproj-symbnav)
   (setup-outline-headers :header-start "/"
                          :header-symbol "*"
-                         :length-min 3))
+                         :length-min 3)
+  (java-abbrev+-setup))
 
 (provide 'java-setup)
 
