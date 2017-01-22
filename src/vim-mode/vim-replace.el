@@ -28,7 +28,8 @@
             (cond (word "\\>") (symbol "\\_>"))
             separator
             (when fill-replace
-              (vim--substitute-quote str)))))
+              (vim--substitute-quote str))
+            separator)))
 
 (defun vim--substitute-quote (text)
   "Just quote backslash for now because it has special meaning and all other
@@ -44,12 +45,21 @@ special characters are introduced via backlash only."
    (vim:motion-begin-pos motion)
    (vim:motion-end-pos motion)))
 
+(defun vim-replace--minibuffer-setup-jump-before-last-separator ()
+  "Hook function to properly position cursor in the %s command, e.g.
+%s/foo/bar_|_/
+"
+  (remove-hook 'minibuffer-setup-hook #'vim-replace--minibuffer-setup-jump-before-last-separator)
+  (goto-char (point-max))
+  (backward-char))
+
 (defun vim--start-ex-with-customized-substitute-command (str)
   (interactive)
   (let ((vim:ex-current-buffer (current-buffer))
         (vim:ex-current-window (selected-window)))
     (let ((minibuffer-local-completion-map vim:ex-keymap))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
+      (add-hook 'minibuffer-setup-hook #'vim-replace--minibuffer-setup-jump-before-last-separator)
       (let ((result (completing-read vim--ex-propmt
                                      'vim:ex-complete
                                      nil
