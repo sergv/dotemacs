@@ -16,13 +16,19 @@
                                            (fill-replace nil))
   (unless str
     (error "No string for replace"))
-  (concat "%s,"
-          (cond (word "\\<") (symbol "\\_<"))
-          (regexp-quote str)
-          (cond (word "\\>") (symbol "\\_>"))
-          ","
-          (when fill-replace
-            (vim--substitute-quote str))))
+  (let ((separator
+         (or (cl-find-if (lambda (sep)
+                           (not (cl-search sep str)))
+                         '("," "/" "@" "|" "#" "=" "&"))
+             ",")))
+    (concat "%s"
+            separator
+            (cond (word "\\<") (symbol "\\_<"))
+            (regexp-quote str)
+            (cond (word "\\>") (symbol "\\_>"))
+            separator
+            (when fill-replace
+              (vim--substitute-quote str)))))
 
 (defun vim--substitute-quote (text)
   "Just quote backslash for now because it has special meaning and all other
