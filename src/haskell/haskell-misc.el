@@ -976,6 +976,30 @@ it's position in current window."
     (shm/backtab)
     (indent-relative-backward)))
 
+
+(defun haskell-misc--cabal-indented-subsection ()
+  "Similar to `haskell-cabal-subsection' but sets `:data-start-column' to the
+value section should have if it is to be properly indented."
+  (save-excursion
+    (haskell-cabal-beginning-of-subsection)
+    (when (looking-at "\\(?:\\([ \t]*\\)\\(\\w*\\):\\)[ \t]*")
+      (list :name (match-string-no-properties 2)
+            :beginning (match-end 0)
+            :end (save-match-data (haskell-cabal-subsection-end))
+            :data-start-column (+ 2 (current-column))))))
+
+(defun haskell-misc-cabal-align-and-sort-subsection ()
+  "Sort lines of the subsection at point."
+  (interactive)
+  (haskell-cabal-save-position
+   (haskell-cabal-with-subsection
+    (haskell-misc--cabal-indented-subsection) t
+    (haskell-cabal-with-cs-list
+     (sort-subr nil
+                'forward-line
+                'end-of-line
+                'haskell-cabal-sort-lines-key-fun)))))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
