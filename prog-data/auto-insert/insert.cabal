@@ -69,7 +69,7 @@ test-suite ${filename no ext}-test
   type:
     exitcode-stdio-1.0
   main-is:
-    test/Main.hs
+    tests/Main.hs
   build-depends:
     base,
     QuickCheck,
@@ -86,7 +86,7 @@ test-suite ${filename no ext}-test
     -fno-warn-name-shadowing
     -rtsopts
 --  hs-source-dirs:
---    test
+--    tests
   ghc-prof-options:
     -fprof-auto
 
