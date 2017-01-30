@@ -276,7 +276,7 @@ and indent them as singe line."
                   opts
                   rts-opts))
         haskell-process-args-cabal-repl (--map (concat "--ghc-option=" it) ghc-options)
-        haskell-process-args-stack-ghci (--map (concat "--ghc-options=" it) ghc-options)))
+        haskell-process-args-stack-ghci (--map (concat "--ghci-options=" it) ghc-options)))
 
 (defconst +haskell-compile-error-or-warning-regexp+
   (mapconcat
