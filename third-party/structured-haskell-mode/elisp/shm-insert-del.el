@@ -102,8 +102,7 @@
                   (- (point) 6))
                (looking-at "[ ]*$"))
           (shm-auto-insert-module))
-         (t (shm-insert-string " ")))
-        )
+         (t (shm-insert-string " "))))
        (t (shm-insert-string " "))))))
 
 (defun shm-nothing-following-p ()
