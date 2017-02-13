@@ -27,8 +27,8 @@ library
     Foo
 --   other-modules:
 --     Utils.Utils
---   hs-source-dirs:
---     src
+  hs-source-dirs:
+    src
   build-depends:
     base >= 4.7
   default-language:
@@ -38,8 +38,8 @@ library
     -fwarn-monomorphism-restriction
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
---  build-tools:
---    alex happy c2hs
+--   build-tools:
+--     alex happy c2hs
   ghc-prof-options:
     -fprof-auto
 
@@ -52,7 +52,7 @@ executable ${filename no ext}
 --   other-modules:
 --     Utils.Utils
 --   hs-source-dirs:
---     src
+--     exe
   default-language:
     Haskell2010
   ghc-options:
@@ -85,8 +85,8 @@ test-suite ${filename no ext}-test
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
---  hs-source-dirs:
---    tests
+--   hs-source-dirs:
+--     tests
   ghc-prof-options:
     -fprof-auto
 
