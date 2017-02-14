@@ -627,7 +627,7 @@ return nil otherwise."
            ,@body)
        (set-marker ,marker-var nil))))
 
-;;; aif, awhen, if-let
+;;; aif, awhen
 
 (defmacro aif (condition true-branch &optional false-branch)
   "Anaphoric if, binds evaluated condition to variable it."
@@ -641,6 +641,8 @@ return nil otherwise."
   `(let ((it ,condition))
      (when it
        ,@body)))
+
+;; defparameter, defparameter-local
 
 (defmacro defparameter (var &optional value doc)
   "Just like CL's defparameter, sets variable value when evaluated."
