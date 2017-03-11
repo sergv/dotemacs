@@ -35,7 +35,7 @@ library
     Haskell2010
   ghc-options:
     -Wall
-    -fwarn-monomorphism-restriction
+    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
 --   build-tools:
@@ -57,7 +57,7 @@ executable ${filename no ext}
     Haskell2010
   ghc-options:
     -Wall
-    -fwarn-monomorphism-restriction
+    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
@@ -81,7 +81,7 @@ test-suite ${filename no ext}-test
     Haskell2010
   ghc-options:
     -Wall
-    -fwarn-monomorphism-restriction
+    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts

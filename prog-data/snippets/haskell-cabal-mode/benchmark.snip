@@ -14,7 +14,7 @@ benchmark ${1:benchmark-name}
     Haskell2010
   ghc-options:
     -Wall
+    -Wcompat
     -main-is ${4:BenchmarkMain}
-    -fwarn-monomorphism-restriction
     -fno-warn-name-shadowing
     -rtsopts
