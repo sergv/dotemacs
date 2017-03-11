@@ -7,9 +7,9 @@ test-suite ${1:test-name}
   main-is:
     ${2:tests/Main.hs}
   build-depends:
+    HUnit,
     QuickCheck,
     base,
-    hunit,
     tasty,
     tasty-hunit,
     tasty-quickcheck,
@@ -18,7 +18,7 @@ test-suite ${1:test-name}
     Haskell2010
   ghc-options:
     -Wall
-    -fwarn-monomorphism-restriction
+    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
