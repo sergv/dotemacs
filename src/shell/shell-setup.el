@@ -71,13 +71,34 @@
   (add-hook mode #'shell-script-setup))
 
 ;;;###autoload
+(defun make-dirtrack-windows-msys-directory-function (internal-func)
+  "Wrapper around `dirtrack-directory-function' that canonicalizes
+MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
+  (lambda (dir)
+    (unless (platform-os-type? 'windows)
+      (error "The result of `make-dirtrack-windows-msys-directory-function' must be used only in Windows environment."))
+    (save-match-data
+      (funcall
+       internal-func
+       (if (string-match "^\\(/\\([a-zA-Z]\\)\\)/.*$" dir)
+           (let ((drive (match-string 2 dir)))
+             (replace-match (concat drive ":") nil t dir 1))
+         dir)))))
+
+;;;###autoload
+(when (platform-os-type? 'windows)
+  (setf dirtrack-directory-function
+        (make-dirtrack-windows-msys-directory-function dirtrack-directory-function)))
+
+;;;###autoload
 (defun shell-setup ()
   (init-repl :show-directory t :create-keymaps t)
   (smartparens-mode +1)
   (hl-line-mode +1)
-  (dirtrack-mode +1)
 
   (setf dirtrack-list '("^[^:]+:\\([^$]+\\)[$#]" 1))
+  (dirtrack-mode +1)
+
   (ansi-color-for-comint-mode-on)
   (setq-local comint-scroll-to-bottom-on-input t)
 
