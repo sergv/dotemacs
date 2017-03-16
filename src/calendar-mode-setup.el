@@ -7,6 +7,9 @@
 ;; Description:
 
 ;;;###autoload
+(setf calendar-date-style 'iso)
+
+;;;###autoload
 (defun calendar-mode-setup ()
   (def-keys-for-map calendar-mode-map
     +vim-special-keys+))
