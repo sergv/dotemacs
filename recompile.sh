@@ -29,7 +29,20 @@ function update-dir-autoloads {
             dirs="\"$emacs_dir/$dir\" $dirs"
         fi
     done
-    emacs --batch --eval "(progn (toggle-debug-on-error) (setq generated-autoload-file \"$emacs_dir/$name\") (update-directory-autoloads $dirs) (message (concat \"Updated autoloads in \" (mapconcat #'identity (list $dirs) \", \"))))"
+    emacs_cmd=$(cat <<EOF
+(progn
+  (setq debug-on-error t
+        generated-autoload-file "$emacs_dir/$name"
+        make-backup-files nil
+        backup-inhibited t)
+  (update-directory-autoloads $dirs)
+  (message
+    (concat "Updated autoloads in "
+            (mapconcat #'identity (list $dirs) ", "
+            ))))
+EOF
+)
+    emacs --batch --eval "$emacs_cmd"
 }
 
 rm -f \
