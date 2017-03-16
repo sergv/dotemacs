@@ -81,16 +81,17 @@
       search-whitespace-regexp nil ;; intuitive behavior for interactive regexps
       system-time-locale "C"
 
-      ;; any kind of bell is annoying, but not when we're on windows
-      ;; since it uses audible bell everywhere
+      ;; Any kind of bell is annoying, but not when we're on windows
+      ;; since it uses audible bell everywhere.
       visible-bell (platform-os-type? 'windows)
       message-log-max t
 
-      ;; length from the beginning of buffer for magic mode detection
+      ;; Length from the beginning of buffer for magic mode detection.
       magic-mode-regexp-match-limit 1000000
       suggest-key-bindings nil
 
-      load-prefer-newer t
+      ;; Always prefer *.elc to *.el.
+      load-prefer-newer nil
       kill-ring-max 512
       save-interprogram-paste-before-kill nil
       enable-recursive-minibuffer t
