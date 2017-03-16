@@ -2229,6 +2229,12 @@ called genius.”
 
    "“The Universe is under no obligation to make sense to you.”
 ―Neil deGrasse Tyson"
+
+   "“You are the average of the five people you spend the most time with.”
+-Jim Rohn"
+
+   "“Some things are up to us, and some things are not up to us.”
+-Epictetus, Stoic philosopher"
 ]
   "Good and nice fortunes.")
 
