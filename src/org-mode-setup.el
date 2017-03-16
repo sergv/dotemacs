@@ -530,7 +530,8 @@ the current topic."
     ("<C-down>"   org-metadown)
     ("<C-up>"     org-metaup)
     ("<C-left>"   org-metaleft)
-    ("<C-right>"  org-metaright))
+    ("<C-right>"  org-metaright)
+    ("C-="        input-unicode))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap
