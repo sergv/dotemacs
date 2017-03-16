@@ -95,22 +95,12 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
           (funcall strip-cons (cadr-safe (cdr entry))))
          (column-group
           (funcall strip-cons (cadr-safe (cdr-safe (cdr entry))))))
-    ;; (values (normalize-file-name (match-string-no-properties file-group))
-    ;;         (when (and (not (null? line-group))
-    ;;                    ;; it turns out that someone may put lambdas here,
-    ;;                    ;; e.g. grep...
-    ;;                    (integer? line-group))
-    ;;           (string->number (match-string-no-properties line-group)))
-    ;;         (when (and (not (null? column-group))
-    ;;                    ;; it turns out that someone may put lambdas here,
-    ;;                    ;; e.g. grep...
-    ;;                    (integer? column-group))
-    ;;           (- (string->number (match-string-no-properties column-group))
-    ;;              compilation-first-column)))
     (make-compilation-error
      :compilation-root-directory default-directory
      :filename
-     (normalize-file-name (match-string-no-properties file-group))
+     (normalize-file-name
+      (trim-whitespace
+       (match-string-no-properties file-group)))
      :line-number
      (when (and line-group
                 ;; it turns out that someone may put lambdas here,
