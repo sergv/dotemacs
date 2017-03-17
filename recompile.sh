@@ -29,7 +29,7 @@ function update-dir-autoloads {
             dirs="\"$emacs_dir/$dir\" $dirs"
         fi
     done
-    emacs_cmd=$(cat <<EOF
+    read -r -d '' emacs_cmd <<EOF
 (progn
   (setq debug-on-error t
         generated-autoload-file "$emacs_dir/$name"
@@ -41,7 +41,6 @@ function update-dir-autoloads {
             (mapconcat #'identity (list $dirs) ", "
             ))))
 EOF
-)
     emacs --batch --eval "$emacs_cmd"
 }
 
