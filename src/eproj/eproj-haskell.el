@@ -146,10 +146,10 @@ runtime but rather will be silently relied on)."
      (pcase y
        (`(,sym-y ,file-y ,line-y . ((type . ,typ-y)))
         (if (string< sym-x sym-y)
-          t
+            t
           (and (string= sym-x sym-y)
                (if (string< file-x file-y)
-                 t
+                   t
                  (and (string= file-x file-y)
                       (string< typ-x typ-y))))))
        (_

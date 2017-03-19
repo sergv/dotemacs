@@ -73,15 +73,15 @@
     "interface"))
 
 (setf +ctags-aux-fields-re+
-  (eval-when-compile
-    ;; (concat "^\\("
-    ;;         (macroexpand
-    ;;          `(rx (or ,@+ctags-aux-fields+)))
-    ;;         "\\):\\(.*\\)$")
-    (concat "\\=\\("
-            (macroexpand
-             `(rx (or ,@+ctags-aux-fields+)))
-            "\\):\\(.*\\)")))
+      (eval-when-compile
+        ;; (concat "^\\("
+        ;;         (macroexpand
+        ;;          `(rx (or ,@+ctags-aux-fields+)))
+        ;;         "\\):\\(.*\\)$")
+        (concat "\\=\\("
+                (macroexpand
+                 `(rx (or ,@+ctags-aux-fields+)))
+                "\\):\\(.*\\)")))
 
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
   (unless *ctags-exec*
@@ -113,8 +113,8 @@
                                "-"
                                "--excmd=number"
                                (aif (rest-safe (assq lang-mode *ctags-language-flags*))
-                                 it
-                                 (error "unknown ctags language: %s" lang-mode)))))
+                                    it
+                                    (error "unknown ctags language: %s" lang-mode)))))
             (error "ctags invokation failed: %s"
                    (with-current-buffer out-buffer
                      (buffer-substring-no-properties (point-min) (point-max)))))))))))
@@ -125,7 +125,7 @@
 (defsubst eproj/ctags-cache-string (x)
   (assert (stringp x))
   (if-let (cached-x (gethash x eproj/ctags-string-cache))
-    cached-x
+      cached-x
     (puthash x x eproj/ctags-string-cache)))
 
 ;; tags parsing
@@ -166,16 +166,16 @@ BUFFER is expected to contain output of ctags command."
                       (save-excursion
                         (goto-char start)
                         (if (re-search-forward +ctags-aux-fields-re+ end t)
-                          (let ((identifier (match-string-no-properties 1))
-                                (value (match-string-no-properties 2)))
-                            ;; when value is nonempty
-                            (when (not (string= "" value))
-                              (let ((new-field (cons (string->symbol identifier)
-                                                     (eproj/ctags-cache-string value))))
-                                (push (aif (gethash new-field field-cache)
-                                        it
-                                        (puthash new-field new-field field-cache))
-                                      fields))))
+                            (let ((identifier (match-string-no-properties 1))
+                                  (value (match-string-no-properties 2)))
+                              ;; when value is nonempty
+                              (when (not (string= "" value))
+                                (let ((new-field (cons (string->symbol identifier)
+                                                       (eproj/ctags-cache-string value))))
+                                  (push (aif (gethash new-field field-cache)
+                                             it
+                                             (puthash new-field new-field field-cache))
+                                        fields))))
                           (error "invalid entry: %s" (buffer-substring-no-properties start end)))))))
                 (forward-char)
                 (puthash symbol
