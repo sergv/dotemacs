@@ -6,8 +6,6 @@
 ;; Created: long ago
 ;; Description:
 
-;; (setf debug-on-error t)
-
 (load-library "set-up-platform")
 (load-library "set-up-environment-variables")
 (load-library "set-up-paths")
