@@ -15,9 +15,7 @@
 (autoload 'select-start-selection "select-mode")
 
 ;;;###autoload
-(eval-after-load "select-mode"
-  '(progn
-     (setf select-restore-windows-configuration-on-hide t)))
+(setf select-mode-restore-windows-configuration-on-hide t)
 
 ;;;###autoload
 (defun select-mode-setup ()
@@ -27,8 +25,8 @@
     +vim-mock:word-motion-keys+
     +vim-special-keys+
 
-    ("h" select-move-selection-down)
-    ("t" select-move-selection-up)))
+    ("h" select-mode-select-next-item)
+    ("t" select-mode-select-previous-item)))
 
 ;;;###autoload
 (add-hook 'select-mode-hook #'select-mode-setup)

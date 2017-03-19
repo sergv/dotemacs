@@ -13,96 +13,56 @@
 
 ;; Config variables
 
-(defvar select-restore-windows-configuration-on-hide nil
+(defcustom select-mode-restore-windows-configuration-on-hide nil
   "Whether to restore windows configuration prior to selection buffer appearance (t)
 or just to bury selection buffer, leaving it's windows inplace (nil).)")
-
-;; Global state
-
-(defvar-local select--init-window-config nil)
-(defvar-local select--init-window nil
-  "Window from which select-mode's instance was invoked")
-(defvar-local select--init-buffer nil
-  "Buffer from which select-mode's instance was invoked")
-
-
-(defvar-local select--selected-item nil
-  "Index (number) of selected item")
-(defvar-local select--items nil
-  "Vector of possible selections")
-(defvar-local select--item-positions nil
-  "Vector of positions for tracking current selection.")
-
-(defvar-local select--selection-overlay nil
-  "Overlay that displays currently selected item.")
-
-(defface select-selection-face '((t (:inherit secondary-selection)))
-  "Face to highlight currently selected item")
-
-(defvar-local select--item-show-function #'identity
-  "This should be a function of one item to be displayed.
-
-Items will be passed to this function before insertion into buffer.")
-
-(defvar-local select--on-selection-function #'ignore
-  "This should be a function of one argument - index of currently selected item.")
-(defvar-local select--preamble-function (lambda () "")
-  "Function that returns contents at the top of the buffer")
-(defvar-local select--epilogue-function (lambda () "")
-  "Function that returns contents at the bottom of the buffer")
-
-(defvar-local select--separator-function (lambda () "")
-  "Function of no arguments that returns current separator to use.
-
-Separator is used like this
-<...>
-foo
----------------
-bar
----------------
-baz
-<...>")
 
 (defun select-make-bold-separator (base)
   (propertize base
               'face 'bold
               'font-lock-face 'bold))
 
-(defvar select--bold-separator (select-make-bold-separator "--------\n"))
+(defface select-selection-face '((t (:inherit secondary-selection)))
+  "Face to highlight currently selected item")
+
+(defparameter select-mode-bold-separator (select-make-bold-separator "--------\n"))
+
+
+(defstruct select-mode--state
+  (init-buffer           nil                    :read-only) ;; Buffer that was active when selection was initiated.
+  (init-window           nil                    :read-only) ;; Window that was active when selection was initiated.
+  (init-window-config    nil                    :read-only) ;; Window configuration before selection buffer was shown.
+
+  (item-show-function    #'identity             :read-only) ;; A function of one item to be displayed. Items will be passed to this function before insertion into buffer.
+  (on-selection-function #'ignore               :read-only) ;; A function of three arguments: index of currently selected item, the selected item and selection type which is either 'same-window or 'other-window.
+  (preamble              nil                    :read-only) ;; String that will be inserted at the top of the buffer;
+  (epilogue              nil                    :read-only) ;; String that will be inserted at the bottom of the buffer;
+  (separator             select-mode-bold-separator :read-only) ;; Separator
+
+  (selected-item         nil) ;; Number, index of selected item withit items field.
+  (items                 nil) ;; Vector of possible selections.
+  (item-positions        nil) ;; Vector of positions for tracking current selection.
+  (items-count           nil) ;; Number of items and item-positions
+
+  (selection-overlay     nil :read-only) ;; Overlay that displays currently selected item.
+
+  )
+
+(defvar-local select-mode--current-state nil
+  "Buffer-local instance of `select-mode--state' struct.")
 
 (defvar select-mode-map
   (let ((kmap (make-sparse-keymap)))
     (def-keys-for-map kmap
-      ("<up>"     select-move-selection-up)
-      ("<down>"   select-move-selection-down)
-      ("<return>" select-do-select-same-window)
-      ("SPC"      select-do-select-other-window)
+      ("<up>"     select-mode-select-previous-item)
+      ("<down>"   select-mode-select-next-item)
+      ("<return>" select-mode-do-select-same-window)
+      ("SPC"      select-mode-do-select-other-window)
       ("<escape>" select-hide)
-      ("q"        select-exit)
-      ("C-q"      select-exit)
       ("C-g"      select-exit))
     kmap))
 
 ;;; utilities
-
-(defun select--bisect (item items start end eq? less?)
-  "Binary search. Returns index into vector ITEMS.
-LESS? is predicate on items and elements of ITEMS.
-
-START is inclusive and END is exclusive in ITEMS."
-  (let ((orig-start start)
-        (orig-end end))
-    (while (< start end)
-      (let* ((mid (/ (+ end start) 2))
-             (mid-item (aref items mid)))
-        (cond ((funcall less? item mid-item)
-               (setf end mid))
-              ((funcall eq? item mid-item)
-               (setf start mid
-                     end mid))
-              (t
-               (setf start (+ mid 1))))))
-    start))
 
 (defsubst select--list->vector (items)
   (coerce items 'vector))
@@ -119,14 +79,14 @@ START is inclusive and END is exclusive in ITEMS."
                 ("("
                  mode-name
                  (:eval (format "[%s/%s]"
-                                select--selected-item
-                                (length select--items)))
+                                (select-mode--state-selected-item select-mode--current-state)
+                                (select-mode--state-items-count select-mode--current-state)))
                  ")")
                 (:eval
                  (when (buffer-narrowed?)
                    "(Narrowed)"))))
   (add-hook 'post-command-hook #'select--update-selected-item nil t)
-  ;; (add-hook 'kill-buffer-hook #'select-finish-selection nil t)
+  ;; (add-hook 'kill-buffer-hook #'select-mode--finish-selection nil t)
   )
 
 ;; TODO: add option to use recursive edit?
@@ -135,13 +95,11 @@ START is inclusive and END is exclusive in ITEMS."
                                 &key
                                 (buffer-name "Selection")
                                 after-init
-                                (on-selection 'ignore)
+                                (on-selection #'ignore)
                                 item-show-function
-                                (preamble-function (lambda () ""))
-                                (epilogue-function (lambda () ""))
-                                (separator-function
-                                 (lambda ()
-                                   select--bold-separator))
+                                (preamble "")
+                                (epilogue "")
+                                (separator select-mode-bold-separator)
                                 (working-directory nil))
   "Initiate select session.
 
@@ -152,16 +110,21 @@ and symbol, specifying selection type. Currently, selection type may be either
 WORKING-DIRECTORY can be either string specifying a directory or nil, in which
 case `default-directory' will be used.
 "
-  (cl-assert (< 0 (length items)))
-  (cl-assert item-show-function)
+  (cl-assert (functionp item-show-function))
+  (cl-assert (functionp on-selection))
+  (cl-assert (stringp preamble))
+  (cl-assert (stringp epilogue))
+  (cl-assert (or (null separator) (stringp separator)))
   (cl-assert (or (null working-directory)
                  (and (stringp working-directory)
                       (file-directory-p working-directory))))
-  (let ((init-buffer (current-buffer))
+  (let ((items-count (length items))
+        (init-buffer (current-buffer))
         (init-window (selected-window))
         (init-window-config (current-window-configuration))
         (working-dir (or working-directory
                          default-directory)))
+    (cl-assert (< 0 items-count))
     (with-current-buffer (switch-to-buffer-other-window buffer-name)
       (read-only-mode -1)
       (select-mode)
@@ -170,69 +133,78 @@ case `default-directory' will be used.
       ;; Disable undo tracking in this buffer
       (setq-local buffer-undo-list t)
 
-      (setq-local select--init-window-config init-window-config)
-      (setq-local select--init-window init-window)
-      (setq-local select--init-buffer init-buffer)
-      ;; display-related items
-      (setq-local select--item-show-function item-show-function)
-      (setq-local select--on-selection-function on-selection)
-      (setq-local select--preamble-function preamble-function)
-      (setq-local select--epilogue-function epilogue-function)
-      (setq-local select--separator-function separator-function)
+      (let ((selection-overlay (make-overlay (point-min) (point-min))))
+        (overlay-put selection-overlay
+                     'face
+                     'select-selection-face)
+        (overlay-put selection-overlay
+                     'font-lock-face
+                     'select-selection-face)
 
-      (setq-local select--selected-item 0)
-      (setq-local select--items (if (listp items)
-                                  (select--list->vector items)
-                                  items))
-      (setq-local select--item-positions (make-vector (length items) nil))
 
-      (setq-local select--selection-overlay (make-overlay (point-min) (point-min)))
-      (overlay-put select--selection-overlay
-                   'face
-                   'select-selection-face)
-      (overlay-put select--selection-overlay
-                   'font-lock-face
-                   'select-selection-face)
-      (select--render-items select--items)
+        (setq-local select-mode--current-state
+                    (make-select-mode--state
+                     :init-buffer init-buffer
+                     :init-window init-window
+                     :init-window-config init-window-config
+
+                     :item-show-function item-show-function
+                     :on-selection-function on-selection
+                     :preamble preamble
+                     :epilogue epilogue
+                     :separator separator
+
+                     :selected-item 0
+                     :items (if (listp items)
+                                (select--list->vector items)
+                              items)
+                     :item-positions (make-vector items-count nil)
+                     :items-count items-count
+
+                     :selection-overlay selection-overlay
+                     )))
+
+      (select--render-state select-mode--current-state)
+
       (when after-init
         (funcall after-init))
-
       (set-buffer-modified-p nil)
       (read-only-mode +1))))
 
-(defun* select--move-selection-to (idx &key (move-point t))
+(defun select--move-selection-to (state idx &optional move-point)
   (cl-assert (and (<= 0 idx)
-                  (< idx (length select--items))))
+                  (< idx (select-mode--state-items-count state))))
+  (setf (select-mode--state-selected-item state) idx)
   (destructuring-bind (start . end)
-      (aref select--item-positions idx)
+      (aref (select-mode--state-item-positions state) idx)
     (when move-point
       (goto-char start))
-    (move-overlay select--selection-overlay
+    (move-overlay (select-mode--state-selection-overlay state)
                   start
                   end)
     (force-mode-line-update)))
 
-(defun select--render-items (items)
+(defun select--render-state (state)
   "It's assumed that this function is only called inside select buffer."
   (let ((insert-item
-         (lambda (index item)
+         (lambda (i item)
            (let ((start (point)))
-             (insert (funcall select--item-show-function item))
+             (insert (funcall (select-mode--state-item-show-function state) item))
              (let ((end (point)))
-               (setf (aref select--item-positions index) (cons start end)))))))
+               (setf (aref (select-mode--state-item-positions state) i)
+                     (cons start end)))))))
     (erase-buffer)
     (goto-char (point-min))
-    (insert (funcall select--preamble-function))
-    (let ((sep (when select--separator-function
-                 (funcall select--separator-function))))
+    (insert (select-mode--state-preamble state))
+    (let ((sep (or (select-mode--state-separator state)
+                   "")))
       (loop
-        for item being the elements of items using (index i)
+        for item being the elements of (select-mode--state-items state) using (index i)
         do
-        (unless (= i 0)
-          (when sep (insert sep)))
+        (unless (= i 0) (insert sep))
         (funcall insert-item i item)))
-    (insert (funcall select--epilogue-function))
-    (select--move-selection-to select--selected-item)))
+    (insert (select-mode--state-epilogue state))
+    (select--move-selection-to state (select-mode--state-selected-item state) t)))
 
 (defun select--update-selected-item ()
   "Set selected item based on the point position inside buffer."
@@ -242,86 +214,96 @@ case `default-directory' will be used.
             (cl-assert (< (car pos-pair) (cdr pos-pair)))
             (and (<= (car pos-pair) pos)
                  (< pos (cdr pos-pair)))))
+         (positions (select-mode--state-item-positions select-mode--current-state))
          (selection-idx
-          (select--bisect pos
-                          select--item-positions
-                          0
-                          (length select--item-positions)
-                          pos-inside-pos-pair
-                          (lambda (pos pos-pair)
-                            (cl-assert (< (car pos-pair) (cdr pos-pair)))
-                            (< pos (car pos-pair))))))
+          (bisect pos
+                  positions
+                  0
+                  (select-mode--state-items-count select-mode--current-state)
+                  pos-inside-pos-pair
+                  (lambda (pos pos-pair)
+                    (cl-assert (< (car pos-pair) (cdr pos-pair)))
+                    (< pos (car pos-pair))))))
     (if (and selection-idx
-             (funcall pos-inside-pos-pair pos
-                      (aref select--item-positions selection-idx)))
-      (progn
-        (setq-local select--selected-item selection-idx)
-        (select--move-selection-to select--selected-item :move-point nil))
-      (move-overlay select--selection-overlay (point-min) (point-min)))))
+             (funcall pos-inside-pos-pair
+                      pos
+                      (aref positions selection-idx)))
+        (progn
+          (select--move-selection-to select-mode--current-state selection-idx nil))
+      (move-overlay (select-mode--state-selection-overlay select-mode--current-state)
+                    (point-min)
+                    (point-min)))))
 
-(defun select-move-selection-up ()
+(defun select-mode-select-previous-item ()
+  "Select previous item with wraparound."
   (interactive)
-  (setf select--selected-item
-        (if (= 0 select--selected-item)
-          (- (length select--items) 1)
-          (- select--selected-item 1)))
-  (select--move-selection-to select--selected-item))
+  (select--move-selection-to
+   select-mode--current-state
+   (mod (- (select-mode--state-selected-item select-mode--current-state) 1)
+        (select-mode--state-items-count select-mode--current-state))
+   t))
 
-(defun select-move-selection-down ()
+(defun select-mode-select-next-item ()
+  "Select next item with wraparound."
   (interactive)
-  (setf select--selected-item
-        (if (= select--selected-item (- (length select--items) 1))
-          0
-          (+ select--selected-item 1)))
-  (select--move-selection-to select--selected-item))
+  (select--move-selection-to
+   select-mode--current-state
+   (mod (+ (select-mode--state-selected-item select-mode--current-state) 1)
+        (select-mode--state-items-count select-mode--current-state))
+   t))
 
-(defun select-do-select (selection-type)
-  (if select--on-selection-function
-    (funcall select--on-selection-function select--selected-item selection-type)
-    (error "No on-selection function defined")))
+(defun select-mode--do-select (selection-type)
+  (funcall (select-mode--state-on-selection-function select-mode--current-state)
+           (select-mode--state-selected-item select-mode--current-state)
+           (aref
+            (select-mode--state-items select-mode--current-state)
+            (select-mode--state-selected-item select-mode--current-state))
+           selection-type))
 
-(defun select-do-select-same-window ()
+(defun select-mode-do-select-same-window ()
   (interactive)
-  (select-do-select 'same-window))
+  (select-mode--do-select 'same-window))
 
-(defun select-do-select-other-window ()
+(defun select-mode-do-select-other-window ()
   (interactive)
-  (select-do-select 'other-window))
+  (select-mode--do-select 'other-window))
 
-(defun select--restore-window-config (reset)
-  (when select--init-window-config
-    (set-window-configuration select--init-window-config)
-    ;; (select-window select--init-window)
-    (when reset
-      (setf select--init-window-config nil
-            select--init-window nil))))
-
-(defun select-finish-selection ()
-  (when select--selection-overlay
-    (delete-overlay select--selection-overlay)
-    (setq-local select--selection-overlay nil))
-  (select--restore-window-config t))
 
 (defun select-hide ()
   (interactive)
-  (if select-restore-windows-configuration-on-hide
-    (select--restore-window-config nil)
+  (cl-assert select-mode--current-state)
+  (if select-mode-restore-windows-configuration-on-hide
+      (set-window-configuration (select-mode--state-init-window-config state))
     (call-interactively #'bury-buffer)))
+
+(defun select-mode--finish-selection ()
+  (cl-assert select-mode--current-state)
+  (let ((win-config (select-mode--state-init-window-config select-mode--current-state)))
+    (awhen (select-mode--state-selection-overlay select-mode--current-state)
+      (delete-overlay it))
+    (setf (select-mode--state-selection-overlay select-mode--current-state) nil
+          (select-mode--state-init-buffer select-mode--current-state) nil
+          (select-mode--state-init-window select-mode--current-state) nil
+          (select-mode--state-init-window-config select-mode--current-state) nil)
+    (set-window-configuration win-config)))
 
 (defun select-exit ()
   (interactive)
   (let ((buf (current-buffer)))
-    (select-finish-selection)
+    (message "buf = %s"
+             (pp-to-string buf))
+    (select-mode--finish-selection)
     (kill-buffer buf)))
 
 ;;; This is for users of select-mode.
 
-(defun select-extend-keymap (new-keymap)
+(defun select-mode-extend-keymap-with (new-keymap)
+  "Add NEW-KEYMAP to the select-mode's current keymap."
   (use-local-map
    (make-composed-keymap new-keymap select-mode-map)))
 
-(defsubst select-get-selected-index ()
-  select--selected-item)
+(defsubst select-mode-get-selected-index ()
+  (select-mode--state-selected-item select-mode--current-state))
 
 (provide 'select-mode)
 
