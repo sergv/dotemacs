@@ -284,7 +284,7 @@ as accepted by `bounds-of-thing-at-point'.")
            (let ((kmap (make-sparse-keymap)))
              (def-keys-for-map kmap
                ("SPC" (lambda () (interactive)
-                        (let ((entry (elt entries (select-get-selected-index))))
+                        (let ((entry (elt entries (select-mode-get-selected-index))))
                           (eproj-symbnav/show-entry-in-other-window
                            (funcall entry-tag entry)
                            (funcall entry-proj entry))))))
@@ -292,18 +292,16 @@ as accepted by `bounds-of-thing-at-point'.")
               entries
               :buffer-name "Symbol homes"
               :after-init (lambda ()
-                            (select-extend-keymap kmap))
+                            (select-mode-extend-keymap-with kmap))
               :on-selection
-              (lambda (idx selection-type)
+              (lambda (idx entry selection-type)
                 (select-exit)
-                (let ((entry (elt entries idx)))
-                  (funcall jump-to-home
-                           (funcall entry-tag entry)
-                           (funcall entry-proj entry))))
+                (funcall jump-to-home
+                         (funcall entry-tag entry)
+                         (funcall entry-proj entry)))
               :item-show-function
               entry-string
-              :preamble-function
-              (lambda () "Choose symbol\n\n")))))))))
+              :preamble "Choose symbol\n\n"))))))))
 
 (defun eproj-symbnav/go-back ()
   (interactive)

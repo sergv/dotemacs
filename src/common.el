@@ -502,6 +502,7 @@ LESS? is predicate on items and elements of ITEMS.
 START is inclusive and END is exclusive in ITEMS."
   ;; if you doubt the implementation and want to improve it make sure
   ;; tests do pass
+  (cl-assert (< start end))
   (let ((orig-start start)
         (orig-end end))
     (while (< start end)
