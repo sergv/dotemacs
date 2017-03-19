@@ -45,7 +45,7 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/identifier-at-point (&optional noerror)
   (if (region-active-p)
-    (trim-whitespace (get-region-string-no-properties))
+      (trim-whitespace (get-region-string-no-properties))
     (let ((bounds (bounds-of-thing-at-point eproj-symbnav/identifier-type)))
       (cond ((not (null bounds))
              (funcall (eproj-language/normalize-identifier-before-navigation-procedure
@@ -64,7 +64,7 @@ as accepted by `bounds-of-thing-at-point'.")
       (concat (eproj-home-entry/symbol entry)
               "@"
               (if buffer-file-name
-                (file-name-nondirectory buffer-file-name)
+                  (file-name-nondirectory buffer-file-name)
                 "<no-buffer>")
               ":"
               (save-excursion
@@ -306,7 +306,7 @@ as accepted by `bounds-of-thing-at-point'.")
 (defun eproj-symbnav/go-back ()
   (interactive)
   (if (null eproj-symbnav/previous-homes)
-    (error "no more previous go-to-definition entries")
+      (error "no more previous go-to-definition entries")
     (progn
       (when (or (null eproj-symbnav/next-homes)
                 (and (not (null eproj-symbnav/next-homes))
