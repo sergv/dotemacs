@@ -40,11 +40,6 @@
 (require 'common)
 (require 'haskell-autoload)
 
-;;; configurable parameters
-
-(defparameter eproj-verbose-tag-loading t
-  "Show progress on project and tag loading")
-
 ;;; eproj-tag
 
 ;; use this to debug type errors
