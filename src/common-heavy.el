@@ -695,6 +695,52 @@ around individual arguments."
       (push (list->string (nreverse word)) result))
     (nreverse result)))
 
+;;;###autoload
+(defun make-percentage-reporter (total-units percent-increment-to-report on-next-increment)
+  "Construct function that takes number of units of work done and invokes ON-NEXT-INCREMENT
+when next PERCENT-INCREMENT-TO-REPORT amount of units was reported.
+
+The ON-NEXT-INCREMENT function should take 1 argument - units of work done.
+Units of work done will be no greater than total-units.
+
+I.e. if there are 100 total units of work and reporting is done on 5% increments
+then ON-NEXT-INCREMENT function will be called 20 times with
+0, 5, 10, 15, ..., 90, 95, 100 values."
+  (cl-assert (< 0 total-units))
+  (cl-assert (< 0 percent-increment-to-report))
+  (cl-assert (functionp on-next-increment))
+  (let* ((float-total (float total-units))
+         (increments-to-report (* percent-increment-to-report
+                                  (/ float-total 100)))
+         (reported-increments 0)
+         (done-units 0))
+    (lambda (new-units)
+      (let ((new-done-units (+ done-units new-units)))
+        (when (< total-units new-done-units)
+          (error "With current update, %s, the number of units accumulated, %s, will be more than initial total %s"
+                 new-units
+                 new-done-units
+                 total-units))
+        (while (<= (* reported-increments increments-to-report) new-done-units)
+          (funcall on-next-increment
+                   (* reported-increments increments-to-report))
+          (incf reported-increments))
+        (setf done-units new-done-units)))))
+
+;;;###autoload
+(defun make-standard-progress-reporter (total-units unit-name)
+  "Make progress reporter, similar to `make-percentage-reporter', that would
+print progress on each 5% of units processed."
+  (make-percentage-reporter
+   total-units
+   5
+   (lambda (number-of-units-processed)
+     (message "Processed %.0f%% of %s - %s out of %s"
+              (* 100 (/ (float number-of-units-processed) total-units))
+              unit-name
+              (truncate number-of-units-processed)
+              total-units))))
+
 ;;;
 
 (provide 'common-heavy)
