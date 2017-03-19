@@ -67,9 +67,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                   "!error: no lines in the block!")
                 "\n")))))
 
-(defun egrep-search (regexp exts-globs ignored-exts-globs dir ignore-case)
-  "Search for REGEXP in files under directory DIR that match FILE-GLOBS and don't
-match IGNORED-FILE-GLOBS."
+(defun egrep--find-matches (regexp exts-globs ignored-exts-globs dir ignore-case)
   (let* ((files (find-rec*
                  :root dir
                  :extensions-globs exts-globs
@@ -80,48 +78,65 @@ match IGNORED-FILE-GLOBS."
          (progress-reporter
           (make-standard-progress-reporter files-length "files"))
          (matches
-          (list->vector
-           (loop
-             for filename in files
-             nconc
-             (for-buffer-with-file filename
-               (funcall progress-reporter 1)
-               (redisplay t)
-               (goto-char (point-min))
-               (let* ((result-ptr (cons nil nil))
-                      (local-matches result-ptr)
-                      (case-fold-search ignore-case)
-                      (short-file-name
-                       (propertize (file-relative-name filename dir)
-                                   'face 'compilation-info)))
-                 (while (re-search-forward regexp nil t)
-                   (let* ((match-start (match-beginning 0))
-                          (match-end (match-end 0))
-                          (entry
-                           (egrep--make-match-entry short-file-name
-                                                    match-start
-                                                    match-end)))
-                     (setf (cdr local-matches)
-                           (cons (make-egrep-match
-                                  :file filename
-                                  :start-pos match-start
-                                  :end-pos match-end
-                                  :select-entry entry)
-                                 nil))
-                     (setf local-matches (cdr local-matches))
-                     ;; Jump to end of line in order to show at most one match per
-                     ;; line.
-                     (end-of-line)))
-                 (cdr result-ptr)))))))
-    (when (= (length matches) 0)
+          (loop
+            for filename in files
+            nconc
+            (for-buffer-with-file filename
+              (funcall progress-reporter 1)
+              (redisplay t)
+              (goto-char (point-min))
+              (let* ((result-ptr (cons nil nil))
+                     (local-matches result-ptr)
+                     (case-fold-search ignore-case)
+                     (short-file-name
+                      (propertize (file-relative-name filename dir)
+                                  'face 'compilation-info)))
+                (while (re-search-forward regexp nil t)
+                  (let* ((match-start (match-beginning 0))
+                         (match-end (match-end 0))
+                         (entry
+                          (egrep--make-match-entry short-file-name
+                                                   match-start
+                                                   match-end)))
+                    (setf (cdr local-matches)
+                          (cons (make-egrep-match
+                                 :file filename
+                                 :start-pos match-start
+                                 :end-pos match-end
+                                 :select-entry entry)
+                                nil))
+                    (setf local-matches (cdr local-matches))
+                    ;; Jump to end of line in order to show at most one match per
+                    ;; line.
+                    (end-of-line)))
+                (cdr result-ptr))))))
+    (when (null matches)
       (error "No matches for regexp \"%s\" across files %s"
              regexp
              (mapconcat #'identity exts-globs ", ")))
     (message "Finished looking in files")
     (redisplay t)
+    matches))
+
+(defun egrep-search (regexp exts-globs ignored-exts-globs dir ignore-case)
+  "Search for REGEXP in files under directory DIR that match FILE-GLOBS and don't
+match IGNORED-FILE-GLOBS."
+  (let ((matches
+         (list->vector
+          (egrep--find-matches regexp exts-globs ignored-exts-globs dir ignore-case)))
+        (kmap (make-sparse-keymap)))
+    (def-keys-for-map kmap
+      ("H" (lambda ()
+             (interactive)
+             (let ((new-matches
+                    (list->vector
+                     (egrep--find-matches regexp exts-globs ignored-exts-globs dir ignore-case))))
+               (select-mode-update-items new-matches 0)))))
     (select-start-selection
      matches
      :buffer-name "*grep*"
+     :after-init (lambda ()
+                   (select-mode-extend-keymap-with kmap))
      :on-selection
      (lambda (idx match selection-type)
        ;; NB Don't call `select-exit' here since we may return to *grep* buffer

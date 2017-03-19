@@ -305,6 +305,22 @@ case `default-directory' will be used.
 (defsubst select-mode-get-selected-index ()
   (select-mode--state-selected-item select-mode--current-state))
 
+(defun select-mode-update-items (items new-selection-index)
+  (cl-assert select-mode--current-state)
+  (read-only-mode -1)
+  (unwind-protect
+      (let* ((items-vector (if (listp items)
+                               (select--list->vector items)
+                             items))
+             (items-count (length items-vector)))
+        (setf (select-mode--state-selected-item select-mode--current-state)  new-selection-index
+              (select-mode--state-items select-mode--current-state)          items-vector
+              (select-mode--state-item-positions select-mode--current-state) (make-vector items-count nil)
+              (select-mode--state-items-count select-mode--current-state)    items-count)
+        (select--render-state select-mode--current-state))
+    (set-buffer-modified-p nil)
+    (read-only-mode +1)))
+
 (provide 'select-mode)
 
 ;; Local Variables:
