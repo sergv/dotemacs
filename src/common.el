@@ -14,6 +14,8 @@
 (require 'custom-predicates)
 (require 'dash)
 
+(autoload 'if-let "subr-x" nil nil 'macro)
+
 (defsubst remap-interval (a b c d x)
   "Remap x from [a, b] into [c, d]"
   (+ c
