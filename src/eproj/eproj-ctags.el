@@ -142,11 +142,9 @@ BUFFER is expected to contain output of ctags command."
                                          ;; Every 1000 lines takes up 1 mb or so.
                                          (/ (* (count-lines (point-min) (point-max)) 1024 1024)
                                             1000))))
-            (total-tags-fraction (when eproj-verbose-tag-loading
-                                   (/ (count-lines (point-min) (point-max))
-                                      100)))
-            (tags-loaded-percents 0)
-            (n 0))
+            (progress-reporter (when eproj-verbose-tag-loading
+                                 (let ((total-tags-count (count-lines (point-min) (point-max))))
+                                   (make-standard-progress-reporter total-tags-count "tags")))))
         (garbage-collect)
         (while (not (eobp))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
@@ -191,13 +189,7 @@ BUFFER is expected to contain output of ctags command."
 
             ;; (forward-line 1)
             (when eproj-verbose-tag-loading
-              (when (= n total-tags-fraction)
-                (incf tags-loaded-percents)
-                (when (= 0 (mod tags-loaded-percents 5))
-                  (message "loaded %d%% tags" tags-loaded-percents)
-                  (redisplay))
-                (setf n 0))
-              (incf n))))
+              (funcall progress-reporter 1))))
         tags-table))))
 
 (provide 'eproj-ctags)
