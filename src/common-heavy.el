@@ -58,22 +58,19 @@ if CASE-SENSETIVE is t."
             (find-file (car files))
             (select-start-selection files
                                     :on-selection
-                                    (lambda (idx selection-type)
+                                    (lambda (idx file selection-type)
                                       (select-exit)
                                       (funcall
                                        (pcase selection-type
                                          (`same-window  #'find-file)
                                          (`other-window #'find-file-other-window))
-                                       (nth idx files)))
+                                       file))
                                     :item-show-function
                                     (lambda (x)
                                       (concat "file: " (file-name-nondirectory x) "\n"
                                               x "\n"))
-                                    :preamble-function
-                                    (lambda ()
-                                      "Multiple files found\n\n")
-                                    :separator-function
-                                    (lambda () ""))))
+                                    :preamble "Multiple files found\n\n"
+                                    :separator nil)))
         (error "No file found for \"%s\" regexp" filename-re)))))
 
 ;;;

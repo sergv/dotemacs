@@ -87,23 +87,19 @@
                     choices
                     :buffer-name "select file"
                     :on-selection
-                    (lambda (idx selection-type)
-                      (let ((alt-file (elt choices idx)))
-                        (select-exit)
-                        (puthash filename alt-file *c++-related-file-cache*)
-                        (puthash alt-file filename *c++-related-file-cache*)
-                        (funcall
-                         (pcase selection-type
-                           (`same-window  #'find-file)
-                           (`other-window #'find-file-other-window))
-                         alt-file)))
+                    (lambda (idx alt-file selection-type)
+                      (select-exit)
+                      (puthash filename alt-file *c++-related-file-cache*)
+                      (puthash alt-file filename *c++-related-file-cache*)
+                      (funcall
+                       (pcase selection-type
+                         (`same-window  #'find-file)
+                         (`other-window #'find-file-other-window))
+                       alt-file))
                     :item-show-function
                     (lambda (x) (concat x "\n"))
-                    :preamble-function
-                    (lambda () (concat "Select desired alternative file\n"))
-                    :separator-function
-                    (apply-partially #'select-make-bold-separator
-                                     "--------\n"))))
+                    :preamble
+                    (lambda () (concat "Select desired alternative file\n")))))
                 (error "No %s file found for %s"
                        (--map (concat "*." it) alt-exts)
                        filename)))))))))

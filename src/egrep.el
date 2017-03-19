@@ -78,14 +78,7 @@ match IGNORED-FILE-GLOBS."
                  :ignored-directory-prefixes *ignored-directory-prefixes*))
          (files-length (length files))
          (progress-reporter
-          (make-percentage-reporter
-           files-length
-           5
-           (lambda (number-of-files-processed)
-             (message "Processed %.2f%% of files - %s out of %s"
-                      (* 100 (/ (float number-of-files-processed) files-length))
-                      (truncate number-of-files-processed)
-                      files-length))))
+          (make-standard-progress-reporter files-length "files"))
          (matches
           (list->vector
            (loop
@@ -130,27 +123,26 @@ match IGNORED-FILE-GLOBS."
      matches
      :buffer-name "*grep*"
      :on-selection
-     (lambda (idx selection-type)
-       (let ((match (elt matches idx)))
-         (let ((buf (aif (find-buffer-visiting (egrep-match/file match))
-                         it
-                         (find-file-noselect (egrep-match/file match)))))
-           (funcall
-            (pcase selection-type
-              (`same-window  #'switch-to-buffer)
-              (`other-window #'switch-to-buffer-other-window))
-            buf)
-           (goto-char (egrep-match/start-pos match)))))
+     (lambda (idx match selection-type)
+       ;; NB Don't call `select-exit' here since we may return to *grep* buffer
+       ;; to try out another match.
+       (let ((buf (aif (find-buffer-visiting (egrep-match/file match))
+                       it
+                       (find-file-noselect (egrep-match/file match)))))
+         (funcall
+          (pcase selection-type
+            (`same-window  #'switch-to-buffer)
+            (`other-window #'switch-to-buffer-other-window))
+          buf)
+         (goto-char (egrep-match/start-pos match))))
      :item-show-function
      #'egrep-match/select-entry
-     :separator-function
-     (constantly nil)
-     :preamble-function
-     (lambda ()
-       (format "Browse matches for ‘%s’ in files matching %s starting at directory %s\n\n"
-               regexp
-               (mapconcat #'identity exts-globs " ")
-               dir))
+     :separator nil
+     :preamble
+     (format "Browse matches for ‘%s’ in files matching %s starting at directory %s\n\n"
+             regexp
+             (mapconcat #'identity exts-globs " ")
+             dir)
      :working-directory dir)))
 
 (defun egrep--read-files (regexp)
