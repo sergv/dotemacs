@@ -10,6 +10,11 @@
   "Whether to remember choices of previous tags and unconditionally jump to them
 when the same navigation ambiguity occurs.")
 
+;;; configurable parameters
+
+(defcustom eproj-verbose-tag-loading t
+  "Show progress on project and tag loading")
+
 (provide 'eproj-customization)
 
 ;; Local Variables:
