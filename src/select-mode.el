@@ -22,7 +22,7 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)")
               'face 'bold
               'font-lock-face 'bold))
 
-(defface select-selection-face '((t (:inherit secondary-selection)))
+(defface select-mode-selection-face '((t (:inherit secondary-selection)))
   "Face to highlight currently selected item")
 
 (defparameter select-mode-bold-separator (select-make-bold-separator "--------\n"))
@@ -58,13 +58,13 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)")
       ("<down>"   select-mode-select-next-item)
       ("<return>" select-mode-do-select-same-window)
       ("SPC"      select-mode-do-select-other-window)
-      ("<escape>" select-hide)
-      ("C-g"      select-exit))
+      ("<escape>" select-mode-hide)
+      ("C-g"      select-mode-exit))
     kmap))
 
 ;;; utilities
 
-(defsubst select--list->vector (items)
+(defsubst select-mode--list->vector (items)
   (coerce items 'vector))
 
 ;;; mode definition
@@ -85,22 +85,23 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)")
                 (:eval
                  (when (buffer-narrowed?)
                    "(Narrowed)"))))
-  (add-hook 'post-command-hook #'select--update-selected-item nil t)
+  (add-hook 'post-command-hook #'select-mode--update-selected-item nil t)
   ;; (add-hook 'kill-buffer-hook #'select-mode--finish-selection nil t)
   )
 
 ;; TODO: add option to use recursive edit?
 ;; API for user
-(defun* select-start-selection (items
-                                &key
-                                (buffer-name "Selection")
-                                after-init
-                                (on-selection #'ignore)
-                                item-show-function
-                                (preamble "")
-                                (epilogue "")
-                                (separator select-mode-bold-separator)
-                                (working-directory nil))
+(defun* select-mode-start-selection
+    (items
+     &key
+     (buffer-name "Selection")
+     after-init
+     (on-selection #'ignore)
+     item-show-function
+     (preamble "")
+     (epilogue "")
+     (separator select-mode-bold-separator)
+     (working-directory nil))
   "Initiate select session.
 
 ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS collection
@@ -136,10 +137,10 @@ case `default-directory' will be used.
       (let ((selection-overlay (make-overlay (point-min) (point-min))))
         (overlay-put selection-overlay
                      'face
-                     'select-selection-face)
+                     'select-mode-selection-face)
         (overlay-put selection-overlay
                      'font-lock-face
-                     'select-selection-face)
+                     'select-mode-selection-face)
 
 
         (setq-local select-mode--current-state
@@ -156,7 +157,7 @@ case `default-directory' will be used.
 
                      :selected-item 0
                      :items (if (listp items)
-                                (select--list->vector items)
+                                (select-mode--list->vector items)
                               items)
                      :item-positions (make-vector items-count nil)
                      :items-count items-count
@@ -164,14 +165,14 @@ case `default-directory' will be used.
                      :selection-overlay selection-overlay
                      )))
 
-      (select--render-state select-mode--current-state)
+      (select-mode--render-state select-mode--current-state)
 
       (when after-init
         (funcall after-init))
       (set-buffer-modified-p nil)
       (read-only-mode +1))))
 
-(defun select--move-selection-to (state idx &optional move-point)
+(defun select-mode--move-selection-to (state idx &optional move-point)
   (cl-assert (and (<= 0 idx)
                   (< idx (select-mode--state-items-count state))))
   (setf (select-mode--state-selected-item state) idx)
@@ -184,7 +185,7 @@ case `default-directory' will be used.
                   end)
     (force-mode-line-update)))
 
-(defun select--render-state (state)
+(defun select-mode--render-state (state)
   "It's assumed that this function is only called inside select buffer."
   (let ((insert-item
          (lambda (i item)
@@ -204,9 +205,9 @@ case `default-directory' will be used.
         (unless (= i 0) (insert sep))
         (funcall insert-item i item)))
     (insert (select-mode--state-epilogue state))
-    (select--move-selection-to state (select-mode--state-selected-item state) t)))
+    (select-mode--move-selection-to state (select-mode--state-selected-item state) t)))
 
-(defun select--update-selected-item ()
+(defun select-mode--update-selected-item ()
   "Set selected item based on the point position inside buffer."
   (let* ((pos (point))
          (pos-inside-pos-pair
@@ -228,8 +229,7 @@ case `default-directory' will be used.
              (funcall pos-inside-pos-pair
                       pos
                       (aref positions selection-idx)))
-        (progn
-          (select--move-selection-to select-mode--current-state selection-idx nil))
+        (select-mode--move-selection-to select-mode--current-state selection-idx nil)
       (move-overlay (select-mode--state-selection-overlay select-mode--current-state)
                     (point-min)
                     (point-min)))))
@@ -237,7 +237,7 @@ case `default-directory' will be used.
 (defun select-mode-select-previous-item ()
   "Select previous item with wraparound."
   (interactive)
-  (select--move-selection-to
+  (select-mode--move-selection-to
    select-mode--current-state
    (mod (- (select-mode--state-selected-item select-mode--current-state) 1)
         (select-mode--state-items-count select-mode--current-state))
@@ -246,7 +246,7 @@ case `default-directory' will be used.
 (defun select-mode-select-next-item ()
   "Select next item with wraparound."
   (interactive)
-  (select--move-selection-to
+  (select-mode--move-selection-to
    select-mode--current-state
    (mod (+ (select-mode--state-selected-item select-mode--current-state) 1)
         (select-mode--state-items-count select-mode--current-state))
@@ -269,7 +269,7 @@ case `default-directory' will be used.
   (select-mode--do-select 'other-window))
 
 
-(defun select-hide ()
+(defun select-mode-hide ()
   (interactive)
   (cl-assert select-mode--current-state)
   (if select-mode-restore-windows-configuration-on-hide
@@ -287,7 +287,7 @@ case `default-directory' will be used.
           (select-mode--state-init-window-config select-mode--current-state) nil)
     (set-window-configuration win-config)))
 
-(defun select-exit ()
+(defun select-mode-exit ()
   (interactive)
   (let ((buf (current-buffer)))
     (message "buf = %s"
@@ -310,14 +310,14 @@ case `default-directory' will be used.
   (read-only-mode -1)
   (unwind-protect
       (let* ((items-vector (if (listp items)
-                               (select--list->vector items)
+                               (select-mode--list->vector items)
                              items))
              (items-count (length items-vector)))
         (setf (select-mode--state-selected-item select-mode--current-state)  new-selection-index
               (select-mode--state-items select-mode--current-state)          items-vector
               (select-mode--state-item-positions select-mode--current-state) (make-vector items-count nil)
               (select-mode--state-items-count select-mode--current-state)    items-count)
-        (select--render-state select-mode--current-state))
+        (select-mode--render-state select-mode--current-state))
     (set-buffer-modified-p nil)
     (read-only-mode +1)))
 
