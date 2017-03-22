@@ -273,7 +273,8 @@ case `default-directory' will be used.
   (interactive)
   (cl-assert select-mode--current-state)
   (if select-mode-restore-windows-configuration-on-hide
-      (set-window-configuration (select-mode--state-init-window-config state))
+      (set-window-configuration
+       (select-mode--state-init-window-config select-mode--current-state))
     (call-interactively #'bury-buffer)))
 
 (defun select-mode--finish-selection ()
