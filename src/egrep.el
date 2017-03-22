@@ -132,14 +132,14 @@ match IGNORED-FILE-GLOBS."
                     (list->vector
                      (egrep--find-matches regexp exts-globs ignored-exts-globs dir ignore-case))))
                (select-mode-update-items new-matches 0)))))
-    (select-start-selection
+    (select-mode-start-selection
      matches
      :buffer-name "*grep*"
      :after-init (lambda ()
                    (select-mode-extend-keymap-with kmap))
      :on-selection
      (lambda (idx match selection-type)
-       ;; NB Don't call `select-exit' here since we may return to *grep* buffer
+       ;; NB Don't call `select-mode-exit' here since we may return to *grep* buffer
        ;; to try out another match.
        (let ((buf (aif (find-buffer-visiting (egrep-match/file match))
                        it

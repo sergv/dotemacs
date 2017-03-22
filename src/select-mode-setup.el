@@ -12,7 +12,7 @@
 ;;;###autoload
 (autoload 'select-mode "select-mode" nil t)
 ;;;###autoload
-(autoload 'select-start-selection "select-mode")
+(autoload 'select-mode-start-selection "select-mode")
 
 ;;;###autoload
 (setf select-mode-restore-windows-configuration-on-hide t)

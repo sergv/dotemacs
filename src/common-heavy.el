@@ -55,22 +55,23 @@ if CASE-SENSETIVE is t."
         (progn
           (cl-assert (not (null? files)))
           (if (= 1 (length files))
-            (find-file (car files))
-            (select-start-selection files
-                                    :on-selection
-                                    (lambda (idx file selection-type)
-                                      (select-exit)
-                                      (funcall
-                                       (pcase selection-type
-                                         (`same-window  #'find-file)
-                                         (`other-window #'find-file-other-window))
-                                       file))
-                                    :item-show-function
-                                    (lambda (x)
-                                      (concat "file: " (file-name-nondirectory x) "\n"
-                                              x "\n"))
-                                    :preamble "Multiple files found\n\n"
-                                    :separator nil)))
+              (find-file (car files))
+            (select-mode-start-selection
+             files
+             :on-selection
+             (lambda (idx file selection-type)
+               (select-mode-exit)
+               (funcall
+                (pcase selection-type
+                  (`same-window  #'find-file)
+                  (`other-window #'find-file-other-window))
+                file))
+             :item-show-function
+             (lambda (x)
+               (concat "file: " (file-name-nondirectory x) "\n"
+                       x "\n"))
+             :preamble "Multiple files found\n\n"
+             :separator nil)))
         (error "No file found for \"%s\" regexp" filename-re)))))
 
 ;;;

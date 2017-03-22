@@ -83,12 +83,12 @@
                    (puthash related filename *c++-related-file-cache*)
                    (find-file related))
                   (choices
-                   (select-start-selection
+                   (select-mode-start-selection
                     choices
                     :buffer-name "select file"
                     :on-selection
                     (lambda (idx alt-file selection-type)
-                      (select-exit)
+                      (select-mode-exit)
                       (puthash filename alt-file *c++-related-file-cache*)
                       (puthash alt-file filename *c++-related-file-cache*)
                       (funcall
