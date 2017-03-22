@@ -288,14 +288,14 @@ as accepted by `bounds-of-thing-at-point'.")
                           (eproj-symbnav/show-entry-in-other-window
                            (funcall entry-tag entry)
                            (funcall entry-proj entry))))))
-             (select-start-selection
+             (select-mode-start-selection
               entries
               :buffer-name "Symbol homes"
               :after-init (lambda ()
                             (select-mode-extend-keymap-with kmap))
               :on-selection
               (lambda (idx entry selection-type)
-                (select-exit)
+                (select-mode-exit)
                 (funcall jump-to-home
                          (funcall entry-tag entry)
                          (funcall entry-proj entry)))
