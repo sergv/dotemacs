@@ -87,7 +87,8 @@ and indent them as singe line."
 
        (stack-command
         (lambda (cmd)
-          (format "cd %%s && stack %s --ghc-options=\"-j4 +RTS -A64m -H256m -n2m -RTS\"" cmd))))
+          (format "cd \"%%s\" && stack %s --ghc-options=\"-j4 +RTS -A64m -H256m -n2m -RTS\"" cmd)))
+       (cd-command "cd \"%s\""))
   (setf haskell-compile-cabal-build-command-presets
         `((vanilla
            ,(funcall stack-command "build"))
@@ -105,7 +106,7 @@ and indent them as singe line."
            ,(funcall stack-command "bench"))
           (cabal-vanilla
            ,(concat
-             "cd %s"
+             cd-command
              sep
              (concat "cabal "
                      "configure "
@@ -117,17 +118,17 @@ and indent them as singe line."
              (funcall test-command build-dir)))
           (cabal-build
            ,(concat
-             "cd %s"
+             cd-command
              sep
              (funcall build-command build-dir)))
           (cabal-build-inlpace
            ,(concat
-             "cd %s"
+             cd-command
              sep
              (funcall build-command nil)))
           (cabal-vanilla-noopt
            ,(concat
-             "cd %s"
+             cd-command
              sep
              (concat "cabal "
                      "configure "
@@ -140,17 +141,17 @@ and indent them as singe line."
              (funcall test-command build-dir)))
           (cabal-test
            ,(concat
-             "cd %s"
+             cd-command
              sep
              (funcall test-command build-dir)))
           (cabal-clean
            ,(concat
-             "cd %s"
+             cd-command
              sep
              "cabal clean --builddir " build-dir))
           (cabal-prof
            ,(concat
-             "cd %s"
+             cd-command
              sep
              (concat "cabal "
                      "configure "
@@ -164,7 +165,7 @@ and indent them as singe line."
           ;; work with absolute paths.
           (cabal-hpc
            ,(concat
-             "cd %s"
+             cd-command
              sep
              (concat "cabal "
                      "configure "
