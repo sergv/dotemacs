@@ -184,7 +184,7 @@ node `(haskell-mode)compilation' for more details."
             haskell-compile-cabal-build-command))
          (srcname (buffer-file-name))
          (command (cond (cabdir
-                         (format raw-command cabdir))
+                         (format raw-command (expand-file-name cabdir)))
                         ((and srcname (derived-mode-p 'haskell-mode))
                          (format haskell-compile-command srcname))
                         (t
