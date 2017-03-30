@@ -84,7 +84,7 @@
   extensions ;; list of <ext> strings
   extension-re
   create-tags-procedure
-  ;; Function taking three arguments:
+  ;; Function of three arguments:
   ;; 1. current eproj/project structure
   ;; 2. function of zero arguments returning list of files to load from
   ;; 3. function of one argument - a buffer, that should parse tags from the
@@ -92,10 +92,10 @@
   ;;
   ;; Returns whatever the third function returned.
   parse-tags-procedure
-  ;; Function taking single argument - buffer with tag text to parse,
+  ;; Function of one argument - buffer with tag text to parse,
   ;; created by e.g. create-tags-procedure.
   ;; Should return hash table of tags - hashtable of (<identifier> . <eproj-tags>)
-  ;; bindings for specified files, <eproj-tags> is a list of tags
+  ;; bindings for specified files, where <eproj-tags> is a list of tags.
 
   show-tag-kind-procedure ;; function that takes a tag and returs a string
   tag->string-func ;; function of one argument, a tag, returning string
@@ -444,7 +444,8 @@
   "Update tags only for current buffer in project that contains it."
   (interactive)
   (let* ((root (eproj-get-initial-project-root-for-buf (current-buffer)))
-         (proj (gethash root *eproj-projects* nil)))
+         (proj (gethash root *eproj-projects* nil))
+         (eproj-verbose-tag-loading nil))
     (when (not (null proj))
       (let* ((proj (eproj-get-project-for-buf (current-buffer)))
              (fname (expand-file-name buffer-file-name))
@@ -480,7 +481,7 @@
                          tags-new))
                old-tags
                new-tags))
-          (error "Project %s does not have tags for %s"
+          (error "Project '%s' does not have tags for '%s'"
                  (eproj-project/root proj)
                  mode))))))
 
@@ -508,13 +509,14 @@ cache tags in."
                        proj
                        make-project-files
                        (lambda (buf)
-                         (write-region (point-min) (point-max) tag-file)
-                         (funcall parse-tags-procedure buf)))))
+                         (with-current-buffer buf
+                           (write-region (point-min) (point-max) tag-file)
+                           (funcall parse-tags-procedure buf))))))
         (funcall create-tags-procedure
                  proj
                  make-project-files
                  parse-tags-procedure))
-    (error "Failed loading tags for mode %s: cannot resolve language" mode)))
+    (error "Failed loading tags for mode '%s': cannot resolve language" mode)))
 
 (defun eproj-reload-tags (proj)
   "Reload tags for PROJ."
