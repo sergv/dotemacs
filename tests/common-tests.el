@@ -23,6 +23,29 @@
 (defconst common-tests/pairs-test-array
   [(1 . b) (1 . c) (1 . a) (2 . x) (2 . y)])
 
+(ert-deftest common-tests/test-bisect-exhaustive ()
+  (let* ((count 80)
+         (items
+          (list->vector
+           (loop
+             for i from 0 below count
+             collect (* i i)))))
+    (loop
+      for i from 0 below count do
+      (loop
+        for j from (+ i 1) below count do
+        (loop
+          for k from i to j do
+          (let ((res (bisect (aref items k)
+                             items
+                             i
+                             j
+                             #'=
+                             #'<)))
+            (should-not (null? res))
+            (should (= res k))
+            (should (= (aref items k) (aref items res)))))))))
+
 
 (ert-deftest common-tests/test-bisect1 ()
   (let ((items [0 1 2 4 5 6]))
