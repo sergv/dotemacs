@@ -52,36 +52,36 @@
                 (beginning-of-line)
                 ;; Now verify it is really a preproc line.
                 (if (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\|else\\)")
-                  (let ((dchange nil)
-                        (directive (match-string 1)))
-                    (cond ((or (string= directive "if")
-                               (string= directive "ifdef")
-                               (string= directive "ifndef"))
-                           (setq dchange (- increment)))
-                          ((string= directive "endif")
-                           (setq dchange increment))
-                          ((= depth 0)
-                           (setq dchange +1))
-                          ((= depth +1)
-                           (setq dchange -1)))
-                    (when dchange
-                      (setq depth (+ depth dchange))
-                      ;; If we are trying to move across, and we find an
-                      ;; end before we find a beginning, get an error.
-                      (if (and (< depth target-depth) (< dchange 0))
-                        (error (concat (if forward
-                                         "No following conditional at this level"
-                                         "No previous conditional at this level")
-                                       ", depth = %s, target-depth = %s")
-                               depth
-                               target-depth)))
-                    ;; When searching forward, start from next line so
-                    ;; that we don't find the same line again.
-                    (if forward (forward-line 1))
-                    ;; We found something if we've arrived at the
-                    ;; target depth.
-                    (if (and dchange (= depth target-depth))
-                      (setq found (point))))
+                    (let ((dchange nil)
+                          (directive (match-string 1)))
+                      (cond ((or (string= directive "if")
+                                 (string= directive "ifdef")
+                                 (string= directive "ifndef"))
+                             (setq dchange (- increment)))
+                            ((string= directive "endif")
+                             (setq dchange increment))
+                            ((= depth 0)
+                             (setq dchange +1))
+                            ((= depth +1)
+                             (setq dchange -1)))
+                      (when dchange
+                        (setq depth (+ depth dchange))
+                        ;; If we are trying to move across, and we find an
+                        ;; end before we find a beginning, get an error.
+                        (if (and (< depth target-depth) (< dchange 0))
+                            (error (concat (if forward
+                                               "No following conditional at this level"
+                                             "No previous conditional at this level")
+                                           ", depth = %s, target-depth = %s")
+                                   depth
+                                   target-depth)))
+                      ;; When searching forward, start from next line so
+                      ;; that we don't find the same line again.
+                      (if forward (forward-line 1))
+                      ;; We found something if we've arrived at the
+                      ;; target depth.
+                      (if (and dchange (= depth target-depth))
+                          (setq found (point))))
                   ;; else
                   (if forward (forward-line 1)))))
             (or found
@@ -107,7 +107,7 @@
 (defun c-hideshow-forward-sexp (&optional arg)
   "Special version of `forward-sexp' for hideshow in c-mode."
   (if (char=? (char-after) ?\{)
-    (forward-sexp arg)
+      (forward-sexp arg)
     (let ((start (point)))
       (save-match-data
         (c-forward-preprocessor-conditional (or arg 1))

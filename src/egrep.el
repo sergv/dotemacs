@@ -17,10 +17,10 @@
 
 (defstruct (egrep-match
             (:conc-name egrep-match/))
-  file          ;; Absolute file name.
-  start-pos     ;; Integer. Buffer position of match start.
-  end-pos       ;; Integer. Buffer position of match end.
-  select-entry  ;; String with filename, line number and match highlighted
+  file         ;; Absolute file name.
+  start-pos    ;; Integer. Buffer position of match start.
+  end-pos      ;; Integer. Buffer position of match end.
+  select-entry ;; String with filename, line number and match highlighted
   )
 
 (defun egrep--make-match-entry (file-name match-start match-end)
@@ -142,8 +142,8 @@ match IGNORED-FILE-GLOBS."
        ;; NB Don't call `select-mode-exit' here since we may return to *grep* buffer
        ;; to try out another match.
        (let ((buf (aif (find-buffer-visiting (egrep-match/file match))
-                       it
-                       (find-file-noselect (egrep-match/file match)))))
+                      it
+                    (find-file-noselect (egrep-match/file match)))))
          (funcall
           (pcase selection-type
             (`same-window  #'switch-to-buffer)
@@ -191,7 +191,7 @@ string patterns."
            (read-regexp (format
                          "%s for"
                          (if ignore-case?
-                           "Case-insensetive search"
+                             "Case-insensetive search"
                            "Search"))
                         (get-region-string-no-properties)
                         'grep-regexp-history)))

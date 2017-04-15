@@ -20,17 +20,17 @@ governed by."
   (cl-assert (symbol? var))
   (if-let (project-root (locate-dominating-file source-file
                                                 +leiningen-project-file+))
-    (let ((project-file (concat project-root "/" +leiningen-project-file+)))
-      (if-let (project-buf (get-file-buffer project-file))
-        (buffer-local-value var project-buf)
-        (with-temp-buffer
-          (insert-file-contents project-file
-                                t ;; make current buffer visit inserted file
-                                )
-          ;; instert-file-contents is not enough to set local variables
-          (setq-local enable-local-variables :safe)
-          (normal-mode)
-          (buffer-local-value var (current-buffer)))))
+      (let ((project-file (concat project-root "/" +leiningen-project-file+)))
+        (if-let (project-buf (get-file-buffer project-file))
+            (buffer-local-value var project-buf)
+          (with-temp-buffer
+            (insert-file-contents project-file
+                                  t ;; make current buffer visit inserted file
+                                  )
+            ;; instert-file-contents is not enough to set local variables
+            (setq-local enable-local-variables :safe)
+            (normal-mode)
+            (buffer-local-value var (current-buffer)))))
     (error "Project root containing project.clj not found")))
 
 (provide 'clojure-util)

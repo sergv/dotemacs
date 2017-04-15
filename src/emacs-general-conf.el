@@ -120,7 +120,7 @@
 ;; backwards compatibility since default-buffer-file-coding-system
 ;; is deprecated in 23.2.
 (if (boundp buffer-file-coding-system)
-  (setq buffer-file-coding-system 'utf-8)
+    (setq buffer-file-coding-system 'utf-8)
   (setq default-buffer-file-coding-system 'utf-8))
 
 ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
@@ -129,7 +129,7 @@
 
 ;;;; disable mouse scrolling
 ;; (mouse-wheel-mode -1)
-(def-keys-for-map (;; global-map
+(def-keys-for-map ( ;; global-map
                    minibuffer-inactive-mode-map)
   ("<mouse-1>"      ignore)
   ("<down-mouse-1>" ignore)

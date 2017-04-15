@@ -138,7 +138,7 @@ or not.")
              (not disable-fci-mode?))
     (fci-mode (if (memq major-mode
                         +do-not-track-long-lines-modes+)
-                -1
+                  -1
                 +1))))
 
 (defun* init-repl (&key (show-directory nil)
@@ -154,8 +154,8 @@ or not.")
     (vim:bind-local-keymaps))
   (when bind-vim:motion-current-line
     (if (not (null? vim:operator-pending-mode-local-keymap))
-      (def-keys-for-map vim:operator-pending-mode-local-keymap
-        ("c" vim:motion-current-line))
+        (def-keys-for-map vim:operator-pending-mode-local-keymap
+          ("c" vim:motion-current-line))
       (message "init-repl warning: vim:operator-pending-mode-local-keymap is nil, \"c\" not bound in buffer %s"
                (current-buffer))))
 
@@ -180,11 +180,11 @@ or not.")
                        backtab-binding
                        &key (enable-yasnippet nil))
   (if enable-yasnippet
-    (progn
-      (setq-local yas-expand-fallback tab-binding)
-      (def-keys-for-map (vim:normal-mode-local-keymap
-                         vim:insert-mode-local-keymap)
-        ("<tab>" yas-expand-or-fallback)))
+      (progn
+        (setq-local yas-expand-fallback tab-binding)
+        (def-keys-for-map (vim:normal-mode-local-keymap
+                           vim:insert-mode-local-keymap)
+          ("<tab>" yas-expand-or-fallback)))
     (dolist (kmap (list vim:normal-mode-local-keymap
                         vim:insert-mode-local-keymap))
       (define-key kmap (kbd "<tab>") tab-binding)))
@@ -254,7 +254,7 @@ or not.")
                 (list (expand-file-name "~/user-info.el")
                       (concat +emacs-config-path+ "/src/user-info.el")))))
   (aif user-info-file
-    (load-file it)
+      (load-file it)
     (message "user-info.el not found")))
 
 (let ((machine-specific-setup-file
@@ -262,7 +262,7 @@ or not.")
                 (list (expand-file-name "~/machine-specific-setup.el")
                       (concat +emacs-config-path+ "/src/machine-specific-setup.el")))))
   (aif machine-specific-setup-file
-    (load-file it)
+      (load-file it)
     (message "machine-specific-setup.el not found")))
 
 (when (platform-os-type? 'windows)

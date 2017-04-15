@@ -42,7 +42,7 @@ while interactively prompting for variables/messages."
     (save-match-data
       (goto-char position)
       (if (= 0 (current-column))
-        ""
+          ""
         (condition-case nil
             (progn
               (beginning-of-defun)

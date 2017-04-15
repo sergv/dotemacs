@@ -83,9 +83,9 @@
            (save-match-data
              (let ((name buffer-file-name))
                (if (string-match "^.*/src\\(?:/clojure\\)?/\\(.*\\)\\.clj$" name)
-                 (replace-regexp-in-string "/"
-                                           "."
-                                           (match-string-no-properties 1 name))
+                   (replace-regexp-in-string "/"
+                                             "."
+                                             (match-string-no-properties 1 name))
                  "")))))
    (list "haskell path to module name"
          (lambda ()

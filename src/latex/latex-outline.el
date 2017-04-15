@@ -43,7 +43,7 @@
    (save-excursion
      (end-of-line)
      (if (< (point) (marker-position latex:document-start))
-       1
+         1
        (let* ((line (current-line))
               (type-of-section (or (case (latex-type-of-section-at-point)
                                      (part 0)
@@ -65,7 +65,7 @@
          (+ whitespace-offset
             ;; if line is some type of section
             (if (latex:type-of-section line)
-              0
+                0
               1)
             type-of-section
             (let ((y (length (latex:get-unmatched-environments-in-region
@@ -203,7 +203,7 @@ for use in utility functions."
   (latex:save-ex-save-re
    (let ((type-re (reduce (lambda (re x)
                             (if re
-                              re
+                                re
                               (when x
                                 (goto-char (marker-position
                                             latex:document-start))

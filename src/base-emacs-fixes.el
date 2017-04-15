@@ -20,9 +20,9 @@ Otherwise, runs hooks in the sequence: `change-major-mode-after-body-hook',
 `after-change-major-mode-hook'.  Major mode functions should use
 this instead of `run-hooks' when running their FOO-mode-hook."
   (if delay-mode-hooks
-    ;; Delaying case.
-    (dolist (hook hooks)
-      (push hook delayed-mode-hooks))
+      ;; Delaying case.
+      (dolist (hook hooks)
+        (push hook delayed-mode-hooks))
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (cl-remove-duplicates (nconc (nreverse delayed-mode-hooks) hooks)
                                       :test #'eq))

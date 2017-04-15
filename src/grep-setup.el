@@ -78,7 +78,7 @@ on whether supplied patterns is regexp or fixed string."
            (funcall func "<N>" null-device)
            (funcall func "<X>" excl)
            (funcall func "<E>" (if (funcall fixed-string? regexp)
-                                 "-F"
+                                   "-F"
                                  "-E"))
            (funcall func "<R>" regexp)
            command)))

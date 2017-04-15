@@ -173,8 +173,8 @@ as accepted by `bounds-of-thing-at-point'.")
                 eproj-symbnav/previous-homes)
           (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
       (let* ((lang (aif (gethash effective-major-mode eproj/languages-table)
-                        it
-                        (error "unsupported language %s" effective-major-mode)))
+                       it
+                     (error "unsupported language %s" effective-major-mode)))
              (entry->string-func (eproj-language/tag->string-func lang))
              (show-tag-kind-procedure (eproj-language/show-tag-kind-procedure lang))
              (tag->sort-token

@@ -60,7 +60,7 @@
         (while (and lst
                     (not (eq (cdr lst) last-undo)))
           (if (null (cadr lst))
-            (setcdr lst (cddr lst))
+              (setcdr lst (cddr lst))
             (setq lst (cdr lst))))))))
 
 (provide 'vim-undo)

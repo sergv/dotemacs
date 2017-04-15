@@ -141,7 +141,7 @@ in place of input."
           (call-process-region (point-min)
                                (point-max)
                                awk-bin
-                               nil           ;; don't delete from temp buffer
+                               nil ;; don't delete from temp buffer
                                (list out-buf ;; mix stderr and stdout
                                      t)
                                t ;; do redisplay
@@ -191,24 +191,24 @@ with id value of `awk-program-id'."
   "Insert previous inputed awk program in buffer."
   (interactive)
   (if awk-program-ids
-    (progn
-      (when (= (car awk-program-ids) awk-program-id)
-        (awk-store-program))
-      (erase-buffer)
-      (rotate-entry-list 'awk-program-ids)
-      (insert (gethash (car awk-program-ids) awk-programs)))
+      (progn
+        (when (= (car awk-program-ids) awk-program-id)
+          (awk-store-program))
+        (erase-buffer)
+        (rotate-entry-list 'awk-program-ids)
+        (insert (gethash (car awk-program-ids) awk-programs)))
     (error "awk-previous-program: error: no programs inputed, aborting")))
 
 (defun awk-next-program ()
   "Insert next inputed awk program in buffer."
   (interactive)
   (if awk-program-ids
-    (progn
-      (when (= (car awk-program-ids) awk-program-id)
-        (awk-store-program))
-      (erase-buffer)
-      (rotate-entry-list-backward 'awk-program-ids)
-      (insert (gethash (car awk-program-ids) awk-programs)))
+      (progn
+        (when (= (car awk-program-ids) awk-program-id)
+          (awk-store-program))
+        (erase-buffer)
+        (rotate-entry-list-backward 'awk-program-ids)
+        (insert (gethash (car awk-program-ids) awk-programs)))
     (error "awk-next-program: error: no programs inputed, aborting")))
 
 
@@ -233,11 +233,11 @@ with id value of `awk-program-id'."
     (with-current-buffer (get-buffer awk-buffer-name)
       (awk-exit)))
   (if (region-active-p)
-    (let ((begin (region-beginning))
-          (end   (region-end)))
-      (deactivate-mark)
-      (vim:visual-mode-exit)
-      (awk-on-region begin end))
+      (let ((begin (region-beginning))
+            (end   (region-end)))
+        (deactivate-mark)
+        (vim:visual-mode-exit)
+        (awk-on-region begin end))
     (awk-on-region (point-min) (point-max))))
 
 (provide 'awk+)

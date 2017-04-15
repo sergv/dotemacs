@@ -214,7 +214,7 @@ buffer."
     (let ((orig (point)))
       (forward-sexp)
       (if (eq (point) orig)
-        (error "No further sexp")))
+          (error "No further sexp")))
     (setq n (1- n))))
 
 
@@ -296,7 +296,7 @@ The return is t for a let, symbol setq for a setq, or nil if neither."
                                        (progn
                                          (forward-sexp)
                                          (/= (point) old)) ;; stop if not moved
-                                     (error nil))))        ;; stop if bad paren
+                                     (error nil)))) ;; stop if bad paren
                        (when (setq found (align-let-looking-at-nest))
                          (down-list 1)
                          (set-marker align-let-save-point-marker (point))))
@@ -321,9 +321,9 @@ level)."
     (align-let-save-point
      (align-let-backward-to-code)
      (while (if (setq type (align-let-looking-at-let))
-              (progn
-                (set-marker align-let-save-point-marker (point))
-                nil) ;; stop loop
+                (progn
+                  (set-marker align-let-save-point-marker (point))
+                  nil) ;; stop loop
               (condition-case nil
                   (up-list -1)
                 (error
@@ -551,7 +551,7 @@ indent and align-let will both insert or delete characters."
              ;; start of "(..." form, check for `let', and go down into it
              (condition-case nil
                  (if (save-excursion (align-let-looking-at-let))
-                   (align-let))
+                     (align-let))
                (error nil))
              (goto-char (1+ (point))))
 

@@ -31,22 +31,22 @@
           (not (haskell-insert-followed-by-dollar? start-position)))
          (start
           (if monadic?
-            (lambda ()
-              (let ((has-liftio?
-                     (save-match-data
-                       (save-excursion
-                         (goto-char (point-min))
-                         (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
-                (insert
-                 (if has-liftio?
-                   "liftIO $ putStrLn $ \""
-                   "putStrLn $ \""))))
+              (lambda ()
+                (let ((has-liftio?
+                       (save-match-data
+                         (save-excursion
+                           (goto-char (point-min))
+                           (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
+                  (insert
+                   (if has-liftio?
+                       "liftIO $ putStrLn $ \""
+                     "putStrLn $ \""))))
             (lambda ()
               (insert "trace (\""))))
          (end
           (if monadic?
-            (lambda ()
-              (insert ""))
+              (lambda ()
+                (insert ""))
             (lambda () (insert ") " (if insert-dollar? "$ " "")))))
          (quote-input
           (lambda (x)
@@ -54,7 +54,7 @@
          (insert-continuation
           (lambda (should-merge-messages?)
             (if should-merge-messages?
-              (delete-backward-char 1)
+                (delete-backward-char 1)
               (insert " ++ \""))))
          (insert-message
           (lambda (is-initial-insertion? user-input)
@@ -66,7 +66,7 @@
                      (if is-initial-insertion? "" ", ")
                      (funcall quote-input user-input)
                      (if (string-match-pure? "[ \t]" user-input)
-                       (concat "(" user-input ")")
+                         (concat "(" user-input ")")
                        user-input))))))
     (insert-info-template
      :start start
@@ -82,7 +82,7 @@
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
     (if (zerop (length qualified-name))
-      qualified-name
+        qualified-name
       (substring qualified-name 0 1))))
 
 ;;;###autoload
@@ -92,7 +92,7 @@ then Bar would be the result."
   (save-match-data
     (if (string-match "^\\(?:[A-Z][a-zA-Z0-9_']*\\.\\)+\\([A-Z][a-zA-Z0-9_']*\\)$"
                       qualified-name)
-      (match-string 1 qualified-name)
+        (match-string 1 qualified-name)
       qualified-name)))
 
 (defconst haskell-abbrev+/language-pragma-prefix
@@ -109,14 +109,14 @@ then Bar would be the result."
 
 (defun haskell-abbrev+-align-language-pragmas ()
   (save-current-line-column
-    (haskell-align-language-pragmas yas-snippet-beg)))
+   (haskell-align-language-pragmas yas-snippet-beg)))
 
 (defun* haskell-abbrev+-setup (&key (repl nil))
   (add-hook 'yas-after-exit-snippet-hook #'haskell-abbrev+-align-language-pragmas nil t)
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
-                                     (and (not (point-inside-string-or-comment?))
-                                          (or (null? c)
-                                              (not (char=? c ?:)))))))
+                                          (and (not (point-inside-string-or-comment?))
+                                               (or (null? c)
+                                                   (not (char=? c ?:)))))))
          (haskell-extensions haskell-language-extensions)
          (expand-qualified-import-snippet-action
           (lambda () (yas-expand-snippet "import qualified $1 as ${1:$(haskell-abbrev+-extract-first-capital-char (haskell-abbrev+-extract-mod-name yas-text))}$0")))
@@ -146,40 +146,40 @@ then Bar would be the result."
           abbrev+-abbreviations
           (append
            (if (not repl)
-             (list
-              (list "main"
-                    (list
-                     (lambda ()
-                       (let ((indent (make-string haskell-indent-offset ?\s)))
-                         (yas-expand-snippet
-                          (concat "main :: IO ()\nmain = do\n"
-                                  indent "$1\n"
-                                  indent "return ()")))))
-                    #'point-not-inside-string-or-comment?)
-              (list "## *"
-                    (list
-                     (lambda () (yas-expand-snippet pragma-snippet)))
-                    #'point-not-inside-string-or-comment?)
-              (list "##?scc *"
-                    (list
-                     (lambda () (yas-expand-snippet "{-# SCC \"${1:cost center name}\" #-}$0")))
-                    #'point-not-inside-string-or-comment?)
-              (list "##?dump *"
-                    (list
-                     (lambda () (yas-expand-snippet "{-# OPTIONS_GHC -ddump-simpl -dsuppress-uniques -dsuppress-idinfo -dsuppress-module-prefixes -dsuppress-type-applications -dsuppress-coercions -dppr-cols200 #-}$0")))
-                    #'point-not-inside-string-or-comment?)
-              (list "\\(?:#lang\\)"
-                    (list
-                     (lambda () (yas-expand-snippet language-snippet)))
-                    #'point-not-inside-string-or-comment?)
-              (list "#opts?"
-                    (list
-                     (lambda () (yas-expand-snippet options-snippet)))
-                    #'point-not-inside-string-or-comment?)
-              (list "#\\(?:opts?-def\\)"
-                    (list
-                     (lambda () (yas-expand-snippet default-options-snippet)))
-                    #'point-not-inside-string-or-comment?))
+               (list
+                (list "main"
+                      (list
+                       (lambda ()
+                         (let ((indent (make-string haskell-indent-offset ?\s)))
+                           (yas-expand-snippet
+                            (concat "main :: IO ()\nmain = do\n"
+                                    indent "$1\n"
+                                    indent "return ()")))))
+                      #'point-not-inside-string-or-comment?)
+                (list "## *"
+                      (list
+                       (lambda () (yas-expand-snippet pragma-snippet)))
+                      #'point-not-inside-string-or-comment?)
+                (list "##?scc *"
+                      (list
+                       (lambda () (yas-expand-snippet "{-# SCC \"${1:cost center name}\" #-}$0")))
+                      #'point-not-inside-string-or-comment?)
+                (list "##?dump *"
+                      (list
+                       (lambda () (yas-expand-snippet "{-# OPTIONS_GHC -ddump-simpl -dsuppress-uniques -dsuppress-idinfo -dsuppress-module-prefixes -dsuppress-type-applications -dsuppress-coercions -dppr-cols200 #-}$0")))
+                      #'point-not-inside-string-or-comment?)
+                (list "\\(?:#lang\\)"
+                      (list
+                       (lambda () (yas-expand-snippet language-snippet)))
+                      #'point-not-inside-string-or-comment?)
+                (list "#opts?"
+                      (list
+                       (lambda () (yas-expand-snippet options-snippet)))
+                      #'point-not-inside-string-or-comment?)
+                (list "#\\(?:opts?-def\\)"
+                      (list
+                       (lambda () (yas-expand-snippet default-options-snippet)))
+                      #'point-not-inside-string-or-comment?))
              nil)
            (list
             ;; (cons "pwd" #'(lambda () (expand-file-name default-directory)))

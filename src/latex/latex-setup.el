@@ -34,7 +34,7 @@
 (defun latex-toggle-preview ()
   "Toggle preview in current buffer."
   (if latex:preview
-    (preview-clearout-buffer)
+      (preview-clearout-buffer)
     (preview-buffer))
   (setq latex:preview (not latex:preview)))
 
@@ -45,11 +45,11 @@
 (defun latex-toggle-russian-spell-check ()
   "Toggle russian spell checking in current buffer."
   (if latex:russian-spellcheck
-    (progn
-      (flyspell-mode-off)
-      (def-keys-for-map vim:normal-mode-local-keymap
-        ("'"  nil)
-        ("\"" nil)))
+      (progn
+        (flyspell-mode-off)
+        (def-keys-for-map vim:normal-mode-local-keymap
+          ("'"  nil)
+          ("\"" nil)))
     (progn
       (def-keys-for-map vim:normal-mode-local-keymap
         ("'"  ispell-word)
@@ -62,7 +62,7 @@
 (defun latex-toggle-preview-or-russian-spellcheck (&optional arg)
   (interactive (list current-prefix-arg))
   (if arg
-    (latex-toggle-russian-spell-check)
+      (latex-toggle-russian-spell-check)
     (latex-toggle-preview)))
 
 

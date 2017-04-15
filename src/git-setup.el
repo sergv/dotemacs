@@ -71,7 +71,7 @@
                                            (magit-section-children section))))
                           (if (magit-section-match '[hunk file unstaged]
                                                    section)
-                            (cons section xs)
+                              (cons section xs)
                             xs)))))
       ;; Expand to load all hunks.
       (magit-section-show-children magit-root-section)
@@ -89,7 +89,7 @@
                        (buffer-substring-no-properties
                         (magit-section-start hunk)
                         (magit-section-end hunk))))
-               "IS"
+                 "IS"
                "IS NOT"))))
 
 (defun magit-stage-non-whitespace-changes ()
@@ -290,11 +290,11 @@ and put one if nothing was found."
                (trim-whitespace
                 (buffer-substring-no-properties (point-min) (point-max)))))))
       (if (hash-table-p *git-get-head-commit-cache*)
-        (aif (gethash repo-root *git-get-head-commit-cache*)
-          it
-          (let ((commit (funcall get-head-commit repo-root)))
-            (puthash repo-root commit *git-get-head-commit-cache*)
-            commit))
+          (aif (gethash repo-root *git-get-head-commit-cache*)
+              it
+            (let ((commit (funcall get-head-commit repo-root)))
+              (puthash repo-root commit *git-get-head-commit-cache*)
+              commit))
         (funcall get-head-commit repo-root))))
 
   (defvar *git-get-tracked-files-cache* (make-hash-table :test #'equal)
@@ -331,11 +331,11 @@ expanded filenames in git repository to themselves.")
                  filename-table))))
           (commit (git-get-head-commit-cached repo-path)))
       (if-let (inner-table (gethash repo-path *git-get-tracked-files-cache*))
-        (if-let (files-entry (gethash commit inner-table))
-          files-entry
-          (let ((files (funcall get-tracked-files repo-path)))
-            (puthash commit files inner-table)
-            files))
+          (if-let (files-entry (gethash commit inner-table))
+              files-entry
+            (let ((files (funcall get-tracked-files repo-path)))
+              (puthash commit files inner-table)
+              files))
         (let* ((files (funcall get-tracked-files repo-path))
                (inner-table (make-hash-table :test #'equal)))
           (puthash commit files inner-table)
@@ -347,7 +347,7 @@ expanded filenames in git repository to themselves.")
 under git version control."
     (when (file-directory? path)
       (if (file-directory? (concat (strip-trailing-slash path) "/.git"))
-        path
+          path
         (with-temp-buffer
           (cd path)
           (when (= 0 (call-process "git"

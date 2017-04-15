@@ -93,10 +93,10 @@ like 'dd', 'yy',... .")
   (if (memq command '(vim:cmd-force-charwise
                       vim:cmd-force-linewise
                       vim:cmd-force-blockwise))
-    (progn
-      (setf vim:current-key-sequence
-            (vconcat vim:current-key-sequence (this-command-keys-vector)))
-      (funcall command))
+      (progn
+        (setf vim:current-key-sequence
+              (vconcat vim:current-key-sequence (this-command-keys-vector)))
+        (funcall command))
     (unwind-protect
         (pcase (vim:cmd-type command)
           (`simple  (error "No simple commands allowed in operator-pending mode"))
@@ -173,8 +173,8 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
          (vim:last-undo buffer-undo-list)
          (repeatable? (vim:cmd-repeatable-p command))
          (events (if repeatable?
-                   (vconcat vim:current-key-sequence
-                            (this-command-keys-vector))
+                     (vconcat vim:current-key-sequence
+                              (this-command-keys-vector))
                    nil)))
     (when (vim:cmd-count-p command)
       (push vim:current-cmd-count parameters)
@@ -226,18 +226,18 @@ If the old motion type was already characterwise exclusive/inclusive will be tog
                                 key))))
          (repeatable? (vim:cmd-repeatable-p vim:current-cmd))
          (events (if repeatable?
-                   (vconcat vim:current-key-sequence
-                            (this-command-keys-vector))
+                     (vconcat vim:current-key-sequence
+                              (this-command-keys-vector))
                    nil)))
     (if (and entry
              (or (symbol? entry)
                  (functionp entry)))
-      (funcall entry)
+        (funcall entry)
 
       (if (and (vim:cmd-register-p vim:current-cmd) vim:current-register)
-        (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
-                                 :motion (vim:get-current-cmd-motion)
-                                 :register vim:current-register)
+          (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
+                                   :motion (vim:get-current-cmd-motion)
+                                   :register vim:current-register)
         (vim:funcall-save-buffer (vim:cmd-function vim:current-cmd)
                                  :motion (vim:get-current-cmd-motion))))
     (when repeatable?
