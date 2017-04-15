@@ -11,6 +11,7 @@
 (require 'c-abbrev+)
 (require 'eproj-setup)
 
+;;;###autoload
 (defun c-setup ()
   (cc-setup :define-special-keys t)
   (setf tab-width 8)
@@ -41,6 +42,9 @@
   (setup-outline-headers :header-start "/"
                          :header-symbol "*"
                          :length-min 3))
+
+;;;###autoload
+(add-hook 'c-mode-hook #'c-setup)
 
 (provide 'c-setup)
 
