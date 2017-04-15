@@ -58,7 +58,7 @@
       (setq directory (b/shorten-path-from-root directory)))
     (concat half-name
             (if (platform-os-type? 'linux)
-              (replace-regexp-in-string "/" "%" directory)
+                (replace-regexp-in-string "/" "%" directory)
               nil)
             extension)))
 
@@ -88,10 +88,10 @@
 by `b/backup-interval'."
   (if (or (not b/last-backup-time)
           (< b/backup-interval (- (b/get-time) b/last-backup-time)))
-    (progn
-      (make-backup)
-      (setq b/last-backup-time (b/get-time)
-            b/has-unbacked-up-changes nil))
+      (progn
+        (make-backup)
+        (setq b/last-backup-time (b/get-time)
+              b/has-unbacked-up-changes nil))
     (setq b/has-unbacked-up-changes t)))
 
 (defun backup-on-buffer-kill ()

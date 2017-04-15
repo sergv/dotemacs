@@ -113,8 +113,8 @@
                                "-"
                                "--excmd=number"
                                (aif (rest-safe (assq lang-mode *ctags-language-flags*))
-                                    it
-                                    (error "unknown ctags language: %s" lang-mode)))))
+                                   it
+                                 (error "unknown ctags language: %s" lang-mode)))))
             (error "ctags invokation failed: %s"
                    (with-current-buffer out-buffer
                      (buffer-substring-no-properties (point-min) (point-max)))))))))))
@@ -173,8 +173,8 @@ BUFFER is expected to contain output of ctags command."
                                 (let ((new-field (cons (string->symbol identifier)
                                                        (eproj/ctags-cache-string value))))
                                   (push (aif (gethash new-field field-cache)
-                                             it
-                                             (puthash new-field new-field field-cache))
+                                            it
+                                          (puthash new-field new-field field-cache))
                                         fields))))
                           (error "invalid entry: %s" (buffer-substring-no-properties start end)))))))
                 (forward-char)

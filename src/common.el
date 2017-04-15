@@ -38,12 +38,12 @@
          (b (second time))
          (microsec (third time))
          (gen (make-random-gen
-                ;; make an obscure seed
-                (+ (logxor a b)
-                   ;; this is wery much like random noise
-                   microsec
-                   (emacs-pid)))
-               ))
+               ;; make an obscure seed
+               (+ (logxor a b)
+                  ;; this is wery much like random noise
+                  microsec
+                  (emacs-pid)))
+              ))
     (lambda ()
       (funcall gen 0.0 1.0))))
 
@@ -100,7 +100,7 @@ current time and"
   ;; and (expt 2 32)/(ash 1 32) will be 0, so use
   ;; simpler generator that has no overflows
   (if (= 0 (ash 1 31))
-    (make-simple-random-generator)
+      (make-simple-random-generator)
     (make-tausworthe-random-generator))
   "Global random generator")
 
@@ -164,8 +164,8 @@ If NONDIR-ONLY? is specified then insert only nondirectory part will be
 inserted."
   (interactive "P")
   (let* ((path (funcall (if nondir-only?
-                          (comp #'file-name-nondirectory
-                                #'strip-trailing-slash)
+                            (comp #'file-name-nondirectory
+                                  #'strip-trailing-slash)
                           #'identity)
                         (expand-file-name
                          (ido-read-file-name
@@ -175,12 +175,12 @@ inserted."
                           nil
                           nil
                           (lambda (x) (or (file-directory-p x)
-                                     (file-exists-p x)))))))
+                                          (file-exists-p x)))))))
          (output (if (and (eq major-mode 'org-mode)
                           (y-or-n-p "Insert link? "))
-                   (concat "[[file:"
-                           path
-                           "][]]")
+                     (concat "[[file:"
+                             path
+                             "][]]")
                    path)))
     (insert output)))
 
@@ -223,7 +223,7 @@ default into prompt."
 
 (defun factorial (x)
   (if (= 0 x)
-    1
+      1
     (* x (factorial (1- x)))))
 
 (defun choose (n k)
@@ -233,7 +233,7 @@ default into prompt."
 
 (defun permutations (list)
   (if (null list)
-    (list nil)
+      (list nil)
     (-mapcat (lambda (item)
                (-map (lambda (x)
                        (cons item x))
@@ -249,7 +249,7 @@ combinations"
   (letrec ((collect
             (lambda (start end)
               (if (< start 0)
-                (list ())
+                  (list ())
                 (loop
                   for i from start to end
                   nconcing
@@ -316,9 +316,9 @@ tabbar, etc")
          (concat "\\(?:" buf-re "\\)")))
     (setf invisible-buffers-re
           (if invisible-buffers-re
-            (concat invisible-buffers-re
-                    "\\|"
-                    buf-re-with-group)
+              (concat invisible-buffers-re
+                      "\\|"
+                      buf-re-with-group)
             buf-re-with-group))))
 
 (defun invisible-buffer? (buf)
@@ -328,7 +328,7 @@ tabbar, etc")
              (buffer? buf))
          (string-match-pure? invisible-buffers-re
                              (if (string? buf)
-                               buf
+                                 buf
                                (buffer-name buf))))
         ;; ((string? buf)
         ;;  (-any? (lambda (re)
@@ -423,7 +423,7 @@ in both tables with COMB-FUNC, which should take 3 arguments: key, value in
 main table and value in aux table."
   (maphash (lambda (k v)
              (if-let (v-main (gethash k table-main))
-               (puthash k (funcall comb-func k v-main v) table-main)
+                 (puthash k (funcall comb-func k v-main v) table-main)
                (puthash k v table-main)))
            table-aux))
 
@@ -562,22 +562,22 @@ START is inclusive and END is exclusive in ITEMS."
   (nth 7 (file-attributes filename 'integer)))
 
 (if (executable-find "cmp")
+    (defun different-files-fast? (file1 file2)
+      "Return t if content of FILE1 and FILE2 differs and try to yield answer
+faster than byte-by-byte comparison of respecfive file contents."
+      (if (= (file-size file1) (file-size file2))
+          (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
+        t))
   (defun different-files-fast? (file1 file2)
     "Return t if content of FILE1 and FILE2 differs and try to yield answer
 faster than byte-by-byte comparison of respecfive file contents."
     (if (= (file-size file1) (file-size file2))
-      (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
-      t))
-  (defun different-files-fast? (file1 file2)
-    "Return t if content of FILE1 and FILE2 differs and try to yield answer
-faster than byte-by-byte comparison of respecfive file contents."
-    (if (= (file-size file1) (file-size file2))
-      (string=? (with-temp-buffer
-                  (insert-file-contents file1)
-                  (buffer-substring-no-properties (point-min) (point-max)))
-                (with-temp-buffer
-                  (insert-file-contents file2)
-                  (buffer-substring-no-properties (point-min) (point-max))))
+        (string=? (with-temp-buffer
+                    (insert-file-contents file1)
+                    (buffer-substring-no-properties (point-min) (point-max)))
+                  (with-temp-buffer
+                    (insert-file-contents file2)
+                    (buffer-substring-no-properties (point-min) (point-max))))
       t)))
 
 ;;;
@@ -792,7 +792,7 @@ optimization purposes.")
 
 (defun common/registered-filename (filename)
   (aif (gethash filename common/registered-filenames)
-    it
+      it
     (progn
       (puthash filename filename common/registered-filenames)
       filename)))
@@ -802,7 +802,7 @@ optimization purposes.")
 (defun* pp-to-string* (obj
                        &key
                        (length nil) ;; print-length
-                       (depth nil) ;; print-level
+                       (depth nil)  ;; print-level
                        )
   (let ((print-length length)
         (print-depth depth))
@@ -832,7 +832,7 @@ optimization purposes.")
          (prev-bufs (-filter #'buffer-live-p
                              (window-parameter window 'prev-buffers))))
     (if (null? prev-bufs)
-      (error "no alive previous buffers to switch to")
+        (error "no alive previous buffers to switch to")
       (switch-to-buffer (car prev-bufs)))))
 
 ;;;
@@ -857,9 +857,9 @@ optimization purposes.")
   "Get string currently selected by a region, or nil
 if there's no region."
   (if (region-active-p)
-    (buffer-substring-no-properties
-     (region-beginning)
-     (region-end))
+      (buffer-substring-no-properties
+       (region-beginning)
+       (region-end))
     (error "Region not active")))
 
 (defun get-region-bounds ()
@@ -868,18 +868,18 @@ on currently active vim highlight mode."
   (unless (region-active-p)
     (error "Region not active"))
   (if (vim:visual-mode-p)
-    (cond
-      ((eq? vim:visual-mode-type 'normal)
-       (values (region-beginning) (region-end)))
-      ((eq? vim:visual-mode-type 'linewise)
-       (values (save-excursion
-                 (goto-char (region-beginning))
-                 (line-beginning-position))
-               (save-excursion
-                 (goto-char (region-end))
-                 (line-end-position))))
-      (t
-       (values (region-beginning) (region-end))))
+      (cond
+        ((eq? vim:visual-mode-type 'normal)
+         (values (region-beginning) (region-end)))
+        ((eq? vim:visual-mode-type 'linewise)
+         (values (save-excursion
+                   (goto-char (region-beginning))
+                   (line-beginning-position))
+                 (save-excursion
+                   (goto-char (region-end))
+                   (line-end-position))))
+        (t
+         (values (region-beginning) (region-end))))
     (values (region-beginning) (region-end))))
 
 ;;;
@@ -899,7 +899,7 @@ return pair (x (F x))."
               fy tmp))
       (setf xs (cdr xs)))
     (if done
-      (values y fy)
+        (values y fy)
       nil)))
 
 ;;;
@@ -912,7 +912,7 @@ return pair (x (F x))."
   (let ((cmdline-normalized
          (command-line-normalize-file-name fname)))
     (if (memq system-type '(ms-dos windows-nt))
-      (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
+        (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
       cmdline-normalized)))
 
 ;;;
@@ -923,7 +923,7 @@ edit is active."
   (condition-case err
       (abort-recursive-edit)
     (user-error (if err
-                  (funcall on-no-recursive-edit)
+                    (funcall on-no-recursive-edit)
                   (signal (car err) (cdr err))))))
 
 ;;; buffer, window and frame utils
@@ -966,14 +966,14 @@ the current buffer."
                   (with-current-buffer buf-b
                     (point)))))
     (if (eq? buf-b buf-a)
-      (progn
-        (with-selected-window win-a
-          (with-current-buffer buf-a
-            (goto-char pos-b)))
-        (select-window win-b)
-        (with-selected-window win-b
-          (with-current-buffer buf-b
-            (goto-char pos-a))))
+        (progn
+          (with-selected-window win-a
+            (with-current-buffer buf-a
+              (goto-char pos-b)))
+          (select-window win-b)
+          (with-selected-window win-b
+            (with-current-buffer buf-b
+              (goto-char pos-a))))
       (progn
         (switch-to-buffer buf-b)
         (select-window win-b)
@@ -1060,18 +1060,18 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     (while tmp
       (let ((item (car tmp)))
         (if (funcall pred item)
-          ;; remove the item
-          (let ((next-cons (cdr tmp)))
-            (if (null? next-cons)
-              ;; at the end of list - overwrite current cons
-              (progn
-                (if prev
-                  (setf (cdr prev) nil)
-                  (setf items nil))
-                (setf tmp nil))
-              (setf (car tmp) (car next-cons)
-                    (cdr tmp) (cdr next-cons)))
-            (funcall on-deletion item))
+            ;; remove the item
+            (let ((next-cons (cdr tmp)))
+              (if (null? next-cons)
+                  ;; at the end of list - overwrite current cons
+                  (progn
+                    (if prev
+                        (setf (cdr prev) nil)
+                      (setf items nil))
+                    (setf tmp nil))
+                (setf (car tmp) (car next-cons)
+                      (cdr tmp) (cdr next-cons)))
+              (funcall on-deletion item))
           ;; keep the item and move forward
           (setf prev tmp
                 tmp (cdr tmp)))))
@@ -1288,7 +1288,7 @@ lighter than `back-to-indentation'."
 confuse when point is not at the beginning of line"
   (+ (count-lines begin end)
      (if (equal (current-column) 0)
-       1
+         1
        0)))
 
 (defun backward-line (&optional count)
@@ -1309,7 +1309,7 @@ confuse when point is not at the beginning of line"
   "Remove all occurences of various whitespace characters from string."
   (save-match-data
     (let ((s (if (symbolp str)
-               (symbol-name str)
+                 (symbol-name str)
                str)))
       (replace-regexp-in-string "[ \t\v\f\n]+" "" s))))
 
@@ -1359,8 +1359,8 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
   (when (equal new-name "")
     (error "Aborted rename"))
   (setq new-name (if (file-directory-p new-name)
-                   (expand-file-name (file-name-nondirectory buffer-file-name)
-                                     new-name)
+                     (expand-file-name (file-name-nondirectory buffer-file-name)
+                                       new-name)
                    (expand-file-name new-name)))
   ;; If the file isn't saved yet, skip the file rename, but still update the
   ;; buffer name and visited file.
@@ -1370,7 +1370,7 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
     ;; This also renames the buffer, and works with uniquify
     (set-visited-file-name new-name)
     (if was-modified
-      (save-buffer)
+        (save-buffer)
       ;; Clear buffer-modified flag caused by set-visited-file-name
       (set-buffer-modified-p nil))
     (message "Renamed to %s" new-name)))
@@ -1386,9 +1386,9 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
   (when (equal new-name "")
     (error "Aborted copy"))
   (setf new-name (if (file-directory-p new-name)
-                   (expand-file-name (file-name-nondirectory
-                                      buffer-file-name)
-                                     new-name)
+                     (expand-file-name (file-name-nondirectory
+                                        buffer-file-name)
+                                       new-name)
                    (expand-file-name new-name)))
   ;; If the file isn't saved yet, skip the file rename, but still update the
   ;; buffer name and visited file.
@@ -1453,7 +1453,7 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
   (interactive)
   (if (setf inhibit-delete-trailing-whitespace
             (not inhibit-delete-trailing-whitespace))
-    (message "Inhibition enabled")
+      (message "Inhibition enabled")
     (message "Inhibition disabled")))
 
 (defun inhibit-delete-trailing-whitespace? ()
@@ -1546,7 +1546,7 @@ where comp is called) then FALLBACK-FUNCTION will be used."
               (if (and (list? x)
                        (not (null? x))
                        (memq (first x) '(quote function)))
-                (first (rest x))
+                  (first (rest x))
                 x)))
            (make-call
             (lambda (expr last-arg use-apply funcs)
@@ -1555,19 +1555,19 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                   (`(,(or `function `quote) ,func)
                    (if (and (not use-apply)
                             (symbol? func))
-                     `(,func ,last-arg)
+                       `(,func ,last-arg)
                      `(,call-form ,expr ,last-arg)))
                   (`(,(or `partial `apply-partially) ,func . ,args)
                    (let ((f (funcall strip-quotation func)))
                      (if (and (not use-apply)
                               (symbol? f))
-                       `(,f ,@args ,last-arg)
+                         `(,f ,@args ,last-arg)
                        `(,call-form ,func ,@args ,last-arg))))
                   (`(partial-first ,func . ,args)
                    (let ((f (funcall strip-quotation func)))
                      (if (and (not use-apply)
                               (symbol? f))
-                       `(,f ,last-arg ,@args)
+                         `(,f ,last-arg ,@args)
                        `(,call-form ,func ,last-arg ,@args))))
                   (_
                    (cl-return-from cannot-optimize
@@ -1578,14 +1578,14 @@ where comp is called) then FALLBACK-FUNCTION will be used."
                   (funcall make-call
                            (first funcs)
                            (if (not (null? (rest funcs)))
-                             (funcall iter (rest funcs))
+                               (funcall iter (rest funcs))
                              args-var)
                            (and (null? (rest funcs))
                                 use-apply-for-last-func)
                            funcs))))
         `(lambda
            ,(if use-apply-for-last-func
-              (list &rest ,args-var)
+                (list &rest ,args-var)
               (list args-var))
            ,(funcall iter functions))))))
 
@@ -1636,11 +1636,11 @@ F will be called."
   (interactive)
   (let ((doc-name (concat (file-name-sans-extension buffer-file-name) ".pdf")))
     (if (file-exists? doc-name)
-      (start-process-shell-command "okular - tex preview"
-                                   nil
-                                   (concat "okular"
-                                           " "
-                                           (shell-quote-argument doc-name)))
+        (start-process-shell-command "okular - tex preview"
+                                     nil
+                                     (concat "okular"
+                                             " "
+                                             (shell-quote-argument doc-name)))
       (error "No pdf file found"))))
 
 ;;;;

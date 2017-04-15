@@ -67,7 +67,7 @@ and indent them as singe line."
        (mk-build-dir-arg
         (lambda (custom-build-dir)
           (if custom-build-dir
-            (concat "--builddir " custom-build-dir " ")
+              (concat "--builddir " custom-build-dir " ")
             "")
           ;;""
           ))
@@ -259,19 +259,19 @@ and indent them as singe line."
                      extensions)))
   (setf haskell-process-path-ghci
         (if (platform-os-type? 'windows)
-          "ghc"
+            "ghc"
           "ghci")
         haskell-process-args-ghci
         (let ((opts (append
                      '("-fbyte-code" "-Wwarn")
                      (if (platform-os-type? 'windows)
-                       nil
+                         nil
                        '("-i/tmp/dist/build"
                          "-odir" "/tmp/ghc"
                          "-hidir" "/tmp/ghc"))))
               (rts-opts '("+RTS" "-M8G" "-RTS")))
           (append (if (platform-os-type? 'windows)
-                    "--interactive"
+                      "--interactive"
                     nil)
                   extensions
                   opts
@@ -320,13 +320,13 @@ and indent them as singe line."
                               haskell-module-quantification-regexp
                               "\\)")
                       name)
-      (replace-match "" t t name 1)
+        (replace-match "" t t name 1)
       name)))
 
 (defun inf-haskell-send-input-or-jump-to-error ()
   (interactive)
   (if (looking-at-pure? *compilation-jump-error-regexp*)
-    (compile-goto-error)
+      (compile-goto-error)
     (comint-send-input)))
 
 
@@ -378,7 +378,7 @@ we load it."
   (interactive
    (let ((name (haskell-ident-at-point)))
      (list (read-string (if (> (length name) 0)
-                          (format "Find documentation of module (default %s): " name)
+                            (format "Find documentation of module (default %s): " name)
                           "Find documentation of module: ")
                         nil nil name))))
   (setq name (inferior-haskell-map-internal-ghc-ident name))
@@ -386,20 +386,20 @@ we load it."
         (alist-record (assoc name (inferior-haskell-module-alist))))
 
     (if alist-record
-      (progn ;; if documentation for such module exists at all
-        (let* ((package (nth 1 alist-record))
-               (file-name (concat (subst-char-in-string ?. ?- name) ".html"))
-               (local-path (concat (nth 2 alist-record) "/" file-name))
-               (url (if (or (eq inferior-haskell-use-web-docs 'always)
-                            (and (not (file-exists-p local-path))
-                                 (eq inferior-haskell-use-web-docs 'fallback)))
-                      (concat inferior-haskell-web-docs-base package "/" file-name
-                              ;; no haddock anchor for module names
-                              )
-                      (and (file-exists-p local-path)
-                           ;; no haddock anchor for module names
-                           (concat "file://" local-path)))))
-          (if url (browse-url url) (error "Local file doesn't exist"))))
+        (progn ;; if documentation for such module exists at all
+          (let* ((package (nth 1 alist-record))
+                 (file-name (concat (subst-char-in-string ?. ?- name) ".html"))
+                 (local-path (concat (nth 2 alist-record) "/" file-name))
+                 (url (if (or (eq inferior-haskell-use-web-docs 'always)
+                              (and (not (file-exists-p local-path))
+                                   (eq inferior-haskell-use-web-docs 'fallback)))
+                          (concat inferior-haskell-web-docs-base package "/" file-name
+                                  ;; no haddock anchor for module names
+                                  )
+                        (and (file-exists-p local-path)
+                             ;; no haddock anchor for module names
+                             (concat "file://" local-path)))))
+            (if url (browse-url url) (error "Local file doesn't exist"))))
       (error "No documentation for module %s found" name))))
 
 ;;; up level navigation
@@ -532,16 +532,16 @@ we load it."
       ;; Collect all extensions from all pragmas
       (while (not done)
         (aif (haskell--parse-language-pragma (point) (point-max))
-             (progn
-               (setf exts (append it exts)
-                     pragma-block-end (point))
-               (forward-line 1)
-               (if (eob?)
-                   (setf done t)
-                 (beginning-of-line))
-               ;; (skip-syntax-forward " >")
-               )
-             (setf done t)))
+            (progn
+              (setf exts (append it exts)
+                    pragma-block-end (point))
+              (forward-line 1)
+              (if (eob?)
+                  (setf done t)
+                (beginning-of-line))
+              ;; (skip-syntax-forward " >")
+              )
+          (setf done t)))
       (goto-char pragma-block-start)
       (delete-region pragma-block-start pragma-block-end)
       (setf exts (sort exts #'string<))
@@ -602,7 +602,7 @@ uppercase or lowercase names)."
   (let ((name-chars "a-zA-Z0-9'_#")
         (operator-chars "\\-!#$%&*+./<=>?@\\^|~:\\\\"))
     (if (natnump arg)
-      (re-search-forward forward-haskell-symbol-re nil t arg)
+        (re-search-forward forward-haskell-symbol-re nil t arg)
       (while (< arg 0)
         (when (re-search-backward forward-haskell-symbol-re nil t)
           (cond ((not (null? (match-beginning 1)))
@@ -660,14 +660,14 @@ return nil otherwise."
   (save-excursion
     (goto-char (shm-node-start typesig-node))
     (if-let (curr-node (cdr-safe (shm-current-node-pair)))
-      (cond ((eq? 'Ident (shm-node-cons curr-node))
-             curr-node)
-            ((eq? 'Symbol (shm-node-cons curr-node))
-             curr-node)
-            (t
-             nil
-             ;; (error "node constructor is not Ident: %s" (shm-node-cons curr-node))
-             ))
+        (cond ((eq? 'Ident (shm-node-cons curr-node))
+               curr-node)
+              ((eq? 'Symbol (shm-node-cons curr-node))
+               curr-node)
+              (t
+               nil
+               ;; (error "node constructor is not Ident: %s" (shm-node-cons curr-node))
+               ))
       ;; (error "no current node found starting at %s"
       ;;        (buffer-substring-no-properties (point)
       ;;                                        (line-end-position)))
@@ -679,7 +679,7 @@ return nil otherwise."
   (let ((indent
          (lambda ()
            (if (shm-current-node-pair)
-             (shm/newline-indent)
+               (shm/newline-indent)
              (shm/simple-indent-newline-same-col)))))
     (when (memq major-mode +haskell-syntax-modes+)
       (if-let ((enclosing-sig-node (haskell-enclosing-TypeSig-node))
@@ -714,7 +714,7 @@ return nil otherwise."
 (defun haskell-abbrev+-fallback-space ()
   (interactive)
   (if structured-haskell-mode
-    (shm/space)
+      (shm/space)
     (insert " ")))
 
 ;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
@@ -843,18 +843,18 @@ with the position of the selected error."
       (with-current-buffer haskell-compilation-buffer
         (let ((selected-err (compilation/get-selected-error)))
           (if selected-err
-            (if (and
-                 (eq (compilation/find-buffer
-                      (compilation-error/filename selected-err)
-                      (compilation-error/compilation-root-directory selected-err))
-                     buf)
-                 (equal (compilation-error/line-number selected-err)
-                        line))
-              ;; If we're already on the selected error then jump to next error.
-              (progn
-                (funcall jump-to-next-err-func)
-                (compilation/get-selected-error))
-              selected-err)
+              (if (and
+                   (eq (compilation/find-buffer
+                        (compilation-error/filename selected-err)
+                        (compilation-error/compilation-root-directory selected-err))
+                       buf)
+                   (equal (compilation-error/line-number selected-err)
+                          line))
+                  ;; If we're already on the selected error then jump to next error.
+                  (progn
+                    (funcall jump-to-next-err-func)
+                    (compilation/get-selected-error))
+                selected-err)
             (progn
               (funcall jump-to-next-err-func)
               (compilation/get-selected-error))))))))
@@ -862,17 +862,17 @@ with the position of the selected error."
 (defun haskell-compilation-go-navigate-errors (jump-to-next-err-func fallback)
   "Navigate errors in `haskell-compilation-buffer'."
   (if (buffer-live-p (get-buffer haskell-compilation-buffer))
-    (let ((win (get-buffer-window haskell-compilation-buffer
-                                  t ;; all-frames
-                                  )))
-      (if (and win
-               (window-live-p win))
-        (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
-                      win
-                      jump-to-next-err-func))
-            (compilation/jump-to-error err nil)
-          (funcall fallback))
-        (funcall fallback)))
+      (let ((win (get-buffer-window haskell-compilation-buffer
+                                    t ;; all-frames
+                                    )))
+        (if (and win
+                 (window-live-p win))
+            (if-let (err (haskell-compilation-use-selected-error-or-jump-to-next
+                          win
+                          jump-to-next-err-func))
+                (compilation/jump-to-error err nil)
+              (funcall fallback))
+          (funcall fallback)))
     (funcall fallback)))
 
 (defun haskell-compilation-next-error-other-window ()
@@ -968,13 +968,13 @@ it's position in current window."
 (defun haskell-shm-tab-or-indent-relative-forward ()
   (interactive)
   (if structured-haskell-mode
-    (shm/tab)
+      (shm/tab)
     (indent-relative-forward)))
 
 (defun haskell-shm-backtab-or-indent-relative-backward ()
   (interactive)
   (if structured-haskell-mode
-    (shm/backtab)
+      (shm/backtab)
     (indent-relative-backward)))
 
 

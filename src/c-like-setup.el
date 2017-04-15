@@ -47,7 +47,7 @@
                 ;; just like in clojure sources
                 (topmost-intro . 0)
                 (inclass . ,(if (platform-use? 'work)
-                              '+
+                                '+
                               0))
                 (arglist-intro . +)
                 (arglist-close . +)

@@ -2235,7 +2235,7 @@ called genius.”
 
    "“Some things are up to us, and some things are not up to us.”
 -Epictetus, Stoic philosopher"
-]
+   ]
   "Good and nice fortunes.")
 
 (defparameter *fortunes*
@@ -2260,7 +2260,7 @@ Queue is just a list actually."
   ;; Pick the longest list since it’s the oldest one we’re trying to preserve,
   ;; most of the time.
   (if (< (length old) (length new))
-    new
+      new
     old))
 
 (push (cons 'fortunes-fortune-queue #'fortune--merge-fortune-queues)

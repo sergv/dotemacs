@@ -30,8 +30,8 @@
          (proj (eproj-get-project-for-buf (current-buffer)))
          (all-projs (eproj-get-all-related-projects proj effective-major-mode))
          (show-tag-kind-func (aif (gethash effective-major-mode eproj/languages-table)
-                                  (eproj-language/show-tag-kind-procedure it)
-                                  (error "Cannot find language definition for mode %s" effective-major-mode)))
+                                 (eproj-language/show-tag-kind-procedure it)
+                               (error "Cannot find language definition for mode %s" effective-major-mode)))
          (tag-tables (-non-nil
                       (--map (cdr-safe (assq effective-major-mode (eproj-project/tags it)))
                              all-projs)))

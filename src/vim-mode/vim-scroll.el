@@ -30,7 +30,7 @@
 (defun vim:max-scroll-down ()
   "Returns the maximal number of lines that can be scrolled down."
   (if (pos-visible-in-window-p (window-end))
-    0
+      0
     (1+ (- (line-number-at-pos (point-max))
            (line-number-at-pos (window-end))))))
 
@@ -99,7 +99,7 @@
 (vim:defcmd vim:scroll-bottom-line-to-top (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
-    (goto-line1 count)
+      (goto-line1 count)
     (goto-char (window-end))
     (unless (bobp) (backward-char)))
   (recenter 0)
@@ -109,7 +109,7 @@
 (vim:defcmd vim:scroll-top-line-to-bottom (count nonrepeatable keep-visual)
   "Scrolls the line right below the window or line `count' to the top of the window."
   (if count
-    (goto-line1 count)
+      (goto-line1 count)
     (goto-char (window-start)))
   (recenter -1)
   (vim:motion-first-non-blank))

@@ -123,12 +123,12 @@
                         (eproj-get-initial-project-root-and-aux-info
                          (eproj--get-buffer-directory (current-buffer)))
                       (cadr-safe (assq 'haskell-offset aux-info)))))
-           (progn
-             (assert (integer? hask-offset)
-                     nil
-                     "haskell-offset in .eproj-info must be an integer, but got %s"
-                     hask-offset)
-             hask-offset)
+             (progn
+               (assert (integer? hask-offset)
+                       nil
+                       "haskell-offset in .eproj-info must be an integer, but got %s"
+                       hask-offset)
+               hask-offset)
            2)))
     (setq-local vim:shift-width       offset)
     (setq-local haskell-indent-offset offset)

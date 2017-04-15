@@ -17,19 +17,19 @@
     'paredit
   '(progn
      (defadvice paredit-forward-slurp-sexp
-       (after
-        paredit-forward-slurp-sexp-remove-initial-whitespace
-        activate
-        compile)
+         (after
+          paredit-forward-slurp-sexp-remove-initial-whitespace
+          activate
+          compile)
        (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
                   (whitespace-char? (char-after)))
          (delete-whitespace-forward)))
 
      (defadvice paredit-backward-slurp-sexp
-       (after
-        paredit-backward-slurp-sexp-remove-initial-whitespace
-        activate
-        compile)
+         (after
+          paredit-backward-slurp-sexp-remove-initial-whitespace
+          activate
+          compile)
        (when (and (lisp-pos-is-end-of-sexp? (point))
                   (whitespace-char? (char-before)))
          (delete-whitespace-backward)))
@@ -56,7 +56,7 @@ If in a comment and if followed by invalid structure, call
                 (indent-sexp)))
              (t
               (if (paredit-in-char-p)
-                (forward-char))
+                  (forward-char))
               (newline-and-indent)
               ;; Indent the following S-expression, but don't signal an
               ;; error if there's only a closing delimiter after the point.
@@ -84,7 +84,7 @@ If in a comment and if followed by invalid structure, call
                      (regionp (funcall forward (+ end (if spacep 2 1)))))
                (insert close)
                (if (paredit-space-for-delimiter-p t close)
-                 (insert " ")))))))
+                   (insert " ")))))))
 
      (def-keys-for-map paredit-mode-map
        ("C-k"         nil)
