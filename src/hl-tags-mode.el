@@ -43,7 +43,7 @@
 
 (defun hl-tags-sgml-pair (ctx)
   (if ctx
-    (cons (sgml-tag-start ctx) (sgml-tag-end ctx))
+      (cons (sgml-tag-start ctx) (sgml-tag-end ctx))
     '(1 . 1)))
 
 (defun hl-tags-context-sgml-mode ()
@@ -94,7 +94,7 @@ boundaries of the current start and end tag , or nil."
   (ignore-errors
     (let ((ctx (hl-tags-context)))
       (if (null ctx)
-        (hl-tags-hide)
+          (hl-tags-hide)
         (progn
           (hl-tags-show)
           (move-overlay hl-tags-start-overlay (caar ctx) (cdar ctx))
@@ -119,9 +119,9 @@ boundaries of the current start and end tag , or nil."
   "Toggle hl-tags-mode."
   nil "" nil
   (if hl-tags-mode
-    (progn
-      (add-hook 'post-command-hook 'hl-tags-update nil t)
-      (add-hook 'change-major-mode-hook 'hl-tags-hide nil t))
+      (progn
+        (add-hook 'post-command-hook 'hl-tags-update nil t)
+        (add-hook 'change-major-mode-hook 'hl-tags-hide nil t))
     (progn
       (remove-hook 'post-command-hook 'hl-tags-update t)
       (remove-hook 'change-major-mode-hook 'hl-tags-hide t)

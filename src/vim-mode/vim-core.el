@@ -305,7 +305,7 @@ return the correct start-position of emacs-ranges, i.e.
               (e (max (vim:motion-begin motion) (vim:motion-end motion))))
           (if (> (save-excursion (goto-char b) (current-column))
                  (save-excursion (goto-char e) (current-column)))
-            (1+ b)
+              (1+ b)
             b)))
     (_ (min (vim:motion-begin motion) (vim:motion-end motion)))))
 
@@ -330,7 +330,7 @@ return the correct end-position of emacs-ranges, i.e.
           (if (and (>= (save-excursion (goto-char e) (current-column))
                        (save-excursion (goto-char b) (current-column)))
                    (not (char=? (char-after e) ?\n)))
-            (1+ e)
+              (1+ e)
             e)))
     (`inclusive
      (1+ (max (vim:motion-begin motion) (vim:motion-end motion))))
@@ -349,7 +349,7 @@ and the (default) type of the motion."
     `(let ((,current-pos (point))
            (,motion ,expression))
        (if (vim:motion-p ,motion)
-         ,motion
+           ,motion
          (progn
            (when vim:this-column
              (move-to-column vim:this-column))
@@ -430,12 +430,12 @@ the perfect point to do some house-keeping."
   "Executes the current motion and returns the representing
 vim:motion object."
   (if (null vim:current-motion)
-    nil
+      nil
     (let ((cmd vim:current-motion)
           (count (if (or vim:current-cmd-count
                          vim:current-motion-count)
-                   (* (or vim:current-cmd-count 1)
-                      (or vim:current-motion-count 1))
+                     (* (or vim:current-cmd-count 1)
+                        (or vim:current-motion-count 1))
                    nil))
           (parameters nil))
 
@@ -456,9 +456,9 @@ command-specific transformations."
     (when vim:current-force-motion-type
       (setf (vim:motion-type motion)
             (if (eq vim:current-force-motion-type 'char)
-              (pcase (vim:motion-type motion)
-                (`exclusive 'inclusive)
-                (_ 'exclusive))
+                (pcase (vim:motion-type motion)
+                  (`exclusive 'inclusive)
+                  (_ 'exclusive))
               vim:current-force-motion-type)))
 
     (when (and (eq (vim:motion-type motion) 'exclusive)
@@ -470,14 +470,14 @@ command-specific transformations."
       (let ((end (vim:adjust-end-of-line-position (1- (vim:motion-end-pos motion)))))
         (if (< (vim:motion-begin motion)
                (vim:motion-end motion))
-          (setf (vim:motion-end motion) end)
+            (setf (vim:motion-end motion) end)
           (setf (vim:motion-begin motion) end)))
 
       (if (save-excursion
             (goto-char (vim:motion-begin-pos motion))
             (vim:looking-back "^\\s-*"))
-        ;; motion becomes linewise(-exclusive)
-        (setf (vim:motion-type motion) 'linewise)
+          ;; motion becomes linewise(-exclusive)
+          (setf (vim:motion-type motion) 'linewise)
 
         ;; motion becomes inclusive
         (setf (vim:motion-type motion) 'inclusive)))

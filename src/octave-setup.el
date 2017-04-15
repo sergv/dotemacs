@@ -72,8 +72,8 @@
            (setq inferior-octave-output-list nil)
            (while (not (string-equal string ""))
              (if (string-match "\n" string)
-               (setq line (substring string 0 (match-beginning 0))
-                     string (substring string (match-end 0)))
+                 (setq line (substring string 0 (match-beginning 0))
+                       string (substring string (match-end 0)))
                (setq line string string ""))
              (setq inferior-octave-receive-in-progress t)
              (inferior-octave-send-list-and-digest (list (concat line "\n")))
@@ -88,7 +88,7 @@
                          "\n")))
            (run-hooks 'inferior-octave-on-output-hook)))
        (if octave-send-show-buffer
-         (display-buffer inferior-octave-buffer)))
+           (display-buffer inferior-octave-buffer)))
 
      (add-hook 'inferior-octave-on-output-hook
                #'octave-highlight-errors)
@@ -288,10 +288,10 @@ in GROUP-NUMS."
                    (line-bounds (octave-error-line-number-bounds))
                    (column-bounds (octave-error-column-number-bounds)))
                (if filename-bounds
-                 (put-text-property (car filename-bounds)
-                                    (cdr filename-bounds)
-                                    'font-lock-face
-                                    'compilation-error)
+                   (put-text-property (car filename-bounds)
+                                      (cdr filename-bounds)
+                                      'font-lock-face
+                                      'compilation-error)
                  ;; no filename was specified, highlight actual message
                  (when message-bounds
                    (put-text-property (car message-bounds)

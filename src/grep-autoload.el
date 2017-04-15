@@ -10,7 +10,7 @@
       (if (and (platform-os-type? 'windows)
                (platform-use? 'work)
                (executable-find "unixfind"))
-        "unixfind"
+          "unixfind"
         "find"))
 
 (setf grep-command "grep -HnE -e "

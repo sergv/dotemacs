@@ -74,20 +74,20 @@ Ordering is lexicographic."
        "Create ibuffer buffer-group specification based on each buffer's
 git repository root"
        (if *have-git?*
-         (let ((roots (remove-duplicates-sorting
-                       (-map #'strip-trailing-slash
-                             (delq nil
-                                   (-map (lambda (buf)
-                                           (with-current-buffer buf
-                                             (git-update-file-repository)
-                                             git-repository))
-                                         (buffer-list))))
-                       #'string=
-                       #'string<)))
-           (-map (lambda (repo-root)
-                   (cons (format "git:%s" repo-root)
-                         `((git-repository-root . ,repo-root))))
-                 roots))
+           (let ((roots (remove-duplicates-sorting
+                         (-map #'strip-trailing-slash
+                               (delq nil
+                                     (-map (lambda (buf)
+                                             (with-current-buffer buf
+                                               (git-update-file-repository)
+                                               git-repository))
+                                           (buffer-list))))
+                         #'string=
+                         #'string<)))
+             (-map (lambda (repo-root)
+                     (cons (format "git:%s" repo-root)
+                           `((git-repository-root . ,repo-root))))
+                   roots))
          (error "No git installed on the system")))
 
      (defun ibuffer-generate-filter-group-by-eproj ()
@@ -108,7 +108,7 @@ The value from `ibuffer-saved-filter-groups' is used."
        (interactive
         (list
          (if (null? ibuffer-saved-filter-groups)
-           (error "No saved filters")
+             (error "No saved filters")
            (let ((completion-ignore-case t))
              (ido-completing-read "Switch to saved filter group: "
                                   (nconc (mapcar #'car ibuffer-saved-filter-groups)
@@ -116,11 +116,11 @@ The value from `ibuffer-saved-filter-groups' is used."
                                   nil
                                   t)))))
        (aif (cdr-safe (assoc name ibuffer-saved-filter-groups))
-         (setq ibuffer-filter-groups it)
+           (setq ibuffer-filter-groups it)
          (aif (cdr-safe (assoc name ibuffer-aux-filter-groups))
-           (setq ibuffer-filter-groups (if (functionp it)
-                                         (funcall it)
-                                         it))
+             (setq ibuffer-filter-groups (if (functionp it)
+                                             (funcall it)
+                                           it))
            (error "definition for group %s not found" name)))
        (setq ibuffer-hidden-filter-groups nil)
        (ibuffer-update nil t))
@@ -159,7 +159,7 @@ generate actual filter group.")
      (defun ibuffer-mark-using-mode (&optional by-regexp)
        (interactive (list current-prefix-arg))
        (if by-regexp
-         (call-interactively #'ibuffer-mark-by-mode-regexp)
+           (call-interactively #'ibuffer-mark-by-mode-regexp)
          (call-interactively #'ibuffer-mark-by-mode)))
 
      (defun ibuffer-cycle-buffers-forward (count)

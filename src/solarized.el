@@ -100,19 +100,19 @@ Futher modified by Sergey Vinokurov."
             violet  "magenta"
             magenta "magenta")
       (if (eq 'light mode)
-        (setf base01                      "black"
-              base00                      "black"
-              base0                       "black"
-              base1                       "black"
-              light-orange-background     "white"
-              light-yellow-background     "white"
-              light-green-background      "white"
-              light-cyan-background       "white"
-              light-blue-background       "white"
-              light-violet-background     "white"
-              light-cyan-green-background "white"
-              light-pink-background       "white"
-              light-red-background        "white")
+          (setf base01                      "black"
+                base00                      "black"
+                base0                       "black"
+                base1                       "black"
+                light-orange-background     "white"
+                light-yellow-background     "white"
+                light-green-background      "white"
+                light-cyan-background       "white"
+                light-blue-background       "white"
+                light-violet-background     "white"
+                light-cyan-green-background "white"
+                light-pink-background       "white"
+                light-red-background        "white")
         (setf base01                      "white"
               base00                      "white"
               base0                       "white"
@@ -637,20 +637,20 @@ only installing unique attributes."
     new-list))
 
 (defun solarized/install-frame-params (frame-params)
-      ;; setup frame params
-      (setq default-frame-alist
-            (solarized/uniquify-alist
-             (append frame-params default-frame-alist))
-            minibuffer-frame-alist
-            (solarized/uniquify-alist
-             (append frame-params minibuffer-frame-alist)))
-      (dolist (frame (frame-list))
-        (let ((params (if (eq 'only (cdr (assq 'minibuffer (frame-parameters frame))))
-                        minibuffer-frame-alist
-                        default-frame-alist)))
-          (condition-case err
-              (modify-frame-parameters frame params)
-            (error (message "Error using frame params %S: %S" params err))))))
+  ;; setup frame params
+  (setq default-frame-alist
+        (solarized/uniquify-alist
+         (append frame-params default-frame-alist))
+        minibuffer-frame-alist
+        (solarized/uniquify-alist
+         (append frame-params minibuffer-frame-alist)))
+  (dolist (frame (frame-list))
+    (let ((params (if (eq 'only (cdr (assq 'minibuffer (frame-parameters frame))))
+                      minibuffer-frame-alist
+                    default-frame-alist)))
+      (condition-case err
+          (modify-frame-parameters frame params)
+        (error (message "Error using frame params %S: %S" params err))))))
 
 (defun solarized/install-faces (faces)
   (dolist (face-spec faces)

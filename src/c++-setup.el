@@ -25,7 +25,7 @@
          (file-dir   (file-name-directory filename))
          (file-nodir (file-name-nondirectory (car (last path)))))
     (aif (gethash filename *c++-related-file-cache* nil)
-      (find-file it)
+        (find-file it)
       (letrec ((path-join (lambda (path) (join-lines path "/")))
                (find-subroot
                 (lambda (path needle)
@@ -61,10 +61,10 @@
                 (--map (concat file-dir "/" it)
                        alternative-names)))
           (aif (find-if #'file-exists? alt-names-in-same-dir)
-            (progn
-              (puthash filename it *c++-related-file-cache*)
-              (puthash it filename *c++-related-file-cache*)
-              (find-file it))
+              (progn
+                (puthash filename it *c++-related-file-cache*)
+                (puthash it filename *c++-related-file-cache*)
+                (find-file it))
             ;; note: subroot - root of some git submodule
             (let ((subroot (funcall find-subroot
                                     path
@@ -78,29 +78,29 @@
                              :filep (lambda (p)
                                       (string= alternative-name
                                                (file-name-nondirectory p))))
-                (pcase it
-                  (`(,related)
-                   (puthash filename related *c++-related-file-cache*)
-                   (puthash related filename *c++-related-file-cache*)
-                   (find-file related))
-                  (choices
-                   (select-mode-start-selection
-                    choices
-                    :buffer-name "select file"
-                    :on-selection
-                    (lambda (idx alt-file selection-type)
-                      (select-mode-exit)
-                      (puthash filename alt-file *c++-related-file-cache*)
-                      (puthash alt-file filename *c++-related-file-cache*)
-                      (funcall
-                       (pcase selection-type
-                         (`same-window  #'find-file)
-                         (`other-window #'find-file-other-window))
-                       alt-file))
-                    :item-show-function
-                    (lambda (x) (concat x "\n"))
-                    :preamble
-                    (lambda () (concat "Select desired alternative file\n")))))
+                  (pcase it
+                    (`(,related)
+                     (puthash filename related *c++-related-file-cache*)
+                     (puthash related filename *c++-related-file-cache*)
+                     (find-file related))
+                    (choices
+                     (select-mode-start-selection
+                      choices
+                      :buffer-name "select file"
+                      :on-selection
+                      (lambda (idx alt-file selection-type)
+                        (select-mode-exit)
+                        (puthash filename alt-file *c++-related-file-cache*)
+                        (puthash alt-file filename *c++-related-file-cache*)
+                        (funcall
+                         (pcase selection-type
+                           (`same-window  #'find-file)
+                           (`other-window #'find-file-other-window))
+                         alt-file))
+                      :item-show-function
+                      (lambda (x) (concat x "\n"))
+                      :preamble
+                      (lambda () (concat "Select desired alternative file\n")))))
                 (error "No %s file found for %s"
                        (--map (concat "*." it) alt-exts)
                        filename)))))))))

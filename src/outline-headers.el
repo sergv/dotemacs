@@ -37,7 +37,7 @@ at point."
   (cl-assert (looking-at-p outline-headers/header-re))
   (save-match-data
     (if (looking-at outline-headers/header-re)
-      (- (match-end 1) (match-beginning 1))
+        (- (match-end 1) (match-beginning 1))
       0)))
 
 (defun outline-headers-outline-level ()

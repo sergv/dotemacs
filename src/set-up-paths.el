@@ -34,16 +34,16 @@
   ;; note: execs are somewhat external to emacs, so it's
   ;; reasonable for them to be somewhere outside
   (find-if (lambda (p) (and p (file-directory-p p)))
-   (list
-    (concat +emacs-config-path+ "/../execs")
-    (concat +emacs-config-path+ "/execs")
-    (let ((emacs-exec (executable-find "emacs")))
-      (when emacs-exec
-        (file-name-directory emacs-exec)))))
+           (list
+            (concat +emacs-config-path+ "/../execs")
+            (concat +emacs-config-path+ "/execs")
+            (let ((emacs-exec (executable-find "emacs")))
+              (when emacs-exec
+                (file-name-directory emacs-exec)))))
   "Path to directory with programs executables files.")
 
 (defconst +tmp-path+ (make-temp-name (if (platform-os-type? 'windows)
-                                       (concat +prog-data-path+ "/tmp")
+                                         (concat +prog-data-path+ "/tmp")
                                        "/tmp/emacs-tmp-"))
   "Path to temporary directory, contents of which may be removed on
 system restars.")
@@ -99,8 +99,8 @@ directories whose absolute path matches IGNORED-DIR-RE."
                                                   t ;; don't sort
                                                   ))
                         (if (file-regular-p p)
-                          (when (string-match-p ".*\\.\\(elc?\\|emacs\\)$" p)
-                            (setf has-elisp-files? t))
+                            (when (string-match-p ".*\\.\\(elc?\\|emacs\\)$" p)
+                              (setf has-elisp-files? t))
                           (funcall collect-dirs p)))
                       (when (and has-elisp-files?
                                  (or (null ignored-dirs-re)

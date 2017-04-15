@@ -35,18 +35,10 @@ like \"d w\".")
                    vim:visual-mode-keymap
                    vim:operator-pending-mode-keymap
                    vim:motion-mode-keymap)
-  ("0"   vim:motion-beginning-of-line-or-digit-argument)
-  ("1"   vim:digit-argument)
-  ("2"   vim:digit-argument)
-  ("3"   vim:digit-argument)
-  ("4"   vim:digit-argument)
-  ("5"   vim:digit-argument)
-  ("6"   vim:digit-argument)
-  ("7"   vim:digit-argument)
-  ("8"   vim:digit-argument)
-  ("9"   vim:digit-argument)
-  ("-"   vim:universal-argument-minus)
-  ("g -" vim:universal-argument-minus)
+  ("0"         vim:motion-beginning-of-line-or-digit-argument)
+  (("1" "2" "3" "4" "5" "6" "7" "8" "9")
+   vim:digit-argument)
+  (("-" "g -") vim:universal-argument-minus)
 
   ("g g" vim:motion-go-to-first-non-blank-beg)
   ("G"   vim:motion-go-to-first-non-blank-end)
@@ -59,9 +51,8 @@ like \"d w\".")
   ("q"   sp-up-sexp))
 
 (def-keys-for-map vim:operator-pending-mode-keymap
-  ("is" vim:motion-inner-symbol)
-  ("as" vim:motion-outer-symbol)
-  ("s"  vim:motion-inner-symbol))
+  (("is" "s") vim:motion-inner-symbol)
+  ("as"       vim:motion-outer-symbol))
 
 (def-keys-for-map (vim:operator-pending-mode-keymap
                    vim:motion-mode-keymap)
@@ -297,7 +288,7 @@ Basically swap current point with previous one."
 
 (vimmize-function
  split-window-vertically
-  ;; this is not a bug, this name is correct too!
+ ;; this is not a bug, this name is correct too!
  :name vim:cmd-split-horizontally
  :doc "Split current window horizontally, just like C-x 2."
  :repeatable nil
@@ -333,10 +324,10 @@ Basically swap current point with previous one."
     (deactivate-mark)
     (vim:visual-mode-exit))
   (awk-on-region (if motion
-                   (vim:motion-begin-pos motion)
+                     (vim:motion-begin-pos motion)
                    (line-beginning-position))
                  (if motion
-                   (vim:motion-end-pos motion)
+                     (vim:motion-end-pos motion)
                    (line-end-position))))
 
 (vim:emap "awk" #'vim:start-awk)
@@ -376,7 +367,7 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:render-latex (nonrepeatable)
   (if (memq major-mode '(latex-mode tex-mode LaTeX-mode))
-    (latex-toggle-preview)
+      (latex-toggle-preview)
     (render-formula-toggle-formulae)))
 
 (vim:emap "latex" #'vim:render-latex)
@@ -385,10 +376,10 @@ Basically swap current point with previous one."
 
 (vim:defcmd vim:remove-tabs (motion nonrepeatable)
   (remove-tabs (if motion
-                 (vim:motion-begin-pos motion)
+                   (vim:motion-begin-pos motion)
                  (line-beginning-position))
                (if motion
-                 (vim:motion-end-pos motion)
+                   (vim:motion-end-pos motion)
                  (line-end-position))))
 
 (vim:emap "no-tabs" #'vim:remove-tabs)
@@ -396,10 +387,10 @@ Basically swap current point with previous one."
 (vim:defcmd vim:narrow-to-region-indirect (motion nonrepeatable)
   (narrow-to-region-indirect
    (if motion
-     (vim:motion-begin-pos motion)
+       (vim:motion-begin-pos motion)
      (point-min))
    (if motion
-     (vim:motion-end-pos motion)
+       (vim:motion-end-pos motion)
      (point-max))))
 
 (vim:emap "narrow-indirect" #'vim:narrow-to-region-indirect)
@@ -416,15 +407,15 @@ Basically swap current point with previous one."
 (vim:defcmd vim:magit (nonrepeatable)
   "Show git status for current file's repository."
   (aif buffer-file-name
-    (if *have-git?*
-      (progn
-        (git-update-file-repository)
-        (if git-repository
-          (magit-status git-repository)
+      (if *have-git?*
           (progn
-            (message "File %s is not under git VCS" it)
-            (magit-status))))
-      (magit-status (file-name-nondirectory it)))
+            (git-update-file-repository)
+            (if git-repository
+                (magit-status git-repository)
+              (progn
+                (message "File %s is not under git VCS" it)
+                (magit-status))))
+        (magit-status (file-name-nondirectory it)))
     (progn
       (message "Warning: current buffer has no associated file")
       (magit-status))))
@@ -452,10 +443,10 @@ Basically swap current point with previous one."
 (vim:defcmd vim:git-add (nonrepeatable)
   "Run git add on current file."
   (if buffer-file-name
-    (progn
-      (save-some-buffers)
-      (git-add)
-      (git-update-file-repository))
+      (progn
+        (save-some-buffers)
+        (git-add)
+        (git-update-file-repository))
     (error "current buffer has no associated file")))
 
 (vim:emap "add" #'vim:git-add)
@@ -528,10 +519,10 @@ Basically swap current point with previous one."
   (let ((buf (current-buffer)))
     (shell-command-on-region
      (if motion
-       (vim:motion-begin-pos motion)
+         (vim:motion-begin-pos motion)
        (line-beginning-position))
      (if motion
-       (vim:motion-end-pos motion)
+         (vim:motion-end-pos motion)
        (line-end-position))
      command
      nil ;; output buffer

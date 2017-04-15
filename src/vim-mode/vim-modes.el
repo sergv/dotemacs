@@ -65,7 +65,7 @@
                                       "mode-keymap" "mode-local-keymap"
                                       (symbol->string keym)))))
                                (if (eq localname keym)
-                                 (list `(cons ',vim-mode-name ,keym))
+                                   (list `(cons ',vim-mode-name ,keym))
                                  (list `(cons ',vim-mode-name ,localname)
                                        `(cons ',vim-mode-name ,keym)))))
                            keymaps)))))
@@ -108,7 +108,7 @@ vim-command should be executed, a `cursor' shape and a list of `keymaps'."
            (setq vim:active-mode ',mode-name)
            (setq vim:active-command-function
                  ,(if command-function
-                    command-function
+                      command-function
                     '#'vim:default-command-function))
            (vim:set-cursor ,cursor-name)
            (,update-keymaps-func-name))

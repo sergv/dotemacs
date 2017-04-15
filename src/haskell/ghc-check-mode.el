@@ -18,8 +18,8 @@ of `compilation-mode'."
          (maybe-pair-group
           (lambda (group face lax-match)
             (if (cons? group)
-              `((,(car group) ,face nil lax-match)
-                (,(cdr group) ,face nil lax-match))
+                `((,(car group) ,face nil lax-match)
+                  (,(cdr group) ,face nil lax-match))
               `((,group ,face nil lax-match)))))
          (fontification-regexps
           (-map (lambda (entry)

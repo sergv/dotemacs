@@ -33,8 +33,8 @@
                      buffer-file-name)))))
   ;; but if buffer is still fileless then signal error
   (if compile-command
-    (compilation-start compile-command
-                       #'gnuplot-run-mode)
+      (compilation-start compile-command
+                         #'gnuplot-run-mode)
     (error "Buffer has no saved file to run")))
 
 (define-compilation-mode gnuplot-run-mode "Gnuplot run"
@@ -146,22 +146,22 @@ lines."
       (save-excursion
         (end-of-line 0)
         (if (bobp) ()
-            (re-search-backward "^[ \t]*." (point-min) "to_limit")
-            (back-to-indentation)
-            (setq indent (current-column))
-            (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
+          (re-search-backward "^[ \t]*." (point-min) "to_limit")
+          (back-to-indentation)
+          (setq indent (current-column))
+          (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
               (let ((plus (1- (length (match-string 0)))))
                 (end-of-line)
                 (backward-char 1)
                 (if (looking-at (regexp-quote "\\"))
-                  (setq indent  (+ plus indent)))))))
+                    (setq indent  (+ plus indent)))))))
       (if (= (current-indentation) indent)
-        ()
+          ()
         (beginning-of-line)
         (delete-horizontal-space)
         (insert (make-string indent ? ))))
     (if (looking-at "[ \t]+$")
-      (end-of-line))))
+        (end-of-line))))
 
 
 ;;;###autoload

@@ -11,7 +11,7 @@
   (interactive "p")
   (vim:save-position)
   (if count
-    (goto-line1 count)
+      (goto-line1 count)
     (goto-char (point-min)))
   (skip-to-indentation))
 
@@ -149,10 +149,10 @@
     (when (>= pos (line-end-position))
       (error "No matching item found on the current line"))
     (if (= pos next-open)
-      (progn
-        (goto-char pos)
-        (forward-list)
-        (backward-char))
+        (progn
+          (goto-char pos)
+          (forward-list)
+          (backward-char))
       (progn
         (goto-char (1+ pos))
         (backward-list)))))

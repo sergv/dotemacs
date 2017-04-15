@@ -66,9 +66,9 @@
   "Jump over sexps or boundaries of haskell nodes if there's no sexp at point.
 Similar to `vim:motion-jump-item'."
   (if (let ((synt (char-syntax (char-after))))
-          (or (char=? synt ?\()
-              (char=? synt ?\))))
-    (vim:motion-jump-item)
+        (or (char=? synt ?\()
+            (char=? synt ?\))))
+      (vim:motion-jump-item)
     (let* ((node (shm-current-node))
            (start (shm-node-start node))
            (end (shm-node-end node)))

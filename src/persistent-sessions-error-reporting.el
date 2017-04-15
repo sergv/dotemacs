@@ -16,7 +16,7 @@
             (lambda (arg)
               (let ((s (format "%S" arg)))
                 (if (< (length s) 100)
-                  s
+                    s
                   (concat (substring s 0 (length s))
                           "...")))))
            (err-msg (apply #'format msg (-map truncate args))))

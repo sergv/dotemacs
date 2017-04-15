@@ -162,10 +162,10 @@
                            (file-name-nondirectory buffer-file-name))))
     (let ((window-config (current-window-configuration)))
       (if (byte-compile-file buffer-file-name)
-        (progn
-          (kill-buffer "*Compile-Log*")
-          ;; restore window config
-          (set-window-configuration window-config))
+          (progn
+            (kill-buffer "*Compile-Log*")
+            ;; restore window config
+            (set-window-configuration window-config))
         (message "Compilation errors, check out *Compile-log*")))))
 
 ;;; elisp debugger
