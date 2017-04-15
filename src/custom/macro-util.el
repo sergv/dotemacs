@@ -631,6 +631,7 @@ return nil otherwise."
 
 (defmacro aif (condition true-branch &optional false-branch)
   "Anaphoric if, binds evaluated condition to variable it."
+  (declare (indent 2))
   `(let ((it ,condition))
      (if it
        ,true-branch

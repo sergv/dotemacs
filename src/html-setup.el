@@ -9,6 +9,7 @@
 ;; Status:
 
 (require 'nxml-mode)
+(require 'indentation)
 
 ;;;###autoload
 (autoload 'web-mode "web-mode" nil t)
@@ -268,8 +269,9 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (save-excursion
     (indent-whole-buffer)))
 
-(add-to-list '*mode-buffer-indent-function-alist*
-             (cons 'nxml-mode #'nxml-indent-buffer))
+(puthash 'nxml-mode
+         #'nxml-indent-buffer
+         *mode-indent-functions-table*)
 
 ;;;###autoload
 (defun nxml-setup ()
