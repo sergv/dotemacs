@@ -12,7 +12,7 @@
 
 (require 'custom-predicates)
 
-(eval-after-load "cc-styles" ;; (require 'cc-styles)
+(eval-after-load "cc-styles"
   '(progn
      (unless (assoc* "my-c-style" c-style-alist :test #'string=?)
        ;; inherited from linux style
@@ -79,114 +79,6 @@
                              (t
                               "linux")))))
      (setq-default c-basic-offset 8)))
-
-(autoload 'c-indentation-indent-buffer "c-indentation" nil t)
-
-;; (autoload 'c-c++-switch-header-and-source "c-setup" nil t)
-(push (cons 'c-mode #'c-indentation-indent-buffer)
-      *mode-buffer-indent-function-alist*)
-
-(autoload 'c-setup "c-setup")
-(add-hook 'c-mode-hook #'c-setup)
-
-
-(autoload 'c++-setup "c++-setup")
-(add-hook 'c++-mode-hook #'c++-setup)
-
-(when (platform-use? 'work)
-  (autoload 'c++-find-related-file "c++-setup" "" t))
-(autoload 'c++-indentation-indent-buffer "c++-setup" "" t)
-(push (cons 'c++-mode #'c++-indentation-indent-buffer)
-      *mode-buffer-indent-function-alist*)
-
-(when (platform-use? 'work)
-  (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode)))
-
-
-(push (cons 'java-mode #'c-indentation-indent-buffer)
-      *mode-buffer-indent-function-alist*)
-
-(autoload 'java-setup "java-setup" "" t)
-(add-hook 'java-mode-hook #'java-setup)
-
-
-(autoload 'glsl-mode "glsl-mode" nil t)
-(add-to-list 'auto-mode-alist (cons (rx "."
-                                        (or (seq (or "vs."
-                                                     "fs."
-                                                     "gs.")
-                                                 "glsl")
-                                            "vert"
-                                            "frag"
-                                            "geom"
-                                            "vsh"
-                                            "fsh"
-                                            "gsh")
-                                        eot)
-                                    'glsl-mode))
-
-(autoload 'glsl-setup "glsl-setup")
-(add-hook 'glsl-mode-hook #'glsl-setup)
-
-
-(autoload 'cuda-mode "cuda-mode" nil t)
-(autoload 'cuda-setup "cuda-setup" nil nil)
-(add-to-list 'auto-mode-alist '("\\.c[ul]h?\\'" . cuda-mode))
-(add-hook 'cuda-mode-hook #'cuda-setup)
-
-(autoload 'idl-setup "idl-setup")
-(add-hook 'idl-mode-hook #'idl-setup)
-
-(defun c++-file-magic-function ()
-  (if-buffer-has-file
-    (let ((ext (file-name-extension buffer-file-name)))
-      ;; check for null since .emacs doesn't have extension
-      (when (and ext
-                 (member* ext '("h" "inl" "inc" "incl")
-                          :test #'string=))
-        (save-excursion
-          (save-match-data
-            (let ((search-result
-                   (re-search-forward (rx
-                                       (or "class"
-                                           "namespace"
-                                           "::"
-                                           ;; it's quite rare to see other template
-                                           ;; open brace styles so lets accomodate
-                                           ;; only for frequently used ones
-                                           (regex "template[[:space:]]*<")
-                                           (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
-                                      nil
-                                      t)))
-              search-result)))))))
-
-;; this will make sure that *.h c++ header will be correctly handled
-(push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
-
-
-(defun glsl-file-magic-function ()
-  (if-buffer-has-file
-    (let ((ext (and buffer-file-name
-                    (file-name-extension buffer-file-name))))
-      ;; check for null since .emacs doesn't have extension
-      (and ext
-           (or (and (string-match-pure? (rx bot
-                                            (or "vs"
-                                                "fs"
-                                                "gs")
-                                            eot)
-                                        ext)
-                    (looking-at-pure? (rxx ((wh (or whitespace (char ?\n))))
-                                        bot
-                                        (* anything)
-                                        "#"
-                                        (* wh)
-                                        "version"
-                                        (+ wh)
-                                        (+ (or digit "."))))))))))
-
-(push (cons #'glsl-file-magic-function #'glsl-mode) magic-mode-alist)
-
 
 (provide 'c-like-setup)
 

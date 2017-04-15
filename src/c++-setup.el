@@ -6,12 +6,13 @@
 ;; Created: long ago
 ;; Description:
 
-(require 'common)
-(require 'cc-setup)
 (require 'c++-abbrev+)
-(require 'select-mode)
-(require 'eproj-setup)
+(require 'cc-setup)
 (require 'clang-format)
+(require 'common)
+(require 'eproj-setup)
+(require 'indentation)
+(require 'select-mode)
 
 (defparameter *c++-related-file-cache*
   (make-hash-table :test 'equal))
@@ -107,6 +108,15 @@
 (defun c++-indentation-indent-buffer ()
   (clang-format-buffer))
 
+;;;###autoload
+(when (platform-use? 'work)
+  (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode)))
+
+(puthash 'c++-mode
+         #'c++-indentation-indent-buffer
+         *mode-indent-functions-table*)
+
+;;;###autoload
 (defun c++-setup ()
   (cc-setup :define-special-keys t)
   (cc-setup/set-up-c-basic-offset :use-work-code-style t)
@@ -117,6 +127,36 @@
   (c++-abbrev+-setup)
   (setup-eproj-symbnav))
 
+;;;###autoload
+(add-hook 'c++-mode-hook #'c++-setup)
+
+;;;###autoload
+(defun c++-file-magic-function ()
+  (if-buffer-has-file
+    (let ((ext (file-name-extension buffer-file-name)))
+      ;; check for null since .emacs doesn't have extension
+      (when (and ext
+                 (member* ext '("h" "inl" "inc" "incl")
+                          :test #'string=))
+        (save-excursion
+          (save-match-data
+            (let ((search-result
+                   (re-search-forward (rx
+                                       (or "class"
+                                           "namespace"
+                                           "::"
+                                           ;; it's quite rare to see other template
+                                           ;; open brace styles so lets accomodate
+                                           ;; only for frequently used ones
+                                           (regex "template[[:space:]]*<")
+                                           (regex "\\(?:public\\|protected\\|private\\)[[:space:]]*:")))
+                                      nil
+                                      t)))
+              search-result)))))))
+
+;; this will make sure that *.h c++ header will be correctly handled
+;;;###autoload
+(push (cons #'c++-file-magic-function #'c++-mode) magic-mode-alist)
 
 (provide 'c++-setup)
 
