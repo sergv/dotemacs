@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'indentation)
 
 (setf sml-indent-level 2)
 
@@ -25,9 +26,9 @@
   (save-excursion
     (indent-whole-buffer)))
 
-;;;###autoload
-(add-to-list '*mode-buffer-indent-function-alist*
-             (cons 'sml-mode #'sml-indent-buffer))
+(puthash 'sml-mode
+         #'sml-indent-buffer
+         *mode-indent-functions-table*)
 
 ;;;###autoload
 (defun sml-mode-setup ()

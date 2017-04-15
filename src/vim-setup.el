@@ -407,8 +407,8 @@ Basically swap current point with previous one."
 
 
 (vim:defcmd vim:indent (nonrepeatable)
-  (aif (assq major-mode *mode-buffer-indent-function-alist*)
-    (funcall (cdr it))
+  (aif (gethash major-mode *mode-indent-functions-table*)
+      (funcall it)
     (error "No indentation function defined for %s" major-mode)))
 
 (vim:emap "indent" #'vim:indent)

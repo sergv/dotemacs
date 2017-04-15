@@ -13,6 +13,7 @@
 (require 'eproj-setup)
 (require 'java-abbrev+)
 
+;;;###autoload
 (defun java-setup ()
   (cc-setup :define-special-keys nil)
   (setf c-basic-offset 4)
@@ -30,6 +31,9 @@
                          :header-symbol "*"
                          :length-min 3)
   (java-abbrev+-setup))
+
+;;;###autoload
+(add-hook 'java-mode-hook #'java-setup)
 
 (provide 'java-setup)
 

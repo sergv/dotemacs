@@ -9,8 +9,12 @@
 (require 'common)
 (require 'cc-setup)
 
+;;;###autoload
 (defun idl-setup ()
   (cc-setup :define-special-keys t))
+
+;;;###autoload
+(add-hook 'idl-mode-hook #'idl-setup)
 
 (provide 'idl-setup)
 

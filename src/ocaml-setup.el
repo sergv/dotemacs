@@ -10,6 +10,7 @@
 
 (require 'common)
 (require 'comint-setup)
+(require 'indentation)
 
 ;;; Prelude
 
@@ -35,9 +36,9 @@
   (save-excursion
     (indent-whole-buffer)))
 
-;;;###autoload
-(add-to-list '*mode-buffer-indent-function-alist*
-             (cons 'tuareg-mode #'ocaml-indent-buffer))
+(puthash 'tuareg-mode
+         #'ocaml-indent-buffer
+         *mode-indent-functions-table*)
 
 ;;; ocaml-setup
 

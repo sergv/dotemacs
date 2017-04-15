@@ -15,6 +15,7 @@
 (require 'advices-util)
 (require 'common)
 (require 'eldoc)
+(require 'indentation)
 (require 'macro-util)
 (require 'outline-headers)
 (require 'paredit-setup)
@@ -552,9 +553,9 @@ nor comment."
         (backward-sexp)))))
 
 (dolist (mode +lisp-modes+)
-  (add-to-list '*mode-buffer-indent-function-alist*
-               (cons mode #'lisp-indent-buffer)))
-
+  (puthash mode
+           #'lisp-indent-buffer
+           *mode-indent-functions-table*))
 
 ;;;; this is useful for all lisps
 
