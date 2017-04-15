@@ -49,7 +49,8 @@ rm -f \
    "third-party/clojure-mode/clojure-mode-autoloads.el" \
    "third-party/smartparens/smartparens-autoloads.el"  \
    "third-party/sml-mode/sml-mode-autoloads.el" \
-   "third-party/flycheck/flycheck-autoloads.el"
+   "third-party/flycheck/flycheck-autoloads.el" \
+   "third-party/elm-mode/elm-mode-autoloads.el"
 
 update-dir-autoloads \
     "src/local-autoloads.el" \
@@ -66,7 +67,8 @@ update-dir-autoloads \
     "third-party/misc-modes" \
     "third-party/smartparens" \
     "third-party/sml-mode" \
-    "third-party/yafolding.el"
+    "third-party/yafolding.el" \
+    "third-party/elm-mode" \
 
 if which make >/dev/null; then
     pushd "third-party/org-mode"
