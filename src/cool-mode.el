@@ -31,50 +31,50 @@
     tbl))
 
 (setf cool-font-lock-keywords
-  `((,(rx (or "isvoid"
-              "not"))
-     (0 font-lock-builtin-face))
-    (,(rx (or (group-n 1 "SELF_TYPE")
-              (seq (or ":"
-                       "@"
-                       "class"
-                       "inherits"
-                       "new")
-                   (* whitespace)
-                   (group-n 1 (regex "[A-Z][A-Za-z0-9_]*")))))
-     (1 font-lock-type-face))
-    (,(rx bow
-          (or
-           ;; keywords
-           "class"
-           "inherits"
-           "new"
-           ;; statements
-           "self"
-           "let"
-           "in"
-           ;; conditionals
-           "if"
-           "then"
-           "else"
-           "fi"
-           "case"
-           "esac"
-           "of"
-           ;; looping
-           "while"
-           "loop"
-           "pool"
-           ;; booleans
-           "true"
-           "false")
-          eow)
-     (0 font-lock-keyword-face))
-    (,(rx symbol-start
-          (? (or "-" "+"))
-          (+ (regex "[0-9]"))
-          symbol-end)
-     (0 font-lock-constant-face))))
+      `((,(rx (or "isvoid"
+                  "not"))
+         (0 font-lock-builtin-face))
+        (,(rx (or (group-n 1 "SELF_TYPE")
+                  (seq (or ":"
+                           "@"
+                           "class"
+                           "inherits"
+                           "new")
+                       (* whitespace)
+                       (group-n 1 (regex "[A-Z][A-Za-z0-9_]*")))))
+         (1 font-lock-type-face))
+        (,(rx bow
+              (or
+               ;; keywords
+               "class"
+               "inherits"
+               "new"
+               ;; statements
+               "self"
+               "let"
+               "in"
+               ;; conditionals
+               "if"
+               "then"
+               "else"
+               "fi"
+               "case"
+               "esac"
+               "of"
+               ;; looping
+               "while"
+               "loop"
+               "pool"
+               ;; booleans
+               "true"
+               "false")
+              eow)
+         (0 font-lock-keyword-face))
+        (,(rx symbol-start
+              (? (or "-" "+"))
+              (+ (regex "[0-9]"))
+              symbol-end)
+         (0 font-lock-constant-face))))
 
 ;;;###autoload
 (define-derived-mode cool-mode prog-mode "Cool"

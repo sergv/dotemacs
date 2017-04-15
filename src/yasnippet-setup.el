@@ -43,34 +43,35 @@ simlifying encoding of several keys for one snippet."
          binding
          uuid)
     (if (re-search-forward "^# --\n" nil t)
-      (progn (setq template
-                   (buffer-substring-no-properties (point)
-                                                   (point-max)))
-             (setq bound (point))
-             (goto-char (point-min))
-             (while (re-search-forward "^# *\\([^ ]+?\\) *: *\\(.*\\)$" bound t)
-               (let ((variable (match-string-no-properties 1))
-                     (value (match-string-no-properties 2)))
-                 (cond
-                   ((string= "uuid" variable)
-                    (setq uuid value))
-                   ((string= "type" variable)
-                    (setq type (if (string= "command" value)
-                                 'command
-                                 'snippet)))
-                   ((string= "key" variable)
-                    (push value keys))
-                   ((string= "name" variable)
-                    (setq name value))
-                   ((string= "condition" variable)
-                    (setq condition (yas--read-lisp value)))
-                   ((string= "group" variable)
-                    (setq group value))
-                   ((string= "expand-env" variable)
-                    (setq expand-env (yas--read-lisp value
-                                                     'nil-on-error)))
-                   ((string= "binding" variable)
-                    (setq binding value))))))
+        (progn
+          (setq template
+                (buffer-substring-no-properties (point)
+                                                (point-max)))
+          (setq bound (point))
+          (goto-char (point-min))
+          (while (re-search-forward "^# *\\([^ ]+?\\) *: *\\(.*\\)$" bound t)
+            (let ((variable (match-string-no-properties 1))
+                  (value (match-string-no-properties 2)))
+              (cond
+                ((string= "uuid" variable)
+                 (setq uuid value))
+                ((string= "type" variable)
+                 (setq type (if (string= "command" value)
+                                'command
+                              'snippet)))
+                ((string= "key" variable)
+                 (push value keys))
+                ((string= "name" variable)
+                 (setq name value))
+                ((string= "condition" variable)
+                 (setq condition (yas--read-lisp value)))
+                ((string= "group" variable)
+                 (setq group value))
+                ((string= "expand-env" variable)
+                 (setq expand-env (yas--read-lisp value
+                                                  'nil-on-error)))
+                ((string= "binding" variable)
+                 (setq binding value))))))
       (setq template
             (buffer-substring-no-properties (point-min) (point-max))))
     (unless (or keys binding)
@@ -92,9 +93,9 @@ simlifying encoding of several keys for one snippet."
                      (string-match-p "^#.*#$" filename)
                      (string-match-p "~$" filename)
                      (if file?
-                       (or (file-directory-p file)
-                           ;; modified here
-                           (not (string-match-p "\\.snip$" filename)))
+                         (or (file-directory-p file)
+                             ;; modified here
+                             (not (string-match-p "\\.snip$" filename)))
                        (not (file-directory-p file))))))
              (directory-files directory t)))
 

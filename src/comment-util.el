@@ -164,8 +164,8 @@ Contains single-line and region comments.")
 or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
   (if (region-active-p)
-    (let ((bounds (get-region-bounds)))
-      (comment-util-comment-region (first bounds) (second bounds)))
+      (let ((bounds (get-region-bounds)))
+        (comment-util-comment-region (first bounds) (second bounds)))
     (comment-util-comment-next-n-lines lines)))
 
 ;;;###autoload
@@ -175,7 +175,7 @@ they are defined for current mode or one-line comments otherwise."
   (interactive "r")
   (save-excursion
     (if (comment-util-region-comments-defined?)
-      (comment-util-comment-chunk-region begin end)
+        (comment-util-comment-chunk-region begin end)
       (comment-util--comment-lined-region begin end))))
 
 ;;;###autoload
@@ -189,8 +189,8 @@ they are defined for current mode or one-line comments otherwise."
                    (looking-at-p
                     (comment-format-one-line *comment-util-current-format*))))
             (not (comment-util-region-comments-defined?)))
-      ;;if no region comments are defined then use line comments
-      (comment-util-uncomment-lined-region)
+        ;;if no region comments are defined then use line comments
+        (comment-util-uncomment-lined-region)
       (comment-util-uncomment-chunk-region))))
 
 (defun comment-util-region-comments-defined? ()
@@ -216,12 +216,12 @@ be used only for vim-visual-mode of the vim-mode package."
 (defun comment-util--uncomment-lines (lines)
   "Uncomment lines eiter up if N is positive or down if N is negative."
   (if (> lines 0)
-    (while (> lines 0)
-      (skip-to-indentation)
-      (comment-util-delete-comment)
-      (indent-for-tab-command)
-      (forward-line 1)
-      (setq lines (1- lines)))
+      (while (> lines 0)
+        (skip-to-indentation)
+        (comment-util-delete-comment)
+        (indent-for-tab-command)
+        (forward-line 1)
+        (setq lines (1- lines)))
     (while (<= lines 0)
       (skip-to-indentation)
       (comment-util-delete-comment)
@@ -445,11 +445,11 @@ up and then comment the result."
 (defun comment-util--on-commented-line? ()
   "Return t if current line is commented out."
   (if-let (line-comment (comment-format-one-line *comment-util-current-format*))
-    (save-excursion
-      (beginning-of-line)
-      (skip-syntax-forward " ")
-      (and (looking-at-p line-comment)
-           (not (point-inside-string?))))
+      (save-excursion
+        (beginning-of-line)
+        (skip-syntax-forward " ")
+        (and (looking-at-p line-comment)
+             (not (point-inside-string?))))
     (save-excursion
       (let* ((state (parse-partial-sexp (line-beginning-position)
                                         (line-end-position)))
@@ -565,24 +565,24 @@ commented parts and leave point unchanged."
          (concat (comment-format-one-line *comment-util-current-format*)
                  (make-string *comment-util-space-count* ?\s))))
     (if (not (null? count))
-      (save-excursion
-        (skip-to-indentation)
-        (comment-util--comment-n-lines-starting-at-col
-         comment-format
-         count
-         (current-column)))
+        (save-excursion
+          (skip-to-indentation)
+          (comment-util--comment-n-lines-starting-at-col
+           comment-format
+           count
+           (current-column)))
       (if structured-haskell-mode
-        (when-let (node (shm-current-node))
-          (let ((node-count (count-lines (shm-node-start node)
-                                         (shm-node-end node))))
-            (save-excursion
-              (if (= 1 node-count)
-                (skip-to-indentation)
-                (goto-char (shm-node-start node)))
-              (comment-util--comment-n-lines-starting-at-col
-               comment-format
-               node-count
-               (current-column)))))
+          (when-let (node (shm-current-node))
+            (let ((node-count (count-lines (shm-node-start node)
+                                           (shm-node-end node))))
+              (save-excursion
+                (if (= 1 node-count)
+                    (skip-to-indentation)
+                  (goto-char (shm-node-start node)))
+                (comment-util--comment-n-lines-starting-at-col
+                 comment-format
+                 node-count
+                 (current-column)))))
         (comment-util-comment-lines 1)))))
 
 (provide 'comment-util)

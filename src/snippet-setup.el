@@ -19,7 +19,7 @@ otherwise."
   (interactive "P")
   (save-excursion
     (yas-load-snippet-buffer (if prompt-table
-                               (yas--read-table)
+                                 (yas--read-table)
                                (first (yas--compute-major-mode-and-parents
                                        buffer-file-name)))
                              nil)))

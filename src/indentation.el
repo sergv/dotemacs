@@ -92,17 +92,17 @@ See also `indent-relative-maybe'."
         (beginning-of-line)
         (when (re-search-backward "^[^\n]" nil t)
           (let ((end (if forward?
-                       (min (+ (line-end-position) 1)
-                            (point-max))
+                         (min (+ (line-end-position) 1)
+                              (point-max))
                        (line-beginning-position))))
             (move-to-column start-column)
             ;; Is start-column inside a tab on this line?
             (when (> (current-column) start-column)
               (backward-char 1))
             (if forward?
-              (progn
-                (skip-chars-forward "^ \t" end)
-                (skip-chars-forward " \t" end))
+                (progn
+                  (skip-chars-forward "^ \t" end)
+                  (skip-chars-forward " \t" end))
               (progn
                 (skip-chars-backward " \t" end)
                 (skip-chars-backward "^ \t" end)))

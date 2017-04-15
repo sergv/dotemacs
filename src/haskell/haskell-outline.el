@@ -46,14 +46,14 @@
 (defun haskell-hide-indented-or-sexp ()
   (interactive)
   (if (haskell-outline-on-sexp?)
-    (hs-hide-block)
+      (hs-hide-block)
     (yafolding-hide-element)))
 
 ;;;###autoload
 (defun haskell-show-indented-or-sexp ()
   (interactive)
   (if (haskell-outline-on-sexp?)
-    (hs-show-block)
+      (hs-show-block)
     (yafolding-show-element)))
 
 (defun haskell-outline-on-sexp? ()

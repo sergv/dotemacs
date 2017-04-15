@@ -11,7 +11,7 @@
         (ido-completing-read
          (if (and def (> (length prompt) 2)
                   (string-equal ": " (substring prompt -2)))
-           (format "%s (default %s): " (substring prompt 0 -2) def)
+             (format "%s (default %s): " (substring prompt 0 -2) def)
            prompt)
          collection predicate require-match initial-input hist def))
       ;;magit-restore-window-configuration t

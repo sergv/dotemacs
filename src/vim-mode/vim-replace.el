@@ -34,8 +34,8 @@
 (defun vim--substitute-quote (text)
   "Just quote backslash for now because it has special meaning and all other
 special characters are introduced via backlash only."
-  (replace-regexp-in-string "\\\\"      ;; single backslash
-                            "\\\\\\\\"  ;; double backslash
+  (replace-regexp-in-string "\\\\"     ;; single backslash
+                            "\\\\\\\\" ;; double backslash
                             text
                             ))
 

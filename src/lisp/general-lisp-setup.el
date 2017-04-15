@@ -44,8 +44,8 @@ Returns t if char at loc meets one of the following conditions:
                             (beginning-of-defun)
                             ;; (point) is at beg-of-defun; loc is the char location
                             (parse-partial-sexp (point) loc))))
-         (or (nth 3 parse-state)        ; inside string?
-             (nth 4 parse-state)        ; inside comment?
+         (or (nth 3 parse-state)   ; inside string?
+             (nth 4 parse-state)   ; inside comment?
              ;; check for ?\(, ?\), #\(, #\) etc
              (and (char= (char-before loc) ?\\)
                   (or (char= (char-before (- loc 1)) ?\?)
@@ -70,9 +70,9 @@ rigidly along with this one."
              (beg (progn (beginning-of-line) (point))))
          (skip-chars-forward " \t")
          (if (or (null indent) (looking-at-pure? "\\s<\\s<\\s<"))
-           ;; Don't alter indentation of a ;;; comment line
-           ;; or a line that starts in a string.
-           (goto-char (- (point-max) pos))
+             ;; Don't alter indentation of a ;;; comment line
+             ;; or a line that starts in a string.
+             (goto-char (- (point-max) pos))
            ;; Single-semicolon comment lines should *not* be indented
            ;; as comment lines, but should be indented as code
            (progn
@@ -206,10 +206,10 @@ But nesting of more than one sexp is not supported yet
   (save-excursion
     (let* ((end (point))
            (begin
-             ;; if this proves itself too slow then use line-beginning-position
-             (if (beginning-of-defun)
-               (point)
-               (line-beginning-position)))
+            ;; if this proves itself too slow then use line-beginning-position
+            (if (beginning-of-defun)
+                (point)
+              (line-beginning-position)))
            (state (parse-partial-sexp begin end)))
       (elt state 3))))
 
@@ -218,10 +218,10 @@ But nesting of more than one sexp is not supported yet
   (save-excursion
     (let* ((end (point))
            (begin
-             ;; if this proves itself too slow then use line-beginning-position
-             (if (beginning-of-defun)
-               (point)
-               (line-beginning-position)))
+            ;; if this proves itself too slow then use line-beginning-position
+            (if (beginning-of-defun)
+                (point)
+              (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end))
            (inside-stringp (elt state 3))
@@ -234,10 +234,10 @@ of line."
   (save-excursion
     (let* ((end (point))
            (begin
-             ;; if this proves itself too slow then use line-beginning-position
-             (if (beginning-of-defun)
-               (point)
-               (line-beginning-position)))
+            ;; if this proves itself too slow then use line-beginning-position
+            (if (beginning-of-defun)
+                (point)
+              (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end)))
       (elt state 4))))
@@ -266,10 +266,10 @@ if it's not in string."
     (goto-char p)
     (let* ((end (point))
            (begin
-             ;; if this proves itself too slow then use line-beginning-position
-             (if (beginning-of-defun)
-               (point)
-               (line-beginning-position)))
+            ;; if this proves itself too slow then use line-beginning-position
+            (if (beginning-of-defun)
+                (point)
+              (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end))
            (inside-stringp (elt state 3))
@@ -284,10 +284,10 @@ if it's not in comment."
     (goto-char p)
     (let* ((end (point))
            (begin
-             ;; if this proves itself too slow then use line-beginning-position
-             (if (beginning-of-defun)
-               (point)
-               (line-beginning-position)))
+            ;; if this proves itself too slow then use line-beginning-position
+            (if (beginning-of-defun)
+                (point)
+              (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end))
            (inside-commentp (elt state 4))
@@ -303,10 +303,10 @@ nor comment."
     (goto-char p)
     (let* ((end (point))
            (begin
-             ;; if this proves itself too slow then use line-beginning-position
-             (if (beginning-of-defun)
-               (point)
-               (line-beginning-position)))
+            ;; if this proves itself too slow then use line-beginning-position
+            (if (beginning-of-defun)
+                (point)
+              (line-beginning-position)))
            (state (parse-partial-sexp begin
                                       end))
            (inside-stringp (elt state 3))
@@ -446,7 +446,7 @@ nor comment."
   (let ((start (point)))
     (condition-case err
         (aif (lisp-position-inside-string (point))
-          (goto-char it)
+            (goto-char it)
           (backward-up-list))
       (error (goto-char start)
              (error "No enclosing list found\n%s" err)))))

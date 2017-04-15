@@ -33,7 +33,7 @@
       ;; do not reindent on ups
       sp-navigate-reindent-after-up nil
       sp-wrap-entire-symbol 'globally
-      sp-ignore-modes-list '(;; enable smartparens mode in minibuffer,
+      sp-ignore-modes-list '( ;; enable smartparens mode in minibuffer,
                              ;; and let it bind keys for currently active
                              ;; pairs, then auxiliary keys later in icicle setup
                              ;; minibuffer-inactive-mode
@@ -81,10 +81,10 @@ is wrapped instead.  This is useful with selection functions in
          (active-pair (--first (equal (car it) pair-open) sp-pair-list)))
     (destructuring-bind (start . end)
         (if (region-active-p)
-          (cons (region-beginning) (region-end))
+            (cons (region-beginning) (region-end))
           (or (-when-let (sym-bounds (bounds-of-thing-at-point 'symbol))
                 (if (= p (cdr sym-bounds))
-                  nil ;; don't wrap if we are at the end of symbol
+                    nil ;; don't wrap if we are at the end of symbol
                   sym-bounds))
               (cons p p)))
       (with-marker (start-marker (copy-marker start))
@@ -92,9 +92,9 @@ is wrapped instead.  This is useful with selection functions in
           ;; If point is not in the symbol then don't wrap the next symbol, but
           ;; insert pair at point instead.
           (if (< p start)
-            (progn
-              (goto-char p)
-              (sp-insert-pair pair-open))
+              (progn
+                (goto-char p)
+                (sp-insert-pair pair-open))
             (progn
               (goto-char end)
               (insert (cdr active-pair))
@@ -104,19 +104,19 @@ is wrapped instead.  This is useful with selection functions in
 
 ;; these two are the same ones used for paredit
 (defadvice sp-forward-slurp-sexp
-  (after
-   sp-forward-slurp-sexp-remove-initial-whitespace
-   activate
-   compile)
+    (after
+     sp-forward-slurp-sexp-remove-initial-whitespace
+     activate
+     compile)
   (when (and (lisp-pos-is-beginning-of-sexp? (- (point) 1))
              (whitespace-char? (char-after)))
     (delete-whitespace-forward)))
 
 (defadvice sp-backward-slurp-sexp
-  (after
-   sp-backward-slurp-sexp-remove-initial-whitespace
-   activate
-   compile)
+    (after
+     sp-backward-slurp-sexp-remove-initial-whitespace
+     activate
+     compile)
   (when (and (lisp-pos-is-end-of-sexp? (point))
              (whitespace-char? (char-before)))
     (delete-whitespace-backward)))

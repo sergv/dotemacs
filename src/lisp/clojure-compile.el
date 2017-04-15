@@ -75,7 +75,7 @@
                      1                                ;; file-group
                      2                                ;; line-group
                      3                                ;; column-group
-                     1                                ;; type - 1 - warning
+                     1 ;; type - 1 - warning
                      )
                (list +clojure-compile-error-regexp+
                      1 ;; file-group
@@ -129,7 +129,7 @@ With prefix argument allows to select different profile."
             clojure-compile/avaliable-profiles)))
   (let ((command nil))
     (setf command (if (not (null? clojure-compile/lein-command))
-                    clojure-compile/lein-command
+                      clojure-compile/lein-command
                     (clojure-lein/read-variable-from-project-clj
                      buffer-file-name
                      'clojure-compile/lein-command)))

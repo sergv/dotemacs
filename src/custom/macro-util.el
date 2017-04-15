@@ -16,7 +16,7 @@
 (defmacro util/eval-if-symbol (x)
   "Evaluate x if it's symbos. Intended to be used inside defmacro."
   `(if (symbolp ,x)
-     (eval ,x)
+       (eval ,x)
      ,x))
 
 (defmacro rxx (definitions &rest main-expr)
@@ -53,15 +53,15 @@ actual call to function."
              (error "FUNC should be call to function (list) or symbol: %s"
                     func))))
          (motion-name (if name
-                        name
+                          name
                         (intern (concat "vim:" func-name)))))
     `(vim:defmotion ,motion-name (,(if exclusive 'exclusive 'inclusive)
                                   ,@(if do-not-adjust-point
-                                      '(do-not-adjust-point)
+                                        '(do-not-adjust-point)
                                       '()))
        ,(if doc doc (concat "See `" func-name "'."))
        ,(if (listp func)
-          func
+            func
           (list func)))))
 
 (defmacro* vimmize-function (func
@@ -92,13 +92,13 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
                     func))))
          (action-name (if name name (intern (concat "vim:" func-name)))))
     `(vim:defcmd ,action-name ,(append (if has-count
-                                         '(count)
+                                           '(count)
                                          '())
                                        (if repeatable
-                                         '()
+                                           '()
                                          '(nonrepeatable))
                                        (if keep-visual
-                                         '(keep-visual)
+                                           '(keep-visual)
                                          '()))
        ,(if doc doc (format "Vimmized version of `%s'." func-name))
        ,(cond
@@ -107,13 +107,13 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
            (let ((counter '#:counter))
              `(dotimes (,counter (or count 1))
                 ,(if (symbolp func)
-                   `(funcall #',func)
+                     `(funcall #',func)
                    func))))
           ((symbolp func)
            `(funcall #',func
                      ,@(append
                         (if has-count
-                          '(count)
+                            '(count)
                           '()))))
           (t
            func)))))
@@ -158,9 +158,9 @@ NB does not expect to cache values of ARGS that are nil."
                                hash-table-expr-struct
                              (list
                               (if may-be-null?
-                                `(let ((,hash-table-var ,hash-table-expr))
-                                   (and ,hash-table-var
-                                        (gethash ,x ,hash-table-var)))
+                                  `(let ((,hash-table-var ,hash-table-expr))
+                                     (and ,hash-table-var
+                                          (gethash ,x ,hash-table-var)))
                                 `(gethash ,x ,hash-table-expr))
                               t
                               )))
@@ -168,7 +168,7 @@ NB does not expect to cache values of ARGS that are nil."
                          (list cache-var nil)
                          cache-args))))
            (if ,query-var
-             ,query-var
+               ,query-var
              (let ((,value-var (progn ,@body)))
                ,(funcall (foldr (lambda (x mk-value-to-put)
                                   (let ((table-var '#:table))
@@ -229,9 +229,9 @@ before performing any jumps."
                (goto-char (point-min))
                (setf ,found-var ,forward-search))
              (if ,found-var
-               (goto-char ,(if jump-to-end
-                             '(match-end 0)
-                             '(match-beginning 0)))
+                 (goto-char ,(if jump-to-end
+                                 '(match-end 0)
+                               '(match-beginning 0)))
                (progn
                  (goto-char ,original-pos-var)
                  (next-line))))))
@@ -250,9 +250,9 @@ before performing any jumps."
                (goto-char (point-max))
                (setf ,found-var ,backward-search))
              (if ,found-var
-               (goto-char ,(if jump-to-end
-                             '(match-end 0)
-                             '(match-beginning 0)))
+                 (goto-char ,(if jump-to-end
+                                 '(match-end 0)
+                               '(match-beginning 0)))
                (progn
                  (goto-char ,original-pos-var)
                  (previous-line)))))))))
@@ -288,7 +288,7 @@ current buffer. INIT form will be executed before performing any jumps."
                               (current-buffer)
                               (point-max))))
              (if change-pos
-               (goto-char change-pos)
+                 (goto-char change-pos)
                (goto-char (point-max))))))
 
      (defun ,backward-name ()
@@ -310,7 +310,7 @@ current buffer. INIT form will be executed before performing any jumps."
                               (current-buffer)
                               (point-max))))
              (if change-pos
-               (goto-char change-pos)
+                 (goto-char change-pos)
                (goto-char (point-max))))))))
 
 ;;; other macros
@@ -364,13 +364,13 @@ another KEY-COMMAND-LIST spliced in place of a variable;
                 if (symbol? entry)
                 for (key command) = (if (or (quoted? entry)
                                             (symbol? entry))
-                                      (eval entry)
+                                        (eval entry)
                                       entry)
                 appending (if (symbol? entry)
-                            (funcall process-key-command-list map-var (eval entry))
+                              (funcall process-key-command-list map-var (eval entry))
                             (destructuring-bind (key command)
                                 (if (quoted? entry)
-                                  (eval entry)
+                                    (eval entry)
                                   entry)
                               (cond
                                 ((list? key)
@@ -466,11 +466,11 @@ of code may be called more than once."
                    for buf in buffer-names
                    collecting
                    (if (listp buf)
-                     `((let ((,tmp ,buf))
-                         (and ,tmp
-                              (buffer-live-p (get-buffer ,tmp))))
-                       (pop-to-buffer (get-buffer ,buf) t)
-                       (return-from ,done-block))
+                       `((let ((,tmp ,buf))
+                           (and ,tmp
+                                (buffer-live-p (get-buffer ,tmp))))
+                         (pop-to-buffer (get-buffer ,buf) t)
+                         (return-from ,done-block))
                      `((buffer-live-p (get-buffer ,buf))
                        (pop-to-buffer (get-buffer ,buf) t)
                        (return-from ,done-block))))
@@ -479,9 +479,9 @@ of code may be called more than once."
                 (save-window-excursion
                   (save-excursion
                     ,(if (not (null test-if-already-running))
-                       `(unless ,test-if-already-running
-                          ,run-interpreter-command
-                          (setf ,runned t))
+                         `(unless ,test-if-already-running
+                            ,run-interpreter-command
+                            (setf ,runned t))
                        `(progn
                           ,run-interpreter-command
                           (setf ,runned t))))))
@@ -492,11 +492,11 @@ of code may be called more than once."
                     (sleep-for ,sleep-time)))))
 
            (error ,(if error-msg
-                     error-msg
+                       error-msg
                      `(format "Can't switch to any buffer of %s"
                               ,(mapconcat (lambda (name)
                                             (if (symbolp name)
-                                              (symbol-name name)
+                                                (symbol-name name)
                                               name))
                                           buffer-names
                                           ", ")))))))))
@@ -509,13 +509,13 @@ of code may be called more than once."
                                 (put-align-spaces-after-str nil))
   (let ((spaces-re (concat "\\([ \t]"
                            (if require-one-or-more-spaces
-                             "+"
+                               "+"
                              "*")
                            "\\)"))
         (align-re (if (string? align-str)
-                    (concat "\\(?:"
-                            align-str
-                            "\\)")
+                      (concat "\\(?:"
+                              align-str
+                              "\\)")
                     (macroexpand-all align-str)))
         (impl-func (string->symbol (format "%s/impl" func))))
     `(progn
@@ -523,7 +523,7 @@ of code may be called more than once."
          (align-regexp start
                        end
                        ,(if put-align-spaces-after-str
-                          (concat align-re spaces-re)
+                            (concat align-re spaces-re)
                           (concat spaces-re align-re))
                        1
                        1
@@ -634,7 +634,7 @@ return nil otherwise."
   (declare (indent 2))
   `(let ((it ,condition))
      (if it
-       ,true-branch
+         ,true-branch
        ,false-branch)))
 
 (defmacro awhen (condition &rest body)
@@ -651,7 +651,7 @@ return nil otherwise."
     `(progn
        (setf ,tmp-var ,value)
        (if (boundp ',var)
-         (setf ,var ,tmp-var)
+           (setf ,var ,tmp-var)
          (defvar ,var ,tmp-var ,doc))
        nil)))
 
@@ -662,9 +662,9 @@ return nil otherwise."
        (make-variable-buffer-local ',var)
        (setf ,tmp-var ,value)
        (if (boundp ',var)
-         (progn
-           (setq-default ,var ,tmp-var)
-           (setf ,var ,tmp-var))
+           (progn
+             (setq-default ,var ,tmp-var)
+             (setf ,var ,tmp-var))
          (defvar-local ,var ,tmp-var ,doc))
        nil)))
 

@@ -24,9 +24,9 @@
                         (goto-line1 begin)
                         (line-beginning-position)))
         (setq end-pos (if end
-                        (save-excursion
-                          (goto-line1 end)
-                          (line-end-position))
+                          (save-excursion
+                            (goto-line1 end)
+                            (line-end-position))
                         beg-pos)))
 
       (cond
@@ -65,7 +65,7 @@
 (vim:defcmd vim:cmd-edit ((argument:file file) nonrepeatable)
   "Visits a certain file."
   (if file
-    (find-file file)
+      (find-file file)
     (when buffer-file-name
       (find-file buffer-file-name))))
 
@@ -108,8 +108,8 @@
   "Deletes a buffer."
   (when force
     (if buffer
-      (with-current-buffer buffer
-        (set-buffer-modified-p nil))
+        (with-current-buffer buffer
+          (set-buffer-modified-p nil))
       (set-buffer-modified-p nil)))
   (kill-buffer buffer))
 
@@ -122,13 +122,13 @@
          (delete-frame)
        (error
         (if force
-          (kill-emacs)
+            (kill-emacs)
           (save-buffers-kill-emacs)))))))
 
 (vim:defcmd vim:cmd-quit-all (force nonrepeatable)
   "Exits Emacs, asking for saving."
   (if force
-    (kill-emacs)
+      (kill-emacs)
     (save-buffers-kill-emacs)))
 
 (vim:defcmd vim:cmd-save-and-quit (nonrepeatable)

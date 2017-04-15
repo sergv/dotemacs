@@ -117,21 +117,21 @@ performed for some field."
         (cond
           ((eq? old-entry-key new-entry-key)
            (if (equal? old-entry new-entry)
-             (setf result
-                   (cons old-entry result))
+               (setf result
+                     (cons old-entry result))
              (if-let (merge-handler (cdr-safe
                                      (assoc old-entry-key
                                             persistent-store-merge-handlers)))
-               (if-let (merged-entry (funcall merge-handler
-                                              old-entry
-                                              new-entry))
-                 (setf result
-                       (cons merged-entry
-                             result))
-                 ;; Abort if merge-handler failed to merge entries
-                 (setf done t
-                       failed t
-                       result nil))
+                 (if-let (merged-entry (funcall merge-handler
+                                                old-entry
+                                                new-entry))
+                     (setf result
+                           (cons merged-entry
+                                 result))
+                   ;; Abort if merge-handler failed to merge entries
+                   (setf done t
+                         failed t
+                         result nil))
                ;; Abort if entries are different and there's no suitable
                ;; merge handler.
                (setf done t
@@ -182,8 +182,8 @@ performed for some field."
                             entries-sort-pred))
     (if (string= current-content-str
                  persistent-store-loaded-content)
-      ;; file was not changed since we loaded data from it
-      (persistent-store-write-contents-to-file new-content persistent-store-store-file)
+        ;; file was not changed since we loaded data from it
+        (persistent-store-write-contents-to-file new-content persistent-store-store-file)
       ;; file was changed since we loaded data from it
       (let ((merged-content
              (persistent-store-try-merging-contents
@@ -193,9 +193,9 @@ performed for some field."
                entries-sort-pred)
               new-content)))
         (if merged-content
-          (persistent-store-write-contents-to-file
-           merged-content
-           persistent-store-store-file)
+            (persistent-store-write-contents-to-file
+             merged-content
+             persistent-store-store-file)
           (let ((done nil))
             (while (not done)
               (let ((ch nil))
@@ -256,7 +256,7 @@ performed for some field."
 (defun persistent-store-debug-print-content ()
   (interactive)
   (if (equal 0 (persistent-store-database-size))
-    (message "database is empty")
+      (message "database is empty")
     (let ((counter 0))
       (maphash (lambda (key value)
                  (message "#%d: %S:%S" counter key value)

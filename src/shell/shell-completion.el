@@ -167,7 +167,7 @@ be either singular string or a list of strings."
                      "process-opts: invalid flag name: %s"
                      flag-name)
           (make-pcmpl-flag :names (if (string? flag-name)
-                                    (list flag-name)
+                                      (list flag-name)
                                     flag-name)
                            :completion-expr compl-expr)))
        (t
@@ -305,7 +305,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                           (pcomplete-here ',double-dash-flags))))
                                    (t
                                     ,@(if (cdr args)
-                                        (cdr args)
+                                          (cdr args)
                                         ;; Return nil to while loop to show that
                                         ;; there are no more completions.
                                         '(nil)))))))))))))
@@ -332,7 +332,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                 (member "--" (-take pcomplete-last pcomplete-args))))
            ,(funcall process
                      (if evaluate-definition
-                       (eval definition t)
+                         (eval definition t)
                        definition)
                      ;; Positional depth must start from 1 so that
                      ;; first positional argument matched will be past
