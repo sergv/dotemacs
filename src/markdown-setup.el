@@ -21,16 +21,35 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 
+(setf markdown-enable-math t
+      markdown-list-indent-width 2
+      markdown-asymmetric-header t)
+
+(defun markdown--yasnippet-indent-fallback ()
+  (interactive)
+  (let ((this-command 'markdown-cycle))
+    (call-interactively #'markdown-cycle)))
+
 ;;;###autoload
 (defun markdown-setup ()
-  (init-common :use-yasnippet nil
+  (init-common :use-yasnippet t
                :use-whitespace 'tabs-only)
+  ;; (setq-local yas-indent-line 'fixed)
+  (bind-tab-keys #'markdown-cycle
+                 #'markdown-shifttab
+                 :enable-yasnippet t
+                 :yasnippet-fallback #'markdown--yasnippet-indent-fallback)
   (typography-setup)
-  (setup-indent-size 2)
+  (setup-indent-size 4)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("'" outline-up-heading))
+    ("C-h" markdown-forward-paragraph)
+    ("C-t" markdown-backward-paragraph)
+    ("M-h" markdown-next-visible-heading)
+    ("M-t" markdown-previous-visible-heading)
+    ("'"   markdown-up-heading))
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("`" vim:wrap-backticks)))
+    ("`"   vim:wrap-backticks)
+    (("<tab>" "TAB") markdown-indent-region)))
 
 ;;;###autoload
 (add-hook 'markdown-mode-hook #'markdown-setup)
