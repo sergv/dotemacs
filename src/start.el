@@ -178,10 +178,12 @@ or not.")
 
 (defun* bind-tab-keys (tab-binding
                        backtab-binding
-                       &key (enable-yasnippet nil))
+                       &key
+                       (enable-yasnippet nil)
+                       (yasnippet-fallback nil))
   (if enable-yasnippet
       (progn
-        (setq-local yas-expand-fallback tab-binding)
+        (setq-local yas-expand-fallback (or yasnippet-fallback tab-binding))
         (def-keys-for-map (vim:normal-mode-local-keymap
                            vim:insert-mode-local-keymap)
           ("<tab>" yas-expand-or-fallback)))
