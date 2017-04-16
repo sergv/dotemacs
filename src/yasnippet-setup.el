@@ -176,7 +176,7 @@ in org's headline."
 (defun yas-expand-or-fallback ()
   (interactive)
   (or (yas-expand)
-      (funcall yas-expand-fallback)))
+      (call-interactively yas-expand-fallback)))
 
 (provide 'yasnippet-setup)
 
