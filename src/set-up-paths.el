@@ -123,6 +123,7 @@ directories whose absolute path matches IGNORED-DIR-RE."
   (rx
    (or (seq bow (or "tests" "doc" "examples" ".cask" ".stack-work.*") eol)
        "auctex/tests"
+       "auctex/style"
        "clojure-mode/test"
        "company-mode/test"
        "dash.el/dev"
