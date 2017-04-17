@@ -1994,6 +1994,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("test"
        (opts
         (flags
+         "--profile"
+         "--library-profiling"
+         "--no-library-profiling"
+         "--executable-profiling"
+         "--no-executable-profiling"
          ,@standard-flags)))
       ("bench"
        (opts
