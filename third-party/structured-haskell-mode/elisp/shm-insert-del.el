@@ -95,14 +95,6 @@ stick it to the previous operator on line."
                          (not (memq after shm/operator-chars))))
             (shm-insert-string " ")))))))
 
-(defmacro shm-make-self-insert-surrounded-with-spaces (name char)
-  "Make function NAME for inserting CHARacter with optionally surrounding
-it whith spaces when not in literal insertion context."
-  `(defun ,name (arg)
-     ,(format "Insert %c character surrounding it with spaces and sticking to the previous operator characters." char)
-     (interactive "p")
-     (shm-insert-char-surrounding-with-spaces ,char)))
-
 (defun shm/\\ (arg)
   (interactive "p")
   (when (and (not (shm-on-empty-string-p))
@@ -111,23 +103,6 @@ it whith spaces when not in literal insertion context."
                       (not (char-equal (char-before) ?\()))))
     (shm-insert-string " "))
   (insert ?\\))
-
-(shm-make-self-insert-surrounded-with-spaces shm/= ?=)
-(shm-make-self-insert-surrounded-with-spaces shm/+ ?+)
-(shm-make-self-insert-surrounded-with-spaces shm/* ?*)
-(shm-make-self-insert-surrounded-with-spaces shm/< ?<)
-(shm-make-self-insert-surrounded-with-spaces shm/> ?>)
-(shm-make-self-insert-surrounded-with-spaces shm/! ?!)
-;; (shm-make-self-insert-surrounded-with-spaces shm/$ ?$)
-(shm-make-self-insert-surrounded-with-spaces shm/% ?%)
-(shm-make-self-insert-surrounded-with-spaces shm/^ ?^)
-(shm-make-self-insert-surrounded-with-spaces shm/& ?&)
-(shm-make-self-insert-surrounded-with-spaces shm// ?/)
-(shm-make-self-insert-surrounded-with-spaces shm/? ?\?)
-(shm-make-self-insert-surrounded-with-spaces shm/| ?|)
-;; (shm-make-self-insert-surrounded-with-spaces shm/\\ ?\\)
-(defalias 'shm/\\ #'self-insert-command)
-(shm-make-self-insert-surrounded-with-spaces shm/~ ?~)
 
 (defun shm-post-self-insert ()
   "Self-insertion handler."
