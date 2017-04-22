@@ -779,37 +779,31 @@ return nil otherwise."
         (self-insert-command prefix)
       (shm/hyphen prefix))))
 
-(defun* haskell-bind-shm-bindings (&key bind-colon bind-hyphen)
+(defun* install-haskell-smart-operators (keymap &key bind-colon bind-hyphen use-shm)
+  (declare (indent 1))
   (when bind-colon
-    (def-keys-for-map vim:insert-mode-local-keymap
-      (":" shm/:)))
+    (define-key keymap
+      (kbd ":")
+      (if use-shm #'shm/: #'haskell-smart-operators-self-insert)))
   (when bind-hyphen
-    (def-keys-for-map vim:insert-mode-local-keymap
-      ("-" shm/hyphen)))
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ("#"   shm/hash)
-    (","   shm/comma)
-    ("="   shm/=)
-
+    (def-keys-for-map keymap
+      ("-" haskell-smart-operators-hyphen)))
+  (define-key keymap
+    (kbd "@")
+    (if use-shm #'shm/@ #'haskell-smart-operators-self-insert))
+  (dolist (key (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
+                     (kbd "!") (kbd "%") (kbd "^") (kbd "&") (kbd "/")
+                     (kbd "?") (kbd "|") (kbd "~")))
+    (define-key keymap
+      key
+      #'haskell-smart-operators-self-insert))
+  (def-keys-for-map keymap
+    ("$"   haskell-smart-operators-$)
+    ("#"   haskell-smart-operators-hash)
+    (","   haskell-smart-operators-comma)
     ("C-=" input-unicode)
-
-    ("+"   shm/+)
-    ("*"   shm/*)
-    ("="   shm/=)
-    ("<"   shm/<)
-    (">"   shm/>)
-    ("!"   shm/!)
-    ("@"   shm/@)
-    ("$"   haskell/smart-$)
-    ("%"   shm/%)
-    ("^"   shm/^)
-    ("&"   shm/&)
-
-    ("/"   shm//)
-    ("?"   shm/?)
-    ("|"   shm/|)
-    ("\\"  shm/\\)
-    ("~"   shm/~)))
+    ;; ("\\"  self-insert-command)
+    ))
 
 (defun haskell-prof-search-column (column pred)
   (cl-assert (< 0 column))
