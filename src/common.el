@@ -1686,7 +1686,6 @@ F will be called."
 (autoload 'rm "common-heavy" nil t)
 (autoload 'transpose-windows "common-heavy" nil t)
 (autoload 'narrow-to-region-indirect "common-heavy" nil t)
-(autoload 'fontify-conflict-markers "common-heavy")
 (autoload 'resolve-obs-or-rel-filename "common-heavy")
 (autoload 'remove-duplicates-sorted "common-heavy")
 (autoload 'remove-duplicates-sorting "common-heavy")

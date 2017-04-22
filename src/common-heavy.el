@@ -410,7 +410,7 @@ not exist after command is finished."
     (switch-to-buffer buf)))
 
 ;;;###autoload
-(defun fontify-conflict-markers (&optional mode)
+(defun fontify-conflict-markers! (&optional mode)
   "Fontify conflict markers produced by VCS systemts with warning face for MODE.
 If MODE is nil - fontify in current buffer."
   (font-lock-add-keywords
