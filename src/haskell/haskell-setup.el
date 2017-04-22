@@ -179,7 +179,11 @@
   (def-keys-for-map vim:visual-mode-local-keymap
     ("`" vim:wrap-backticks))
 
-  (haskell-bind-shm-bindings :bind-colon t :bind-hyphen t)
+  (install-haskell-smart-operators
+      vim:insert-mode-local-keymap
+    :bind-colon t
+    :bind-hyphen t
+    :use-shm t)
   (def-keys-for-map shm-map
     ("("            nil)
     ("["            nil)
@@ -330,7 +334,10 @@
   (structured-haskell-mode -1)
   (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
-  (haskell-bind-shm-bindings :bind-colon nil :bind-hyphen nil)
+  (install-haskell-smart-operators vim:insert-mode-local-keymap
+    :bind-colon nil
+    :bind-hyphen nil
+    :use-shm nil)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
 
