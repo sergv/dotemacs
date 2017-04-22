@@ -57,9 +57,11 @@
     (yafolding-show-element)))
 
 (defun haskell-outline-on-sexp? ()
-  (let ((synt (char-syntax (char-after))))
-    (or (char=? synt ?\()
-        (char=? synt ?\)))))
+  (let ((next-char (char-after)))
+    (and next-char
+         (let ((synt (char-syntax next-char)))
+           (or (char-equal synt ?\()
+               (char-equal synt ?\)))))))
 
 (provide 'haskell-outline)
 
