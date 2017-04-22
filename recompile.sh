@@ -69,6 +69,7 @@ update-dir-autoloads \
     "third-party/sml-mode" \
     "third-party/yafolding.el" \
     "third-party/elm-mode" \
+    "third-party/flycheck-elm"
 
 if which make >/dev/null; then
     pushd "third-party/org-mode"

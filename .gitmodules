@@ -165,6 +165,11 @@
 [submodule "third-party/bert-el"]
         path = third-party/bert-el
         url = https://github.com/manzyuk/bert-el.git
+        ignore = untracked
 [submodule "third-party/elm-mode"]
         path = third-party/elm-mode
         url = https://github.com/jcollard/elm-mode.git
+[submodule "third-party/flycheck-elm"]
+        path = third-party/flycheck-elm
+        url = https://github.com/bsermons/flycheck-elm.git
+        ignore = untracked
