@@ -130,6 +130,7 @@
   (flycheck-install-ex-commands!
    :compile-func #'vim:elm-compile
    :load-func #'vim:elm-load-file)
+  (haskell-setup-folding)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     (("<f6>" "SPC SPC") elm-repl-load)
