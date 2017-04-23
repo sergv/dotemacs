@@ -91,7 +91,9 @@
       ;; this may be useful when working with large amounts of items
       org-drill-add-random-noise-to-intervals-p t
 
-      org-src-preserve-indentation t)
+      org-src-preserve-indentation t
+
+      org-completion-use-ido t)
 
 (setf org-entities-user
       '(("triangleleft"   ;; name
@@ -507,15 +509,15 @@ the current topic."
 
     ("j"       eval-last-sexp)
 
-    ("1"       org-mode-show-level-1)
-    ("2"       org-mode-show-level-2)
-    ("3"       org-mode-show-level-3)
-    ("4"       org-mode-show-level-4)
-    ("5"       org-mode-show-level-5)
-    ("6"       org-mode-show-level-6)
-    ("7"       org-mode-show-level-7)
-    ("8"       org-mode-show-level-8)
-    ("9"       org-mode-show-level-9))
+    ("C-1"     org-mode-show-level-1)
+    ("C-2"     org-mode-show-level-2)
+    ("C-3"     org-mode-show-level-3)
+    ("C-4"     org-mode-show-level-4)
+    ("C-5"     org-mode-show-level-5)
+    ("C-6"     org-mode-show-level-6)
+    ("C-7"     org-mode-show-level-7)
+    ("C-8"     org-mode-show-level-8)
+    ("C-9"     org-mode-show-level-9))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"       eval-region))
