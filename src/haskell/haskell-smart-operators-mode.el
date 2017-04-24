@@ -196,38 +196,59 @@ stick it to the previous operator on line."
 (defun haskell-smart-operators--point-surrounded-by2 (before2 before1 after1 after2)
   "Check if previous 2 characters before point are BEFORE2 and BEFORE1 and
 that next 2 characters are AFTER1 and AFTER2."
-  (let* ((pt           (point))
-         (real-before2 (char-before (- pt 1)))
-         (real-before1 (char-before))
-         (real-after1  (char-after))
-         (real-after2  (char-after (+ pt 1))))
-    (and real-before2
-         real-before1
-         real-after1
-         real-after2
-         (char-equal real-before2 before2)
-         (char-equal real-before1 before1)
-         (char-equal real-after1  after1)
-         (char-equal real-after2  after2))))
+  (let* ((pt-before    (save-excursion
+                         (skip-syntax-backward " ")
+                         (point)))
+         (pt-after     (save-excursion
+                         (skip-syntax-forward " ")
+                         (point)))
+         (real-before2 (char-before (- pt-before 1)))
+         (real-before1 (char-before pt-before))
+         (real-after1  (char-after pt-after))
+         (real-after2  (char-after (+ pt-after 1))))
+    (list
+     pt-before
+     pt-after
+     (and real-before2
+          real-before1
+          real-after1
+          real-after2
+          (char-equal real-before2 before2)
+          (char-equal real-before1 before1)
+          (char-equal real-after1  after1)
+          (char-equal real-after2  after2)))))
 
 (defun haskell-smart-operators--point-surrounded-by (before after)
   "Check if point is surrounded by BEFORE and AFTER characters."
-  (let ((real-before (char-before))
-        (real-after (char-after)))
-    (and real-before
-         real-after
-         (char-equal real-before before)
-         (char-equal real-after after))))
+  (let* ((pt-before   (save-excursion
+                        (skip-syntax-backward " ")
+                        (point)))
+         (pt-after    (save-excursion
+                        (skip-syntax-forward " ")
+                        (point)))
+         (real-before (char-before pt-before))
+         (real-after  (char-after pt-after)))
+    (list
+     pt-before
+     pt-after
+     (and real-before
+          real-after
+          (char-equal real-before before)
+          (char-equal real-after after)))))
 
 ;;;###autoload
 (defun haskell-smart-operators-hyphen ()
-  "Insert hyphen. Expand into {-_|_-} if inside {}."
+  "Insert hyphen. Expand into {- _|_ -} if inside { *}."
   (interactive)
-  (if (haskell-smart-operators--point-surrounded-by ?\{ ?\})
-      (progn
-        (insert "--")
-        (forward-char -1))
-    (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)))
+  (destructuring-bind
+      (pt-before pt-after is-surrounded?)
+      (haskell-smart-operators--point-surrounded-by ?\{ ?\})
+    (if is-surrounded?
+        (progn
+          (delete-region pt-before pt-after)
+          (insert "-  -")
+          (forward-char -2))
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?-))))
 
 ;;;###autoload
 (defun haskell-smart-operators-comma ()
@@ -239,29 +260,35 @@ that next 2 characters are AFTER1 and AFTER2."
 (defun haskell-smart-operators-hash ()
   "Smart insertion of #."
   (interactive)
-  (cond ((haskell-smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
-         ;; (and (looking-back "{-")
-         ;;      (looking-at "-}"))
-         (insert "#  #")
-         (forward-char -2)
-         (let ((pragma (ido-completing-read "Pragma: "
-                                            haskell-completions--pragma-names)))
-           (insert pragma " ")
-           (when (string= pragma "LANGUAGE")
-             (insert
-              (ido-completing-read
-               "Language: "
-               haskell-ghc-supported-extensions)))))
-        ;; for c2hs
-        ((haskell-smart-operators--point-surrounded-by ?\{ ?\})
-         (insert "##")
-         (forward-char -1))
-        ;; Don't surround with #includes, #lang/#opts abbrevs, etc with spaces
-        ((= (point)
-            (line-beginning-position))
-         (insert "#"))
-        (t
-         (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))))
+  (destructuring-bind
+      (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
+      (haskell-smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
+    (destructuring-bind
+        (pt-c2hs-start pt-c2hs-end is-surrounded-for-c2hs?)
+        (haskell-smart-operators--point-surrounded-by ?\{ ?\})
+      (cond (is-surrounded-for-pragma?
+             (delete-region pt-pragma-start pt-pragma-end)
+             (insert "#  #")
+             (forward-char -2)
+             (let ((pragma (ido-completing-read "Pragma: "
+                                                haskell-completions--pragma-names)))
+               (insert pragma " ")
+               (when (string= pragma "LANGUAGE")
+                 (insert
+                  (ido-completing-read
+                   "Language: "
+                   haskell-ghc-supported-extensions)))))
+            ;; for c2hs
+            (is-surrounded-for-c2hs?
+             (delete-region pt-c2hs-start pt-c2hs-end)
+             (insert "##")
+             (forward-char -1))
+            ;; Don't surround with #includes, #lang/#opts abbrevs, etc with spaces
+            ((= (point)
+                (line-beginning-position))
+             (insert "#"))
+            (t
+             (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))))))
 
 (defvar haskell-smart-operators-mode-map
   (let ((keymap (make-sparse-keymap)))
