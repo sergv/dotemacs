@@ -111,6 +111,8 @@
 
 (add-hook 'compilation-filter-hook
           'elm-enhancements--compilation-filter-remove-ansi-color)
+(remove-hook 'compilation-filter-hook
+             #'elm-compile--colorize-compilation-buffer)
 
 ;;;###autoload
 (defun elm-setup ()
