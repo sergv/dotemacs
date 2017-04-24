@@ -36,7 +36,7 @@
         (and (eq 'font-lock-string-face
                  (get-text-property (point) 'face))
              (if (and (char-equal (char-after) ?\")
-                      (/= (poin-min) (point)))
+                      (/= (point-min) (point)))
                  (eq 'font-lock-string-face
                      (get-text-property (- (point) 1) 'face))
                t)))))
