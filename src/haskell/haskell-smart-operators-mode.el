@@ -25,14 +25,12 @@
 (defun haskell-smart-operators--insert (str)
   (insert str))
 
-(defun haskell-smart-operators--in-string-or-comment? ()
+(defun haskell-smart-operators--in-string? ()
   "Are we in string or comment?"
   (let* ((state (parse-partial-sexp (line-beginning-position)
                                     (point)))
-         (inside-string? (elt state 3))
-         (inside-comment? (elt state 4)))
-    (or inside-comment?
-        inside-string?
+         (inside-string? (elt state 3)))
+    (or inside-string?
         (and (eq 'font-lock-string-face
                  (get-text-property (point) 'face))
              (if (and (char-equal (char-after) ?\")
@@ -45,7 +43,7 @@
   "Should a node have literal insertion?"
   (let ((before (char-before))
         (after (char-after)))
-    (or (haskell-smart-operators--in-string-or-comment?)
+    (or (haskell-smart-operators--in-string?)
         (and before
              after
              (or
@@ -61,9 +59,7 @@
 if it's operator character and CHAR is operator character too.
 
 Similar to `shm-insert-string'."
-  (when (and (gethash char haskell-smart-operators--operator-chars)
-             ;; (not (haskell-smart-operators--literal-insertion?))
-             )
+  (when (gethash char haskell-smart-operators--operator-chars)
     ;; Delete spaces backwards if there's operator or open paren char
     ;; somewhere.
     (let ((delete-whitespace?
