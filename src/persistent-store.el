@@ -215,8 +215,10 @@ performed for some field."
                    (setf persistent-store-loaded-content
                          (buffer-substring-no-properties (point-min) (point-max))
                          done t))
-                  ((or (char=? ch ?n)
-                       (char=? ch ?N))
+                  ((and
+                    (or (char=? ch ?n)
+                        (char=? ch ?N))
+                    (y-or-n-p "Store file not saved, *your data may get lost*. Really continue?"))
                    (setf done t)
                    ;; unwind stack, prevent emacs exit if any
                    ;; by all means, let the user know, that he may loose data!
