@@ -67,7 +67,7 @@ Similar to `shm-insert-string'."
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
   (if (or (not (null? current-prefix-arg))
-          (shm-literal-insertion))
+          (haskell-smart-operators--literal-insertion?))
     (insert (make-string 1 char))
     (let ((before (char-before)))
       (when (and (not (shm-on-empty-string-p))
