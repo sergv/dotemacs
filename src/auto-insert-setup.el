@@ -33,6 +33,7 @@
                 ("\\.py\\'"         "insert.py")
                 ("\\.org\\'"        "insert.org")
                 ("\\.eproj-info\\'" "insert.eproj-info")
+                ("stack\\.yaml\\'"  "insert-stack.yaml")
 
                 ("AndroidManifest.xml\\'"      "insert-android-manifest.xml")
                 ("/res/drawable.*/.*\\.xml\\'" "insert-android-drawable.xml")
