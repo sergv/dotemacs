@@ -25,6 +25,7 @@
 (defun haskell-smart-operators--insert (str)
   (insert str))
 
+;;;###autoload
 (defun haskell-smart-operators--in-string? ()
   "Are we in string or comment?"
   (let* ((state (parse-partial-sexp (line-beginning-position)
@@ -39,6 +40,7 @@
                      (get-text-property (- (point) 1) 'face))
                t)))))
 
+;;;###autoload
 (defun haskell-smart-operators--literal-insertion? ()
   "Should a node have literal insertion?"
   (let ((before (char-before))
