@@ -15,8 +15,10 @@ ${3:  hs-source-dirs:
     Haskell2010
   ghc-options:
     -Wall
-    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
 ${5:  build-tools:
     ${6:alex happy c2hs}}
