@@ -17,8 +17,10 @@ ${4:  other-modules:
     Haskell2010
   ghc-options:
     -Wall
-    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
     ${8:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
