@@ -35,9 +35,11 @@ library
     Haskell2010
   ghc-options:
     -Wall
-    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
 --   build-tools:
 --     alex happy c2hs
   ghc-prof-options:
@@ -57,10 +59,12 @@ executable ${filename no ext}
     Haskell2010
   ghc-options:
     -Wall
-    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
 --     -main-is MyMain
   ghc-prof-options:
     -fprof-auto
@@ -81,10 +85,12 @@ test-suite ${filename no ext}-test
     Haskell2010
   ghc-options:
     -Wall
-    -Wcompat
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
 --   hs-source-dirs:
 --     tests
   ghc-prof-options:
