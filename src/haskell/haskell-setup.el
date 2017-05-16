@@ -94,6 +94,9 @@
   ;; note: do not include underscore into vim:word as this would cause
   ;; inefficiencies while navigating haskell identifiers
   (setq-local vim:word "[:word:]'")
+  ;; The underscore should remain part of word so we never search within
+  ;; _c_style_identifiers.
+  (modify-syntax-entry ?_ "_")
   (modify-syntax-entry ?\' "w")
   (modify-syntax-entry ?\@ "'")
 
