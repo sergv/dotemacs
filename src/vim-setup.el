@@ -85,7 +85,7 @@ like \"d w\".")
     ("["   vim:motion-fwd-paragraph)
     ("s"   vim:ex-read-command)
     ("g f" ido-find-file)
-    ("g r" rgrep-wrapper)))
+    ("g r" egrep)))
 
 (def-keys-for-map (vim:normal-mode-keymap
                    vim:visual-mode-keymap)
@@ -194,7 +194,7 @@ like \"d w\".")
 
   ("SPC SPC" vim:visual-exchange-point-and-mark)
 
-  ("g r"     rgrep-region)
+  ("g r"     egrep-region)
   ("g s"     vim-replace-selected)
   (("(" ")") vim:wrap-parens)
   (("[" "]") vim:wrap-braces)

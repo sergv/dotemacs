@@ -87,7 +87,7 @@
     ("g e"   vim-mock:motion-bwd-word-end)
     ("g E"   vim-mock:motion-bwd-WORD-end)
     ("g f"   ido-find-file)
-    ("g r"   rgrep-wrapper)
+    ("g r"   egrep)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)
     ("g u"   undo-tree-visualize)
