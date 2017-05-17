@@ -160,7 +160,8 @@
     ("g <tab>" haskell-reindent-at-point))
 
   (def-keys-for-map vim:visual-mode-local-keymap
-    ("`" vim:wrap-backticks))
+    ("`"     vim:wrap-backticks)
+    ("g TAB" haskell-format-pp-region-with-brittany))
 
   (install-haskell-smart-operators
       vim:insert-mode-local-keymap
