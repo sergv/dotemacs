@@ -62,10 +62,10 @@ executable ${filename no ext}
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
+--     -main-is ExeMain
   if impl(ghc >= 8.0)
     ghc-options:
       -Wcompat
---     -main-is MyMain
   ghc-prof-options:
     -fprof-auto
 
@@ -75,12 +75,15 @@ test-suite ${filename no ext}-test
   main-is:
     tests/Main.hs
   build-depends:
-    base,
+    HUnit,
     QuickCheck,
+    base,
     tasty,
     tasty-hunit,
     tasty-quickcheck,
     ${filename no ext}
+--   hs-source-dirs:
+--     tests
   default-language:
     Haskell2010
   ghc-options:
@@ -88,11 +91,10 @@ test-suite ${filename no ext}-test
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
+--     -main-is TestMain
   if impl(ghc >= 8.0)
     ghc-options:
       -Wcompat
---   hs-source-dirs:
---     tests
   ghc-prof-options:
     -fprof-auto
 
