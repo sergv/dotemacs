@@ -69,14 +69,12 @@ update-dir-autoloads \
     "third-party/sml-mode" \
     "third-party/yafolding.el" \
     "third-party/elm-mode" \
-    "third-party/flycheck-elm"
+    "third-party/flycheck-elm" \
+    "third-party/tuareg"
 
 if which make >/dev/null; then
     pushd "third-party/org-mode"
     make autoloads
-    popd
-    pushd "third-party/tuareg"
-    make tuareg-site-file.el
     popd
 else
     echo "warning: 'make' not found, not updating autoloads" >&2
