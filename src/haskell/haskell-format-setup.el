@@ -19,22 +19,57 @@
    (region-beginning)
    (region-end)))
 
+(defun haskell-format--get-language-extensions (buf &optional without-properties)
+  "Get all LANGUAGE pragma extensions from buffer BUF as a list of strings."
+  (with-current-buffer buf
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (let* ((case-fold-search t) ;; Ignore case when matching regexps.
+               (result (cons t nil))
+               (extensions result)
+               (get-match-string (if without-properties
+                                     #'match-string-no-properties
+                                   #'match-string))
+               (module-header-position
+                (save-excursion
+                  ;; Do case-sensitive search for "module" declaration.
+                  (let ((case-fold-search nil))
+                    (when (re-search-forward "\\_<module\\_>[ \r\n]" nil t)
+                      (match-beginning 0))))))
+          (while (re-search-forward "{-#[ \v\f\r\n]*LANGUAGE\\(\\(?:.\\|[\r\n]\\)*?\\)[ \v\f\r\n]*#-}"
+                                    module-header-position
+                                    t)
+            (let ((exts (split-string (funcall get-match-string 1)
+                                      "[, \v\f\r\n]+"
+                                      t ;; omit nulls
+                                      )))
+              (dolist (e exts)
+                (setf (cdr extensions) (cons e nil)
+                      extensions (cdr extensions)))))
+          (cdr result))))))
+
 (defun haskell-format--format-with-brittany (indent width start end)
   "Format region using brittany haskell formatter."
   (unless (integerp indent)
     (error "Width must be an integer: %s" indent))
   (unless (integerp width)
     (error "Width must be an integer: %s" width))
-  (goto-char start)
-  (call-process-region
-   start
-   end
-   haskell-format-brittany-executable
-   t ;; delete
-   t ;; insert into current buffer before point
-   t ;; display
-   "--indent" (format "%s" indent)
-   "--columns" (format "%s" width)))
+  (let* ((language-extensions
+          (haskell-format--get-language-extensions (current-buffer) t))
+         (opts (mapconcat (lambda (x) (concat "-X" x)) language-extensions " ")))
+    (goto-char start)
+    (call-process-region
+     start
+     end
+     haskell-format-brittany-executable
+     t ;; delete
+     t ;; insert into current buffer before point
+     t ;; display
+     "--indent" (number-to-string indent)
+     "--columns" (number-to-string width)
+     "--ghc-options" opts)
+    (goto-char start)))
 
 (provide 'haskell-format-setup)
 
