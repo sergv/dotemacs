@@ -15,7 +15,6 @@
 ;;;###autoload
 (add-hook 'flycheck-mode-hook #'flycheck-elm-setup)
 
-;;;###autoload
 (with-eval-after-load 'company
   (add-to-list 'company-backends 'company-elm))
 
