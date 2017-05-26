@@ -20,98 +20,194 @@
   (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
                    "Quux")))
 
-(defmacro haskell-tests--setup-buffer (setup contents expected)
+(defun haskell-tests--multiline (&rest lines)
+  (mapconcat #'identity lines "\n"))
+
+(defmacro haskell-tests--with-temp-buffer (action contents)
   (declare (indent 1))
   `(save-match-data
      (with-temp-buffer
        (insert ,contents)
        (goto-char (point-min))
-       (re-search-forward "_|_")
-       (replace-match "")
+       (when (re-search-forward "_|_" nil t)
+         (replace-match ""))
        (haskell-mode)
        (font-lock-fontify-buffer)
-       ,setup
-       (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                      ,expected)))))
+       ,action)))
 
-(ert-deftest haskell-tests/haskell-align-language-pragmas ()
-  (haskell-tests--setup-buffer
+(defmacro haskell-tests--test-buffer-contents (action contents expected)
+  (declare (indent 1))
+  `(haskell-tests--with-temp-buffer
+       (progn
+         ,action
+         (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                        ,expected)))
+     ,contents))
+
+(defmacro haskell-tests--test-result (action expected-value contents)
+  (declare (indent 2))
+  `(haskell-tests--with-temp-buffer
+       (should (equal ,action ,expected-value))
+     ,contents))
+
+(ert-deftest haskell-tests/haskell-align-language-pragmas-1 ()
+  (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    "
+    (haskell-tests--multiline
+     ""
+     ""
+     "{-# language"
+     "             Safe, FlexibleContexts _|_ #-}"
+     "")
+    (haskell-tests--multiline
+     ""
+     ""
+     "{-# LANGUAGE FlexibleContexts #-}"
+     "{-# LANGUAGE Safe             #-}"
+     "")))
 
-{-# language
-             Safe, FlexibleContexts _|_ #-}
-
-"
-    "
-
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE Safe             #-}
-
-")
-
-  (haskell-tests--setup-buffer
+(ert-deftest haskell-tests/haskell-align-language-pragmas-2 ()
+  (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    "
--- foobar
-{-# language
-             Safe, FlexibleContexts _|_ #-}
+    (haskell-tests--multiline
+     ""
+     "-- foobar"
+     "{-# language"
+     "             Safe, FlexibleContexts _|_ #-}"
+     "")
+    (haskell-tests--multiline
+     ""
+     "-- foobar"
+     "{-# LANGUAGE FlexibleContexts #-}"
+     "{-# LANGUAGE Safe             #-}"
+     "")))
 
-"
-    "
--- foobar
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE Safe             #-}
-
-")
-
-  (haskell-tests--setup-buffer
+(ert-deftest haskell-tests/haskell-align-language-pragmas-2 ()
+  (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    "
+    (haskell-tests--multiline
+     ""
+     ""
+     "{-# language"
+     "   Safe _|_"
+     " , FlexibleContexts"
+     " #-}"
+     "")
+    (haskell-tests--multiline
+     ""
+     ""
+     "{-# LANGUAGE FlexibleContexts #-}"
+     "{-# LANGUAGE Safe             #-}"
+     "")))
 
-{-# language
-   Safe _|_
- , FlexibleContexts
- #-}
-
-"
-    "
-
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE Safe             #-}
-
-")
-
-  (haskell-tests--setup-buffer
+(ert-deftest haskell-tests/haskell-align-language-pragmas-3 ()
+  (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    "
--- foo
-{-# language
-   Safe _|_
- , FlexibleContexts
- #-}
--- bar
-"
-    "
--- foo
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE Safe             #-}
--- bar
-")
+    (haskell-tests--multiline
+     ""
+     "-- foo"
+     "{-# language"
+     "   Safe _|_"
+     " , FlexibleContexts"
+     " #-}"
+     "-- bar")
+    (haskell-tests--multiline
+     ""
+     "-- foo"
+     "{-# LANGUAGE FlexibleContexts #-}"
+     "{-# LANGUAGE Safe             #-}"
+     "-- bar")))
 
-  (haskell-tests--setup-buffer
+(ert-deftest haskell-tests/haskell-align-language-pragmas-4 ()
+  (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
+    (haskell-tests--multiline
+     "{-# LANGUAGE Safe #-}"
+     "{-# LANGUAGE AlternativeLayoutRule _|_ #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes   #-}")
+    (haskell-tests--multiline
+     "{-# LANGUAGE AllowAmbiguousTypes   #-}"
+     "{-# LANGUAGE AlternativeLayoutRule #-}"
+     "{-# LANGUAGE Safe                  #-}")))
 
-    "{-# LANGUAGE Safe #-}
-{-# LANGUAGE AlternativeLayoutRule _|_ #-}
-{-# LANGUAGE AllowAmbiguousTypes   #-}"
-    "{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE AlternativeLayoutRule #-}
-{-# LANGUAGE Safe                  #-}")
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
+  (haskell-tests--test-result
+      (haskell-format--get-language-extensions (current-buffer) t)
+      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    (haskell-tests--multiline
+     ""
+     "{-# LANGUAGE Safe #-}"
+     "{-#LANGUAGE AlternativeLayoutRule #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes#-}"
+     "{-#LANGUAGE FlexibleContexts#-}")))
 
-  )
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-2 ()
+  (haskell-tests--test-result
+      (haskell-format--get-language-extensions (current-buffer) t)
+      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    (haskell-tests--multiline
+     ""
+     "{-# LANGUAGE Safe,AlternativeLayoutRule, AllowAmbiguousTypes,"
+     "FlexibleContexts #-}")))
 
-;; (ert "haskell-tests/.*")
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-3 ()
+  (haskell-tests--test-result
+      (haskell-format--get-language-extensions (current-buffer) t)
+      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    (haskell-tests--multiline
+     ""
+     "{-# language Safe #-}"
+     "{-#language AlternativeLayoutRule #-}"
+     "{-# language AllowAmbiguousTypes#-}"
+     "{-#language FlexibleContexts#-}")))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-4 ()
+  (haskell-tests--test-result
+      (haskell-format--get-language-extensions (current-buffer) t)
+      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleInstances" "FlexibleContexts")
+    (haskell-tests--multiline
+     ""
+     "{-# LANGUAGE Safe "
+     ""
+     "#-}"
+     "{-#"
+     "LANGUAGE AlternativeLayoutRule #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes, "
+     "FlexibleInstances #-}"
+     "{-#LANGUAGE"
+     " FlexibleContexts#-}")))
+
+(ert-deftest haskell-tests/haskell-format--get-language-extensions-5 ()
+  (haskell-tests--test-result
+      (haskell-format--get-language-extensions (current-buffer) t)
+      '("FlexibleContexts" "FlexibleInstances" "RecordWildCards" "AllowAmbiguousTypes")
+    (haskell-tests--multiline
+     "----------------------------------------------------------------------------"
+     "-- |"
+     "-- Module      :  Test"
+     "--"
+     "--"
+     "----------------------------------------------------------------------------"
+     ""
+     "{-# LANGUAGE FlexibleContexts    #-}"
+     "{-# LANGUAGE FlexibleInstances   #-}"
+     "{-# LANGUAGE RecordWildCards     #-}"
+     "{-# LANGUAGE AllowAmbiguousTypes #-}"
+     ""
+     ""
+     "module Test where"
+     ""
+     "data Frob = Frob"
+     "  { frob1 :: Int"
+     "  , frob2 :: Double"
+     "  }"
+     ""
+     "foo Frob{..} ="
+     " frob1 * 2"
+     "")))
+
+
+(ert "haskell-tests/.*")
 
 ;; (setf haskell-tests/tests
 ;;       '(haskell-tests/abbrev+-extract-module-name))
