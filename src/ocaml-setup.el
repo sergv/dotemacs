@@ -14,9 +14,6 @@
 
 ;;; Prelude
 
-;;;###autoload
-(load "tuareg-site-file")
-
 (defalias 'ocaml-mode #'tuareg-mode)
 
 ;;; Helper function
