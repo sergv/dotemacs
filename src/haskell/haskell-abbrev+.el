@@ -24,25 +24,33 @@
       (and (characterp c)
            (char=? c ?$)))))
 
-(defun haskell-insert-info-template (&optional arg monadic?)
-  (interactive "P")
+(defun haskell-insert-general-info-template (arg monadic? trace-func-name)
   (let* ((start-position (point))
          (insert-dollar?
           (not (haskell-insert-followed-by-dollar? start-position)))
          (start
           (if monadic?
+              ;; (if trace-func-name
+              ;;     (lambda ()
+              ;;       (insert trace-func-name " $ \"")))
               (lambda ()
-                (let ((has-liftio?
-                       (save-match-data
-                         (save-excursion
-                           (goto-char (point-min))
-                           (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
-                  (insert
-                   (if has-liftio?
-                       "liftIO $ putStrLn $ \""
-                     "putStrLn $ \""))))
+                (insert
+                 (if trace-func-name
+                     trace-func-name
+                   (let ((has-liftio?
+                          (save-match-data
+                            (save-excursion
+                              (goto-char (point-min))
+                              (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
+                     (if has-liftio?
+                         "liftIO $ putStrLn"
+                       "putStrLn")))
+                  " $ \""))
             (lambda ()
-              (insert "trace (\""))))
+              (insert (if trace-func-name
+                          trace-func-name
+                        "trace")
+                      " (\""))))
          (end
           (if monadic?
               (lambda ()
@@ -75,9 +83,17 @@
      :insert-message insert-message
      :insert-variable insert-variable)))
 
+(defun haskell-insert-info-template (&optional arg)
+  (interactive "P")
+  (haskell-insert-general-info-template arg nil "trace"))
+
+(defun haskell-insert-tracem-template (&optional arg)
+  (interactive "P")
+  (haskell-insert-general-info-template arg t "traceM"))
+
 (defun haskell-insert-monadic-info-template (&optional arg)
   (interactive "P")
-  (haskell-insert-info-template arg t))
+  (haskell-insert-general-info-template arg t nil))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
@@ -209,6 +225,10 @@ then Bar would be the result."
             (list "\\<\\(info\\|trace\\)\\>"
                   (list
                    #'haskell-insert-info-template)
+                  #'point-not-inside-string-or-comment?)
+            (list "\\<trace[Mm]\\>"
+                  (list
+                   #'haskell-insert-tracem-template)
                   #'point-not-inside-string-or-comment?)
             (list "\\<info[Mm]\\>"
                   (list
