@@ -83,6 +83,7 @@
   (setq-local company-backends '(company-eproj))
   (fontify-conflict-markers!)
   (flycheck-mode +1)
+  (flycheck-select-checker 'haskell-stack-ghc)
   (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
   ;; ghci interaction uses comint - same as shell mode
