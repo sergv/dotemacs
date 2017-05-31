@@ -18,12 +18,14 @@
 
 (defsubst remap-interval (a b c d x)
   "Remap x from [a, b] into [c, d]"
+  (declare (pure t) (side-effect-free error-free))
   (+ c
      (* (- x a)
         (/ (coerce (- d c) 'float)
            (coerce (- b a) 'float)))))
 
 (defun make-random-gen (init)
+  (declare (pure t) (side-effect-free error-free))
   (let ((a 0)
         (b #x7fff)
         (seed init))
@@ -33,6 +35,7 @@
       (remap-interval a b begin end seed))))
 
 (defun make-simple-random-generator ()
+  (declare (pure t) (side-effect-free error-free))
   (let* ((time (current-time))
          (a (first time))
          (b (second time))
@@ -49,6 +52,7 @@
 
 ;; yeilds values in range [0..1)
 (defun make-tausworthe-random-gen (seed1 seed2 seed3)
+  (declare (pure t) (side-effect-free error-free))
   (let ((2-to-32 (expt 2 32)))
     (let ((tausworthe
            (lambda (s a b c d)
@@ -146,15 +150,17 @@ of random numbers from RANDOM-GEN."
 
 (defun path-concat (&rest args)
   "Connect paths with standard delimiter"
+  (declare (pure t) (side-effect-free error-free))
   (mapconcat #'strip-trailing-slash args "/"))
 
 (defun version-control-directory? (filepath)
   "Test whether FILEPATH contains version control directory as its subpart"
-  (string-match-pure? (concat "\\(?:/\\|^\\)\\(?:"
-                              (regexp-opt
-                               *version-control-directories*)
-                              "\\)\\(?:/\\|$\\)")
-                      filepath))
+  (declare (pure nil) (side-effect-free t))
+  (string-match-p (concat "\\(?:/\\|^\\)\\(?:"
+                          (regexp-opt
+                           *version-control-directories*)
+                          "\\)\\(?:/\\|$\\)")
+                  filepath))
 
 (defun read-and-insert-filename (&optional nondir-only?)
   "Read filename with completion from user and insert it at point.
@@ -208,12 +214,14 @@ default into prompt."
 
 (defun re-group-matchedp (n)
   "Return non-nil if Nth group matched."
+  (declare (pure nil) (side-effect-free t))
   (match-beginning n))
 
 (defalias 're-group-matched? #'re-group-matchedp)
 
 
 (defun constantly (x)
+  (declare (pure t) (side-effect-free t))
   (let ((tmp x))
     (lambda (&rest y)
       (declare (ignore y))
@@ -222,16 +230,19 @@ default into prompt."
 ;;; combinatorics
 
 (defun factorial (x)
+  (declare (pure t) (side-effect-free t))
   (if (= 0 x)
       1
     (* x (factorial (1- x)))))
 
 (defun choose (n k)
   "Compute binomial coefficient."
+  (declare (pure t) (side-effect-free t))
   (/ (factorial n) (* (factorial k)
                       (factorial (- n k)))))
 
 (defun permutations (list)
+  (declare (pure t) (side-effect-free t))
   (if (null list)
       (list nil)
     (-mapcat (lambda (item)
@@ -246,6 +257,7 @@ default into prompt."
  / n \\
  \\ k /
 combinations"
+  (declare (pure t) (side-effect-free t))
   (letrec ((collect
             (lambda (start end)
               (if (< start 0)
@@ -268,28 +280,33 @@ combinations"
 
 (defun point-inside-comment? ()
   "Return t if point is positioned inside a string."
+  (declare (pure nil) (side-effect-free t))
   (save-excursion
     (let ((state (syntax-ppss (point))))
       (elt state 4))))
 
 (defun point-inside-string-or-comment? ()
   "Return t if point is positioned inside a string."
+  (declare (pure nil) (side-effect-free t))
   (save-excursion
     (let ((state (syntax-ppss (point))))
       (or (elt state 3)
           (elt state 4)))))
 
 (defsubst point-not-inside-string-or-comment? ()
+  (declare (pure nil) (side-effect-free t))
   (not (point-inside-string-or-comment?)))
 
 ;;;
 
 (defsubst assoc-value (key alist)
+  (declare (pure t) (side-effect-free t))
   (cadr (assoc key alist)))
 
 (defun keyword-arglist-get-value (key keyword-arglist &optional default)
   "Get value of keyword argument named KEY from KEYWORD-ARGLIST, with
 structure like this (:arg1 value1 :arg2 value2 ... :argN valueN)"
+  (declare (pure t) (side-effect-free t))
   (cond
     ((null? keyword-arglist)
      default)
@@ -310,6 +327,7 @@ tabbar, etc")
   "Regexp that is synced with `*invisible-buffers*' variable.")
 
 (defun add-invisible-buffer (buf-re)
+  (declare (pure nil) (side-effect-free nil))
   (cl-assert (string? buf-re))
   (add-to-list '*invisible-buffers* buf-re)
   (let ((buf-re-with-group
@@ -324,26 +342,20 @@ tabbar, etc")
 (defun invisible-buffer? (buf)
   "Returns t if buffer BUF should be regarded as invisible, see also
 `*invisible-buffers*'."
+  (declare (pure nil) (side-effect-free t))
   (cond ((or (string? buf)
              (buffer? buf))
-         (string-match-pure? invisible-buffers-re
-                             (if (string? buf)
-                                 buf
-                               (buffer-name buf))))
-        ;; ((string? buf)
-        ;;  (-any? (lambda (re)
-        ;;           (string-match-pure? re buf))
-        ;;         *invisible-buffers*))
-        ;; ((buffer? buf)
-        ;;  (-any? (lambda (re)
-        ;;           (string-match-pure? re (buffer-name buf)))
-        ;;         *invisible-buffers*))
+         (string-match-p invisible-buffers-re
+                         (if (string? buf)
+                             buf
+                           (buffer-name buf))))
         (t
          (error "wrong argument type - not a string nor a buffer: %s"
                 buf))))
 
 (defun visible-buffers ()
   "Get list of buffers that are not invisible."
+  (declare (pure nil) (side-effect-free t))
   (--filter (not (invisible-buffer? it)) (buffer-list)))
 
 (add-invisible-buffer (rx
@@ -372,6 +384,7 @@ tabbar, etc")
 
 (defun alist->hash-table (alist &optional cmp)
   "Translate alist of (<key> . <value>) pairs into hash-table."
+  (declare (pure t) (side-effect-free t))
   (let ((table (make-hash-table :test (or cmp #'equal))))
     (dolist (item alist)
       (puthash (car item) (cdr item) table))
@@ -379,18 +392,21 @@ tabbar, etc")
 
 (defun hash-table->alist (table)
   "Translate hash table into alist of (<key> . <value>) pairs."
+  (declare (pure t) (side-effect-free t))
   (let ((result '()))
     (maphash (lambda (k v) (push (cons k v) result)) table)
     result))
 
 (defun hash-table-keys (table)
   "Get list of keys of hash table."
+  (declare (pure t) (side-effect-free t))
   (let ((result '()))
     (maphash (lambda (k v) (push k result)) table)
     result))
 
 (defun hash-table-values (table)
   "Get list of values of hash table."
+  (declare (pure t) (side-effect-free t))
   (let ((result '()))
     (maphash (lambda (k v) (push v result)) table)
     result))
@@ -398,12 +414,14 @@ tabbar, etc")
 (defun hash-table-keys-filter (pred table)
   "Get list of keys of hash table for entries that match PRED, i.e. PRED
 returns true for key and value."
+  (declare (pure t) (side-effect-free t))
   (let ((result '()))
     (maphash (lambda (k v) (when (funcall pred k v) (push k result))) table)
     result))
 
 (defun hash-table-entries-matching-re (table re)
   "Return list of TABLE values whose keys match RE."
+  (declare (pure t) (side-effect-free t))
   (let ((result nil))
     (maphash (lambda (k v)
                (when (string-match-pure? re k)
@@ -413,6 +431,7 @@ returns true for key and value."
 
 (defun hash-table-merge! (table-main table-aux)
   "Add all entries from TABLE-AUX into TABLE-MAIN."
+  (declare (pure nil) (side-effect-free nil))
   (maphash (lambda (k v)
              (puthash k v table-main))
            table-aux))
@@ -421,6 +440,7 @@ returns true for key and value."
   "Add all entries from TABLE-AUX into TABLE-MAIN, combine entries present
 in both tables with COMB-FUNC, which should take 3 arguments: key, value in
 main table and value in aux table."
+  (declare (pure nil) (side-effect-free nil))
   (maphash (lambda (k v)
              (if-let (v-main (gethash k table-main))
                  (puthash k (funcall comb-func k v-main v) table-main)
@@ -428,6 +448,7 @@ main table and value in aux table."
            table-aux))
 
 (defsubst hash-table-member-p (key table)
+  (declare (pure t) (side-effect-free t))
   (let ((value-missing '#:value-missing))
     (not
      (eq value-missing
@@ -502,6 +523,7 @@ main table and value in aux table."
 LESS? is predicate on items and elements of ITEMS.
 
 START is inclusive and END is exclusive in ITEMS."
+  (declare (pure t) (side-effect-free t))
   ;; if you doubt the implementation and want to improve it make sure
   ;; tests do pass
   (cl-assert (< start end))
@@ -522,6 +544,7 @@ START is inclusive and END is exclusive in ITEMS."
 (defun bisect-leftmost (item items start end eq? less?)
   "Similar to `bisect' but returns smallest index, idx, in ITEMS for which
 \(funcall eq? item (aref items idx)) is true."
+  (declare (pure t) (side-effect-free t))
   (let ((idx (bisect item items start end eq? less?)))
     (while (and (> idx 0)
                 (funcall eq? item (aref items (- idx 1))))
@@ -531,6 +554,7 @@ START is inclusive and END is exclusive in ITEMS."
 (defun bisect-rightmost (item items start end eq? less?)
   "Similar to `bisect' but returns largest index, idx, in ITEMS for which
 \(funcall eq? item (aref items idx)) is true."
+  (declare (pure t) (side-effect-free t))
   (let ((idx (bisect item items start end eq? less?))
         (max-idx (- (length items) 1)))
     (while (and (< idx max-idx)
@@ -542,6 +566,7 @@ START is inclusive and END is exclusive in ITEMS."
 
 (defun string-suffix? (string1 string2 &optional ignore-case)
   "Return t if STRING1 is a suffix of STRING2."
+  (declare (pure t) (side-effect-free t))
   (and (<= (length string1) (length string2))
        (eq t (compare-strings string1 0 nil
                               string2 (- (length string2) (length string1)) nil
@@ -549,28 +574,33 @@ START is inclusive and END is exclusive in ITEMS."
 
 (defun* strip-string-prefix (prefix str &key (starting-at 0))
   "Remove (+ (length PREFIX) STARTING-AT) characters from start of STR."
+  (declare (pure t) (side-effect-free t))
   (substring str (+ starting-at (length prefix))))
 
 ;;;
 
 (defsubst file-modification-time (filename)
   "Return latest modification time of file FILENAME."
+  (declare (pure nil) (side-effect-free t))
   (nth 5 (file-attributes filename 'integer)))
 
 (defsubst file-size (filename)
   "Return size of file FILENAME."
+  (declare (pure nil) (side-effect-free t))
   (nth 7 (file-attributes filename 'integer)))
 
 (if (executable-find "cmp")
     (defun different-files-fast? (file1 file2)
       "Return t if content of FILE1 and FILE2 differs and try to yield answer
-faster than byte-by-byte comparison of respecfive file contents."
+faster than byte-by-byte comparison of respective file contents."
+      (declare (pure nil) (side-effect-free t))
       (if (= (file-size file1) (file-size file2))
           (= 1 (call-process-shell-command "cmp" nil nil nil file1 file2))
         t))
   (defun different-files-fast? (file1 file2)
     "Return t if content of FILE1 and FILE2 differs and try to yield answer
 faster than byte-by-byte comparison of respecfive file contents."
+    (declare (pure nil) (side-effect-free t))
     (if (= (file-size file1) (file-size file2))
         (string=? (with-temp-buffer
                     (insert-file-contents file1)
@@ -618,10 +648,12 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 
 (defun join-lines (lines &optional str)
   "Join list of strings with given STR that defaults to newline."
+  (declare (pure t) (side-effect-free t))
   (mapconcat #'identity lines (or str "\n")))
 
 (defun* split-into-lines (str &optional (omit-nulls t))
   "Split string into list of lines."
+  (declare (pure t) (side-effect-free t))
   (split-string str "\n" omit-nulls))
 
 (defsubst foldr (f init items)
@@ -640,6 +672,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 ;;;
 
 (defun generic/length (item)
+  (declare (pure t) (side-effect-free t))
   (cond ((ring? item)
          (ring-length item))
         ((or (list? item)
@@ -650,6 +683,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
          (error "Cannot determine generic length of item %s" item))))
 
 (defun generic/member (item sequence test)
+  (declare (pure t) (side-effect-free t))
   (cond ((ring? sequence)
          (ring-member sequence item :test test))
         ((list? sequence)
@@ -664,6 +698,7 @@ write buffer contents back into file if flag DONT-WRITE is nil."
 (defun list< (a b)
   "Check whether list of integers A is lexicographically lesser than
 integer list B."
+  (declare (pure t) (side-effect-free t))
   (let ((done nil)
         (result nil))
     (while (and (not done)
@@ -682,6 +717,7 @@ integer list B."
 
 (defsubst list= (a b)
   "Check whether list of integers A is equal to integer list B."
+  (declare (pure t) (side-effect-free t))
   (equal a b))
 
 ;;;
@@ -689,6 +725,7 @@ integer list B."
 (defun text-between-lines (start-line end-line)
   "Return string of text with properties between beginning of START-LINE and
 end of END-LINE in current buffer."
+  (declare (pure nil) (side-effect-free t))
   (save-excursion
     (buffer-substring (progn (goto-line1 start-line)
                              (line-beginning-position))
@@ -791,6 +828,7 @@ end of END-LINE in current buffer."
 optimization purposes.")
 
 (defun common/registered-filename (filename)
+  (declare (pure nil) (side-effect-free t))
   (aif (gethash filename common/registered-filenames)
       it
     (progn
@@ -856,6 +894,7 @@ optimization purposes.")
 (defun get-region-string-no-properties ()
   "Get string currently selected by a region, or nil
 if there's no region."
+  (declare (pure nil) (side-effect-free t))
   (if (region-active-p)
       (buffer-substring-no-properties
        (region-beginning)
@@ -865,6 +904,7 @@ if there's no region."
 (defun get-region-bounds ()
   "Return pair of region bounds, (begin end), depending
 on currently active vim highlight mode."
+  (declare (pure nil) (side-effect-free t))
   (unless (region-active-p)
     (error "Region not active"))
   (if (vim:visual-mode-p)
@@ -905,10 +945,12 @@ return pair (x (F x))."
 ;;;
 
 (defsubst cadr-safe (x)
+  (declare (pure t) (side-effect-free t))
   (car-safe (cdr-safe x)))
 
 (defun normalize-file-name (fname)
   "Normalize file name"
+  (declare (pure t) (side-effect-free t))
   (let ((cmdline-normalized
          (command-line-normalize-file-name fname)))
     (if (memq system-type '(ms-dos windows-nt))
@@ -1078,6 +1120,7 @@ to deleted items. ITEMS will be mutated in order to obtain result."
     items))
 
 (defun fontify-merge-markers ()
+  (declare (pure nil) (side-effect-free nil))
   (font-lock-add-keywords
    nil
    '(("^<<<<<<< .*$" 0 'font-lock-warning-face t)
@@ -1103,6 +1146,7 @@ topmost `kill-ring' item is equal to text."
 
 (defun current-column ()
   "Return current column - integer number."
+  (declare (pure nil) (side-effect-free nil))
   (- (point) (line-beginning-position)))
 
 (defun remove-buffer (&optional buffer-or-name)
@@ -1473,63 +1517,80 @@ last non-whitespace character."
           (delete-region (match-beginning 0) (match-end 0)))))))
 
 (defsubst char= (a b)
+  (declare (pure t) (side-effect-free t))
   (char-equal a b))
 
 (defun cadr-safe (x)
+  (declare (pure t) (side-effect-free t))
   (car-safe (cdr-safe x)))
 
 (defun cddr-safe (x)
+  (declare (pure t) (side-effect-free t))
   (cdr-safe (cdr-safe x)))
 
 ;;;;
 
 (defsubst string->symbol (str)
   "Convert string STR to symbol."
+  (declare (pure nil) (side-effect-free nil))
   (intern str))
 
 (defsubst symbol->string (sym)
   "Convert symbol SYM to string."
+  (declare (pure t) (side-effect-free t))
   (symbol-name sym))
 
 (defsubst char->string (char)
+  (declare (pure t) (side-effect-free t))
   (char-to-string char))
 
 (defsubst string->char (str)
+  (declare (pure t) (side-effect-free t))
   (string-to-char str))
 
 
 (defsubst number->string (n)
+  (declare (pure t) (side-effect-free t))
   (number-to-string n))
 
 (defsubst string->number (str)
+  (declare (pure t) (side-effect-free t))
   (string-to-number str))
 
 
 (defsubst string->list (str)
+  (declare (pure t) (side-effect-free t))
   (coerce str 'list))
 
 (defsubst list->string (items)
+  (declare (pure t) (side-effect-free t))
   (coerce items 'string))
 
 (defsubst vector->list (str)
+  (declare (pure t) (side-effect-free t))
   (coerce str 'list))
 
 (defsubst list->vector (items)
+  (declare (pure t) (side-effect-free t))
   (coerce items 'vector))
 
 (defsubst int-vector->string (v)
   "Convernt vector of integers to string."
+  (declare (pure t) (side-effect-free t))
   (coerce v 'string))
 
 (defsubst char=? (a b)
+  (declare (pure t) (side-effect-free t))
   (char-equal a b))
 
 ;;;;
 
 (defsubst first-safe (x)
+  (declare (pure t) (side-effect-free t))
   (car-safe x))
 
 (defsubst rest-safe (x)
+  (declare (pure t) (side-effect-free t))
   (cdr-safe x))
 
 (defmacro more-clojure/comp-impl (functions
@@ -1646,26 +1707,32 @@ F will be called."
 ;;;;
 
 (defun mk-regexp-from-alts (alts)
+  (declare (pure t) (side-effect-free t))
   (when alts
     (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
                alts
                "\\|")))
 
 (defun globs-to-regexp (globs)
+  (declare (pure t) (side-effect-free t))
   (mk-regexp-from-alts (-map #'wildcard-to-regexp globs)))
 
 (defun ci-looking-at (regexp)
+  (declare (pure nil) (side-effect-free nil))
   (let ((case-fold-search t))
     (looking-at regexp)))
 
 (defun ci-looking-at-p (regexp)
+  (declare (pure nil) (side-effect-free t))
   (let ((case-fold-search t))
     (looking-at-p regexp)))
 
 (defun buffer-visible-p (buf)
+  (declare (pure nil) (side-effect-free t))
   (not (null (get-buffer-window buf t))))
 
 (defun setup-indent-size (width)
+  (declare (pure nil) (side-effect-free nil))
   (setq-local vim:shift-width width)
   (setq-local standard-indent width)
   (setq-local tab-width width)
