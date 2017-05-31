@@ -12,47 +12,45 @@
   (setf abbrev+-skip-syntax '("w" "w_" "^ >")
         abbrev+-abbreviations
         (list
-         (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
-               (list
-                (lambda ()
-                  (yas-expand-snippet "printf(\"$1\\n\"$2);$0")))
-               #'point-not-inside-string-or-comment?)
-         (list "\\<info\\>"
-               (list
-                (lambda ()
-                  (yas-expand-snippet
-                   "std::cout << \"$1: \" << $1 << std::endl;$2")))
-               #'point-not-inside-string-or-comment?)
-         (list "\\(?:std::?\\)?\\<cout\\>"
-               (list
-                (lambda ()
-                  (yas-expand-snippet
-                   "std::cout << $1 << std::endl;$2")))
-               #'point-not-inside-string-or-comment?)
-         (list "\\(?:std::?\\)?\\<endl\\>"
-               ;; note: use lambda to avoid trailing space
-               (list (lambda () (insert "std::cout << std::endl;")))
-               #'point-not-inside-string-or-comment?)
-         (list "\\(?:std::?\\)?\\<cerr\\>"
-               (list
-                (lambda ()
-                  (yas-expand-snippet
-                   "std::cerr << $1 << std::endl;$2")))
-               #'point-not-inside-string-or-comment?)
-         (list (rx bow
-                   "s"
-                   (? "t"
-                      (? "a"
-                         (? "t"
-                            (? "i"
-                               (? "c")))))
-                   (? "_")
-                   "cast"
-                   eow)
-               (list
-                (lambda ()
-                  (yas-expand-snippet "static_cast<$1>($2)$3")))
-               #'point-not-inside-string-or-comment?)))
+         (make-abbrev+-abbreviation
+          :trigger "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
+          :action-type 'yas-snippet
+          :action-data "printf(\"$1\\n\"$2);$0"
+          :predicate #'point-not-inside-string-or-comment?)
+         (make-abbrev+-abbreviation
+          :trigger "\\<info\\>"
+          :action-type 'yas-snippet
+          :action-data "std::cout << \"$1: \" << $1 << std::endl;$2"
+          :predicate #'point-not-inside-string-or-comment?)
+         (make-abbrev+-abbreviation
+          :trigger "\\(?:std::?\\)?\\<cout\\>"
+          :action-type 'yas-snippet
+          :action-data "std::cout << $1 << std::endl;$2"
+          :predicate #'point-not-inside-string-or-comment?)
+         (make-abbrev+-abbreviation
+          :trigger "\\(?:std::?\\)?\\<endl\\>"
+          :action-type 'literal-string-no-space-at-end
+          :action-data "std::cout << std::endl;"
+          :predicate #'point-not-inside-string-or-comment?)
+         (make-abbrev+-abbreviation
+          :trigger "\\(?:std::?\\)?\\<cerr\\>"
+          :action-type 'yas-snippet
+          :action-data "std::cerr << $1 << std::endl;$2"
+          :predicate #'point-not-inside-string-or-comment?)
+         (make-abbrev+-abbreviation
+          :trigger (rx bow
+                       "s"
+                       (? "t"
+                          (? "a"
+                             (? "t"
+                                (? "i"
+                                   (? "c")))))
+                       (? "_")
+                       "cast"
+                       eow)
+          :action-type 'yas-snippet
+          :action-data "static_cast<${1:target}>($2)$3"
+          :predicate #'point-not-inside-string-or-comment?)))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
