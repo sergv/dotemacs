@@ -10,35 +10,62 @@
 
 (require 'common)
 
+(defstruct (abbrev+-abbreviation
+            (:constructor make--abbrev+-abbreviation))
+  ;; Regular expression that should be matchen in order for
+  ;; this abbreviation to activate.
+  (trigger nil :read-only)
+  ;; Symbol, one of 'literal-string, 'literal-string-no-space-at-end ,
+  ;; 'function-result, 'function-with-side-effects or 'yas-snippet.
+  (action-type nil :read-only)
+  ;; Action, type depends on value of action-type field.
+  ;; For 'literal-string it's a string.
+  ;; For 'literal-string-no-space-at-end it's a string.
+  ;; For 'function-result it's a function that returns a string.
+  ;; For 'function-with-side-effects it's a function that inserts the
+  ;; necessary content itself.
+  ;; For 'yas-snippet it's a string that will be passed to `yas-expand-snippet'.
+  (action-data nil :read-only)
+  ;; Function of no arguments, either symbol or lambda, that
+  ;; will be called before performing ACTION and should return nil or t.
+  ;; If t is returned then ACTION would be performed.
+  ;;
+  ;; Optional.
+  (predicate nil :read-only))
+
+(defun* make-abbrev+-abbreviation (&key trigger action-type action-data predicate)
+  (cl-assert (stringp trigger))
+  (cl-assert (or (null predicate) (functionp predicate)))
+  (cl-assert (symbolp action-type))
+  (cl-assert
+   (pcase action-type
+     ((or `literal-string `literal-string-no-space-at-end `yas-snippet)
+      (cl-assert (stringp action-data))
+      t)
+     ((or `function-result `function-with-side-effects)
+      (cl-assert (or (symbolp action-data)
+                     (functionp action-data)
+                     (byte-code-function-p action-data)))
+      t)
+     (typ nil)))
+  (make--abbrev+-abbreviation
+   :trigger trigger
+   :action-type action-type
+   :action-data action-data
+   :predicate predicate))
+
 (defvar-local abbrev+-abbreviations
   (list
-   (list "^pwd" (lambda () (expand-file-name default-directory))))
-  "Alist of list triples (REGEX ACTION [PREDICATE]), PREDICATE being
-optional.
-
-REGEX is the regexp that must be matched against for text to be inserted.
-
-ACTION is actual string or function, either symbol or lambda,
-that should return string to be inserted or nonempty list
-of functions, either symbols or lambdas that would be called
-one after another and which should perform actual substitution themselves,
-but deletion of matched text would be handled by abbrev+ facilities.
-
-PREDICATE is function of no arguments, either symbol or lambda, that
-will be called before performing ACTION and should return nil or t.
-If t is returned then ACTION would be performed.
-
-Functions could make use of variable `abbrev+-text-to-substitute' that
-will have the value of text matched by the regular expression.")
+   (make-abbrev+-abbreviation
+    :trigger "^pwd"
+    :action-type 'function-result
+    :action-data (lambda () (expand-file-name default-directory))))
+  "A list of `abbrev+-abbreviation' structures.")
 
 (defvar-local abbrev+-skip-syntax
   '("w" "w_" "w_." "^->")
   "List of syntaxes that will be tried one after the other
 to find match for car-element in `abbrev+-abbreviations'")
-
-(defparameter abbrev+-text-to-substitute nil
-  "Will contain value of text that will be replaced when function
-from `abbrev+-abbreviations' second element will be called.")
 
 (defparameter abbrev+-after-expand-and-space-hook nil
   "Hook to be run after expansion was carried out and trailing space was
@@ -48,116 +75,95 @@ met then this hook would not run.")
 
 (defun abbrev+-get-substitution (str)
   "Return substitution for STR obtained by matching STR against
-car's of `abbrev+-abbreviations' and returning corresponding element in cdr."
+trigger of `abbrev+-abbreviations' and returning corresponding element in cdr."
   (save-match-data
-    (let ((res (find-if (lambda (re)
-                          (and (string-match re str)
-                               (= (match-beginning 0) 0)
-                               (= (match-end 0) (length str))))
-                        abbrev+-abbreviations
-                        :key #'first)))
-      res)))
+    (find-if
+     (lambda (abbrev)
+       (and (string-match (abbrev+-abbreviation-trigger abbrev) str)
+            (= (match-beginning 0) 0)
+            (= (match-end 0) (length str))))
+     abbrev+-abbreviations)))
 
-(defun abbrev+-perform-substitution (action)
-  "Perform actual substitution treating SUBST as cdr of entry
-in `abbrev+-abbreviations' whose car matched. Return two arguments:
-first being t if after substitution it may be desirable to insert space
-and second being actual substituted text."
+(defun abbrev+-perform-substitution (abbrev)
+  "Perform actual substitution. Return two arguments: first being
+t if after substitution it may be desirable to insert space and
+second being actual substituted text."
+  (cl-assert (abbrev+-abbreviation-p abbrev))
+  (let* ((data (abbrev+-abbreviation-action-data abbrev))
+         (action-type (abbrev+-abbreviation-action-type abbrev))
+         (insert-spacep
+          (pcase action-type
+            ((or `literal-string `literal-string-no-space-at-end)
+             (cl-assert (stringp data))
+             (insert data)
+             (eq action-type 'literal-string))
+            (`function-result
+             (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
+             (let ((res (funcall data)))
+               (unless (stringp res)
+                 (error "Action %s didn't return string"
+                        (substring-no-properties
+                         (pp-to-string data)
+                         0
+                         80)))
+               (insert res))
+             t)
+            (`function-with-side-effects
+             (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
+             (funcall data)
+             nil)
+            (`yas-snippet
+             (cl-assert (stringp data))
+             (yas-expand-snippet data)
+             nil)
+            (typ
+             (error "Unknown action type %s of abbreviation %s" typ abbrev)))))
+    insert-spacep))
+
+(defun abbrev+-expand ()
+  "Expand text before point that matches against one of triggers
+of `abbrev-abbreviations'. Returns boolean indicating whether
+expansion was performed."
   (let ((start (point))
-        (insert-spacep
-         (cond
-           ((stringp action)
-            (insert action)
-            t)
-           ((and (listp action)
-                 (or (listp (car action))
-                     (symbolp (car action))
-                     (functionp (car action))
-                     (byte-code-functino-p (car action))))
-            ;; it's a list of functions so they should
-            ;; be called sequentially
-            (mapc #'funcall
-                  action)
-            nil)
-           (t
-            (let ((res (funcall action)))
-              (unless (string? res)
-                (error "action %s didn't return string"
-                       (substring-no-properties
-                        (pp-to-string action)
-                        0
-                        80)))
-              (insert res))
-            t))))
-    (values insert-spacep (buffer-substring-no-properties start (point)))))
-
-;;;###autoload
-(defun abbrev+-expand (&optional dont-expand)
-  "Expand text before point that matches against one of regular expressions in
-`abbrev-abbreviations'. Returns nil if nothing was substituted."
-  (interactive (list current-prefix-arg))
-  (unless dont-expand
-    (let ((start (point))
-          entry
-          str
-          result)
-      (loop
-        for syntax in abbrev+-skip-syntax
-        until entry
-        do
-        (goto-char start)
-        (skip-syntax-backward " " (line-beginning-position))
-        (let ((beginning (point)))
-          (cond
-            ((string? syntax)
-             (skip-syntax-backward syntax))
-            ((list? syntax)
-             (dolist (s syntax)
-               (skip-syntax-backward s)))
-            (t
-             (error "invalid syntax: %s" syntax)))
-          (setf str (buffer-substring-no-properties (point) beginning)
-                entry (abbrev+-get-substitution str))))
-      (if entry
-        (let ((action (second entry))
-              (predicate (third entry))
-              substitutep
-              (point-before-predicate-call (point)))
-          (setf substitutep
-                (if predicate
-                  (funcall predicate)
-                  ;; do substitution if no predicate supplied
-                  t))
-          (if substitutep
-            (progn
-              (goto-char point-before-predicate-call)
-              (delete-region (point) start)
-              (setf abbrev+-text-to-substitute str)
-              (multiple-value-bind (insert-spacep substituted-text)
-                  (abbrev+-perform-substitution action)
-                (setf abbrev+-text-to-substitute nil)
-
-                (if (string= str substituted-text)
-                  ;; text before and after substitution don't changed
-                  ;; - treat this as if no substitution was performed
-                  (setf result nil)
-                  (progn
-                    (when (and insert-spacep
-                               (or (eobp)
-                                   (not (char=? (char-after) ?\s))))
-                      (insert " "))
-                    ;; substitution was succesfull
-                    (setf result t)))))
-            ;; if we do not perform substitution then return to original point
-            (progn
-              (goto-char start)
-              ;; no substitutions were performed
-              (setf result nil))))
-        ;; no suitable entry found
-        (progn
-          (goto-char start)
-          ;; no substitutions were performed
-          (setf result nil)))
+        entry
+        str
+        result)
+    (loop
+      for syntax in abbrev+-skip-syntax
+      until entry
+      do
+      (goto-char start)
+      (skip-syntax-backward " " (line-beginning-position))
+      (let ((beginning (point)))
+        (cond
+          ((stringp syntax)
+           (skip-syntax-backward syntax))
+          ((listp syntax)
+           (dolist (s syntax)
+             (skip-syntax-backward s)))
+          (t
+           (error "invalid syntax: %s" syntax)))
+        (setf str (buffer-substring-no-properties (point) beginning)
+              entry (abbrev+-get-substitution str))))
+    (let ((result
+           (when (and entry
+                      (aif (abbrev+-abbreviation-predicate entry)
+                          (save-excursion (funcall it))
+                        ;; do substitution if no predicate supplied
+                        t))
+             (delete-region (point) start)
+             (let* ((point-before-substitution (point))
+                    (insert-spacep (abbrev+-perform-substitution entry))
+                    (new-text (buffer-substring-no-properties point-before-substitution (point))))
+               (unless (string= str new-text)
+                 (when (and insert-spacep
+                            (or (eobp)
+                                (not (char-equal (char-after) ?\s))))
+                   (insert " "))
+                 ;; substitution was succesfull
+                 t)))))
+      (unless result
+        (goto-char start))
       result)))
 
 (defvar-local abbrev+-fallback-function (lambda () (insert " "))
@@ -167,13 +173,15 @@ if no expansion was produced.")
 ;;;###autoload
 (defun abbrev+-insert-space-or-expand-abbrev (&optional dont-expand)
   (interactive (list current-prefix-arg))
-  (unless (abbrev+-expand dont-expand)
+  (when (or dont-expand
+            (not (abbrev+-expand)))
     (funcall abbrev+-fallback-function)))
 
 ;;;###autoload
 (defun abbrev+-org-self-insert-or-expand-abbrev (&optional dont-expand)
   (interactive (list current-prefix-arg))
-  (unless (abbrev+-expand dont-expand)
+  (when (or dont-expand
+            (not (abbrev+-expand)))
     (org-self-insert-command 1)))
 
 (defun abbrev+--make-re-with-optional-suffix (str suffix-len)
