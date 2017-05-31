@@ -24,8 +24,6 @@
   (vim:local-emap "c"        #'vim:haskell-compile)
   (vim:local-emap "ccompile" #'vim:haskell-compile-choosing-command)
   (vim:local-emap "cc"       #'vim:haskell-compile-choosing-command)
-  (setq-local vim:shift-width 2)
-  (setq-local standard-indent 2)
   (setq-local tab-always-indent t)
   (setq-local indent-line-function
               (lambda ()
@@ -37,7 +35,10 @@
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile))
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
-  (haskell-abbrev+-setup)
+  (let ((offset 2))
+    (setq-local vim:shift-width 2)
+    (setq-local standard-indent 2)
+    (haskell-abbrev+-setup 2))
   (haskell-setup-folding :enable-hs-minor-mode t))
 
 (provide 'haskell-grammar-tools-setup)

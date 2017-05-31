@@ -9,6 +9,7 @@
 (require 'abbrev+)
 (require 'common)
 (require 'haskell-completions)
+(require 'haskell-indent)
 (require 'haskell-misc)
 (require 'shm-ast)
 
@@ -127,7 +128,7 @@ then Bar would be the result."
   (save-current-line-column
    (haskell-align-language-pragmas yas-snippet-beg)))
 
-(defun* haskell-abbrev+-setup (&key (repl nil))
+(defun* haskell-abbrev+-setup (indent &key (repl nil))
   (add-hook 'yas-after-exit-snippet-hook #'haskell-abbrev+-align-language-pragmas nil t)
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
                                      (and (not (point-inside-string-or-comment?))
@@ -169,7 +170,7 @@ then Bar would be the result."
                :trigger "main"
                :action-type 'yas-snippet
                :action-data
-               (let ((indent (make-string haskell-indent-offset ?\s)))
+               (let ((indent (make-string indent ?\s)))
                  (concat "main :: IO ()\nmain = do\n"
                          indent "$1\n"
                          indent "return ()"))
