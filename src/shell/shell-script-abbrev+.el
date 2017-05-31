@@ -31,11 +31,12 @@
                               )
         abbrev+-abbreviations
         (list
-         (list "\\_<info\\_>"
-               (list #'shell-script-info-message-template)
-               (lambda () (and (not (lisp-point-inside-string-or-comment?))
-                          (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
-
+         (make-abbrev+-abbreviation
+          :trigger "\\_<info\\_>"
+          :action-type 'function-with-side-effects
+          :action-data #'shell-script-info-message-template
+          :predicate (lambda () (and (not (lisp-point-inside-string-or-comment?))
+                                (not (lisp-prev-pos-is-beginning-of-list? (point))))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 

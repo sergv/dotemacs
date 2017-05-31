@@ -41,18 +41,30 @@ from \\label{...} and \\ref{...} constructs."
   (setf abbrev+-skip-syntax '("^ >")
         abbrev+-abbreviations
         (list
-         (list (rx "\\" "i") "\\item")
-         (list (rx "\\" "п") "\\item")
-         (list (rx "\\" "и") "\\item")
-         (list (rx "\\" "r" (? "e" (? "f")))
-               (list
-                #'latex-insert-reference-template))
-         (list (rx "\\" "щ" (? "в" (? "н")))
-               (list
-                #'latex-insert-reference-template))
-         (list (rx "\\" "р" (? "е" (? "ф")))
-               (list
-                #'latex-insert-reference-template))))
+         (make-abbrev+-abbreviation
+          :trigger (rx "\\" "i")
+          :action-type 'literal-string
+          :action-data "\\item")
+         (make-abbrev+-abbreviation
+          :trigger (rx "\\" "п")
+          :action-type 'literal-string
+          :action-data "\\item")
+         (make-abbrev+-abbreviation
+          :trigger (rx "\\" "и")
+          :action-type 'literal-string
+          :action-data "\\item")
+         (make-abbrev+-abbreviation
+          :trigger (rx "\\" "r" (? "e" (? "f")))
+          :action-type 'function-with-side-effects
+          :action-data #'latex-insert-reference-template)
+         (make-abbrev+-abbreviation
+          :trigger (rx "\\" "щ" (? "в" (? "н")))
+          :action-type 'function-with-side-effects
+          :action-data#'latex-insert-reference-template)
+         (make-abbrev+-abbreviation
+          :trigger (rx "\\" "р" (? "е" (? "ф")))
+          :action-type 'function-with-side-effects
+          :action-data #'latex-insert-reference-template)))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
