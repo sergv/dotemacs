@@ -23,6 +23,7 @@
                      (do-not-sort-directory-files t))
   "Call FILE-ACTION on every matching file and DIRECTORY-ACTION on every matching
 folder."
+  (declare (pure nil) (side-effect-free nil))
   (letrec ((go
             (lambda (path)
               (cond
@@ -51,6 +52,7 @@ DIRP respectively in directories which don't satisfy DO-NOT-VISITP.
 By default, version-control specific directories are omitted, e.g. .git etc.
 
 All predicates are called with full absolute paths."
+  (declare (pure nil) (side-effect-free nil))
   (let* ((accum nil)
          (record-path (lambda (path) (push path accum))))
     (find-rec-do
@@ -94,6 +96,7 @@ Valid values are:
 search.
 
 EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
+  (declare (pure nil) (side-effect-free nil))
   (when (null extensions-globs)
     (error "no extensions globs for project %s" root))
   (let ((ignored-dirs-globs
