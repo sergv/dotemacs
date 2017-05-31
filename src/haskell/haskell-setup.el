@@ -111,25 +111,6 @@
 
   ;; (turn-on-haskell-simple-indent)
 
-  (let ((offset
-         (if-let (hask-offset
-                  (ignore-errors
-                    (multiple-value-bind (initial-root aux-info)
-                        (eproj-get-initial-project-root-and-aux-info
-                         (eproj--get-buffer-directory (current-buffer)))
-                      (cadr-safe (assq 'haskell-offset aux-info)))))
-             (progn
-               (assert (integer? hask-offset)
-                       nil
-                       "haskell-offset in .eproj-info must be an integer, but got %s"
-                       hask-offset)
-               hask-offset)
-           2)))
-    (setq-local vim:shift-width       offset)
-    (setq-local haskell-indent-offset offset)
-    (setq-local haskell-indent-spaces offset)
-    (setq-local shm-indent-spaces     offset))
-
   (setq-local compilation-read-command nil)
   (setq-local compilation-auto-jump-to-first-error nil)
   ;; don't skip any messages
@@ -242,7 +223,25 @@
     ("q" vim:shm/goto-parent-end))
 
   (haskell-setup-folding)
-  (haskell-abbrev+-setup)
+  (let ((offset
+         (if-let (hask-offset
+                  (ignore-errors
+                    (multiple-value-bind (initial-root aux-info)
+                        (eproj-get-initial-project-root-and-aux-info
+                         (eproj--get-buffer-directory (current-buffer)))
+                      (cadr-safe (assq 'haskell-offset aux-info)))))
+             (progn
+               (assert (integer? hask-offset)
+                       nil
+                       "haskell-offset in .eproj-info must be an integer, but got %s"
+                       hask-offset)
+               hask-offset)
+           2)))
+    (setq-local vim:shift-width       offset)
+    (setq-local haskell-indent-offset offset)
+    (setq-local haskell-indent-spaces offset)
+    (setq-local shm-indent-spaces     offset)
+    (haskell-abbrev+-setup offset))
   (setup-eproj-symbnav)
   (setup-outline-headers :header-symbol "-"
                          :length-min 3))
@@ -302,7 +301,7 @@
     ("S-<up>"   compilation-jump-to-prev-error)
     ("S-<down>" compilation-jump-to-next-error))
 
-  (haskell-abbrev+-setup :repl t))
+  (haskell-abbrev+-setup 2 :repl t))
 
 (defun haskell-interactive-mode-setup ()
   ;; undo-tree is useless for ghci interaction
@@ -352,7 +351,7 @@
     ("S-<up>"   haskell-interactive-jump-to-prev-prompt)
     ("S-<down>" haskell-interactive-jump-to-next-prompt))
 
-  (haskell-abbrev+-setup :repl t))
+  (haskell-abbrev+-setup 2 :repl t))
 
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
