@@ -49,9 +49,11 @@ while interactively prompting for variables/messages."
   (setf abbrev+-skip-syntax '("w" "w_" "^ >")
         abbrev+-abbreviations
         (list
-         (list "\\<Utils\\.d\\>"
-               (list #'java-print-info-template)
-               #'point-not-inside-string-or-comment?)))
+         (make-abbrev+-abbreviation
+          :trigger "\\<Utils\\.d\\>"
+          :action-type 'function-with-side-effects
+          :action-data #'java-print-info-template
+          :predicate #'point-not-inside-string-or-comment?)))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 

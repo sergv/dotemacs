@@ -72,15 +72,16 @@ while interactively prompting for variables/messages."
   (setf abbrev+-skip-syntax '("w" "w_" "^ >")
         abbrev+-abbreviations
         (list
-         (list "\\<prf?\\>"
-               (list
-                (lambda ()
-                  (yas-expand-snippet "printf(\"${1}\\n\");")))
-               #'point-not-inside-string-or-comment?)
-         (list "\\<info\\>"
-               (list
-                #'octave-print-info-template)
-               #'point-not-inside-string-or-comment?)))
+         (make-abbrev+-abbreviation
+          :trigger "\\<prf?\\>"
+          :action-type 'yas-snippet
+          :action-data "printf(\"${1}\\n\");"
+          :predicate #'point-not-inside-string-or-comment?)
+         (make-abbrev+-abbreviation
+          :trigger "\\<info\\>"
+          :action-type 'function-with-side-effects
+          :action-data #'octave-print-info-template
+          :predicate #'point-not-inside-string-or-comment?)))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))

@@ -12,11 +12,11 @@
   (setf abbrev+-skip-syntax '("w" "w_" "^ >")
         abbrev+-abbreviations
         (list
-         (list "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
-               (list
-                (lambda ()
-                  (yas-expand-snippet "printf(\"$1\\n\"$2);$0")))
-               #'point-not-inside-string-or-comment?)))
+         (make-abbrev+-abbreviation
+          :trigger "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
+          :action-type 'yas-snippet
+          :action-data "printf(\"$1\\n\"$2);$0"
+          :predicate #'point-not-inside-string-or-comment?)))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
