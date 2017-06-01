@@ -741,6 +741,27 @@ print progress on each 5% of units processed."
 
 ;;;
 
+;;;###autoload
+(defun re-search-generic-matching (direction predicate regexp &optional bound noerror)
+  "Repeatedly calls to `re-search-forward' or
+`re-search-backward' depending on DIRECTION until PREDICATE
+returns t."
+  (let ((search-func
+         (fold-direction direction
+           #'re-search-forward
+           #'re-search-backward))
+        (done nil)
+        (found nil))
+    (while (not done)
+      (let ((res (funcall search-func regexp bound noerror)))
+        (setf found (and res
+                         (funcall predicate))
+              done (or (not res)
+                       found))))
+    found))
+
+;;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:

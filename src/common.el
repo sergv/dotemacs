@@ -1738,6 +1738,43 @@ F will be called."
   (setq-local tab-width width)
   (setq-local tab-always-indent t))
 
+;;;;
+
+(defmacro fold-direction (direction if-forward if-backward)
+  (declare (indent 1))
+  `(pcase ,direction
+     (`forward  ,if-forward)
+     (`backward ,if-backward)
+     (_         (error "Invalid direction: %s" ,direction))))
+
+(defun wrap-search-around
+    (direction search-action &optional not-found-message)
+  "Wrap SEARCH-ACTION in a buffer. SEARCH-ACTION should be a
+function of 0 arguments that performs the search, moves the point
+and returns a boolean, t when something was found and nil
+otherwise. An example SEARCH-ACTION is `re-search-forward' with
+some regexp.
+
+DIRECTION must be a symbol, either 'forward or 'backward.
+"
+  (cl-assert (memq direction '(forward backward)))
+  (let ((p (point)))
+    (or (funcall search-action)
+        (let ((bound
+               (fold-direction direction
+                 (point-min)
+                 (point-max))))
+          (goto-char bound)
+          (if (funcall search-action)
+              (progn
+                (message "Wrapped at %s"
+                         (fold-direction direction "bottom" "top"))
+                t)
+            (progn
+              (message (or not-found-message "Nothing found"))
+              (goto-char p)
+              nil))))))
+
 ;; Heavy autoloads
 
 (autoload 'shell-command+ "common-heavy" nil t)
