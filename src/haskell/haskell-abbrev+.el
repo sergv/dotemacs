@@ -196,7 +196,7 @@ then Bar would be the result."
                :action-data "{-# OPTIONS_GHC -ddump-simpl -dsuppress-uniques -dsuppress-idinfo -dsuppress-module-prefixes -dsuppress-type-applications -dsuppress-coercions -dppr-cols200 #-}$0"
                :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
-               :trigger "##?lang "
+               :trigger "##?lang *"
                :action-type 'yas-snippet
                :action-data language-snippet
                :predicate #'point-not-inside-string-or-comment?)
@@ -211,8 +211,6 @@ then Bar would be the result."
                :action-data default-options-snippet
                :predicate #'point-not-inside-string-or-comment?)))
            (list
-            ;; (cons "pwd" #'(lambda () (expand-file-name default-directory)))
-
             (make-abbrev+-abbreviation
              :trigger "^hpr?f$"
              :action-type 'literal-string
