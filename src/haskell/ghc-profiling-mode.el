@@ -13,7 +13,7 @@
   `((t (:underline (:style wave :color ,+solarized-orange+))))
   "Face to highlight expensive entries with in the profile")
 
-(defparameter ghc-profiling-mode-expensive-cumulative-threshold 10
+(defparameter ghc-profiling-mode-expensive-cumulative-threshold 8
   "Highlight profile entries that take more percentage either in
 cpu time or allocations that the value of this variable.")
 
