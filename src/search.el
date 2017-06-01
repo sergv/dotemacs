@@ -332,30 +332,22 @@ Highlighting starts at the beginning of buffer")
 (defun search--next-impl ()
   "Move to the next match for `search--current-regexp' in current-buffer."
   (unless (gethash search--current-regexp +search-ignore-regexps+)
-    (let ((p (point))
-          (minibuffer-message-timeout 1)
+    (let ((minibuffer-message-timeout 1)
           (case-fold-search (not search--case-sensetive)))
-      (unless (re-search-forward search--current-regexp nil t)
-        (goto-char (point-min))
-        (if (re-search-forward search--current-regexp p t)
-            (message "Wrapped at bottom")
-          (progn
-            (message "Nothing found for %s" search--current-regexp)
-            (goto-char p)))))))
+      (wrap-search-around
+       'forward
+       (lambda () (re-search-forward search--current-regexp nil t))
+       (concat "Nothing found for regexp " search--current-regexp)))))
 
 (defun search--prev-impl ()
   "Move to the previous match for `search--current-regexp' in current-buffer."
   (unless (gethash search--current-regexp +search-ignore-regexps+)
-    (let ((p (point))
-          (minibuffer-message-timeout 1)
+    (let ((minibuffer-message-timeout 1)
           (case-fold-search (not search--case-sensetive)))
-      (unless (re-search-backward search--current-regexp nil t)
-        (goto-char (point-max))
-        (if (re-search-backward search--current-regexp p t)
-            (message "Wrapped at top")
-          (progn
-            (message "Nothing found for %s" search--current-regexp)
-            (goto-char p)))))))
+      (wrap-search-around
+       'backward
+       (lambda () (re-search-backward search--current-regexp nil t))
+       (concat "Nothing found for regexp " search--current-regexp)))))
 
 ;; Some highlight-specific parameters
 
