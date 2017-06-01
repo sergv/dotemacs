@@ -173,3 +173,9 @@
         path = third-party/flycheck-elm
         url = https://github.com/bsermons/flycheck-elm.git
         ignore = untracked
+[submodule "third-party/pkg-info"]
+        path = third-party/pkg-info
+        url = https://github.com/lunaryorn/pkg-info.el.git
+[submodule "third-party/epl"]
+        path = third-party/epl
+        url = https://github.com/cask/epl.git
