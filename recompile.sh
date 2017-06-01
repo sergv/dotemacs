@@ -62,15 +62,16 @@ update-dir-autoloads \
     "src/python" \
     "src/shell" \
     "third-party/clojure-mode" \
+    "third-party/elm-mode" \
     "third-party/flycheck" \
+    "third-party/flycheck-elm" \
     "third-party/haskell-mode" \
     "third-party/misc-modes" \
+    "third-party/pkg-info" \
     "third-party/smartparens" \
     "third-party/sml-mode" \
-    "third-party/yafolding.el" \
-    "third-party/elm-mode" \
-    "third-party/flycheck-elm" \
-    "third-party/tuareg"
+    "third-party/tuareg" \
+    "third-party/yafolding.el"
 
 if which make >/dev/null; then
     pushd "third-party/org-mode"
