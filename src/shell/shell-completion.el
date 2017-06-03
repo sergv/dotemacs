@@ -1936,57 +1936,78 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
            "--compiler"
            "--terminal"
            "--no-terminal"
-           ("--stack-yaml" (pcomplete-here (pcomplete-entries "\\.yaml\\'"))))))
+           ("--stack-yaml" (pcomplete-here (pcomplete-entries "\\.yaml\\'")))))
+        (build-args
+         '("--dry-run"
+           "--pedantic"
+           "--fast"
+           "--dependencies-only"
+           "--only-snapshot"
+           "--only-dependencies"
+           "--file-watch"
+           "--file-watch-poll"
+           "--only-configure"
+           "--trace"
+           "--profile"
+           "--no-strip"
+           "--library-profiling"
+           "--no-library-profiling"
+           "--executable-profiling"
+           "--no-executable-profiling"
+           "--library-stripping"
+           "--no-library-stripping"
+           "--executable-stripping"
+           "--no-executable-stripping"
+           "--haddock"
+           "--no-haddock"
+           "--open"
+           "--no-open"
+           "--haddock-deps"
+           "--no-haddock-deps"
+           "--haddock-internal"
+           "--no-haddock-internal"
+           "--copy-bins"
+           "--no-copy-bins"
+           "--prefetch"
+           "--no-prefetch"
+           "--keep-going"
+           "--no-keep-going"
+           "--force-dirty"
+           "--no-force-dirty"
+           "--test"
+           "--no-test"
+           "--rerun-tests"
+           "--no-rerun-tests"
+           "--coverage"
+           "--no-run-tests"
+           "--bench"
+           "--no-bench"
+           "--no-run-benchmarks"
+           "--reconfigure"
+           "--no-reconfigure"
+           "--cabal-verbose"
+           "--no-cabal-verbose"
+           "--split-objs"
+           "--no-split-objs"
+           "--help"
+
+           "--ghc-options"
+           "--flag"
+           "--exec"
+           "--haddock-arguments"
+           "--test-arguments"
+           "--benchmark-arguments")))
     `(or
       ("build"
        (opts
         (flags
          ,@standard-flags
-         "--trace"
-         "--profile"
-         "--library-profiling"
-         "--no-library-profiling"
-         "--executable-profiling"
-         "--no-executable-profiling"
-         "--haddock"
-         "--no-haddock"
-         "--haddock-deps"
-         "--no-haddock-deps"
-         "--dry-run"
-         "--pedantic"
-         "--fast"
-         "--ghc-options"
-         "--flag"
-         "--copy-bins"
-         "--no-copy-bins"
-         "--prefetch"
-         "--dependencies-only"
-         "--only-dependencies"
-         "--only-snapshot"
-         "--file-watch"
-         "--file-watch-poll"
-         "--keep-going"
-         "--no-keep-going"
-         "--force-dirty"
-         "--test"
-         "--no-test"
-         "--rerun-test"
-         "--no-rerun-test"
-         "--test-arguments"
-         "--coverage"
-         "--no-run-tests"
-         "--bench"
-         "--no-bench"
-         "--benchmark-arguments"
-         "--no-run-benchmarks"
-         "--exec"
-         "--only-configure"
-         "--reconfigure"
-         "--cabal-verbose")))
+         ,@build-args)))
       ("install"
        (opts
         (flags
-         ,@standard-flags)))
+         ,@standard-flags
+         ,@build-args)))
       ("uninstall"
        (opts
         (flags
@@ -1994,16 +2015,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("test"
        (opts
         (flags
-         "--profile"
-         "--library-profiling"
-         "--no-library-profiling"
-         "--executable-profiling"
-         "--no-executable-profiling"
-         ,@standard-flags)))
+         ,@standard-flags
+         ,@build-args)))
       ("bench"
        (opts
         (flags
-         ,@standard-flags)))
+         ,@standard-flags
+         ,@build-args)))
       ("haddock"
        (opts
         (flags
