@@ -72,7 +72,12 @@
       inhibit-startup-screen t
       frame-title-format '("%f")
       scroll-step 1
-      case-fold-search nil ;; do not ignore case during search
+      ;; Do not ignore case during search, except under special
+      ;; conditions.
+      case-fold-search nil
+      ;; Make uppercase characters during search not disable
+      ;; ignore-case mode.
+      search-upper-case nil
       next-line-add-newlines nil
       read-file-name-completion-ignore-case t
 

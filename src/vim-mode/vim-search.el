@@ -43,12 +43,6 @@
   :type 'boolean
   :group 'vim-ex-mode)
 
-(defparameter vim:substitute-pattern nil
-  "The actual replacement.")
-
-(defparameter vim:substitute-replacement nil
-  "The actual replacement.")
-
 (defface vim:search '((t (:inherit isearch)))
   "Face for interactive search."
   :group 'vim-ex-mode)
@@ -126,19 +120,24 @@ will be case-insensitive."
   beg         ;; The minimal position for the highlighting.
   end         ;; The maximal position for the highlighting.
   update-hook ;; Hook to be called when the lazy highlighting.
-  match-hook ;; Hook to be called when a single lazy highlight pattern has been setup.
-  overlays   ;; The currently active overlays.
+  match-hook  ;; Hook to be called when a single lazy highlight pattern has been setup.
+  overlays    ;; The currently active overlays.
   )
 
-(defun* vim:make-hl (name &key
-                          (face 'vim:lazy-highlight)
-                          (win (selected-window))
-                          (beg nil)
-                          (end nil)
-                          (update-hook nil)
-                          (match-hook nil))
+(defun* vim--new-highlight
+    (name &key
+          (face 'vim:lazy-highlight)
+          (win (selected-window))
+          (beg nil)
+          (end nil)
+          (update-hook nil)
+          (match-hook nil))
   "Creates new highlighting object with a certain `name'."
+  (declare (indent 1))
   (cl-assert (symbolp name) nil "Excepted symbol as name of highlight")
+  (cl-assert (facep face))
+  (cl-assert (or (null match-hook) (functionp match-hook)))
+  (cl-assert (or (null update-hook) (functionp update-hook)))
   (when (vim:hl-active-p name)
     (vim:delete-hl name))
   (when (null vim:active-highlights-alist)
@@ -190,7 +189,7 @@ name `name' to `new-regex'."
 
 
 (defun vim:hl-set-region (name beg end)
-  (cl-assert (symbol? name))
+  (cl-assert (symbolp name))
   (let ((hl (cdr-safe (assq name vim:active-highlights-alist))))
     (when hl
       (setf (vim:hl-beg hl) beg
@@ -258,16 +257,16 @@ name `name' to `new-regex'."
                   (setq result "No match")))))
 
         (invalid-regexp
-         (setq result (cadr lossage)))
+         (setq result (concat "Invalid regexp error: " (cadr lossage))))
 
         (search-failed
-         (setq result (nth 2 lossage)))
+         (setq result (concat "Search failed error: " (nth 2 lossage))))
 
         (error
-         (setq result (format "%s" lossage))))
+         (setq result (format "Other error: %s" lossage))))
 
-      (when (vim:hl-update-hook hl)
-        (funcall (vim:hl-update-hook hl) result)))))
+      (awhen (vim:hl-update-hook hl)
+        (funcall it result)))))
 
 (defparameter vim:hl-update-timer nil
   "Time used for updating highlights.")
@@ -304,7 +303,7 @@ name `name' to `new-regex'."
 (defun* vim:search-find-next-pattern (pattern is-forward?)
   "Looks for the next occurrence of pattern in a certain direction."
   (let ((case-fold-search (eq (vim:pattern-case-fold pattern) 'insensitive)))
-    (if is-forward
+    (if is-forward?
         (re-search-forward (vim:pattern-regex pattern) nil t)
       (re-search-backward (vim:pattern-regex pattern) nil t))))
 
@@ -312,15 +311,58 @@ name `name' to `new-regex'."
 (defun vim:ex-pattern-argument-activate ()
   (with-selected-window vim:ex-current-window
     (with-current-buffer vim:ex-current-buffer
-      (vim:make-hl 'vim:substitute
-                   :match-hook (and vim:substitute-interactive-replace
-                                    #'vim:ex-pattern-update-replacement))
+      (vim--new-highlight 'vim:substitute
+        :match-hook (when vim:substitute-interactive-replace
+                      #'vim:ex-pattern-update-replacement)
+        :update-hook #'vim--ex-pattern-update-substitute-command-info)
       (vim:ex-pattern-argument-update))))
 
+(defvar vim--ex-pattern-update-overlay nil
+  "Overlay in ex minibuffer that shows substitution feedback to the user,
+e.g. whether regexp is malformed, not matched, etc.")
+
+(defun vim--ex-pattern-update-substitute-command-info (result)
+  (when result
+    (cl-assert (or (stringp result) (eq result t)))
+    (when vim:ex-minibuffer
+      (with-current-buffer vim:ex-minibuffer
+        (let ((after-change-functions nil))
+          (unless vim--ex-pattern-update-overlay
+            (setf vim--ex-pattern-update-overlay
+                  (make-overlay (point-min) (point-max) (current-buffer))))
+          (move-overlay vim--ex-pattern-update-overlay
+                        (point-min)
+                        (point-max)
+                        (current-buffer))
+          (if (or (eq result t)
+                  (zerop (length result)))
+              (overlay-put vim--ex-pattern-update-overlay 'after-string nil)
+            (overlay-put vim--ex-pattern-update-overlay
+                         'after-string (concat " | " result))))))))
+
 (defun vim:ex-pattern-argument-deactivate ()
-  (with-selected-window vim:ex-current-window
-    (with-current-buffer vim:ex-current-buffer
-      (vim:delete-hl 'vim:substitute))))
+  (when vim:ex-current-window
+    (with-selected-window vim:ex-current-window
+      (with-current-buffer vim:ex-current-buffer
+        (vim:delete-hl 'vim:substitute)
+        (delete-overlay vim--ex-pattern-update-overlay)))))
+
+(defun vim--construct-substitute-pattern (search-regex flags)
+  (cl-assert (and (not (null search-regex)) (stringp search-regex)))
+  (cl-assert (or (null flags) (listp flags) (-all #'stringp flags)))
+  (when (memq ?g flags)
+    (error "Don't use flag g, use \"n\" with inverted meaning instead"))
+  (vim:make-pattern
+   :regex search-regex
+   :whole-line (not (memq ?n flags))
+   :case-fold
+   (cond
+     ((memq ?i flags) 'insensitive)
+     ((memq ?I flags) 'sensitive)
+     (t               vim:substitute-case))))
+
+(defvar vim:substitute-replacement nil
+  "The actual replacement.")
 
 (defun vim:ex-pattern-argument-update ()
   (when vim:substitute-highlight-all
@@ -328,38 +370,34 @@ name `name' to `new-regex'."
         (vim:parse-substitute vim:ex-arg)
       (with-selected-window vim:ex-current-window
         (with-current-buffer vim:ex-current-buffer
-          (setq vim:substitute-pattern
-                (and pattern
-                     (vim:make-pattern
-                      :regex pattern
-                      :whole-line (if flag-str (not (string-match-pure? "!g" flag-str)) t)
-                      :case-fold (or (and (string? flag-str) (string-match-pure? "i" flag-str) 'insensitive)
-                                     (and (string? flag-str) (string-match-pure? "I" flag-str) 'sensitive)
-                                     vim:substitute-case)))
-                vim:substitute-replacement replacement)
-          (vim:hl-set-region 'vim:substitute
-                             ;; first line
-                             (if (car-safe vim:ex-range)
-                                 (save-excursion
-                                   (goto-line1 (car vim:ex-range))
-                                   (line-beginning-position))
-                               (line-beginning-position))
-                             ;; last line
-                             (if (car-safe vim:ex-range)
-                                 (save-excursion
-                                   (goto-line1 (or (cdr vim:ex-range)
-                                                   (car vim:ex-range)))
-                                   (line-end-position))
-                               (line-end-position)))
-          (vim:hl-change 'vim:substitute vim:substitute-pattern))))))
+          (let ((substitute-pattern
+                 (when pattern
+                   (vim--construct-substitute-pattern pattern
+                                                      (string->list flag-str)))))
+            (setf vim:substitute-replacement replacement)
+            (vim:hl-set-region 'vim:substitute
+                               ;; first line
+                               (if (car-safe vim:ex-range)
+                                   (save-excursion
+                                     (goto-line1 (car vim:ex-range))
+                                     (line-beginning-position))
+                                 (line-beginning-position))
+                               ;; last line
+                               (if (car-safe vim:ex-range)
+                                   (save-excursion
+                                     (goto-line1 (or (cdr vim:ex-range)
+                                                     (car vim:ex-range)))
+                                     (line-end-position))
+                                 (line-end-position)))
+            (vim:hl-change 'vim:substitute substitute-pattern)))))))
 
 (defun vim:ex-pattern-update-replacement (overlay)
   "Updates the replacement display."
-  (let ((repl (vim:match-substitute-replacement vim:substitute-replacement)))
-    (put-text-property 0 (length repl)
+  (let ((replacement (match-substitute-replacement vim:substitute-replacement)))
+    (put-text-property 0 (length replacement)
                        'face 'vim:substitute
-                       repl)
-    (overlay-put overlay 'after-string repl)))
+                       replacement)
+    (overlay-put overlay 'after-string replacement)))
 
 
 (vim:define-arg-handler 'substitute
@@ -384,59 +422,54 @@ Allowed flags are:
       (let* ((flags (string->list flag-str)))
         (when (memq ?g flags)
           (error "Don't use flag g, use \"n\" with inverted meaning instead"))
-        (let ((whole-line (not (memq ?n flags)))
-              (confirm (memq ?c flags))
-              (ignore-case (memq ?i flags))
-              (dont-ignore-case (memq ?I flags)))
-
-          (vim:do-substitute :motion motion
-                             :pattern pattern
-                             :replacement replacement
-                             :flags flags
-                             :whole-line whole-line
-                             :confirm confirm
-                             :ignore-case ignore-case
-                             :dont-ignore-case dont-ignore-case))))))
+        (let ((confirm (memq ?c flags)))
+          (vim:do-substitute
+           :motion motion
+           :pattern (vim--construct-substitute-pattern pattern flags)
+           :replacement replacement
+           :flags flags
+           :confirm confirm))))))
 
 (defun* vim:do-substitute (&key
                            motion
                            pattern
                            replacement
                            flags
-                           whole-line
-                           confirm
-                           ignore-case
-                           dont-ignore-case)
+                           confirm)
   "Do the actual substitution in current buffer. Search for regexp
 pattern and replace matches with REPLACEMENT.
 "
   (unless pattern (error "No pattern given"))
   (unless replacement (error "No replacement given"))
 
-  (let* ((first-line (if motion
-                         (vim:motion-first-line motion)
-                       (line-number-at-pos (point))))
-         (last-line (if motion
-                        (vim:motion-last-line motion)
+  (let ((first-line (if motion
+                        (vim:motion-first-line motion)
                       (line-number-at-pos (point))))
-
-         (pattern (vim:make-pattern
-                   :regex pattern
-                   :whole-line whole-line
-                   :case-fold (or (and ignore-case 'insensitive)
-                                  (and dont-ignore-case 'sensitive)
-                                  vim:substitute-case)))
-         (regex (vim:pattern-regex pattern))
-         (last-point (point))
-         (overlay (make-overlay (point) (point)))
-         (next-line (line-number-at-pos (point))))
+        (last-line (if motion
+                       (vim:motion-last-line motion)
+                     (line-number-at-pos (point))))
+        (regex (vim:pattern-regex pattern))
+        (last-point (point))
+        (overlay (make-overlay (point) (point)))
+        (next-line (line-number-at-pos (point))))
 
     (let ((case-fold-search (eq 'insensitive (vim:pattern-case-fold pattern)))
           (case-replace case-fold-search))
       (unwind-protect
           (cond
-            (whole-line
+            ((vim:pattern-whole-line pattern)
              ;; this one is easy, just use the built in function
+             (message "perform-replace, regex = %s, replacement = %s, confirm = %s, start = %s, end = %s, case-fold-search = %s"
+                      (pp-to-string regex)
+                      (pp-to-string replacement)
+                      (pp-to-string confirm)
+                      (save-excursion
+                        (goto-line1 first-line)
+                        (line-beginning-position))
+                      (save-excursion
+                        (goto-line1 last-line)
+                        (line-end-position))
+                      case-fold-search)
              (perform-replace regex replacement confirm t nil nil nil
                               (save-excursion
                                 (goto-line1 first-line)
@@ -457,8 +490,8 @@ pattern and replace matches with REPLACEMENT.
                                     (concat "Query replacing "
                                             (match-string 0)
                                             " with "
-                                            (vim:match-substitute-replacement replacement
-                                                                              case-fold-search)
+                                            (match-substitute-replacement replacement
+                                                                          case-fold-search)
                                             ": "))
                                   (lambda (x)
                                     (set-match-data x)
@@ -536,7 +569,7 @@ regular expressions."
             (lambda ()
               (while (and (< i len)
                           (member* (aref str i)
-                                   (string-to-list "giIc")
+                                   (string-to-list "niIcg")
                                    :test #'char=))
                 (incf i))))
            (pattern-expand-newlines
@@ -624,15 +657,11 @@ regular expressions."
 ;; Related commands.
 (vim:defcmd vim:cmd-nohighlight (nonrepeatable)
   "Disables the active search highlightings."
-  (vim:delete-hl 'vim:search)
-  (vim:delete-hl 'vim:provide)
   (vim:delete-hl 'vim:substitute)
   (search-disable-highlighting))
 
 (vim:defcmd vim:cmd-nohighlight-everywhere (nonrepeatable)
   "Disables the active search highlightings in all buffers."
-  (vim:delete-hl 'vim:search)
-  (vim:delete-hl 'vim:provide)
   (vim:delete-hl 'vim:substitute)
   (search-disable-all-highlighting))
 
