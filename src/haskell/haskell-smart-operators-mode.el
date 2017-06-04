@@ -247,7 +247,7 @@ that next 2 characters are AFTER1 and AFTER2."
   (let ((next-char (char-after)))
     (insert ",")
     (when (or (not next-char)
-              (not (member next-char '(?\s ?\n ?\r ?\t))))
+              (not (member next-char '(?\s ?\t))))
       (insert " "))))
 
 ;;;###autoload
