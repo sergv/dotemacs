@@ -34,6 +34,11 @@
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile))
+  (install-haskell-smart-operators
+      vim:insert-mode-local-keymap
+    :bind-colon t
+    :bind-hyphen t
+    :use-shm nil)
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
   (let ((offset 2))
     (setq-local vim:shift-width 2)
