@@ -106,7 +106,10 @@
       use-empty-active-region t
 
       ;; Disable this to speed up rendering of long lines.
-      bidi-display-reordering nil)
+      bidi-display-reordering nil
+
+      ;; Set only variables marked as safe, ignore all other.
+      enable-local-variable :safe)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
