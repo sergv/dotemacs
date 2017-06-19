@@ -96,7 +96,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (smartparens-mode +1)
   (hl-line-mode +1)
 
-  (setf dirtrack-list '("^[^:]+:\\([^$]+\\)[$#]" 1))
+  (setf dirtrack-list '("^[^: \r\n]+:\\([^$\r\n]+\\)[$#]" 1))
   (dirtrack-mode +1)
 
   (ansi-color-for-comint-mode-on)
