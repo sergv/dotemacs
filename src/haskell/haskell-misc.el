@@ -954,14 +954,20 @@ value section should have if it is to be properly indented."
 (defun haskell-misc-cabal-align-and-sort-subsection ()
   "Sort lines of the subsection at point."
   (interactive)
-  (haskell-cabal-save-position
-   (haskell-cabal-with-subsection
-    (haskell-misc--cabal-indented-subsection) t
-    (haskell-cabal-with-cs-list
-     (sort-subr nil
-                'forward-line
-                'end-of-line
-                'haskell-cabal-sort-lines-key-fun)))))
+  (save-match-data
+    (haskell-cabal-save-position
+     (haskell-cabal-with-subsection
+      (haskell-misc--cabal-indented-subsection)
+      t
+      (haskell-cabal-with-cs-list
+       (haskell-cabal-each-line
+        (beginning-of-line)
+        (when (looking-at "^[ \t]*\\([^ \t\r\n]\\(?:.*[^ \t\r\n]\\)?\\)[ \t]*$")
+          (replace-match (match-string 1) nil t)))
+       (sort-subr nil
+                  'forward-line
+                  'end-of-line
+                  'haskell-cabal-sort-lines-key-fun))))))
 
 (provide 'haskell-misc)
 
