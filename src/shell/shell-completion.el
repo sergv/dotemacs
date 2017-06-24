@@ -2142,57 +2142,91 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 ;;;###autoload (autoload 'pcomplete/hlint "shell-completion" nil t)
 (defpcmpl pcomplete/hlint
-  (opts
-   (flags "-v"
-          "--verbose"
-          "-q"
-          "--quiet"
-          (("-r" "--report" "-h" "--hint") (pcomplete-here (pcomplete-entries)))
-          "-w"
-          "--with"
-          "-i"
-          "--ignore"
-          "-s"
-          "--show"
-          "-e"
-          "--extension"
-          "-X"
-          "--language"
-          "-u"
-          "--utf8"
-          "--encoding"
-          "--cross"
-          "-f"
-          "--find"
-          "-d"
-          "--datadir"
-          "-p"
-          "--path"
-          "--cpp-define"
-          ("--cpp-include" (pcomplete-here (pcomplete-dirs)))
-          ("--cpp-file" (pcomplete-here (pcomplete-entries)))
-          "--cpp-simple"
-          "--cpp-ansi"
-          "--json"
-          "--no-summary"
-          "--no-exit-code"
-          "--serialise"
-          "--refactor"
-          "--refactor-options"
-          "--with-refactor"
+  (let ((standard-flags
+         '("-v"
+           "--verbose"
+           "-q"
+           "--quiet"
+           "--help"
+           "--numeric-version"
+           "-V"
+           "--version"))
+        (language-flags
+         '((("-X" "--language") (pcomplete-here haskell-language-extensions))))
+        (extension-flags
+         '("-e"
+           "--extension"))
+        (hint-flags
+         '(("--datadir" (pcomplete-here (pcomplete-dirs)))
+           (("-r" "--report") (pcomplete-here (pcomplete-entries)))
+           (("-h" "--hint") (pcomplete-here (pcomplete-entries)))
+           "-w"
+           "--with"))
+        (cpp-flags
+         '("-p"
+           "--path"
+           "--cpp-define"
+           ("--cpp-include" (pcomplete-here (pcomplete-dirs)))
+           ("--cpp-file" (pcomplete-here (pcomplete-entries)))
+           "--cpp-simple"
+           "--cpp-ansi")))
+    `(or
+      ("lint"
+       (opts
+        (flags ,@standard-flags
+               ,@hint-flags
+               "-i"
+               "--ignore"
+               "-s"
+               "--show"
+               ,@extension-flags
+               ,@language-flags
+               "--cross"
+               "-f"
+               "--find"
+               "-d"
+               ,@cpp-flags
+               "--json"
+               "--no-summary"
+               "--no-exit-code"
+               "--serialise"
+               "--refactor"
+               "--refactor-options"
+               "--with-refactor"
+               "-d"
+               "--default"
 
-          "-c"
-          "--color"
-          "--color=always"
-          "--color=never"
-          "--color=auto"
-          "--colour"
-
-          "--help"
-          "--numeric-version"
-          "-V"
-          "--version")
-   (args (pcomplete-here (pcmpl-haskell-source-files)))))
+               "-c"
+               "--color"
+               "--color=always"
+               "--color=never"
+               "--color=auto"
+               "--colour")
+        (args (pcomplete-here (pcmpl-haskell-source-files)))))
+      ("grep"
+       (opts
+        (flags
+         ,@standard-flags
+         ,@extension-flags
+         ,@language-flags
+         ,@cpp-flags))
+       (args
+        (pcomplete-here (pcmpl-haskell-source-files))))
+      ("test"
+       (opts
+        (flags
+         ,@standard-flags
+         ,@hint-flags
+         ("--proof" (pcomplete-here (pcomplete-entries)))
+         ("--tempdir" (pcomplete-here (pcomplete-dirs)))
+         "--quickcheck"
+         "--typecheck")))
+      ("hse"
+       (opts
+        (flags
+         ,@standard-flags
+         ,@language-flags)))))
+  :evaluate-definition t)
 
 ;;; C, low-level stuff
 
