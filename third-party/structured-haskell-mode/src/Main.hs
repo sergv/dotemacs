@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Take in Haskell code and output a vector of source spans and
@@ -14,6 +15,9 @@ import System.Environment
 
 import StructuredHaskellMode
 
+-- | Action to perform.
+data Action = Parse | Check
+
 -- | Command line options.
 options :: Monad m => Consumer [Text] (Option ()) m (Action, ParseType, [Extension])
 options = (,,) <$> action <*> typ <*> exts
@@ -27,14 +31,36 @@ options = (,,) <$> action <*> typ <*> exts
           fmap getExtensions
                (many (prefix "X" "Language extension"))
 
+sourceSpanToElisp :: SourceSpan -> String
+sourceSpanToElisp SourceSpan{ssType, ssConstructor, ssStartLine, ssStartColumn, ssEndLine, ssEndColumn} =
+  "[" ++ spanContent ++ "]"
+  where
+    spanContent = unwords
+      [ T.unpack ssType
+      , T.unpack ssConstructor
+      , show ssStartLine
+      , show ssStartColumn
+      , show ssEndLine
+      , show ssEndColumn
+      ]
+
+outputForElisp :: [SourceSpan] -> IO ()
+outputForElisp spans =
+  putStrLn $ "[" ++ concatMap sourceSpanToElisp spans ++ "]"
+
 --- | Main entry point.
 main :: IO ()
-main =
-  do code <- getContents
-     args <- getArgs
-     case consume options (map T.pack args) of
-       Succeeded (action,typ,exts) ->
-         outputWith action typ exts code
-       _ ->
-         error (T.unpack (textDescription (describe options [])))
+main = do
+  code <- getContents
+  args <- getArgs
+  case consume options $ map T.pack args of
+    Succeeded (action, typ, exts) -> do
+      let res = case action of
+            Parse -> outputForElisp <$> parseSpans typ exts code
+            Check -> putStrLn "[]"  <$  check      typ exts code
+      case res of
+        Left err -> error err
+        Right x  -> x
+    _ ->
+      error (T.unpack (textDescription (describe options [])))
 

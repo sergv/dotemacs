@@ -13,14 +13,16 @@
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 
 module StructuredHaskellMode
-  ( Action(..)
-  , ParseType(..)
+  ( ParseType(..)
   , Extension
-  , outputWith
+  , SourceSpan(..)
+  , parseSpans
+  , check
   , getExtensions
   ) where
 
@@ -39,42 +41,41 @@ data D = forall a. Data a => D a
 -- past, and in the future, there will be the facility to parse
 -- specific parse of declarations, rather than re-parsing the whole
 -- declaration which can be both slow and brittle.
-type Parser = ParseMode -> String -> ParseResult D
+type Parser a = ParseMode -> String -> ParseResult a
 
 (<||>) :: ParseResult a -> ParseResult a -> ParseResult a
 (<||>) x y = case x of
   ParseFailed{} -> y
   _             -> x
 
--- | Action to perform.
-data Action = Parse | Check
-
 -- | Thing to parse.
 data ParseType = Decl | Stmt
 
--- | Output some result with the given action (check/parse/etc.),
--- parsing the given type of AST node. In the past, the type was any
--- kind of AST node. Today, it's just a "decl" which is covered by
--- 'parseTopLevel'.
-outputWith :: Action -> ParseType -> [Extension] -> String -> IO ()
-outputWith action typ exts code =
-  case typ of
-    Decl -> output action parseTopLevel exts code
-    Stmt -> output action parseSomeStmt exts code
+parseSpans :: ParseType -> [Extension] -> String -> Either String [SourceSpan]
+parseSpans typ exts code =
+  (\(mode, D x) -> genHSE mode x) <$> runParser (chooseParser typ) exts code
+
+check :: ParseType -> [Extension] -> String -> Either String ()
+check typ exts code = () <$ runParser (chooseParser typ) exts code
+
+chooseParser :: ParseType -> Parser D
+chooseParser = \case
+  Decl -> parseTopLevel
+  Stmt -> parseSomeStmt
 
 -- | Output AST info for the given Haskell code.
-output :: Action -> Parser -> [Extension] -> String -> IO ()
-output action parser exts code =
+runParser
+  :: Parser a
+  -> [Extension]
+  -> String
+  -> Either String (ParseMode, a)
+runParser parser exts code =
   case parser mode code of
-    ParseFailed loc e -> error $ show loc ++ ":" ++ e
-    ParseOk (D ast)   ->
-      case action of
-        Check -> return ()
-        Parse ->
-          putStrLn ("[" ++
-                    concat (genHSE mode ast) ++
-                    "]")
-  where mode = parseMode {extensions = exts}
+    ParseFailed loc e -> Left $ show loc ++ ":" ++ e
+    ParseOk x         -> Right (mode, x)
+  where
+    mode :: ParseMode
+    mode = parseMode {extensions = exts}
 
 -- | An umbrella parser to parse:
 --
@@ -88,8 +89,8 @@ output action parser exts code =
 --
 parseTopLevel :: ParseMode -> String -> ParseResult D
 parseTopLevel mode code =
-  ((D . fix) <$> parseDeclWithMode mode code) <||>
-  (D <$> parseImport mode code) <||>
+  ((D . fix) <$> parseDeclWithMode mode code)   <||>
+  (D <$> parseImport mode code)                 <||>
   ((D . fix) <$> parseModuleWithMode mode code) <||>
   (D <$> parseModulePragma mode code)
 
@@ -97,8 +98,8 @@ parseTopLevel mode code =
 parseSomeStmt :: ParseMode -> String -> ParseResult D
 parseSomeStmt mode code =
   ((D . fix) <$> parseStmtWithMode mode code) <||>
-  ((D . fix) <$> parseExpWithMode mode code) <||>
-  (D <$> parseImport mode code) <||>
+  ((D . fix) <$> parseExpWithMode mode code)  <||>
+  (D <$> parseImport mode code)               <||>
   (D <$> parseExportSpecs mode code)
 
 -- | Apply fixities after parsing.
@@ -107,60 +108,70 @@ fix ast = fromMaybe ast (applyFixities baseFixities ast)
 
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
 parseMode :: ParseMode
-parseMode =
-  defaultParseMode {extensions = defaultExtensions
-                   -- disable fixities so that unfamiliar operators do not confuse the parser
-                   , fixities   = Nothing
-                   }
+parseMode = defaultParseMode
+  { extensions = defaultExtensions
+  -- disable fixities so that unfamiliar operators do not confuse the parser
+  , fixities   = Nothing
+  }
 
 -- | Generate a list of spans from the HSE AST.
-genHSE :: Data a => ParseMode -> a -> [String]
-genHSE mode x =
-  case gmapQ D x of
-    zs@(D y:ys) ->
-      case cast y of
-        Just s ->
-          spanHSE (show (show (typeOf x)))
-                  (showConstr (toConstr x))
-                  (srcInfoSpan s) :
-          concatMap (\(i,D d) -> pre x i ++ genHSE mode d)
-                    (zip [0..] ys) ++
-              post mode x
-        _ ->
-          concatMap (\(D d) -> genHSE mode d) zs
-    _ -> []
+genHSE :: Data a => ParseMode -> a -> [SourceSpan]
+genHSE mode = go
+  where
+    go :: Data b => b -> [SourceSpan]
+    go x =
+      case gmapQ D x of
+        zs@(D y:ys) ->
+          case cast y of
+            Just s -> concat
+              [ [ spanHSE
+                    (show (show (typeOf x)))
+                    (showConstr (toConstr x))
+                    (srcInfoSpan s)
+                ]
+              , concatMap (\(i, D d) -> pre x i ++ go d) (zip [0..] ys)
+              , post mode x
+              ]
+            _      -> concatMap (\(D d) -> go d) zs
+        _ -> []
 
 -- | Pre-children tweaks for a given parent at index i.
 --
-pre :: (Typeable a) => a -> Integer -> [String]
-pre x i =
-  case cast x of
-    -- <foo { <foo = 1> }> becomes <foo <{ <foo = 1> }>>
-    Just (RecUpdate SrcSpanInfo{srcInfoPoints=(start:_),srcInfoSpan=end} _ _)
-      | i == 1 ->
-        [spanHSE (show "RecUpdates")
-                 "RecUpdates"
-                 (SrcSpan (srcSpanFilename start)
-                          (srcSpanStartLine start)
-                          (srcSpanStartColumn start)
-                          (srcSpanEndLine end)
-                          (srcSpanEndColumn end))]
-    _ -> case cast x :: Maybe (Deriving SrcSpanInfo)  of
-           -- <deriving (X,Y,Z)> becomes <deriving (<X,Y,Z>)
-           Just (Deriving _ ds@(_:_)) ->
-             [spanHSE (show "InstHeads")
-                      "InstHeads"
-                      (SrcSpan (srcSpanFilename start)
-                               (srcSpanStartLine start)
-                               (srcSpanStartColumn start)
-                               (srcSpanEndLine end)
-                               (srcSpanEndColumn end))
-             |Just (IRule _ _ _ (IHCon (SrcSpanInfo start _) _)) <- [listToMaybe ds]
-             ,Just (IRule _ _ _ (IHCon (SrcSpanInfo end _) _)) <- [listToMaybe (reverse ds)]]
-           _ -> []
+pre :: (Typeable a) => a -> Integer -> [SourceSpan]
+pre x i = case cast x of
+  -- <foo { <foo = 1> }> becomes <foo <{ <foo = 1> }>>
+  Just (RecUpdate SrcSpanInfo{ srcInfoPoints = start:_, srcInfoSpan = end } _ _)
+    | i == 1 ->
+      [ spanHSE
+          (show "RecUpdates")
+          "RecUpdates"
+          (SrcSpan
+             (srcSpanFilename start)
+             (srcSpanStartLine start)
+             (srcSpanStartColumn start)
+             (srcSpanEndLine end)
+             (srcSpanEndColumn end))
+      ]
+  _ ->
+    case cast x :: Maybe (Deriving SrcSpanInfo) of
+      -- <deriving (X,Y,Z)> becomes <deriving (<X,Y,Z>)
+      Just (Deriving _ ds@(_:_)) ->
+        [ spanHSE
+            (show "InstHeads")
+            "InstHeads"
+            (SrcSpan
+               (srcSpanFilename start)
+               (srcSpanStartLine start)
+               (srcSpanStartColumn start)
+               (srcSpanEndLine end)
+               (srcSpanEndColumn end))
+        | Just (IRule _ _ _ (IHCon (SrcSpanInfo start _) _)) <- [listToMaybe ds]
+        , Just (IRule _ _ _ (IHCon (SrcSpanInfo end _) _))   <- [listToMaybe (reverse ds)]
+        ]
+      _ -> []
 
 -- | Post-node tweaks for a parent, e.g. adding more children.
-post :: (Typeable a) => ParseMode -> a ->  [String]
+post :: (Typeable a) => ParseMode -> a ->  [SourceSpan]
 post mode x =
   case cast x of
     Just (QuasiQuote (base :: SrcSpanInfo) qname content) ->
@@ -195,28 +206,25 @@ redelta qname base (SrcSpanInfo (SrcSpan fp sl sc el ec) pts) =
           length ("|" :: String)
         (SrcSpanInfo (SrcSpan _ sl' sc' _ _) _) = base
 
+data SourceSpan = SourceSpan
+  { ssType        :: !Text -- unqualified
+  , ssConstructor :: !Text
+  , ssStartLine   :: !Int
+  , ssStartColumn :: !Int
+  , ssEndLine     :: !Int
+  , ssEndColumn   :: !Int
+  }
+
 -- | Generate a span from a HSE SrcSpan.
-spanHSE :: String -> String -> SrcSpan -> String
-spanHSE typ cons SrcSpan{..} = "[" ++ spanContent ++ "]"
-  where unqualify   = dropUntilLast '.'
-        spanContent =
-          unwords [unqualify typ
-                  ,cons
-                  ,show srcSpanStartLine
-                  ,show srcSpanStartColumn
-                  ,show srcSpanEndLine
-                  ,show srcSpanEndColumn]
-
-------------------------------------------------------------------------------
--- General Utility
-
--- | Like 'dropWhile', but repeats until the last match.
-dropUntilLast :: Char -> String -> String
-dropUntilLast ch = go []
-  where
-    go _ (c:cs) | c == ch = go [] cs
-    go acc (c:cs)         = go (c:acc) cs
-    go acc []             = reverse acc
+spanHSE :: String -> String -> SrcSpan -> SourceSpan
+spanHSE typ cons SrcSpan{..} = SourceSpan
+  { ssType        = T.takeWhileEnd (/= '.') $ T.pack typ
+  , ssConstructor = T.pack cons
+  , ssStartLine   = srcSpanStartLine
+  , ssStartColumn = srcSpanStartColumn
+  , ssEndLine     = srcSpanEndLine
+  , ssEndColumn   = srcSpanEndColumn
+  }
 
 --------------------------------------------------------------------------------
 -- Parsers that HSE hackage doesn't have
