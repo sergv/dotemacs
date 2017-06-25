@@ -5,10 +5,11 @@
 library
   exposed-modules:
     ${1:Foo}
-  other-modules:
-    ${2:Utils.Utils}
-${3:  hs-source-dirs:
-    ${4:src}
+${2:  other-modules:
+    ${3:Utils.Utils}
+}
+${4:  hs-source-dirs:
+    ${5:src}
 }  build-depends:
     base >= 4.7
   default-language:
@@ -20,7 +21,7 @@ ${3:  hs-source-dirs:
   if impl(ghc >= 8.0)
     ghc-options:
       -Wcompat
-${5:  build-tools:
-    ${6:alex happy c2hs}}
-  ghc-prof-options:
+${6:  build-tools:
+    ${7:alex happy c2hs}
+}  ghc-prof-options:
     -fprof-auto
