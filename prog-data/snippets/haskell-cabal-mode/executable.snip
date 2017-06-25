@@ -5,7 +5,7 @@
 # --
 executable ${1:test}
   main-is:
-    ${2:Main.hs}
+    ${2:Main}.hs
   build-depends:
     base >= 4.7,
     ${3:my-module}
@@ -20,7 +20,7 @@ ${4:  other-modules:
     -fno-warn-type-defaults
     -fno-warn-name-shadowing
     -rtsopts
-    ${8:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}
+    ${8:-main-is ${9:${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}}
   if impl(ghc >= 8.0)
     ghc-options:
       -Wcompat
