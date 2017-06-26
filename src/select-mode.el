@@ -291,8 +291,6 @@ case `default-directory' will be used.
 (defun select-mode-exit ()
   (interactive)
   (let ((buf (current-buffer)))
-    (message "buf = %s"
-             (pp-to-string buf))
     (select-mode--finish-selection)
     (kill-buffer buf)))
 
