@@ -131,6 +131,7 @@ stick it to the previous operator on line."
           (insert ")"))
         (forward-char 1)))))
 
+;;;###autoload
 (defun shm/@ ()
   "Insert a space but sometimes do something more clever, like
   inserting skeletons."
