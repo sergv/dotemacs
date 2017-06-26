@@ -162,6 +162,9 @@ arrive."
   (cdr (assq 'len
              (bindat-unpack '((len u32)) encoded-len))))
 
+(defun bert-rpc-accept-process-output (proc)
+  (accept-process-output proc 15))
+
 ;;;###autoload
 (defun bert-rpc-call-sync (proc module function args)
   (declare (indent 1))
@@ -172,7 +175,7 @@ arrive."
                   (vector 'call module function args))
   (let ((promise (process-get proc 'bert-rpc--sync-promise)))
     (while (not (bert-rpc-promise-ready promise))
-      (accept-process-output proc))
+      (bert-rpc-accept-process-output proc))
     (bert-rpc-promise--extract-data promise)))
 
 (defun bert-rpc--on-synchronous-message-decoded (sync-promise response)
