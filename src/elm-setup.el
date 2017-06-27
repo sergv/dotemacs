@@ -180,7 +180,7 @@
     ("C-SPC"            vim:comint-clear-buffer-above-prompt)
     ("C-w"              backward-delete-word)
     ("C-S-w"            backward-delete-word*)
-    ("M-p"              browse-comint-input-history)
+    ("C-S-p"            browse-comint-input-history)
 
     (("C-t" "S-<up>")   comint-previous-prompt)
     (("C-h" "S-<down>") comint-next-prompt)

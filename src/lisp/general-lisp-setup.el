@@ -703,7 +703,7 @@ nor comment."
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
 
-    ("M-p"      browse-comint-input-history)
+    ("C-S-p"    browse-comint-input-history)
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

@@ -75,7 +75,8 @@
     ("C-S-w"    backward-delete-word*)
     ("<tab>"    nil)
 
-    ("M-p"      browse-comint-input-history)
+    ("C-S-p"    browse-comint-input-history)
+
     ("<return>" comint-send-input)
 
     ("<up>"     comint-previous-input)
