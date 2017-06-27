@@ -500,7 +500,7 @@ greater indenation as current line."
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("M-p"      browse-comint-input-history)
+    ("C-S-p"    browse-comint-input-history)
 
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)

@@ -114,7 +114,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
     ("C-SPC"     vim:comint-clear-buffer-above-prompt)
     ("<tab>"     pcomplete)
 
-    ("M-p"       browse-comint-input-history)
+    ("C-S-p"     browse-comint-input-history)
 
     ("C-w"       backward-delete-word)
     ("C-S-w"     backward-delete-word*)
