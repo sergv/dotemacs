@@ -275,7 +275,7 @@
                      vim:insert-mode-local-keymap
                      inferior-haskell-mode-map)
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("M-p"      browse-comint-input-history)
+    ("C-S-p"    browse-comint-input-history)
     ("<return>" inf-haskell-send-input-or-jump-to-error))
 
   (def-keys-for-map (vim:normal-mode-local-keymap

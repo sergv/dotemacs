@@ -38,7 +38,7 @@
   ("C-v"      set-mark-command)
   ("C-y"      copy-region-as-kill)
   ("C-f"      read-and-insert-filename)
-  ("C-S-p"    browse-kill-ring)
+  ("M-p"      browse-kill-ring)
   ("C-w"      backward-delete-word)
   ("C-S-w"    backward-delete-word*)
 
@@ -186,7 +186,6 @@
   ("C-w"               backward-delete-word)
   ("C-S-w"             backward-delete-word*)
   ("C-p"               vim:cmd-paste-before)
-  ("C-S-p"             browse-kill-ring)
   ("M-p"               browse-kill-ring)
 
   ("C-/"               nil)
