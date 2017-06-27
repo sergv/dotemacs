@@ -112,8 +112,8 @@ and instate this one."
           (setq shm-last-parse-start start)
           (setq shm-last-parse-end end)
           (let ((parsed-ast (shm-get-ast (if (bound-and-true-p structured-haskell-repl-mode)
-                                             "stmt"
-                                           "decl")
+                                             'stmt
+                                           'decl)
                                          start end)))
             (let ((bail (lambda ()
                           (when shm-display-quarantine
@@ -170,15 +170,74 @@ and instate this one."
     (font-lock-fontify-buffer)
     (buffer-substring (+ (point-min) (length "x=")) (point-max))))
 
-(defun shm/call-process-region-ignoring-comments (start end prog-name delete out-buffer display &rest args)
+(defun shm--strip-preprocessor (source-code)
   (save-match-data
-    (let ((source-code (buffer-substring-no-properties start end)))
-      (with-temp-buffer
-        (insert source-code)
-        (goto-char (point-min))
-        (while (search-forward-regexp "^#.*$" nil t)
-          (replace-match ""))
-        (apply #'call-process-region (point-min) (point-max) prog-name delete out-buffer display args)))))
+    (with-temp-buffer
+      (insert source-code)
+      (goto-char (point-min))
+      (while (search-forward-regexp "^#.*$" nil t)
+        (replace-match ""))
+      (buffer-substring-no-properties (point-min) (point-max)))))
+
+(defvar structured-haskell-mode--process nil)
+
+(defun structured-haskell-mode--connect ()
+  (if (and structured-haskell-mode--process
+           (eq (process-status structured-haskell-mode--process) 'open))
+      structured-haskell-mode--process
+    (progn
+      (when structured-haskell-mode--process
+        (bert-rpc-disconnect structured-haskell-mode--process))
+      (setf structured-haskell-mode--process
+            (bert-rpc-connect
+             :name "structured-haskell-mode"
+             :port 8132
+             :buffer (get-buffer-create " *structured-haskell-mode-interaction*")
+             :interaction 'synchronous))
+      structured-haskell-mode--process)))
+
+(defvar structured-haskell-mode--results (make-hash-table :test #'equal))
+
+(defun structured-haskell-mode--call-process (proc function call-id parse-type exts source)
+  (declare (indent 1))
+  (cl-assert (stringp call-id))
+  (unwind-protect
+      (let ((result
+             (bert-rpc-call-sync proc
+               'structured-haskell-mode
+               function
+               (list call-id parse-type exts source))))
+        (cl-assert (vectorp result))
+        (cl-assert (or (= 2 (length result))
+                       (= 3 (length result))))
+        (let ((result-outcome (aref result 0)))
+          (cl-assert (symbolp result-outcome))
+          (pcase result-outcome
+            (`error
+             (error "Error from shm server: %s" (aref result 1)))
+            (`success
+             (let ((result-id (aref result 1))
+                   (result-data (aref result 2)))
+               (cl-assert (stringp result-id))
+               (if (string= result-id call-id)
+                   result-data
+                 (progn
+                   (puthash result-id result-data structured-haskell-mode--results)
+                   (while (not (gethash call-id structured-haskell-mode--results))
+                     (bert-rpc-accept-process-output proc))
+                   (gethash call-id structured-haskell-mode--results)))))
+            (_
+             (error "Unexpected result from shm server: %s" result)))))
+    (remhash call-id structured-haskell-mode--results)))
+
+(defun structured-haskell-mode--call-server (func parse-type source)
+  (structured-haskell-mode--call-process
+      (structured-haskell-mode--connect)
+    func
+    (sha1 source)
+    parse-type
+    nil
+    source))
 
 (defun shm-get-ast (type start end)
   "Get the AST for the given region at START and END. Parses with TYPE.
@@ -189,27 +248,23 @@ now_. Later on a possibility to make this much faster is to have
 a persistent running parser server and than just send requests to
 it, that should bring down the roundtrip time significantly, I'd
 imagine."
+  (cl-assert (symbolp type))
   (let ((message-log-max nil)
         (buffer (current-buffer)))
     (when (> end start)
-      (with-temp-buffer
-        (let ((temp-buffer (current-buffer)))
-          (with-current-buffer buffer
-            (condition-case e
-                (apply #'shm/call-process-region-ignoring-comments
-                       (append (list start
-                                     end
-                                     shm-program-name
-                                     nil
-                                     temp-buffer
-                                     nil
-                                     "parse"
-                                     type)
-                               (shm-extra-arguments)))
-              ((file-error)
-               (error "Unable to find structured-haskell-mode executable! See README for help.")))))
-        (goto-char (point-min))
-        (read (current-buffer))))))
+      (let* ((source (shm--strip-preprocessor (buffer-substring-no-properties start end)))
+             (result (structured-haskell-mode--call-server 'parse type source)))
+        (pcase (aref result 0)
+          (`spans
+           (aref result 1))
+          (`parse_error
+           (message "Parse error: %s" (aref result 1))
+           nil)
+          (`error
+           (message "shm server error: %s" (aref result 1))
+           nil)
+          (_
+           (message "Unexpected response from shm server: %s" (aref result 1))))))))
 
 (defun shm-check-ast (type start end)
   "Check whether the region of TYPE from START to END parses.
@@ -218,34 +273,31 @@ This doesn't generate or return an AST, it just checks whether it
 parses."
   (let ((message-log-max nil)
         (buffer (current-buffer)))
-    (with-temp-buffer
-      (let ((temp-buffer (current-buffer)))
-        (with-current-buffer buffer
-          (apply #'shm/call-process-region-ignoring-comments
-                 (append (list start
-                               end
-                               shm-program-name
-                               nil
-                               temp-buffer
-                               nil
-                               "check"
-                               ;; In other words, always parse with
-                               ;; the more generic “decl” when
-                               ;; something starts at column 0,
-                               ;; because HSE distinguishes between a
-                               ;; “declaration” and an import, a
-                               ;; module declaration and a language
-                               ;; pragma.
-                               (if (save-excursion (goto-char start)
-                                                   (= (point) (line-beginning-position)))
-                                   "decl"
-                                 type))
-                         (shm-extra-arguments)))))
-      (string= "" (buffer-string)))))
-
-(defun shm-extra-arguments ()
-  "Extra arguments to pass to the structured-haskell-mode process."
-  (shm-language-extensions))
+    (cl-assert (symbolp type))
+    (let* ((source (shm--strip-preprocessor (buffer-substring-no-properties start end)))
+           (fixed-type
+            ;; In other words, always parse with
+            ;; the more generic “decl” when
+            ;; something starts at column 0,
+            ;; because HSE distinguishes between a
+            ;; “declaration” and an import, a
+            ;; module declaration and a language
+            ;; pragma.
+            (if (save-excursion (goto-char start)
+                                (= (point) (line-beginning-position)))
+                'decl
+              type))
+           (result (structured-haskell-mode--call-server 'check type source)))
+      (pcase (aref result 0)
+        (`ok t)
+        (`parse_error
+         (message "Parse error: %s" (aref result 1))
+         nil)
+        (`error
+         (message "shm server error: %s" (aref result 1))
+         nil)
+        (_
+         (message "Unexpected response from shm server: %s" (aref result 1)))))))
 
 (defun shm-language-extensions ()
   "Get the number of spaces to indent."
@@ -263,45 +315,57 @@ which is helpful for doing node-specific operations like
 indentation.
 
 Any optimizations welcome."
-  (let* ((start-end (cons start end))
-         (start-column (save-excursion (goto-char start)
-                                       (current-column))))
-    (cond ((vectorp ast)
+  (let ((start-column (save-excursion (goto-char start)
+                                      (current-column))))
+    (cond ((or (vectorp ast)
+               (listp ast))
            (save-excursion
              (cl-map 'vector
-                  (lambda (node)
-                    (vector
-                     (elt node 0)
-                     (elt node 1)
-                     (progn (goto-char (car start-end))
-                            (forward-line (1- (elt node 2)))
-                            ;; This trick is to ensure that the first
-                            ;; line's columns are offsetted for
-                            ;; regions that don't start at column
-                            ;; zero.
-                            (goto-char (+ (if (= (elt node 2) 1)
-                                              start-column
-                                            0)
-                                          (1- (+ (point) (elt node 3)))))
-                            (let ((marker (set-marker (make-marker) (point))))
-                              marker))
-                     (progn (goto-char (car start-end))
-                            (forward-line (1- (elt node 4)))
-                            ;; Same logic as commented above.
-                            (goto-char (+ (if (= (elt node 4) 1)
-                                              start-column
-                                            0)
-                                          (1- (+ (point) (elt node 5)))))
-                            ;; This avoids the case of:
-                            (while (save-excursion (goto-char (line-beginning-position))
-                                                   (or (looking-at-p "[ ]+-- ")
-                                                       (looking-at-p "[ ]+$")))
-                              (forward-line -1)
-                              (goto-char (line-end-position)))
-                            (let ((marker (set-marker (make-marker) (point))))
-                              (set-marker-insertion-type marker t)
-                              marker))))
-                  ast)))
+                     (lambda (node)
+                       (cl-assert (vectorp node))
+                       (cl-assert (= 6 (length node)))
+                       (let ((type (elt node 0))
+                             (constructor (elt node 1))
+                             (start-line (elt node 2))
+                             (start-col (elt node 3))
+                             (end-line (elt node 4))
+                             (end-col (elt node 5)))
+                         (vector
+                          type
+                          (if (stringp constructor)
+                              (string->symbol constructor)
+                            (progn
+                              (cl-assert (symbolp constructor))
+                              constructor))
+                          (progn (goto-char start)
+                                 (forward-line (1- start-line))
+                                 ;; This trick is to ensure that the first
+                                 ;; line's columns are offsetted for
+                                 ;; regions that don't start at column
+                                 ;; zero.
+                                 (goto-char (+ (if (= start-line 1)
+                                                   start-column
+                                                 0)
+                                               (1- (+ (point) start-col))))
+                                 (let ((marker (set-marker (make-marker) (point))))
+                                   marker))
+                          (progn (goto-char start)
+                                 (forward-line (1- end-line))
+                                 ;; Same logic as commented above.
+                                 (goto-char (+ (if (= end-line 1)
+                                                   start-column
+                                                 0)
+                                               (1- (+ (point) end-col))))
+                                 ;; This avoids the case of:
+                                 (while (save-excursion (goto-char (line-beginning-position))
+                                                        (or (looking-at-p "[ ]+-- ")
+                                                            (looking-at-p "[ ]+$")))
+                                   (forward-line -1)
+                                   (goto-char (line-end-position)))
+                                 (let ((marker (set-marker (make-marker) (point))))
+                                   (set-marker-insertion-type marker t)
+                                   marker)))))
+                     ast)))
           (t nil))))
 
 (defun shm-decl-points (&optional use-line-comments)
