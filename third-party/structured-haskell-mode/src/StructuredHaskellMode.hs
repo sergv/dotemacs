@@ -13,7 +13,10 @@
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE NamedFieldPuns            #-}
+{-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 
@@ -21,17 +24,31 @@ module StructuredHaskellMode
   ( ParseType(..)
   , Extension
   , SourceSpan(..)
+  , ParseError
+  , SourceCode(..)
+  , unParseError
   , parseSpans
   , check
   , getExtensions
   ) where
 
+import Control.Monad (foldM)
+import Control.Monad.Except.Ext (MonadError, throwError, throwErrorWithBacktrace)
+import Data.DList (DList)
+import qualified Data.DList as DL
 import Data.Data
-import Data.List
+import Data.Foldable
 import Data.Maybe
+import Data.Set (Set)
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import Language.Haskell.Exts
+import qualified Data.Text.Lazy as TL
+import GHC.Stack
+import Language.Haskell.Exts hiding (Pretty)
+
+import Data.ErrorMessage
+import Data.Text.Prettyprint.Doc.Ext
 
 -- | A generic Dynamic-like constructor -- but more convenient to
 -- write and pattern match on.
@@ -41,7 +58,7 @@ data D = forall a. Data a => D a
 -- past, and in the future, there will be the facility to parse
 -- specific parse of declarations, rather than re-parsing the whole
 -- declaration which can be both slow and brittle.
-type Parser a = ParseMode -> String -> ParseResult a
+type Parser a = ParseMode -> SourceCode -> ParseResult a
 
 (<||>) :: ParseResult a -> ParseResult a -> ParseResult a
 (<||>) x y = case x of
@@ -51,11 +68,26 @@ type Parser a = ParseMode -> String -> ParseResult a
 -- | Thing to parse.
 data ParseType = Decl | Stmt
 
-parseSpans :: ParseType -> [Extension] -> String -> Either String [SourceSpan]
-parseSpans typ exts code =
-  (\(mode, D x) -> genHSE mode x) <$> runParser (chooseParser typ) exts code
+newtype ParseError = ParseError { unParseError :: String }
 
-check :: ParseType -> [Extension] -> String -> Either String ()
+newtype SourceCode = SourceCode { unSourceCode :: String }
+
+newtype SourceCodeLines = SourceCodeLines { _unSourceCodeLines :: [Text] }
+
+toSourceCodeLines :: SourceCode -> SourceCodeLines
+toSourceCodeLines (SourceCode xs) = SourceCodeLines $ T.lines $ T.pack xs
+
+parseSpans
+  :: (HasCallStack, MonadError ParseError m)
+  => ParseType -> Set Extension -> SourceCode -> m [SourceSpan]
+parseSpans typ exts code =
+  (\(mode, D x) -> genHSE codeLines mode x) <$> runParser (chooseParser typ) exts code
+  where
+    codeLines = toSourceCodeLines code
+
+check
+  :: (HasCallStack, MonadError ParseError m)
+  => ParseType -> Set Extension -> SourceCode -> m ()
 check typ exts code = () <$ runParser (chooseParser typ) exts code
 
 chooseParser :: ParseType -> Parser D
@@ -65,17 +97,20 @@ chooseParser = \case
 
 -- | Output AST info for the given Haskell code.
 runParser
-  :: Parser a
-  -> [Extension]
-  -> String
-  -> Either String (ParseMode, a)
+  :: (HasCallStack, MonadError ParseError m)
+  => Parser a
+  -> Set Extension
+  -> SourceCode
+  -> m (ParseMode, a)
 runParser parser exts code =
   case parser mode code of
-    ParseFailed loc e -> Left $ show loc ++ ":" ++ e
-    ParseOk x         -> Right (mode, x)
+    ParseFailed loc e ->
+      throwError $ ParseError $ show loc ++ ":" ++ e
+    ParseOk x         ->
+      pure (mode, x)
   where
     mode :: ParseMode
-    mode = parseMode {extensions = exts}
+    mode = parseMode { extensions = toList exts }
 
 -- | An umbrella parser to parse:
 --
@@ -87,16 +122,16 @@ runParser parser exts code =
 --
 -- * A module pragma (normally part of the module header).
 --
-parseTopLevel :: ParseMode -> String -> ParseResult D
-parseTopLevel mode code =
+parseTopLevel :: Parser D
+parseTopLevel mode (SourceCode code) =
   ((D . fix) <$> parseDeclWithMode mode code)   <||>
   (D <$> parseImport mode code)                 <||>
   ((D . fix) <$> parseModuleWithMode mode code) <||>
   (D <$> parseModulePragma mode code)
 
 -- | Parse a do-notation statement.
-parseSomeStmt :: ParseMode -> String -> ParseResult D
-parseSomeStmt mode code =
+parseSomeStmt :: Parser D
+parseSomeStmt mode (SourceCode code) =
   ((D . fix) <$> parseStmtWithMode mode code) <||>
   ((D . fix) <$> parseExpWithMode mode code)  <||>
   (D <$> parseImport mode code)               <||>
@@ -109,14 +144,14 @@ fix ast = fromMaybe ast (applyFixities baseFixities ast)
 -- | Parse mode, includes all extensions, doesn't assume any fixities.
 parseMode :: ParseMode
 parseMode = defaultParseMode
-  { extensions = defaultExtensions
+  { extensions = toList defaultExtensions
   -- disable fixities so that unfamiliar operators do not confuse the parser
   , fixities   = Nothing
   }
 
 -- | Generate a list of spans from the HSE AST.
-genHSE :: Data a => ParseMode -> a -> [SourceSpan]
-genHSE mode = go
+genHSE :: Data a => SourceCodeLines -> ParseMode -> a -> [SourceSpan]
+genHSE sourceCode mode = go
   where
     go :: Data b => b -> [SourceSpan]
     go x =
@@ -125,24 +160,26 @@ genHSE mode = go
           case cast y of
             Just s -> concat
               [ [ spanHSE
+                    sourceCode
                     (show (show (typeOf x)))
                     (showConstr (toConstr x))
                     (srcInfoSpan s)
                 ]
-              , concatMap (\(i, D d) -> pre x i ++ go d) (zip [0..] ys)
-              , post mode x
+              , concatMap (\(i, D d) -> pre sourceCode x i ++ go d) (zip [0..] ys)
+              , post sourceCode mode x
               ]
             _      -> concatMap (\(D d) -> go d) zs
         _ -> []
 
 -- | Pre-children tweaks for a given parent at index i.
 --
-pre :: (Typeable a) => a -> Integer -> [SourceSpan]
-pre x i = case cast x of
+pre :: Typeable a => SourceCodeLines -> a -> Integer -> [SourceSpan]
+pre sourceCode x i = case cast x of
   -- <foo { <foo = 1> }> becomes <foo <{ <foo = 1> }>>
   Just (RecUpdate SrcSpanInfo{ srcInfoPoints = start:_, srcInfoSpan = end } _ _)
     | i == 1 ->
       [ spanHSE
+          sourceCode
           (show "RecUpdates")
           "RecUpdates"
           (SrcSpan
@@ -157,6 +194,7 @@ pre x i = case cast x of
       -- <deriving (X,Y,Z)> becomes <deriving (<X,Y,Z>)
       Just (Deriving _ ds@(_:_)) ->
         [ spanHSE
+            sourceCode
             (show "InstHeads")
             "InstHeads"
             (SrcSpan
@@ -171,12 +209,12 @@ pre x i = case cast x of
       _ -> []
 
 -- | Post-node tweaks for a parent, e.g. adding more children.
-post :: (Typeable a) => ParseMode -> a ->  [SourceSpan]
-post mode x =
+post :: Typeable a => SourceCodeLines -> ParseMode -> a ->  [SourceSpan]
+post sourceCode mode x =
   case cast x of
     Just (QuasiQuote (base :: SrcSpanInfo) qname content) ->
       case parseExpWithMode mode content of
-        ParseOk ex    -> genHSE mode (fmap (redelta qname base) ex)
+        ParseOk ex    -> genHSE sourceCode mode $ redelta qname base <$> ex
         ParseFailed{} -> []
     _ -> []
 
@@ -207,23 +245,68 @@ redelta qname base (SrcSpanInfo (SrcSpan fp sl sc el ec) pts) =
         (SrcSpanInfo (SrcSpan _ sl' sc' _ _) _) = base
 
 data SourceSpan = SourceSpan
-  { ssType        :: !Text -- unqualified
-  , ssConstructor :: !Text
-  , ssStartLine   :: !Int
-  , ssStartColumn :: !Int
-  , ssEndLine     :: !Int
-  , ssEndColumn   :: !Int
+  { ssType          :: !Text -- unqualified
+  , ssConstructor   :: !Text
+  , ssMatchedSource :: !Text
+  , ssStartLine     :: !Int
+  , ssStartColumn   :: !Int
+  , ssEndLine       :: !Int
+  , ssEndColumn     :: !Int
   }
 
+instance Pretty SourceSpan where
+  pretty SourceSpan{ssType, ssConstructor, ssMatchedSource, ssStartLine, ssStartColumn, ssEndLine, ssEndColumn} =
+    ppDict "SourceSpan"
+      [ "ssType"          :-> pretty ssType
+      , "ssConstructor"   :-> pretty ssConstructor
+      , "ssMatchedSource" :-> pretty ssMatchedSource
+      , "ssStartLine"     :-> pretty ssStartLine
+      , "ssStartColumn"   :-> pretty ssStartColumn
+      , "ssEndLine"       :-> pretty ssEndLine
+      , "ssEndColumn"     :-> pretty ssEndColumn
+      ]
+
+data Lines a =
+    SingleLine a
+  | MultipleLines a [a] a
+
+splitIntoLines :: forall a. [a] -> Maybe (Lines a)
+splitIntoLines = \case
+  []          -> Nothing
+  [x]         -> Just $ SingleLine x
+  x : x' : xs -> Just $ go x mempty x' xs
+  where
+    go :: a -> DList a -> a -> [a] -> Lines a
+    go h acc t []       = MultipleLines h (toList acc) t
+    go h acc t (x : xs) = go h (DL.snoc acc t) x xs
+
+getSourceCoveredBySpan :: HasCallStack => SrcSpan -> SourceCodeLines -> Text
+getSourceCoveredBySpan span@SrcSpan{srcSpanStartLine, srcSpanStartColumn, srcSpanEndLine, srcSpanEndColumn} (SourceCodeLines codeLines) =
+  case splitIntoLines relevantLines of
+    Nothing -> error $ "Span '" ++ show span ++ "' covers 0 lines."
+    Just x  -> case x of
+      SingleLine line      -> T.take columnsDelta $ T.drop (srcSpanStartColumn - 1) line
+      MultipleLines h xs t -> T.concat $
+        [T.drop (srcSpanStartColumn - 1) h] ++ xs ++ [T.take srcSpanEndColumn t]
+  where
+    relevantLines
+      = take linesDelta
+      $ drop (srcSpanStartLine - 1)
+      $ codeLines
+    linesDelta   = srcSpanEndLine - srcSpanStartLine + 1
+    columnsDelta = srcSpanEndColumn - srcSpanStartColumn + 1
+
+
 -- | Generate a span from a HSE SrcSpan.
-spanHSE :: String -> String -> SrcSpan -> SourceSpan
-spanHSE typ cons SrcSpan{..} = SourceSpan
-  { ssType        = T.takeWhileEnd (/= '.') $ T.pack typ
-  , ssConstructor = T.pack cons
-  , ssStartLine   = srcSpanStartLine
-  , ssStartColumn = srcSpanStartColumn
-  , ssEndLine     = srcSpanEndLine
-  , ssEndColumn   = srcSpanEndColumn
+spanHSE :: SourceCodeLines -> String -> String -> SrcSpan -> SourceSpan
+spanHSE sourceCode typ cons span@SrcSpan{..} = SourceSpan
+  { ssType          = T.takeWhileEnd (/= '.') $ T.pack typ
+  , ssConstructor   = T.pack cons
+  , ssMatchedSource = getSourceCoveredBySpan span sourceCode
+  , ssStartLine     = srcSpanStartLine
+  , ssStartColumn   = srcSpanStartColumn
+  , ssEndLine       = srcSpanEndLine
+  , ssEndColumn     = srcSpanEndColumn
   }
 
 --------------------------------------------------------------------------------
@@ -254,17 +337,18 @@ parseModulePragma mode code =
 -- Extensions stuff stolen from hlint
 
 -- | Consume an extensions list from arguments.
-getExtensions :: [Text] -> [Extension]
-getExtensions = foldl f defaultExtensions . map T.unpack
-  where f _ "Haskell98" = []
-        f a ('N':'o':x)
-          | Just x' <- readExtension x =
-            delete x' a
-        f a x
-          | Just x' <- readExtension x =
-            x' :
-            delete x' a
-        f _ x = error $ "Unknown extension: " ++ x
+getExtensions
+  :: forall m. (HasCallStack, MonadError ErrorMessage m)
+  => [Text] -> m (Set Extension)
+getExtensions = foldM f defaultExtensions . map T.unpack
+  where
+    f :: Set Extension -> String -> m (Set Extension)
+    f _ "Haskell98" = pure mempty
+    f a ('N':'o':x) | Just x' <- readExtension x
+                    = pure $ S.delete x' a
+    f a x           | Just x' <- readExtension x
+                    = pure $ S.insert x' a
+    f _ x           = throwErrorWithBacktrace $ TL.pack $ "Unknown extension: " ++ x
 
 -- | Parse an extension.
 readExtension :: String -> Maybe Extension
@@ -274,10 +358,10 @@ readExtension x =
     x' -> Just x'
 
 -- | Default extensions.
-defaultExtensions :: [Extension]
+defaultExtensions :: Set Extension
 defaultExtensions =
-  [e | e@EnableExtension{} <- knownExtensions] \\
-  map EnableExtension badExtensions
+  S.fromList [e | e@EnableExtension{} <- knownExtensions] S.\\
+  S.fromList (map EnableExtension badExtensions)
 
 -- | Extensions which steal too much syntax.
 badExtensions :: [KnownExtension]
