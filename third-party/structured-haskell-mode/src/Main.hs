@@ -7,29 +7,35 @@
 module Main (main) where
 
 import Control.Applicative
+import Data.Set (Set)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Descriptive
 import Descriptive.Options
 import System.Environment
 
+import Data.ErrorMessage
 import StructuredHaskellMode
 
 -- | Action to perform.
 data Action = Parse | Check
 
 -- | Command line options.
-options :: Monad m => Consumer [Text] (Option ()) m (Action, ParseType, [Extension])
+options
+  :: Monad m
+  => Consumer [Text] (Option ()) m (Action, ParseType, Set Extension)
 options = (,,) <$> action <*> typ <*> exts
-  where action =
-          constant "parse" "Parse and spit out spans" Parse <|>
-          constant "check" "Just check the syntax" Check
-        typ =
-          constant "decl" "Parse a declaration" Decl <|>
-          constant "stmt" "Parse a statement" Stmt
-        exts =
-          fmap getExtensions
-               (many (prefix "X" "Language extension"))
+  where
+    action =
+      constant "parse" "Parse and spit out spans" Parse <|>
+      constant "check" "Just check the syntax" Check
+    typ =
+      constant "decl" "Parse a declaration" Decl <|>
+      constant "stmt" "Parse a statement" Stmt
+    exts =
+      fmap (either (error . TL.unpack . emMessage) id . getExtensions)
+           (many (prefix "X" "Language extension"))
 
 sourceSpanToElisp :: SourceSpan -> String
 sourceSpanToElisp SourceSpan{ssType, ssConstructor, ssStartLine, ssStartColumn, ssEndLine, ssEndColumn} =
@@ -51,7 +57,7 @@ outputForElisp spans =
 --- | Main entry point.
 main :: IO ()
 main = do
-  code <- getContents
+  code <- SourceCode <$> getContents
   args <- getArgs
   case consume options $ map T.pack args of
     Succeeded (action, typ, exts) -> do
@@ -59,7 +65,7 @@ main = do
             Parse -> outputForElisp <$> parseSpans typ exts code
             Check -> putStrLn "[]"  <$  check      typ exts code
       case res of
-        Left err -> error err
+        Left err -> error $ unParseError err
         Right x  -> x
     _ ->
       error (T.unpack (textDescription (describe options [])))
