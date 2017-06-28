@@ -20,43 +20,50 @@
 (require 'shm-customizations)
 (require 'shm-ast-documentation)
 
-(defun shm-node-type (n)
-  "Get the AST type of N."
-  (elt n 0))
+(defsubst shm-make-node (type constructor start end)
+  (cl-assert (stringp type))
+  (cl-assert (symbolp constructor))
+  (cl-assert (markerp start))
+  (cl-assert (markerp end))
+  (vector type constructor start end))
 
-(defun shm-node-type-name (n)
+(defsubst shm-node-type (n)
+  "Get the AST type of N."
+  (aref n 0))
+
+(defsubst shm-node-type-name (n)
   "Get just the constructor name part of N.
 
 This doesn't always return the correct thing, e.g. [Foo Bar] will
 return [Foo. It's just a convenience function to get things like
 Case or whatnot"
-  (nth 0 (split-string (elt n 0) " ")))
+  (nth 0 (split-string (aref n 0) " ")))
 
-(defun shm-node-cons (n)
+(defsubst shm-node-cons (n)
   "Get the constructor name of N."
-  (elt n 1))
+  (aref n 1))
 
-(defun shm-node-start (n)
+(defsubst shm-node-start (n)
   "Get the start position of N in its buffer."
-  (marker-position (elt n 2)))
+  (marker-position (aref n 2)))
 
-(defun shm-node-end (n)
+(defsubst shm-node-end (n)
   "Get the end position of N in its buffer."
-  (marker-position (elt n 3)))
+  (marker-position (aref n 3)))
 
-(defun shm-node-set-start (n x)
+(defsubst shm-node-set-start (n x)
   "Set the start position of N."
-  (set-marker (elt n 2) x))
+  (set-marker (aref n 2) x))
 
-(defun shm-node-set-end (n x)
+(defsubst shm-node-set-end (n x)
   "Set the end position of N."
-  (set-marker (elt n 3) x))
+  (set-marker (aref n 3) x))
 
-(defun shm-node-delete-markers (n)
+(defsubst shm-node-delete-markers (n)
   "Set the markers to NIL, which is about the best we can do for
 deletion. The markers will be garbage collected eventually."
-  (set-marker (elt n 2) nil)
-  (set-marker (elt n 3) nil))
+  (set-marker (aref n 2) nil)
+  (set-marker (aref n 3) nil))
 
 (defun shm-node-start-column (n)
   "Get the starting column of N."
@@ -71,9 +78,7 @@ deletion. The markers will be garbage collected eventually."
 (defun shm-node-indent-column (n)
   "Get the starting column of N."
   (+ (shm-node-start-column n)
-     (if (or (string= "Tuple" (shm-node-cons n))
-             (string= "Paren" (shm-node-cons n))
-             (string= "List" (shm-node-cons n)))
+     (if (memq (shm-node-cons n) '(Tuple Paren List))
          1
        0)))
 
@@ -102,14 +107,10 @@ deletion. The markers will be garbage collected eventually."
 
 (defun shm-node-app-p (node)
   "Is the given node an application of some kind?"
-  (or (eq (shm-node-cons node) 'App)
-      (eq (shm-node-cons node) 'InfixApp)
-      (eq (shm-node-cons node) 'TyApp)))
+  (memq (shm-node-cons node) '(App InfixApp TyApp)))
 
 (defun shm-node-paren-p (node)
   "Is the given node a paren of some kind?"
-  (or (eq (shm-node-cons node) 'Paren)
-      (eq (shm-node-cons node) 'PParen)
-      (eq (shm-node-cons node) 'TyParen)))
+  (memq (shm-node-cons node) '(Paren PParen TyParen)))
 
 (provide 'shm-node)

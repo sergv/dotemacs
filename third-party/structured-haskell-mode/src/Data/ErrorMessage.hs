@@ -18,6 +18,7 @@
 module Data.ErrorMessage
   ( ErrorMessage(..)
   , formatErrorMessage
+  , mkErrorMessage
   ) where
 
 import Data.Semigroup
@@ -27,6 +28,12 @@ import GHC.Stack
 data ErrorMessage = ErrorMessage
   { emMessage   :: TL.Text
   , emCallStack :: CallStack
+  }
+
+mkErrorMessage :: TL.Text -> ErrorMessage
+mkErrorMessage msg = ErrorMessage
+  { emMessage   = msg
+  , emCallStack = callStack
   }
 
 formatErrorMessage :: ErrorMessage -> TL.Text
