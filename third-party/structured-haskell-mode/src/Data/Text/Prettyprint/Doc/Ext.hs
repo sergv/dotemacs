@@ -24,7 +24,7 @@ module Data.Text.Prettyprint.Doc.Ext
   , displayDoc
   , displayDocString
   , show'
-  , show''
+  , showLazy
   , showDoc
   , docFromString
   , docFromByteString
@@ -81,8 +81,8 @@ displayDocString = TL.unpack . displayDoc
 show' :: Show a => a -> T.Text
 show' = T.pack . show
 
-show'' :: Show a => a -> TL.Text
-show'' = TL.pack . show
+showLazy :: Show a => a -> TL.Text
+showLazy = TL.pack . show
 
 showDoc :: Show a => a -> Doc a
 showDoc = docFromString . show

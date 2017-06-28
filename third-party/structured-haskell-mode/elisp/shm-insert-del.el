@@ -181,8 +181,7 @@ stick it to the previous operator on line."
           (cond
            ((let ((current (ignore-errors (shm-current-node))))
               (and current
-                   (or (not (or (eq 'Do (shm-node-cons current))
-                                (eq 'BDecls (shm-node-cons current))
+                   (or (not (or (memq (shm-node-cons current) '(Do BDecls))
                                 (string= "Stmt" (shm-node-type-name current))))
                        (bound-and-true-p structured-haskell-repl-mode))))
             (shm-auto-insert-let))
@@ -326,7 +325,7 @@ the current node to the parent."
   "The # hash."
   (interactive "p")
   (cond ((and (looking-back "{-")
-              (looking-at "-}"))
+              (looking-at-p "-}"))
          (insert "#  #")
          (forward-char -2)
          (let ((pragma (ido-completing-read "Pragma: "

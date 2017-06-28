@@ -485,7 +485,7 @@ data JSValue
                          (shm/newline-indent-proxy))
                        (insert " ")
                        (insert text)
-                       (point))))   ;The text will be unnormalized for now. May fix this later.
+                       (point)))) ;The text will be unnormalized for now. May fix this later.
                (progn
                  (skip-chars-backward " " nil)
                  (backward-char)
@@ -500,7 +500,7 @@ data JSValue
                  (backward-char)
                  (point))
              (if (looking-at "\}")
-                 (if (= (+ (save-excursion (skip-chars-backward " ")) (point)) (point-at-bol))  ; The \} might be on a newline.
+                 (if (= (+ (save-excursion (skip-chars-backward " ")) (point)) (point-at-bol)) ; The \} might be on a newline.
                      (marker-position m4)
                    (progn
                      (delete-horizontal-space)
@@ -524,7 +524,7 @@ data JSValue
                          (shm/newline-indent-proxy))
                        (insert " ")
                        (insert text)
-                       (point))))      ;The text will be unnormalized for now. May fix this later.
+                       (point)))) ;The text will be unnormalized for now. May fix this later.
                (progn
                  (skip-chars-backward " " nil)
                  (backward-char)
@@ -534,35 +534,33 @@ data JSValue
      commentEndA
      (marker-position m3)
      commentEndB)
-    (let ((parsed-ast (shm-get-ast (if (bound-and-true-p structured-haskell-repl-mode)
-                                       "stmt"
-                                     "decl")
-                                   (car bounds) (cdr bounds))))
-      (let ((bail (lambda ()
-                    (when shm-display-quarantine
-                      (shm-quarantine-overlay (car bounds) (cdr bounds)))
-                    (setq shm-lighter " SHM!")
-                    nil)))
-        (if parsed-ast
+    (let ((spans (shm-get-ast (if (bound-and-true-p structured-haskell-repl-mode)
+                                  'stmt
+                                'decl)
+                              (car bounds) (cdr bounds))))
+      (when spans
+        (when (bound-and-true-p structured-haskell-repl-mode)
+          (shm-font-lock-region (car bounds) (cdr bounds)))
+        (let ((ast (shm-get-nodes spans (car bounds) (cdr bounds))))
+          (if ast
+              (progn
+                (modeline-set-syntax-check-result 'ok)
+                (set-marker m1 nil)
+                (set-marker m2 nil)
+                (set-marker m3 nil)
+                (set-marker m4 nil)
+                (shm-set-decl-ast (car bounds) ast)
+                (shm-delete-overlays (point-min) (point-max) 'shm-quarantine)
+                ;This was my initial guess for
+                ;silencing the message at the end. It
+                ;doesn't work.
+                (let ((inhibit-message t))
+                  (shm/init)))
             (progn
-              (when (bound-and-true-p structured-haskell-repl-mode)
-                (shm-font-lock-region (car bounds) (cdr bounds)))
-              (let ((ast (shm-get-nodes parsed-ast (car bounds) (cdr bounds))))
-                (if ast
-                    (progn (setq shm-lighter " SHM")
-                           (set-marker m1 nil)
-                           (set-marker m2 nil)
-                           (set-marker m3 nil)
-                           (set-marker m4 nil)
-                           (shm-set-decl-ast (car bounds) ast)
-                           (shm-delete-overlays (point-min) (point-max) 'shm-quarantine)
-                                        ;This was my initial guess for
-                                        ;silencing the message at the end. It
-                                        ;doesn't work.
-                           (let ((inhibit-message t))
-                             (shm/init)))
-                  (funcall bail))))
-          (funcall bail))))))
+              (modeline-set-syntax-check-result 'error)
+              (when shm-display-quarantine
+                (shm-quarantine-overlay (car bounds) (cdr bounds)))
+              nil)))))))
 
 (defun shm-add-deriving-clause ()
   "Add deriving clause to data type declaration. If successful,

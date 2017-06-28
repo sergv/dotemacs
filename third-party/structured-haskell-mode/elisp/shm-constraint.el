@@ -72,9 +72,7 @@
 
 (defun shm-concrete-syntax-for-node (node)
   "Get the concrete syntax of the node"
-  (buffer-substring-no-properties
-   (shm-node-start (shm-current-node))
-   (shm-node-end (shm-current-node))))
+  (shm-node-string (shm-current-node)))
 
 (defun shm-has-parent-with-matching-type-p (node-pair)
   (let* ((current (cdr node-pair))
