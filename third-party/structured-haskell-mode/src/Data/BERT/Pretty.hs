@@ -19,6 +19,9 @@
 module Data.BERT.Pretty (ppBert) where
 
 import Data.BERT
+import qualified Data.Text.Encoding.Error as TEE
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Text.Prettyprint.Doc
 import Data.Void
 
@@ -35,7 +38,11 @@ ppBert = fmap absurd . go
       TupleTerm ts         -> ppList' lparen rparen $ map go ts
       BytelistTerm bstr    -> docFromByteString bstr
       ListTerm ts          -> ppList' lbracket rbracket $ map (group . go) ts
-      BinaryTerm bstr      -> dquotes $ docFromByteString bstr
+      BinaryTerm bstr      ->
+        dquotes
+          $ pretty
+          $ TL.concatMap quoteDoubleQuotes
+          $ TLE.decodeUtf8With TEE.lenientDecode bstr
       BigintTerm n         -> pretty n
       BigbigintTerm n      -> pretty n
       NilTerm              -> "Nil"
@@ -44,4 +51,9 @@ ppBert = fmap absurd . go
                               map (\(x, y) -> nest 2 $ go x <+> "->" <> line <> align (group $ go y)) assoc
       TimeTerm time        -> pretty $ show time
       RegexTerm re opts    -> pretty re <> pretty opts
+    quoteDoubleQuotes :: Char -> TL.Text
+    quoteDoubleQuotes = \case
+      '"'  -> "\\\""
+      '\\' -> "\\\\"
+      c    -> TL.singleton c
 

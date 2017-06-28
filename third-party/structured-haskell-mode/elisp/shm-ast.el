@@ -111,31 +111,23 @@ and instate this one."
                   (/= end shm-last-parse-end))
           (setq shm-last-parse-start start)
           (setq shm-last-parse-end end)
-          (let ((parsed-ast (shm-get-ast (if (bound-and-true-p structured-haskell-repl-mode)
-                                             'stmt
-                                           'decl)
-                                         start end)))
-            (let ((bail (lambda ()
-                          (when shm-display-quarantine
-                            (shm-quarantine-overlay start end))
-                          (setq shm-lighter " SHM!")
-                          nil)))
-              (if parsed-ast
-                  (progn
-                    (when (bound-and-true-p structured-haskell-repl-mode)
-                      (shm-font-lock-region start end))
-                    (let ((ast (shm-get-nodes parsed-ast start end)))
-                      (if ast
-                          (progn (setq shm-lighter " SHM")
-                                 (when pair
-                                   (shm-delete-markers pair))
-                                 (shm-set-decl-ast start ast)
-                                 ;; Delete only quarantine overlays.
-                                 (shm-delete-overlays (point-min) (point-max) 'shm-quarantine)
-                                 (shm/init)
-                                 ast)
-                        (funcall bail))))
-                (funcall bail)))))))))
+          (let ((spans (shm-get-ast (if (bound-and-true-p structured-haskell-repl-mode)
+                                        'stmt
+                                      'decl)
+                                    start end)))
+            (when spans
+              (when (bound-and-true-p structured-haskell-repl-mode)
+                (shm-font-lock-region start end))
+              (let ((ast (shm-get-nodes spans start end)))
+                (cl-assert (not (null ast)))
+                (modeline-set-syntax-check-result 'ok)
+                (when pair
+                  (shm-delete-markers pair))
+                (shm-set-decl-ast start ast)
+                ;; Delete only quarantine overlays.
+                (shm-delete-overlays (point-min) (point-max) 'shm-quarantine)
+                (shm/init)
+                ast))))))))
 
 (defun shm-font-lock-region (start end)
   "When in a REPL, we don't typically have font locking, so we
@@ -179,26 +171,26 @@ and instate this one."
         (replace-match ""))
       (buffer-substring-no-properties (point-min) (point-max)))))
 
-(defvar structured-haskell-mode--process nil)
+(defvar shm--process nil)
 
-(defun structured-haskell-mode--connect ()
-  (if (and structured-haskell-mode--process
-           (eq (process-status structured-haskell-mode--process) 'open))
-      structured-haskell-mode--process
+(defun shm--connect ()
+  (if (and shm--process
+           (eq (process-status shm--process) 'open))
+      shm--process
     (progn
-      (when structured-haskell-mode--process
-        (bert-rpc-disconnect structured-haskell-mode--process))
-      (setf structured-haskell-mode--process
+      (when shm--process
+        (bert-rpc-disconnect shm--process))
+      (setf shm--process
             (bert-rpc-connect
              :name "structured-haskell-mode"
              :port 8132
              :buffer (get-buffer-create " *structured-haskell-mode-interaction*")
              :interaction 'synchronous))
-      structured-haskell-mode--process)))
+      shm--process)))
 
 (defvar structured-haskell-mode--results (make-hash-table :test #'equal))
 
-(defun structured-haskell-mode--call-process (proc function call-id parse-type exts source)
+(defun shm--call-process (proc function call-id parse-type exts source)
   (declare (indent 1))
   (cl-assert (stringp call-id))
   (unwind-protect
@@ -230,14 +222,92 @@ and instate this one."
              (error "Unexpected result from shm server: %s" result)))))
     (remhash call-id structured-haskell-mode--results)))
 
-(defun structured-haskell-mode--call-server (func parse-type source)
-  (structured-haskell-mode--call-process
-      (structured-haskell-mode--connect)
+(defun shm--call-server (func parse-type source)
+  (shm--call-process
+      (shm--connect)
     func
     (sha1 source)
     parse-type
     nil
     source))
+
+(defun shm--resolve-parse-error-line (start line col)
+  "Resolve parse error on line LINE and column COL counting from
+buffer position START."
+  (cl-assert (numberp start))
+  (cl-assert (numberp line))
+  (cl-assert (numberp col))
+  (save-excursion
+    (goto-char start)
+    (unless (= 1 line)
+      (forward-line (1- line)))
+    (move-to-column (1- col))
+    (values (line-number-at-pos) (point))))
+
+(defstruct (shm-parse-error
+            (:constructor shm-parse-error--construct))
+  message
+  line-number      ;; Line number reported by shm server.
+  column           ;; Column reported by shm server.
+  real-line-number ;; Real line number in the source buffer.
+  real-column      ;; Real column number in the source buffer.
+  position         ;; Buffer position that real-line-number and real-column point to.
+  )
+
+(defun* make-shm-parse-error (&key message line-number column real-line-number real-column position)
+  (cl-assert (stringp message))
+  (cl-assert (numberp line-number))
+  (cl-assert (numberp column))
+  (cl-assert (numberp real-line-number))
+  (cl-assert (numberp real-column))
+  (cl-assert (numberp position))
+  (shm-parse-error--construct
+   :message          message
+   :line-number      line-number
+   :column           column
+   :real-line-number real-line-number
+   :real-column      real-column
+   :position         position))
+
+(defun shm--format-parse-error (parse-error)
+  (format "%d:%d: %s"
+          (shm-parse-error-real-line-number parse-error)
+          (shm-parse-error-real-column parse-error)
+          (shm-parse-error-message parse-error)))
+
+(defmacro* shm--fold-server-response
+    (parsing-start
+     data
+     (success-pat on-success)
+     (parse-error-var on-parse-error))
+  (declare (indent 2))
+  (let ((data-var             '#:data)
+        (msg-var              '#:msg)
+        (line-var             '#:line)
+        (col-var              '#:col)
+        (real-line-number-var '#:real-line-number)
+        (pos-var              '#:pos))
+    `(let ((,data-var ,data))
+       (pcase ,data-var
+         (,success-pat
+          ,on-success)
+         (`[parse_error ,,msg-var ,,line-var ,,col-var]
+          (let ((,parse-error-var
+                 (multiple-value-bind
+                     (,real-line-number-var ,pos-var)
+                     (shm--resolve-parse-error-line ,parsing-start ,line-var ,col-var)
+                   (make-shm-parse-error
+                    :message ,msg-var
+                    :line-number ,line-var
+                    :column ,col-var
+                    :real-line-number ,real-line-number-var
+                    :real-column (1- ,col-var)
+                    :position ,pos-var))))
+            ,on-parse-error))
+         (`[arguments_error ,msg]
+          (error "Protocol error while calling SHM server: %s" msg))
+         (_
+          (error "Unexpected response from SHM server: %s" ,data-var))))))
 
 (defun shm-get-ast (type start end)
   "Get the AST for the given region at START and END. Parses with TYPE.
@@ -251,20 +321,29 @@ imagine."
   (cl-assert (symbolp type))
   (let ((message-log-max nil)
         (buffer (current-buffer)))
-    (when (> end start)
-      (let* ((source (shm--strip-preprocessor (buffer-substring-no-properties start end)))
-             (result (structured-haskell-mode--call-server 'parse type source)))
-        (pcase (aref result 0)
-          (`spans
-           (aref result 1))
-          (`parse_error
-           (message "Parse error: %s" (aref result 1))
-           nil)
-          (`error
-           (message "shm server error: %s" (aref result 1))
-           nil)
-          (_
-           (message "Unexpected response from shm server: %s" (aref result 1))))))))
+    (when t ;; (> end start)
+      (let* ((source (shm--strip-preprocessor
+                      (buffer-substring-no-properties start end))))
+        (shm--fold-server-response
+            start
+            (shm--call-server 'parse type source)
+          (`[spans ,spans]
+           spans)
+          (parse-error
+           (let ((pretty-message
+                  (shm--format-parse-error parse-error)))
+             (modeline-set-syntax-check-result
+                 'error
+               (list 'help-echo pretty-message
+                     'mouse-face 'mode-line-highlight))
+             (when shm-display-quarantine
+               (let ((pos (shm-parse-error-position parse-error)))
+                 (shm-quarantine-overlay pos
+                                         (save-excursion
+                                           (goto-char pos)
+                                           (line-end-position)))))
+             (error "SHM parse error: %s" pretty-message)
+             nil)))))))
 
 (defun shm-check-ast (type start end)
   "Check whether the region of TYPE from START to END parses.
@@ -274,30 +353,29 @@ parses."
   (let ((message-log-max nil)
         (buffer (current-buffer)))
     (cl-assert (symbolp type))
-    (let* ((source (shm--strip-preprocessor (buffer-substring-no-properties start end)))
-           (fixed-type
-            ;; In other words, always parse with
-            ;; the more generic “decl” when
-            ;; something starts at column 0,
-            ;; because HSE distinguishes between a
-            ;; “declaration” and an import, a
-            ;; module declaration and a language
-            ;; pragma.
-            (if (save-excursion (goto-char start)
-                                (= (point) (line-beginning-position)))
-                'decl
-              type))
-           (result (structured-haskell-mode--call-server 'check type source)))
-      (pcase (aref result 0)
+    (let ((source (shm--strip-preprocessor
+                   (buffer-substring-no-properties start end)))
+          (fixed-type
+           ;; In other words, always parse with
+           ;; the more generic “decl” when
+           ;; something starts at column 0,
+           ;; because HSE distinguishes between a
+           ;; “declaration” and an import, a
+           ;; module declaration and a language
+           ;; pragma.
+           (if (save-excursion (goto-char start)
+                               (= (point) (line-beginning-position)))
+               'decl
+             type)))
+      (shm--fold-server-response
+          start
+          (shm--call-server 'check type source)
         (`ok t)
-        (`parse_error
-         (message "Parse error: %s" (aref result 1))
-         nil)
-        (`error
-         (message "shm server error: %s" (aref result 1))
-         nil)
-        (_
-         (message "Unexpected response from shm server: %s" (aref result 1)))))))
+        (parse-error
+         (progn
+           (message "SHM parse error: %s"
+                    (shm--format-parse-error parse-error))
+           nil))))))
 
 (defun shm-language-extensions ()
   "Get the number of spaces to indent."
@@ -330,7 +408,7 @@ Any optimizations welcome."
                              (start-col (elt node 3))
                              (end-line (elt node 4))
                              (end-col (elt node 5)))
-                         (vector
+                         (shm-make-node
                           type
                           (if (stringp constructor)
                               (string->symbol constructor)

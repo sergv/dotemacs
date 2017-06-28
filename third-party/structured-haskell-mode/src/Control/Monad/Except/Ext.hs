@@ -16,6 +16,7 @@
 
 module Control.Monad.Except.Ext
   ( throwErrorWithBacktrace
+  , throwErrorWithBacktrace'
   , HasCallStack
   , module Control.Monad.Except
   ) where
@@ -28,7 +29,8 @@ import Data.ErrorMessage
 
 throwErrorWithBacktrace
   :: (HasCallStack, MonadError ErrorMessage m) => TL.Text -> m a
-throwErrorWithBacktrace msg = throwError ErrorMessage
-  { emMessage   = msg
-  , emCallStack = callStack
-  }
+throwErrorWithBacktrace = throwErrorWithBacktrace' id
+
+throwErrorWithBacktrace'
+  :: MonadError e m => (ErrorMessage -> e) -> TL.Text -> m a
+throwErrorWithBacktrace' f = throwError . f . mkErrorMessage

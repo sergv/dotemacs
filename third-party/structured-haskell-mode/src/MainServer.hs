@@ -21,6 +21,7 @@
 
 module MainServer (main) where
 
+import Control.Arrow (left)
 import Control.Monad.Base
 import Control.Monad.Except.Ext
 import Control.Monad.Logger
@@ -117,8 +118,8 @@ hseRequestHandler mod func args = do
   res <- runExceptT $ hseRequestHandler' mod func args
   let response = case res of
         Left err -> BERT.Success $ TupleTerm
-          [ AtomTerm "error"
-          , BinaryTerm $ TLE.encodeUtf8 $ formatErrorMessage err
+          [ AtomTerm "arguments_error"
+          , BinaryTerm $ TLE.encodeUtf8 $ formatErrorMessage $ unArgumentsError err
           ]
         Right x -> x
   Logger.logDebug $ TL.toStrict $ displayDoc $ ppDict "Response"
@@ -127,7 +128,7 @@ hseRequestHandler mod func args = do
   pure response
 
 hseRequestHandler'
-  :: (HasCallStack, MonadBaseControl IO m, MonadLogger m, MonadError ErrorMessage m)
+  :: (HasCallStack, MonadBaseControl IO m, MonadLogger m, MonadError ArgumentsError m)
   => String
   -> String
   -> [Term]
@@ -136,15 +137,12 @@ hseRequestHandler' mod func args =
   case (mod, func) of
     ("structured-haskell-mode", "check") ->
       withArgs args check $ \callId () ->
-        pure $ makeSuccessResult callId $ TupleTerm
-          [ AtomTerm "ok"
-          , NilTerm
-          ]
+        pure $ makeSuccessResult callId $ AtomTerm "ok"
     ("structured-haskell-mode", "parse") ->
       withArgs args parseSpans $ \callId spans -> do
-        Logger.logInfo $ TL.toStrict $ displayDoc $ ppDict "Parsed spans"
-          [ "spans" :-> ppList spans
-          ]
+        -- Logger.logInfo $ TL.toStrict $ displayDoc $ ppDict "Parsed spans"
+        --   [ "spans" :-> ppList spans
+        --   ]
         pure $ makeSuccessResult callId $ TupleTerm
           [ AtomTerm "spans"
           , spansToBertTerm spans
@@ -156,8 +154,10 @@ makeSuccessResult :: Term -> Term -> BERT.DispatchResult
 makeSuccessResult callId resultData =
   BERT.Success $ TupleTerm [AtomTerm "success", callId, resultData]
 
+newtype ArgumentsError = ArgumentsError { unArgumentsError :: ErrorMessage }
+
 withArgs
-  :: (HasCallStack, MonadError ErrorMessage m)
+  :: (HasCallStack, MonadError ArgumentsError m)
   => [Term]
   -> (ParseType -> Set Extension -> SourceCode -> Either StructuredHaskellMode.ParseError a)
   -> (Term -> a -> m BERT.DispatchResult)
@@ -169,12 +169,14 @@ withArgs args f g =
       exts'      <- extractExts exts
       code'      <- extractSourceCode code
       case f parseType' exts' code' of
-        Left err    -> pure $ makeSuccessResult callId $ TupleTerm
+        Left err -> pure $ makeSuccessResult callId $ TupleTerm
           [ AtomTerm "parse_error"
-          , BinaryTerm $ TLE.encodeUtf8 $ TL.pack $ unParseError err
+          , BinaryTerm $ TLE.encodeUtf8 $ TL.pack $ parseErrorMessage err
+          , IntTerm $ parseErrorLine err
+          , IntTerm $ parseErrorColumn err
           ]
-        Right x -> g callId x
-    invalid -> throwErrorWithBacktrace $ TL.pack $
+        Right x  -> g callId x
+    invalid -> throwErrorWithBacktrace' ArgumentsError $ TL.pack $
       "Expected 4 arguments, but got: " ++ show invalid
 
 spansToBertTerm :: [SourceSpan] -> Term
@@ -192,30 +194,32 @@ spansToBertTerm = ListTerm . map convert
         ]
 
 extractParseType
-  :: (HasCallStack, MonadError ErrorMessage m) => Term -> m ParseType
+  :: (HasCallStack, MonadError ArgumentsError m) => Term -> m ParseType
 extractParseType = \case
   AtomTerm "decl"  -> pure Decl
   AtomTerm "stmt"  -> pure Stmt
-  AtomTerm invalid -> throwErrorWithBacktrace $ TL.pack $
+  AtomTerm invalid -> throwErrorWithBacktrace' ArgumentsError $ TL.pack $
     "Invalid parse type: '" <> invalid <> "'. Expected: 'decl', 'stmt'."
-  invalid          -> throwErrorWithBacktrace $ TL.pack $
+  invalid          -> throwErrorWithBacktrace' ArgumentsError $ TL.pack $
     "Invalid parse type: expected atom but got '" <> show invalid <> "'."
 
 extractExts
-  :: (HasCallStack, MonadError ErrorMessage m) => Term -> m (Set Extension)
+  :: (HasCallStack, MonadError ArgumentsError m) => Term -> m (Set Extension)
 extractExts = \case
   ListTerm xs
     | Just xs' <- traverse extractBinary xs ->
+      either (throwError . ArgumentsError) pure $
       getExtensions =<< traverse (decodeUtf8 "extension") xs'
-  invalid -> throwErrorWithBacktrace $
-    "Invalid extensions: expected list of utf8 strings but got '" <> show'' invalid <> "'"
+  invalid -> throwErrorWithBacktrace' ArgumentsError $
+    "Invalid extensions: expected list of utf8 strings but got '" <> showLazy invalid <> "'"
 
 extractSourceCode
-  :: (HasCallStack, MonadError ErrorMessage m) => Term -> m SourceCode
+  :: (HasCallStack, MonadError ArgumentsError m) => Term -> m SourceCode
 extractSourceCode = \case
-  BinaryTerm x -> SourceCode . TL.unpack <$> decodeUtf8Lazy "source code" x
-  invalid      -> throwErrorWithBacktrace $
-    "Invalid extensions: expected list of utf8 strings but got '" <> show'' invalid <> "'"
+  BinaryTerm x -> either (throwError . ArgumentsError) pure $
+    SourceCode . TL.unpack <$> (decodeUtf8Lazy "source code" x)
+  invalid      -> throwErrorWithBacktrace' ArgumentsError $
+    "Invalid extensions: expected list of utf8 strings but got '" <> showLazy invalid <> "'"
 
 extractBinary :: Term -> Maybe C8.ByteString
 extractBinary = \case
@@ -223,22 +227,22 @@ extractBinary = \case
   _            -> Nothing
 
 decodeUtf8
-  :: (HasCallStack, MonadError ErrorMessage m)
-  => TL.Text -> UTF8.ByteString -> m T.Text
+  :: HasCallStack
+  => TL.Text -> UTF8.ByteString -> Either ErrorMessage T.Text
 decodeUtf8 thing =
-  either (throwErrorWithBacktrace . mkErr) pure . TE.decodeUtf8' . C8.toStrict
+  left (mkErrorMessage . mkErr) . TE.decodeUtf8' . C8.toStrict
   where
     mkErr :: Show a => a -> TL.Text
-    mkErr x = "Invalid utf8 encoding of " <> thing <> ": " <> show'' x
+    mkErr x = "Invalid utf8 encoding of " <> thing <> ": " <> showLazy x
 
 decodeUtf8Lazy
-  :: (HasCallStack, MonadError ErrorMessage m)
-  => TL.Text -> UTF8.ByteString -> m TL.Text
+  :: HasCallStack
+  => TL.Text -> UTF8.ByteString -> Either ErrorMessage TL.Text
 decodeUtf8Lazy thing =
-  either (throwErrorWithBacktrace . mkErr) pure . TLE.decodeUtf8'
+  left (mkErrorMessage . mkErr) . TLE.decodeUtf8'
   where
     mkErr :: Show a => a -> TL.Text
-    mkErr x = "Invalid utf8 encoding of " <> thing <> ": " <> show'' x
+    mkErr x = "Invalid utf8 encoding of " <> thing <> ": " <> showLazy x
 
 -- Start BERT server and serve from the current thread.
 runServer
