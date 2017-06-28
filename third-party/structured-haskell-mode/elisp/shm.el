@@ -196,7 +196,8 @@
   (add-hook 'post-self-insert-hook 'shm-post-self-insert nil t)
   (unless shm-parsing-timer
     (setq shm-parsing-timer
-          (run-with-idle-timer shm-idle-timeout t 'shm-reparsing-timer))))
+          (run-with-idle-timer shm-idle-timeout t 'shm-reparsing-timer)))
+  (modeline-set-syntax-check-result 'unknown))
 
 (defun shm-mode-stop ()
   "Stop the minor mode. Restore various settings and clean up any
@@ -221,13 +222,19 @@ state that will hopefully be garbage collected."
   (setq shm-current-node-overlay nil)
   (setq shm-last-parse-start 0)
   (setq shm-last-parse-end 0)
-  (setq shm-last-point 0))
+  (setq shm-last-point 0)
+  (modeline-set-syntax-check-result 'disabled))
 
 (defun shm-reparsing-timer ()
   "Re-parse the tree on the idle timer."
   (when (or structured-haskell-mode
             structured-haskell-repl-mode)
-    (shm/reparse)))
+    (condition-case-unless-debug err
+        (shm/reparse)
+      (error
+       (message "Error while reparsing: %s"
+                (cadr err))
+       nil))))
 
 (defun shm/tab ()
   "Either indent if at the start of a line, or jump to the next

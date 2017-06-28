@@ -26,7 +26,9 @@ module StructuredHaskellMode
   , SourceSpan(..)
   , ParseError
   , SourceCode(..)
-  , unParseError
+  , parseErrorMessage
+  , parseErrorLine
+  , parseErrorColumn
   , parseSpans
   , check
   , getExtensions
@@ -68,7 +70,11 @@ type Parser a = ParseMode -> SourceCode -> ParseResult a
 -- | Thing to parse.
 data ParseType = Decl | Stmt
 
-newtype ParseError = ParseError { unParseError :: String }
+data ParseError = ParseError
+  { parseErrorMessage :: String
+  , parseErrorLine    :: Int
+  , parseErrorColumn  :: Int
+  }
 
 newtype SourceCode = SourceCode { unSourceCode :: String }
 
@@ -105,7 +111,11 @@ runParser
 runParser parser exts code =
   case parser mode code of
     ParseFailed loc e ->
-      throwError $ ParseError $ show loc ++ ":" ++ e
+      throwError ParseError
+        { parseErrorMessage = e
+        , parseErrorLine    = srcLine loc
+        , parseErrorColumn  = srcColumn loc
+        }
     ParseOk x         ->
       pure (mode, x)
   where

@@ -65,7 +65,7 @@ main = do
             Parse -> outputForElisp <$> parseSpans typ exts code
             Check -> putStrLn "[]"  <$  check      typ exts code
       case res of
-        Left err -> error $ unParseError err
+        Left err -> error $ parseErrorMessage err
         Right x  -> x
     _ ->
       error (T.unpack (textDescription (describe options [])))
