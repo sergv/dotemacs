@@ -60,9 +60,37 @@
                 (:eval default-directory)))
           global-mode-string)))
 
+(defvar-local modeline--syntax-check-result 'disabled
+  "Possible values: 'disabled, 'ok, 'error, 'unknown.")
+(defvar-local modeline--syntax-check-cache nil
+  "String representation of syntax check outcome specified in
+`modeline--syntax-check-result'.")
+
+;;;###autoload
+(defun modeline-set-syntax-check-result (new-result &optional properties)
+  "Update syntax check status so it will be visible in the modeline."
+  (declare (indent 1))
+  (cl-assert (symbolp new-result))
+  (unless (eq new-result modeline--syntax-check-result)
+    (setf modeline--syntax-check-cache
+          (if (eq new-result 'disabled)
+              nil
+            (let ((str
+                   (pcase new-result
+                     (`ok      "Syntax:OK")
+                     (`error   "Syntax:Error")
+                     (`unknown "Syntax:?")
+                     (invalid
+                      (error "Invalid syntax check result: %s" new-result)))))
+              (concat (apply #'propertize str properties)
+                      " ")))
+          modeline--syntax-check-result new-result)
+    (force-mode-line-update)))
+
 (setq-default
  mode-line-format
  '("%[%b%] "
+   modeline--syntax-check-cache
    ;; if buffer has assigned file and is modified
    (:eval (when (and buffer-file-name
                      (buffer-modified-p))
@@ -96,7 +124,7 @@
      "/"
      (:eval (mode-line-show-line-count))))
    (:eval (mode-line-show-region-size))
-   (which-func-mode (" (" which-func-format ")"))
+   ;; (which-func-mode (" (" which-func-format ")"))
    global-mode-string))
 
 (provide 'mode-line-setup)
