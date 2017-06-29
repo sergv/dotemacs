@@ -402,12 +402,12 @@ Any optimizations welcome."
                      (lambda (node)
                        (cl-assert (vectorp node))
                        (cl-assert (= 6 (length node)))
-                       (let ((type (elt node 0))
-                             (constructor (elt node 1))
-                             (start-line (elt node 2))
-                             (start-col (elt node 3))
-                             (end-line (elt node 4))
-                             (end-col (elt node 5)))
+                       (let ((type (aref node 0))
+                             (constructor (aref node 1))
+                             (start-line (aref node 2))
+                             (start-col (aref node 3))
+                             (end-line (aref node 4))
+                             (end-col (aref node 5)))
                          (shm-make-node
                           type
                           (if (stringp constructor)
@@ -655,7 +655,7 @@ tree."
                      (1- (length vector)))
           to -1
           until (or (= i -1)
-                    (let ((node (elt vector i)))
+                    (let ((node (aref vector i)))
                       (or (and bound
                                (< (shm-node-start node)
                                   bound))
@@ -667,10 +667,10 @@ tree."
           finally (return
                    (when (and (>= i 0)
                               (not (and bound
-                                        (< (shm-node-start (elt vector i))
+                                        (< (shm-node-start (aref vector i))
                                            bound))))
                      (cons i
-                           (elt vector i)))))))
+                           (aref vector i)))))))
 
 (defun shm-workable-node (current-pair)
   "Assume that the given CURRENT node is not workable, and look
@@ -721,7 +721,7 @@ child, and in fact is common."
         (i (car node-pair)))
     (when (< i (1- (length vector)))
       (cons (1+ i)
-            (elt vector (1+ i))))))
+            (aref vector (1+ i))))))
 
 (defun shm-node-child (node-pair)
   "Return the immediate child of the given parent."
@@ -744,28 +744,29 @@ child, and in fact is common."
           downfrom (car node-pair)
           to -1
           until (or (= i -1)
-                    (let ((node (elt vector i)))
+                    (let ((node (aref vector i)))
                       (<= (shm-node-end node)
                           (shm-node-start (cdr node-pair)))))
           finally (return
                    (when (>= i 0)
                      (shm-workable-node (cons i
-                                              (elt vector i))))))))
+                                              (aref vector i))))))))
 
 (defun shm-node-next (node-pair)
   "Get the next node of NODE-PAIR."
-  (let ((vector (shm-decl-ast)))
+  (let* ((vector (shm-decl-ast))
+         (len (length vector)))
     (loop for i
           from 0
-          to (length vector)
-          until (or (= i (length vector))
-                    (let ((node (elt vector i)))
+          to len
+          until (or (= i len)
+                    (let ((node (aref vector i)))
                       (>= (shm-node-start node)
                           (shm-node-end (cdr node-pair)))))
           finally (return
-                   (when (< i (length vector))
+                   (when (< i len)
                      (shm-workable-node (cons i
-                                              (elt vector i))))))))
+                                              (aref vector i))))))))
 
 (defun shm-get-qop-string (node)
   "Get the string of the operator, if the node is an operator."
@@ -818,7 +819,7 @@ node. This function will return the *actual* node at point. See
   "Get the top-level node of the declaration."
   (let* ((vector (save-excursion (goto-char start)
                                  (shm-decl-ast))))
-    (elt vector 0)))
+    (aref vector 0)))
 
 (defun shm-current-node-string ()
   "Get the text of the current shm node"
