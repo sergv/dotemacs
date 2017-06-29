@@ -171,22 +171,76 @@ and instate this one."
         (replace-match ""))
       (buffer-substring-no-properties (point-min) (point-max)))))
 
-(defvar shm--process nil)
+(defcustom shm-server-executable "structured-haskell-mode-server"
+  "Range of ports to use when starting `structured-haskell-mode-server'
+executable from the Emacs.")
+
+(defcustom shm-server-port-range '(40000 . 42000)
+  "Range of ports to use when starting `structured-haskell-mode-server'
+executable from the Emacs.")
+
+(defcustom shm-server-default-port 8132
+  "Default port to use for connecting to already running `structured-haskell-mode-server'
+instance.")
+
+(defvar shm--server-connection-process nil)
+(defvar shm--server-process nil)
+(defvar shm--server-process-port nil)
+
+(defun shm--connect-bert-rpc (port)
+  (bert-rpc-connect
+   :name "structured-haskell-mode"
+   :port port
+   :buffer (get-buffer-create " *structured-haskell-mode-interaction*")
+   :interaction 'synchronous))
+
+(defun shm--start-server-on-port (port)
+  "Try to start executable with random port and connect to it. Returns port,
+sets `shm--server-process' and `shm--server-process-port' variables."
+  (when (or (not shm--server-process-port)
+            (and shm--server-process
+                 (not (eq 'run (process-status shm--server-process)))))
+    (message "Starting shm server...")
+    (setf shm--server-process
+          (with-temp-buffer
+            (let ((proc
+                   (make-process
+                    :name "structured-haskell-mode-server"
+                    :buffer (current-buffer)
+                    :command (list shm-server-executable
+                                   "--port"
+                                   (number->string port))
+                    :noquery t)))
+              (when (or (not proc)
+                        (not (eq 'run (process-status proc))))
+                (error "Failed to start %s executable: %s"
+                       shm-server-executable
+                       (buffer-substring-no-properties (point-min)
+                                                       (point-max))))
+              (set-process-buffer proc nil)
+              proc))
+          shm--server-process-port port))
+  shm--server-process-port)
 
 (defun shm--connect ()
-  (if (and shm--process
-           (eq (process-status shm--process) 'open))
-      shm--process
+  (if (and shm--server-connection-process
+           (eq (process-status shm--server-connection-process) 'open))
+      shm--server-connection-process
     (progn
-      (when shm--process
-        (bert-rpc-disconnect shm--process))
-      (setf shm--process
-            (bert-rpc-connect
-             :name "structured-haskell-mode"
-             :port 8132
-             :buffer (get-buffer-create " *structured-haskell-mode-interaction*")
-             :interaction 'synchronous))
-      shm--process)))
+      (when shm--server-connection-process
+        (bert-rpc-disconnect shm--server-connection-process))
+      (setf shm--server-connection-process
+            (condition-case err
+                ;; Try to connect to running instance, may fail if there's
+                ;; nothing running on specified port.
+                (shm--connect-bert-rpc shm-server-default-port)
+              (error
+               (let* ((low-port    (car shm-server-port-range))
+                      (high-port   (cdr shm-server-port-range))
+                      (random-port (+ low-port (random (- high-port low-port)))))
+                 (shm--connect-bert-rpc
+                  (shm--start-server-on-port random-port))))))
+      shm--server-connection-process)))
 
 (defvar structured-haskell-mode--results (make-hash-table :test #'equal))
 
