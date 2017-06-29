@@ -62,6 +62,12 @@
 
 (vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
   (flycheck-haskell-clear-config-cache)
+  (setf flycheck-ghc-package-databases nil
+        flycheck-haskell-ghc-executable nil
+        flycheck-ghc-search-path nil
+        flycheck-ghc-language-extensions nil
+        flycheck-ghc-args nil
+        flycheck-hlint-args nil)
   (flycheck-haskell-configure)
   (vim:flycheck-run))
 
