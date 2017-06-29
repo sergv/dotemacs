@@ -295,15 +295,15 @@ data Test = (point)B | A | C"
 (defun shm-in-data-constructor ()
   "Check if the current node is a Data Declaration (DataDecl) or
 the child of one."
-  (eq 'DataDecl (elt (elt (shm-decl-ast) 0) 1)))
+  (eq 'DataDecl (aref (aref (shm-decl-ast) 0) 1)))
 
 (defun shm-get-data-constructor-members-points ()
   "Find the region bounds of all the data constructors within the
 current data declaration."
   (when (shm-in-data-constructor)
-    (mapcar (lambda (ps) (cons (elt ps 2) (elt ps 3)))
+    (mapcar (lambda (ps) (cons (aref ps 2) (aref ps 3)))
             (remove-if (lambda (n) (eq n 'nil))
-                       (mapcar (lambda (c) (let ((decl (elt c 1)))
+                       (mapcar (lambda (c) (let ((decl (aref c 1)))
                                         (cond
                                          ((eq decl 'QualConDecl) c)
                                          (t nil))))
@@ -313,9 +313,9 @@ current data declaration."
   "Find the region bounds of all the field constructors within
   the current data declaration."
   (let ((field-list (when (shm-in-data-constructor)
-                      (mapcar (lambda (ps) (cons (elt ps 2) (elt ps 3)))
+                      (mapcar (lambda (ps) (cons (aref ps 2) (aref ps 3)))
                               (remove-if (lambda (n) (eq n 'nil))
-                                         (mapcar (lambda (c) (if (eq 'FieldDecl (elt c 1)) c nil))
+                                         (mapcar (lambda (c) (if (eq 'FieldDecl (aref c 1)) c nil))
                                                  (shm-decl-ast)))))))
     (if-let ((data-index (shm-find-current-data-member-index-at-point)))
         (let ((bounds-data-index (elt (shm-get-data-constructor-members-points) data-index)))

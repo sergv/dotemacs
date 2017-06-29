@@ -346,7 +346,7 @@ the line."
           from 0
           to (length vector)
           until (or (>= i (length vector))
-                    (let ((node (elt vector i)))
+                    (let ((node (aref vector i)))
                       (and (>= (shm-node-start node)
                                (shm-node-start parent))
                            (<= (shm-node-end node)
