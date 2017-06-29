@@ -66,18 +66,20 @@
   "Jump over sexps or boundaries of haskell nodes if there's no sexp at point.
 Similar to `vim:motion-jump-item'."
   (if (let ((synt (char-syntax (char-after))))
-        (or (char=? synt ?\()
-            (char=? synt ?\))))
+        (or (char= synt ?\()
+            (char= synt ?\))))
       (vim:motion-jump-item)
-    (let* ((node (shm-current-node))
-           (start (shm-node-start node))
-           (end (shm-node-end node)))
-      (cond ((= start (point))
-             (goto-char end))
-            ((= end (point))
-             (goto-char start))
-            (t
-             (shm/forward-node))))))
+    (let ((node (shm-current-node)))
+      (if node
+          (let ((start (shm-node-start node))
+                (end (shm-node-end node)))
+            (cond ((= start (point))
+                   (goto-char end))
+                  ((= end (point))
+                   (goto-char start))
+                  (t
+                   (shm/forward-node))))
+        (error "No current node available")))))
 
 (provide 'haskell-shm)
 
