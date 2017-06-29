@@ -233,7 +233,7 @@ state that will hopefully be garbage collected."
         (shm/reparse)
       (error
        (message "Error while reparsing: %s"
-                (cadr err))
+                (cdr err))
        nil))))
 
 (defun shm/tab ()

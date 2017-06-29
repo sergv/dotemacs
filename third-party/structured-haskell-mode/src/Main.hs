@@ -42,8 +42,8 @@ sourceSpanToElisp SourceSpan{ssType, ssConstructor, ssStartLine, ssStartColumn, 
   "[" ++ spanContent ++ "]"
   where
     spanContent = unwords
-      [ T.unpack ssType
-      , T.unpack ssConstructor
+      [ "(" ++ unwords (T.unpack (ctConstructor ssType) : map T.unpack (ctParams ssType)) ++ ")"
+      , T.unpack $ unConstructorName ssConstructor
       , show ssStartLine
       , show ssStartColumn
       , show ssEndLine

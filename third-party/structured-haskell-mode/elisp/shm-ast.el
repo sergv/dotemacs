@@ -662,8 +662,8 @@ tree."
                           (and (>= point (shm-node-start node))
                                (<= point (shm-node-end node))
                                (or (not type)
-                                   (string= type
-                                            (shm-node-type node)))))))
+                                   (equal type
+                                          (shm-node-type node)))))))
           finally (return
                    (when (and (>= i 0)
                               (not (and bound
@@ -684,7 +684,7 @@ then the parent is the correct one to work with."
                     (shm-node-start parent))
                  (= (shm-node-end current)
                     (shm-node-end parent)))
-            (if (string= (shm-node-type current) (shm-node-type parent))
+            (if (equal (shm-node-type current) (shm-node-type parent))
                 current-pair
               (shm-workable-node parent-pair))
           current-pair)
