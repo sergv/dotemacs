@@ -185,8 +185,10 @@ spansToBertTerm = ListTerm . map convert
     convert :: SourceSpan -> Term
     convert SourceSpan{ssType, ssConstructor, ssStartLine, ssStartColumn, ssEndLine, ssEndColumn} =
       TupleTerm
-        [ BinaryTerm $ TLE.encodeUtf8 $ TL.fromStrict ssType
-        , AtomTerm $ T.unpack ssConstructor
+        [ ListTerm $
+            AtomTerm (T.unpack $ ctConstructor ssType) :
+            map (AtomTerm . T.unpack) (ctParams ssType)
+        , AtomTerm $ T.unpack $ unConstructorName ssConstructor
         , IntTerm ssStartLine
         , IntTerm ssStartColumn
         , IntTerm ssEndLine
