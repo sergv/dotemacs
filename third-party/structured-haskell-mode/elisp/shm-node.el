@@ -21,7 +21,8 @@
 (require 'shm-ast-documentation)
 
 (defsubst shm-make-node (type constructor start end)
-  (cl-assert (stringp type))
+  (cl-assert (listp type))
+  (cl-assert (-all? #'symbolp type))
   (cl-assert (symbolp constructor))
   (cl-assert (markerp start))
   (cl-assert (markerp end))
@@ -37,7 +38,7 @@
 This doesn't always return the correct thing, e.g. [Foo Bar] will
 return [Foo. It's just a convenience function to get things like
 Case or whatnot"
-  (nth 0 (split-string (aref n 0) " ")))
+  (car (shm-node-type n)))
 
 (defsubst shm-node-cons (n)
   "Get the constructor name of N."
