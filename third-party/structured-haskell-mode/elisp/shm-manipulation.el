@@ -111,8 +111,8 @@ This is more convenient than typing out the same operator."
         (when grandparent
           (shm-raise-to current grandparent))))
      (parent
-      (when (string= (shm-node-type current)
-                     (shm-node-type parent))
+      (when (equal (shm-node-type current)
+                   (shm-node-type parent))
         (shm-raise-to current parent)))
      ((and (eq 'UnGuardedRhs (shm-node-cons (cdr actual-parent-pair)))
            (eq 'Lambda (shm-node-cons current)))

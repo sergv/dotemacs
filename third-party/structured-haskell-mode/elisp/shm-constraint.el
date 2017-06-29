@@ -47,7 +47,7 @@
 (defun shm-top-level-type-decl-p (node-pair)
   (let ((current-node (cdr node-pair)))
     (if (and (not (shm-has-parent-with-matching-type-p node-pair))
-             (string= "Type SrcSpanInfo" (shm-node-type current-node))) t)))
+             (equal '(Type SrcSpanInfo) (shm-node-type current-node))) t)))
 
 (defun shm-type-signature-with-constraint-p (pair)
   (let ((current-node (cdr pair)))
@@ -78,8 +78,8 @@
   (let* ((current (cdr node-pair))
          (parent-pair (shm-node-parent node-pair (shm-node-type current)))
          (parent (cdr parent-pair)))
-    (if parent
-        (if (string= (shm-node-type current)
-                     (shm-node-type parent)) t))))
+    (when parent
+      (equal (shm-node-type current)
+             (shm-node-type parent)))))
 
 (provide 'shm-constraint)
