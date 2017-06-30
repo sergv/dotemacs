@@ -12,6 +12,11 @@
 --
 ----------------------------------------------------------------------------
 
+{-# LANGUAGE CPP #-}
+
+-- Whether to track source covered by SourceSpan.
+#undef DEBUG
+
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -42,8 +47,6 @@ module StructuredHaskellMode
 
 import Control.Monad (foldM)
 import Control.Monad.Except.Ext (MonadError, throwError, throwErrorWithBacktrace)
-import Data.DList (DList)
-import qualified Data.DList as DL
 import Data.Data
 import Data.Foldable
 import Data.Maybe
@@ -58,6 +61,11 @@ import Language.Haskell.Exts hiding (Pretty)
 import Data.ErrorMessage
 import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Ext
+
+#ifdef DEBUG
+import Data.DList (DList)
+import qualified Data.DList as DL
+#endif
 
 -- | A generic Dynamic-like constructor -- but more convenient to
 -- write and pattern match on.
@@ -81,9 +89,10 @@ data ParseError = ParseError
   { parseErrorMessage :: String
   , parseErrorLine    :: Int
   , parseErrorColumn  :: Int
-  }
+  } deriving (Eq, Ord, Show)
 
 newtype SourceCode = SourceCode { unSourceCode :: String }
+  deriving (Eq, Ord, Show)
 
 newtype SourceCodeLines = SourceCodeLines { _unSourceCodeLines :: [Text] }
 
@@ -174,12 +183,13 @@ genHSE sourceCode mode = go
     go x =
       case gmapQ D x of
         zs@(D y:ys) ->
-          case cast y of
+          case cast y :: Maybe SrcSpanInfo of
             Just s -> concat
               [ [ spanHSE
                     sourceCode
-                    (RealType (typeOf x))
-                    (ConstructorName $ T.pack $ showConstr $ toConstr x)
+                    (RealType
+                      (typeOf x)
+                      (ConstructorName $ T.pack $ showConstr $ toConstr x))
                     (srcInfoSpan s)
                 ]
               , concatMap (\(i, D d) -> pre sourceCode x i ++ go d) (zip [0..] ys)
@@ -198,7 +208,6 @@ pre sourceCode x i = case cast x :: Maybe (Exp SrcSpanInfo) of
       [ spanHSE
           sourceCode
           (FakeType RecUpdates)
-          (ConstructorName "RecUpdates")
           (SrcSpan
              (srcSpanFilename start)
              (srcSpanStartLine start)
@@ -213,7 +222,6 @@ pre sourceCode x i = case cast x :: Maybe (Exp SrcSpanInfo) of
         [ spanHSE
             sourceCode
             (FakeType InstHeads)
-            (ConstructorName "InstHeads")
             (SrcSpan
                (srcSpanFilename start)
                (srcSpanStartLine start)
@@ -253,18 +261,19 @@ redelta qname base (SrcSpanInfo (SrcSpan fp sl sc el ec) pts) =
                      (el + lineOffset)
                      ec)
     pts
-  where lineOffset = sl' - 1
-        columnOffset =
-          sc' - 1 +
-          length ("[" :: String) +
-          length qname +
-          length ("|" :: String)
-        (SrcSpanInfo (SrcSpan _ sl' sc' _ _) _) = base
+  where
+    lineOffset = sl' - 1
+    columnOffset =
+      sc' - 1 +
+      length ("[" :: String) +
+      length qname +
+      length ("|" :: String)
+    (SrcSpanInfo (SrcSpan _ sl' sc' _ _) _) = base
 
 data CompositeType = CompositeType
   { ctConstructor :: !Text -- unqualified
   , ctParams      :: [Text]
-  }
+  } deriving (Eq, Ord, Show)
 
 instance Pretty CompositeType where
   pretty CompositeType{ctConstructor, ctParams} =
@@ -273,25 +282,30 @@ instance Pretty CompositeType where
 data SourceSpan = SourceSpan
   { ssType          :: !CompositeType
   , ssConstructor   :: !ConstructorName
+#ifdef DEBUG
   , ssMatchedSource :: !Text
+#endif
   , ssStartLine     :: !Int
   , ssStartColumn   :: !Int
   , ssEndLine       :: !Int
   , ssEndColumn     :: !Int
-  }
+  } deriving (Eq, Ord, Show)
 
 instance Pretty SourceSpan where
-  pretty SourceSpan{ssType, ssConstructor, ssMatchedSource, ssStartLine, ssStartColumn, ssEndLine, ssEndColumn} =
+  pretty _span@SourceSpan{ssType, ssConstructor, ssStartLine, ssStartColumn, ssEndLine, ssEndColumn} =
     ppDict "SourceSpan"
       [ "ssType"          :-> pretty ssType
       , "ssConstructor"   :-> pretty ssConstructor
-      , "ssMatchedSource" :-> pretty ssMatchedSource
+#ifdef DEBUG
+      , "ssMatchedSource" :-> pretty (ssMatchedSource _span)
+#endif
       , "ssStartLine"     :-> pretty ssStartLine
       , "ssStartColumn"   :-> pretty ssStartColumn
       , "ssEndLine"       :-> pretty ssEndLine
       , "ssEndColumn"     :-> pretty ssEndColumn
       ]
 
+#ifdef DEBUG
 data Lines a =
     SingleLine a
   | MultipleLines a [a] a
@@ -307,9 +321,9 @@ splitIntoLines = \case
     go h acc t (x : xs) = go h (DL.snoc acc t) x xs
 
 getSourceCoveredBySpan :: HasCallStack => SrcSpan -> SourceCodeLines -> Text
-getSourceCoveredBySpan span@SrcSpan{srcSpanStartLine, srcSpanStartColumn, srcSpanEndLine, srcSpanEndColumn} (SourceCodeLines codeLines) =
+getSourceCoveredBySpan SrcSpan{srcSpanStartLine, srcSpanStartColumn, srcSpanEndLine, srcSpanEndColumn} (SourceCodeLines codeLines) =
   case splitIntoLines relevantLines of
-    Nothing -> error $ "Span '" ++ show span ++ "' covers 0 lines."
+    Nothing -> mempty
     Just x  -> case x of
       SingleLine line      -> T.take columnsDelta $ T.drop (srcSpanStartColumn - 1) line
       MultipleLines h xs t -> T.concat $
@@ -321,25 +335,26 @@ getSourceCoveredBySpan span@SrcSpan{srcSpanStartLine, srcSpanStartColumn, srcSpa
       $ codeLines
     linesDelta   = srcSpanEndLine - srcSpanStartLine + 1
     columnsDelta = srcSpanEndColumn - srcSpanStartColumn + 1
+#endif
 
 data FakeType = RecUpdates | InstHeads
   deriving (Eq, Ord, Show)
 
 data TypeName =
-    RealType TypeRep
+    RealType TypeRep ConstructorName
   | FakeType FakeType
   deriving (Eq, Ord, Show)
 
 typeNameToTypeApp :: TypeName -> CompositeType
 typeNameToTypeApp = \case
-  RealType rep -> CompositeType
+  RealType rep _ -> CompositeType
     { ctConstructor = unqual $ T.pack $ show typeCons
     , ctParams      = map (unqual . T.pack . show) typeParams
     }
     where
       (typeCons, typeParams) = splitTyConApp rep
       unqual = T.takeWhileEnd (/= '.')
-  FakeType typ -> CompositeType
+  FakeType typ  -> CompositeType
     { ctConstructor =
         case typ of
           RecUpdates -> "RecUpdates"
@@ -350,12 +365,21 @@ typeNameToTypeApp = \case
 newtype ConstructorName = ConstructorName { unConstructorName :: Text }
   deriving (Eq, Ord, Pretty, Show)
 
+getConstructorName :: TypeName -> ConstructorName
+getConstructorName = \case
+  RealType _ cons -> cons
+  FakeType typ    -> case typ of
+    RecUpdates -> ConstructorName "RecUpdates"
+    InstHeads  -> ConstructorName "InstHeads"
+
 -- | Generate a span from a HSE SrcSpan.
-spanHSE :: SourceCodeLines -> TypeName -> ConstructorName -> SrcSpan -> SourceSpan
-spanHSE sourceCode typ cons span@SrcSpan{..} = SourceSpan
+spanHSE :: SourceCodeLines -> TypeName -> SrcSpan -> SourceSpan
+spanHSE _sourceCode typ _span@SrcSpan{..} = SourceSpan
   { ssType          = typeNameToTypeApp typ
-  , ssConstructor   = cons
-  , ssMatchedSource = getSourceCoveredBySpan span sourceCode
+  , ssConstructor   = getConstructorName typ
+#ifdef DEBUG
+  , ssMatchedSource = getSourceCoveredBySpan _span _sourceCode
+#endif
   , ssStartLine     = srcSpanStartLine
   , ssStartColumn   = srcSpanStartColumn
   , ssEndLine       = srcSpanEndLine
@@ -413,7 +437,7 @@ readExtension x =
 -- | Default extensions.
 defaultExtensions :: Set Extension
 defaultExtensions =
-  S.fromList [e | e@EnableExtension{} <- knownExtensions] S.\\
+  S.fromList [e | e@EnableExtension{} <- knownExtensions] `S.difference`
   S.fromList (map EnableExtension badExtensions)
 
 -- | Extensions which steal too much syntax.
