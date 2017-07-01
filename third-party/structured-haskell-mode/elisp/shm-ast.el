@@ -749,6 +749,7 @@ then the parent is the correct one to work with."
 
 The start and end point of the parent can be the same as the
 child, and in fact is common."
+  (cl-assert (symbolp type))
   (save-excursion
     (goto-char (shm-node-start (cdr node-pair)))
     (let* ((actual-parent-pair (shm-node-backwards (1- (car node-pair))
