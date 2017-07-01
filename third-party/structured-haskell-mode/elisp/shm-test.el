@@ -127,6 +127,8 @@
     (god-local-mode -1))
   (when (fboundp 'electric-indent-mode)
     (electric-indent-mode -1))
+  (text-mode)
+  (vim:normal-mode -1)
   (let ((customizations (plist-get test :customizations)))
     (when customizations
       (dolist (entry customizations)
@@ -159,9 +161,15 @@ Expected (quoted):
 Actual (quoted):
 
 %s\n"
-               (plist-get test :start-buffer-content)
-               (shm-test-exact-quote expected)
-               (shm-test-exact-quote actual))))
+               (shm-test--show-cursor
+                (plist-get test :start-buffer-content)
+                (plist-get test :start-cursor))
+               (shm-test--show-cursor
+                (shm-test-exact-quote expected)
+                (plist-get test :finish-cursor))
+               (shm-test--show-cursor
+                (shm-test-exact-quote actual)
+                (point)))))
     (let ((actual (point))
           (expected (plist-get test :finish-cursor)))
       (unless (= actual expected)
@@ -185,6 +193,15 @@ Actual:
                        (concat "\"" l "\""))
                      (split-string s "\n"))
              "\n"))
+
+(defun shm-test--show-cursor (str pos)
+  (if pos
+      (with-temp-buffer
+        (insert str)
+        (goto-char pos)
+        (insert "_|_")
+        (buffer-substring-no-properties (point-min) (point-max)))
+    str))
 
 (provide 'shm-test)
 
