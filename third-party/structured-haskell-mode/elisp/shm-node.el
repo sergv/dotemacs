@@ -33,11 +33,7 @@
   (aref n 0))
 
 (defsubst shm-node-type-name (n)
-  "Get just the constructor name part of N.
-
-This doesn't always return the correct thing, e.g. [Foo Bar] will
-return [Foo. It's just a convenience function to get things like
-Case or whatnot"
+  "Get just the constructor name part of N."
   (car (shm-node-type n)))
 
 (defsubst shm-node-cons (n)

@@ -72,10 +72,9 @@ line after END-POINT."
                 (goto-char (line-end-position))
                 (let ((current-pair (shm-node-backwards)))
                   (when current-pair
-                    (or (string= (shm-node-type-name (cdr current-pair))
-                                 "Rhs")
-                        (eq (shm-node-cons (cdr current-pair))
-                            'Lambda)))))
+                    (let ((x (cdr current-pair)))
+                      (or (eq (shm-node-type-name x) 'Rhs)
+                          (eq (shm-node-cons x)      'Lambda))))))
         (shm-move-dependents n
                              end-point)))))
 
@@ -216,7 +215,7 @@ operation."
 current line.
 
 This is used when indenting dangling expressions."
-  (if (string= (shm-node-type-name (cdr current)) "Decl")
+  (if (eq (shm-node-type-name (cdr current)) 'Decl)
       current
       (let ((parent (shm-node-parent current)))
         (if parent
