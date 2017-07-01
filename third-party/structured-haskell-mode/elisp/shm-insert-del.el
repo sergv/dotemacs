@@ -258,10 +258,7 @@ the current node to the parent."
           (str (concat ","
                        (if (and shm-insert-space-after-comma
                                 (or (not (char-after))
-                                    (and (not (char= (char-after)
-                                                     ?\s))
-                                         (not (char= (char-after)
-                                                     ?\))))))
+                                    (not (memq (char-after) '(?\s ?\))))))
                          " "
                          ""))))
       (if current-pair
@@ -664,15 +661,19 @@ do x <- |
 (defun shm/export ()
   "Export the identifier at point."
   (interactive)
-  (let ((name (shm-node-string (shm-actual-node))))
-    (save-excursion
-      (goto-char (point-min))
-      (search-forward-regexp "^module")
-      (search-forward-regexp " where")
-      (search-backward-regexp ")")
-      (shm/reparse)
-      (shm/newline-indent)
-      (insert name))))
+  (let ((node (shm-actual-node)))
+    (if node
+        (let ((name (shm-node-string (shm-actual-node))))
+          (save-match-data
+            (save-excursion
+              (goto-char (point-min))
+              (search-forward-regexp "^module")
+              (search-forward-regexp " where")
+              (search-backward-regexp ")")
+              (shm/reparse)
+              (shm/newline-indent)
+              (insert name))))
+      (error "No node at point"))))
 
 (provide 'shm-insert-del)
 
