@@ -263,7 +263,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
               (shm-node-start parent)))
       (let ((ancestor-parent (shm-node-parent
                               (shm-node-ancestor-at-point current-pair (point))))
-            (decl (shm-node-parent current-pair "Decl SrcSpanInfo")))
+            (decl (shm-node-parent current-pair '(Decl SrcSpanInfo))))
         (shm-newline)
         (indent-to (+ (shm-indent-spaces)
                       (shm-node-start-column (cdr decl))))))
