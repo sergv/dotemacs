@@ -87,7 +87,7 @@ This is more convenient than typing out the same operator."
             (shm-insert-string (concat " " qop " ")))
            (t (error "Please go to the start or end of the node to indicate direction."))))
          (t (error "Unable to figure out the operator.")))))
-     ((string= "Type" (shm-node-type-name current))
+     ((eq 'Type (shm-node-type-name current))
       (if (= (point) (shm-node-start current))
           (save-excursion (insert " -> "))
         (insert " -> ")))
@@ -204,8 +204,8 @@ Only parenthesized nodes are supported at the moment."
       (shm/reparse)
       (let ((current (shm-current-node)))
         (when (and current
-                   (string= "ImportDecl"
-                            (shm-node-type-name current)))
+                   (eq 'ImportDecl
+                       (shm-node-type-name current)))
           (cond
            ((looking-at-p "import[\n ]+qualified[ \n]+")
             (search-forward-regexp "qualified" (shm-node-end current) t 1)

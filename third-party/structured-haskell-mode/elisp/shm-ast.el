@@ -760,8 +760,8 @@ child, and in fact is common."
            (maybe-parent-parent (cdr maybe-parent-parent-pair)))
       (cond ((and actual-parent-pair
                   maybe-parent-parent-pair
-                  (string= (shm-node-type-name actual-parent)
-                           (shm-node-type-name maybe-parent-parent))
+                  (eq (shm-node-type-name actual-parent)
+                      (shm-node-type-name maybe-parent-parent))
                   (and shm-skip-applications
                        (shm-node-app-p actual-parent))
                   (eq (shm-node-cons actual-parent)
@@ -824,7 +824,7 @@ child, and in fact is common."
 
 (defun shm-get-qop-string (node)
   "Get the string of the operator, if the node is an operator."
-  (when (string= (shm-node-type-name node) "QOp")
+  (when (eq (shm-node-type-name node) 'QOp)
     (buffer-substring-no-properties (shm-node-start node)
                                     (shm-node-end node))))
 

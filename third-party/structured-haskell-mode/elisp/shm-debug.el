@@ -64,10 +64,10 @@ Very useful for debugging and also a bit useful for newbies."
   "Generate a description of the given node suitable to be put in
   the minibuffer. If no documentation can be found, it generates
   a reasonable string instead."
-  (let* ((type-doc (assoc (shm-node-type-name node)
-                          shm-ast-documentation))
-         (con-doc (assoc (symbol-name (shm-node-cons node))
-                         (cddr type-doc))))
+  (let* ((type-doc (assq (shm-node-type-name node)
+                         shm-ast-documentation))
+         (con-doc (assq (shm-node-cons node)
+                        (cddr type-doc))))
     (if type-doc
         (format "Node type: “%s”: %s, case: %s\n%s"
                 (nth 0 type-doc)
