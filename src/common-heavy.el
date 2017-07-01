@@ -762,6 +762,48 @@ returns t."
 
 ;;;
 
+(defun pp-macro (macro-def)
+  "Pretty-print macro definition into elisp characters.
+
+E.g.
+\"[,('[\" -> [?\C-e ?\[ ?\C-s ?, ?\( ?\n ?' ?\[]
+"
+  (cl-assert (stringp macro-def))
+  (concat "["
+          (mapconcat (lambda (c)
+                       (cond
+                         ((eq c ?\n)
+                          "?\\n")
+                         ((eq c ?\r)
+                          "?\\r")
+                         ((eq c ?\t)
+                          "?\\t")
+                         (t
+                          (let ((ppc (pp-char c))
+                                (modifier-re "\\([CM]-\\)"))
+                            (concat "?"
+                                    (when (memq c '(?\( ?\) ?\[ ?\] ?\{ ?\}))
+                                      "\\")
+                                    (replace-regexp-in-string
+                                     modifier-re
+                                     "\\\\\\1"
+                                     ppc))))))
+                     (string->list macro-def)
+                     " ")
+          "]"))
+
+(defun pp-char (char)
+  "Pretty-print charatrec as e.g. \"C-e\", \"[\", \",\", etc."
+  (let ((multibyte-p enable-multibyte-characters))
+    (if multibyte-p
+        (if (< char 128)
+            (single-key-description char)
+          (string-to-multibyte
+           (char-to-string char)))
+      (single-key-description char))))
+
+;;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:

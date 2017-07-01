@@ -371,9 +371,21 @@
     (split-shell-command-into-arguments "foo \"bar \"'quux' baz")
     '("foo" "bar quux" "baz"))))
 
-;; (progn
-;;   (ert "common-tests/.*")
-;;   nil)
+(ert-deftest common-tests/pp-macro-1 ()
+  (let ((macro "[,('["))
+    (should (equal macro (list->string (read (pp-macro macro)))))))
+
+(ert-deftest common-tests/pp-macro-2 ()
+  (let ((macro ""))
+    (should (equal macro (list->string (read (pp-macro macro)))))))
+
+;; (ert-deftest common-tests/pp-macro-3 ()
+;;   (let ((macro "\375\375\375\375\375\373\373\373\373\373"))
+;;     (should (equal macro (list->string (read (pp-macro macro)))))))
+
+(progn
+  (ert "common-tests/.*")
+  nil)
 
 (provide 'common-tests)
 
