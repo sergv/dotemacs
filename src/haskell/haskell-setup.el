@@ -176,6 +176,22 @@
     ("TAB"          nil)
     ("<backtab>"    nil))
 
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("- q" shm/qualify-import)
+    ("- e" shm/export))
+
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ;; Don't bind shm/double-quote since it's less useful than smartparens-based
+    ;; binding.
+    ;; ("\""  shm/double-quote)
+    ("("   shm/open-paren)
+    (")"   shm/close-paren)
+    ("["   shm/open-bracket)
+    ("]"   shm/close-bracket)
+    ("{"   shm/open-brace)
+    ("}"   shm/close-brace)
+    (","   shm/comma))
+
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("C-w"             shm/backward-kill-word)
@@ -196,14 +212,14 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
-    ("- t" ghc-show-type)
-    ("- i" ghc-show-info)
-    ("- e" ghc-expand-th)
-    ("- m" ghc-insert-module)
-    ("- c" ghc-case-split)
-    ("- r" ghc-refine)
-    ("- a" ghc-auto)
-    ("- s" ghc-insert-template-or-signature)
+    ;; ("- t" ghc-show-type)
+    ;; ("- i" ghc-show-info)
+    ;; ("- e" ghc-expand-th)
+    ;; ("- m" ghc-insert-module)
+    ;; ("- c" ghc-case-split)
+    ;; ("- r" ghc-refine)
+    ;; ("- a" ghc-auto)
+    ;; ("- s" ghc-insert-template-or-signature)
 
     ("*"   search-for-haskell-symbol-at-point-forward)
     ("C-*" search-for-haskell-symbol-at-point-forward-new-color)
