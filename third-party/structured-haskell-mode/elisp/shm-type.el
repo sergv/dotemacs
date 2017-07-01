@@ -23,10 +23,7 @@
   (interactive)
   (let ((current (shm-current-node)))
     (cond
-     ((or (string= (shm-node-type-name current) "Exp")
-          (string= (shm-node-type-name current) "Decl")
-          (string= (shm-node-type-name current) "Pat")
-          (string= (shm-node-type-name current) "QOp"))
+     ((memq (shm-node-type-name current) '(Exp Decl Pat QOp))
       (let ((type-info (shm-node-type-info current)))
         (if type-info
             (shm-present-type-info current type-info)
@@ -34,10 +31,9 @@
                    (fboundp 'haskell-process-do-type))
               (haskell-process-do-type)
             (error "Unable to get type information for that node.")))))
-     ((and (string= (shm-node-type-name current) "Name")
+     ((and (eq (shm-node-type-name current) 'Name)
            (let ((parent-name (shm-node-type-name (cdr (shm-node-parent (shm-current-node-pair))))))
-             (or (string= parent-name "Match")
-                 (string= parent-name "Decl"))))
+             (memq parent-name '(Match Decl))))
       (let* ((node (cdr (shm-node-parent (shm-current-node-pair))))
              (type-info (shm-node-type-info node)))
         (if type-info

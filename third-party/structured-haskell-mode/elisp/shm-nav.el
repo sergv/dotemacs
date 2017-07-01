@@ -45,11 +45,10 @@
           downfrom (car node-pair)
           to -1
           until (or (= i -1)
-                    (let ((node (elt vector i)))
-                      (and (or (string= "Rhs"
-                                        (shm-node-type-name node))
-                               (string= "Decl"
-                                        (shm-node-type-name node)))
+                    (let ((node (aref vector i)))
+                      (and node
+                           (memq (shm-node-type-name node)
+                                 '(Rhs Decl))
                            (<= (shm-node-start node)
                                (shm-node-start (cdr node-pair)))
                            (>= (shm-node-end node)

@@ -161,9 +161,9 @@ stick it to the previous operator on line."
           (shm-auto-insert-do))
          ((and (looking-back " <-")
                (let ((current (ignore-errors (shm-current-node))))
-                 (when current
-                   (or (eq 'Do (shm-node-cons current))
-                       (string= "Stmt" (shm-node-type-name current))))))
+                 (and current
+                      (or (eq 'Do   (shm-node-cons current))
+                          (eq 'Stmt (shm-node-type-name current))))))
           (if (bound-and-true-p structured-haskell-repl-mode)
               (insert " ")
             (shm-auto-insert-stmt 'qualifier)))
@@ -182,7 +182,7 @@ stick it to the previous operator on line."
            ((let ((current (ignore-errors (shm-current-node))))
               (and current
                    (or (not (or (memq (shm-node-cons current) '(Do BDecls))
-                                (string= "Stmt" (shm-node-type-name current))))
+                                (eq 'Stmt (shm-node-type-name current))))
                        (bound-and-true-p structured-haskell-repl-mode))))
             (shm-auto-insert-let))
            ((not (bound-and-true-p structured-haskell-repl-mode))
@@ -300,10 +300,7 @@ the current node to the parent."
        ((and current
              (or (eq (shm-node-cons current)
                      'SpliceDecl)
-                 (string= (shm-node-type-name current)
-                          "BangType")
-                 (string= (shm-node-type-name current)
-                          "FieldDecl")))
+                 (memq (shm-node-type-name current) '(BangType FieldDecl))))
         (unless (looking-back "[ ]+")
           (insert " "))
         (unless (looking-back "::[ ]+")
@@ -357,8 +354,7 @@ the current node to the parent."
                    (shm-current-node))))
     (cond
      ((and current
-           (or (string= "ExportSpec" (shm-node-type-name current))
-               (string= "ImportSpec" (shm-node-type-name current))))
+           (memq (shm-node-type-name current) '(ExportSpec ImportSpec)))
       (insert "()")
       (forward-char -1))
      (t
@@ -376,7 +372,7 @@ the current node to the parent."
                    (shm-current-node))))
     (cond
      ((and current
-           (string= "Pat" (shm-node-type-name current)))
+           (eq (shm-node-type-name current) 'Pat))
       (shm-insert-string "{}")
       (forward-char -1))
      (t
