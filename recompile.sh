@@ -14,6 +14,11 @@ else
 fi
 emacs_dir=${1:-"${EMACS_DIR}"}
 
+function inform {
+    local msg="$1"
+    echo "[$msg]"
+}
+
 function update-dir-autoloads {
     local name="$1"
     shift 1
@@ -44,6 +49,7 @@ EOF
     emacs --batch --eval "$emacs_cmd"
 }
 
+inform "Removing generated autoload el files"
 rm -f \
    "src/local-autoloads.el" \
    "third-party/clojure-mode/clojure-mode-autoloads.el" \
@@ -52,6 +58,10 @@ rm -f \
    "third-party/flycheck/flycheck-autoloads.el" \
    "third-party/elm-mode/elm-mode-autoloads.el"
 
+inform "Removing old *.elc files"
+find -O3 . -name '*.elc' -delete
+
+inform "Generating src/local-autoloads.el"
 update-dir-autoloads \
     "src/local-autoloads.el" \
     "src" \
@@ -74,11 +84,12 @@ update-dir-autoloads \
     "third-party/yafolding.el"
 
 if which make >/dev/null; then
+    inform "Building autoloads in third-party/org-mode"
     pushd "third-party/org-mode"
     make autoloads
     popd
 else
-    echo "warning: 'make' not found, not updating autoloads" >&2
+    inform "warning: 'make' not found, not updating autoloads" >&2
 fi
 
 mkdir -p "${emacs_dir}/prog-data"
@@ -90,6 +101,7 @@ if [[ ! -f "$emacs_dir/prog-data/persistent-store" ]]; then
 fi
 
 if [[ ! -f "$emacs_dir/third-party/auctex/tex-site.el" ]]; then
+    inform "Generating $emacs_dir/third-party/auctex/tex-site.el"
     cat <<\QEOF >"$emacs_dir/third-party/auctex/tex-site.el"
 ;;; tex-site.el - Site specific variables.  Don't edit.
 
@@ -599,6 +611,7 @@ QEOF
 fi
 
 if [[ ! -f "$emacs_dir/third-party/auctex/preview-latex.el" ]]; then
+    inform "Generating $emacs_dir/third-party/auctex/preview-latex.el"
     cat <<\QEOF >"$emacs_dir/third-party/auctex/preview-latex.el"
 ;;; preview-latex.el --- automatically extracted autoloads
 ;;
@@ -651,6 +664,7 @@ fi
 # [[ -f "$emacs_dir/src/user-info.el" ]] || touch "$emacs_dir/src/user-info.el"
 # [[ -f "$emacs_dir/src/machine-specific-setup.el" ]] || touch "$emacs_dir/src/machine-specific-setup.el"
 
+inform "Recompiling"
 emacs --batch --load src/recompile.el --eval "(recompile-main \"$emacs_dir\")"
 
 exit 0
