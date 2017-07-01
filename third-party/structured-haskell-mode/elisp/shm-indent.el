@@ -218,18 +218,17 @@ DRAGGING indicates whether this indent will drag a node downwards."
          (parent (cdr parent-pair))
          (inhibit-read-only t))
     (cond
-     ((or (string= (shm-node-type-name current)
-                   "ImportSpecList")
-          (and (string= (shm-node-type-name current)
-                        "ModuleName")
+     ((or (eq (shm-node-type-name current)
+              'ImportSpecList)
+          (and (eq (shm-node-type-name current)
+                   'ModuleName)
                (looking-at-p "$")
                parent
-               (string= (shm-node-type-name parent)
-                        "ImportDecl")))
+               (eq (shm-node-type-name parent)
+                   'ImportDecl)))
       (shm-newline)
       (insert "import "))
-     ((and (or (string= "Type" (shm-node-type-name current))
-               (string= "Context" (shm-node-type-name current)))
+     ((and (memq (shm-node-type-name current) '(Type Context))
            (eq 'TypeSig (shm-node-cons (shm-decl-node (point)))))
       (let ((column (save-excursion (search-backward-regexp " :: ")
                                     (+ 4 (current-column)))))
@@ -317,10 +316,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
       (delete-char -2)
       (insert "| "))
      ;; Auto-insert commas for field updates
-     ((or (string= "FieldUpdate" (shm-node-type-name current))
-          (string= "FieldDecl" (shm-node-type-name current))
-          (string= "ExportSpec" (shm-node-type-name current))
-          (string= "ImportSpec" (shm-node-type-name current)))
+     ((memq (shm-node-type-name current) '(FieldUpdate FieldDecl ExportSpec ImportSpec))
       ;; This is hacky because HSE doesn't have special nodes for the
       ;; record and the update in record {update} and so we have to
       ;; figure out where the { starts. There is some additional
@@ -350,36 +346,33 @@ DRAGGING indicates whether this indent will drag a node downwards."
           (indent-to (+ (shm-indent-spaces)
                         (shm-node-start-column parent))))))
      ;; Guards | foo = …
-     ((or (string= "GuardedRhs" (shm-node-type-name current))
-          (string= "GuardedAlt" (shm-node-type-name current)))
+     ((or (memq (shm-node-type-name current) '(GuardedRhs GuardedAlt)))
       (shm-newline)
       (indent-to (shm-node-start-column current))
       (insert "| "))
      ;; Indent after or at the = (an rhs).
      ((and parent
-           (or (string= "Rhs" (shm-node-type-name parent))
-               (string= "Rhs" (shm-node-type-name current))
-               (string= "GuardedAlt" (shm-node-type-name parent))
-               (string= "GuardedRhs" (shm-node-type-name parent))))
+           (memq (shm-node-type-name parent) '(Rhs GuardedAlt GuardedRhs))
+           (eq 'Rhs (shm-node-type-name current)))
       (shm-newline)
       (delete-whitespace-forward)
       (indent-to (+ (shm-indent-spaces)
                     (shm-node-start-column (cdr (shm-node-parent parent-pair))))))
      ;; When in a field update.
      ((and parent
-           (string= "FieldUpdate" (shm-node-type-name parent)))
+           (eq 'FieldUpdate (shm-node-type-name parent)))
       (shm-newline)
       (indent-to (+ (shm-node-start-column parent)
                     (shm-indent-spaces))))
      ;; When in an alt list
      ((and parent
-           (string= "GuardedAlts" (shm-node-type-name current)))
+           (eq 'GuardedAlts (shm-node-type-name current)))
       (shm-newline)
       (indent-to (+ (shm-node-start-column parent)
                     (shm-indent-spaces))))
      ;; When in a case alt.
      ((and parent
-           (string= "GuardedAlts" (shm-node-type-name parent)))
+           (eq 'GuardedAlts (shm-node-type-name parent)))
       (shm-newline)
       (let ((alt (cdr (shm-node-parent parent-pair))))
         (indent-to (+ (shm-node-start-column alt)
@@ -462,7 +455,7 @@ DRAGGING indicates whether this indent will drag a node downwards."
 ;;    (shm-evaporate (+ (point) (length "_ -> "))
 ;;                   (+ (point) (length "_ -> undefined")))))
 ;; Commenting out this behaviour for now
-;; ((string= "Match" (shm-node-type-name current))
+;; ((eq 'Match (shm-node-type-name current))
 ;;  (let ((name (cdr (shm-node-child-pair current-pair))))
 ;;    (shm-newline)
 ;;    (indent-to (shm-node-start-column current))
@@ -478,7 +471,7 @@ data Person = Person
   , person|
 
 "
-  (when (string= "FieldDecl" (shm-node-type-name current))
+  (when (eq 'FieldDecl (shm-node-type-name current))
     (let* ((cur-substr
             (save-excursion
               (goto-char (shm-node-start current))
