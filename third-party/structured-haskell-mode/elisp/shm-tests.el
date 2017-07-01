@@ -74,7 +74,7 @@ foo = do
       :end-buffer-content "x = [foo' []
     ,('[])]
 "
-      :kbd "[,('[")
+      :kbd [?\C-e ?\[ ?\C-s ?, ?\( ?\r ?' ?\[])
    (list :name "don't re-indent dependent rhs"
          :start-buffer-content "foo bar baz =
      bar + baz
