@@ -213,7 +213,8 @@ also space out any neccessary spacing."
       (insert "\"")
     (let* ((current-node (ignore-errors
                            (shm-current-node)))
-           (node (if (eq 'Lit (shm-node-cons current-node))
+           (node (if (and current-node
+                          (eq 'Lit (shm-node-cons current-node)))
                      (shm-actual-node)
                    current-node)))
       (cond
