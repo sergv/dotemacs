@@ -36,11 +36,11 @@
            (pp-to-string cl--optimize-speed))
   (message "cl--optimize-safety = %s"
            (pp-to-string cl--optimize-safety))
-  (setf emacs-dir (expand-file-name emacs-dir))
+  (setf emacs-dir (expand-file-name (directory-file-name emacs-dir)))
   (let* ((init-file
           (find-if #'file-exists-p
                    (mapcan (lambda (x) (list (concat emacs-dir "/src/" x)
-                                        (concat "~" x)))
+                                        (concat "~/" x)))
                            '(".emacs"))))
          (disable-hooks
           (lambda ()
