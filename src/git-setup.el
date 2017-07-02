@@ -32,12 +32,48 @@
                              nil)
       (user-error "Nothing selected")))
 
+;;; Speed up magit with some caching
+
+(defvar magit--rev-parse-main-cache
+  (let ((tbl (make-hash-table :test #'equal)))
+    (puthash "--show-toplevel" (make-hash-table :test #'equal) tbl)
+    (puthash "--show-cdup" (make-hash-table :test #'equal) tbl)
+    (puthash "--git-dir" (make-hash-table :test #'equal) tbl)
+    tbl)
+  "Hash table from command name into hash table from `default-directory' to
+directory computed by git.")
+
+(defun memoize-rev-parse (fun &rest args)
+  (pcase args
+    (`(,cmd)
+     (aif (gethash cmd magit--rev-parse-main-cache)
+         (or (gethash default-directory it)
+             (let ((dir (apply fun args)))
+               (puthash default-directory dir it)
+               dir))
+       (apply fun args)))
+    (_ (apply fun args))))
+
+(advice-add 'magit-rev-parse :around #'memoize-rev-parse)
+(advice-add 'magit-rev-parse-safe :around #'memoize-rev-parse)
+
+(defvar magit--git-config-cache (make-hash-table :test #'equal))
+
+(defun memoize-git-config (fun &rest keys)
+  (let ((val (gethash keys magit--git-config-cache :nil)))
+    (when (eq val :nil)
+      (setq val (puthash keys (apply fun keys) magit--git-config-cache)))
+    val))
+
+(advice-add 'magit-get :around #'memoize-git-config)
+(advice-add 'magit-get-boolean :around #'memoize-git-config)
+
 ;;; gitignore
 
 (defun gitignore-setup ()
-  (init-common :use-yasnippet  nil
-               :use-comment    t
-               :use-fci        t))
+  (init-common :use-yasnippet nil
+               :use-comment   t
+               :use-fci       t))
 
 (make-align-function gitconfig-align-on-equals "=")
 
