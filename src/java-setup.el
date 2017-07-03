@@ -10,7 +10,6 @@
 
 (require 'cc-setup)
 (require 'common)
-(require 'eproj-setup)
 (require 'java-abbrev+)
 
 ;;;###autoload
