@@ -6,7 +6,9 @@
 ;; Created: Wednesday, 13 November 2013
 ;; Description:
 
-(cl-assert (platform-os-type? 'windows) "Not on windows platform!")
+(fold-platform-os-type
+ (error "This should not load on non-windows platform!")
+ nil)
 
 (require 'common)
 (require 'cygwin-mount)

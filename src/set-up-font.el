@@ -16,68 +16,49 @@
       (if (null (x-list-fonts font)) nil t)
     (error nil)))
 
-(defvar *emacs-font* nil
-  "Default font for use everywhere or nil if nothing suitable found.")
-
-(defun set-up-fonts/set-emacs-font-if-exists (font)
-  (if (font-exist? font)
-    (progn
-      (setf *emacs-font* font)
-      t)
-    nil))
-
-
 (defconst +emacs-fonts+
   (remove-if-not
    #'font-exist?
    (append
-    (cond
-      ((and (platform-os-type? 'linux)
-            (platform-use? '(home asus-netbook work)))
-       '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-         "-*-Iosevka-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-         "-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
-         "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
-         "-*-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
-      ((and (platform-os-type? 'linux)
-            (platform-use? 'netbook))
-       '("-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
-         "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
-         "-*-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
-      ((platform-os-type? 'windows)
-       (append
+    (fold-platform-os-type
+     (cond
+       ((platform-use? '(home asus-netbook work))
         '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-          "-*-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
-          "-*-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
-          "-raster-Terminus-normal-normal-normal-mono-20-*-*-*-c-*-iso8859-1")
-        (if (and (<= (display-pixel-width) 1280)
-                 (<= (display-pixel-height) 1024))
+          "-*-Iosevka-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+          "-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+          "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+          "-*-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
+       ((platform-use? 'netbook)
+        '("-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+          "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
+          "-*-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
+       (t nil))
+     (append
+      '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+        "-*-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
+        "-*-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
+        "-raster-Terminus-normal-normal-normal-mono-20-*-*-*-c-*-iso8859-1")
+      (if (and (<= (display-pixel-width) 1280)
+               (<= (display-pixel-height) 1024))
           '("-outline-Anonymous Pro-normal-normal-normal-mono-15-*-*-*-c-*-iso8859-1")
-          '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1")))))
+        '("-outline-Anonymous Pro-normal-normal-normal-mono-19-*-*-*-c-*-iso8859-1"))))
     '("-unknown-Droid Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
       "-unknown-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
       "-unknown-Inconsolata-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
       "-unknown-Liberation Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"
       "-unknown-FreeMono-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"
-      "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")
-    ;; this is not the best font and therefore it comes latest
-    (when (and (platform-os-type? 'windows)
-               (platform-use? 'work))
-      '("-outline-Courier New-normal-normal-normal-mono-17-*-*-*-c-*-iso8859-1"))))
+      "-monotype-Courier New-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1")))
   "List of fonts from best to worst availabse on the system.")
 
-(when (and (not *emacs-font*)
-           (not (null +emacs-fonts+)))
-  (set-up-fonts/set-emacs-font-if-exists (first +emacs-fonts+)))
-
-(when *emacs-font*
-  (set-default-font *emacs-font*)
-  (set-frame-font *emacs-font*)
+(let ((font (car +emacs-fonts+)))
+  (cl-assert (font-exist? font) nil "Font does not exist: %s" font)
+  (set-default-font font)
+  (set-frame-font font)
 
   (add-hook 'after-make-frame-functions
             (lambda (new-frame)
               (with-current-frame new-frame
-                (set-frame-font *emacs-font*)))))
+                (set-frame-font font)))))
 
 ;; set default font for all unicode characters
 

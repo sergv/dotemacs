@@ -1218,11 +1218,11 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "p_o"
           "p_hi"
           "hi"
-          "so"
           "a"
-          ,@(when (platform-os-type? 'windows)
-              '("lib"
-                "dll")))
+          ,@(fold-platform-os-type
+             '("so")
+             '("lib"
+               "dll")))
         *haskell-extensions*))
       "\\'"))))
 

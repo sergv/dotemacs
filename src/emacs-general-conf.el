@@ -53,13 +53,9 @@
 
 (setf x-select-enable-clipboard t
       interprogram-paste-function
-      (cond
-        ((platform-os-type? 'linux)
-         #'x-cut-buffer-or-selection-value)
-        ((platform-os-type? 'windows)
-         #'w32-get-clipboard-data)
-        (t
-         (error "Unknown plaform os type: %s" +platform+)))
+      (fold-platform-os-type
+       #'x-cut-buffer-or-selection-value
+       #'w32-get-clipboard-data)
       query-replace-highlight t
       query-replace-interactive nil ;; do not use last search string as initial regexp
       search-highlight t
@@ -88,7 +84,7 @@
 
       ;; Any kind of bell is annoying, but not when we're on windows
       ;; since it uses audible bell everywhere.
-      visible-bell (platform-os-type? 'windows)
+      visible-bell (fold-platform-os-type nil t)
       message-log-max t
 
       ;; Length from the beginning of buffer for magic mode detection.

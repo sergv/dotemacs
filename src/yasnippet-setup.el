@@ -9,7 +9,7 @@
 (require 'common)
 
 (setf yas-ignore-filenames-as-triggers t
-      yas-snippet-dirs (list (concat +prog-data-path+ "/snippets"))
+      yas-snippet-dirs (list (concat +resources-path+ "/snippets"))
       yas-prompt-functions '(yas-ido-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
