@@ -6,17 +6,10 @@
 ;; Created: long ago
 ;; Description:
 
-(load-library "set-up-platform")
-(load-library "set-up-environment-variables")
-(load-library "set-up-paths")
-(load-library "set-up-font")
-
+(load-library "set-up-environment")
 (load-library "base-emacs-fixes")
 
-;; ******************************************************************
-
 (load-library "cycle-on-lines")
-
 (load-library "common")
 (load-library "persistent-store")
 (persistent-store-init)
@@ -30,8 +23,6 @@
 (load-library "persistent-sessions-autoloads")
 
 (load-library "smartparens-setup")
-
-;; ******************************************************************
 
 (setq compilation-auto-jump-to-first-error nil
       whitespace-style '(face tabs)
@@ -250,7 +241,6 @@ or not.")
 (unless (featurep 'custom-variables-defined)
   (load-library ".emacs"))
 
-
 (let ((user-info-file
        (find-if #'file-exists?
                 (list (expand-file-name "~/user-info.el")
@@ -267,8 +257,9 @@ or not.")
       (load-file it)
     (message "machine-specific-setup.el not found")))
 
-(when (platform-os-type? 'windows)
-  (load-library "windows-setup"))
+(fold-platform-os-type
+ nil
+ (load-library "windows-setup"))
 
 ;; Local Variables:
 ;; End:

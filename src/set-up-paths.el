@@ -11,40 +11,32 @@
 (require 'set-up-platform)
 (require 'set-up-environment-variables)
 
-(defconst +emacs-config-path+
-  (find-if (lambda (p) (and (file-accessible-directory-p p)))
-           (list
-            (concat (platform-dependent-root) "/emacs")
-            (concat (platform-dependent-root) "/.emacs.d")))
-  "Path to root for emacs configuration.")
+;;;; Paths
+
+(defconst +emacs-config-path+ (getenv "EMACS_ROOT")
+  "Path to root for my emacs configuration.")
 
 (when (or (null +emacs-config-path+)
-          (not (stringp +emacs-config-path+)))
+          (not (stringp +emacs-config-path+))
+          (not (file-directory-p +emacs-config-path+)))
   (error "No accessible directory found for +emacs-config-path+"))
 
-(defconst +emacs-standalone-path+
-  (concat +emacs-config-path+ "/standalone")
-  "Path to directory with standalone packages.")
+(defconst +resources-path+
+  (concat +emacs-config-path+ "/resources")
+  "Path to directory with resource files like snippets or templates.")
 
 (defconst +prog-data-path+
   (concat +emacs-config-path+ "/prog-data")
-  "Path to directory with programs's auxiliary files.")
+  "Path to directory for storing persintest data like backups.")
 
-(defconst +execs-path+
-  ;; note: execs are somewhat external to emacs, so it's
-  ;; reasonable for them to be somewhere outside
-  (find-if (lambda (p) (and p (file-directory-p p)))
-           (list
-            (concat +emacs-config-path+ "/../execs")
-            (concat +emacs-config-path+ "/execs")
-            (let ((emacs-exec (executable-find "emacs")))
-              (when emacs-exec
-                (file-name-directory emacs-exec)))))
+(defconst +execs-path+ (concat +emacs-config-path+ "/execs")
   "Path to directory with programs executables files.")
 
-(defconst +tmp-path+ (make-temp-name (if (platform-os-type? 'windows)
-                                         (concat +prog-data-path+ "/tmp")
-                                       "/tmp/emacs-tmp-"))
+(defconst +tmp-path+
+  (make-temp-name
+   (fold-platform-os-type
+    "/tmp/emacs-tmp-"
+    (concat +prog-data-path+ "/tmp")))
   "Path to temporary directory, contents of which may be removed on
 system restars.")
 
@@ -55,16 +47,16 @@ system restars.")
 
 (setf temporary-file-directory +tmp-path+
       small-temporary-file-directory +tmp-path+
-      tramp-auto-save-directory (concat +prog-data-path+ "/tramp"))
+      tramp-auto-save-directory (concat +tmp-path+ "/tramp"))
 
-(defun remove-tmp-path ()
+(defun clean-tmp-path-on-emacs-exit ()
   "Delete `+tmp-path+' directory on emacs exit."
   (ignore-errors
     (delete-directory +tmp-path+
                       t   ;; recurse
                       nil ;; don't just move to trash
                       )))
-(add-hook 'kill-emacs-hook #'remove-tmp-path)
+(add-hook 'kill-emacs-hook #'clean-tmp-path-on-emacs-exit)
 
 (defalias 'strip-trailing-slash 'directory-file-name)
 
@@ -80,18 +72,27 @@ system restars.")
 (defun find-elisp-dirs (root &optional ignored-dirs-re)
   "Recursively find directories containing elisp files starting at ROOT. Omit
 directories whose absolute path matches IGNORED-DIR-RE."
-  (let ((ignored-dirs
-         '("CVS" ".svn" ".git" ".hg" ".bzr" "_darcs"
-           ".cabal-sandbox" "dist" ".stack-work"
-           ".cask")))
+  (let ((standard-ignored-dirs-re
+         (rx
+          (or (or "CVS"
+                  ".svn"
+                  ".git"
+                  ".hg"
+                  ".bzr"
+                  "_darcs"
+                  ".cask")
+              (seq (or "dist"
+                       ".cabal-sandbox"
+                       ".stack-work")
+                   (* not-newline))))))
     (let ((dirs nil))
       (letrec ((collect-dirs
                 (lambda (path)
                   (when
                       (and (file-directory-p path)
                            (not
-                            (member (file-name-nondirectory (strip-trailing-slash path))
-                                    ignored-dirs)))
+                            (string-match-p standard-ignored-dirs-re
+                                            (file-name-nondirectory (strip-trailing-slash path)))))
                     (let ((has-elisp-files? nil))
                       (dolist (p (directory-files path
                                                   t ;; produce full names

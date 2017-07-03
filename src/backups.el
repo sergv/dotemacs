@@ -57,9 +57,9 @@
     (while (< size (string-bytes directory))
       (setq directory (b/shorten-path-from-root directory)))
     (concat half-name
-            (if (platform-os-type? 'linux)
-                (replace-regexp-in-string "/" "%" directory)
-              nil)
+            (fold-platform-os-type
+             (replace-regexp-in-string "/" "%" directory)
+             nil)
             extension)))
 
 (defun make-backup (&optional buf)

@@ -29,8 +29,11 @@ if CASE-SENSETIVE is t."
          (files nil) ;; found files
          (case-fold-search (not case-sensetive)))
     (letrec ((path-join (lambda (path)
-                          (concat (unless (platform-os-type? 'windows) "/")
-                                  (join-lines path "/")))))
+                          (concat
+                           (fold-platform-os-type
+                            "/"
+                            nil)
+                           (join-lines path "/")))))
       (while (and (not found?)
                   (not (null? path)))
         (let ((subdir (funcall path-join (reverse path))))
@@ -243,8 +246,8 @@ number of spaces equal to `tab-width'."
 
 (defparameter custom--known-executables
   (let ((tbl (make-hash-table :test #'equal)))
-    (cond
-      ((platform-os-type? 'linux)
+    (fold-platform-os-type
+     (progn
        (puthash "thunar"
                 (make-exec-spec
                  :path "thunar"
@@ -272,7 +275,7 @@ number of spaces equal to `tab-width'."
                  :path "xfce4-terminal"
                  :args '("--default-working-directory"))
                 tbl))
-      ((platform-os-type? 'windows)
+     (progn
        (puthash "explorer"
                 (make-exec-spec
                  :path "C:\\Windows\\explorer.exe"
@@ -315,13 +318,9 @@ number of spaces equal to `tab-width'."
   (interactive)
   (save-window-excursion
     (custom/run-first-matching-exec
-     (cond
-       ((platform-os-type? 'windows)
-        '("explorer"))
-       ((platform-os-type? 'linux)
-        '("thunar" "nautilus"))
-       (t
-        (error "unknown platform - no known file managers"))))))
+     (fold-platform-os-type
+      '("thunar" "nautilus")
+      '("explorer")))))
 
 ;;;###autoload
 (defun start-terminal-emulator ()
