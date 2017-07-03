@@ -66,9 +66,10 @@ All predicates are called with full absolute paths."
 
 
 (defvar find-files/find-program-type
-  (or (and (not (platform-os-type? 'windows))
-           (executable-find "find")
-           'find)
+  (or (fold-platform-os-type
+       (and (executable-find "find")
+            'find)
+       nil)
       (and (executable-find "busybox")
            'busybox))
   "Type of find program that `find-files/find-program-executable' refers to.

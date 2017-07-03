@@ -9,7 +9,7 @@
 (require 'common)
 
 ;;;###autoload
-(setf auto-insert-directory (concat +prog-data-path+ "/auto-insert")
+(setf auto-insert-directory (concat +resources-path+ "/auto-insert")
       auto-insert 'other
       auto-insert-query nil
       auto-insert-alist

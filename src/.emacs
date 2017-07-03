@@ -28,12 +28,22 @@
 
 (provide 'custom-variables-defined)
 
+;; Emacs uses following environment variables for configuration:
+;; 1. EMACS_ROOT - path to .emacs.d directory.
+;;
+;; 2. EMACS_ENV_DEFS - paths to .bash_env file - shell script that sets
+;; up environment variables on the system for current user.t
+;;
+;; 3. BASHRC_ENV_LOADED - whecher ~/.bash_env was already loaded.
 (unless (featurep 'start)
-  (dolist (path (list (expand-file-name "~/emacs/src")
-                      (expand-file-name "~/.emacs.d/src")))
-    (when (and (file-exists-p path)
-               (file-directory-p path))
-      (add-to-list 'load-path path)))
+  (let ((emacs-root (getenv "EMACS_ROOT")))
+    (if emacs-root
+        (progn
+          (cl-assert (file-directory-p emacs-root))
+          (let ((src-dir (concat emacs-root "/src")))
+            (cl-assert (file-directory-p src-dir))
+            (add-to-list 'load-path src-dir)))
+      (error "EMACS_ROOT not defined")))
   (load-library "start"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

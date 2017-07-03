@@ -93,8 +93,9 @@ else
 fi
 
 mkdir -p "${emacs_dir}/prog-data"
+mkdir -p "${emacs_dir}/resources"
 # for fresh emacsen
-mkdir -p "${emacs_dir}/prog-data/themes"
+mkdir -p "${emacs_dir}/resources/themes"
 
 if [[ ! -f "$emacs_dir/prog-data/persistent-store" ]]; then
     echo "()" >"$emacs_dir/prog-data/persistent-store"

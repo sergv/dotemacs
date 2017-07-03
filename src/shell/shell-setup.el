@@ -75,8 +75,9 @@
   "Wrapper around `dirtrack-directory-function' that canonicalizes
 MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (lambda (dir)
-    (unless (platform-os-type? 'windows)
-      (error "The result of `make-dirtrack-windows-msys-directory-function' must be used only in Windows environment."))
+    (fold-platform-os-type
+     (error "The result of `make-dirtrack-windows-msys-directory-function' must be used only in Windows environment.")
+     nil)
     (save-match-data
       (funcall
        internal-func
@@ -86,9 +87,10 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
          dir)))))
 
 ;;;###autoload
-(when (platform-os-type? 'windows)
-  (setf dirtrack-directory-function
-        (make-dirtrack-windows-msys-directory-function dirtrack-directory-function)))
+(fold-platform-os-type
+ nil
+ (setf dirtrack-directory-function
+       (make-dirtrack-windows-msys-directory-function dirtrack-directory-function)))
 
 ;;;###autoload
 (defun shell-setup ()
