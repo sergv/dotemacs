@@ -11,8 +11,12 @@
 (eval-when-compile (require 'subr-x))
 
 (defparameter *ctags-exec*
-  (or (executable-find "exuberant-ctags")
-      (executable-find "ctags-exuberant")))
+  (or (let ((ctags-exec
+             (platform-dependent-executable (concat +execs-path+ "/exuberant-ctags"))))
+        (when (file-exists? ctags-exec)
+          (setf *ctags-exec* ctags-exec)))
+      (executable-find "ctags-exuberant")
+      (executable-find "exuberant-ctags")))
 
 (defparameter *ctags-language-flags*
   '((c-mode
@@ -72,17 +76,14 @@
     "function"
     "interface"))
 
-(setf +ctags-aux-fields-re+
-      (eval-when-compile
-        ;; (concat "^\\("
-        ;;         (macroexpand
-        ;;          `(rx (or ,@+ctags-aux-fields+)))
-        ;;         "\\):\\(.*\\)$")
-        (concat "\\=\\("
-                (macroexpand
-                 `(rx (or ,@+ctags-aux-fields+)))
-                "\\):\\(.*\\)")))
+(defconst +ctags-aux-fields-re+
+  (eval-when-compile
+    (concat "\\=\\("
+            (eval-when-compile
+              (regexp-opt +ctags-aux-fields+))
+            "\\):\\(.*\\)")))
 
+;;;###autoload
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
   (unless *ctags-exec*
     (error "ctags executable not found"))
