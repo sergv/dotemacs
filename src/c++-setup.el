@@ -10,7 +10,6 @@
 (require 'cc-setup)
 (require 'clang-format)
 (require 'common)
-(require 'eproj-setup)
 (require 'indentation)
 (require 'select-mode)
 

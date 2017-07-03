@@ -14,7 +14,6 @@
 (require 'clojure-abbrev+)
 (require 'clojure-compile)
 (require 'browse-kill-ring-setup)
-(require 'eproj-setup)
 
 (setf clojure-max-backtracking 10)
 

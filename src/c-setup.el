@@ -9,7 +9,6 @@
 (require 'common)
 (require 'cc-setup)
 (require 'c-abbrev+)
-(require 'eproj-setup)
 
 ;;;###autoload
 (defun c-setup ()
