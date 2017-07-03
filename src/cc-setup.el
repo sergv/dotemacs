@@ -159,7 +159,7 @@ Also propagate new offset to `vim:shift-width'."
                :sp-slurp-sexp-insert-space nil
                :use-yasnippet t
                :use-whitespace 'tabs-only)
-  (fontify-conflict-markers)
+  (fontify-conflict-markers!)
   (setup-hs-minor-mode)
   (dtrt-indent-mode 1)
   (which-function-mode -1)
