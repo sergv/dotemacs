@@ -8,6 +8,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+;;;; Platform
+
 (defvar +platform+ nil
   "List of the form (<os> <use> <misc>), <misc> is optional,
 <os> may be 'linux or 'windows.
@@ -50,10 +52,15 @@ Range of platforms may be expanded (extended?) in the future.")
   (error "+platform+'s os %s should be one of 'linux or 'windows"
          (car +platform+)))
 
-
-(defun platform-os-type? (os-type)
-  (cl-assert (and (listp +platform+) (not (null +platform+))))
-  (eq (car +platform+) os-type))
+(defmacro fold-platform-os-type (on-linux on-windows)
+  (let ((os-type (car +platform+)))
+    (cond
+      ((eq os-type 'linux)
+       on-linux)
+      ((eq os-type 'windows)
+       on-windows)
+      (t
+       (error "Invalid platform os type: %s" os-type)))))
 
 (defun platform-use? (use)
   "Use may be a symbol or a list of symbols"
@@ -64,13 +71,6 @@ Range of platforms may be expanded (extended?) in the future.")
         (t
          (error "invalid use argument: %s" use))))
 
-(defmacro platform-dependent-root ()
-  "Retrieve platform-dependent filesystem root for current combination of
-platform OS and usage."
-  (if (platform-os-type? 'windows)
-    '(directory-file-name (expand-file-name "~/"))
-    '(expand-file-name "~")))
-
 (defun platform-dependent-executable (exec-name)
   "Return EXEC-NAME, which must be a file name, transformed according to
 conventions of platform this emacs instance is currently running on (
@@ -78,15 +78,18 @@ e.g. add .exe if running on windows).
 
 Note: this function should not be applied for scripts, only for native
 binaries."
-  (let ((final-name (if (platform-os-type? 'windows)
-                      (concat exec-name ".exe")
-                      exec-name)))
-    (cond ((not (file-exists-p final-name))
-           (message "Executable file %s does not exist" final-name))
-          ((not (file-executable-p final-name))
-           (message "Executable file %s does not have executable permissions" final-name))
-          (t
-           final-name))))
+  (let ((final-name
+         (fold-platform-os-type
+          exec-name
+          (concat exec-name ".exe"))))
+    (cond
+      ((not (file-exists-p final-name))
+       (message "Executable file %s does not exist" final-name))
+      ((not (file-executable-p final-name))
+       (message "Executable file %s does not have executable permissions" final-name))
+      (t
+       final-name))))
+
 
 (provide 'set-up-platform)
 

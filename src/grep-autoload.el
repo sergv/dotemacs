@@ -7,11 +7,11 @@
 ;; Description:
 
 (setf find-program
-      (if (and (platform-os-type? 'windows)
-               (platform-use? 'work)
-               (executable-find "unixfind"))
-          "unixfind"
-        "find"))
+      (fold-platform-os-type
+       "find"
+       (if (executable-find "unixfind")
+           "unixfind"
+         "find")))
 
 (setf grep-command "grep -HnE -e "
       grep-template

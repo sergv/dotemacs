@@ -57,13 +57,9 @@ and indent them as singe line."
             (join-line t)))))))
 
 (let* ((build-dir
-        (cond
-          ((platform-os-type? 'linux)
-           "/tmp/dist")
-          ((platform-os-type? 'windows)
-           nil)
-          (t
-           nil)))
+        (fold-platform-os-type
+         "/tmp/dist"
+         nil))
        (mk-build-dir-arg
         (lambda (custom-build-dir)
           (if custom-build-dir
@@ -258,21 +254,21 @@ and indent them as singe line."
                        "-Wwarn")
                      extensions)))
   (setf haskell-process-path-ghci
-        (if (platform-os-type? 'windows)
-            "ghc"
-          "ghci")
+        (fold-platform-os-type
+         "ghci"
+         "ghc")
         haskell-process-args-ghci
         (let ((opts (append
                      '("-fbyte-code" "-Wwarn")
-                     (if (platform-os-type? 'windows)
-                         nil
-                       '("-i/tmp/dist/build"
+                     (fold-platform-os-type
+                      '("-i/tmp/dist/build"
                          "-odir" "/tmp/ghc"
-                         "-hidir" "/tmp/ghc"))))
+                         "-hidir" "/tmp/ghc")
+                      nil)))
               (rts-opts '("+RTS" "-M8G" "-RTS")))
-          (append (if (platform-os-type? 'windows)
-                      "--interactive"
-                    nil)
+          (append (fold-platform-os-type
+                   nil
+                   '("--interactive"))
                   extensions
                   opts
                   rts-opts))

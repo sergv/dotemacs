@@ -8,14 +8,8 @@
 ;; Requirements:
 ;; Status:
 
-
 ;; (require 'tex-site)
 ;; (require 'preview-latex)
-
-(add-to-load-path
-  (concat +emacs-standalone-path+ "/auctex-dev")
-  (concat +emacs-standalone-path+ "/auctex-dev/preview")
-  (concat +emacs-standalone-path+ "/auctex-dev/style"))
 
 (require 'tex-site)
 
