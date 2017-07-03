@@ -84,9 +84,11 @@ binaries."
           (concat exec-name ".exe"))))
     (cond
       ((not (file-exists-p final-name))
-       (message "Executable file %s does not exist" final-name))
+       ;; (message "Executable file %s does not exist" final-name)
+       nil)
       ((not (file-executable-p final-name))
-       (message "Executable file %s does not have executable permissions" final-name))
+       ;; (message "Executable file %s does not have executable permissions" final-name)
+       nil)
       (t
        final-name))))
 
