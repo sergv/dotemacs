@@ -5,14 +5,12 @@
 # Created: Tuesday, 11 September 2012
 #
 
-if type readlink >/dev/null 2>&1; then
-    EMACS_DIR=$(dirname $(readlink -f "$0"))
-else
-    pushd "$(dirname "$0")" >/dev/null
-    EMACS_DIR=$(pwd)
-    popd >/dev/null
+emacs_dir=${1:-"${EMACS_ROOT}"}
+
+if [[ ! -d "$emacs_dir" ]]; then
+    echo "Emacs directory is not configured properly: either set EMACS_ROOT environment variable or pass directory to this script"
+    exit 1
 fi
-emacs_dir=${1:-"${EMACS_DIR}"}
 
 function inform {
     local msg="$1"
