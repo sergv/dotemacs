@@ -219,7 +219,8 @@ sets `shm--server-process' and `shm--server-process-port' variables."
                                                        (point-max))))
               (set-process-buffer proc nil)
               proc))
-          shm--server-process-port port))
+          shm--server-process-port port)
+    (sleep-for 1))
   shm--server-process-port)
 
 (defun shm--connect ()
