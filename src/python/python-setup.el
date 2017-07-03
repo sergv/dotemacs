@@ -14,7 +14,6 @@
 (require 'comint-setup)
 (require 'common)
 (require 'compile)
-(require 'eproj-setup)
 (require 'macro-util)
 (require 'outline-headers)
 

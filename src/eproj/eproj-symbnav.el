@@ -72,6 +72,7 @@ as accepted by `bounds-of-thing-at-point'.")
                  (line-number-at-pos
                   (marker-position (eproj-home-entry/position entry)))))))))
 
+;;;###autoload
 (defun eproj-symbnav/describe ()
   (interactive)
   (message "Previous homes: %s\nSelected loc: %s\nNext homes: %s\n"
@@ -79,6 +80,7 @@ as accepted by `bounds-of-thing-at-point'.")
            (eproj-symbnav/show-home eproj-symbnav/selected-loc)
            (-map #'eproj-symbnav/show-home eproj-symbnav/next-homes)))
 
+;;;###autoload
 (defun eproj-symbnav/reset ()
   (interactive)
   (setf eproj-symbnav/previous-homes nil
@@ -118,6 +120,7 @@ as accepted by `bounds-of-thing-at-point'.")
                                                 entry-proj))
   (eproj-symbnav/locate-entry-in-current-buffer entry))
 
+;;;###autoload
 (defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
   (interactive "P")
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
@@ -303,6 +306,7 @@ as accepted by `bounds-of-thing-at-point'.")
               entry-string
               :preamble "Choose symbol\n\n"))))))))
 
+;;;###autoload
 (defun eproj-symbnav/go-back ()
   (interactive)
   (if (null eproj-symbnav/previous-homes)
@@ -317,6 +321,7 @@ as accepted by `bounds-of-thing-at-point'.")
         (setf eproj-symbnav/selected-loc prev-home)
         (eproj-symbnav/switch-to-home-entry prev-home)))))
 
+;;;###autoload
 (defun setup-eproj-symbnav ()
   (awhen (current-local-map)
     (def-keys-for-map it

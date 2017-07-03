@@ -12,6 +12,7 @@
 
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
+;;;###autoload
 (defun eproj/create-haskell-tags (proj make-project-files parse-tags-proc)
   (cl-assert (eproj-project-p proj))
   ;; (when eproj-verbose-tag-loading
@@ -172,6 +173,7 @@ runtime but rather will be silently relied on)."
      (error "Invalid haskell tag property %s"
             (eproj-tag/properties tag)))))
 
+;;;###autoload
 (defun eproj/haskell-tag->string (proj tag)
   (cl-assert (eproj-tag-p tag))
   (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))

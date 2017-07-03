@@ -207,7 +207,6 @@ or not.")
 (load-library "undo-tree-setup")
 (load-library "recentf-setup")
 (load-library "misc-autoloads")
-(load-library "eproj-setup")
 (load-library "flycheck-setup")
 
 ;; load keys after everything to ensure that nothing will be rebond

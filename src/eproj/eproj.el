@@ -440,6 +440,7 @@
   (message "done"))
 
 ;; careful: quite complex procedure
+;;;###autoload
 (defun eproj-update-buffer-tags ()
   "Update tags only for current buffer in project that contains it."
   (interactive)
@@ -990,18 +991,8 @@ Returns list of (tag . project) pairs."
                nil))
            (eproj-get-all-related-projects proj tag-major-mode)))
 
-
-(autoload 'eproj/create-haskell-tags "eproj-haskell" nil nil)
-(autoload 'eproj/haskell-tag->string "eproj-haskell" nil nil)
-
-(autoload 'eproj/run-ctags-on-files "eproj-ctags")
-(autoload 'eproj/run-ctags-on-files "eproj-ctags")
-
-(autoload 'eproj-symbnav/describe "eproj-symbnav" nil t)
-(autoload 'eproj-symbnav/reset "eproj-symbnav" nil t)
-(autoload 'eproj-symbnav/go-to-symbol-home "eproj-symbnav" nil t)
-(autoload 'eproj-symbnav/go-back "eproj-symbnav" nil t)
-(autoload 'setup-eproj-symbnav "eproj-symbnav" nil nil)
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.eproj-info$" . emacs-lisp-mode))
 
 ;;; epilogue
 
