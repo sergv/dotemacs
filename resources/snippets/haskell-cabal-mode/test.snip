@@ -20,8 +20,8 @@ ${4:  hs-source-dirs:
     Haskell2010
   ghc-options:
     -Wall
+    -fwarn-name-shadowing
     -fno-warn-type-defaults
-    -fno-warn-name-shadowing
     -rtsopts
     ${6:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}
   if impl(ghc >= 8.0)
