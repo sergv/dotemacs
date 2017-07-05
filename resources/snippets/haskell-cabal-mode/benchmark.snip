@@ -15,7 +15,8 @@ benchmark ${1:benchmark-name}
     Haskell2010
   ghc-options:
     -Wall
-    -fno-warn-name-shadowing
+    -fno-warn-type-defaults
+    -fwarn-name-shadowing
     -rtsopts
     ${4:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}
   if impl(ghc >= 8.0)
