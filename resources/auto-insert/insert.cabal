@@ -35,8 +35,8 @@ library
     Haskell2010
   ghc-options:
     -Wall
+    -fwarn-name-shadowing
     -fno-warn-type-defaults
-    -fno-warn-name-shadowing
   if impl(ghc >= 8.0)
     ghc-options:
       -Wcompat
@@ -59,8 +59,8 @@ executable ${filename no ext}
     Haskell2010
   ghc-options:
     -Wall
+    -fwarn-name-shadowing
     -fno-warn-type-defaults
-    -fno-warn-name-shadowing
     -rtsopts
 --     -main-is ExeMain
   if impl(ghc >= 8.0)
@@ -88,8 +88,8 @@ test-suite ${filename no ext}-test
     Haskell2010
   ghc-options:
     -Wall
+    -fwarn-name-shadowing
     -fno-warn-type-defaults
-    -fno-warn-name-shadowing
     -rtsopts
 --     -main-is TestMain
   if impl(ghc >= 8.0)
