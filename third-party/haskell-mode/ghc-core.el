@@ -95,16 +95,40 @@ in the current buffer."
   (interactive)
   (ghc-core-clean-region (point-min) (point-max)))
 
+(defvar ghc-core--create-core-history nil
+  "History of user-entered commands for `ghc-core-create-core'.")
+
 ;;;###autoload
-(defun ghc-core-create-core ()
+(defun ghc-core-create-core (modify-command-line)
   "Compile and load the current buffer as tidy core."
-  (interactive)
+  (interactive "P")
   (save-buffer)
   (let* ((core-buffer (generate-new-buffer "ghc-core"))
-         (neh (lambda () (kill-buffer core-buffer))))
+         (neh (lambda () (kill-buffer core-buffer)))
+         (default-command-line
+           (cons ghc-core-program
+                 (append ghc-core-program-args
+                         (list "-ddump-simpl"
+                               "-c"
+                               (buffer-file-name)))))
+         (command-line
+          (if modify-command-line
+              (split-shell-command-into-arguments
+               (let ((enable-recursive-minibuffers t))
+                 (read-shell-command
+                  "Ghc command: "
+                  (join-lines default-command-line " ")
+                  'ghc-core--create-core-history)))
+            default-command-line)))
+    (with-current-buffer core-buffer
+      (erase-buffer)
+      (insert "-- Command:")
+      (dolist (arg command-line)
+        (insert " \"" arg "\""))
+      (insert "\n"))
     (add-hook 'next-error-hook neh)
-    (apply #'call-process ghc-core-program nil core-buffer nil
-           "-ddump-simpl" "-c" (buffer-file-name) ghc-core-program-args)
+    (apply #'call-process (car command-line) nil core-buffer nil
+           (cdr command-line))
     (display-buffer core-buffer)
     (with-current-buffer core-buffer
       (ghc-core-mode))
