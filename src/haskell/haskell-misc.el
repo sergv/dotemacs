@@ -226,14 +226,16 @@ and indent them as singe line."
       ;; haskell-interactive-mode-delete-superseded-errors nil
 
       ghc-core-program-args
-      '("-O2"
+      `("-O2"
         "-dsuppress-uniques"
         "-dsuppress-idinfo"
         "-dsuppress-module-prefixes"
         ;; "-dsuppress-type-signatures"
         "-dsuppress-type-applications"
         "-dsuppress-coercions"
-        "-dppr-cols200")
+        "-dppr-cols200"
+        "-hidir" ,small-temporary-file-directory
+        "-odir" ,small-temporary-file-directory)
       shm-insert-space-after-comma t
       shm-indent-point-after-adding-where-clause t
       shm-colon-enabled t
@@ -910,7 +912,7 @@ it's position in current window."
     (let ((haskell-process-wrapper-function
            (lambda (args)
              (let ((transformed-args (funcall old-wrapper args))
-                   (enable-recursive-minibuffer t))
+                   (enable-recursive-minibuffers t))
                (if edit-command?
                    (split-shell-command-into-arguments
                     (read-shell-command

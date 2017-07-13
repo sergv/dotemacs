@@ -47,8 +47,25 @@
                 :name vim:shm/goto-parent-end
                 :exclusive nil)
 
+(autoload 'flycheck--locate-dominating-file-matching "flycheck")
+
 (vim:defcmd vim:ghc-core-create-core (nonrepeatable)
-  (ghc-core-create-core))
+  (let* ((is-stack-project?
+          (flycheck--locate-dominating-file-matching
+           default-directory
+           "stack.*\\.yaml\\'"))
+         (ghc-core-program
+          (if is-stack-project?
+              "stack"
+            ghc-core-program))
+         (ghc-core-program-args
+          (if is-stack-project?
+              (cons "ghc"
+                    (cons "--"
+                          ghc-core-program-args))
+            ghc-core-program-args)))
+    (ghc-core-create-core current-prefix-arg)))
+
 (vim:defcmd vim:haskell-compile (nonrepeatable)
   (haskell-compile nil))
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
