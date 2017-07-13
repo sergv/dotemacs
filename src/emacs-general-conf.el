@@ -95,7 +95,7 @@
       load-prefer-newer nil
       kill-ring-max 512
       save-interprogram-paste-before-kill nil
-      enable-recursive-minibuffer t
+      enable-recursive-minibuffers t
       ad-default-compilation-action 'always
       echo-keystrokes 0.01
       warning-minimum-level :error
