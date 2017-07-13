@@ -651,7 +651,7 @@ using EQ-FUNC to determine equal elements."
 
 ;;;###autoload
 (defun split-shell-command-into-arguments (command)
-  "Split command by space, while taking quotation into account. Strips commas
+  "Split command by space, while taking quotation  into account. Strips quotes
 around individual arguments."
   (let ((result nil)
         (word nil)
