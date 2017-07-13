@@ -131,8 +131,6 @@
   (interactive)
   (flycheck-enhancements--goto-error-with-wraparound t))
 
-
-
 (provide 'flycheck-setup)
 
 ;; Local Variables:
