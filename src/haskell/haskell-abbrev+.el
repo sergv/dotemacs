@@ -158,7 +158,17 @@ then Bar would be the result."
                                       x))))
                           pcomplete-ghc-flags))
          (options-snippet (format "{-# OPTIONS_GHC ${1:$\$(yas-choose-value '%S)} #-}$0"
-                                  ghc-flags)))
+                                  ghc-flags))
+         (dump-core-snippet
+          (concat
+           "{-# OPTIONS_GHC "
+           (mapconcat #'identity
+                      '("-O2" "-ddump-simpl" "-dsuppress-uniques"
+                        "-dsuppress-idinfo" "-dsuppress-module-prefixes"
+                        "-dsuppress-type-applications" "-dsuppress-coercions"
+                        "-dppr-cols200")
+                      " ")
+           " ${1:-dsuppress-type-applications }#-}")))
     (setf abbrev+-skip-syntax '("w_" "^ >" (" " "w_") (" " "^ >"))
           abbrev+-abbreviations
           (append
@@ -189,11 +199,6 @@ then Bar would be the result."
                :action-data "{-# SCC \"${1:cost center name}\" #-}$0"
                :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
-               :trigger "##?dump *"
-               :action-type 'yas-snippet
-               :action-data "{-# OPTIONS_GHC -ddump-simpl -dsuppress-uniques -dsuppress-idinfo -dsuppress-module-prefixes -dsuppress-type-applications -dsuppress-coercions -dppr-cols200 #-}$0"
-               :predicate #'point-not-inside-string-or-comment?)
-              (make-abbrev+-abbreviation
                :trigger "##?lang *"
                :action-type 'yas-snippet
                :action-data language-snippet
@@ -202,6 +207,11 @@ then Bar would be the result."
                :trigger "##?opts?"
                :action-type 'yas-snippet
                :action-data options-snippet
+               :predicate #'point-not-inside-string-or-comment?)
+              (make-abbrev+-abbreviation
+               :trigger "##?dump\\(?:-core\\)?"
+               :action-type 'yas-snippet
+               :action-data dump-core-snippet
                :predicate #'point-not-inside-string-or-comment?)))
            (list
             (make-abbrev+-abbreviation
