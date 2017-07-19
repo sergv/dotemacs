@@ -158,9 +158,7 @@ then Bar would be the result."
                                       x))))
                           pcomplete-ghc-flags))
          (options-snippet (format "{-# OPTIONS_GHC ${1:$\$(yas-choose-value '%S)} #-}$0"
-                                  ghc-flags))
-         (default-options-snippet (format "{-# OPTIONS_GHC -Wall -fwarn-monomorphism-restriction ${1:$\$(yas-choose-value '%S)} #-}$0"
-                                          ghc-flags)))
+                                  ghc-flags)))
     (setf abbrev+-skip-syntax '("w_" "^ >" (" " "w_") (" " "^ >"))
           abbrev+-abbreviations
           (append
@@ -201,14 +199,9 @@ then Bar would be the result."
                :action-data language-snippet
                :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
-               :trigger "#opts?"
+               :trigger "##?opts?"
                :action-type 'yas-snippet
                :action-data options-snippet
-               :predicate #'point-not-inside-string-or-comment?)
-              (make-abbrev+-abbreviation
-               :trigger "#\\(?:opts?-def\\)"
-               :action-type 'yas-snippet
-               :action-data default-options-snippet
                :predicate #'point-not-inside-string-or-comment?)))
            (list
             (make-abbrev+-abbreviation
