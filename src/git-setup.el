@@ -57,17 +57,6 @@ directory computed by git.")
 (advice-add 'magit-rev-parse :around #'memoize-rev-parse)
 (advice-add 'magit-rev-parse-safe :around #'memoize-rev-parse)
 
-(defvar magit--git-config-cache (make-hash-table :test #'equal))
-
-(defun memoize-git-config (fun &rest keys)
-  (let ((val (gethash keys magit--git-config-cache :nil)))
-    (when (eq val :nil)
-      (setq val (puthash keys (apply fun keys) magit--git-config-cache)))
-    val))
-
-(advice-add 'magit-get :around #'memoize-git-config)
-(advice-add 'magit-get-boolean :around #'memoize-git-config)
-
 ;;; gitignore
 
 (defun gitignore-setup ()
