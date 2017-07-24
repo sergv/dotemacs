@@ -99,8 +99,8 @@ and instate this one."
 
 (defun shm-get-decl-ast (start end &optional reparse)
   "Get the AST of the declaration starting at POINT."
-  (let ((pair (car (remove-if-not (lambda (pair)
-                                    (= (marker-position (car pair))
+  (let ((pair (car (remove-if-not (lambda (decl-pair)
+                                    (= (marker-position (car decl-pair))
                                        start))
                                   shm-decl-asts))))
     (if (and (not reparse)
@@ -438,6 +438,18 @@ parses."
       haskell-language-extensions
     shm-language-extensions))
 
+(defvar shm-get-nodes--start-markers-cache
+  (make-hash-table :test #'equal :size 1001)
+  "Hash table cache from positions to markers pointing to these
+positions. Used to avoid allocating equal markers by
+`shm-get-nodes.'")
+
+(defvar shm-get-nodes--end-markers-cache
+  (make-hash-table :test #'equal :size 1001)
+  "Hash table cache from positions to markers pointing to these
+positions that move if something is inserted before them. Used to
+avoid allocating equal markers by `shm-get-nodes.'")
+
 (defun shm-get-nodes (ast start end)
   "Get the nodes of the given AST.
 
@@ -453,52 +465,65 @@ Any optimizations welcome."
     (cond ((or (vectorp ast)
                (listp ast))
            (save-excursion
-             (cl-map 'vector
-                     (lambda (node)
-                       (cl-assert (vectorp node))
-                       (cl-assert (= 6 (length node)))
-                       (let ((type (aref node 0))
-                             (constructor (aref node 1))
-                             (start-line (aref node 2))
-                             (start-col (aref node 3))
-                             (end-line (aref node 4))
-                             (end-col (aref node 5)))
-                         (shm-make-node
-                          type
-                          (if (stringp constructor)
-                              (string->symbol constructor)
-                            (progn
-                              (cl-assert (symbolp constructor))
-                              constructor))
-                          (progn (goto-char start)
-                                 (forward-line (1- start-line))
-                                 ;; This trick is to ensure that the first
-                                 ;; line's columns are offsetted for
-                                 ;; regions that don't start at column
-                                 ;; zero.
-                                 (goto-char (+ (if (= start-line 1)
-                                                   start-column
-                                                 0)
-                                               (1- (+ (point) start-col))))
-                                 (let ((marker (set-marker (make-marker) (point))))
-                                   marker))
-                          (progn (goto-char start)
-                                 (forward-line (1- end-line))
-                                 ;; Same logic as commented above.
-                                 (goto-char (+ (if (= end-line 1)
-                                                   start-column
-                                                 0)
-                                               (1- (+ (point) end-col))))
-                                 ;; This avoids the case of:
-                                 (while (save-excursion (goto-char (line-beginning-position))
-                                                        (or (looking-at-p "[ ]+-- ")
-                                                            (looking-at-p "[ ]+$")))
-                                   (forward-line -1)
-                                   (goto-char (line-end-position)))
-                                 (let ((marker (set-marker (make-marker) (point))))
-                                   (set-marker-insertion-type marker t)
-                                   marker)))))
-                     ast)))
+             (unwind-protect
+                 (cl-map 'vector
+                         (lambda (node)
+                           (cl-assert (vectorp node))
+                           (cl-assert (= 6 (length node)))
+                           (let ((type (aref node 0))
+                                 (constructor (aref node 1))
+                                 (start-line (aref node 2))
+                                 (start-col (aref node 3))
+                                 (end-line (aref node 4))
+                                 (end-col (aref node 5)))
+                             (shm-make-node
+                              type
+                              (if (stringp constructor)
+                                  (string->symbol constructor)
+                                (progn
+                                  (cl-assert (symbolp constructor))
+                                  constructor))
+                              (progn (goto-char start)
+                                     (forward-line (1- start-line))
+                                     ;; This trick is to ensure that the first
+                                     ;; line's columns are offsetted for
+                                     ;; regions that don't start at column
+                                     ;; zero.
+                                     (goto-char (+ (if (= start-line 1)
+                                                       start-column
+                                                     0)
+                                                   (1- (+ (point) start-col))))
+                                     (let ((pt (point)))
+                                       (aif (gethash pt shm-get-nodes--start-markers-cache)
+                                           it
+                                         (let ((marker (set-marker (make-marker) pt)))
+                                           (puthash pt marker shm-get-nodes--start-markers-cache)
+                                           marker))))
+                              (progn (goto-char start)
+                                     (forward-line (1- end-line))
+                                     ;; Same logic as commented above.
+                                     (goto-char (+ (if (= end-line 1)
+                                                       start-column
+                                                     0)
+                                                   (1- (+ (point) end-col))))
+                                     ;; This avoids the case of:
+                                     (while (save-excursion (goto-char (line-beginning-position))
+                                                            (or (looking-at-p "[ ]+-- ")
+                                                                (looking-at-p "[ ]+$")))
+                                       (forward-line -1)
+                                       (goto-char (line-end-position)))
+                                     (let ((pt (point)))
+                                       (aif (gethash pt shm-get-nodes--end-markers-cache)
+                                           it
+                                         (let ((marker (set-marker (make-marker) pt)))
+                                           (set-marker-insertion-type marker t)
+                                           (puthash pt marker shm-get-nodes--end-markers-cache)
+                                           marker)))))))
+                         ast)
+               (progn
+                 ;; Clear hashes after use
+                 (clrhash shm-get-nodes--start-markers-cache)
+                 (clrhash shm-get-nodes--end-markers-cache)))))
           (t nil))))
 
 (defun shm-decl-points (&optional use-line-comments)
