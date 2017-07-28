@@ -248,8 +248,7 @@
   (list
    (mk-eproj-lang
     :mode 'haskell-mode
-    :extensions (--filter (not (member it '("x" "alex" "y" "happy" "ly")))
-                          *haskell-extensions*)
+    :extensions *haskell-extensions*
     :create-tags-procedure
     #'eproj/create-haskell-tags
     :parse-tags-procedure
@@ -258,7 +257,9 @@
     :tag->string-func #'eproj/haskell-tag->string
     :synonym-modes '(literate-haskell-mode
                      haskell-c-mode
-                     haskell-c2hs-mode)
+                     haskell-c2hs-mode
+                     alex-mode
+                     happy-mode)
     :normalize-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification)
    (mk-eproj-lang
