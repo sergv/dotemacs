@@ -39,6 +39,7 @@
     :bind-colon t
     :bind-hyphen t
     :use-shm nil)
+  (setup-eproj-symbnav)
   (haskell-define-align-bindings vim:visual-mode-local-keymap)
   (let ((offset 2))
     (setq-local vim:shift-width 2)
