@@ -284,7 +284,8 @@ sets `shm--server-process' and `shm--server-process-port' variables."
     (sha1 source)
     parse-type
     nil
-    source))
+    (encode-coding-string source 'utf-8)))
+
 
 (defun shm--resolve-parse-error-line (start line col)
   "Resolve parse error on line LINE and column COL counting from
