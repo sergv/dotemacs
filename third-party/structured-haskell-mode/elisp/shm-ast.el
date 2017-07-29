@@ -575,46 +575,49 @@ expected to work."
                        (line-end-position))))))))))
    ;; Otherwise we just do our line-based hack.
    (t
-    (save-excursion
-      (let* ((skip-at-start-re (rx (or "#" "--" "|]" "\\")))
-             (start (or (flet
-                            ((jump ()
-                                   (let ((start (point))
-                                         moved)
-                                     (search-backward-regexp "^[^ \n]" nil t 1)
-                                     (setf moved (not (= start (point))))
+    (save-match-data
+      (save-excursion
+        (let* ((skip-at-first-column-re (rx (or "#" "--" "|]" "\\")))
+               (start (or (letrec
+                              ((jump
+                                (lambda ()
+                                  (let ((start (point))
+                                        moved)
+                                    (search-backward-regexp "^[^ \n]" nil t 1)
+                                    (setf moved (not (= start (point))))
 
-                                     (cond
-                                       ((and moved
-                                             (save-excursion (beginning-of-line)
-                                                             (and (not (bobp))
-                                                                  (looking-at-p skip-at-start-re))))
-                                        (jump))
-                                       (t (unless (or (looking-at-p "^-}$")
-                                                      (looking-at-p "^{-$"))
-                                            (point)))))))
-                          (goto-char (line-end-position))
-                          (jump))
-                        0))
-             (end (if (save-excursion
-                        (goto-char start)
-                        (looking-at-p "module\\_>"))
-                    (search-forward-regexp "\\_<where\\_>" nil t 1)
-                    (progn (goto-char (1+ (point)))
-                           (or (flet
-                                   ((jump ()
-                                          (when (search-forward-regexp "[\n]+[^ \n]" nil t 1)
-                                            (cond
-                                              ((save-excursion (beginning-of-line)
-                                                               (looking-at-p skip-at-start-re))
-                                               (jump))
-                                              (t (forward-char -1)
-                                                 (search-backward-regexp "[^\n ]" nil t)
-                                                 (forward-char)
-                                                 (point))))))
-                                 (jump))
-                               (point-max))))))
-        (cons start end))))))
+                                    (cond
+                                      ((and moved
+                                            (save-excursion (beginning-of-line)
+                                                            (and (not (bobp))
+                                                                 (looking-at-p skip-at-first-column-re))))
+                                       (funcall jump))
+                                      (t (unless (looking-at-p
+                                                  (rx bol (or "{-" "-}") eol))
+                                           (point))))))))
+                            (goto-char (line-end-position))
+                            (funcall jump))
+                          0))
+               (end (if (save-excursion
+                          (goto-char start)
+                          (looking-at-p "module\\_>"))
+                        (search-forward-regexp "\\_<where\\_>" nil t 1)
+                      (progn (goto-char (1+ (point)))
+                             (or (letrec
+                                     ((jump
+                                       (lambda ()
+                                         (when (search-forward-regexp "[\n]+[^ \n]" nil t 1)
+                                           (cond
+                                             ((save-excursion (beginning-of-line)
+                                                              (looking-at-p skip-at-first-column-re))
+                                              (funcall jump))
+                                             (t (forward-char -1)
+                                                (search-backward-regexp "[^\n ]" nil t)
+                                                (forward-char)
+                                                (point)))))))
+                                   (funcall jump))
+                                 (point-max))))))
+          (cons start end)))))))
 
 (defun shm-delete-markers (decl)
   "Delete the markers in DECL."
