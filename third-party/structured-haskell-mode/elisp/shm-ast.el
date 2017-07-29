@@ -590,7 +590,8 @@ expected to work."
                                       ((and moved
                                             (save-excursion (beginning-of-line)
                                                             (and (not (bobp))
-                                                                 (looking-at-p skip-at-first-column-re))))
+                                                                 (or (looking-at-p skip-at-first-column-re)
+                                                                     (looking-at-p "where")))))
                                        (funcall jump))
                                       (t (unless (looking-at-p
                                                   (rx bol (or "{-" "-}") eol))
