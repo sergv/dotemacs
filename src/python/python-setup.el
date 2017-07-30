@@ -89,7 +89,7 @@
 (setf python-shell-buffer-name "python repl"
       python-shell-interpreter "ipython3" ;; "ipython"
       python-shell-internal-buffer-name " ipython-repl-internal"
-      python-shell-interpreter-args "--pprint --color-info --colors Linux --nosep --no-confirm-exit --deep-reload"
+      python-shell-interpreter-args "--pprint --simple-prompt --color-info --colors Linux --nosep --no-confirm-exit" ;;" --matplotlib"
 
       ;; python-shell-prompt-regexp "> "
       ;; python-shell-prompt-block-regexp ">> "
