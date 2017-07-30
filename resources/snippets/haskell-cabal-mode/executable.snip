@@ -18,6 +18,8 @@ ${4:  other-modules:
   ghc-options:
     -Wall
     -fwarn-name-shadowing
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
     -fno-warn-type-defaults
     -rtsopts
     ${8:-main-is ${9:${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}}
