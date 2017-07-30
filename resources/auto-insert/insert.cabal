@@ -36,6 +36,8 @@ library
   ghc-options:
     -Wall
     -fwarn-name-shadowing
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
     -fno-warn-type-defaults
   if impl(ghc >= 8.0)
     ghc-options:
@@ -60,6 +62,8 @@ executable ${filename no ext}
   ghc-options:
     -Wall
     -fwarn-name-shadowing
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
     -fno-warn-type-defaults
     -rtsopts
 --     -main-is ExeMain
@@ -89,6 +93,8 @@ test-suite ${filename no ext}-test
   ghc-options:
     -Wall
     -fwarn-name-shadowing
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
     -fno-warn-type-defaults
     -rtsopts
 --     -main-is TestMain
