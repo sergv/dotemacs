@@ -106,6 +106,7 @@ and indent them as singe line."
              sep
              (concat "cabal "
                      "configure "
+                     "--disable-library-profiling "
                      "--disable-profiling "
                      (funcall common-conf-opts build-dir))
              sep
