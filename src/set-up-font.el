@@ -24,7 +24,6 @@
      (cond
        ((platform-use? '(home asus-netbook work))
         '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-          "-*-Iosevka-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
           "-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
           "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
           "-*-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
