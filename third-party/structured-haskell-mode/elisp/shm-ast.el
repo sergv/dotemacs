@@ -957,7 +957,7 @@ which should take node pair."
     (let ((curr-pair node-pair)
           (found nil))
       (while (and (not found)
-                  (not (null curr-pair)))
+                  curr-pair)
         (setf found (funcall pred curr-pair))
         (setf curr-pair (shm-node-parent curr-pair)))
       found)))
