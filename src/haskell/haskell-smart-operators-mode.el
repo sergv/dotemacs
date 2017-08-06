@@ -284,16 +284,33 @@ that next 2 characters are AFTER1 and AFTER2."
             (t
              (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))))))
 
+;;;###autoload
+(defun haskell-smart-operators-exclamation-mark ()
+  "Smart insertion for ! aimed at placing bangs within records."
+  (interactive)
+  (let ((preceded-by-double-colon?
+         (save-excursion
+           (skip-syntax-backward " ")
+           (preceded-by2 ?: ?:))))
+    (if preceded-by-double-colon?
+        (let ((before (char-before)))
+          (when (and before
+                     (not (eq before ?\s)))
+            (insert " "))
+          (insert "!"))
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))
+
 (defvar haskell-smart-operators-mode-map
   (let ((keymap (make-sparse-keymap)))
     (dolist (key (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
-                       (kbd "!") (kbd "%") (kbd "^") (kbd "&") (kbd "/")
+                       (kbd "%") (kbd "^") (kbd "&") (kbd "/")
                        (kbd "?") (kbd "|") (kbd "~")
                        ;; Can't detectect whether it's in pattern and thus less useful than `shm/@'.
                        (kbd "@")
                        ;; Less powerful than `shm/:'.
                        (kbd ":")))
       (define-key keymap key #'haskell-smart-operators-self-insert))
+    (define-key keymap (kbd "!") #'haskell-smart-operators-exclamation-mark)
     (define-key keymap (kbd "-") #'haskell-smart-operators-hyphen)
     (define-key keymap (kbd "#") #'haskell-smart-operators-hash)
     (define-key keymap (kbd ",") #'haskell-smart-operators-comma)
