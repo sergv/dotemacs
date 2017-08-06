@@ -1771,6 +1771,23 @@ DIRECTION must be a symbol, either 'forward or 'backward.
               (goto-char p)
               nil))))))
 
+(defun preceded-by (char &optional pos)
+  "Check if character before position POS (or current position if omitted) is
+equal to CHAR."
+  (let ((before (char-before pos)))
+    (and before
+         (eq before char))))
+
+(defun preceded-by2 (char1 char2 &optional pos)
+  "Check if two characters before position POS (or current position if omitted)
+are CHAR1 and CHAR2 repsectively."
+  (let ((before1 (char-before pos))
+        (before2 (char-before (1- (or pos (point))))))
+    (and before1
+         before2
+         (eq before1 char1)
+         (eq before2 char2))))
+
 ;; Heavy autoloads
 
 (autoload 'shell-command+ "common-heavy" nil t)
