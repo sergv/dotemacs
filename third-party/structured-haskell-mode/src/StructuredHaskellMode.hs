@@ -20,6 +20,7 @@
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ImplicitParams             #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
@@ -103,9 +104,9 @@ parseSpans
   :: (HasCallStack, MonadError ParseError m)
   => ParseType -> Set Extension -> SourceCode -> m [SourceSpan]
 parseSpans typ exts code =
-  (\(mode, D x) -> genHSE codeLines mode x) <$> runParser (chooseParser typ) exts code
+  (\(mode, D x) -> genHSE mode x) <$> runParser (chooseParser typ) exts code
   where
-    codeLines = toSourceCodeLines code
+    ?sourceCode = toSourceCodeLines code
 
 check
   :: (HasCallStack, MonadError ParseError m)
@@ -176,8 +177,8 @@ parseMode = defaultParseMode
   }
 
 -- | Generate a list of spans from the HSE AST.
-genHSE :: Data a => SourceCodeLines -> ParseMode -> a -> [SourceSpan]
-genHSE sourceCode mode = go
+genHSE :: (Data a, ?sourceCode :: SourceCodeLines) => ParseMode -> a -> [SourceSpan]
+genHSE mode = go
   where
     go :: Data b => b -> [SourceSpan]
     go x =
@@ -186,27 +187,25 @@ genHSE sourceCode mode = go
           case cast y :: Maybe SrcSpanInfo of
             Just s -> concat
               [ [ spanHSE
-                    sourceCode
                     (RealType
                       (typeOf x)
                       (ConstructorName $ T.pack $ showConstr $ toConstr x))
                     (srcInfoSpan s)
                 ]
-              , concatMap (\(i, D d) -> pre sourceCode x i ++ go d) (zip [0..] ys)
-              , post sourceCode mode x
+              , concatMap (\(i, D d) -> pre x i ++ go d) (zip [0..] ys)
+              , post mode x
               ]
             _      -> concatMap (\(D d) -> go d) zs
         _ -> []
 
 -- | Pre-children tweaks for a given parent at index i.
 --
-pre :: Typeable a => SourceCodeLines -> a -> Integer -> [SourceSpan]
-pre sourceCode x i = case cast x :: Maybe (Exp SrcSpanInfo) of
+pre :: (Typeable a, ?sourceCode :: SourceCodeLines) => a -> Integer -> [SourceSpan]
+pre x i = case cast x :: Maybe (Exp SrcSpanInfo) of
   -- <foo { <foo = 1> }> becomes <foo <{ <foo = 1> }>>
   Just (RecUpdate SrcSpanInfo{ srcInfoPoints = start:_, srcInfoSpan = end } _ _)
     | i == 1 ->
       [ spanHSE
-          sourceCode
           (FakeType RecUpdates)
           (SrcSpan
              (srcSpanFilename start)
@@ -220,7 +219,6 @@ pre sourceCode x i = case cast x :: Maybe (Exp SrcSpanInfo) of
       -- <deriving (X,Y,Z)> becomes <deriving (<X,Y,Z>)
       Just (Deriving _ ds@(_:_)) ->
         [ spanHSE
-            sourceCode
             (FakeType InstHeads)
             (SrcSpan
                (srcSpanFilename start)
@@ -234,12 +232,14 @@ pre sourceCode x i = case cast x :: Maybe (Exp SrcSpanInfo) of
       _ -> []
 
 -- | Post-node tweaks for a parent, e.g. adding more children.
-post :: Typeable a => SourceCodeLines -> ParseMode -> a ->  [SourceSpan]
-post sourceCode mode x =
+post
+  :: (Typeable a, ?sourceCode :: SourceCodeLines)
+  => ParseMode -> a ->  [SourceSpan]
+post mode x =
   case cast x of
     Just (QuasiQuote (base :: SrcSpanInfo) qname content) ->
       case parseExpWithMode mode content of
-        ParseOk ex    -> genHSE sourceCode mode $ redelta qname base <$> ex
+        ParseOk ex    -> genHSE mode $ redelta qname base <$> ex
         ParseFailed{} -> []
     _ -> []
 
@@ -373,12 +373,12 @@ getConstructorName = \case
     InstHeads  -> ConstructorName "InstHeads"
 
 -- | Generate a span from a HSE SrcSpan.
-spanHSE :: SourceCodeLines -> TypeName -> SrcSpan -> SourceSpan
-spanHSE _sourceCode typ _span@SrcSpan{..} = SourceSpan
+spanHSE :: (?sourceCode :: SourceCodeLines) => TypeName -> SrcSpan -> SourceSpan
+spanHSE typ _span@SrcSpan{..} = SourceSpan
   { ssType          = typeNameToTypeApp typ
   , ssConstructor   = getConstructorName typ
 #ifdef DEBUG
-  , ssMatchedSource = getSourceCoveredBySpan _span _sourceCode
+  , ssMatchedSource = getSourceCoveredBySpan _span ?sourceCode
 #endif
   , ssStartLine     = srcSpanStartLine
   , ssStartColumn   = srcSpanStartColumn
