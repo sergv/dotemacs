@@ -23,6 +23,8 @@
 (require 'shm-indent)
 (require 'shm-languages)
 
+(require 'haskell-smart-operators-mode)
+
 (defvar shm/operator-chars
   (coerce "!#$%&*+-./:<=>?@\\^|~" 'list)
   "Characters that may constitute operators.")
@@ -139,6 +141,39 @@ stick it to the previous operator on line."
   (if (shm-in-pattern?)
     (insert "@")
     (shm-insert-char-surrounding-with-spaces ?@)))
+
+;;;###autoload
+(defun shm/! ()
+  "Make current record field strict or insert ! surrounding with spaces.
+
+Making record field strict means inserting ! before its type and surrounding
+type with parens if type contains spaces."
+  (interactive)
+  (save-match-data
+    (if (save-excursion
+          (skip-syntax-backward " ")
+          (preceded-by2 ?: ?:))
+        (let ((field-decl-type-parent-pair
+               (shm-any-parent-satisfies?
+                (lambda (node-pair)
+                  (let ((parent-pair (shm-node-parent node-pair)))
+                    (and parent-pair
+                         (eq 'FieldDecl (shm-node-cons (cdr parent-pair))))))
+                (shm-current-node-pair))))
+          (if (and field-decl-type-parent-pair
+                   (save-excursion
+                     (skip-syntax-forward " ")
+                     (eq (point) (shm-node-start (cdr field-decl-type-parent-pair)))))
+              (let ((field-decl-type-parent (cdr field-decl-type-parent-pair)))
+                (goto-char (shm-node-start field-decl-type-parent))
+                (when (save-excursion
+                        (re-search-forward "[ \t]" (shm-node-end field-decl-type-parent) t))
+                  (save-excursion
+                    (shm/wrap-parens field-decl-type-parent)))
+                (insert "!")
+                (shm/reparse))
+            (haskell-smart-operators-exclamation-mark)))
+      (haskell-smart-operators-exclamation-mark))))
 
 (defun shm/space ()
   "Insert a space but sometimes do something more clever, like

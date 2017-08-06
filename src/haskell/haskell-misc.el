@@ -790,6 +790,11 @@ return nil otherwise."
   (define-key keymap
     (kbd "@")
     (if use-shm #'shm/@ #'haskell-smart-operators-self-insert))
+  (define-key keymap
+    (kbd "!")
+    (if use-shm
+        #'shm/!
+      #'haskell-smart-operators-exclamation-mark))
   (dolist (key (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
                      (kbd "%") (kbd "^") (kbd "&") (kbd "/")
                      (kbd "?") (kbd "|") (kbd "~")))
@@ -800,7 +805,6 @@ return nil otherwise."
     ("$"   haskell-smart-operators-$)
     ("#"   haskell-smart-operators-hash)
     (","   haskell-smart-operators-comma)
-    ("!"   haskell-smart-operators-exclamation-mark)
     ("C-=" input-unicode)
     ;; ("\\"  self-insert-command)
     ))

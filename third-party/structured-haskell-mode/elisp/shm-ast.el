@@ -952,15 +952,26 @@ node. This function will return the *actual* node at point. See
 
 (defun shm-any-parent-satisfies? (pred node-pair)
   "Check all parents of NODE-PAIR if any of them satisfies predicate PRED,
+and return that parent node.
+
+PRED should take node pair as its single argument."
+  (save-excursion
+    (let ((curr-pair node-pair))
+      (while (and curr-pair
+                  (not (funcall pred curr-pair)))
+        (setf curr-pair (shm-node-parent curr-pair)))
+      curr-pair)))
+
+(defun shm-get-parents ()
+  "Check all parents of NODE-PAIR if any of them satisfies predicate PRED,
 which should take node pair."
   (save-excursion
-    (let ((curr-pair node-pair)
-          (found nil))
-      (while (and (not found)
-                  curr-pair)
-        (setf found (funcall pred curr-pair))
+    (let ((curr-pair (shm-current-node-pair))
+          (parents nil))
+      (while curr-pair
+        (push curr-pair parents)
         (setf curr-pair (shm-node-parent curr-pair)))
-      found)))
+      (nreverse parents))))
 
 (defun shm-inside-do-block? (node-pair)
   (shm-any-parent-satisfies?
