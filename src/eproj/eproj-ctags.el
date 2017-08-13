@@ -13,8 +13,9 @@
 (defparameter *ctags-exec*
   (or (let ((ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/exuberant-ctags"))))
-        (when (file-exists? ctags-exec)
-          (setf *ctags-exec* ctags-exec)))
+        (when (and ctags-exec
+                   (file-exists-p ctags-exec))
+          ctags-exec))
       (executable-find "ctags-exuberant")
       (executable-find "exuberant-ctags")))
 
