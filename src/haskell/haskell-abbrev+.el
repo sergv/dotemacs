@@ -168,7 +168,7 @@ then Bar would be the result."
                         "-dsuppress-type-applications" "-dsuppress-coercions"
                         "-dppr-cols200")
                       " ")
-           " ${1:-dsuppress-type-applications }#-}")))
+           " ${1:-dsuppress-type-signatures }${2:-ddump-to-file }#-}")))
     (setf abbrev+-skip-syntax '("w_" "^ >" (" " "w_") (" " "^ >"))
           abbrev+-abbreviations
           (append
