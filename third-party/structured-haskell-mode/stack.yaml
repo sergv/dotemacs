@@ -6,3 +6,4 @@ packages:
 extra-deps:
 - haskell-src-exts-1.19.1
 - prettyprinter-1.1
+- bert-1.2.2.5
