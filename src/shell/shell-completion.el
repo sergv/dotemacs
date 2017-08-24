@@ -78,7 +78,7 @@
 (defun pcmpl-git-branch-names ()
   "Return list of branch names to complete against."
   (cons "HEAD"
-        (pcmpl-git-branch-names)))
+        (magit-list-branch-names)))
 
 (defun pcmpl-git-commits-and-files ()
   "Return list of commits to complete against."
