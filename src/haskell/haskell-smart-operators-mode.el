@@ -26,12 +26,14 @@
   (insert str))
 
 ;;;###autoload
-(defun haskell-smart-operators--in-string? ()
+(defun haskell-smart-operators--in-string-or-comment? ()
   "Are we in string or comment?"
   (let* ((state (parse-partial-sexp (line-beginning-position)
                                     (point)))
-         (inside-string? (elt state 3)))
+         (inside-string? (elt state 3))
+         (inside-comment? (elt state 4)))
     (or inside-string?
+        inside-comment?
         (and (eq 'font-lock-string-face
                  (get-text-property (point) 'face))
              (if (and (char-equal (char-after) ?\")
@@ -43,16 +45,16 @@
 ;;;###autoload
 (defun haskell-smart-operators--literal-insertion? ()
   "Should a node have literal insertion?"
-  (let ((before (char-before))
-        (after (char-after)))
-    (or (haskell-smart-operators--in-string?)
+  (or (haskell-smart-operators--in-string-or-comment?)
+      (let ((before (char-before))
+            (after (char-after)))
         (and before
              after
              (or
-              ;; Test positions: '_|_', \\_|_'
+              ;; Test for positions: '_|_', \\_|_'
               (and (memq before '(?\' ?\\))
                    (char-equal after ?\'))
-              ;; Test positions: "_|_", \\_|_"
+              ;; Test for positions: "_|_", \\_|_"
               (and (memq before '(?\" ?\\))
                    (char-equal after ?\")))))))
 
@@ -228,7 +230,8 @@ that next 2 characters are AFTER1 and AFTER2."
 
 ;;;###autoload
 (defun haskell-smart-operators-hyphen ()
-  "Insert hyphen. Expand into {- _|_ -} if inside { *}."
+  "Insert hyphen surrounding with spaces. No surrounding within
+strings or commetns. Expand into {- _|_ -} if inside { *}."
   (interactive)
   (destructuring-bind
       (pt-before pt-after is-surrounded?)
