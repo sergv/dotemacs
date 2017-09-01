@@ -541,6 +541,8 @@ Futher modified by Sergey Vinokurov."
             (magit-signature-untrusted            ((t (:foreground ,cyan))))
             (magit-tag                            ((t (:foreground ,cyan :box t))))
 
+            (markdown-code-face                   ((t (:background ,base02))))
+
             (smerge-refined-added                 ((t (:inherit diff-refine-added))))
             (smerge-refined-changed               ((t (:inherit diff-refine-change))))
             (smerge-refined-removed               ((t (:inherit diff-refine-removed))))
