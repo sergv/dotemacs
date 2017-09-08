@@ -23,7 +23,8 @@
 
 (setf markdown-enable-math t
       markdown-list-indent-width 2
-      markdown-asymmetric-header t)
+      markdown-asymmetric-header nil
+      markdown-indent-on-enter nil)
 
 (defun markdown--yasnippet-indent-fallback ()
   (interactive)
@@ -40,13 +41,16 @@
                  :enable-yasnippet t
                  :yasnippet-fallback #'markdown--yasnippet-indent-fallback)
   (typography-setup)
+  (flyspell-english)
   (setup-indent-size 4)
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("C-h" markdown-forward-paragraph)
-    ("C-t" markdown-backward-paragraph)
-    ("M-h" markdown-next-visible-heading)
-    ("M-t" markdown-previous-visible-heading)
-    ("'"   markdown-up-heading))
+    ("C-h"        markdown-forward-paragraph)
+    ("C-t"        markdown-backward-paragraph)
+    ("M-h"        markdown-next-visible-heading)
+    ("M-t"        markdown-previous-visible-heading)
+    ("'"          markdown-up-heading)
+    ("C-<down>"   flyspell-goto-next-error)
+    ("C-<return>" ispell-word))
   (def-keys-for-map vim:visual-mode-local-keymap
     ("`"   vim:wrap-backticks)
     (("<tab>" "TAB") markdown-indent-region)))

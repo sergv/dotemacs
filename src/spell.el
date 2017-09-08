@@ -8,28 +8,18 @@
 ;; Requirements:
 ;; Status:
 
-
 (require 'flyspell)
 (require 'ispell)
 
-;; (global-set-key [f1] 'ispell-word)
-;; (global-set-key [f7] 'ispell-buffer); проверить орфографию в текущем буфере
-;; (global-set-key [f8] 'ispell-region)
-;; (global-set-key [f9] 'auto-fill-mode); вкл/выкл автозаполнения
-;; (global-set-key [f10] 'flyspell-english)
-;; (global-set-key [f11] 'flyspell-russian)
-;; (global-set-key [f12] 'flyspell-mode); вкл/выкл проверки орфографии "на ходу"
-
 (setf ispell-program-name "aspell"
-
       ;; my dictionary-alist, using for redefinition russian dictionary
       ispell-dictionary-alist
-      '(("english" ;; English
-         "[a-zA-Z]"
-         "[^a-zA-Z]"
-         "['-]"
+      '(("english"   ;; English
+         "[a-zA-Z]"  ;; casecshars
+         "[^a-zA-Z]" ;; not-casechars
+         "['-’]"     ;; other-chars
          nil
-         ("-d" "en")
+         ("-d" "en" "--lang" "en_GB" "--encoding=en_GB.utf8" "--size=90")
          nil
          utf-8
          ;;iso-8859-1
@@ -41,15 +31,8 @@
          nil
          ("-C" "-d" "ru")
          nil
-         utf-8)
-        (nil ;; Default
-         "[A-Za-z]"
-         "[^A-Za-z]"
-         "[']"
-         nil
-         ("-C")
-         nil
-         iso-8859-1))
+         utf-8))
+      ispell-aspell-dictionary-alist ispell-dictionary-alist
 
       ispell-russian-dictionary "russian"
       ispell-english-dictionary "english"
@@ -78,13 +61,10 @@
   (flyspell-buffer)
   (message "English dictionary - Spell Checking completed."))
 
-
 ;; ;;;###autoload
 ;; (add-hook 'text-mode-hook 'flyspell-mode)
 
 (setf ispell-have-new-look t
-      ispell-enable-tex-parser t
-      ;; flyspell-delay 1
       flyspell-always-use-popup t)
 
 (provide 'spell)
