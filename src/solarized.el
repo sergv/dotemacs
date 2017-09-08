@@ -284,6 +284,7 @@ Futher modified by Sergey Vinokurov."
             (org-agenda-structure         ((t (:foreground ,violet))))
             (org-date-selected            ((t (:foreground ,magenta))))
             (org-clock-overlay            ((t (:background ,light-yellow-background))))
+            (org-code                     ((t (:inherit markdown-code-face))))
             (org-document-info            ((t (:foreground ,violet))))
             (org-document-title           ((t (:foreground ,violet :bold t))))
             (org-date                     ((t (:foreground ,violet :underline t))))
@@ -541,7 +542,8 @@ Futher modified by Sergey Vinokurov."
             (magit-signature-untrusted            ((t (:foreground ,cyan))))
             (magit-tag                            ((t (:foreground ,cyan :box t))))
 
-            (markdown-code-face                   ((t (:background ,base02))))
+            (markdown-code-face                   ((t (:foreground ,cyan))))
+            (markdown-inline-code-face            ((t (:inherit markdown-code-face))))
 
             (smerge-refined-added                 ((t (:inherit diff-refine-added))))
             (smerge-refined-changed               ((t (:inherit diff-refine-change))))
@@ -612,6 +614,8 @@ Futher modified by Sergey Vinokurov."
 
       (solarized/install-frame-params frame-params)
       (solarized/install-faces faces))
+
+    (put 'markdown-code-face 'saved-face t)
 
     (setf ;; frame-background-mode        mode
      *color-theme-solarized-type* mode
