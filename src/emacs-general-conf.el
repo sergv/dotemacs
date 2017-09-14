@@ -105,7 +105,9 @@
       bidi-display-reordering nil
 
       ;; Set only variables marked as safe, ignore all other.
-      enable-local-variables :safe)
+      enable-local-variables :safe
+
+      sentence-end-double-space nil)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
