@@ -76,6 +76,7 @@ update-dir-autoloads \
     "third-party/elm-mode" \
     "third-party/flycheck" \
     "third-party/flycheck-elm" \
+    "third-party/groovy-mode" \
     "third-party/haskell-mode" \
     "third-party/misc-modes" \
     "third-party/pkg-info" \
