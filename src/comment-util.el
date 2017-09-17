@@ -83,6 +83,7 @@
     (glsl-mode             (one-line "//") (line-regexp "//+"))
     (java-mode             (one-line "//") (line-regexp "//+"))
     (glsl-mode             (one-line "//") (line-regexp "//+"))
+    (groovy-mode           (one-line "//") (line-regexp "//+"))
     (texinfo-mode          (one-line "@comment") (line-regexp "@c\\(?:o\\(?:m\\(?:m\\(?:e\\(?:n\\(?:t?\\)?\\)?\\)?\\)?\\)?\\)?"))
     (bison-mode            (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
     (flex-mode             (region-begin "/*") (region-end "*/") (line-regexp "/[/*]"))
