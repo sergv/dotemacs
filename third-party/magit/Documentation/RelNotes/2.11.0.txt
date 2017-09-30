@@ -1,5 +1,33 @@
-Magit v2.11.0 Release Notes (unreleased)
-========================================
+It's Magit!  A Git Porcelain inside Emacs
+=========================================
+
+Magit is an interface to the version control system Git, implemented
+as an Emacs package.  Magit aspires to be a complete Git porcelain.
+While we cannot (yet) claim that Magit wraps and improves upon each
+and every Git command, it is complete enough to allow even experienced
+Git users to perform almost all of their daily version control tasks
+directly from within Emacs.  While many fine Git clients exist, only
+Magit and Git itself deserve to be called porcelains.
+
+For more information about Magit, see https://magit.vc.
+
+Magit needs your help
+=====================
+
+If Magit helps you be more productive, then please consider backing
+the fundraising campaign on Kickstarter.  Thanks! <3
+
+https://www.kickstarter.com/projects/1681258897/its-magit-the-magical-git-client?ref=ej621y
+
+Magit v2.11.0 Release Notes
+===========================
+
+Released 13th September 2017 by Jonas Bernoulli.
+
+I am pleased to announce the release of Magit version 2.11.0,
+representing 303 commits by 26 contributors over six months.
+
+Also see https://emacsair.me/2017/09/12/magit-2.11.
 
 Changes since v2.10.3
 ---------------------
@@ -52,15 +80,15 @@ Changes since v2.10.3
 * When a revision is shown from a log buffer, the revision buffer now
   inherits the file restriction of the log buffer.  #3056
 
-* Add new command `magit-revision-toggle-file-filter'.  #3062
+* Added new command `magit-diff-toggle-file-filter'.  #3062
 
-* Add new option `magit-use-sticky-arguments' that provides more
+* Added new option `magit-use-sticky-arguments' that provides more
   control over how diff and log commands reuse arguments from existing
   buffers.  #3074
 
-* Add imenu support in log, revision, and status buffers.  #3022
+* Added imenu support in log, revision, and status buffers.  #3022
 
-* Add command `magit-abort-dwim` to abort the current operation.
+* Added command `magit-abort-dwim` to abort the current operation.
   Depending on the context, this will abort a merge, a rebase, a
   patch application, a cherry-pick, a revert, or a bisect.  #3017
 
@@ -91,6 +119,27 @@ Changes since v2.10.3
 
 * Added bookmark support in status, refs, log, reflog, stashes,
   cherry, diff, revision, stash, and submodule-list buffers.  #3113
+
+* Added new function `magit-insert-modules', a wrapper around the
+  existing `magit-insert-modules-*' functions.  Also added options
+  `magit-module-sections-hook' and `magit-module-sections-nested',
+  to allow tuning the behavior of this function.  #3141
+
+* Renamed function `magit-insert-submodules' to
+  `magit-insert-modules-overview' for consistency with other
+  `magit-insert-modules-*' functions.  #3141
+
+* Inserting module sections is much faster now.  #3141
+
+* Added `--no-verify' switch to `magit-rebase-popup'.  #3144
+
+* The `--no-verify' switch in `magit-commit-popup' is now bound to "h"
+  instead of "n" for consistency with `magit-push-popup' and
+  `magit-rebase-popup'.  #3144
+
+* Added support for the file "EDIT_DESCRIPTION", which is used instead
+  of "BRANCH_DESCRIPTION" for editing a branch's description as of Git
+  2.13.0.  #3149
 
 Fixes since v2.10.3
 -------------------
@@ -145,6 +194,38 @@ Fixes since v2.10.3
   not properly supported, causing issues when trying to pull or push.
   #3116
 
+* The log margin displayed invalid information for cherries.  #3163
+
 This release also contains the fixes described in the v2.10.{1,2,3}
 release notes, as well as other minor improvements, bug fixes, typo
 fixes, and documentation fixes.
+
+Authors
+-------
+
+   148  Jonas Bernoulli
+    93  Kyle Meyer
+    15  Damien Cassou
+    15  Noam Postavsky
+     5  Basil L. Contovounesios
+     3  Justin Guenther
+     2  Alex Kost
+     2  Duianto Vebotci
+     2  Radon Rosborough
+     2  Štěpán Němec
+     1  Adam Benanti
+     1  Allen Li
+     1  Ben North
+     1  Erik Anderson
+     1  Eyal Lotem
+     1  Fabian Wiget
+     1  Ioan-Adrian Ratiu
+     1  Jeremy Meng
+     1  Justin Burkett
+     1  Justin Thomas
+     1  Kévin Le Gouguec
+     1  Marc Sherry
+     1  Mark Karpov
+     1  Mark Oteiza
+     1  Sean Whitton
+     1  Yuri Khan
