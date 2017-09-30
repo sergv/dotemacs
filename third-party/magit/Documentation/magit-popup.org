@@ -7,11 +7,10 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Magit-Popup: (magit-popup).
 #+TEXINFO_DIR_DESC: Infix arguments with feedback
-#+SUBTITLE: for version 2.10
+#+SUBTITLE: for version 2.11
 
 #+TEXINFO_DEFFN: t
-#+TEXINFO_CLASS: info+
-#+OPTIONS: H:4 num:nil toc:2
+#+OPTIONS: H:4 num:4 toc:2
 
 Taking inspiration from regular prefix commands and prefix arguments,
 this library implements a similar abstraction; a new kind of prefix
@@ -41,7 +40,7 @@ suffix commands.
 
 Invoking such a prefix command displays a popup buffer which lists the
 associated infix arguments and suffix commands.  In that buffer each
-argument is prefixes with the key sequence that can be used to toggle
+argument is prefixed with the key sequence that can be used to toggle
 it or change its value.  Likewise each suffix command is prefixed with
 the key used to invoke it.  Such a popup buffer might look like this:
 
@@ -66,7 +65,7 @@ The user could then for example type ~-l~ to toggle the ~--graph~ *switch*
 change the value of the *option* ~--grep~.
 
 Once all arguments are as desired one invokes a suffix command, which
-causes the popup buffer to disappears.  The suffix command should then
+causes the popup buffer to disappear.  The suffix command should then
 retrieve the infix arguments in its ~interactive~ form like this is done
 for prefix arguments.
 
@@ -260,6 +259,11 @@ https://github.com/magit/magit/wiki/Additional-proposed-infix-arguments-and-suff
 
   If optional VALUE is non-nil then the option is on by default, and
   VALUE is its default value.
+
+  READER is used to read a value from the user when the option is
+  invoked and does not currently have a value.  It should take one
+  argument and use it as the prompt.  If this is nil, then
+  ~read-from-minibuffer~ is used.
 
   OPTION is inserted after all other options already defined for
   POPUP, unless optional PREPEND is non-nil, in which case it is
@@ -649,4 +653,6 @@ General Public License for more details.
 # eval: (require 'org-man     nil t)
 # eval: (require 'ox-texinfo+ nil t)
 # eval: (and (require 'ox-extra nil t) (ox-extras-activate '(ignore-headlines)))
+# indent-tabs-mode: nil
+# org-src-preserve-indentation: nil
 # End:

@@ -7,11 +7,10 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Magit: (magit).
 #+TEXINFO_DIR_DESC: Using Git from Emacs with Magit.
-#+SUBTITLE: for version 2.10
+#+SUBTITLE: for version 2.11
 
 #+TEXINFO_DEFFN: t
-#+TEXINFO_CLASS: info+
-#+OPTIONS: H:4 num:nil toc:2
+#+OPTIONS: H:4 num:3 toc:2
 
 Magit is an interface to the version control system Git, implemented
 as an Emacs package.  Magit aspires to be a complete Git porcelain.
@@ -1602,39 +1601,6 @@ The following functions can also be added to the above hook:
   ~magit-insert-unpulled-or-recent-commits~ (provided there are no
   unpulled commits) show.
 
-- Function: magit-insert-modules-unpulled-from-upstream
-
-  Insert sections for modules that haven't been pulled from the
-  upstream yet.  These sections can be expanded to show the respective
-  commits.
-
-- Function: magit-insert-modules-unpulled-from-pushremote
-
-  Insert sections for modules that haven't been pulled from the
-  push-remote yet.  These sections can be expanded to show the
-  respective commits.
-
-- Function: magit-insert-modules-unpushed-to-upstream
-
-  Insert sections for modules that haven't been pushed to the upstream
-  yet.  These sections can be expanded to show the respective commits.
-
-- Function: magit-insert-modules-unpushed-to-pushremote
-
-  Insert sections for modules that haven't been pushed to the
-  push-remote yet. These sections can be expanded to show the
-  respective commits.
-
-- Function: magit-insert-submodules
-
-  Insert sections for all submodules.  For each section insert the
-  path, the branch, and the output of ~git describe --tags~.
-
-  Press ~RET~ on such a submodule section to show its own status buffer.
-  Press ~RET~ on the "Modules" section to display a list of submodules
-  in a separate buffer.  This shows additional information not
-  displayed in the super-repository's status buffer.
-
 - Function: magit-insert-unpulled-cherries
 
   Insert section showing unpulled commits.
@@ -1657,7 +1623,8 @@ used here.
 *** Status Header Sections
 
 The contents of status buffers is controlled using the hook
-~magit-status-sections-hook~, as described in the previous section.
+~magit-status-sections-hook~ (see [[*Status Sections]]).
+
 By default ~magit-insert-status-headers~ is the first member of that
 hook variable.
 
@@ -1725,6 +1692,68 @@ The following functions can also be added to the above hook:
 - Function: magit-insert-user-header
 
   Insert a header line about the current user.
+
+*** Status Module Sections
+
+The contents of status buffers is controlled using the hook
+~magit-status-sections-hook~ (see [[*Status Sections]]).
+
+By default ~magit-insert-modules~ is /not/ a member of that hook
+variable.
+
+- Function: magit-insert-modules
+
+  Insert submodule sections.
+
+  Hook ~magit-module-sections-hook~ controls which module sections are
+  inserted, and option ~magit-insert-modules-nested~ controls whether
+  they are wrapped in an additional section.
+
+- Option: magit-module-sections-hook
+
+  Hook run by ~magit-insert-modules~.
+
+- Option: magit-module-sections-nested
+
+  This option controls whether ~magit-insert-modules~ wraps inserted
+  sections in an additional section.
+
+  If this is non-nil, then only a single top-level section is inserted.
+  If it is nil, then all sections listed in ~magit-module-sections-hook~
+  become top-level sections.
+
+- Function: magit-insert-modules-overview
+
+  Insert sections for all submodules.  For each section insert the
+  path, the branch, and the output of ~git describe --tags~.
+
+  Press ~RET~ on such a submodule section to show its own status buffer.
+  Press ~RET~ on the "Modules" section to display a list of submodules
+  in a separate buffer.  This shows additional information not
+  displayed in the super-repository's status buffer.
+
+- Function: magit-insert-modules-unpulled-from-upstream
+
+  Insert sections for modules that haven't been pulled from the
+  upstream yet.  These sections can be expanded to show the respective
+  commits.
+
+- Function: magit-insert-modules-unpulled-from-pushremote
+
+  Insert sections for modules that haven't been pulled from the
+  push-remote yet.  These sections can be expanded to show the
+  respective commits.
+
+- Function: magit-insert-modules-unpushed-to-upstream
+
+  Insert sections for modules that haven't been pushed to the upstream
+  yet.  These sections can be expanded to show the respective commits.
+
+- Function: magit-insert-modules-unpushed-to-pushremote
+
+  Insert sections for modules that haven't been pushed to the
+  push-remote yet.  These sections can be expanded to show the
+  respective commits.
 
 *** Status Options
 
@@ -1977,7 +2006,7 @@ the status buffer.
 
   Double the number of commits the current log buffer is limited to.
 
-- Key: =, magit-log-half-commit-limit
+- Key: -, magit-log-half-commit-limit
 
   Half the number of commits the current log buffer is limited to.
 
@@ -2292,6 +2321,16 @@ in the status buffer.
   This command swaps revisions in the diff range from "revA..revB"
   to "revB..revA", or vice versa.
 
+- Key: D F, magit-diff-toggle-file-filter
+
+  This command toggles the file restriction of the diffs in the
+  current buffer, allowing you to quickly switch between viewing all
+  the changes in the commit and the restricted subset.  As a special
+  case, when this command is called from a log buffer, it toggles the
+  file restriction in the repository's revision buffer, which is
+  useful when you display a revision from a log buffer that is
+  restricted to a file or files.
+
 In addition to the above popup, which allows changing any of the
 supported arguments, there also exist some commands which change a
 particular argument.
@@ -2480,20 +2519,25 @@ without having to using one of the diff popups.
   to ~magit-revision-header-format~.
 
   Both cells are regular expressions.  The car specifies where to
-  insert the author gravatar image.  The top halve of the image is
-  inserted right after the matched text, the bottom halve on the
+  insert the author gravatar image.  The top half of the image is
+  inserted right after the matched text, the bottom half on the
   next line at the same offset.  The cdr specifies where to insert
   the committer image, accordingly.  Either the car or the cdr may
   be nil.
 
-- Key: M-x magit-revision-toggle-file-filter, magit-revision-toggle-file-filter
+The diffs shown in the revision buffer may be automatically restricted
+to a subset of the changed files.  If the revision buffer is displayed
+from a log buffer, the revision buffer will share the same file
+restriction as that log buffer (also see the command
+~magit-diff-toggle-file-filter~).  Note, however, that the log's file
+restriction will be ignored when ~magit-log-arguments~ includes
+~--follow~.  In this case, the ~-u~ argument of the log popup can be
+used to show the file-restricted diffs inline.
 
-  This command toggles the file restriction of the current revision
-  buffer.  It is particularly useful when you display a revision from
-  a log buffer that is restricted to a file or files.  In this case,
-  the revision buffer is also restricted to these files, and this
-  command allows you to quickly switch between viewing all the changes
-  in the commit and the restricted subset.
+If the revision buffer is not displayed from a log buffer, the file
+restriction is determined by the file restriction in the repository's
+diff buffer, if it exists, and the value of the option
+~magit-use-sticky-arguments~.
 
 ** Ediffing
 
@@ -3267,7 +3311,7 @@ stored at the beginning and the end of an edit session (regardless of
 whether the session is finished successfully or was canceled).  It is
 sometimes useful to bring back messages from that ring.
 
-- Key: C-s M-s, git-commit-save-message
+- Key: C-c M-s, git-commit-save-message
 
   Save the current buffer content to the commit message ring.
 
@@ -3652,23 +3696,22 @@ features are available from separate popups.
   This option specifies whether remote upstreams are favored over
   local upstreams when creating new branches.
 
-  When a new branch is created, Magit offers the branch, commit, or
-  stash as the default starting point of the new branch.  If there is
-  no such thing at point, then it falls back to offer the current
-  branch as starting-point.  The user may then accept that default or
-  pick something else.
+  When a new branch is created, then the branch, commit, or stash at
+  point is suggested as the starting point of the new branch, or if
+  there is no such revision at point the current branch.  In either
+  case the user may choose another starting point.
 
-  If the chosen starting-point is a branch, then it may also be set
+  If the chosen starting point is a branch, then it may also be set
   as the upstream of the new branch, depending on the value of the
   Git variable `branch.autoSetupMerge'.  By default this is done
   for remote branches, but not for local branches.
 
   You might prefer to always use some remote branch as upstream.
-  If the chosen starting-point is (1) a local branch, (2) whose
+  If the chosen starting point is (1) a local branch, (2) whose
   name matches a member of the value of this option, (3) the
   upstream of that local branch is a remote branch with the same
   name, and (4) that remote branch can be fast-forwarded to the
-  local branch, then the chosen branch is used as starting-point,
+  local branch, then the chosen branch is used as starting point,
   but its own upstream is used as the upstream of the new branch.
 
   Members of this option's value are treated as branch names that
@@ -4999,7 +5042,7 @@ Also see [[man:git-submodule]]
 
 *** Listing Submodules
 
-The command ~magit-list-submodule~ displays a list of the current
+The command ~magit-list-submodules~ displays a list of the current
 repository's submodules in a separate buffer.  It's also possible to
 display information about submodules directly in the status buffer of
 the super-repository by adding ~magit-insert-submodules~ to the hook
@@ -5366,7 +5409,8 @@ few key bindings, but this might be extended in the future.
 
   This command shows the log for the file of blob that the current
   buffer visits.  Renames are followed when a prefix argument is used
-  or when ~--follow~ is part of ~magit-log-arguments~.
+  or when ~--follow~ is part of ~magit-log-arguments~.  When the
+  region is active, the log is restricted to the selected line range.
 
 - User Option: magit-log-buffer-file-locked
 
@@ -5582,6 +5626,9 @@ per-repository or per-repository-class basis only.  See
 [[*Per-Repository Configuration]].
 
 **** Log Performance
+:PROPERTIES:
+:NONODE: t
+:END:
 
 When showing logs, Magit limits the number of commits initially shown
 in the hope that this avoids unnecessary work.  When using ~--graph~ is
@@ -5611,6 +5658,9 @@ merges.  For that reason ~--color~ is not enabled by default anymore.
 Consider leaving it at that.
 
 **** Diff Performance
+:PROPERTIES:
+:NONODE: t
+:END:
 
 If diffs are slow, then consider turning off some optional diff
 features by setting all or some of the following variables to ~nil~:
@@ -5626,6 +5676,9 @@ looking at the same commit in ~magit-diff-mode~, then consider setting
 ~magit-revision-insert-related-refs~ to ~nil~.
 
 **** Refs Buffer Performance
+:PROPERTIES:
+:NONODE: t
+:END:
 
 When refreshing the "references buffer" is slow, then that's usually
 because several hundred refs are being displayed.  The best way to
@@ -5643,6 +5696,9 @@ actually all exist.  You can do so by pruning branches which no longer
 exist using ~f-pa~.
 
 **** Committing Performance
+:PROPERTIES:
+:NONODE: t
+:END:
 
 When you initiate a commit, then Magit by default automatically shows
 a diff of the changes you are about to commit.  For large commits this
@@ -5664,6 +5720,9 @@ the diff, which is useful because it increases the odds that you spot
 potential issues.
 
 **** The Built-In VC Package
+:PROPERTIES:
+:NONODE: t
+:END:
 
 Emacs comes with a version control interface called "VC", see
 [[info:emacs#Version Control]].  It is enabled be default and if you don't
@@ -5682,9 +5741,6 @@ another version control system:
 #+END_SRC
 
 **** Microsoft Windows Performance
-:PROPERTIES:
-:TEXINFO-NODE: t
-:END:
 
 In order to update the status buffer, ~git~ has to be run a few dozen
 times.  That is problematic on Microsoft Windows, because that
@@ -5712,9 +5768,6 @@ You should also check whether an anti-virus program is slowing things
 down.
 
 **** MacOS Performance
-:PROPERTIES:
-:TEXINFO-NODE: t
-:END:
 
 On macOS Emacs currently creates child processes using ~fork~.  It
 appears that this also copies GUI resources.  The result is that
@@ -6793,4 +6846,6 @@ General Public License for more details.
 # eval: (require 'org-man     nil t)
 # eval: (require 'ox-texinfo+ nil t)
 # eval: (and (require 'ox-extra nil t) (ox-extras-activate '(ignore-headlines)))
+# indent-tabs-mode: nil
+# org-src-preserve-indentation: nil
 # End:
