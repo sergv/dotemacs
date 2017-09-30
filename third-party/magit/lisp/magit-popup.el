@@ -12,7 +12,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (async "20170219.942") (dash "20170207.2056"))
+;; Package-Requires: ((emacs "24.4") (async "20170823") (dash "20170810"))
 ;; Keywords: bindings
 ;; Homepage: https://github.com/magit/magit
 
@@ -619,6 +619,11 @@ displayed in the popup.
 If optional VALUE is non-nil then the option is on by default,
 and VALUE is its default value.
 
+READER is used to read a value from the user when the option is
+invoked and does not currently have a value.  It should take one
+argument and use it as the prompt.  If this is nil, then
+`read-from-minibuffer' is used.
+
 OPTION is inserted after all other options already defined for
 POPUP, unless optional PREPEND is non-nil, in which case it is
 placed first.  If optional AT is non-nil, then it should be the
@@ -831,22 +836,23 @@ TYPE is one of `:action', `:sequence-action', `:switch', or
     (when (and variable (not (magit-popup-event-arg variable)))
       (setq action variable)
       (setq variable nil))
-    (if (or action variable)
-        (let* ((magit-current-popup magit-this-popup)
-               (magit-current-popup-args (magit-popup-get-args))
-               (command (magit-popup-event-fun (or action variable)))
-               (magit-current-popup-action command))
-          (when action
-            (magit-popup-quit))
-          (call-interactively command)
-          (setq this-command command)
-          (unless action
-            (magit-refresh-popup-buffer)))
-      (if (eq event ?q)
-          (progn (magit-popup-quit)
-                 (when magit-previous-popup
-                   (magit-popup-mode-setup magit-previous-popup nil)))
-        (user-error "%c isn't bound to any action" event)))))
+    (cond ((or action variable)
+           (let* ((magit-current-popup magit-this-popup)
+                  (magit-current-popup-args (magit-popup-get-args))
+                  (command (magit-popup-event-fun (or action variable)))
+                  (magit-current-popup-action command))
+             (when action
+               (magit-popup-quit))
+             (call-interactively command)
+             (setq this-command command)
+             (unless action
+               (magit-refresh-popup-buffer))))
+          ((eq event ?q)
+           (magit-popup-quit)
+           (when magit-previous-popup
+             (magit-popup-mode-setup magit-previous-popup nil)))
+          (t
+           (user-error "%c isn't bound to any action" event)))))
 
 (defun magit-popup-set-variable
     (variable choices &optional default other)
@@ -955,7 +961,8 @@ and are defined in `magit-popup-mode-map' (which see)."
               (split-window-below)
               (with-no-warnings ; display-buffer-function is obsolete
                 (let ((display-buffer-alist nil)
-                      (display-buffer-function nil))
+                      (display-buffer-function nil)
+                      (display-buffer-overriding-action nil))
                   (woman topic)))
               (setq buffer (current-buffer)))
       (`man   (cl-letf (((symbol-function #'fboundp) (lambda (_) nil)))
@@ -984,7 +991,9 @@ and are defined in `magit-popup-mode-map' (which see)."
     (other-window 1)
     (with-no-warnings ; display-buffer-function is obsolete
       (let ((display-buffer-alist '(("" display-buffer-use-some-window)))
-            (display-buffer-function nil))
+            (display-buffer-function nil)
+            (display-buffer-overriding-action nil)
+            (help-window-select nil))
         (describe-function function)))
     (fit-window-to-buffer)
     (other-window 1)

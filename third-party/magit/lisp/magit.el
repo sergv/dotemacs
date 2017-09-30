@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20170219.942") (dash "20170207.2056") (with-editor "20170111.609") (git-commit "20170214.347") (magit-popup "20170214.347"))
+;; Package-Requires: ((emacs "24.4") (async "20170823") (dash "20170810") (with-editor "20170817") (git-commit "20170823") (magit-popup "20170824"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -234,7 +234,7 @@ merge.
   "Merge commit REV into the current branch; and edit message.
 Perform the merge and prepare a commit message but let the user
 edit it.
-\n(git merge --edit --no-ff [ARGS] rev)"
+\n(git merge --edit --no-ff [ARGS] REV)"
   (interactive (list (magit-read-other-branch-or-commit "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
@@ -247,7 +247,7 @@ edit it.
   "Merge commit REV into the current branch; pretending it failed.
 Pretend the merge failed to give the user the opportunity to
 inspect the merge and change the commit message.
-\n(git merge --no-commit --no-ff [ARGS] rev)"
+\n(git merge --no-commit --no-ff [ARGS] REV)"
   (interactive (list (magit-read-other-branch-or-commit "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
@@ -314,7 +314,7 @@ inspect the merge and change the commit message.
   (file-exists-p (magit-git-dir "MERGE_HEAD")))
 
 (defun magit-merge-assert ()
-  (or (not (magit-anything-modified-p))
+  (or (not (magit-anything-modified-p t))
       (magit-confirm 'merge-dirty
         "Merging with dirty worktree is risky.  Continue")
       (user-error "Abort")))
