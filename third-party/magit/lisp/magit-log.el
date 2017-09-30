@@ -634,7 +634,8 @@ completion candidates."
 (defun magit-log-buffer-file (&optional follow beg end)
   "Show log for the blob or file visited in the current buffer.
 With a prefix argument or when `--follow' is part of
-`magit-log-arguments', then follow renames."
+`magit-log-arguments', then follow renames.  When the region is
+active, restrict the log to the lines that the region touches."
   (interactive
    (cons current-prefix-arg
          (and (region-active-p)
@@ -1056,7 +1057,7 @@ Do not add this to a hook variable."
           (save-excursion
             (backward-char)
             (apply #'magit-log-format-margin
-                   (split-string (magit-rev-format "%aN%x00%ct") "\0"))))
+                   (split-string (magit-rev-format "%aN%x00%ct" hash) "\0"))))
         (when (and graph
                    (not (eobp))
                    (not (looking-at non-graph-re)))
