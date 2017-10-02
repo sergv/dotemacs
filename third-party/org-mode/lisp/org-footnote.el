@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -345,7 +345,7 @@ to rename."
 	(t nil)))
 
 (defun org-footnote--collect-references (&optional anonymous)
-  "Collect all labelled footnote references in current buffer.
+  "Collect all labeled footnote references in current buffer.
 
 Return an alist where associations follow the pattern
 

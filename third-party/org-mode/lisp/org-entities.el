@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -295,6 +295,8 @@ packages to be loaded, add these packages to `org-latex-packages-alist'."
      ("yen" "\\textyen{}" nil "&yen;" "yen" "¥" "¥")
      ("euro" "\\texteuro{}" nil "&euro;" "EUR" "EUR" "€")
      ("EUR" "\\texteuro{}" nil "&euro;" "EUR" "EUR" "€")
+     ("dollar" "\\$" nil "$" "$" "$" "$")
+     ("USD" "\\$" nil "$" "$" "$" "$")
 
      "** Property Marks"
      ("copy" "\\textcopyright{}" nil "&copy;" "(c)" "©" "©")
