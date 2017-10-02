@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -143,7 +143,7 @@ the region 0:00:00."
 	      (seconds-to-time
 	       ;; Pass `current-time' result to `float-time' (instead
 	       ;; of calling without arguments) so that only
-	       ;; `current-time' has to be overriden in tests.
+	       ;; `current-time' has to be overridden in tests.
 	       (- (float-time (current-time)) delta))))
       (setq org-timer-pause-time nil)
       (org-timer-set-mode-line 'on)
@@ -172,7 +172,7 @@ With prefix arg STOP, stop it entirely."
 	(setq org-timer-start-time
 	      ;; Pass `current-time' result to `float-time' (instead
 	      ;; of calling without arguments) so that only
-	      ;; `current-time' has to be overriden in tests.
+	      ;; `current-time' has to be overridden in tests.
 	      (seconds-to-time (- (float-time (current-time))
 				  (- pause-secs start-secs)))))
       (setq org-timer-pause-time nil)
@@ -235,7 +235,7 @@ it in the buffer."
 (defun org-timer-seconds ()
   ;; Pass `current-time' result to `float-time' (instead of calling
   ;; without arguments) so that only `current-time' has to be
-  ;; overriden in tests.
+  ;; overridden in tests.
   (if org-timer-countdown-timer
       (- (float-time org-timer-start-time)
 	 (float-time (or org-timer-pause-time (current-time))))
@@ -436,7 +436,7 @@ using three `C-u' prefix arguments."
 	   (if (numberp org-timer-default-timer)
 	       (number-to-string org-timer-default-timer)
 	     org-timer-default-timer))
-	 (effort-minutes (ignore-errors (org-get-at-eol 'effort-minutes 1)))
+	 (effort-minutes (ignore-errors (floor (org-get-at-eol 'effort-minutes 1))))
 	 (minutes (or (and (numberp opt) (number-to-string opt))
 		      (and (not (equal opt '(64)))
 			   effort-minutes

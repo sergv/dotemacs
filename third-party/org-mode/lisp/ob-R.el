@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -159,10 +159,10 @@ This function is called by `org-babel-execute-src-block'."
 	   (result-type (cdr (assq :result-type params)))
            (session (org-babel-R-initiate-session
 		     (cdr (assq :session params)) params))
-	   (colnames-p (cdr (assq :colnames params)))
-	   (rownames-p (cdr (assq :rownames params)))
 	   (graphics-file (and (member "graphics" (assq :result-params params))
 			       (org-babel-graphical-output-file params)))
+	   (colnames-p (unless graphics-file (cdr (assq :colnames params))))
+	   (rownames-p (unless graphics-file (cdr (assq :rownames params))))
 	   (full-body
 	    (let ((inside
 		   (list (org-babel-expand-body:R body params graphics-file))))
