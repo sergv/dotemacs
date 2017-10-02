@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -312,7 +312,8 @@ publishing directory.
 Return output file name."
   (org-publish-org-to 'org filename ".org" plist pub-dir)
   (when (plist-get plist :htmlized-source)
-    (require 'htmlize)
+    (or (require 'htmlize nil t)
+	(error "Please install htmlize from https://github.com/hniksic/emacs-htmlize"))
     (require 'ox-html)
     (let* ((org-inhibit-startup t)
 	   (htmlize-output-type 'css)

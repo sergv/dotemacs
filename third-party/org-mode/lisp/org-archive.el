@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -340,14 +340,20 @@ direct children of this heading."
 		    (and (looking-at "[ \t\r\n]*")
 			 ;; datetree archives don't need so much spacing.
 			 (replace-match (if datetree-date "\n" "\n\n"))))
-		;; No specific heading, just go to end of file.
-		(goto-char (point-max))
-		;; Subtree narrowing can let the buffer end on
-		;; a headline.  `org-paste-subtree' then deletes it.
-		;; To prevent this, make sure visible part of buffer
-		;; always terminates on a new line, while limiting
-		;; number of blank lines in a date tree.
-		(unless (and datetree-date (bolp)) (insert "\n")))
+		;; No specific heading, just go to end of file, or to the
+		;; beginning, depending on `org-archive-reversed-order'.
+		(if org-archive-reversed-order
+		    (progn
+		      (goto-char (point-min))
+		      (unless (org-at-heading-p) (outline-next-heading))
+		      (insert "\n") (backward-char 1))
+		  (goto-char (point-max))
+		  ;; Subtree narrowing can let the buffer end on
+		  ;; a headline.  `org-paste-subtree' then deletes it.
+		  ;; To prevent this, make sure visible part of buffer
+		  ;; always terminates on a new line, while limiting
+		  ;; number of blank lines in a date tree.
+		  (unless (and datetree-date (bolp)) (insert "\n"))))
 	      ;; Paste
 	      (org-paste-subtree (org-get-valid-level level (and heading 1)))
 	      ;; Shall we append inherited tags?

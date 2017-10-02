@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -170,7 +170,7 @@ This list represents a \"habit\" for the rest of this module."
     (if pom (goto-char pom))
     (cl-assert (org-is-habit-p (point)))
     (let* ((scheduled (org-get-scheduled-time (point)))
-	   (scheduled-repeat (org-get-repeat org-scheduled-string))
+	   (scheduled-repeat (org-get-repeat (org-entry-get (point) "SCHEDULED")))
 	   (end (org-entry-end-position))
 	   (habit-entry (org-no-properties (nth 4 (org-heading-components))))
 	   closed-dates deadline dr-days sr-days sr-type)
