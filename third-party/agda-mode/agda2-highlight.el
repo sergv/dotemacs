@@ -326,33 +326,38 @@ If `agda2-highlight-face-groups' is nil."
   :group 'agda2-highlight-faces)
 
 (defface agda2-highlight-unsolved-meta-face
-  '((t (:background "yellow"
-        :foreground "black")))
+  '((t (:background "yellow")))
   "The face used for unsolved meta variables."
   :group 'agda2-highlight-faces)
 
 (defface agda2-highlight-unsolved-constraint-face
-  '((t (:background "yellow"
-        :foreground "black")))
+  '((t (:background "yellow")))
   "The face used for unsolved constraints which are not connected to metas."
   :group 'agda2-highlight-faces)
 
 (defface agda2-highlight-termination-problem-face
-  '((t (:background "light salmon"
-        :foreground "black")))
+  '((t (:background "light salmon")))
   "The face used for termination problems."
   :group 'agda2-highlight-faces)
 
 (defface agda2-highlight-positivity-problem-face
-  '((t (:background "peru"
-        :foreground "black")))
+  '((t (:background "peru")))
   "The face used for positivity problems."
   :group 'agda2-highlight-faces)
 
-(defface agda2-highlight-incomplete-pattern-face
-  '((t (:background "wheat"
-        :foreground "black")))
-  "The face used for incomplete patterns. (Currently unused.)"
+(defface agda2-highlight-reachability-problem-face
+  '((t (:background "dark gray")))
+  "The face used for reachability problems."
+  :group 'agda2-highlight-faces)
+
+(defface agda2-highlight-coverage-problem-face
+  '((t (:background "wheat")))
+  "The face used for coverage problems."
+  :group 'agda2-highlight-faces)
+
+(defface agda2-highlight-catchall-clause-face
+  '((t (:background "white smoke")))
+  "The face used for catchall clauses."
   :group 'agda2-highlight-faces)
 
 (defface agda2-highlight-typechecks-face
@@ -385,8 +390,11 @@ If `agda2-highlight-face-groups' is nil."
     (unsolvedmeta           . agda2-highlight-unsolved-meta-face)
     (unsolvedconstraint     . agda2-highlight-unsolved-constraint-face)
     (terminationproblem     . agda2-highlight-termination-problem-face)
+    (reachabilityproblem    . agda2-highlight-reachability-problem-face)
+    (coverageproblem        . agda2-highlight-coverage-problem-face)
     (positivityproblem      . agda2-highlight-positivity-problem-face)
     (incompletepattern      . agda2-highlight-incomplete-pattern-face)
+    (catchallclause         . agda2-highlight-catchall-clause-face)
     (typechecks             . agda2-highlight-typechecks-face))
   "Alist mapping code aspects to the face used when displaying them.
 
@@ -414,6 +422,9 @@ The aspects currently recognised are the following:
 `symbol'                 Symbols like forall, =, ->, etc.
 `terminationproblem'     Termination problems.
 `positivityproblem'      Positivity problems.
+`reachabilityproblem'    Reachability problems.
+`coverageproblem'        Coverage problems.
+`catchallclause'         Clause not holding definitionally.
 `typechecks'             Code which is being type-checked.
 `unsolvedconstraint'     Unsolved constraints, not connected to meta
                            variables.
