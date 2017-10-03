@@ -187,6 +187,12 @@
         <kbd>C-c C-f</kbd>, <kbd>C-c C-b</kbd>, and <kbd>C-c C-u</kbd>
         now move between list items, when the point is in a list,
         and move between headings otherwise.
+    -   New customization option `markdown-spaces-after-code-fence` to
+        control the number of spaces inserted after a code fence (` ``` `).
+        Thanks to Philip Stephani for a patch.
+    -   New customization option `markdown-gfm-uppercase-checkbox` which,
+        when non-nil, uses `[X]` to complete task list items instead of
+        `[x]`.  Thanks to Paul Rankin for a patch.  ([GH-236][])
 
 *   Improvements:
 
@@ -219,6 +225,8 @@
         electric quoting in code spans and blocks.  Thanks to Philipp
         Stephani for patches to both Emacs and Markdown Mode.
         ([GH-220][])
+    -   Stop inhibiting line breaks inside links when filling.
+        ([GH-173][])
 
 *   Bug fixes:
 
@@ -236,6 +244,9 @@
     -   Prevent clobbering match data in
         `markdown-font-lock-extend-region-function`.  Thanks to
         Philipp Stephani for a patch.  ([GH-221][])
+    -   Fix incorrect indentation of inserted GFM code blocks in lists.
+        Thanks to Philip Stephani for a patch.
+        ([GH-215][])
 
   [gh-81]:  https://github.com/jrblevin/markdown-mode/issues/81
   [gh-123]: https://github.com/jrblevin/markdown-mode/issues/123
@@ -244,6 +255,7 @@
   [gh-144]: https://github.com/jrblevin/markdown-mode/issues/144
   [gh-164]: https://github.com/jrblevin/markdown-mode/issues/164
   [gh-172]: https://github.com/jrblevin/markdown-mode/issues/172
+  [gh-173]: https://github.com/jrblevin/markdown-mode/issues/173
   [gh-176]: https://github.com/jrblevin/markdown-mode/issues/176
   [gh-185]: https://github.com/jrblevin/markdown-mode/issues/185
   [gh-191]: https://github.com/jrblevin/markdown-mode/issues/191
@@ -254,8 +266,10 @@
   [gh-201]: https://github.com/jrblevin/markdown-mode/issues/201
   [gh-209]: https://github.com/jrblevin/markdown-mode/issues/209
   [gh-213]: https://github.com/jrblevin/markdown-mode/issues/213
+  [gh-215]: https://github.com/jrblevin/markdown-mode/issues/215
   [gh-220]: https://github.com/jrblevin/markdown-mode/pull/220
   [gh-221]: https://github.com/jrblevin/markdown-mode/pull/221
+  [gh-236]: https://github.com/jrblevin/markdown-mode/pull/236
 
 # Markdown Mode 2.2
 
