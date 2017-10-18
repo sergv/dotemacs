@@ -9,6 +9,8 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'haskell-abbrev+)
+(require 'haskell-format-setup)
+(require 'haskell-misc)
 (require 'common)
 (require 'ert)
 
@@ -206,6 +208,45 @@
      " frob1 * 2"
      "")))
 
+(ert-deftest haskell-tests/forward-haskell-symbol-1 ()
+  (haskell-tests--test-result
+      (list
+       (bounds-of-thing-at-point 'haskell-symbol)
+       (thing-at-point 'haskell-symbol))
+      (list
+       (cons 2 9)
+       "fooobar")
+    " fooo_|_bar "))
+
+(ert-deftest haskell-tests/forward-haskell-symbol-2 ()
+  (haskell-tests--test-result
+      (list
+       (bounds-of-thing-at-point 'haskell-symbol)
+       (thing-at-point 'haskell-symbol))
+      (list
+       (cons 2 9)
+       "Fooobar")
+    " Fooo_|_bar "))
+
+(ert-deftest haskell-tests/forward-haskell-symbol-3 ()
+  (haskell-tests--test-result
+      (list
+       (bounds-of-thing-at-point 'haskell-symbol)
+       (thing-at-point 'haskell-symbol))
+      (list
+       (cons 3 10)
+       "Fooobar")
+    " 'Fooo_|_bar "))
+
+(ert-deftest haskell-tests/forward-haskell-symbol-4 ()
+  (haskell-tests--test-result
+      (list
+       (bounds-of-thing-at-point 'haskell-symbol)
+       (thing-at-point 'haskell-symbol))
+      (list
+       (cons 4 11)
+       "Fooobar")
+    " ''Fooo_|_bar "))
 
 (ert "haskell-tests/.*")
 
