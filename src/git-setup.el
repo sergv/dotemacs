@@ -195,11 +195,12 @@ directory computed by git.")
     ("C-1"             magit-section-show-level-1-all)
     ("C-2"             magit-section-show-level-2-all)
     ("C-3"             magit-section-show-level-3-all)
-    ("C-4"             magit-section-show-level-4-all))
-  ;; Unbind "y" on windows since it's too slow.
-  (when (memq system-type '(ms-dos windows-nt))
-    (def-keys-for-map map
-      ("y" nil))))
+    ("C-4"             magit-section-show-level-4-all)
+
+    ;; Unbind "y" since it's too slow.
+    ("y"               nil)
+    ;; I don't use "Y" so swap it with "y"
+    ("Y"               magit-show-refs-popup)))
 
 (defun magit-diff-mode-setup ()
   "Setup for diff browsing mode."
