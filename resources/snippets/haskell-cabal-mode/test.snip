@@ -25,7 +25,7 @@ ${4:  hs-source-dirs:
     -Wincomplete-record-updates
     -fno-warn-type-defaults
     -rtsopts
-    ${6:-main-is ${2:$(replace-regexp-in-string "^\\(?:.*/\\)?\\([^/]+\\)$" "\\1" (file-name-sans-extension yas-text))}}
+    ${6:-main-is ${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}}
   if impl(ghc >= 8.0)
     ghc-options:
       -Wcompat

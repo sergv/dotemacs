@@ -248,6 +248,36 @@
        "Fooobar")
     " ''Fooo_|_bar "))
 
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-1 ()
+  (should
+   (string=
+    (haskell-cabal--yasnippet--main-module-from-main-file "Main.hs")
+    "Main")))
+
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-2 ()
+  (should
+   (string=
+    (haskell-cabal--yasnippet--main-module-from-main-file "Foo/Bar.hs")
+    "Foo.Bar")))
+
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-3 ()
+  (should
+   (string=
+    (haskell-cabal--yasnippet--main-module-from-main-file "tests/MyExe.hs")
+    "MyExe")))
+
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-4 ()
+  (should
+   (string=
+    (haskell-cabal--yasnippet--main-module-from-main-file "tests/Foo/Bar.hs")
+    "Foo.Bar")))
+
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-5 ()
+  (should
+   (string=
+    (haskell-cabal--yasnippet--main-module-from-main-file "Main")
+    "Main")))
+
 (ert "haskell-tests/.*")
 
 ;; (setf haskell-tests/tests
