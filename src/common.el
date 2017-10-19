@@ -1816,6 +1816,14 @@ are CHAR1 and CHAR2 repsectively."
                "buffer"))
           sentences)))))
 
+(defsubst is-uppercase? (c)
+  (let ((case-fold-search nil))
+    (char-equal c (upcase c))))
+
+(defsubst is-lowercale? (c)
+  (let ((case-fold-search nil))
+    (char-equal c (downcase c))))
+
 ;; Heavy autoloads
 
 (autoload 'shell-command+ "common-heavy" nil t)
