@@ -536,13 +536,13 @@ pattern and replace matches with REPLACEMENT.
 
 (defun vim:parse-substitute (text)
   "Parse ex command line in TEXT and return triple
-(<pattern> <replacement> <flags>)."
+\(<pattern> <replacement> <flags>\)."
   (when (string-match-p "^\\s-*[/|,;:!@#]." text)
     (multiple-value-bind (pattern replacement flags)
-        (vim:parse-substitute-pattern-repl-flags text)
+        (vim--parse-substitute-pattern-repl-flags text)
       (values pattern (vim:substitute-expand-escapes replacement) flags))))
 
-(defun vim:parse-substitute-pattern-repl-flags (str)
+(defun vim--parse-substitute-pattern-repl-flags (str)
   "Perform actual parse of substitute command. Works much better than
 regular expressions."
   (let ((i 0)

@@ -51,8 +51,8 @@
 +bar
  world!")))
 
-(setf git-tests/tests
-      '(git-tests/patch-whitespace-only-change?))
+;; (setf git-tests/tests
+;;       '(git-tests/patch-whitespace-only-change?))
 
 ;; (let ((ert-debug-on-error nil))
 ;;   (ert (join-lines (map (comp #'regexp-quote #'symbol->string)
