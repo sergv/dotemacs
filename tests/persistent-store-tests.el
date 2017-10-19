@@ -46,8 +46,6 @@
   (should (equal (persistent-store-try-merging-contents '((x . t) (y . 1)) '((x . nil)))
                  nil)))
 
-;; (unintern 'persistent-store-tests/test-merging)
-
 ;; (progn
 ;;   (ert "persistent-store-tests/.*")
 ;;   nil)

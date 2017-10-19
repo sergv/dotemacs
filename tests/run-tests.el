@@ -6,16 +6,19 @@
 ;; Created: Monday, 14 November 2016
 ;; Description:
 
-;; (add-to-list 'load-path (file-name-directory load-file-name))
-(add-to-list 'load-path "/home/sergey/emacs/tests")
+(add-to-list 'load-path (file-name-directory load-file-name))
 
-(load "common-tests")
-(load "datastructures-tests")
-(load "eproj-tests")
-(load "git-tests")
-(load "haskell-tests")
-(load "persistent-sessions-tests")
-(load "persistent-store-tests")
+(load (concat (file-name-directory load-file-name) "../src/.emacs"))
+
+(progn
+  (load "common-tests")
+  (load "datastructures-tests")
+  (load "eproj-tests")
+  (load "git-tests")
+  (load "haskell-tests")
+  (load "persistent-sessions-tests")
+  (load "persistent-store-tests")
+  (load "vim-tests"))
 
 (ert ".*")
 
