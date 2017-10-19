@@ -43,7 +43,7 @@
   (should (equal (vim--parse-substitute-pattern-repl-flags "/hello/world\\/g")
                  '("hello" "world\\/g" nil))))
 
-(ert "vim-tests/.*")
+;; (ert "vim-tests/.*")
 
 (provide 'vim-tests)
 
