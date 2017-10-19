@@ -26,6 +26,9 @@
 (require 'flycheck-haskell)
 (require 'flycheck-setup)
 
+(require 'f)
+(require 'dash)
+
 ;;; definitions
 
 ;;;###autoload
@@ -978,6 +981,14 @@ value section should have if it is to be properly indented."
                   'forward-line
                   'end-of-line
                   'haskell-cabal-sort-lines-key-fun))))))
+
+(defun haskell-cabal--yasnippet--main-module-from-main-file (str)
+  (s-join
+   "."
+   (nreverse
+    (--take-while
+     (is-uppercase? (string-to-char it))
+     (nreverse (f-split (file-name-sans-extension str)))))))
 
 (provide 'haskell-misc)
 
