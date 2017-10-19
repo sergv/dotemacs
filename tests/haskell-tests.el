@@ -278,7 +278,7 @@
     (haskell-cabal--yasnippet--main-module-from-main-file "Main")
     "Main")))
 
-(ert "haskell-tests/.*")
+;; (ert "haskell-tests/.*")
 
 ;; (setf haskell-tests/tests
 ;;       '(haskell-tests/abbrev+-extract-module-name))

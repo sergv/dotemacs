@@ -14,7 +14,6 @@
 (require 'eproj)
 (require 'eproj-haskell)
 
-
 (defun eproj-tests/non-special-files (path)
   "Construct list of non-special files (i.e. that probably would be under version control)
 under ROOT directory."

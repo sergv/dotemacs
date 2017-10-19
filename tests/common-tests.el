@@ -383,9 +383,9 @@
 ;;   (let ((macro "\375\375\375\375\375\373\373\373\373\373"))
 ;;     (should (equal macro (list->string (read (pp-macro macro)))))))
 
-(progn
-  (ert "common-tests/.*")
-  nil)
+;; (progn
+;;   (ert "common-tests/.*")
+;;   nil)
 
 (provide 'common-tests)
 
