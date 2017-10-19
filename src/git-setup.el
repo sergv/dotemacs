@@ -432,12 +432,15 @@ under git version control."
   +vim-normal-mode-navigation-keys+
   +vim-search-keys+
   +vim-search-extended-keys+
+  +vim-special-keys+
   ("b"        magit-blame-popup)
   ("h"        magit-blame-next-chunk)
   ("H"        magit-blame-next-chunk-same-commit)
   ("t"        magit-blame-previous-chunk)
   ("T"        magit-blame-previous-chunk-same-commit)
   ("y"        magit-blame-copy-hash)
+
+  ("<return>" magit-show-commit)
 
   ;; ("C-h"      magit-blame-next-chunk)
   ("<down>"   vim:motion-down)
