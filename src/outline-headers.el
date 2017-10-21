@@ -82,6 +82,7 @@ headings."
 
 ;;; setup function
 
+;;;###autoload
 (defun* setup-outline-headers (&key
                                (header-start "^")
                                (header-symbol nil)
