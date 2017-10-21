@@ -18,30 +18,32 @@
                (not (string= env-loaded "1"))))
       ;; Load the environment if it wasn't done before by e.g. running from
       ;; terminal with environment set up.
-      (let ((env-config-file (getenv "EMACS_ENV_DEFS")))
-        (if env-config-file
-            (progn
-              (unless (file-exists-p env-config-file)
-                (error "env-config-file %s does not exist" env-config-file))
-              (save-match-data
-                (let ( ;; shell is expected to be a bash shell
-                      (all-values (shell-command-to-string
-                                   (format ". %s; printenv --null;"
-                                           env-config-file))))
-                  (dolist (entry (split-string all-values "[\0]" t))
-                    (let ((eq-pos (cl-position ?\= entry)))
-                      (when eq-pos
-                        (let ((var (substring entry 0 eq-pos)))
-                          (setenv var
-                                  (substring entry (+ eq-pos 1))))))))))
-          (message "Skipping environment configuration because EMACS_ENV_DEFS variable not set")))
+      (let ((env-config-file
+             (or (getenv "EMACS_ENV_DEFS")
+                 (let ((default (expand-file-name "~/.bash_env")))
+                   (message "Using default environment config file, '%s', because EMACS_ENV_DEFS variable not set"
+                            default)
+                   default))))
+        (unless (file-exists-p env-config-file)
+          (error "Environment config file '%s' does not exist" env-config-file))
+        (save-match-data
+          (let ( ;; shell is expected to be a bash shell
+                (all-values (shell-command-to-string
+                             (format ". %s; printenv --null;"
+                                     env-config-file))))
+            (dolist (entry (split-string all-values "[\0]" t))
+              (let ((eq-pos (cl-position ?\= entry)))
+                (when eq-pos
+                  (let ((var (substring entry 0 eq-pos)))
+                    (setenv var
+                            (substring entry (+ eq-pos 1))))))))))
     (message "Skipping environment configuration because BASHRC_ENV_LOADED variable is set to 1")))
 
-(defun* env-var-into-list (env-var list &key (append t))
+(defun* add-env-var-to-list (env-var list &key (append t))
   (dolist (dir (parse-colon-path (getenv env-var)))
     (add-to-list list dir append)))
 
-(env-var-into-list "PATH" 'exec-path :append t)
+(add-env-var-to-list "PATH" 'exec-path :append t)
 
 (when (executable-find "cat")
   (setenv "PAGER" "cat"))
