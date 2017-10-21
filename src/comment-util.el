@@ -13,6 +13,12 @@
 (require 'common)
 (require 'advices-util)
 
+(defvar-local *comment-util-current-format* nil
+  "Comment format for current buffer.")
+
+(defparameter *comment-util-space-count* 1
+  "Amount of spaces to put after comment markers.")
+
 (defadvice:auto-comment sp-newline)
 ;; paredit-newline's advice is defined in
 ;; general-lisp-setup.el
@@ -114,13 +120,6 @@
     (dos-mode              (one-line "rem ") (line-regexp "rem ?")))
   "List of per-mode specifications of comments.
 Contains single-line and region comments.")
-
-
-(defparameter *comment-util-space-count* 1
-  "Amount of spaces to put after comment markers.")
-
-(defvar-local *comment-util-current-format* nil
-  "Comment format for current buffer.")
 
 ;;;###autoload
 (define-minor-mode comment-util-mode

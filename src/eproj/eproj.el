@@ -37,6 +37,8 @@
   (require 'cl-lib)
   (require 'subr-x))
 
+(require 'eproj-customization)
+
 (require 'common)
 (require 'haskell-autoload)
 

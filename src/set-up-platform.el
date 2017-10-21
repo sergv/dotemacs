@@ -26,12 +26,12 @@ Range of platforms may be expanded (extended?) in the future.")
               (t
                (list (expand-file-name "~")))))
        (system-type-file
-        (find-if (lambda (file)
-                   (and file
-                        (file-readable-p file)))
-                 (mapcar (lambda (prefix)
-                           (concat prefix "/system-type.el"))
-                         system-type-file-dirs))))
+        (cl-find-if (lambda (file)
+                      (and file
+                           (file-readable-p file)))
+                    (mapcar (lambda (prefix)
+                              (concat prefix "/system-type.el"))
+                            system-type-file-dirs))))
   (setf +platform+
         (cond
           (system-type-file
