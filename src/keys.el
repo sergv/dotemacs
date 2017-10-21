@@ -65,8 +65,8 @@
   ("C-x <f1>" nil)
   ("C-z"      nil)
   ("C-x f"    find-file)
-  ("C-k"      remove-buffer)
-  ("C-S-k"    remove-buffer-and-window)
+  ("C-k"      nil)
+  ("C-S-k"    nil)
   ("<print>"  render-formula-toggle-formulae)
 
   ("<right>"  forward-char)
