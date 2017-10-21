@@ -11,8 +11,11 @@
 (require 'haskell-abbrev+)
 (require 'haskell-format-setup)
 (require 'haskell-misc)
+(require 'haskell-smart-operators-mode)
 (require 'common)
 (require 'ert)
+
+(require 'shm)
 
 (ert-deftest haskell-tests/abbrev+-extract-module-name ()
   (should (string= (haskell-abbrev+-extract-mod-name "Foo.Bar")
@@ -277,6 +280,249 @@
    (string=
     (haskell-cabal--yasnippet--main-module-from-main-file "Main")
     "Main")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = 1 ++ 2"
+   "x = 1 +_|_2"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = 1 ++ 2"
+   "x = 1 +           _|_ 2"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-3 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
+     (buffer-string))
+   "x = 1 +* "
+   "x = 1 +           _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-4 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = 1 + "
+   "x = 1_|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-5 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = 1 + "
+   "x = 1 _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-6 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = 1  + "
+   "x = 1  _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-7 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = f (+ "
+   "x = f \(_|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--sections-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = f (+)"
+   "x = f (_|_)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--sections-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "x = f (+)"
+   "x = f (     _|_)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?\\)
+     (buffer-string))
+   "x = (\\)"
+   "x = (_|_)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?$)
+     (buffer-string))
+   "x = f $ \\ x -> x"
+   "x = f _|_\\ x -> x"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+     (buffer-string))
+   "x = [| "
+   "x = [_|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+     (buffer-string))
+   "x = [| foobar |]"
+   "x = [| foobar _|_]"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--beginning-of-buffer ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
+     (buffer-string))
+   "* + bar"
+   "_|_ + bar"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--end-of-buffer ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
+     (buffer-string))
+   "+ bar * "
+   "+ bar_|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+     (buffer-string))
+   "--| foobar"
+   "--_|_ foobar"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+     (buffer-string))
+   "--^ foobar"
+   "--_|_ foobar"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--comments-literal-insertion-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+     (buffer-string))
+   "--    |"
+   "--    _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--comments-literal-insertion-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+     (buffer-string))
+   "--    ^"
+   "--    _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--comments-literal-insertion-3 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+     (buffer-string))
+   "--    +"
+   "--    _|_"))
+
+
+(ert-deftest haskell-tests/haskell-smart-operators--almost-haddock-comments-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+     (buffer-string))
+   "-| "
+   "-       _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--almost-haddock-comments-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+     (buffer-string))
+   "-^ "
+   "-      _|_"))
+
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-1 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators-$)
+     (buffer-string))
+   "x = f $ xs ++ ys"
+   "x = f _|_(xs ++ ys)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-2 ()
+  (haskell-tests--test-result
+   (progn
+     (haskell-smart-operators-$)
+     (buffer-string))
+   "x = f $ xs ++ ys"
+   "x = f_|_ (xs ++ ys)"))
+
+(ert-deftest haskell-tests/shm/!-1 ()
+  (haskell-tests--test-result
+   (progn
+     (shm/!)
+     (buffer-substring-no-properties (point-min) (point-max)))
+   (haskell-tests--multiline
+    "data Foo = Foo"
+    "  { foo :: !(Set Int)"
+    "  , bar :: Map Int Double"
+    "  }")
+   (haskell-tests--multiline
+    "data Foo = Foo"
+    "  { foo ::_|_ Set Int"
+    "  , bar :: Map Int Double"
+    "  }")))
+
+(ert-deftest haskell-tests/shm/!-2 ()
+  (haskell-tests--test-result
+   (progn
+     (shm/!)
+     (buffer-substring-no-properties (point-min) (point-max)))
+   (haskell-tests--multiline
+    "data Foo = Foo"
+    "  { foo :: !(Set Int)"
+    "  , bar :: Map Int Double"
+    "  }")
+   (haskell-tests--multiline
+    "data Foo = Foo"
+    "  { foo :: _|_Set Int"
+    "  , bar :: Map Int Double"
+    "  }")))
+;; (ert "haskell-tests/.*")
+
+(ert-deftest haskell-tests/shm/!-3 ()
+  (haskell-tests--test-result
+   (progn
+     (shm/!)
+     (buffer-substring-no-properties (point-min) (point-max)))
+   (haskell-tests--multiline
+    "data Foo = Foo"
+    "  { foo :: !(Set Int)"
+    "  , bar :: Map Int Double"
+    "  }")
+   (haskell-tests--multiline
+    "data Foo = Foo"
+    "  { foo :: _|_ Set Int"
+    "  , bar :: Map Int Double"
+    "  }")))
 
 ;; (ert "haskell-tests/.*")
 

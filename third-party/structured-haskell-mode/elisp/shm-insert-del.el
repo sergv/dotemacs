@@ -159,7 +159,9 @@ type with parens if type contains spaces."
                   (let ((parent-pair (shm-node-parent node-pair)))
                     (and parent-pair
                          (eq 'FieldDecl (shm-node-cons (cdr parent-pair))))))
-                (shm-current-node-pair))))
+                (save-excursion
+                  (skip-syntax-forward " ")
+                  (shm-current-node-pair)))))
           (if (and field-decl-type-parent-pair
                    (save-excursion
                      (skip-syntax-forward " ")
@@ -170,7 +172,8 @@ type with parens if type contains spaces."
                         (re-search-forward "[ \t]" (shm-node-end field-decl-type-parent) t))
                   (save-excursion
                     (shm/wrap-parens field-decl-type-parent)))
-                (insert "!")
+                (delete-whitespace-backward)
+                (insert " !")
                 (shm/reparse))
             (haskell-smart-operators-exclamation-mark)))
       (haskell-smart-operators-exclamation-mark))))
