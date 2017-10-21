@@ -22,9 +22,6 @@
     tbl)
   "Characters that may constitute operators.")
 
-(defun haskell-smart-operators--insert (str)
-  (insert str))
-
 ;;;###autoload
 (defun haskell-smart-operators--in-string-or-comment? ()
   "Are we in string or comment?"
@@ -80,7 +77,7 @@ stick it to the previous operator on line."
   (if (or current-prefix-arg
           (haskell-smart-operators--literal-insertion?)
           (not (gethash char haskell-smart-operators--operator-chars)))
-      (insert (make-string 1 char))
+      (insert-char char)
     (let* ((pt (point))
            (before (char-before pt)))
       ;; Decide whether to insert space before the operator.
@@ -106,7 +103,7 @@ stick it to the previous operator on line."
                  (not (and (char-equal char ?|)
                            (char-equal before ?\[)))
                  (not (gethash before haskell-smart-operators--operator-chars)))))
-          (haskell-smart-operators--insert " ")
+          (insert-char ?\s)
         ;; Delete spaces backwards if there's operator or open paren char
         ;; before the spaces.
         (let ((delete-whitespace?
@@ -127,18 +124,20 @@ stick it to the previous operator on line."
                                  (char-equal char-before-spaces ?-))
                             (let ((char-before-spaces2 (char-before (1- pt-before-ws))))
                               (if char-before-spaces2
-                                  (not (char-equal char-before-spaces2 ?-))
-                                t ;; Buffer looks like "^- *_|_"
-                                ))
+                                  (if (char-equal char-before-spaces2 ?-)
+                                      ;; Buffer looks like "^-- *_|_"
+                                      'normalise-to-single-space
+                                    ;; Buffer looks like "^?- *_|_" where ? is character different from '-'
+                                    t)
+                                ;; Buffer looks like "^- *_|_"
+                                t))
                           t))))))
           (when delete-whitespace?
-            (while (and (not (bobp))
-                        (char-equal ?\s (char-syntax (char-before)))
-                        (not (get-char-property (1- (point)) 'read-only)))
-              (delete-char -1)))))
+            (delete-whitespace-backward)
+            (when (eq delete-whitespace? 'normalise-to-single-space)
+              (insert-char ?\s)))))
       ;; Insert operator char.
-      ;; (haskell-smart-operators--insert-char-appending-to-prev-operator char)
-      (haskell-smart-operators--insert (make-string 1 char))
+      (insert-char char)
       ;; Decide whether to insert space after the operator.
       (when (not (and (char-equal char ?\\)
                       before ;; not at beginning of buffer
@@ -154,7 +153,7 @@ stick it to the previous operator on line."
                          (not (and (char-equal char ?|)
                                    (char-equal after ?\])))
                          (not (gethash after haskell-smart-operators--operator-chars))))
-            (haskell-smart-operators--insert " ")))))))
+            (insert-char ?\s)))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-self-insert (arg)
@@ -248,10 +247,10 @@ strings or commetns. Expand into {- _|_ -} if inside { *}."
   "Insert comma followed by space."
   (interactive)
   (let ((next-char (char-after)))
-    (insert ",")
+    (insert-char ?\s)
     (when (or (not next-char)
               (not (member next-char '(?\s ?\t))))
-      (insert " "))))
+      (insert-char ?\s))))
 
 ;;;###autoload
 (defun haskell-smart-operators-hash ()
@@ -283,7 +282,7 @@ strings or commetns. Expand into {- _|_ -} if inside { *}."
             ;; Don't surround with #includes, #lang/#opts abbrevs, etc with spaces
             ((= (point)
                 (line-beginning-position))
-             (insert "#"))
+             (insert-char ?\#))
             (t
              (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))))))
 
@@ -299,8 +298,8 @@ strings or commetns. Expand into {- _|_ -} if inside { *}."
         (let ((before (char-before)))
           (when (and before
                      (not (eq before ?\s)))
-            (insert " "))
-          (insert "!"))
+            (insert-char ?\s))
+          (insert-char ?!))
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))
 
 (defvar haskell-smart-operators-mode-map
