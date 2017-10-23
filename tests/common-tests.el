@@ -278,7 +278,7 @@
                                       #'equal)
            '("a" "b" "c"))))
 
-(ert-deftest common-tests/nested-hash-tables ()
+(ert-deftest common-tests/nested-hash-tables-1 ()
   (let ((tables
          (mk-nested-hash-tables
           (list
@@ -382,6 +382,57 @@
 ;; (ert-deftest common-tests/pp-macro-3 ()
 ;;   (let ((macro "\375\375\375\375\375\373\373\373\373\373"))
 ;;     (should (equal macro (list->string (read (pp-macro macro)))))))
+
+
+(ert-deftest common-tests/is-uppercase?-1 ()
+  (should (is-uppercase? ?X)))
+
+(ert-deftest common-tests/is-uppercase?-2 ()
+  (should-not (is-uppercase? ?x)))
+
+(ert-deftest common-tests/is-uppercase?-3 ()
+  (let ((case-fold-search t))
+    (should (is-uppercase? ?X))))
+
+(ert-deftest common-tests/is-uppercase?-4 ()
+  (let ((case-fold-search t))
+    (should-not (is-uppercase? ?x))))
+
+(ert-deftest common-tests/is-lowercase?-1 ()
+  (should-not (is-lowercase? ?X)))
+
+(ert-deftest common-tests/is-lowercase?-2 ()
+  (should (is-lowercase? ?x)))
+
+(ert-deftest common-tests/is-lowercase?-3 ()
+  (let ((case-fold-search t))
+    (should-not (is-lowercase? ?X))))
+
+(ert-deftest common-tests/is-lowercase?-4 ()
+  (let ((case-fold-search t))
+    (should (is-lowercase? ?x))))
+
+(dolist (entry
+         '((1  ""       ""      ""     "")
+           (2  " "      ""      ""     "")
+           (3  "  "     ""      ""     "")
+           (4  "x"      "x"     "x"    "x")
+           (5  " x"     "x"     "x"    " x")
+           (6  "x "     "x "    "x"    "x")
+           (7  " x "    "x "    "x"    " x")
+           (8  " x  x"  "x  x"  "x  x" " x  x")
+           (9  "x  x "  "x  x " "x  x" "x  x")
+           (10 " x  x " "x  x " "x  x" " x  x")))
+  (destructuring-bind (n input expected-left expected-both expected-right)
+      entry
+    (eval
+     `(progn
+        (ert-deftest ,(string->symbol (format "common-tests/trim-whitespace-left-%d" n)) ()
+          (should (equal (trim-whitespace-left ,input) ,expected-left)))
+        (ert-deftest ,(string->symbol (format "common-tests/trim-whitespace-%d" n)) ()
+          (should (equal (trim-whitespace ,input) ,expected-both)))
+        (ert-deftest ,(string->symbol (format "common-tests/trim-whitespace-right-%d" n)) ()
+          (should (equal (trim-whitespace-right ,input) ,expected-right)))))))
 
 ;; (progn
 ;;   (ert "common-tests/.*")

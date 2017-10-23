@@ -1774,10 +1774,12 @@ are CHAR1 and CHAR2 repsectively."
           sentences)))))
 
 (defsubst is-uppercase? (c)
+  (declare (pure t) (side-effect-free t))
   (let ((case-fold-search nil))
     (char-equal c (upcase c))))
 
-(defsubst is-lowercale? (c)
+(defsubst is-lowercase? (c)
+  (declare (pure t) (side-effect-free t))
   (let ((case-fold-search nil))
     (char-equal c (downcase c))))
 
