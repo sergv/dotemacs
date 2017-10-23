@@ -1350,16 +1350,6 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
   (goto-char (point-min))
   (forward-line (1- line)))
 
-(defun file-contents-matches-re (filename re)
-  "Return t if file FILENAME exists and it contents matches RE."
-  (when (file-exists? filename)
-    (save-match-data
-      (with-temp-buffer
-        (insert-file-contents filename)
-        (goto-char (point-min))
-        (when (search-forward-regexp re nil t)
-          t)))))
-
 ;;;;
 
 ;; Originally from stevey, adapted to support moving to a new directory.
