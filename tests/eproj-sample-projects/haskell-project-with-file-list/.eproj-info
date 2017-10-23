@@ -1,0 +1,2 @@
+((languages haskell-mode)
+ (file-list "filelist.txt"))
