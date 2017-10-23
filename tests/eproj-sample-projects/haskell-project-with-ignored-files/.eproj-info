@@ -1,0 +1,2 @@
+((languages haskell-mode)
+ (ignored-files ".*/Foo/Bar/IgnoredMonad.hs"))

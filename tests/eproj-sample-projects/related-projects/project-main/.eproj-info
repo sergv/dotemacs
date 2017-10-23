@@ -1,0 +1,3 @@
+((languages)
+ (related "../subproject1"
+          "../subproject2"))
