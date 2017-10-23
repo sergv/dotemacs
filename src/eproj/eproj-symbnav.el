@@ -75,10 +75,10 @@ as accepted by `bounds-of-thing-at-point'.")
 ;;;###autoload
 (defun eproj-symbnav/describe ()
   (interactive)
-  (message "Previous homes: %s\nSelected loc: %s\nNext homes: %s\n"
-           (-map #'eproj-symbnav/show-home eproj-symbnav/previous-homes)
-           (eproj-symbnav/show-home eproj-symbnav/selected-loc)
-           (-map #'eproj-symbnav/show-home eproj-symbnav/next-homes)))
+  (notify "Previous homes: %s\nSelected loc: %s\nNext homes: %s\n"
+          (-map #'eproj-symbnav/show-home eproj-symbnav/previous-homes)
+          (eproj-symbnav/show-home eproj-symbnav/selected-loc)
+          (-map #'eproj-symbnav/show-home eproj-symbnav/next-homes)))
 
 ;;;###autoload
 (defun eproj-symbnav/reset ()
@@ -112,7 +112,7 @@ as accepted by `bounds-of-thing-at-point'.")
                              t)
       (goto-char (match-beginning 0))))
   ;; remove annoying "Mark set" message
-  (message ""))
+  (notify ""))
 
 (defun eproj-symbnav/show-entry-in-other-window (entry entry-proj)
   (find-file-other-window
