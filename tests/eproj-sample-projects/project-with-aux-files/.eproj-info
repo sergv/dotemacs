@@ -1,0 +1,3 @@
+((languages)
+ (aux-files
+  (tree "aux-files" ".*\\.txt$")))
