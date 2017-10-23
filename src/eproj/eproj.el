@@ -981,7 +981,7 @@ is non-nil.
 
 Returns list of (tag . project) pairs."
   (-mapcat (lambda (proj)
-             (aif (rest-safe
+             (aif (cdr-safe
                    (assq tag-major-mode
                          (eproj-project/tags proj)))
                  (-map (lambda (tag)
