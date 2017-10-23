@@ -1581,14 +1581,6 @@ last non-whitespace character."
 
 ;;;;
 
-(defsubst first-safe (x)
-  (declare (pure t) (side-effect-free t))
-  (car-safe x))
-
-(defsubst rest-safe (x)
-  (declare (pure t) (side-effect-free t))
-  (cdr-safe x))
-
 (defmacro more-clojure/comp-impl (functions
                                   fallback-function
                                   use-apply-for-last-func)
