@@ -200,7 +200,7 @@ sets `shm--server-process' and `shm--server-process-port' variables."
   (when (or (not shm--server-process-port)
             (and shm--server-process
                  (not (eq 'run (process-status shm--server-process)))))
-    (message "Starting shm server...")
+    (notify "Starting shm server...")
     (setf shm--server-process
           (with-temp-buffer
             (let ((proc

@@ -1824,6 +1824,11 @@ are CHAR1 and CHAR2 repsectively."
   (let ((case-fold-search nil))
     (char-equal c (downcase c))))
 
+(defun notify (&rest args)
+  "Like `message' but is silence in noninteractive mode."
+  (unless noninteractive
+    (apply #'message args)))
+
 ;; Heavy autoloads
 
 (autoload 'shell-command+ "common-heavy" nil t)

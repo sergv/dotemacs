@@ -228,19 +228,19 @@
 (defun eproj/load-ctags-project (lang-mode proj make-project-files parse-tags-proc)
   (with-temp-buffer
     ;; (when eproj-verbose-tag-loading
-    ;;   (message "Running ctags for %s in project %s"
-    ;;            lang-mode
-    ;;            (eproj-project/root proj))
+    ;;   (notify "Running ctags for %s in project %s"
+    ;;           lang-mode
+    ;;           (eproj-project/root proj))
     ;;   (redisplay))
     (eproj/run-ctags-on-files lang-mode
                               (eproj-project/root proj)
                               (funcall make-project-files)
                               (current-buffer))
     ;; (when eproj-verbose-tag-loading
-    ;;   (message "Loading %s tags in project %s"
-    ;;            lang-mode
-    ;;            (eproj-project/root proj)
-    ;;            (redisplay)))
+    ;;   (notify "Loading %s tags in project %s"
+    ;;           lang-mode
+    ;;           (eproj-project/root proj)
+    ;;           (redisplay)))
     (prog1 (funcall parse-tags-proc (current-buffer))
       (erase-buffer))))
 
@@ -440,7 +440,7 @@
   "Update project for current buffer or create new project if it does not exists."
   (interactive)
   (eproj-reload-project! (eproj-get-project-for-buf (current-buffer)))
-  (message "done"))
+  (notify "done"))
 
 ;; careful: quite complex procedure
 ;;;###autoload
@@ -558,8 +558,8 @@ cache tags in."
   (let ((languages (aif (cdr-safe (assq 'languages aux-info))
                        it
                      (progn
-                       (message "warning: no languages defined for project %s"
-                                (eproj-project/root proj))
+                       (notify "warning: no languages defined for project %s"
+                               (eproj-project/root proj))
                        nil)))
         (ignored-files-regexps
          (cdr-safe (assq 'ignored-files aux-info)))
