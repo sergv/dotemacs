@@ -114,7 +114,7 @@
                                "-L"
                                "-"
                                "--excmd=number"
-                               (aif (rest-safe (assq lang-mode *ctags-language-flags*))
+                               (aif (cdr-safe (assq lang-mode *ctags-language-flags*))
                                    it
                                  (error "unknown ctags language: %s" lang-mode)))))
             (error "ctags invokation failed: %s"

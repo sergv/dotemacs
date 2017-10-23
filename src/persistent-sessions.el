@@ -39,23 +39,29 @@ SPECIAL-VARIABLES - local variables that may require special treatment when rest
         major-mode
         other-data
         special-variables))
+
 (defsubst session-entry/buffer-name (entry)
   "Extract buffer name from ENTRY. For buffers with  files this is absolute file
 name, for temporary buffers - just the buffer name."
-  (first-safe entry))
+  (car-safe entry))
+
 (defsubst session-entry/point (entry)
-  (first-safe (rest-safe entry)))
+  (car-safe (cdr-safe entry)))
+
 (defsubst session-entry/variables (entry)
-  (first-safe (rest-safe (rest-safe entry))))
+  (car-safe (cdr-safe (cdr-safe entry))))
+
 ;; Major mode is remembered because there're cases when emacs infers wrong
 ;; mode for otherwise normal buffer. Also modes may be changed by hand, so
 ;; it is preserved for every buffer.
 (defsubst session-entry/major-mode (entry)
-  (first-safe (rest-safe (rest-safe (rest-safe entry)))))
+  (car-safe (cdr-safe (cdr-safe (cdr-safe entry)))))
+
 (defsubst session-entry/other-data (entry)
-  (first-safe (rest-safe (rest-safe (rest-safe (rest-safe entry))))))
+  (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry))))))
+
 (defsubst session-entry/special-variables (entry)
-  (first-safe (rest-safe (rest-safe (rest-safe (rest-safe (rest-safe entry)))))))
+  (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe entry)))))))
 
 
 (defparameter *sessions-buffer-variables*
