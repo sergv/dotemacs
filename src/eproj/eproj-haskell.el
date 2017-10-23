@@ -16,7 +16,7 @@
 (defun eproj/create-haskell-tags (proj make-project-files parse-tags-proc)
   (cl-assert (eproj-project-p proj))
   ;; (when eproj-verbose-tag-loading
-  ;;   (message "Creating haskell tags for project %s" (eproj-project/root proj)))
+  ;;   (notify "Creating haskell tags for project %s" (eproj-project/root proj)))
   (unless *fast-tags-exec*
     (error "Cannot load haskell project, fast-tags executable not found (and no tag-file specified)"))
   (with-temp-buffer
