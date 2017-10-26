@@ -20,7 +20,8 @@
                :sp-slurp-sexp-insert-space nil
                :use-whitespace 'tabs-only
                :use-fci t)
-  (setup-hs-minor-mode))
+  (setup-hs-minor-mode)
+  (setup-indent-size 2))
 
 ;;;###autoload
 (add-hook 'lua-mode-hook #'lua-setup)
