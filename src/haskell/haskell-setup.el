@@ -182,6 +182,7 @@
     (")"            nil)
     ("]"            nil)
     ("}"            nil)
+    ("\""           nil)
     ("C-w"          nil)
     ("M-w"          nil)
     ("C-y"          nil)
@@ -200,15 +201,15 @@
     ("- e" shm/export))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ;; Don't bind shm/double-quote since it's less useful than smartparens-based
-    ;; binding.
+    ;; Just let `smartparens-mode' take care of these.
     ;; ("\""  shm/double-quote)
-    ("("   shm/open-paren)
-    (")"   shm/close-paren)
-    ("["   shm/open-bracket)
-    ("]"   shm/close-bracket)
-    ("{"   shm/open-brace)
-    ("}"   shm/close-brace)
+    ;; ("("   shm/open-paren)
+    ;; (")"   shm/close-paren)
+    ;; ("["   shm/open-bracket)
+    ;; ("]"   shm/close-bracket)
+    ;; ("{"   shm/open-brace)
+    ;; ("}"   shm/close-brace)
+    ("`"   vim:wrap-backticks)
     (","   shm/comma))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
