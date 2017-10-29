@@ -107,8 +107,15 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ;; clear all previous output
     ("SPC SPC" comint-clear-prompt))
+
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ;; Override vim-mode's shm-insert-or-wrap bindings because they're annoying
+    ;; in the prompt.
+    ("(" self-insert-command)
+    ("[" self-insert-command)
+    ("{" self-insert-command)
+    ("`" self-insert-command))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
