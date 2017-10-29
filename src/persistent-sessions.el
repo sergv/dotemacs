@@ -222,35 +222,38 @@ entries."
      (restore ,(lambda (version buffer-name saved-data)
                  (let ((buf (get-buffer-create buffer-name)))
                    (sessions/report-and-ignore-asserts
-                    (aif (assq 'contents saved-data)
-                        (with-current-buffer buf
-                          (sessions/versioned/restore-buffer-contents
-                           version
-                           buf
-                           (cadr it)
-                           (lambda () (insert "\n\n"))))
-                      (message "shell-restore: no 'contents")))
+                       (format "while restoring contents of shell buffer '%s'" buffer-name)
+                     (aif (assq 'contents saved-data)
+                         (with-current-buffer buf
+                           (sessions/versioned/restore-buffer-contents
+                            version
+                            buf
+                            (cadr it)
+                            (lambda () (insert "\n\n"))))
+                       (message "shell-restore: no 'contents")))
                    (shell buf)
                    (accept-process-output (get-buffer-process buf)
                                           5 ;; Time to wait in seconds.
                                           )
                    (sessions/report-and-ignore-asserts
-                    (let ((current-dir
-                           (cadr-safe
-                            (assq 'current-dir saved-data))))
-                      (aif current-dir
-                          (progn
-                            (goto-char (point-max))
-                            (insert "cd \""
-                                    (sessions/versioned/restore-string version current-dir)
-                                    "\"")
-                            (comint-send-input))
-                        (message "shell-restore: no 'current-dir"))))
+                       (format "while restoring current-directory of shell buffer '%s'" buffer-name)
+                     (let ((current-dir
+                            (cadr-safe
+                             (assq 'current-dir saved-data))))
+                       (aif current-dir
+                           (progn
+                             (goto-char (point-max))
+                             (insert "cd \""
+                                     (sessions/versioned/restore-string version current-dir)
+                                     "\"")
+                             (comint-send-input))
+                         (message "shell-restore: no 'current-dir"))))
                    (sessions/report-and-ignore-asserts
-                    (aif (cadr-safe (assq 'comint-input-ring saved-data))
-                        (setf comint-input-ring
-                              (sessions/versioned/restore-ring version it))
-                      (message "shell-restore: no 'comint-input-ring")))))))
+                       (format "while restoring 'comint-input-ring of shell buffer '%s'" buffer-name)
+                     (aif (cadr-safe (assq 'comint-input-ring saved-data))
+                         (setf comint-input-ring
+                               (sessions/versioned/restore-ring version it))
+                       (message "shell-restore: no 'comint-input-ring")))))))
     (haskell-compilation-mode
      (save ,(lambda (buf)
               (with-current-buffer buf
@@ -265,39 +268,43 @@ entries."
                  (let ((buf (get-buffer-create buffer-name)))
                    (with-current-buffer buf
                      (sessions/report-and-ignore-asserts
-                      (aif (cadr-safe (assq 'contents saved-data))
-                          (sessions/versioned/restore-buffer-contents
-                           version
-                           buf
-                           it
-                           (lambda () (insert "\n\n"))))
-                      (message "haskell-compilation-restore: no 'contents"))
+                         (format "while restoring contents of haskell compilation buffer '%s'" buffer-name)
+                       (aif (cadr-safe (assq 'contents saved-data))
+                           (sessions/versioned/restore-buffer-contents
+                            version
+                            buf
+                            it
+                            (lambda () (insert "\n\n"))))
+                       (message "haskell-compilation-restore: no 'contents"))
                      (haskell-compilation-mode)
                      (sessions/report-and-ignore-asserts
-                      (aif (cadr-safe (assq 'local-variables saved-data))
-                          (sessions/versioned/restore-buffer-local-variables
-                           version
-                           buf
-                           sessions/local-vars/haskell-compilation-mode
-                           it)
-                        (message "haskell-compilation-restore: no 'local-variables"))))
+                         (format "while restoring local variables of haskell compilation buffer '%s'" buffer-name)
+                       (aif (cadr-safe (assq 'local-variables saved-data))
+                           (sessions/versioned/restore-buffer-local-variables
+                            version
+                            buf
+                            sessions/local-vars/haskell-compilation-mode
+                            it)
+                         (message "haskell-compilation-restore: no 'local-variables"))))
                    (sessions/report-and-ignore-asserts
-                    (let ((current-dir
-                           (cadr-safe
-                            (assq 'current-dir saved-data))))
-                      (aif current-dir
-                          (progn
-                            (goto-char (point-max))
-                            (insert "cd \""
-                                    (sessions/versioned/restore-string version current-dir)
-                                    "\"")
-                            (comint-send-input))
-                        (message "shell-restore: no 'current-dir"))))
+                       (format "while restoring current directory of haskell compilation buffer '%s'" buffer-name)
+                     (let ((current-dir
+                            (cadr-safe
+                             (assq 'current-dir saved-data))))
+                       (aif current-dir
+                           (progn
+                             (goto-char (point-max))
+                             (insert "cd \""
+                                     (sessions/versioned/restore-string version current-dir)
+                                     "\"")
+                             (comint-send-input))
+                         (message "shell-restore: no 'current-dir"))))
                    (sessions/report-and-ignore-asserts
-                    (aif (cadr-safe (assq 'comint-input-ring saved-data))
-                        (setf comint-input-ring
-                              (sessions/versioned/restore-ring version it))
-                      (message "shell-restore: no 'comint-input-ring")))))))))
+                       (format "while restoring 'comint-input-ring of haskell compilation buffer '%s'" buffer-name)
+                     (aif (cadr-safe (assq 'comint-input-ring saved-data))
+                         (setf comint-input-ring
+                               (sessions/versioned/restore-ring version it))
+                       (message "shell-restore: no 'comint-input-ring")))))))))
 
 (defun sessions/is-temporary-buffer? (buf)
   (with-current-buffer buf
@@ -414,65 +421,72 @@ entries."
          (setup-buffer
           (lambda (point mode vars special-vars)
             (sessions/report-and-ignore-asserts
-             (sessions/assert-with-args (symbolp mode)
-                                        "Invalid mode: %s"
-                                        mode)
-             (setf mode (or (and (fboundp mode)
-                                 mode)
-                            default-major-mode))
-             (unless (eq? major-mode mode)
-               (sessions/call-symbol-function mode)))
+                (format "while restoring major mode of buffer '%s'" buffer-name)
+              (sessions/assert-with-args (symbolp mode)
+                                         "Invalid mode: %s"
+                                         mode)
+              (setf mode (or (and (fboundp mode)
+                                  mode)
+                             default-major-mode))
+              (unless (eq? major-mode mode)
+                (sessions/call-symbol-function mode)))
             (sessions/report-and-ignore-asserts
-             (sessions/assert-with-args (numberp point)
-                                        "Invalid point: %s"
-                                        point)
-             (goto-char point))
+                (format "while restoring point of buffer '%s'" buffer-name)
+              (sessions/assert-with-args (numberp point)
+                                         "Invalid point: %s"
+                                         point)
+              (goto-char point))
             (sessions/report-and-ignore-asserts
-             (sessions/restore-buffer-variables version (current-buffer) vars))
+                (format "while restoring buffer variables of buffer '%s'" buffer-name)
+              (sessions/restore-buffer-variables version (current-buffer) vars))
             (sessions/report-and-ignore-asserts
-             (sessions/restore-special-buffer-variables (current-buffer) special-vars)))))
+                (format "while restoring special buffer variables of buffer '%s'" buffer-name)
+              (sessions/restore-special-buffer-variables (current-buffer) special-vars)))))
     (sessions/report-and-ignore-asserts
-     (sessions/assert-with-args
-      (or (null version)
-          (numberp version))
-      "Invalid version: %s"
-      version))
+        "while restoring extracting version"
+      (sessions/assert-with-args
+       (or (null version)
+           (numberp version))
+       "Invalid version: %s"
+       version))
     (aif (assq 'buffers session-entries)
         (mapc (lambda (entry)
                 (sessions/report-and-ignore-asserts
-                 (let ((buf-name
-                        (sessions/versioned/restore-string
-                         version
-                         (session-entry/buffer-name entry))))
-                   (sessions/assert-with-args (file-exists? buf-name)
-                                              "File %s does not exist!"
-                                              buf-name)
-                   (with-current-buffer (find-file-noselect buf-name)
-                     (funcall setup-buffer
-                              (session-entry/point entry)
-                              (session-entry/major-mode entry)
-                              (session-entry/variables entry)
-                              (session-entry/special-variables entry))))))
+                    (format "while extracting buffer name from '%s'" entry)
+                  (let ((buf-name
+                         (sessions/versioned/restore-string
+                          version
+                          (session-entry/buffer-name entry))))
+                    (sessions/assert-with-args (file-exists? buf-name)
+                                               "File %s does not exist!"
+                                               buf-name)
+                    (with-current-buffer (find-file-noselect buf-name)
+                      (funcall setup-buffer
+                               (session-entry/point entry)
+                               (session-entry/major-mode entry)
+                               (session-entry/variables entry)
+                               (session-entry/special-variables entry))))))
               (cadr it))
       (message "sessions/load-from-data: no 'buffers field"))
     (aif (assq 'temporary-buffers session-entries)
         (mapc (lambda (entry)
                 (sessions/report-and-ignore-asserts
-                 (unless (memq (session-entry/major-mode entry) sessions/ignored-temporary-buffer-modes)
-                   (let ((buf (get-buffer-create
-                               (sessions/versioned/restore-string
-                                version
-                                (session-entry/buffer-name entry)))))
-                     (with-current-buffer buf
-                       (insert
-                        (sessions/versioned/restore-string
-                         version
-                         (session-entry/other-data entry)))
-                       (funcall setup-buffer
-                                (session-entry/point entry)
-                                (session-entry/major-mode entry)
-                                (session-entry/variables entry)
-                                (session-entry/special-variables entry)))))))
+                    (format "while restoring temporary buffer from '%s'" entry)
+                  (unless (memq (session-entry/major-mode entry) sessions/ignored-temporary-buffer-modes)
+                    (let ((buf (get-buffer-create
+                                (sessions/versioned/restore-string
+                                 version
+                                 (session-entry/buffer-name entry)))))
+                      (with-current-buffer buf
+                        (insert
+                         (sessions/versioned/restore-string
+                          version
+                          (session-entry/other-data entry)))
+                        (funcall setup-buffer
+                                 (session-entry/point entry)
+                                 (session-entry/major-mode entry)
+                                 (session-entry/variables entry)
+                                 (session-entry/special-variables entry)))))))
               (cadr it))
       (message "sessions/load-from-data: no 'temporary-buffers field"))
     (aif (assq 'special-buffers session-entries)

@@ -27,12 +27,12 @@
 (defun sessions/report-assert-failed (msg)
   (signal 'sessions/assert-failed msg))
 
-(defmacro sessions/report-and-ignore-asserts (&rest body)
-  (declare (indent 0))
+(defmacro sessions/report-and-ignore-asserts (context &rest body)
+  (declare (indent 1))
   `(condition-case err
        (progn ,@body)
      (sessions/assert-failed
-      (message "Warning: assertion failed: %s" err))))
+      (message "Warning: %sassertion failed: %s" ,(if context `(concat ,context ": ") "") err))))
 
 (provide 'persistent-sessions-error-reporting)
 
