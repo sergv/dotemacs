@@ -2696,7 +2696,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 (defpcmpl pcomplete/untar
   (opts
    (args
-    (pcomplete-here* (pcomplete-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\)\\)?\\'")))))
+    (pcomplete-here* (pcomplete-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/ln "shell-completion" nil t)
 (defpcmpl pcomplete/ln
