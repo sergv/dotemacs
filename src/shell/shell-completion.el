@@ -2734,6 +2734,56 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     (pcomplete-here (pcmpl-entries-ignoring-common))
     (pcomplete-here (pcmpl-entries-ignoring-common)))))
 
+;;;###autoload (autoload 'pcomplete/unzip "shell-completion" nil t)
+(defpcmpl pcomplete/unzip
+  (opts
+   (flags
+    ("-d" (pcomplete-here (pcomplete-dirs)))
+    "-Z"
+    "-A"
+    "-c"
+    "-f"
+    "-l"
+    "-p"
+    "-t"
+    "-T"
+    "-u"
+    "-v"
+    "-z"
+    "-a"
+    "-b"
+    "-B"
+    "-C"
+    "-D"
+    "-E"
+    "-F"
+    "-i"
+    "-j"
+    "-J"
+    "-K"
+    "-L"
+    "-M"
+    "-n"
+    "-N"
+    "-o"
+    "-P"
+    "-q"
+    "-qq"
+    "-s"
+    "-S"
+    "-U"
+    "-V"
+    "-W"
+    "-X"
+    "-Y"
+    "-$"
+    "-/"
+    "-:"
+    "-^"
+    "-2")
+   (args
+    (pcomplete-here (pcmpl-entries "\\.zip\\'")))))
+
 ;;;###autoload
 (defalias 'pcomplete/l 'pcomplete/ls)
 ;;;###autoload
