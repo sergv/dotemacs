@@ -474,7 +474,8 @@ using EQ-FUNC to determine equal elements."
     (cdr result)))
 
 (defun remove-duplicates-by-hashing-projections (project eq-func xs)
-  "Remove duplicates from the XS using EQ-FUNC to determine equal elements."
+  "Remove duplicates from the XS by hashing results of applying
+PROJECT. EQ-FUNC will be used as hash-table comparison."
   (let* ((tbl (make-hash-table :test eq-func))
          (tmp (cons nil nil))
          (result tmp))
