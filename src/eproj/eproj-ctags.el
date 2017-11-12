@@ -10,7 +10,7 @@
 
 (eval-when-compile (require 'subr-x))
 
-(defparameter *ctags-exec*
+(defparameter eproj-ctags--exec
   (or (let ((ctags-exec
              (platform-dependent-executable (concat +execs-path+ "/exuberant-ctags"))))
         (when (and ctags-exec
@@ -22,15 +22,15 @@
 (defparameter *ctags-language-flags*
   '((c-mode
      "--language-force=c"
-     "--c-kinds=-cdefgmnpstuv"
+     "--c-kinds=-defgmpstuv"
      "--c-kinds=+defgmstuv"
      "--fields=+SzkK"
-     "--extra=+q")
+     "--extras=+q")
     (c++-mode
      "--language-force=c++"
      "--c++-kinds=+cdefgmnpstuv"
      "--fields=+iaSzkK"
-     "--extra=+q")
+     "--extras=+q")
     (python-mode
      "--language-force=python"
      "--python-kinds=+cfmvi"
@@ -40,7 +40,7 @@
      "--java-kinds=+cefgimp"
      "--fields=+iaSzkK")))
 
-(defconst +ctags-line-re+
+(defconst eproj-ctags--line-re
   (rx bol
       ;; tag name, *can* contain spaces
       ;; (cf C++'s "operator =" tag produced by ctags.)
@@ -62,31 +62,30 @@
                ";\"")
           eol)))
 
-(defconst +ctags-aux-fields+
-  '("kind"
-    "access"
-    "class"
-    "file"
-    "signature"
-    "namespace"
-    "struct"
-    "enum"
-    "union"
-    "inherits"
-    "typeref"
-    "function"
-    "interface"))
-
-(defconst +ctags-aux-fields-re+
+(defconst eproj-ctags--aux-fields-re
   (eval-when-compile
     (concat "\\=\\("
             (eval-when-compile
-              (regexp-opt +ctags-aux-fields+))
+              (regexp-opt
+               '("kind"
+                 "access"
+                 "class"
+                 "file"
+                 "signature"
+                 "namespace"
+                 "struct"
+                 "enum"
+                 "union"
+                 "inherits"
+                 "typeref"
+                 "function"
+                 "interface"
+                 "annotation")))
             "\\):\\(.*\\)")))
 
 ;;;###autoload
 (defun eproj/run-ctags-on-files (lang-mode root-dir files out-buffer)
-  (unless *ctags-exec*
+  (unless eproj-ctags--exec
     (error "ctags executable not found"))
   (with-current-buffer out-buffer
     (goto-char (point-max))
@@ -101,30 +100,40 @@
           (dolist (file files)
             (when (string-match-p ext-re file)
               (insert file "\n")))
-          (when (not (= 0
-                        (apply #'call-process-region
-                               (point-min)
-                               (point-max)
-                               *ctags-exec*
-                               nil
-                               out-buffer
-                               nil
-                               "-f"
-                               "-"
-                               "-L"
-                               "-"
-                               "--excmd=number"
-                               (aif (cdr-safe (assq lang-mode *ctags-language-flags*))
-                                   it
-                                 (error "unknown ctags language: %s" lang-mode)))))
-            (error "ctags invokation failed: %s"
-                   (with-current-buffer out-buffer
-                     (buffer-substring-no-properties (point-min) (point-max)))))))))))
+          (let* ((args
+                  (append
+                   (list "-o"
+                         "-"
+                         "-L"
+                         "-"
+                         "--excmd=number"
+                         "--sort=no")
+                   (aif (cdr-safe (assq lang-mode *ctags-language-flags*))
+                       it
+                     (error "unknown ctags language: %s" lang-mode))))
+                 (exit-status
+                  (apply #'call-process-region
+                         (point-min)
+                         (point-max)
+                         eproj-ctags--exec
+                         nil
+                         out-buffer
+                         nil
+                         args)))
+            (when (or (not (numberp exit-status))
+                      (not (= 0 exit-status)))
+              (error "Call to ctags failed.\nMode: %s\nExtension regexp: %s\nExit status: %s\nOutput: %s\nCommand: %s"
+                     lang-mode
+                     ext-re
+                     exit-status
+                     (with-current-buffer out-buffer
+                       (buffer-substring-no-properties (point-min) (point-max)))
+                     (cons eproj-ctags--exec args))))))))))
 
 (defparameter eproj/ctags-string-cache
   (make-hash-table :test #'equal :size 997 :weakness t))
 
-(defsubst eproj/ctags-cache-string (x)
+(defsubst eproj-ctags--cache-string (x)
   (assert (stringp x))
   (if-let (cached-x (gethash x eproj/ctags-string-cache))
       cached-x
@@ -150,10 +159,10 @@ BUFFER is expected to contain output of ctags command."
         (garbage-collect)
         (while (not (eobp))
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
-                     (looking-at +ctags-line-re+))
-            (let ((symbol (eproj/ctags-cache-string
+                     (looking-at eproj-ctags--line-re))
+            (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))
-                  (file (eproj/ctags-cache-string
+                  (file (eproj-ctags--cache-string
                          (match-string-no-properties 2)))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
@@ -167,18 +176,18 @@ BUFFER is expected to contain output of ctags command."
                     (let ((end (point)))
                       (save-excursion
                         (goto-char start)
-                        (if (re-search-forward +ctags-aux-fields-re+ end t)
+                        (if (re-search-forward eproj-ctags--aux-fields-re end t)
                             (let ((identifier (match-string-no-properties 1))
                                   (value (match-string-no-properties 2)))
                               ;; when value is nonempty
                               (when (not (string= "" value))
                                 (let ((new-field (cons (string->symbol identifier)
-                                                       (eproj/ctags-cache-string value))))
+                                                       (eproj-ctags--cache-string value))))
                                   (push (aif (gethash new-field field-cache)
                                             it
                                           (puthash new-field new-field field-cache))
                                         fields))))
-                          (error "invalid entry: %s" (buffer-substring-no-properties start end)))))))
+                          (error "Invalid ctags entry: %s" (buffer-substring-no-properties start end)))))))
                 (forward-char)
                 (puthash symbol
                          (cons (make-eproj-tag
@@ -189,7 +198,6 @@ BUFFER is expected to contain output of ctags command."
                                (gethash symbol tags-table nil))
                          tags-table)))
 
-            ;; (forward-line 1)
             (when eproj-verbose-tag-loading
               (funcall progress-reporter 1))))
         tags-table))))
