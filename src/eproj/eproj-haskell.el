@@ -79,10 +79,10 @@ runtime but rather will be silently relied on)."
         (while (not (eobp))
           (beginning-of-line)
           (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
-                     (looking-at +ctags-line-re+))
-            (let ((symbol (eproj/ctags-cache-string
+                     (looking-at eproj-ctags--line-re))
+            (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))
-                  (file (eproj/ctags-cache-string
+                  (file (eproj-ctags--cache-string
                          (match-string-no-properties 2)))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
@@ -92,7 +92,7 @@ runtime but rather will be silently relied on)."
                                   (line-end-position)))
                      (fields
                       (list (cons 'type
-                                  (eproj/ctags-cache-string
+                                  (eproj-ctags--cache-string
                                    (trim-whitespace fields-str)))))
                      (new-tag (make-eproj-tag
                                symbol
