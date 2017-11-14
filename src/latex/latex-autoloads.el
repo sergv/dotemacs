@@ -8,9 +8,6 @@
 ;; Requirements:
 ;; Status:
 
-;; (require 'tex-site)
-;; (require 'preview-latex)
-
 (require 'tex-site)
 
 (setq auto-mode-alist
