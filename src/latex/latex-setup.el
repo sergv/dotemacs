@@ -10,7 +10,6 @@
 
 (require 'custom)
 (require 'preview)
-(require 'preview-latex)
 (require 'latex-abbrev+)
 
 (setq TeX-auto-save t
@@ -25,7 +24,6 @@
     ((TeX-fold-item 'math))
     ((TeX-fold-item 'env))
     ((TeX-fold-comment))))
-
 
 (defvar-local latex:preview nil
   "Becomes t when latex buffer is being previewed and nil
@@ -58,7 +56,6 @@
       (message "REMINDER: ' - ispell-word, \" - flyspell-goto-next-error")))
   (setf latex:russian-spellcheck (not latex:russian-spellcheck)))
 
-
 (defun latex-toggle-preview-or-russian-spellcheck (&optional arg)
   (interactive (list current-prefix-arg))
   (if arg
@@ -66,11 +63,9 @@
     (latex-toggle-preview)))
 
 
-
 (load-library "latex-outline")
 
-
-
+;;;###autoload
 (defun latex-setup ()
   (init-common :use-whitespace 'tabs-only)
   (typography-setup)
