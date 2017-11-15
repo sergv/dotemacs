@@ -6,6 +6,8 @@
 ;; Created: Thursday, 12 July 2012
 ;; Description:
 
+(require 'mmm-setup)
+
 (autoload 'ghc-core-create-core "ghc-core" nil t)
 (autoload 'ghc-core-mode "ghc-core" nil t)
 (autoload 'ghci-script-mode "ghci-script-mode" nil t)
@@ -66,12 +68,32 @@
 (autoload 'haskell-cabal-setup "haskell-setup")
 (autoload 'ghc-core-setup "haskell-setup")
 
+(mmm-add-classes
+ '((literate-haskell-latex
+    :submode haskell-mode
+    ;; :face font-lock-function-name-face ;; mmm-output-submode-face
+    :front "^\\\\begin{\\(?:\\(?:new\\)?code\\|spec\\)}$"
+    :include-front nil
+    :front-offset (end-of-line 1)
+    :back "^\\\\end{\\(?:\\(?:new\\)?code\\|spec\\)}$"
+    :include-back nil
+    :back-offset (beginning-of-line -1)
+
+    ;; :front-verify haskell-blocks-verify-front
+    ;; :back haskell-blocks-find-back
+    ;; :back-verify haskell-blocks-verify-back
+    )))
+
+(add-to-list 'auto-mode-alist '("\\.lhs\\'" . LaTeX-mode))
+(mmm-add-mode-ext-class 'LaTeX-mode "\\.lhs\\'" 'literate-haskell-latex)
+(mmm-add-mode-ext-class 'latex-mode "\\.lhs\\'" 'literate-haskell-latex)
+
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
 (add-to-list 'auto-mode-alist '("\\.hcr\\'" . ghc-core-mode))
 (add-to-list 'auto-mode-alist '("cabal\\.config.*\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\)?\\'" . haskell-mode))
-(add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . literate-haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
 (add-to-list 'auto-mode-alist '("\\.hsc\\'" . haskell-mode))
 (add-to-list 'auto-mode-alist '("\\.chs\\'" . haskell-c2hs-mode))
 
@@ -105,9 +127,6 @@
 (add-to-list 'auto-mode-alist '("\\.ly\\'" . happy-mode))
 (add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
 (mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
-
-(add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
-(add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
 
 (provide 'haskell-autoload)
 
