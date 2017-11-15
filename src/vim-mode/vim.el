@@ -170,6 +170,7 @@
      (magit-popup-sequence-mode . nil)
      (magit-refs-mode . nil)
      (magit-revision-mode . nil)
+     (magit-reflog-mode . nil)
      (magit-show-branches-mode . nil)
      (magit-stash-mode . nil)
      (magit-status-mode . nil)
