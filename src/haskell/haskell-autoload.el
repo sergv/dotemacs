@@ -106,8 +106,6 @@
 (add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
 (mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
 
-(autoload 'haskell-grammar-tools-setup "haskell-grammar-tools-setup")
-
 (add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
 (add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
 
