@@ -741,18 +741,26 @@ the offset and the new position."
         (vim:ex-current-window (selected-window))
         (setup-hook ido-setup-hook))
     (let ((minibuffer-local-completion-map vim:ex-keymap)
-          (ido-setup-hook (cons #'vim:ex-setup-ido-keymap setup-hook)))
+          (ido-setup-hook (cons #'vim:ex-setup-ido-keymap setup-hook))
+          ;; We will add user input to history ourselves, if it's long enough.
+          (history-add-new-input nil)
+          (history-var 'vim:ex-history))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let ((result (completing-read vim--ex-propmt
-                                     ;; #'vim:ex-complete
-                                     (or vim:all-known-local-and-global-ex-commands
-                                         vim:all-known-global-ex-commands)
-                                     nil     ;; predicate
-                                     nil     ;; require-match
-                                     initial-input
-                                     'vim:ex-history)))
+      (let* ((result
+              (completing-read vim--ex-propmt
+                               ;; #'vim:ex-complete
+                               (or vim:all-known-local-and-global-ex-commands
+                                   vim:all-known-global-ex-commands)
+                               nil ;; predicate
+                               nil ;; require-match
+                               initial-input
+                               history-var))
+             (result-len (length result)))
         (when (and result
-                   (not (zerop (length result))))
+                   (not (zerop result-len)))
+          ;; Filter out commands like "w" and "hs"
+          (when (< 2 result-len)
+            (add-to-history history-var result))
           (vim:ex-execute-command result))))))
 
 (defun vim:ex-setup-ido-keymap ()
