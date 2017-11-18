@@ -16,16 +16,6 @@
 ;; do not autoinsert new pairs when in stringlike expression
 (setq-default sp-autoskip-opening-pair t)
 
-(setf sp-navigate-consider-stringlike-sexp
-      (append
-       '(org-mode
-         latex-mode
-         plain-tex-mode
-         LaTeX-mode
-         ;; for /.../
-         awk-mode)
-       sp-navigate-consider-stringlike-sexp))
-
 (setf sp-highlight-pair-overlay nil
       sp-highlight-wrap-overlay nil
       sp-highlight-wrap-tag-overlay nil
