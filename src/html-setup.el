@@ -275,7 +275,8 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 
 ;;;###autoload
 (defun nxml-setup ()
-  (markup-setup #'hl-tags-context-nxml-mode))
+  (markup-setup #'hl-tags-context-nxml-mode)
+  (rng-set-vacuous-schema))
 
 ;;;###autoload
 (add-hook 'nxml-mode-hook #'nxml-setup)
