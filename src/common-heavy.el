@@ -832,6 +832,25 @@ to deleted items. ITEMS will be mutated in order to obtain result."
 
 ;;;
 
+(defvar buffer-pdf-viewer "okular")
+
+;;;###autoload
+(defun open-buffer-as-pdf ()
+  "Open current buffer's pdf file, if any, in suitable pdf viewer program
+\(e.g. okular for linux\)."
+  (interactive)
+  (let ((doc-name (concat (file-name-sans-extension buffer-file-name) ".pdf")))
+    (if (file-exists-p doc-name)
+        (start-process
+         "Pdf preview"
+         nil
+         buffer-pdf-viewer
+         doc-name
+         doc-name)
+      (error "Pdf file found: %s" doc-name))))
+
+;;;
+
 (provide 'common-heavy)
 
 ;; Local Variables:
