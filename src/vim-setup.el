@@ -133,6 +133,8 @@ like \"d w\".")
 
   ("g ("       vim:sp-splice-sexp-killing-backward)
   ("g )"       vim:sp-splice-sexp-killing-forward)
+  ("C-("       vim:sp-splice-sexp-killing-backward)
+  ("C-)"       vim:sp-splice-sexp-killing-forward)
   ("( l"       vim:sp-absorb-sexp)
   ("( r"       sp-emit-sexp)
 
@@ -142,8 +144,6 @@ like \"d w\".")
   (") )"       vim:sp-forward-slurp-sexp)
 
   ("M-?"       sp-convolute-sexp)
-  ("C-<left>"  vim:sp-backward-slurp-sexp)
-  ("C-<right>" vim:sp-forward-slurp-sexp)
   ("M-<left>"  sp-absorb-sexp)
   ("M-<right>" sp-emit-sexp)
 
