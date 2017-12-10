@@ -118,10 +118,6 @@ or not.")
     ("<return>"  sp-newline)
 
     ("M-?"       sp-convolute-sexp)
-    ("C-<left>"  sp-backward-slurp-sexp)
-    ("C-<right>" sp-forward-slurp-sexp)
-    ("M-<left>"  sp-forward-barf-sexp)
-    ("M-<right>" sp-backward-barf-sexp)
     ("M-<up>"    sp-splice-sexp-killing-backward)
     ("M-<down>"  sp-splice-sexp-killing-forward))
 
