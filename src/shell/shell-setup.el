@@ -137,10 +137,10 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
 
     ("C-c C-k"   comint-kill-subjob)
 
-    ("C-<left>"  vim:sp-backward-slurp-sexp)
-    ("C-<right>" vim:sp-forward-slurp-sexp)
-    ("M-<left>"  sp-absorb-sexp)
-    ("M-<right>" sp-emit-sexp)))
+    ("C-("       vim:sp-backward-slurp-sexp)
+    ("C-)"       vim:sp-forward-slurp-sexp)
+    ("M-("       sp-absorb-sexp)
+    ("M-)"       sp-emit-sexp)))
 
 ;;;###autoload
 (add-hook 'shell-mode-hook #'shell-setup)
