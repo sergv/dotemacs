@@ -247,7 +247,7 @@ strings or commetns. Expand into {- _|_ -} if inside { *}."
   "Insert comma followed by space."
   (interactive)
   (let ((next-char (char-after)))
-    (insert-char ?\s)
+    (insert-char ?\,)
     (when (or (not next-char)
               (not (member next-char '(?\s ?\t))))
       (insert-char ?\s))))
