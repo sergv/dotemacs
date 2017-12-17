@@ -18,13 +18,13 @@ ${4:  other-modules:
   ghc-options:
     -Wall
     -fwarn-name-shadowing
-    -Wincomplete-uni-patterns
-    -Wincomplete-record-updates
     -fno-warn-type-defaults
     -rtsopts
     ${8:-main-is ${9:${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}}}
   if impl(ghc >= 8.0)
     ghc-options:
+      -Wincomplete-uni-patterns
+      -Wincomplete-record-updates
       -Wcompat
   ghc-prof-options:
     -fprof-auto
