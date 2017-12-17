@@ -36,11 +36,11 @@ library
   ghc-options:
     -Wall
     -fwarn-name-shadowing
-    -Wincomplete-uni-patterns
-    -Wincomplete-record-updates
     -fno-warn-type-defaults
   if impl(ghc >= 8.0)
     ghc-options:
+      -Wincomplete-uni-patterns
+      -Wincomplete-record-updates
       -Wcompat
 --   build-tools:
 --     alex happy c2hs
@@ -62,13 +62,13 @@ executable ${filename no ext}
   ghc-options:
     -Wall
     -fwarn-name-shadowing
-    -Wincomplete-uni-patterns
-    -Wincomplete-record-updates
     -fno-warn-type-defaults
     -rtsopts
 --     -main-is ExeMain
   if impl(ghc >= 8.0)
     ghc-options:
+      -Wincomplete-uni-patterns
+      -Wincomplete-record-updates
       -Wcompat
   ghc-prof-options:
     -fprof-auto
@@ -93,13 +93,13 @@ test-suite ${filename no ext}-test
   ghc-options:
     -Wall
     -fwarn-name-shadowing
-    -Wincomplete-uni-patterns
-    -Wincomplete-record-updates
     -fno-warn-type-defaults
     -rtsopts
 --     -main-is TestMain
   if impl(ghc >= 8.0)
     ghc-options:
+      -Wincomplete-uni-patterns
+      -Wincomplete-record-updates
       -Wcompat
   ghc-prof-options:
     -fprof-auto
