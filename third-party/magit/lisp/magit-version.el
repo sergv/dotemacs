@@ -6,7 +6,7 @@
 ;; Created: 23 July 2017
 ;; Description:
 
-(setq magit-version "2.10.3 (d741197dd962f3f42aa86d24caf521c6e62f3c28)")
+(setq magit-version "2.11.1 (8e762d34658208d1c0371095409e1ffbcd822e40)")
 
 (provide 'magit-version)
 
