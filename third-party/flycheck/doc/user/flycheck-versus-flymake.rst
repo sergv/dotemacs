@@ -118,13 +118,13 @@ Relation to Emacs
 
 **Flymake** is part of GNU Emacs since GNU Emacs 22.  As such, contributions to
 Flymake are subject to the FSF policies on GNU projects.  Most notably,
-contributors are required to assign their copyright to the FSF by signing a
-contributor agreement.
+contributors are required to assign their copyright to the FSF.
 
 **Flycheck** is not part of GNU Emacs, and is **unlikely to ever be** (see
 `issue 801`_).  However, it is free software as well, and publicly developed on
 the well-known code hosting platform :gh:`Github <flycheck/flycheck>`.
-Contributing to Flycheck does not require a copyright assignments.
+Contributing to Flycheck does not require a copyright assignment, only an
+explicit agreement that your contributions will be under the GPL.
 
 .. _issue 801: https://github.com/flycheck/flycheck/issues/801
 
@@ -280,7 +280,7 @@ power.  For instance, Flymake cannot pick a syntax checker based on the shebang
 of a file.
 
 **Flycheck** uses the major mode to select a syntax checker.  This reuses the
-existing sophisticated logic Emcas uses to choose and configure major modes.
+existing sophisticated logic Emacs uses to choose and configure major modes.
 Flycheck can easily select a Python syntax checker for a Python script without
 file extension, but with proper shebang, simply because Emacs correctly chooses
 Python Mode for such a file.

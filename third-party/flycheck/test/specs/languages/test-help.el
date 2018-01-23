@@ -1,5 +1,6 @@
 ;;; test-help.el --- Flycheck Specs: Syntax checker help  -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2017  Flycheck contributors
 ;; Copyright (C) 2016  Sebastian Wiesner
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
