@@ -193,6 +193,11 @@ to view the docstring of the syntax checker.  Likewise, you may use
          The cppcheck suppressions list to use via one or more ``--suppress=``
          arguments.
 
+      .. defcustom:: flycheck-cppcheck-suppressions-file
+
+         The cppcheck suppressions file to use via the
+         ``--suppressions-list=`` argument.
+
 .. supported-language:: CFEngine
 
    .. syntax-checker:: cfengine
@@ -249,6 +254,16 @@ to view the docstring of the syntax checker.  Likewise, you may use
       .. defcustom:: flycheck-stylelint-quiet
 
          Whether to run stylelint in quiet mode via ``--quiet``.
+
+.. supported-language:: CWL
+
+   .. syntax-checker:: cwl
+
+      Syntax check with (`Schema Salad <http://www.commonwl.org/v1.0/SchemaSalad.html>`_).
+
+      .. defcustom:: flycheck-cwl-schema-path
+
+         A path for the schema file for Common Workflow Language.
 
 .. supported-language:: D
 
@@ -313,6 +328,11 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
          The package directory as string.  Has no effect if
          `flycheck-emacs-lisp-initialize-packages` is nil.
+
+      .. defcustom:: flycheck-emacs-lisp-check-declare
+
+         If non-nil, also check `declare-function` forms using
+         `check-declare-file`.
 
    .. syntax-checker:: emacs-lisp-checkdoc
 
@@ -551,6 +571,11 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
          Whether to enable Nix support for Stack (only for `haskell-stack-ghc`).
 
+      .. defcustom:: flycheck-ghc-stack-project-file
+
+         Allows to override the default ``stack.yaml`` file for Stack,
+         via ``--stack-yaml`` (only for `haskell-stack-ghc`).
+
       .. defcustom:: flycheck-ghc-package-databases
 
          A list of additional package databases for GHC (only for
@@ -600,7 +625,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 .. supported-language:: Javascript
 
    Flycheck checks Javascript with one of `javascript-eslint` or
-   `javascript-jshint`, and then with `javascript-jscs`.
+   `javascript-jshint`.
 
    Alternatively `javascript-standard` is used instead all of the former ones.
 
@@ -628,12 +653,6 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. syntax-checker-config-file:: flycheck-jshintrc
 
-   .. syntax-checker:: javascript-jscs
-
-      Check code style with `JSCS <http://jscs.info/>`_.
-
-      .. syntax-checker-config-file:: flycheck-jscsrc
-
    .. syntax-checker:: javascript-standard
 
       Check syntax and code style with Standard_ or Semistandard_.
@@ -652,6 +671,12 @@ to view the docstring of the syntax checker.  Likewise, you may use
    .. syntax-checker:: json-python-json
 
       Check JSON with Python's built-in :py:mod:`json` module.
+
+.. supported-language:: Jsonnet
+
+   .. syntax-checker:: jsonnet
+
+      Checks `Jsonnet <http://jsonnet.org>`_ with `jsonnet`.
 
 .. supported-language:: Less
 
@@ -674,6 +699,12 @@ to view the docstring of the syntax checker.  Likewise, you may use
       .. defcustom:: flycheck-stylelint-quiet
 
          Whether to run stylelint in quiet mode via ``--quiet``.
+
+.. supported-language:: LLVM
+
+   .. syntax-checker:: llvm-llc
+
+      Check syntax with `llc <http://llvm.org/docs/CommandGuide/llc.html>`_.
 
 .. supported-language:: Lua
 
@@ -825,6 +856,10 @@ to view the docstring of the syntax checker.  Likewise, you may use
       :gh:`flycheck-pyflakes <Wilfred/flycheck-pyflakes>`
          Flycheck extension which adds a syntax checker using `Pyflakes
          <https://github.com/PyCQA/pyflakes>`_.
+
+      :gh:`msherry/flycheck-pycheckers`
+         Flycheck extension which can use multiple checkers simultaneously --
+         including pyflakes, pep8, flake8, pylint, and mypy 2/3.
 
    .. syntax-checker:: python-flake8
 
@@ -1176,9 +1211,9 @@ to view the docstring of the syntax checker.  Likewise, you may use
       .. defcustom:: flycheck-shellcheck-excluded-warnings
 
          A list of excluded warnings.
-         
+
       .. defcustom:: flycheck-shellcheck-follow-sources
-       
+
          Allow shellcheck to read sourced files.
 
 .. supported-language:: Slim
@@ -1205,6 +1240,18 @@ to view the docstring of the syntax checker.  Likewise, you may use
       Check systemd unit configuration file syntax with `systemd-analyze`_.
 
       .. _systemd-analyze: https://www.freedesktop.org/software/systemd/man/systemd-analyze.html
+
+.. supported-language:: Tcl
+
+   .. syntax-checker:: tcl-nagelfar
+
+      Check Tcl syntax with `Nagelfar <http://nagelfar.sourceforge.net/>`_.
+
+.. supported-language:: Text
+
+   .. syntax-checker:: proselint
+
+      Check text prose with `Proselint <http://proselint.com/>`_.
 
 .. supported-language:: TeX/LaTeX
 
