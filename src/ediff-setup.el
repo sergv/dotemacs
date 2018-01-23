@@ -10,6 +10,7 @@
 ;;;###autoload
 (defun ediff-keymap-setup ()
   (def-keys-for-map ediff-mode-map
+    ("H"        ediff-update-diffs)
     ("h"        ediff-next-difference)
     ("t"        ediff-previous-difference)
     ("<home>"   next-f)
