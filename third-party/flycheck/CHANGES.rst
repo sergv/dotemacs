@@ -1,5 +1,35 @@
-31-cvs (in development)
+32-cvs (in development)
 =======================
+
+- **Breaking changes**
+
+  - Remove javascript-jscs checker
+
+- New syntax checkers:
+
+  - Jsonnet with ``jsonnet`` [GH-1345]
+  - Tcl with ``nagelfar`` [GH-1365]
+  - CWL with ``schema-salad-tool`` [GH-1361]
+
+- New features:
+
+  - Add ``flycheck-cppcheck-suppressions-file`` to pass a suppressions
+    file to cppcheck [GH-1329]
+  - Add ``--force-exclusion`` flag to ``rubocop`` command [GH-1348]
+  - Add ``flycheck-ghc-stack-project-file`` for the
+    ``haskell-stack-ghc`` checker. [GH-1316]
+
+- Improvements
+
+  - Use Emacs' native XML parsing when libXML fails.  This behavior can be
+    changed by customizing ``flycheck-xml-parser`` [GH-1349]
+  - Changed parsing of ESLint output from checkstyle XML to JSON [GH-1350]
+  - Flycheck will execute ``rubocop`` from directory where ``Gemfile`` is
+    located. If ``Gemfile`` does not exist, old behaviour of running command
+    from directory where ``.rubocop.yml`` is found will be used [GH-1368]
+
+31 (Oct 07, 2017)
+=================
 
 - **Breaking changes**
 
@@ -16,6 +46,8 @@
   - CSS/SCSS/LESS with ``stylelint`` [GH-903]
   - Ruby with ``reek`` [GH-1244]
   - Go with ``megacheck`` [GH-1290]
+  - LLVM IR with ``llc`` [GH-1302]
+  - Text prose with ``proselint`` [GH-1304]
 
 - New features:
 
@@ -24,6 +56,10 @@
   - Add ``flycheck-tslint-args`` to pass additional arguments to tslint [GH-1186]
   - Add an error explainer to the ``rpm-rpmlint`` checker using
     ``rpmlint -I`` [GH-1235]
+  - Add ``flycheck-emacs-lisp-check-declare`` to check function declaration in
+    the ``emacs-lisp`` checker [GH-1286]
+  - Add ``flycheck-shellcheck-follow-sources`` to check included files when
+    using the ``sh-shellcheck`` checker [GH-1256]
 
 - Improvements:
 
