@@ -110,6 +110,10 @@ import           Control.Applicative hiding (empty)
 import           Control.Monad as Monad
 import           Control.Monad.Trans.Class
 import           Control.Monad.IO.Class
+import           Control.Concurrent (threadDelay)
+#if MIN_VERSION_directory(1,2,3)
+import           Data.Time (getCurrentTime)
+#endif
 
 import           Data.Array
 import qualified Data.ByteString.Char8 as BS
@@ -157,7 +161,7 @@ import           GHC.TopHandler ( topHandler )
 pprTyThing', pprTyThingInContext' :: TyThing -> SDoc
 #if __GLASGOW_HASKELL__ >= 802
 pprTyThing'          = pprTyThingHdr
-pprTyThingInContext' = pprTyThingInContext showToHeader 
+pprTyThingInContext' = pprTyThingInContext showToHeader
 #else
 pprTyThing'          = pprTyThing
 pprTyThingInContext' = pprTyThingInContext
@@ -233,8 +237,10 @@ ghciCommands = [
   ("browse",    keepGoing' (browseCmd False),   completeModule),
   ("browse!",   keepGoing' (browseCmd True),    completeModule),
   ("extensions", keepGoing' extensionsCmd,   completeModule),
-  ("cd",        keepGoing' changeDirectory,     completeFilename),
-  ("cd-ghc",    keepGoing' changeDirectoryGHC,  completeFilename),
+  ("cd",        keepGoingPaths changeDirectory,     completeFilename),
+
+  ("sleep",     keepGoing' sleepCommand,         noCompletion),
+  ("cd-ghc",    keepGoingPaths changeDirectoryGHC,  completeFilename),
   ("check",     keepGoing' checkModule,         completeHomeModule),
   ("continue",  keepGoing continueCmd,          noCompletion),
   ("complete",  keepGoing completeCmd,          noCompletion),
@@ -260,6 +266,7 @@ ghciCommands = [
   ("load",      keepGoingPaths loadModule_,     completeHomeModuleOrFile),
   ("list",      keepGoing' listCmd,             noCompletion),
   ("module",    keepGoing moduleCmd,            completeSetModule),
+  ("move",      keepGoing' moveCommand,         completeFilename),
   ("main",      keepGoing runMain,              completeFilename),
   ("print",     keepGoing printCmd,             completeExpression),
   ("quit",      quit,                           noCompletion),
@@ -1104,8 +1111,8 @@ afterRunStmt step_here run_result = do
 
   return (case run_result of GHC.ExecComplete _ _ -> True; _ -> False)
 #else
-afterRunStmt :: (SrcSpan -> Bool) -> GHC.RunResult -> GHCi Bool 
-afterRunStmt _ (GHC.RunException e) = liftIO $ Exception.throwIO e 
+afterRunStmt :: (SrcSpan -> Bool) -> GHC.RunResult -> GHCi Bool
+afterRunStmt _ (GHC.RunException e) = liftIO $ Exception.throwIO e
 afterRunStmt step_here run_result = do
   resumes <- GHC.getResumeContext
   case run_result of
@@ -1373,17 +1380,49 @@ doWithArgs :: [String] -> String -> GHCi ()
 doWithArgs args cmd = enqueueCommands ["System.Environment.withArgs " ++
                                        show args ++ " (" ++ cmd ++ ")"]
 
+--------------------------------------------------------------------------------
+-- :move
+
+moveCommand :: String -> InputT GHCi ()
+moveCommand i =
+  case toArgs i of
+    Right [from, to] -> liftIO (do moveUpdatingTime from to)
+    _ -> throwGhcException (CmdLineError "expected :move from to")
+
+moveUpdatingTime :: FilePath -> FilePath -> IO ()
+#if MIN_VERSION_directory(1,2,3)
+moveUpdatingTime from to = do
+  renameFile from to
+  now <- getCurrentTime
+  setModificationTime to now
+#else
+moveUpdatingTime from to = do
+  copyFile from to
+  removeFile from
+#endif
+
+--------------------------------------------------------------------------------
+-- :sleep
+
+sleepCommand :: String -> InputT GHCi ()
+sleepCommand i =
+  case reads i of
+    [(n, "")] -> do
+      liftIO (threadDelay (1000 * 1000 * n))
+      pure ()
+    _ -> throwGhcException (CmdLineError "expected :sleep <n seconds>") ()
+
 -----------------------------------------------------------------------------
 -- :cd
 
-changeDirectory :: String -> InputT GHCi ()
-changeDirectory "" = do
+changeDirectory :: [FilePath] -> InputT GHCi ()
+changeDirectory [] = do
   -- :cd on its own changes to the user's home directory
   either_dir <- liftIO $ tryIO getHomeDirectory
   case either_dir of
      Left _e -> return ()
-     Right dir -> changeDirectory dir
-changeDirectory dir = do
+     Right dir -> changeDirectory [dir]
+changeDirectory (dir:_) = do
   graph <- GHC.getModuleGraph
   when (not (null graph)) $
         liftIO $ putStrLn "Warning: changing directory causes all loaded modules to be unloaded,\nbecause the search path has changed."
@@ -1409,12 +1448,12 @@ trySuccess act =
 
 -- NOTE: calling :cd will reset the GHC working directory as well as
 -- the GHCi working directory.
-changeDirectoryGHC :: String -> InputT GHCi ()
+changeDirectoryGHC :: [FilePath] -> InputT GHCi ()
 -- :cd-ghc on its own resets the ghc work directory to match
 -- the ghci work directory.
-changeDirectoryGHC "" = lift $ modifyGHCiState $ \state ->
+changeDirectoryGHC [] = lift $ modifyGHCiState $ \state ->
   state { ghc_work_directory = (ghci_work_directory state) }
-changeDirectoryGHC dir = do
+changeDirectoryGHC (dir:_) = do
   dir' <- expandPath dir
   lift $ modifyGHCiState $ \state -> state { ghc_work_directory = dir' }
 
