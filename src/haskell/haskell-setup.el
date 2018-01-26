@@ -21,6 +21,7 @@
 (require 'haskell-misc)
 (require 'haskell-outline)
 (require 'haskell-shm)
+(require 'intero)
 (require 'shell-setup)
 (require 'shm)
 
@@ -71,9 +72,13 @@
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (haskell-compile t))
 (vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
-  (haskell-process-load-file))
-(vim:defcmd vim:haskell-set-target (nonrepeatable)
-  (call-interactively #'haskell-session-change-target))
+  (intero-repl)
+  ;; (haskell-process-load-file)
+  )
+(vim:defcmd vim:haskell-restart-repl (nonrepeatable)
+  (intero-repl-restart))
+;; (vim:defcmd vim:haskell-set-target (nonrepeatable)
+;;   (call-interactively #'haskell-session-change-target))
 (vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
   (haskell-interactive-clear-buffer-above-prompt))
 
@@ -103,6 +108,39 @@
                :use-hl-line nil
                :use-whitespace 'tabs-only)
   (fontify-conflict-markers!)
+
+  ;; Read settings from '.eproj-info' file, if any.
+  (let ((proj (ignore-errors
+                (eproj-get-project-for-buf (current-buffer)))))
+
+    ;; Set up indent offset.
+    (let ((offset
+           (if-let ((eproj proj)
+                    (aux-info (eproj-project/aux-info eproj))
+                    (hask-offset (eproj-project/query-aux-info aux-info 'haskell-offset)))
+               (progn
+                 (assert (integerp hask-offset)
+                         nil
+                         "haskell-offset in .eproj-info must be an integer, but got %s"
+                         hask-offset)
+                 hask-offset)
+             2)))
+      (setq-local vim:shift-width       offset)
+      (setq-local haskell-indent-offset offset)
+      (setq-local haskell-indent-spaces offset)
+      (setq-local shm-indent-spaces     offset)
+      (haskell-abbrev+-setup offset))
+
+    (if-let ((eproj proj)
+             (aux-info (eproj-project/aux-info eproj))
+             (disable-intero? (eproj-project/query-aux-info aux-info 'disable-intero?)))
+        (progn
+          (assert (booleanp disable-intero?)
+                  nil
+                  "haskell-offset in .eproj-info must be an integer, but got %s"
+                  disable-intero)
+          (intero-mode -1))
+      (intero-mode-maybe)))
 
   (unless (eq major-mode 'ghc-core-mode)
     (company-mode +1)
@@ -149,7 +187,8 @@
    :compile-func #'vim:haskell-compile
    :load-func #'vim:haskell-load-file-into-repl)
   (vim:local-emap "core"   #'vim:ghc-core-create-core)
-  (vim:local-emap "target" #'vim:haskell-set-target)
+  ;; (vim:local-emap "target" #'vim:haskell-set-target)
+  (vim:local-emap "restart" #'vim:haskell-restart-repl)
   (dolist (cmd '("cc" "ccompile"))
     (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
   (dolist (cmd '("init" "configure" "conf"))
@@ -198,7 +237,17 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("- q" shm/qualify-import)
-    ("- e" shm/export))
+    ("- e" shm/export)
+
+    ("- t" intero-type-at)
+    ("- u" intero-uses-at)
+    ("- i" intero-info)
+    ("- ." intero-goto-definition)
+    ("- a" intero-apply-suggestions)
+    ("- s" intero-expand-splice-at-point))
+
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("- e" intero-repl-eval-region))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ;; Just let `smartparens-mode' take care of these.
@@ -265,25 +314,6 @@
     ("q" vim:shm/goto-parent-end))
 
   (haskell-setup-folding)
-  (let ((offset
-         (if-let (hask-offset
-                  (ignore-errors
-                    (multiple-value-bind (initial-root aux-info)
-                        (eproj-get-initial-project-root-and-aux-info
-                         (eproj--get-buffer-directory (current-buffer)))
-                      (cadr-safe (assq 'haskell-offset aux-info)))))
-             (progn
-               (assert (integer? hask-offset)
-                       nil
-                       "haskell-offset in .eproj-info must be an integer, but got %s"
-                       hask-offset)
-               hask-offset)
-           2)))
-    (setq-local vim:shift-width       offset)
-    (setq-local haskell-indent-offset offset)
-    (setq-local haskell-indent-spaces offset)
-    (setq-local shm-indent-spaces     offset)
-    (haskell-abbrev+-setup offset))
   (setup-eproj-symbnav)
   (setup-outline-headers :header-symbol "-"
                          :length-min 3))
@@ -377,7 +407,7 @@
                      vim:insert-mode-local-keymap
                      haskell-interactive-mode-map)
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("M-p"      browse-haskell-interactive-input-history))
+    ("C-S-p"    browse-haskell-interactive-input-history))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      haskell-interactive-mode-map)
@@ -392,6 +422,59 @@
     ("C-h"      haskell-interactive-jump-to-next-prompt)
     ("S-<up>"   haskell-interactive-jump-to-prev-prompt)
     ("S-<down>" haskell-interactive-jump-to-next-prompt))
+
+  (haskell-abbrev+-setup 2 :repl t))
+
+(defun intero-repl-mode-setup ()
+  ;; undo-tree is useless for ghci interaction
+  ;; well I'm not sure now, I hope it's useful since it proved itself useful
+  ;; for other repls
+  ;; (undo-tree-mode -1)
+  (init-common :use-comment nil
+               :use-yasnippet nil
+               :use-whitespace nil
+               :use-fci nil)
+  (init-repl :create-keymaps t
+             :bind-return nil
+             :bind-vim:motion-current-line nil)
+  (structured-haskell-mode -1)
+  (setq-local indent-region-function #'ignore)
+  ;; very useful to automatically surround with spaces inserted operators
+  (install-haskell-smart-operators vim:insert-mode-local-keymap
+    :bind-colon nil
+    :bind-hyphen nil
+    :use-shm nil)
+
+  (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
+
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC"  haskell-interactive-clear-prompt))
+
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("-"        haskell--ghci-shm/hyphen))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap
+                     haskell-interactive-mode-map)
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("C-S-p"    browse-comint-input-history))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     )
+    ("C-w"      backward-delete-word)
+    ("C-S-w"    backward-delete-word*)
+
+    ("<tab>"    completion-at-point)
+
+    ("C-("      vim:sp-backward-slurp-sexp)
+    ("C-)"      vim:sp-forward-slurp-sexp)
+    ("M-("      sp-absorb-sexp)
+    ("M-)"      sp-emit-sexp)
+
+    ("C-t"      comint-previous-prompt)
+    ("C-h"      comint-next-prompt)
+    ("S-<up>"   comint-previous-prompt)
+    ("S-<down>" comint-next-prompt))
 
   (haskell-abbrev+-setup 2 :repl t))
 
