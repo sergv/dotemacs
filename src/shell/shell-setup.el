@@ -135,7 +135,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
     ("C-<up>"    comint-previous-prompt)
     ("C-<down>"  comint-next-prompt)
 
-    ("C-c C-k"   comint-kill-subjob)
+    ;; ("C-c C-k"   comint-kill-subjob)
 
     ("C-("       vim:sp-backward-slurp-sexp)
     ("C-)"       vim:sp-forward-slurp-sexp)
