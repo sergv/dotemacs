@@ -386,15 +386,11 @@
   )
 
 (defsubst eproj-project/query-aux-info (aux-info key)
-  "Retrieve aux-data associated with a KEY in the project PROJ."
+  "Retrieve aux-data associated with a KEY in the aux info AUX-INFO."
   (let ((entry (assq key aux-info)))
     (cl-assert (or (null? entry)
                    (= (length entry) 2)))
-    (cadr-safe entry))
-  ;; (cadr-safe
-  ;;  (assq key
-  ;;        (eproj-project/aux-info proj)))
-  )
+    (cadr-safe entry)))
 
 (defun eproj-project/aux-files (proj)
   (aif (eproj-project/aux-files-source proj)
@@ -967,7 +963,7 @@ project.")
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
 
 (defun eproj--get-buffer-directory (buffer)
-  "Get directory associated with BUFFER, either throug visited file
+  "Get directory associated with BUFFER, either through visited file
 or `default-directory', if no file is visited."
   (with-current-buffer buffer
     (or (when buffer-file-truename

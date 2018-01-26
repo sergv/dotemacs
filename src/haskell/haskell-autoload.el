@@ -68,6 +68,9 @@
 (autoload 'haskell-cabal-setup "haskell-setup")
 (autoload 'ghc-core-setup "haskell-setup")
 
+(autoload 'haskell-interactive-mode-setup "haskell-setup")
+(autoload 'intero-repl-mode-setup "haskell-setup")
+
 (mmm-add-classes
  '((literate-haskell-latex
     :submode haskell-mode
@@ -108,6 +111,7 @@
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 (add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
+(add-hook 'intero-repl-mode-hook #'intero-repl-mode-setup)
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 (add-hook 'ghc-check-mode-hook #'ghc-check-mode-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
