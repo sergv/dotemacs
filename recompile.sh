@@ -120,6 +120,7 @@ update-dir-autoloads \
     "third-party/flycheck-elm" \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
+    "third-party/intero" \
     "third-party/misc-modes" \
     "third-party/pkg-info" \
     "third-party/smartparens" \
