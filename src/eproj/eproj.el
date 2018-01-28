@@ -14,7 +14,7 @@
 ;;   [(tree <tree-root> <pattern>*)])]
 ;; [(ignored-files <regexp>+)] - ignored filenames, <regexp>
 ;;                               should match absolute file names. Will be applied
-;;                               to file-list argument too.
+;;                               to file-list and aux files arguments.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files in lisp format,
 ;;                                   e.g. ("foo" "c:/bar.txt" "../quux.log")
 ;;
@@ -394,12 +394,14 @@
 
 (defun eproj-project/aux-files (proj)
   (aif (eproj-project/aux-files-source proj)
-      (cond ((functionp it)
-             (funcall it))
-            ((listp it)
-             it)
-            (t
-             nil))
+      (eproj--filter-file-list
+       proj
+       (cond ((functionp it)
+              (funcall it))
+             ((listp it)
+              it)
+             (t
+              (error "Invalid eproj-project/aux-files-source entry: %s" it))))
     nil))
 
 (defun eproj-project/root= (proj-a proj-b)
@@ -801,6 +803,17 @@ symbol 'unresolved.")
           (error ".eproj-info file does not exist at %s"
                  initial-root))))))
 
+(defun eproj--filter-file-list (proj files)
+  (aif (eproj-project/ignored-files-regexps proj)
+      (let ((regexp
+             (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
+                        it
+                        "\\|")))
+        (-filter (lambda (fname)
+                   (not (string-match-p regexp fname)))
+                 files))
+    files))
+
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type."
   ;; Cached files are necessarily from file-list and intended for projects whose
@@ -809,30 +822,20 @@ symbol 'unresolved.")
       cached-files
     ;; if there's file-list then read it and store to cache
     (if-let (file-list-filename (eproj-project/file-list-filename proj))
-        (let ((filter-ignored-files
-               (lambda (files)
-                 (aif (eproj-project/ignored-files-regexps proj)
-                     (let ((regexp
-                            (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
-                                       it
-                                       "\\|")))
-                       (-filter (lambda (fname)
-                                  (not (string-match-p regexp fname)))
-                                files))
-                   files)))
-              (list-of-files
+        (let ((list-of-files
                (with-temp-buffer
                  (insert-file-contents-literally file-list-filename)
                  (goto-char (point-min))
                  (read (current-buffer)))))
           (cl-assert (listp list-of-files))
           (let ((resolved-files
-                 (funcall filter-ignored-files
-                          (-map (lambda (filename)
-                                  (eproj-resolve-abs-or-rel-name
-                                   filename
-                                   (eproj-project/root proj)))
-                                list-of-files))))
+                 (eproj--filter-file-list
+                  proj
+                  (-map (lambda (filename)
+                          (eproj-resolve-abs-or-rel-name
+                           filename
+                           (eproj-project/root proj)))
+                        list-of-files))))
             (cl-assert (--all? (and (stringp it)
                                     (file-exists-p it))
                                resolved-files))
