@@ -368,21 +368,23 @@
 
 ;;;; projects themselves
 
+;; Thunk below is a function of 0 arguments.
 (defstruct (eproj-project
             (:conc-name eproj-project/))
   root     ;; normalized directory name
   aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries
-  tags     ;; list of (language-major-mode . <tags-table>);
-  ;; <tags-table> - hashtable of (symbol-str . eproj-tag) bindings
+  tags     ;; Thunk of list of (language-major-mode . <tags-table>);
+           ;; <tags-table> - hashtable of (symbol-str . eproj-tag)
+           ;; bindings
   related-projects ;; list of other project roots
   aux-files-source ;; list of other files or function that yields such list
   languages ;; list of symbols - major-modes for related languages
   cached-file-list ;; stores list of filenames, if file list is specified in .eproj-info
-  ignored-files-regexps ;; list of absolute filename regexps to ignore in current
-  ;; project
+  ignored-files-regexps ;; list of absolute filename regexps to ignore
+                        ;; in current project
   file-list-filename ;; list of files, if specified in aux-info via 'file-list
   create-tag-files ;; boolean, whether to cache tags for this project
-  ;; in files
+                   ;; in files
   )
 
 (defsubst eproj-project/query-aux-info (aux-info key)
@@ -462,7 +464,7 @@
           (error "Project %s does not manage %s files"
                  (eproj-project/root proj)
                  mode))
-        (if-let (old-tags (cdr-safe (assoc mode (eproj-project/tags proj))))
+        (if-let (old-tags (cdr-safe (assoc mode (eproj--get-tags proj))))
             (let ((new-tags
                    (eproj/load-tags-for-mode
                     proj
@@ -520,36 +522,48 @@ cache tags in."
                  parse-tags-procedure))
     (error "Failed loading tags for mode '%s': cannot resolve language" mode)))
 
-(defun eproj-reload-tags (proj)
+(defun eproj--get-tags (proj)
+  "Get tags for project PROJ."
+  (funcall (eproj-project/tags proj)))
+
+(defmacro eproj--make-thunk (&rest body)
+  (let ((evaluated-items-var '#:evaluated-items)
+        (made-items-var '#:made-items))
+    `(let ((,evaluated-items-var nil)
+           (,made-items-var nil))
+       (lambda ()
+         (if ,made-items-var
+             ,evaluated-items-var
+           (progn
+             (setf ,evaluated-items-var
+                   (progn ,@body)
+                   ,made-items-var t)
+             ,evaluated-items-var))))))
+
+(defun eproj--prepare-to-load-fresh-tags-lazily-on-demand! (proj)
   "Reload tags for PROJ."
-  (let* ((files nil)
-         (made-files nil)
-         (make-project-files-func
-          (lambda ()
-            (if made-files
-                files
-              (progn
-                (setf files (aif (eproj-project/aux-files proj)
-                                (append
-                                 (eproj-get-project-files proj)
-                                 it)
-                              (eproj-get-project-files proj))
-                      made-files t)
-                files)))))
+  (let* ((make-project-files-func
+          (eproj--make-thunk
+           (aif (eproj-project/aux-files proj)
+               (append
+                (eproj-get-project-files proj)
+                it)
+             (eproj-get-project-files proj)))))
     (setf (eproj-project/tags proj)
-          (-map (lambda (lang-mode)
-                  (let ((new-tags (eproj/load-tags-for-mode proj
-                                                            lang-mode
-                                                            make-project-files-func
-                                                            :consider-tag-files t)))
-                    (cl-assert (and (not (null new-tags))
-                                    (hash-table-p new-tags)))
-                    (when (= 0 (hash-table-count new-tags))
-                      (error "Warning while reloading: project %s loaded no tags for language %s"
-                             (eproj-project/root proj)
-                             lang-mode))
-                    (cons lang-mode new-tags)))
-                (eproj-project/languages proj))))
+          (eproj--make-thunk
+           (-map (lambda (lang-mode)
+                   (let ((new-tags (eproj/load-tags-for-mode proj
+                                                             lang-mode
+                                                             make-project-files-func
+                                                             :consider-tag-files t)))
+                     (cl-assert (and (not (null new-tags))
+                                     (hash-table-p new-tags)))
+                     (when (= 0 (hash-table-count new-tags))
+                       (error "Warning while reloading: project %s loaded no tags for language %s"
+                              (eproj-project/root proj)
+                              lang-mode))
+                     (cons lang-mode new-tags)))
+                 (eproj-project/languages proj)))))
   nil)
 
 (defun eproj-populate-from-eproj-info! (proj aux-info)
@@ -577,7 +591,7 @@ cache tags in."
           (eproj-project/ignored-files-regexps proj) ignored-files-regexps
           (eproj-project/file-list-filename proj) file-list-filename
           (eproj-project/create-tag-files proj) create-tag-files)
-    (eproj-reload-tags proj)
+    (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
     nil))
 
 (defun eproj-get-eproj-info-from-dir (dir)
@@ -683,7 +697,7 @@ variables accordingly."
           (insert indent (buffer-name buf) "\n")))
       (insert "number of tags loaded: "
               (let ((tag-count 0))
-                (dolist (tags-entry (eproj-project/tags proj))
+                (dolist (tags-entry (eproj--get-tags proj))
                   (let ((lang-tags (hash-table->alist (cdr tags-entry))))
                     (setf tag-count
                           (+ tag-count (length lang-tags)))))
@@ -691,7 +705,7 @@ variables accordingly."
               "\n")
       (when describe-tags
         (insert "tags:\n")
-        (dolist (tags-entry (eproj-project/tags proj))
+        (dolist (tags-entry (eproj--get-tags proj))
           (let ((lang-tags (sort (hash-table->alist (cdr tags-entry))
                                  (lambda (a b) (string< (car a) (car b))))))
             (insert indent "lang: "
@@ -982,7 +996,7 @@ Returns list of (tag . project) pairs."
   (-mapcat (lambda (proj)
              (aif (cdr-safe
                    (assq tag-major-mode
-                         (eproj-project/tags proj)))
+                         (eproj--get-tags proj)))
                  (-map (lambda (tag)
                          (cons tag proj))
                        (if search-with-regexp?
