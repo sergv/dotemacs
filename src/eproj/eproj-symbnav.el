@@ -153,14 +153,14 @@ as accepted by `bounds-of-thing-at-point'.")
                                            :symbol (eproj-tag/symbol entry))))))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     ;; load tags if there're none
-    (unless (or (eproj-project/tags proj)
-                (assq effective-major-mode (eproj-project/tags proj)))
+    (unless (or (eproj--get-tags proj)
+                (assq effective-major-mode (eproj--get-tags proj)))
       (eproj-reload-project! proj)
-      (unless (eproj-project/tags proj)
+      (unless (eproj--get-tags proj)
         (error "Project %s loaded no names\nProject: %s"
                (eproj-project/root proj)
                proj))
-      (unless (assq effective-major-mode (eproj-project/tags proj))
+      (unless (assq effective-major-mode (eproj--get-tags proj))
         (error "No names in project %s for language %s"
                (eproj-project/root proj)
                effective-major-mode)))
