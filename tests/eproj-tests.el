@@ -111,7 +111,7 @@ under ROOT directory."
            (proj (eproj-get-project-for-path path))
            (tags-table
             (cdr-safe (assq 'c-mode
-                            (eproj-project/tags proj))))
+                            (eproj--get-tags proj))))
            (project-names
             '("bigint"
               "bigint_list_s"
@@ -125,7 +125,7 @@ under ROOT directory."
       (should-not (null? proj))
       (should (eproj-tests/paths=? path (eproj-project/root proj)))
       (should-not (null? tags-table))
-      (should-not (= 0 (length (eproj-project/tags proj))))
+      (should-not (= 0 (length (eproj--get-tags proj))))
       (should (hash-table-p tags-table))
       (should-not (= 0 (hash-table-count tags-table)))
       (should-not (= 0 (length (eproj-tests/hash-table-keys tags-table))))

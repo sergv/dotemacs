@@ -33,26 +33,26 @@
                                  (eproj-language/show-tag-kind-procedure it)
                                (error "Cannot find language definition for mode %s" effective-major-mode)))
          (tag-tables (-non-nil
-                      (--map (cdr-safe (assq effective-major-mode (eproj-project/tags it)))
+                      (--map (cdr-safe (assq effective-major-mode (eproj--get-tags it)))
                              all-projs)))
-         (all-matches (-mapcat (lambda (table)
-                                 (-mapcat (lambda (completion)
-                                            (let ((tags (gethash completion table)))
-                                              (-map (lambda (tag)
-                                                      (let ((new-completion (copy-sequence completion)))
-                                                        (set-text-properties
-                                                         0
-                                                         (length new-completion)
-                                                         (list
-                                                          :file (eproj-tag/file tag)
-                                                          :line (eproj-tag/line tag)
-                                                          ;; :tag tag
-                                                          :kind (funcall show-tag-kind-func tag))
-                                                         new-completion)
-                                                        new-completion))
-                                                    tags)))
-                                          (all-completions arg table)))
-                               tag-tables)))
+         (all-matches
+          (-mapcat (lambda (table)
+                     (-mapcat (lambda (completion)
+                                (let ((tags (gethash completion table)))
+                                  (-map (lambda (tag)
+                                          (let ((new-completion (copy-sequence completion)))
+                                            (set-text-properties
+                                             0
+                                             (length new-completion)
+                                             (list :file (eproj-tag/file tag)
+                                                   :line (eproj-tag/line tag)
+                                                   ;; :tag tag
+                                                   :kind (funcall show-tag-kind-func tag))
+                                             new-completion)
+                                            new-completion))
+                                        tags)))
+                              (all-completions arg table)))
+                   tag-tables)))
     (remove-duplicates-hashing all-matches #'equal)))
 
 (provide 'company-eproj)
