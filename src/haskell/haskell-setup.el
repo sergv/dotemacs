@@ -105,6 +105,15 @@
   (ignore-errors
     (eproj-update-buffer-tags)))
 
+(defun haskell-go-to-symbol-home (&optional use-regexp?)
+  "Try to get symbol location via intero (`intero-goto-definition'), if it's
+enabled. Otherwise fall back to eproj tags."
+  (interactive "P")
+  (or (when (and intero-mode
+                 (not use-regexp?))
+        (intero-goto-definition))
+      (eproj-symbnav/go-to-symbol-home use-regexp?)))
+
 (defun haskell-setup ()
   (let ((intero-disabled? nil)
         (flycheck-disabled? nil))
@@ -323,6 +332,8 @@
 
     (haskell-setup-folding)
     (setup-eproj-symbnav)
+    (def-keys-for-map vim:normal-mode-local-keymap
+      ("C-." haskell-go-to-symbol-home))
     (setup-outline-headers :header-symbol "-"
                            :length-min 3)))
 
