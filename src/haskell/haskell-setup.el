@@ -24,6 +24,7 @@
 (require 'intero)
 (require 'shell-setup)
 (require 'shm)
+(require 'vim-intero-highlight-uses-mode)
 
 ;; never cache module alist to a file
 (setf inferior-haskell-module-alist-file nil)
