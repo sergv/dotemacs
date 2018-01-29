@@ -475,10 +475,9 @@ Returns nil when unable to find definition."
   (let ((result (apply #'intero-get-loc-at (intero-thing-at-point))))
     (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$"
                         result)
-      (if (fboundp 'xref-push-marker-stack) ;; Emacs 25
-          (xref-push-marker-stack)
-        (with-no-warnings
-          (ring-insert find-tag-marker-ring (point-marker))))
+      (push (make-eproj-home-entry :buffer (current-buffer) :position (point-marker) :symbol nil)
+            eproj-symbnav/previous-homes)
+      (setf eproj-symbnav/next-homes nil)
       (let* ((returned-file (match-string 1 result))
              (line (string-to-number (match-string 2 result)))
              (col (string-to-number (match-string 3 result)))
