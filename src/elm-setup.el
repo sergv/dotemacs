@@ -129,6 +129,7 @@
   (setq-local elm-sort-imports-on-save t)
 
   (flycheck-install-ex-commands!
+   :install-flycheck t
    :compile-func #'vim:elm-compile
    :load-func #'vim:elm-load-file)
   (haskell-setup-folding)
