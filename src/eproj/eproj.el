@@ -23,6 +23,14 @@
 ;; ;; these are mostly for haskell
 ;; [(tag-file <abs-or-rel-file>)]
 ;;
+;; [(language-specific
+;;    [(haskell-mode
+;;       [(indent-offset <integer>)]
+;;       [(disable-intero? <t-or-nil>)])])]
+;;
+;; [(general
+;;    [(disable-flycheck? <t-or-nil>)])]
+;;
 ;; [...] - optional directive
 ;; <abs-or-rel-dir> - absolute or relative path to directory
 ;; <abs-or-rel-file> - absolute or relative path to file
@@ -387,12 +395,22 @@
                    ;; in files
   )
 
-(defsubst eproj-project/query-aux-info (aux-info key)
-  "Retrieve aux-data associated with a KEY in the aux info AUX-INFO."
-  (let ((entry (assq key aux-info)))
-    (cl-assert (or (null? entry)
-                   (= (length entry) 2)))
-    (cadr-safe entry)))
+(defmacro eproj-project/query-aux-info-seq (aux-info &rest keys)
+  "Retrieve aux-data assoc entry associated with a KEY in the aux info AUX-INFO."
+  (declare (indent 1))
+  `(let ((entry ,(foldl (lambda (acc key) (cl-assert (symbolp key))
+                          `(assq ',key ,acc))
+                        aux-info
+                        keys)))
+     (cl-assert (or (null? entry)
+                    (= (length entry) 2)))
+     (cdr-safe entry)))
+
+(defmacro eproj-project/query-aux-info (aux-info &rest keys)
+  "Retrieve aux-data value associated with a KEY in the aux info AUX-INFO."
+  (declare (indent 1))
+  `(car-safe (eproj-project/query-aux-info-seq ,aux-info ,@keys)))
+
 
 (defun eproj-project/aux-files (proj)
   (aif (eproj-project/aux-files-source proj)
@@ -567,7 +585,7 @@ cache tags in."
   nil)
 
 (defun eproj-populate-from-eproj-info! (proj aux-info)
-  (let ((languages (aif (cdr-safe (assq 'languages aux-info))
+  (let ((languages (aif (eproj-project/query-aux-info-seq aux-info languages)
                        it
                      (progn
                        (notify "warning: no languages defined for project %s"
@@ -576,14 +594,15 @@ cache tags in."
         (ignored-files-regexps
          (cdr-safe (assq 'ignored-files aux-info)))
         (file-list-filename
-         (awhen (eproj-project/query-aux-info aux-info 'file-list)
+         (awhen (eproj-project/query-aux-info aux-info file-list)
            (let ((fname (eproj-resolve-abs-or-rel-name it (eproj-project/root proj))))
              (when (or (null fname)
                        (not (file-exists-p fname)))
                (error "File list filename does not exist: %s" fname))
              fname)))
         (create-tag-files
-         (eproj-project/query-aux-info aux-info 'create-tag-files)))
+         (eproj-project/query-aux-info aux-info create-tag-files)))
+    (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
     (setf (eproj-project/aux-info proj) aux-info
           (eproj-project/related-projects proj) (eproj-get-related-projects (eproj-project/root proj) aux-info)
           (eproj-project/aux-files-source proj) (eproj-make-aux-files-constructor (eproj-project/root proj) aux-info)
@@ -886,18 +905,20 @@ Returns nil if no relevant entry found in AUX-INFO."
           it)))
 
 (defun eproj-make-aux-files-constructor (root aux-info)
-  "Make up function that will return list of absolute names for auxiliary files
-of project upon invokation. Aux files usually are files in repository that
-are not listed by `eproj-get-project-files' \(e.g. files not tracked by version
+  "Make up function that will return list of absolute names for
+auxiliary files of the project at ROOT when invoked. Aux files
+usually are files that are not listed by
+`eproj-get-project-files' \(e.g. files not tracked by version
 control system, etc).
 
-ROOT should be directory with project to make auxiliary files for. AUX-INFO is
-datastructure found in ROOT/.eproj-info file, if such file exists.
+ROOT should be directory with project to make auxiliary files
+for.
 
-AUX-INFO is expected to be a list of zero or more constructs:
-1. \(tree <tree-root> <pattern>*)
-<tree-root> should be a directory to recursively search files in
-<pattern> should be regular expression string."
+AUX-INFO is a datastructure found in ROOT/.eproj-info file, if
+such file exists. It is is expected to be a list of zero or more constructs of form:
+1. \(tree <tree-root> <pattern>*), where
+<tree-root> is a directory to recursively search files in
+<pattern> is a regular expression string."
   (let ((project-root root))
     (when-let (aux-files-entry (cdr-safe (assq 'aux-files aux-info)))
       (lambda ()

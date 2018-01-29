@@ -71,12 +71,15 @@
   (haskell-compile nil))
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (haskell-compile t))
-(vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
-  (intero-repl)
-  ;; (haskell-process-load-file)
-  )
-(vim:defcmd vim:haskell-restart-repl (nonrepeatable)
+
+(vim:defcmd vim:haskell-intero-load-file-into-repl (nonrepeatable)
+  (intero-repl-load))
+(vim:defcmd vim:haskell-intero-restart-repl (nonrepeatable)
   (intero-repl-restart))
+
+(vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
+  (haskell-process-load-file))
+
 ;; (vim:defcmd vim:haskell-set-target (nonrepeatable)
 ;;   (call-interactively #'haskell-session-change-target))
 (vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
@@ -102,221 +105,225 @@
     (eproj-update-buffer-tags)))
 
 (defun haskell-setup ()
-  (init-common :use-yasnippet t
-               :use-comment t
-               :use-render-formula nil
-               :use-hl-line nil
-               :use-whitespace 'tabs-only)
-  (fontify-conflict-markers!)
+  (let ((intero-disabled? nil)
+        (flycheck-disabled? nil))
+    (init-common :use-yasnippet t
+                 :use-comment t
+                 :use-render-formula nil
+                 :use-hl-line nil
+                 :use-whitespace 'tabs-only)
+    (fontify-conflict-markers!)
+    (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
-  ;; Read settings from '.eproj-info' file, if any.
-  (let ((proj (ignore-errors
-                (eproj-get-project-for-buf (current-buffer)))))
+    ;; Read settings from '.eproj-info' file, if any.
+    (let ((proj (ignore-errors
+                  (eproj-get-project-for-buf (current-buffer)))))
 
-    ;; Set up indent offset.
-    (let ((offset
-           (if-let ((eproj proj)
-                    (aux-info (eproj-project/aux-info eproj))
-                    (hask-offset (eproj-project/query-aux-info aux-info 'haskell-offset)))
-               (progn
-                 (assert (integerp hask-offset)
-                         nil
-                         "haskell-offset in .eproj-info must be an integer, but got %s"
-                         hask-offset)
-                 hask-offset)
-             2)))
-      (setq-local vim:shift-width       offset)
-      (setq-local haskell-indent-offset offset)
-      (setq-local haskell-indent-spaces offset)
-      (setq-local shm-indent-spaces     offset)
-      (haskell-abbrev+-setup offset))
+      ;; Set up indent offset.
+      (let ((offset (or (eproj-query/haskell/indent-offset proj)
+                        2)))
+        (setq-local vim:shift-width       offset)
+        (setq-local haskell-indent-offset offset)
+        (setq-local haskell-indent-spaces offset)
+        (setq-local shm-indent-spaces     offset)
+        (haskell-abbrev+-setup offset))
 
-    (if-let ((eproj proj)
-             (aux-info (eproj-project/aux-info eproj))
-             (disable-intero? (eproj-project/query-aux-info aux-info 'disable-intero?)))
+      (if (eproj-query/haskell/disable-intero? proj)
+          (progn
+            (setf intero-disabled? t)
+            (intero-mode -1))
         (progn
-          (assert (booleanp disable-intero?)
-                  nil
-                  "haskell-offset in .eproj-info must be an integer, but got %s"
-                  disable-intero)
-          (intero-mode -1))
-      (intero-mode-maybe)))
+          (intero-mode-maybe)))
 
-  (unless (eq major-mode 'ghc-core-mode)
-    (company-mode +1)
-    (setq-local company-backends '(company-eproj))
-    (flycheck-mode +1)
-    (flycheck-select-checker 'haskell-stack-ghc)
-    (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t))
+      (unless (eq major-mode 'ghc-core-mode)
+        (company-mode +1)
+        (setq-local company-backends '(company-eproj))
 
-  ;; ghci interaction uses comint - same as shell mode
-  (turn-on-font-lock)
+        (if (eproj-query/general/disable-flycheck? proj)
+            (progn
+              (setf flycheck-disabled? t)
+              (flycheck-mode -1))
+          (progn
+            (flycheck-mode +1)
+            (flycheck-select-checker
+             (if intero-disabled?
+                 'haskell-stack-ghc
+               'intero))))))
 
-  ;; (haskell-doc-mode-setup)
+    ;; ghci interaction uses comint - same as shell mode
+    (turn-on-font-lock)
 
-  ;; fix vim treatment of words for Haskell
-  ;; note: do not include underscore into vim:word as this would cause
-  ;; inefficiencies while navigating haskell identifiers
-  (setq-local vim:word "[:word:]'")
-  ;; The underscore should remain part of word so we never search within
-  ;; _c_style_identifiers.
-  (modify-syntax-entry ?_ "_")
-  (modify-syntax-entry ?\' "w")
-  (modify-syntax-entry ?\@ "'")
+    ;; (haskell-doc-mode-setup)
 
-  (setq-local eproj-symbnav/identifier-type 'haskell-symbol)
-  (setq-local indent-region-function #'ignore)
-  (setq-local yas-indent-line 'fixed)
+    ;; fix vim treatment of words for Haskell
+    ;; note: do not include underscore into vim:word as this would cause
+    ;; inefficiencies while navigating haskell identifiers
+    (setq-local vim:word "[:word:]'")
+    ;; The underscore should remain part of word so we never search within
+    ;; _c_style_identifiers.
+    (modify-syntax-entry ?_ "_")
+    (modify-syntax-entry ?\' "w")
+    (modify-syntax-entry ?\@ "'")
 
-  (structured-haskell-mode +1)
-  (setq-local indent-line-function #'ignore)
-  (setq-local abbrev+-fallback-function #'haskell-abbrev+-fallback-space)
+    (setq-local eproj-symbnav/identifier-type 'haskell-symbol)
+    (setq-local indent-region-function #'ignore)
+    (setq-local yas-indent-line 'fixed)
 
-  ;; (turn-on-haskell-simple-indent)
+    (structured-haskell-mode +1)
+    (setq-local indent-line-function #'ignore)
+    (setq-local abbrev+-fallback-function #'haskell-abbrev+-fallback-space)
 
-  (setq-local compilation-read-command nil)
-  (setq-local compilation-auto-jump-to-first-error nil)
-  ;; don't skip any messages
-  (setq-local compilation-skip-threshold 0)
+    ;; (turn-on-haskell-simple-indent)
 
-  (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
-                 #'haskell-shm-backtab-or-indent-relative-backward
-                 :enable-yasnippet t)
+    (setq-local compilation-read-command nil)
+    (setq-local compilation-auto-jump-to-first-error nil)
+    ;; Don't skip any messages.
+    (setq-local compilation-skip-threshold 0)
 
-  (flycheck-install-ex-commands!
-   :compile-func #'vim:haskell-compile
-   :load-func #'vim:haskell-load-file-into-repl)
-  (vim:local-emap "core"   #'vim:ghc-core-create-core)
-  ;; (vim:local-emap "target" #'vim:haskell-set-target)
-  (vim:local-emap "restart" #'vim:haskell-restart-repl)
-  (dolist (cmd '("cc" "ccompile"))
-    (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
-  (dolist (cmd '("init" "configure" "conf"))
-    (vim:local-emap cmd #'vim:haskell-flycheck-configure))
+    (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
+                   #'haskell-shm-backtab-or-indent-relative-backward
+                   :enable-yasnippet t)
 
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("\\"      vim:flycheck-run)
-    ("j"       vim:haskell-load-file-into-repl)
-    ("g c c"   haskell-comment-node)
-    ("+"       input-unicode)
-    ("SPC SPC" haskell-misc-switch-to-haskell)
-    ("g w"     shm/goto-where)
-    ("g i"     vim:haskell-navigate-imports)
-    ("g I"     haskell-navigate-imports-return)
-    ("g <tab>" haskell-reindent-at-point))
+    (flycheck-install-ex-commands!
+     :install-flycheck (not flycheck-disabled?)
+     :compile-func #'vim:haskell-compile
+     :load-func
+     (if intero-disabled?
+         #'vim:haskell-load-file-into-repl
+       #'vim:haskell-intero-load-file-into-repl))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
-    ("`"     vim:wrap-backticks)
-    ("g TAB" haskell-format-pp-region-with-brittany))
+    (unless intero-disabled?
+      (vim:local-emap "restart" #'vim:haskell-intero-restart-repl))
 
-  (install-haskell-smart-operators
-      vim:insert-mode-local-keymap
-    :bind-colon t
-    :bind-hyphen t
-    :use-shm t)
-  (def-keys-for-map shm-map
-    ("("            nil)
-    ("["            nil)
-    ("{"            nil)
-    (")"            nil)
-    ("]"            nil)
-    ("}"            nil)
-    ("\""           nil)
-    ("C-w"          nil)
-    ("M-w"          nil)
-    ("C-y"          nil)
-    ("M-y"          nil)
-    ("M-a"          nil)
-    ("M-k"          nil)
-    ("C-k"          nil)
-    ("<delete>"     nil)
-    ("<deletechar>" nil)
-    ("C-<return>"   shm/simple-indent-newline-same-col)
-    ("TAB"          nil)
-    ("<backtab>"    nil))
+    (vim:local-emap "core" #'vim:ghc-core-create-core)
+    (dolist (cmd '("cc" "ccompile"))
+      (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
+    (dolist (cmd '("init" "configure" "conf"))
+      (vim:local-emap cmd #'vim:haskell-flycheck-configure))
 
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("- q" shm/qualify-import)
-    ("- e" shm/export)
+    (def-keys-for-map vim:normal-mode-local-keymap
+      ("\\"      vim:flycheck-run)
+      ("j"       vim:haskell-load-file-into-repl)
+      ("g c c"   haskell-comment-node)
+      ("+"       input-unicode)
+      ("SPC SPC" haskell-misc-switch-to-haskell)
+      ("g w"     shm/goto-where)
+      ("g i"     vim:haskell-navigate-imports)
+      ("g I"     haskell-navigate-imports-return)
+      ("g <tab>" haskell-reindent-at-point))
 
-    ("- t" intero-type-at)
-    ("- u" intero-uses-at)
-    ("- i" intero-info)
-    ("- ." intero-goto-definition)
-    ("- a" intero-apply-suggestions)
-    ("- s" intero-expand-splice-at-point))
+    (def-keys-for-map vim:visual-mode-local-keymap
+      ("`"     vim:wrap-backticks)
+      ("g TAB" haskell-format-pp-region-with-brittany))
 
-  (def-keys-for-map vim:visual-mode-local-keymap
-    ("- e" intero-repl-eval-region))
+    (install-haskell-smart-operators
+        vim:insert-mode-local-keymap
+      :bind-colon t
+      :bind-hyphen t
+      :use-shm t)
+    (def-keys-for-map shm-map
+      ("("            nil)
+      ("["            nil)
+      ("{"            nil)
+      (")"            nil)
+      ("]"            nil)
+      ("}"            nil)
+      ("\""           nil)
+      ("C-w"          nil)
+      ("M-w"          nil)
+      ("C-y"          nil)
+      ("M-y"          nil)
+      ("M-a"          nil)
+      ("M-k"          nil)
+      ("C-k"          nil)
+      ("<delete>"     nil)
+      ("<deletechar>" nil)
+      ("C-<return>"   shm/simple-indent-newline-same-col)
+      ("TAB"          nil)
+      ("<backtab>"    nil))
 
-  (def-keys-for-map vim:insert-mode-local-keymap
-    ;; Just let `smartparens-mode' take care of these.
-    ;; ("\""  shm/double-quote)
-    ;; ("("   shm/open-paren)
-    ;; (")"   shm/close-paren)
-    ;; ("["   shm/open-bracket)
-    ;; ("]"   shm/close-bracket)
-    ;; ("{"   shm/open-brace)
-    ;; ("}"   shm/close-brace)
-    ("`"   vim:wrap-backticks)
-    (","   shm/comma))
+    (def-keys-for-map vim:normal-mode-local-keymap
+      ("- q" shm/qualify-import)
+      ("- e" shm/export)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("C-w"             shm/backward-kill-word)
-    ("C-u"             shm/insert-undefined)
-    ("C-<up>"          shm/swing-up)
-    ("C-<down>"        shm/swing-down)
-    ("C-t"             flycheck-enhancements-previous-error-with-wraparound)
-    ("C-h"             flycheck-enhancements-next-error-with-wraparound)
-    ("M-t"             haskell-compilation-prev-error-other-window)
-    ("M-h"             haskell-compilation-next-error-other-window)
-    ("C-SPC"           company-complete)
+      ("- t" intero-type-at)
+      ("- u" intero-uses-at)
+      ("- i" intero-info)
+      ("- ." intero-goto-definition)
+      ("- a" intero-apply-suggestions)
+      ("- s" intero-expand-splice-at-point))
 
-    ("S-<tab>"         nil)
-    ("<S-iso-lefttab>" nil)
-    ("<return>"        haskell-newline)
-    ("<f6>"            haskell-process-load-file)
-    ("<f9>"            haskell-compile))
+    (def-keys-for-map vim:visual-mode-local-keymap
+      ("- e" intero-repl-eval-region))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap)
-    ;; ("- t" ghc-show-type)
-    ;; ("- i" ghc-show-info)
-    ;; ("- e" ghc-expand-th)
-    ;; ("- m" ghc-insert-module)
-    ;; ("- c" ghc-case-split)
-    ;; ("- r" ghc-refine)
-    ;; ("- a" ghc-auto)
-    ;; ("- s" ghc-insert-template-or-signature)
+    (def-keys-for-map vim:insert-mode-local-keymap
+      ;; Just let `smartparens-mode' take care of these.
+      ;; ("\""  shm/double-quote)
+      ;; ("("   shm/open-paren)
+      ;; (")"   shm/close-paren)
+      ;; ("["   shm/open-bracket)
+      ;; ("]"   shm/close-bracket)
+      ;; ("{"   shm/open-brace)
+      ;; ("}"   shm/close-brace)
+      ("`"   vim:wrap-backticks)
+      (","   shm/comma))
 
-    ("*"   search-for-haskell-symbol-at-point-forward)
-    ("C-*" search-for-haskell-symbol-at-point-forward-new-color)
-    ("#"   search-for-haskell-symbol-at-point-backward)
-    ("C-#" search-for-haskell-symbol-at-point-backward-new-color)
-    ("'"   vim:shm/goto-parent)
-    ("g t" haskell-node/move-to-topmost-start)
-    ("g h" haskell-node/move-to-topmost-end))
+    (def-keys-for-map (vim:normal-mode-local-keymap
+                       vim:insert-mode-local-keymap)
+      ("C-w"             shm/backward-kill-word)
+      ("C-u"             shm/insert-undefined)
+      ("C-<up>"          shm/swing-up)
+      ("C-<down>"        shm/swing-down)
+      ("C-t"             flycheck-enhancements-previous-error-with-wraparound)
+      ("C-h"             flycheck-enhancements-next-error-with-wraparound)
+      ("M-t"             haskell-compilation-prev-error-other-window)
+      ("M-h"             haskell-compilation-next-error-other-window)
+      ("C-SPC"           company-complete)
 
-  (haskell-define-align-bindings vim:visual-mode-local-keymap)
+      ("S-<tab>"         nil)
+      ("<S-iso-lefttab>" nil)
+      ("<return>"        haskell-newline)
+      ("<f6>"            haskell-process-load-file)
+      ("<f9>"            haskell-compile))
 
-  (def-keys-for-map vim:operator-pending-mode-local-keymap
-    ("in" vim:motion-inner-haskell-node)
-    ("an" vim:motion-outer-haskell-node)
-    ("n"  vim:motion-inner-haskell-node))
+    (def-keys-for-map (vim:normal-mode-local-keymap
+                       vim:visual-mode-local-keymap)
+      ;; ("- t" ghc-show-type)
+      ;; ("- i" ghc-show-info)
+      ;; ("- e" ghc-expand-th)
+      ;; ("- m" ghc-insert-module)
+      ;; ("- c" ghc-case-split)
+      ;; ("- r" ghc-refine)
+      ;; ("- a" ghc-auto)
+      ;; ("- s" ghc-insert-template-or-signature)
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:visual-mode-local-keymap
-                     vim:motion-mode-local-keymap
-                     vim:operator-pending-mode-local-keymap)
-    ("m" vim:motion-jump-haskell-item)
-    ("'" vim:shm/goto-parent)
-    ("q" vim:shm/goto-parent-end))
+      ("*"   search-for-haskell-symbol-at-point-forward)
+      ("C-*" search-for-haskell-symbol-at-point-forward-new-color)
+      ("#"   search-for-haskell-symbol-at-point-backward)
+      ("C-#" search-for-haskell-symbol-at-point-backward-new-color)
+      ("'"   vim:shm/goto-parent)
+      ("g t" haskell-node/move-to-topmost-start)
+      ("g h" haskell-node/move-to-topmost-end))
 
-  (haskell-setup-folding)
-  (setup-eproj-symbnav)
-  (setup-outline-headers :header-symbol "-"
-                         :length-min 3))
+    (haskell-define-align-bindings vim:visual-mode-local-keymap)
+
+    (def-keys-for-map vim:operator-pending-mode-local-keymap
+      ("in" vim:motion-inner-haskell-node)
+      ("an" vim:motion-outer-haskell-node)
+      ("n"  vim:motion-inner-haskell-node))
+
+    (def-keys-for-map (vim:normal-mode-local-keymap
+                       vim:visual-mode-local-keymap
+                       vim:motion-mode-local-keymap
+                       vim:operator-pending-mode-local-keymap)
+      ("m" vim:motion-jump-haskell-item)
+      ("'" vim:shm/goto-parent)
+      ("q" vim:shm/goto-parent-end))
+
+    (haskell-setup-folding)
+    (setup-eproj-symbnav)
+    (setup-outline-headers :header-symbol "-"
+                           :length-min 3)))
 
 ;;; Set up inferior-haskell-mode
 
@@ -459,8 +466,7 @@
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
     ("C-S-p"    browse-comint-input-history))
 
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     )
+  (def-keys-for-map vim:normal-mode-local-keymap
     ("C-w"      backward-delete-word)
     ("C-S-w"    backward-delete-word*)
 
