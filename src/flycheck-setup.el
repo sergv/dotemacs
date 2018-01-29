@@ -84,14 +84,15 @@
   (flycheck-list-errors))
 
 ;;;###autoload
-(defun* flycheck-install-ex-commands! (&key compile-func load-func)
-  (vim:local-emap "ff" #'vim:flycheck-compile)
-  (dolist (cmd '("check" "ch"))
-    (vim:local-emap cmd #'vim:flycheck-run))
-  (dolist (cmd '("clear" "reset"))
-    (vim:local-emap cmd #'vim:flycheck-clear))
-  (dolist (cmd '("errors" "errs"))
-    (vim:local-emap cmd #'vim:flycheck-list-errors))
+(defun* flycheck-install-ex-commands! (&key install-flycheck compile-func load-func)
+  (when install-flycheck
+    (vim:local-emap "ff" #'vim:flycheck-compile)
+    (dolist (cmd '("check" "ch"))
+      (vim:local-emap cmd #'vim:flycheck-run))
+    (dolist (cmd '("clear" "reset"))
+      (vim:local-emap cmd #'vim:flycheck-clear))
+    (dolist (cmd '("errors" "errs"))
+      (vim:local-emap cmd #'vim:flycheck-list-errors)))
   (when compile-func
     (dolist (cmd '("c" "compile"))
       (vim:local-emap cmd compile-func)))
