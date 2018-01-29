@@ -75,7 +75,6 @@
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))
 
-
 (eval-after-load "help-mode"
   '(progn
      (def-keys-for-map help-mode-map
@@ -194,14 +193,9 @@
   ("C-d"               kill-region)
   ("C-f"               read-and-insert-filename)
 
-  ("M-<tab>"           icicle-narrow-candidates)
-  ("C-<tab>"           icicle-apropos-complete-and-narrow)
-
   ("<delete>"          delete-char)
   ("<home>"            beginning-of-line)
   ("<end>"             end-of-line)
-  ;; ("<next>"            icicle-next-prefix-candidate)
-  ;; ("<prior>"           icicle-previous-prefix-candidate)
 
   ("C-SPC"             delete-minibuffer-contents)
   ;; ("SPC"               self-insert-command)
@@ -220,7 +214,7 @@
   ("SPC" self-insert-command)
   ("?"   self-insert-command))
 
-(def-keys-for-map (minibuffer-local-map)
+(def-keys-for-map minibuffer-local-map
   ;; in sexp-related situations "''" is quite rare pair
   ("'"         self-insert-command)
   ("M-<up>"    sp-splice-sexp-killing-backward)
@@ -230,7 +224,7 @@
   ("M-("       sp-backward-slurp-sexp)
   ("M-)"       sp-backward-barf-sexp))
 
-(def-keys-for-map (completion-list-mode-map)
+(def-keys-for-map completion-list-mode-map
   ("<up>"   previous-completion)
   ("<down>" next-completion))
 
