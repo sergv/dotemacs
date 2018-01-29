@@ -151,7 +151,7 @@
      (ediff-mode . nil)
      (emms-playlist-mode . nil)
      (flycheck-error-list-mode . nil)
-     (fundamental-mode . nil)
+     (fundamental-mode . normal)
      (git-rebase-mode . nil)
      (grep-mode . nil)
      (haskell-compilation-mode . nil)
