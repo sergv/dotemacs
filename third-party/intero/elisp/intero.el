@@ -1313,7 +1313,9 @@ changes in the BACKEND-BUFFER."
     (0 (prog1 ()
          (compose-region (match-beginning 1)
                          (match-end 1)
-                         ?λ))))))
+                         ?>
+                         ;; ?λ
+                         ))))))
 
 (define-key intero-repl-mode-map [remap move-beginning-of-line] 'intero-repl-beginning-of-line)
 (define-key intero-repl-mode-map [remap delete-backward-char] 'intero-repl-delete-backward-char)
