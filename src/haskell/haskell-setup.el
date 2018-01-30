@@ -220,11 +220,44 @@ enabled. Otherwise fall back to eproj tags."
       ("g w"     shm/goto-where)
       ("g i"     vim:haskell-navigate-imports)
       ("g I"     haskell-navigate-imports-return)
-      ("g <tab>" haskell-reindent-at-point))
+      ("g <tab>" haskell-reindent-at-point)
+
+      ;; ("- t" ghc-show-type)
+      ;; ("- i" ghc-show-info)
+      ;; ("- e" ghc-expand-th)
+      ;; ("- m" ghc-insert-module)
+      ;; ("- c" ghc-case-split)
+      ;; ("- r" ghc-refine)
+      ;; ("- a" ghc-auto)
+      ;; ("- s" ghc-insert-template-or-signature)
+
+      ("- q"     shm/qualify-import)
+      ("- e"     shm/export)
+
+      ("- t"     intero-type-at)
+      ("- u"     intero-uses-at)
+      ("- i"     intero-info)
+      ("- ."     intero-goto-definition)
+      ("- a"     intero-apply-suggestions)
+      ("- s"     intero-expand-splice-at-point))
 
     (def-keys-for-map vim:visual-mode-local-keymap
-      ("`"     vim:wrap-backticks)
-      ("g TAB" haskell-format-pp-region-with-brittany))
+      ("`"       vim:wrap-backticks)
+      ("g TAB"   haskell-format-pp-region-with-brittany)
+
+      ("- e"     intero-repl-eval-region))
+
+    (def-keys-for-map vim:insert-mode-local-keymap
+      ;; Just let `smartparens-mode' take care of these.
+      ;; ("\""  shm/double-quote)
+      ;; ("("   shm/open-paren)
+      ;; (")"   shm/close-paren)
+      ;; ("["   shm/open-bracket)
+      ;; ("]"   shm/close-bracket)
+      ;; ("{"   shm/open-brace)
+      ;; ("}"   shm/close-brace)
+      ("`"   vim:wrap-backticks)
+      (","   shm/comma))
 
     (install-haskell-smart-operators
         vim:insert-mode-local-keymap
@@ -252,32 +285,6 @@ enabled. Otherwise fall back to eproj tags."
       ("TAB"          nil)
       ("<backtab>"    nil))
 
-    (def-keys-for-map vim:normal-mode-local-keymap
-      ("- q" shm/qualify-import)
-      ("- e" shm/export)
-
-      ("- t" intero-type-at)
-      ("- u" intero-uses-at)
-      ("- i" intero-info)
-      ("- ." intero-goto-definition)
-      ("- a" intero-apply-suggestions)
-      ("- s" intero-expand-splice-at-point))
-
-    (def-keys-for-map vim:visual-mode-local-keymap
-      ("- e" intero-repl-eval-region))
-
-    (def-keys-for-map vim:insert-mode-local-keymap
-      ;; Just let `smartparens-mode' take care of these.
-      ;; ("\""  shm/double-quote)
-      ;; ("("   shm/open-paren)
-      ;; (")"   shm/close-paren)
-      ;; ("["   shm/open-bracket)
-      ;; ("]"   shm/close-bracket)
-      ;; ("{"   shm/open-brace)
-      ;; ("}"   shm/close-brace)
-      ("`"   vim:wrap-backticks)
-      (","   shm/comma))
-
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:insert-mode-local-keymap)
       ("C-w"             shm/backward-kill-word)
@@ -290,6 +297,8 @@ enabled. Otherwise fall back to eproj tags."
       ("M-h"             haskell-compilation-next-error-other-window)
       ("C-SPC"           company-complete)
 
+      ("C-l"             intero-repl-load)
+
       ("S-<tab>"         nil)
       ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline)
@@ -298,15 +307,6 @@ enabled. Otherwise fall back to eproj tags."
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap)
-      ;; ("- t" ghc-show-type)
-      ;; ("- i" ghc-show-info)
-      ;; ("- e" ghc-expand-th)
-      ;; ("- m" ghc-insert-module)
-      ;; ("- c" ghc-case-split)
-      ;; ("- r" ghc-refine)
-      ;; ("- a" ghc-auto)
-      ;; ("- s" ghc-insert-template-or-signature)
-
       ("*"   search-for-haskell-symbol-at-point-forward)
       ("C-*" search-for-haskell-symbol-at-point-forward-new-color)
       ("#"   search-for-haskell-symbol-at-point-backward)
@@ -332,8 +332,10 @@ enabled. Otherwise fall back to eproj tags."
 
     (haskell-setup-folding)
     (setup-eproj-symbnav)
+    ;; Override binding introduced by `setup-eproj-symbnav'.
     (def-keys-for-map vim:normal-mode-local-keymap
       ("C-." haskell-go-to-symbol-home))
+
     (setup-outline-headers :header-symbol "-"
                            :length-min 3)))
 
@@ -465,6 +467,7 @@ enabled. Otherwise fall back to eproj tags."
     :use-shm nil)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
+  (vim:local-emap "restart" 'vim:haskell-intero-restart-repl)
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
@@ -475,11 +478,14 @@ enabled. Otherwise fall back to eproj tags."
     ("S-<down>" comint-next-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"        haskell--ghci-shm/hyphen))
+    ("-"        haskell--ghci-shm/hyphen)
+    ("`"        vim:wrap-backticks))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<tab>"    completion-at-point)
+    ("<up>"     comint-previous-input)
+    ("<down>"   comint-next-input)
 
     ("C-("      vim:sp-backward-slurp-sexp)
     ("C-)"      vim:sp-forward-slurp-sexp)
