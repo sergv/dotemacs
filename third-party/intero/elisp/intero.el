@@ -1140,6 +1140,14 @@ If PROMPT-OPTIONS is non-nil, prompt with an options list."
        (concat ":load " file))
       (setq intero-repl-last-loaded file))))
 
+(defun intero-repl-reload (&optional prompt-options)
+  "Load the current file in the REPL.
+If PROMPT-OPTIONS is non-nil, prompt with an options list."
+  (interactive "P")
+  (comint-simple-send
+   (get-buffer-process (current-buffer))
+   ":reload"))
+
 (defun intero-repl-eval-region (begin end &optional prompt-options)
   "Evaluate the code in region from BEGIN to END in the REPL.
 If the region is unset, the current line will be used.
