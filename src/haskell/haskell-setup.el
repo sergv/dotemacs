@@ -467,21 +467,18 @@ enabled. Otherwise fall back to eproj tags."
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"  haskell-interactive-clear-prompt))
+    ("SPC SPC"  comint-clear-prompt)
+
+    ("C-t"      comint-previous-prompt)
+    ("C-h"      comint-next-prompt)
+    ("S-<up>"   comint-previous-prompt)
+    ("S-<down>" comint-next-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("-"        haskell--ghci-shm/hyphen))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap
-                     haskell-interactive-mode-map)
-    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("C-S-p"    browse-comint-input-history))
-
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("C-w"      backward-delete-word)
-    ("C-S-w"    backward-delete-word*)
-
+                     vim:insert-mode-local-keymap)
     ("<tab>"    completion-at-point)
 
     ("C-("      vim:sp-backward-slurp-sexp)
@@ -489,10 +486,8 @@ enabled. Otherwise fall back to eproj tags."
     ("M-("      sp-absorb-sexp)
     ("M-)"      sp-emit-sexp)
 
-    ("C-t"      comint-previous-prompt)
-    ("C-h"      comint-next-prompt)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt))
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("C-S-p"    browse-comint-input-history))
 
   (haskell-abbrev+-setup 2 :repl t))
 
