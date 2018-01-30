@@ -493,7 +493,9 @@ enabled. Otherwise fall back to eproj tags."
     ("M-)"      sp-emit-sexp)
 
     ("C-SPC"    vim:comint-clear-buffer-above-prompt)
-    ("C-S-p"    browse-comint-input-history))
+    ("C-S-p"    browse-comint-input-history)
+
+    (("C-l" "<f5>") intero-repl-reload))
 
   (haskell-abbrev+-setup 2 :repl t))
 
