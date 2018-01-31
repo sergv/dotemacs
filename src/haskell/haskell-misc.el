@@ -25,6 +25,7 @@
 (require 'flycheck)
 (require 'flycheck-haskell)
 (require 'flycheck-setup)
+(require 'intero)
 
 (require 'f)
 (require 'dash)
@@ -251,7 +252,27 @@ and indent them as singe line."
 
       ;; Flycheck
       flycheck-ghc-args '("-O0" "-fno-warn-name-shadowing" "-fno-warn-type-defaults")
-      flycheck-ghc-no-user-package-database t)
+      flycheck-ghc-no-user-package-database t
+
+      intero-extra-ghc-options
+      '("-Wall"
+        "-fwarn-name-shadowing"
+        "-fno-warn-type-defaults"
+        "-Wincomplete-uni-patterns"
+        "-Wincomplete-record-updates"
+        "-Wcompat"
+        "-dsuppress-module-prefixes")
+      intero-extra-ghc-options
+      '("-XOverloadedStrings"))
+
+(def-keys-for-map intero-multiswitch-keymap
+  ("<escape>" abort-recursive-edit)
+  ("q"        abort-recursive-edit)
+  ("SPC"      widget-button-press)
+  ("h"        widget-forward)
+  ("<down>"   widget-forward)
+  ("t"        widget-backward)
+  ("<up>"     widget-backward))
 
 ;; Ghci flags
 (let* ((extensions '("-XLambdaCase" "-XOverloadedStrings" "-XTemplateHaskell" "-XQuasiQuotes"))
