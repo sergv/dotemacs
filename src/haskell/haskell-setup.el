@@ -138,14 +138,14 @@ enabled. Otherwise fall back to eproj tags."
         (setq-local shm-indent-spaces     offset)
         (haskell-abbrev+-setup offset))
 
-      (if (eproj-query/haskell/disable-intero? proj)
+      (unless (derived-mode-p 'ghc-core-mode)
+        (if (eproj-query/haskell/disable-intero? proj)
+            (progn
+              (setf intero-disabled? t)
+              (intero-mode -1))
           (progn
-            (setf intero-disabled? t)
-            (intero-mode -1))
-        (progn
-          (intero-mode-maybe)))
+            (intero-mode-maybe)))
 
-      (unless (eq major-mode 'ghc-core-mode)
         (company-mode +1)
         (setq-local company-backends '(company-eproj))
 
