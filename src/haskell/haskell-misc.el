@@ -255,14 +255,15 @@ and indent them as singe line."
       flycheck-ghc-no-user-package-database t
 
       intero-extra-ghc-options
-      '("-Wall"
+      '("-O0"
+        "-Wall"
         "-fwarn-name-shadowing"
         "-fno-warn-type-defaults"
         "-Wincomplete-uni-patterns"
         "-Wincomplete-record-updates"
         "-Wcompat"
         "-dsuppress-module-prefixes")
-      intero-extra-ghc-options
+      intero-extra-ghci-options
       '("-XOverloadedStrings"))
 
 (def-keys-for-map intero-multiswitch-keymap
