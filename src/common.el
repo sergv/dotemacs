@@ -1453,13 +1453,13 @@ beginning of buffer. Does not cause \"Scan error: \"Unbalanced parentheses\"\" a
 (defvar-local inhibit-delete-trailing-whitespace nil
   "Whether function `delete-trailing-whitespace+' should do actual deletion.")
 
-(defun toggle-inhibit-delete-trailing-whitespace ()
+(defun toggle-delete-trailing-whitespace ()
   "Toggle `inhibit-delete-trailing-whitespace' option."
   (interactive)
   (if (setf inhibit-delete-trailing-whitespace
             (not inhibit-delete-trailing-whitespace))
-      (message "Inhibition enabled")
-    (message "Inhibition disabled")))
+      (message "Trailing whitespace will not be removed on save")
+    (message "Trailing whitespace will be removed on save")))
 
 (defun inhibit-delete-trailing-whitespace? ()
   "Function that says whether trailing whitespace should be deleted for current
