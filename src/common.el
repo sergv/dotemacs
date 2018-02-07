@@ -953,19 +953,7 @@ return pair (x (F x))."
         (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
       cmdline-normalized)))
 
-;;;
-
-(defun abort-recursive-edit* (&optional on-no-recursive-edit)
-  "Abort recursive edit or call ON-NO-RECURSIVE-EDIT if no recursive
-edit is active."
-  (condition-case err
-      (abort-recursive-edit)
-    (user-error (if err
-                    (funcall on-no-recursive-edit)
-                  (signal (car err) (cdr err))))))
-
 ;;; buffer, window and frame utils
-
 
 (defun next-buffer (n)
   "Go to the buffer which is at the end of buffer list."
