@@ -217,11 +217,12 @@ Note that `haskell-lexeme-char-literal-inside' matches strictly
 only escape sequences defined in Haskell Report.")
 
 (defconst haskell-lexeme--char-literal-rx
-  (rx-to-string `(: (group "'")
-                    (| (: (group (regexp "[[:alpha:]_([]")) (group "'")) ; exactly one char
-                       (: (group (| (regexp "\\\\[^\n][^'\n]*") ; allow quote just after first backslash
-                                    (regexp "[^[:alpha:]_(['\n][^'\n]*")))
-                          (| (group "'") "\n" (regexp "\\'"))))))
+  (rx-to-string `(: (group-n 1 "'")
+                    (| (group-n 2 (regexp "[-+_:[:alpha:]0-9\"\(\)\[]")) ; exactly one char
+                       (group-n 2 (regexp "\\\\[^\n][^'\r\n]*"))) ; allow quote just after first backslash
+                    (| (group-n 3 "'")
+                       (: (? "\r") "\n")
+                       eos)))
   "Regexp matching a character literal lookalike.
 
 Note that `haskell-lexeme--char-literal-rx' matches more than
