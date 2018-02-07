@@ -678,17 +678,6 @@ on an uppercase identifier."
     nil)
    (t 'font-lock-comment-face)))
 
-(defun haskell-font-lock-defaults-create ()
-  "Locally set `font-lock-defaults' for Haskell."
-  (setq-local font-lock-defaults
-              '((haskell-font-lock-keywords)
-                nil nil nil nil
-                (font-lock-syntactic-face-function
-                 . haskell-syntactic-face-function)
-                ;; Get help from font-lock-syntactic-keywords.
-                (parse-sexp-lookup-properties . t)
-                (font-lock-extra-managed-props . (composition)))))
-
 (defun haskell-fontify-as-mode (text mode)
   "Fontify TEXT as MODE, returning the fontified text."
   (with-temp-buffer
