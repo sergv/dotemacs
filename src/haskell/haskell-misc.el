@@ -464,12 +464,6 @@ we load it."
   (or (sp-backward-up-sexp)
       (haskell-back-up-indent-level)))
 
-;;; miscellany
-
-(defalias 'inferior-haskell-haddock-identifier 'inferior-haskell-find-haddock)
-
-;;; Automatized definitions using advices-util and macro-util
-
 ;;;; align functions
 
 (make-align-function haskell-align-on-equals
@@ -680,19 +674,6 @@ uppercase or lowercase names)."
       (setf tmp (shm-node-parent tmp)))
     tmp))
 
-;; (defun shm-node-parent-chain (node-pair)
-;;   "Get latest parent of given NODE-PAIR."
-;;   (let* ((parent (shm-node-parent node-pair))
-;;          (chain nil))
-;;     (while parent
-;;       (push (list parent
-;;                   (buffer-substring-no-properties (shm-node-start (cdr parent))
-;;                                                   (shm-node-end (cdr parent))))
-;;             chain)
-;;       (setf node-pair parent
-;;             parent (shm-node-parent node-pair)))
-;;     chain))
-
 (defun haskell-enclosing-TypeSig-node ()
   (cdr-safe
    (shm-search-node-upwards
@@ -709,14 +690,7 @@ return nil otherwise."
                curr-node)
               ((eq? 'Symbol (shm-node-cons curr-node))
                curr-node)
-              (t
-               nil
-               ;; (error "node constructor is not Ident: %s" (shm-node-cons curr-node))
-               ))
-      ;; (error "no current node found starting at %s"
-      ;;        (buffer-substring-no-properties (point)
-      ;;                                        (line-end-position)))
-      )))
+              (t nil)))))
 
 (defun haskell-newline ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
@@ -993,13 +967,14 @@ it's position in current window."
 (defun haskell-misc--cabal-indented-subsection ()
   "Similar to `haskell-cabal-subsection' but sets `:data-start-column' to the
 value section should have if it is to be properly indented."
-  (save-excursion
-    (haskell-cabal-beginning-of-subsection)
-    (when (looking-at "\\(?:\\([ \t]*\\)\\(\\w*\\):\\)[ \t]*")
-      (list :name (match-string-no-properties 2)
-            :beginning (match-end 0)
-            :end (save-match-data (haskell-cabal-subsection-end))
-            :data-start-column (+ 2 (current-column))))))
+  (save-match-data
+    (save-excursion
+      (haskell-cabal-beginning-of-subsection)
+      (when (looking-at "\\(?:\\([ \t]*\\)\\(\\w*\\):\\)[ \t]*")
+        (list :name (match-string-no-properties 2)
+              :beginning (match-end 0)
+              :end (save-match-data (haskell-cabal-subsection-end))
+              :data-start-column (+ 2 (current-column)))))))
 
 (defun haskell-misc-cabal-align-and-sort-subsection ()
   "Sort lines of the subsection at point."
