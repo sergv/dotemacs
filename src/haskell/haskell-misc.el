@@ -251,7 +251,13 @@ and indent them as singe line."
       haskell-interactive-mode-read-only t
 
       ;; Flycheck
-      flycheck-ghc-args '("-O0" "-fno-warn-name-shadowing" "-fno-warn-type-defaults")
+      flycheck-ghc-args
+      '("-O0"
+        "-fno-warn-name-shadowing"
+        "-fno-warn-type-defaults"
+        "-Wincomplete-uni-patterns"
+        "-Wincomplete-record-updates"
+        "-Wcompat")
       flycheck-ghc-no-user-package-database t
 
       intero-extra-ghc-options
