@@ -368,10 +368,11 @@ and indent them as singe line."
     (comint-send-input)))
 
 
-(put 'haskell-program-name 'safe-local-variable (lambda (x) (or (string? x) (list? x))))
-(put 'haskell-compile-command 'safe-local-variable #'string?)
-(put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
 (put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'string?)
+(put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
+(put 'haskell-compile-command 'safe-local-variable #'string?)
+(put 'haskell-program-name 'safe-local-variable (lambda (x) (or (string? x) (list? x))))
+(put 'intero-targets 'safe-local-variable (lambda (x) (and (list? x) (cl-every #'string? x ))))
 
 ;;; simple documentation system
 
