@@ -264,7 +264,15 @@ and indent them as singe line."
         "-Wcompat"
         "-dsuppress-module-prefixes")
       intero-extra-ghci-options
-      '("-XOverloadedStrings"))
+      '("-XOverloadedStrings")
+
+      shm-extensions
+      '("MagicHash"
+        "LambdaCase"
+        "QuasiQuotes"
+        "TemplateHaskell"
+        "TypeOperators"
+        "UnboxedTuples"))
 
 (def-keys-for-map intero-multiswitch-keymap
   ("<escape>" abort-recursive-edit)
