@@ -277,13 +277,16 @@ sets `shm--server-process' and `shm--server-process-port' variables."
              (error "Unexpected result from shm server: %s" result)))))
     (remhash call-id structured-haskell-mode--results)))
 
+(defvar shm-extensions nil
+  "Extensions to enable for parsingn by default.")
+
 (defun shm--call-server (func parse-type source)
   (shm--call-process
       (shm--connect)
     func
     (sha1 source)
     parse-type
-    nil
+    shm-extensions
     (encode-coding-string source 'utf-8)))
 
 
