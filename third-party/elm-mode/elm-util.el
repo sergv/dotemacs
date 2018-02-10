@@ -36,6 +36,11 @@
   :type 'string
   :group 'elm-util)
 
+(defcustom elm-flash-duration 0.40
+  "Time in seconds for which declarations will be highlighted when applicable."
+  :type 'number
+  :group 'elm-util)
+
 (defconst elm-package-json
   "elm-package.json"
   "The name of the package JSON configuration file.")
@@ -63,7 +68,7 @@ Relies on `haskell-mode' stuff."
            (lines (split-string raw-decl "\n"))
            (first-line (car lines)))
 
-      (inferior-haskell-flash-decl start end)
+      (inferior-haskell-flash-decl start end elm-flash-duration)
       (if (string-match-p "^[a-z].*:" first-line)
           (cdr lines)
         lines))))
@@ -81,6 +86,18 @@ Relies on `haskell-mode' stuff."
   (let ((dirname (buffer-file-name))
         (deppath (elm--find-dependency-file-path)))
     (f-relative dirname deppath)))
+
+(defun elm--find-elm-test-root-directory ()
+  "Find the directory from which to run \"elm-test\".
+This is determined by looking for the closest parent directory
+which is not called \"tests\" and which contains a file named as
+per the `elm-package-json' variable."
+  (or (locate-dominating-file
+       default-directory
+       (lambda (dir)
+         (and (not (s-suffix-p "/tests/" dir))
+              (file-exists-p (expand-file-name elm-package-json dir)))))
+      (error "No %s found in non-test parent directories" elm-package-json)))
 
 (defun elm--find-dependency-file-path ()
   "Recursively search for a directory containing a package JSON file."
@@ -125,6 +142,7 @@ cases."
     (pcase executable
       ("fish" "; and ")
       (_ " && "))))
+
 
 (provide 'elm-util)
 ;;; elm-util.el ends here
