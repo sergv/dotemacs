@@ -1,6 +1,150 @@
-# Markdown Mode 2.3
+# Markdown Mode 2.4
 
 *Under development*
+
+*   **Breaking changes:**
+
+    -   GNU Emacs 24.4 or later is required.  Support for Emacs 24.3
+        has been dropped.
+    -   Face variables, such as `markdown-italic-face` are now
+        obsolete.  Use face names directly in code and customizations.
+        The face names themselves are unaffected, so this shouldn't
+        affect most users.
+    -   Internal variables `markdown-font-lock-keywords-basic` and
+        `gfm-font-lock-keywords` are now obsolete.
+        `markdown-font-lock-keywords` is now used instead, but users
+        should use `font-lock-add-keywords` instead of modifying this
+        variable.
+
+*   New features:
+
+    -   GFM task list item (checkbox) insertion with `C-c C-s [`, or
+        as a final fallback for `markdown-do` (`C-c C-d`).  Thanks to
+        Akinori Musha for a patch.  ([GH-229][])
+    -   Optionally move leading atx heading markup to the left margin
+        when `markdown-marginalize-headers` is non-`nil`.  Thanks to
+        Alexis Gallagher for a patch.  ([GH-272][], [GH-274][])
+    -   Added pipe table editing features.  Thanks to Dmitry Safronov
+        for a patch.  ([GH-171][], [GH-266][])
+    -   Font lock for HTML tags and attributes, with new faces
+        `markdown-html-tag-name-face`,
+        `markdown-html-tag-delimiter-face`,
+        `markdown-html-attr-name-face`, and
+        `markdown-html-attr-value-face`.  ([GH-249][])
+    -   Font lock for HTML entities, with a new face
+        `markdown-html-entity-face`.
+    -   Scale down large inline images using `markdown-max-image-size`,
+        a cons cell of the form `(max-width . max-height)`.
+    -   Added read-only viewing modes `markdown-view-mode` and
+        `gfm-view-mode` with keymaps similar to `view-mode` and
+        `help-mode`.  ([GH-296][])
+    -   Optionally add footnote definitions to the end of the imenu
+        index using `markdown-add-footnotes-to-imenu`.  ([GH-235][])
+    -   Add custom variables `markdown-xhtml-body-preamble` and
+        `markdown-xhtml-body-epilogue` for wrapping additional XHTML
+        tags around the output.  ([GH-280][], [GH-281][])
+
+*   Improvements:
+
+    -   Insert references before local variables.  Thanks to Philipp
+        Stephani for a patch.  ([GH-216][], [GH-262][])
+    -   Allow `markdown-command` and `markdown-open-command` to be
+        functions.  ([GH-255][], [GH-263][])
+    -   Save the buffer before running `markdown-open-command` and run
+        `markdown-open-command` asynchronously.  Thanks to Dmitry
+        Safronov for a patch.  ([GH-248][])
+    -   New user option `markdown-translate-filename-function` to translate
+        filenames when following file links.  ([GH-268][], [GH-277][])
+    -   Support double-backslash math delimiters.  ([GH-270][])
+    -   New user option `markdown-export-kill-buffer` to kill or preserve
+        HTML export output buffer.  ([GH-224][])
+    -   Add custom variables `markdown-edit-code-block-default-mode`
+        and `markdown-fontify-code-block-default-mode` to specify default
+        modes for indirect editing and fontification of code blocks.
+        ([GH-251][], [GH-303][])
+    -   Insert-and-indirect-edit GFM code blocks simultaneously by
+        giving a prefix argument to `C-c C-s C`.  ([GH-251][])
+    -   Improve package load time by deferring calls to
+        `char-displayable-p`.  ([GH-264][])
+    -   Only raise footnotes when markup hiding is on.
+        Footnote display properties may now be customized via
+        `markdown-footnote-display`.  ([GH-247][])
+    -   Customizable subscript and superscript display properties
+        via `markdown-sub-superscript-display`.
+    -   Several font-lock performance improvements.
+    -   Support horizontal rules consisting of underscores.
+
+*   Bug fixes:
+
+    -   Remove GFM checkbox overlays when switching major modes.
+        ([GH-238][], [GH-257][])
+    -   Don't test the value of the `composition` property to avoid
+        failing tests.  ([GH-246][], [GH-258][])
+    -   Fix types for `markdown-open-command`, `markdown-uri-types`,
+        and `markdown-hr-strings` defcustoms.  ([GH-254][], [GH-259][])
+    -   Don't insert trailing whitespace when inserting a blockquote.
+        ([GH-227][], [GH-260][])
+    -   Make wiki link test work even when `/tmp` contains an
+        inaccessible subdirectory.  ([GH-261][])
+    -   Fix `markdown-inline-code-face`'s `:inherit` attribute.
+        ([GH-252][])
+    -   Fix type of customizable `markdown-css-paths` variable.
+        ([GH-276][])
+    -   Don't set `markdown-code-face` background color at package
+        load time.  ([GH-273][])
+    -   Don't clobber user specified font-lock keywords when toggling
+        features.  ([GH-222][])
+    -   Fix font-lock for inline code inside italics and bold.
+        ([GH-275][])
+    -   Make code block language detection handle unspecified
+        or unknown code block languages.  ([GH-284][])
+    -   Fix precedence of inline code over inline links.
+    -   Improve error reporting for `markdown` and `markdown-open`.
+        ([GH-291][])
+
+  [gh-171]: https://github.com/jrblevin/markdown-mode/issues/171
+  [gh-216]: https://github.com/jrblevin/markdown-mode/issues/216
+  [gh-222]: https://github.com/jrblevin/markdown-mode/issues/222
+  [gh-224]: https://github.com/jrblevin/markdown-mode/issues/224
+  [gh-227]: https://github.com/jrblevin/markdown-mode/issues/227
+  [gh-229]: https://github.com/jrblevin/markdown-mode/pull/229
+  [gh-235]: https://github.com/jrblevin/markdown-mode/issues/235
+  [gh-238]: https://github.com/jrblevin/markdown-mode/issues/238
+  [gh-246]: https://github.com/jrblevin/markdown-mode/issues/246
+  [gh-247]: https://github.com/jrblevin/markdown-mode/issues/247
+  [gh-248]: https://github.com/jrblevin/markdown-mode/issues/248
+  [gh-249]: https://github.com/jrblevin/markdown-mode/issues/249
+  [gh-251]: https://github.com/jrblevin/markdown-mode/issues/251
+  [gh-252]: https://github.com/jrblevin/markdown-mode/pull/252
+  [gh-254]: https://github.com/jrblevin/markdown-mode/issues/254
+  [gh-255]: https://github.com/jrblevin/markdown-mode/issues/255
+  [gh-257]: https://github.com/jrblevin/markdown-mode/pull/257
+  [gh-258]: https://github.com/jrblevin/markdown-mode/pull/258
+  [gh-259]: https://github.com/jrblevin/markdown-mode/pull/259
+  [gh-260]: https://github.com/jrblevin/markdown-mode/pull/260
+  [gh-261]: https://github.com/jrblevin/markdown-mode/pull/261
+  [gh-262]: https://github.com/jrblevin/markdown-mode/pull/262
+  [gh-263]: https://github.com/jrblevin/markdown-mode/pull/263
+  [gh-264]: https://github.com/jrblevin/markdown-mode/pull/264
+  [gh-266]: https://github.com/jrblevin/markdown-mode/issues/266
+  [gh-268]: https://github.com/jrblevin/markdown-mode/issues/268
+  [gh-270]: https://github.com/jrblevin/markdown-mode/issues/270
+  [gh-272]: https://github.com/jrblevin/markdown-mode/issues/272
+  [gh-273]: https://github.com/jrblevin/markdown-mode/issues/273
+  [gh-274]: https://github.com/jrblevin/markdown-mode/pull/274
+  [gh-275]: https://github.com/jrblevin/markdown-mode/issues/275
+  [gh-276]: https://github.com/jrblevin/markdown-mode/issues/276
+  [gh-277]: https://github.com/jrblevin/markdown-mode/pull/277
+  [gh-280]: https://github.com/jrblevin/markdown-mode/issues/280
+  [gh-281]: https://github.com/jrblevin/markdown-mode/pull/281
+  [gh-284]: https://github.com/jrblevin/markdown-mode/issues/284
+  [gh-291]: https://github.com/jrblevin/markdown-mode/issues/291
+  [gh-296]: https://github.com/jrblevin/markdown-mode/issues/296
+  [gh-303]: https://github.com/jrblevin/markdown-mode/pull/303
+
+# Markdown Mode 2.3
+
+*August 31, 2017*
 
 *   **Breaking changes:**
 
@@ -31,11 +175,11 @@
         markup insertion prefix, as <kbd>C-c C-s f</kbd> and
         <kbd>C-c C-s w</kbd>.
     -   The list and outline editing commands have been removed from
-        the top-level positions (previously <kbd>M-<left></kbd>,
-        <kbd>M-<right></kbd>, <kbd>M-<up></kbd>, <kbd>M-<down></kbd>)
+        the top-level positions (previously <kbd>M-LEFT</kbd>,
+        <kbd>M-RIGHT</kbd>, <kbd>M-UP</kbd>, <kbd>M-DOWN</kbd>)
         and moved to major mode keybindings under <kbd>C-c</kbd> to
-        <kbd>C-c <left></kbd>, <kbd>C-c <right></kbd>,
-        <kbd>C-c <up></kbd>, and <kbd>C-c <down></kbd>, respectively.
+        <kbd>C-c LEFT</kbd>, <kbd>C-c RIGHT</kbd>,
+        <kbd>C-c UP</kbd>, and <kbd>C-c DOWN</kbd>, respectively.
         ([GH-164][])
     -   The list and outline editing commands have also been unified
         so that they all operate on entire subtrees of list items and
@@ -189,10 +333,13 @@
         and move between headings otherwise.
     -   New customization option `markdown-spaces-after-code-fence` to
         control the number of spaces inserted after a code fence (` ``` `).
-        Thanks to Philip Stephani for a patch.
+        Thanks to Philipp Stephani for a patch.  ([GH-232][])
     -   New customization option `markdown-gfm-uppercase-checkbox` which,
         when non-nil, uses `[X]` to complete task list items instead of
         `[x]`.  Thanks to Paul Rankin for a patch.  ([GH-236][])
+    -   Add prefix-specific prompts for styles (`C-c C-s`) and toggles
+        (`C-c C-x`).  These may be disabled if desired by setting
+        `markdown-enable-prefix-prompts` to `nil`.
 
 *   Improvements:
 
@@ -245,8 +392,9 @@
         `markdown-font-lock-extend-region-function`.  Thanks to
         Philipp Stephani for a patch.  ([GH-221][])
     -   Fix incorrect indentation of inserted GFM code blocks in lists.
-        Thanks to Philip Stephani for a patch.
-        ([GH-215][])
+        Thanks to Philipp Stephani for a patch. ([GH-215][])
+    -   Fix an issue with font lock for headings with code blocks immediately
+        afterwards, without whitespace. ([GH-234][])
 
   [gh-81]:  https://github.com/jrblevin/markdown-mode/issues/81
   [gh-123]: https://github.com/jrblevin/markdown-mode/issues/123
@@ -269,6 +417,8 @@
   [gh-215]: https://github.com/jrblevin/markdown-mode/issues/215
   [gh-220]: https://github.com/jrblevin/markdown-mode/pull/220
   [gh-221]: https://github.com/jrblevin/markdown-mode/pull/221
+  [gh-232]: https://github.com/jrblevin/markdown-mode/pull/232
+  [gh-234]: https://github.com/jrblevin/markdown-mode/issues/234
   [gh-236]: https://github.com/jrblevin/markdown-mode/pull/236
 
 # Markdown Mode 2.2
@@ -778,12 +928,12 @@ following and movement.
          extra whitespace for atx headings).
     -    Markup promotion and demotion via <kbd>C-c C--</kbd> and
          <kbd>C-c C-=</kbd>, respectively.  The sequences
-         <kbd>M-<up></kbd> and <kbd>M-<down></kbd> may
+         <kbd>M-UP</kbd> and <kbd>M-DOWN</kbd> may
          also be used.
     -    List editing: move list items up and down with
-         <kbd>M-<up></kbd> and <kbd>M-<down></kbd>.
-         Indent and exdent list items with <kbd>M-<left></kbd>
-         and <kbd>M-<right></kbd>.
+         <kbd>M-UP</kbd> and <kbd>M-DOWN</kbd>.
+         Indent and exdent list items with <kbd>M-LEFT</kbd>
+         and <kbd>M-RIGHT</kbd>.
     -    Region editing: indent and exdent regions, with tab stops
          determined by context, using <kbd>C-c <</kbd> and
          <kbd>C-c ></kbd> (as in `python-mode`).
