@@ -402,8 +402,13 @@
                           `(assq ',key ,acc))
                         aux-info
                         keys)))
-     (cl-assert (or (null? entry)
-                    (= (length entry) 2)))
+     (cl-assert
+      (or (null? entry)
+          (eq 'languages (car-safe entry)) ;; 'languages entry can have any length
+          (= (length entry) 2))
+      nil
+      "Invalid entry in .eproj-info: %s"
+      entry)
      (cdr-safe entry)))
 
 (defmacro eproj-project/query-aux-info (aux-info &rest keys)
