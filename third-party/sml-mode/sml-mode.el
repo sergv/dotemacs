@@ -1,9 +1,9 @@
 ;;; sml-mode.el --- Major mode for editing (Standard) ML  -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 1989,1999,2000,2004,2007,2010-2016  Free Software Foundation, Inc.
+;; Copyright (C) 1989,1999,2000,2004,2007,2010-2017  Free Software Foundation, Inc.
 
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 6.7
+;; Version: 6.8
 ;; Keywords: SML
 ;; Author:	Lars Bo Nielsen
 ;;		Olin Shivers
