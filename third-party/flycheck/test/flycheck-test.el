@@ -977,9 +977,9 @@
     (emacs-lisp-mode)
     (flycheck-mode)
     (let* ((flycheck-checker 'sh-bash))
-      (should-error (flycheck-buffer))
+      (flycheck-buffer)
       (should (eq flycheck-checker 'sh-bash))
-      (should (string= flycheck-last-status-change 'errored)))))
+      (should (string= flycheck-last-status-change 'no-checker)))))
 
 (ert-deftest flycheck-checker/usable-checker-is-used ()
   :tags '(selection language-emacs-lisp checker-emacs-lisp-checkdoc)
@@ -1002,9 +1002,9 @@
     (let ((flycheck-disabled-checkers '(emacs-lisp emacs-lisp-checkdoc)))
       (should-not (flycheck-get-checker-for-buffer))
       (let* ((flycheck-checker 'emacs-lisp))
-        (should-error (flycheck-buffer))
+        (flycheck-buffer)
         (should (eq flycheck-checker 'emacs-lisp))
-        (should (string= flycheck-last-status-change 'errored))))))
+        (should (string= flycheck-last-status-change 'no-checker))))))
 
 (ert-deftest flycheck-checker/unregistered-checker-is-used ()
   :tags '(selection language-emacs-lisp checker-emacs-lisp-checkdoc)
@@ -1885,11 +1885,10 @@ evaluating BODY."
   `(flycheck-ert-with-resource-buffer "language/emacs-lisp/errors-and-warnings.el"
      (emacs-lisp-mode)
      (flycheck-mode)
-     (when ,minimum-level
-       (let ((flycheck-navigation-minimum-level ,minimum-level))
-         (flycheck-ert-buffer-sync)
-         (goto-char (point-min))
-         ,@body))))
+     (let ((flycheck-navigation-minimum-level ,minimum-level))
+       (flycheck-ert-buffer-sync)
+       (goto-char (point-min))
+       ,@body)))
 
 (ert-deftest flycheck-next-error/goes-to-first-error ()
   :tags '(navigation)
@@ -3555,6 +3554,27 @@ Why not:
    '(6 6 error "Glob written as <...> (See page 167 of PBP)"
        :id "BuiltinFunctions::RequireGlobFunction" :checker perl-perlcritic)))
 
+(flycheck-ert-def-checker-test perl perl modules
+  ;; Files that require unlisted modules should fail to check
+  (flycheck-ert-should-syntax-check
+   "language/perl/Script.pl" '(perl-mode cperl-mode)
+   '(3 nil error "Global symbol \"$dependency_a\" requires explicit package name (did you forget to declare \"my $dependency_a\"?)"
+       :checker perl)
+   '(4 nil error "Global symbol \"$dependency_b\" requires explicit package name (did you forget to declare \"my $dependency_b\"?)"
+       :checker perl))
+  ;; Including those modules should allow them to check
+  (let
+      ((flycheck-perl-module-list '("DependencyA")))
+    (flycheck-ert-should-syntax-check
+     "language/perl/Script.pl" '(perl-mode cperl-mode)
+     '(4 nil error "Global symbol \"$dependency_b\" requires explicit package name (did you forget to declare \"my $dependency_b\"?)"
+         :checker perl)))
+  ;; Multiple modules should be allowed
+  (let
+      ((flycheck-perl-module-list '("DependencyA" "DependencyB")))
+    (flycheck-ert-should-syntax-check
+     "language/perl/Script.pl" '(perl-mode cperl-mode))))
+
 (flycheck-ert-def-checker-test php php syntax-error
   (flycheck-ert-should-syntax-check
    "language/php/syntax-error.php" 'php-mode
@@ -3818,6 +3838,14 @@ Why not:
    )
   )
 
+(flycheck-ert-def-checker-test markdown-markdownlint-cli markdown nil
+  (flycheck-ert-should-syntax-check
+   "language/markdown.md" 'markdown-mode
+   '(1 nil error "First header should be a top level header [Expected: h1; Actual: h2]"
+       :id "MD002/first-header-h1" :checker markdown-markdownlint-cli)
+   '(1 nil error "First line in file should be a top level header [Context: "## Second Header First"]"
+       :id "MD041/first-line-h1" :checker markdown-markdownlint-cli)))
+
 (flycheck-ert-def-checker-test markdown-mdl markdown nil
   (flycheck-ert-should-syntax-check
    "language/markdown.md" 'markdown-mode
@@ -4069,6 +4097,19 @@ The manifest path is relative to
        '(4 17 warning "unused variable: `foo_ex_a_test`" :checker rust-cargo :id "unused_variables")
        '(4 17 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables")
        '(4 17 info "to avoid this warning, consider using `_foo_ex_a_test` instead" :checker rust-cargo :id "unused_variables")))))
+
+(flycheck-ert-def-checker-test rust-cargo rust dev-dependencies
+  (let ((flycheck-disabled-checkers '(rust)))
+    (let ((flycheck-rust-crate-type "lib")
+          (flycheck-rust-check-tests t))
+      (flycheck-ert-cargo-clean "language/rust/dev-deps/Cargo.toml")
+      (flycheck-ert-should-syntax-check
+       "language/rust/dev-deps/src/lib.rs" 'rust-mode
+       '(2 1 warning "unused `#[macro_use]` import" :checker rust-cargo :id "unused_imports")
+       '(2 1 info "#[warn(unused_imports)] on by default" :checker rust-cargo :id "unused_imports")
+       '(8 9 warning "unused variable: `foo`" :checker rust-cargo :id "unused_variables")
+       '(8 9 info "#[warn(unused_variables)] on by default" :checker rust-cargo :id "unused_variables")
+       '(8 9 info "to avoid this warning, consider using `_foo` instead" :checker rust-cargo :id "unused_variables")))))
 
 (flycheck-ert-def-checker-test rust rust syntax-error
   (let ((flycheck-disabled-checkers '(rust-cargo)))
