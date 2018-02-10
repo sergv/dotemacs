@@ -149,10 +149,7 @@ will searched for."
                   (string-suffix? filename (buffer-file-name buf)))
                 (visible-buffers))
     it
-    (let ((resolved-filename
-           (resolve-obs-or-rel-filename
-            filename
-            root)))
+    (let ((resolved-filename (resolve-to-abs-path filename root)))
       (aif (get-file-buffer resolved-filename)
         it
         (find-file-noselect resolved-filename)))))

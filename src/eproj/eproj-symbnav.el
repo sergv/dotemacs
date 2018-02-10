@@ -98,8 +98,8 @@ as accepted by `bounds-of-thing-at-point'.")
 
 (defun eproj-symbnav/resolve-entry-file-in-project (entry proj)
   (let ((file
-         (eproj-resolve-abs-or-rel-name (eproj-tag/file entry)
-                                        (eproj-project/root proj))))
+         (eproj--resolve-to-abs-path (eproj-tag/file entry)
+                                     (eproj-project/root proj))))
     (unless (file-exists-p file)
       (error "file %s does not exist" file))
     file))
@@ -233,7 +233,7 @@ as accepted by `bounds-of-thing-at-point'.")
                 (let ((txt (funcall entry->string-func tag-proj tag))
                       (expanded-tag-file
                        (expand-file-name
-                        (eproj-resolve-abs-or-rel-name
+                        (eproj--resolve-to-abs-path
                          (eproj-tag/file tag)
                          (eproj-project/root tag-proj)))))
                   (cond ((string= orig-file-name
