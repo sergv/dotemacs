@@ -24,25 +24,6 @@
 (require 'ert)
 (require 'latex)
 
-;; Add the "style/" directory to `TeX-style-path',
-;; so we can load style files inside tests.
-(add-to-list 'TeX-style-path
-	     (expand-file-name "../../style"
-			       (when load-file-name
-				 (file-name-directory load-file-name))))
-
-(defun AUCTeX-set-ert-path (&rest sym-val)
-  "Set first element of SYM-VAL to the next one, and so on.
-
-The value is the path to the test file, make sure it is expanded
-in the right directory even when the ERT test from the command
-line and from another directory."
-  (while sym-val
-    (set (pop sym-val)
-	 (expand-file-name (pop sym-val)
-			   (when load-file-name
-			     (file-name-directory load-file-name))))))
-
 (AUCTeX-set-ert-path
  'LaTeX-indent-tabular-test/in
  "tabular-in.tex"
@@ -164,5 +145,21 @@ last extension is stripped."
 	(TeX-update-style t))
       (LaTeX-bibliography-list))
     '(("../foo-1.bar_2.qux3")))))
+
+(ert-deftest LaTeX-auto-class-regexp ()
+  "Check parsing optional argument with comment correctly.
+
+Test against RequirePackage."
+  (with-temp-buffer
+    (insert "\\RequirePackage[
+backend=biber % here is a comment
+]{biblatex}
+")
+    (latex-mode)
+    (let ((TeX-parse-self t))
+      (TeX-update-style t))
+    (should (member "biblatex" (TeX-style-list)))
+    (should (LaTeX-provided-package-options-member
+	     "biblatex" "backend=biber"))))
 
 ;;; latex-test.el ends here

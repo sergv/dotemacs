@@ -8,9 +8,53 @@
 
 @end ifset
 
-@heading News since 11.90
+@heading News in 12.1
 
 @itemize @bullet
+@item
+@AUCTeX{} now requires GNU Emacs 24 or higher.  Support for XEmacs has
+been dropped.
+
+@item
+Besides the change in the supported version of Emacs, there has been no
+functional change in this release, which is equivalent to version 11.92.
+@end itemize
+
+@heading News in 11.92
+
+@itemize @bullet
+@item
+@previewlatex{} is compatible with Ghostscript 9.22 where the operator
+@samp{.runandhide} is removed.  All occurrences of @samp{.runandhide} in
+@previewlatex{} are replaced by alternative code making it work with
+Ghostscript 9.22 again.
+
+@item
+@AUCTeX{} has a new customize option
+@code{TeX-math-input-method-off-regexp}.  When you begin to input a math
+formula, the current input method is turned off if its name matches this
+regular expression.
+
+In fact this variable was introduced long before, but has not been
+documented in info files nor turned into a customize option with
+@code{defcustom} until this release.
+
+@item
+The window system focus is pulled back to Emacs when viewing with
+evince-compatible viewers if a new customize option
+@code{TeX-view-evince-keep-focus} is non-nil.
+
+@item
+The usual dose of bug fixes was administered.
+@end itemize
+
+@heading News in 11.91
+
+@itemize @bullet
+@item
+Now @AUCTeX{} has a logo.  The @LaTeX{} code to create it is available
+in the @file{etc/} directory of the package.
+
 @item
 Add support for @command{upmendex}, an extension of @command{makeindex}
 capable of sorting indexes by unicode based ICU.
@@ -20,6 +64,10 @@ Fix preview-latex to interact correctly with Japanese @LaTeX{}.  The
 parsing routine was made robust not to be confused by the 7-bit encoding
 of Japanese text and the necessary option to @LaTeX{} command is kept
 even when preamble caching is enabled.
+
+@item
+The new ``Glossaries'' entry in @code{TeX-command-list} runs the command
+@command{makeglossaries}.
 
 @item
 Fontification of control symbols has been improved.  Characters defined
@@ -96,6 +144,13 @@ correctly for most cases, according to the encoding of the @TeX{}
 documents and the locale.  The difference between MS Windows, macOS and
 unix-like OS is taken into account.  (This was actually done in
 @AUCTeX{} 11.90, but not advertised)
+
+@item
+Quite a few new @LaTeX{} packages are supported.
+
+@item
+As usual, many bugs were fixed.
+
 @end itemize
 
 @heading News in 11.90

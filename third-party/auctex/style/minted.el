@@ -1,4 +1,4 @@
-;;; minted.el --- AUCTeX style for `minted.sty' (v2.4.1)
+;;; minted.el --- AUCTeX style for `minted.sty' (v2.5)
 
 ;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; This file adds support for `minted.sty' (v2.4.1) from 2016/10/31.
+;; This file adds support for `minted.sty' (v2.5) from 2017/07/19.
 
 ;;; Code:
 
@@ -35,28 +35,43 @@
 (defvar LaTeX-minted-key-val-options
   '(("autogobble" ("true" "false"))
     ("baselinestretch" ("auto"))
+    ("beameroverlays" ("true" "false"))
     ("breakafter")
     ("breakaftergroup" ("true" "false"))
     ("breakaftersymbolpre")
     ("breakaftersymbolpost")
+    ("breakanywhere" ("true" "false"))
+    ("breakanywheresymbolpre")
+    ("breakanywheresymbolpost")
+    ("breakautoindent" ("true" "false"))
+    ("breakbefore")
+    ("breakbeforegroup" ("true" "false"))
+    ("breakbeforesymbolpre")
+    ("breakbeforesymbolpost")
     ("breakbytoken" ("true" "false"))
     ("breakbytokenanywhere" ("true" "false"))
     ("breakindent")
+    ("breakindentnchars")
     ("breaklines" ("true" "false"))
     ("breaksymbol")
     ("breaksymbolleft")
     ("breaksymbolright")
     ("breaksymbolindent")
+    ("breaksymbolindentnchars")
     ("breaksymbolindentleft")
+    ("breaksymbolindentleftnchars")
     ("breaksymbolindentright")
+    ("breaksymbolseprightnchars")
     ("breaksymbolsep")
+    ("breaksymbolsepnchars")
     ("breaksymbolsepleft")
+    ("breaksymbolsepleftnchars")
     ("breaksymbolsepright")
+    ("breaksymbolseprightnchars")
     ("bgcolor")
     ("codetagify")
     ("curlyquotes" ("true" "false"))
     ("encoding")
-    ("outencoding")
     ("escapeinside")
     ("firstline")
     ("firstnumber" ("auto" "last" "integer"))
@@ -85,6 +100,7 @@
     ("numberblanklines" ("true" "false"))
     ("numbersep")
     ("obeytabs" ("true" "false"))
+    ("outencoding")
     ("python3" ("true" "false"))
     ("resetmargins" ("true" "false"))
     ("rulecolor")
@@ -109,7 +125,7 @@
     ("stepnumberfromfirst")
     ("stepnumberoffsetvalues" ("true" "false"))
     ("stripall" ("true" "false"))
-    ("stripnl")
+    ("stripnl" ("true" "false"))
     ("tab")
     ("tabcolor")
     ("tabsize")

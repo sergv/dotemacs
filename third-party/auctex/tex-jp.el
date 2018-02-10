@@ -303,20 +303,6 @@ See also a user custom option `TeX-japanese-process-input-coding-system'."
   :group 'AUCTeX-jp
   :type '(choice (const :tag "Default" nil) coding-system))
 
-;; 順調に行けば不要になる。
-(defcustom japanese-TeX-command-default "pTeX"
-  "*The default command for `TeX-command' in the japanese-TeX mode."
-  :group 'AUCTeX-jp
-  :type 'string)
-  (make-variable-buffer-local 'japanese-TeX-command-default)
-
-;; 順調に行けば不要になる。
-(defcustom japanese-LaTeX-command-default "LaTeX"
-  "*The default command for `TeX-command' in the japanese-LaTeX mode."
-  :group 'AUCTeX-jp
-  :type 'string)
-  (make-variable-buffer-local 'japanese-LaTeX-command-default)
-
 (defcustom japanese-LaTeX-default-style "jarticle"
   "*Default when creating new Japanese documents."
   :group 'AUCTeX-jp
@@ -404,29 +390,7 @@ See also a user custom option `TeX-japanese-process-input-coding-system'."
 		   ;; ただし、locale が日本語をサポートしない場合は
 		   ;; euc に固定する。
 		   (t
-		    (let ((lcs
-			   (cond
-			    ((boundp 'locale-coding-system)
-			     locale-coding-system)
-			    ;; XEmacs doesn't have `locale-coding-system'.
-			    ;; Instead xemacs 21.5 has
-			    ;; `get-coding-system-from-locale' and
-			    ;; `current-locale'.  They aren't available on
-			    ;; xemacs 21.4.
-			    ((and
-			      (featurep 'xemacs)
-			      (fboundp 'get-coding-system-from-locale))
-			     (get-coding-system-from-locale
-			      (if (fboundp 'current-locale)
-				  (current-locale)
-				;; I don't know XEmacs well, so incorporate
-				;; the suggestion of
-				;; http://lists.gnu.org/archive/html/auctex-devel/2017-02/msg00079.html
-				;; as well.
-				(or (getenv "LC_ALL")
-				    (getenv "LC_CTYPE")
-				    (getenv "LANG")
-				    "")))))))
+		    (let ((lcs locale-coding-system))
 		      (if (and lcs (japanese-TeX-coding-ejsu lcs))
 			  lcs 'euc-jp)))))))
 
@@ -469,28 +433,18 @@ shift_jis: \"sjis\"
 utf-8:     \"utf8\"
 Return nil otherwise."
   (let ((base (coding-system-base coding-system)))
-    (if (featurep 'xemacs)
-	(setq base (coding-system-name base)))
     (cdr (assq base
               '((japanese-iso-8bit . "euc")
-                (euc-jp . "euc") ; for xemacs
                 (iso-2022-jp . "jis")
                 (japanese-shift-jis . "sjis")
-                (shift_jis . "sjis") ; for xemacs
                 (utf-8 . "utf8")
-                (mule-utf-8 . "utf8") ; for emacs 21, 22
-                ;; utf-8-auto や utf-8-emacs を入れる必要はあるのか？
 
-                ;; xemacs 21.5 with mule には、jisx0213 の charset は
-                ;; あるがそれ用の coding system はない。
                 (euc-jis-2004 . "euc")
                 (iso-2022-jp-2004 . "jis")
                 (japanese-shift-jis-2004 . "sjis")
 
                 (japanese-cp932 . "sjis")
-                (eucjp-ms . "euc")
-                (windows-932 . "sjis") ; for xemacs 21.5 with mule
-		)))))
+                (eucjp-ms . "euc"))))))
 
 (defun japanese-TeX-get-encoding-string ()
   "Return coding option string for Japanese pTeX family.
@@ -526,17 +480,16 @@ Set `japanese-TeX-mode' to t, and enter `TeX-plain-tex-mode'."
 (defun japanese-plain-tex-mode-initialization ()
   "Japanese plain-TeX specific initializations."
   (when japanese-TeX-mode
-;    (setq TeX-command-default japanese-TeX-command-default)
     (TeX-engine-set japanese-TeX-engine-default)
 
     ;; For the intent of the following lines, see the comments below
     ;; in `japanese-latex-mode-initialization'.
     (when enable-local-variables
       (setq major-mode 'japanese-plain-tex-mode)
-      (add-hook 'hack-local-variables-hook 'japanese-TeX-reset-mode-name
+      (add-hook 'hack-local-variables-hook #'japanese-TeX-reset-mode-name
 		nil t))))
 
-(add-hook 'plain-TeX-mode-hook 'japanese-plain-tex-mode-initialization)
+(add-hook 'plain-TeX-mode-hook #'japanese-plain-tex-mode-initialization)
 
 ;;;###autoload
 (defun japanese-latex-mode ()
@@ -549,21 +502,16 @@ Set `japanese-TeX-mode' to t, and enter `TeX-latex-mode'."
 (defun japanese-latex-mode-initialization ()
   "Japanese LaTeX specific initializations."
   (when japanese-TeX-mode
-;    (setq TeX-command-default japanese-LaTeX-command-default)
-    (TeX-engine-set
-     (cond
-      ((TeX-match-style "\\`u[jt]\\(article\\|report\\|book\\)\\'")
-       'uptex)
-      ((TeX-match-style "\\`[jt]s?\\(article\\|report\\|book\\)\\'")
-       (if (LaTeX-match-class-option "\\`uplatex\\'")
-	   'uptex 'ptex))
-      ((TeX-match-style "\\`j-\\(article\\|report\\|book\\)\\'")
-       'jtex)
-      (t japanese-TeX-engine-default)))
+    ;; `TeX-match-style' を使うのは `TeX-update-style' の後に遅らせる。
+    ;; この段階で使うと、その中で呼ぶ `TeX-style-list' の中で
+    ;; `TeX-update-style' が呼ばれてしまい、local variable 等の準備が
+    ;; 整ってない段階で style hook が実行されて不適な結果になることが
+    ;; ある。また、`TeX-update-style' は後から `find-file-hook' 中でも
+    ;; う一度呼ばれるので、`TeX-parse-self' が t だと parse 処理も無駄
+    ;; に 2 回行われてしまう。
+    (add-hook 'TeX-update-style-hook
+	      #'japanese-LaTeX-guess-engine nil t)
     (setq LaTeX-default-style japanese-LaTeX-default-style)
-;    (setq TeX-command-BibTeX
-;        (if (and (eq TeX-engine 'ptex) (executable-find "pbibtex"))
-;            "pBibTeX" "jBibTeX"))
 
     (when (and (fboundp 'font-latex-add-keywords)
 	       (eq TeX-install-font-lock 'font-latex-setup))
@@ -590,10 +538,10 @@ Set `japanese-TeX-mode' to t, and enter `TeX-latex-mode'."
     ;; `hack-local-variables' is done.
     (when enable-local-variables
       (setq major-mode 'japanese-latex-mode)
-      (add-hook 'hack-local-variables-hook 'japanese-TeX-reset-mode-name
+      (add-hook 'hack-local-variables-hook #'japanese-TeX-reset-mode-name
 		nil t))))
 
-(add-hook 'LaTeX-mode-hook 'japanese-latex-mode-initialization)
+(add-hook 'LaTeX-mode-hook #'japanese-latex-mode-initialization)
 
 ;; This function is useful only within `hack-local-variables-hook'.
 (defun japanese-TeX-reset-mode-name ()
@@ -601,13 +549,32 @@ Set `japanese-TeX-mode' to t, and enter `TeX-latex-mode'."
 	 (setq major-mode 'latex-mode))
 	((eq major-mode 'japanese-plain-tex-mode)
 	 (setq major-mode 'plain-tex-mode)))
-  (remove-hook 'hack-local-variables-hook 'japanese-TeX-reset-mode-name t))
+  (remove-hook 'hack-local-variables-hook #'japanese-TeX-reset-mode-name t))
 
 ;; Make `hack-dir-local-variables' to regard `latex-mode' as parent
 ;; of `japanese-latex-mode', and `plain-tex-mode' as parent of
 ;; `japanese-plain-tex-mode'.
 (put 'japanese-plain-tex-mode 'derived-mode-parent 'plain-tex-mode)
 (put 'japanese-latex-mode 'derived-mode-parent 'latex-mode)
+
+(defun japanese-LaTeX-guess-engine ()
+  "Guess Japanese TeX engine and set it to `TeX-engine'.
+Document class and its option is considered in the guess.  Do not
+overwrite the value already set locally."
+  ;; `TeX-engine' may be set by the file local variable or by the menu
+  ;; Command->TeXing Options manually.  Don't override the user
+  ;; preference set in such ways.
+  (unless (local-variable-p 'TeX-engine (current-buffer))
+    (TeX-engine-set
+     (cond
+      ((TeX-match-style "\\`u[jt]\\(?:article\\|report\\|book\\)\\'")
+       'uptex)
+      ((TeX-match-style "\\`[jt]s?\\(?:article\\|report\\|book\\)\\'")
+       (if (LaTeX-match-class-option "\\`uplatex\\'")
+	   'uptex 'ptex))
+      ((TeX-match-style "\\`j-\\(?:article\\|report\\|book\\)\\'")
+       'jtex)
+      (t japanese-TeX-engine-default)))))
 
 ;;; Support for various self-insert-command
 
@@ -627,7 +594,7 @@ Set `japanese-TeX-mode' to t, and enter `TeX-latex-mode'."
   (expand-abbrev)
   (if (TeX-looking-at-backward "\\\\/\\(}+\\)" 50)
       (replace-match "\\1" t))
-  (call-interactively 'japanese-TeX-self-insert-command))
+  (call-interactively #'japanese-TeX-self-insert-command))
 
 ;;; Error Messages
 
