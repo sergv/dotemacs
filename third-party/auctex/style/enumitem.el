@@ -206,7 +206,7 @@ key-val and the first item."
   ;; Deactivate the mark here in order to prevent `TeX-parse-macro'
   ;; from swapping point and mark and the \item ending up right after
   ;; \begin{...}.
-  (TeX-deactivate-mark)
+  (deactivate-mark)
   (LaTeX-insert-item)
   ;; The inserted \item may have outdented the first line to the
   ;; right.  Fill it, if appropriate.
@@ -263,10 +263,10 @@ in `enumitem'-completions."
 	   (val (nth 2 keyvals))
 	   ;; (key-match (car (assoc key LaTeX-enumitem-key-val-options-local)))
 	   (val-match (cdr (assoc key LaTeX-enumitem-key-val-options-local)))
-	   (temp  (copy-alist LaTeX-enumitem-key-val-options-local))
+	   (temp (copy-alist LaTeX-enumitem-key-val-options-local))
 	   (opts (assq-delete-all (car (assoc key temp)) temp)))
       (if val-match
-	  (pushnew (list key (delete-dups (apply 'append (list val) val-match)))
+	  (pushnew (list key (TeX-delete-duplicate-strings (apply #'append (list val) val-match)))
 		   opts :test #'equal)
 	(pushnew (list key (list val)) opts :test #'equal))
       (setq LaTeX-enumitem-key-val-options-local (copy-alist opts))))
@@ -276,7 +276,7 @@ in `enumitem'-completions."
 	   (val-match (cdr (assoc key LaTeX-enumitem-key-val-options-local)))
 	   (temp (copy-alist LaTeX-enumitem-key-val-options-local))
 	   (opts (assq-delete-all (car (assoc key temp)) temp)))
-      (pushnew (list key (delete-dups (apply 'append (list val) val-match)))
+      (pushnew (list key (TeX-delete-duplicate-strings (apply #'append (list val) val-match)))
 	       opts :test #'equal)
       (setq LaTeX-enumitem-key-val-options-local (copy-alist opts)))))
 
@@ -362,7 +362,7 @@ in `enumitem'-completions."
 
     ;; \setlist[<names,levels>]{<key-vals>}
     '("setlist"
-      [TeX-arg-eval mapconcat 'identity
+      [TeX-arg-eval mapconcat #'identity
 		    (TeX-completing-read-multiple
 		     "Environment(s), level(s): "
 		     `(,@LaTeX-enumitem-newlist-list-local
@@ -375,7 +375,7 @@ in `enumitem'-completions."
 
     ;; \setlist*[<names,levels>]{<key-vals>}
     '("setlist*"
-      [TeX-arg-eval mapconcat 'identity
+      [TeX-arg-eval mapconcat #'identity
 		    (TeX-completing-read-multiple
 		     "Environment, level: "
 		     `(,@LaTeX-enumitem-newlist-list-local
