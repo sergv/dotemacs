@@ -91,6 +91,7 @@ Valid values are:
                    extensions-globs
                    ignored-extensions-globs
                    ignored-files-absolute-regexps
+                   ignored-absolute-dirs
                    ignored-directories
                    ignored-directory-prefixes)
   "Optimized `find-rec' that can use system's find executable to speed up
@@ -100,103 +101,116 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (declare (pure nil) (side-effect-free nil))
   (when (null extensions-globs)
     (error "no extensions globs for project %s" root))
-  (let ((ignored-dirs-globs
-         (nconc (-map (lambda (dir) (concat "*/" dir))
-                      ignored-directories)
-                (-map (lambda (dir) (concat "*/" dir "*"))
-                      ignored-directory-prefixes))))
-    (if find-files/find-program-type
-        (let* ((ignored-dirs
-                (-map (lambda (dir-glob) (list "-ipath" dir-glob))
-                      ignored-dirs-globs))
-               (ignored-files
-                (append
-                 (-map (lambda (glob)
-                         (list "-iname" glob))
-                       ignored-extensions-globs)
-                 (-map (pcase find-files/find-program-type
-                         ((or `find `cygwin-find)
-                          (lambda (re) (list "-iregex" re)))
-                         (`busybox
-                          (lambda (re) (list "-regex" re)))
-                         (_
-                          (error "find-files/find-program-type has invalid value: %s"
-                                 find-files/find-program-type)))
-                       ignored-files-absolute-regexps)))
-               (exts (-map (lambda (glob) (list "-iname" glob))
-                           extensions-globs))
-               (find-cmd (or find-files/find-program-executable
-                             (error "find-files/find-program-type has invalid value: %s"
-                                    find-files/find-program-type)))
-               (cmd
-                (-flatten
-                 (list (when (eq 'busybox find-files/find-program-type)
-                         "find")
-                       "-L"
-                       (when (memq find-files/find-program-type '(find cygwin-find))
-                         "-O3")
-                       root
-                       (when (memq find-files/find-program-type '(find cygwin-find))
-                         '("-regextype" "emacs"))
-                       (when ignored-dirs
-                         (list
-                          "-type" "d"
-                          "("
-                          (-interpose "-o" ignored-dirs)
-                          ")"
-                          "-prune"
-                          "-o"))
-                       (when ignored-files
-                         (list
-                          "-type" "f"
-                          "("
-                          (-interpose "-o" ignored-files)
-                          ")"
-                          "-prune"
-                          "-o"))
-                       "-type" "f"
-                       "("
-                       (-interpose "-o" exts)
-                       ")"
-                       "-print")))
-               (w32-quote-process-args
-                (if (boundp 'w32-quote-process-args)
-                    (pcase find-files/find-program-type
-                      (`cygwin-find ?\\)
-                      (_ w32-quote-process-args))
-                  nil)))
-          (with-temp-buffer
-            (with-disabled-undo
-             (with-inhibited-modification-hooks
-              (apply #'call-process
-                     find-cmd
-                     nil
-                     t
-                     nil
-                     cmd)
-              (split-into-lines
-               (buffer-substring-no-properties (point-min)
-                                               (point-max)))))))
-      (let* ((ext-re (globs-to-regexp extensions-globs))
-             (ignored-files-re (globs-to-regexp ignored-extensions-globs))
-             (ignored-files-absolute-re
-              (mk-regexp-from-alts ignored-files-absolute-regexps))
-             (ignored-files-all-re
-              (mk-regexp-from-alts
-               (remq nil
-                     (list ignored-files-re
-                           ignored-files-absolute-re))))
-             (ignored-dirs-re
-              (globs-to-regexp ignored-dirs-globs)))
-        (find-rec root
-                  :filep
-                  (if ignored-files-all-re
-                      (lambda (path)
-                        (and (string-match-p ext-re path)
-                             (not (string-match-p ignored-files-all-re path))))
+  (if find-files/find-program-type
+      (let* ((ignored-dirs-globs
+              (nconc (--map (concat "*/" it)
+                            ignored-directories)
+                     (--map (concat "*/" it "*")
+                            ignored-directory-prefixes)
+                     (--map (strip-trailing-slash it)
+                            ignored-absolute-dirs)))
+             (ignored-dirs
+              (-map (lambda (dir-glob)
+                      (list (fold-platform-os-type "-path" "-ipath") dir-glob))
+                    ignored-dirs-globs))
+             (ignored-files
+              (append
+               (-map (lambda (glob)
+                       (list (fold-platform-os-type "-name" "-iname") glob))
+                     ignored-extensions-globs)
+               (-map (pcase find-files/find-program-type
+                       ((or `find `cygwin-find)
+                        (lambda (re) (list "-iregex" re)))
+                       (`busybox
+                        (lambda (re) (list "-regex" re)))
+                       (_
+                        (error "find-files/find-program-type has invalid value: %s"
+                               find-files/find-program-type)))
+                     ignored-files-absolute-regexps)))
+             (exts (-map (lambda (glob) (list "-iname" glob))
+                         extensions-globs))
+             (find-cmd (or find-files/find-program-executable
+                           (error "find-files/find-program-type has invalid value: %s"
+                                  find-files/find-program-type)))
+             (cmd
+              (-flatten
+               (list (when (eq 'busybox find-files/find-program-type)
+                       "find")
+                     "-L"
+                     (when (memq find-files/find-program-type '(find cygwin-find))
+                       "-O3")
+                     root
+                     (when (memq find-files/find-program-type '(find cygwin-find))
+                       '("-regextype" "emacs"))
+                     (when ignored-dirs
+                       (list
+                        "-type" "d"
+                        "("
+                        (-interpose "-o" ignored-dirs)
+                        ")"
+                        "-prune"
+                        "-o"))
+                     (when ignored-files
+                       (list
+                        "-type" "f"
+                        "("
+                        (-interpose "-o" ignored-files)
+                        ")"
+                        "-prune"
+                        "-o"))
+                     "-type" "f"
+                     "("
+                     (-interpose "-o" exts)
+                     ")"
+                     "-print")))
+             (w32-quote-process-args
+              (if (boundp 'w32-quote-process-args)
+                  (pcase find-files/find-program-type
+                    (`cygwin-find ?\\)
+                    (_ w32-quote-process-args))
+                nil)))
+        (with-temp-buffer
+          (with-disabled-undo
+           (with-inhibited-modification-hooks
+            (apply #'call-process
+                   find-cmd
+                   nil
+                   t
+                   nil
+                   cmd)
+            (split-into-lines
+             (buffer-substring-no-properties (point-min)
+                                             (point-max)))))))
+    (let* ((ext-re (globs-to-regexp extensions-globs))
+           (ignored-files-re (globs-to-regexp ignored-extensions-globs))
+           (ignored-files-absolute-re
+            (mk-regexp-from-alts ignored-files-absolute-regexps))
+           (ignored-files-all-re
+            (mk-regexp-from-alts
+             (remq nil
+                   (list ignored-files-re
+                         ignored-files-absolute-re))))
+           (ignored-dirs-re
+            (globs-to-regexp
+             (append ignored-directories
+                     (--map (concat it "*") ignored-directory-prefixes))))
+           (ignored-absolute-dirs-re
+            (mk-regexp-from-alts ignored-absolute-dirs)))
+      (find-rec root
+                :filep
+                (if ignored-files-all-re
                     (lambda (path)
-                      (string-match-p ext-re path)))
-                  :do-not-visitp
+                      (and (string-match-p ext-re path)
+                           (not (string-match-p ignored-files-all-re path))))
+                  (lambda (path)
+                    (string-match-p ext-re path)))
+                :do-not-visitp
+                (if ignored-absolute-dirs-re
+                    (lambda (path)
+                      (or (string-match-p ignored-dirs-re
+                                          (file-name-nondirectory path))
+                          (string-match-p ignored-absolute-dirs-re
+                                          path)))
                   (lambda (path)
                     (string-match-p ignored-dirs-re
                                     (file-name-nondirectory path))))))))
