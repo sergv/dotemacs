@@ -884,7 +884,8 @@ Regexp match data 0 points to the chars."
      (,(regexp-opt '("module" "include" "sig" "struct" "functor"
                      "type" "constraint" "class" "in" "inherit"
                      "method" "external" "val" "open"
-                     "initializer" "let" "rec" "object" "and" "begin" "end")
+                     "initializer" "let" "rec" "nonrec"
+                     "object" "and" "begin" "end")
                    'words)
       . tuareg-font-lock-governing-face)
      ,@(if (tuareg-editing-ls3)
@@ -899,7 +900,8 @@ Regexp match data 0 points to the chars."
          (regexp-opt kwd 'words))
       . font-lock-keyword-face)
      ;; with type: "with" treated as a governing keyword
-     (,(concat "\\<\\(\\(?:with\\|and\\) +type\\>\\) *\\(" typeconstr "\\)?")
+     (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)\\>\\) *"
+               "\\(" typeconstr "\\)?")
       (1 tuareg-font-lock-governing-face keep)
       (2 font-lock-type-face keep t))
      (,(concat "\\<\\(\\(?:with\\|and\\) +module\\>\\) *\\(?:\\(" module-path
@@ -940,7 +942,7 @@ Regexp match data 0 points to the chars."
       (1 tuareg-font-lock-governing-face)
       (2 tuareg-font-lock-module-face keep t))
      (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
-                     "parser" "raise" "ref" "ignore"
+                     "parser" "raise" "raise_notrace" "ref" "ignore"
 		     "Match_failure" "Assert_failure" "Invalid_argument"
 		     "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
 		     "Sys_error" "End_of_file" "Division_by_zero"
@@ -999,7 +1001,8 @@ Regexp match data 0 points to the chars."
       (1 font-lock-variable-name-face keep); functor (module) variable
       (2 tuareg-font-lock-module-face keep))
      ;;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
-     (,(concat "\\<type\\>" tuareg--whitespace-re "\\(" typedef "\\)")
+     (,(concat "\\<type\\(?: +nonrec\\)?\\>" tuareg--whitespace-re
+               "\\(" typedef "\\)")
       1 font-lock-type-face keep)
      ;; Constructors
      (,(concat "`" id) . tuareg-font-lock-constructor-face)
@@ -2170,7 +2173,9 @@ whereas with a nil value you get
     syms))
 
 (defun tuareg--beginning-of-phrase ()
-  "Move the point to the beginning of the OCaml phrase on which the point is."
+  "Move the point to the beginning of the OCaml phrase on which the point is.
+Return a non nil value if at the beginning of a toplevel phrase (and not an
+expression)."
   (let ((proper-beginning-of-phrase nil)
         (state (syntax-ppss)))
     (if (nth 3 state); in a string
@@ -2193,7 +2198,11 @@ whereas with a nil value you get
              ((and (car td) (not (numberp (car td))))
               (unless (bobp) (goto-char (nth 1 td)) t))
              (t t)))))
-    proper-beginning-of-phrase))
+    (if (and (bobp) (not proper-beginning-of-phrase))
+        (save-excursion
+          (member (tuareg-smie-forward-token)
+                  tuareg--beginning-of-phrase-syms))
+        proper-beginning-of-phrase)))
 
 (defun tuareg--discover-phrase-forward ()
   (smie-forward-sexp 'halfsexp))
@@ -2206,14 +2215,15 @@ whereas with a nil value you get
   (tuareg--skip-double-colon))
 
 (defun tuareg-discover-phrase (&optional pos)
-  "Return a triplet (BEGIN END END-WITH-COMMENTS).  In case of
-error, move the point at the beginning of the error and return `nil'."
+  "Return a triplet (BEGIN END END-WITH-COMMENTS) for the OCaml
+phrase around POS.  In case of error, move the point at the
+beginning of the error and return `nil'."
   (let (begin end end-comment
         proper-beginning-of-phrase go-forward
         (complete-phrase t))
     (save-excursion
       (if pos (goto-char pos)  (setq pos (point)))
-      (end-of-line)
+      (tuareg-smie-forward-token)
       (setq proper-beginning-of-phrase (tuareg--beginning-of-phrase))
       (setq begin (point))
       (setq go-forward (if proper-beginning-of-phrase
@@ -2222,12 +2232,17 @@ error, move the point at the beginning of the error and return `nil'."
       (setq end (point))
       (while (progn
                (funcall go-forward)
-               (if (= end (point)); no move
-                   (progn (setq complete-phrase nil)
-                          nil)
+               (cond
+                ((= (point) (point-max))
+                 (setq end (point))
+                 nil)
+                ((= end (point)); no move
+                 (setq complete-phrase nil)
+                 nil)
+                (t
                  (setq end (point))
                  (tuareg-skip-blank-and-comments)
-                 (<= (point) pos)))
+                 (<= (point) pos))))
         ;; Looks like tuareg--beginning-of-phrase went too far back!
         (setq begin (point)))
       (setq end-comment (point))
@@ -2237,8 +2252,8 @@ error, move the point at the beginning of the error and return `nil'."
         (smie-forward-sexp 'halfsexp)
         (when (= end-comment (point)); did not move
           (setq complete-phrase nil)))
-      (goto-char begin)
       ;; ";;" is not part of the phrase and neither comments
+      (goto-char begin)
       (tuareg--skip-double-colon)
       (tuareg-skip-blank-and-comments)
       (setq begin (point)))
@@ -3122,14 +3137,14 @@ otherwise a newline is inserted and the lines are indented."
   (comint-send-input))
 
 (defun tuareg-interactive--send-region (start end)
-  "Send the region between `start' and `end' to the OCaml REPL.
-It is assumed that the range `start'-`end' delimit valid OCaml phrases."
+  "Send the region between START and END to the OCaml REPL.
+It is assumed that the range START-END delimit valid OCaml phrases."
   (save-excursion (tuareg-run-process-if-needed))
   (comint-preinput-scroll-to-bottom)
   (let* ((phrases (buffer-substring-no-properties start end))
-         (phrases-colon (if (string-match-p ";;[ \t\n]*\\'" phrases)
-                            (replace-regexp-in-string "[ \t\n]*\\'" "" phrases)
-                          (concat phrases ";;"))))
+         (phrases (replace-regexp-in-string "[ \t\n]*\\(;;[ \t\n]*\\)?\\'" ""
+                                            phrases))
+         (phrases-colon (concat phrases ";;")))
     (if (string= phrases "")
         (message "Cannot send empty commands to OCaml REPL!")
       (with-current-buffer tuareg-interactive-buffer-name
@@ -3165,10 +3180,21 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
     (if phrase
         (narrow-to-region (nth 0 phrase) (nth 1 phrase)))))
 
+(defun tuareg--after-double-colon ()
+  "Non nil if the current position is after or inside ';;'.  In
+this case, the returned value is the position before ';;' (unless
+it is the first position of the buffer)."
+  (save-excursion
+    (when (looking-at "[;[:blank:]]*$")
+      (skip-chars-backward ";[:blank:]")
+      (if (> (point) 1) (- (point) 1)))))
+
 (defun tuareg-eval-phrase ()
   "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
   (interactive)
-  (let ((phrase (tuareg-discover-phrase)))
+  (let* ((pos (tuareg--after-double-colon))
+         (pos (if pos pos (point)))
+         (phrase (tuareg-discover-phrase pos)))
     (if phrase
         (progn
           (tuareg-interactive--send-region (nth 0 phrase) (nth 1 phrase))
