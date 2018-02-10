@@ -1763,28 +1763,9 @@ are CHAR1 and CHAR2 repsectively."
 
 ;; Heavy autoloads
 
-(autoload 'shell-command+ "common-heavy" nil t)
-(autoload 'find-filename-in-tree-recursive "common-heavy" nil t)
-(autoload 'extract-unicode "common-heavy")
-(autoload 'input-unicode "common-heavy" nil t)
-(autoload 'merge-emacs-configs "common-heavy")
-(autoload 'merge-emacs-configs-default "common-heavy" nil t)
-(autoload 'remove-tabs "common-heavy" nil t)
-(autoload 'start-file-manager "common-heavy" nil t)
-(autoload 'start-terminal-emulator "common-heavy" nil t)
-(autoload 'remove-duplicates-from-sorted-list-by "common-heavy" nil nil)
-(autoload 'rm "common-heavy" nil t)
-(autoload 'transpose-windows "common-heavy" nil t)
-(autoload 'narrow-to-region-indirect "common-heavy" nil t)
-(autoload 'resolve-obs-or-rel-filename "common-heavy")
-(autoload 'remove-duplicates-sorted "common-heavy")
-(autoload 'remove-duplicates-sorting "common-heavy")
-(autoload 'remove-duplicates-hashing "common-heavy")
 (autoload 'insert-info-template "common-heavy")
 (autoload 'insert-info-format-template "common-heavy")
 
-(autoload 'find-rec-do "find-files")
-(autoload 'find-rec "find-files")
 (autoload 'find-rec* "find-files")
 
 (provide 'common)
