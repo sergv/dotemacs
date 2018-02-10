@@ -1633,6 +1633,7 @@ F will be called."
 
 (defun mk-regexp-from-alts (alts)
   (declare (pure t) (side-effect-free t))
+  (cl-assert (listp alts) nil "Invalid regexp alternatives: %s" alts)
   (when alts
     (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
                alts
