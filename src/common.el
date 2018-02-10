@@ -746,12 +746,11 @@ end of END-LINE in current buffer."
   '(".svn" ".git" ".hg" "_darcs")
   "List of directory names used by version-control systems.")
 
-(defparameter *ignored-directories*
-  (append *version-control-directories*)
+(defparameter *ignored-directories* *version-control-directories*
   "List of directory names to generally ignore.")
 
 (defparameter *ignored-directory-prefixes*
-  '(".cabal-sandbox" ".stack-work")
+  '(".cabal-sandbox" ".stack-work" "dist")
   "List of directory names to generally ignore as a prefixes.")
 
 (setf completion-ignored-extensions
