@@ -1,5 +1,5 @@
-Release notes for AUCTeX 11.90 with preview-latex
-=================================================
+Release notes for AUCTeX 12.1 with preview-latex
+================================================
 
 AUCTeX provides by far the most wide-spread and sophisticated
 environment for editing LaTeX, TeX, ConTeXt and Texinfo documents with
@@ -24,143 +24,34 @@ sleuth work, testing.
 New features and fixed bugs in this release
 -------------------------------------------
 
-In addition to the completion performed by 'TeX-complete-symbol',
-AUCTeX now also supports the new Emacs standard completion-at-point
-facility (see the Emacs command 'completion-at-point').  This also
-means that modern completion UIs like company-mode work out of the
-box in TeX and LaTeX buffers.
+AUCTeX now requires GNU Emacs 24 or higher.  Support for XEmacs has
+been dropped.
 
-Completion is now aware of being inside a math environment and then
-completes math macros.
-
-AUCTeX is able to display several levels of super- and subscripts,
-each one raised above and a bit smaller than its basis.  For this
-feature, have a look at the customize options
-'font-latex-fontify-script' (especially the new values 'multi-level'
-and 'invisible') and 'font-latex-fontify-script-max-level'.  Also, the
-script characters '^' and '_' are also fontified with a special face
-named 'font-latex-script-char-face'.
-
-Parsing of format specification in various tabular environments has
-been improved.  The function 'LaTeX-insert-item' ('C-c <LFD>') inserts
-suitable number of ampersands for '*{num}{cols}' constructs.  Style
-files for LaTeX packages 'tabularx', 'tabulary', 'longtable',
-'dcolumn' and 'siunitx' are adapted to take advantage of this
-improvement.
-
-AUCTeX has a new Ispell dictionary 'tex-ispell.el' for macros and
-environments which will be skipped during spell checking.  The
-activiation of this feature is controlled by a new customize option
-'TeX-ispell-extend-skip-list', which is set to 't' and activated by
-default.
-
-AUCTeX has a new customize option 'TeX-raise-frame-function' that is
-currently only used by Evince and Atril inverse search to raise the
-Emacs frame.
-
-When inserting a new float, AUCTeX will now prompt for a short-caption
-if the length of the caption provided is greater than a certain size.
-This size is controlled via a new user option
-'LaTeX-short-caption-prompt-length'.
-
-Parsing of the compilation log has been reworked.  You should
-encounter fewer mistaken files while navigating through errors and
-warnings.
-
-Two new user options, 'TeX-ignore-warnings' and
-'TeX-suppress-ignored-warnings', allow ignoring certain warnings
-after compilation of the document.
-
-A new option, 'TeX-PDF-from-DVI', controls if and how to produce a PDF
-file by converting a DVI file.  This supersedes
-'TeX-PDF-via-dvips-ps2pdf' which is still recognized but marked as
-obsolete and may be removed in future releases.
-
-Support for a number of external viewers has been added:
-   * Atril viewer.  Forward and inverse search requires version
-     1.9.1 or later to work.
-
-   * dviout viewer on Windows.  Note that this setup works when
-     'TeX-source-correlate-method' is set to use 'source-specials'
-     for DVI, e.g.:
-          (setq TeX-source-correlate-method
-                '((dvi . source-specials)
-                  (pdf . synctex)))
-     which is the default.
-
-   * SumatraPDF viewer on Windows.
-
-   * Zathura viewer.  Forward and inverse search requires a recent
-     version of the program to work (3.4 or later).
-
-A new function, 'TeX-documentation-texdoc', for reading
-documentation with 'texdoc' has been added.  'TeX-doc' is still
-available but now 'C-c ?' runs 'TeX-documentation-texdoc'.
-
-AUCTeX has a new custom option
-'LaTeX-reftex-cite-format-auto-activate' which controls the automatic
-activation of citation formats provided by RefTeX when a style file is
-loaded and RefTeX is enabled.  Currently, 'biblatex.el', 'harvard.el',
-'jurabib.el' and 'natbib.el' use this feature.  If you have customized
-'reftex-cite-format' and want to use your settings, you should set
-this variable to 'nil'.
-
-AUCTeX now has limited support for the TikZ package.  For the moment,
-this includes some basic support for prompting the user of arguments
-to the '\draw' macro.
-
-The style 'graphicx.el' went through a bigger overhaul.  The optional
-argument of command '\includegraphics' now supports key-val query;
-keys can independently be chosen anytime by pressing the <,> key.  As
-a side effect, the variable 'LaTeX-includegraphics-options-alist' is
-now no-op and is removed from 'tex-style.el'.  You can safely remove
-any customization of it from your init file.  The mandatory argument
-of '\includegraphics' knows about image file extensions supported by
-the used engine and offers them for inclusion.
-
-Support for other LaTeX packages was improved, and style files for
-several new packages were added.
-
-Many bugs were crushed along the way.
+Besides the change in the supported version of Emacs, there has
+been no functional change in this release, which is equivalent to
+version 11.92.
 
 Requirements
 ------------
 
-It is required that you use at least GNU Emacs 21 or XEmacs 21.4.
-XEmacs requires at least version 1.84 of the xemacs-base package
-(released on 01/27/2004) or a sumo tarball dated 02/02/2004 or newer
-for compiling AUCTeX: please use the XEmacs package system for
-upgrading if necessary.
+It is required that you use at least GNU Emacs 24.
 
-The preview-latex subsystem requires image support.  This is available
-with GNU Emacs 21.3 under the X window system.  For Windows[2], Mac OS
-X (Carbon, Cocoa)[3] or native GTK+ toolkit support, at least version
-22.1 of GNU Emacs is required.  Emacs 22 and later is the recommended
-platform for AUCTeX in general.  If you prefer XEmacs, it will work in
-version 21.4.10 or later.
+The preview-latex subsystem requires image support.
 
 You'll also need a working LaTeX installation and Ghostscript.
-dvipng[4] (version 1.4 or later), a very fast DVI converter, can be
+dvipng[2] (version 1.4 or later), a very fast DVI converter, can be
 used to speed up the conversion.
 
 Availability
 ------------
 
-The easiest way for getting AUCTeX, for users running Emacs 24.1 or
-higher, is installing it with GNU ELPA, see
+The easiest way for getting AUCTeX is installing it with GNU ELPA, see
 <URL:https://elpa.gnu.org/packages/auctex.html> for more information.
 Other download options are available at
 <URL:ftp://ftp.gnu.org/gnu/auctex/>.  At release time, we provide the
-source tarball, and a platform-independent XEmacs package file (which
-you have to install yourself using XEmacs' own package system, after
-using it for removing the previous version of AUCTeX).  You can also
-use versions of Emacs that already include AUCTeX or a software
-package management system for your operating system which provides you
-with the latest release.
-
-The XEmacs package file can be discerned by `pkg' in its name.  It is
-usually more recent than what gets distributed from XEmacs servers and
-as part of the Sumo tarball.
+source tarball.  You can also use versions of Emacs that already
+include AUCTeX or a software package management system for your
+operating system which provides you with the latest release.
 
 A separate directory for each release contains some stuff from the
 tarball, such as ChangeLog, printable manuals, and a reference sheet.
@@ -202,15 +93,9 @@ Sonderfeld, Holger Sparr, Mike Sperber, Reiner Steib, Christian
 Schlauer, Shiro Takeda, Mark Trettin (Please accept our apologies if
 we forgot somebody.)
 
-Footnotes: 
+Footnotes:
 
 [1]  <URL:ftp://ftp.dante.de/tex-archive/macros/latex/contrib/preview/>
 
-[2]  You can get a precompiled version of Emacs for Windows at
-<URL:ftp://ftp.gnu.org/gnu/emacs/windows/>.
-
-[3]  See e.g. <URL:http://www.emacswiki.org/cgi-bin/wiki/EmacsForMacOS>
-for a list of precompiled versions of Emacs for Mac OS X.
-
-[4]  dvipng is available via its project page
+[2]  dvipng is available via its project page
 <URL:http://savannah.nongnu.org/projects/dvipng> and from CTAN.

@@ -1,4 +1,4 @@
-;;; context-test.el --- tests for ConTeXt mode
+;;; utility.el --- tests for AUCTeX utility functions
 
 ;; Copyright (C) 2017 Free Software Foundation, Inc.
 
@@ -22,23 +22,10 @@
 ;;; Code:
 
 (require 'ert)
-(require 'context)
 
-(AUCTeX-set-ert-path
- 'ConTeXt-indent-test/in
- "context-indentation-in.tex"
- 'ConTeXt-indent-test/out
- "context-indentation-out.tex")
+(ert-deftest TeX-infinite-loop ()
+  "Check whether functions don't fall into infinite loop."
+  (should (TeX-delete-duplicate-strings '("nil")))
+  (should (TeX-delete-dups-by-car '(("nil" . 1)))))
 
-(ert-deftest ConTeXt-indent ()
-  (should (string=
-           (with-temp-buffer
-             (insert-file-contents ConTeXt-indent-test/in)
-             (ConTeXt-mode)
-             (indent-region (point-min) (point-max))
-             (buffer-string))
-           (with-temp-buffer
-             (insert-file-contents ConTeXt-indent-test/out)
-             (buffer-string)))))
-
-;;; context-test.el ends here
+;;; utility.el ends here

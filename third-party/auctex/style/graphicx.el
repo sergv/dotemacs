@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;;  This package supports the includegraphcics macro in graphicx style.
+;;  This package supports the includegraphics macro in graphicx style.
 
 ;; Acknowledgements
 ;;  Dr. Thomas Baumann <thomas.baumann@ch.tum.de>
@@ -110,44 +110,44 @@ key-val's."
   (let* ((temp (copy-sequence LaTeX-includegraphics-extensions))
 	 (LaTeX-includegraphics-extensions
 	  (cond (;; 'default TeX-engine:
-		 (if (and (eq TeX-engine 'default)
-			  ;; we want to produce a pdf
-			  (if TeX-PDF-mode
-			      ;; Return t if default compiler produces PDF,
-			      ;; nil for "Dvips" or "Dvipdfmx"
-			      (not (TeX-PDF-from-DVI))
-			    ;; t if pdftex is used in dvi-mode
-			    TeX-DVI-via-PDFTeX))
+		 (eq TeX-engine 'default)
+		 (if ;; we want to produce a pdf
+		     (if TeX-PDF-mode
+			 ;; Return t if default compiler produces PDF,
+			 ;; nil for "Dvips" or "Dvipdfmx"
+			 (not (TeX-PDF-from-DVI))
+		       ;; t if pdftex is used in dvi-mode
+		       TeX-DVI-via-PDFTeX)
 		     ;; We're using pdflatex in pdf-mode
-		     (delete-dups
+		     (TeX-delete-duplicate-strings
 		      (append LaTeX-includegraphics-pdftex-extensions
-			      LaTeX-includegraphics-extensions))
+			      temp))
 		   ;; We're generating a .dvi to process with dvips or dvipdfmx
 		   (progn
 		     (dolist (x '("jpe?g" "pdf" "png"))
-		       (setq temp (remove x temp)))
-		     (delete-dups
+		       (setq temp (delete x temp)))
+		     (TeX-delete-duplicate-strings
 		      (append LaTeX-includegraphics-dvips-extensions
 			      temp)))))
 		;; Running luatex in pdf or dvi-mode:
 		((eq TeX-engine 'luatex)
 		 (if TeX-PDF-mode
-		     (delete-dups
+		     (TeX-delete-duplicate-strings
 		      (append LaTeX-includegraphics-pdftex-extensions
-			      LaTeX-includegraphics-extensions))
+			      temp))
 		   (progn
 		     (dolist (x '("jpe?g" "pdf" "png"))
-		       (setq temp (remove x temp)))
-		     (delete-dups
+		       (setq temp (delete x temp)))
+		     (TeX-delete-duplicate-strings
 		      (append LaTeX-includegraphics-dvips-extensions
 			      temp)))))
 		;; Running xetex in any mode:
 		((eq TeX-engine 'xetex)
-		 (delete-dups (append LaTeX-includegraphics-xetex-extensions
-				      LaTeX-includegraphics-extensions)))
+		 (TeX-delete-duplicate-strings (append LaTeX-includegraphics-xetex-extensions
+				      temp)))
 		;; For anything else
 		(t
-		 LaTeX-includegraphics-extensions))))
+		 temp))))
     (concat "\\."
 	    (mapconcat 'identity
 		       (or list LaTeX-includegraphics-extensions)
@@ -175,7 +175,7 @@ doesn't works with Emacs 21.3 or XEmacs.  See
   (file-relative-name
    (read-file-name
     "Image file: " nil nil nil nil
-    ;; FIXME: Emacs 21.3 and XEmacs 21.4.15 dont have PREDICATE as the sixth
+    ;; FIXME: Emacs 21.3 and XEmacs 21.4.15 don't have PREDICATE as the sixth
     ;; argument (Emacs 21.3: five args; XEmacs 21.4.15: sixth is HISTORY).
     (lambda (fname)
       (or (file-directory-p fname)

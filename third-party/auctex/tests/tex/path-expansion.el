@@ -1,4 +1,4 @@
-;;; context-test.el --- tests for ConTeXt mode
+;;; path-expansion.el --- tests for path expansion
 
 ;; Copyright (C) 2017 Free Software Foundation, Inc.
 
@@ -22,23 +22,14 @@
 ;;; Code:
 
 (require 'ert)
-(require 'context)
 
-(AUCTeX-set-ert-path
- 'ConTeXt-indent-test/in
- "context-indentation-in.tex"
- 'ConTeXt-indent-test/out
- "context-indentation-out.tex")
+(ert-deftest TeX-variable-truncation ()
+  "Check whether list variable is not truncated as side effect."
+  (let ((var '("str1" "str2"))
+	(TeX-kpathsea-path-delimiter nil)
+	(TeX-search-files-type-alist
+	 '((abc "${dummy}" ("str2" var) TeX-file-extensions))))
+    (TeX-search-files-by-type 'abc 'global)
+    (should (equal var '("str1" "str2")))))
 
-(ert-deftest ConTeXt-indent ()
-  (should (string=
-           (with-temp-buffer
-             (insert-file-contents ConTeXt-indent-test/in)
-             (ConTeXt-mode)
-             (indent-region (point-min) (point-max))
-             (buffer-string))
-           (with-temp-buffer
-             (insert-file-contents ConTeXt-indent-test/out)
-             (buffer-string)))))
-
-;;; context-test.el ends here
+;;; command-expansion.el ends here
