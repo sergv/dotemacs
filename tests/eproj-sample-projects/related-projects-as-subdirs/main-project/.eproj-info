@@ -1,0 +1,4 @@
+((languages haskell-mode)
+ (related "subproj1" "subproj2")
+ (aux-files
+  (tree "." ".*\\.txt")))
