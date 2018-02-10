@@ -59,7 +59,11 @@ Or a function that returns non-nil for such buffers."
 (defcustom company-dabbrev-ignore-case 'keep-prefix
   "Non-nil to ignore case when collecting completion candidates.
 When it's `keep-prefix', the text before point will remain unchanged after
-candidate is inserted, even some of its characters have different case.")
+candidate is inserted, even some of its characters have different case."
+  :type '(choice
+          (const :tag "Don't ignore case" nil)
+          (const :tag "Ignore case" t)
+          (const :tag "Keep case before point" keep-prefix)))
 
 (defcustom company-dabbrev-downcase 'case-replace
   "Whether to downcase the returned candidates.
@@ -69,7 +73,11 @@ The value of nil means keep them as-is.
 Any other value means downcase.
 
 If you set this value to nil, you may also want to set
-`company-dabbrev-ignore-case' to any value other than `keep-prefix'.")
+`company-dabbrev-ignore-case' to any value other than `keep-prefix'."
+  :type '(choice
+          (const :tag "Keep as-is" nil)
+          (const :tag "Downcase" t)
+          (const :tag "Use case-replace" case-replace)))
 
 (defcustom company-dabbrev-minimum-length 4
   "The minimum length for the completion candidate to be included.
@@ -110,7 +118,8 @@ This variable affects both `company-dabbrev' and `company-dabbrev-code'."
       (goto-char (if pos (1- pos) (point-min)))
       ;; Search before pos.
       (let ((tmp-end (point)))
-        (company-dabbrev--time-limit-while (> tmp-end (point-min))
+        (company-dabbrev--time-limit-while (and (not (input-pending-p))
+                                                (> tmp-end (point-min)))
             start limit 1
           (ignore-errors
             (forward-char -10000))
@@ -119,14 +128,16 @@ This variable affects both `company-dabbrev' and `company-dabbrev-code'."
             ;; Before, we used backward search, but it matches non-greedily, and
             ;; that forced us to use the "beginning/end of word" anchors in
             ;; `company-dabbrev--make-regexp'.  It's also about 2x slower.
-            (while (re-search-forward regexp tmp-end t)
+            (while (and (not (input-pending-p))
+                        (re-search-forward regexp tmp-end t))
               (if (and ignore-comments (save-match-data (company-in-string-or-comment)))
                   (re-search-forward "\\s>\\|\\s!\\|\\s\"" tmp-end t)
                 (maybe-collect-match))))
           (setq tmp-end (point))))
       (goto-char (or pos (point-min)))
       ;; Search after pos.
-      (company-dabbrev--time-limit-while (re-search-forward regexp nil t)
+      (company-dabbrev--time-limit-while (and (not (input-pending-p))
+                                              (re-search-forward regexp nil t))
           start limit 25
         (if (and ignore-comments (save-match-data (company-in-string-or-comment)))
             (re-search-forward "\\s>\\|\\s!\\|\\s\"" nil t)
