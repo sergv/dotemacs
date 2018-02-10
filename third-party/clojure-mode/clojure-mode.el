@@ -1,7 +1,7 @@
 ;;; clojure-mode.el --- Major mode for Clojure code -*- lexical-binding: t; -*-
 
-;; Copyright © 2007-2017 Jeffrey Chu, Lennart Staflin, Phil Hagelberg
-;; Copyright © 2013-2017 Bozhidar Batsov, Artur Malabarba
+;; Copyright © 2007-2018 Jeffrey Chu, Lennart Staflin, Phil Hagelberg
+;; Copyright © 2013-2018 Bozhidar Batsov, Artur Malabarba
 ;;
 ;; Authors: Jeffrey Chu <jochu0@gmail.com>
 ;;       Lennart Staflin <lenst@lysator.liu.se>
@@ -183,14 +183,20 @@ For example, \[ is allowed in :db/id[:db.part/user]."
           (and (listp value)
                (cl-every 'characterp value))))
 
-(defcustom clojure-build-tool-files '("project.clj" "build.boot" "build.gradle")
+(defcustom clojure-build-tool-files '("project.clj" "build.boot" "build.gradle" "deps.edn")
   "A list of files, which identify a Clojure project's root.
-Out-of-the box clojure-mode understands lein, boot and gradle."
+Out-of-the box `clojure-mode' understands lein, boot and gradle."
   :type '(repeat string)
   :package-version '(clojure-mode . "5.0.0")
   :safe (lambda (value)
           (and (listp value)
                (cl-every 'stringp value))))
+
+(defcustom clojure-project-root-function #'clojure-project-root-path
+  "Function to locate clojure project root directory."
+  :type 'function
+  :risky t
+  :package-version '(clojure-mode . "5.7.0"))
 
 (defcustom clojure-refactor-map-prefix (kbd "C-c C-r")
   "Clojure refactor keymap prefix."
@@ -317,7 +323,7 @@ CIDER provides a more complex version which does classpath analysis.")
   (message "clojure-mode (version %s)" clojure-mode-version))
 
 (defconst clojure-mode-report-bug-url "https://github.com/clojure-emacs/clojure-mode/issues/new"
-  "The URL to report a clojure-mode issue.")
+  "The URL to report a `clojure-mode' issue.")
 
 (defun clojure-mode-report-bug ()
   "Report a bug in your default browser."
@@ -458,7 +464,14 @@ ENDP and DELIMITER."
 (declare-function paredit-convolute-sexp "ext:paredit")
 
 (defun clojure--replace-let-bindings-and-indent (orig-fun &rest args)
-  "Advise `paredit-convolute-sexp' to replace s-expressions with their bound name if a let form was convoluted."
+  "Advise ORIG-FUN to replace let bindings.
+
+Sexps are replace by their bound name if a let form was
+convoluted.
+
+ORIG-FUN should be `paredit-convolute-sexp'.
+
+ARGS are passed to ORIG-FUN, as with all advice."
   (save-excursion
     (backward-sexp)
     (when (looking-back clojure--let-regexp)
@@ -510,6 +523,15 @@ replacement for `cljr-expand-let`."
   (setq-local prettify-symbols-alist clojure--prettify-symbols-alist)
   (setq-local open-paren-in-column-0-is-defun-start nil))
 
+(defsubst clojure-in-docstring-p ()
+  "Check whether point is in a docstring."
+  (let ((ppss (syntax-ppss)))
+    ;; are we in a string?
+    (when (nth 3 ppss)
+      ;; check font lock at the start of the string
+      (eq (get-text-property (nth 8 ppss) 'face)
+          'font-lock-doc-face))))
+
 ;;;###autoload
 (define-derived-mode clojure-mode prog-mode "Clojure"
   "Major mode for editing Clojure code.
@@ -517,16 +539,21 @@ replacement for `cljr-expand-let`."
 \\{clojure-mode-map}"
   (clojure-mode-variables)
   (clojure-font-lock-setup)
-  (add-hook 'paredit-mode-hook #'clojure-paredit-setup))
+  (add-hook 'paredit-mode-hook #'clojure-paredit-setup)
+  ;; `electric-layout-post-self-insert-function' prevents indentation in strings
+  ;; and comments, force indentation in docstrings:
+  (add-hook 'electric-indent-functions
+            (lambda (_char) (if (clojure-in-docstring-p) 'do-indent))))
 
 (defcustom clojure-verify-major-mode t
-  "If non-nil, warn when activating the wrong major-mode."
+  "If non-nil, warn when activating the wrong `major-mode'."
   :type 'boolean
   :safe #'booleanp
   :package-version '(clojure-mode "5.3.0"))
 
 (defun clojure--check-wrong-major-mode ()
-  "Check if the current major-mode matches the file extension.
+  "Check if the current `major-mode' matches the file extension.
+
 If it doesn't, issue a warning if `clojure-verify-major-mode' is
 non-nil."
   (when (and clojure-verify-major-mode
@@ -540,10 +567,7 @@ non-nil."
                            'clojurescript-mode)
                           ((and (string-match "\\.cljc\\'" (buffer-file-name))
                                 (not (eq major-mode 'clojurec-mode)))
-                           'clojurec-mode)
-                          ((and (string-match "\\.cljx\\'" (buffer-file-name))
-                                (not (eq major-mode 'clojurex-mode)))
-                           'clojurex-mode))))
+                           'clojurec-mode))))
       (when problem
         (message "[WARNING] %s activated `%s' instead of `%s' in this buffer.
 This could cause problems.
@@ -556,13 +580,8 @@ This could cause problems.
 
 (add-hook 'clojure-mode-hook #'clojure--check-wrong-major-mode)
 
-(defsubst clojure-in-docstring-p ()
-  "Check whether point is in a docstring."
-  (eq (get-text-property (point) 'face) 'font-lock-doc-face))
-
 (defsubst clojure-docstring-fill-prefix ()
   "The prefix string used by `clojure-fill-paragraph'.
-
 It is simply `clojure-docstring-fill-prefix-width' number of spaces."
   (make-string clojure-docstring-fill-prefix-width ? ))
 
@@ -574,7 +593,6 @@ This only takes care of filling docstring correctly."
 
 (defun clojure-fill-paragraph (&optional justify)
   "Like `fill-paragraph', but can handle Clojure docstrings.
-
 If JUSTIFY is non-nil, justify as well as fill the paragraph."
   (if (clojure-in-docstring-p)
       (let ((paragraph-start
@@ -584,7 +602,15 @@ If JUSTIFY is non-nil, justify as well as fill the paragraph."
              (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
             (fill-column (or clojure-docstring-fill-column fill-column))
             (fill-prefix (clojure-docstring-fill-prefix)))
-        (fill-paragraph justify))
+        ;; we are in a string and string start pos (8th element) is non-nil
+        (let* ((beg-doc (nth 8 (syntax-ppss)))
+               (end-doc (save-excursion
+                          (goto-char beg-doc)
+                          (or (ignore-errors (forward-sexp) (point))
+                              (point-max)))))
+          (save-restriction
+            (narrow-to-region beg-doc end-doc)
+            (fill-paragraph justify))))
     (let ((paragraph-start (concat paragraph-start
                                    "\\|\\s-*\\([(:\"[]\\|`(\\|#'(\\)"))
           (paragraph-separate
@@ -1013,6 +1039,7 @@ point) to check."
 (put 'defmacro 'clojure-doc-string-elt 2)
 (put 'definline 'clojure-doc-string-elt 2)
 (put 'defprotocol 'clojure-doc-string-elt 2)
+(put 'deftask 'clojure-doc-string-eld 2) ;; common Boot macro
 
 ;;; Vertical alignment
 (defcustom clojure-align-forms-automatically nil
@@ -1107,8 +1134,11 @@ Place point as in `clojure--position-for-alignment'."
 
 (defun clojure--search-whitespace-after-next-sexp (&optional bound _noerror)
   "Move point after all whitespace after the next sexp.
+
 Set the match data group 1 to be this region of whitespace and
-return point."
+return point.
+
+BOUND is bounds the whitespace search."
   (unwind-protect
       (ignore-errors
         (clojure-forward-logical-sexp 1)
@@ -1578,6 +1608,13 @@ nil."
 (defun clojure-project-dir (&optional dir-name)
   "Return the absolute path to the project's root directory.
 
+Call is delegated down to `clojure-project-root-function' with
+optional DIR-NAME as argument."
+  (funcall clojure-project-root-function dir-name))
+
+(defun clojure-project-root-path (&optional dir-name)
+  "Return the absolute path to the project's root directory.
+
 Use `default-directory' if DIR-NAME is nil.
 Return nil if not inside a project."
   (let* ((dir-name (or dir-name default-directory))
@@ -1724,6 +1761,10 @@ no namespaces above point, return the first one in the buffer."
   (save-excursion
     (save-restriction
       (widen)
+
+      ;; Move to top-level to avoid searching from inside ns
+      (ignore-errors (while t (up-list nil t t)))
+
       ;; The closest ns form above point.
       (when (or (re-search-backward clojure-namespace-name-regex nil t)
                 ;; Or any form at all.
@@ -1756,11 +1797,10 @@ Returns a list pair, e.g. (\"defn\" \"abc\") or (\"deftest\" \"some-test\")."
 ;;; Sexp navigation
 (defun clojure--looking-at-non-logical-sexp ()
   "Return non-nil if text after point is \"non-logical\" sexp.
-
 \"Non-logical\" sexp are ^metadata and #reader.macros."
   (comment-normalize-vars)
   (comment-forward (point-max))
-  (looking-at-p "\\^\\|#[?[:alpha:]]"))
+  (looking-at-p "\\^\\|#[[:alpha:]]"))
 
 (defun clojure-forward-logical-sexp (&optional n)
   "Move forward N logical sexps.
@@ -1835,6 +1875,9 @@ list of (fn args) to pass to `apply''"
     (insert "\n")))
 
 (defun clojure--unwind-last ()
+  "Unwind a thread last macro once.
+
+Point must be between the opening paren and the ->> symbol."
   (forward-sexp)
   (save-excursion
     (let ((beg (point))
@@ -1857,6 +1900,7 @@ list of (fn args) to pass to `apply''"
   (forward-char))
 
 (defun clojure--ensure-parens-around-function-names ()
+  "Insert parens around function names if necessary."
   (clojure--looking-at-non-logical-sexp)
   (unless (looking-at "(")
     (insert-parentheses 1)
@@ -1864,6 +1908,7 @@ list of (fn args) to pass to `apply''"
 
 (defun clojure--unwind-first ()
   "Unwind a thread first macro once.
+
 Point must be between the opening paren and the -> symbol."
   (forward-sexp)
   (save-excursion
@@ -1879,12 +1924,14 @@ Point must be between the opening paren and the -> symbol."
   (forward-char))
 
 (defun clojure--pop-out-of-threading ()
+  "Raise a sexp up a level to unwind a threading form."
   (save-excursion
     (down-list 2)
     (backward-up-list)
     (raise-sexp)))
 
 (defun clojure--nothing-more-to-unwind ()
+  "Return non-nil if a threaded form cannot be unwound further."
   (save-excursion
     (let ((beg (point)))
       (forward-sexp)
@@ -1895,6 +1942,10 @@ Point must be between the opening paren and the -> symbol."
       (= beg (point)))))
 
 (defun clojure--fix-sexp-whitespace (&optional move-out)
+  "Fix whitespace after unwinding a threading form.
+
+Optional argument MOVE-OUT, if non-nil, means moves up a list
+before fixing whitespace."
   (save-excursion
     (when move-out (backward-up-list))
     (let ((sexp (bounds-of-thing-at-point 'sexp)))
@@ -1933,10 +1984,12 @@ Return nil if there are no more levels to unwind."
   (while (clojure-unwind)))
 
 (defun clojure--remove-superfluous-parens ()
+  "Remove extra parens from a form."
   (when (looking-at "([^ )]+)")
     (delete-pair)))
 
 (defun clojure--thread-first ()
+  "Thread a nested sexp using ->."
   (down-list)
   (forward-symbol 1)
   (unless (looking-at ")")
@@ -1954,6 +2007,7 @@ Return nil if there are no more levels to unwind."
       t)))
 
 (defun clojure--thread-last ()
+  "Thread a nested sexp using ->>."
   (forward-sexp 2)
   (down-list -1)
   (backward-sexp)
@@ -1972,6 +2026,7 @@ Return nil if there are no more levels to unwind."
       t)))
 
 (defun clojure--threadable-p ()
+  "Return non-nil if a form can be threaded."
   (save-excursion
     (forward-symbol 1)
     (looking-at "[\n\r\t ]*(")))
@@ -1993,6 +2048,12 @@ Return nil if there are no more levels to unwind."
       (clojure--fix-sexp-whitespace 'move-out))))
 
 (defun clojure--thread-all (first-or-last-thread but-last)
+  "Fully thread the form at point.
+
+FIRST-OR-LAST-THREAD is \"->\" or \"->>\".
+
+When BUT-LAST is non-nil, the last expression is not threaded.
+Default value is `clojure-thread-all-but-last'."
   (save-excursion
     (insert-parentheses 1)
     (insert first-or-last-thread))
@@ -2003,14 +2064,18 @@ Return nil if there are no more levels to unwind."
 ;;;###autoload
 (defun clojure-thread-first-all (but-last)
   "Fully thread the form at point using ->.
-When BUT-LAST is passed the last expression is not threaded."
+
+When BUT-LAST is non-nil, the last expression is not threaded.
+Default value is `clojure-thread-all-but-last'."
   (interactive "P")
   (clojure--thread-all "-> " but-last))
 
 ;;;###autoload
 (defun clojure-thread-last-all (but-last)
   "Fully thread the form at point using ->>.
-When BUT-LAST is passed the last expression is not threaded."
+
+When BUT-LAST is non-nil, the last expression is not threaded.
+Default value is `clojure-thread-all-but-last'."
   (interactive "P")
   (clojure--thread-all "->> " but-last))
 
@@ -2161,9 +2226,13 @@ See: https://github.com/clojure-emacs/clj-refactor.el/wiki/cljr-cycle-if"
 
 (defvar clojure--let-regexp
   "\(\\(when-let\\|if-let\\|let\\)\\(\\s-*\\|\\[\\)"
-  "Regexp matching let like expressions, i.e. let, when-let, if-let.
+  "Regexp matching let like expressions, i.e. \"let\", \"when-let\", \"if-let\".
 
-The first match-group is the let expression, the second match-group is the whitespace or the opening square bracket if no whitespace between the let expression and the bracket.")
+The first match-group is the let expression.
+
+The second match-group is the whitespace or the opening square
+bracket if no whitespace between the let expression and the
+bracket.")
 
 (defun clojure--goto-let ()
   "Go to the beginning of the nearest let form."
@@ -2177,6 +2246,7 @@ The first match-group is the let expression, the second match-group is the white
   (looking-at clojure--let-regexp))
 
 (defun clojure--inside-let-binding-p ()
+  "Return non-nil if point is inside a let binding."
   (ignore-errors
     (save-excursion
       (let ((pos (point)))
@@ -2225,12 +2295,18 @@ Assume that point is in the binding form of a let."
       (newline-and-indent))))
 
 (defun clojure--sexp-regexp (sexp)
+  "Return a regexp for matching SEXP."
   (concat "\\([^[:word:]^-]\\)"
           (mapconcat #'identity (mapcar 'regexp-quote (split-string sexp))
                      "[[:space:]\n\r]+")
           "\\([^[:word:]^-]\\)"))
 
 (defun clojure--replace-sexp-with-binding (bound-name init-expr)
+  "Replace a binding with its bound name in the let form.
+
+BOUND-NAME is the name (left-hand side) of a binding.
+
+INIT-EXPR is the value (right-hand side) of a binding."
   (save-excursion
     (while (re-search-forward
             (clojure--sexp-regexp init-expr)
@@ -2240,6 +2316,7 @@ Assume that point is in the binding form of a let."
 
 (defun clojure--replace-sexps-with-bindings (bindings)
   "Replace bindings with their respective bound names in the let form.
+
 BINDINGS is the list of bound names and init expressions."
   (let ((bound-name (pop bindings))
         (init-expr (pop bindings)))
@@ -2248,6 +2325,7 @@ BINDINGS is the list of bound names and init expressions."
       (clojure--replace-sexps-with-bindings bindings))))
 
 (defun clojure--replace-sexps-with-bindings-and-indent ()
+  "Replace sexps with bindings."
   (clojure--replace-sexps-with-bindings
    (clojure--read-let-bindings))
   (clojure-indent-region
@@ -2277,6 +2355,10 @@ Return a list: odd elements are bound names, even elements init expressions."
     (nreverse bindings)))
 
 (defun clojure--introduce-let-internal (name &optional n)
+  "Create a let form, binding the form at point with NAME.
+
+Optional numeric argument N, if non-nil, introduces the let N
+lists up."
   (if (numberp n)
       (let ((init-expr-sexp (clojure-delete-and-extract-sexp)))
         (insert name)
@@ -2299,6 +2381,7 @@ Return a list: odd elements are bound names, even elements init expressions."
     (insert name)))
 
 (defun clojure--move-to-let-internal (name)
+  "Bind the form at point to NAME in the nearest let."
   (if (not (save-excursion (clojure--goto-let)))
       (clojure--introduce-let-internal name)
     (let ((contents (clojure-delete-and-extract-sexp)))
@@ -2373,7 +2456,7 @@ With a numeric prefix argument the let is introduced N lists up."
                 (regexp-opt '("js-obj" "js-delete" "clj->js" "js->clj"))
                 "\\>")
        0 font-lock-builtin-face)))
-  "Additional font-locking for `clojurescrip-mode'.")
+  "Additional font-locking for `clojurescript-mode'.")
 
 ;;;###autoload
 (define-derived-mode clojurescript-mode clojure-mode "ClojureScript"
@@ -2388,24 +2471,11 @@ With a numeric prefix argument the let is introduced N lists up."
 
 \\{clojurec-mode-map}")
 
-(defconst clojurex-font-lock-keywords
-  ;; cljx annotations (#+clj and #+cljs)
-  '(("#\\+cljs?\\>" 0 font-lock-preprocessor-face))
-  "Additional font-locking for `clojurex-mode'.")
-
-;;;###autoload
-(define-derived-mode clojurex-mode clojure-mode "ClojureX"
-  "Major mode for editing ClojureX code.
-
-\\{clojurex-mode-map}"
-  (font-lock-add-keywords nil clojurex-font-lock-keywords))
-
 ;;;###autoload
 (progn
   (add-to-list 'auto-mode-alist
                '("\\.\\(clj\\|dtm\\|edn\\)\\'" . clojure-mode))
   (add-to-list 'auto-mode-alist '("\\.cljc\\'" . clojurec-mode))
-  (add-to-list 'auto-mode-alist '("\\.cljx\\'" . clojurex-mode))
   (add-to-list 'auto-mode-alist '("\\.cljs\\'" . clojurescript-mode))
   ;; boot build scripts are Clojure source files
   (add-to-list 'auto-mode-alist '("\\(?:build\\|profile\\)\\.boot\\'" . clojure-mode)))
