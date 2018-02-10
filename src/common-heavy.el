@@ -425,9 +425,9 @@ If MODE is nil - fontify in current buffer."
       0 'warning t))))
 
 ;;;###autoload
-(defun resolve-obs-or-rel-filename (path dir)
-  "Try to come up with filename that refers to existing file and contains
-PATH and, maybe, DIR as it's parts."
+(defun resolve-to-abs-path (path dir)
+  "Try to come up with an absolute filename that refers to
+existing file. If PATH is relative then try resolving it against DIR."
   (if (or (file-exists-p path)
           (file-directory-p path))
       path

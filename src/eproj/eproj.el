@@ -148,8 +148,8 @@
   (concat "Generic tag "
           (eproj-tag/symbol tag)
           "\n"
-          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
-                                         (eproj-project/root proj))
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -188,8 +188,8 @@
           (awhen (eproj/c-tag-kind tag)
             (concat " [" it "]"))
           "\n"
-          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
-                                         (eproj-project/root proj))
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -213,8 +213,8 @@
                     "."
                     (eproj-tag/symbol tag)
                     "\n"))
-          (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
-                                         (eproj-project/root proj))
+          (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                      (eproj-project/root proj))
           ":"
           (number->string (eproj-tag/line tag))
           "\n"
@@ -226,8 +226,8 @@
   "Fetch line where TAG is defined."
   (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
   (for-buffer-with-file
-      (eproj-resolve-abs-or-rel-name (eproj-tag/file tag)
-                                     (eproj-project/root proj))
+      (eproj--resolve-to-abs-path (eproj-tag/file tag)
+                                  (eproj-project/root proj))
     (save-excursion
       (goto-line1 (eproj-tag/line tag))
       (current-line))))
@@ -411,7 +411,6 @@
   (declare (indent 1))
   `(car-safe (eproj-project/query-aux-info-seq ,aux-info ,@keys)))
 
-
 (defun eproj-project/aux-files (proj)
   (aif (eproj-project/aux-files-source proj)
       (eproj--filter-file-list
@@ -441,7 +440,7 @@
   (interactive)
   (setf *eproj-projects* (make-hash-table :test #'equal))
   (eproj-get-initial-project-root/reset-cache)
-  (eproj-resolve-abs-or-rel-name/reset-cache)
+  (eproj--resolve-to-abs-path/reset-cache)
   (eproj-normalize-file-name/reset-cache)
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
@@ -595,7 +594,7 @@ cache tags in."
          (cdr-safe (assq 'ignored-files aux-info)))
         (file-list-filename
          (awhen (eproj-project/query-aux-info aux-info file-list)
-           (let ((fname (eproj-resolve-abs-or-rel-name it (eproj-project/root proj))))
+           (let ((fname (eproj--resolve-to-abs-path it (eproj-project/root proj))))
              (when (or (null fname)
                        (not (file-exists-p fname)))
                (error "File list filename does not exist: %s" fname))
@@ -739,7 +738,7 @@ variables accordingly."
                         (format "%s:%s\n"
                                 (file-relative-name
                                  (expand-file-name
-                                  (eproj-resolve-abs-or-rel-name
+                                  (eproj--resolve-to-abs-path
                                    (eproj-tag/file subentry)
                                    (eproj-project/root proj)))
                                  (expand-file-name (eproj-project/root proj)))
@@ -837,6 +836,7 @@ symbol 'unresolved.")
                  initial-root))))))
 
 (defun eproj--filter-file-list (proj files)
+  "Filter list of FILES using ignored-files-regexps of project PROJ."
   (aif (eproj-project/ignored-files-regexps proj)
       (let ((regexp
              (mapconcat (lambda (x) (concat "\\(?:" x "\\)"))
@@ -896,7 +896,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                        "invalid entry under related clause, string expected %s"
                        path)
             (progn ;; condition-case err
-              (eproj-resolve-abs-or-rel-name path root)
+              (eproj--resolve-to-abs-path path root)
               ;; (error
               ;;  (error "invalid related-project entry: non-existing absolute/relative directory: %s\n%s"
               ;;         path
@@ -994,8 +994,8 @@ project.")
 ;; If PATH is existing absoute file then return it, otherwise try to check
 ;; whether it's existing file relative to DIR and return that. Report error if
 ;; both conditions don't hold.
-(defun-caching eproj-resolve-abs-or-rel-name (path dir) eproj-resolve-abs-or-rel-name/reset-cache (path dir)
-  (resolve-obs-or-rel-filename path dir))
+(defun-caching eproj--resolve-to-abs-path (path dir) eproj--resolve-to-abs-path/reset-cache (path dir)
+  (resolve-to-abs-path path dir))
 
 (defun-caching eproj-normalize-file-name (path) eproj-normalize-file-name/reset-cache (path)
   (strip-trailing-slash (normalize-file-name (expand-file-name path))))
@@ -1004,8 +1004,8 @@ project.")
   "Get directory associated with BUFFER, either through visited file
 or `default-directory', if no file is visited."
   (with-current-buffer buffer
-    (or (when buffer-file-truename
-          (file-name-directory buffer-file-truename))
+    (or (and buffer-file-truename
+             (file-name-directory buffer-file-truename))
         default-directory)))
 
 (defun eproj-get-matching-tags (proj tag-major-mode identifier search-with-regexp?)
