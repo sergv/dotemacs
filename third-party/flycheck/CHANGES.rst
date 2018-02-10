@@ -4,12 +4,18 @@
 - **Breaking changes**
 
   - Remove javascript-jscs checker
+  - ``rust-cargo`` now requires Rust 1.17 or newer [GH-1289]
+  - Rename ``flycheck-cargo-rustc-args`` to ``flycheck-cargo-check-args``
+    [GH-1289]
+  - ``rust-cargo`` does not use the variable ``flycheck-rust-args`` anymore
+    [GH-1289]
 
 - New syntax checkers:
 
   - Jsonnet with ``jsonnet`` [GH-1345]
   - Tcl with ``nagelfar`` [GH-1365]
   - CWL with ``schema-salad-tool`` [GH-1361]
+  - MarkdownLint CLI with ``markdownlint`` [GH-1366]
 
 - New features:
 
@@ -18,6 +24,8 @@
   - Add ``--force-exclusion`` flag to ``rubocop`` command [GH-1348]
   - Add ``flycheck-ghc-stack-project-file`` for the
     ``haskell-stack-ghc`` checker. [GH-1316]
+  - Add ``flycheck-perl-module-list`` to use specified modules when
+    syntax checking code with the ``perl`` checker.
 
 - Improvements
 
@@ -27,6 +35,7 @@
   - Flycheck will execute ``rubocop`` from directory where ``Gemfile`` is
     located. If ``Gemfile`` does not exist, old behaviour of running command
     from directory where ``.rubocop.yml`` is found will be used [GH-1368]
+  - ``rust-cargo`` now uses ``cargo check`` and ``cargo test`` [GH-1289]
 
 31 (Oct 07, 2017)
 =================

@@ -728,6 +728,14 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
 .. supported-language:: Markdown
 
+   .. syntax-checker:: markdown-markdownlint-cli
+
+      Check Markdown with `markdownlint <https://github.com/igorshubovych/markdownlint-cli>`_.
+
+      .. syntax-checker-config-file:: flycheck-markdown-markdownlint-cli-config
+
+         Path to configuration file.
+
    .. syntax-checker:: markdown-mdl
 
       Check Markdown with `markdownlint <https://github.com/mivok/markdownlint/>`_.
@@ -761,6 +769,10 @@ to view the docstring of the syntax checker.  Likewise, you may use
       .. defcustom:: flycheck-perl-include-path
 
          A list of include directories, relative to the file being checked.
+
+      .. defcustom:: flycheck-perl-module-list
+
+         A list of module names to implicitly use.
 
    .. syntax-checker:: perl-perlcritic
 
@@ -1024,12 +1036,12 @@ to view the docstring of the syntax checker.  Likewise, you may use
                        rust
 
       Check syntax and types with the Rust_ compiler.  In a Cargo_ project the
-      compiler is invoked through ``cargo rustc`` to take Cargo dependencies
+      compiler is invoked through ``cargo check`` to take Cargo dependencies
       into account.
 
       .. note::
 
-         `rust-cargo` requires Rust 1.15 or newer.
+         `rust-cargo` requires Rust 1.17 or newer.
          `rust` requires Rust 1.7 or newer.
 
       .. _Cargo: http://doc.crates.io/index.html
@@ -1042,11 +1054,13 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. defcustom:: flycheck-rust-args
 
-         A list of additional arguments that are passed to rustc.
+         A list of additional arguments that are passed to rustc.  This option
+         is ignored by `rust-cargo`.
 
-      .. defcustom:: flycheck-cargo-rustc-args
+      .. defcustom:: flycheck-cargo-check-args
 
-         A list of additional arguments passed to the cargo rustc subcommand
+         A list of additional arguments passed to the ``cargo check``
+         subcommand.
 
       .. defcustom:: flycheck-rust-check-tests
 
@@ -1070,7 +1084,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. defcustom:: flycheck-rust-binary-name
 
-         The name of the binary to pass to ``cargo rustc --TARGET-TYPE``, as a
+         The name of the binary to pass to ``cargo check --TARGET-TYPE``, as a
          string.
 
          For `rust-cargo`, always required unless `flycheck-rust-crate-type` is
