@@ -1,10 +1,10 @@
 ;;; csv-mode.el --- Major mode for editing comma/char separated values  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003, 2004, 2012-2016  Free Software Foundation, Inc
+;; Copyright (C) 2003, 2004, 2012-2017  Free Software Foundation, Inc
 
 ;; Author: "Francis J. Wright" <F.J.Wright@qmul.ac.uk>
 ;; Time-stamp: <23 August 2004>
-;; Version: 1.6
+;; Version: 1.7
 ;; Keywords: convenience
 
 ;; This package is free software; you can redistribute it and/or modify
@@ -402,13 +402,13 @@ Usually they sort in order of ascending sort key.")
      :help "Rewrite rows (which may have different lengths) as columns"]
     "--"
     ["Forward Field" forward-sexp :active t
-     :help "Move forward across one field\; with ARG, do it that many times"]
+     :help "Move forward across one field; with ARG, do it that many times"]
     ["Backward Field" backward-sexp :active t
-     :help "Move backward across one field\; with ARG, do it that many times"]
+     :help "Move backward across one field; with ARG, do it that many times"]
     ["Kill Field Forward" kill-sexp :active t
-     :help "Kill field following cursor\; with ARG, do it that many times"]
+     :help "Kill field following cursor; with ARG, do it that many times"]
     ["Kill Field Backward" backward-kill-sexp :active t
-     :help "Kill field preceding cursor\; with ARG, do it that many times"]
+     :help "Kill field preceding cursor; with ARG, do it that many times"]
     "--"
     ("Alignment Style"
      ["Left" (setq csv-align-style 'left) :active t
@@ -425,6 +425,7 @@ Usually they sort in order of ascending sort key.")
       :help "\
 If selected, `csv-align-fields' left aligns text and right aligns numbers"]
      )
+    ["Set header line" csv-header-line :active t]
     ["Show Current Field Index" csv-field-index-mode :active t
      :style toggle :selected csv-field-index-mode
      :help "If selected, display current field index in mode line"]
@@ -1276,6 +1277,57 @@ Modifies the match data; use `save-match-data' if necessary."
     (or (and (not allowend) (eq start (length string)))
 	(push (substring string start) list))
     (nreverse list)))
+
+(defvar-local csv--header-line nil)
+(defvar-local csv--header-hscroll nil)
+(defvar-local csv--header-string nil)
+
+(defun csv-header-line (&optional use-current-line)
+  "Set/unset the header line.
+If the optional prefix arg USE-CURRENT-LINE is nil, use the first line
+as the header line.
+If there is already a header line, then unset the header line."
+  (interactive "P")
+  (if csv--header-line
+      (progn
+        (setq csv--header-line nil)
+        (kill-local-variable 'header-line-format))
+    (setq csv--header-line (copy-marker
+                            (if use-current-line
+                                (line-beginning-position)
+                              (point-min))))
+    (setq csv--header-hscroll nil)
+    (setq header-line-format
+          '(:eval (progn
+                    ;; FIXME: Won't work with multiple windows showing that
+                    ;; same buffer.
+		    (if (eq (window-hscroll) csv--header-hscroll)
+                        csv--header-string
+		      (setq csv--header-hscroll (window-hscroll))
+		      (setq csv--header-string
+                            (csv--compute-header-string))))))))
+
+(defun csv--compute-header-string ()
+  (save-excursion
+    (goto-char csv--header-line)
+    (move-to-column csv--header-hscroll)
+    (let ((str (buffer-substring (point) (line-end-position)))
+          (i 0))
+      (while (and i (< i (length str)))
+        (let ((prop (get-text-property i 'display str)))
+          (and (eq (car-safe prop) 'space)
+               (eq (car-safe (cdr prop)) :align-to)
+               (let* ((x (nth 2 prop))
+                      (nexti (next-single-property-change i 'display str))
+                      (newprop
+                       `(space :align-to
+                               ,(if (numberp x) (- x csv--header-hscroll)
+                                  `(- ,x csv--header-hscroll)))))
+                 (put-text-property i (or nexti (length str))
+                                    'display newprop str)
+                 (setq i nexti))))
+        (setq i (next-single-property-change i 'display str)))
+      (concat (propertize " " 'display '((space :align-to 0))) str))))
 
 (provide 'csv-mode)
 
