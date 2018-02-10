@@ -1,22 +1,24 @@
+sudo: false
 language: emacs-lisp
 env:
-  - EMACS=emacs24
-  - EMACS=emacs-snapshot
+  - EMACS_BINARY=emacs-24.4-travis MAKE_TEST=test
+  - EMACS_BINARY=emacs-24.4-travis MAKE_TEST=test-bytecomp
+  - EMACS_BINARY=emacs-24.5-travis MAKE_TEST=test
+  - EMACS_BINARY=emacs-24.5-travis MAKE_TEST=test-bytecomp
+  - EMACS_BINARY=emacs-25.1-travis MAKE_TEST=test
+  - EMACS_BINARY=emacs-25.1-travis MAKE_TEST=test-bytecomp
+  - EMACS_BINARY=emacs-25.2-travis MAKE_TEST=test
+  - EMACS_BINARY=emacs-25.2-travis MAKE_TEST=test-bytecomp
+  - EMACS_BINARY=emacs-25.2-travis MAKE_TEST=test-checks
+  - EMACS_BINARY=emacs-git-snapshot-travis
 matrix:
   allow_failures:
-    - env: EMACS=emacs-snapshot
-before_install:
-  # Stable Emacs 24.4
-  - sudo add-apt-repository -y ppa:adrozdoff/emacs
-  # Nightly Emacs snapshot builds
-  - sudo add-apt-repository -y ppa:ubuntu-elisp/ppa
-  # Update and install the Emacs for our environment
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq -yy ${EMACS}-nox
-  # Install and bootstrap cask
-  - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
-  - export PATH="${HOME}/.cask/bin:$PATH"
-install:
-  - cask install
+    - env: EMACS_BINARY=emacs-git-snapshot-travis
+  fast_finish: true
+before_script:
+  - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
+  - evm install $EMACS_BINARY --use --skip
+  - make elpa
 script:
-  - make compile test
+  - emacs --version
+  - make $MAKE_TEST

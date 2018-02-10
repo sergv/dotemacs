@@ -72,7 +72,6 @@ The `clojure-mode` package actually bundles together several major modes:
 * `clojure-mode` is a major mode for editing Clojure code
 * `clojurescript-mode` is a major mode for editing ClojureScript code
 * `clojurec-mode` is a major mode for editing `.cljc` source files
-* `clojurex-mode` is a major mode for editing `.cljx` source files
 
 All the major modes derive from `clojure-mode` and provide more or less the same
 functionality.  Differences can be found mostly in the font-locking -
@@ -91,6 +90,8 @@ well.
 
 ## Configuration
 
+In the spirit of Emacs, pretty much everything you can think of in `clojure-mode` is configurable.
+
 To see a list of available configuration options do `M-x customize-group RET clojure`.
 
 ### Indentation options
@@ -98,6 +99,13 @@ To see a list of available configuration options do `M-x customize-group RET clo
 The default indentation rules in `clojure-mode` are derived from the
 [community Clojure Style Guide](https://github.com/bbatsov/clojure-style-guide).
 Please, refer to the guide for the general Clojure indentation rules.
+
+#### Indentation of docstrings
+
+By default multi-line docstrings are indented with 2 spaces, as this is a
+somewhat common standard in the Clojure community. You can however adjust this
+by modifying `clojure-docstring-fill-prefix-width`. Set it to 0 if you don't
+want multi-line docstrings to be indented at all (which is pretty common in most lisps).
 
 #### Indentation of function forms
 
@@ -414,7 +422,7 @@ An extensive changelog is available [here](CHANGELOG.md).
 
 ## License
 
-Copyright © 2007-2017 Jeffrey Chu, Lennart Staflin, Phil Hagelberg, Bozhidar
+Copyright © 2007-2018 Jeffrey Chu, Lennart Staflin, Phil Hagelberg, Bozhidar
 Batsov, Artur Malabarba and [contributors][].
 
 Distributed under the GNU General Public License; type <kbd>C-h C-c</kbd> to view it.
