@@ -235,8 +235,42 @@ See also: `-reduce-r-from', `-reduce'"
   (declare (debug (form form)))
   `(-reduce-r (lambda (&optional it acc) ,form) ,list))
 
+(defun -reductions-from (fn init list)
+  "Return a list of the intermediate values of the reduction.
+
+See `-reduce-from' for explanation of the arguments.
+
+See also: `-reductions', `-reductions-r', `-reduce-r'"
+  (nreverse (--reduce-from (cons (funcall fn (car acc) it) acc) (list init) list)))
+
+(defun -reductions (fn list)
+  "Return a list of the intermediate values of the reduction.
+
+See `-reduce' for explanation of the arguments.
+
+See also: `-reductions-from', `-reductions-r', `-reduce-r'"
+  (-reductions-from fn (car list) (cdr list)))
+
+(defun -reductions-r-from (fn init list)
+  "Return a list of the intermediate values of the reduction.
+
+See `-reduce-r-from' for explanation of the arguments.
+
+See also: `-reductions-r', `-reductions', `-reduce'"
+  (--reduce-r-from (cons (funcall fn it (car acc)) acc) (list init) list))
+
+(defun -reductions-r (fn list)
+  "Return a list of the intermediate values of the reduction.
+
+See `-reduce-r' for explanation of the arguments.
+
+See also: `-reductions-r-from', `-reductions', `-reduce'"
+  (-reductions-r-from fn (-last-item list) (-butlast list)))
+
 (defmacro --filter (form list)
-  "Anaphoric form of `-filter'."
+  "Anaphoric form of `-filter'.
+
+See also: `--remove'."
   (declare (debug (form form)))
   (let ((r (make-symbol "result")))
     `(let (,r)
@@ -248,21 +282,25 @@ See also: `-reduce-r-from', `-reduce'"
 
 Alias: `-select'
 
-See also: `-keep'"
+See also: `-keep', `-remove'."
   (--filter (funcall pred it) list))
 
 (defalias '-select '-filter)
 (defalias '--select '--filter)
 
 (defmacro --remove (form list)
-  "Anaphoric form of `-remove'."
+  "Anaphoric form of `-remove'.
+
+See also `--filter'."
   (declare (debug (form form)))
   `(--filter (not ,form) ,list))
 
 (defun -remove (pred list)
   "Return a new list of the items in LIST for which PRED returns nil.
 
-Alias: `-reject'"
+Alias: `-reject'
+
+See also: `-filter'."
   (--remove (funcall pred it) list))
 
 (defalias '-reject '-remove)
@@ -576,12 +614,42 @@ Alias: `-any'"
 (defalias '-first-item 'car
   "Return the first item of LIST, or nil on an empty list.
 
+See also: `-second-item', `-last-item'.
+
 \(fn LIST)")
 
 ;; Ensure that calls to `-first-item' are compiled to a single opcode,
 ;; just like `car'.
 (put '-first-item 'byte-opcode 'byte-car)
 (put '-first-item 'byte-compile 'byte-compile-one-arg)
+
+(defalias '-second-item 'cadr
+  "Return the second item of LIST, or nil if LIST is too short.
+
+See also: `-third-item'.
+
+\(fn LIST)")
+
+(defalias '-third-item 'caddr
+  "Return the third item of LIST, or nil if LIST is too short.
+
+See also: `-fourth-item'.
+
+\(fn LIST)")
+
+(defun -fourth-item (list)
+  "Return the fourth item of LIST, or nil if LIST is too short.
+
+See also: `-fifth-item'."
+  (declare (pure t) (side-effect-free t))
+  (car (cdr (cdr (cdr list)))))
+
+(defun -fifth-item (list)
+  "Return the fifth item of LIST, or nil if LIST is too short.
+
+See also: `-last-item'."
+  (declare (pure t) (side-effect-free t))
+  (car (cdr (cdr (cdr (cdr list))))))
 
 ;; TODO: emacs23 support, when dropped remove the condition
 (eval-when-compile
@@ -1104,11 +1172,12 @@ elements of LIST.  Keys are compared by `equal'."
 (defun -interleave (&rest lists)
   "Return a new list of the first item in each list, then the second etc."
   (declare (pure t) (side-effect-free t))
-  (let (result)
-    (while (-none? 'null lists)
-      (--each lists (!cons (car it) result))
-      (setq lists (-map 'cdr lists)))
-    (nreverse result)))
+  (when lists
+    (let (result)
+      (while (-none? 'null lists)
+        (--each lists (!cons (car it) result))
+        (setq lists (-map 'cdr lists)))
+      (nreverse result))))
 
 (defmacro --zip-with (form list1 list2)
   "Anaphoric form of `-zip-with'.
@@ -1150,16 +1219,17 @@ of cons cells. Otherwise, return the groupings as a list of lists.
 Please note! This distinction is being removed in an upcoming 3.0
 release of Dash. If you rely on this behavior, use -zip-pair instead."
   (declare (pure t) (side-effect-free t))
-  (let (results)
-    (while (-none? 'null lists)
-      (setq results (cons (mapcar 'car lists) results))
-      (setq lists (mapcar 'cdr lists)))
-    (setq results (nreverse results))
-    (if (= (length lists) 2)
-        ;; to support backward compatability, return
-        ;; a cons cell if two lists were provided
-        (--map (cons (car it) (cadr it)) results)
-      results)))
+  (when lists
+    (let (results)
+      (while (-none? 'null lists)
+        (setq results (cons (mapcar 'car lists) results))
+        (setq lists (mapcar 'cdr lists)))
+      (setq results (nreverse results))
+      (if (= (length lists) 2)
+          ;; to support backward compatability, return
+          ;; a cons cell if two lists were provided
+          (--map (cons (car it) (cadr it)) results)
+        results))))
 
 (defalias '-zip-pair '-zip)
 
@@ -1254,7 +1324,7 @@ combinations created by taking one element from each list in
 order.  The results are flattened, ignoring the tensor structure
 of the result.  This is equivalent to calling:
 
-  (-flatten-n (1- (length lists)) (apply '-table fn lists))
+  (-flatten-n (1- (length lists)) (apply \\='-table fn lists))
 
 but the implementation here is much more efficient.
 
@@ -1976,7 +2046,7 @@ execute body."
   "Tests for equality use this function or `equal' if this is nil.
 It should only be set using dynamic scope with a let, like:
 
-  (let ((-compare-fn #'=)) (-union numbers1 numbers2 numbers3)")
+  (let ((-compare-fn #\\='=)) (-union numbers1 numbers2 numbers3)")
 
 (defun -distinct (list)
   "Return a new list with all duplicates removed.
@@ -2036,6 +2106,20 @@ or with `-compare-fn' if that's non-nil."
                      (mapcar (lambda (perm) (cons x perm))
                              (-permutations (remove x list))))
                    list))))
+
+(defun -inits (list)
+  "Return all prefixes of LIST."
+  (nreverse (-map 'reverse (-tails (nreverse list)))))
+
+(defun -tails (list)
+  "Return all suffixes of LIST"
+  (-reductions-r-from 'cons nil list))
+
+(defun -common-prefix (&rest lists)
+  "Return the longest common prefix of LISTS."
+  (declare (pure t) (side-effect-free t))
+  (--reduce (--take-while (and acc (equal (pop acc) it)) it)
+            lists))
 
 (defun -contains? (list element)
   "Return non-nil if LIST contains ELEMENT.
@@ -2140,10 +2224,28 @@ Return nil if N is less than 1."
   (declare (pure t) (side-effect-free t))
   (apply '+ list))
 
+(defun -running-sum (list)
+  "Return a list with running sums of items in LIST.
+
+LIST must be non-empty."
+  (declare (pure t) (side-effect-free t))
+  (unless (consp list)
+    (error "LIST must be non-empty"))
+  (-reductions '+ list))
+
 (defun -product (list)
   "Return the product of LIST."
   (declare (pure t) (side-effect-free t))
   (apply '* list))
+
+(defun -running-product (list)
+  "Return a list with running products of items in LIST.
+
+LIST must be non-empty."
+  (declare (pure t) (side-effect-free t))
+  (unless (consp list)
+    (error "LIST must be non-empty"))
+  (-reductions '* list))
 
 (defun -max (list)
   "Return the largest value from LIST of numbers or markers."
@@ -2406,12 +2508,15 @@ structure such as plist or alist."
   (eval-after-load 'lisp-mode
     '(progn
        (let ((new-keywords '(
+                             "!cons"
+                             "!cdr"
                              "-each"
                              "--each"
                              "-each-indexed"
                              "--each-indexed"
                              "-each-while"
                              "--each-while"
+                             "-doto"
                              "-dotimes"
                              "--dotimes"
                              "-map"
@@ -2424,6 +2529,10 @@ structure such as plist or alist."
                              "--reduce-r-from"
                              "-reduce-r"
                              "--reduce-r"
+                             "-reductions-from"
+                             "-reductions-r-from"
+                             "-reductions"
+                             "-reductions-r"
                              "-filter"
                              "--filter"
                              "-select"
@@ -2480,6 +2589,10 @@ structure such as plist or alist."
                              "-last"
                              "--last"
                              "-first-item"
+                             "-second-item"
+                             "-third-item"
+                             "-fourth-item"
+                             "-fifth-item"
                              "-last-item"
                              "-butlast"
                              "-count"
@@ -2492,8 +2605,13 @@ structure such as plist or alist."
                              "--any-p"
                              "-some-p"
                              "--some-p"
+                             "-some->"
+                             "-some->>"
+                             "-some-->"
                              "-all?"
+                             "-all-p"
                              "--all?"
+                             "--all-p"
                              "-every?"
                              "--every?"
                              "-all-p"
@@ -2511,6 +2629,8 @@ structure such as plist or alist."
                              "-slice"
                              "-take"
                              "-drop"
+                             "-drop-last"
+                             "-take-last"
                              "-take-while"
                              "--take-while"
                              "-drop-while"
@@ -2534,6 +2654,10 @@ structure such as plist or alist."
                              "-partition-in-steps"
                              "-partition-all"
                              "-partition"
+                             "-partition-after-item"
+                             "-partition-after-pred"
+                             "-partition-before-item"
+                             "-partition-before-pred"
                              "-partition-by"
                              "--partition-by"
                              "-partition-by-header"
@@ -2542,10 +2666,12 @@ structure such as plist or alist."
                              "--group-by"
                              "-interpose"
                              "-interleave"
+                             "-unzip"
                              "-zip-with"
                              "--zip-with"
                              "-zip"
                              "-zip-fill"
+                             "-zip-pair"
                              "-cycle"
                              "-pad"
                              "-annotate"
@@ -2569,6 +2695,7 @@ structure such as plist or alist."
                              "->"
                              "->>"
                              "-->"
+                             "-as->"
                              "-when-let"
                              "-when-let*"
                              "--when-let"
@@ -2583,6 +2710,11 @@ structure such as plist or alist."
                              "-union"
                              "-intersection"
                              "-difference"
+                             "-powerset"
+                             "-permutations"
+                             "-inits"
+                             "-tails"
+                             "-common-prefix"
                              "-contains?"
                              "-contains-p"
                              "-same-items?"
@@ -2598,7 +2730,9 @@ structure such as plist or alist."
                              "-list"
                              "-repeat"
                              "-sum"
+                             "-running-sum"
                              "-product"
+                             "-running-product"
                              "-max"
                              "-min"
                              "-max-by"
