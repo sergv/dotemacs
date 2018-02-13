@@ -8,24 +8,10 @@
 
 (eval-when-compile (require 'cl))
 
-(defvar *ignored-files*
-  (let ((tbl (make-hash-table :test #'equal)))
-    (dolist (x '("org-jira.el"
-                 "recompile.el"
-                 "sexpy-highlight.el"
-                 "sexpy-highlight-old.el"
-                 "lisp-jit-lock.el"
-                 "pycomplete.el"
-                 "query-in-buffer.el"
-                 "repl.el"
-                 "prv-xemacs.el" ;; this one is really dangerous
-                 "ob-oz.el"
-                 "dbl.el"
-                 "setup-imaxima-imath.el"
-                 "common-lisp-setup.el"
-                 "icicles-rcodetools.el"))
-      (puthash x t tbl))
-    tbl))
+(defconst +ignored-files-re+
+  (rx bol
+      (or "third-party/yafolding.el/features/support/env.el")
+      eol))
 
 (defun recompile-main (emacs-dir)
   ;; (dolist (file files-to-recompile)
@@ -70,10 +56,11 @@
            (files-to-recompile
             (remove-if
              (lambda (x)
-               (let ((fname (file-name-nondirectory x)))
-                 (or (gethash fname *ignored-files* nil)
-                     ;; (string-match-pure? "^ob-.*\\.el$" fname)
-                     (string-match-pure? "^\\..*el$" fname))))
+               (let ((fname (file-name-nondirectory x))
+                     (rel-name (file-relative-name x emacs-dir)))
+                 (or (string-match-p +ignored-files-re+ rel-name)
+                     ;; (string-match-p "^ob-.*\\.el$" fname)
+                     (string-match-p "^\\..*el$" fname))))
              (append
               extra-files
               (mapcan (lambda (dir)
