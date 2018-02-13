@@ -93,7 +93,7 @@
 
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
 (add-to-list 'auto-mode-alist '("\\.hcr\\'" . ghc-core-mode))
-(add-to-list 'auto-mode-alist '("cabal\\.config.*\\'" . haskell-cabal-mode))
+(add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\)?\\'" . haskell-mode))
 (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
