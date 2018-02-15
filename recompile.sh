@@ -115,6 +115,7 @@ update-dir-autoloads \
     "src/shell" \
     "third-party/auctex" \
     "third-party/clojure-mode" \
+    "third-party/el-patch" \
     "third-party/elm-mode" \
     "third-party/flycheck" \
     "third-party/flycheck-elm" \
