@@ -142,9 +142,9 @@ enabled. Otherwise fall back to eproj tags."
         (if (eproj-query/haskell/disable-intero? proj)
             (progn
               (setf intero-disabled? t)
-              (intero-mode -1))
-          (progn
-            (intero-mode-maybe)))
+              (when intero-mode
+                (intero-mode -1)))
+          (intero-mode-maybe))
 
         (company-mode +1)
         (setq-local company-backends '(company-eproj))
@@ -152,7 +152,8 @@ enabled. Otherwise fall back to eproj tags."
         (if (eproj-query/general/disable-flycheck? proj)
             (progn
               (setf flycheck-disabled? t)
-              (flycheck-mode -1))
+              (when flycheck-mode
+                (flycheck-mode -1)))
           (progn
             (flycheck-mode +1)
             (flycheck-select-checker
