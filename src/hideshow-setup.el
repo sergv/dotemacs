@@ -6,6 +6,8 @@
 ;; Created: Tuesday, 17 July 2012
 ;; Description:
 
+(require 'el-patch)
+
 (provide 'hideshow-setup)
 
 ;;;###autoload
@@ -97,15 +99,14 @@
     ("z C" hs-hide-all)
     ("z O" hs-show-all)))
 
-
-;; add check hs-block-start-mdata-select
-(redefun hs-forward-sexp (match-data arg)
+(el-patch-defun hs-forward-sexp (match-data arg)
   "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
 Original match data is restored upon return."
   (save-match-data
     (set-match-data match-data)
-    (when hs-block-start-mdata-select
-      (goto-char (match-beginning hs-block-start-mdata-select)))
+    (el-patch-wrap 2 0
+      (when hs-block-start-mdata-select
+        (goto-char (match-beginning hs-block-start-mdata-select))))
     (funcall hs-forward-sexp-func arg)))
 
 ;; Local Variables:

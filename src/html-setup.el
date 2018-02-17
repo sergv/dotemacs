@@ -8,8 +8,12 @@
 ;; Requirements:
 ;; Status:
 
-(require 'nxml-mode)
+(require 'el-patch)
 (require 'indentation)
+(require 'nxml-mode)
+
+;;;###autoload
+(el-patch-feature rng-valid)
 
 ;;;###autoload
 (autoload 'web-mode "web-mode" nil t)
@@ -151,23 +155,17 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 (eval-after-load "rng-valid"
   '(progn
      ;; propertize Invalid message with distinctive face
-     (redefun rng-compute-mode-line-string ()
+     (el-patch-defun rng-compute-mode-line-string ()
        (cond (rng-validate-timer
-              (concat " Validated:"
-                      (number-to-string
-                       ;; Use floor rather than round because we want
-                       ;; to show 99% rather than 100% for changes near
-                       ;; the end.
-                       (floor (if (eq (buffer-size) 0)
-                                0.0
-                                (/ (* (- rng-validate-up-to-date-end (point-min))
-                                      100.0)
-                                   (- (point-max) (point-min))))))
-                      "%%"))
+              (format " Validated:%d%%"
+                      (if (= 0 (buffer-size))
+                          0
+                        (floor (- rng-validate-up-to-date-end (point-min))
+                               (- (point-max) (point-min))))))
              ((> rng-error-count 0)
               (concat " "
                       (propertize "Invalid"
-                                  'face 'error
+                                  (el-patch-add 'face 'error)
                                   'help-echo "mouse-1: go to first error"
                                   'local-map (make-mode-line-mouse-map
                                               'mouse-1

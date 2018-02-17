@@ -11,6 +11,7 @@
 ;; Some enchances to standard grep.el by redefining
 ;; some of its functions
 
+(require 'el-patch)
 (require 'grep)
 (require 'keys-def)
 (require 'compilation-setup)
@@ -45,43 +46,44 @@
      (defvar *grep-latest-dir* nil
        "Latest directory used for `rgrep', `rzgrep' or alike.")
 
+     (setf grep-expand-keywords
+           (cons '("<E>" . (if (funcall fixed-string? regexp) "-F" "-E"))
+                 grep-expand-keywords))
+
      ;; make use of inlined grep-expand-keywords and set *grep-latest-dir*
      ;; pay attention to rgrep-ignore-case
-     (redefun grep-expand-template (template &optional regexp files dir excl)
-       "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>.
-Fixed version. Also recognized <E>, which will be replaced by -E or -F depending
-on whether supplied patterns is regexp or fixed string."
-       (setf dir (or dir "."))
-       (setf *grep-latest-dir* dir)
-       (save-match-data
-         (let* ((command template)
-                (case-fold-search nil)
-                (fixed-string?
-                 (lambda (x)
-                   ;; conservative regexp detection - if there's no regexp
-                   ;; metacharacters then it's fixed string
-                   ;; (string-match-pure? "^[-a-zA-Z0-9_'\"%#@!`~ :;<>/]+$" x)
-                   (string-match-pure? (rx bol
-                                           (+ (not (any ?+ ?* ?? ?| ?\( ?\) ?\[ ?\] ?\{ ?\} ?^ ?$ ?\\)))
-                                           eol)
-                                       x)))
-                (func (lambda (token text)
-                        (when (string-match token command)
-                          (setq command
-                                (replace-match (or text "") t t command))))))
-           (funcall func "<C>" (when (or rgrep-ignore-case
-                                         (and case-fold-search
-                                              (isearch-no-upper-case-p regexp t)))
-                                 "-i"))
-           (funcall func "<D>" dir)
-           (funcall func "<F>" files)
-           (funcall func "<N>" null-device)
-           (funcall func "<X>" excl)
-           (funcall func "<E>" (if (funcall fixed-string? regexp)
-                                   "-F"
-                                 "-E"))
-           (funcall func "<R>" regexp)
-           command)))
+     (el-patch-defun grep-expand-template (template &optional regexp files dir excl)
+       "Patch grep COMMAND string replacing <C>, <D>, <F>, <R>, and <X>."
+       (el-patch-wrap 2 0
+         ((setf dir (or dir "."))
+          (setf *grep-latest-dir* dir)
+          (let* ((command template)
+                 (env `((opts . ,(let (opts)
+                                   (when (el-patch-wrap 2 0
+                                           (or rgrep-ignore-case
+                                               (and case-fold-search
+                                                    (isearch-no-upper-case-p regexp t))))
+                                     (push "-i" opts))
+                                   (cond
+                                     ((eq grep-highlight-matches 'always)
+                                      (push "--color=always" opts))
+                                     ((eq grep-highlight-matches 'auto)
+                                      (push "--color" opts)))
+                                   opts))
+                        (excl . ,excl)
+                        (dir . ,dir)
+                        (files . ,files)
+                        (regexp . ,regexp)))
+                 (case-fold-search nil))
+            (dolist (kw grep-expand-keywords command)
+              (if (string-match (car kw) command)
+                  (setq command
+                        (replace-match
+                         (or (if (symbolp (cdr kw))
+                                 (eval (cdr kw) env)
+                               (save-match-data (eval (cdr kw) env)))
+                             "")
+                         t t command))))))))
 
      (defadvice grep-filter (before grep-filter-make-relative-filename-advice
                                     activate
@@ -113,7 +115,7 @@ on whether supplied patterns is regexp or fixed string."
 
 (defparameter rgrep-ignore-case nil
   "Dynamically-bound variable that controls whether current
-rgrep invokation should be case-insensetive.")
+rgrep invocation should be case-insensetive.")
 
 (defun rgrep-wrapper (regexp &optional files dir ignore-case)
   "Similar to `rgrep' but ignores case if universal argument was supplied

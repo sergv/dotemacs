@@ -8,16 +8,16 @@
 ;; Requirements:
 ;; Status:
 
-(require 'common)
-(require 'octave-abbrev+)
 (require 'browse-kill-ring-setup)
+(require 'common)
+(require 'el-patch)
+(require 'octave-abbrev+)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.\\(?:m\\|octaverc\\)$" . octave-mode))
 
 ;; (vimmize-motion octave-beginning-of-line)
 ;; (vimmize-motion octave-end-of-line)
-
 
 ;; set up hideshow
 (add-to-list 'hs-special-modes-alist
@@ -53,13 +53,16 @@
                    ;;   (skip-chars-backward " \t\n"))
                    ))
 
+;;;###autoload
+(el-patch-feature octave)
+
 (eval-after-load "octave"
   '(progn
      (defvar inferior-octave-on-output-hook nil
        "Hook to run after any output arrived from process.")
 
      ;; add invokation of inferior-octave-on-output-hook
-     (redefun octave-send-region (beg end)
+     (el-patch-defun octave-send-region (beg end)
        "Send current region to the inferior Octave process."
        (interactive "r")
        (inferior-octave t)
@@ -86,7 +89,7 @@
                           inferior-octave-output-list
                           (list inferior-octave-output-string))
                          "\n")))
-           (run-hooks 'inferior-octave-on-output-hook)))
+           (el-patch-add (run-hooks 'inferior-octave-on-output-hook))))
        (if octave-send-show-buffer
            (display-buffer inferior-octave-buffer)))
 
