@@ -12,19 +12,62 @@
 
 (require 'common)
 (require 'common-heavy)
+(require 'el-patch)
 (require 'vim-mock)
 (require 'magit)
 (require 'magit-blame)
 (require 'search)
 (require 'vim-setup)
 
+;;;###autoload
+(el-patch-feature magit)
+
 ;;; Magit redefinitions
 
-(redefun magit-reset-soft (commit)
+(el-patch-defun magit-reset (commit &optional hard)
+  "Reset the head and index to COMMIT, but not the working tree.
+With a prefix argument also reset the working tree.
+\n(git reset --mixed|--hard COMMIT)"
+  (interactive
+   (list ((el-patch-swap
+            magit-read-branch-or-commit
+            magit-read-branch-or-commit-prompt-for-previous-commit-first)
+          (if current-prefix-arg
+              "Hard reset to"
+            "Reset head to"))
+         current-prefix-arg))
+  (magit-reset-internal (if hard "--hard" "--mixed") commit))
+
+(el-patch-defun magit-reset-head (commit)
+  "Reset the head and index to COMMIT, but not the working tree.
+\n(git reset --mixed COMMIT)"
+  (interactive
+   (list ((el-patch-swap
+            magit-read-branch-or-commit
+            magit-read-branch-or-commit-prompt-for-previous-commit-first)
+          "Reset head to")))
+  (magit-reset-internal "--mixed" commit))
+
+(el-patch-defun magit-reset-soft (commit)
   "Reset the head to COMMIT, but not the index and working tree.
 \n(git reset --soft REVISION)"
-  (interactive (list (magit-read-branch-or-commit-prompt-for-previous-commit-first "Soft reset to")))
+  (interactive
+   (list ((el-patch-swap
+            magit-read-branch-or-commit
+            magit-read-branch-or-commit-prompt-for-previous-commit-first)
+          "Soft reset to")))
   (magit-reset-internal "--soft" commit))
+
+(el-patch-defun magit-reset-hard (commit)
+  "Reset the head, index, and working tree to COMMIT.
+\n(git reset --hard REVISION)"
+  (interactive
+   (list ((el-patch-swap
+            magit-read-branch-or-commit
+            magit-read-branch-or-commit-prompt-for-previous-commit-first)
+          "Hard reset to")))
+  (magit-reset-internal "--hard" commit))
+
 
 (defun magit-read-branch-or-commit-prompt-for-previous-commit-first (prompt &optional secondary-default)
   (or (magit-completing-read prompt (cons "HEAD^" (cons "HEAD" (magit-list-refnames)))

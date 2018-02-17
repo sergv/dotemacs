@@ -11,9 +11,9 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
-(require 'render-formula)
-
+(require 'el-patch)
 (require 'org-drill)
+(require 'render-formula)
 
 ;; for reveal.js presentations
 (require 'htmlize)
@@ -21,6 +21,11 @@
 
 ;; tangling
 (require 'ob)
+
+;;;###autoload
+(el-patch-feature ob-tangle)
+;;;###autoload
+(el-patch-feature org-drill)
 
 (def-keys-for-map global-map
   ("C-c l" org-store-link)
@@ -251,11 +256,11 @@
            (cons (cons "scheme" "scm")
                  org-babel-tangle-lang-exts))
 
-     ;; fix case when org-bracket-link-analytic-regexp matches ordinary link
+     ;; Fix issue when org-bracket-link-analytic-regexp matches ordinary link
      ;; so that (match-string 5) - which is supposed to be the source name -
      ;; becomes nil
-     (redefun org-babel-detangle (&optional source-code-file)
-       "Propagate changes in source file back original to Org-mode file.
+     (el-patch-defun org-babel-detangle (&optional source-code-file)
+       "Propagate changes in source file back original to Org file.
 This requires that code blocks were tangled with link comments
 which enable the original code blocks to be found."
        (interactive)
@@ -264,19 +269,20 @@ which enable the original code blocks to be found."
          (goto-char (point-min))
          (let ((counter 0) new-body end)
            (while (re-search-forward org-bracket-link-analytic-regexp nil t)
-             (when (and (not (null? (match-string 5)))
-                        (re-search-forward
-                         (concat " " (regexp-quote (match-string 5)) " ends here")))
+             (when (el-patch-wrap 2 0
+                     (and (match-string 5)
+                          (re-search-forward
+                           (concat " " (regexp-quote (match-string 5)) " ends here"))))
                (setq end (match-end 0))
                (forward-line -1)
                (save-excursion
                  (when (setq new-body (org-babel-tangle-jump-to-org))
                    (org-babel-update-block-body new-body)))
                (setq counter (+ 1 counter)))
-             (goto-char end))
-           (prog1 counter (message "detangled %d code blocks" counter)))))))
-
-
+             (el-patch-wrap 2 0
+               (and end
+                    (goto-char end))))
+           (prog1 counter (message "Detangled %d code blocks" counter)))))))
 
 ;;; common org-drill's question cards with math rendering
 ;;; and other setup
@@ -354,14 +360,17 @@ when question is rated."
      (setf org-drill-optimal-factor-matrix
            (persistent-store-get 'org-drill-optimal-factor-matrix))
 
-     (redefun org-drill-save-optimal-factor-matrix ()
-       (message "Saving optimal factor matrix...")
-       (persistent-store-put 'org-drill-optimal-factor-matrix
+     (el-patch-defun org-drill-save-optimal-factor-matrix ()
+       (el-patch-swap
+         (savehist-autosave)
+         (progn
+           (message "Saving optimal factor matrix...")
+           (persistent-store-put 'org-drill-optimal-factor-matrix
 
-                             org-drill-optimal-factor-matrix))
+                                 org-drill-optimal-factor-matrix))))
 
      ;; remove unconditional hiding of sub-sublevels
-     (redefun org-drill-hide-subheadings-if (test)
+     (el-patch-defun org-drill-hide-subheadings-if (test)
        "TEST is a function taking no arguments. TEST will be called for each
 of the immediate subheadings of the current drill item, with the point
 on the relevant subheading. TEST should return nil if the subheading is
@@ -374,13 +383,14 @@ the current topic."
          (save-excursion
            (org-map-entries
             (lambda ()
-              (when (and (not (outline-invisible-p))
+              (when (and (not (org-invisible-p))
                          (> (org-current-level) drill-entry-level))
-                (when (funcall test)
+                (when (el-patch-splice 2 0
+                        (or (/= (org-current-level) (1+ drill-entry-level))
+                            (funcall test)))
                   (hide-subtree))
                 (push (point) drill-sections)))
-            ""
-            'tree))
+            "" 'tree))
          (reverse drill-sections)))))
 
 ;;; other functions

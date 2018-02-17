@@ -118,16 +118,6 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
           (t
            func)))))
 
-
-(defmacro redefun (func args &rest body)
-  "Redefine function FUNC. Arguments as in `defun'."
-  (declare (indent defun))
-  (let ((new-name (intern (concat (symbol-name func) "+"))))
-    `(prog1 nil
-       (defun ,new-name ,args
-         ,@body)
-       (fset ',func ',new-name))))
-
 (defmacro defun-caching (func args reset-cache-func cache-args &rest body)
   "Defun new function FUNC that automatically caches it's output depending of values of
 CACHE-ARGS, which should be a list.
