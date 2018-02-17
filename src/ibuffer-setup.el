@@ -8,8 +8,8 @@
 ;; Requirements:
 ;; Status:
 
+(require 'el-patch)
 (require 'ibuffer)
-
 
 (defalias 'list-buffers 'ibuffer)
 
@@ -18,6 +18,8 @@
       ibuffer-jump-offer-only-visible-buffers t
       ibuffer-show-empty-filter-groups nil
       ibuffer-use-other-window nil)
+
+(el-patch-feature ibuffer)
 
 (eval-after-load
     "ibuffer"
@@ -101,28 +103,32 @@ git repository root"
                     (hash-table-values *eproj-projects*))
               #'string<)))
 
-     ;; make it handle ibuffer-aux-fliter-groups and use case-insensetive completion
-     (redefun ibuffer-switch-to-saved-filter-groups (name)
+     ;; make it handle ibuffer-aux-filter-groups and use case-insensetive completion
+     (el-patch-defun ibuffer-switch-to-saved-filter-groups (name)
        "Set this buffer's filter groups to saved version with NAME.
 The value from `ibuffer-saved-filter-groups' is used."
        (interactive
         (list
-         (if (null? ibuffer-saved-filter-groups)
-             (error "No saved filters")
-           (let ((completion-ignore-case t))
-             (ido-completing-read "Switch to saved filter group: "
-                                  (nconc (mapcar #'car ibuffer-saved-filter-groups)
-                                         (mapcar #'car ibuffer-aux-filter-groups))
-                                  nil
-                                  t)))))
-       (aif (cdr-safe (assoc name ibuffer-saved-filter-groups))
-           (setq ibuffer-filter-groups it)
-         (aif (cdr-safe (assoc name ibuffer-aux-filter-groups))
-             (setq ibuffer-filter-groups (if (functionp it)
-                                             (funcall it)
-                                           it))
-           (error "definition for group %s not found" name)))
-       (setq ibuffer-hidden-filter-groups nil)
+         (cond ((null ibuffer-saved-filter-groups)
+                (error "No saved filters"))
+               ;; `ibuffer-saved-filter-groups' is a user variable that defaults
+               ;; to nil.  We assume that with one element in this list the user
+               ;; knows what she wants.  See bug#12331.
+               ((null (cdr ibuffer-saved-filter-groups))
+                (caar ibuffer-saved-filter-groups))
+               (t
+                (el-patch-wrap 2 0
+                  (let ((completion-ignore-case t))
+                    ((el-patch-swap completing-read ido-completing-read)
+                     "Switch to saved filter group: "
+                     (el-patch-swap
+                       ibuffer-saved-filter-groups
+                       (append ibuffer-saved-filter-groups
+                               ibuffer-aux-filter-groups))
+                     nil
+                     t)))))))
+       (setq ibuffer-filter-groups (cdr (assoc name ibuffer-saved-filter-groups))
+             ibuffer-hidden-filter-groups nil)
        (ibuffer-update nil t))
 
      (setf ibuffer-saved-filter-groups

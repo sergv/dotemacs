@@ -14,6 +14,7 @@
 
 (require 'advices-util)
 (require 'common)
+(require 'el-patch)
 (require 'eldoc)
 (require 'indentation)
 (require 'macro-util)
@@ -28,28 +29,6 @@
     clojure-mode
     lisp-mode)
   "List of modes that are considered to be lisp.")
-
-(eval-after-load
-    'rainbow-delimiters
-  '(progn
-     ;; added handling of #\(, #\), etc in addition to ?\(, ?\), etc
-     (redefun rainbow-delimiters-char-ineligible-p (loc)
-       "Return t if char at LOC should be skipped, e.g. if inside a comment.
-
-Returns t if char at loc meets one of the following conditions:
-- Inside a string.
-- Inside a comment.
-- Is an escaped char, e.g. ?\)"
-       (let ((parse-state (save-excursion
-                            (beginning-of-defun)
-                            ;; (point) is at beg-of-defun; loc is the char location
-                            (parse-partial-sexp (point) loc))))
-         (or (nth 3 parse-state)   ; inside string?
-             (nth 4 parse-state)   ; inside comment?
-             ;; check for ?\(, ?\), #\(, #\) etc
-             (and (char= (char-before loc) ?\\)
-                  (or (char= (char-before (- loc 1)) ?\?)
-                      (char= (char-before (- loc 1)) ?\#))))))))
 
 (eval-after-load
     'lisp-mode
@@ -69,7 +48,7 @@ rigidly along with this one."
              (pos (- (point-max) (point)))
              (beg (progn (beginning-of-line) (point))))
          (skip-chars-forward " \t")
-         (if (or (null indent) (looking-at-pure? "\\s<\\s<\\s<"))
+         (if (or (null indent) (looking-at-p "\\s<\\s<\\s<"))
              ;; Don't alter indentation of a ;;; comment line
              ;; or a line that starts in a string.
              (goto-char (- (point-max) pos))

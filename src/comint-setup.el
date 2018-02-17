@@ -9,6 +9,7 @@
 ;; Status:
 
 (provide 'comint-setup)
+(require 'el-patch)
 
 ;;;###autoload
 (setf comint-input-ignoredups t
@@ -21,28 +22,31 @@
 ;;;###autoload
 (eval-after-load "comint" '(require 'comint-setup))
 
+(el-patch-feature shell)
 
 (eval-after-load
     "shell"
   '(progn
      ;; this calls `comint-write-input-ring' from the repl buffer so that it
-     ;; will see correct value of `comint-write-input-ring' which is permamently
+     ;; will see correct value of `comint-input-ring' which is permamently
      ;; local everywhere
-     (redefun shell-write-history-on-exit (process event)
+     (el-patch-defun shell-write-history-on-exit (process event)
        "Called when the shell process is stopped.
 
 Writes the input history to a history file
 `comint-input-ring-file-name' using `comint-write-input-ring'
-from the right buffer and inserts a short message in the shell buffer.
+and inserts a short message in the shell buffer.
 
 This function is a sentinel watching the shell interpreter process.
 Sentinels will always get the two parameters PROCESS and EVENT."
+       (el-patch-remove (comint-write-input-ring))
        (let ((buf (process-buffer process)))
          (when (buffer-live-p buf)
            (with-current-buffer buf
-             ;; Write history.
-             (comint-write-input-ring)
+             (el-patch-add (comint-write-input-ring))
              (insert (format "\nProcess %s %s\n" process event))))))))
+
+(el-patch-feature comint)
 
 (eval-after-load
     "comint"
@@ -50,7 +54,7 @@ Sentinels will always get the two parameters PROCESS and EVENT."
      ;; NOTE: this should be updated regularly
      ;; rework agressive bolding of comint input so that it doesn't replace
      ;; original face of input, but makes it bolded instead
-     (redefun comint-send-input (&optional no-newline artificial)
+     (el-patch-defun comint-send-input (&optional no-newline artificial)
        "Send input to process.
 After the process output mark, sends all text from the process mark to
 point as input to the process.  Before the process output mark, calls
@@ -100,6 +104,12 @@ If the Comint is Lucid Common Lisp,
 
 Similarly for Soar, Scheme, etc."
        (interactive)
+       ;; If we're currently completing, stop.  We're definitely done
+       ;; completing, and by sending the input, we might cause side effects
+       ;; that will confuse the code running in the completion
+       ;; post-command-hook.
+       (when completion-in-region-mode
+         (completion-in-region-mode -1))
        ;; Note that the input string does not include its terminal newline.
        (let ((proc (get-buffer-process (current-buffer))))
          (if (not proc) (user-error "Current buffer has no process")
@@ -147,22 +157,19 @@ Similarly for Soar, Scheme, etc."
                (with-silent-modifications
                  (when (> end beg)
                    (add-text-properties beg end
-                                        '(front-sticky t
-                                                       ;; fontification is disabled here
-                                                       ;; font-lock-face comint-highlight-input
-                                                       ))
-                   ;; Disable this since I don't use mouse.
-                   ;; (unless comint-use-prompt-regexp
-                   ;;   ;; Give old user input a field property of `input', to
-                   ;;   ;; distinguish it from both process output and unsent
-                   ;;   ;; input.  The terminating newline is put into a special
-                   ;;   ;; `boundary' field to make cursor movement between input
-                   ;;   ;; and output fields smoother.
-                   ;;   (add-text-properties
-                   ;;    beg end
-                   ;;    '(mouse-face highlight
-                   ;;                 help-echo "mouse-2: insert after prompt as new input")))
-                   )
+                                        (el-patch-swap
+                                          '(front-sticky t font-lock-face comint-highlight-input)
+                                          '(front-sticky t)))
+                   (unless comint-use-prompt-regexp
+                     ;; Give old user input a field property of `input', to
+                     ;; distinguish it from both process output and unsent
+                     ;; input.  The terminating newline is put into a special
+                     ;; `boundary' field to make cursor movement between input
+                     ;; and output fields smoother.
+                     (add-text-properties
+                      beg end
+                      '(mouse-face highlight
+                                   help-echo "mouse-2: insert after prompt as new input"))))
                  (unless (or no-newline comint-use-prompt-regexp)
                    ;; Cover the terminating newline
                    (add-text-properties end (1+ end)

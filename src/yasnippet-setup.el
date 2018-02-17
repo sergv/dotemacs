@@ -7,6 +7,10 @@
 ;; Description:
 
 (require 'common)
+(require 'el-patch)
+
+;;;###autoload
+(el-patch-feature yasnippet)
 
 (setf yas-ignore-filenames-as-triggers t
       yas-snippet-dirs (list (concat +resources-path+ "/snippets"))
@@ -84,23 +88,27 @@ simlifying encoding of several keys for one snippet."
             (list key template (concat name "/" key) condition group expand-env file binding uuid))
           keys)))
 
-;; this causes yasnippet to consider only *.snip files
-(redefun yas--subdirs (directory &optional file?)
-  "Return subdirs or files of DIRECTORY according to FILE?."
-  (delete-if (lambda (file)
-               (let ((filename (file-name-nondirectory file)))
-                 (or (string-match-p "^\\." filename)
-                     (string-match-p "^#.*#$" filename)
-                     (string-match-p "~$" filename)
-                     (if file?
-                         (or (file-directory-p file)
-                             ;; modified here
-                             (not (string-match-p "\\.snip$" filename)))
-                       (not (file-directory-p file))))))
-             (directory-files directory t)))
+;; Modification causes yasnippet to consider only *.snip files.
+(el-patch-defun yas--subdirs (directory &optional filep)
+  "Return subdirs or files of DIRECTORY according to FILEP."
+  (cl-remove-if (lambda (file)
+                  (or ((el-patch-swap string-match string-match-p)
+                       "\\`\\."
+                       (file-name-nondirectory file))
+                      ((el-patch-swap string-match string-match-p)
+                       "\\`#.*#\\'"
+                       (file-name-nondirectory file))
+                      ((el-patch-swap string-match string-match-p)
+                       "~\\'"
+                       (file-name-nondirectory file))
+                      (if filep
+                          (file-directory-p file)
+                        (not (file-directory-p file)))
+                      (el-patch-add (not (string-match-p "\\.snip$" file)))))
+                (directory-files directory t (el-patch-add nil t))))
 
-;; use yas--parse-templates instead of yas--parse-template
-(redefun yas--load-directory-2 (directory mode-sym)
+;; Use yas--parse-templates instead of yas--parse-template.
+(el-patch-defun yas--load-directory-2 (directory mode-sym)
   ;; Load .yas-setup.el files wherever we find them
   ;;
   (yas--load-yas-setup-file (expand-file-name ".yas-setup" directory))
@@ -115,8 +123,11 @@ simlifying encoding of several keys for one snippet."
           ;; `insert-file-contents' (avoids Emacs bug #23659).
           (erase-buffer)
           (insert-file-contents file)
-          (dolist (template (yas--parse-templates file))
-            (push template snippet-defs)))))
+          (el-patch-swap
+            (push (yas--parse-template file)
+                  snippet-defs)
+            (dolist (template (yas--parse-templates file))
+              (push template snippet-defs))))))
     (when snippet-defs
       (yas-define-snippets mode-sym
                            snippet-defs))
@@ -124,7 +135,7 @@ simlifying encoding of several keys for one snippet."
     ;;
     (dolist (subdir (yas--subdirs directory))
       (yas--load-directory-2 subdir
-                             mode-sym))))
+                            mode-sym))))
 
 (defun yas-skip-and-clear-or-delete-backward-char (&optional field)
   "Clears unmodified field if at field start, skips to next tab.

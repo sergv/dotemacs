@@ -30,7 +30,6 @@
          "def-keys-for-map"
          "defvar-local"
          "rxx"
-         "redefun"
          "with-disabled-undo"
          "with-current-frame"
          "with-preserved-buffer-modified-p"
@@ -39,9 +38,6 @@
          "with-hidden-comments"
          "with-hidden-cloze-hints"
          "with-hidden-cloze-text")))
-
-
-(put 'redefun 'doc-string-elt 3)
 
 (defparameter *emacs-lisp-indent-specs*
   '((autoload nil)
@@ -52,7 +48,6 @@
     (condition-case 2)
     (rxx 1)
     (define-derived-mode 3)
-    (redefun defun)
     (with-disabled-undo nil)
     (with-current-frame 1)
     (with-preserved-buffer-modified-p nil)
