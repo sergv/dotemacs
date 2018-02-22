@@ -101,13 +101,14 @@
       warning-minimum-level :error
       use-empty-active-region t
 
-      ;; Disable this to speed up rendering of long lines.
-      bidi-display-reordering nil
-
       ;; Set only variables marked as safe, ignore all other.
       enable-local-variables :safe
 
       sentence-end-double-space nil)
+
+;; Speed up display of long lines at the expense of correct
+;; handling of bidirectional text.
+(setq-default bidi-display-reordering nil)
 
 (when (boundp 'ring-bell-function)
   (setf ring-bell-function #'ignore))
