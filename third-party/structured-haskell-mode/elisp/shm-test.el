@@ -128,7 +128,8 @@
   (when (fboundp 'electric-indent-mode)
     (electric-indent-mode -1))
   (text-mode)
-  (vim:normal-mode -1)
+  (when (fboundp #'vim:normal-mode)
+    (vim:normal-mode -1))
   (let ((customizations (plist-get test :customizations)))
     (when customizations
       (dolist (entry customizations)

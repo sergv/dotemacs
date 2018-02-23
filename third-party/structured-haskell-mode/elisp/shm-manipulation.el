@@ -18,6 +18,7 @@
 ;;; Code:
 
 (require 'shm-layout)
+(require 'shm-utils)
 
 (defun shm/split ()
   "Split the current thing into two parts.
@@ -544,7 +545,7 @@ data JSValue
         (let ((ast (shm-get-nodes spans (car bounds) (cdr bounds))))
           (if ast
               (progn
-                (modeline-set-syntax-check-result 'ok)
+                (shm-modeline-set-syntax-check-result 'ok)
                 (set-marker m1 nil)
                 (set-marker m2 nil)
                 (set-marker m3 nil)
@@ -557,7 +558,7 @@ data JSValue
                 (let ((inhibit-message t))
                   (shm/init)))
             (progn
-              (modeline-set-syntax-check-result 'error)
+              (shm-modeline-set-syntax-check-result 'error)
               (when shm-display-quarantine
                 (shm-quarantine-overlay (car bounds) (cdr bounds)))
               nil)))))))
