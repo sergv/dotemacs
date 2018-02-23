@@ -217,7 +217,7 @@ pre x i = case cast x :: Maybe (Exp SrcSpanInfo) of
   _ ->
     case cast x :: Maybe (Deriving SrcSpanInfo) of
       -- <deriving (X,Y,Z)> becomes <deriving (<X,Y,Z>)
-      Just (Deriving _ ds@(_:_)) ->
+      Just (Deriving _ _ ds@(_:_)) ->
         [ spanHSE
             (FakeType InstHeads)
             (SrcSpan
