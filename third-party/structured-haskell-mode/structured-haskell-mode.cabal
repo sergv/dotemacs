@@ -68,7 +68,7 @@ library
     containers,
     dlist,
     ghc-prim,
-    haskell-src-exts >= 1.18,
+    haskell-src-exts >= 1.20,
     mtl,
     prettyprinter,
     text,
