@@ -176,7 +176,25 @@ type with parens if type contains spaces."
                 (insert " !")
                 (shm/reparse))
             (haskell-smart-operators-exclamation-mark)))
-      (haskell-smart-operators-exclamation-mark))))
+      (let ((data-decl-node-pair (shm-any-parent-satisfies?
+                                  (lambda (node-pair)
+                                    (let ((parent-pair (shm-node-parent node-pair)))
+                                      (and parent-pair
+                                           (eq 'ConDecl (shm-node-cons (cdr parent-pair))))))
+                                  (save-excursion
+                                    (skip-syntax-forward " ")
+                                    (shm-current-node-pair)))))
+        (haskell-smart-operators--insert-char-optionally-surrounding-with-spaces
+         ?!
+         (not data-decl-node-pair))
+        ;; Delete whitespsace after inserted exclamation mark if we're within
+        ;; datatype decalration.
+        (when data-decl-node-pair
+          (let ((start (point)))
+            (skip-syntax-forward " >")
+            (when (awhen (shm-current-node)
+                    (< (shm-node-start it) (shm-node-end (cdr data-decl-node-pair))))
+              (delete-region start (point)))))))))
 
 (defun shm/space ()
   "Insert a space but sometimes do something more clever, like
