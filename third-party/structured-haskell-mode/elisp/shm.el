@@ -39,6 +39,7 @@
 (require 'shm-nav)
 (require 'shm-manipulation)
 (require 'shm-debug)
+(require 'shm-utils)
 
 (defvar shm-map
   (let ((map (make-sparse-keymap)))
@@ -197,7 +198,7 @@
   (unless shm-parsing-timer
     (setq shm-parsing-timer
           (run-with-idle-timer shm-idle-timeout t 'shm-reparsing-timer)))
-  (modeline-set-syntax-check-result 'unknown))
+  (shm-modeline-set-syntax-check-result 'unknown))
 
 (defun shm-mode-stop ()
   "Stop the minor mode. Restore various settings and clean up any
@@ -223,7 +224,7 @@ state that will hopefully be garbage collected."
   (setq shm-last-parse-start 0)
   (setq shm-last-parse-end 0)
   (setq shm-last-point 0)
-  (modeline-set-syntax-check-result 'disabled))
+  (shm-modeline-set-syntax-check-result 'disabled))
 
 (defun shm-reparsing-timer ()
   "Re-parse the tree on the idle timer."
