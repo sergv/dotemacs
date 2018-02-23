@@ -74,6 +74,9 @@
 (defun haskell-smart-operators--insert-char-surrounding-with-spaces (char)
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
+  (haskell-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
+
+(defun haskell-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
   (if (or current-prefix-arg
           (haskell-smart-operators--literal-insertion?)
           (not (gethash char haskell-smart-operators--operator-chars)))
@@ -139,9 +142,10 @@ stick it to the previous operator on line."
       ;; Insert operator char.
       (insert-char char)
       ;; Decide whether to insert space after the operator.
-      (when (not (and (char-equal char ?\\)
-                      before ;; not at beginning of buffer
-                      (char-equal before ?\()))
+      (when (and insert-space-after
+                 (not (and (char-equal char ?\\)
+                           before ;; not at beginning of buffer
+                           (char-equal before ?\())))
         (let ((after (char-after)))
           (when (or (not after) ;; at end of buffer
                     ;; If the next thing is lambda then we don't want to merge
@@ -161,8 +165,7 @@ stick it to the previous operator on line."
   (interactive "p")
   (unless (characterp last-command-event)
     (error "Last event is not a character: %s" last-command-event))
-  (haskell-smart-operators--insert-char-surrounding-with-spaces
-   last-command-event))
+  (haskell-smart-operators--insert-char-surrounding-with-spaces last-command-event))
 
 ;;;###autoload
 (defun haskell-smart-operators-$ ()
@@ -301,6 +304,9 @@ strings or commetns. Expand into {- _|_ -} if inside { *}."
             (insert-char ?\s))
           (insert-char ?!))
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?!))))
+
+(defun haskell-smart-operators-exclamation-mark--impl (insert-space-after)
+  (haskell-smart-operators--insert-char-optionally-surrounding-with-spaces ?! insert-space-after))
 
 (defvar haskell-smart-operators-mode-map
   (let ((keymap (make-sparse-keymap)))
