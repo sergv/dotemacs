@@ -21,10 +21,13 @@
 (require 'shm-node)
 (require 'shm-in)
 (require 'shm-overlays)
+(require 'shm-utils)
 
 (require 'ring)
 (require 'cl)
 (require 'cl-lib)
+
+(require 'bert-rpc)
 
 (defvar shm-lighter " SHM?"
   "The lighter for structured Haskell mode.")
@@ -120,7 +123,7 @@ and instate this one."
                 (shm-font-lock-region start end))
               (let ((ast (shm-get-nodes spans start end)))
                 (cl-assert (not (null ast)))
-                (modeline-set-syntax-check-result 'ok)
+                (shm-modeline-set-syntax-check-result 'ok)
                 (when pair
                   (shm-delete-markers pair))
                 (shm-set-decl-ast start ast)
@@ -200,7 +203,8 @@ sets `shm--server-process' and `shm--server-process-port' variables."
   (when (or (not shm--server-process-port)
             (and shm--server-process
                  (not (eq 'run (process-status shm--server-process)))))
-    (notify "Starting shm server...")
+    (unless noninteractive
+      (message "Starting shm server..."))
     (setf shm--server-process
           (with-temp-buffer
             (let ((proc
@@ -391,7 +395,7 @@ imagine."
           (parse-error
            (let ((pretty-message
                   (shm--format-parse-error parse-error)))
-             (modeline-set-syntax-check-result
+             (shm-modeline-set-syntax-check-result
                  'error
                (list 'help-echo pretty-message
                      'mouse-face 'mode-line-highlight))
@@ -783,7 +787,12 @@ then the parent is the correct one to work with."
 
 The start and end point of the parent can be the same as the
 child, and in fact is common."
-  (cl-assert (symbolp type))
+  (cl-assert (or (symbolp type)
+                 (and (listp type)
+                      (every #'symbolp type)))
+             nil
+             "Invalid symbol type: %S"
+             type)
   (save-excursion
     (goto-char (shm-node-start (cdr node-pair)))
     (let* ((actual-parent-pair (shm-node-backwards (1- (car node-pair))
