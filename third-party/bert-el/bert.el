@@ -132,9 +132,30 @@ specification of BERT given by `bert-bindat-spec'."
         ((stringp      obj) (bert-encode-string     obj))
         (t (error "cannot encode %S" obj))))
 
+(defun bert--encode-integer-to-32-bit (x)
+  (let ((sign-bit (if (< x 0)
+                      #x80000000
+                    0)))
+    (logior sign-bit (logand #x7fffffff x))))
+
+(defun bert--decode-integer-from-32-bit (y)
+  (if (= #x80000000 (logand #x80000000 y))
+      (logior (logxor -1 #x3fffffff) (logand #x3fffffff y))
+    (progn
+      ;; Check whether 31st bit is 1.
+      (when (= #x40000000 (logand #x40000000 y))
+        (error "Cannot decode integers larger that 29 bits (plus sign). While decoding integer %s, %x, which is positive and has 31st bit set."
+               y
+               y))
+      (logand #x3fffffff y))))
+
 (defun bert-encode-integer (integer)
+  (cl-assert (<= (abs integer) #x3fffffff)
+             nil
+             "Cannot encode integers larger than 30 bits: %s"
+             integer)
   `((tag . ,(if (and (>= integer 0) (< integer 256)) 97 98))
-    (integer . ,integer)))
+    (integer . ,(bert--encode-integer-to-32-bit integer))))
 
 (defun bert-pad-right (string width char)
   (concat string
@@ -190,15 +211,6 @@ Limitations:
     (assert (= magic 131) t "bad magic: %d" magic)
     (bert-decode struct)))
 
-(defadvice bert-unpack (around bert-unpack-around activate)
-  "Dynamically rebind `lsh' to `ash' in the body of `bert-unpack'.
-
-This is really a hack allowing us to decode signed 30-bit Elisp
-integers from unsigned 32-bit integers in network order using
-`bindat--unpack-u32' as prescribed by the BERT format."
-  (letf (((symbol-function 'lsh) #'ash))
-    ad-do-it))
-
 (defun bert-decode (struct)
   "Decode STRUCT as an Elisp object.
 
@@ -216,7 +228,8 @@ STRUCT is assumed to conform to the bindat specification given by
     ((110 111) (error "cannot decode bignums"))))
 
 (defun bert-decode-integer (struct)
-  (bindat-get-field struct 'integer))
+  (bert--decode-integer-from-32-bit
+   (bindat-get-field struct 'integer)))
 
 (defun bert-decode-float (struct)
   (read (bindat-get-field struct 'float-string)))
