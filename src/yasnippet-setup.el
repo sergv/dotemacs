@@ -102,9 +102,12 @@ simlifying encoding of several keys for one snippet."
                        "~\\'"
                        (file-name-nondirectory file))
                       (if filep
-                          (file-directory-p file)
-                        (not (file-directory-p file)))
-                      (el-patch-add (not (string-match-p "\\.snip$" file)))))
+                          ;; If we want files then remove folders *or* files
+                          ;; that don't have .snip extension.
+                          (el-patch-wrap 1 1
+                            (or (file-directory-p file)
+                                (not (string-match-p "\\.snip$" file))))
+                        (not (file-directory-p file)))))
                 (directory-files directory t (el-patch-add nil t))))
 
 ;; Use yas--parse-templates instead of yas--parse-template.
