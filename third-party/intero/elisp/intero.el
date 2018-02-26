@@ -70,7 +70,7 @@
   :group 'haskell)
 
 (defcustom intero-package-version
-  "0.1.24"
+  "0.1.28"
   "Package version to auto-install.
 
 This version does not necessarily have to be the latest version
@@ -177,6 +177,7 @@ by default."
         (add-hook 'completion-at-point-functions 'intero-completion-at-point nil t)
         (add-to-list (make-local-variable 'company-backends) 'intero-company)
         (company-mode)
+        (setq-local company-minimum-prefix-length 1)
         (unless eldoc-documentation-function
           (setq-local eldoc-documentation-function #'ignore))
         (add-function :before-until (local 'eldoc-documentation-function) #'intero-eldoc)
@@ -260,6 +261,21 @@ and blacklist match, then the whitelist entry wins, and
   "List of callbacks waiting for output.
 LIST is a FIFO.")
 
+(defvar-local intero-async-network-cmd nil
+  "Command to send to the async network process when we connect.")
+
+(defvar-local intero-async-network-connected nil
+  "Did we successfully connect to the intero service?")
+
+(defvar-local intero-async-network-state nil
+  "State to pass to the callback once we get a response.")
+
+(defvar-local intero-async-network-worker nil
+  "The worker we're associated with.")
+
+(defvar-local intero-async-network-callback nil
+  "Callback to call when the connection is closed.")
+
 (defvar-local intero-arguments (list)
   "Arguments used to call the stack process.")
 
@@ -294,6 +310,9 @@ This is slower, but will build required dependencies.")
 
 (defvar-local intero-starting nil
   "When non-nil, indicates that the intero process starting up.")
+
+(defvar-local intero-service-port nil
+  "Port that the intero process is listening on for asynchronous commands.")
 
 (defvar-local intero-hoogle-port nil
   "Port that hoogle server is listening on.")
@@ -869,19 +888,29 @@ Other arguments are IGNORED."
     (interactive (company-begin-backend 'intero-company))
     (prefix
      (unless (intero-gave-up 'backend)
-       (let ((prefix-info (intero-completions-grab-prefix)))
-         (when prefix-info
-           (cl-destructuring-bind
-               (beg end prefix _type) prefix-info
-             prefix)))))
+       (or (let ((hole (intero-grab-hole)))
+             (when hole
+               (goto-char (cdr hole))
+               (buffer-substring (car hole) (cdr hole))))
+           (let ((prefix-info (intero-completions-grab-prefix)))
+             (when prefix-info
+               (cl-destructuring-bind
+                   (beg end prefix _type) prefix-info
+                 prefix))))))
     (candidates
      (unless (intero-gave-up 'backend)
-       (let ((prefix-info (intero-completions-grab-prefix)))
-         (when prefix-info
-           (cons :async
-                 (-partial 'intero-company-callback
-                           (current-buffer)
-                           prefix-info))))))))
+       (let ((beg-end (intero-grab-hole)))
+         (if beg-end
+             (cons :async
+                   (-partial 'intero-async-fill-at
+                             (current-buffer)
+                             (car beg-end)))
+           (let ((prefix-info (intero-completions-grab-prefix)))
+             (when prefix-info
+               (cons :async
+                     (-partial 'intero-company-callback
+                               (current-buffer)
+                               prefix-info))))))))))
 
 (define-obsolete-function-alias 'company-intero 'intero-company)
 
@@ -1062,6 +1091,47 @@ pragma is supported also."
                                )))))))))))))
       (when prefix-value
         (list prefix-start prefix-end prefix-value prefix-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hole filling
+
+(defun intero-async-fill-at (buffer beg cont)
+  "Make the blocking call to the process."
+  (with-current-buffer buffer
+    (intero-async-call
+     'backend
+     (format
+      ":fill %S %d %d"
+      (intero-localize-path (intero-temp-file-name))
+      (save-excursion (goto-char beg)
+                      (line-number-at-pos))
+      (save-excursion (goto-char beg)
+                      (1+ (current-column))))
+     (list :buffer (current-buffer) :cont cont)
+     (lambda (state reply)
+       (if (or (string-match "^Couldn't guess" reply)
+                   (string-match "^Unable to " reply)
+                   (intero-parse-error reply))
+           (funcall (plist-get state :cont) (list))
+         (with-current-buffer (plist-get state :buffer)
+           (let ((candidates
+                  (split-string
+                   (replace-regexp-in-string
+                    "\n$" ""
+                    reply)
+                   "[\r\n]"
+                   t)))
+             (when candidates
+               (funcall (plist-get state :cont) candidates)))))))))
+
+(defun intero-grab-hole ()
+  "When user is at a hole _ or _foo, return the starting point of
+that hole."
+  (let ((beg-end (intero-ident-pos-at-point)))
+    (when beg-end
+      (let ((string (buffer-substring-no-properties (car beg-end) (cdr beg-end))))
+        (when (string-match "^_" string)
+          beg-end)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ELDoc integration
@@ -1331,7 +1401,7 @@ stack's default)."
                              (list "--verbosity" "silent")
                              (list "--ghci-options"
                                    (concat "-ghci-script=" script))
-                             (mapcan (lambda (x) (list "--ghci-options" x)) intero-extra-ghci-options))))))
+                             (cl-mapcan (lambda (x) (list "--ghci-options" x)) intero-extra-ghci-options))))))
         (when (process-live-p process)
           (set-process-query-on-exit-flag process nil)
           (message "Started Intero process for REPL.")
@@ -1684,10 +1754,26 @@ x:\\foo\\bar (i.e., Windows)."
 
 (defun intero-get-all-types ()
   "Get all types in all expressions in all modules."
-  (intero-blocking-call 'backend ":all-types"))
+  (intero-blocking-network-call 'backend ":all-types"))
 
 (defun intero-get-type-at (beg end)
   "Get the type at the given region denoted by BEG and END."
+  (let ((result (intero-get-type-at-helper beg end)))
+    (if (string-match (regexp-quote "Couldn't guess that module name. Does it exist?")
+                      result)
+        (progn (flycheck-buffer)
+               (message "No type information yet, compiling module ...")
+               (intero-get-type-at-helper-process beg end))
+      result)))
+
+(defun intero-get-type-at-helper (beg end)
+  (replace-regexp-in-string
+   "\n$" ""
+   (intero-blocking-network-call
+    'backend
+    (intero-format-get-type-at beg end))))
+
+(defun intero-get-type-at-helper-process (beg end)
   (replace-regexp-in-string
    "\n$" ""
    (intero-blocking-call
@@ -1698,7 +1784,7 @@ x:\\foo\\bar (i.e., Windows)."
   "Call CONT with type of the region denoted by BEG and END.
 CONT is called within the current buffer, with BEG, END and the
 type as arguments."
-  (intero-async-call
+  (intero-async-network-call
    'backend
    (intero-format-get-type-at beg end)
    (list :cont cont
@@ -1756,8 +1842,38 @@ type as arguments."
                  (format ":info %s" thing))))
       optimistic-result)))
 
+(defconst intero-unloaded-module-string "Couldn't guess that module name. Does it exist?")
+
 (defun intero-get-loc-at (beg end)
   "Get the location of the identifier denoted by BEG and END."
+  (let ((result (intero-get-loc-at-helper beg end)))
+    (if (string-match (regexp-quote intero-unloaded-module-string)
+                      result)
+        (progn (flycheck-buffer)
+               (message "No location information yet, compiling module ...")
+               (intero-get-loc-at-helper-process beg end))
+      result)))
+
+(defun intero-get-loc-at-helper (beg end)
+  "Make the blocking call to the process."
+  (replace-regexp-in-string
+   "\n$" ""
+   (intero-blocking-network-call
+    'backend
+    (format ":loc-at %S %d %d %d %d %S"
+            (intero-localize-path (intero-temp-file-name))
+            (save-excursion (goto-char beg)
+                            (line-number-at-pos))
+            (save-excursion (goto-char beg)
+                            (1+ (current-column)))
+            (save-excursion (goto-char end)
+                            (line-number-at-pos))
+            (save-excursion (goto-char end)
+                            (1+ (current-column)))
+            (buffer-substring-no-properties beg end)))))
+
+(defun intero-get-loc-at-helper-process (beg end)
+  "Make the blocking call to the process."
   (replace-regexp-in-string
    "\n$" ""
    (intero-blocking-call
@@ -1775,6 +1891,34 @@ type as arguments."
             (buffer-substring-no-properties beg end)))))
 
 (defun intero-get-uses-at (beg end)
+  "Return usage list for identifier denoted by BEG and END."
+  (let ((result (intero-get-uses-at-helper beg end)))
+    (if (string-match (regexp-quote intero-unloaded-module-string)
+                      result)
+        (progn (flycheck-buffer)
+               (message "No use information yet, compiling module ...")
+               (intero-get-uses-at-helper-process beg end))
+      result)))
+
+(defun intero-get-uses-at-helper (beg end)
+  "Return usage list for identifier denoted by BEG and END."
+  (replace-regexp-in-string
+   "\n$" ""
+   (intero-blocking-network-call
+    'backend
+    (format ":uses %S %d %d %d %d %S"
+            (intero-localize-path (intero-temp-file-name))
+            (save-excursion (goto-char beg)
+                            (line-number-at-pos))
+            (save-excursion (goto-char beg)
+                            (1+ (current-column)))
+            (save-excursion (goto-char end)
+                            (line-number-at-pos))
+            (save-excursion (goto-char end)
+                            (1+ (current-column)))
+            (buffer-substring-no-properties beg end)))))
+
+(defun intero-get-uses-at-helper-process (beg end)
   "Return usage list for identifier denoted by BEG and END."
   (replace-regexp-in-string
    "\n$" ""
@@ -1796,7 +1940,7 @@ type as arguments."
   "Get completions and send to SOURCE-BUFFER.
 Prefix is marked by positions BEG and END.  Completions are
 passed to CONT in SOURCE-BUFFER."
-  (intero-async-call
+  (intero-async-network-call
    'backend
    (format ":complete-at %S %d %d %d %d %S"
            (intero-localize-path (intero-temp-file-name))
@@ -1889,6 +2033,76 @@ yaml config to use, or stack's default when nil."
       (while (not (null (buffer-local-value 'intero-callbacks buffer)))
         (sleep-for 0.0001)))
     (car result)))
+
+(defun intero-blocking-network-call (worker cmd)
+  "Send WORKER the command string CMD via the network and block pending its result."
+  (let ((result (list nil)))
+    (intero-async-network-call
+     worker
+     cmd
+     result
+     (lambda (result reply)
+       (setf (car result) reply)))
+    (while (eq (car result) nil)
+      (sleep-for 0.0001))
+    (car result)))
+
+(defun intero-async-network-call (worker cmd &optional state callback)
+  "Send WORKER the command string CMD, via a network connection.
+The result, along with the given STATE, is passed to CALLBACK
+as (CALLBACK STATE REPLY)."
+  (let ((buffer (intero-buffer worker)))
+    (if (and buffer (process-live-p (get-buffer-process buffer)))
+        (with-current-buffer buffer
+          (if intero-service-port
+              (let* ((buffer (generate-new-buffer (format " intero-network:%S" worker)))
+                     (process
+                      (make-network-process
+                       :name (format "%S" worker)
+                       :buffer buffer
+                       :host 'local
+                       :service intero-service-port
+                       :family 'ipv4
+                       :nowait t
+                       :noquery t
+                       :sentinel 'intero-network-call-sentinel)))
+                (with-current-buffer buffer
+                  (setq intero-async-network-cmd cmd)
+                  (setq intero-async-network-state state)
+                  (setq intero-async-network-worker worker)
+                  (setq intero-async-network-callback callback)))
+            (progn (when intero-debug (message "No `intero-service-port', falling back ..."))
+                   (intero-async-call worker cmd state callback))))
+      (error "Intero process is not running: run M-x intero-restart to start it"))))
+
+(defun intero-network-call-sentinel (process event)
+  (with-current-buffer (process-buffer process)
+    (if (string= "open\n" event)
+        (progn
+          (when intero-debug (message "Connected to service, sending %S" intero-async-network-cmd))
+          (setq intero-async-network-connected t)
+          (if intero-async-network-cmd
+              (process-send-string process (concat intero-async-network-cmd "\n"))
+            (delete-process process)))
+      (progn
+        (if intero-async-network-connected
+            (when intero-async-network-callback
+              (when intero-debug (message "Calling callback with %S" (buffer-string)))
+              (funcall intero-async-network-callback
+                       intero-async-network-state
+                       (buffer-string)))
+          ;; We didn't successfully connect, so let's fallback to the
+          ;; process pipe.
+          (when intero-async-network-callback
+            (when intero-debug (message "Failed to connect, falling back ... "))
+            (setq intero-async-network-callback nil)
+            (intero-async-call
+             intero-async-network-worker
+             intero-async-network-cmd
+             intero-async-network-state
+             intero-async-network-callback)))
+        ;; In any case we clean up the connection.
+        (delete-process process)))))
 
 (defun intero-async-call (worker cmd &optional state callback)
   "Send WORKER the command string CMD.
@@ -2029,10 +2243,12 @@ Uses the default stack config file, or STACK-YAML file if given."
         (setq intero-callbacks
               (list (list (cons source-buffer
                                 buffer)
-                          (lambda (buffers _msg)
+                          (lambda (buffers msg)
                             (let ((source-buffer (car buffers))
                                   (process-buffer (cdr buffers)))
                               (with-current-buffer process-buffer
+                                (when (string-match "^Intero-Service-Port: \\([0-9]+\\)\n" msg)
+                                  (setq intero-service-port (string-to-number (match-string 1 msg))))
                                 (setq-local intero-starting nil))
                               (when source-buffer
                                 (with-current-buffer source-buffer
@@ -2095,7 +2311,7 @@ default when nil)."
             (list "--no-load"))
           (when ignore-dot-ghci
             (list "--ghci-options" "-ignore-dot-ghci"))
-          (mapcan (lambda (x) (list "--ghci-options" x)) intero-extra-ghc-options)
+          (cl-mapcan (lambda (x) (list "--ghci-options" x)) intero-extra-ghc-options)
           (let ((dir (intero-localize-path (intero-make-temp-file "intero" t))))
             (list "--ghci-options"
                   (concat "-odir=" dir)
