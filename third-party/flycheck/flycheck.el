@@ -238,6 +238,7 @@ attention to case differences."
     ruby-jruby
     rust-cargo
     rust
+    rust-clippy
     scala
     scala-scalastyle
     scheme-chicken
@@ -261,6 +262,7 @@ attention to case differences."
     texinfo
     typescript-tslint
     verilog-verilator
+    vhdl-ghdl
     xml-xmlstarlet
     xml-xmllint
     yaml-jsyaml
@@ -4711,7 +4713,7 @@ the syntax checker definition, if the variable is nil."
         (flycheck-checker-default-executable checker))))
 
 (defun flycheck-find-checker-executable (checker)
-  "Get the full path of the executbale of CHECKER.
+  "Get the full path of the executable of CHECKER.
 
 Return the full absolute path to the executable of CHECKER, or
 nil if the executable does not exist."
@@ -5786,7 +5788,7 @@ https://github.com/rust-lang/rust/blob/master/src/libsyntax/json.rs#L67-L139"
     ;; Turn each span into a flycheck error
     (dolist (span spans)
       (let-alist span
-        ;; Children lack any filename/line/column information, so we use
+        ;; Children may not have filename/line/column information, so we use
         ;; those from the primary span
         (when .is_primary
           (setq primary-filename .file_name
@@ -5813,16 +5815,27 @@ https://github.com/rust-lang/rust/blob/master/src/libsyntax/json.rs#L67-L139"
          errors)))
 
     ;; Then we turn children messages into flycheck errors pointing to the
-    ;; location of the primary span.  According to the format, children
-    ;; may contain spans, but they do not seem to use them in practice.
+    ;; location of the primary span.
     (dolist (child children)
       (let-alist child
         (push
          (flycheck-error-new-at
-          primary-line
-          primary-column
+          ;; Use the line/column from the first span if there is one, or
+          ;; fallback to the line/column information from the primary span of
+          ;; the diagnostic.
+          (or (cdr (assq 'line_start (car .spans)))
+              primary-line)
+          (or (cdr (assq 'column_start (car .spans)))
+              primary-column)
           'info
-          .message
+          ;; Messages from `cargo clippy' may suggest replacement code.  In
+          ;; these cases, the `message' field itself is an unhelpful `try' or
+          ;; `change this to'.  We add the `suggested_replacement' field in
+          ;; these cases.
+          (-if-let (replacement
+                    (cdr (assq 'suggested_replacement (car .spans))))
+              (format "%s: `%s`" .message replacement)
+            .message)
           :id error-code
           :checker checker
           :buffer buffer
@@ -5959,7 +5972,7 @@ otherwise."
                      filename))))))
 
 (defun flycheck-parse-error-with-patterns (err patterns checker)
-  "Parse a gle ERR with error PATTERNS for CHECKER.
+  "Parse a single ERR with error PATTERNS for CHECKER.
 
 Apply each pattern in PATTERNS to ERR, in the given order, and
 return the first parsed error."
@@ -7155,7 +7168,7 @@ See Info Node `(elisp)Byte Compilation'."
             (message (zero-or-more not-newline)
                      (zero-or-more "\n    " (zero-or-more not-newline)))
             line-end)
-   (warning line-start (file-name) ":" line ":" column
+   (warning line-start (file-name) ":" line (optional ":" column)
             ":Warning (check-declare): said\n"
             (message (zero-or-more "    " (zero-or-more not-newline))
                      (zero-or-more "\n    " (zero-or-more not-newline)))
@@ -7725,19 +7738,17 @@ See URL `http://www.groovy-lang.org'."
   :command ("groovy" "-e"
             "import org.codehaus.groovy.control.*
 
-file = new File(args[0])
 unit = new CompilationUnit()
-unit.addSource(file)
+unit.addSource(\"input\", System.in)
 
 try {
     unit.compile(Phases.CONVERSION)
 } catch (MultipleCompilationErrorsException e) {
     e.errorCollector.write(new PrintWriter(System.out, true), null)
-}
-"
-            source)
+}")
+  :standard-input t
   :error-patterns
-  ((error line-start (file-name) ": " line ":" (message)
+  ((error line-start "input: " line ":" (message)
           " @ line " line ", column " column "." line-end))
   :modes groovy-mode)
 
@@ -8494,7 +8505,9 @@ See URL `http://pear.php.net/package/PHP_CodeSniffer/'."
             ;; here, because phpcs really insists to get option and argument as
             ;; a single command line argument :|
             (eval (when (buffer-file-name)
-                    (concat "--stdin-path=" (buffer-file-name)))))
+                    (concat "--stdin-path=" (buffer-file-name))))
+            ;; Read from standard input
+            "-")
   :standard-input t
   :error-parser flycheck-parse-checkstyle
   :error-filter
@@ -8674,6 +8687,46 @@ See URL `http://puppet-lint.com/'."
   ;; the buffer is actually linked to a file, and if it is not modified.
   :predicate flycheck-buffer-saved-p)
 
+(defun flycheck-python-find-module (checker module)
+  "Check if a Python MODULE is available.
+CHECKER's executable is assumed to be a Python REPL."
+  (-when-let* ((py (flycheck-find-checker-executable checker))
+               (script (concat "import sys; sys.path.pop(0);"
+                               (format "import %s; print(%s.__file__)"
+                                       module module))))
+    (with-temp-buffer
+      (and (eq (ignore-errors (call-process py nil t nil "-c" script)) 0)
+           (string-trim (buffer-string))))))
+
+(defun flycheck-python-needs-module-p (checker)
+  "Determines whether CHECKER needs to be invoked through Python.
+Previous versions of Flycheck called pylint and flake8 directly;
+this check ensures that we don't break existing code."
+  (not (string-match-p (rx (or "pylint" "flake8")
+                           (or "-script.pyw" ".exe" ".bat" "")
+                           eos)
+                       (flycheck-checker-executable checker))))
+
+(defun flycheck-python-verify-module (checker module)
+  "Verify that a Python MODULE is available.
+Return nil if CHECKER's executable is not a Python REPL.  This
+function's is suitable for a checker's :verify."
+  (when (flycheck-python-needs-module-p checker)
+    (let ((mod-path (flycheck-python-find-module checker module)))
+      (list (flycheck-verification-result-new
+             :label (format "`%s' module" module)
+             :message (if mod-path (format "Found at %S" mod-path) "Missing")
+             :face (if mod-path 'success '(bold error)))))))
+
+(defun flycheck-python-module-args (checker module-name)
+  "Compute arguments to pass to CHECKER's executable to run MODULE-NAME.
+Return nil if CHECKER's executable is not a Python REPL.
+Otherwise, return a list starting with -c (-m is not enough
+because it adds the current directory to Python's path)."
+  (when (flycheck-python-needs-module-p checker)
+    `("-c" ,(concat "import sys,runpy;sys.path.pop(0);"
+                    (format "runpy.run_module(%S)" module-name)))))
+
 (flycheck-def-config-file-var flycheck-flake8rc python-flake8 ".flake8rc"
   :safe #'stringp)
 
@@ -8751,7 +8804,10 @@ Update the error level of ERR according to
 
 Requires Flake8 3.0 or newer. See URL
 `https://flake8.readthedocs.io/'."
-  :command ("flake8"
+  ;; Not calling flake8 directly makes it easier to switch between different
+  ;; Python versions; see https://github.com/flycheck/flycheck/issues/1055.
+  :command ("python"
+            (eval (flycheck-python-module-args 'python-flake8 "flake8"))
             "--format=default"
             (config-file "--config" flycheck-flake8rc)
             (option "--max-complexity" flycheck-flake8-maximum-complexity nil
@@ -8769,10 +8825,13 @@ Requires Flake8 3.0 or newer. See URL
             (id (one-or-more (any alpha)) (one-or-more digit)) " "
             (message (one-or-more not-newline))
             line-end))
+  :enabled (lambda ()
+             (or (not (flycheck-python-needs-module-p 'python-flake8))
+                 (flycheck-python-find-module 'python-flake8 "flake8")))
+  :verify (lambda (_) (flycheck-python-verify-module 'python-flake8 "flake8"))
   :modes python-mode)
 
-(flycheck-def-config-file-var flycheck-pylintrc python-pylint
-                              ".pylintrc"
+(flycheck-def-config-file-var flycheck-pylintrc python-pylint ".pylintrc"
   :safe #'stringp)
 
 (flycheck-def-option-var flycheck-pylint-use-symbolic-id t python-pylint
@@ -8792,7 +8851,11 @@ This syntax checker requires Pylint 1.0 or newer.
 
 See URL `https://www.pylint.org/'."
   ;; -r n disables the scoring report
-  :command ("pylint" "-r" "n"
+  ;; Not calling pylint directly makes it easier to switch between different
+  ;; Python versions; see https://github.com/flycheck/flycheck/issues/1055.
+  :command ("python"
+            (eval (flycheck-python-module-args 'python-pylint "pylint"))
+            "-r" "n"
             "--output-format" "text"
             "--msg-template"
             (eval (if flycheck-pylint-use-symbolic-id
@@ -8817,6 +8880,10 @@ See URL `https://www.pylint.org/'."
    (info line-start (file-name) ":" line ":" column ":"
          "C:" (id (one-or-more (not (any ":")))) ":"
          (message) line-end))
+  :enabled (lambda ()
+             (or (not (flycheck-python-needs-module-p 'python-pylint))
+                 (flycheck-python-find-module 'python-pylint "pylint")))
+  :verify (lambda (_) (flycheck-python-verify-module 'python-pylint "pylint"))
   :modes python-mode)
 
 (flycheck-define-checker python-pycompile
@@ -9375,6 +9442,24 @@ Relative paths are relative to the file being checked."
                  (flycheck-error-message err)))
               errors))
 
+(defun flycheck-rust-manifest-directory ()
+  "Return the nearest directory holding the Cargo manifest.
+
+Return the nearest directory containing the `Cargo.toml' manifest
+file, starting from the current buffer and using
+`locate-dominating-file'.  Return nil if there is no such file,
+or if the current buffer has no file name."
+  (and buffer-file-name
+       (locate-dominating-file buffer-file-name "Cargo.toml")))
+
+(defun flycheck-rust-cargo-has-command-p (command)
+  "Whether Cargo has COMMAND in its list of commands.
+
+Execute `cargo --list' to find out whether COMMAND is present."
+  (let ((cargo (funcall flycheck-executable-find "cargo")))
+    (member command (mapcar #'string-trim-left
+                            (ignore-errors (process-lines cargo "--list"))))))
+
 (defun flycheck-rust-valid-crate-type-p (crate-type)
   "Whether CRATE-TYPE is a valid target type for Cargo.
 
@@ -9406,19 +9491,12 @@ This syntax checker requires Rust 1.17 or newer.  See URL
   :error-explainer flycheck-rust-error-explainer
   :modes rust-mode
   :predicate flycheck-buffer-saved-p
-  :enabled
-  (lambda ()
-    (and buffer-file-name
-         (locate-dominating-file buffer-file-name "Cargo.toml")))
-  :working-directory
-  (lambda (_)
-    (and buffer-file-name
-         (locate-dominating-file buffer-file-name "Cargo.toml")))
+  :enabled flycheck-rust-manifest-directory
+  :working-directory (lambda (_) (flycheck-rust-manifest-directory))
   :verify
   (lambda (_)
     (and buffer-file-name
-         (let* ((has-toml (locate-dominating-file
-                           buffer-file-name "Cargo.toml"))
+         (let* ((has-toml (flycheck-rust-manifest-directory))
                 (valid-crate-type (flycheck-rust-valid-crate-type-p
                                    flycheck-rust-crate-type))
                 (need-binary-name
@@ -9465,6 +9543,36 @@ This syntax checker needs Rust 1.7 or newer.  See URL
   :error-explainer flycheck-rust-error-explainer
   :modes rust-mode
   :predicate flycheck-buffer-saved-p)
+
+(flycheck-define-checker rust-clippy
+  "A Rust syntax checker using clippy.
+
+See URL `https://github.com/rust-lang-nursery/rust-clippy'."
+  :command ("cargo" "+nightly" "clippy" "--message-format=json")
+  :error-parser flycheck-parse-cargo-rustc
+  :error-filter flycheck-rust-error-filter
+  :error-explainer flycheck-rust-error-explainer
+  :modes rust-mode
+  :predicate flycheck-buffer-saved-p
+  :enabled (lambda ()
+             (and (flycheck-rust-cargo-has-command-p "clippy")
+                  (flycheck-rust-manifest-directory)))
+  :working-directory (lambda (_) (flycheck-rust-manifest-directory))
+  :verify
+  (lambda (_)
+    (and buffer-file-name
+         (let ((has-toml (flycheck-rust-manifest-directory))
+               (has-clippy (flycheck-rust-cargo-has-command-p "clippy")))
+           (list
+            (flycheck-verification-result-new
+             :label "Clippy"
+             :message (if has-clippy "Found"
+                        "Cannot find the `cargo clippy' command")
+             :face (if has-clippy 'success '(bold warning)))
+            (flycheck-verification-result-new
+             :label "Cargo.toml"
+             :message (if has-toml "Found" "Missing")
+             :face (if has-toml 'success '(bold warning))))))))
 
 (defvar flycheck-sass-scss-cache-directory nil
   "The cache directory for `sass' and `scss'.")
@@ -10041,6 +10149,43 @@ See URL `https://www.veripool.org/wiki/verilator'."
    (error line-start "%Error: " (file-name) ":"
           line ": " (message) line-end))
   :modes verilog-mode)
+
+(flycheck-def-option-var flycheck-ghdl-language-standard nil vhdl-ghdl
+  "The language standard to use in GHDL.
+
+The value of this variable is either a string denoting a language
+standard, or nil, to use the default standard.  When non-nil,
+pass the language standard via the `--std' option."
+  :type '(choice (const :tag "Default standard" nil)
+                 (string :tag "Language standard"))
+  :safe #'stringp
+  :package-version '(flycheck . "32"))
+(make-variable-buffer-local 'flycheck-ghdl-language-standard)
+
+(flycheck-def-option-var flycheck-ghdl-workdir nil vhdl-ghdl
+  "The directory to use for the file library
+
+The value of this variable is either a string with the directory
+to use for the file library, or nil, to use the default value.
+When non-nil, pass the directory via the `--workdir' option."
+  :type '(choice (const :tag "Default directory" nil)
+                 (string :tag "Directory for the file library"))
+  :safe #'stringp
+  :package-version '(flycheck . "32"))
+(make-variable-buffer-local 'flycheck-ghdl-workdir)
+
+(flycheck-define-checker vhdl-ghdl
+  "A VHDL syntax checker using GHDL.
+
+See URL `http://ghdl.free.fr/'."
+  :command ("ghdl"
+            "-s" ; only do the syntax checking
+            (option "--std=" flycheck-ghdl-language-standard concat)
+            (option "--workdir=" flycheck-ghdl-workdir concat)
+            source)
+  :error-patterns
+  ((error line-start (file-name) ":" line ":" column ": " (message) line-end))
+  :modes vhdl-mode)
 
 (flycheck-def-option-var flycheck-xml-xmlstarlet-xsd-path nil xml-xmlstarlet
   "An XSD schema to validate against."

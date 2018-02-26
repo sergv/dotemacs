@@ -16,6 +16,8 @@
   - Tcl with ``nagelfar`` [GH-1365]
   - CWL with ``schema-salad-tool`` [GH-1361]
   - MarkdownLint CLI with ``markdownlint`` [GH-1366]
+  - Rust with ``rust-clippy`` [GH-1385]
+  - VHDL with ``ghdl`` [GH-1160]
 
 - New features:
 
@@ -36,6 +38,8 @@
     located. If ``Gemfile`` does not exist, old behaviour of running command
     from directory where ``.rubocop.yml`` is found will be used [GH-1368]
   - ``rust-cargo`` now uses ``cargo check`` and ``cargo test`` [GH-1289]
+  - ``python-pylint`` and ``python-flake8`` are now invoked with ``python -c``,
+    to make it easier to change between Python 2 and Python 3 [GH-1113]
 
 31 (Oct 07, 2017)
 =================
