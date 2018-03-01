@@ -755,7 +755,9 @@ running context across :load/:reloads in Intero."
 process."
   :start 'intero-check
   :modes '(haskell-mode literate-haskell-mode)
-  :predicate (lambda () intero-mode))
+  :predicate (lambda () intero-mode)
+  :next-checkers '((warning . haskell-hlint))
+  :working-directory #'flycheck-haskell--find-default-directory)
 
 (add-to-list 'flycheck-checkers 'intero)
 
