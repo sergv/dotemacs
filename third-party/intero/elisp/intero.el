@@ -809,9 +809,7 @@ CHECKER and BUFFER are added to each item parsed from STRING."
                        msg
                        :checker checker
                        :buffer buffer
-                       :filename (if (intero-paths-for-same-file temp-file file)
-                                     (intero-buffer-file-name buffer)
-                                   file))
+                       :filename (intero-unmangle-file-path file))
                       messages)))
         (forward-line -1))
       (delete-dups
