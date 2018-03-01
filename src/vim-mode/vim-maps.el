@@ -371,8 +371,6 @@
 (vim:vmap ">" #'vim:cmd-shift-right)
 
 (vim:vmap "~" #'vim:cmd-toggle-case)
-(vim:vmap "U" #'vim:cmd-make-upcase)
-(vim:vmap "u" #'vim:cmd-make-downcase)
 
 (vim:vmap "I" #'vim:visual-insert)
 (vim:vmap "A" #'vim:visual-append)
