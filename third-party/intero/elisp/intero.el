@@ -480,7 +480,9 @@ line as a type signature."
                 "'"
                 " (" package ")"
                 "\n\n"
-                (intero-fontify-expression ty))))
+                (intero--clean-up-temporary-file-names
+                 (intero-project-root)
+                 (intero-fontify-expression ty)))))
           (erase-buffer)
           (intero-help-push-history origin-buffer help-string)
           (intero-help-pagination)
@@ -506,7 +508,9 @@ line as a type signature."
               "'"
               " (" package ")"
               "\n\n"
-              (intero-fontify-expression info))))
+              (intero--clean-up-temporary-file-names
+               (intero-project-root)
+               (intero-fontify-expression info)))))
         (erase-buffer)
         (intero-help-push-history origin-buffer help-string)
         (intero-help-pagination)
@@ -767,55 +771,72 @@ process."
 (defun intero-parse-errors-warnings-splices (checker buffer string)
   "Parse flycheck errors and warnings.
 CHECKER and BUFFER are added to each item parsed from STRING."
-  (intero-with-temp-buffer
-    (insert string)
-    (goto-char (point-min))
-    (let ((messages (list))
-          (temp-file (intero-temp-file-name buffer))
-          (found-error-as-warning nil))
-      (while (search-forward-regexp
-              (concat "[\r\n]\\([A-Z]?:?[^ \r\n:][^:\n\r]+\\):\\([0-9()-:]+\\):"
-                      "[ \n\r]+\\([[:unibyte:][:nonascii:]]+?\\)\n[^ ]")
-              nil t 1)
-        (let* ((local-file (intero-canonicalize-path (match-string 1)))
-               (file (intero-extend-path-by-buffer-host local-file buffer))
-               (location-raw (match-string 2))
-               (msg (replace-regexp-in-string
-                     "[\n\r ]*|$"
-                     ""
-                     (match-string 3))) ;; Replace gross bullet points.
-               (type (cond ((string-match "^Warning:" msg)
-                            (setq msg (replace-regexp-in-string "^Warning: *" "" msg))
-                            (if (string-match-p
-                                 (rx bol
-                                     "["
-                                     (or "-Wdeferred-type-errors"
-                                         "-Wdeferred-out-of-scope-variables"
-                                         "-Wtyped-holes")
-                                     "]")
-                                 msg)
-                                (progn (setq found-error-as-warning t)
-                                       'error)
-                              'warning))
-                           ((string-match-p "^Splicing " msg) 'splice)
-                           (t                                 'error)))
-               (location (intero-parse-error
-                          (concat local-file ":" location-raw ": x")))
-               (line (plist-get location :line))
-               (column (plist-get location :col)))
-          (setq messages
-                (cons (flycheck-error-new-at
-                       line column type
-                       msg
-                       :checker checker
-                       :buffer buffer
-                       :filename (intero-unmangle-file-path file))
-                      messages)))
-        (forward-line -1))
-      (delete-dups
-       (if found-error-as-warning
-           (cl-remove-if (lambda (msg) (eq 'warning (flycheck-error-level msg))) messages)
-         messages)))))
+  (let ((working-dir (flycheck-compute-working-directory checker)))
+    (intero-with-temp-buffer
+      (insert string)
+      (goto-char (point-min))
+      (let ((messages (list))
+            (temp-file (intero-temp-file-name buffer))
+            (found-error-as-warning nil))
+        (while (search-forward-regexp
+                (concat "[\r\n]\\([A-Z]?:?[^ \r\n:][^:\n\r]+\\):\\([0-9()-:]+\\):"
+                        "[ \n\r]+\\([[:unibyte:][:nonascii:]]+?\\)\n[^ ]")
+                nil t 1)
+          (let* ((local-file (intero-canonicalize-path (match-string 1)))
+                 (file (intero-extend-path-by-buffer-host local-file buffer))
+                 (location-raw (match-string 2))
+                 (msg (replace-regexp-in-string
+                       "[\n\r ]*|$"
+                       ""
+                       (match-string 3))) ;; Replace gross bullet points.
+                 (type (cond ((string-match "^Warning:" msg)
+                              (setq msg (replace-regexp-in-string "^Warning: *" "" msg))
+                              (if (string-match-p
+                                   (rx bol
+                                       "["
+                                       (or "-Wdeferred-type-errors"
+                                           "-Wdeferred-out-of-scope-variables"
+                                           "-Wtyped-holes")
+                                       "]")
+                                   msg)
+                                  (progn (setq found-error-as-warning t)
+                                         'error)
+                                'warning))
+                             ((string-match-p "^Splicing " msg) 'splice)
+                             (t                                 'error)))
+                 (clean-msg (intero--clean-up-temporary-file-names working-dir msg))
+                 (location (intero-parse-error
+                            (concat local-file ":" location-raw ": x")))
+                 (line (plist-get location :line))
+                 (column (plist-get location :col)))
+            (setq messages
+                  (cons (flycheck-error-new-at
+                         line column type
+                         clean-msg
+                         :checker checker
+                         :buffer buffer
+                         :filename (intero-unmangle-file-path file))
+                        messages)))
+          (forward-line -1))
+        (delete-dups
+         (if found-error-as-warning
+             (cl-remove-if (lambda (msg) (eq 'warning (flycheck-error-level msg))) messages)
+           messages))))))
+
+(defun intero--clean-up-temporary-file-names (working-dir msg)
+  (let ((tmp msg))
+    (maphash (lambda (tmp-name buf)
+               (cl-assert (stringp tmp-name))
+               (cl-assert (bufferp buf))
+               (when (buffer-file-name buf)
+                 (let ((buffer-name
+                        (file-relative-name (buffer-file-name buf) working-dir)))
+                   (setf tmp
+                         (replace-regexp-in-string (regexp-quote tmp-name)
+                                                   buffer-name
+                                                   tmp)))))
+             intero-temp-file-buffer-mapping)
+    tmp))
 
 (defconst intero-error-regexp-alist
   `((,(concat
