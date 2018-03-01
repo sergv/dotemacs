@@ -100,37 +100,68 @@
     (dolist (cmd '("load" "lo" "l"))
       (vim:local-emap cmd load-func))))
 
-(defun flycheck-enhancements--goto-error-with-wraparound (forward?)
-  (interactive)
-  (let* ((direction-code (if forward? 1 -1))
-         (wrapped? nil)
-         (error-position
-          (let ((pos (flycheck-next-error-pos direction-code nil)))
-            (if pos
-                pos
-              (save-excursion
-                (goto-char (if forward?
-                               (point-min)
-                             (point-max)))
-                (setf wrapped? t)
-                (flycheck-next-error-pos direction-code nil))))))
-    (unless error-position
-      (error "No more errors"))
-    (when wrapped?
-      (message "Wrapped at the %s of buffer"
-               (if forward?
-                   "end"
-                 "beginning")))
-    (goto-char error-position)
-    (flycheck-display-error-at-point)))
+(defun flycheck-error< (a b)
+  (let ((filename-a (expand-file-name (flycheck-error-filename a)))
+        (filename-b (expand-file-name (flycheck-error-filename b)))
+        (line-a     (flycheck-error-line a))
+        (line-b     (flycheck-error-line b))
+        (column-a   (flycheck-error-column a))
+        (column-b   (flycheck-error-column b)))
+    (or (string< filename-a filename-b)
+        (and (string= filename-a filename-b)
+             (or (< line-a line-b)
+                 (and (= line-a line-b)
+                      (< column-a column-b)))))))
+
+(defun flycheck-enhancements--navigate-errors-with-wraparound (forward? errs)
+  (let* ((expanded-buffer-file-name (expand-file-name buffer-file-name))
+         (all-errors (--separate
+                      (string= expanded-buffer-file-name
+                               (expand-file-name (flycheck-error-filename it)))
+                      (-sort #'flycheck-error< errs)))
+         (current-file-errors (first all-errors))
+         (other-errors (second all-errors)))
+    (let ((next-error
+           (cond
+             (other-errors
+              ;; Search in other files first - they're dependencies and
+              ;; current module would not work without fixing them first.
+              (car other-errors))
+             (current-file-errors
+              ;; Search in current file.
+              (let* ((current-line (line-number-at-pos))
+                     ;; Make sure that current error will go to the
+                     ;; end of the candidate list regardless of the
+                     ;; direction we're searching.
+                     (cmp (if forward? #'<= #'<))
+                     (current-file-errors-around-current-line
+                      (--split-with (funcall cmp (flycheck-error-line it) current-line)
+                                    current-file-errors))
+                     (current-file-errors-before-current-line
+                      (first current-file-errors-around-current-line))
+                     (current-file-errors-after-current-line
+                      (second current-file-errors-around-current-line)))
+                (car (funcall
+                      (if forward? #'identity #'nreverse)
+                      (nconc current-file-errors-after-current-line
+                             ;; Make errors wrap around.
+                             current-file-errors-before-current-line)))))
+             (t nil))))
+      (unless next-error
+        (error "No more errors"))
+      (find-file (flycheck-error-filename next-error))
+      (goto-line (flycheck-error-line next-error))
+      (awhen (flycheck-error-column next-error)
+        (move-to-column it))
+      (flycheck-display-error-at-point))))
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
   (interactive)
-  (flycheck-enhancements--goto-error-with-wraparound nil))
+  (flycheck-enhancements--navigate-errors-with-wraparound nil flycheck-current-errors))
 
 (defun flycheck-enhancements-next-error-with-wraparound ()
   (interactive)
-  (flycheck-enhancements--goto-error-with-wraparound t))
+  (flycheck-enhancements--navigate-errors-with-wraparound t flycheck-current-errors))
 
 (provide 'flycheck-setup)
 
