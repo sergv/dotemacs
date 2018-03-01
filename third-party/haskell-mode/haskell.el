@@ -172,8 +172,7 @@
     (haskell-mode-toggle-interactive-prompt-state)
     (unwind-protect
         (when (and (boundp 'haskell-session)
-                   haskell-session
-                   (y-or-n-p "Kill the whole session?"))
+                   haskell-session)
           (haskell-session-kill t)))
     (haskell-mode-toggle-interactive-prompt-state t)))
 
