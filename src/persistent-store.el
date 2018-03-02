@@ -110,33 +110,43 @@ performed for some field."
     (while (and (not done)
                 old-contents
                 new-contents)
-      (let* ((old-entry     (car old-contents))
-             (old-entry-key (car old-entry))
-             (new-entry     (car new-contents))
-             (new-entry-key (car new-entry)))
+      (let* ((old-entry       (car old-contents))
+             (old-entry-key   (car old-entry))
+             (old-entry-value (cdr old-entry))
+             (new-entry       (car new-contents))
+             (new-entry-key   (car new-entry))
+             (new-entry-value (cdr new-entry)))
         (cond
-          ((eq? old-entry-key new-entry-key)
-           (if (equal? old-entry new-entry)
-               (setf result
-                     (cons old-entry result))
-             (if-let (merge-handler (cdr-safe
-                                     (assoc old-entry-key
-                                            persistent-store-merge-handlers)))
-                 (if-let (merged-entry (funcall merge-handler
-                                                old-entry
-                                                new-entry))
-                     (setf result
-                           (cons merged-entry
-                                 result))
-                   ;; Abort if merge-handler failed to merge entries
-                   (setf done t
-                         failed t
-                         result nil))
-               ;; Abort if entries are different and there's no suitable
-               ;; merge handler.
-               (setf done t
-                     failed t
-                     result nil))))
+          ((eq old-entry-key new-entry-key)
+           (cond
+             ((and (hash-table-p old-entry-value)
+                   (hash-table-p new-entry-value))
+              (equal (hash-table->alist old-entry-value)
+                     (hash-table->alist new-entry-value))
+              (setf result
+                    (cons old-entry result)))
+             ((equal old-entry-value new-entry-value)
+              (setf result
+                    (cons old-entry result)))
+             (t
+              (if-let (merge-handler (cdr-safe
+                                      (assoc old-entry-key
+                                             persistent-store-merge-handlers)))
+                  (if-let (merged-entry (funcall merge-handler
+                                                 old-entry
+                                                 new-entry))
+                      (setf result
+                            (cons merged-entry
+                                  result))
+                    ;; Abort if merge-handler failed to merge entries
+                    (setf done t
+                          failed t
+                          result nil))
+                ;; Abort if entries are different and there's no suitable
+                ;; merge handler.
+                (setf done t
+                      failed t
+                      result nil)))))
           ((persistent-store-symbol< old-entry-key new-entry-key)
            ;; Store entries in reverse order because we're going to do
            ;; nreverse at the end.
@@ -178,8 +188,8 @@ performed for some field."
                (push (cons key value) new-content))
              persistent-store-content)
 
-    (setf new-content (sort (copy-list new-content)
-                            entries-sort-pred))
+    (setf new-content (-sort entries-sort-pred
+                             new-content))
     (if (string= current-content-str
                  persistent-store-loaded-content)
         ;; file was not changed since we loaded data from it
