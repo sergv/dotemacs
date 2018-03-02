@@ -1,0 +1,5 @@
+#key: ##
+#key: pragma
+#name: pragma directive
+# --
+{-# ${1:$$(yas/choose-value (remove-duplicates-sorting (cons "SCC" haskell-completions--pragma-names) #'string= #'string<))} $2 #-}$0
