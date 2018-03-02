@@ -175,20 +175,6 @@ then Bar would be the result."
            (unless repl
              (list
               (make-abbrev+-abbreviation
-               :trigger "main"
-               :action-type 'yas-snippet
-               :action-data
-               (let ((indent (make-string indent ?\s)))
-                 (concat "main :: IO ()\nmain = do\n"
-                         indent "$1\n"
-                         indent "return ()"))
-               :predicate
-               (lambda ()
-                 (and (point-not-inside-string-or-comment?)
-                      ;; Only expand if start of the matched text
-                      ;; is at beginning of line.
-                      (= (line-beginning-position) (point)))))
-              (make-abbrev+-abbreviation
                :trigger "## *"
                :action-type 'yas-snippet
                :action-data pragma-snippet
@@ -204,12 +190,12 @@ then Bar would be the result."
                :action-data language-snippet
                :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
-               :trigger "##?opts?"
+               :trigger "##?opts? *"
                :action-type 'yas-snippet
                :action-data options-snippet
                :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
-               :trigger "##?dump\\(?:-core\\)?"
+               :trigger "##?dump\\(?:-core\\)? *"
                :action-type 'yas-snippet
                :action-data dump-core-snippet
                :predicate #'point-not-inside-string-or-comment?)))
@@ -245,11 +231,6 @@ then Bar would be the result."
              :action-type 'literal-string
              :action-data "import"
              :predicate import-expand-pred)
-            (make-abbrev+-abbreviation
-             :trigger (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) "m$")
-             :action-type 'literal-string
-             :action-data "import Data.Map (Map)\nimport qualified Data.Map as M"
-             :predicate import-expand-pred)
 
             (make-abbrev+-abbreviation
              :trigger (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) "q$")
@@ -276,7 +257,22 @@ then Bar would be the result."
              :trigger "\\<info[Mm]\\>"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-monadic-info-template
-             :predicate #'point-not-inside-string-or-comment?)))))
+             :predicate #'point-not-inside-string-or-comment?))
+           (--map
+            (destructuring-bind (suffix module-name type-name alias) it
+              (make-abbrev+-abbreviation
+               :trigger (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) suffix "$")
+               :action-type 'literal-string
+               :action-data (concat "import " module-name " (" type-name ")\n"
+                                    "import qualified " module-name " as " alias)
+               :predicate import-expand-pred))
+            '(("m"  "Data.Map.Strict"     "Map"     "M")
+              ("s"  "Data.Set"            "Set"     "S")
+              ("v"  "Data.Vector"         "Vector"  "V")
+              ("im" "Data.IntMap"         "IntMap"  "IM")
+              ("is" "Data.IntSet"         "IntSet"  "IS")
+              ("hm" "Data.HashMap.Strict" "HashMap" "HM")
+              ("hs" "Data.HashSet"        "HashSet" "HS"))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
