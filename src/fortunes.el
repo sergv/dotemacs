@@ -2263,8 +2263,9 @@ Queue is just a list actually."
       new
     old))
 
-(push (cons 'fortunes-fortune-queue #'fortune--merge-fortune-queues)
-      persistent-store-merge-handlers)
+;;;###autoload
+(add-to-list 'persistent-store-merge-handlers
+             (cons 'fortunes-fortune-queue #'fortune--merge-fortune-queues))
 
 ;;;###autoload
 (defun fortunes-get-next-fortune ()
