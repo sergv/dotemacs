@@ -99,29 +99,23 @@
 (defun shm-auto-insert-do ()
   "Insert template
 
-do {undefined}
-   {undefined}
+do
+  {undefined}
 "
-  (insert " ")
   (let ((point (point))
-        (column (current-column)))
-    (insert "undefined")
-    (cond
-     ((bound-and-true-p structured-haskell-repl-mode)
-      (forward-word -1)
+        (column (save-excursion
+                  (back-to-indentation)
+                  (current-column))))
+    (insert "\n")
+    (indent-to (+ column (shm-indent-spaces)))
+    (let ((next-point (point)))
+      (insert "undefined")
+      (goto-char point)
       (shm/reparse)
       (save-excursion
-        (shm-evaporate (point) (+ (point) (length "undefined")))))
-     (t (insert "\n")
-        (indent-to column)
-        (let ((next-point (point)))
-          (insert "undefined")
-          (goto-char point)
-          (shm/reparse)
-          (save-excursion
-            (shm-evaporate (point) (+ (point) (length "undefined")))
-            (goto-char next-point)
-            (shm-evaporate (point) (+ (point) (length "undefined")))))))))
+        (shm-evaporate (point) (+ (point) (length "undefined")))
+        (goto-char next-point)
+        (shm-evaporate (point) (+ (point) (length "undefined")))))))
 
 (defun shm-auto-insert-case (lambda-case)
   "Insert template
@@ -141,10 +135,12 @@ or
         (template (if lambda-case
                       (if (bound-and-true-p structured-haskell-repl-mode)
                           "case _ -> undefined"
-                        "case\n  _ -> undefined")
+                        (format "case\n%s_ -> undefined"
+                                (make-string (shm-indent-spaces) ?\s)))
                     (if (bound-and-true-p structured-haskell-repl-mode)
                         "case undefined of _ -> undefined"
-                      "case undefined of\n  _ -> undefined"))))
+                      (format "case undefined of\n%s_ -> undefined"
+                              (make-string (shm-indent-spaces) ?\s))))))
     (shm-adjust-dependents (point) (- start (point)))
     (delete-region start (point))
     (shm-adjust-dependents (point) (length (car (last (split-string template "\n")))))
@@ -171,8 +167,8 @@ or
   "Insert template
 
 if {undefined}
-   then {undefined}
-   else {undefined}
+  then {undefined}
+  else {undefined}
 
 or
 
@@ -185,7 +181,9 @@ if inside parentheses."
                                (point)))
         (template (if (bound-and-true-p structured-haskell-repl-mode)
                       "if undefined then undefined else undefined"
-                    "if undefined\n  then undefined\n  else undefined")))
+                    (format "if undefined\n%sthen undefined\n%selse undefined"
+                            (make-string (shm-indent-spaces) ?\s)
+                            (make-string (shm-indent-spaces) ?\s)))))
     (shm-adjust-dependents (point) (- start (point)))
     (delete-region start (point))
     (shm-adjust-dependents (point) (length (car (last (split-string template "\n")))))

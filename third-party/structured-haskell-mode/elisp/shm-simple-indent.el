@@ -62,7 +62,7 @@ column, `tab-to-tab-stop' is done instead."
                                 (let ((offset (if (or indenting-where
                                                       (looking-at-p "where\\>"))
                                                 2
-                                                shm-indent-spaces)))
+                                                (shm-indent-spaces))))
                                   (forward-char offset)))
                               ;; actually move to the next indentation point
                               (progn
@@ -120,6 +120,6 @@ column, `tab-to-tab-stop' is done instead."
   "Make a newline on the current column and indent on step."
   (interactive)
   (shm/simple-indent-newline-same-col)
-  (insert (make-string (shm-indent-spaces) ? )))
+  (insert (make-string (shm-indent-spaces) ?\s)))
 
 (provide 'shm-simple-indent)
