@@ -79,7 +79,7 @@
     (let ((point (point)))
       (when (looking-back "[a-zA-Z0-9]+_*")
         (shm-insert-string " "))
-      (when (looking-at "[a-zA-Z0-9]+_*")
+      (when (looking-at-p "[a-zA-Z0-9]+_*")
         (shm-insert-string " ")
         (forward-char -1))
       (shm-insert-string "_")
@@ -128,40 +128,41 @@ or
 \\case {undefined}
   {_} -> {undefined}
 "
-  (let ((start (save-excursion (forward-char -1)
-                               (search-backward-regexp "[^a-zA-Z0-9_]")
-                               (forward-char 1)
-                               (point)))
-        (template (if lambda-case
+  (save-match-data
+    (let ((start (save-excursion (forward-char -1)
+                                 (search-backward-regexp "[^a-zA-Z0-9_]")
+                                 (forward-char 1)
+                                 (point)))
+          (template (if lambda-case
+                        (if (bound-and-true-p structured-haskell-repl-mode)
+                            "case _ -> undefined"
+                          (format "case\n%s_ -> undefined"
+                                  (make-string (shm-indent-spaces) ?\s)))
                       (if (bound-and-true-p structured-haskell-repl-mode)
-                          "case _ -> undefined"
-                        (format "case\n%s_ -> undefined"
-                                (make-string (shm-indent-spaces) ?\s)))
-                    (if (bound-and-true-p structured-haskell-repl-mode)
-                        "case undefined of _ -> undefined"
-                      (format "case undefined of\n%s_ -> undefined"
-                              (make-string (shm-indent-spaces) ?\s))))))
-    (shm-adjust-dependents (point) (- start (point)))
-    (delete-region start (point))
-    (shm-adjust-dependents (point) (length (car (last (split-string template "\n")))))
-    (shm-insert-indented
-     (lambda ()
-       (insert template)))
-    (forward-char 5)
-    (shm/reparse)
-    (if lambda-case
-        (progn (search-forward-regexp "_" nil nil 1)
-               (let ((here (1- (point))))
-                 (shm-evaporate (1- (point)) (point))
-                 (forward-char 4)
-                 (shm-evaporate (point) (+ (point) (length "undefined")))
-                 (goto-char here)))
-      (save-excursion
-        (shm-evaporate (point) (+ (point) (length "undefined")))
-        (search-forward-regexp "_" nil nil 1)
-        (shm-evaporate (1- (point)) (point))
-        (forward-char 4)
-        (shm-evaporate (point) (+ (point) (length "undefined")))))))
+                          "case undefined of _ -> undefined"
+                        (format "case undefined of\n%s_ -> undefined"
+                                (make-string (shm-indent-spaces) ?\s))))))
+      (shm-adjust-dependents (point) (- start (point)))
+      (delete-region start (point))
+      (shm-adjust-dependents (point) (length (car (last (split-string template "\n")))))
+      (shm-insert-indented
+       (lambda ()
+         (insert template)))
+      (forward-char 5)
+      (shm/reparse)
+      (if lambda-case
+          (progn (search-forward-regexp "_" nil nil 1)
+                 (let ((here (1- (point))))
+                   (shm-evaporate (1- (point)) (point))
+                   (forward-char 4)
+                   (shm-evaporate (point) (+ (point) (length "undefined")))
+                   (goto-char here)))
+        (save-excursion
+          (shm-evaporate (point) (+ (point) (length "undefined")))
+          (search-forward-regexp "_" nil nil 1)
+          (shm-evaporate (1- (point)) (point))
+          (forward-char 4)
+          (shm-evaporate (point) (+ (point) (length "undefined"))))))))
 
 (defun shm-auto-insert-if ()
   "Insert template
@@ -175,28 +176,29 @@ or
 if {undefined} then {undefined} else {undefined}
 
 if inside parentheses."
-  (let ((start (save-excursion (forward-char -1)
-                               (search-backward-regexp "[^a-zA-Z0-9_]")
-                               (forward-char 1)
-                               (point)))
-        (template (if (bound-and-true-p structured-haskell-repl-mode)
-                      "if undefined then undefined else undefined"
-                    (format "if undefined\n%sthen undefined\n%selse undefined"
-                            (make-string (shm-indent-spaces) ?\s)
-                            (make-string (shm-indent-spaces) ?\s)))))
-    (shm-adjust-dependents (point) (- start (point)))
-    (delete-region start (point))
-    (shm-adjust-dependents (point) (length (car (last (split-string template "\n")))))
-    (shm-insert-indented
-     (lambda ()
-       (insert template)))
-    (forward-char 3)
-    (save-excursion
-      (shm-evaporate (point) (+ (point) (length "undefined")))
-      (search-forward-regexp "then ")
-      (shm-evaporate (point) (+ (point) (length "undefined")))
-      (search-forward-regexp "else ")
-      (shm-evaporate (point) (+ (point) (length "undefined"))))))
+  (save-match-data
+    (let ((start (save-excursion (forward-char -1)
+                                 (search-backward-regexp "[^a-zA-Z0-9_]")
+                                 (forward-char 1)
+                                 (point)))
+          (template (if (bound-and-true-p structured-haskell-repl-mode)
+                        "if undefined then undefined else undefined"
+                      (format "if undefined\n%sthen undefined\n%selse undefined"
+                              (make-string (shm-indent-spaces) ?\s)
+                              (make-string (shm-indent-spaces) ?\s)))))
+      (shm-adjust-dependents (point) (- start (point)))
+      (delete-region start (point))
+      (shm-adjust-dependents (point) (length (car (last (split-string template "\n")))))
+      (shm-insert-indented
+       (lambda ()
+         (insert template)))
+      (forward-char 3)
+      (save-excursion
+        (shm-evaporate (point) (+ (point) (length "undefined")))
+        (search-forward-regexp "then ")
+        (shm-evaporate (point) (+ (point) (length "undefined")))
+        (search-forward-regexp "else ")
+        (shm-evaporate (point) (+ (point) (length "undefined")))))))
 
 (defun shm-auto-insert-let ()
   "Insert let template:
@@ -204,36 +206,37 @@ if inside parentheses."
 \"let |\" in do blocks and list comprehensions or
 
 \"let | in {undefined}\" otherwise."
-  (delete-region (- (point) 3) (point))
-  (cond ((or (shm-inside-do-block? (shm-current-node-pair))
-             (shm-inside-list-comprehension? (shm-current-node-pair)))
-         (insert "let "))
-        (t
-         (let ((evaporate-in (lambda ()
-                               (forward-char 4)
-                               (save-excursion
-                                 (forward-word)
-                                 (forward-char 1)
-                                 (shm-evaporate (point) (+ (point) (length "undefined")))))))
-           (if (bound-and-true-p structured-haskell-repl-mode)
-             (let ((points (shm-decl-points)))
-               (if points
-                 (if (= (point) (car points))
-                   (progn (shm-insert-indented
-                           (lambda () (insert "let _ = undefined")))
-                          (search-forward "_")
-                          (shm-evaporate (1- (point)) (point))
-                          (forward-word 1)
-                          (forward-word -1)
-                          (shm-evaporate (point) (+ (point) (length "undefined")))
-                          (search-backward "_"))
-                   (progn (shm-insert-indented
-                           (lambda () (insert "let  in undefined")))
-                          (funcall evaporate-in)))
-                 (insert "let ")))
-             (progn (shm-insert-indented (lambda () (insert "let \nin undefined")))
-                    (funcall evaporate-in))))
-         (shm/reparse))))
+  (save-match-data
+    (delete-region (- (point) 3) (point))
+    (cond ((or (shm-inside-do-block? (shm-current-node-pair))
+               (shm-inside-list-comprehension? (shm-current-node-pair)))
+           (insert "let "))
+          (t
+           (let ((evaporate-in (lambda ()
+                                 (forward-char 4)
+                                 (save-excursion
+                                   (forward-word)
+                                   (forward-char 1)
+                                   (shm-evaporate (point) (+ (point) (length "undefined")))))))
+             (if (bound-and-true-p structured-haskell-repl-mode)
+                 (let ((points (shm-decl-points)))
+                   (if points
+                       (if (= (point) (car points))
+                           (progn (shm-insert-indented
+                                   (lambda () (insert "let _ = undefined")))
+                                  (search-forward "_")
+                                  (shm-evaporate (1- (point)) (point))
+                                  (forward-word 1)
+                                  (forward-word -1)
+                                  (shm-evaporate (point) (+ (point) (length "undefined")))
+                                  (search-backward "_"))
+                         (progn (shm-insert-indented
+                                 (lambda () (insert "let  in undefined")))
+                                (funcall evaporate-in)))
+                     (insert "let ")))
+               (progn (shm-insert-indented (lambda () (insert "let \nin undefined")))
+                      (funcall evaporate-in))))
+           (shm/reparse)))))
 
 (defun shm-auto-insert-module ()
   "Insert template
