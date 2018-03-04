@@ -266,12 +266,13 @@ e.g. shell prompt.."
 
 (vim:defmotion vim:motion-last-non-blank (inclusive count)
   "Move the cursor to the last non-blank charactor of the current line."
-  (goto-char
-   (save-excursion
-     (beginning-of-line count)
-     (re-search-forward "[ \t]*$")
-     (max (line-beginning-position)
-          (1- (match-beginning 0))))))
+  (save-match-data
+    (goto-char
+     (save-excursion
+       (beginning-of-line count)
+       (re-search-forward "[ \t]*$")
+       (max (line-beginning-position)
+            (1- (match-beginning 0)))))))
 
 (vim:defmotion vim:motion-go-to-first-non-blank-beg (linewise count)
   "Moves the cursor to the first non-blank character of line count."
@@ -293,19 +294,20 @@ e.g. shell prompt.."
 
 (defun vim:boundary-chars (direction chars)
   "A boundary selector for a sequence of `chars'."
-  (save-excursion
-    (pcase direction
-      (`fwd
-       (when (re-search-forward (concat "[" chars "]+") nil t)
-         (1- (match-end 0))))
-      (`bwd
-       (unless (looking-at-p (concat "[" chars "]"))
-         (skip-chars-backward (if (= (aref chars 0) ?^)
-                                  (substring chars 1)
-                                (concat "^" chars))))
-       (skip-chars-backward chars)
-       (when (looking-at-p (concat "[" chars "]"))
-         (point))))))
+  (save-match-data
+    (save-excursion
+      (pcase direction
+        (`fwd
+         (when (re-search-forward (concat "[" chars "]+") nil t)
+           (1- (match-end 0))))
+        (`bwd
+         (unless (looking-at-p (concat "[" chars "]"))
+           (skip-chars-backward (if (= (aref chars 0) ?^)
+                                    (substring chars 1)
+                                  (concat "^" chars))))
+         (skip-chars-backward chars)
+         (when (looking-at-p (concat "[" chars "]"))
+           (point)))))))
 
 (defun vim:boundary-syntax (direction syntax)
   "A boundary selector for a set of syntax."
@@ -329,7 +331,7 @@ newline character of the last line."
                  (`bwd -1))))
       ;; The last newline on a non-empty line does not count as part
       ;; of the current line.
-      (when (and (not (bolp)) (looking-at "\n")) (forward-char))
+      (when (and (not (bolp)) (looking-at-p "\n")) (forward-char))
       (forward-line 0)
       ;; skip unmatched lines
       (while (and (not (funcall predicate)) (zerop (forward-line dir))))
@@ -341,7 +343,7 @@ newline character of the last line."
           (forward-line dir))
         (pcase direction
           (`fwd (end-of-line)
-                (when (and (not (bolp)) (looking-at "\n"))
+                (when (and (not (bolp)) (looking-at-p "\n"))
                   (backward-char)))
           (`bwd (forward-line 0)))
         (point)))))
@@ -412,22 +414,23 @@ counted."
 
 (defun vim:boundary-sentence (direction)
   "A boundary selector for sentences."
-  (save-excursion
-    (pcase direction
-      (`fwd (when (re-search-forward "\\([.!?][])\"']*\\)\\(?:[ \t\r\n]+\\|\\'\\)" nil t)
-              (1- (match-end 1))))
-      (`bwd (let ((start (point))
-                  dot)
-              ;; search the final char of the previous sentence, check
-              ;; if it is really the end of a sentence up to the
-              ;; beginning of the next sentence, and ensure that this
-              ;; beginning is not behind the start position
-              (while (and (setq dot (re-search-backward "[.!?]" nil t))
-                          (not (bobp))
-                          (or (not (re-search-forward "\\=[.!?][])\"']*[ \t\r\n]+" nil t))
-                              (> (match-end 0) start)))
-                (goto-char (1- dot)))
-              (when dot (point)))))))
+  (save-match-data
+    (save-excursion
+      (pcase direction
+        (`fwd (when (re-search-forward "\\([.!?][])\"']*\\)\\(?:[ \t\r\n]+\\|\\'\\)" nil t)
+                (1- (match-end 1))))
+        (`bwd (let ((start (point))
+                    dot)
+                ;; search the final char of the previous sentence, check
+                ;; if it is really the end of a sentence up to the
+                ;; beginning of the next sentence, and ensure that this
+                ;; beginning is not behind the start position
+                (while (and (setq dot (re-search-backward "[.!?]" nil t))
+                            (not (bobp))
+                            (or (not (re-search-forward "\\=[.!?][])\"']*[ \t\r\n]+" nil t))
+                                (> (match-end 0) start)))
+                  (goto-char (1- dot)))
+                (when dot (point))))))))
 
 (defun vim:boundary-paragraph (direction)
   "A boundary selector for paragraphs.
