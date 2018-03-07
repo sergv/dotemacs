@@ -53,8 +53,8 @@
 ;;; eproj-tag
 
 ;; use this to debug type errors
-;; (defstruct (eproj-tag
-;;             (:conc-name eproj-tag/))
+;; (cl-defstruct (eproj-tag
+;;                (:conc-name eproj-tag/))
 ;;   symbol ;; == name - string
 ;;   file   ;; string
 ;;   line   ;; number
@@ -88,8 +88,8 @@
 
 ;;; eproj languages
 
-(defstruct (eproj-language
-            (:conc-name eproj-language/))
+(cl-defstruct (eproj-language
+               (:conc-name eproj-language/))
   mode
   extensions ;; list of <ext> strings
   extension-re
@@ -377,8 +377,8 @@
 ;;;; projects themselves
 
 ;; Thunk below is a function of 0 arguments.
-(defstruct (eproj-project
-            (:conc-name eproj-project/))
+(cl-defstruct (eproj-project
+               (:conc-name eproj-project/))
   root     ;; normalized directory name
   aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries
   tags     ;; Thunk of list of (language-major-mode . <tags-table>);
