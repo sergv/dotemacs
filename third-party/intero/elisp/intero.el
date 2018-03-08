@@ -151,6 +151,14 @@ by default."
   :group 'intero
   :type '(repeat string))
 
+(defcustom intero--flycheck-multiple-files-support nil
+  "I added multiple file support to flycheck here:
+https://github.com/chrisdone/flycheck/commits/errors-from-other-buffers
+
+But the PR was never accepted into flycheck mainline. However,
+it's clearly better to have multiple file support, so I'm
+including the option here.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modes
 
@@ -807,7 +815,9 @@ CHECKER and BUFFER are added to each item parsed from STRING."
                        :checker checker
                        :buffer (when (intero-paths-for-same-file temp-file file)
                                  buffer)
-                       :filename (intero-buffer-file-name buffer))
+                       :filename (if intero--flycheck-multiple-files-support
+                                     file
+                                   (intero-buffer-file-name buffer)))
                       messages)))
         (forward-line -1))
       (delete-dups
@@ -871,6 +881,30 @@ CHECKER and BUFFER are added to each item parsed from STRING."
                  (format ":complete repl %S" prefix)))))
           (when completions
             (list beg end completions)))))))
+
+(defun intero-repl-completion-at-point ()
+  "A (blocking) function suitable for use in `completion-at-point-functions'.
+Should only be used in the repl"
+  (let* ((beg (save-excursion (intero-repl-beginning-of-line) (point)))
+         (end (point))
+         (str (buffer-substring-no-properties beg end))
+         (repl-buffer (current-buffer))
+         (proc (get-buffer-process (current-buffer))))
+    (with-temp-buffer
+      (comint-redirect-send-command-to-process
+       (format ":complete repl %S" str) ;; command
+       (current-buffer) ;; output buffer
+       proc ;; target process
+       nil  ;; echo
+       t)   ;; no-display
+      (while (not (with-current-buffer repl-buffer
+                    comint-redirect-completed))
+        (sleep-for 0.01))
+      (let* ((completions (intero-completion-response-to-list (buffer-string)))
+             (first-line (car completions)))
+        (when (string-match "[^ ]* [^ ]* " first-line) ;; "2 2 :load src/"
+          (setq first-line (replace-match "" nil nil first-line))
+          (list (+ beg (length first-line)) end (cdr completions)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Company integration (auto-completion)
@@ -955,7 +989,6 @@ If specified, MINLEN is the shortest completion which will be
 considered."
   (when (intero-completions-can-grab-prefix)
     (let ((prefix (cond
-                   ((intero-completions-grab-ghci-command))
                    ((intero-completions-grab-pragma-prefix))
                    ((intero-completions-grab-identifier-prefix)))))
       (cond ((and minlen prefix)
@@ -971,24 +1004,6 @@ considered."
         (save-excursion
           (backward-char)
           (not (looking-at-p (rx (| space line-end)))))))))
-
-(defun intero-completions-grab-ghci-command ()
-  "Grab prefix for a ghci command like :set.
-Returns (prefix-start-position prefix-end-position prefix-value prefix-type)"
-  (when (derived-mode-p 'intero-repl-mode)
-    (save-excursion
-      (let ((end (point)))
-        (when (save-excursion
-                (beginning-of-line)
-                (looking-at-p (rx (* " ")
-                                  ":set"
-                                  (* " "))))
-          (skip-syntax-backward "^ >")
-          (let ((start (point)))
-            (list start
-                  end
-                  (concat ":set " (buffer-substring-no-properties start end))
-                  'haskell-completions-repl-command)))))))
 
 (defun intero-completions-grab-identifier-prefix ()
   "Grab identifier prefix."
@@ -1113,8 +1128,8 @@ pragma is supported also."
      (list :buffer (current-buffer) :cont cont)
      (lambda (state reply)
        (if (or (string-match "^Couldn't guess" reply)
-                   (string-match "^Unable to " reply)
-                   (intero-parse-error reply))
+               (string-match "^Unable to " reply)
+               (intero-parse-error reply))
            (funcall (plist-get state :cont) (list))
          (with-current-buffer (plist-get state :buffer)
            (let ((candidates
@@ -1349,8 +1364,7 @@ STORE-PREVIOUS is non-nil, note the caller's buffer in
   (setq-local comint-prompt-regexp intero-prompt-regexp)
   (setq-local warning-suppress-types (cons '(undo discard-info) warning-suppress-types))
   (setq-local comint-prompt-read-only t)
-  (add-hook 'completion-at-point-functions 'intero-completion-at-point nil t)
-  (add-to-list (make-local-variable 'company-backends) 'intero-company)
+  (add-hook 'completion-at-point-functions 'intero-repl-completion-at-point nil t)
   (company-mode))
 
 (defun intero-repl-mode-start (backend-buffer targets prompt-options stack-yaml)
@@ -1708,8 +1722,8 @@ path."
                       (intero-make-temp-file
                        "intero" nil
                        (concat "-TEMP." (if (buffer-file-name)
-                                       (file-name-extension (buffer-file-name))
-                                     "hs")))))
+                                            (file-name-extension (buffer-file-name))
+                                          "hs")))))
                (puthash intero-temp-file-name
                         (current-buffer)
                         intero-temp-file-buffer-mapping)
@@ -1723,8 +1737,8 @@ path."
                    (intero-make-temp-file
                     "intero" nil
                     (concat "-STAGING." (if (buffer-file-name)
-                                    (file-name-extension (buffer-file-name))
-                                  "hs"))))))
+                                            (file-name-extension (buffer-file-name))
+                                          "hs"))))))
       (with-temp-file fname
         (insert contents))
       fname)))
@@ -2795,12 +2809,49 @@ suggestions are available."
               (note nil))
           ;; Messages of this format:
           ;;
+          ;;     • Constructor ‘Assert’ does not have the required strict field(s): assertName,
+          ;; assertDoc, assertExpression,
+          ;; assertSection
+          (let ((start 0))
+            (while (or
+                    (string-match "does not have the required strict field.*?:[\n\t\r ]" text start)
+                    (string-match "Fields of .*? not initialised:[\n\t\r ]" text start))
+              (let* ((match-end (match-end 0))
+                     (fields
+                      (let ((reached-end nil))
+                        (mapcar
+                         (lambda (field)
+                           (with-temp-buffer
+                             (insert field)
+                             (goto-char (point-min))
+                             (intero-ident-at-point)))
+                         (cl-remove-if
+                          (lambda (field)
+                            (or reached-end
+                                (when (string-match "[\r\n]" field)
+                                  (setq reached-end t)
+                                  nil)))
+                          (split-string
+                           (substring text match-end)
+                           "[\n\t\r ]*,[\n\t\r ]*" t))))))
+                (setq note t)
+                (add-to-list
+                 'intero-suggestions
+                 (list :type 'add-missing-fields
+                       :fields fields
+                       :line (flycheck-error-line msg)
+                       :column (flycheck-error-column msg)))
+                (setq start (min (length text) (1+ match-end))))))
+
+          ;; Messages of this format:
+          ;;
           ;; Can't make a derived instance of ‘Functor X’:
           ;;       You need DeriveFunctor to derive an instance for this class
           ;;       Try GeneralizedNewtypeDeriving for GHC's newtype-deriving extension
           ;;       In the newtype declaration for ‘X’
           (let ((start 0))
-            (while (string-match extension-regex text start)
+            (while (let ((case-fold-search nil))
+                     (string-match extension-regex text start))
               (setq note t)
               (add-to-list 'intero-suggestions
                            (list :type 'add-extension
@@ -3037,6 +3088,15 @@ suggestions are available."
                                         (plist-get suggestion :ident)
                                         (plist-get suggestion :module))
                          :default t))
+                  (add-missing-fields
+                   (list :key suggestion
+                         :default t
+                         :title
+                         (format "Add missing fields to record: %s"
+                                 (mapconcat (lambda (ident)
+                                              (concat "‘" ident "’"))
+                                            (plist-get suggestion :fields)
+                                            ", "))))
                   (redundant-import-item
                    (list :key suggestion
                          :title
@@ -3169,7 +3229,18 @@ suggestions are available."
                    (forward-line (1- (plist-get suggestion :line)))
                    (move-to-column (- (plist-get suggestion :column) 1))
                    (delete-char (length (plist-get suggestion :typo)))
-                   (insert (plist-get suggestion :replacement))))))
+                   (insert (plist-get suggestion :replacement))))
+                (add-missing-fields
+                 (save-excursion
+                   (goto-char (point-min))
+                   (forward-line (1- (plist-get suggestion :line)))
+                   (move-to-column (- (plist-get suggestion :column) 1))
+                   (search-forward "{")
+                   (let ((first t))
+                     (mapc (lambda (field)
+                             (insert (if first "" ", ") field " = _" )
+                             (setq first nil))
+                           (plist-get suggestion :fields)))))))
           ;; # Changes that do increase/decrease line numbers
           ;;
           ;; Remove redundant constraints
