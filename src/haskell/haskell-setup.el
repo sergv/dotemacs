@@ -75,8 +75,10 @@
 
 (vim:defcmd vim:haskell-intero-load-file-into-repl (nonrepeatable)
   (intero-repl-load))
+(vim:defcmd vim:haskell-intero-restart (nonrepeatable)
+  (intero-restart))
 (vim:defcmd vim:haskell-intero-restart-repl (nonrepeatable)
-  (intero-repl-restart))
+  (intero-restart-repl))
 
 (vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
   (haskell-process-load-file))
@@ -204,12 +206,13 @@ enabled. Otherwise fall back to eproj tags."
        #'vim:haskell-intero-load-file-into-repl))
 
     (unless intero-disabled?
-      (vim:local-emap "restart" #'vim:haskell-intero-restart-repl))
+      (dolist (cmd '("re" "restart"))
+        (vim:local-emap cmd #'vim:haskell-intero-restart)))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
     (dolist (cmd '("cc" "ccompile"))
       (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
-    (dolist (cmd '("init" "configure" "conf"))
+    (dolist (cmd '("conf" "configure"))
       (vim:local-emap cmd #'vim:haskell-flycheck-configure))
 
     (def-keys-for-map vim:normal-mode-local-keymap
@@ -468,7 +471,8 @@ enabled. Otherwise fall back to eproj tags."
     :use-shm nil)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
-  (vim:local-emap "restart" 'vim:haskell-intero-restart-repl)
+  (dolist (cmd '("re" "restart"))
+    (vim:local-emap cmd 'vim:haskell-intero-restart-repl))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
