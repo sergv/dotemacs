@@ -2503,6 +2503,16 @@ Uses the directory of the current buffer for context."
             " "
             root)))
 
+(defun intero--get-project-root (stack-yaml)
+  (let ((stack-yaml-norm (and stack-yaml
+                              (expand-file-name stack-yaml))))
+    (if stack-yaml-norm
+        (file-name-directory stack-yaml-norm)
+      (locate-dominating-file
+       default-directory
+       (lambda (dir)
+         (directory-files dir nil "stack.*\\.yaml\\'" t))))))
+
 (defun intero-project-root ()
   "Get the current stack config directory.
 This is the directory where the file specified in
@@ -2511,28 +2521,8 @@ where stack.yaml is placed for this project, or the global one if
 no such project-specific config exists."
   (if intero-project-root
       intero-project-root
-    (let ((stack-yaml intero-stack-yaml))
-      (setq intero-project-root
-            (intero-with-temp-buffer
-              (cl-case (save-excursion
-                         (intero-call-stack nil (current-buffer) nil stack-yaml
-                                            "path"
-                                            "--project-root"
-                                            "--verbosity" "silent"))
-                (0 (buffer-substring (line-beginning-position) (line-end-position)))
-                (t (intero--warn "Couldn't get the Stack project root.
-
-This can be caused by a syntax error in your stack.yaml file. Check that out.
-
-If you do not wish to use Intero for some projects, see
-https://github.com/commercialhaskell/intero#whitelistingblacklisting-projects
-
-Otherwise, please report this as a bug!
-
-For debugging purposes, try running the following in your terminal:
-
-%s path --project-root" intero-stack-executable)
-                   nil)))))))
+    (setq intero-project-root
+          (intero--get-project-root intero-stack-yaml))))
 
 (defun intero-ghc-version ()
   "Get the GHC version used by the project."
