@@ -813,6 +813,12 @@ This variable is a normal hook.  See Info node `(elisp)Hooks'."
   :group 'flycheck-faces
   :package-version '(flycheck . "0.16"))
 
+(defface flycheck-error-list-filename
+  '((t :inherit font-lock-variable-name-face))
+  "Face for filenames in the error list."
+  :group 'flycheck-faces
+  :package-version '(flycheck . "32"))
+
 (defface flycheck-error-list-id
   '((t :inherit font-lock-type-face))
   "Face for the error ID in the error list."
@@ -1121,8 +1127,6 @@ Otherwise this function creates a temporary file with
 `flycheck-temp-prefix' and a random suffix.  The path of the file
 is added to `flycheck-temporaries'.
 
-Add the path of the file to `flycheck-temporaries'.
-
 Return the path of the file."
   (let ((tempfile (convert-standard-filename
                    (if filename
@@ -1151,6 +1155,29 @@ Return the path of the file."
         (push tempfile flycheck-temporaries)
         tempfile)
     (flycheck-temp-file-system filename)))
+
+(defun flycheck-temp-directory (checker)
+  "Return the directory where CHECKER writes temporary files.
+
+Return nil if the CHECKER does not write temporary files."
+  (let ((args (flycheck-checker-arguments checker)))
+    (cond
+     ((memq 'source args) temporary-file-directory)
+     ((memq 'source-inplace args)
+      (if buffer-file-name (file-name-directory buffer-file-name)
+        temporary-file-directory))
+     (t nil))))
+
+(defun flycheck-temp-files-writable-p (checker)
+  "Whether CHECKER can write temporary files.
+
+If CHECKER has `source' or `source-inplace' in its `:command',
+return whether flycheck has the permissions to create the
+respective temporary files.
+
+Return t if CHECKER does not use temporary files."
+  (let ((dir (flycheck-temp-directory checker)))
+    (or (not dir) (file-writable-p dir))))
 
 (defun flycheck-save-buffer-to-file (file-name)
   "Save the contents of the current buffer to FILE-NAME."
@@ -3062,8 +3089,12 @@ non-whitespace character of the error line, if ERR has no error column."
 (defun flycheck-error-format-message-and-id (err)
   "Format the message and id of ERR as human-readable string."
   (let ((id (flycheck-error-id err))
-        (message (flycheck-error-message err)))
-    (if id (format "%s [%s]" message id) message)))
+        (filename (flycheck-error-filename err)))
+    (concat (when (and filename (not (equal filename (buffer-file-name))))
+              (format "In \"%s\":\n" (file-relative-name filename default-directory)))
+            (flycheck-error-message err)
+            (when id
+              (format " [%s]" id)))))
 
 (defun flycheck-error-format (err &optional with-file-name)
   "Format ERR as human-readable string, optionally WITH-FILE-NAME.
@@ -3166,6 +3197,14 @@ Return ERRORS, modified in-place."
           errors)
   errors)
 
+(defun flycheck-relevant-error-other-file-p (err)
+  "Determine whether ERR is a relevant error for another file."
+  (let ((file-name (flycheck-error-filename err)))
+    (and file-name
+         (or (null buffer-file-name)
+             (not (flycheck-same-files-p buffer-file-name file-name)))
+         (eq 'error (flycheck-error-level err)))))
+
 (defun flycheck-relevant-error-p (err)
   "Determine whether ERR is relevant for the current buffer.
 
@@ -3175,12 +3214,14 @@ otherwise."
     (let ((file-name (flycheck-error-filename err))
           (message (flycheck-error-message err)))
       (and
-       ;; The error is relevant for the current buffer if it's got no file-name
-       ;; and the current buffer has no file name, too, or if it refers to the
-       ;; same file as the current buffer.
-       (or (and (not file-name) (not buffer-file-name))
-           (and buffer-file-name file-name
-                (flycheck-same-files-p file-name buffer-file-name)))
+       (or
+        ;; Neither the error nor buffer have a file name
+        (and (not file-name) (not buffer-file-name))
+        ;; Both have files, and they match
+        (and buffer-file-name file-name
+             (flycheck-same-files-p file-name buffer-file-name))
+        ;; This is a significant error from another file
+        (flycheck-relevant-error-other-file-p err))
        message
        (not (string-empty-p message))
        (flycheck-error-line err)))))
@@ -3695,8 +3736,13 @@ Return the created overlay."
   ;; We must have a proper error region for the sake of fringe indication,
   ;; error display and error navigation, even if the highlighting is disabled.
   ;; We erase the highlighting later on in this case
-  (pcase-let* ((`(,beg . ,end) (flycheck-error-region-for-mode
-                                err (or flycheck-highlighting-mode 'lines)))
+  (pcase-let* ((`(,beg . ,end)
+                (if (flycheck-relevant-error-other-file-p err)
+                    ;; Display overlays for other-file errors on the first line
+                    (cons (point-min)
+                          (save-excursion (goto-char (point-min)) (point-at-eol)))
+                  (flycheck-error-region-for-mode
+                   err (or flycheck-highlighting-mode 'lines))))
                (overlay (make-overlay beg end))
                (level (flycheck-error-level err))
                (category (flycheck-error-level-overlay-category level)))
@@ -3856,10 +3902,10 @@ beginning of the buffer, otherwise advance from the current
 position.
 
 Intended for use with `next-error-function'."
-  (let ((pos (flycheck-next-error-pos n reset)))
-    (if pos
-        (goto-char pos)
-      (user-error "No more Flycheck errors"))))
+  (-if-let* ((pos (flycheck-next-error-pos n reset)))
+      (let ((err (get-char-property pos 'flycheck-error)))
+        (flycheck-jump-to-error err))
+    (user-error "No more Flycheck errors")))
 
 (defun flycheck-next-error (&optional n reset)
   "Visit the N-th error from the current point.
@@ -3919,7 +3965,8 @@ message to stretch arbitrarily far."
             message checker-name)))
 
 (defconst flycheck-error-list-format
-  `[("Line" 5 flycheck-error-list-entry-< :right-align t)
+  `[("File" 6)
+    ("Line" 5 flycheck-error-list-entry-< :right-align t)
     ("Col" 3 nil :right-align t)
     ("Level" 8 flycheck-error-list-entry-level-<)
     ("ID" 6 t)
@@ -4039,6 +4086,7 @@ string with attached text properties."
 Return a list with the contents of the table cell."
   (let* ((level (flycheck-error-level error))
          (level-face (flycheck-error-level-error-list-face level))
+         (filename (flycheck-error-filename error))
          (line (flycheck-error-line error))
          (column (flycheck-error-column error))
          (message (or (flycheck-error-message error)
@@ -4050,7 +4098,12 @@ Return a list with the contents of the table cell."
          (msg-and-checker (flycheck-error-list-make-last-column flushed-msg checker))
          (explainer (flycheck-checker-get checker 'error-explainer)))
     (list error
-          (vector (flycheck-error-list-make-number-cell
+          (vector (flycheck-error-list-make-cell
+                   (if filename
+                       (file-name-nondirectory filename)
+                     "")
+                   'flycheck-error-list-filename)
+                  (flycheck-error-list-make-number-cell
                    line 'flycheck-error-list-line-number)
                   (flycheck-error-list-make-number-cell
                    column 'flycheck-error-list-column-number)
@@ -4212,22 +4265,38 @@ LEVEL is either an error level symbol, or nil, to remove the filter."
 
 POS defaults to `point'."
   (interactive)
-  (-when-let* ((error (tabulated-list-get-id pos))
-               (buffer (flycheck-error-buffer error)))
-    (when (buffer-live-p buffer)
-      (if (eq (window-buffer) (get-buffer flycheck-error-list-buffer))
-          ;; When called from within the error list, keep the error list,
-          ;; otherwise replace the current buffer.
-          (pop-to-buffer buffer 'other-window)
-        (switch-to-buffer buffer))
-      (let ((pos (flycheck-error-pos error)))
-        (unless (eq (goto-char pos) (point))
-          ;; If widening gets in the way of moving to the right place, remove it
-          ;; and try again
-          (widen)
-          (goto-char pos)))
-      ;; Re-highlight the errors
-      (flycheck-error-list-highlight-errors 'preserve-pos))))
+  (-when-let* ((error (tabulated-list-get-id pos)))
+    (flycheck-jump-to-error error)))
+
+(defun flycheck-jump-to-error (error)
+  "Go to the location of ERROR."
+  (let ((error-copy (copy-flycheck-error error))
+        (buffer (find-file-noselect (flycheck-error-filename error))))
+    (setf (flycheck-error-buffer error-copy) buffer)
+    (flycheck-jump-in-buffer buffer error-copy)
+    ;; When jumping to an error in another file, it may not have
+    ;; this error available for highlighting yet, so we trigger a check
+    ;; if necessary.
+    (with-current-buffer buffer
+      (unless (seq-contains flycheck-current-errors error-copy 'equal)
+        (when flycheck-mode
+          (flycheck-buffer))))))
+
+(defun flycheck-jump-in-buffer (buffer error)
+  "In BUFFER, jump to ERROR."
+  (if (eq (window-buffer) (get-buffer flycheck-error-list-buffer))
+      ;; When called from within the error list, keep the error list,
+      ;; otherwise replace the current buffer.
+      (pop-to-buffer buffer 'other-window)
+    (switch-to-buffer buffer))
+  (let ((pos (flycheck-error-pos error)))
+    (unless (eq (goto-char pos) (point))
+      ;; If widening gets in the way of moving to the right place, remove it
+      ;; and try again
+      (widen)
+      (goto-char pos)))
+  ;; Re-highlight the errors
+  (flycheck-error-list-highlight-errors 'preserve-pos))
 
 (defun flycheck-error-list-explain-error (&optional pos)
   "Explain the error at POS in the error list.
@@ -4667,6 +4736,7 @@ default `:verify' function of command checkers."
           (plist-put properties :enabled
                      (lambda ()
                        (and (flycheck-find-checker-executable symbol)
+                            (flycheck-temp-files-writable-p symbol)
                             (or (not enabled) (funcall enabled))))))
 
     (apply #'flycheck-define-generic-checker symbol docstring
@@ -5072,7 +5142,13 @@ CHECKER."
             (list (flycheck-verification-result-new
                    :label "configuration file"
                    :message (if path (format "Found at %S" path) "Not found")
-                   :face (if path 'success 'warning))))))))
+                   :face (if path 'success 'warning)))))
+      ,@(when (not (flycheck-temp-files-writable-p checker))
+          (list (flycheck-verification-result-new
+                 :label "temp directory"
+                 :message (format "%s is not writable"
+                                  (flycheck-temp-directory checker))
+                 :face 'error))))))
 
 
 ;;; Process management for command syntax checkers
@@ -8175,12 +8251,12 @@ See URL `https://eslint.org' for more information about ESLint."
             .messages)))
 
 (defun flycheck-eslint--find-working-directory (_checker)
-  "Look for a working directory to run CHECKER in.
+  "Look for a working directory to run ESLint CHECKER in.
 
-This will either be the directory that contains `.eslintrc' by
-supports configuration files formats or `.eslintignore', if no
-such file is found in the directory hierarchy, searches
-`node_modules' directory to detect root of project."
+This will be the directory that contains the `node_modules'
+directory.  If no such directory is found in the directory
+hierarchy, it looks first for `.eslintignore' and then for
+`.eslintrc' files to detect the project root."
   (let* ((regex-config (concat "\\`\\.eslintrc"
                                "\\(\\.\\(js\\|ya?ml\\|json\\)\\)?\\'")))
     (when buffer-file-name
@@ -8568,7 +8644,7 @@ See URL `http://proselint.com/'."
   :command ("proselint" "--json" "-")
   :standard-input t
   :error-parser flycheck-proselint-parse-errors
-  :modes (text-mode markdown-mode gfm-mode))
+  :modes (text-mode markdown-mode gfm-mode message-mode))
 
 (flycheck-define-checker protobuf-protoc
   "A protobuf syntax checker using the protoc compiler.
@@ -9452,6 +9528,22 @@ or if the current buffer has no file name."
   (and buffer-file-name
        (locate-dominating-file buffer-file-name "Cargo.toml")))
 
+(defun flycheck-rust-cargo-metadata ()
+  "Run 'cargo metadata' and return the result as parsed JSON object."
+  (with-temp-buffer
+    (call-process "cargo" nil t nil
+                  "metadata" "--no-deps" "--format-version" "1")
+    (goto-char (point-min))
+    (json-read)))
+
+(defun flycheck-rust-cargo-workspace-root ()
+  "Return the path to the workspace root of a Rust Cargo project.
+
+Return nil if the workspace root does not exist (for Rust
+versions inferior to 1.25)."
+  (let-alist (flycheck-rust-cargo-metadata)
+    .workspace_root))
+
 (defun flycheck-rust-cargo-has-command-p (command)
   "Whether Cargo has COMMAND in its list of commands.
 
@@ -9487,7 +9579,15 @@ This syntax checker requires Rust 1.17 or newer.  See URL
             (eval flycheck-cargo-check-args)
             "--message-format=json")
   :error-parser flycheck-parse-cargo-rustc
-  :error-filter flycheck-rust-error-filter
+  :error-filter (lambda (errors)
+                  ;; In Rust 1.25+, filenames are relative to the workspace
+                  ;; root.
+                  (let ((root (flycheck-rust-cargo-workspace-root)))
+                    (seq-do (lambda (err)
+                              (setf (flycheck-error-filename err)
+                                    (expand-file-name
+                                     (flycheck-error-filename err) root)))
+                            (flycheck-rust-error-filter errors))))
   :error-explainer flycheck-rust-error-explainer
   :modes rust-mode
   :predicate flycheck-buffer-saved-p
@@ -10122,7 +10222,7 @@ See URL `https://github.com/palantir/tslint'."
             (config-file "--config" flycheck-typescript-tslint-config)
             (option "--rules-dir" flycheck-typescript-tslint-rulesdir)
             (eval flycheck-tslint-args)
-            source)
+            source-inplace)
   :error-parser flycheck-parse-tslint
   :modes (typescript-mode))
 
