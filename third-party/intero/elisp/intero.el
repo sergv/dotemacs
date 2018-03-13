@@ -70,7 +70,11 @@
   :group 'haskell)
 
 (defcustom intero-package-version
-  "0.1.28"
+  (cl-case system-type
+    ;; Until <https://github.com/haskell/network/issues/313> is fixed:
+    (windows-nt "0.1.28")
+    (cygwin "0.1.28")
+    (t "0.1.30"))
   "Package version to auto-install.
 
 This version does not necessarily have to be the latest version
@@ -150,14 +154,6 @@ For example, this variable can be used to enable some ghci extensions
 by default."
   :group 'intero
   :type '(repeat string))
-
-(defcustom intero--flycheck-multiple-files-support nil
-  "I added multiple file support to flycheck here:
-https://github.com/chrisdone/flycheck/commits/errors-from-other-buffers
-
-But the PR was never accepted into flycheck mainline. However,
-it's clearly better to have multiple file support, so I'm
-including the option here.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modes
@@ -814,11 +810,10 @@ CHECKER and BUFFER are added to each item parsed from STRING."
                        line column type
                        msg
                        :checker checker
-                       :buffer (when (intero-paths-for-same-file temp-file file)
-                                 buffer)
-                       :filename (if intero--flycheck-multiple-files-support
-                                     file
-                                   (intero-buffer-file-name buffer)))
+                       :buffer buffer
+                       :filename (if (intero-paths-for-same-file temp-file file)
+                                     (intero-buffer-file-name buffer)
+                                   file))
                       messages)))
         (forward-line -1))
       (delete-dups
@@ -3227,11 +3222,9 @@ suggestions are available."
                    (forward-line (1- (plist-get suggestion :line)))
                    (move-to-column (- (plist-get suggestion :column) 1))
                    (search-forward "{")
-                   (let ((first t))
-                     (mapc (lambda (field)
-                             (insert (if first "" ", ") field " = _" )
-                             (setq first nil))
-                           (plist-get suggestion :fields)))))))
+                   (insert (mapconcat (lambda (field) (concat field " = _"))
+                                      (plist-get suggestion :fields)
+                                      ", "))))))
           ;; # Changes that do increase/decrease line numbers
           ;;
           ;; Remove redundant constraints
