@@ -3202,8 +3202,7 @@ Return ERRORS, modified in-place."
   (let ((file-name (flycheck-error-filename err)))
     (and file-name
          (or (null buffer-file-name)
-             (not (flycheck-same-files-p buffer-file-name file-name)))
-         (eq 'error (flycheck-error-level err)))))
+             (not (flycheck-same-files-p buffer-file-name file-name))))))
 
 (defun flycheck-relevant-error-p (err)
   "Determine whether ERR is relevant for the current buffer.
