@@ -579,6 +579,7 @@ If the problem persists, please report this as a bug!")))
 (defun intero-restart ()
   "Simply restart the process with the same configuration as before."
   (interactive)
+  (message "Restarting intero")
   (when (intero-buffer-p 'backend)
     (let ((targets (buffer-local-value 'intero-targets
                                        (intero-buffer 'backend)))
