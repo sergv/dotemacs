@@ -117,8 +117,8 @@ enabled. Otherwise fall back to eproj tags."
       (eproj-symbnav/go-to-symbol-home use-regexp?)))
 
 (defun haskell-setup ()
-  (let ((intero-disabled? nil)
-        (flycheck-disabled? nil))
+  (let ((intero-enabled? t)
+        (flycheck-enabled? t))
     (init-common :use-yasnippet t
                  :use-comment t
                  :use-render-formula nil
@@ -142,27 +142,28 @@ enabled. Otherwise fall back to eproj tags."
         (haskell-abbrev+-setup offset))
 
       (unless (derived-mode-p 'ghc-core-mode)
-        (if (eproj-query/haskell/disable-intero? proj)
+        (if (eproj-query/haskell/enable-intero? proj)
             (progn
-              (setf intero-disabled? t)
-              (when intero-mode
-                (intero-mode -1)))
-          (intero-mode-maybe))
+              (setf intero-enabled? t)
+              (intero-mode-maybe))
+          (progn
+            (setf intero-enabled? nil)
+            (when intero-mode
+              (intero-mode -1))))
 
         (company-mode +1)
         (setq-local company-backends '(company-eproj))
 
-        (if (eproj-query/general/disable-flycheck? proj)
+        (if (eproj-query/general/enable-flycheck? proj)
             (progn
-              (setf flycheck-disabled? t)
-              (when flycheck-mode
-                (flycheck-mode -1)))
+              (setf flycheck-enabled? t)
+              (flycheck-mode +1)
+              (flycheck-select-checker
+               (if intero-enabled? 'intero 'haskell-stack-ghc)))
           (progn
-            (flycheck-mode +1)
-            (flycheck-select-checker
-             (if intero-disabled?
-                 'haskell-stack-ghc
-               'intero))))))
+            (setf flycheck-enabled? nil)
+            (when flycheck-mode
+              (flycheck-mode -1))))))
 
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
@@ -199,22 +200,24 @@ enabled. Otherwise fall back to eproj tags."
                    :enable-yasnippet t)
 
     (flycheck-install-ex-commands!
-     :install-flycheck (not flycheck-disabled?)
+     :install-flycheck flycheck-enabled?
      :compile-func #'vim:haskell-compile
      :load-func
-     (if intero-disabled?
-         #'vim:haskell-load-file-into-repl
-       #'vim:haskell-intero-load-file-into-repl))
+     (if intero-enabled?
+         #'vim:haskell-intero-load-file-into-repl
+       #'vim:haskell-load-file-into-repl))
 
-    (unless intero-disabled?
+    (when intero-enabled?
       (dolist (cmd '("re" "restart"))
         (vim:local-emap cmd #'vim:haskell-intero-restart)))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
     (dolist (cmd '("cc" "ccompile"))
       (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
-    (dolist (cmd '("conf" "configure"))
-      (vim:local-emap cmd #'vim:haskell-flycheck-configure))
+    (when (or flycheck-enabled?
+              intero-enabled?)
+      (dolist (cmd '("conf" "configure"))
+        (vim:local-emap cmd #'vim:haskell-flycheck-configure)))
 
     (def-keys-for-map vim:normal-mode-local-keymap
       ("\\"      vim:flycheck-run)

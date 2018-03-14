@@ -18,37 +18,34 @@
                 language-specific
                 haskell-mode
                 indent-offset))
-    (assert (integerp it)
-            nil
-            "haskell-offset in .eproj-info must be an integer, but got %s"
-            it)
+    (cl-assert (integerp it) nil
+               "language-specific.haskell-mode.indent-offset in .eproj-info must be an integer, but got %s"
+               it)
     it))
 
 ;;;###autoload
-(defun eproj-query/haskell/disable-intero? (proj)
+(defun eproj-query/haskell/enable-intero? (proj)
   (declare (pure t))
   (awhen (and proj
               (eproj-project/query-aux-info (eproj-project/aux-info proj)
                 language-specific
                 haskell-mode
-                disable-intero?))
-    (assert (booleanp it)
-            nil
-            "disable-intero? in .eproj-info must be a boolean, but got %s"
-            it)
+                enable-intero?))
+    (cl-assert (booleanp it) nil
+               "language-specific.haskell-mode.enable-intero? in .eproj-info must be a boolean, but got %s"
+               it)
     it))
 
 ;;;###autoload
-(defun eproj-query/general/disable-flycheck? (proj)
+(defun eproj-query/general/enable-flycheck? (proj)
   (declare (pure t))
   (awhen (and proj
               (eproj-project/query-aux-info (eproj-project/aux-info proj)
                 general
-                disable-flycheck?))
-    (assert (booleanp it)
-            nil
-            "disable-flycheck? in .eproj-info must be a boolean, but got %s"
-            it)
+                enable-flycheck?))
+    (cl-assert (booleanp it) nil
+               "general.enable-flycheck? in .eproj-info must be a boolean, but got %s"
+               it)
     it))
 
 (provide 'eproj-query)
