@@ -114,17 +114,22 @@ update-dir-autoloads \
     "src/python" \
     "src/shell" \
     "third-party/auctex" \
+    "third-party/button-lock" \
     "third-party/clojure-mode" \
     "third-party/company-statistics" \
     "third-party/el-patch" \
     "third-party/elm-mode" \
     "third-party/flycheck" \
     "third-party/flycheck-elm" \
+    "third-party/flycheck-liquidhs" \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
     "third-party/intero" \
+    "third-party/liquid-types" \
     "third-party/misc-modes" \
     "third-party/pkg-info" \
+    "third-party/popup-el" \
+    "third-party/pos-tip" \
     "third-party/smartparens" \
     "third-party/sml-mode" \
     "third-party/tuareg" \
