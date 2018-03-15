@@ -210,7 +210,10 @@ modified and we should reconfigure the project.")
   (when (buffer-file-name)
     (haskell-watch--subscribe-buffer-for-config-file-updates
      (current-buffer)
-     (haskell-watch-get-project (haskell-watch-get-project-root)))))
+     (let ((root (haskell-watch-get-project-root)))
+       (if root
+           (haskell-watch-get-project root)
+         (error "Failed to find project root for buffer %s" (current-buffer)))))))
 
 (provide 'haskell-watch)
 
