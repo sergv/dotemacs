@@ -35,21 +35,30 @@ roots (i.e. valid and existing keys within
 (defun haskell-watch--get-project-root-for-path (file)
   "Obtain root of a Haskell project that FILE is part of."
   (cl-assert (file-name-absolute-p file))
-  (locate-dominating-file
-   (file-name-directory file)
-   (lambda (dir)
-     (directory-files
-      dir
-      nil
-      (rx bos
-          (or "cabal.project"
-              ".cabal.sandbox"
-              (seq "stack"
-                   (* nonl)
-                   ".yaml"))
-          eos)
-      t ;; Do not sort.
-      ))))
+  (let ((search-start (file-name-directory file)))
+    (or (locate-dominating-file
+         search-start
+         (lambda (dir)
+           (directory-files dir
+                            nil ;; Relative names.
+                            (rx bos
+                                (or "cabal.project"
+                                    ".cabal.sandbox"
+                                    (seq "stack" (* nonl) ".yaml"))
+                                eos)
+                            t ;; Do not sort.
+                            )))
+        (locate-dominating-file
+         search-start
+         (lambda (dir)
+           (directory-files dir
+                            nil ;; Relative names.
+                            (rx bos
+                                (or (seq (* nonl) ".cabal")
+                                    "package.yaml")
+                                eos)
+                            t ;; Do not sort.
+                            ))))))
 
 (defun haskell-watch-get-project-root ()
   "Get absolute project root for current buffer."
