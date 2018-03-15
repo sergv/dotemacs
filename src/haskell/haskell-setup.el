@@ -125,7 +125,8 @@ enabled. Otherwise fall back to eproj tags."
                  :use-hl-line nil
                  :use-whitespace 'tabs-only)
     (fontify-conflict-markers!)
-    (haskell-watch-register-current-buffer!)
+    (with-demoted-errors "haskell-watch failed: %s"
+      (haskell-watch-register-current-buffer!))
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
     ;; Read settings from '.eproj-info' file, if any.
