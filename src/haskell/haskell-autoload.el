@@ -106,6 +106,7 @@
 (defalias 'ghci 'switch-to-haskell)
 
 (put 'shm-display-quarantine 'safe-local-variable #'booleanp)
+(put 'hindent-style 'safe-local-variable #'stringp)
 
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
