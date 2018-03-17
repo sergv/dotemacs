@@ -448,8 +448,8 @@ Highlighting starts at the beginning of buffer")
                                           action-after
                                           is-forward?
                                           &key
-                                          (regex-start-func (constantly "\\_<"))
-                                          (regex-end-func   (constantly "\\_>"))
+                                          regex-start-func
+                                          regex-end-func
                                           (error-message nil))
   "BOUNDS-FUNC should return cons pair (START . END), everything else is
 obvious"
@@ -473,9 +473,9 @@ obvious"
                      (search--setup-search-for
                       (if ,non-strict-var
                           (regexp-quote ,substr-var)
-                        (concat (funcall #',regex-start-func ,substr-var)
+                        (concat (funcall ,regex-start-func ,substr-var)
                                 (regexp-quote ,substr-var)
-                                (funcall #',regex-end-func ,substr-var)))
+                                (funcall ,regex-end-func ,substr-var)))
                       ,is-forward?
                       :case-sensetive t)
                      (,action-after))))))))
@@ -508,8 +508,8 @@ obvious"
                                (bounds-of-thing-at-point 'haskell-symbol)
                                search--next-impl
                                t
-                               :regex-start-func search-for-haskell-symbol-at-point-regex-start-func
-                               :regex-end-func search-for-haskell-symbol-at-point-regex-end-func
+                               :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
+                               :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
                                :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-haskell-symbol-at-point-backward "search" nil t)
@@ -519,8 +519,8 @@ obvious"
                                (bounds-of-thing-at-point 'haskell-symbol)
                                search--prev-impl
                                nil
-                               :regex-start-func search-for-haskell-symbol-at-point-regex-start-func
-                               :regex-end-func search-for-haskell-symbol-at-point-regex-end-func
+                               :regex-start-func #'search-for-haskell-symbol-at-point-regex-start-func
+                               :regex-end-func #'search-for-haskell-symbol-at-point-regex-end-func
                                :error-message "No symbol at point")
 
 ;; Lispocentric searches
@@ -531,6 +531,8 @@ obvious"
                                (bounds-of-thing-at-point 'symbol)
                                search--next-impl
                                t
+                               :regex-start-func (constantly "\\_<")
+                               :regex-end-func (constantly "\\_>")
                                :error-message "No symbol at point")
 
 ;;;###autoload (autoload 'search-for-symbol-at-point-backward "search" nil t)
@@ -540,6 +542,8 @@ obvious"
                                (bounds-of-thing-at-point 'symbol)
                                search--prev-impl
                                nil
+                               :regex-start-func (constantly "\\_<")
+                               :regex-end-func (constantly "\\_>")
                                :error-message "No symbol at point")
 
 ;;;
