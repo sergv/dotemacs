@@ -36,6 +36,7 @@
     (ghc-core-mode         (one-line "--") (line-regexp "--+"))
     (haskell-cabal-mode    (one-line "--") (line-regexp "--+"))
     (alex-mode             (one-line "--") (line-regexp "--+"))
+    (uuag-mode             (one-line "--") (line-regexp "--+"))
     (happy-mode            (one-line "--") (line-regexp "--+"))
     (agda2-mode            (one-line "--") (line-regexp "--+"))
     (idris-mode            (one-line "--") (line-regexp "--+"))

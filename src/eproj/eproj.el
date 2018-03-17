@@ -303,7 +303,8 @@
                      haskell-hsc-mode
                      haskell-c2hs-mode
                      alex-mode
-                     happy-mode)
+                     happy-mode
+                     uuag-mode)
     :normalise-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification
     :get-extra-navigation-files-procedure
