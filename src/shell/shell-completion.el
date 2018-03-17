@@ -2140,6 +2140,17 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
          ,@standard-flags)))))
   :evaluate-definition t)
 
+;;;###autoload (autoload 'pcomplete/hpack "shell-completion" nil t)
+(defpcmpl pcomplete/hpack
+  (opts
+   (flags
+    "--help"
+    "--version"
+    "--silent"
+    "-f"
+    "--fource")
+   (args (pcomplete-here (pcomplete-entries "\\`package\\.yaml\\'")))))
+
 ;;;###autoload (autoload 'pcomplete/hlint "shell-completion" nil t)
 (defpcmpl pcomplete/hlint
   (let ((standard-flags
