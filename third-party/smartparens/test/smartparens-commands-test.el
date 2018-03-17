@@ -680,9 +680,12 @@ be."
 (sp-test-command sp-kill-whole-line
   ((nil
     ("(progn (some |long sexp))" "|")
+    ("(progn (some |long sexp))\n" "|")
     ("(progn\n  (some |long sexp))" "(progn\n  |)")
     ("(progn\n | (some\nlong\nsexp))" "(progn\n  |)")
-    ("(progn\n  (so|me\nlong\nsexp))" "(progn\n  |)"))))
+    ("(progn\n  (so|me\nlong\nsexp))" "(progn\n  |)")
+    ("(progn\n  (line|1)\n  (line2))" "(progn\n|  (line2))")
+    ("  (indented |line)" "|"))))
 
 (sp-test-command sp-transpose-sexp
   ((nil
@@ -750,6 +753,17 @@ be."
   (sp--test-sp-rewrap-sexp-python "\"foo 'b|ar' baz\"" '("\"" . "\"") "\"foo \\\"b|ar\\\" baz\"")
   (sp--test-sp-rewrap-sexp-python "\"foo 'bar' b|az\"" '("'" . "'") "'foo \\'bar\\' b|az'")
   (sp--test-sp-rewrap-sexp-python "'foo \\'b|ar\\' baz'" '("\"" . "\"") "'foo \"b|ar\" baz'"))
+
+;; #841
+(ert-deftest sp-test-command-sp-rewrap-empty-pair-should-unwrap ()
+  (sp--test-sp-rewrap-sexp "[fo|o]" nil "fo|o"))
+
+;; #841
+(ert-deftest sp-test-command-sp-rewrap-empty-pair-should-unwrap-interactive-spec ()
+  (sp-test-with-temp-elisp-buffer "[fo|o]"
+    (let ((unread-command-events (list 'return)))
+      (call-interactively 'sp-rewrap-sexp)
+      (sp-buffer-equals "fo|o"))))
 
 (ert-deftest sp-test-command-sp-rewrap-sexp-invalid-pair ()
   (should-error
