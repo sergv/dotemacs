@@ -118,6 +118,7 @@ enabled. Otherwise fall back to eproj tags."
         (intero-goto-definition))
       (eproj-symbnav/go-to-symbol-home use-regexp?)))
 
+;;;###autoload
 (defun haskell-setup ()
   (let ((intero-enabled? t)
         (flycheck-enabled? t)
@@ -341,6 +342,7 @@ enabled. Otherwise fall back to eproj tags."
 
 ;;; Set up inferior-haskell-mode
 
+;;;###autoload
 (defun inferior-haskell-mode-setup ()
   ;; undo-tree is useless for ghci interaction
   ;; well I'm not sure now, I hope it's useful since it proved itself useful
@@ -396,6 +398,7 @@ enabled. Otherwise fall back to eproj tags."
 
   (haskell-abbrev+-setup 2 :repl t))
 
+;;;###autoload
 (defun haskell-interactive-mode-setup ()
   ;; undo-tree is useless for ghci interaction
   ;; well I'm not sure now, I hope it's useful since it proved itself useful
@@ -446,6 +449,7 @@ enabled. Otherwise fall back to eproj tags."
 
   (haskell-abbrev+-setup 2 :repl t))
 
+;;;###autoload
 (defun intero-repl-mode-setup ()
   ;; undo-tree is useless for ghci interaction
   ;; well I'm not sure now, I hope it's useful since it proved itself useful
@@ -500,6 +504,7 @@ enabled. Otherwise fall back to eproj tags."
 
   (haskell-abbrev+-setup 2 :repl t))
 
+;;;###autoload
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
               +haskell-compile-error-or-warning-regexp+)
@@ -513,6 +518,7 @@ enabled. Otherwise fall back to eproj tags."
     ("g g"      vim-mock:motion-go-to-first-non-blank-beg)
     ("G"        vim-mock:motion-go-to-first-non-blank-end)))
 
+;;;###autoload
 (defun ghc-check-mode-setup ()
   (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil :use-fci nil)
   (def-keys-for-map vim:normal-mode-local-keymap
@@ -523,6 +529,7 @@ enabled. Otherwise fall back to eproj tags."
     ("<return>" compilation/goto-error)
     ("SPC"      compilation/goto-error-other-window)))
 
+;;;###autoload
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet t)
   (setq-local yas-indent-line 'fixed)
@@ -551,6 +558,7 @@ enabled. Otherwise fall back to eproj tags."
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile)))
 
+;;;###autoload
 (defun ghc-core-setup ()
   (structured-haskell-mode -1)
   (hl-line-mode +1))

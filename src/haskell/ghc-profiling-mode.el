@@ -86,11 +86,13 @@ cpu time or allocations that the value of this variable.")
   (interactive)
   (ghc-profiling-mode--search-for-expensive-entry 'backward))
 
+;;;###autoload
 (define-derived-mode ghc-profiling-mode prog-mode "GHC-Prof"
   "Major mode for viewing Haskell profiling reports."
   (set (make-local-variable 'font-lock-defaults)
        '(ghc-profiling-mode-font-lock-keywords)))
 
+;;;###autoload
 (defun ghc-profiling-mode-setup ()
   (init-common :use-yasnippet nil
                :use-comment nil
