@@ -25,7 +25,7 @@
 (autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
 
 (defconst +haskell-extensions+
-  '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly"))
+  '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
 
 (provide 'haskell-autoload)
 
@@ -82,6 +82,7 @@
 
 (add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
 (add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
+(add-hook 'uuag-mode-hook #'haskell-grammar-tools-setup)
 
 (require 'happy-mode-autoload)
 
