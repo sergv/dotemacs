@@ -1,4 +1,4 @@
-;;; smartparens-org.el --- Configuration for Org mode.
+;;; smartparens-org.el --- Configuration for Org mode.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 Matúš Goljer
 
@@ -41,7 +41,7 @@
 
 (require 'smartparens)
 
-(defun sp--org-skip-asterisk (ms mb me)
+(defun sp--org-skip-asterisk (_ms mb me)
   "Non-nil if the asterisk is part of the outline marker."
   (save-excursion
     (goto-char mb)
@@ -54,9 +54,8 @@
 (sp-with-modes 'org-mode
   (sp-local-pair "*" "*"
                  :unless '(sp-point-after-word-p sp-point-at-bol-p)
-                 :wrap "C-*"
                  :skip-match 'sp--org-skip-asterisk)
-  (sp-local-pair "_" "_" :unless '(sp-point-after-word-p) :wrap "C-_")
+  (sp-local-pair "_" "_" :unless '(sp-point-after-word-p))
   (sp-local-pair "/" "/" :unless '(sp-point-after-word-p) :post-handlers '(("[d1]" "SPC")))
   (sp-local-pair "~" "~" :unless '(sp-point-after-word-p) :post-handlers '(("[d1]" "SPC")))
   (sp-local-pair "=" "=" :unless '(sp-point-after-word-p) :post-handlers '(("[d1]" "SPC")))
