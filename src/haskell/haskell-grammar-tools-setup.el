@@ -27,23 +27,20 @@
   (setq-local indent-line-function
               (lambda ()
                 (indent-to standard-indent)))
-  (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
-                 #'haskell-shm-backtab-or-indent-relative-backward
-                 :enable-yasnippet t)
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("<f9>" haskell-compile))
-  (install-haskell-smart-operators
+  (install-haskell-smart-operators!
       vim:insert-mode-local-keymap
     :bind-colon t
     :bind-hyphen t
     :use-shm nil)
   (setup-eproj-symbnav)
-  (haskell-define-align-bindings vim:visual-mode-local-keymap)
-  (let ((offset 2))
-    (setq-local vim:shift-width 2)
-    (setq-local standard-indent 2)
-    (haskell-abbrev+-setup 2))
+  (haskell-define-align-bindings! vim:visual-mode-local-keymap)
+  (let ((proj (ignore-errors
+                (eproj-get-project-for-buf (current-buffer)))))
+    (haskell-setup-indentation
+     (eproj-query/haskell/indent-offset proj)))
   (haskell-setup-folding :enable-hs-minor-mode t))
 
 (provide 'haskell-grammar-tools-setup)
