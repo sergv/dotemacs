@@ -8,6 +8,7 @@
 
 (require 'haskell-compile)
 
+;;;###autoload
 (define-derived-mode ghc-check-mode prog-mode "GHC Check"
   "Mode to enable haskell compilation error fontification independent
 of `compilation-mode'."

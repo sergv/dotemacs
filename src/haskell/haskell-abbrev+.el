@@ -128,6 +128,7 @@ then Bar would be the result."
   (save-current-line-column
    (haskell-align-language-pragmas yas-snippet-beg)))
 
+;;;###autoload
 (defun* haskell-abbrev+-setup (indent &key (repl nil))
   (add-hook 'yas-after-exit-snippet-hook #'haskell-abbrev+-align-language-pragmas nil t)
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
