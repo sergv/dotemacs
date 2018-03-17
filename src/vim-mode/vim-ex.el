@@ -564,7 +564,8 @@ has been pressed."
                                                     (not (vim:cmd-arg-p cmd))
                                                     (string-to-number arg)))
                                            parameters)))))
-               (_ (error "Unexpected command-type bound to %s" vim:ex-cmd)))
+               (`nil (error "Command '%s' binds undefined function" vim:ex-cmd))
+               (invalid (error "Unexpected command-type bound to %s: %s" vim:ex-cmd invalid)))
              (apply cmd parameters))
             (start-line
              (vim:motion-go-to-first-non-blank-beg :count (or end-line start-line)))
