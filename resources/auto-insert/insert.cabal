@@ -22,6 +22,13 @@ cabal-version:
 build-type:
   Simple
 
+-- build-type: Custom
+--
+-- custom-setup
+--   setup-depends:
+--     base >= 4.7,
+--     Cabal >= 1.16
+
 library
   exposed-modules:
     Foo
