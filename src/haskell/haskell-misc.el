@@ -30,15 +30,23 @@
 (require 'f)
 (require 'dash)
 
-;;; definitions
+(defun haskell-setup-indentation (&optional offset)
+  "Set up bindings and indentation parameters using OFFSET as a
+single indentation unit."
+  (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
+                 #'haskell-shm-backtab-or-indent-relative-backward
+                 :enable-yasnippet t)
+
+  (let ((real-offset (or offset 2)))
+    (setq-local vim:shift-width       real-offset)
+    (setq-local haskell-indent-offset real-offset)
+    (setq-local haskell-indent-spaces real-offset)
+    (setq-local shm-indent-spaces     real-offset)
+    (haskell-abbrev+-setup real-offset)))
 
 ;;;###autoload
 (defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode haskell-c2hs-mode)
   "List of modes that use haskell syntax.")
-
-(defconst +haskell-tmp-path+ (concat +tmp-path+ "/haskell-tmp"))
-
-(make-directory +haskell-tmp-path+ t)
 
 (defun cleanup-stg ()
   "Remove useless srt:SRT annotations of lambdas, keep only relevant arguments
@@ -87,114 +95,73 @@ and indent them as singe line."
 
        (stack-command
         (lambda (cmd)
-          (format "cd \"%%s\" && stack %s --ghc-options=\"-j4 +RTS -A64m -H256m -n2m -RTS\"" cmd)))
+          (format "cd \"%%s\" && stack %s --ghc-options=\"-j4 +RTS -A128m -H256m -RTS\"" cmd)))
        (cd-command "cd \"%s\""))
   (setf haskell-compile-cabal-build-command-presets
-        `((vanilla
-           ,(funcall stack-command "build"))
-          (prof
-           ,(funcall stack-command "build --profile --test --no-run-tests"))
-          (clean
-           ,(funcall stack-command "clean"))
-          (stack
-           ,(funcall stack-command "build"))
-          (test
-           ,(funcall stack-command "test"))
-          (build-tests
-           ,(funcall stack-command "test --no-run-tests"))
-          (bench
-           ,(funcall stack-command "bench"))
-          (cabal-vanilla
-           ,(concat
-             cd-command
-             sep
-             (concat "cabal "
-                     "configure "
-                     "--disable-library-profiling "
-                     "--disable-profiling "
-                     (funcall common-conf-opts build-dir))
-             sep
-             (funcall build-command build-dir)
-             sep
-             (funcall test-command build-dir)))
-          (cabal-build
-           ,(concat
-             cd-command
-             sep
-             (funcall build-command build-dir)))
-          (cabal-build-inlpace
-           ,(concat
-             cd-command
-             sep
-             (funcall build-command nil)))
-          (cabal-vanilla-noopt
-           ,(concat
-             cd-command
-             sep
-             (concat "cabal "
-                     "configure "
-                     "--disable-optimization "
-                     "--disable-profiling "
-                     (funcall common-conf-opts build-dir))
-             sep
-             (funcall build-command build-dir)
-             sep
-             (funcall test-command build-dir)))
-          (cabal-test
-           ,(concat
-             cd-command
-             sep
-             (funcall test-command build-dir)))
-          (cabal-clean
-           ,(concat
-             cd-command
-             sep
-             "cabal clean --builddir " build-dir))
-          (cabal-prof
-           ,(concat
-             cd-command
-             sep
-             (concat "cabal "
-                     "configure "
-                     "--enable-profiling "
-                     (funcall common-conf-opts build-dir))
-             sep
-             (funcall build-command build-dir)
-             sep
-             (funcall test-command build-dir)))
-          ;; hpc command must use local dist build directory, it won't
-          ;; work with absolute paths.
-          (cabal-hpc
-           ,(concat
-             cd-command
-             sep
-             (concat "cabal "
-                     "configure "
-                     "--enable-library-coverage "
-                     "--disable-profiling "
-                     "--disable-split-objs "
-                     (funcall common-conf-opts nil))
-             sep
-             (funcall build-command nil)
-             sep
-             (funcall test-command nil))))))
-
-(defun haskell-doc-mode-setup ()
-  ;; (haskell-doc-mode +1)
-  (turn-on-haskell-doc-mode)
-  (setq-default haskell-doc-show-global-types t)
-  (setq-default haskell-doc-show-reserved t)
-  (setq-default haskell-doc-show-prelude t)
-  (setq-default haskell-doc-show-strategy t)
-  (setq-default haskell-doc-show-user-defined t)
-  (setf haskell-doc-chop-off-context nil
-        haskell-doc-chop-off-fctname nil))
-
+        (-mapcat (lambda (entry) (if (listp (car entry))
+                                (-map (lambda (cmd) (list cmd (cadr entry))) (car entry))
+                              (list entry)))
+                 `(((vanilla stack default)
+                    ,(funcall stack-command "build"))
+                   (prof
+                    ,(funcall stack-command "build --profile --test --no-run-tests"))
+                   (clean
+                    ,(funcall stack-command "clean"))
+                   (test
+                    ,(funcall stack-command "test"))
+                   ((test-norun build-tests)
+                    ,(funcall stack-command "test --no-run-tests"))
+                   (bench
+                    ,(funcall stack-command "bench"))
+                   (cabal-vanilla
+                    ,(concat
+                      cd-command
+                      sep
+                      (concat "cabal "
+                              "configure "
+                              "--disable-library-profiling "
+                              "--disable-profiling "
+                              (funcall common-conf-opts build-dir))
+                      sep
+                      (funcall build-command build-dir)
+                      sep
+                      (funcall test-command build-dir)))
+                   (cabal-build
+                    ,(concat
+                      cd-command
+                      sep
+                      (funcall build-command build-dir)))
+                   (cabal-build-inlpace
+                    ,(concat
+                      cd-command
+                      sep
+                      (funcall build-command nil)))
+                   (cabal-test
+                    ,(concat
+                      cd-command
+                      sep
+                      (funcall test-command build-dir)))
+                   (cabal-clean
+                    ,(concat
+                      cd-command
+                      sep
+                      "cabal clean --builddir " build-dir))
+                   (cabal-prof
+                    ,(concat
+                      cd-command
+                      sep
+                      (concat "cabal "
+                              "configure "
+                              "--enable-profiling "
+                              (funcall common-conf-opts build-dir))
+                      sep
+                      (funcall build-command build-dir)
+                      sep
+                      (funcall test-command build-dir)))))))
 
 (setf haskell-compile-cabal-build-command
       (or (cadr-safe (assoc 'vanilla haskell-compile-cabal-build-command-presets))
-          (error "failed to set up haskell-compile-cabal-build-command"))
-      ;; "cd %s && cabal build --ghc-option=-ferror-spans && cabal test --show-details=always"
+          (error "Failed to set up haskell-compile-cabal-build-command"))
       ;; 'cabal-repl is good as well
 
       ;; Don't kill any associated buffers when issuing `haskell-session-kill'.
@@ -245,6 +212,14 @@ and indent them as singe line."
       shm-indent-point-after-adding-where-clause t
       shm-colon-enabled t
       shm-indent-use-chris-done-if-indent-style nil
+      shm-extensions
+      '("MagicHash"
+        "LambdaCase"
+        "QuasiQuotes"
+        "TemplateHaskell"
+        "TypeOperators"
+        "UnboxedTuples")
+
       inferior-haskell-find-project-root nil
 
       haskell-interactive-prompt-read-only t
@@ -270,15 +245,7 @@ and indent them as singe line."
         "-Wcompat"
         "-dsuppress-module-prefixes")
       intero-extra-ghci-options
-      '("-XOverloadedStrings")
-
-      shm-extensions
-      '("MagicHash"
-        "LambdaCase"
-        "QuasiQuotes"
-        "TemplateHaskell"
-        "TypeOperators"
-        "UnboxedTuples"))
+      '("-XOverloadedStrings"))
 
 (def-keys-for-map intero-multiswitch-keymap
   ("<escape>" abort-recursive-edit)
@@ -304,8 +271,8 @@ and indent them as singe line."
                      '("-fbyte-code" "-Wwarn")
                      (fold-platform-os-type
                       '("-i/tmp/dist/build"
-                         "-odir" "/tmp/ghc"
-                         "-hidir" "/tmp/ghc")
+                        "-odir" "/tmp/ghc"
+                        "-hidir" "/tmp/ghc")
                       nil)))
               (rts-opts '("+RTS" "-M8G" "-RTS")))
           (append (fold-platform-os-type
@@ -340,6 +307,9 @@ and indent them as singe line."
                      error-or-warning?)
                    (append
                     haskell-compilation-error-regexp-alist
+                    ;; Add C compilers into the mix so that their
+                    ;; errors will also be colorised when compiling
+                    ;; Haskell packages with foreign code.
                     (-map #'cdr
                           (--filter (memq (car it) '(4bssd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft))
                                     compilation-error-regexp-alist-alist)))))
@@ -363,16 +333,9 @@ and indent them as singe line."
 
 (defun inf-haskell-send-input-or-jump-to-error ()
   (interactive)
-  (if (looking-at-pure? *compilation-jump-error-regexp*)
+  (if (looking-at-p *compilation-jump-error-regexp*)
       (compile-goto-error)
     (comint-send-input)))
-
-
-(put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'string?)
-(put 'haskell-compile-cabal-build-command 'safe-local-variable #'string?)
-(put 'haskell-compile-command 'safe-local-variable #'string?)
-(put 'haskell-program-name 'safe-local-variable (lambda (x) (or (string? x) (list? x))))
-(put 'intero-targets 'safe-local-variable (lambda (x) (and (list? x) (cl-every #'string? x ))))
 
 ;;; simple documentation system
 
@@ -393,53 +356,10 @@ and indent them as singe line."
                      t
                      "[ \t]+")
        #'string<)))
-
   "List of Haskell extensions for current GHC in the PATH.
 
 See http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
 for more information.")
-
-;;; haddock for modules
-
-(defun inferior-haskell-haddock-module (name)
-  "Find and open the Haddock documentation of module NAME.
-Only works for module in a package installed with ghc-pkg, or
-whatever the value of `haskell-package-manager-name' is.
-
-This function needs to find which package a given module belongs
-to.  In order to do this, it computes a module-to-package lookup
-alist, which is expensive to compute (it takes upwards of five
-seconds with more than about thirty installed packages).  As a
-result, we cache it across sessions using the cache file
-referenced by `inferior-haskell-module-alist-file'. We test to
-see if this is newer than `haskell-package-conf-file' every time
-we load it."
-  (interactive
-   (let ((name (haskell-ident-at-point)))
-     (list (read-string (if (> (length name) 0)
-                            (format "Find documentation of module (default %s): " name)
-                          "Find documentation of module: ")
-                        nil nil name))))
-  (setq name (inferior-haskell-map-internal-ghc-ident name))
-  (let ( ;; Find the module and look it up in the alist
-        (alist-record (assoc name (inferior-haskell-module-alist))))
-
-    (if alist-record
-        (progn ;; if documentation for such module exists at all
-          (let* ((package (nth 1 alist-record))
-                 (file-name (concat (subst-char-in-string ?. ?- name) ".html"))
-                 (local-path (concat (nth 2 alist-record) "/" file-name))
-                 (url (if (or (eq inferior-haskell-use-web-docs 'always)
-                              (and (not (file-exists-p local-path))
-                                   (eq inferior-haskell-use-web-docs 'fallback)))
-                          (concat inferior-haskell-web-docs-base package "/" file-name
-                                  ;; no haddock anchor for module names
-                                  )
-                        (and (file-exists-p local-path)
-                             ;; no haddock anchor for module names
-                             (concat "file://" local-path)))))
-            (if url (browse-url url) (error "Local file doesn't exist"))))
-      (error "No documentation for module %s found" name))))
 
 ;;; up level navigation
 
@@ -451,18 +371,51 @@ we load it."
               (back-to-indentation)
               (current-column))))
          (current-level (funcall get-whitespace-level)))
-    (while (and (not (bob?))
-                (<= current-level
-                    (funcall get-whitespace-level)))
-      (backward-line 1)
-      (while (looking-at-pure? "^$")
-        (backward-line 1)))
+    (when (= (current-column) current-level)
+      (while (and (not (bobp))
+                  ;; Do not move past 0th column in order to not skip to the
+                  ;; beginning of file.
+                  (/= 0 current-level)
+                  (<= current-level
+                      (funcall get-whitespace-level)))
+        (backward-line 1)
+        (while (looking-at-p "^$")
+          (backward-line 1))))
     (back-to-indentation)))
 
-(defun haskell-move-up ()
+;;;###autoload
+(defun haskell-backward-up-indentation-or-sexp ()
+  "Haskell brother of `sp-backward-up-sexp' that considers both
+sexps and indentation levels."
   (interactive)
-  (or (sp-backward-up-sexp)
-      (haskell-back-up-indent-level)))
+  (let* ((start (point))
+         (with-indentation
+          (with-demoted-errors
+              (save-excursion
+                (haskell-back-up-indent-level)
+                (let ((p (point)))
+                  (when (/= p start)
+                    p)))))
+         (with-sp
+          (when (/= 0 (syntax-ppss-depth (syntax-ppss start)))
+            (with-demoted-errors
+                (save-excursion
+                  (sp-backward-up-sexp)
+                  (let ((p (point)))
+                    (when (/= p start)
+                      p)))))))
+    (if (and with-indentation
+             with-sp)
+        (goto-char (max with-indentation with-sp))
+      (goto-char (or with-indentation
+                     with-sp
+                     (error "Both indentation-based and sexp-based navigations failed"))))))
+
+;;;###autoload
+(defun haskell-up-sexp ()
+  "Haskell brother of `sp-up-sexp' that considers only sexps for now."
+  (interactive)
+  (sp-up-sexp))
 
 ;;;; align functions
 
@@ -497,7 +450,7 @@ we load it."
   (haskell-align-on-double-colons)
   (haskell-align-on-pragma-close))
 
-(defun haskell-define-align-bindings (keymap)
+(defun haskell-define-align-bindings! (keymap)
   (def-keys-for-map keymap
     ("g a"       nil)
     ("g a a"     haskell-align-generic)
@@ -517,18 +470,18 @@ we load it."
     (cond
       ((save-excursion
          (beginning-of-line)
-         (looking-at-pure? haskell-abbrev+/language-pragma-prefix))
+         (looking-at-p haskell-abbrev+/language-pragma-prefix))
        (save-current-line-column
         (haskell-align-language-pragmas (point))))
       ((and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
             (save-excursion
               (re-search-backward haskell-regexen/pragma-start nil t)
-              (looking-at-pure? haskell-abbrev+/language-pragma-prefix)))
+              (looking-at-p haskell-abbrev+/language-pragma-prefix)))
        (save-current-line-column
         (haskell-align-language-pragmas (point))))
       ((save-excursion
          (beginning-of-line)
-         (looking-at-pure? "import "))
+         (looking-at-p "import "))
        (save-current-line-column
         (haskell-sort-imports)))
       (t
@@ -628,6 +581,7 @@ extensions as a list of strings. Leaves point at the end of pragma"
 ;;;###autoload
 (put 'haskell-symbol 'forward-op #'forward-haskell-symbol)
 
+;;;###autoload
 (defun forward-haskell-symbol (arg)
   "Like `forward-symbol' but for generic Haskell symbols (either operators,
 uppercase or lowercase names)."
@@ -657,14 +611,6 @@ uppercase or lowercase names)."
         (setf arg (1+ arg))))))
 
 ;; newline that detects haskell signatures
-
-(defun shm-node-top-parent (node-pair)
-  "Get latest parent of given NODE-PAIR."
-  (let ((parent (shm-node-parent node-pair)))
-    (while parent
-      (setf node-pair parent
-            parent (shm-node-parent node-pair)))
-    node-pair))
 
 (defun shm-search-node-upwards (predicate node-pair)
   "Searh for node matching PREDICATE starting from NODE-PAIR."
@@ -720,8 +666,8 @@ return nil otherwise."
                     (save-excursion
                       (forward-line)
                       (skip-syntax-forward "->")
-                      (looking-at-pure? (concat (regexp-quote func-name)
-                                                "\\_>")))))
+                      (looking-at-p (concat (regexp-quote func-name)
+                                            "\\_>")))))
               (delete-region (line-beginning-position) (point))
               (insert (make-string indentation ?\s)
                       func-name
@@ -735,8 +681,6 @@ return nil otherwise."
   (if structured-haskell-mode
       (shm/space)
     (insert " ")))
-
-;; (search-def-autoexpand-advices (show-subtree) (haskell-mode))
 
 (defun haskell-interactive-clear-prompt ()
   "Clear haskell prompt from input."
@@ -765,24 +709,6 @@ return nil otherwise."
   (haskell-interactive-prompt-regex)
   :jump-to-end t)
 
-(defun haskell/smart-$ ()
-  "Swap parens with a dollar."
-  (interactive)
-  (let ((start-pos nil))
-    (when (save-excursion
-            (skip-syntax-forward " ")
-            (when (and (char-after)
-                       (char= (char-after) ?\())
-              (setf start-pos (point))
-              t))
-      (goto-char start-pos)
-      ;; delete parenthesized sexp
-      (save-excursion
-        (forward-sexp)
-        (delete-char -1))
-      (delete-char 1))
-    (shm-insert-char-surrounding-with-spaces ?\$)))
-
 (defun haskell--ghci-shm/hyphen (&optional prefix)
   "Version of `shm/hyphen' for ghci."
   (interactive "p")
@@ -798,7 +724,7 @@ return nil otherwise."
         (self-insert-command prefix)
       (shm/hyphen prefix))))
 
-(defun* install-haskell-smart-operators (keymap &key bind-colon bind-hyphen use-shm)
+(defun* install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen use-shm)
   (declare (indent 1))
   (when bind-colon
     (define-key keymap

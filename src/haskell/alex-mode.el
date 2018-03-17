@@ -68,7 +68,7 @@
      (0 'font-lock-negation-char-face)))
   "Highlight definitions of alex distinctive constructs for font-lock.")
 
-
+;;;###autoload
 (define-derived-mode alex-mode prog-mode "Alex"
   "Major mode for editing Alex files."
   (set (make-local-variable 'font-lock-defaults)
