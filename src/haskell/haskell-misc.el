@@ -80,7 +80,8 @@ single indentation unit."
   (make-string vim:shift-width ?\s))
 
 ;;;###autoload
-(defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode haskell-c2hs-mode)
+(defconst +haskell-syntax-modes+
+  '(haskell-mode haskell-c-mode haskell-c2hs-mode alex-mode happy-mode uuag-mode)
   "List of modes that use haskell syntax.")
 
 (defun cleanup-stg ()

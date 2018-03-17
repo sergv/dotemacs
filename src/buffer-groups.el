@@ -23,6 +23,7 @@
                             (mode . hugs-mode)
                             (mode . alex-mode)
                             (mode . happy-mode)
+                            (mode . uuag-mode)
                             (name . ,(rx "*"
                                          (or "haskell" "ghci")
                                          "*"

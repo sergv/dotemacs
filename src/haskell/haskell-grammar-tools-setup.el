@@ -9,6 +9,7 @@
 (require 'common)
 (require 'haskell-misc)
 (require 'haskell-outline)
+(require 'haskell-setup)
 
 (require 'mmm-setup)
 
