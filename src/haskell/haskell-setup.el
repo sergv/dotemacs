@@ -41,13 +41,15 @@
                           compile)
   (setq-local shm-display-quarantine nil))
 
-(vimmize-motion shm/goto-parent
-                :name vim:shm/goto-parent
-                :exclusive nil)
+(vimmize-motion haskell-backward-up-indentation-or-sexp
+                :name vim:haskell-backward-up-indentation-or-sexp
+                :exclusive t
+                :do-not-adjust-point t)
 
-(vimmize-motion shm/goto-parent-end
-                :name vim:shm/goto-parent-end
-                :exclusive nil)
+(vimmize-motion haskell-up-sexp
+                :name vim:haskell-up-sexp
+                :exclusive t
+                :do-not-adjust-point t)
 
 (autoload 'flycheck--locate-dominating-file-matching "flycheck")
 
@@ -118,7 +120,8 @@ enabled. Otherwise fall back to eproj tags."
 
 (defun haskell-setup ()
   (let ((intero-enabled? t)
-        (flycheck-enabled? t))
+        (flycheck-enabled? t)
+        (liquid-haskell-enabled? nil))
     (init-common :use-yasnippet t
                  :use-comment t
                  :use-render-formula nil
@@ -133,14 +136,8 @@ enabled. Otherwise fall back to eproj tags."
     (let ((proj (ignore-errors
                   (eproj-get-project-for-buf (current-buffer)))))
 
-      ;; Set up indent offset.
-      (let ((offset (or (eproj-query/haskell/indent-offset proj)
-                        2)))
-        (setq-local vim:shift-width       offset)
-        (setq-local haskell-indent-offset offset)
-        (setq-local haskell-indent-spaces offset)
-        (setq-local shm-indent-spaces     offset)
-        (haskell-abbrev+-setup offset))
+      (haskell-setup-indentation
+       (eproj-query/haskell/indent-offset proj))
 
       (unless (derived-mode-p 'ghc-core-mode)
         (if (eproj-query/haskell/enable-intero? proj)
@@ -169,8 +166,6 @@ enabled. Otherwise fall back to eproj tags."
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
 
-    ;; (haskell-doc-mode-setup)
-
     ;; fix vim treatment of words for Haskell
     ;; note: do not include underscore into vim:word as this would cause
     ;; inefficiencies while navigating haskell identifiers
@@ -195,10 +190,6 @@ enabled. Otherwise fall back to eproj tags."
     (setq-local compilation-auto-jump-to-first-error nil)
     ;; Don't skip any messages.
     (setq-local compilation-skip-threshold 0)
-
-    (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
-                   #'haskell-shm-backtab-or-indent-relative-backward
-                   :enable-yasnippet t)
 
     (flycheck-install-ex-commands!
      :install-flycheck flycheck-enabled?
@@ -268,7 +259,7 @@ enabled. Otherwise fall back to eproj tags."
       ("`"   vim:wrap-backticks)
       (","   shm/comma))
 
-    (install-haskell-smart-operators
+    (install-haskell-smart-operators!
         vim:insert-mode-local-keymap
       :bind-colon t
       :bind-hyphen t
@@ -320,11 +311,11 @@ enabled. Otherwise fall back to eproj tags."
       ("C-*" search-for-haskell-symbol-at-point-forward-new-color)
       ("#"   search-for-haskell-symbol-at-point-backward)
       ("C-#" search-for-haskell-symbol-at-point-backward-new-color)
-      ("'"   vim:shm/goto-parent)
+      ("'"   vim:haskell-backward-up-indentation-or-sexp)
       ("g t" haskell-node/move-to-topmost-start)
       ("g h" haskell-node/move-to-topmost-end))
 
-    (haskell-define-align-bindings vim:visual-mode-local-keymap)
+    (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
     (def-keys-for-map vim:operator-pending-mode-local-keymap
       ("in" vim:motion-inner-haskell-node)
@@ -336,8 +327,8 @@ enabled. Otherwise fall back to eproj tags."
                        vim:motion-mode-local-keymap
                        vim:operator-pending-mode-local-keymap)
       ("m" vim:motion-jump-haskell-item)
-      ("'" vim:shm/goto-parent)
-      ("q" vim:shm/goto-parent-end))
+      ("'" vim:haskell-backward-up-indentation-or-sexp)
+      ("q" vim:haskell-up-sexp))
 
     (haskell-setup-folding)
     (setup-eproj-symbnav)
@@ -420,7 +411,7 @@ enabled. Otherwise fall back to eproj tags."
   (structured-haskell-mode -1)
   (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
-  (install-haskell-smart-operators vim:insert-mode-local-keymap
+  (install-haskell-smart-operators! vim:insert-mode-local-keymap
     :bind-colon nil
     :bind-hyphen nil
     :use-shm nil)
@@ -470,7 +461,7 @@ enabled. Otherwise fall back to eproj tags."
   (structured-haskell-mode -1)
   (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
-  (install-haskell-smart-operators vim:insert-mode-local-keymap
+  (install-haskell-smart-operators! vim:insert-mode-local-keymap
     :bind-colon nil
     :bind-hyphen nil
     :use-shm nil)

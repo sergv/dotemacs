@@ -107,6 +107,11 @@
 
 (put 'shm-display-quarantine 'safe-local-variable #'booleanp)
 (put 'hindent-style 'safe-local-variable #'stringp)
+(put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'stringp)
+(put 'haskell-compile-cabal-build-command 'safe-local-variable #'stringp)
+(put 'haskell-compile-command 'safe-local-variable #'stringp)
+(put 'haskell-program-name 'safe-local-variable (lambda (x) (or (stringp x) (listp x))))
+(put 'intero-targets 'safe-local-variable (lambda (x) (and (listp x) (cl-every #'stringp x ))))
 
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
@@ -121,8 +126,6 @@
 ;; grammar tools autoloads
 
 (require 'happy-mode-autoload)
-
-(autoload 'alex-mode "alex-mode" nil t)
 
 (add-to-list 'auto-mode-alist '("\\.alex\\'" . alex-mode))
 (add-to-list 'auto-mode-alist '("\\.x\\'" . alex-mode))
