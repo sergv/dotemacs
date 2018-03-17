@@ -8,35 +8,6 @@
 
 (require 'mmm-setup)
 
-(autoload 'ghc-core-create-core "ghc-core" nil t)
-(autoload 'ghc-core-mode "ghc-core" nil t)
-(autoload 'ghci-script-mode "ghci-script-mode" nil t)
-
-(autoload 'haskell-cabal-mode "haskell-cabal" nil t)
-(autoload 'haskell-cabal-guess-setting "haskell-cabal" nil t)
-(autoload 'haskell-cabal-get-dir "haskell-cabal")
-(autoload 'haskell-cabal-visit-file "haskell-cabal" nil t)
-
-(autoload 'haskell-compile "haskell-compile" nil t)
-
-(autoload 'haskell-font-lock-choose-keywords "haskell-font-lock")
-(autoload 'haskell-mode "haskell-mode" nil t)
-(autoload 'literate-haskell-mode "haskell-mode" nil t)
-(autoload 'haskell-doc-mode "haskell-doc" nil t)
-(autoload 'turn-on-haskell-doc-mode "haskell-doc" nil t)
-(autoload 'haskell-doc-current-info "haskell-doc")
-(autoload 'haskell-doc-show-type "haskell-doc" nil t)
-
-(autoload 'haskell-navigate-imports "haskell-navigate-imports" nil t)
-(autoload 'haskell-navigate-imports-return "haskell-navigate-imports" nil t)
-
-(autoload 'turn-on-haskell-unicode-input-method "haskell-unicode-input-method" nil t)
-(autoload 'haskell-mode-after-save-handler "haskell")
-(autoload 'haskell-process-load-file "haskell" nil t)
-(autoload 'switch-to-haskell "inf-haskell" nil t)
-
-(autoload 'ghc-profiling-mode "ghc-profiling-mode" nil t)
-(autoload 'ghc-profiling-mode-setup "ghc-profiling-mode")
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
@@ -53,23 +24,8 @@
 (autoload 'vim:haskell-flycheck-list-errors "haskell-setup" nil t)
 (autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
 
-(autoload 'intero-mode "intero" nil t)
-
-(defparameter *haskell-extensions* '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "happy" "y"))
-
-(autoload 'haskell-setup "haskell-setup")
-(autoload 'inferior-haskell-mode-setup "haskell-setup")
-(autoload 'haskell-c2hs-mode "haskell-c2hs" nil t)
-(autoload 'ghc-check-mode "ghc-check-mode")
-
-(autoload 'haskell-setup "haskell-setup")
-(autoload 'haskell-compilation-setup "haskell-setup")
-(autoload 'ghc-check-mode-setup "haskell-setup")
-(autoload 'haskell-cabal-setup "haskell-setup")
-(autoload 'ghc-core-setup "haskell-setup")
-
-(autoload 'haskell-interactive-mode-setup "haskell-setup")
-(autoload 'intero-repl-mode-setup "haskell-setup")
+(defparameter *haskell-extensions*
+  '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "happy" "y" "ag"))
 
 (mmm-add-classes
  '((literate-haskell-latex
@@ -105,25 +61,26 @@
 
 (defalias 'ghci 'switch-to-haskell)
 
-(put 'shm-display-quarantine 'safe-local-variable #'booleanp)
-(put 'hindent-style 'safe-local-variable #'stringp)
 (put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'stringp)
 (put 'haskell-compile-cabal-build-command 'safe-local-variable #'stringp)
 (put 'haskell-compile-command 'safe-local-variable #'stringp)
 (put 'haskell-program-name 'safe-local-variable (lambda (x) (or (stringp x) (listp x))))
+(put 'hindent-style 'safe-local-variable #'stringp)
 (put 'intero-targets 'safe-local-variable (lambda (x) (and (listp x) (cl-every #'stringp x ))))
+(put 'shm-display-quarantine 'safe-local-variable #'booleanp)
 
-(add-hook 'haskell-mode-hook #'haskell-setup)
-(add-hook 'literate-haskell-mode-hook #'haskell-setup)
-(add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
-(add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
-(add-hook 'intero-repl-mode-hook #'intero-repl-mode-setup)
-(add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
 (add-hook 'ghc-check-mode-hook #'ghc-check-mode-setup)
-(add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
+(add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
+(add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
+(add-hook 'haskell-interactive-mode-hook #'haskell-interactive-mode-setup)
+(add-hook 'haskell-mode-hook #'haskell-setup)
+(add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
+(add-hook 'intero-repl-mode-hook #'intero-repl-mode-setup)
+(add-hook 'literate-haskell-mode-hook #'haskell-setup)
 
-;; grammar tools autoloads
+(add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
+(add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
 
 (require 'happy-mode-autoload)
 
