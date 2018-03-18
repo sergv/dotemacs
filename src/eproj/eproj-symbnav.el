@@ -48,11 +48,13 @@ as accepted by `bounds-of-thing-at-point'.")
       (trim-whitespace (get-region-string-no-properties))
     (let ((bounds (bounds-of-thing-at-point eproj-symbnav/identifier-type)))
       (cond ((not (null bounds))
-             (funcall (eproj-language/normalize-identifier-before-navigation-procedure
-                       (gethash (eproj/resolve-synonym-modes major-mode)
-                                eproj/languages-table))
-                      (buffer-substring-no-properties (car bounds)
-                                                      (cdr bounds))))
+             (if-let ((lang (gethash (eproj/resolve-synonym-modes major-mode)
+                                     eproj/languages-table)))
+                 (funcall (eproj-language/normalize-identifier-before-navigation-procedure
+                           lang)
+                          (buffer-substring-no-properties (car bounds)
+                                                          (cdr bounds)))
+               (error "Did not find a language for current mode: %s" major-mode)))
             ((null noerror)
              (error "No identifier at point found"))
             (t

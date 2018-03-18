@@ -269,7 +269,8 @@
                      haskell-c-mode
                      haskell-c2hs-mode
                      alex-mode
-                     happy-mode)
+                     happy-mode
+                     uuagc-mode)
     :normalize-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification)
    (mk-eproj-lang
