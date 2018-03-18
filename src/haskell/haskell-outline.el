@@ -25,6 +25,8 @@
 
 ;;;###autoload
 (defun* haskell-setup-folding (&key (enable-hs-minor-mode t))
+  "Configure folding for Haskell. ENABLE-HS-MINOR-MODE controls whether
+to enable folding of balanced S-expressions."
   (when enable-hs-minor-mode
     (setup-hs-minor-mode))
   (yafolding-mode +1)

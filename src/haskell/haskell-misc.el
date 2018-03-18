@@ -284,7 +284,7 @@ and indent them as singe line."
         haskell-process-args-cabal-repl (--map (concat "--ghc-option=" it) ghc-options)
         haskell-process-args-stack-ghci (--map (concat "--ghci-options=" it) ghc-options)))
 
-(defconst +haskell-compile-error-or-warning-regexp+
+(defconst +haskell-compile-error-or-warning-navigation-regexp+
   (mapconcat
    (lambda (entry) (concat "\\(?:" entry "\\)"))
    (-map #'car
@@ -311,10 +311,11 @@ and indent them as singe line."
                     ;; errors will also be colorised when compiling
                     ;; Haskell packages with foreign code.
                     (-map #'cdr
-                          (--filter (memq (car it) '(4bssd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft))
+                          (--filter (memq (car it) haskell-compilation-extra-error-modes)
                                     compilation-error-regexp-alist-alist)))))
    "\\|")
-  "Regexp matching both errors and warnings.")
+  "Regexp matching both errors and warnings. Used to navigate between errors
+in haskell compilation buffer.")
 
 (defconst haskell-module-quantification-regexp
   (let ((conid "\\b[[:upper:]][[:alnum:]'_]*\\b"))

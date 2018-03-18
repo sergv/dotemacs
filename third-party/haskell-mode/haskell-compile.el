@@ -50,7 +50,7 @@ user.")
 
 ;;;###autoload
 (defcustom haskell-compile-command
-  "ghc -Wall -ferror-spans -fforce-recomp -c %s"
+  "ghc -O -Wall -Werror -ferror-spans -fforce-recomp -c %s"
   "Default build command to use for `haskell-cabal-build' when no cabal file is detected.
 The `%s' placeholder is replaced by the current buffer's filename."
   :group 'haskell-compile
@@ -62,48 +62,83 @@ The `%s' placeholder is replaced by the current buffer's filename."
   :group 'haskell-compile
   :type 'boolean)
 
-(defconst haskell-compilation-error-filename-regexp
-  `(,(rx (group-n 1
-                  (+ (not (any ?\s ?\t ?\n ?\r)))
-                  (or ".hs"
-                      ".lhs"
-                      ".hsc"
-                      ".chs"
-                      ".alex"
-                      ".x"
-                      ".happy"
-                      ".y"))
-         ":"
-         (group-n 2
-                  (+ numeric))
-         ":"
-         (group-n 3
-                  (+ numeric))
-         (? "-"
-            (group-n 4
-                     (+ numeric)))
-         (or ")"
-             eol))
-    1 2 (3 . 4) 0) ;; info locus
-  )
+(defconst haskell-compilation-error-main-filename-regexp
+  (let ((ext-re
+         (rx-to-string (list 'seq "."
+                             (cons 'or
+                                   *haskell-extensions*))))
+        (lines-and-columns-re
+         (concat
+          "\\(?:"
+          "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
+          "\\|"
+          "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
+          "\\)")))
+    (list
+     (concat
+      "\\(?:"
+      (concat
+       "^\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
+       lines-and-columns-re
+       ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
+      "\\)\\|\\(?:"
+      (concat
+       "^[ \t]+\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
+       lines-and-columns-re
+       ":\\(?:[ \t]+[Ee]rror:\\|\\(?6:[ \t\r\n]+[Ww]arning:\\)\\)")
+      "\\)")
+     1            ;; file
+     (cons 2 3)   ;; line
+     (cons 4 5)   ;; column
+     (cons 6 nil) ;; type - error/warning
+     )))
+
+(defconst haskell-compilation-error-auxiliary-filename-regexp
+  `(,(eval
+      `(rx (group-n 1
+                    (+ (not (any ?\s ?\t ?\n ?\r)))
+                    "."
+                    ,(cons 'or
+                           *haskell-extensions*))
+           ":"
+           (group-n 2
+                    (+ numeric))
+           ":"
+           (group-n 3
+                    (+ numeric))
+           (? "-"
+              (group-n 4
+                       (+ numeric)))
+           ;; Require paren or \n at end because this regexp aims to
+           ;; highlight auxiliary file names, not the actuall
+           ;; errors/warnings (cf type of this regexp).
+           (or ")"
+               eol)))
+    1
+    2
+    (3 . 4)
+    0 ;; type - info
+    ))
 
 (defconst haskell-compilation-error-regexp-alist
-  `((,(concat
-       "^\\(?1:[^ \n\r\v\t\f].*?\\.\\(?:hs\\|lhs\\|hsc\\|chs\\|alex\\|x\\|happy\\|y\\|ly\\)\\):"
-       "\\(?:"
-       "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
-       "\\|"
-       "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
-       "\\)"
-       ":\\(?6:\n?[ \t]+[Ww]arning:\\)?")
-     1 (2 . 3) (4 . 5) (6 . nil)) ;; error/warning locus
+  (let ((ext-re
+         (rx-to-string (list 'seq "."
+                             (cons 'or
+                                   *haskell-extensions*)))))
+    (list
+     haskell-compilation-error-main-filename-regexp
 
-    ;; multiple declarations
-    ("^    \\(?:\\(?:Declared\\|Defined\\) at:\\|            \\) \\(?1:.+?\\.\\(?:hs\\|lhs\\|hsc\\|c2hs\\|alex\\|x\\|happy\\|y\\)\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
-     1 2 4 0) ;; info locus
+     ;; multiple declarations
+     (list
+      (concat
+       "^[ \t]+\\(?:Declared\\|Defined\\)[ \t]at:[ \t]+\\(?1:.+?\\." ext-re "\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$")
+      1 ;; file
+      2 ;; line
+      4 ;; column
+      0 ;; type - info
+      )
 
-    ,haskell-compilation-error-filename-regexp
-    )
+     haskell-compilation-error-auxiliary-filename-regexp))
   "Regexps used for matching GHC compile messages.
 See `compilation-error-regexp-alist' for semantics.")
 
@@ -115,14 +150,18 @@ This is a child of `compilation-mode-map'.")
 
 (defun haskell-compilation-filter-hook ()
   "Local `compilation-filter-hook' for `haskell-compilation-mode'."
-
   (when haskell-compile-ghc-filter-linker-messages
     (delete-matching-lines "^ *Loading package [^ \t\r\n]+ [.]+ linking [.]+ done\\.$"
                            (save-excursion (goto-char compilation-filter-start)
                                            (line-beginning-position))
                            (point))))
 
-(define-compilation-mode haskell-compilation-mode "HsCompilation"
+(defvar haskell-compilation-extra-error-modes
+  '(4bssd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft)
+  "Extra modes from `compilation-error-regexp-alist-alist' whose warnings
+will be colorized in `haskell-compilation-mode'.")
+
+(define-compilation-mode haskell-compilation-mode "Haskell Compilation"
   "Haskell/GHC specific `compilation-mode' derivative.
 This mode provides support for GHC 7.[46]'s compile
 messages. Specifically, also the `-ferror-spans` source location
@@ -130,14 +169,11 @@ format is supported, as well as info-locations within compile
 messages pointing to additional source locations."
   (setq-local compilation-error-regexp-alist
               (append haskell-compilation-error-regexp-alist
-                      (default-value 'compilation-error-regexp-alist)))
-
+                      '(4bssd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft)))
   (add-hook 'compilation-filter-hook
-            'haskell-compilation-filter-hook nil t)
-  )
+            'haskell-compilation-filter-hook nil t))
 
 (defvar haskell-compile--build-presets-history nil)
-
 
 ;;;###autoload
 (defun haskell-compile (&optional edit-command)
