@@ -19,17 +19,16 @@
                :use-fci t
                :use-whitespace 'tabs-only)
   (fontify-merge-markers)
-  (vim:local-emap "compile"  #'vim:haskell-compile)
-  (vim:local-emap "c"        #'vim:haskell-compile)
-  (vim:local-emap "ccompile" #'vim:haskell-compile-choosing-command)
-  (vim:local-emap "cc"       #'vim:haskell-compile-choosing-command)
-  (setq-local tab-always-indent t)
-  (setq-local indent-line-function
-              (lambda ()
-                (indent-to standard-indent)))
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("<f9>" haskell-compile))
+  (let ((proj (ignore-errors
+                (eproj-get-project-for-buf (current-buffer)))))
+    (haskell-setup-indentation
+     (eproj-query/haskell/indent-offset proj))
+    (setq-local tab-always-indent t)
+    (setq-local indent-line-function
+                (lambda ()
+                  (indent-to standard-indent))))
+  (haskell-setup-folding :enable-hs-minor-mode t)
+
   (install-haskell-smart-operators!
       vim:insert-mode-local-keymap
     :bind-colon t
@@ -37,11 +36,23 @@
     :use-shm nil)
   (setup-eproj-symbnav)
   (haskell-define-align-bindings! vim:visual-mode-local-keymap)
-  (let ((proj (ignore-errors
-                (eproj-get-project-for-buf (current-buffer)))))
-    (haskell-setup-indentation
-     (eproj-query/haskell/indent-offset proj)))
-  (haskell-setup-folding :enable-hs-minor-mode t))
+
+  (dolist (cmd '("c" "compile"))
+    (vim:local-emap cmd  #'vim:haskell-compile))
+  (dolist (cmd '("cc" "ccompile"))
+    (vim:local-emap cmd  #'vim:haskell-compile-choosing-command))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("M-t"             haskell-compilation-prev-error-other-window)
+    ("M-h"             haskell-compilation-next-error-other-window)
+    ("C-SPC"           company-complete)
+
+    ("C-l"             intero-repl-load)
+
+    ("S-<tab>"         nil)
+    ("<S-iso-lefttab>" nil)
+    ("<return>"        haskell-newline)
+    ("<f9>"            haskell-compile)))
 
 (provide 'haskell-grammar-tools-setup)
 
