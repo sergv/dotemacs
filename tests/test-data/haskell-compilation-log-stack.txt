@@ -1,0 +1,670 @@
+-*- mode: haskell-compilation; default-directory: "~/projects/haskell/projects/thirdparty/stack/" -*-
+HsCompilation started at Sun Mar 18 16:34:46
+
+cd "/home/sergey/projects/haskell/projects/thirdparty/stack/" && stack build --ghc-options="-j4 +RTS -A128m -H256m -RTS"
+stack-1.6.6: unregistering (local file changes: CONTRIBUTING.md ChangeLog.md README.md Setup.hs doc/GUIDE.md doc/MAINTAINER_GUIDE.md doc/README.m...)
+Building all executables for `stack' once. After a successful build of all of them, only specified executables will be rebuilt.
+stack-1.6.6: configure (lib + exe)
+[1 of 2] Compiling Main             ( /home/sergey/projects/haskell/projects/thirdparty/stack/Setup.hs, /home/sergey/projects/haskell/projects/thirdparty/stack/.stack-work/dist/x86_64-linux/Cabal-2.0.1.0/setup/Main.o )
+[2 of 2] Compiling StackSetupShim   ( /home/sergey/.stack/setup-exe-src/setup-shim-mPHDZzAJ.hs, /home/sergey/projects/haskell/projects/thirdparty/stack/.stack-work/dist/x86_64-linux/Cabal-2.0.1.0/setup/StackSetupShim.o )
+Linking /home/sergey/projects/haskell/projects/thirdparty/stack/.stack-work/dist/x86_64-linux/Cabal-2.0.1.0/setup/setup ...
+Configuring stack-1.6.6...
+stack-1.6.6: build (lib + exe)
+Preprocessing library for stack-1.6.6..
+Building library for stack-1.6.6..
+[  1 of 126] Compiling Hackage.Security.Client.Repository.HttpLib.HttpClient ( src/Hackage/Security/Client/Repository/HttpLib/HttpClient.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Hackage/Security/Client/Repository/HttpLib/HttpClient.o )
+[  2 of 126] Compiling Paths_stack      ( .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/autogen/Paths_stack.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Paths_stack.o )
+[  3 of 126] Compiling Stack.Prelude    ( src/Stack/Prelude.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Prelude.o )
+[  4 of 126] Compiling Stack.Options.Utils ( src/Stack/Options/Utils.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/Utils.o )
+[  5 of 126] Compiling Stack.Options.LogLevelParser ( src/Stack/Options/LogLevelParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/LogLevelParser.o )
+[  6 of 126] Compiling Stack.Ghci.Script ( src/Stack/Ghci/Script.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Ghci/Script.o )
+[  7 of 126] Compiling Stack.FileWatch  ( src/Stack/FileWatch.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/FileWatch.o )
+[  8 of 126] Compiling Path.Find        ( src/Path/Find.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Path/Find.o )
+[  9 of 126] Compiling Path.Extra       ( src/Path/Extra.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Path/Extra.o )
+[ 10 of 126] Compiling Options.Applicative.Complicated ( src/Options/Applicative/Complicated.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Options/Applicative/Complicated.o )
+[ 11 of 126] Compiling Options.Applicative.Builder.Extra ( src/Options/Applicative/Builder/Extra.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Options/Applicative/Builder/Extra.o )
+[ 12 of 126] Compiling Stack.Options.SolverParser ( src/Stack/Options/SolverParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/SolverParser.o )
+[ 13 of 126] Compiling Data.Store.VersionTagged ( src/Data/Store/VersionTagged.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Data/Store/VersionTagged.o )
+[ 14 of 126] Compiling Data.IORef.RunOnce ( src/Data/IORef/RunOnce.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Data/IORef/RunOnce.o )
+[ 15 of 126] Compiling Data.Attoparsec.Combinators ( src/Data/Attoparsec/Combinators.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Data/Attoparsec/Combinators.o )
+[ 16 of 126] Compiling Data.Attoparsec.Args ( src/Data/Attoparsec/Args.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Data/Attoparsec/Args.o )
+[ 17 of 126] Compiling Options.Applicative.Args ( src/Options/Applicative/Args.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Options/Applicative/Args.o )
+[ 18 of 126] Compiling Data.Aeson.Extended ( src/Data/Aeson/Extended.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Data/Aeson/Extended.o )
+[ 19 of 126] Compiling Stack.StaticBytes ( src/Stack/StaticBytes.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/StaticBytes.o )
+[ 20 of 126] Compiling Stack.Types.CompilerBuild ( src/Stack/Types/CompilerBuild.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/CompilerBuild.o )
+[ 21 of 126] Compiling Stack.Options.GhcBuildParser ( src/Stack/Options/GhcBuildParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/GhcBuildParser.o )
+[ 22 of 126] Compiling Stack.Types.FlagName ( src/Stack/Types/FlagName.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/FlagName.o )
+[ 23 of 126] Compiling Stack.Types.GhcPkgId ( src/Stack/Types/GhcPkgId.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/GhcPkgId.o )
+[ 24 of 126] Compiling Stack.Types.Image ( src/Stack/Types/Image.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Image.o )
+[ 25 of 126] Compiling Stack.Types.Nix  ( src/Stack/Types/Nix.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Nix.o )
+[ 26 of 126] Compiling Stack.Types.PackageName ( src/Stack/Types/PackageName.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/PackageName.o )
+[ 27 of 126] Compiling Stack.Types.Config.Build ( src/Stack/Types/Config/Build.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Config/Build.o )
+[ 28 of 126] Compiling Stack.Options.PackageParser ( src/Stack/Options/PackageParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/PackageParser.o )
+[ 29 of 126] Compiling Stack.Types.Sig  ( src/Stack/Types/Sig.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Sig.o )
+[ 30 of 126] Compiling Stack.Sig.GPG    ( src/Stack/Sig/GPG.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Sig/GPG.o )
+[ 31 of 126] Compiling Stack.Types.TemplateName ( src/Stack/Types/TemplateName.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/TemplateName.o )
+[ 32 of 126] Compiling Stack.Types.Urls ( src/Stack/Types/Urls.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Urls.o )
+[ 33 of 126] Compiling Stack.Config.Urls ( src/Stack/Config/Urls.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Config/Urls.o )
+[ 34 of 126] Compiling Stack.Types.Version ( src/Stack/Types/Version.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Version.o )
+[ 35 of 126] Compiling Stack.Types.PackageIdentifier ( src/Stack/Types/PackageIdentifier.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/PackageIdentifier.o )
+[ 36 of 126] Compiling Stack.Types.PackageIndex ( src/Stack/Types/PackageIndex.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/PackageIndex.o )
+[ 37 of 126] Compiling Stack.Types.PackageDump ( src/Stack/Types/PackageDump.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/PackageDump.o )
+[ 38 of 126] Compiling Control.Concurrent.Execute ( src/Control/Concurrent/Execute.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Control/Concurrent/Execute.o )
+[ 39 of 126] Compiling Stack.Types.Compiler ( src/Stack/Types/Compiler.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Compiler.o )
+[ 40 of 126] Compiling Stack.Types.Resolver ( src/Stack/Types/Resolver.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Resolver.o )
+[ 41 of 126] Compiling Stack.Options.ResolverParser ( src/Stack/Options/ResolverParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/ResolverParser.o )
+[ 42 of 126] Compiling Stack.Constants  ( src/Stack/Constants.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Constants.o )
+[ 43 of 126] Compiling Stack.Types.Docker ( src/Stack/Types/Docker.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Docker.o )
+[ 44 of 126] Compiling Data.Attoparsec.Interpreter ( src/Data/Attoparsec/Interpreter.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Data/Attoparsec/Interpreter.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Data/Attoparsec/Interpreter.hs:123:7: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+123 |       =$= decodeUtf8
+    |       ^^^
+
+[ 45 of 126] Compiling Stack.Config.Nix ( src/Stack/Config/Nix.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Config/Nix.o )
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Data/Attoparsec/Interpreter.hs:124:7: warning: [-Wdeprecations]
+[ 46 of 126] Compiling Stack.Types.VersionIntervals ( src/Stack/Types/VersionIntervals.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/VersionIntervals.o )
+    In the use of ‘$$’
+[ 47 of 126] Compiling Stack.Types.BuildPlan ( src/Stack/Types/BuildPlan.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/BuildPlan.o )
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use runConduit and .|"
+    |
+124 |       $$ sinkParserEither (interpreterArgsParser isLiterate stackProgName)
+    |       ^^
+[ 48 of 126] Compiling System.Process.Log ( src/System/Process/Log.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/System/Process/Log.o )
+[ 49 of 126] Compiling System.Process.PagerEditor ( src/System/Process/PagerEditor.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/System/Process/PagerEditor.o )
+[ 50 of 126] Compiling System.Process.Read ( src/System/Process/Read.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/System/Process/Read.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/System/Process/Read.hs:238:8: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+238 |     -> Sink S.ByteString IO a -- ^ Sink for stdout
+    |        ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/System/Process/Read.hs:251:95: warning: [-Wdeprecations]
+    In the use of ‘$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+251 |                (CL.iterM (\bytes -> liftIO (modifyIORef' stdoutBuffer (<> byteString bytes))) $=
+    |                                                                                               ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/System/Process/Read.hs:271:29: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+271 |     let logLines = CB.lines =$ CL.mapM_ (unliftIO u . logInfo . decodeUtf8With lenientDecode)
+    |                             ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/System/Process/Read.hs:283:28: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+283 |                         -> Sink S.ByteString IO e -- ^ Sink for stderr
+    |                            ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/System/Process/Read.hs:284:28: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+284 |                         -> Sink S.ByteString IO o -- ^ Sink for stdout
+    |                            ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/System/Process/Read.hs:306:39: warning: [-Wdeprecations]
+    In the use of ‘$$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use runConduit and .|"
+    |
+306 |     f err out = ((CB.sourceHandle err $$ sinkStderr) `concurrently` (CB.sourceHandle out $$ sinkStdout))
+    |                                       ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/System/Process/Read.hs:306:90: warning: [-Wdeprecations]
+    In the use of ‘$$’
+[ 51 of 126] Compiling System.Process.Run ( src/System/Process/Run.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/System/Process/Run.o )
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+[ 52 of 126] Compiling System.Terminal  ( .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/System/Terminal.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/System/Terminal.o )
+    Deprecated: "Use runConduit and .|"
+[ 53 of 126] Compiling Stack.Types.Runner ( src/Stack/Types/Runner.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Runner.o )
+    |
+[ 54 of 126] Compiling Stack.Types.Config ( src/Stack/Types/Config.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Config.o )
+306 |     f err out = ((CB.sourceHandle err $$ sinkStderr) `concurrently` (CB.sourceHandle out $$ sinkStdout))
+    |                                                                                          ^^
+[ 55 of 126] Compiling Stack.Upload     ( src/Stack/Upload.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Upload.o )
+[ 56 of 126] Compiling Stack.Types.Package ( src/Stack/Types/Package.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Package.o )
+[ 57 of 126] Compiling Stack.Types.Build ( src/Stack/Types/Build.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Types/Build.o )
+[ 58 of 126] Compiling Stack.GhcPkg     ( src/Stack/GhcPkg.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/GhcPkg.o )
+[ 59 of 126] Compiling Stack.PackageDump ( src/Stack/PackageDump.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/PackageDump.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:59:8: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+   |
+59 |     -> Sink Text IO a
+   |        ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:70:8: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+   |
+70 |     -> Sink Text IO a
+   |        ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:81:8: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+   |
+81 |     -> Sink Text IO a
+   |        ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:97:27: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+   |
+97 |     sink' = CT.decodeUtf8 =$= sink
+   |                           ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:163:17: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Consumer’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+163 |              -> Consumer (DumpPackage Bool Bool Bool)
+    |                 ^^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:171:8: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+171 |        =$= CL.consume
+    |        ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:187:17: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+187 |              -> Conduit (DumpPackage a b c) m (DumpPackage Bool b c)
+    |                 ^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:222:15: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+222 |            -> Conduit (DumpPackage a b c) m (DumpPackage a Bool c)
+    |               ^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:245:15: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+245 |            -> Conduit (DumpPackage a b c) m (DumpPackage a b Bool)
+    |               ^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:316:23: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+316 |                    => Conduit Text m (DumpPackage () () ())
+    |                       ^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:317:23: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+317 | conduitDumpPackage = (=$= CL.catMaybes) $ eachSection $ do
+    |                       ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:318:52: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+318 |     pairs <- eachPair (\k -> (k, ) <$> CL.consume) =$= CL.consume
+    |                                                    ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:400:16: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+400 |             => Sink Line m a
+    |                ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:401:16: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+401 |             -> Conduit Text m a
+    |                ^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:403:33: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+403 |     CL.map (T.filter (/= '\r')) =$= CT.lines =$= start
+    |                                 ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:403:46: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+403 |     CL.map (T.filter (/= '\r')) =$= CT.lines =$= start
+    |                                              ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:414:49: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+414 |         x <- toConsumer $ takeWhileC (/= "---") =$= inner
+    |                                                 ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:421:22: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+421 |          => (Text -> Sink Line m a)
+    |                      ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:422:13: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+422 |          -> Conduit Line m a
+    |             ^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:429:28: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+429 |         toConsumer (valSrc =$= inner key) >>= yield >> start
+    |                            ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/PackageDump.hs:464:41: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+464 | takeWhileC :: Monad m => (a -> Bool) -> Conduit a m a
+    |                                         ^^^^^^^
+[ 60 of 126] Compiling Stack.Setup.Installed ( src/Stack/Setup/Installed.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Setup/Installed.o )
+[ 61 of 126] Compiling Stack.Options.TestParser ( src/Stack/Options/TestParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/TestParser.o )
+[ 62 of 126] Compiling Stack.Options.HaddockParser ( src/Stack/Options/HaddockParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/HaddockParser.o )
+[ 63 of 126] Compiling Stack.Options.GhcVariantParser ( src/Stack/Options/GhcVariantParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/GhcVariantParser.o )
+[ 64 of 126] Compiling Stack.Options.BenchParser ( src/Stack/Options/BenchParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/BenchParser.o )
+[ 65 of 126] Compiling Stack.Exec       ( src/Stack/Exec.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Exec.o )
+[ 66 of 126] Compiling Stack.Docker.GlobalDB ( src/Stack/Docker/GlobalDB.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Docker/GlobalDB.o )
+[ 67 of 126] Compiling Stack.Constants.Config ( src/Stack/Constants/Config.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Constants/Config.o )
+[ 68 of 126] Compiling Stack.Config.Docker ( src/Stack/Config/Docker.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Config/Docker.o )
+[ 69 of 126] Compiling Stack.Config.Build ( src/Stack/Config/Build.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Config/Build.o )
+[ 70 of 126] Compiling Stack.Build.Cache ( src/Stack/Build/Cache.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build/Cache.o )
+[ 71 of 126] Compiling Stack.Build.Installed ( src/Stack/Build/Installed.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build/Installed.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Installed.hs:131:38: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+131 |                 $ conduitDumpPackage =$ sink
+    |                                      ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Installed.hs:162:12: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+162 |            =$ conduitHaddockCache
+    |            ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Installed.hs:163:12: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+163 |            =$ conduitSymbolsCache
+    |            ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Installed.hs:164:12: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+164 |            =$ CL.map (isAllowed opts mcache sourceMap mloc &&& toLoadHelper mloc)
+    |            ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Installed.hs:165:12: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+165 |            =$ CL.consume
+    |            ^^
+[ 72 of 126] Compiling Stack.Path       ( src/Stack/Path.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Path.o )
+[ 73 of 126] Compiling Text.PrettyPrint.Leijen.Extended ( src/Text/PrettyPrint/Leijen/Extended.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Text/PrettyPrint/Leijen/Extended.o )
+[ 74 of 126] Compiling Stack.PrettyPrint ( src/Stack/PrettyPrint.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/PrettyPrint.o )
+[ 75 of 126] Compiling Stack.Package    ( src/Stack/Package.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Package.o )
+[ 76 of 126] Compiling Stack.Image      ( src/Stack/Image.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Image.o )
+[ 77 of 126] Compiling Stack.Build.Haddock ( src/Stack/Build/Haddock.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build/Haddock.o )
+[ 78 of 126] Compiling Path.CheckInstall ( src/Path/CheckInstall.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Path/CheckInstall.o )
+[ 79 of 126] Compiling Network.HTTP.Download.Verified ( src/Network/HTTP/Download/Verified.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Network/HTTP/Download/Verified.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Network/HTTP/Download/Verified.hs:145:8: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Consumer’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+145 |     -> Consumer ByteString m ()
+    |        ^^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Network/HTTP/Download/Verified.hs:175:53: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Consumer’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+175 | sinkHashUsing :: (Monad m, HashAlgorithm a) => a -> Consumer ByteString m (Digest a)
+    |                                                     ^^^^^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Network/HTTP/Download/Verified.hs:240:31: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+    |
+240 |          -> (Maybe Integer -> Sink ByteString IO ()) -- ^ custom hook to observe progress
+    |                               ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Network/HTTP/Download/Verified.hs:277:24: warning: [-Wdeprecations]
+    In the use of ‘$$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use runConduit and .|"
+    |
+277 |         sourceHandle h $$ getZipSink (hashChecksToZipSink drRequest drHashChecks)
+    |                        ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Network/HTTP/Download/Verified.hs:313:43: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+313 |         maybe id (\len -> (CB.isolate len =$=)) drLengthCheck
+    |                                           ^^^
+[ 80 of 126] Compiling Stack.PackageLocation ( src/Stack/PackageLocation.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/PackageLocation.o )
+[ 81 of 126] Compiling Network.HTTP.Download ( src/Network/HTTP/Download.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Network/HTTP/Download.o )
+[ 82 of 126] Compiling Stack.Sig.Sign   ( src/Stack/Sig/Sign.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Sig/Sign.o )
+[ 83 of 126] Compiling Stack.Sig        ( src/Stack/Sig.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Sig.o )
+[ 84 of 126] Compiling Stack.PackageIndex ( src/Stack/PackageIndex.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/PackageIndex.o )
+[ 85 of 126] Compiling Stack.New        ( src/Stack/New.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/New.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/New.hs:200:59: warning: [-Wdeprecations]
+    In the use of ‘$$’
+[ 86 of 126] Compiling Stack.Fetch      ( src/Stack/Fetch.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Fetch.o )
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+[ 87 of 126] Compiling Stack.Snapshot   ( src/Stack/Snapshot.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Snapshot.o )
+    Deprecated: "Use runConduit and .|"
+    |
+200 |                yield (T.encodeUtf8 (LT.toStrict applied)) $$
+    |                                                           ^^
+[ 88 of 126] Compiling Stack.BuildPlan  ( src/Stack/BuildPlan.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/BuildPlan.o )
+[ 89 of 126] Compiling Stack.Config     ( src/Stack/Config.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Config.o )
+[ 90 of 126] Compiling Stack.Nix        ( src/Stack/Nix.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Nix.o )
+[ 91 of 126] Compiling Stack.Options.NixParser ( src/Stack/Options/NixParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/NixParser.o )
+[ 92 of 126] Compiling Stack.IDE        ( src/Stack/IDE.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/IDE.o )
+[ 93 of 126] Compiling Stack.ConfigCmd  ( src/Stack/ConfigCmd.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/ConfigCmd.o )
+[ 94 of 126] Compiling Stack.Clean      ( src/Stack/Clean.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Clean.o )
+[ 95 of 126] Compiling Stack.Options.CleanParser ( src/Stack/Options/CleanParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/CleanParser.o )
+[ 96 of 126] Compiling Stack.Build.Target ( src/Stack/Build/Target.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build/Target.o )
+[ 97 of 126] Compiling Stack.Coverage   ( src/Stack/Coverage.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Coverage.o )
+[ 98 of 126] Compiling Stack.Build.Source ( src/Stack/Build/Source.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build/Source.o )
+
+[ 99 of 126] Compiling Stack.Build.ConstructPlan ( src/Stack/Build/ConstructPlan.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build/ConstructPlan.o )
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Source.hs:458:45: warning: [-Wdeprecations]
+    In the use of ‘$$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use runConduit and .|"
+    |
+458 |         (size, digest) <- CB.sourceHandle h $$ getZipSink
+    |                                             ^^
+[100 of 126] Compiling Stack.Build.Execute ( src/Stack/Build/Execute.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build/Execute.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:433:10: warning: [-Wdeprecations]
+    In the use of ‘$$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use runConduit and .|"
+    |
+433 |          $$ CT.decodeUtf8Lenient
+    |          ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:434:10: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+434 |          =$ CT.lines
+    |          ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:435:10: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+435 |          =$ CL.map stripCR
+    |          ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:436:10: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+436 |          =$ CL.filter isWarning
+    |          ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:437:10: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+437 |          =$ CL.take 1
+    |          ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:450:12: warning: [-Wdeprecations]
+    In the use of ‘$$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use runConduit and .|"
+    |
+450 |            $$ CT.decodeUtf8Lenient
+    |            ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:451:12: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+451 |            =$ mungeBuildOutput ExcludeTHLoading ConvertPathsToAbsolute pkgDir compilerVer
+    |            ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:452:12: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+    |
+452 |            =$ CL.mapM_ logInfo
+    |            ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1099:41: warning: [-Wdeprecations]
+    In the use of ‘=$=’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1099 |                                         =$= CT.decodeUtf8Lenient
+     |                                         ^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1100:41: warning: [-Wdeprecations]
+    In the use of ‘$$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use runConduit and .|"
+     |
+1100 |                                         $$ mungeBuildOutput stripTHLoading makeAbsolute pkgDir compilerVer
+     |                                         ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1101:41: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1101 |                                         =$ CL.consume
+     |                                         ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1122:28: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Sink’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+     |
+1122 |                         -> Sink S.ByteString IO ()
+     |                            ^^^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1125:25: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1125 |                         =$ mungeBuildOutput excludeTH makeAbsolute pkgDir compilerVer
+     |                         ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1126:25: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1126 |                         =$ CL.mapM_ (runInBase . monadLoggerLog $(TH.location >>= liftLoc) "" level)
+     |                         ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1503:72: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1503 |         dps <- ghcPkgDescribe name menv wc pkgDbs $ conduitDumpPackage =$ CL.consume
+     |                                                                        ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1781:5: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1781 |     =$ CL.map stripCR
+     |     ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1782:5: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1782 |     =$ CL.filter (not . isTHLoading)
+     |     ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1783:5: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1783 |     =$ filterLinkerWarnings
+     |     ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Build/Execute.hs:1784:5: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1784 |     =$ toAbsolute
+     |     ^^
+[101 of 126] Compiling Stack.Build      ( src/Stack/Build.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Build.o )
+[102 of 126] Compiling Stack.Setup      ( src/Stack/Setup.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Setup.o )
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Setup.hs:1504:11: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1504 |           =$ chunksOverTime 1
+     |           ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Setup.hs:1505:11: warning: [-Wdeprecations]
+    In the use of ‘=$’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use .|"
+     |
+1505 |           =$ go
+     |           ^^
+
+/home/sergey/projects/haskell/projects/thirdparty/stack/src/Stack/Setup.hs:1554:63: warning: [-Wdeprecations]
+    In the use of type constructor or class ‘Conduit’
+    (imported from Data.Conduit, but defined in conduit-1.3.0:Data.Conduit.Internal.Conduit):
+    Deprecated: "Use ConduitT directly"
+     |
+1554 | chunksOverTime :: (Monoid a, MonadIO m) => NominalDiffTime -> Conduit a m a
+     |                                                               ^^^^^^^
+[103 of 126] Compiling Stack.Upgrade    ( src/Stack/Upgrade.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Upgrade.o )
+[104 of 126] Compiling Stack.Solver     ( src/Stack/Solver.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Solver.o )
+[105 of 126] Compiling Stack.Init       ( src/Stack/Init.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Init.o )
+[106 of 126] Compiling Stack.SetupCmd   ( src/Stack/SetupCmd.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/SetupCmd.o )
+[107 of 126] Compiling Stack.Docker     ( src/Stack/Docker.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Docker.o )
+[108 of 126] Compiling Stack.Runners    ( src/Stack/Runners.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Runners.o )
+[109 of 126] Compiling Stack.Options.DockerParser ( src/Stack/Options/DockerParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/DockerParser.o )
+[110 of 126] Compiling Stack.SDist      ( src/Stack/SDist.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/SDist.o )
+[111 of 126] Compiling Stack.Options.BuildMonoidParser ( src/Stack/Options/BuildMonoidParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/BuildMonoidParser.o )
+[112 of 126] Compiling Stack.Options.ConfigParser ( src/Stack/Options/ConfigParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/ConfigParser.o )
+[113 of 126] Compiling Stack.Options.GlobalParser ( src/Stack/Options/GlobalParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/GlobalParser.o )
+[114 of 126] Compiling Stack.Options.NewParser ( src/Stack/Options/NewParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/NewParser.o )
+[115 of 126] Compiling Stack.Options.Completion ( src/Stack/Options/Completion.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/Completion.o )
+[116 of 126] Compiling Stack.Options.ScriptParser ( src/Stack/Options/ScriptParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/ScriptParser.o )
+[117 of 126] Compiling Stack.Script     ( src/Stack/Script.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Script.o )
+[118 of 126] Compiling Stack.Options.HpcReportParser ( src/Stack/Options/HpcReportParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/HpcReportParser.o )
+[119 of 126] Compiling Stack.Options.SDistParser ( src/Stack/Options/SDistParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/SDistParser.o )
+[120 of 126] Compiling Stack.Options.ExecParser ( src/Stack/Options/ExecParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/ExecParser.o )
+[121 of 126] Compiling Stack.Options.BuildParser ( src/Stack/Options/BuildParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/BuildParser.o )
+[122 of 126] Compiling Stack.Hoogle     ( src/Stack/Hoogle.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Hoogle.o )
+[123 of 126] Compiling Stack.Ghci       ( src/Stack/Ghci.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Ghci.o )
+[124 of 126] Compiling Stack.Options.GhciParser ( src/Stack/Options/GhciParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/GhciParser.o )
+[125 of 126] Compiling Stack.Dot        ( src/Stack/Dot.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Dot.o )
+[126 of 126] Compiling Stack.Options.DotParser ( src/Stack/Options/DotParser.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/Stack/Options/DotParser.o )
+Preprocessing executable 'stack' for stack-1.6.6..
+Building executable 'stack' for stack-1.6.6..
+
+<no location info>: warning: [-Wmissing-home-modules]
+    These modules are needed for compilation but not listed in your .cabal file's other-modules: Build_stack
+[1 of 3] Compiling Build_stack      ( .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/global-autogen/Build_stack.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/stack/stack-tmp/Build_stack.o )
+[2 of 3] Compiling Paths_stack      ( .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/stack/autogen/Paths_stack.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/stack/stack-tmp/Paths_stack.o )
+[3 of 3] Compiling Main             ( src/main/Main.hs, .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/stack/stack-tmp/Main.o )
+
+<no location info>: warning: [-Wmissing-home-modules]
+    These modules are needed for compilation but not listed in your .cabal file's other-modules: Build_stack
+Linking .stack-work/dist/x86_64-linux/Cabal-2.0.1.0/build/stack/stack ...
+stack-1.6.6: copy/register
+Installing library in /home/sergey/projects/haskell/projects/thirdparty/stack/.stack-work/install/x86_64-linux/lts-11.0/8.2.2/lib/x86_64-linux-ghc-8.2.2/stack-1.6.6-EcA10XpErtD6IKznFkzgTM
+Installing executable stack in /home/sergey/projects/haskell/projects/thirdparty/stack/.stack-work/install/x86_64-linux/lts-11.0/8.2.2/bin
+Registering library for stack-1.6.6..
+
+HsCompilation finished at Sun Mar 18 16:39:09
