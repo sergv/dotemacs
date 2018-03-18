@@ -506,7 +506,7 @@ enabled. Otherwise fall back to eproj tags."
 ;;;###autoload
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
-              +haskell-compile-error-or-warning-regexp+)
+              +haskell-compile-error-or-warning-navigation-regexp+)
 
   (vim:local-emap "c" 'vim:recompile)
   (def-keys-for-map haskell-compilation-mode-map

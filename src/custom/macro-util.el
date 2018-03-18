@@ -200,8 +200,8 @@ before performing any jumps."
                            ,regex
                            nil
                            t))
-        (found-var (string->symbol "found?"))
-        (original-pos-var (string->symbol "pt")))
+        (found-var '#:found?)
+        (original-pos-var '#:start))
     `(progn
        (defun ,forward-name ()
          "Jump forward between regexp matches with wraparound."
@@ -210,21 +210,25 @@ before performing any jumps."
          (let ((,found-var nil)
                (,original-pos-var (point)))
            (save-match-data
-             ;; this rather complicated check checks for case of first prompt in
-             ;; the buffer
+             ;; This rather complicated check checks for case of first prompt in
+             ;; the buffer.
              (when (or (= 1 (forward-line 1))
                        (eobp)
-                       (beginning-of-line)
-                       (not (setf ,found-var ,forward-search)))
+                       (progn
+                         (beginning-of-line)
+                         (not (setf ,found-var ,forward-search))))
                (goto-char (point-min))
                (setf ,found-var ,forward-search))
              (if ,found-var
-                 (goto-char ,(if jump-to-end
-                                 '(match-end 0)
-                               '(match-beginning 0)))
+                 (progn
+                   (goto-char ,(if jump-to-end
+                                   '(match-end 0)
+                                 '(match-beginning 0)))
+                   t)
                (progn
                  (goto-char ,original-pos-var)
-                 (next-line))))))
+                 (forward-line 1)
+                 nil)))))
 
        (defun ,backward-name ()
          "Jump backward between regexp matches with wraparound."
@@ -235,17 +239,21 @@ before performing any jumps."
            (save-match-data
              (when (or (= -1 (forward-line -1))
                        (bobp)
-                       (end-of-line)
-                       (not (setf ,found-var ,backward-search)))
+                       (progn
+                         (end-of-line)
+                         (not (setf ,found-var ,backward-search))))
                (goto-char (point-max))
                (setf ,found-var ,backward-search))
              (if ,found-var
-                 (goto-char ,(if jump-to-end
-                                 '(match-end 0)
-                               '(match-beginning 0)))
+                 (progn
+                   (goto-char ,(if jump-to-end
+                                   '(match-end 0)
+                                 '(match-beginning 0)))
+                   t)
                (progn
                  (goto-char ,original-pos-var)
-                 (previous-line)))))))))
+                 (forward-line -1)
+                 nil))))))))
 
 (defmacro* define-circular-prompt-property-jumps (forward-name
                                                   backward-name
