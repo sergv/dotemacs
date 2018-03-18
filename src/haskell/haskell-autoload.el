@@ -69,7 +69,6 @@
 (put 'intero-targets 'safe-local-variable (lambda (x) (and (listp x) (cl-every #'stringp x ))))
 (put 'shm-display-quarantine 'safe-local-variable #'booleanp)
 
-(add-hook 'ghc-check-mode-hook #'ghc-check-mode-setup)
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
 (add-hook 'haskell-compilation-mode-hook #'haskell-compilation-setup)
