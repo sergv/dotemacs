@@ -70,7 +70,9 @@
   ("<print>"  render-formula-toggle-formulae)
 
   ("<right>"  forward-char)
-  ("<left>"   backward-char))
+  ("<left>"   backward-char)
+
+  ("C-M-k"    remove-buffer))
 
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))

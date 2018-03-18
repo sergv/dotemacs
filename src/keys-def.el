@@ -80,6 +80,7 @@
 (defconst +vim-special-keys+
   `(("s"     vim:ex-read-command)
     ("C-b"   ido-switch-buffer)
+    ("C-M-k" remove-buffer)
 
     ("g"     nil)
     ("g x"   smex)
