@@ -90,7 +90,7 @@ See also `indent-relative-maybe'."
           indent)
       (save-excursion
         (beginning-of-line)
-        (when (re-search-backward "^[^\n]" nil t)
+        (when (re-search-backward "^[^ \t\r\n\f\v]" nil t)
           (let ((end (if forward?
                          (min (+ (line-end-position) 1)
                               (point-max))
@@ -100,20 +100,31 @@ See also `indent-relative-maybe'."
             (when (> (current-column) start-column)
               (backward-char 1))
             (if forward?
-                (progn
-                  (skip-chars-forward "^ \t" end)
-                  (skip-chars-forward " \t" end))
+                (if (= 0 start-column)
+                    ;; Add extra one tab stop after 0th column.
+                    (move-to-column (indent-next-tab-stop start-column))
+                  (progn
+                    (skip-chars-forward "^ \t" end)
+                    (skip-chars-forward " \t" end)))
               (progn
                 (skip-chars-backward " \t" end)
-                (skip-chars-backward "^ \t" end)))
-            (unless (= (point) end)
+                (skip-chars-backward "^ \t" end)
+                (when (= 0 (current-column))
+                  (let ((indent-after-one-tabstop
+                         (indent-next-tab-stop (current-column))))
+                    (when (/= indent-after-one-tabstop start-column)
+                      (move-to-column indent-after-one-tabstop))))))
+            (when (or (not forward?)
+                      (/= (point) end))
               (setf indent (current-column))))))
       (cond
         (indent
          (indent-to! indent)
          (move-to-column indent))
         (forward?
-         (tab-to-tab-stop))))))
+         (tab-to-tab-stop))
+        (t
+         (tab-to-tab-stop-backward))))))
 
 ;;;###autoload
 (defun tab-to-tab-stop-backward ()
