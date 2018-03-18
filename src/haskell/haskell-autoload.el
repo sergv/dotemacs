@@ -61,7 +61,6 @@
 
 (defalias 'ghci 'switch-to-haskell)
 
-(put 'haskell-compile-cabal-build-alt-command 'safe-local-variable #'stringp)
 (put 'haskell-compile-cabal-build-command 'safe-local-variable #'stringp)
 (put 'haskell-compile-command 'safe-local-variable #'stringp)
 (put 'haskell-program-name 'safe-local-variable (lambda (x) (or (stringp x) (listp x))))
