@@ -44,14 +44,13 @@ in compilation or related buffers")
     compilation-jump-to-prev-error
   *compilation-jump-error-regexp*
   :init
-  (unless (or (compilation-buffer-p (current-buffer))
-              (eq? major-mode 'ghc-check-mode))
+  (unless (compilation-buffer-p (current-buffer))
     (error "Not in a compilation buffer")))
 
 ;;; compilation info
 
-(defstruct (compilation-caller-info
-            (:conc-name compilation-caller-info/))
+(cl-defstruct (compilation-caller-info
+               (:conc-name compilation-caller-info/))
   mode   ;; Mode from which compilation was started.
   compile-command
   buffer ;; Buffer from where compilation was started.
@@ -72,23 +71,23 @@ up by functions in compilation-finish-functions.")
         (make-compilation-caller-info
          :mode major-mode
          :compile-command compile-command
-         :buffer (current-buffer)
-         )))
+         :buffer (current-buffer))))
 
-(defstruct (compilation-error
-            (:conc-name compilation-error/))
+(cl-defstruct (compilation-error
+               (:conc-name compilation-error/))
   compilation-root-directory
   filename
   line-number
   column-number)
 
 (defun compilation/parse-matched-error-entry (entry)
-  "Parse ENTRY and return (<filename> [<line>] [<column>]) of previously matched
-error message. <line> and <column> are nullable.
+  "Parse ENTRY and return `compilation-error' structure for
+previously matched error message.
+
 ENTRY should be of format used by `compilation-error-regexp-alist'."
   (let* ((file-group (cadr entry))
          (strip-cons (lambda (x)
-                       (if (cons? x)
+                       (if (consp x)
                          (car x)
                          x)))
          (line-group
@@ -105,14 +104,14 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
      (when (and line-group
                 ;; it turns out that someone may put lambdas here,
                 ;; e.g. grep...
-                (integer? line-group))
+                (integerp line-group))
        (awhen (match-string-no-properties line-group)
          (string->number it)))
      :column-number
      (when (and column-group
                 ;; it turns out that someone may put lambdas here,
                 ;; e.g. grep...
-                (integer? column-group))
+                (integerp column-group))
        (awhen (match-string-no-properties column-group)
          (- (string->number it)
             compilation-first-column))))))
@@ -146,12 +145,12 @@ relative path. In case it's neither, the filename with suffix equal to FILENAME
 will searched for."
   (cl-assert (not (= 0 (length filename))))
   (aif (find-if (lambda (buf)
-                  (string-suffix? filename (buffer-file-name buf)))
+                  (string-suffix-p filename (buffer-file-name buf)))
                 (visible-buffers))
-    it
+      it
     (let ((resolved-filename (resolve-to-abs-path filename root)))
       (aif (get-file-buffer resolved-filename)
-        it
+          it
         (find-file-noselect resolved-filename)))))
 
 (defun compilation/jump-to-error (err &optional other-window)
