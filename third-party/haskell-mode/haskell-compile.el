@@ -42,13 +42,6 @@ The `%s' placeholder is replaced by the cabal package top folder."
   :group 'haskell-compile
   :type 'string)
 
-(defcustom haskell-compile-cabal-build-alt-command
-  "cd %s && cabal clean -s && cabal build --ghc-option=-ferror-spans"
-  "Alternative build command to use when `haskell-cabal-build' is called with a negative prefix argument.
-The `%s' placeholder is replaced by the cabal package top folder."
-  :group 'haskell-compile
-  :type 'string)
-
 (defcustom haskell-compile-cabal-build-command-presets
   ()
   "Predefined build commands for `haskell-compile'. Should be alist of
