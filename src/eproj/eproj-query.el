@@ -11,42 +11,48 @@
 ;; Predefined queries
 
 ;;;###autoload
-(defun eproj-query/haskell/indent-offset (proj)
-  (declare (pure t))
-  (awhen (and proj
-              (eproj-project/query-aux-info (eproj-project/aux-info proj)
-                language-specific
-                haskell-mode
-                indent-offset))
-    (cl-assert (integerp it) nil
-               "language-specific.haskell-mode.indent-offset in .eproj-info must be an integer, but got %s"
-               it)
-    it))
+(defun eproj-query/haskell/indent-offset (proj &optional default)
+  (declare (pure t) (side-effect-free nil))
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-seq (eproj-project/aux-info p)
+                    language-specific
+                    haskell-mode
+                    indent-offset)))
+      (let ((res (car entry)))
+        (cl-assert (integerp res) nil
+                   "language-specific.haskell-mode.indent-offset in .eproj-info must be an integer, but got %s"
+                   it)
+        res)
+    default))
 
 ;;;###autoload
-(defun eproj-query/haskell/enable-intero? (proj)
-  (declare (pure t))
-  (awhen (and proj
-              (eproj-project/query-aux-info (eproj-project/aux-info proj)
-                language-specific
-                haskell-mode
-                enable-intero?))
-    (cl-assert (booleanp it) nil
-               "language-specific.haskell-mode.enable-intero? in .eproj-info must be a boolean, but got %s"
-               it)
-    it))
+(defun eproj-query/haskell/enable-intero? (proj default)
+  (declare (pure t) (side-effect-free nil))
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-seq (eproj-project/aux-info p)
+                    language-specific
+                    haskell-mode
+                    enable-intero?)))
+      (let ((res (car entry)))
+        (cl-assert (booleanp res) nil
+                   "language-specific.haskell-mode.enable-intero? in .eproj-info must be a boolean, but got %s"
+                   it)
+        res)
+    default))
 
 ;;;###autoload
-(defun eproj-query/general/enable-flycheck? (proj)
-  (declare (pure t))
-  (awhen (and proj
-              (eproj-project/query-aux-info (eproj-project/aux-info proj)
-                general
-                enable-flycheck?))
-    (cl-assert (booleanp it) nil
-               "general.enable-flycheck? in .eproj-info must be a boolean, but got %s"
-               it)
-    it))
+(defun eproj-query/general/enable-flycheck? (proj default)
+  (declare (pure t) (side-effect-free nil))
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-seq (eproj-project/aux-info p)
+                    general
+                    enable-flycheck?)))
+      (let ((res (car entry)))
+        (cl-assert (booleanp res) nil
+                   "general.enable-flycheck? in .eproj-info must be a boolean, but got %s"
+                   it)
+        res)
+    default))
 
 (provide 'eproj-query)
 
