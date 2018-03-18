@@ -518,17 +518,6 @@ enabled. Otherwise fall back to eproj tags."
     ("G"        vim-mock:motion-go-to-first-non-blank-end)))
 
 ;;;###autoload
-(defun ghc-check-mode-setup ()
-  (init-common :use-comment nil :use-yasnippet nil :use-whitespace nil :use-fci nil)
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("<up>"     compilation-jump-to-prev-error)
-    ("<down>"   compilation-jump-to-next-error)
-    ("C-t"      compilation-jump-to-prev-error)
-    ("C-h"      compilation-jump-to-next-error)
-    ("<return>" compilation/goto-error)
-    ("SPC"      compilation/goto-error-other-window)))
-
-;;;###autoload
 (defun haskell-cabal-setup ()
   (init-common :use-comment t :use-yasnippet t)
   (setq-local yas-indent-line 'fixed)
