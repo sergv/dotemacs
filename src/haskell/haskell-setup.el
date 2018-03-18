@@ -120,8 +120,11 @@ enabled. Otherwise fall back to eproj tags."
 
 ;;;###autoload
 (defun haskell-setup ()
-  (let ((intero-enabled? t)
-        (flycheck-enabled? t)
+  (let ((intero-enabled? (if (and (not (derived-mode-p 'ghc-core-mode))
+                                  (executable-find "intero"))
+                             t
+                           nil))
+        (flycheck-enabled? (not (derived-mode-p 'ghc-core-mode)))
         (liquid-haskell-enabled? nil))
     (init-common :use-yasnippet t
                  :use-comment t
@@ -141,28 +144,24 @@ enabled. Otherwise fall back to eproj tags."
        (eproj-query/haskell/indent-offset proj))
 
       (unless (derived-mode-p 'ghc-core-mode)
-        (if (eproj-query/haskell/enable-intero? proj)
-            (progn
-              (setf intero-enabled? t)
-              (intero-mode-maybe))
-          (progn
-            (setf intero-enabled? nil)
-            (when intero-mode
-              (intero-mode -1))))
+        (setf intero-enabled? (eproj-query/haskell/enable-intero? proj intero-enabled?))
+        (if intero-enabled?
+            (intero-mode-maybe)
+          (when intero-mode
+            (intero-mode -1)))
 
         (company-mode +1)
         (setq-local company-backends '(company-eproj))
 
-        (if (eproj-query/general/enable-flycheck? proj)
+        (setf flycheck-enabled?
+              (eproj-query/general/enable-flycheck? proj flycheck-enabled?))
+        (if flycheck-enabled?
             (progn
-              (setf flycheck-enabled? t)
               (flycheck-mode +1)
               (flycheck-select-checker
                (if intero-enabled? 'intero 'haskell-stack-ghc)))
-          (progn
-            (setf flycheck-enabled? nil)
-            (when flycheck-mode
-              (flycheck-mode -1))))))
+          (when flycheck-mode
+            (flycheck-mode -1)))))
 
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
