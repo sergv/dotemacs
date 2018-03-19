@@ -156,10 +156,13 @@ enabled. Otherwise fall back to eproj tags."
         (setf flycheck-enabled?
               (eproj-query/general/enable-flycheck? proj flycheck-enabled?))
         (if flycheck-enabled?
-            (progn
-              (flycheck-mode +1)
-              (flycheck-select-checker
-               (if intero-enabled? 'intero 'haskell-stack-ghc)))
+            (let ((checker (if intero-enabled? 'intero 'haskell-stack-ghc)))
+              (unless (flycheck-may-use-checker checker)
+                (flycheck-verify-checker checker)
+                (error "Unable to select checker %s for buffer %s"
+                       checker current-buffer))
+              (setq-local flycheck-checker checker)
+              (flycheck-mode +1))
           (when flycheck-mode
             (flycheck-mode -1)))))
 
