@@ -29,6 +29,8 @@
 (require 'compile)
 (require 'haskell-cabal)
 
+(require 'haskell-autoload)
+
 ;;;###autoload
 (defgroup haskell-compile nil
   "Settings for Haskell compilation mode"
@@ -63,82 +65,85 @@ The `%s' placeholder is replaced by the current buffer's filename."
   :type 'boolean)
 
 (defconst haskell-compilation-error-main-filename-regexp
-  (let ((ext-re
-         (rx-to-string (list 'seq "."
-                             (cons 'or
-                                   *haskell-extensions*))))
-        (lines-and-columns-re
-         (concat
-          "\\(?:"
-          "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
-          "\\|"
-          "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
-          "\\)")))
-    (list
-     (concat
-      "\\(?:"
-      (concat
-       "^\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
-       lines-and-columns-re
-       ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
-      "\\)\\|\\(?:"
-      (concat
-       "^[ \t]+\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
-       lines-and-columns-re
-       ":\\(?:[ \t]+[Ee]rror:\\|\\(?6:[ \t\r\n]+[Ww]arning:\\)\\)")
-      "\\)")
-     1            ;; file
-     (cons 2 3)   ;; line
-     (cons 4 5)   ;; column
-     (cons 6 nil) ;; type - error/warning
-     )))
+  (eval-when-compile
+    (let ((ext-re
+           (rx-to-string (list 'seq "."
+                               (cons 'or
+                                     +haskell-extensions+))))
+          (lines-and-columns-re
+           (concat
+            "\\(?:"
+            "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
+            "\\|"
+            "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
+            "\\)")))
+      (list
+       (concat
+        "\\(?:"
+        (concat
+         "^\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
+         lines-and-columns-re
+         ":\\(?6:[ \t\r\n]+[Ww]arning:\\)?")
+        "\\)\\|\\(?:"
+        (concat
+         "^[ \t]+\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
+         lines-and-columns-re
+         ":\\(?:[ \t]+[Ee]rror:\\|\\(?6:[ \t\r\n]+[Ww]arning:\\)\\)")
+        "\\)")
+       1            ;; file
+       (cons 2 3)   ;; line
+       (cons 4 5)   ;; column
+       (cons 6 nil) ;; type - error/warning
+       ))))
 
 (defconst haskell-compilation-error-auxiliary-filename-regexp
-  `(,(eval
-      `(rx (group-n 1
-                    (+ (not (any ?\s ?\t ?\n ?\r)))
-                    "."
-                    ,(cons 'or
-                           *haskell-extensions*))
-           ":"
-           (group-n 2
-                    (+ numeric))
-           ":"
-           (group-n 3
-                    (+ numeric))
-           (? "-"
-              (group-n 4
-                       (+ numeric)))
-           ;; Require paren or \n at end because this regexp aims to
-           ;; highlight auxiliary file names, not the actuall
-           ;; errors/warnings (cf type of this regexp).
-           (or ")"
-               eol)))
-    1
-    2
-    (3 . 4)
-    0 ;; type - info
-    ))
+  (eval-when-compile
+    `(,(eval
+        `(rx (group-n 1
+                      (+ (not (any ?\s ?\t ?\n ?\r)))
+                      "."
+                      ,(cons 'or
+                             +haskell-extensions+))
+             ":"
+             (group-n 2
+                      (+ numeric))
+             ":"
+             (group-n 3
+                      (+ numeric))
+             (? "-"
+                (group-n 4
+                         (+ numeric)))
+             ;; Require paren or \n at end because this regexp aims to
+             ;; highlight auxiliary file names, not the actuall
+             ;; errors/warnings (cf type of this regexp).
+             (or ")"
+                 eol)))
+      1
+      2
+      (3 . 4)
+      0 ;; type - info
+      )))
 
 (defconst haskell-compilation-error-regexp-alist
-  (let ((ext-re
-         (rx-to-string (list 'seq "."
-                             (cons 'or
-                                   *haskell-extensions*)))))
-    (list
-     haskell-compilation-error-main-filename-regexp
+  (eval-when-compile
+    (let ((ext-re
+           (rx-to-string (list 'seq "."
+                               (cons 'or
+                                     +haskell-extensions+)))))
+      (list
+       haskell-compilation-error-main-filename-regexp
 
-     ;; multiple declarations
-     (list
-      (concat
-       "^[ \t]+\\(?:Declared\\|Defined\\)[ \t]at:[ \t]+\\(?1:.+?\\." ext-re "\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$")
-      1 ;; file
-      2 ;; line
-      4 ;; column
-      0 ;; type - info
-      )
+       ;; multiple declarations
+       (list
+        (concat
+         "^[ \t]+\\(?:Declared\\|Defined\\)[ \t]at:[ \t]+\\(?1:.+?\\." ext-re "\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$")
+        1 ;; file
+        2 ;; line
+        4 ;; column
+        0 ;; type - info
+        )
 
-     haskell-compilation-error-auxiliary-filename-regexp))
+       haskell-compilation-error-auxiliary-filename-regexp)))
   "Regexps used for matching GHC compile messages.
 See `compilation-error-regexp-alist' for semantics.")
 

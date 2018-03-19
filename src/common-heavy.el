@@ -42,8 +42,8 @@ if CASE-SENSETIVE is t."
                 (find-rec subdir
                           :filep
                           (lambda (p)
-                            (string-match-pure? filename-re
-                                                (file-name-nondirectory p)))
+                            (string-match-p filename-re
+                                            (file-name-nondirectory p)))
                           :do-not-visitp
                           (lambda (p)
                             (or (version-control-directory?
@@ -108,32 +108,33 @@ Use like this to pick changes that will go into CURR-CONFIG-DIR:
 \(merge-emacs-configs \"/home/sergey/emacs.new\" \"/home/sergey/emacs\"\)."
   (setf new-config-dir (strip-trailing-slash new-config-dir)
         curr-config-dir (strip-trailing-slash curr-config-dir))
-  (let ((ignored-files-re (concat "^.*"
-                                  (regexp-opt *ignored-file-name-endings*)
-                                  "$"))
-        (ignored-dirs-re (concat "\\(?:^\\|/\\)"
-                                 (regexp-opt *ignored-directories*)
-                                 "/.*$")))
+  (let ((ignored-files-re
+         (eval-when-compile
+           (concat "^.*" (regexp-opt +ignored-file-extensions+) "\\'")))
+        (ignored-dirs-re (eval-when-compile
+                           (concat "\\(?:^\\|/\\)"
+                                   (regexp-opt +ignored-directories+)
+                                   "/.*$"))))
     (dolist (p (--map (file-relative-name it new-config-dir)
                       (find-rec new-config-dir
                                 :filep
                                 (lambda (p)
                                   (let ((fname (file-name-nondirectory p)))
-                                    (and (or (string-match-pure? "^.*\\.el$"
-                                                                 fname)
-                                             (string-match-pure? "^.*/?scripts/.*$"
-                                                                 p)
+                                    (and (or (string-match-p "^.*\\.el$"
+                                                             fname)
+                                             (string-match-p "^.*/?scripts/.*$"
+                                                             p)
                                              ;; yasnippet snippets
-                                             (string-match-pure? "^.*/?snippets/.*$"
-                                                                 p))
+                                             (string-match-p "^.*/?snippets/.*$"
+                                                             p))
                                          ;; emacs locks?
-                                         (not (string-match-pure? "^\\.#.*"
-                                                                  fname))
+                                         (not (string-match-p "^\\.#.*"
+                                                              fname))
                                          ;; various binary files
-                                         (not (string-match-pure? ignored-files-re
-                                                                  fname))
-                                         (not (string-match-pure? ignored-dirs-re
-                                                                  fname))))))))
+                                         (not (string-match-p ignored-files-re
+                                                              fname))
+                                         (not (string-match-p ignored-dirs-re
+                                                              fname))))))))
       (let* ((new  (concat new-config-dir "/" p))
              (curr (concat curr-config-dir "/" p)))
         (message "Files %s and %s" new curr)

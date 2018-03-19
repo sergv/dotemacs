@@ -874,7 +874,7 @@ it's position in current window."
                      'haskell-misc--switch-to-haskell-ghci-command-history))
                  transformed-args)))))
       (when (and buffer-file-name
-                 (member (file-name-extension buffer-file-name) *haskell-extensions*))
+                 (member (file-name-extension buffer-file-name) +haskell-extensions+))
         (haskell-process-load-file))
       (haskell-interactive-bring))))
 
