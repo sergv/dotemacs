@@ -72,8 +72,8 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                  :root dir
                  :extensions-globs exts-globs
                  :ignored-extensions-globs ignored-exts-globs
-                 :ignored-directories *ignored-directories*
-                 :ignored-directory-prefixes *ignored-directory-prefixes*))
+                 :ignored-directories +ignored-directories+
+                 :ignored-directory-prefixes +ignored-directory-prefixes+))
          (files-length (length files))
          (progress-reporter
           (make-standard-progress-reporter files-length "files"))

@@ -24,8 +24,10 @@
 (autoload 'vim:haskell-flycheck-list-errors "haskell-setup" nil t)
 (autoload 'vim:haskell-navigate-imports "haskell-setup" nil t)
 
-(defparameter *haskell-extensions*
-  '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "happy" "y" "ag"))
+(defconst +haskell-extensions+
+  '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly"))
+
+(provide 'haskell-autoload)
 
 (mmm-add-classes
  '((literate-haskell-latex
@@ -90,8 +92,6 @@
 (add-to-list 'auto-mode-alist '("\\.ly\\'" . happy-mode))
 (add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
 (mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
-
-(provide 'haskell-autoload)
 
 ;; Local Variables:
 ;; End:
