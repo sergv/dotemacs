@@ -111,7 +111,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                             ignored-absolute-dirs)))
              (ignored-dirs
               (-map (lambda (dir-glob)
-                      (list (fold-platform-os-type "-path" "-ipath") dir-glob))
+                      (list "-path" dir-glob))
                     ignored-dirs-globs))
              (ignored-files
               (append
@@ -119,15 +119,13 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                        (list (fold-platform-os-type "-name" "-iname") glob))
                      ignored-extensions-globs)
                (-map (pcase find-files/find-program-type
-                       ((or `find `cygwin-find)
-                        (lambda (re) (list "-iregex" re)))
-                       (`busybox
+                       ((or `find `cygwin-find `busybox)
                         (lambda (re) (list "-regex" re)))
                        (_
                         (error "find-files/find-program-type has invalid value: %s"
                                find-files/find-program-type)))
                      ignored-files-absolute-regexps)))
-             (exts (-map (lambda (glob) (list "-iname" glob))
+             (exts (-map (lambda (glob) (list "-name" glob))
                          extensions-globs))
              (find-cmd (or find-files/find-program-executable
                            (error "find-files/find-program-type has invalid value: %s"
@@ -200,20 +198,25 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                 :filep
                 (if ignored-files-all-re
                     (lambda (path)
-                      (and (string-match-p ext-re path)
-                           (not (string-match-p ignored-files-all-re path))))
+                      (and (let ((case-fold-search t))
+                             (string-match-p ext-re path))
+                           (let ((case-fold-search nil))
+                             (not (string-match-p ignored-files-all-re path)))))
                   (lambda (path)
-                    (string-match-p ext-re path)))
+                    (let ((case-fold-search t))
+                      (string-match-p ext-re path))))
                 :do-not-visitp
                 (if ignored-absolute-dirs-re
                     (lambda (path)
-                      (or (string-match-p ignored-dirs-re
-                                          (file-name-nondirectory path))
-                          (string-match-p ignored-absolute-dirs-re
-                                          path)))
+                      (let ((case-fold-search nil))
+                        (or (string-match-p ignored-dirs-re
+                                            (file-name-nondirectory path))
+                            (string-match-p ignored-absolute-dirs-re
+                                            path))))
                   (lambda (path)
-                    (string-match-p ignored-dirs-re
-                                    (file-name-nondirectory path))))))))
+                    (let ((case-fold-search nil))
+                      (string-match-p ignored-dirs-re
+                                      (file-name-nondirectory path)))))))))
 
 (provide 'find-files)
 
