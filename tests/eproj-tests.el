@@ -310,17 +310,40 @@ test	%s	102	;\"	f
     (should (not (null? proj)))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
 
-    (should (equal (eproj-tests/normalize-file-list
-                    (list (concat path "/Foo/Bar/IdentityMonad.hs")))
-                   (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
-    (should (eproj-get-matching-tags proj
-                                     'haskell-mode
-                                     "IdentityM"
-                                     nil))
-    (should-not (eproj-get-matching-tags proj
-                                         'haskell-mode
-                                         "IgnoredM"
-                                         nil))))
+    (let ((distribution-test-path (concat path "/Foo/Distribution/Test.hs")))
+      (should (equal (eproj-tests/normalize-file-list
+                      (list
+                       (concat path "/Foo/Bar/IdentityMonad.hs")
+                       distribution-test-path))
+                     (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
+      (should (eproj-get-matching-tags proj
+                                       'haskell-mode
+                                       "IdentityM"
+                                       nil))
+      (should (equal
+               (list (make-eproj-tag "distributionTest1"
+                                     distribution-test-path
+                                     17
+                                     '((type . "f"))))
+               (-map #'car
+                     (eproj-get-matching-tags proj
+                                              'haskell-mode
+                                              "distributionTest1"
+                                              nil))))
+      (should (equal
+               (list (make-eproj-tag "distributionTest2"
+                                     distribution-test-path
+                                     17
+                                     '((type . "f"))))
+               (-map #'car
+                     (eproj-get-matching-tags proj
+                                              'haskell-mode
+                                              "distributionTest2"
+                                              nil))))
+      (should-not (eproj-get-matching-tags proj
+                                           'haskell-mode
+                                           "IgnoredM"
+                                           nil)))))
 
 (eproj-tests--define-tests
     eproj-tests/default-file-search/eproj-related-project-files-are-not-included-into-main-project
