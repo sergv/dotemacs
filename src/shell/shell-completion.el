@@ -343,13 +343,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
   "Like `pcomplete-entries' but ignores files mathing RE."
   (let ((pcomplete-file-ignore re)
         (pcomplete-dir-ignore
-         (eval-when-compile (regexp-opt *version-control-directories*))))
+         (eval-when-compile (regexp-opt +version-control-directories+))))
     (pcomplete-entries)))
 
 (defun pcmpl-entries-ignoring-common ()
   (pcmpl-entries-ignoring
    (eval-when-compile
-     (concat (regexp-opt *ignored-file-name-endings*)
+     (concat (regexp-opt +ignored-file-extensions+)
              "\\'"))))
 
 ;;; Version control
@@ -1204,7 +1204,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (eval-when-compile
      (concat
       "\\."
-      (regexp-opt *haskell-extensions*)
+      (regexp-opt +haskell-extensions+)
       "\\'"))))
 
 (defun pcmpl-haskell-source-or-obj-files ()
@@ -1223,7 +1223,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
              '("so")
              '("lib"
                "dll")))
-        *haskell-extensions*))
+        +haskell-extensions+))
       "\\'"))))
 
 ;;;###autoload (autoload 'pcomplete/runghc "shell-completion" nil t)

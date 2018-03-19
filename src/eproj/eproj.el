@@ -258,7 +258,7 @@
   (list
    (mk-eproj-lang
     :mode 'haskell-mode
-    :extensions *haskell-extensions*
+    :extensions +haskell-extensions+
     :create-tags-procedure
     #'eproj/create-haskell-tags
     :parse-tags-procedure
@@ -886,8 +886,8 @@ paths."
                                     (eproj-project/languages proj))
          :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
          :ignored-absolute-dirs related-projects-roots
-         :ignored-directories *ignored-directories*
-         :ignored-directory-prefixes *ignored-directory-prefixes*)))))
+         :ignored-directories +ignored-directories+
+         :ignored-directory-prefixes +ignored-directory-prefixes+)))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.

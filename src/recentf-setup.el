@@ -14,9 +14,11 @@
 (setf recentf-max-saved-items 100
       recentf-save-file (concat +prog-data-path+ "/recentf")
       recentf-exclude
-      (list (concat "^.*"
-                    (regexp-opt *ignored-file-name-endings*)
-                    "$")))
+      (list
+       (eval-when-compile
+         (concat "^.*"
+                 (regexp-opt +ignored-file-extensions+)
+                 "\\'"))))
 (recentf-mode +1)
 
 (provide 'recentf-setup)

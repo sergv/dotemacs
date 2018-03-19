@@ -158,7 +158,7 @@ of random numbers from RANDOM-GEN."
   (declare (pure nil) (side-effect-free t))
   (string-match-p (concat "\\(?:/\\|^\\)\\(?:"
                           (regexp-opt
-                           *version-control-directories*)
+                           +version-control-directories+)
                           "\\)\\(?:/\\|$\\)")
                   filepath))
 
@@ -734,35 +734,45 @@ end of END-LINE in current buffer."
 
 ;;;
 
-(defparameter *ignored-file-name-endings*
+(defconst +ignored-file-extensions+
   (append
-   '(".annot" ".cmi" ".cmxa" ".cma" ".cmx" ".cmo" ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o" "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot" ".class" ".fasl" ".lo" ".la" ".gmo" ".mo" ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo" ".dex" ".gz" ".tar" ".bz2" ".xz" ".7z" ".ibc" ".agdai")
+   '(".annot"
+     ".cmi" ".cmxa" ".cma" ".cmx" ".cmo"
+     ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o"
+     "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot"
+     ".fasl" ".lo" ".la" ".gmo" ".mo"
+     ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps"
+     ".fns" ".kys" ".pgs" ".tps" ".vrs" ".pyc" ".pyo"
+     ".class" ".dex"
+     ".gz" ".tar" ".bz2" ".xz" ".7z" ".ibc" ".agdai")
    (fold-platform-os-type
     '(".so")
     '(".dll" ".pdb" ".lib")))
   "List of file name endings to generally ignore.")
 
-(defparameter *version-control-directories*
+(defconst +version-control-directories+
   '(".svn" ".git" ".hg" "_darcs")
   "List of directory names used by version-control systems.")
 
-(defparameter *ignored-directories* *version-control-directories*
+(defconst +ignored-directories+ +version-control-directories+
   "List of directory names to generally ignore.")
 
-(defparameter *ignored-directory-prefixes*
+(defconst +ignored-directory-prefixes+
   '(".cabal-sandbox" ".stack-work" "dist")
   "List of directory names to generally ignore as a prefixes.")
 
 (setf completion-ignored-extensions
-      (append (-map (lambda (x) (concat x "/")) *ignored-directories*)
-              *ignored-file-name-endings*)
+      (eval-when-compile
+        (append (-map (lambda (x) (concat x "/")) +ignored-directories+)
+                +ignored-file-extensions+))
       grep-find-ignored-files
-      (append (list ".#*"
-                    "*.exe"
-                    "*.prof")
-              (-map (lambda (x)
-                      (concat "*" x))
-                    *ignored-file-name-endings*)))
+      (eval-when-compile
+        (append (list ".#*"
+                      "*.exe"
+                      "*.prof")
+                (-map (lambda (x)
+                        (concat "*" x))
+                      +ignored-file-extensions+))))
 
 ;;;
 

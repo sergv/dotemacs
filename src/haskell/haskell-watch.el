@@ -77,8 +77,8 @@ roots (i.e. valid and existing keys within
             (find-rec*
              :root root
              :extensions-globs '("*.cabal" "package.yaml" "stack*.yaml")
-             :ignored-directories *ignored-directories*
-             :ignored-directory-prefixes *ignored-directory-prefixes*)))
+             :ignored-directories +ignored-directories+
+             :ignored-directory-prefixes +ignored-directory-prefixes+)))
 
 
 (defun haskell-watch--construct-project-for-root (root)
