@@ -95,7 +95,7 @@
                                        (and (file-directory? path)
                                             (or (string= "src" path)
                                                 (member path
-                                                        *version-control-directories*)
+                                                        +version-control-directories+)
                                                 ;; this is somewhat vacuous
                                                 ;; (not (string-match-pure?
                                                 ;;       "[A-Z][a-zA-Z]*"
