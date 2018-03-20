@@ -54,7 +54,7 @@ roots (i.e. valid and existing keys within
            (directory-files dir
                             nil ;; Relative names.
                             (rx bos
-                                (or (seq (* nonl) ".cabal")
+                                (or (seq (+ nonl) ".cabal")
                                     "package.yaml")
                                 eos)
                             t ;; Do not sort.
