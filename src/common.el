@@ -424,7 +424,7 @@ returns true for key and value."
   (declare (pure t) (side-effect-free t))
   (let ((result nil))
     (maphash (lambda (k v)
-               (when (string-match-pure? re k)
+               (when (string-match-p re k)
                  (push v result)))
              table)
     result))
@@ -1148,7 +1148,7 @@ Save buffer if it has assigned file and this file exists on disk."
            (goto-char (point-min))
            ;; first alternative - unix shell shebang
            ;; second alternative - emacs "shebang"
-           (looking-at-pure? "^\\(?:#!\\|:;[ \t]*exec\\)")))
+           (looking-at-p "^\\(?:#!\\|:;[ \t]*exec\\)")))
        (make-file-executable buffer-file-name)
        (shell-command (concat "chmod u+x \"" buffer-file-name "\""))
        (message

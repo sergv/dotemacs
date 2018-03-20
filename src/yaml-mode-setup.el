@@ -21,8 +21,8 @@
                  #'indent-relative-backward
                  :enable-yasnippet t)
   (if-buffer-has-file
-    (when (string-match-pure? "^stack.*\\.yaml$"
-                              (file-name-nondirectory (buffer-file-name)))
+    (when (string-match-p "^stack.*\\.yaml$"
+                          (file-name-nondirectory (buffer-file-name)))
       (vim:local-emap "compile"  #'vim:haskell-compile)
       (vim:local-emap "c"        #'vim:haskell-compile)
       (vim:local-emap "ccompile" #'vim:haskell-compile-choosing-command)

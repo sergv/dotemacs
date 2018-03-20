@@ -94,7 +94,7 @@ whose start (including open paren) matches FORM-RE."
     (condition-case nil
         (progn
           (backward-up-list)
-          (looking-at-pure? form-re))
+          (looking-at-p form-re))
       (error nil))))
 
 (defun lisp-point-inside-form-n (n form-re)
@@ -111,7 +111,7 @@ whose start (including open paren) matches FORM-RE."
             for i below n
             for result = (progn
                            (backward-up-list)
-                           (looking-at-pure? form-re))
+                           (looking-at-p form-re))
             if result
             return t))
       (error nil))))
@@ -437,60 +437,60 @@ nor comment."
   (let ((done-up-list nil))
     (condition-case nil
         (while (or (not done-up-list)
-                   (not (looking-at-pure? (rx "("
-                                              (* whitespace)
-                                              symbol-start
-                                              (or "definline"
-                                                  "defmacro"
-                                                  "defmacro-"
-                                                  "defmethod"
-                                                  "defmulti"
-                                                  "defn"
-                                                  "defn-"
-                                                  "defonce"
-                                                  "defprotocol"
-                                                  "defrecord"
-                                                  "defstruct"
-                                                  "deftest"
-                                                  "deftest-"
-                                                  "deftype"
-                                                  "def"
-                                                  "ns"
+                   (not (looking-at-p (rx "("
+                                          (* whitespace)
+                                          symbol-start
+                                          (or "definline"
+                                              "defmacro"
+                                              "defmacro-"
+                                              "defmethod"
+                                              "defmulti"
+                                              "defn"
+                                              "defn-"
+                                              "defonce"
+                                              "defprotocol"
+                                              "defrecord"
+                                              "defstruct"
+                                              "deftest"
+                                              "deftest-"
+                                              "deftype"
+                                              "def"
+                                              "ns"
 
-                                                  "defclass"
-                                                  "defconstant"
-                                                  "defgeneric"
-                                                  "define-compiler-macro"
-                                                  "define-condition"
-                                                  "define-method-combination"
-                                                  "define-modify-macro"
-                                                  "define-setf-expander"
-                                                  "define-symbol-macro"
-                                                  "defmacro"
-                                                  "defmethod"
-                                                  "defpackage"
-                                                  "defparameter"
-                                                  "defsetf"
-                                                  "defstruct"
-                                                  "deftype"
-                                                  "defun"
-                                                  "defvar"
-                                                  "defconst"
+                                              "defclass"
+                                              "defconstant"
+                                              "defgeneric"
+                                              "define-compiler-macro"
+                                              "define-condition"
+                                              "define-method-combination"
+                                              "define-modify-macro"
+                                              "define-setf-expander"
+                                              "define-symbol-macro"
+                                              "defmacro"
+                                              "defmethod"
+                                              "defpackage"
+                                              "defparameter"
+                                              "defsetf"
+                                              "defstruct"
+                                              "deftype"
+                                              "defun"
+                                              "defvar"
+                                              "defconst"
 
-                                                  "defadvice"
-                                                  "defun*"
-                                                  "defmacro*"
-                                                  "defsubst"
-                                                  ;; don't really use this
-                                                  ;; "lambda"
-                                                  "define"
-                                                  "define*"
-                                                  "define-macro"
-                                                  "define-syntax"
-                                                  "define-method"
-                                                  "define-generic"
-                                                  "define-constant")
-                                              symbol-end))))
+                                              "defadvice"
+                                              "defun*"
+                                              "defmacro*"
+                                              "defsubst"
+                                              ;; don't really use this
+                                              ;; "lambda"
+                                              "define"
+                                              "define*"
+                                              "define-macro"
+                                              "define-syntax"
+                                              "define-method"
+                                              "define-generic"
+                                              "define-constant")
+                                          symbol-end))))
           (glisp/backward-up-list)
           (setf done-up-list t))
       ;; outermost list met, full stop then

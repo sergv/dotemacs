@@ -89,7 +89,7 @@
     (error "ctags executable not found"))
   (with-current-buffer out-buffer
     (goto-char (point-max))
-    (unless (looking-at-pure? "^$")
+    (unless (looking-at-p "^$")
       (insert "\n"))
     (let ((ext-re (eproj-language/extension-re
                    (gethash lang-mode eproj/languages-table))))
@@ -158,7 +158,7 @@ BUFFER is expected to contain output of ctags command."
                                    (make-standard-progress-reporter total-tags-count "tags")))))
         (garbage-collect)
         (while (not (eobp))
-          (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
+          (when (and (not (looking-at-p "^!_TAG_")) ;; skip metadata
                      (looking-at eproj-ctags--line-re))
             (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))

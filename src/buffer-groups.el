@@ -47,8 +47,8 @@
                                 (and (memq major-mode
                                            '(emacs-lisp-mode
                                              inferior-emacs-lisp-mode))
-                                     (not (string-match-pure? "^\\*.+\\*$"
-                                                              (buffer-name)))))))
+                                     (not (string-match-p "^\\*.+\\*$"
+                                                          (buffer-name)))))))
        (c-c++-filter `(or (mode . c-mode)
                           (mode . c++-mode)
                           (mode . glsl-mode)))
@@ -193,8 +193,8 @@
                             (mode . gnuplot-run-mode)
                             (predicate . (and (or (not (null? (get-buffer-process (current-buffer))))
                                                   (eq? major-mode 'shell-mode))
-                                              (not (string-match-pure? "Async Shell Command"
-                                                                       (buffer-name)))))))
+                                              (not (string-match-p "Async Shell Command"
+                                                                   (buffer-name)))))))
        (dired-filter `(or (mode . dired-mode)))
        (other-filter `(or (name . ,(rx "*scratch*"))
                           (name . ,(rx "*Messages*"))

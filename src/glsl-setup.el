@@ -41,20 +41,20 @@
                     (file-name-extension buffer-file-name))))
       ;; check for null since .emacs doesn't have extension
       (and ext
-           (or (and (string-match-pure? (rx bot
-                                            (or "vs"
-                                                "fs"
-                                                "gs")
-                                            eot)
-                                        ext)
-                    (looking-at-pure? (rxx ((wh (or whitespace (char ?\n))))
-                                        bot
-                                        (* anything)
-                                        "#"
-                                        (* wh)
-                                        "version"
-                                        (+ wh)
-                                        (+ (or digit "."))))))))))
+           (or (and (string-match-p (rx bot
+                                        (or "vs"
+                                            "fs"
+                                            "gs")
+                                        eot)
+                                    ext)
+                    (looking-at-p (rxx ((wh (or whitespace (char ?\n))))
+                                    bot
+                                    (* anything)
+                                    "#"
+                                    (* wh)
+                                    "version"
+                                    (+ wh)
+                                    (+ (or digit "."))))))))))
 
 ;;;###autoload
 (push (cons #'glsl-file-magic-function #'glsl-mode) magic-mode-alist)

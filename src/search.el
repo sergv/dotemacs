@@ -268,7 +268,7 @@ Highlighting starts at the beginning of buffer")
 (defun search--regex-valid? (regex)
   (and (string? regex)
        (< 0 (length regex))
-       (not (string-match-pure? "\\\\$" regex))
+       (not (string-match-p "\\\\$" regex))
        (not (gethash regex +search-ignore-regexps+))))
 
 (defun search--update (regexp)
@@ -488,7 +488,7 @@ obvious"
 ;; Haskell search
 
 (defsubst search-for-haskell-symbol-at-point-regex-start-func (pat)
-  (if (string-match-pure? "^[a-zA-Z0-9]" pat)
+  (if (string-match-p "^[a-zA-Z0-9]" pat)
       ;; Don't use \\_<,\\_> since they rely on
       ;; syntax table which was tampered with in haskell
       ;; mode so that e.g. regexp "\\_<Node" won't match
@@ -497,7 +497,7 @@ obvious"
     ""))
 
 (defsubst search-for-haskell-symbol-at-point-regex-end-func (pat)
-  (if (string-match-pure? "[a-zA-Z0-9]$" pat)
+  (if (string-match-p "[a-zA-Z0-9]$" pat)
       "\\>"
     ""))
 

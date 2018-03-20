@@ -37,7 +37,7 @@
          "Toggle current view to buffers with name not matching QUALIFIER."
        (:description "buffer name, no match"
                      :reader (read-from-minibuffer "Filter by not matching (regexp): "))
-       (not (string-match-pure? qualifier (buffer-name buf))))
+       (not (string-match-p qualifier (buffer-name buf))))
 
      (define-ibuffer-filter eproj-root
          "Toggle current view to buffers with eproj project to QUALIFIER."
