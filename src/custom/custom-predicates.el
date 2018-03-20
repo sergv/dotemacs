@@ -75,10 +75,6 @@
         ;; (message "(defalias %s %s)" new-command command)
         (defalias new-command command)))))
 
-(defalias 'string-match-pure? 'string-match-p)
-
-(defalias 'looking-at-pure? 'looking-at-p)
-
 (defun buffer-narrowed? ()
   (/= (buffer-size)
       (- (point-max)

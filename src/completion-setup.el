@@ -52,14 +52,14 @@
          (pcomplete-entries nil
                             (lambda (filename)
                               (or (file-executable-p filename)
-                                  (string-match-pure? (rx (or ".hs"
-                                                              ".sh"
-                                                              ".py"
-                                                              ".exe"
-                                                              ".bat"
-                                                              ".cmd")
-                                                          eol)
-                                                      filename)))))))
+                                  (string-match-p (rx (or ".hs"
+                                                          ".sh"
+                                                          ".py"
+                                                          ".exe"
+                                                          ".bat"
+                                                          ".cmd")
+                                                      eol)
+                                                  filename)))))))
 
 (eval-after-load "pcomplete"
   '(progn

@@ -80,12 +80,12 @@
                    (locate-dominating-file
                     (file-name-directory buffer-file-name)
                     (lambda (dir)
-                      (or (not (string-match-pure? "[A-Z][a-zA-Z0-9_']*"
-                                                   (file-name-nondirectory
-                                                    (strip-trailing-slash dir))))
+                      (or (not (string-match-p "[A-Z][a-zA-Z0-9_']*"
+                                               (file-name-nondirectory
+                                                (strip-trailing-slash dir))))
                           (-any? (lambda (path)
                                    (or (and (file-regular? path)
-                                            (string-match-pure?
+                                            (string-match-p
                                              (rx (or (seq (+ not-newline)
                                                           ".cabal")
                                                      "Setup.hs"
@@ -94,10 +94,10 @@
                                              path))
                                        (and (file-directory? path)
                                             (or (string= "src" path)
-                                                (member path
+                                                (member patg
                                                         +version-control-directories+)
                                                 ;; this is somewhat vacuous
-                                                ;; (not (string-match-pure?
+                                                ;; (not (string-match-p
                                                 ;;       "[A-Z][a-zA-Z]*"
                                                 ;;       path))
                                                 ))))
