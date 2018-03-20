@@ -313,8 +313,8 @@ entries."
                     sessions/ignored-temporary-buffer-modes))
          (not (assq major-mode
                     sessions/special-modes))
-         (not (string-match-pure? "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
-                                  (buffer-name buf))))))
+         (not (string-match-p "\\(?:^ \\)\\|\\(?:^\\*.*\\*$\\)"
+                              (buffer-name buf))))))
 
 
 (defun sessions/save-buffers/make-session ()

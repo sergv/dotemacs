@@ -78,7 +78,7 @@ runtime but rather will be silently relied on)."
         (garbage-collect)
         (while (not (eobp))
           (beginning-of-line)
-          (when (and (not (looking-at-pure? "^!_TAG_")) ;; skip metadata
+          (when (and (not (looking-at-p "^!_TAG_")) ;; skip metadata
                      (looking-at eproj-ctags--line-re))
             (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))

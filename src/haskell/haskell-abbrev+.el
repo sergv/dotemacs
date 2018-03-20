@@ -46,7 +46,7 @@
                      (if has-liftio?
                          "liftIO $ putStrLn"
                        "putStrLn")))
-                  " $ \""))
+                 " $ \""))
             (lambda ()
               (insert (if trace-func-name
                           trace-func-name
@@ -74,7 +74,7 @@
              (format "%s%s = \" ++ show %s"
                      (if is-initial-insertion? "" ", ")
                      (funcall quote-input user-input)
-                     (if (string-match-pure? "[ \t]" user-input)
+                     (if (string-match-p "[ \t]" user-input)
                          (concat "(" user-input ")")
                        user-input))))))
     (insert-info-template

@@ -515,7 +515,7 @@ commented parts and leave point unchanged."
                 (concat "^\\s-*" line-regexp))
                (clear-comment (lambda ()
                                 (cond
-                                  ((looking-at-pure? full-line-re)
+                                  ((looking-at-p full-line-re)
                                    (delete-current-line))
                                   ;; for cases like
                                   ;; > (let (( ;; (foo 1)
