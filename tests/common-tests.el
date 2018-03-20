@@ -412,6 +412,18 @@
   (let ((case-fold-search t))
     (should (is-lowercase? ?x))))
 
+(ert-deftest common-tests/extended<-1 ()
+  (should (extended< 3 4)))
+
+(ert-deftest common-tests/extended<-2 ()
+  (should (extended< nil 4)))
+
+(ert-deftest common-tests/extended<-3 ()
+  (should-not (extended< 4 nil)))
+
+(ert-deftest common-tests/extended<-4 ()
+  (should-not (extended< nil nil)))
+
 (dolist (entry
          '((1  ""       ""      ""     "")
            (2  " "      ""      ""     "")
