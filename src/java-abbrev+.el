@@ -35,7 +35,7 @@ while interactively prompting for variables/messages."
              (format "%s%s = \" + %s"
                      (if is-initial-insertion? "" ", ")
                      (funcall quote-input user-input)
-                     (if (string-match-pure? "[ \t]" user-input)
+                     (if (string-match-p "[ \t]" user-input)
                          (concat "(" user-input ")")
                        user-input))))))
     (insert-info-template

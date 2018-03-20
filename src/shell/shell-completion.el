@@ -19,9 +19,9 @@
 ;;   (let* ((last-arg
 ;;           (pcomplete-arg 'last))
 ;;          (last-arg-starts-with-single-dash
-;;           (string-match-pure\? "^-\\([^-]\\|$\\)" last-arg))
+;;           (string-match-p "^-\\([^-]\\|$\\)" last-arg))
 ;;          (last-arg-starts-with-two-dashes
-;;           (string-match-pure\? "^--\\([^-]\\|$\\)" last-arg))
+;;           (string-match-p "^--\\([^-]\\|$\\)" last-arg))
 ;;          (got-end-of-flags
 ;;           (and
 ;;            (not last-arg-starts-with-two-dashes)
@@ -205,7 +205,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 
 <opts> stands for given flags followed by args, no more positional arguments."
   (declare (indent 1))
-  (cl-assert (string-match-pure? "pcomplete/" (symbol->string name)))
+  (cl-assert (string-match-p "pcomplete/" (symbol->string name)))
   (let ((got-end-of-flags-var '#:got-end-of-flags))
     (letrec ((process
               (lambda (definition positional-depth)
@@ -269,14 +269,14 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                          (flags-with-args (-filter #'pcmpl-flag/completion-expr flags))
                          ;; Positional arguments.
                          (args (assoc 'args info)))
-                    (cl-assert (--all? (-all? (comp (partial #'string-match-pure? "^--?[^-].*"))
+                    (cl-assert (--all? (-all? (comp (partial #'string-match-p "^--?[^-].*"))
                                               (pcmpl-flag/names it))
                                        flags)
                                nil
                                "All flags names must start with dash or two dashes: %S\nFailed flags: %S"
                                flags
-                               (--filter (not (string-match-pure? "^--?[^-].*$"
-                                                                  (pcmpl-flag/names it)))
+                               (--filter (not (string-match-p "^--?[^-].*$"
+                                                              (pcmpl-flag/names it)))
                                          flags))
                     (when args
                       (cl-assert (cdr args)
@@ -285,7 +285,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                  args))
                     (when (or flags args)
                       (multiple-value-bind (single-dash-flags double-dash-flags)
-                          (--separate (string-match-pure? "^-[^-]" it)
+                          (--separate (string-match-p "^-[^-]" it)
                                       (-mapcat #'pcmpl-flag/names flags))
                         `(while
                              (unless ,got-end-of-flags-var

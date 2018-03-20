@@ -48,7 +48,7 @@
 
 (defun hl-tags-context-sgml-mode ()
   (save-excursion
-    (when (looking-at-pure? "<") (forward-char 1))
+    (when (looking-at-p "<") (forward-char 1))
     (let* ((ctx (hl-tags-sgml-get-context))
            (boundaries
             (and ctx (case (sgml-tag-type ctx)
@@ -70,7 +70,7 @@
   (ignore-errors
     (save-excursion
       (let (start1 end1 start2 end2)
-        (when (looking-at-pure? "<") (forward-char))
+        (when (looking-at-p "<") (forward-char))
         (nxml-up-element 1)
         (setq end2 (point))
 

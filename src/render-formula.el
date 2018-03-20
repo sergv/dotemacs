@@ -42,8 +42,8 @@ won't be confused by the same filename used for different images.")
 (defconst +render-formula-conditional-packages+
   (list
    (list (lambda (text)
-           (and (string-match-pure? (rx "\\begin{tikzpicture}") text)
-                (string-match-pure? (rx "\\end{tikzpicture}") text)))
+           (and (string-match-p (rx "\\begin{tikzpicture}") text)
+                (string-match-p (rx "\\end{tikzpicture}") text)))
          "tikz"))
   "Specification of packages, (<condition> <package>+) that should be
 included if condition returns true when applied to text that is
@@ -85,7 +85,7 @@ pnm utils suite.")
              "invalid font-size: %s"
              font-size)
   (aif (gethash str *formula-images-cache* nil)
-    it
+      it
     (let* ((left-eq-numbering? nil)
            (bg-color (color-name-to-rgb
                       (or background-color
@@ -120,7 +120,7 @@ pnm utils suite.")
          (format "\\documentclass[%dpt%s]{article}\n"
                  point-size
                  (if left-eq-numbering?
-                   ",leqno"
+                     ",leqno"
                    "")))
         (mapc (lambda (pkg)
                 (insert "\\usepackage{" pkg "}\n"))
@@ -138,8 +138,8 @@ pnm utils suite.")
          (concat (format "\\begin{%s}\n" font-size)
                  (apply 'format "\\color[rgb]{%f,%f,%f}\n"
                         fg-color)
-                 (if (string-match-pure? "^\\\\begin{[^{}\n]+}" str)
-                   str
+                 (if (string-match-p "^\\\\begin{[^{}\n]+}" str)
+                     str
                    (concat "\\begin{math}\\displaystyle\n"
                            str
                            "\\end{math}\n"))
@@ -160,8 +160,8 @@ pnm utils suite.")
                                     "-shell-escape"
                                     "-output-directory" +render-formula-tmp-path+
                                     "-jobname" tmp-filename))
-          (progn
-            (mapc #'remove-buffer latex-bufs))
+            (progn
+              (mapc #'remove-buffer latex-bufs))
           (progn
             (dolist (buf latex-bufs)
               (with-current-buffer buf
@@ -170,18 +170,18 @@ pnm utils suite.")
             (error "LaTeX error"))))
       ;; dvi is now at dvi-file
       (if (if +render-formula-use-dvipng+
-            (= 0
-               (call-process "dvipng"
-                             nil                  ;; infile
-                             conversion-error-buf ;; buffer
-                             nil                  ;; display
-                             "-T"
-                             "tight"
-                             "-D"
-                             (number->string dpi)
-                             dvi-file
-                             "-o"
-                             img-file))
+              (= 0
+                 (call-process "dvipng"
+                               nil                ;; infile
+                               conversion-error-buf ;; buffer
+                               nil                  ;; display
+                               "-T"
+                               "tight"
+                               "-D"
+                               (number->string dpi)
+                               dvi-file
+                               "-o"
+                               img-file))
             (and (= 0
                     (call-process "dvi2ps"
                                   nil                  ;; infile
@@ -203,15 +203,15 @@ pnm utils suite.")
                                   (number->string dpi)
                                   ps-file
                                   img-file))))
-        ;; now everything interesting is in img-file
-        (let ((img (create-image img-file
-                                 'png
-                                 nil
-                                 :ascent 'center)))
-          (remove-buffer conversion-error-buf)
-          (setf *formula-index* (+ 1 *formula-index*))
-          (puthash str img *formula-images-cache*)
-          img)
+          ;; now everything interesting is in img-file
+          (let ((img (create-image img-file
+                                   'png
+                                   nil
+                                   :ascent 'center)))
+            (remove-buffer conversion-error-buf)
+            (setf *formula-index* (+ 1 *formula-index*))
+            (puthash str img *formula-images-cache*)
+            img)
         (progn
           (pop-to-buffer conversion-error-buf)
           (error "problem transforming dvi file into image"))))))

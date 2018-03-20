@@ -773,7 +773,7 @@ return nil otherwise."
   (haskell-prof-search-column
    4
    (lambda (x)
-     (and (string-match-pure? "[0-9.]+" x)
+     (and (string-match-p "[0-9.]+" x)
           (< minimum-fraction (string->number x))))))
 
 (defparameter haskell-compilation-buffer "*haskell-compilation*")
