@@ -109,9 +109,10 @@
         (column-b   (flycheck-error-column b)))
     (or (string< filename-a filename-b)
         (and (string= filename-a filename-b)
-             (or (< line-a line-b)
-                 (and (= line-a line-b)
-                      (< column-a column-b)))))))
+             (or (extended< line-a line-b)
+                 (and (or (and (null line-a) (null line-b))
+                          (= line-a line-b))
+                      (extended< column-a column-b)))))))
 
 (defun flycheck-enhancements--navigate-errors-with-wraparound (forward? errs)
   (let* ((expanded-buffer-file-name (expand-file-name buffer-file-name))
