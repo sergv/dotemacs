@@ -1771,6 +1771,18 @@ are CHAR1 and CHAR2 repsectively."
   (unless noninteractive
     (apply #'message args)))
 
+(defun extended< (a b)
+  "Operator `<' extended to numbers that may be nil."
+  (if a
+      (if b
+          (< a b)
+        nil ;; !(~nil < nil)
+        )
+    (if b
+        t ;; nil < ~nil
+      nil ;; !(nil < nil)
+      )))
+
 ;; Heavy autoloads
 
 (autoload 'insert-info-template "common-heavy")
