@@ -9,6 +9,8 @@
     [GH-1289]
   - ``rust-cargo`` does not use the variable ``flycheck-rust-args`` anymore
     [GH-1289]
+  - Improve detection of default directory for ``haskell-ghc`` to consider
+    ``hpack`` project files [GH-1435]
 
 - New syntax checkers:
 
@@ -31,6 +33,10 @@
 
 - Improvements
 
+  - When a checker returns errors for another file, they will be displayed
+    instead of ignored.  They can be navigated to from the error list.
+    This change helps with compiled languages, where an error in another file
+    may cause the current file to be considered invalid. [GH-1427]
   - Use Emacs' native XML parsing when libXML fails.  This behavior can be
     changed by customizing ``flycheck-xml-parser`` [GH-1349]
   - Changed parsing of ESLint output from checkstyle XML to JSON [GH-1350]
@@ -40,10 +46,6 @@
   - ``rust-cargo`` now uses ``cargo check`` and ``cargo test`` [GH-1289]
   - ``python-pylint`` and ``python-flake8`` are now invoked with ``python -c``,
     to make it easier to change between Python 2 and Python 3 [GH-1113]
-  - When a checker returns errors for another file, they will be displayed
-    instead of ignored.  They can be navigated to from the error list.
-    This change helps with compiled languages, where an error in another file
-    may cause the current file to be considered invalid. [GH-1427]
 
 31 (Oct 07, 2017)
 =================
