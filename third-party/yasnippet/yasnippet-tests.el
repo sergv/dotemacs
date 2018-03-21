@@ -447,6 +447,30 @@ end" (buffer-string)))
     (yas-expand-snippet "def foo\n\nend")
     (should (string= "def foo\n  \nend" (buffer-string)))))
 
+(ert-deftest yas-indent-first-line ()
+  (with-temp-buffer
+    (ruby-mode)
+    (yas-minor-mode 1)
+    (set (make-local-variable 'yas-indent-line) 'auto)
+    (set (make-local-variable 'yas-also-auto-indent-first-line) nil)
+    (set (make-local-variable 'yas-also-indent-empty-lines) nil)
+    (yas-expand-snippet "def foo\n$0\nend\n")
+    ;; First (and only) line should not indent.
+    (yas-expand-snippet "#not indented")
+    (should (equal "def foo\n#not indented\nend\n" (buffer-string)))))
+
+(ert-deftest yas-indent-first-line-fixed ()
+  (with-temp-buffer
+    (ruby-mode)
+    (yas-minor-mode 1)
+    (set (make-local-variable 'yas-indent-line) 'fixed)
+    (set (make-local-variable 'yas-also-auto-indent-first-line) nil)
+    (set (make-local-variable 'yas-also-indent-empty-lines) nil)
+    (yas-expand-snippet "    def foo\n    $0\n    end\n")
+    ;; First (and only) line should not indent.
+    (yas-expand-snippet "#not more indented")
+    (should (equal "    def foo\n    #not more indented\n    end\n" (buffer-string)))))
+
 (ert-deftest indentation-markers ()
   "Test a snippet with indentation markers (`$<')."
   (with-temp-buffer
@@ -666,6 +690,22 @@ mapconcat #'(lambda (arg)
       '((".emacs.d/snippets"
          ("emacs-lisp-mode"
           ("foo" . "expanded `yas-selected-text`foo"))))
+      (yas-reload-all)
+      (emacs-lisp-mode)
+      (yas-minor-mode +1)
+      (insert "foo")
+      (ert-simulate-command '(yas-expand))
+      (should (equal (buffer-string) "expanded foo")))))
+
+(ert-deftest yas-expand-command-snippet ()
+  (with-temp-buffer
+    (yas-with-snippet-dirs
+      '((".emacs.d/snippets"
+         ("emacs-lisp-mode"
+          ("foo" . "\
+# type: command
+# --
+\(insert \"expanded foo\")"))))
       (yas-reload-all)
       (emacs-lisp-mode)
       (yas-minor-mode +1)
@@ -1031,10 +1071,27 @@ hello ${1:$(when (stringp yas-text) (funcall func yas-text))} foo${1:$$(concat \
   "Test `yas-lookup-snippet'."
   (yas-with-some-interesting-snippet-dirs
    (yas-reload-all 'no-jit)
-   (should (equal (yas-lookup-snippet "printf" 'c-mode) "printf($1);"))
-   (should (equal (yas-lookup-snippet "def" 'c-mode) "# define"))
+   (should (equal (yas--template-content (yas-lookup-snippet "printf" 'c-mode))
+                  "printf($1);"))
+   (should (equal (yas--template-content (yas-lookup-snippet "def" 'c-mode))
+                  "# define"))
    (should-not (yas-lookup-snippet "no such snippet" nil 'noerror))
    (should-not (yas-lookup-snippet "printf" 'emacs-lisp-mode 'noerror))))
+
+(ert-deftest yas-lookup-snippet-with-env ()
+  (with-temp-buffer
+    (yas-with-snippet-dirs
+      '((".emacs.d/snippets"
+         ("emacs-lisp-mode"
+          ("foo" . "\
+# expand-env: ((foo \"bar\"))
+# --
+`foo`"))))
+      (yas-reload-all)
+      (emacs-lisp-mode)
+      (yas-minor-mode +1)
+      (yas-expand-snippet (yas-lookup-snippet "foo"))
+      (should (equal (buffer-string) "bar")))))
 
 (ert-deftest basic-jit-loading ()
   "Test basic loading and expansion of snippets"
@@ -1063,13 +1120,15 @@ hello ${1:$(when (stringp yas-text) (funcall func yas-text))} foo${1:$$(concat \
    (with-temp-buffer
      (text-mode)
      (yas-minor-mode +1)
-     (should (equal (yas-lookup-snippet "one") "one"))
+     (should (equal (yas--template-content (yas-lookup-snippet "one"))
+                    "one"))
      (should (eq (yas--key-binding "\C-c1") 'yas-expand-from-keymap))
      (yas-define-snippets
       'text-mode '(("_1" "one!" "won" nil nil nil nil nil "uuid-1")))
      (should (null (yas-lookup-snippet "one" nil 'noerror)))
      (should (null (yas--key-binding "\C-c1")))
-     (should (equal (yas-lookup-snippet "won") "one!")))))
+     (should (equal (yas--template-content(yas-lookup-snippet "won"))
+                    "one!")))))
 
 (ert-deftest snippet-save ()
   "Make sure snippets can be saved correctly."
