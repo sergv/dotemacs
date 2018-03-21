@@ -83,27 +83,27 @@
                       (or (not (string-match-p "[A-Z][a-zA-Z0-9_']*"
                                                (file-name-nondirectory
                                                 (strip-trailing-slash dir))))
-                          (-any? (lambda (path)
-                                   (or (and (file-regular? path)
-                                            (string-match-p
-                                             (rx (or (seq (+ not-newline)
-                                                          ".cabal")
-                                                     "Setup.hs"
-                                                     "Setup.lhs")
-                                                 eos)
-                                             path))
-                                       (and (file-directory? path)
-                                            (or (string= "src" path)
-                                                (member patg
-                                                        +version-control-directories+)
-                                                ;; this is somewhat vacuous
-                                                ;; (not (string-match-p
-                                                ;;       "[A-Z][a-zA-Z]*"
-                                                ;;       path))
-                                                ))))
-                                 (directory-files dir
-                                                  t
-                                                  directory-files-no-dot-files-regexp))))))
+                          (-any-p (lambda (path)
+                                    (or (and (file-regular-p path)
+                                             (string-match-p
+                                              (rx (or (seq (+ not-newline)
+                                                           ".cabal")
+                                                      "Setup.hs"
+                                                      "Setup.lhs")
+                                                  eos)
+                                              path))
+                                        (and (file-directory-p path)
+                                             (or (string= "src" path)
+                                                 (member path
+                                                         +version-control-directories+)
+                                                 ;; this is somewhat vacuous
+                                                 ;; (not (string-match-p
+                                                 ;;       "[A-Z][a-zA-Z]*"
+                                                 ;;       path))
+                                                 ))))
+                                  (directory-files dir
+                                                   t
+                                                   directory-files-no-dot-files-regexp))))))
                   (raw-name (strip-string-prefix (strip-trailing-slash
                                                   (expand-file-name root))
                                                  (file-name-sans-extension
