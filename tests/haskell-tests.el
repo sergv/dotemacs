@@ -281,6 +281,52 @@
     (haskell-cabal--yasnippet--main-module-from-main-file "Main")
     "Main")))
 
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-executable-name-1 ()
+  (dolist (input '("foo-bar"
+                   "foo-bar.exe"
+                   "exe/foo-bar"
+                   "exe/foo-bar.exe"
+                   "Test/Bar/foo-bar"))
+    (should
+     (string=
+      (haskell-cabal--yasnippet--main-module-from-executable-name input)
+      "FooBar"))))
+
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-executable-name-2 ()
+  (dolist (input '("foo-bar-baz---quux"
+                   "foo-bar-baz---quux.exe"
+                   "exe/foo-bar-baz---quux.exe"
+                   "Test/Bar/foo-bar-baz---quux.exe"))
+    (should
+     (string=
+      (haskell-cabal--yasnippet--main-module-from-executable-name input)
+      "FooBarBazQuux"))))
+
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-executable-name-3 ()
+  (dolist (input '("MyExe"
+                   "MyExe.exe"
+                   "exe/MyExe"
+                   "exe/MyExe.exe"
+                   "Test/Bar/MyExe.exe"
+                   "myExe"
+                   "myExe.exe"
+                   "Test/Bar/myExe.exe"))
+    (should
+     (string=
+      (haskell-cabal--yasnippet--main-module-from-executable-name input)
+      "MyExe"))))
+
+(ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-executable-name-4 ()
+  (dolist (input '("test"
+                   "test.exe"
+                   "tests/test.exe"
+                   "Exe/Bar/test.exe"
+                   "Exe/Bar/test"))
+    (should
+     (string=
+      (haskell-cabal--yasnippet--main-module-from-executable-name input)
+      "Test"))))
+
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-1 ()
   (haskell-tests--test-result
    (progn
