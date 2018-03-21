@@ -62,6 +62,7 @@
        "ppx_runtime_libraries" "virtual_deps" "js_of_ocaml" "flags"
        "ocamlc_flags" "ocamlopt_flags" "library_flags" "c_flags"
        "cxx_flags" "c_library_flags" "self_build_stubs_archive"
+       "modules_without_implementation"
        ;; + for "executable" and "executables":
        "package" "link_flags" "modes" "names" "public_names"
        ;; + for "rule":
@@ -81,7 +82,7 @@
                "with-stdout-to" "with-stderr-to" "with-outputs-to"
                "ignore-stdout" "ignore-stderr" "ignore-outputs"
                "progn" "echo" "write-file" "cat" "copy" "copy#" "system"
-               "bash")
+               "bash" "diff" "diff?")
              t)
             "\\(?:\\_>\\|[[:space:]]\\)"))
   "Builtin actions in dune")
@@ -346,8 +347,8 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "(library" > \n
   "((name        " _ ")" > \n
   "(public_name " _ ")" > \n
-  "(synopsis  \"" _ "\")" > \n
-  "(libraries (" _ "))))" > ?\n)
+  "(libraries  (" _ "))" > \n
+  "(synopsis \"" _ "\")))" > ?\n)
 
 (define-skeleton tuareg-dune-insert-executable-form
   "Insert an executable stanza."
