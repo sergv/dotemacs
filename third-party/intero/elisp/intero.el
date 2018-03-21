@@ -2377,62 +2377,28 @@ This is a standard process sentinel function."
             'wrong-version))
       'not-installed)))
 
-(defun intero-show-process-problem (process change)
-  "Report to the user that PROCESS reported CHANGE, causing it to end."
-  (message "Problem with Intero!")
-  (switch-to-buffer (process-buffer process))
-  (goto-char (point-max))
-  (insert "\n---\n\n")
-  (insert
-   (propertize
-    (concat
-     "This is the buffer where Emacs talks to intero. It's normally hidden,
-but a problem occcured.
-
-TROUBLESHOOTING
-
-It may be obvious if there is some text above this message
-indicating a problem.
-
-If you do not wish to use Intero for some projects, see
-https://github.com/commercialhaskell/intero#whitelistingblacklisting-projects
-
-The process ended. Here is the reason that Emacs gives us:
-
-"
-     "  " change
-     "\n"
-     "For troubleshooting purposes, here are the arguments used to launch intero:
-
-"
-     (format "  %s %s"
-             intero-stack-executable
-             (combine-and-quote-strings intero-arguments))
-
-     "
-
-It's worth checking that the correct stack executable is being
-found on your path, or has been set via
-`intero-stack-executable'.  The executable being used now is:
-
-  "
-     (executable-find intero-stack-executable)
-     "
-
-WHAT TO DO NEXT
-
-If you fixed the problem, just kill this buffer, Intero will make
-a fresh one and attempt to start the process automatically as
-soon as you start editing code again.
-
-If you are unable to fix the problem, just leave this buffer
-around in Emacs and Intero will not attempt to start the process
-anymore.
-
-You can always run M-x intero-restart to make it try again.
-
-")
-    'face 'compilation-error)))
+(defun intero-show-process-problem (process process-exit-reason)
+  "Report to the user that PROCESS reported PROCESS-EXIT-REASON, causing it to end."
+  (with-current-buffer (process-buffer process)
+    (goto-char (point-max))
+    (insert "\n" (make-string 42 ?-) "\n\n")
+    (insert
+     (concat
+      "The process ended with:\n  " process-exit-reason "\n"
+      "Intero command line:\n"
+      (format "  %s %s"
+              intero-stack-executable
+              (combine-and-quote-strings intero-arguments))))
+    (let ((vars (buffer-local-variables (current-buffer))))
+      (text-mode)
+      (dolist (entry vars)
+        (when (consp entry)
+          (destructuring-bind (name . value) entry
+            (cl-assert (symbolp name))
+            (when (string-prefix-p "intero-" (symbol->string name))
+              (set (make-local-variable name) value))))))
+    (error "Intero failed. See buffer '%s' for details"
+           (current-buffer))))
 
 (defun intero-read-buffer ()
   "In the process buffer, we read what's in it."
