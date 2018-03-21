@@ -1,6 +1,6 @@
 ;;; mmm-erb.el --- ERB templates editing support
 
-;; Copyright (C) 2012, 2013 by Dmitry Gutov
+;; Copyright (C) 2012, 2013, 2018  Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 
@@ -57,7 +57,7 @@
 ;;; Code:
 
 (require 'sgml-mode)
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'mmm-vars)
 (require 'mmm-region)
 
@@ -86,11 +86,11 @@
 ;;;###autoload
 (define-derived-mode html-erb-mode html-mode "ERB-HTML"
   (setq sgml-unclosed-tags nil) ; Simplifies indentation logic.
-  (set (make-local-variable 'mmm-indent-line-function) 'mmm-erb-indent-line)
+  (set (make-local-variable 'mmm-indent-line-function) #'mmm-erb-indent-line)
   (add-hook 'mmm-after-syntax-propertize-functions
-            'html-erb-after-syntax-propertize nil t))
+            #'html-erb-after-syntax-propertize nil t))
 
-(defun html-erb-after-syntax-propertize (overlay mode beg end)
+(defun html-erb-after-syntax-propertize (overlay _mode beg end)
   (when overlay
     (with-silent-modifications
       (funcall
@@ -147,12 +147,11 @@
 
 (defun mmm-erb-indent-to-region-start (&optional additional-offset)
   "Indent line to match start of region, possibly adding ADDITIONAL-OFFSET."
-  (let ((indent (current-indentation)))
-    (indent-line-to
-     (save-excursion
-       (goto-char (1- (overlay-start mmm-current-overlay)))
-       (+ (current-indentation)
-          (or additional-offset 0))))))
+  (indent-line-to
+   (save-excursion
+     (goto-char (1- (overlay-start mmm-current-overlay)))
+     (+ (current-indentation)
+        (or additional-offset 0)))))
 
 (defun mmm-erb-indent-line-primary ()
   "Indent line in primary mode."
@@ -169,19 +168,19 @@
          (regions (mmm-regions-in start here))
          (n 0))
     ;; Collect indent modifier depending on type of tags.
-    (loop for region in regions
+    (cl-loop for region in regions
           for type = (mmm-erb-scan-region region)
           when type do
           (if (eq type 'close)
-              (when (plusp n) (decf n))
-            (incf n (if (eq type 'close) 0 1))))
+              (when (cl-plusp n) (cl-decf n))
+            (cl-incf n (if (eq type 'close) 0 1))))
     (let ((eol (progn (goto-char here) (end-of-line 1) (point))))
       ;; Look for "else" and "end" instructions to adjust modifier.
       ;; If a block start instruction comes first, abort.
-      (loop for region in (mmm-regions-in here eol)
+      (cl-loop for region in (mmm-regions-in here eol)
             for type = (mmm-erb-scan-region region)
             until (eq type 'open)
-            when (memq type '(middle close)) do (decf n)))
+            when (memq type '(middle close)) do (cl-decf n)))
     (goto-char here)
     (funcall (mmm-erb-orig-indent-function mmm-primary-mode))
     (let* ((indent (current-indentation))
@@ -190,7 +189,7 @@
 
 (defun mmm-erb-scan-region (region)
   (when region ; Can be nil if a line is empty, for example.
-    (destructuring-bind (submode beg end ovl) region
+    (cl-destructuring-bind (submode beg end ovl) region
       (let ((scan-fn (plist-get '(ruby-mode mmm-erb-scan-erb
                                   js-mode   mmm-erb-scan-ejs)
                                 submode)))
@@ -237,7 +236,7 @@
 
 ;;;###autoload
 (define-derived-mode nxml-web-mode nxml-mode "nXML-Web"
-  (set (make-local-variable 'mmm-indent-line-function) 'mmm-erb-indent-line))
+  (set (make-local-variable 'mmm-indent-line-function) #'mmm-erb-indent-line))
 
 (provide 'mmm-erb)
 

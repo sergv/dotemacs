@@ -1,7 +1,6 @@
 ;;; mmm-vars.el --- Variables for MMM Mode
 
-;; Copyright (C) 2000, 2004 by Michael Abraham Shulman
-;; Copyright (C) 2012, 2013 by Dmitry Gutov
+;; Copyright (C) 2000-2004, 2011-2015, 2018  Free Software Foundation, Inc.
 
 ;; Author: Michael Abraham Shulman <viritrilbia@gmail.com>
 
@@ -33,22 +32,26 @@
 ;;; Code:
 
 (require 'mmm-compat)
-(require 'cl)
+(require 'mmm-utils)
+(require 'cl-lib)
 
 ;; MISCELLANEOUS
 ;;{{{ Shut up the Byte Compiler
 
 ;; Otherwise it complains about undefined variables.
-(eval-when-compile
-  (defvar mmm-current-submode)
-  (defvar mmm-save-local-variables)
-  (defvar mmm-mode-string)
-  (defvar mmm-submode-mode-line-format)
-  (defvar mmm-mode-ext-classes-alist)
-  (defvar mmm-mode-prefix-key)
-  (defvar mmm-global-mode)
-  (defvar mmm-primary-mode)
-  (defvar mmm-classes-alist))
+(defvar mmm-current-submode)
+(defvar mmm-save-local-variables)
+(defvar mmm-mode-string)
+(defvar mmm-submode-mode-line-format)
+(defvar mmm-mode-ext-classes-alist)
+(defvar mmm-mode-prefix-key)
+(defvar mmm-global-mode)
+(defvar mmm-primary-mode)
+(defvar mmm-classes-alist)
+(defvar mmm-current-overlay)
+(declare-function mmm-apply-all "mmm-class")
+(declare-function mmm-set-class-parameter "mmm-class" (class param value))
+(declare-function mmm-get-class-parameter "mmm-class" (class param))
 
 ;;}}}
 ;;{{{ Error Conditions
@@ -598,7 +601,7 @@ element in `mmm-major-mode-preferences'.  In the latter case, the
 first `fboundp' element of the `cdr' is returned, or nil if none."
   (if (fboundp mode)
       mode
-    (car (remove-if-not
+    (car (cl-remove-if-not
           #'fboundp
           (cdr (assq mode mmm-major-mode-preferences))))))
 
@@ -734,7 +737,7 @@ available so that others can take advantage of the hack as well.
 
 Note that file local variables have *not* been processed by the time
 this hook is run. If a function needs to inspect them, it should also
-be added to `find-file-hooks'. However, `find-file-hooks' is not run
+be added to `find-file-hook'. However, `find-file-hook' is not run
 when creating a non-file-based buffer, or when changing major modes in
 an existing buffer."
   :group 'mmm
@@ -747,14 +750,14 @@ an existing buffer."
 ;;}}}
 ;;{{{ MMM Global Mode
 
-;;; There's a point to be made that this variable should default to
-;;; `maybe' (i.e. not nil and not t), because that's what practically
-;;; everyone wants.  I subscribe, however, to the view that simply
-;;; *loading* a lisp extension should not change the (user-visible)
-;;; behavior of Emacs, until it is configured or turned on in some
-;;; way, which dictates that the default for this must be nil.
+;; There's a point to be made that this variable should default to
+;; `maybe' (i.e. not nil and not t), because that's what practically
+;; everyone wants.  I subscribe, however, to the view that simply
+;; *loading* a lisp extension should not change the (user-visible)
+;; behavior of Emacs, until it is configured or turned on in some
+;; way, which dictates that the default for this must be nil.
 (defcustom mmm-global-mode nil
-  "*Specify in which buffers to turn on MMM Mode automatically.
+  "Specify in which buffers to turn on MMM Mode automatically.
 
 - If nil, MMM Mode is never enabled automatically.
 - If t, MMM Mode is enabled automatically in all buffers.
@@ -813,7 +816,7 @@ than it solves, but some modes require it.")
 (defvar mmm-mode-buffer-dirty nil "Private variable.")
 (make-variable-buffer-local 'mmm-mode-buffer-dirty)
 
-(defun mmm-mode-edit (beg end len)
+(defun mmm-mode-edit (_beg _end _len)
   (setq mmm-mode-buffer-dirty t)
   (mmm-mode-reset-timer))
 
@@ -1025,7 +1028,7 @@ The CLASSES are all made private, i.e. non-user-visible."
                                        '(:private t)))
                            classes))
   (add-to-list 'mmm-classes-alist
-               (list group :classes (mapcar #'first classes))))
+               (list group :classes (mapcar #'cl-first classes))))
 
 (defun mmm-add-to-group (group classes)
   "Add CLASSES to the \"grouping class\" named GROUP.
@@ -1036,12 +1039,12 @@ The CLASSES are all made private, i.e. non-user-visible."
                            classes))
   (mmm-set-class-parameter group :classes
 			   (append  (mmm-get-class-parameter group :classes)
-				    (mapcar #'first classes))))
+				    (mapcar #'cl-first classes))))
 
 ;;}}}
 ;;{{{ Version Number
 
-(defconst mmm-version "0.5.4"
+(defconst mmm-version "0.5.5"
   "Current version of MMM Mode.")
 
 (defun mmm-version ()
@@ -1089,8 +1092,8 @@ Set automatically from `mmm-mode-ext-classes-alist'.")
 Uses `mmm-mode-ext-classes-alist' to find submode classes."
   (or mmm-mode-ext-classes
       (setq mmm-mode-ext-classes
-            (mapcar #'third
-                    (remove-if-not #'mmm-mode-ext-applies
+            (mapcar #'cl-third
+                    (cl-remove-if-not #'mmm-mode-ext-applies
                                    mmm-mode-ext-classes-alist)))))
 
 (defun mmm-clear-mode-ext-classes ()
@@ -1098,7 +1101,7 @@ Uses `mmm-mode-ext-classes-alist' to find submode classes."
   (setq mmm-mode-ext-classes nil))
 
 (defun mmm-mode-ext-applies (element)
-  (destructuring-bind (mode ext class) element
+  (cl-destructuring-bind (mode ext _class) element
     (and (if mode
              (eq mode
                  ;; If MMM is on in this buffer, use the primary mode,

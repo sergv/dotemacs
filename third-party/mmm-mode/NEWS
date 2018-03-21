@@ -1,10 +1,19 @@
 MMM Mode NEWS -- history of user-visible changes.  -*-outline-*-
-Copyright (C) 2003, 2004 Michael Abraham Shulman
-Copyright (C) 2013-2015 Dmitry Gutov
-Copyright (C) 2015 Steve Purcell
+Copyright (C) 2003, 2004, 2013-2015  Free Software Foundation, Inc.
 See the file COPYING for copying conditions.
 
 Please submit bug reports at https://github.com/purcell/mmm-mode/issues
+
+* Changes in MMM Mode 0.5.5
+
+Introduced mode transition hooks, like mmm-x-enter-hook and mmm-y-exit-hook.
+
+New function mmm-indent-line-narrowed, to use as mmm-indent-line-function.
+
+`cl-lib' is a new dependency, replacing `cl'. It comes bundled with
+recent versions of Emacs, and for older ones it can be installed from
+GNU ELPA.
+
 
 * Changes in MMM Mode 0.5.4
 

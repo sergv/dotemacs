@@ -1,13 +1,14 @@
 ;;; mmm-noweb.el --- MMM submode class for Noweb programs
 ;;
-;; Copyright 2003, 2004 Joe Kelsey <joe@zircon.seattle.wa.us>
+;; Copyright 2003, 2004  Joe Kelsey <joe@zircon.seattle.wa.us>
+;; Copyright 2018  Free Software Foundation, Inc.
 ;;
 ;; The filling, completion and chunk motion commands either taken
 ;; directly from or inspired by code in:
 ;; noweb-mode.el - edit noweb files with GNU Emacs
 ;; Copyright 1995 by Thorsten.Ohl @ Physik.TH-Darmstadt.de
 ;;     with a little help from Norman Ramsey <norman@bellcore.com>
-;; 
+;;
 
 ;;{{{ GPL
 
@@ -39,7 +40,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'mmm-region)
 (require 'mmm-vars)
 (require 'mmm-mode)
@@ -50,7 +51,10 @@
   "*Major mode for editing code chunks.
 This is set to FUNDAMENTAL-MODE by default, but you might want to change
 this in the Local Variables section of your file to something more
-appropriate, like C-MODE, FORTRAN-MODE, or even INDENTED-TEXT-MODE.")
+appropriate, like C-MODE, FORTRAN-MODE, or even INDENTED-TEXT-MODE."
+  ;; FIXME: Any of CC Mode modes aren't really appropriate:
+  ;; https://github.com/purcell/mmm-mode/issues/57
+  )
 
 (defvar mmm-noweb-quote-mode nil
   "*Major mode for quoted code chunks within documentation chunks.
@@ -70,7 +74,7 @@ See `mmm-noweb-quote'.")
 ;;}}}
 ;;{{{ Support for mmm submode stuff
 
-(defun mmm-noweb-chunk (form)
+(defun mmm-noweb-chunk (_form)
   "Return the noweb code mode chosen by the user.
 If the next 100 characters of the buffer contain a string of the form
 \"-*- MODE -*-\", then return MODE as the chosen mode, otherwise
@@ -86,12 +90,12 @@ return the value of `mmm-noweb-code-mode'."
 	    mmm-noweb-code-mode))
     mmm-noweb-code-mode))
 
-(defun mmm-noweb-quote (form)
+(defun mmm-noweb-quote (_form)
   "Create a unique name for a quoted code region within a documentation chunk."
   (or mmm-noweb-quote-mode
       mmm-noweb-code-mode))
 
-(defun mmm-noweb-quote-name (form)
+(defun mmm-noweb-quote-name (_form)
   "Create a unique name for a quoted code region within a documentation chunk."
   (setq mmm-noweb-quote-number (1+ mmm-noweb-quote-number))
   (concat mmm-noweb-quote-string "-"
@@ -142,12 +146,12 @@ return the value of `mmm-noweb-code-mode'."
 ;;}}}
 ;;{{{ Noweb regions
 
-(defun mmm-noweb-regions (start stop regexp &optional delim)
-  "Return a liat of regions of the form \(NAME BEG END) that exclude
+(defun mmm-noweb-regions (start stop regexp)
+  "Return a liat of regions of the form (NAME BEG END) that exclude
 names which match REGEXP."
   (let* ((remove-next nil)
 	 (regions
-	  (maplist #'(lambda (pos-list)
+	  (cl-maplist (lambda (pos-list)
 		       (if (cdr pos-list)
 			   (if remove-next
 			       (setq remove-next nil)
@@ -224,7 +228,7 @@ chunks."
 	  (fill-paragraph justify)))
       (mmm-undo-syntax-other-regions))))
 
-(defun mmm-noweb-fill-named-chunk (&optional justify)
+(defun mmm-noweb-fill-named-chunk (&optional _justify)
   "Fill the region containing the named chunk."
   (interactive "P")
   (save-restriction
@@ -251,12 +255,14 @@ chunks."
 (defun mmm-noweb-auto-fill-doc-mode ()
   "Install the improved auto fill function, iff necessary."
   (if auto-fill-function
-      (setq auto-fill-function 'mmm-noweb-auto-fill-doc-chunk)))
+      ;; FIXME: Use add-function?
+      (setq auto-fill-function #'mmm-noweb-auto-fill-doc-chunk)))
 
 (defun mmm-noweb-auto-fill-code-mode ()
   "Install the default auto fill function, iff necessary."
   (if auto-fill-function
-      (setq auto-fill-function 'do-auto-fill)))
+      ;; FIXME: Use remove-function?
+      (setq auto-fill-function #'do-auto-fill)))
 
 ;;}}}
 ;;{{{ Functions on named chunks
@@ -361,7 +367,7 @@ chunks."
       ;; 'keymap', not 'local-map'
       (overlay-put ovl 'keymap mmm-noweb-map))))
 
-(add-hook 'mmm-noweb-class-hook 'mmm-noweb-bind-keys)
+(add-hook 'mmm-noweb-class-hook #'mmm-noweb-bind-keys)
 
 ;; TODO: make this overlay go away if mmm is turned off
 
