@@ -3,10 +3,6 @@ Hey Emacs, this is a -*-text-*- file!
                        To Do List for MMM Mode
                        =======================
 
-It would be nice to have a "split region" command which would insert
-a _back_ delimiter followed by a _front_ delimiter at point and split
-the current region into two regions.  Say for PHP.
-
 Custom mode functions like `mason-mode'.
 
 Make Mason work a little better with PSGML.  The fix I've found works,
@@ -16,8 +12,6 @@ custom-mode thing could set the variables, or a hook somewhere.
 Apostrophes mess up Perl parsing in XEmacs but not Emacs.  I thought
 it was because XEmacs sets `font-lock-beginning-of-syntax-function'
 after MMM does, but changing that that didn't fix it.
-
-Improve re-parsing current region to use inclusion/offsets/etc.
 
 Support for: ASP
 
@@ -29,14 +23,6 @@ especially if we search for regions other than by regexps, say by
 syntax properties.
 
 Trap paragraph motion commands to stop at submode boundaries?
-
-On text insertion (in `after-change-functions'), do two things.
-First, if inside in a region, or after a hanging one, scan for its
-back and adjust if necessary.  Second, scan both for complete regions
-and for hanging fronts.  In the latter case, we may insert the back or
-start a hanging region; user option.  Don't just scan the inserted
-text, but backwards, using `mmm-looking-back-at'.  Remember to handle
-delimiter inclusion and offsets as best possible.
 
 It would be nice if C-j ended a Mason one-liner and began a new one on
 the next line.  This is a rather Mason-specific thing, but other
@@ -60,3 +46,16 @@ changes to its children, or a group to specify changes to its members.
 
 Port or generalize the relevant bits from ERB indentation code to similar
 packages for other languages.
+
+Make re-parsing the buffer into regions incremental: take the position
+of the most early change, see the submodes nesting there, and resume
+parsing with that data. Shouldn't be too hard, conceptually. Maybe
+even ignore the nesting, backtrack to a position where there are no
+overlays, and re-parse from there (see mmm-parse-apply as a starting
+point). Remember to handle delimiter inclusion and offsets as best
+possible.
+
+Thus, make re-parsing automatic (from syntax-propertize-function,
+probably), making manual control unnecessary.
+
+Remove XEmacs stuff?
