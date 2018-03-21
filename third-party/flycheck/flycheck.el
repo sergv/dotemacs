@@ -3901,9 +3901,9 @@ beginning of the buffer, otherwise advance from the current
 position.
 
 Intended for use with `next-error-function'."
-  (-if-let* ((pos (flycheck-next-error-pos n reset)))
-      (let ((err (get-char-property pos 'flycheck-error)))
-        (flycheck-jump-to-error err))
+  (-if-let* ((pos (flycheck-next-error-pos n reset))
+             (err (get-char-property pos 'flycheck-error)))
+      (flycheck-jump-to-error err)
     (user-error "No more Flycheck errors")))
 
 (defun flycheck-next-error (&optional n reset)
@@ -7950,7 +7950,7 @@ containing a file that matches REGEXP."
   (locate-dominating-file
    directory
    (lambda (dir)
-     (directory-files dir t regexp t))))
+     (directory-files dir nil regexp t))))
 
 (defun flycheck-haskell--find-default-directory (checker)
   "Come up with a suitable default directory for Haskell to run CHECKER in.
@@ -7978,7 +7978,7 @@ contains a cabal file."
      (when (buffer-file-name)
        (flycheck--locate-dominating-file-matching
         (file-name-directory (buffer-file-name))
-        ".+\\.cabal\\'")))))
+        "\\.cabal\\'\\|\\`package\\.yaml\\'")))))
 
 (flycheck-define-checker haskell-stack-ghc
   "A Haskell syntax and type checker using `stack ghc'.
@@ -9797,11 +9797,16 @@ See URL `http://www.scalastyle.org'."
                        ((not config-file) '(bold error))
                        (t 'success)))))))
 
+(flycheck-def-args-var flycheck-scheme-chicken-args scheme-chicken
+  :package-version '(flycheck . "32"))
+
 (flycheck-define-checker scheme-chicken
   "A CHICKEN Scheme syntax checker using the CHICKEN compiler `csc'.
 
 See URL `http://call-cc.org/'."
-  :command ("csc" "-analyze-only" "-local" source)
+  :command ("csc" "-analyze-only" "-local"
+            (eval flycheck-scheme-chicken-args)
+            source)
   :error-patterns
   ((info line-start
          "Note: " (zero-or-more not-newline) ":\n"
