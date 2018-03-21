@@ -922,12 +922,26 @@ value section should have if it is to be properly indented."
                   'haskell-cabal-sort-lines-key-fun))))))
 
 (defun haskell-cabal--yasnippet--main-module-from-main-file (str)
+  "Infer name of Haskell main module from file name."
   (s-join
    "."
    (nreverse
     (--take-while
      (is-uppercase? (string-to-char it))
      (nreverse (f-split (file-name-sans-extension str)))))))
+
+(defun haskell-cabal--yasnippet--main-module-from-executable-name (str)
+  (let ((upcase-first-character
+         (lambda (str)
+           (if (s-blank? str)
+               str
+             (concat (upcase (substring str 0 1)) (substring str 1))))))
+    (apply #'s-concat
+           (-map upcase-first-character
+                 (s-split "[-]+"
+                          (file-name-nondirectory (file-name-sans-extension str))
+                          t ;; omit nulls
+                          )))))
 
 (provide 'haskell-misc)
 
