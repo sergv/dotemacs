@@ -69,18 +69,19 @@
   regex      ;; The pattern itself.
   case-fold  ;; The case for this pattern.
   whole-line ;; If non-nil the pattern matches the whole line,
-  ;; otherwise only the first occurrence.
+             ;; otherwise only the first occurrence.
   )
 
 (defun vim:regex-without-case (re)
   "Returns the regular expression without all occurrences of \\c and \\C."
-  (replace-regexp-in-string
-   "\\\\."
-   (lambda (txt)
-     (if (member (aref txt 1) '(?c ?C))
-         ""
-       txt))
-   re t t))
+  (let ((case-fold-search nil))
+    (replace-regexp-in-string
+     "\\\\[cC]"
+     ""
+     re
+     t ;; fixed case
+     t ;; literal
+     )))
 
 (defun vim:regex-case (re default-case)
   "Returns the case as implied by \\c or \\C in regular expression `re'.

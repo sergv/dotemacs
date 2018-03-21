@@ -43,6 +43,22 @@
   (should (equal (vim--parse-substitute-pattern-repl-flags "/hello/world\\/g")
                  '("hello" "world\\/g" nil))))
 
+(ert-deftest vim-tests/vim:regex-without-case ()
+  (should (equal (vim:regex-without-case "foobar")
+                 "foobar"))
+  (should (equal (vim:regex-without-case "foo\\bar")
+                 "foo\\bar"))
+  (should (equal (vim:regex-without-case "foo\\.bar")
+                 "foo\\.bar"))
+  (should (equal (vim:regex-without-case "foobar\\")
+                 "foobar\\"))
+  (should (equal (vim:regex-without-case "foobar\\x")
+                 "foobar\\x"))
+  (should (equal (vim:regex-without-case "foobar\\c")
+                 "foobar"))
+  (should (equal (vim:regex-without-case "\\Cfoobar\\c")
+                 "foobar")))
+
 ;; (ert "vim-tests/.*")
 
 (provide 'vim-tests)
