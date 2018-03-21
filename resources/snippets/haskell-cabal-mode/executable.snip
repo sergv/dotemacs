@@ -5,26 +5,34 @@
 # --
 executable ${1:test}
   main-is:
-    ${2:Main}.hs
-  build-depends:
+    exe/${2:${1:$(haskell-cabal--yasnippet--main-module-from-executable-name yas-text)}}.hs
+${3:  other-modules:
+    ${4:Other.Module}
+}${5:  hs-source-dirs:
+    .
+    exe
+}  build-depends:
     base >= 4.7,
-    ${3:my-module}
-${4:  other-modules:
-    ${5:Utils.Utils}
-}${6:  hs-source-dirs:
-    ${7:exe}
-}  default-language:
+    ${6:my-module}
+  default-language:
     Haskell2010
   ghc-options:
+    -rtsopts
+    -main-is ${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}
     -Wall
     -fwarn-name-shadowing
     -fno-warn-type-defaults
-    -rtsopts
-    ${8:-main-is ${9:${2:$(haskell-cabal--yasnippet--main-module-from-main-file yas-text)}}}
   if impl(ghc >= 8.0)
     ghc-options:
-      -Wincomplete-uni-patterns
-      -Wincomplete-record-updates
+      -Wall-missed-specialisations
       -Wcompat
-  ghc-prof-options:
-    -fprof-auto
+      -Whi-shadowing
+      -Widentities
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wmissing-exported-signatures
+  if impl(ghc >= 8.2)
+    ghc-options:
+      -Wcpp-undef
+      -Wmissing-home-modules
+      -Wunbanged-strict-patterns
