@@ -33,11 +33,13 @@ library
   exposed-modules:
     Foo
 --   other-modules:
---     Utils.Utils
+--     Other.Module
   hs-source-dirs:
     src
   build-depends:
     base >= 4.7
+--   build-tools:
+--     alex happy c2hs
   default-language:
     Haskell2010
   ghc-options:
@@ -46,37 +48,54 @@ library
     -fno-warn-type-defaults
   if impl(ghc >= 8.0)
     ghc-options:
-      -Wincomplete-uni-patterns
-      -Wincomplete-record-updates
+      -Wall-missed-specialisations
       -Wcompat
---   build-tools:
---     alex happy c2hs
+      -Whi-shadowing
+      -Widentities
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wmissing-exported-signatures
+  if impl(ghc >= 8.2)
+    ghc-options:
+      -Wcpp-undef
+      -Wmissing-home-modules
+      -Wunbanged-strict-patterns
   ghc-prof-options:
     -fprof-auto
 
 executable ${filename no ext}
   main-is:
-    Main.hs
+    exe/Main.hs
+--   other-modules:
+--     Other.Module
+--   hs-source-dirs:
+--     .
+--     exe
   build-depends:
     base >= 4.7,
     ${filename no ext}
---   other-modules:
---     Utils.Utils
---   hs-source-dirs:
---     exe
   default-language:
     Haskell2010
   ghc-options:
+    -rtsopts
+--     -main-is ExeMain
     -Wall
     -fwarn-name-shadowing
     -fno-warn-type-defaults
-    -rtsopts
---     -main-is ExeMain
   if impl(ghc >= 8.0)
     ghc-options:
-      -Wincomplete-uni-patterns
-      -Wincomplete-record-updates
+      -Wall-missed-specialisations
       -Wcompat
+      -Whi-shadowing
+      -Widentities
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wmissing-exported-signatures
+  if impl(ghc >= 8.2)
+    ghc-options:
+      -Wcpp-undef
+      -Wmissing-home-modules
+      -Wunbanged-strict-patterns
   ghc-prof-options:
     -fprof-auto
 
@@ -84,7 +103,12 @@ test-suite ${filename no ext}-test
   type:
     exitcode-stdio-1.0
   main-is:
-    tests/Main.hs
+    test/TestMain.hs
+--   other-modules:
+--     Other.Module
+--   hs-source-dirs:
+--     .
+--     test
   build-depends:
     HUnit,
     QuickCheck,
@@ -93,21 +117,28 @@ test-suite ${filename no ext}-test
     tasty-hunit,
     tasty-quickcheck,
     ${filename no ext}
---   hs-source-dirs:
---     tests
   default-language:
     Haskell2010
   ghc-options:
+    -rtsopts
+--     -main-is TestMain
     -Wall
     -fwarn-name-shadowing
     -fno-warn-type-defaults
-    -rtsopts
---     -main-is TestMain
   if impl(ghc >= 8.0)
     ghc-options:
-      -Wincomplete-uni-patterns
-      -Wincomplete-record-updates
+      -Wall-missed-specialisations
       -Wcompat
+      -Whi-shadowing
+      -Widentities
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wmissing-exported-signatures
+  if impl(ghc >= 8.2)
+    ghc-options:
+      -Wcpp-undef
+      -Wmissing-home-modules
+      -Wunbanged-strict-patterns
   ghc-prof-options:
     -fprof-auto
 

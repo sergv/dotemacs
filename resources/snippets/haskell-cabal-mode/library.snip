@@ -6,9 +6,8 @@ library
   exposed-modules:
     ${1:Foo}
 ${2:  other-modules:
-    ${3:Utils.Utils}
-}
-${4:  hs-source-dirs:
+    ${3:Other.Module}
+}${4:  hs-source-dirs:
     ${5:src}
 }  build-depends:
     base >= 4.7
@@ -22,8 +21,17 @@ ${6:  build-tools:
     -fno-warn-type-defaults
   if impl(ghc >= 8.0)
     ghc-options:
-      -Wincomplete-uni-patterns
-      -Wincomplete-record-updates
+      -Wall-missed-specialisations
       -Wcompat
+      -Whi-shadowing
+      -Widentities
+      -Wincomplete-record-updates
+      -Wincomplete-uni-patterns
+      -Wmissing-exported-signatures
+  if impl(ghc >= 8.2)
+    ghc-options:
+      -Wcpp-undef
+      -Wmissing-home-modules
+      -Wunbanged-strict-patterns
   ghc-prof-options:
     -fprof-auto
