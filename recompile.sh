@@ -130,8 +130,10 @@ update-dir-autoloads \
     "third-party/pkg-info" \
     "third-party/popup-el" \
     "third-party/pos-tip" \
+    "third-party/rust-mode" \
     "third-party/smartparens" \
     "third-party/sml-mode" \
+    "third-party/toml-mode" \
     "third-party/tuareg" \
     "third-party/yafolding.el"
 
