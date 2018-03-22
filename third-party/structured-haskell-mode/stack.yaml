@@ -1,9 +1,7 @@
-resolver: lts-10.3
+resolver: lts-11.1
 
 packages:
 - '.'
 
 extra-deps:
-- haskell-src-exts-1.20.1
-- prettyprinter-1.1
-- bert-1.2.2.5
+  - bert-1.2.2.5
