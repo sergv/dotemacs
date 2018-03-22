@@ -57,6 +57,8 @@
     (erlang-mode           (one-line "%")  (line-regexp "%+"))
     (c-mode                (one-line "//") (line-regexp "//+"))
     (cuda-mode             (one-line "//") (line-regexp "//+"))
+    (rust-mode             (one-line "//") (line-regexp "//+"))
+    (toml-mode             (one-line "#")  (line-regexp "#+"))
     (tuareg-mode           (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
     (sml-mode              (region-begin "(*") (region-end "*)") (line-regexp "(\\*"))
     (makefile-mode         (one-line "#")  (line-regexp "#+"))
