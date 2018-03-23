@@ -69,8 +69,7 @@ executable ${filename no ext}
 --   other-modules:
 --     Other.Module
 --   hs-source-dirs:
---     .
---     exe
+--     . exe
   build-depends:
     base >= 4.7,
     ${filename no ext}
@@ -107,8 +106,7 @@ test-suite ${filename no ext}-test
 --   other-modules:
 --     Other.Module
 --   hs-source-dirs:
---     .
---     test
+--     . test
   build-depends:
     HUnit,
     QuickCheck,
