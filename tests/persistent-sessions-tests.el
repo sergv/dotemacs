@@ -44,6 +44,15 @@
       (should (equal (car props) '(quux baz ((4 . 7)))))
       (should (equal (cadr props) '(foo bar ((0 . 7))))))))
 
+(ert-deftest persistent-sessions-tests/sessions/get-all-text-properties-in-string-3 ()
+  (let ((test-string "foo bar"))
+    (put-text-property 0 7 'foo 'bar test-string)
+    (put-text-property 4 7 'quux 'baz test-string)
+    (let ((props (sessions/get-all-text-properties-in-string test-string '(foo))))
+      (should (listp props))
+      (should (= 1 (length props)))
+      (should (equal (car props) '(quux baz ((4 . 7))))))))
+
 (ert-deftest persistent-sessions-tests/store-and-restore-string ()
   (let ((test-string "foo bar"))
     (put-text-property 0 1 'foo 'bar test-string)
