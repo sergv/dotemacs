@@ -573,6 +573,7 @@ entries."
     ;; collect properties as well
     (sessions/store-string
      (buffer-substring (point-min) (point-max))
+     nil ;; Store some properties.
      ;; Ignored text properties that cause problems when reading because its
      ;; values are self-referencing circular structures.
      '(compilation-message))))
