@@ -144,9 +144,11 @@ can allows value to be decoded back fully.)"
                       "\n"
                       t)
         (if do-not-store-properties
-          nil
-          (sessions/get-all-text-properties-in-string str
-                                                      ignored-text-properties))
+            nil
+          (sessions/get-all-text-properties-in-string
+           str
+           (append '(yank-handler vim:yank-handler)
+                   ignored-text-properties)))
         (multibyte-string-p str)))
 
 (defun sessions/versioned/restore-string (version encoded-data)
@@ -187,40 +189,6 @@ can allows value to be decoded back fully.)"
 (defun sessions/empty-position-ranges ()
   (make-sessions/position-ranges :ranges nil))
 
-;; (defun sessions/position-ranges/add-position (pos position-ranges)
-;;   (cl-assert (numberp pos))
-;;   (let* ((ranges (sessions/position-ranges/ranges position-ranges))
-;;          (new-ranges
-;;           (if ranges
-;;             (let ((range (car ranges)))
-;;               (cond
-;;                 ((numberp range)
-;;                  (cl-assert (< range pos)
-;;                             nil
-;;                             "Must add positions in increasing order only")
-;;                  (if (= (+ range 1) pos)
-;;                    (progn
-;;                      (setf (car ranges) (cons range pos))
-;;                      ranges)
-;;                    (cons pos ranges)))
-;;                 ((consp range)
-;;                  (let ((start (car range))
-;;                        (end (cdr range)))
-;;                    (cl-assert (< end pos)
-;;                               nil
-;;                               "Must add positions in increasing order only")
-;;                    (if (= (+ end 1) pos)
-;;                      (progn
-;;                        (setf (cdr range) pos)
-;;                        ranges)
-;;                      (cons pos ranges))))
-;;                 (t
-;;                  (error "Invalid range: %s" range))))
-;;             (list pos))))
-;;     (setf (sessions/position-ranges/ranges position-ranges)
-;;           new-ranges)
-;;     position-ranges))
-
 (defun sessions/position-ranges/add-range (start end position-ranges)
   (cl-assert (and (numberp start)
                   (numberp end)
@@ -250,7 +218,7 @@ can allows value to be decoded back fully.)"
     position-ranges))
 
 (defun sessions/get-all-text-properties-in-string (string ignored-text-properties)
-  "Get all text properties from STRING."
+  "Get all suitable for serialisation text properties from STRING."
   (let* ((end (length string))
          (props (text-properties-at 0 string))
          (pos 0)
