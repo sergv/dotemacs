@@ -610,21 +610,23 @@ expected to work."
                           (goto-char start)
                           (looking-at-p "module\\_>"))
                         (search-forward-regexp "\\_<where\\_>" nil t 1)
-                      (progn (goto-char (1+ (point)))
-                             (or (letrec
-                                     ((jump
-                                       (lambda ()
-                                         (when (search-forward-regexp "[\n]+[^ \n]" nil t 1)
-                                           (cond
-                                             ((save-excursion (beginning-of-line)
-                                                              (looking-at-p skip-at-first-column-re))
-                                              (funcall jump))
-                                             (t (forward-char -1)
-                                                (search-backward-regexp "[^\n ]" nil t)
-                                                (forward-char)
-                                                (point)))))))
-                                   (funcall jump))
-                                 (point-max))))))
+                      (progn
+                        (forward-char)
+                        (letrec
+                            ((before-first-jump (point))
+                             (jump
+                              (lambda ()
+                                (when (search-forward-regexp "[\n]+[^ \n]" nil t 1)
+                                  (cond
+                                    ((save-excursion (beginning-of-line)
+                                                     (looking-at-p skip-at-first-column-re))
+                                     (funcall jump))
+                                    (t (forward-char -1)
+                                       (search-backward-regexp "[^\n ]" nil t)
+                                       (forward-char)
+                                       (point)))))))
+                          (or (funcall jump)
+                              (point-max)))))))
           (cons start end)))))))
 
 (defun shm-delete-markers (decl)
