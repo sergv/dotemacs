@@ -120,10 +120,13 @@ enabled. Otherwise fall back to eproj tags."
 
 ;;;###autoload
 (defun haskell-setup ()
-  (let ((intero-enabled? (if (and (not (derived-mode-p 'ghc-core-mode))
-                                  (executable-find "intero"))
-                             t
-                           nil))
+  (let ((intero-enabled?
+         (if (and (not (derived-mode-p 'ghc-core-mode))
+                  (if (executable-find "intero")
+                      t
+                    (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))
+             t
+           nil))
         (flycheck-enabled? (not (derived-mode-p 'ghc-core-mode)))
         (liquid-haskell-enabled? nil))
     (init-common :use-yasnippet t
@@ -137,7 +140,7 @@ enabled. Otherwise fall back to eproj tags."
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
     ;; Read settings from '.eproj-info' file, if any.
-    (let ((proj (ignore-errors
+    (let ((proj (with-demoted-errors "no eproj project found: %s"
                   (eproj-get-project-for-buf (current-buffer)))))
 
       (haskell-setup-indentation
@@ -146,7 +149,7 @@ enabled. Otherwise fall back to eproj tags."
       (unless (derived-mode-p 'ghc-core-mode)
         (setf intero-enabled? (eproj-query/haskell/enable-intero? proj intero-enabled?))
         (if intero-enabled?
-            (intero-mode-maybe)
+            (setf intero-enabled? (intero-mode-maybe))
           (when intero-mode
             (intero-mode -1)))
 
@@ -159,8 +162,8 @@ enabled. Otherwise fall back to eproj tags."
             (let ((checker (if intero-enabled? 'intero 'haskell-stack-ghc)))
               (unless (flycheck-may-use-checker checker)
                 (flycheck-verify-checker checker)
-                (error "Unable to select checker %s for buffer %s"
-                       checker current-buffer))
+                (error "Unable to select checker '%s' for buffer '%s'"
+                       checker (current-buffer)))
               (setq-local flycheck-checker checker)
               (flycheck-mode +1))
           (when flycheck-mode

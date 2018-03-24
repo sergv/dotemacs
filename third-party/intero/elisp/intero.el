@@ -240,8 +240,10 @@ and blacklist match, then the whitelist entry wins, and
                                   file intero-blacklist))
                     (whitelisted (intero-directories-contain-file
                                   file intero-whitelist)))
-               (or whitelisted (not blacklisted))))
-    (intero-mode 1)))
+               (or whitelisted (not blacklisted)))
+             (intero-may-enable?))
+    (intero-mode 1)
+    t))
 
 ;;;###autoload
 (define-globalized-minor-mode intero-global-mode
@@ -511,28 +513,29 @@ line as a type signature."
   "Jump to the definition of the thing at point.
 Returns nil when unable to find definition."
   (interactive)
-  (let ((result (apply #'intero-get-loc-at (intero-thing-at-point))))
-    (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$"
-                        result)
-      (push (make-eproj-home-entry :buffer (current-buffer) :position (point-marker) :symbol nil)
-            eproj-symbnav/previous-homes)
-      (setf eproj-symbnav/next-homes nil)
-      (let* ((returned-file (match-string 1 result))
-             (line (string-to-number (match-string 2 result)))
-             (col (string-to-number (match-string 3 result)))
-             (loaded-file (intero-extend-path-by-buffer-host returned-file)))
-        (if (intero-temp-file-p loaded-file)
-            (let ((original-buffer (intero-temp-file-origin-buffer loaded-file)))
-              (if original-buffer
-                  (switch-to-buffer original-buffer)
-                (error "Attempted to load temp file.  Try restarting Intero.
+  (save-match-data
+    (let ((result (apply #'intero-get-loc-at (intero-thing-at-point))))
+      (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$"
+                          result)
+        (push (make-eproj-home-entry :buffer (current-buffer) :position (point-marker) :symbol nil)
+              eproj-symbnav/previous-homes)
+        (setf eproj-symbnav/next-homes nil)
+        (let* ((returned-file (match-string 1 result))
+               (line (string-to-number (match-string 2 result)))
+               (col (string-to-number (match-string 3 result)))
+               (loaded-file (intero-extend-path-by-buffer-host returned-file)))
+          (if (intero-temp-file-p loaded-file)
+              (let ((original-buffer (intero-temp-file-origin-buffer loaded-file)))
+                (if original-buffer
+                    (switch-to-buffer original-buffer)
+                  (error "Attempted to load temp file.  Try restarting Intero.
 If the problem persists, please report this as a bug!")))
-          (find-file loaded-file))
-        (pop-mark)
-        (goto-char (point-min))
-        (forward-line (1- line))
-        (forward-char (1- col))
-        t))))
+            (find-file loaded-file))
+          (pop-mark)
+          (goto-char (point-min))
+          (forward-line (1- line))
+          (forward-char (1- col))
+          t)))))
 
 (defmacro intero-with-dump-splices (exp)
   "Run EXP but with dump-splices enabled in the intero backend process."
@@ -1860,8 +1863,8 @@ type as arguments."
 (defun intero-get-loc-at (beg end)
   "Get the location of the identifier denoted by BEG and END."
   (let ((result (intero-get-loc-at-helper beg end)))
-    (if (string-match (regexp-quote intero-unloaded-module-string)
-                      result)
+    (if (string-match-p (regexp-quote intero-unloaded-module-string)
+                        result)
         (progn (flycheck-buffer)
                (message "No location information yet, compiling module ...")
                (intero-get-loc-at-helper-process beg end))
@@ -2474,6 +2477,10 @@ Uses the directory of the current buffer for context."
        default-directory
        (lambda (dir)
          (directory-files dir nil "stack.*\\.yaml\\'" t))))))
+
+(defun intero-may-enable? ()
+  "Check whether intero could be enabled for current buffer"
+  (not (null (intero-project-root))))
 
 (defun intero-project-root ()
   "Get the current stack config directory.
