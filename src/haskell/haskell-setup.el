@@ -115,7 +115,8 @@ enabled. Otherwise fall back to eproj tags."
   (interactive "P")
   (or (when (and intero-mode
                  (not use-regexp?))
-        (intero-goto-definition))
+        (with-demoted-errors "intero-goto-definition failed: %s"
+          (intero-goto-definition)))
       (eproj-symbnav/go-to-symbol-home use-regexp?)))
 
 ;;;###autoload
