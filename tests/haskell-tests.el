@@ -28,32 +28,49 @@
 (defun haskell-tests--multiline (&rest lines)
   (mapconcat #'identity lines "\n"))
 
+(defvar haskell-tests--temp-buffer nil)
+
 (defmacro haskell-tests--with-temp-buffer (action contents)
   (declare (indent 1))
   `(save-match-data
-     (with-temp-buffer
+     (unless haskell-tests--temp-buffer
+       (setf haskell-tests--temp-buffer (get-buffer-create " haskell-tests-buffer"))
+       (with-current-buffer haskell-tests--temp-buffer
+         (haskell-mode)))
+     (with-current-buffer haskell-tests--temp-buffer
+       (erase-buffer)
        (insert ,contents)
        (goto-char (point-min))
-       (when (re-search-forward "_|_" nil t)
-         (replace-match ""))
-       (haskell-mode)
+       (if (re-search-forward "_|_" nil t)
+           (replace-match "")
+         (error "No _|_ marker for point position within contents:\n%s" ,contents))
        (font-lock-fontify-buffer)
+       ;; Refresh shm mode so that it resets its caches and parses buffer from
+       ;; scratch.
+       (structured-haskell-mode -1)
+       (structured-haskell-mode +1)
        ,action)))
 
-(defmacro haskell-tests--test-buffer-contents (action contents expected)
+(defmacro haskell-tests--test-buffer-contents (action contents expected-value)
   (declare (indent 1))
   `(haskell-tests--with-temp-buffer
        (progn
          ,action
          (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                        ,expected)))
+                        ,expected-value)))
      ,contents))
 
-(defmacro haskell-tests--test-result (action expected-value contents)
-  (declare (indent 2))
+(defmacro* haskell-tests--test-result (&key action expected-value contents)
   `(haskell-tests--with-temp-buffer
        (should (equal ,action ,expected-value))
      ,contents))
+
+(defmacro haskell-tests--test-evaluate (action contents expected-value)
+  (declare (indent 1))
+  `(haskell-tests--with-temp-buffer
+       ,action
+     ,contents))
+
 
 (ert-deftest haskell-tests/haskell-align-language-pragmas-1 ()
   (haskell-tests--test-buffer-contents
@@ -135,12 +152,16 @@
      "{-# LANGUAGE AlternativeLayoutRule #-}"
      "{-# LANGUAGE Safe                  #-}")))
 
+
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
   (haskell-tests--test-result
-      (haskell-format--get-language-extensions (current-buffer) t)
-      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :contents
     (haskell-tests--multiline
-     ""
+     "_|_"
      "{-# LANGUAGE Safe #-}"
      "{-#LANGUAGE AlternativeLayoutRule #-}"
      "{-# LANGUAGE AllowAmbiguousTypes#-}"
@@ -148,19 +169,25 @@
 
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-2 ()
   (haskell-tests--test-result
-      (haskell-format--get-language-extensions (current-buffer) t)
-      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :contents
     (haskell-tests--multiline
-     ""
+     "_|_"
      "{-# LANGUAGE Safe,AlternativeLayoutRule, AllowAmbiguousTypes,"
      "FlexibleContexts #-}")))
 
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-3 ()
   (haskell-tests--test-result
-      (haskell-format--get-language-extensions (current-buffer) t)
-      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
+    :contents
     (haskell-tests--multiline
-     ""
+     "_|_"
      "{-# language Safe #-}"
      "{-#language AlternativeLayoutRule #-}"
      "{-# language AllowAmbiguousTypes#-}"
@@ -168,10 +195,13 @@
 
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-4 ()
   (haskell-tests--test-result
-      (haskell-format--get-language-extensions (current-buffer) t)
-      '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleInstances" "FlexibleContexts")
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleInstances" "FlexibleContexts")
+    :contents
     (haskell-tests--multiline
-     ""
+     "_|_"
      "{-# LANGUAGE Safe "
      ""
      "#-}"
@@ -184,8 +214,11 @@
 
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-5 ()
   (haskell-tests--test-result
-      (haskell-format--get-language-extensions (current-buffer) t)
-      '("FlexibleContexts" "FlexibleInstances" "RecordWildCards" "AllowAmbiguousTypes")
+    :action
+    (haskell-format--get-language-extensions (current-buffer) t)
+    :expected-value
+    '("FlexibleContexts" "FlexibleInstances" "RecordWildCards" "AllowAmbiguousTypes")
+    :contents
     (haskell-tests--multiline
      "----------------------------------------------------------------------------"
      "-- |"
@@ -206,49 +239,62 @@
      "  { frob1 :: Int"
      "  , frob2 :: Double"
      "  }"
-     ""
+     "_|_"
      "foo Frob{..} ="
      " frob1 * 2"
      "")))
 
+
 (ert-deftest haskell-tests/forward-haskell-symbol-1 ()
   (haskell-tests--test-result
-      (list
-       (bounds-of-thing-at-point 'haskell-symbol)
-       (thing-at-point 'haskell-symbol))
-      (list
-       (cons 2 9)
-       "fooobar")
+    :action
+    (list
+     (bounds-of-thing-at-point 'haskell-symbol)
+     (thing-at-point 'haskell-symbol))
+    :expected-value
+    (list
+     (cons 2 9)
+     "fooobar")
+    :contents
     " fooo_|_bar "))
 
 (ert-deftest haskell-tests/forward-haskell-symbol-2 ()
   (haskell-tests--test-result
-      (list
-       (bounds-of-thing-at-point 'haskell-symbol)
-       (thing-at-point 'haskell-symbol))
-      (list
-       (cons 2 9)
-       "Fooobar")
+    :action
+    (list
+     (bounds-of-thing-at-point 'haskell-symbol)
+     (thing-at-point 'haskell-symbol))
+    :expected-value
+    (list
+     (cons 2 9)
+     "Fooobar")
+    :contents
     " Fooo_|_bar "))
 
 (ert-deftest haskell-tests/forward-haskell-symbol-3 ()
   (haskell-tests--test-result
-      (list
-       (bounds-of-thing-at-point 'haskell-symbol)
-       (thing-at-point 'haskell-symbol))
-      (list
-       (cons 3 10)
-       "Fooobar")
+    :action
+    (list
+     (bounds-of-thing-at-point 'haskell-symbol)
+     (thing-at-point 'haskell-symbol))
+    :expected-value
+    (list
+     (cons 3 10)
+     "Fooobar")
+    :contents
     " 'Fooo_|_bar "))
 
 (ert-deftest haskell-tests/forward-haskell-symbol-4 ()
   (haskell-tests--test-result
-      (list
-       (bounds-of-thing-at-point 'haskell-symbol)
-       (thing-at-point 'haskell-symbol))
-      (list
-       (cons 4 11)
-       "Fooobar")
+    :action
+    (list
+     (bounds-of-thing-at-point 'haskell-symbol)
+     (thing-at-point 'haskell-symbol))
+    :expected-value
+    (list
+     (cons 4 11)
+     "Fooobar")
+    :contents
     " ''Fooo_|_bar "))
 
 (ert-deftest haskell-tests/haskell-cabal--yasnippet--main-module-from-main-file-1 ()
@@ -328,247 +374,420 @@
       "Test"))))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = 1 ++ 2"
-   "x = 1 +_|_2"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = 1 +_|_2"
+    "x = 1 ++ 2"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = 1 ++ 2"
-   "x = 1 +           _|_ 2"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = 1 +           _|_ 2"
+    "x = 1 ++ 2"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-3 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
-     (buffer-string))
-   "x = 1 +* "
-   "x = 1 +           _|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "x = 1 +           _|_"
+    "x = 1 +* "))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-4 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = 1 + "
-   "x = 1_|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = 1_|_"
+    "x = 1 + "))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-5 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = 1 + "
-   "x = 1 _|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = 1 _|_"
+    "x = 1 + "))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-6 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = 1  + "
-   "x = 1  _|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = 1  _|_"
+    "x = 1  + "))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-7 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = f (+ "
-   "x = f \(_|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = f \(_|_"
+    "x = f \(+ "))
 
 (ert-deftest haskell-tests/haskell-smart-operators--sections-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = f (+)"
-   "x = f (_|_)"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = f \(_|_\)"
+    "x = f \(+\)"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--sections-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "x = f (+)"
-   "x = f (     _|_)"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "x = f \(     _|_\)"
+    "x = f \(+\)"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?\\)
-     (buffer-string))
-   "x = (\\)"
-   "x = (_|_)"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?\\)
+    "x = \(_|_\)"
+    "x = \(\\\)"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?$)
-     (buffer-string))
-   "x = f $ \\ x -> x"
-   "x = f _|_\\ x -> x"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?$)
+    "x = f _|_\\ x -> x"
+    "x = f $ \\ x -> x"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-     (buffer-string))
-   "x = [| "
-   "x = [_|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[_|_"
+    "x = \[| "))
 
 (ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-     (buffer-string))
-   "x = [| foobar |]"
-   "x = [| foobar _|_]"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[| foobar _|_\]"
+    "x = \[| foobar |\]"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--beginning-of-buffer ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
-     (buffer-string))
-   "* + bar"
-   "_|_ + bar"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "_|_ + bar"
+    " * + bar"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--end-of-buffer ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
-     (buffer-string))
-   "+ bar * "
-   "+ bar_|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
+    "+ bar_|_"
+    "+ bar * "))
+
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-     (buffer-string))
-   "--| foobar"
-   "--_|_ foobar"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "--_|_ foobar"
+    "-- | foobar"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
-     (buffer-string))
-   "--^ foobar"
-   "--_|_ foobar"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+    "--_|_ foobar"
+    "-- ^ foobar"))
 
-(ert-deftest haskell-tests/haskell-smart-operators--comments-literal-insertion-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-     (buffer-string))
-   "--    |"
-   "--    _|_"))
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "--     _|_ foobar"
+    "-- | foobar"))
 
-(ert-deftest haskell-tests/haskell-smart-operators--comments-literal-insertion-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
-     (buffer-string))
-   "--    ^"
-   "--    _|_"))
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+    "--      _|_ foobar"
+    "-- ^ foobar"))
 
-(ert-deftest haskell-tests/haskell-smart-operators--comments-literal-insertion-3 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-     (buffer-string))
-   "--    +"
-   "--    _|_"))
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  --      _|_ foobar"
+     "  pure baz")
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  --      ^ foobar"
+     "  pure baz")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  --      _|_ foobar"
+     "  pure baz")
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  --      | foobar"
+     "  pure baz")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  --      _|_ foobar"
+     "  pure baz")
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  --      + foobar"
+     "  pure baz")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "--    _|_"
+    "-- | "))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+    "--    _|_"
+    "-- ^ "))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    "--    _|_"
+    "--    +"))
+
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-disabled-if-not-on-first-column-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    " --    _|_"
+    " --    |"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-disabled-if-not-on-first-column-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+    " --    _|_"
+    " --    ^"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-disabled-if-not-on-first-column-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
+    " --    _|_"
+    " --    +"))
 
 
 (ert-deftest haskell-tests/haskell-smart-operators--almost-haddock-comments-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-     (buffer-string))
-   "-| "
-   "-       _|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "-       _|_"
+    "-| "))
 
 (ert-deftest haskell-tests/haskell-smart-operators--almost-haddock-comments-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
-     (buffer-string))
-   "-^ "
-   "-      _|_"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
+    "-      _|_"
+    "-^ "))
 
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-1 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators-$)
-     (buffer-string))
-   "x = f $ xs ++ ys"
-   "x = f _|_(xs ++ ys)"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f _|_(xs ++ ys)"
+    "x = f $ xs ++ ys"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-2 ()
-  (haskell-tests--test-result
-   (progn
-     (haskell-smart-operators-$)
-     (buffer-string))
-   "x = f $ xs ++ ys"
-   "x = f_|_ (xs ++ ys)"))
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f_|_ (xs ++ ys)"
+    "x = f $ xs ++ ys"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f _|_ (xs ++ ys)"
+    "x = f $ xs ++ ys"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f _|_     (xs ++ ys)"
+    "x = f $ xs ++ ys"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-5 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f _|_(xs ++ ys)"
+    "x = f $ xs ++ ys"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-6 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f_|_(xs ++ ys)"
+    "x = f $ xs ++ ys"))
 
 (ert-deftest haskell-tests/shm/!-1 ()
-  (haskell-tests--test-result
-   (progn
-     (shm/!)
-     (buffer-substring-no-properties (point-min) (point-max)))
-   (haskell-tests--multiline
-    "data Foo = Foo"
-    "  { foo :: !(Set Int)"
-    "  , bar :: Map Int Double"
-    "  }")
-   (haskell-tests--multiline
-    "data Foo = Foo"
-    "  { foo ::_|_ Set Int"
-    "  , bar :: Map Int Double"
-    "  }")))
+  (haskell-tests--test-buffer-contents
+      (shm/!)
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo ::_|_ Set Int"
+     "  , bar :: Map Int Double"
+     "  }")
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo :: !(Set Int)"
+     "  , bar :: Map Int Double"
+     "  }")))
 
 (ert-deftest haskell-tests/shm/!-2 ()
-  (haskell-tests--test-result
-   (progn
-     (shm/!)
-     (buffer-substring-no-properties (point-min) (point-max)))
-   (haskell-tests--multiline
-    "data Foo = Foo"
-    "  { foo :: !(Set Int)"
-    "  , bar :: Map Int Double"
-    "  }")
-   (haskell-tests--multiline
-    "data Foo = Foo"
-    "  { foo :: _|_Set Int"
-    "  , bar :: Map Int Double"
-    "  }")))
-;; (ert "haskell-tests/.*")
+  (haskell-tests--test-buffer-contents
+      (shm/!)
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo :: _|_Set Int"
+     "  , bar :: Map Int Double"
+     "  }")
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo :: !(Set Int)"
+     "  , bar :: Map Int Double"
+     "  }")))
 
 (ert-deftest haskell-tests/shm/!-3 ()
-  (haskell-tests--test-result
-   (progn
-     (shm/!)
-     (buffer-substring-no-properties (point-min) (point-max)))
-   (haskell-tests--multiline
-    "data Foo = Foo"
-    "  { foo :: !(Set Int)"
-    "  , bar :: Map Int Double"
-    "  }")
-   (haskell-tests--multiline
-    "data Foo = Foo"
-    "  { foo :: _|_ Set Int"
-    "  , bar :: Map Int Double"
-    "  }")))
+  (haskell-tests--test-buffer-contents
+      (shm/!)
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo :: _|_ Set Int"
+     "  , bar :: Map Int Double"
+     "  }")
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo :: !(Set Int)"
+     "  , bar :: Map Int Double"
+     "  }")))
+
+(ert-deftest haskell-tests/shm/!-4 ()
+  (haskell-tests--test-buffer-contents
+      (shm/!)
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo ::      _|_      Set Int"
+     "  , bar :: Map Int Double"
+     "  }")
+    (haskell-tests--multiline
+     "data Foo = Foo"
+     "  { foo :: !(Set Int)"
+     "  , bar :: Map Int Double"
+     "  }")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (insert "value2"))
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" _|_"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" --> value2"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (insert "value2"))
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" _|_"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" |-> value2"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (insert "value2"))
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" _|_"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" ---> value2"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (insert "value2"))
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" _|_"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")
+    (haskell-tests--multiline
+     "foo = do"
+     "  bar"
+     "  putDocLn $ ppDict \"foobar\""
+     "    [ \"label1\" --> value1"
+     "    , \"label2\" --->>> value2"
+     "    , \"label3\" --> value3"
+     "    ]"
+     "  pure baz")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--arrows-in-haddock-comment-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+        (insert "test"))
+    "-- _|_"
+    "-- >test"))
 
 ;; (ert "haskell-tests/.*")
 

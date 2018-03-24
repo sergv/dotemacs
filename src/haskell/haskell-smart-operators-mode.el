@@ -56,10 +56,16 @@
                    (char-equal after ?\")))))))
 
 (defun haskell-smart-operators--on-empty-string? ()
-  (string-match-p "^[ \t]*$"
-                  (buffer-substring-no-properties
-                   (line-beginning-position)
-                   (point))))
+  (let ((start (line-beginning-position)))
+    (or (= start (line-end-position))
+        (save-excursion
+          (goto-char start)
+          (looking-at-p "^[ \t]*$"))))
+  ;; (string-match-p "^[ \t]*$"
+  ;;                 (buffer-substring-no-properties
+  ;;                  (line-beginning-position)
+  ;;                  (point)))
+  )
 
 (defun haskell-smart-operators--on-a-line-with-guard? ()
   (save-excursion
@@ -77,87 +83,107 @@ stick it to the previous operator on line."
   (haskell-smart-operators--insert-char-optionally-surrounding-with-spaces char t))
 
 (defun haskell-smart-operators--insert-char-optionally-surrounding-with-spaces (char insert-space-after)
-  (if (or current-prefix-arg
-          (haskell-smart-operators--literal-insertion?)
-          (not (gethash char haskell-smart-operators--operator-chars)))
-      (insert-char char)
-    (let* ((pt (point))
-           (before (char-before pt)))
-      ;; Decide whether to insert space before the operator.
-      (if (and (not (haskell-smart-operators--on-empty-string?))
-               (or
-                ;; At beginning of buffer.
-                (not before)
-                ;; After | that is a potential guard.
-                (when (char-equal before ?|)
-                  (haskell-smart-operators--on-a-line-with-guard?))
-                ;; Make Haddock comment insertion easier.
-                (and
-                 (char-equal before ?-)
-                 (or (char-equal char ?|)
-                     (char-equal char ?^))
-                 (let ((before2 (char-before (1- pt))))
-                   (and before2
-                        (char-equal before2 ?-))))
-                (and
-                 (not (char-equal before ?\s))
-                 (not (char-equal before ?\())
-                 ;; Do not split [| pair when we're inserting the |.
-                 (not (and (char-equal char ?|)
-                           (char-equal before ?\[)))
-                 (not (gethash before haskell-smart-operators--operator-chars)))))
-          (insert-char ?\s)
-        ;; Delete spaces backwards if there's operator or open paren char
-        ;; before the spaces.
-        (let ((delete-whitespace?
-               (save-excursion
-                 (skip-syntax-backward " ")
-                 (let* ((pt-before-ws (point))
-                        (char-before-spaces (char-before pt-before-ws)))
-                   (and char-before-spaces ;; not at beginning of buffer
-                        (or (gethash char-before-spaces haskell-smart-operators--operator-chars)
-                            (char-equal char-before-spaces ?\())
-                        (if (char-equal char-before-spaces ?|)
-                            ;; Check that it's not a guard.
-                            (not (haskell-smart-operators--on-a-line-with-guard?))
-                          t)
-                        ;; Improvement for Haddock comment insertion.
-                        (if (and (or (char-equal char ?|)
-                                     (char-equal char ?^))
-                                 (char-equal char-before-spaces ?-))
-                            (let ((char-before-spaces2 (char-before (1- pt-before-ws))))
-                              (if char-before-spaces2
-                                  (if (char-equal char-before-spaces2 ?-)
-                                      ;; Buffer looks like "^-- *_|_"
-                                      'normalise-to-single-space
-                                    ;; Buffer looks like "^?- *_|_" where ? is character different from '-'
-                                    t)
-                                ;; Buffer looks like "^- *_|_"
-                                t))
-                          t))))))
-          (when delete-whitespace?
-            (delete-whitespace-backward)
-            (when (eq delete-whitespace? 'normalise-to-single-space)
-              (insert-char ?\s)))))
-      ;; Insert operator char.
-      (insert-char char)
-      ;; Decide whether to insert space after the operator.
-      (when (and insert-space-after
-                 (not (and (char-equal char ?\\)
-                           before ;; not at beginning of buffer
-                           (char-equal before ?\())))
-        (let ((after (char-after)))
-          (when (or (not after) ;; at end of buffer
-                    ;; If the next thing is lambda then we don't want to merge
-                    ;; with it's \.
-                    (char-equal after ?\\)
-                    (and (not (char-equal after ?\s))
-                         (not (char-equal after ?\)))
-                         ;; Do not split |] pair when we're inserting the |.
-                         (not (and (char-equal char ?|)
-                                   (char-equal after ?\])))
-                         (not (gethash after haskell-smart-operators--operator-chars))))
-            (insert-char ?\s)))))))
+  (let* ((disable-smart-operators? current-prefix-arg)
+         (line-start-pos (line-beginning-position))
+
+         (pt (point))
+         (before (char-before pt))
+         (at-beginning-of-buffer? (null before))
+         (pt-before-ws (point))
+
+         (pt-preceded-by-two-dashes? nil)
+         (handling-haddock-comment?
+          (if disable-smart-operators?
+              nil
+            (save-excursion
+              (skip-syntax-backward " ")
+              (setf pt-before-ws (point))
+              (let* ((before-ws (char-before pt-before-ws))
+                     (pt-before-ws2 (1- pt-before-ws)))
+                (when (and before-ws
+                           (let ((before-ws2 (char-before pt-before-ws2)))
+                             (and before-ws2
+                                  (char-equal before-ws before-ws2)
+                                  (char-equal before-ws ?-))))
+                  (setf pt-preceded-by-two-dashes? t)
+                  (= pt-before-ws2 (1+ line-start-pos)))))))
+         (insert-trailing-space
+          (lambda ()
+            ;; Decide whether to insert space after the operator.
+            (when (and insert-space-after
+                       (not (and (char-equal char ?\\)
+                                 (not at-beginning-of-buffer?)
+                                 (char-equal before ?\())))
+              (let ((after (char-after)))
+                (when (or (not after) ;; at end of buffer
+                          ;; If the next thing is lambda then we don't want to merge
+                          ;; with its \.
+                          (char-equal after ?\\)
+                          (and (not (char-equal after ?\s))
+                               (not (char-equal after ?\)))
+                               ;; Do not split |] pair when we're inserting the |.
+                               (not (and (char-equal char ?|)
+                                         (char-equal after ?\])))
+                               (not (gethash after haskell-smart-operators--operator-chars))))
+                  (insert-char ?\s)))))))
+    (cond
+      ;; Haddock comments must be treated specially because they're comments
+      ;; and we generally disable smart operator insertion within comments.
+      ((and handling-haddock-comment?
+            (memq char '(?^ ?|)))
+       (delete-region pt-before-ws (point))
+       (insert-char ?\s)
+       (insert-char char)
+       (funcall insert-trailing-space))
+      ;; Must check for arrows here because otherwise
+      ;; `haskell-smart-operators--literal-insertion?' will treat '--'
+      ;; as a comment and not allow to do any meaningful work.
+      ((and (not handling-haddock-comment?)
+            pt-preceded-by-two-dashes?
+            (memq char '(?< ?> ?-)))
+       (delete-region pt-before-ws (point))
+       (insert-char char)
+       (funcall insert-trailing-space))
+      ((or disable-smart-operators?
+           (haskell-smart-operators--literal-insertion?)
+           (not (gethash char haskell-smart-operators--operator-chars)))
+       (insert-char char))
+      (t
+       ;; Decide whether to insert space before the operator.
+       (if (and (not (haskell-smart-operators--on-empty-string?))
+                (or
+                 ;; At beginning of buffer.
+                 at-beginning-of-buffer?
+                 ;; After | that is a potential guard.
+                 (when (char-equal before ?|)
+                   (haskell-smart-operators--on-a-line-with-guard?))
+                 (and
+                  (not (char-equal before ?\s))
+                  (not (char-equal before ?\())
+                  ;; Do not split [| pair when we're inserting the .
+                  (not (and (char-equal char ?|)
+                            (char-equal before ?\[)))
+                  (not (gethash before haskell-smart-operators--operator-chars)))))
+           (insert-char ?\s)
+         ;; Delete spaces backwards if there's operator or open paren char
+         ;; before the spaces.
+         (let ((delete-whitespace?
+                (save-excursion
+                  (skip-syntax-backward " ")
+                  (let* ((pt-before-ws (point))
+                         (char-before-spaces (char-before pt-before-ws)))
+                    (and char-before-spaces ;; not at beginning of buffer
+                         (or (gethash char-before-spaces haskell-smart-operators--operator-chars)
+                             (char-equal char-before-spaces ?\())
+                         (if (char-equal char-before-spaces ?|)
+                             ;; Check that it's not a guard.
+                             (not (haskell-smart-operators--on-a-line-with-guard?))
+                           t))))))
+           (when delete-whitespace?
+             (delete-whitespace-backward))))
+       ;; Insert operator char.
+       (insert-char char)
+       (funcall insert-trailing-space)))))
 
 ;;;###autoload
 (defun haskell-smart-operators-self-insert (arg)
@@ -171,20 +197,22 @@ stick it to the previous operator on line."
 (defun haskell-smart-operators-$ ()
   "Swap parens with a dollar."
   (interactive)
-  (let ((start-pos nil))
+  (let ((start (point))
+        (paren-start-pos nil))
     (when (save-excursion
             (skip-syntax-forward " ")
             (let ((next-char (char-after)))
               (when (and next-char
                          (char= next-char ?\())
-                (setf start-pos (point))
+                (setf paren-start-pos (point))
                 t)))
-      (goto-char start-pos)
+      (goto-char paren-start-pos)
       ;; delete parenthesized sexp
       (save-excursion
         (forward-sexp)
         (delete-char -1))
-      (delete-char 1))
+      (delete-char 1)
+      (delete-region start paren-start-pos))
     (haskell-smart-operators--insert-char-surrounding-with-spaces ?\$)))
 
 (defun haskell-smart-operators--point-surrounded-by2 (before2 before1 after1 after2)
