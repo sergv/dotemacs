@@ -14,8 +14,10 @@
   "Format selected region using brittany haskell formatter."
   (interactive "p")
   (haskell-format--format-with-brittany
-   2
-   width
+   haskell-indent-offset
+   (if (< 1 width)
+       width
+     120)
    (region-beginning)
    (region-end)))
 
@@ -37,9 +39,18 @@
                   (let ((case-fold-search nil))
                     (when (re-search-forward "\\_<module\\_>[ \r\n]" nil t)
                       (match-beginning 0))))))
-          (while (re-search-forward "{-#[ \v\f\r\n]*LANGUAGE\\(\\(?:.\\|[\r\n]\\)*?\\)[ \v\f\r\n]*#-}"
-                                    module-header-position
-                                    t)
+          (while (re-search-forward
+                  (rxx ((whitespace (* (regexp "[ \v\f\r\n]"))))
+                    "{-#"
+                    whitespace
+                    "LANGUAGE"
+                    (group
+                     (regexp "\\(?:.\\|[\r\n]\\)*?"))
+                    whitespace
+                    "#-}")
+                  module-header-position ;; bound
+                  t                      ;; no error
+                  )
             (let ((exts (split-string (funcall get-match-string 1)
                                       "[, \v\f\r\n]+"
                                       t ;; omit nulls
@@ -57,7 +68,9 @@
     (error "Width must be an integer: %s" width))
   (let* ((language-extensions
           (haskell-format--get-language-extensions (current-buffer) t))
-         (opts (mapconcat (lambda (x) (concat "-X" x)) language-extensions " ")))
+         (opts (mapconcat (lambda (x) (concat "-X" x))
+                          (--filter (not (string= "CPP" it)) language-extensions)
+                          " ")))
     (goto-char start)
     (call-process-region
      start
