@@ -121,7 +121,9 @@
                                (expand-file-name (flycheck-error-filename it)))
                       (-sort #'flycheck-error< errs)))
          (current-file-errors (first all-errors))
-         (other-errors (second all-errors)))
+         (other-all (second all-errors))
+         (other-errors
+          (--filter (eq (flycheck-error-level it) 'error) other-all)))
     (let ((next-error
            (cond
              (other-errors
@@ -147,6 +149,9 @@
                       (nconc current-file-errors-after-current-line
                              ;; Make errors wrap around.
                              current-file-errors-before-current-line)))))
+             (other-all
+             ;; Any warnings or hlint suggestions in dependent buffers.
+              (car other-all))
              (t nil))))
       (unless next-error
         (error "No more errors"))
