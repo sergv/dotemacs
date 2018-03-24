@@ -31,11 +31,19 @@
   ;; If t is returned then ACTION would be performed.
   ;;
   ;; Optional.
-  (predicate nil :read-only))
+  (predicate nil :read-only)
 
-(defun* make-abbrev+-abbreviation (&key trigger action-type action-data predicate)
+  ;; Function of no arguments, either symbol or lambda, that
+  ;; will be called before after ACTION. Its return value will be ignored.
+  ;;
+  ;; Optional.
+  (on-successful-expansion nil :read-only))
+
+(defun* make-abbrev+-abbreviation (&key trigger action-type action-data predicate on-successful-expansion)
   (cl-assert (stringp trigger))
   (cl-assert (or (null predicate) (functionp predicate)))
+  (cl-assert (or (null on-successful-expansion)
+                 (functionp on-successful-expansion)))
   (cl-assert (symbolp action-type))
   (cl-assert
    (pcase action-type
@@ -52,7 +60,8 @@
    :trigger trigger
    :action-type action-type
    :action-data action-data
-   :predicate predicate))
+   :predicate predicate
+   :on-successful-expansion on-successful-expansion))
 
 (defvar-local abbrev+-abbreviations
   (list
@@ -89,36 +98,37 @@ trigger of `abbrev+-abbreviations' and returning corresponding element in cdr."
 t if after substitution it may be desirable to insert space and
 second being actual substituted text."
   (cl-assert (abbrev+-abbreviation-p abbrev))
-  (let* ((data (abbrev+-abbreviation-action-data abbrev))
-         (action-type (abbrev+-abbreviation-action-type abbrev))
-         (insert-spacep
-          (pcase action-type
-            ((or `literal-string `literal-string-no-space-at-end)
-             (cl-assert (stringp data))
-             (insert data)
-             (eq action-type 'literal-string))
-            (`function-result
-             (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
-             (let ((res (funcall data)))
-               (unless (stringp res)
-                 (error "Action %s didn't return string"
-                        (substring-no-properties
-                         (pp-to-string data)
-                         0
-                         80)))
-               (insert res))
-             t)
-            (`function-with-side-effects
-             (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
-             (funcall data)
-             nil)
-            (`yas-snippet
-             (cl-assert (stringp data))
-             (yas-expand-snippet data)
-             nil)
-            (typ
-             (error "Unknown action type %s of abbreviation %s" typ abbrev)))))
-    insert-spacep))
+  (let ((data (abbrev+-abbreviation-action-data abbrev))
+        (action-type (abbrev+-abbreviation-action-type abbrev)))
+    (prog1
+        (pcase action-type
+          ((or `literal-string `literal-string-no-space-at-end)
+           (cl-assert (stringp data))
+           (insert data)
+           (eq action-type 'literal-string))
+          (`function-result
+           (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
+           (let ((res (funcall data)))
+             (unless (stringp res)
+               (error "Action %s didn't return string"
+                      (substring-no-properties
+                       (pp-to-string data)
+                       0
+                       80)))
+             (insert res))
+           t)
+          (`function-with-side-effects
+           (cl-assert (or (symbolp data) (functionp data) (byte-code-function-p data)))
+           (funcall data)
+           nil)
+          (`yas-snippet
+           (cl-assert (stringp data))
+           (yas-expand-snippet data)
+           nil)
+          (typ
+           (error "Unknown action type %s of abbreviation %s" typ abbrev)))
+      (awhen (abbrev+-abbreviation-on-successful-expansion abbrev)
+        (funcall it)))))
 
 (defun abbrev+-expand ()
   "Expand text before point that matches against one of triggers
