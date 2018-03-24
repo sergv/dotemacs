@@ -102,19 +102,20 @@ column, `tab-to-tab-stop' is done instead."
 (defun shm/simple-indent-newline-same-col ()
   "Make a newline and go to the same column as the current line."
   (interactive)
-  (let ((point (point)))
-    (let ((start-end
-           (save-excursion
-             (let* ((start (line-beginning-position))
-                    (end (progn (goto-char start)
-                                (search-forward-regexp
-                                 "[^ ]" (line-end-position) t 1))))
-               (when end (cons start (1- end)))))))
-      (if start-end
-          (progn (insert "\n")
-                 (insert (buffer-substring-no-properties
-                          (car start-end) (cdr start-end))))
-        (insert "\n")))))
+  (let ((indentation-size
+         (save-excursion
+           (let* ((start (line-beginning-position))
+                  (end (progn
+                         (goto-char start)
+                         ;; (search-forward-regexp
+                         ;;  "[^ ]" (line-end-position) t 1)
+                         (skip-to-indentation)
+                         (point))))
+             (when (or (eobp) (/= ?\s (char-after)))
+               (- end start))))))
+    (insert "\n")
+    (when indentation-size
+      (insert (make-string indentation-size ?\s)))))
 
 (defun shm/simple-indent-newline-indent ()
   "Make a newline on the current column and indent on step."
