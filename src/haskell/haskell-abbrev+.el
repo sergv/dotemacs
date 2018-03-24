@@ -125,12 +125,22 @@ then Bar would be the result."
    (char ?e ?E)))
 
 (defun haskell-abbrev+-align-language-pragmas ()
+  (remove-hook
+   'yas-after-exit-snippet-hook
+   #'haskell-abbrev+-align-language-pragmas
+   t)
   (save-current-line-column
    (haskell-align-language-pragmas yas-snippet-beg)))
 
+(defun haskell-abbrev+--register-alignment-of-language-pragmas ()
+  (add-hook 'yas-after-exit-snippet-hook
+            #'haskell-abbrev+-align-language-pragmas
+            nil ;; append
+            t   ;; local
+            ))
+
 ;;;###autoload
 (defun* haskell-abbrev+-setup (indent &key (repl nil))
-  (add-hook 'yas-after-exit-snippet-hook #'haskell-abbrev+-align-language-pragmas nil t)
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
                                      (and (not (point-inside-string-or-comment?))
                                           (or (null? c)
@@ -189,7 +199,8 @@ then Bar would be the result."
                :trigger "##?lang *"
                :action-type 'yas-snippet
                :action-data language-snippet
-               :predicate #'point-not-inside-string-or-comment?)
+               :predicate #'point-not-inside-string-or-comment?
+               :on-successful-expansion #'haskell-abbrev+--register-alignment-of-language-pragmas)
               (make-abbrev+-abbreviation
                :trigger "##?opts? *"
                :action-type 'yas-snippet
