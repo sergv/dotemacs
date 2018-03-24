@@ -113,9 +113,9 @@ do
       (goto-char point)
       (shm/reparse)
       (save-excursion
-        (shm-evaporate (point) (+ (point) (length "undefined")))
+        (shm-evaporate (point) (+ (point) (eval-when-compile (length "undefined"))))
         (goto-char next-point)
-        (shm-evaporate (point) (+ (point) (length "undefined")))))))
+        (shm-evaporate (point) (+ (point) (eval-when-compile (length "undefined"))))))))
 
 (defun shm-auto-insert-case (lambda-case)
   "Insert template
@@ -149,20 +149,20 @@ or
        (lambda ()
          (insert template)))
       (forward-char 5)
-      (shm/reparse)
       (if lambda-case
           (progn (search-forward-regexp "_" nil nil 1)
                  (let ((here (1- (point))))
                    (shm-evaporate (1- (point)) (point))
                    (forward-char 4)
-                   (shm-evaporate (point) (+ (point) (length "undefined")))
+                   (shm-evaporate (point) (+ (point) (eval-when-compile (length "undefined"))))
                    (goto-char here)))
         (save-excursion
-          (shm-evaporate (point) (+ (point) (length "undefined")))
+          (shm-evaporate (point) (+ (point) (eval-when-compile (length "undefined"))))
           (search-forward-regexp "_" nil nil 1)
           (shm-evaporate (1- (point)) (point))
           (forward-char 4)
-          (shm-evaporate (point) (+ (point) (length "undefined"))))))))
+          (shm-evaporate (point) (+ (point) (eval-when-compile (length "undefined"))))))
+      (shm/reparse))))
 
 (defun shm-auto-insert-if ()
   "Insert template
