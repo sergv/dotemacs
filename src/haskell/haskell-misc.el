@@ -424,9 +424,21 @@ sexps and indentation levels."
                      "=[^=]"
                      :require-one-or-more-spaces t)
 (make-align-function haskell-align-on-arrows
-                     "\\(?:->\\|→\\)\\(?: \\|$\\)")
+                     (rx
+                      (or (seq
+                           (+ (any ?: ?| ?- ?=))
+                           (+ ">"))
+                          "→")
+                      (or " "
+                          eol)))
 (make-align-function haskell-align-on-left-arrows
-                     "\\(?:<-\\|←\\)\\(?: \\|$\\)")
+                     (rx
+                      (or (seq
+                           (+ "<")
+                           (+ (any ?: ?| ?- ?=)))
+                          "←")
+                      (or " "
+                          eol)))
 (make-align-function haskell-align-on-guards
                      "|\\(?:[^|]\\|$\\)"
                      :require-one-or-more-spaces t)
