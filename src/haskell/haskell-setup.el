@@ -288,7 +288,6 @@ enabled. Otherwise fall back to eproj tags."
       ("C-k"          nil)
       ("<delete>"     nil)
       ("<deletechar>" nil)
-      ("C-<return>"   shm/simple-indent-newline-same-col)
       ("TAB"          nil)
       ("<backtab>"    nil))
 
@@ -309,18 +308,21 @@ enabled. Otherwise fall back to eproj tags."
       ("S-<tab>"         nil)
       ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline)
+      ("C-<return>"      shm/simple-indent-newline-indent)
       ("<f6>"            haskell-process-load-file)
       ("<f9>"            haskell-compile))
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap)
-      ("*"   search-for-haskell-symbol-at-point-forward)
-      ("C-*" search-for-haskell-symbol-at-point-forward-new-color)
-      ("#"   search-for-haskell-symbol-at-point-backward)
-      ("C-#" search-for-haskell-symbol-at-point-backward-new-color)
-      ("'"   vim:haskell-backward-up-indentation-or-sexp)
-      ("g t" haskell-node/move-to-topmost-start)
-      ("g h" haskell-node/move-to-topmost-end))
+      ("<backspace>" shm/del)
+      ("*"           search-for-haskell-symbol-at-point-forward)
+      ("C-*"         search-for-haskell-symbol-at-point-forward-new-color)
+      ("#"           search-for-haskell-symbol-at-point-backward)
+      ("C-#"         search-for-haskell-symbol-at-point-backward-new-color)
+      ("'"           vim:haskell-backward-up-indentation-or-sexp)
+      ("C-'"         shm/goto-parent)
+      ("g t"         haskell-node/move-to-topmost-start)
+      ("g h"         haskell-node/move-to-topmost-end))
 
     (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
