@@ -41,6 +41,7 @@
   ("M-p"      browse-kill-ring)
   ("C-w"      backward-delete-word)
   ("C-S-w"    backward-delete-word*)
+  ("C-s"      save-buffer)
 
   ("C-t"      nil)
   ("C-<down>" nil)
