@@ -50,7 +50,7 @@
 (mmm-add-mode-ext-class 'latex-mode "\\.lhs\\'" 'literate-haskell-latex)
 
 (add-to-list 'auto-mode-alist '("\\.ghci\\'" . ghci-script-mode))
-(add-to-list 'auto-mode-alist '("\\.hcr\\'" . ghc-core-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(?:hcr\\|dump-\\(?:simpl\\|splices\\)\\)\\'" . ghc-core-mode))
 (add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\)?\\'" . haskell-mode))
