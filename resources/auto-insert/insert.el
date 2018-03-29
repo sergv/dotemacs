@@ -1,8 +1,8 @@
 ;; ${filename} --- -*- lexical-binding: t; -*-
 
-;; Copyright (C) Sergey Vinokurov
+;; Copyright (C) ${author}
 ;;
-;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Author: ${author} <${email}>
 ;; Created: ${date}
 ;; Description:
 
