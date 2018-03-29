@@ -34,6 +34,7 @@
                 ("\\.org\\'"        "insert.org")
                 ("\\.eproj-info\\'" "insert.eproj-info")
                 ("stack\\.yaml\\'"  "insert-stack.yaml")
+                ("\\.gitignore\\'"  "insert.haskell.gitignore")
 
                 ("AndroidManifest.xml\\'"      "insert-android-manifest.xml")
                 ("/res/drawable.*/.*\\.xml\\'" "insert-android-drawable.xml")
