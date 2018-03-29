@@ -1,6 +1,6 @@
 ;; ${filename} ---
 
-;; Author: Sergey Vinokurov <serg.foo@gmail.com>
+;; Author: ${author} <${email}>
 ;; Created: ${date}
 
 
