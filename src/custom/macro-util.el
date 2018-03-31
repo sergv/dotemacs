@@ -510,24 +510,29 @@ of code may be called more than once."
                                "+"
                              "*")
                            "\\)"))
-        (align-re (if (string? align-str)
-                      (concat "\\(?:"
-                              align-str
-                              "\\)")
-                    (macroexpand-all align-str)))
+        (align-re (cond
+                    ((stringp align-str)
+                     (concat "\\(?:"
+                             align-str
+                             "\\)"))
+                    ((symbolp align-str)
+                     align-str)
+                    (t
+                     (macroexpand-all align-str))))
         (impl-func (string->symbol (format "%s/impl" func))))
     `(progn
        (defun ,impl-func (start end)
          (align-regexp start
                        end
-                       ,(if put-align-spaces-after-str
-                            (concat align-re spaces-re)
-                          (concat spaces-re align-re))
+                       (eval-when-compile
+                         ,(if put-align-spaces-after-str
+                              `(concat ,align-re ,spaces-re)
+                            `(concat ,spaces-re ,align-re)))
                        1
                        1
                        ,repeat))
        (defun ,func ()
-         (interactive)
+         (interactive "*")
          (when (region-active-p)
            (multiple-value-bind (start end) (get-region-bounds)
              (,impl-func start end)))))))

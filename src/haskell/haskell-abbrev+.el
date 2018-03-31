@@ -9,9 +9,7 @@
 (require 'abbrev+)
 (require 'common)
 (require 'haskell-completions)
-(require 'haskell-indent)
 (require 'haskell-misc)
-(require 'shm-ast)
 
 ;; for ghc flags to OPTIONS_GHC
 (require 'shell-completion)
