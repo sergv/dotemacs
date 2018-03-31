@@ -93,6 +93,17 @@
 (defconst-set haskell-regexen/pragma-start "{-#")
 (defconst-set haskell-regexen/pragma-end "#-}")
 
+(defconst-set haskell-regexen/function-signature-colons "\\(?:::[^:]\\|∷\\)")
+
+(defconst-set haskell-regexen/preprocessor-or-empty-line "^\\(?:#\\|[ \t]*$\\)")
+(defconst-set haskell-regexen/empty-line "^[ \t]*$")
+
+(defconst-set haskell-regexen/import-line
+  "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?")
+
+(defconst-set haskell-regexen/qualified-import-line
+  "import[ \t\r\n]+\\(?:\"[^\"]+\"[ \t\r\n]+\\)?qualified[ \t\r\n]+")
+
 (provide 'haskell-regexen)
 
 ;; Local Variables:

@@ -20,26 +20,12 @@
 (require 'haskell-abbrev+)
 (require 'haskell-misc)
 (require 'haskell-outline)
-(require 'haskell-shm)
 (require 'intero)
 (require 'shell-setup)
-(require 'shm)
 (require 'vim-intero-highlight-uses-mode)
 
 ;; never cache module alist to a file
 (setf inferior-haskell-module-alist-file nil)
-
-(defadvice shm-mode-start (after
-                           shm-enable-quarantine-display
-                           activate
-                           compile)
-  (setq-local shm-display-quarantine t))
-
-(defadvice shm-mode-stop (after
-                          shm-disable-quarantine-display
-                          activate
-                          compile)
-  (setq-local shm-display-quarantine nil))
 
 (vimmize-motion haskell-backward-up-indentation-or-sexp
                 :name vim:haskell-backward-up-indentation-or-sexp
@@ -187,11 +173,8 @@ enabled. Otherwise fall back to eproj tags."
     (setq-local indent-region-function #'ignore)
     (setq-local yas-indent-line 'fixed)
 
-    (structured-haskell-mode +1)
     (setq-local indent-line-function #'ignore)
     (setq-local abbrev+-fallback-function #'haskell-abbrev+-fallback-space)
-
-    ;; (turn-on-haskell-simple-indent)
 
     (setq-local compilation-read-command nil)
     (setq-local compilation-auto-jump-to-first-error nil)
@@ -224,7 +207,6 @@ enabled. Otherwise fall back to eproj tags."
       ("g c c"   haskell-comment-node)
       ("+"       input-unicode)
       ("SPC SPC" haskell-misc-switch-to-haskell)
-      ("g w"     shm/goto-where)
       ("g i"     vim:haskell-navigate-imports)
       ("g I"     haskell-navigate-imports-return)
       ("g <tab>" haskell-reindent-at-point)
@@ -238,8 +220,7 @@ enabled. Otherwise fall back to eproj tags."
       ;; ("- a" ghc-auto)
       ;; ("- s" ghc-insert-template-or-signature)
 
-      ("- q"     shm/qualify-import)
-      ("- e"     shm/export)
+      ("- q"     haskell-qualify-import)
 
       ("- t"     intero-type-at)
       ("- u"     intero-uses-at)
@@ -255,48 +236,20 @@ enabled. Otherwise fall back to eproj tags."
       ("- e"     intero-repl-eval-region))
 
     (def-keys-for-map vim:insert-mode-local-keymap
-      ;; Just let `smartparens-mode' take care of these.
-      ;; ("\""  shm/double-quote)
-      ;; ("("   shm/open-paren)
-      ;; (")"   shm/close-paren)
-      ;; ("["   shm/open-bracket)
-      ;; ("]"   shm/close-bracket)
-      ;; ("{"   shm/open-brace)
-      ;; ("}"   shm/close-brace)
       ("`"   vim:wrap-backticks)
-      (","   shm/comma))
+      (","   haskell-smart-operators-comma))
 
     (install-haskell-smart-operators!
         vim:insert-mode-local-keymap
       :bind-colon t
-      :bind-hyphen t
-      :use-shm t)
-    (def-keys-for-map shm-map
-      ("("            nil)
-      ("["            nil)
-      ("{"            nil)
-      (")"            nil)
-      ("]"            nil)
-      ("}"            nil)
-      ("\""           nil)
-      ("C-w"          nil)
-      ("M-w"          nil)
-      ("C-y"          nil)
-      ("M-y"          nil)
-      ("M-a"          nil)
-      ("M-k"          nil)
-      ("C-k"          nil)
-      ("<delete>"     nil)
-      ("<deletechar>" nil)
-      ("TAB"          nil)
-      ("<backtab>"    nil))
+      :bind-hyphen t)
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:insert-mode-local-keymap)
-      ("C-w"             shm/backward-kill-word)
-      ("C-u"             shm/insert-undefined)
-      ("C-<up>"          shm/swing-up)
-      ("C-<down>"        shm/swing-down)
+      ("DEL"             haskell-backspace-with-block-dedent)
+      ("<backspace>"     haskell-backspace-with-block-dedent)
+
+      ("C-u"             haskell-insert-undefined)
       ("C-t"             flycheck-enhancements-previous-error-with-wraparound)
       ("C-h"             flycheck-enhancements-next-error-with-wraparound)
       ("M-t"             haskell-compilation-prev-error-other-window)
@@ -307,35 +260,27 @@ enabled. Otherwise fall back to eproj tags."
 
       ("S-<tab>"         nil)
       ("<S-iso-lefttab>" nil)
-      ("<return>"        haskell-newline)
-      ("C-<return>"      shm/simple-indent-newline-indent)
+      ("<return>"        haskell-newline-with-signature-expansion)
+      ("C-<return>"      haskell--simple-indent-newline-indent)
       ("<f6>"            haskell-process-load-file)
       ("<f9>"            haskell-compile))
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap)
-      ("<backspace>" shm/del)
       ("*"           search-for-haskell-symbol-at-point-forward)
       ("C-*"         search-for-haskell-symbol-at-point-forward-new-color)
       ("#"           search-for-haskell-symbol-at-point-backward)
       ("C-#"         search-for-haskell-symbol-at-point-backward-new-color)
       ("'"           vim:haskell-backward-up-indentation-or-sexp)
-      ("C-'"         shm/goto-parent)
-      ("g t"         haskell-node/move-to-topmost-start)
-      ("g h"         haskell-node/move-to-topmost-end))
+      ("g t"         haskell-move-to-topmost-start)
+      ("g h"         haskell-move-to-topmost-end))
 
     (haskell-define-align-bindings! vim:visual-mode-local-keymap)
-
-    (def-keys-for-map vim:operator-pending-mode-local-keymap
-      ("in" vim:motion-inner-haskell-node)
-      ("an" vim:motion-outer-haskell-node)
-      ("n"  vim:motion-inner-haskell-node))
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap
                        vim:motion-mode-local-keymap
                        vim:operator-pending-mode-local-keymap)
-      ("m" vim:motion-jump-haskell-item)
       ("'" vim:haskell-backward-up-indentation-or-sexp)
       ("q" vim:haskell-up-sexp))
 
@@ -419,13 +364,11 @@ enabled. Otherwise fall back to eproj tags."
   (init-repl :create-keymaps t
              :bind-return nil
              :bind-vim:motion-current-line nil)
-  (structured-haskell-mode -1)
   (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
   (install-haskell-smart-operators! vim:insert-mode-local-keymap
     :bind-colon nil
-    :bind-hyphen nil
-    :use-shm nil)
+    :bind-hyphen nil)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
 
@@ -433,7 +376,7 @@ enabled. Otherwise fall back to eproj tags."
     ("SPC SPC"  haskell-interactive-clear-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"        haskell--ghci-shm/hyphen))
+    ("-"        haskell--ghci-hyphen))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
@@ -470,13 +413,11 @@ enabled. Otherwise fall back to eproj tags."
   (init-repl :create-keymaps t
              :bind-return nil
              :bind-vim:motion-current-line nil)
-  (structured-haskell-mode -1)
   (setq-local indent-region-function #'ignore)
   ;; very useful to automatically surround with spaces inserted operators
   (install-haskell-smart-operators! vim:insert-mode-local-keymap
     :bind-colon nil
-    :bind-hyphen nil
-    :use-shm nil)
+    :bind-hyphen nil)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
   (dolist (cmd '("re" "restart"))
@@ -491,7 +432,7 @@ enabled. Otherwise fall back to eproj tags."
     ("S-<down>" comint-next-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"        haskell--ghci-shm/hyphen)
+    ("-"        haskell--ghci-hyphen)
     ("`"        vim:wrap-backticks))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
@@ -557,7 +498,6 @@ enabled. Otherwise fall back to eproj tags."
 
 ;;;###autoload
 (defun ghc-core-setup ()
-  (structured-haskell-mode -1)
   (hl-line-mode +1))
 
 (provide 'haskell-setup)
