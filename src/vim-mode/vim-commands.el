@@ -191,7 +191,6 @@ and switches to insert-mode."
   "Deletes the characters defined by motion."
   (pcase (vim:motion-type motion)
     (`linewise
-     ;; use custom goto-line to avoid Scan error: "Unbalanced parentheses"
      (goto-line1 (vim:motion-first-line motion))
      (vim:cmd-delete-line :count (vim:motion-line-count motion)
                           :register register))
