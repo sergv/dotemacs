@@ -9,13 +9,12 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'haskell-abbrev+)
+(require 'haskell-block-indent)
 (require 'haskell-format-setup)
 (require 'haskell-misc)
 (require 'haskell-smart-operators-mode)
 (require 'common)
 (require 'ert)
-
-(require 'shm)
 
 (ert-deftest haskell-tests/abbrev+-extract-module-name ()
   (should (string= (haskell-abbrev+-extract-mod-name "Foo.Bar")
@@ -45,10 +44,6 @@
            (replace-match "")
          (error "No _|_ marker for point position within contents:\n%s" ,contents))
        (font-lock-fontify-buffer)
-       ;; Refresh shm mode so that it resets its caches and parses buffer from
-       ;; scratch.
-       (structured-haskell-mode -1)
-       (structured-haskell-mode +1)
        ,action)))
 
 (defmacro haskell-tests--test-buffer-contents (action contents expected-value)
@@ -56,8 +51,15 @@
   `(haskell-tests--with-temp-buffer
        (progn
          ,action
-         (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                        ,expected-value)))
+         (insert "_|_")
+         (let ((actual-contents
+                (buffer-substring-no-properties (point-min) (point-max)))
+               (expected-contents
+                ,expected-value))
+           (unless (string-match-p "_|_" expected-contents)
+             (error "Expected buffer contents does not provide point position with _|_"))
+           (should (equal (split-into-lines actual-contents)
+                          (split-into-lines expected-contents)))))
      ,contents))
 
 (defmacro* haskell-tests--test-result (&key action expected-value contents)
@@ -85,7 +87,7 @@
      ""
      ""
      "{-# LANGUAGE FlexibleContexts #-}"
-     "{-# LANGUAGE Safe             #-}"
+     "{-# LANGUAGE Safe             #-}_|_"
      "")))
 
 (ert-deftest haskell-tests/haskell-align-language-pragmas-2 ()
@@ -101,7 +103,7 @@
      ""
      "-- foobar"
      "{-# LANGUAGE FlexibleContexts #-}"
-     "{-# LANGUAGE Safe             #-}"
+     "{-# LANGUAGE Safe             #-}_|_"
      "")))
 
 (ert-deftest haskell-tests/haskell-align-language-pragmas-2 ()
@@ -119,7 +121,7 @@
      ""
      ""
      "{-# LANGUAGE FlexibleContexts #-}"
-     "{-# LANGUAGE Safe             #-}"
+     "{-# LANGUAGE Safe             #-}_|_"
      "")))
 
 (ert-deftest haskell-tests/haskell-align-language-pragmas-3 ()
@@ -137,7 +139,7 @@
      ""
      "-- foo"
      "{-# LANGUAGE FlexibleContexts #-}"
-     "{-# LANGUAGE Safe             #-}"
+     "{-# LANGUAGE Safe             #-}_|_"
      "-- bar")))
 
 (ert-deftest haskell-tests/haskell-align-language-pragmas-4 ()
@@ -150,7 +152,7 @@
     (haskell-tests--multiline
      "{-# LANGUAGE AllowAmbiguousTypes   #-}"
      "{-# LANGUAGE AlternativeLayoutRule #-}"
-     "{-# LANGUAGE Safe                  #-}")))
+     "{-# LANGUAGE Safe                  #-}_|_")))
 
 
 (ert-deftest haskell-tests/haskell-format--get-language-extensions-1 ()
@@ -377,116 +379,142 @@
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = 1 +_|_2"
-    "x = 1 ++ 2"))
+    "x = 1 ++ _|_2"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = 1 +           _|_ 2"
-    "x = 1 ++ 2"))
+    "x = 1 ++_|_ 2"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
     "x = 1 +           _|_"
-    "x = 1 +* "))
+    "x = 1 +* _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-4 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = 1_|_"
-    "x = 1 + "))
+    "x = 1 + _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-5 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = 1 _|_"
-    "x = 1 + "))
+    "x = 1 + _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-6 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = 1  _|_"
-    "x = 1  + "))
+    "x = 1  + _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--prepend-to-prev-operator-7 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = f \(_|_"
-    "x = f \(+ "))
+    "x = f \(+ _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?@)
+    "x = x_|_y"
+    "x = x@_|_y"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?@)
+    "x = x _|_y"
+    "x = x @_|_y"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?@)
+    ;; If @ was appended to an operator then do insert a space after it!
+    "x = x +_|_y"
+    "x = x +@ _|_y"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--inserting-@-avoid-spaces-4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?@)
+    ;; If @ was appended to an operator then do insert a space after it!
+    "x = x +  _|_y"
+    "x = x +@ _|_y"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--sections-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = f \(_|_\)"
-    "x = f \(+\)"))
+    "x = f \(+_|_\)"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--sections-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "x = f \(     _|_\)"
-    "x = f \(+\)"))
+    "x = f \(+_|_\)"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?\\)
     "x = \(_|_\)"
-    "x = \(\\\)"))
+    "x = \(\\_|_\)"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--space-after--lambdas-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?$)
     "x = f _|_\\ x -> x"
-    "x = f $ \\ x -> x"))
+    "x = f $ _|_\\ x -> x"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
     "x = \[_|_"
-    "x = \[| "))
+    "x = \[| _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
     "x = \[| foobar _|_\]"
-    "x = \[| foobar |\]"))
+    "x = \[| foobar |_|_\]"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--beginning-of-buffer ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
     "_|_ + bar"
-    " * + bar"))
+    " *_|_ + bar"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--end-of-buffer ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
     "+ bar_|_"
-    "+ bar * "))
+    "+ bar * _|_"))
 
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
     "--_|_ foobar"
-    "-- | foobar"))
+    "-- |_|_ foobar"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
     "--_|_ foobar"
-    "-- ^ foobar"))
+    "-- ^_|_ foobar"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
     "--     _|_ foobar"
-    "-- | foobar"))
+    "-- |_|_ foobar"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-4 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
     "--      _|_ foobar"
-    "-- ^ foobar"))
+    "-- ^_|_ foobar"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-1 ()
   (haskell-tests--test-buffer-contents
@@ -499,7 +527,7 @@
     (haskell-tests--multiline
      "foo = do"
      "  bar"
-     "  --      ^ foobar"
+     "  --      ^_|_ foobar"
      "  pure baz")))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-2 ()
@@ -513,7 +541,7 @@
     (haskell-tests--multiline
      "foo = do"
      "  bar"
-     "  --      | foobar"
+     "  --      |_|_ foobar"
      "  pure baz")))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-3 ()
@@ -527,151 +555,151 @@
     (haskell-tests--multiline
      "foo = do"
      "  bar"
-     "  --      + foobar"
+     "  --      +_|_ foobar"
      "  pure baz")))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
     "--    _|_"
-    "-- | "))
+    "-- | _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
     "--    _|_"
-    "-- ^ "))
+    "-- ^ _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     "--    _|_"
-    "--    +"))
+    "--    +_|_"))
 
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-disabled-if-not-on-first-column-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
     " --    _|_"
-    " --    |"))
+    " --    |_|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-disabled-if-not-on-first-column-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
     " --    _|_"
-    " --    ^"))
+    " --    ^_|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-insertion-disabled-if-not-on-first-column-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
     " --    _|_"
-    " --    +"))
+    " --    +_|_"))
 
 
 (ert-deftest haskell-tests/haskell-smart-operators--almost-haddock-comments-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
     "-       _|_"
-    "-| "))
+    "-| _|_"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--almost-haddock-comments-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
     "-      _|_"
-    "-^ "))
+    "-^ _|_"))
 
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators-$)
     "x = f _|_(xs ++ ys)"
-    "x = f $ xs ++ ys"))
+    "x = f $ _|_xs ++ ys"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators-$)
     "x = f_|_ (xs ++ ys)"
-    "x = f $ xs ++ ys"))
+    "x = f $ _|_xs ++ ys"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators-$)
     "x = f _|_ (xs ++ ys)"
-    "x = f $ xs ++ ys"))
+    "x = f $ _|_xs ++ ys"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-4 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators-$)
     "x = f _|_     (xs ++ ys)"
-    "x = f $ xs ++ ys"))
+    "x = f $ _|_xs ++ ys"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-5 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators-$)
     "x = f _|_(xs ++ ys)"
-    "x = f $ xs ++ ys"))
+    "x = f $ _|_xs ++ ys"))
 
 (ert-deftest haskell-tests/haskell-smart-operators--operator-$-6 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators-$)
     "x = f_|_(xs ++ ys)"
-    "x = f $ xs ++ ys"))
+    "x = f $ _|_xs ++ ys"))
 
-(ert-deftest haskell-tests/shm/!-1 ()
-  (haskell-tests--test-buffer-contents
-      (shm/!)
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo ::_|_ Set Int"
-     "  , bar :: Map Int Double"
-     "  }")
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo :: !(Set Int)"
-     "  , bar :: Map Int Double"
-     "  }")))
-
-(ert-deftest haskell-tests/shm/!-2 ()
-  (haskell-tests--test-buffer-contents
-      (shm/!)
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo :: _|_Set Int"
-     "  , bar :: Map Int Double"
-     "  }")
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo :: !(Set Int)"
-     "  , bar :: Map Int Double"
-     "  }")))
-
-(ert-deftest haskell-tests/shm/!-3 ()
-  (haskell-tests--test-buffer-contents
-      (shm/!)
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo :: _|_ Set Int"
-     "  , bar :: Map Int Double"
-     "  }")
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo :: !(Set Int)"
-     "  , bar :: Map Int Double"
-     "  }")))
-
-(ert-deftest haskell-tests/shm/!-4 ()
-  (haskell-tests--test-buffer-contents
-      (shm/!)
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo ::      _|_      Set Int"
-     "  , bar :: Map Int Double"
-     "  }")
-    (haskell-tests--multiline
-     "data Foo = Foo"
-     "  { foo :: !(Set Int)"
-     "  , bar :: Map Int Double"
-     "  }")))
+;; (ert-deftest haskell-tests/shm/!-1 ()
+;;   (haskell-tests--test-buffer-contents
+;;       (shm/!)
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo ::_|_ Set Int"
+;;      "  , bar :: Map Int Double"
+;;      "  }")
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo :: !_|_(Set Int)"
+;;      "  , bar :: Map Int Double"
+;;      "  }")))
+;;
+;; (ert-deftest haskell-tests/shm/!-2 ()
+;;   (haskell-tests--test-buffer-contents
+;;       (shm/!)
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo :: _|_Set Int"
+;;      "  , bar :: Map Int Double"
+;;      "  }")
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo :: !_|_(Set Int)"
+;;      "  , bar :: Map Int Double"
+;;      "  }")))
+;;
+;; (ert-deftest haskell-tests/shm/!-3 ()
+;;   (haskell-tests--test-buffer-contents
+;;       (shm/!)
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo :: _|_ Set Int"
+;;      "  , bar :: Map Int Double"
+;;      "  }")
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo :: !_|_(Set Int)"
+;;      "  , bar :: Map Int Double"
+;;      "  }")))
+;;
+;; (ert-deftest haskell-tests/shm/!-4 ()
+;;   (haskell-tests--test-buffer-contents
+;;       (shm/!)
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo ::      _|_      Set Int"
+;;      "  , bar :: Map Int Double"
+;;      "  }")
+;;     (haskell-tests--multiline
+;;      "data Foo = Foo"
+;;      "  { foo :: !_|_(Set Int)"
+;;      "  , bar :: Map Int Double"
+;;      "  }")))
 
 (ert-deftest haskell-tests/haskell-smart-operators--arrows-in-non-haddock-comment-1 ()
   (haskell-tests--test-buffer-contents
@@ -694,7 +722,7 @@
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
      "    [ \"label1\" --> value1"
-     "    , \"label2\" --> value2"
+     "    , \"label2\" --> value2_|_"
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")))
@@ -720,7 +748,7 @@
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
      "    [ \"label1\" --> value1"
-     "    , \"label2\" |-> value2"
+     "    , \"label2\" |-> value2_|_"
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")))
@@ -747,7 +775,7 @@
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
      "    [ \"label1\" --> value1"
-     "    , \"label2\" ---> value2"
+     "    , \"label2\" ---> value2_|_"
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")))
@@ -776,7 +804,7 @@
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
      "    [ \"label1\" --> value1"
-     "    , \"label2\" --->>> value2"
+     "    , \"label2\" --->>> value2_|_"
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")))
@@ -787,7 +815,1909 @@
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
         (insert "test"))
     "-- _|_"
-    "-- >test"))
+    "-- >test_|_"))
+
+
+(ert-deftest haskell-tests/haskell-backspace-with-block-dedent-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-backspace-with-block-dedent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    _|_(foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "   (ExactPrint.Types.mkAnnKey x)"
+     "   _|_(foldedAnnKeys x)"
+     "   (let foo y = bar . baz"
+     "          where"
+     "            bar = (+1)"
+     "            baz = (+y) . (*2)"
+     "    in foo 100)"
+     "   shouldAddComment"
+     "   (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "   foo"
+     "   bar"
+     "#wat"
+     ""
+     "   baz"
+     "#are"
+     "   you"
+     "   doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-backspace-with-block-dedent-not-at-exact-indentation-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-backspace-with-block-dedent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "   _|_ (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "   (ExactPrint.Types.mkAnnKey x)"
+     "  _|_ (foldedAnnKeys x)"
+     "   (let foo y = bar . baz"
+     "          where"
+     "            bar = (+1)"
+     "            baz = (+y) . (*2)"
+     "    in foo 100)"
+     "   shouldAddComment"
+     "   (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "   foo"
+     "   bar"
+     "#wat"
+     ""
+     "   baz"
+     "#are"
+     "   you"
+     "   doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-backspace-with-block-dedent-not-at-exact-indentation-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-backspace-with-block-dedent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "  _|_  (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "   (ExactPrint.Types.mkAnnKey x)"
+     " _|_  (foldedAnnKeys x)"
+     "   (let foo y = bar . baz"
+     "          where"
+     "            bar = (+1)"
+     "            baz = (+y) . (*2)"
+     "    in foo 100)"
+     "   shouldAddComment"
+     "   (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "   foo"
+     "   bar"
+     "#wat"
+     ""
+     "   baz"
+     "#are"
+     "   you"
+     "   doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-backspace-with-block-dedent-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-backspace-with-block-dedent 2))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    _|_(foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "  (ExactPrint.Types.mkAnnKey x)"
+     "  _|_(foldedAnnKeys x)"
+     "  (let foo y = bar . baz"
+     "         where"
+     "           bar = (+1)"
+     "           baz = (+y) . (*2)"
+     "   in foo 100)"
+     "  shouldAddComment"
+     "  (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "  foo"
+     "  bar"
+     "#wat"
+     ""
+     "  baz"
+     "#are"
+     "  you"
+     "  doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-backspace-with-block-dedent-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-backspace-with-block-dedent 3))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    _|_(foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     " (ExactPrint.Types.mkAnnKey x)"
+     " _|_(foldedAnnKeys x)"
+     " (let foo y = bar . baz"
+     "        where"
+     "          bar = (+1)"
+     "          baz = (+y) . (*2)"
+     "  in foo 100)"
+     " shouldAddComment"
+     " (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     " foo"
+     " bar"
+     "#wat"
+     ""
+     " baz"
+     "#are"
+     " you"
+     " doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-backspace-with-block-dedent-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-backspace-with-block-dedent)
+        (haskell-backspace-with-block-dedent)
+        (haskell-backspace-with-block-dedent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    _|_(foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     " (ExactPrint.Types.mkAnnKey x)"
+     " _|_(foldedAnnKeys x)"
+     " (let foo y = bar . baz"
+     "        where"
+     "          bar = (+1)"
+     "          baz = (+y) . (*2)"
+     "  in foo 100)"
+     " shouldAddComment"
+     " (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     " foo"
+     " bar"
+     "#wat"
+     ""
+     " baz"
+     "#are"
+     " you"
+     " doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-backspace-with-block-dedent-not-at-indentation-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-backspace-with-block-dedent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = _|_bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y =_|_bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+(ert-deftest haskell-tests/haskell-space-with-block-indent-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    _|_(foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "     (ExactPrint.Types.mkAnnKey x)"
+     "     _|_(foldedAnnKeys x)"
+     "     (let foo y = bar . baz"
+     "            where"
+     "              bar = (+1)"
+     "              baz = (+y) . (*2)"
+     "      in foo 100)"
+     "     shouldAddComment"
+     "     (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "     foo"
+     "     bar"
+     "#wat"
+     ""
+     "     baz"
+     "#are"
+     "     you"
+     "     doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-exact-indentation-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "   _|_ (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "     (ExactPrint.Types.mkAnnKey x)"
+     "    _|_ (foldedAnnKeys x)"
+     "     (let foo y = bar . baz"
+     "            where"
+     "              bar = (+1)"
+     "              baz = (+y) . (*2)"
+     "      in foo 100)"
+     "     shouldAddComment"
+     "     (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "     foo"
+     "     bar"
+     "#wat"
+     ""
+     "     baz"
+     "#are"
+     "     you"
+     "     doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-exact-indentation-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "  _|_  (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "     (ExactPrint.Types.mkAnnKey x)"
+     "   _|_  (foldedAnnKeys x)"
+     "     (let foo y = bar . baz"
+     "            where"
+     "              bar = (+1)"
+     "              baz = (+y) . (*2)"
+     "      in foo 100)"
+     "     shouldAddComment"
+     "     (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "     foo"
+     "     bar"
+     "#wat"
+     ""
+     "     baz"
+     "#are"
+     "     you"
+     "     doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-exact-indentation-affects-where-block-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     " _|_   (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "     (ExactPrint.Types.mkAnnKey x)"
+     "  _|_   (foldedAnnKeys x)"
+     "     (let foo y = bar . baz"
+     "            where"
+     "              bar = (+1)"
+     "              baz = (+y) . (*2)"
+     "      in foo 100)"
+     "     shouldAddComment"
+     "     (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "     foo"
+     "     bar"
+     "#wat"
+     ""
+     "     baz"
+     "#are"
+     "     you"
+     "     doing"
+     "   where"
+     "     hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-space-with-block-indent-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent 2))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             _|_bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "               _|_bar = (+1)"
+     "               baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-space-with-block-indent-not-at-indentation-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = _|_bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y =  _|_bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-space-with-block-indent-from-zeroth-column-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "_|_docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     " _|_docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "     (ExactPrint.Types.mkAnnKey x)"
+     "     (foldedAnnKeys x)"
+     "     (let foo y = bar . baz"
+     "            where"
+     "              bar = (+1)"
+     "              baz = (+y) . (*2)"
+     "      in foo 100)"
+     "     shouldAddComment"
+     "     (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "     foo"
+     "     bar"
+     "#wat"
+     ""
+     "     baz"
+     "#are"
+     "     you"
+     "     doing"
+     "   where"
+     "     hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-space-with-block-indent-from-zeroth-column-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "_|_docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     " _|_docExt"
+     "   :: (ExactPrint.Annotate.Annotate ast)"
+     "   => Located ast"
+     "   -> ExactPrint.Types.Anns"
+     "   -> Bool"
+     "   -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int_|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int    _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int    "
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int_|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int"
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int   _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int -> Int   "
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-5 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int_|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int"
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-6 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int   _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> Int   "
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-7 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int_|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int"
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-8 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int   _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  -> Int   "
+     "foo _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo = go"
+     "  where"
+     "    go :: a -> a_|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo = go"
+     "  where"
+     "    go :: a -> a"
+     "    go _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo = go"
+     "  where"
+     "    go :: a -> a  _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo :: Int -> Int"
+     "foo = go"
+     "  where"
+     "    go :: a -> a  "
+     "    go _|_"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int_|_"
+     "  -> Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int"
+     "  _|_"
+     "  -> Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int    _|_"
+     "  -> Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo"
+     "  :: Int    "
+     "  _|_"
+     "  -> Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> _|_Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int -> "
+     "  _|_Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int ->  _|_Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int ->  "
+     "  _|_Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--does-not-expand-if-not-at-the-end-5 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int ->  _|_ Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")
+    (haskell-tests--multiline
+     ""
+     "bar1 :: a -> x"
+     "bar1 x = x"
+     ""
+     "foo ::"
+     "  Int ->  "
+     "  _|_ Int"
+     ""
+     "bar2 :: a -> x"
+     "bar2 x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--deep-within-do-block-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     ""
+     "generateGrafts :: HasCallStack => GenerateGraftsConfig -> IO ()"
+     "generateGrafts GenerateGraftsConfig{ggcOutputFile, ggcOverwriteOutput} = do"
+     "  mrepo <- findRepoMaybe"
+     "  repo  <- case mrepo of"
+     "    Nothing ->"
+     "      error \"Failed to find git repository starting at current directory\""
+     "    Just x  -> pure x"
+     "  withRepo repo $ \git -> do"
+     "    let branches = [RefName \"dev\"] -- [, RefName \"master\"]    -- <- toList <$> branchList git"
+     "    branchesRefs <- for branches $ \branchRefName -> do"
+     "      let rev = Revision.fromString $ refNameRaw branchRefName"
+     "      mref <- resolveRevision git rev"
+     "      case mref of"
+     "        Nothing -> error $ \"Failed to resolve revision: \" ++ show rev"
+     "        Just x  -> pure x"
+     "    putStrLn $ \"Known branches: \" ++ show (map refNameRaw branches)"
+     "    (_, entries) <- runWriterT $ traverseAllCommitsTransitively git processCommit branchesRefs"
+     "    let graftsContents_|_graftsContents = formatGraftEntries entries"
+     "    outFile <- makeAbsolute ggcOutputFile"
+     "    exists  <- doesFileExist outFile"
+     "    TLIO.putStrLn $ TL.replicate 40 $ TL.singleton '-'"
+     "    TLIO.putStrLn \"New grafts contents:\""
+     "    TLIO.putStrLn graftsContents"
+     "    TLIO.putStrLn $ TL.replicate 40 $ TL.singleton '-'"
+     "    case (exists, ggcOverwriteOutput) of"
+     "      (False, _)     -> TLIO.writeFile (toFilePath outFile) graftsContents"
+     "      (True,  True)  -> do"
+     "        outFileBak <- outFile <.> \"bak\""
+     "        let outFile'    = toFilePath outFile"
+     "            outFileBak' = toFilePath outFileBak"
+     "        putStrLn $ \"Creating backup of \" ++ outFile' ++ \" at \" ++ outFileBak'"
+     "        renameFile outFile outFileBak"
+     "        TLIO.writeFile outFile' graftsContents"
+     "      (True,  False) -> error $"
+     "        \"Target file '\" ++ toFilePath outFile ++ \"' already exists. Refusing to overwrite (specify --force to override).\""
+     "    putStrLn $ \"New grafts written to \" ++ toFilePath outFile"
+     "  where"
+     "    processCommit :: Ref -> Commit -> WriterT [GraftEntry] IO ()"
+     "    processCommit commitRef commit ="
+     "      when (\"Merge commit\" `T.isInfixOf` msg) $"
+     "        case commitParents commit of"
+     "          [parentRef] ->"
+     "            case parseMergeCommit msg of"
+     "              Left err          -> error $"
+     "                \"Malformed merge commit: \" ++ T.unpack msg ++ \"\nError: \" ++ err"
+     "              Right mergeCommit -> do"
+     "                liftIO $ TIO.putStrLn $ \"Found merge commit \" <> T.pack (show commitRef) <> \": \" <> T.pack (show mergeCommit)"
+     "                tell $ (:[]) GraftEntry"
+     "                  { geTargetHash     = TE.decodeLatin1 $ Ref.toHex commitRef"
+     "                  , geRealParentHash = TE.decodeLatin1 $ Ref.toHex parentRef"
+     "                  , geFakeParentHash = mcMergedSHA mergeCommit"
+     "                  , geMergeCommit    = mergeCommit"
+     "                  }"
+     "          unexpected -> error $"
+     "            \"Merge commit '\" ++ show commitRef ++ \"' has unexpected number of parents: \" ++ show unexpected"
+     "      where"
+     "        msg = T.strip $ TE.decodeUtf8 $ commitMessage commit"
+     "")
+    (haskell-tests--multiline
+     ""
+     "generateGrafts :: HasCallStack => GenerateGraftsConfig -> IO ()"
+     "generateGrafts GenerateGraftsConfig{ggcOutputFile, ggcOverwriteOutput} = do"
+     "  mrepo <- findRepoMaybe"
+     "  repo  <- case mrepo of"
+     "    Nothing ->"
+     "      error \"Failed to find git repository starting at current directory\""
+     "    Just x  -> pure x"
+     "  withRepo repo $ \git -> do"
+     "    let branches = [RefName \"dev\"] -- [, RefName \"master\"]    -- <- toList <$> branchList git"
+     "    branchesRefs <- for branches $ \branchRefName -> do"
+     "      let rev = Revision.fromString $ refNameRaw branchRefName"
+     "      mref <- resolveRevision git rev"
+     "      case mref of"
+     "        Nothing -> error $ \"Failed to resolve revision: \" ++ show rev"
+     "        Just x  -> pure x"
+     "    putStrLn $ \"Known branches: \" ++ show (map refNameRaw branches)"
+     "    (_, entries) <- runWriterT $ traverseAllCommitsTransitively git processCommit branchesRefs"
+     "    let graftsContents"
+     "    _|_graftsContents = formatGraftEntries entries"
+     "    outFile <- makeAbsolute ggcOutputFile"
+     "    exists  <- doesFileExist outFile"
+     "    TLIO.putStrLn $ TL.replicate 40 $ TL.singleton '-'"
+     "    TLIO.putStrLn \"New grafts contents:\""
+     "    TLIO.putStrLn graftsContents"
+     "    TLIO.putStrLn $ TL.replicate 40 $ TL.singleton '-'"
+     "    case (exists, ggcOverwriteOutput) of"
+     "      (False, _)     -> TLIO.writeFile (toFilePath outFile) graftsContents"
+     "      (True,  True)  -> do"
+     "        outFileBak <- outFile <.> \"bak\""
+     "        let outFile'    = toFilePath outFile"
+     "            outFileBak' = toFilePath outFileBak"
+     "        putStrLn $ \"Creating backup of \" ++ outFile' ++ \" at \" ++ outFileBak'"
+     "        renameFile outFile outFileBak"
+     "        TLIO.writeFile outFile' graftsContents"
+     "      (True,  False) -> error $"
+     "        \"Target file '\" ++ toFilePath outFile ++ \"' already exists. Refusing to overwrite (specify --force to override).\""
+     "    putStrLn $ \"New grafts written to \" ++ toFilePath outFile"
+     "  where"
+     "    processCommit :: Ref -> Commit -> WriterT [GraftEntry] IO ()"
+     "    processCommit commitRef commit ="
+     "      when (\"Merge commit\" `T.isInfixOf` msg) $"
+     "        case commitParents commit of"
+     "          [parentRef] ->"
+     "            case parseMergeCommit msg of"
+     "              Left err          -> error $"
+     "                \"Malformed merge commit: \" ++ T.unpack msg ++ \"\nError: \" ++ err"
+     "              Right mergeCommit -> do"
+     "                liftIO $ TIO.putStrLn $ \"Found merge commit \" <> T.pack (show commitRef) <> \": \" <> T.pack (show mergeCommit)"
+     "                tell $ (:[]) GraftEntry"
+     "                  { geTargetHash     = TE.decodeLatin1 $ Ref.toHex commitRef"
+     "                  , geRealParentHash = TE.decodeLatin1 $ Ref.toHex parentRef"
+     "                  , geFakeParentHash = mcMergedSHA mergeCommit"
+     "                  , geMergeCommit    = mergeCommit"
+     "                  }"
+     "          unexpected -> error $"
+     "            \"Merge commit '\" ++ show commitRef ++ \"' has unexpected number of parents: \" ++ show unexpected"
+     "      where"
+     "        msg = T.strip $ TE.decodeUtf8 $ commitMessage commit"
+     "")))
+
+
+(ert-deftest haskell-tests/haskell-move-to-topmost-start-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-move-to-topmost-start))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . _|_(*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "_|_docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-move-to-topmost-end-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-move-to-topmost-end))
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . _|_(*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")
+    (haskell-tests--multiline
+     "foo :: a -> x"
+     "foo x = x"
+     ""
+     "docExt"
+     "  :: (ExactPrint.Annotate.Annotate ast)"
+     "  => Located ast"
+     "  -> ExactPrint.Types.Anns"
+     "  -> Bool"
+     "  -> ToBriDocM BriDocNumbered"
+     "docExt x anns shouldAddComment = allocateNode $ BDFExternal"
+     "    (ExactPrint.Types.mkAnnKey x)"
+     "    (foldedAnnKeys x)"
+     "    (let foo y = bar . baz"
+     "           where"
+     "             bar = (+1)"
+     "             baz = (+y) . (*2)"
+     "     in foo 100)"
+     "    shouldAddComment"
+     "    (Text.pack $ ExactPrint.exactPrint x anns)"
+     ""
+     "    foo"
+     "    bar"
+     "#wat"
+     ""
+     "    baz"
+     "#are"
+     "    you"
+     "    doing"
+     "  where"
+     "    hello = world_|_"
+     ""
+     "bar :: a -> x"
+     "bar x = x"
+     "")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-qualify-import))
+    (haskell-tests--multiline
+     "import Data.List"
+     "import Data.Ord_|_"
+     "import Data.Set (Set)")
+    (haskell-tests--multiline
+     "import Data.List"
+     "import qualified Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-qualify-import))
+    (haskell-tests--multiline
+     "import Data.List"
+     "import      Data.Ord_|_"
+     "import Data.Set (Set)")
+    (haskell-tests--multiline
+     "import Data.List"
+     "import qualified Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-qualify-import))
+    (haskell-tests--multiline
+     "import Data.List"
+     "import \"foo\"     Data.Ord_|_"
+     "import Data.Set (Set)")
+    (haskell-tests--multiline
+     "import Data.List"
+     "import \"foo\" qualified Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-qualify-import))
+    (haskell-tests--multiline
+     "import Data.List"
+     "import   qualified   Data.Ord_|_"
+     "import Data.Set (Set)")
+    (haskell-tests--multiline
+     "import Data.List"
+     "import Data.Ord_|_"
+     "import Data.Set (Set)")))
+
+(ert-deftest haskell-tests/haskell-qualify-import-5 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-qualify-import))
+    (haskell-tests--multiline
+     "import Data.List"
+     "import  \"foo\"  qualified   Data.Ord_|_"
+     "import Data.Set (Set)")
+    (haskell-tests--multiline
+     "import Data.List"
+     "import  \"foo\" Data.Ord_|_"
+     "import Data.Set (Set)")))
 
 ;; (ert "haskell-tests/.*")
 

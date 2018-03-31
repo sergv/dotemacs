@@ -33,16 +33,25 @@
 (defun haskell-setup-indentation (&optional offset)
   "Set up bindings and indentation parameters using OFFSET as a
 single indentation unit."
-  (bind-tab-keys #'haskell-shm-tab-or-indent-relative-forward
-                 #'haskell-shm-backtab-or-indent-relative-backward
+  (bind-tab-keys #'indent-relative-forward
+                 #'indent-relative-backward
                  :enable-yasnippet t)
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("C-<tab>"           haskell-indentation-indent-line)
+    ("C-S-<iso-lefttab>" haskell-indentation-indent-backwards))
 
   (let ((real-offset (or offset 2)))
     (setq-local vim:shift-width       real-offset)
     (setq-local haskell-indent-offset real-offset)
     (setq-local haskell-indent-spaces real-offset)
-    (setq-local shm-indent-spaces     real-offset)
+    (setq-local tab-width             real-offset)
     (haskell-abbrev+-setup real-offset)))
+
+(defun haskell-misc--single-indent ()
+  "Return a string for single indentation amount for Haskell."
+  (make-string vim:shift-width ?\s))
 
 ;;;###autoload
 (defconst +haskell-syntax-modes+ '(haskell-mode haskell-c-mode haskell-c2hs-mode)
@@ -208,17 +217,6 @@ and indent them as singe line."
         "-dppr-cols200"
         "-hidir" ,small-temporary-file-directory
         "-odir" ,small-temporary-file-directory)
-      shm-insert-space-after-comma t
-      shm-indent-point-after-adding-where-clause t
-      shm-colon-enabled t
-      shm-indent-use-chris-done-if-indent-style nil
-      shm-extensions
-      '("MagicHash"
-        "LambdaCase"
-        "QuasiQuotes"
-        "TemplateHaskell"
-        "TypeOperators"
-        "UnboxedTuples")
 
       inferior-haskell-find-project-root nil
 
@@ -366,22 +364,17 @@ for more information.")
 
 (defun haskell-back-up-indent-level ()
   "Move up to lesser indentation level, skipping empty lines."
-  (let* ((get-whitespace-level
-          (lambda ()
-            (save-excursion
-              (back-to-indentation)
-              (current-column))))
-         (current-level (funcall get-whitespace-level)))
+  (let ((current-level (indentation-size)))
     (when (= (current-column) current-level)
       (while (and (not (bobp))
                   ;; Do not move past 0th column in order to not skip to the
                   ;; beginning of file.
                   (/= 0 current-level)
                   (<= current-level
-                      (funcall get-whitespace-level)))
-        (backward-line 1)
-        (while (looking-at-p "^$")
-          (backward-line 1))))
+                      (indentation-size)))
+        (forward-line -1)
+        (while (looking-at-p haskell-regexen/preprocessor-or-empty-line)
+          (forward-line -1))))
     (back-to-indentation)))
 
 ;;;###autoload
@@ -449,13 +442,13 @@ sexps and indentation levels."
                      :require-one-or-more-spaces t)
 
 (make-align-function haskell-align-on-double-colons
-                     "\\(?:::[^:]\\|∷\\)")
+                     haskell-regexen/function-signature-colons)
 (make-align-function haskell-align-on-pragma-close
                      "#-}")
 
 
 (defun haskell-align-generic ()
-  (interactive)
+  (interactive "*")
   (haskell-align-on-equals)
   (haskell-align-on-arrows)
   (haskell-align-on-left-arrows)
@@ -478,7 +471,7 @@ sexps and indentation levels."
 
 (defun haskell-reindent-at-point ()
   "Do some sensible reindentation depending on the current position in file."
-  (interactive)
+  (interactive "*")
   (save-match-data
     (cond
       ((save-excursion
@@ -625,86 +618,100 @@ uppercase or lowercase names)."
 
 ;; newline that detects haskell signatures
 
-(defun shm-search-node-upwards (predicate node-pair)
-  "Searh for node matching PREDICATE starting from NODE-PAIR."
-  (let ((tmp node-pair))
-    (while (and tmp
-                (not (funcall predicate tmp)))
-      (setf tmp (shm-node-parent tmp)))
-    tmp))
+(defun haskell--simple-indent-newline-same-col ()
+  "Make a newline and go to the same column as the current line."
+  (interactive "*")
+  (let ((indentation-size
+         (save-excursion
+           (let* ((start (line-beginning-position))
+                  (end (progn
+                         (goto-char start)
+                         ;; (search-forward-regexp
+                         ;;  "[^ ]" (line-end-position) t 1)
+                         (skip-to-indentation)
+                         (point))))
+             (when (or (eobp) (/= ?\s (char-after)))
+               (- end start))))))
+    (insert "\n")
+    (when indentation-size
+      (insert (make-string indentation-size ?\s)))))
 
-(defun haskell-enclosing-TypeSig-node ()
-  (cdr-safe
-   (shm-search-node-upwards
-    (comp (partial #'eq? 'TypeSig) #'shm-node-cons #'cdr)
-    (shm-current-node-pair))))
+(defun haskell--simple-indent-newline-indent ()
+  "Make a newline on the current column and indent on step."
+  (interactive "*")
+  (haskell--simple-indent-newline-same-col)
+  (insert (make-string vim:shift-width ?\s)))
 
-(defun haskell-TypeSig-function-name-node (typesig-node)
-  "Extract function name from TypeSig node if point is currently in one or
-return nil otherwise."
-  (save-excursion
-    (goto-char (shm-node-start typesig-node))
-    (if-let (curr-node (cdr-safe (shm-current-node-pair)))
-        (cond ((eq? 'Ident (shm-node-cons curr-node))
-               curr-node)
-              ((eq? 'Symbol (shm-node-cons curr-node))
-               curr-node)
-              (t nil)))))
-
-(defun haskell-newline ()
+(defun haskell-newline-with-signature-expansion ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
-  (interactive)
-  (let ((indent
-         (lambda ()
-           (if (shm-current-node-pair)
-               (shm/newline-indent)
-             (shm/simple-indent-newline-same-col)))))
-    (when (memq major-mode +haskell-syntax-modes+)
-      (if-let ((enclosing-sig-node (haskell-enclosing-TypeSig-node))
-               (func-name-node (haskell-TypeSig-function-name-node enclosing-sig-node)))
-          (let ((func-name (buffer-substring-no-properties
-                            (shm-node-start func-name-node)
-                            (shm-node-end func-name-node)))
-                (indentation (save-excursion
-                               (goto-char (shm-node-start func-name-node))
-                               (current-column)))
-                (p (point))
-                (sig-end (shm-node-end enclosing-sig-node)))
-            (funcall indent)
-            ;; Maybe consider using this function instead?
-            ;; (shm/simple-indent-newline-same-col)
-            (when (and
-                   (= p sig-end)
-                   (not
-                    (save-excursion
-                      (forward-line)
-                      (skip-syntax-forward "->")
-                      (looking-at-p (concat (regexp-quote func-name)
-                                            "\\_>")))))
-              (delete-region (line-beginning-position) (point))
-              (insert (make-string indentation ?\s)
-                      func-name
-                      " ")))
-        ;; indent in either case, the key is to indent
-        ;; *after* parsing signature on current line
-        (funcall indent)))))
+  (interactive "*")
+  (let* ((start-pos (point))
+         (expanded-function-name?
+          (save-match-data
+            (let ((lower-bound
+                   (save-excursion
+                     (when (re-search-backward haskell-regexen/function-signature-colons
+                                               nil
+                                               t)
+                       (line-beginning-position)))))
+              (when lower-bound
+                (let ((found? nil)
+                      (func-name nil))
+                  (while (and (not found?)
+                              (< lower-bound (point))
+                              (not (bolp)))
+                    (haskell-back-up-indent-level)
+                    (when (looking-at (eval-when-compile
+                                        (let ((ws "[ \t\n\r]"))
+                                          (concat "\\(?:\\_<\\(?:let\\|where\\)\\_>" ws "+\\)?"
+                                                  "\\(?1:"
+                                                  (concat "\\(?2:" haskell-regexen/varid "\\)"
+                                                          "\\(?:," ws "*" haskell-regexen/varid "\\)*")
+                                                  "\\)"
+                                                  ws "*"
+                                                  haskell-regexen/function-signature-colons))))
+                      (setf found? t
+                            func-name (match-string 1))))
+                  (when found?
+                    (goto-char (match-beginning 1))
+                    (let ((function-name-column (current-column))
+                          (indented-section-end (line-end-position)))
+                      (forward-line 1)
+                      (while (< function-name-column (indentation-size))
+                        (setf indented-section-end (line-end-position))
+                        (forward-line 1))
+                      (when (and
+                             (= start-pos indented-section-end)
+                             (not
+                              (save-excursion
+                                (forward-line)
+                                (skip-syntax-forward "->")
+                                (looking-at-p (concat (regexp-quote func-name)
+                                                      "\\_>")))))
+                        (goto-char start-pos)
+                        (insert "\n")
+                        (insert (make-string function-name-column ?\s)
+                                func-name
+                                " ")
+                        t)))))))))
+    (unless expanded-function-name?
+      (goto-char start-pos)
+      (haskell--simple-indent-newline-same-col))))
 
 (defun haskell-abbrev+-fallback-space ()
-  (interactive)
-  (if structured-haskell-mode
-      (shm/space)
-    (insert " ")))
+  (interactive "*")
+  (haskell-space-with-block-indent))
 
 (defun haskell-interactive-clear-prompt ()
   "Clear haskell prompt from input."
-  (interactive)
+  (interactive "*")
   (goto-char haskell-interactive-mode-prompt-start)
   (when (not (equal (point)
                     (line-end-position)))
     (delete-region (point) (line-end-position))))
 
 (defun haskell-interactive-clear-buffer-above-prompt ()
-  (interactive)
+  (interactive "*")
   (let ((session (haskell-session)))
     (with-current-buffer (haskell-session-interactive-buffer session)
       (save-excursion
@@ -722,9 +729,9 @@ return nil otherwise."
   (haskell-interactive-prompt-regex)
   :jump-to-end t)
 
-(defun haskell--ghci-shm/hyphen (&optional prefix)
-  "Version of `shm/hyphen' for ghci."
-  (interactive "p")
+(defun haskell--ghci-hyphen (&optional prefix)
+  "Version of `haskell-smart-operators-hyphen' for ghci."
+  (interactive "*p")
   (let ((entering-command?
          (save-excursion
            (beginning-of-line)
@@ -735,28 +742,23 @@ return nil otherwise."
                   (char= c ?:))))))
     (if entering-command?
         (self-insert-command prefix)
-      (shm/hyphen prefix))))
+      (haskell-smart-operators-hyphen prefix))))
 
-(defun* install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen use-shm)
+(defun* install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen)
   (declare (indent 1))
   (when bind-colon
     (define-key keymap
       (kbd ":")
-      (if use-shm #'shm/: #'haskell-smart-operators-self-insert)))
+      #'haskell-smart-operators-self-insert))
   (when bind-hyphen
     (def-keys-for-map keymap
       ("-" haskell-smart-operators-hyphen)))
   (define-key keymap
-    (kbd "@")
-    (if use-shm #'shm/@ #'haskell-smart-operators-self-insert))
-  (define-key keymap
     (kbd "!")
-    (if use-shm
-        #'shm/!
-      #'haskell-smart-operators-exclamation-mark))
+    #'haskell-smart-operators-exclamation-mark)
   (dolist (key (list (kbd "=") (kbd "+") (kbd "*") (kbd "<") (kbd ">")
                      (kbd "%") (kbd "^") (kbd "&") (kbd "/")
-                     (kbd "?") (kbd "|") (kbd "~")))
+                     (kbd "?") (kbd "|") (kbd "~") (kbd "@")))
     (define-key keymap
       key
       #'haskell-smart-operators-self-insert))
@@ -764,9 +766,7 @@ return nil otherwise."
     ("$"   haskell-smart-operators-$)
     ("#"   haskell-smart-operators-hash)
     (","   haskell-smart-operators-comma)
-    ("C-=" input-unicode)
-    ;; ("\\"  self-insert-command)
-    ))
+    ("C-=" input-unicode)))
 
 (defun haskell-prof-search-column (column pred)
   (cl-assert (< 0 column))
@@ -890,19 +890,6 @@ it's position in current window."
         (haskell-process-load-file))
       (haskell-interactive-bring))))
 
-(defun haskell-shm-tab-or-indent-relative-forward ()
-  (interactive)
-  (if structured-haskell-mode
-      (shm/tab)
-    (indent-relative-forward)))
-
-(defun haskell-shm-backtab-or-indent-relative-backward ()
-  (interactive)
-  (if structured-haskell-mode
-      (shm/backtab)
-    (indent-relative-backward)))
-
-
 (defun haskell-misc--cabal-indented-subsection ()
   "Similar to `haskell-cabal-subsection' but sets `:data-start-column' to the
 value section should have if it is to be properly indented."
@@ -917,7 +904,7 @@ value section should have if it is to be properly indented."
 
 (defun haskell-misc-cabal-align-and-sort-subsection ()
   "Sort lines of the subsection at point."
-  (interactive)
+  (interactive "*")
   (save-match-data
     (haskell-cabal-save-position
      (haskell-cabal-with-subsection
@@ -954,6 +941,109 @@ value section should have if it is to be properly indented."
                           (file-name-nondirectory (file-name-sans-extension str))
                           t ;; omit nulls
                           )))))
+
+;;; Utilities salvaged from structured-haskell-mode.
+
+(defface haskell-evaporate-face
+  '((t :foreground "#666666"))
+  "Face for text that will evaporate when modified/overwritten.")
+
+(defun haskell-evaporate (beg end &optional disable-cycling?)
+  "Make the region evaporate when typed over."
+  (interactive "r")
+  (let ((o (make-overlay beg end nil nil nil)))
+    (overlay-put o 'face 'haskell-evaporate-face)
+    (overlay-put o 'priority 2)
+    (overlay-put o 'modification-hooks '(haskell-evaporate-modification-hook))
+    (overlay-put o 'insert-in-front-hooks '(haskell-evaporate-insert-before-hook))
+    (overlay-put o 'insert-behind-hooks '(haskell-evaporate-insert-behind-hook))))
+
+(defun haskell-evaporate-modification-hook (o changed beg end &optional len)
+  "Remove the overlay after a modification occurs."
+  (let ((inhibit-modification-hooks t))
+    (when (and changed
+                (overlay-start o))
+      (haskell-evaporate-delete-text o beg end)
+      (delete-overlay o))))
+
+(defun haskell-evaporate-insert-before-hook (o changed beg end &optional len)
+  "Remove the overlay before inserting something at the start."
+  (let ((inhibit-modification-hooks t))
+    (when (and (not changed)
+               (overlay-start o))
+      (haskell-evaporate-delete-text o beg end)
+      (delete-overlay o))))
+
+(defun haskell-evaporate-insert-behind-hook (o changed beg end &optional len)
+  "Remove the overlay when calling backspace at the end.."
+  (let ((inhibit-modification-hooks t))
+    (when (and (not changed)
+               (overlay-start o))
+      (haskell-evaporate-delete-text o beg end)
+      (delete-overlay o))))
+
+(defun haskell-evaporate-delete-text (o beg end)
+  "Delete the text associated with the evaporating slot."
+  (unless (eq this-command 'undo)
+    (delete-region (overlay-start o)
+                   (overlay-end o))))
+
+
+(defun haskell-insert-undefined ()
+  "Insert undefined."
+  (interactive "*")
+  (let ((start (point)))
+    (when (and (looking-back "[^\[\(\{;, ]")
+               (not (bolp)))
+      (insert " ")
+      (setq start (1+ start)))
+    (when (and (looking-at-p "[^\]\)\},; ]+_*")
+               (not (eolp)))
+      (insert " ")
+      (forward-char -1))
+    (insert "undefined")
+    (haskell-evaporate start (point) nil)
+    (goto-char start)))
+
+
+(defun haskell-move-to-topmost-start ()
+  "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
+  (interactive)
+  (beginning-of-line)
+  (while (and (not (bobp))
+              (or (/= 0 (indentation-size))
+                  (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
+    (forward-line -1)))
+
+(defun haskell-move-to-topmost-end ()
+  "Move to end of the topmost node, similar to `glisp/end-of-defun'."
+  (interactive)
+  (beginning-of-line)
+  (when (= 0 (indentation-size))
+    (forward-line 1))
+  (while (and (not (eobp))
+              (or (/= 0 (indentation-size))
+                  (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
+    (forward-line 1))
+  (forward-line -1)
+  (while (and (not (bobp))
+              (looking-at-p haskell-regexen/empty-line))
+    (forward-line -1))
+  (end-of-line))
+
+(defun haskell-qualify-import ()
+  (interactive "*")
+  (save-match-data
+    (save-excursion
+      (beginning-of-line)
+      (if (looking-at haskell-regexen/import-line)
+          (progn
+            (goto-char (match-end 0))
+            (delete-whitespace-backward)
+            (if (looking-at "qualified[ \t\r\n]+")
+                (replace-match " ")
+              (insert " qualified ")))
+        (error "Not on a line with import")))))
 
 (provide 'haskell-misc)
 

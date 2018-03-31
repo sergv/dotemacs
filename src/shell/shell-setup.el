@@ -110,7 +110,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
     ("SPC SPC" comint-clear-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ;; Override vim-mode's shm-insert-or-wrap bindings because they're annoying
+    ;; Override vim-mode's "insert-or-wrap" bindings because they're annoying
     ;; in the prompt.
     ("(" self-insert-command)
     ("[" self-insert-command)

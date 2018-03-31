@@ -32,8 +32,7 @@
   (install-haskell-smart-operators!
       vim:insert-mode-local-keymap
     :bind-colon t
-    :bind-hyphen t
-    :use-shm nil)
+    :bind-hyphen t)
   (setup-eproj-symbnav)
   (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
@@ -49,9 +48,12 @@
 
     ("C-l"             intero-repl-load)
 
+    ("DEL"             haskell-backspace-with-block-dedent)
+    ("<backspace>"     haskell-backspace-with-block-dedent)
+
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
-    ("<return>"        haskell-newline)
+    ("<return>"        haskell-newline-with-signature-expansion)
     ("<f9>"            haskell-compile)))
 
 (provide 'haskell-grammar-tools-setup)
