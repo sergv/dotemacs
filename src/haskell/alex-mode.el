@@ -17,9 +17,6 @@
 
 (defparameter alex-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (def-keys-for-map keymap
-      ("<backspace>" backward-delete-char-untabify)
-      ("<tab>"       shm/tab))
     keymap)
   "Keymap used in alex mode.")
 

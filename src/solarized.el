@@ -3,8 +3,6 @@
 ;; Author: Ethan Schoonover, Solarized; Greg Pfeil, Emacs adaptation
 ;; URL: http://ethanschoonover.com/solarized
 
-;; This file is not (YET) part of GNU Emacs.
-
 (defconst +solarized-red+     "#dc322f")
 (defconst +solarized-orange+  "#cb4b16")
 (defconst +solarized-yellow+  "#b58900")
@@ -238,11 +236,6 @@ Futher modified by Sergey Vinokurov."
             (idris-semantic-function-face                 ((t (:inherit font-lock-function-name-face))))
             (idris-semantic-bound-face                    ((t (:inherit default))))
             (idris-operator-face                          ((t (:inherit haskell-operator-face))))
-
-            (shm-current-face             ((t (:background ,base02))))
-            (shm-quarantine-face          ((((supports :underline (:style wave)))
-                                            (:underline (:style wave :color ,base01)))
-                                           (t (:underline ,base01))))
 
             (flycheck-error               ((((supports :underline (:style wave)))
                                             :underline (:style wave :color ,red :bold t))

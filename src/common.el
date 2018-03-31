@@ -1282,12 +1282,17 @@ trailing newline"
   (buffer-substring (line-beginning-position)
                     (line-end-position)))
 
-(defsubst skip-to-indentation ()
-  "Move point to first non-whitespace character of line,
-lighter than `back-to-indentation'."
-  (beginning-of-line nil)
-  (skip-syntax-forward " " (line-end-position))
+(defsubst skip-indentation-forward (&optional end-pos)
+  "Skip whitespace that looks like indentation, but don't go
+further that END-POS."
+  (skip-syntax-forward " " (or end-pos (line-end-position)))
   (backward-prefix-chars))
+
+(defsubst skip-to-indentation (&optional end-pos)
+  "Move point to first non-whitespace character of line, but no
+further than END-POS."
+  (beginning-of-line nil)
+  (skip-indentation-forward end-pos))
 
 (defun indentation-size ()
   "Return indentation size for current line."

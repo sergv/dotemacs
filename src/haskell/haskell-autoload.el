@@ -68,7 +68,6 @@
 (put 'haskell-program-name 'safe-local-variable (lambda (x) (or (stringp x) (listp x))))
 (put 'hindent-style 'safe-local-variable #'stringp)
 (put 'intero-targets 'safe-local-variable (lambda (x) (and (listp x) (cl-every #'stringp x ))))
-(put 'shm-display-quarantine 'safe-local-variable #'booleanp)
 
 (add-hook 'ghc-core-mode-hook #'ghc-core-setup)
 (add-hook 'haskell-cabal-mode-hook #'haskell-cabal-setup)
