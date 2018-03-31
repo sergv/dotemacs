@@ -1,7 +1,0 @@
-resolver: lts-11.1
-
-packages:
-- '.'
-
-extra-deps:
-  - bert-1.2.2.5
