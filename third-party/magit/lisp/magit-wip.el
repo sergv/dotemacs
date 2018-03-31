@@ -1,6 +1,6 @@
 ;;; magit-wip.el --- commit snapshots to work-in-progress refs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017  The Magit Project Contributors
+;; Copyright (C) 2010-2018  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -83,7 +83,7 @@ variant `magit-wip-after-save-mode'."
   :package-version '(magit . "2.1.0")
   :lighter magit-wip-after-save-local-mode-lighter
   (if magit-wip-after-save-local-mode
-      (if (and buffer-file-name (magit-inside-worktree-p))
+      (if (and buffer-file-name (magit-inside-worktree-p t))
           (add-hook 'after-save-hook 'magit-wip-commit-buffer-file t t)
         (setq magit-wip-after-save-local-mode nil)
         (user-error "Need a worktree and a file"))
@@ -91,7 +91,7 @@ variant `magit-wip-after-save-mode'."
 
 (defun magit-wip-after-save-local-mode-turn-on ()
   (and buffer-file-name
-       (ignore-errors (magit-inside-worktree-p))
+       (magit-inside-worktree-p t)
        (magit-file-tracked-p buffer-file-name)
        (magit-wip-after-save-local-mode)))
 

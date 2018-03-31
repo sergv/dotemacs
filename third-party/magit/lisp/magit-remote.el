@@ -1,6 +1,6 @@
 ;;; magit-remote.el --- transfer Git commits  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2017  The Magit Project Contributors
+;; Copyright (C) 2008-2018  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -30,6 +30,15 @@
 ;;; Code:
 
 (require 'magit)
+
+;;; Options
+
+(defcustom magit-fetch-modules-jobs 4
+  "Number of submodules to fetch in parallel.
+Ignored for Git versions before v2.8.0."
+  :package-version '(magit . "2.12.0")
+  :group 'magit-commands
+  :type '(choice (const :tag "one at a time" nil) number))
 
 ;;; Clone
 
@@ -83,7 +92,8 @@ Then show the status buffer for the new repository."
        (with-current-buffer (process-get process 'command-buf)
          (magit-status-internal directory))))))
 
-;;; Setup
+;;; Remote
+;;;; Options
 
 (defcustom magit-remote-add-set-remote.pushDefault 'ask-if-unset
   "Whether to set the value of `remote.pushDefault' after adding a remote.
@@ -100,17 +110,38 @@ variable isn't already set."
                  (string :tag "set if named")
                  (const  :tag "don't set")))
 
+(defcustom magit-remote-popup-show-variables t
+  "Whether the `magit-remote-popup' shows Git variables.
+When set to nil, no variables are displayed directly in this
+popup, instead the sub-popup `magit-remote-config-popup' has
+to be used to view and change remote related variables."
+  :package-version '(magit . "2.12.0")
+  :group 'magit-commands
+  :type 'boolean)
+
+;;;; Popup
+
+(defvar magit-remote-config-variables)
+
 ;;;###autoload (autoload 'magit-remote-popup "magit-remote" nil t)
 (magit-define-popup magit-remote-popup
   "Popup console for remote commands."
   :man-page "git-remote"
   :default-arguments '("-f")
+  :variables (lambda ()
+               (and magit-remote-popup-show-variables
+                    magit-remote-config-variables))
   :switches '("Switches for add"
               (?f "Fetch after add" "-f"))
-  :actions  '((?a "Add"     magit-remote-add)
-              (?r "Rename"  magit-remote-rename)
-              (?k "Remove"  magit-remote-remove)
-              (?u "Set url" magit-remote-set-url)))
+  :actions  '((?a "Add"                  magit-remote-add)
+              (?C "Configure..."         magit-remote-config-popup)
+              (?r "Rename"               magit-remote-rename)
+              (?p "Prune stale branches" magit-remote-prune)
+              (?k "Remove"               magit-remote-remove)
+              (?p "Prune stale refspecs" magit-remote-prune-refspecs))
+  :max-action-columns 2)
+
+;;;; Commands
 
 (defun magit-read-url (prompt &optional initial-input)
   (let ((url (magit-read-string-ns prompt initial-input)))
@@ -141,22 +172,113 @@ variable isn't already set."
    (let  ((remote (magit-read-remote "Rename remote")))
      (list remote (magit-read-string-ns (format "Rename %s to" remote)))))
   (unless (string= old new)
-    (magit-run-git "remote" "rename" old new)))
-
-;;;###autoload
-(defun magit-remote-set-url (remote url)
-  "Change the url of the remote named REMOTE to URL."
-  (interactive
-   (let  ((remote (magit-read-remote "Set url of remote")))
-     (list remote (magit-read-url
-                   "Url" (magit-get "remote" remote "url")))))
-  (magit-run-git "remote" "set-url" remote url))
+    (magit-call-git "remote" "rename" old new)
+    (magit-remote--cleanup-push-variables old new)
+    (magit-refresh)))
 
 ;;;###autoload
 (defun magit-remote-remove (remote)
   "Delete the remote named REMOTE."
   (interactive (list (magit-read-remote "Delete remote")))
-  (magit-run-git "remote" "rm" remote))
+  (magit-call-git "remote" "rm" remote)
+  (magit-remote--cleanup-push-variables remote)
+  (magit-refresh))
+
+(defun magit-remote--cleanup-push-variables (remote &optional new-name)
+  (magit-with-toplevel
+    (when (equal (magit-get "remote.pushDefault") remote)
+      (magit-set new-name "remote.pushDefault"))
+    (dolist (var (magit-git-lines "config" "--name-only"
+                                  "--get-regexp" "^branch\.[^.]*\.pushRemote"
+                                  (format "^%s$" remote)))
+      (magit-call-git "config" (and (not new-name) "--unset") var new-name))))
+
+(defconst magit--refspec-re "\\`\\(\\+\\)?\\([^:]+\\):\\(.*\\)\\'")
+
+;;;###autoload
+(defun magit-remote-prune (remote)
+  "Remove stale remote-tracking branches for REMOTE."
+  (interactive (list (magit-read-remote "Prune stale branches of remote")))
+  (magit-run-git-async "remote" "prune" remote))
+
+;;;###autoload
+(defun magit-remote-prune-refspecs (remote)
+  "Remove stale refspecs for REMOTE.
+
+A refspec is stale if there no longer exists at least one branch
+on the remote that would be fetched due to that refspec.  A stale
+refspec is problematic because its existence causes Git to refuse
+to fetch according to the remaining non-stale refspecs.
+
+If only stale refspecs remain, then offer to either delete the
+remote or to replace the stale refspecs with the default refspec.
+
+Also remove the remote-tracking branches that were created due to
+the now stale refspecs.  Other stale branches are not removed."
+  (interactive (list (magit-read-remote "Prune refspecs of remote")))
+  (let* ((tracking-refs (magit-list-remote-branches remote))
+         (remote-refs (magit-remote-list-refs remote))
+         (variable (format "remote.%s.fetch" remote))
+         (refspecs (magit-get-all variable))
+         stale)
+    (dolist (refspec refspecs)
+      (when (string-match magit--refspec-re refspec)
+        (let ((theirs (match-string 2 refspec))
+              (ours   (match-string 3 refspec)))
+          (unless (if (string-match "\\*" theirs)
+                      (let ((re (replace-match ".*" t t theirs)))
+                        (--some (string-match-p re it) remote-refs))
+                    (member theirs remote-refs))
+            (push (cons refspec
+                        (if (string-match "\\*" ours)
+                            (let ((re (replace-match ".*" t t ours)))
+                              (--filter (string-match-p re it) tracking-refs))
+                          (list (car (member ours tracking-refs)))))
+                  stale)))))
+    (if (not stale)
+        (message "No stale refspecs for remote %S" remote)
+      (if (= (length stale)
+             (length refspecs))
+          (magit-read-char-case
+              (format "All of %s's refspecs are stale.  " remote) nil
+            (?s "replace with [d]efault refspec"
+                (magit-set-all
+                 (list (format "+refs/heads/*:refs/remotes/%s/*" remote))
+                 variable))
+            (?r "[r]emove remote"
+                (magit-call-git "remote" "rm" remote))
+            (?a "or [a]abort"
+                (user-error "Abort")))
+        (if (if (= (length stale) 1)
+                (pcase-let ((`(,refspec . ,refs) (car stale)))
+                  (magit-confirm 'prune-stale-refspecs
+                    (format "Prune stale refspec %s and branch %%s" refspec)
+                    (format "Prune stale refspec %s and %%i branches" refspec)
+                    nil refs))
+              (magit-confirm 'prune-stale-refspecs nil
+                (format "Prune %%i stale refspecs and %i branches"
+                        (length (cl-mapcan (lambda (s) (copy-sequence (cdr s)))
+                                           stale)))
+                nil
+                (--map (pcase-let ((`(,refspec . ,refs) it))
+                         (concat refspec "\n"
+                                 (mapconcat (lambda (b) (concat "  " b))
+                                            refs "\n")))
+                       stale)))
+            (pcase-dolist (`(,refspec . ,refs) stale)
+              (magit-call-git "config" "--unset" variable
+                              (regexp-quote refspec))
+              (magit--log-action
+               (lambda (refs)
+                 (format "Deleting %i branches" (length refs)))
+               (lambda (ref)
+                 (format "Deleting branch %s (was %s)" ref
+                         (magit-rev-parse "--short" ref)))
+               refs)
+              (dolist (ref refs)
+                (magit-call-git "update-ref" "-d" ref)))
+          (user-error "Abort")))
+      (magit-refresh))))
 
 ;;;###autoload
 (defun magit-remote-set-head (remote &optional branch)
@@ -180,6 +302,143 @@ Delete the symbolic-ref \"refs/remotes/<remote>/HEAD\"."
   (interactive (list (magit-read-remote "Unset HEAD for remote")))
   (magit-run-git "remote" "set-head" remote "--delete"))
 
+;;;; Config Popup
+
+(defvar magit-remote-config--remote nil)
+
+;;;###autoload
+(defun magit-remote-config-popup (remote)
+  "Popup console for setting remote variables."
+  (interactive
+   (list (if (or current-prefix-arg
+                 (and (eq magit-current-popup 'magit-remote-popup)
+                      magit-remote-popup-show-variables))
+             (magit-read-remote "Configure remote")
+           (magit-remote-config--remote-1))))
+  (let ((magit-remote-config--remote remote))
+    (magit-invoke-popup 'magit-remote-config-popup nil nil)))
+
+(defvar magit-remote-config-variables
+  '((lambda ()
+      (concat
+       (propertize "Configure " 'face 'magit-popup-heading)
+       (propertize (magit-remote-config--remote) 'face 'magit-branch-remote)))
+    (?u "remote.%s.url"
+        magit-set-remote*url
+        magit-format-remote*url)
+    (?U "remote.%s.fetch"
+        magit-set-remote*fetch
+        magit-format-remote*fetch)
+    (?s "remote.%s.pushurl"
+        magit-set-remote*pushurl
+        magit-format-remote*pushurl)
+    (?S "remote.%s.push"
+        magit-set-remote*push
+        magit-format-remote*push)
+    (?O "remote.%s.tagOpt"
+        magit-cycle-remote*tagOpt
+        magit-format-remote*tagOpt)))
+
+(defvar magit-remote-config-popup
+  `(:man-page "git-remote"
+    :variables ,magit-remote-config-variables
+    :setup-function magit-remote-config-popup-setup))
+
+(defun magit-remote-config-popup-setup (val def)
+  (magit-popup-default-setup val def)
+  (setq-local magit-remote-config--remote magit-remote-config--remote))
+
+(defun magit-remote-config--remote (&optional prompt)
+  (if prompt
+      (or (and (not current-prefix-arg)
+               (or magit-remote-config--remote
+                   (magit-remote-config--remote-1)))
+          (magit-read-remote prompt))
+    (or magit-remote-config--remote
+        (magit-remote-config--remote-1)
+        "<name>")))
+
+(defun magit-remote-config--remote-1 ()
+  (let ((remote (magit-get-upstream-remote)))
+    (if (or (not remote)
+            (equal remote "."))
+        (and (magit-remote-p "origin") "origin")
+      remote)))
+
+;;;; Config Commands and Inserters
+
+(defun magit-set-remote*url (remote urls)
+  "Set the variable `url' for the remote named REMOTE to URLS."
+  (interactive (magit-remote-config--read-args "url" "Urls: "))
+  (magit-remote-config--set-url remote "url" urls))
+
+(defun magit-set-remote*fetch (remote values)
+  "Set the variable `fetch' for the remote named REMOTE to VALUES."
+  (interactive (magit-remote-config--read-args "fetch" "Fetch specs: "))
+  (magit-set-all values "remote" remote "fetch")
+  (magit-refresh))
+
+(defun magit-set-remote*pushurl (remote urls)
+  "Set the variable `pushurl' for the remote named REMOTE to URLS."
+  (interactive (magit-remote-config--read-args "pushurl" "Urls: "))
+  (magit-remote-config--set-url remote "pushurl" urls "--push"))
+
+(defun magit-set-remote*push (remote values)
+  "Set the variable `push' for the remote named REMOTE to VALUES."
+  (interactive (magit-remote-config--read-args "push" "Push specs: "))
+  (magit-set-all values "remote" remote "push")
+  (magit-refresh))
+
+(defun magit-cycle-remote*tagOpt (remote)
+  (interactive (list (magit-remote-config--remote)))
+  (magit--set-popup-variable (format "remote.%s.tagOpt" remote)
+                             '("--no-tags" "--tags") nil))
+
+(defun magit-format-remote*url ()
+  (magit-remote-config--format-variable "url"))
+
+(defun magit-format-remote*fetch ()
+  (magit-remote-config--format-variable "fetch"))
+
+(defun magit-format-remote*pushurl ()
+  (magit-remote-config--format-variable "pushurl"))
+
+(defun magit-format-remote*push ()
+  (magit-remote-config--format-variable "push"))
+
+(defun magit-format-remote*tagOpt ()
+  (let ((remote (magit-remote-config--remote)))
+    (magit--format-popup-variable:choices
+     (format "remote.%s.tagOpts" remote)
+     '("--no-tags" "--tags") nil nil
+     (+ (length remote) 16))))
+
+(defun magit-remote-config--read-args (var prompt)
+  (let* ((remote (magit-remote-config--remote (format "Set `%s' of remote" var)))
+         (value (magit-get-all "remote" remote var)))
+    (list remote
+          (mapcar (lambda (url)
+                    (if (string-prefix-p "~" url)
+                        (expand-file-name url)
+                      url))
+                  (completing-read-multiple
+                   prompt nil nil nil
+                   (and value (mapconcat #'identity value ",")))))))
+
+(defun magit-remote-config--set-url (remote var values &optional arg)
+  (let ((old (magit-get-all "remote" remote var)))
+    (dolist (v (-difference values old))
+      (magit-call-git "remote" "set-url" arg "--add" remote v))
+    (dolist (v (-difference old values))
+      (magit-call-git "remote" "set-url" arg "--delete" remote
+                      (concat "^" (regexp-quote v) "$"))))
+  (magit-refresh))
+
+(defun magit-remote-config--format-variable (variable)
+  (magit--format-popup-variable:values
+   (format "remote.%s.%s" (magit-remote-config--remote) variable)
+   25))
+
 ;;; Fetch
 
 ;;;###autoload (autoload 'magit-fetch-popup "magit-remote" nil t)
@@ -197,7 +456,7 @@ Delete the symbolic-ref \"refs/remotes/<remote>/HEAD\"."
               "Fetch"
               (?o "another branch"         magit-fetch-branch)
               (?r "explicit refspec"       magit-fetch-refspec)
-              (?m "submodules"             magit-submodule-fetch))
+              (?m "submodules"             magit-fetch-modules))
   :default-action 'magit-fetch
   :max-action-columns 1)
 
@@ -255,7 +514,9 @@ Delete the symbolic-ref \"refs/remotes/<remote>/HEAD\"."
 ;;;###autoload
 (defun magit-fetch-all (args)
   "Fetch from all remotes."
-  (interactive (list (magit-fetch-arguments)))
+  (interactive (list (cl-intersection (magit-fetch-arguments)
+                                      (list "--verbose" "--prune")
+                                      :test #'equal)))
   (run-hooks 'magit-credential-hook)
   (magit-run-git-async "remote" "update" args))
 
@@ -274,6 +535,23 @@ removed on the respective remote."
   (interactive)
   (run-hooks 'magit-credential-hook)
   (magit-run-git-async "remote" "update"))
+
+;;;###autoload
+(defun magit-fetch-modules (&optional all)
+  "Fetch all submodules.
+
+Option `magit-fetch-modules-jobs' controls how many submodules
+are being fetched in parallel.  Also fetch the super-repository,
+because `git-fetch' does not support not doing that.  With a
+prefix argument fetch all remotes."
+  (interactive "P")
+  (magit-with-toplevel
+    (magit-run-git-async
+     "fetch" "--verbose" "--recurse-submodules"
+     (and magit-fetch-modules-jobs
+          (version<= "2.8.0" (magit-git-version))
+          (list "-j" (number-to-string magit-fetch-modules-jobs)))
+     (and all "--all"))))
 
 ;;; Pull
 
@@ -347,15 +625,15 @@ missing.  To add them use something like:
              "Fetch"
              (?o "another branch"    magit-fetch-branch)
              (?s "explicit refspec"  magit-fetch-refspec)
-             (?m "submodules"        magit-submodule-fetch))
+             (?m "submodules"        magit-fetch-modules))
   :default-action 'magit-fetch
   :max-action-columns 1)
 
 (defun magit-pull-format-branch*rebase ()
-  (magit-popup-format-variable (format "branch.%s.rebase"
-                                       (or (magit-get-current-branch) "<name>"))
-                               '("true" "false")
-                               "false" "pull.rebase"))
+  (magit--format-popup-variable:choices
+   (format "branch.%s.rebase" (or (magit-get-current-branch) "<name>"))
+   '("true" "false")
+   "false" "pull.rebase"))
 
 (defun magit-git-pull (source args)
   (run-hooks 'magit-credential-hook)
@@ -479,8 +757,7 @@ the push-remote can be changed before pushed to it."
                (setf (magit-get
                       (if (eq magit-push-current-set-remote-if-missing 'default)
                           "remote.pushDefault"
-                        (format "branch.%s.pushRemote"
-                                (magit-get-current-branch))))
+                        (format "branch.%s.pushRemote" it)))
                      push-remote))
              (-if-let (remote (magit-get-push-remote it))
                  (if (member remote (magit-list-remotes))
@@ -570,6 +847,8 @@ Both the source and the target are read in the minibuffer."
            (magit-push-arguments))))
   (magit-git-push source target args))
 
+(defvar magit-push-refspecs-history nil)
+
 ;;;###autoload
 (defun magit-push-refspecs (remote refspecs args)
   "Push one or multiple REFSPECS to a REMOTE.
@@ -581,7 +860,8 @@ is used."
    (list (magit-read-remote "Push to remote")
          (split-string (magit-completing-read-multiple
                         "Push refspec,s"
-                        (cons "HEAD" (magit-list-local-branch-names)))
+                        (cons "HEAD" (magit-list-local-branch-names))
+                        nil nil 'magit-push-refspecs-history)
                        crm-default-separator t)
          (magit-push-arguments)))
   (run-hooks 'magit-credential-hook)
@@ -709,6 +989,7 @@ To add this command to the push popup add this to your init file:
               (?t "To"               "--to=")
               (?c "CC"               "--cc=")
               (?r "In reply to"      "--in-reply-to=")
+              (?P "Subject Prefix"   "--subject-prefix=")
               (?v "Reroll count"     "--reroll-count=")
               (?s "Thread style"     "--thread=")
               (?U "Context lines"    "-U")
@@ -729,7 +1010,7 @@ changes introduced by that commit (unlike 'git format-patch'
 which creates patches for all commits that are reachable from
 `HEAD' but not from the specified commit)."
   (interactive
-   (list (-if-let (revs (magit-region-values 'commit))
+   (list (-if-let (revs (magit-region-values 'commit t))
              (concat (car (last revs)) "^.." (car revs))
            (let ((range (magit-read-range-or-commit "Format range or commit")))
              (if (string-match-p "\\.\\." range)
