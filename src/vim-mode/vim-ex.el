@@ -522,16 +522,16 @@ has been pressed."
           (motion (cond
                     ((and start-line end-line)
                      (vim:make-motion :begin (save-excursion
-                                               (goto-line start-line)
+                                               (goto-line1 start-line)
                                                (line-beginning-position))
                                       :end (save-excursion
-                                             (goto-line end-line)
+                                             (goto-line1 end-line)
                                              (line-beginning-position))
                                       :has-begin t
                                       :type 'linewise))
                     (start-line
                      (let ((beg-pos (save-excursion
-                                      (goto-line start-line)
+                                      (goto-line1 start-line)
                                       (line-beginning-position))))
                        (vim:make-motion :begin beg-pos
                                         :end beg-pos
