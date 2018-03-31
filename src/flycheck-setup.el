@@ -156,7 +156,7 @@
       (unless next-error
         (error "No more errors"))
       (find-file (flycheck-error-filename next-error))
-      (goto-line (flycheck-error-line next-error))
+      (goto-line1 (flycheck-error-line next-error))
       (awhen (flycheck-error-column next-error)
         (move-to-column it))
       (flycheck-display-error-at-point))))
