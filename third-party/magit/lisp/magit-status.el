@@ -1,6 +1,6 @@
 ;;; magit-status.el --- the grand overview  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017  The Magit Project Contributors
+;; Copyright (C) 2010-2018  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -29,7 +29,7 @@
 
 (require 'magit)
 
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
 
 (defvar bookmark-make-record-function)
 
@@ -70,8 +70,7 @@ all."
              magit-insert-tags-header))
 
 (defcustom magit-status-sections-hook
-  '(magit-insert-campaign-header
-    magit-insert-status-headers
+  '(magit-insert-status-headers
     magit-insert-merge-log
     magit-insert-rebase-sequence
     magit-insert-am-sequence
@@ -85,15 +84,16 @@ all."
     magit-insert-stashes
     magit-insert-unpulled-from-upstream
     magit-insert-unpulled-from-pushremote
-    magit-insert-unpushed-to-upstream
+    magit-insert-unpushed-to-upstream-or-recent
     magit-insert-unpushed-to-pushremote)
   "Hook run to insert sections into a status buffer."
-  :package-version '(magit . "2.4.0")
+  :package-version '(magit . "2.12.0")
   :group 'magit-status
   :type 'hook)
 
 (defcustom magit-status-expand-stashes t
-  "Whether the list of stashes is expanded initially."
+  "OBSOLETE.  Whether the list of stashes is expanded initially.
+Use `magit-section-visibility-alist' instead."
   :package-version '(magit . "2.3.0")
   :group 'magit-status
   :type 'boolean)
@@ -199,6 +199,14 @@ then offer to initialize it as a new repository."
 
 (put 'magit-status 'interactive-only 'magit-status-internal)
 
+(defalias 'magit 'magit-status
+  "An alias for `magit-status' for better discoverability.
+
+Instead of invoking this alias for `magit-status' using
+\"M-x magit RET\", you should bind a key to `magit-status'
+and read the info node `(magit)Getting Started', which
+also contains other useful hints.")
+
 ;;;###autoload
 (defun magit-status-internal (directory)
   (magit--tramp-asserts directory)
@@ -289,12 +297,7 @@ Type \\[magit-commit-popup] to create a commit.
   (setq imenu-create-index-function
         'magit-imenu--status-create-index-function)
   (setq-local bookmark-make-record-function
-              #'magit-bookmark--status-make-record)
-  ;; Avoid listing all files as deleted when visiting a bare repo.
-  (when (magit-bare-repo-p)
-    (make-local-variable 'magit-status-sections-hook)
-    (remove-hook 'magit-status-sections-hook #'magit-insert-staged-changes
-                 'local)))
+              #'magit-bookmark--status-make-record))
 
 (defun magit-status-refresh-buffer ()
   (magit-git-exit-code "update-index" "--refresh")
@@ -324,6 +327,12 @@ The sections are inserted by running the functions on the hook
   (if (magit-rev-verify "HEAD")
       (magit-insert-headers magit-status-headers-hook)
     (insert "In the beginning there was darkness\n\n")))
+
+(defvar magit-error-section-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap magit-visit-thing] 'magit-process-buffer)
+    map)
+  "Keymap for `error' sections.")
 
 (defun magit-insert-error-header ()
   "Insert the message about the Git error that just occured.
@@ -367,7 +376,9 @@ detached `HEAD'."
             (when magit-status-show-hashes-in-headers
               (insert (propertize commit 'face 'magit-hash) ?\s))
             (insert (propertize branch 'face 'magit-branch-local))
-            (insert ?\s summary ?\n))
+            (insert ?\s)
+            (insert (funcall magit-log-format-message-function branch summary))
+            (insert ?\n))
         (magit-insert-section (commit commit)
           (insert (format "%-10s" "Head: "))
           (insert (propertize commit 'face 'magit-hash))
@@ -394,8 +405,9 @@ detached `HEAD'."
           (pcase-let ((`(,url ,branch) (split-string pull " ")))
             (insert branch " from " url " "))
         (insert pull " ")
-        (if (magit-rev-verify pull)
-            (insert (or (magit-rev-format "%s" pull) ""))
+        (--if-let (and (magit-rev-verify pull)
+                       (magit-rev-format "%s" pull))
+            (insert (funcall magit-log-format-message-function pull it))
           (insert (propertize "is missing" 'face 'font-lock-warning-face))))
       (insert ?\n))))
 
@@ -410,8 +422,9 @@ detached `HEAD'."
                        (magit-rev-format "%h" push))
         (insert (propertize it 'face 'magit-hash) ?\s))
       (insert (propertize push 'face 'magit-branch-remote) ?\s)
-      (if (magit-rev-verify push)
-          (insert (or (magit-rev-format "%s" push) ""))
+      (--if-let (and (magit-rev-verify push)
+                     (magit-rev-format "%s" push))
+          (insert (funcall magit-log-format-message-function push it))
         (insert (propertize "is missing" 'face 'font-lock-warning-face)))
       (insert ?\n))))
 
@@ -463,10 +476,7 @@ detached `HEAD'."
 If no remote is configured for the current branch, then fall back
 showing the \"origin\" remote, or if that does not exist the first
 remote in alphabetic order."
-  (-when-let* ((name (or (magit-get-remote)
-                         (let ((remotes (magit-list-remotes)))
-                           (or (car (member "origin" remotes))
-                               (car remotes)))))
+  (-when-let* ((name (magit-get-some-remote))
                ;; Under certain configurations it's possible for url
                ;; to be nil, when name is not, see #2858.
                (url (magit-get "remote" name "url")))
@@ -474,81 +484,6 @@ remote in alphabetic order."
       (insert (format "%-10s" "Remote: "))
       (insert (propertize name 'face 'magit-branch-remote) ?\s)
       (insert url ?\n))))
-
-;;;; Campaign Header
-
-(defvar magit-hide-campaign-header
-  (ignore-errors (magit-get-boolean "magit.hideCampaign")))
-
-(defun magit-campaign-remove ()
-  "Remove the fundraising campaign header permanently."
-  (interactive)
-  (magit-call-git "config" "--global" "magit.hideCampaign" "true")
-  (setq magit-hide-campaign-header t)
-  (magit-refresh))
-
-(defun magit-campaign-hide ()
-  "Remove the fundraising campaign header until restart."
-  (interactive)
-  (setq magit-hide-campaign-header t)
-  (magit-refresh))
-
-(defun magit-campaign-visit ()
-  "Visit the fundraising campaign in a browser."
-  (interactive)
-  (browse-url "https://www.kickstarter.com/projects/1681258897/its-magit-the-magical-git-client?ref=2nj0oy"))
-
-(defvar magit-campaign-section-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-k") 'magit-campaign-remove)
-    (define-key map (kbd "C-c C-h") 'magit-campaign-hide)
-    (define-key map [remap magit-visit-thing] 'magit-campaign-visit)
-    map))
-
-(defun magit-insert-campaign-header ()
-  "Insert a header informing users of the fundraiser."
-  (unless (or (< (float-time) 1505512800) ; 2017-09-16 00:00:00 +0200
-              (> (float-time) 1506895200) ; 2017-10-02 00:00:00 +0200
-              magit-hide-campaign-header)
-    (magit-insert-section (campaign nil t)
-      (magit-insert-heading
-        (propertize "<3" 'face '(:foreground "magenta"))
-        (propertize " Please consider backing the Magit fundraiser.")
-        (propertize " Thanks!" 'face '(:foreground "magenta"))
-        " [TAB] to expand"
-        (propertize " <3" 'face '(:foreground "magenta")))
-      (insert "
-Please accept my apologies for this brief interruption.
-
-  C-c C-k   remove this section permanently
-  C-c C-h   remove this section until restart
-  TAB       collapse this section
-
-  RET       visit the fundraising campaign in a browser
-
---------------------------------------------------------------
-                     The magic must go on
---------------------------------------------------------------
-
-I am currently running a fundraising campaign on Kickstarter.
-If it succeeds, then I can work on Magit full-time for a whole
-year.  I am still overflowing with ideas, and depend on your
-support to realize them.
-
-I would love to work on Magit for at least another year and
-think that its users would miss out on a lot of significant
-improvements if I were unable to do so.  Magit and I are at
-a crossroad — either I can intensive my efforts or I have
-to give up bringing the long time goals to completion that
-I have been working toward for the past few years.
-
-Magit is still far from fulfilling its potential and now I
-need your help to get it there.  Visit the campaign to learn
-more about the planned improvements and please consider to
-make a contribution.
-
-  Thank you,
-  Jonas Bernoulli\n\n"))))
 
 ;;;; File Sections
 
@@ -563,22 +498,30 @@ make a contribution.
 
 (defun magit-insert-untracked-files ()
   "Maybe insert a list or tree of untracked files.
+
 Do so depending on the value of `status.showUntrackedFiles'.
-Note that even if the value is `all', Magit still initially only
-shows directories.  But the directory sections can then be expanded
-using \"TAB\"."
-  (let ((show (or (magit-get "status.showUntrackedFiles") "normal")))
+Note that even if the value is `all', Magit still initially
+only shows directories.  But the directory sections can then
+be expanded using \"TAB\".
+
+If the first element of `magit-diff-section-arguments' is a
+directory, then limit the list to files below that.  The value
+value of that variable can be set using \"D = f DIRECTORY RET g\"."
+  (let* ((show (or (magit-get "status.showUntrackedFiles") "normal"))
+         (base (car magit-diff-section-file-args))
+         (base (and base (file-directory-p base) base)))
     (unless (equal show "no")
       (if (equal show "all")
-          (-when-let (files (magit-untracked-files))
+          (-when-let (files (magit-untracked-files nil base))
             (magit-insert-section (untracked)
               (magit-insert-heading "Untracked files:")
-              (magit-insert-un/tracked-files-1 files nil)
+              (magit-insert-un/tracked-files-1 files base)
               (insert ?\n)))
         (-when-let
             (files (--mapcat (and (eq (aref it 0) ??)
                                   (list (substring it 3)))
-                             (magit-git-items "status" "-z" "--porcelain")))
+                             (magit-git-items "status" "-z" "--porcelain"
+                                              "--" base)))
           (magit-insert-section (untracked)
             (magit-insert-heading "Untracked files:")
             (dolist (file files)
@@ -589,12 +532,18 @@ using \"TAB\"."
 (magit-define-section-jumper magit-jump-to-tracked "Tracked files" tracked)
 
 (defun magit-insert-tracked-files ()
-  "Insert a tree of tracked files."
+  "Insert a tree of tracked files.
+
+If the first element of `magit-diff-section-arguments' is a
+directory, then limit the list to files below that.  The value
+value of that variable can be set using \"D = f DIRECTORY RET g\"."
   (-when-let (files (magit-list-files))
-    (magit-insert-section (tracked nil t)
-      (magit-insert-heading "Tracked files:")
-      (magit-insert-un/tracked-files-1 files nil)
-      (insert ?\n))))
+    (let* ((base (car magit-diff-section-file-args))
+           (base (and base (file-directory-p base) base)))
+      (magit-insert-section (tracked nil t)
+        (magit-insert-heading "Tracked files:")
+        (magit-insert-un/tracked-files-1 files base)
+        (insert ?\n)))))
 
 (defun magit-insert-un/tracked-files-1 (files directory)
   (while (and files (string-prefix-p (or directory "") (car files)))

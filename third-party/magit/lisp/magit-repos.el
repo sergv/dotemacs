@@ -1,6 +1,6 @@
 ;;; magit-repos.el --- listing repositories  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017  The Magit Project Contributors
+;; Copyright (C) 2010-2018  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -31,7 +31,7 @@
 
 (require 'magit-core)
 
-(declare-function magit-status-internal 'magit-status)
+(declare-function magit-status-internal "magit-status" (directory))
 
 (defvar x-stretch-cursor)
 
@@ -73,11 +73,15 @@ specify the depth directly.")
   :options '(hl-line-mode))
 
 (defcustom magit-repolist-columns
-  '(("Name"    25 magit-repolist-column-ident                  nil)
-    ("Version" 25 magit-repolist-column-version                nil)
-    ("B<U"      3 magit-repolist-column-unpulled-from-upstream ((:right-align t)))
-    ("B>U"      3 magit-repolist-column-unpushed-to-upstream   ((:right-align t)))
-    ("Path"    99 magit-repolist-column-path                   nil))
+  '(("Name"    25 magit-repolist-column-ident nil)
+    ("Version" 25 magit-repolist-column-version nil)
+    ("B<U"      3 magit-repolist-column-unpulled-from-upstream
+     ((:right-align t)
+      (:help-echo "Upstream changes not in branch")))
+    ("B>U"      3 magit-repolist-column-unpushed-to-upstream
+     ((:right-align t)
+      (:help-echo "Local changes not in upstream")))
+    ("Path"    99 magit-repolist-column-path nil))
   "List of columns displayed by `magit-list-repositories'.
 
 Each element has the form (HEADER WIDTH FORMAT PROPS).
@@ -87,8 +91,10 @@ of the column.  FORMAT is a function that is called with one
 argument, the repository identification (usually its basename),
 and with `default-directory' bound to the toplevel of its working
 tree.  It has to return a string to be inserted or nil.  PROPS is
-an alist that supports the keys `:right-align' and `:pad-right'."
-  :package-version '(magit . "2.8.0")
+an alist that supports the keys `:right-align' and `:pad-right'.
+Some entries also use `:help-echo', but `tabulated-list' does not
+actually support that yet."
+  :package-version '(magit . "2.12.0")
   :group 'magit-repolist
   :type `(repeat (list :tag "Column"
                        (string   :tag "Header Label")
@@ -115,16 +121,7 @@ control which repositories are displayed."
   (if magit-repository-directories
       (with-current-buffer (get-buffer-create "*Magit Repositories*")
         (magit-repolist-mode)
-        (setq tabulated-list-entries
-              (mapcar (-lambda ((id . path))
-                        (let ((default-directory path))
-                          (list path
-                                (vconcat (--map (or (funcall (nth 2 it) id) "")
-                                                magit-repolist-columns)))))
-                      (magit-list-repos-uniquify
-                       (--map (cons (file-name-nondirectory (directory-file-name it))
-                                    it)
-                              (magit-list-repos)))))
+        (magit-repolist-refresh)
         (tabulated-list-print)
         (switch-to-buffer (current-buffer)))
     (message "You need to customize `magit-repository-directories' %s"
@@ -135,7 +132,6 @@ control which repositories are displayed."
 (defvar magit-repolist-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map "g" 'magit-list-repositories)
     (define-key map (if (featurep 'jkl) [return] (kbd "C-m"))
       'magit-repolist-status)
     map)
@@ -152,17 +148,30 @@ control which repositories are displayed."
   "Major mode for browsing a list of Git repositories."
   (setq x-stretch-cursor        nil)
   (setq tabulated-list-padding  0)
-  (setq tabulated-list-sort-key (cons "Name" nil))
+  (setq tabulated-list-sort-key (cons "Path" nil))
   (setq tabulated-list-format
         (vconcat (mapcar (-lambda ((title width _fn props))
                            (nconc (list title width t)
                                   (-flatten props)))
                          magit-repolist-columns)))
   (tabulated-list-init-header)
+  (add-hook 'tabulated-list-revert-hook 'magit-repolist-refresh nil t)
   (setq imenu-prev-index-position-function
         'magit-imenu--repolist-prev-index-position-function)
   (setq imenu-extract-index-name-function
         'magit-imenu--repolist-extract-index-name-function))
+
+(defun magit-repolist-refresh ()
+  (setq tabulated-list-entries
+        (mapcar (-lambda ((id . path))
+                  (let ((default-directory path))
+                    (list path
+                          (vconcat (--map (or (funcall (nth 2 it) id) "")
+                                          magit-repolist-columns)))))
+                (magit-list-repos-uniquify
+                 (--map (cons (file-name-nondirectory (directory-file-name it))
+                              it)
+                        (magit-list-repos))))))
 
 ;;;; Columns
 
