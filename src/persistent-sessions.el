@@ -104,18 +104,21 @@ on values of said variables.")
 
 
 (defparameter *sessions-special-variables*
-  `((structured-haskell-mode
-     ,(lambda (buffer)
-        (with-current-buffer buffer
-          (when (memq major-mode +haskell-syntax-modes+)
-            (and (boundp 'structured-haskell-mode)
-                 structured-haskell-mode))))
-     ,(lambda (buffer value)
-        (with-current-buffer buffer
-          (when (memq major-mode +haskell-syntax-modes+)
-            (when (not (equal structured-haskell-mode value))
-              (structured-haskell-mode
-               (if value +1 -1)))))))))
+  (remove nil
+          (list
+           (when (fboundp #'structured-haskell-mode)
+             (list 'structured-haskell-mode
+                   (lambda (buffer)
+                     (with-current-buffer buffer
+                       (when (memq major-mode +haskell-syntax-modes+)
+                         (and (boundp 'structured-haskell-mode)
+                              structured-haskell-mode))))
+                   (lambda (buffer value)
+                     (with-current-buffer buffer
+                       (when (memq major-mode +haskell-syntax-modes+)
+                         (when (not (equal structured-haskell-mode value))
+                           (structured-haskell-mode
+                            (if value +1 -1)))))))))))
 
 (defun sessions/get-special-buffer-variables (buffer)
   (-map (lambda (entry)
