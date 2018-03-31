@@ -1,17 +1,17 @@
 #+TITLE: With-Editor User Manual
 #+AUTHOR: Jonas Bernoulli
 #+EMAIL: jonas@bernoul.li
-#+DATE: 2015-2017
+#+DATE: 2015-2018
 #+LANGUAGE: en
 
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: With-Editor: (with-editor).
 #+TEXINFO_DIR_DESC: Using the Emacsclient as $EDITOR
-#+SUBTITLE: for version 2.5.11
+#+SUBTITLE: for version 2.7.1
+#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
 
 #+TEXINFO_DEFFN: t
-#+TEXINFO_CLASS: info+
-#+OPTIONS: H:4 num:nil toc:2
+#+OPTIONS: H:4 num:4 toc:2
 
 The library ~with-editor~ makes it easy to use the Emacsclient as the
 ~$EDITOR~ of child processes, making sure they know how to call home.
@@ -28,8 +28,11 @@ library is made available as a separate package.  It also defines some
 additional functionality which makes it useful even for end-users, who
 don't use Magit or another package which uses it internally.
 
+#+TEXINFO: @noindent
+This manual is for With-Editor version 2.7.1.
+
 #+BEGIN_QUOTE
-Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
+Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -275,13 +278,13 @@ Emacs and what is the output of ~M-x with-editor-debug RET~.
 # Local Variables:
 # eval: (require 'ox-texinfo+ nil t)
 # End:
-* Copying
+* _ Copying
 :PROPERTIES:
 :COPYING:    t
 :END:
 
 #+BEGIN_QUOTE
-Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
+Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -293,3 +296,14 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 #+END_QUOTE
+
+* _ :ignore:
+
+# IMPORTANT: Also update ORG_ARGS and ORG_EVAL in the Makefile.
+# Local Variables:
+# eval: (require 'ox-extra nil t)
+# eval: (require 'ox-texinfo+ nil t)
+# eval: (and (featurep 'ox-extra) (ox-extras-activate '(ignore-headlines)))
+# indent-tabs-mode: nil
+# org-src-preserve-indentation: nil
+# End:
