@@ -113,6 +113,7 @@ update-dir-autoloads \
     "src/lisp" \
     "src/python" \
     "src/shell" \
+    "third-party/async" \
     "third-party/auctex" \
     "third-party/button-lock" \
     "third-party/clojure-mode" \
@@ -123,10 +124,14 @@ update-dir-autoloads \
     "third-party/flycheck" \
     "third-party/flycheck-elm" \
     "third-party/flycheck-liquidhs" \
+    "third-party/ghub" \
+    "third-party/git-modes" \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
     "third-party/intero" \
     "third-party/liquid-types" \
+    "third-party/magit" \
+    "third-party/magit-popup" \
     "third-party/misc-modes" \
     "third-party/pkg-info" \
     "third-party/popup-el" \
@@ -136,7 +141,8 @@ update-dir-autoloads \
     "third-party/sml-mode" \
     "third-party/toml-mode" \
     "third-party/tuareg" \
-    "third-party/yafolding.el"
+    "third-party/yafolding.el" \
+    "third-party/with-editor"
 
 if which make >/dev/null; then
     inform "Building autoloads in third-party/org-mode"
