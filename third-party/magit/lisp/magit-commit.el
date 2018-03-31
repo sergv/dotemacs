@@ -1,6 +1,6 @@
 ;;; magit-commit.el --- create Git commits  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2017  The Magit Project Contributors
+;; Copyright (C) 2008-2018  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -34,12 +34,6 @@
 
 (eval-when-compile (require 'epa)) ; for `epa-protocol'
 (eval-when-compile (require 'epg))
-(declare-function epg-sub-key-id 'epg)
-(declare-function epg-key-sub-key-list 'epg)
-(declare-function epg-key-user-id-list 'epg)
-(declare-function epg-user-id-string 'epg)
-(declare-function epg-decode-dn 'epg)
-(declare-function epg-list-keys 'epg)
 
 ;;; Options
 
@@ -160,8 +154,11 @@ With a prefix argument, amend to the commit at `HEAD' instead.
   (interactive (if current-prefix-arg
                    (list (cons "--amend" (magit-commit-arguments)))
                  (list (magit-commit-arguments))))
+  (when (member "--all" args)
+    (setq this-command 'magit-commit-all))
   (when (setq args (magit-commit-assert args))
-    (magit-run-git-with-editor "commit" args)))
+    (let ((default-directory (magit-toplevel)))
+      (magit-run-git-with-editor "commit" args))))
 
 ;;;###autoload
 (defun magit-commit-amend (&optional args)
@@ -258,6 +255,15 @@ depending on the value of option `magit-commit-squash-confirm'."
 (defun magit-commit-squash-internal
     (option commit &optional args rebase edit confirmed)
   (-when-let (args (magit-commit-assert args t))
+    (when commit
+      (when (and rebase (not (magit-rev-ancestor-p commit "HEAD")))
+        (magit-read-char-case
+            (format "%s isn't an ancestor of HEAD.  " commit) nil
+          (?c "[c]reate without rebasing" (setq rebase nil))
+          (?s "[s]elect other"            (setq commit nil))
+          (?a "[a]bort"                   (user-error "Quit")))))
+    (when commit
+      (setq commit (magit-rebase-interactive-assert commit)))
     (if (and commit
              (or confirmed
                  (not (or rebase
@@ -274,16 +280,19 @@ depending on the value of option `magit-commit-squash-confirm'."
                  (-remove-first
                   (apply-partially #'string-match-p "\\`--gpg-sign=")
                   args)))
-            (magit-run-git-with-editor "commit" args)))
+            (magit-run-git-with-editor "commit" args))
+          t) ; The commit was created; used by below lambda.
       (magit-log-select
-        `(lambda (commit)
-           (magit-commit-squash-internal ,option commit ',args ,rebase ,edit t)
-           ,@(when rebase
-               `((magit-rebase-interactive-1 commit
-                     (list "--autosquash" "--autostash")
-                   "" "true"))))
+        (lambda (commit)
+          (when (and (magit-commit-squash-internal option commit args
+                                                   rebase edit t)
+                     rebase)
+            (magit-rebase-interactive-1 commit
+                (list "--autosquash" "--autostash")
+              "" "true" t)))
         (format "Type %%p on a commit to %s into it,"
-                (substring option 2)))
+                (substring option 2))
+        nil nil (list "--graph"))
       (when magit-commit-show-diff
         (let ((magit-display-buffer-noselect t))
           (apply #'magit-diff-staged nil (magit-diff-arguments)))))))
@@ -321,27 +330,61 @@ depending on the value of option `magit-commit-squash-confirm'."
    (t
     (user-error "Nothing staged"))))
 
+(defvar magit--reselve-history nil)
+
+;;;###autoload
+(defun magit-commit-reshelve (date)
+  "Change the committer date and possibly the author date of `HEAD'.
+
+If you are the author of `HEAD', then both dates are changed,
+otherwise only the committer date.  The current time is used
+as the initial minibuffer input and the original author (if
+that is you) or committer date is available as the previous
+history element."
+  (interactive
+   (let ((author-p (magit-rev-author-p "HEAD")))
+     (push (magit-rev-format (if author-p "%ad" "%cd") "HEAD"
+                             (concat "--date=format:%F %T %z"))
+           magit--reselve-history)
+     (list (read-string (if author-p
+                            "Change author and committer dates to: "
+                          "Change committer date to: ")
+                        (cons (format-time-string "%F %T %z") 17)
+                        'magit--reselve-history))))
+  (let ((process-environment process-environment))
+    (push (concat "GIT_COMMITTER_DATE=" date) process-environment)
+    (magit-run-git "commit" "--amend" "--no-edit"
+                   (and (magit-rev-author-p "HEAD")
+                        (concat "--date=" date)))))
+
 ;;; Pending Diff
 
 (defun magit-commit-diff ()
-  (-when-let (fn (and git-commit-mode
-                      magit-commit-show-diff
-                      (pcase last-command
-                        (`magit-commit
-                         (apply-partially 'magit-diff-staged nil))
-                        (`magit-commit-amend  'magit-diff-while-amending)
-                        (`magit-commit-reword 'magit-diff-while-amending))))
+  (when (and git-commit-mode magit-commit-show-diff)
     (-when-let (diff-buffer (magit-mode-get-buffer 'magit-diff-mode))
       ;; This window just started displaying the commit message
       ;; buffer.  Without this that buffer would immediately be
       ;; replaced with the diff buffer.  See #2632.
       (unrecord-window-buffer nil diff-buffer))
     (condition-case nil
-        (let ((magit-inhibit-save-previous-winconf 'unset)
+        (let ((args (car (magit-diff-arguments)))
+              (magit-inhibit-save-previous-winconf 'unset)
               (magit-display-buffer-noselect t)
               (inhibit-quit nil))
           (message "Diffing changes to be committed (C-g to abort diffing)")
-          (funcall fn (car (magit-diff-arguments))))
+          (-if-let (fn (cl-case last-command
+                         (magit-commit
+                          (apply-partially 'magit-diff-staged nil))
+                         (magit-commit-all
+                          (apply-partially 'magit-diff-working-tree nil))
+                         ((magit-commit-amend
+                           magit-commit-reword
+                           magit-rebase-reword-commit)
+                          'magit-diff-while-amending)))
+              (funcall fn args)
+            (if (magit-anything-staged-p)
+                (magit-diff-staged nil args)
+              (magit-diff-while-amending args))))
       (quit))))
 
 ;; Mention `magit-diff-while-committing' because that's

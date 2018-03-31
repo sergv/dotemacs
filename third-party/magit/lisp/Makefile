@@ -10,16 +10,15 @@ all: lisp
 ## Build order #######################################################
 
 git-commit.elc:
-magit-popup.elc:
 magit-utils.elc:
 magit-section.elc:	magit-utils.elc
 magit-git.elc:		magit-utils.elc magit-section.elc
-magit-mode.elc:		magit-section.elc magit-git.elc magit-popup.elc
+magit-mode.elc:		magit-section.elc magit-git.elc
 magit-margin.elc:	magit-section.elc magit-mode.elc
 magit-process.elc:	magit-utils.elc magit-section.elc \
 			magit-git.elc magit-mode.elc
 magit-autorevert.elc:	magit-git.elc magit-process.elc
-magit-core.elc:		magit-popup.elc magit-margin.elc magit-utils.elc \
+magit-core.elc:		magit-margin.elc magit-utils.elc \
 			magit-section.elc magit-git.elc magit-mode.elc \
 			magit-process.elc magit-autorevert.elc
 magit-diff.elc:		git-commit.elc magit-core.elc
@@ -32,27 +31,32 @@ magit.elc:		git-commit.elc magit-core.elc magit-diff.elc \
 magit-status.elc:	magit.elc
 magit-refs.elc: 	magit.elc
 magit-files.elc:	magit.elc
-magit-branch.elc:	magit.elc
+magit-collab.elc:	magit.elc
+magit-reset.elc:        magit.elc
+magit-branch.elc:	magit.elc magit-collab.elc magit-reset.elc
+magit-merge.elc:        magit.elc
+magit-tag.elc:          magit.elc
 magit-worktree.elc:	magit.elc
 magit-notes.elc:	magit.elc
-magit-obsolete.elc:	magit.elc
 magit-sequence.elc:	magit.elc
 magit-commit.elc:	magit.elc magit-sequence.elc
 magit-remote.elc:	magit.elc
 magit-bisect.elc:	magit.elc
 magit-stash.elc:	magit.elc
 magit-blame.elc:	magit.elc
+magit-obsolete.elc:	magit.elc
 magit-submodule.elc:	magit.elc
 magit-subtree.elc:	magit.elc
 magit-ediff.elc:	magit.elc
-magit-extras.elc:	magit.elc
+magit-extras.elc:	magit.elc magit-merge.elc
 git-rebase.elc:		magit.elc
 magit-imenu.elc:	magit.elc git-rebase.elc
 magit-bookmark.elc:	magit.elc
+magit-obsolete.elc:	magit.elc
 
 ## Build #############################################################
 
-lisp:       $(ELCS) loaddefs versionlib
+lisp:       $(ELCS) loaddefs
 loaddefs:   $(PKG)-autoloads.el
 versionlib: $(PKG)-version.el
 
@@ -62,10 +66,7 @@ versionlib: $(PKG)-version.el
 	(when (file-exists-p \"$@\")\
 	  (delete-file \"$@\"))\
 	(setq with-editor-emacsclient-executable nil)\
-	(fset 'message* (symbol-function 'message))\
-	(fset 'message  (lambda (f &rest a)\
-	                  (unless (equal f \"Wrote %s\")\
-	                    (apply 'message* f a)))))" \
+	$$suppress_warnings)" \
 	-f batch-byte-compile $<
 
 $(PKG)-autoloads.el: $(ELS)
@@ -86,7 +87,7 @@ $(PKG)-version.el:
 
 ## Install ###########################################################
 
-install: lisp
+install: lisp versionlib
 	@$(MKDIR) $(DESTDIR)$(lispdir)
 	$(CP) $(ELS) magit-autoloads.el magit-version.el $(ELCS) $(DESTDIR)$(lispdir)
 

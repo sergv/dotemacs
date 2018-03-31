@@ -1,12 +1,3 @@
-<h1 align="center">
-  <a href="https://www.kickstarter.com/projects/1681258897/its-magit-the-magical-git-client?ref=ewctvn">
-    Please support
-    <img src="https://magit.vc/assets/logo/logo/100x100/magit-logo-100x100px.png"> on
-    <img src="https://static.kickstarter.com/assets/help/brand_assets/preview-logo-light-0cdfaf3bb32053ed8dae95dcfc4f9f22820257eb01c7c3c5bedab20cddc3f1f4.jpg">
-  </a>
-</h1>
-<br><br><br>
-
 <div align="center"><img src="https://magit.vc/assets/magit-168x200px.png"/></div>
 <h2 align="center">A Git Porcelain inside Emacs</h2>
 <p align="center">
@@ -16,7 +7,6 @@
   <a href="https://github.com/magit/magit/wiki"><b>wiki</b></a> |
   <a href="https://groups.google.com/forum/?fromgroups#!forum/magit"><b>mailing list</b></a> |
   <a href="https://emacs.stackexchange.com/questions/tagged/magit"><b>forum</b></a> |
-  <a href="https://gitter.im/magit/magit"><b>chat</b></a> |
   <a href="https://twitter.com/magit_emacs"><b>news</b></a>
 </p>
 <hr>
@@ -35,26 +25,76 @@
 </p>
 <hr>
 
-<div align="justify">
-  Please consider supporting the ongoing
-  <a href="https://www.kickstarter.com/projects/1681258897/its-magit-the-magical-git-client?ref=ewctvn">
-  crowd-funding campaign</a>.  If it succeeds, then I can work full-time
-  on Magit for a whole year.  I am still overflowing with ideas, and
-  depend on your support to realize them, and to address the remaining
-  long-standing issues.  It is great that many users already consider
-  Magit to be one of Emacs' killer applications, but it is still far
-  from fulfilling its true potential.  Only with your help can I get it
-  there.
-</div>
 <div align="center">
-  <br>
-  <em>Thank you! — Jonas Bernoulli</em>
-  <br><br>
-  <a href="https://www.kickstarter.com/projects/1681258897/its-magit-the-magical-git-client?ref=ewctvn">
-    <img src="https://static.kickstarter.com/assets/help/brand_assets/preview-logo-light-0cdfaf3bb32053ed8dae95dcfc4f9f22820257eb01c7c3c5bedab20cddc3f1f4.jpg">
+  <a href="https://www.kickstarter.com/projects/1681258897/its-magit-the-magical-git-client/updates">
+    <img src="https://magit.vc/assets/kickstarter-k.png">
   </a>
 </div>
 <br>
+<div align="justify">
+  Thanks to
+  <a href="https://github.com/magit/magit/blob/master/Documentation/BACKERS.md">1987 backers</a>
+  the Kickstarter campaign was a huge success!
+  This September was very exciting and I would like to thank you all
+  for your generosity and enthusiastic support!
+</div>
+<div align="center">
+  <em><b>Thank you!</b> &mdash; Jonas Bernoulli</em><br><br>
+  <img src="https://magit.vc/assets/pixel-heart.png">
+</div>
+<br>
+<div align="center">
+  <em>My thanks also go to these three sponsors!</em><br><br>
+  <a href="https://www.mojotech.com">
+    <img title="Mojotech"
+         alt="Mojotech"
+         src="https://magit.vc/assets/mojotech.png"></a>
+  <a href="https://opensource.google.com">
+    <img title="Google Open Source"
+         alt="Google Open Source"
+         src="https://magit.vc/assets/google-os.png"></a>
+  <a href="http://www.directangular.com">
+    <img title="Directangular"
+         alt="Directangular"
+         src="https://magit.vc/assets/directangular.png"></a>
+</div>
+<br>
+<hr>
+
+<div align="center">
+  Keeping its users <a href= "https://magit.vc/quotes">this excited</a> is
+  <a href="https://magit.vc/stats/authors.html#cumulated_added_lines_of_code_per_author">
+    a lot of work
+  </a>.
+  If Magit makes you <br> more productive too,
+  then <b>please consider making a donation</b>.
+</div>
+<div align="center">
+  <em>Thank you! &mdash; Jonas Bernoulli</em>
+</div>
+<br>
+<div align="center">
+  <a href="https://www.paypal.me/JonasBernoulli/20">
+    <img title="Donate using PayPal"
+         alt="Donate using PayPal"
+		 style="height: 50px; width: auto;"
+         src="https://magit.vc/assets/paypal.png"></a>
+  &nbsp;&nbsp;
+  <a href="https://www.patreon.com/tarsius">
+    <img title="Donate monthly using Patreon"
+         alt="Donate monthly using Patreon"
+		 style="height: 50px; width: auto;"
+         src="https://magit.vc/assets/patreon-50px.png"></a>
+  &nbsp;&nbsp;
+  <a href="https://liberapay.com/magit">
+     <img title="Donate weekly using Liberapay"
+          alt="Donate weekly using Liberapay"
+          src="https://magit.vc/assets/liberapay-50px.png"></a>
+</div>
+<br>
+<div align="center">
+  Some alternative donation methods are <a href="https://magit.vc/donate">available</a>.
+</div>
 <hr>
 
 Support
@@ -67,9 +107,9 @@ You should also consult the [manual][manual] and ask a general-purpose
 search engine.
 
 If that doesn't answer your question, then ask for help on the
-**[Emacs Stackexchange site][forum]**, the [mailing list][list], or
-the [Gitter chat][chat].  We only use the GitHub issue tracker for
-feature requests and bug reports, so please don't ask for help there.
+**[Emacs Stackexchange site][forum]** or the [mailing list][list].
+We only use the GitHub issue tracker for feature requests and bug
+reports, so please don't ask for help there.
 
 Contributing
 ============
@@ -93,7 +133,16 @@ features.
 Thanks to all of you, may (the history of) the source be with you!
 
 ***
+[![GPL v3](https://img.shields.io/badge/license-GPL_v3-green.svg)](http://www.gnu.org/licenses/gpl-3.0.txt)
 [![Build Status](https://travis-ci.org/magit/magit.svg?branch=master)](https://travis-ci.org/magit/magit)
+[![Melpa](https://melpa.org/packages/magit-badge.svg)](https://melpa.org/#/magit)
+[![Melpa Stable](https://stable.melpa.org/packages/magit-badge.svg)](https://stable.melpa.org/#/magit)
+[![Git Xkcd](https://img.shields.io/badge/xkcd-git-orange.svg)](https://xkcd.com/1597)
+[![Eierlegende Wollmilchsau](https://img.shields.io/badge/eierlegende-Wollmilchsau-green.svg)](https://magit.vc/manual/magit)
+[![Swiss Made](https://img.shields.io/badge/swiss-made-red.svg?colorA=E11A27&colorB=555555)](https://magit.vc/stats/authors.html#commits_per_author)
+[![Netscape](https://magit.vc/assets/netscape-20px.png)](https://en.wikipedia.org/wiki/Browser_wars)
+[![Paren Xkcb](https://img.shields.io/badge/%28-%20%20%20-red.svg)](https://xkcd.com/859)
+
 
 [contrib]: https://github.com/magit/magit/blob/master/CONTRIBUTING.md
 [issues]:  https://github.com/magit/magit/issues
@@ -103,7 +152,6 @@ Thanks to all of you, may (the history of) the source be with you!
 [faq]:     https://magit.vc/manual/magit/FAQ.html
 [manual]:  https://magit.vc/manual
 
-[chat]:    https://gitter.im/magit/magit
 [forum]:   https://emacs.stackexchange.com/questions/tagged/magit
 [list]:    https://groups.google.com/forum/?fromgroups#!forum/magit
 
