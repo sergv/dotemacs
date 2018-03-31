@@ -107,7 +107,7 @@ as accepted by `bounds-of-thing-at-point'.")
     file))
 
 (defun eproj-symbnav/locate-entry-in-current-buffer (entry)
-  (goto-line (eproj-tag/line entry))
+  (goto-line1 (eproj-tag/line entry))
   (save-match-data
     (when (re-search-forward (regexp-quote (eproj-tag/symbol entry))
                              (line-end-position)

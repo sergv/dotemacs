@@ -165,7 +165,7 @@ error location - list of (filename line column)."
              it)
     (error "Buffer for file %s not found" (compilation-error/filename err)))
   (vim:save-position)
-  (goto-line (compilation-error/line-number err))
+  (goto-line1 (compilation-error/line-number err))
   (awhen (compilation-error/column-number err)
     (move-to-column it)))
 

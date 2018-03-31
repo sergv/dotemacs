@@ -532,16 +532,24 @@ of code may be called more than once."
            (multiple-value-bind (start end) (get-region-bounds)
              (,impl-func start end)))))))
 
-(defmacro save-current-line-column (&rest body)
-  "Save current line and column, execute BODY and go to saved line and column."
-  (let ((line-var '#:line)
-        (column-var '#:column))
-    `(let ((,line-var (count-lines1 (point-min) (point)))
-           (,column-var (current-column)))
+(defmacro save-current-line (&rest body)
+  "Save current line (but not column), execute BODY and go to saved line."
+  (declare (indent 0))
+  (let ((line-var '#:line))
+    `(let ((,line-var (count-lines1 (point-min) (point))))
        (unwind-protect
            (progn ,@body)
-         (goto-line1 ,line-var)
-         (move-to-column ,column-var)))))
+         (goto-line1 ,line-var)))))
+
+(defmacro save-current-line-column (&rest body)
+  "Save current line and column, execute BODY and go to saved line and column."
+  (declare (indent 0))
+  (let ((column-var '#:column))
+    `(save-current-line
+      (let ((,column-var (current-column)))
+        (unwind-protect
+            (progn ,@body)
+          (move-to-column ,column-var))))))
 
 (defmacro for-buffer-with-file (filename &rest body)
   "Execute BODY in buffer with contents of FILENAME. If FILENAME is already
