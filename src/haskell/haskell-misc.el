@@ -363,19 +363,30 @@ for more information.")
 ;;; up level navigation
 
 (defun haskell-back-up-indent-level ()
-  "Move up to lesser indentation level, skipping empty lines."
-  (let ((current-level (indentation-size)))
-    (when (= (current-column) current-level)
-      (while (and (not (bobp))
-                  ;; Do not move past 0th column in order to not skip to the
-                  ;; beginning of file.
-                  (/= 0 current-level)
-                  (<= current-level
-                      (indentation-size)))
-        (forward-line -1)
-        (while (looking-at-p haskell-regexen/preprocessor-or-empty-line)
-          (forward-line -1))))
-    (back-to-indentation)))
+  "Move up to lesser indentation level, skipping empty lines.
+
+Returns t if indentation occured."
+  (let ((start-indent (indentation-size))
+        (col (current-column)))
+    (cond
+      ((> col start-indent)
+       (back-to-indentation)
+       t)
+      ;; Do not move past 0th column in order to not skip to the
+      ;; beginning of file.
+      ((/= 0 start-indent)
+       ;;(= col start-indent)
+       (while (and (not (bobp))
+                   (let ((curr-indent (indentation-size)))
+                     (or (>= curr-indent start-indent)
+                         (> curr-indent col))))
+         (forward-line -1)
+         (while (looking-at-p haskell-regexen/preprocessor-or-empty-line)
+           (forward-line -1)))
+       (back-to-indentation)
+       t)
+      (t
+       nil))))
 
 ;;;###autoload
 (defun haskell-backward-up-indentation-or-sexp ()
