@@ -1793,8 +1793,6 @@ are CHAR1 and CHAR2 repsectively."
 (autoload 'insert-info-template "common-heavy")
 (autoload 'insert-info-format-template "common-heavy")
 
-(autoload 'find-rec* "find-files")
-
 (provide 'common)
 
 ;; Local Variables:
