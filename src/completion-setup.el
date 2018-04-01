@@ -68,52 +68,39 @@
      (require 'pcmpl-rpm)
      (require 'pcmpl-unix)))
 
-;; Ido
-(setf ido-enable-flex-matching t
-      ido-create-new-buffer 'always ;; don't prompt when opening nonexistent files
-      ido-file-extensions-order '(".hs" ".lhs" ".y" ".l" ".x" ".cabal" ".yaml" ".idr" ".agda" ".h" ".c" t)
-      ido-case-fold t ;; ignore case
-      ido-everywhere t
-      ido-ignore-extensions t ;; ignore extensions in `completion-ignored-extensions'
-      ido-enable-last-directory-history nil
-      ido-save-directory-list-file nil
-      ido-show-dot-for-dired nil
-      ido-default-file-method 'selected-window
-      ido-default-buffer-method 'selected-window
-      ido-enable-dot-prefix t
-      ido-ignore-buffers (list (rx "*"
-                                   (or "Ibuffer"
-                                       "Compile-Log"
-                                       "Ido Completions")
-                                   "*")
-                               "\\` ")
-      ido-decorations '(" ("
-                        ")"
-                        " | "
-                        " | ..."
-                        "["
-                        "]"
-                        " [No match]"
-                        " [Matched]"
-                        " [Not readable]"
-                        " [Too big]"
-                        " [Confirm]"))
+(require 'ivy-smex)
+(require 'flx)
+(ivy-mode +1)
 
-(ido-mode 1)
+(setf ivy-use-virtual-buffers t
+      ivy-initial-inputs-alist nil
+      ivy-wrap t
+      ivy-case-fold-search-default t ;; ignore case
+      ivy-flx-limit 1000
+      ivy-extra-directories '("./")
+      counsel-find-file-ignore-regexp
+      (regexp-opt
+       (append
+        (list ".#" ".cask")
+        +version-control-directories+
+        +ignored-file-extensions+)))
 
-(defun ido-setup-custom-bindings ()
-  (def-keys-for-map ido-common-completion-map
-    ("SPC"        self-insert-command)
-    ("C-SPC"      ido-edit-input)
-    ("C-<return>" ido-select-text)
-    ("<C-return>" ido-select-text)
-    ("<up>"       previous-history-element)
-    ("<down>"     next-history-element))
-  (def-keys-for-map (ido-file-completion-map
-                     ido-file-dir-completion-map)
-    ("C-w"        ido-up-directory)))
+(add-to-list 'ivy-ignore-buffers invisible-buffers-re)
 
-(add-hook 'ido-setup-hook #'ido-setup-custom-bindings)
+(def-keys-for-map ivy-minibuffer-map
+  ("C-h"        ivy-next-history-element)
+  ("C-t"        ivy-previous-history-element)
+  ("C-p"        vim:cmd-paste-before)
+  ("M-p"        browse-kill-ring)
+  ("C-w"        backward-delete-word)
+  ("C-S-w"      backward-delete-word*)
+
+  ("C-v"        set-mark-command)
+  ("C-y"        copy-region-as-kill)
+  ("C-d"        kill-region)
+
+  ("C-SPC"      delete-minibuffer-contents)
+  ("<C-return>" ivy-immediate-done))
 
 (provide 'completion-setup)
 

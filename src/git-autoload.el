@@ -6,14 +6,14 @@
 ;; Created: Thursday, 20 August 2015
 ;; Description:
 
-(setf magit-completing-read-function
-      (lambda (prompt collection &optional predicate require-match initial-input hist def)
-        (ido-completing-read
-         (if (and def (> (length prompt) 2)
-                  (string-equal ": " (substring prompt -2)))
-             (format "%s (default %s): " (substring prompt 0 -2) def)
-           prompt)
-         collection predicate require-match initial-input hist def))
+(setf ;; magit-completing-read-function
+      ;; (lambda (prompt collection &optional predicate require-match initial-input hist def)
+      ;;   (ivy-completing-read
+      ;;    (if (and def (> (length prompt) 2)
+      ;;             (string-equal ": " (substring prompt -2)))
+      ;;        (format "%s (default %s): " (substring prompt 0 -2) def)
+      ;;      prompt)
+      ;;    collection predicate require-match initial-input hist def))
       ;;magit-restore-window-configuration t
       magit-refs-show-commit-count 'all
       magit-commit-ask-to-stage nil

@@ -472,12 +472,19 @@ Futher modified by Sergey Vinokurov."
             (help-argument-name                   ((t (:inherit default))))
             (hexl-address-region                  ((t (:inherit header-line))))
             (hexl-ascii-region                    ((t (:background ,base03))))
-            (ido-indicator                        ((t (:foreground ,blue :width condensed))))
-            (ido-only-match                       ((t (:foreground ,cyan))))
-            (ido-subdir                           ((t (:foreground ,orange))))
             (isearch                              ((t (:inherit lazy-highlight))))
             (ispell-highlight-face                ((t (:inherit flyspell-incorrect))))
             (italic                               ((t (:underline t :italic t))))
+
+            (ivy-current-match                    ((t :underline t)))
+            (ivy-minibuffer-match-face-1          ((t :foreground ,red)))
+            (ivy-minibuffer-match-face-2          ((t :foreground ,yellow)))
+            (ivy-minibuffer-match-face-3          ((t :foreground ,green)))
+            (ivy-minibuffer-match-face-4          ((t :foreground ,magenta)))
+
+            (ivy-match-required-face              ((t :foreground ,red)))
+            (ivy-confirm-face                     ((t :foreground ,green)))
+
             (lazy-highlight                       ((t (:background ,light-cyan-green-background))))
             (link                                 ((t (:foreground ,violet :underline t))))
             (match                                ((t (:background ,light-cyan-green-background))))

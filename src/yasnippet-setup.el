@@ -14,7 +14,7 @@
 
 (setf yas-ignore-filenames-as-triggers t
       yas-snippet-dirs (list (concat +resources-path+ "/snippets"))
-      yas-prompt-functions '(yas-ido-prompt)
+      yas-prompt-functions '(yas-completing-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
       ;; don't reactivate fields on undo/redo
