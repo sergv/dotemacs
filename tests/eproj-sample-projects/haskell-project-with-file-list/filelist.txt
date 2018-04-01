@@ -1,1 +1,1 @@
-("Foo/Bar/Test.hs")
+Foo/Bar/Test.hs
