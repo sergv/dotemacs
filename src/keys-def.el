@@ -61,7 +61,7 @@
     ("E" vim-mock:motion-fwd-WORD-end)))
 
 (defconst +vim-interbuffer-navigation-keys+
-  '(("C-b"       ido-switch-buffer)
+  '(("C-b"       ivy-switch-buffer)
     ("<home>"    next-f)
     ("<end>"     prev-f)
     ("S-<home>"  swap-buffers-forward-through-frames)
@@ -79,16 +79,16 @@
 
 (defconst +vim-special-keys+
   `(("s"     vim:ex-read-command)
-    ("C-b"   ido-switch-buffer)
+    ("C-b"   ivy-switch-buffer)
     ("C-M-k" remove-buffer)
     ("C-s"   save-buffer)
 
     ("g"     nil)
-    ("g x"   smex)
-    ("M-x"   smex)
+    ("g x"   ivy-smex)
+    ("M-x"   ivy-smex)
     ("g e"   vim-mock:motion-bwd-word-end)
     ("g E"   vim-mock:motion-bwd-WORD-end)
-    ("g f"   ido-find-file)
+    ("g f"   find-file)
     ("g r"   egrep)
     ("g k"   remove-buffer)
     ("g K"   remove-buffer-and-window)

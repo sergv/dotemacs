@@ -85,6 +85,56 @@
                              "")
                          t t command))))))))
 
+     (el-patch-defun grep-read-files (regexp)
+       "Read files arg for interactive grep."
+       (let* ((bn (or (buffer-file-name)
+                      (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name))))
+              (fn (and bn
+                       (stringp bn)
+                       (file-name-nondirectory bn)))
+              (default-alias
+                (and fn
+                     (let ((aliases (remove (assoc "all" grep-files-aliases)
+                                            grep-files-aliases))
+                           alias)
+                       (while aliases
+                         (setq alias (car aliases)
+                               aliases (cdr aliases))
+                         (if (string-match (mapconcat
+                                            'wildcard-to-regexp
+                                            (split-string (cdr alias) nil t)
+                                            "\\|")
+                                           fn)
+                             (setq aliases nil)
+                           (setq alias nil)))
+                       (cdr alias))))
+              (default-extension
+                (and fn
+                     (let ((ext (file-name-extension fn)))
+                       (and ext (concat "*." ext)))))
+              (default
+                (or default-alias
+                    default-extension
+                    (car grep-files-history)
+                    (car (car grep-files-aliases))))
+              (files (completing-read
+                      (concat "Search for \"" regexp
+                              "\" in files"
+                              (if default (concat " (default " default ")"))
+                              ": ")
+                      (el-patch-swap
+                        'read-file-name-internal
+                        (delete-dups
+                         (delq nil (append (list default default-alias default-extension)
+                                           (mapcar 'car grep-files-aliases)))))
+                      nil nil nil 'grep-files-history
+                      (delete-dups
+                       (delq nil (append (list default default-alias default-extension)
+                                         (mapcar 'car grep-files-aliases)))))))
+         (and files
+              (or (cdr (assoc files grep-files-aliases))
+                  files))))
+
      (defadvice grep-filter (before grep-filter-make-relative-filename-advice
                                     activate
                                     compile)

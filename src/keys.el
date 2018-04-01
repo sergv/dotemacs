@@ -28,7 +28,6 @@
 
   ;; use abort, don't exit here
   ("<escape>" abort-recursive-edit)
-  ("M-x"      execute-extended-command)
   ("C-!"      shell-command)
   ("C-|"      shell-command-on-region)
   ("M-!"      nil)
@@ -46,7 +45,7 @@
   ("C-t"      nil)
   ("C-<down>" nil)
   ("C-<up>"   nil)
-  ("C-b"      ido-switch-buffer)
+  ("C-b"      ivy-switch-buffer)
 
   ;; for icicle
   ("<M-tab>"  nil)
@@ -61,8 +60,8 @@
   ("M-m"      nil)
   ("M-M"      nil)
 
-  ("M-x"      smex)
-  ("M-X"      smex-major-mode-commands)
+  ("M-x"      ivy-smex)
+
   ("C-x <f1>" nil)
   ("C-z"      nil)
   ("C-x f"    find-file)
