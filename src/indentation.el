@@ -89,8 +89,11 @@ See also `indent-relative-maybe'."
     (let ((start-column (current-column))
           indent)
       (save-excursion
+        (forward-line -1)
+        (while (< start-column (indentation-size))
+          (forward-line -1))
         (beginning-of-line)
-        (when (re-search-backward "^[^ \t\r\n\f\v]" nil t)
+        (let ((reference-line-indent (indentation-size)))
           (let ((end (if forward?
                          (min (+ (line-end-position) 1)
                               (point-max))
@@ -100,7 +103,7 @@ See also `indent-relative-maybe'."
             (when (> (current-column) start-column)
               (backward-char 1))
             (if forward?
-                (if (= 0 start-column)
+                (if (= reference-line-indent start-column)
                     ;; Add extra one tab stop after 0th column.
                     (move-to-column (indent-next-tab-stop start-column))
                   (progn
@@ -109,7 +112,7 @@ See also `indent-relative-maybe'."
               (progn
                 (skip-chars-backward " \t" end)
                 (skip-chars-backward "^ \t" end)
-                (when (= 0 (current-column))
+                (when (= reference-line-indent (current-column))
                   (let ((indent-after-one-tabstop
                          (indent-next-tab-stop (current-column))))
                     (when (/= indent-after-one-tabstop start-column)
