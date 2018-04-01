@@ -15,8 +15,7 @@
 ;; [(ignored-files <regexp>+)] - ignored filenames, <regexp>
 ;;                               should match absolute file names. Will be applied
 ;;                               to file-list and aux files arguments.
-;; [(file-list <abs-or-rel-file>)] - filename listing all files in lisp format,
-;;                                   e.g. ("foo" "c:/bar.txt" "../quux.log")
+;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
 ;;
 ;; [(create-tag-files <t-or-nil>)] - whether to cache tags in tag files for this project
 ;;
@@ -423,7 +422,7 @@
         (cl-assert (functionp it) nil "Invalid aux-files-source for project %s: %s"
                    (eproj-project/root proj)
                    it)
-        (eproj--filter-file-list proj (funcall it)))
+        (eproj--filter-ignored-files-from-file-list proj (funcall it)))
     nil))
 
 (defun eproj-project/root= (proj-a proj-b)
@@ -838,7 +837,7 @@ symbol 'unresolved.")
           (error ".eproj-info file does not exist at %s"
                  initial-root))))))
 
-(defun eproj--filter-file-list (proj files)
+(defun eproj--filter-ignored-files-from-file-list (proj files)
   "Filter list of FILES using ignored-files-regexps of project PROJ."
   (aif (mk-regexp-from-alts
         (append (eproj-project/ignored-files-regexps proj)
@@ -847,6 +846,18 @@ symbol 'unresolved.")
         (--filter (not (string-match-p regexp it))
                   files))
     files))
+
+(defun eproj--read-file-list (file)
+  (let ((result nil))
+    (with-temp-buffer
+      (insert-file-contents-literally file)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (push (buffer-substring-no-properties (line-beginning-position)
+                                              (line-end-position))
+              result)
+        (forward-line 1)))
+    (nreverse result)))
 
 (defun eproj-get-project-files (proj)
   "Retrieve project files for PROJ depending on it's type. Returns absolute
@@ -858,19 +869,14 @@ paths."
     (let ((related-projects-roots (eproj-project/related-projects proj)))
       ;; if there's file-list then read it and store to cache
       (if-let (file-list-filename (eproj-project/file-list-filename proj))
-          (let ((list-of-files
-                 (with-temp-buffer
-                   (insert-file-contents-literally file-list-filename)
-                   (goto-char (point-min))
-                   (read (current-buffer)))))
+          (let ((list-of-files (eproj--read-file-list file-list-filename)))
             (cl-assert (listp list-of-files))
-            (let* (
-                   (absolute-files
+            (let* ((absolute-files
                     (-map (lambda (filename)
                             (eproj--resolve-to-abs-path filename (eproj-project/root proj)))
                           list-of-files))
                    (resolved-files
-                    (eproj--filter-file-list proj absolute-files)))
+                    (eproj--filter-ignored-files-from-file-list proj absolute-files)))
               (cl-assert (--all? (and (stringp it)
                                       (file-exists-p it))
                                  resolved-files))
