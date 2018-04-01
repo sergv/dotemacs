@@ -124,11 +124,14 @@ update-dir-autoloads \
     "third-party/flycheck" \
     "third-party/flycheck-elm" \
     "third-party/flycheck-liquidhs" \
+    "third-party/flx" \
     "third-party/ghub" \
     "third-party/git-modes" \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
     "third-party/intero" \
+    "third-party/ivy" \
+    "third-party/ivy-smex" \
     "third-party/liquid-types" \
     "third-party/magit" \
     "third-party/magit-popup" \

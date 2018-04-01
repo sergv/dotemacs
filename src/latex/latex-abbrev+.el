@@ -29,7 +29,7 @@ from \\label{...} and \\ref{...} constructs."
 (defun latex-insert-reference-template ()
   "Insert \\ref{} construct and put prompt between angle brackets."
   (let ((label
-         (ido-completing-read "Label: "
+         (ivy-completing-read "Label: "
                               (latex-get-labels-in-buffer)
                               nil
                               ;; I deliberately do not require match here to

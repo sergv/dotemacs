@@ -23,7 +23,6 @@
      (setf flycheck-indication-mode nil
            ;; Highlight whole line with error
            flycheck-highlighting-mode 'lines
-           flycheck-completing-read-function #'ido-completing-read
            flycheck-display-errors-delay 0)))
 
 (defun flycheck-pretty-mode-line ()

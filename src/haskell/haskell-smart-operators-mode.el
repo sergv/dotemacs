@@ -304,12 +304,12 @@ strings or commetns. Expand into {- _|_ -} if inside { *}."
              (delete-region pt-pragma-start pt-pragma-end)
              (insert "#  #")
              (forward-char -2)
-             (let ((pragma (ido-completing-read "Pragma: "
+             (let ((pragma (ivy-completing-read "Pragma: "
                                                 haskell-completions--pragma-names)))
                (insert pragma " ")
                (when (string= pragma "LANGUAGE")
                  (insert
-                  (ido-completing-read
+                  (ivy-completing-read
                    "Language: "
                    haskell-ghc-supported-extensions)))))
             ;; for c2hs
