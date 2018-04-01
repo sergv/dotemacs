@@ -188,14 +188,14 @@ in the current *Python* session."
            ;; got only one completion
            (setf completion (car completions)))
           (t
-           (setf completion (ido-completing-read ""
+           (setf completion (ivy-completing-read ""
                                                  completions
                                                  nil
                                                  nil
                                                  pattern)))))
       (if (or (string= pattern completion)
               (= 0 (length completion)))
-        (error "No completions found for \"%s\"" pattern)
+          (error "No completions found for \"%s\"" pattern)
         (progn
           (delete-region beg end)
           (insert (trim-whitespace completion)))))))

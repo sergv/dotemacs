@@ -174,14 +174,14 @@ inserted."
                                   #'strip-trailing-slash)
                           #'identity)
                         (expand-file-name
-                         (ido-read-file-name
+                         (read-file-name
                           ""
                           nil
                           ""
                           nil
                           nil
                           (lambda (x) (or (file-directory-p x)
-                                          (file-exists-p x)))))))
+                                     (file-exists-p x)))))))
          (output (if (and (eq major-mode 'org-mode)
                           (y-or-n-p "Insert link? "))
                      (concat "[[file:"
@@ -343,14 +343,14 @@ tabbar, etc")
   "Returns t if buffer BUF should be regarded as invisible, see also
 `*invisible-buffers*'."
   (declare (pure nil) (side-effect-free t))
-  (cond ((or (string? buf)
-             (buffer? buf))
+  (cond ((or (stringp buf)
+             (bufferp buf))
          (string-match-p invisible-buffers-re
                          (if (string? buf)
                              buf
                            (buffer-name buf))))
         (t
-         (error "wrong argument type - not a string nor a buffer: %s"
+         (error "wrong argument type - neither a string or a buffer: %s"
                 buf))))
 
 (defun visible-buffers ()

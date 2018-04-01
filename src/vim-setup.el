@@ -72,7 +72,7 @@ like \"d w\".")
     (":"         vim:motion-repeat-last-find-opposite)
 
     ("C-:"       pp-eval-expression)
-    ("g x"       smex)
+    ("g x"       ivy-smex)
     ("<down>"    vim:motion-fwd-paragraph)
     ("<up>"      vim:motion-bwd-paragraph)
 
@@ -84,7 +84,7 @@ like \"d w\".")
     ("]"   vim:motion-bwd-paragraph)
     ("["   vim:motion-fwd-paragraph)
     ("s"   vim:ex-read-command)
-    ("g f" ido-find-file)
+    ("g f" counsel-find-file)
     ("g r" egrep)))
 
 (def-keys-for-map (vim:normal-mode-keymap
@@ -241,7 +241,7 @@ like \"d w\".")
   ("M-p"           browse-kill-ring)
   ("SPC"           abbrev+-insert-space-or-expand-abbrev)
   ("<insert>"      vim:scroll-line-up)
-  ("C-b"           ido-switch-buffer)
+  ("C-b"           ivy-switch-buffer)
   ("C-:"           pp-eval-expression)
 
   ("("             vim:wrap-parens)

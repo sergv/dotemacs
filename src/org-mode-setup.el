@@ -96,9 +96,7 @@
       ;; this may be useful when working with large amounts of items
       org-drill-add-random-noise-to-intervals-p t
 
-      org-src-preserve-indentation t
-
-      org-completion-use-ido t)
+      org-src-preserve-indentation t)
 
 (setf org-entities-user
       '(("triangleleft"   ;; name

@@ -867,7 +867,7 @@ it's position in current window."
   (let* ((process-type
           (if query-for-process-type
               (string->symbol
-               (ido-completing-read "Process type: "
+               (ivy-completing-read "Process type: "
                                     '("auto"
                                       "cabal-repl"
                                       "stack-ghci"

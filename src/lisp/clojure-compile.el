@@ -119,7 +119,7 @@ With prefix argument allows to select different profile."
   (interactive "P")
   (when switch-profile
     (setf clojure-compile/current-profile
-          (ido-completing-read "> "
+          (ivy-completing-read "> "
                                clojure-compile/avaliable-profiles
                                nil
                                nil))
