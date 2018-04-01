@@ -70,7 +70,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
 (defun egrep--find-matches (regexp exts-globs ignored-exts-globs dir ignore-case)
   (let* ((files (find-rec*
                  :root dir
-                 :extensions-globs exts-globs
+                 :globs-to-find exts-globs
                  :ignored-extensions-globs ignored-exts-globs
                  :ignored-directories +ignored-directories+
                  :ignored-directory-prefixes +ignored-directory-prefixes+))
