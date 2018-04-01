@@ -140,6 +140,7 @@
     (puthash x x eproj/ctags-string-cache)))
 
 ;; tags parsing
+;;;###autoload
 (defun eproj/ctags-get-tags-from-buffer (buffer)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command."
