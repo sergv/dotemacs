@@ -2719,6 +2719,120 @@
      "import  \"foo\" Data.Ord_|_"
      "import Data.Set (Set)")))
 
+(ert-deftest haskell-tests/haskell-back-up-indent-level-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (should (haskell-back-up-indent-level)))
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "        quux _|_x"
+     "  bar 10 ")
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "        _|_quux x"
+     "  bar 10 ")))
+
+(ert-deftest haskell-tests/haskell-back-up-indent-level-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (should (haskell-back-up-indent-level)))
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "        _|_quux x"
+     "  bar 10 ")
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  _|_let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")))
+
+(ert-deftest haskell-tests/haskell-back-up-indent-level-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (should (haskell-back-up-indent-level)))
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  _|_let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "_|_foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")))
+
+(ert-deftest haskell-tests/haskell-back-up-indent-level-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (should-not (haskell-back-up-indent-level)))
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "_|_foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "_|_foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")))
+
+(ert-deftest haskell-tests/haskell-back-up-indent-level-5 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (should (haskell-back-up-indent-level)))
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "  _|_      quux x"
+     "  bar 10 ")
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  _|_let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")))
+
+(ert-deftest haskell-tests/haskell-back-up-indent-level-6 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (should (haskell-back-up-indent-level)))
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "    _|_    quux x"
+     "  bar 10 ")
+    (haskell-tests--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  _|_let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")))
+
 ;; (ert "haskell-tests/.*")
 
 ;; (setf haskell-tests/tests
