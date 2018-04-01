@@ -47,6 +47,7 @@
             (erase-buffer))))
         (funcall parse-tags-proc out-buffer))))))
 
+;;;###autoload
 (defun eproj/get-fast-tags-tags-from-buffer (buffer)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain simplified output of ctags - fast-tags command.
