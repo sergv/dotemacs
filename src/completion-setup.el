@@ -87,6 +87,37 @@
 
 (add-to-list 'ivy-ignore-buffers invisible-buffers-re)
 
+(awhen (assq 'read-file-name-internal ivy-sort-functions-alist)
+  (setcdr it #'ivy-sort-file-function-prioritise-visible-dirs))
+
+(defun ivy-sort-file-function-prioritise-visible-dirs (x y)
+  "Compare two files X and Y.
+Prioritize directories unless they're invisible."
+  (if (= 0 (length x))
+      (not (= 0 (length y)))
+    (let* ((x-dir? (file-directory-p x))
+           (y-dir? (file-directory-p y))
+           (x-visible? (and (< 0 (length x))
+                            (not (char-equal ?. (aref x 0)))))
+           (y-visible? (and (< 0 (length y))
+                            (not (char-equal ?. (aref y 0)))))
+           (cmp-dir
+            (lambda ()
+              (if x-dir?
+                  (if y-dir?
+                      (string< (directory-file-name x) (directory-file-name y))
+                    t)
+                (if y-dir?
+                    nil
+                  (string< x y))))))
+      (if x-visible?
+          (if y-visible?
+              (funcall cmp-dir)
+            t)
+        (if y-visible?
+            nil
+          (funcall cmp-dir))))))
+
 (def-keys-for-map ivy-minibuffer-map
   ("C-h"        ivy-next-history-element)
   ("C-t"        ivy-previous-history-element)
