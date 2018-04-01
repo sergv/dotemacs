@@ -90,9 +90,9 @@
 (cl-defstruct (eproj-language
                (:conc-name eproj-language/))
   mode
-  extensions ;; list of <ext> strings
+  ;; list of <ext> strings
+  extensions
   extension-re
-  create-tags-procedure
   ;; Function of three arguments:
   ;; 1. current eproj/project structure
   ;; 2. function of zero arguments returning list of files to load from
@@ -100,20 +100,24 @@
   ;; passed buffer.
   ;;
   ;; Returns whatever the third function returned.
-  parse-tags-procedure
+  create-tags-procedure
+
   ;; Function of one argument - buffer with tag text to parse,
   ;; created by e.g. create-tags-procedure.
   ;; Should return hash table of tags - hashtable of (<identifier> . <eproj-tags>)
   ;; bindings for specified files, where <eproj-tags> is a list of tags.
+  parse-tags-procedure
 
-  show-tag-kind-procedure ;; function that takes a tag and returs a string
-  tag->string-func ;; function of one argument, a tag, returning string
-  synonym-modes ;; list of symbols, these modes will resolve to this language
-  ;; during tag search
-  normalize-identifier-before-navigation-procedure ;; Possibly strip unneeded
-  ;; information before
-  ;; performing navigation
-  )
+  ;; function that takes a tag and returs a string
+  show-tag-kind-procedure
+  ;; function of one argument, a tag, returning string
+  tag->string-func
+  ;; list of symbols, these modes will resolve to this language during
+  ;; tag search
+  synonym-modes
+
+  ;; Possibly strip unneeded information before performing navigation
+  normalise-identifier-before-navigation-procedure)
 
 (defun* mk-eproj-lang (&key mode
                             extensions
@@ -122,7 +126,22 @@
                             show-tag-kind-procedure
                             tag->string-func
                             synonym-modes
-                            normalize-identifier-before-navigation-procedure)
+                            normalise-identifier-before-navigation-procedure)
+  (cl-assert (symbolp mode))
+  (cl-assert (listp extensions))
+  (cl-assert (-all? #'stringp extensions))
+  (cl-assert (or (functionp create-tags-procedure)
+                 (autoloadp create-tags-procedure)))
+  (cl-assert (or (functionp parse-tags-procedure)
+                 (autoloadp parse-tags-procedure)))
+  (cl-assert (listp synonym-modes))
+  (cl-assert (or (functionp tag->string-func)
+                 (autoloadp tag->string-func)))
+  (cl-assert (listp synonym-modes))
+  (cl-assert (-all? #'symbolp synonym-modes))
+  (cl-assert (or (null normalise-identifier-before-navigation-procedure)
+                 (functionp normalise-identifier-before-navigation-procedure)
+                 (autoloadp normalise-identifier-before-navigation-procedure)))
   (make-eproj-language
    :mode mode
    :extensions extensions
@@ -134,8 +153,8 @@
    :show-tag-kind-procedure show-tag-kind-procedure
    :tag->string-func tag->string-func
    :synonym-modes synonym-modes
-   :normalize-identifier-before-navigation-procedure
-   normalize-identifier-before-navigation-procedure))
+   :normalise-identifier-before-navigation-procedure
+   normalise-identifier-before-navigation-procedure))
 
 ;;;; language definitions
 
@@ -251,8 +270,6 @@
     (prog1 (funcall parse-tags-proc (current-buffer))
       (erase-buffer))))
 
-(autoload 'eproj/get-fast-tags-tags-from-buffer "eproj-haskell")
-
 (defparameter eproj/languages
   (list
    (mk-eproj-lang
@@ -268,9 +285,8 @@
                      haskell-c-mode
                      haskell-c2hs-mode
                      alex-mode
-                     happy-mode
-                     uuagc-mode)
-    :normalize-identifier-before-navigation-procedure
+                     happy-mode)
+    :normalise-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification)
    (mk-eproj-lang
     :mode 'c-mode
@@ -281,10 +297,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-func #'eproj/c-tag->string
-    :synonym-modes nil
-    :normalize-identifier-before-navigation-procedure
-    #'identity)
+    :tag->string-func #'eproj/c-tag->string)
    (mk-eproj-lang
     :mode 'c++-mode
     :extensions '("c"
@@ -307,10 +320,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
-    :tag->string-func #'eproj/c-tag->string
-    :synonym-modes nil
-    :normalize-identifier-before-navigation-procedure
-    #'identity)
+    :tag->string-func #'eproj/c-tag->string)
    (mk-eproj-lang
     :mode 'python-mode
     :extensions '("py" "pyx" "pxd" "pxi")
@@ -320,10 +330,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string
-    :synonym-modes nil
-    :normalize-identifier-before-navigation-procedure
-    #'identity)
+    :tag->string-func #'eproj/generic-tag->string)
    (mk-eproj-lang
     :mode 'clojure-mode
     :extensions '("clj" "java")
@@ -334,10 +341,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
-    :tag->string-func #'eproj/generic-tag->string
-    :synonym-modes nil
-    :normalize-identifier-before-navigation-procedure
-    #'identity)
+    :tag->string-func #'eproj/generic-tag->string)
    (mk-eproj-lang
     :mode 'java-mode
     :extensions '("java")
@@ -347,10 +351,7 @@
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/java-tag-kind
-    :tag->string-func #'eproj/java-tag->string
-    :synonym-modes nil
-    :normalize-identifier-before-navigation-procedure
-    #'identity)))
+    :tag->string-func #'eproj/java-tag->string)))
 
 (defparameter eproj/languages-table
   (let ((table (make-hash-table :test #'eq)))
@@ -575,7 +576,7 @@ cache tags in."
                                                              lang-mode
                                                              make-project-files-func
                                                              :consider-tag-files t)))
-                     (cl-assert (and (not (null new-tags))
+                     (cl-assert (and new-tags
                                      (hash-table-p new-tags)))
                      (when (= 0 (hash-table-count new-tags))
                        (error "Warning while reloading: project %s loaded no tags for language %s"
@@ -586,6 +587,8 @@ cache tags in."
   nil)
 
 (defun eproj-populate-from-eproj-info! (proj aux-info)
+  "Fill up project structure PROJ from AUX-INFO alist that is the contents
+of project's `.eproj-info' file."
   (let ((languages (aif (eproj-project/query-aux-info-seq aux-info languages)
                        it
                      (progn
@@ -633,8 +636,9 @@ cache tags in."
 (defun eproj-reload-project! (proj)
   "Update project PROJ - re-read its .eproj-info file and update project
 variables accordingly."
-  (cl-assert (not (null (eproj-project/root proj))))
-  (cl-assert (stringp (eproj-project/root proj)))
+  (cl-assert (and (eproj-project/root proj)
+                  (stringp (eproj-project/root proj))
+                  (file-name-absolute-p (eproj-project/root proj))))
   (eproj-populate-from-eproj-info!
    proj
    (eproj-read-eproj-info-file
