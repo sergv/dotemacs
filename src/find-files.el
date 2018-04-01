@@ -88,7 +88,7 @@ Valid values are:
 ;;;###autoload
 (defun* find-rec* (&key
                    root
-                   extensions-globs
+                   globs-to-find
                    ignored-extensions-globs
                    ignored-files-absolute-regexps
                    ignored-absolute-dirs
@@ -99,8 +99,8 @@ search.
 
 EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (declare (pure nil) (side-effect-free nil))
-  (when (null extensions-globs)
-    (error "no extensions globs for project %s" root))
+  (when (null globs-to-find)
+    (error "No globs to search for under %s" root))
   (if find-files/find-program-type
       (let* ((ignored-dirs-globs
               (nconc (--map (concat "*/" it)
@@ -125,8 +125,8 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                         (error "find-files/find-program-type has invalid value: %s"
                                find-files/find-program-type)))
                      ignored-files-absolute-regexps)))
-             (exts (-map (lambda (glob) (list "-name" glob))
-                         extensions-globs))
+             (to-find (-map (lambda (glob) (list "-name" glob))
+                            globs-to-find))
              (find-cmd (or find-files/find-program-executable
                            (error "find-files/find-program-type has invalid value: %s"
                                   find-files/find-program-type)))
@@ -158,7 +158,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                         "-o"))
                      "-type" "f"
                      "("
-                     (-interpose "-o" exts)
+                     (-interpose "-o" to-find)
                      ")"
                      "-print")))
              (w32-quote-process-args
@@ -179,7 +179,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
             (split-into-lines
              (buffer-substring-no-properties (point-min)
                                              (point-max)))))))
-    (let* ((ext-re (globs-to-regexp extensions-globs))
+    (let* ((re-to-find (globs-to-regexp globs-to-find))
            (ignored-files-re (globs-to-regexp ignored-extensions-globs))
            (ignored-files-absolute-re
             (mk-regexp-from-alts ignored-files-absolute-regexps))
@@ -199,12 +199,12 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                 (if ignored-files-all-re
                     (lambda (path)
                       (and (let ((case-fold-search t))
-                             (string-match-p ext-re path))
+                             (string-match-p re-to-find path))
                            (let ((case-fold-search nil))
                              (not (string-match-p ignored-files-all-re path)))))
                   (lambda (path)
                     (let ((case-fold-search t))
-                      (string-match-p ext-re path))))
+                      (string-match-p re-to-find path))))
                 :do-not-visitp
                 (if ignored-absolute-dirs-re
                     (lambda (path)

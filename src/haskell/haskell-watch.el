@@ -76,7 +76,7 @@ roots (i.e. valid and existing keys within
   (seq-sort #'string<
             (find-rec*
              :root root
-             :extensions-globs '("*.cabal" "package.yaml" "stack*.yaml")
+             :globs-to-find '("*.cabal" "package.yaml" "stack*.yaml")
              :ignored-directories +ignored-directories+
              :ignored-directory-prefixes +ignored-directory-prefixes+)))
 

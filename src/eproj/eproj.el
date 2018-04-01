@@ -884,12 +884,12 @@ paths."
               resolved-files))
         (find-rec*
          :root (eproj-project/root proj)
-         :extensions-globs (-mapcat (lambda (lang)
-                                      (cl-assert (symbolp lang))
-                                      (--map (concat "*." it)
-                                             (eproj-language/extensions
-                                              (gethash lang eproj/languages-table))))
-                                    (eproj-project/languages proj))
+         :globs-to-find (-mapcat (lambda (lang)
+                                   (cl-assert (symbolp lang))
+                                   (--map (concat "*." it)
+                                          (eproj-language/extensions
+                                           (gethash lang eproj/languages-table))))
+                                 (eproj-project/languages proj))
          :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
          :ignored-absolute-dirs related-projects-roots
          :ignored-directories +ignored-directories+
