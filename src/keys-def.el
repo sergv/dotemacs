@@ -61,7 +61,7 @@
     ("E" vim-mock:motion-fwd-WORD-end)))
 
 (defconst +vim-interbuffer-navigation-keys+
-  '(("C-b"       ivy-switch-buffer)
+  '(("C-b"       switch-to-buffer-or-file-in-current-project)
     ("<home>"    next-f)
     ("<end>"     prev-f)
     ("S-<home>"  swap-buffers-forward-through-frames)
@@ -79,7 +79,7 @@
 
 (defconst +vim-special-keys+
   `(("s"     vim:ex-read-command)
-    ("C-b"   ivy-switch-buffer)
+    ("C-b"   switch-to-buffer-or-file-in-current-project)
     ("C-M-k" remove-buffer)
     ("C-s"   save-buffer)
 

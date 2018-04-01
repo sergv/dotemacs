@@ -9,6 +9,7 @@
 (require 'common-heavy)
 (require 'eproj)
 (require 'eproj-ctags)
+(require 'haskell-watch)
 
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
@@ -235,6 +236,16 @@ runtime but rather will be silently relied on)."
           advance)
         (let ((previous-line-end (line-end-position 0)))
           (buffer-substring-no-properties start previous-line-end))))))
+
+;;;###autoload
+(defun eproj/haskell-get-extra-navigation-files (proj)
+  (when-let (watch-project
+             (haskell-watch-get-project (eproj-project/root proj)))
+    (let ((res nil))
+      (maphash (lambda (key value)
+                 (push key res))
+               (haskell-watched-project/watched-files watch-project))
+      res)))
 
 (provide 'eproj-haskell)
 
