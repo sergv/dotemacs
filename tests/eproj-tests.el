@@ -95,7 +95,7 @@ under ROOT directory."
            (eproj-tests/normalize-file-list
             (-map #'eproj-project/root
                   (cons proj
-                        (eproj-get-all-related-projects proj nil))))))
+                        (eproj-get-all-related-projects proj))))))
       (should (equal
                (sort (-map #'file-name-base related-roots-norm) #'string<)
                '("project-main"
@@ -358,7 +358,7 @@ test	%s	102	;\"	f
            (eproj-tests/normalize-file-list
             (-map #'eproj-project/root
                   (cons proj
-                        (eproj-get-all-related-projects proj nil))))))
+                        (eproj-get-all-related-projects proj))))))
       (should (equal
                (sort (-map #'file-name-base related-roots-norm) #'string<)
                '("main-project"

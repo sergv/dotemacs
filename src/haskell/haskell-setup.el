@@ -93,7 +93,7 @@
 
 (defun haskell-update-eproj-tags-on-save ()
   (ignore-errors
-    (eproj-update-buffer-tags)))
+    (eproj-update-current-buffer-within-its-project!)))
 
 (defun haskell-go-to-symbol-home (&optional use-regexp?)
   "Try to get symbol location via intero (`intero-goto-definition'), if it's
