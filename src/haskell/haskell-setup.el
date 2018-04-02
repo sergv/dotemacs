@@ -131,7 +131,7 @@ enabled. Otherwise fall back to eproj tags."
                   (eproj-get-project-for-buf (current-buffer)))))
 
       (haskell-setup-indentation
-       (eproj-query/haskell/indent-offset proj))
+       :offset (eproj-query/haskell/indent-offset proj))
 
       (unless (derived-mode-p 'ghc-core-mode)
         (setf intero-enabled? (eproj-query/haskell/enable-intero? proj intero-enabled?))

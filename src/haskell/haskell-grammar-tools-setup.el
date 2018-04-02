@@ -22,7 +22,8 @@
   (let ((proj (ignore-errors
                 (eproj-get-project-for-buf (current-buffer)))))
     (haskell-setup-indentation
-     (eproj-query/haskell/indent-offset proj))
+     :offset (eproj-query/haskell/indent-offset proj)
+     :simpler-indentation-by-default t)
     (setq-local tab-always-indent t)
     (setq-local indent-line-function
                 (lambda ()
