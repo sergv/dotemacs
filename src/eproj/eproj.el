@@ -483,6 +483,7 @@
   "Update projects in database `*eproj-projects*'."
   (interactive)
   (maphash (lambda (root proj)
+             (declare (ignore root proj))
              (eproj-reload-project! proj))
            *eproj-projects*))
 
