@@ -638,6 +638,19 @@ return nil otherwise."
            ,@body)
        (set-marker ,marker-var nil))))
 
+(defmacro with-expanded-invisible-overlays (start end &rest body)
+  (declare (indent 2))
+  `(let ((invisible-ovs nil))
+     (unwind-protect
+         (progn
+           (dolist (ov (overlays-in ,start ,end))
+             (when (overlay-get ov 'invisible)
+               (overlay-put ov 'invisible nil)
+               (push ov invisible-ovs)))
+           ,@body)
+       (dolist (ov invisible-ovs)
+         (overlay-put ov 'invisible t)))))
+
 ;;; aif, awhen
 
 (defmacro aif (condition true-branch &optional false-branch)
