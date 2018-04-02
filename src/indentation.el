@@ -41,19 +41,16 @@ to mode and write new contents back to FILENAME."
 
 ;;;###autoload
 (defun indent-relative-backwards ()
-  "Indent backwards. Dual to `indent-relative'.
-Clone of `haskell-simple-indent-backtab'."
+  "Indent backwards (inefficiently). Dual to `indent-relative'."
   (interactive)
   (let ((current-point (point))
-        (i 0)
-        (x 0))
+        (prev-indent 0))
     (goto-char (line-beginning-position))
     (save-excursion
       (while (< (point) current-point)
-        (indent-relative)
-        (setq i (+ i 1))))
-    (dotimes (x (- i 1))
-      (indent-relative))))
+        (setf prev-indent (current-column))
+        (indent-relative)))
+    (move-to-column prev-indent)))
 
 ;;;###autoload
 (defun indent-whole-buffer ()
