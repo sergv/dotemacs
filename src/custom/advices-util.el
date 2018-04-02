@@ -65,7 +65,7 @@ will be possible."
 
 ;;;
 
-(defmacro defadvice:auto-comment (func)
+(defmacro advices/auto-comment (func)
   "Define advice around FUNC that will insert comments at
 beginning of line if previous line was commented out.
 
