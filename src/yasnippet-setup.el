@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'completion-setup)
 (require 'el-patch)
 
 ;;;###autoload
@@ -14,13 +15,16 @@
 
 (setf yas-ignore-filenames-as-triggers t
       yas-snippet-dirs (list (concat +resources-path+ "/snippets"))
-      yas-prompt-functions '(yas-completing-prompt)
+      yas-prompt-functions '(ivy-yas-completing-prompt)
       yas-skip-and-clear-key "DEL"
       yas-key-syntaxes (list "^ >" "w_." "w_" "w")
       ;; don't reactivate fields on undo/redo
       yas-snippet-revival nil
       ;; Make `yas-expand' return nil if it fails to expand a snippet.
       yas-fallback-behavior nil)
+
+(add-to-list 'ivy-re-builders-alist
+             '(ivy-yas-completing-prompt . ivy--regex-fuzzy))
 
 (defun yas--parse-templates (&optional file)
   "Parse the templates in the current buffer. For every mention of
@@ -191,6 +195,24 @@ in org's headline."
   (interactive)
   (or (yas-expand)
       (call-interactively yas-expand-fallback)))
+
+(defun ivy-yas-completing-prompt (prompt choices &optional display-fn completion-fn)
+  (let* ((formatted-choices
+          (if display-fn (mapcar display-fn choices) choices))
+         (this-command 'ivy-yas-completing-prompt)
+         (chosen
+          (ivy-read
+           prompt
+           formatted-choices
+           :predicate nil
+           :require-match t
+           :initial-input nil
+           :history nil
+           :caller 'ivy-yas-completing-prompt)))
+    (if (eq choices formatted-choices)
+        chosen
+      (nth (or (cl-position chosen formatted-choices :test #'string=) 0)
+           choices))))
 
 (provide 'yasnippet-setup)
 
