@@ -1192,7 +1192,7 @@ current buffer."
                 (dolist (path extra-files)
                   (funcall add-file path (file-relative-name path root)))))
           (error "Project %s specifies unrecognised language: %s" root mode)))
-      (dolist (buf (visible-buffers))
+      (dolist (buf (nreverse (visible-buffers)))
         (push (cons (buffer-name buf) buf) files))
       (ivy-read "Buffer or file: "
                 files
