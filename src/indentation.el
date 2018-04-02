@@ -85,38 +85,61 @@ See also `indent-relative-maybe'."
   (save-match-data
     (let ((start-column (current-column))
           indent)
-      (save-excursion
-        (forward-line -1)
-        (while (< start-column (indentation-size))
-          (forward-line -1))
-        (beginning-of-line)
-        (let ((reference-line-indent (indentation-size)))
-          (let ((end (if forward?
-                         (min (+ (line-end-position) 1)
-                              (point-max))
-                       (line-beginning-position))))
-            (move-to-column start-column)
-            ;; Is start-column inside a tab on this line?
-            (when (> (current-column) start-column)
-              (backward-char 1))
-            (if forward?
-                (if (= reference-line-indent start-column)
-                    ;; Add extra one tab stop after 0th column.
-                    (move-to-column (indent-next-tab-stop start-column))
-                  (progn
-                    (skip-chars-forward "^ \t" end)
-                    (skip-chars-forward " \t" end)))
-              (progn
-                (skip-chars-backward " \t" end)
-                (skip-chars-backward "^ \t" end)
-                (when (= reference-line-indent (current-column))
-                  (let ((indent-after-one-tabstop
-                         (indent-next-tab-stop (current-column))))
-                    (when (/= indent-after-one-tabstop start-column)
-                      (move-to-column indent-after-one-tabstop))))))
-            (when (or (not forward?)
-                      (/= (point) end))
-              (setf indent (current-column))))))
+      (with-disabled-undo
+       (with-inhibited-modification-hooks
+        (with-inhibited-redisplay
+          (with-expanded-invisible-overlays
+              (max (save-excursion (haskell-move-to-topmost-start)
+                                   (point))
+                   (point-min))
+              (point)
+            (save-restriction
+              (save-excursion
+                (widen)
+                (forward-line -1)
+                (beginning-of-line)
+                (while (and (not (bobp))
+                            (or (looking-at-p haskell-regexen/preprocessor-or-empty-line)
+                                (if (or forward?
+                                        ;; If we start at column 0
+                                        ;; then we do not want to iterate
+                                        ;; all the way to the beginning of
+                                        ;; the buffer.
+                                        (= 0 start-column))
+                                    (< start-column (indentation-size))
+                                  ;; If we're looking backward then
+                                  ;; we'd like to use a lite with less
+                                  ;; indent than we currently have as
+                                  ;; a reference.
+                                  (<= start-column (indentation-size)))))
+                  (forward-line -1))
+                (let ((reference-line-indent (indentation-size)))
+                  (let ((end (if forward?
+                                 (min (+ (line-end-position) 1)
+                                      (point-max))
+                               (line-beginning-position))))
+                    (move-to-column start-column)
+                    ;; Is start-column inside a tab on this line?
+                    (when (> (current-column) start-column)
+                      (backward-char 1))
+                    (if forward?
+                        (if (= reference-line-indent start-column)
+                            ;; Add extra one tab stop after 0th column.
+                            (move-to-column (indent-next-tab-stop start-column))
+                          (progn
+                            (skip-chars-forward "^ \t" end)
+                            (skip-chars-forward " \t" end)))
+                      (progn
+                        (skip-chars-backward " \t" end)
+                        (skip-chars-backward "^ \t" end)
+                        (when (= reference-line-indent (current-column))
+                          (let ((indent-after-one-tabstop
+                                 (indent-next-tab-stop (current-column))))
+                            (when (/= indent-after-one-tabstop start-column)
+                              (move-to-column indent-after-one-tabstop))))))
+                    (when (or (not forward?)
+                              (/= (point) end))
+                      (setf indent (current-column)))))))))))
       (cond
         (indent
          (indent-to! indent)
