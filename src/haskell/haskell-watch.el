@@ -103,6 +103,7 @@ roots (i.e. valid and existing keys within
       proj)))
 
 (defun haskell-watch--watch-file! (proj file)
+  (cl-assert (file-name-absolute-p file))
   (let ((descriptor (file-notify-add-watch file '(change)
                                            #'haskell-watch--on-watched-file-changed)))
     (puthash file t (haskell-watched-project/watched-files proj))
@@ -116,6 +117,7 @@ roots (i.e. valid and existing keys within
     (puthash descriptor (haskell-watched-project/project-root proj) haskell-watch--registered-file-watchers)))
 
 (defun haskell-watch--unwatch-file (proj file)
+  (cl-assert (file-name-absolute-p file))
   (remhash file (haskell-watched-project/watched-files proj))
   (let ((descriptor (bimap-lookup-reverse file
                                           (haskell-watched-project/registered-file-watches proj))))
