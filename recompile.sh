@@ -129,7 +129,7 @@ update-dir-autoloads \
     "third-party/git-modes" \
     "third-party/groovy-mode" \
     "third-party/haskell-mode" \
-    "third-party/intero" \
+    "third-party/intero/elisp" \
     "third-party/ivy" \
     "third-party/ivy-smex" \
     "third-party/liquid-types" \
