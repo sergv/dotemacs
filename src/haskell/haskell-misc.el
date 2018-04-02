@@ -319,13 +319,15 @@ in haskell compilation buffer.")
   (let ((conid "\\b[[:upper:]][[:alnum:]'_]*\\b"))
     (concat "\\b\\(?:" conid "\\.\\)+")))
 
+;;;###autoload
 (defun haskell-remove-module-qualification (name)
   "Removes hierarchihal modules qualification (e.g. Data.Map.null -> null,
  Prelude.++ -> ++, etc)"
   (save-match-data
-    (if (string-match (concat "^\\("
-                              haskell-module-quantification-regexp
-                              "\\)")
+    (if (string-match (eval-when-compile
+                        (concat "^\\("
+                                haskell-module-quantification-regexp
+                                "\\)"))
                       name)
         (replace-match "" t t name 1)
       name)))
