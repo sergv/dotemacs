@@ -75,7 +75,7 @@
        ("C-S-<left>"  paredit-backward-slurp-sexp)
        ("C-S-<right>" paredit-backward-barf-sexp))
 
-     (defadvice:auto-comment paredit-newline)))
+     (advices/auto-comment paredit-newline)))
 
 ;;; vimmized functions
 
