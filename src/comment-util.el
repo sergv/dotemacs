@@ -19,13 +19,13 @@
 (defparameter *comment-util-space-count* 1
   "Amount of spaces to put after comment markers.")
 
-(defadvice:auto-comment sp-newline)
+(advices/auto-comment sp-newline)
 ;; paredit-newline's advice is defined in
 ;; general-lisp-setup.el
-(defadvice:auto-comment vim:cmd-insert-line-below)
+(advices/auto-comment vim:cmd-insert-line-below)
 
-(defadvice:auto-comment vim:cmd-insert-line-above)
-(defadvice:auto-comment haskell-newline)
+(advices/auto-comment vim:cmd-insert-line-above)
+(advices/auto-comment haskell-newline)
 
 (defvar +comment-util-comment-format-alist+
   '((haskell-mode          (one-line "--") (line-regexp "--+"))
