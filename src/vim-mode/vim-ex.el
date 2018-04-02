@@ -746,7 +746,7 @@ the offset and the new position."
           ;; We will add user input to history ourselves, if it's long enough.
           (history-add-new-input nil)
           (history-var 'vim:ex-history)
-          (ivy-height 2)
+          (ivy-height 4)
           (ivy-count-format ""))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
       (let* ((result
