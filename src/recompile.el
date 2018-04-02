@@ -22,7 +22,10 @@
            (pp-to-string cl--optimize-speed))
   (message "cl--optimize-safety = %s"
            (pp-to-string cl--optimize-safety))
-  (setf emacs-dir (expand-file-name (directory-file-name emacs-dir)))
+  (setf emacs-dir (expand-file-name (directory-file-name emacs-dir))
+        gc-cons-threshold (* 50 1024 1024)
+        gc-cons-percentage 0.1)
+
   (let* ((init-file
           (find-if #'file-exists-p
                    (mapcan (lambda (x) (list (concat emacs-dir "/src/" x)
