@@ -31,17 +31,26 @@
 (require 'f)
 (require 'dash)
 
-(defun haskell-setup-indentation (&optional offset)
+(defun* haskell-setup-indentation (&key offset simpler-indentation-by-default)
   "Set up bindings and indentation parameters using OFFSET as a
 single indentation unit."
-  (bind-tab-keys #'indent-relative-forward
-                 #'indent-relative-backward
-                 :enable-yasnippet t)
-
-  (def-keys-for-map (vim:normal-mode-local-keymap
-                     vim:insert-mode-local-keymap)
-    ("C-<tab>"           haskell-indentation-indent-line)
-    ("C-S-<iso-lefttab>" haskell-indentation-indent-backwards))
+  (if simpler-indentation-by-default
+      (progn
+        (bind-tab-keys #'indent-relative-forward
+                       #'indent-relative-backward
+                       :enable-yasnippet t)
+        (def-keys-for-map (vim:normal-mode-local-keymap
+                           vim:insert-mode-local-keymap)
+          ("C-<tab>"           haskell-indentation-indent-line)
+          ("C-S-<iso-lefttab>" haskell-indentation-indent-backwards)))
+    (progn
+      (bind-tab-keys #'haskell-indentation-indent-line
+                     #'haskell-indentation-indent-backwards
+                     :enable-yasnippet t)
+      (def-keys-for-map (vim:normal-mode-local-keymap
+                         vim:insert-mode-local-keymap)
+        ("C-<tab>"           indent-relative-forward)
+        ("C-S-<iso-lefttab>" indent-relative-backward))))
 
   (let ((real-offset (or offset 2)))
     (setq-local vim:shift-width       real-offset)
@@ -1035,17 +1044,21 @@ value section should have if it is to be properly indented."
 (defun haskell-move-to-topmost-start ()
   "Move to start of the topmost node, similar to `glisp/beginning-of-defun'."
   (interactive)
-  (beginning-of-line)
-  (while (and (not (bobp))
-              (or (/= 0 (indentation-size))
-                  (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
-    (forward-line -1)))
+  (save-match-data
+   (re-search-backward "^[^ \t\v\f\n\r#]" nil t))
+  ;; (beginning-of-line)
+  ;; (while (and (not (bobp))
+  ;;             (or (/= 0 (indentation-size))
+  ;;                 (looking-at-p haskell-regexen/preprocessor-or-empty-line)))
+  ;;   (forward-line -1))
+  )
 
 (defun haskell-move-to-topmost-end ()
   "Move to end of the topmost node, similar to `glisp/end-of-defun'."
   (interactive)
   (beginning-of-line)
-  (when (= 0 (indentation-size))
+  (while (and (not (eobp))
+              (= 0 (indentation-size)))
     (forward-line 1))
   (while (and (not (eobp))
               (or (/= 0 (indentation-size))
@@ -1053,7 +1066,7 @@ value section should have if it is to be properly indented."
     (forward-line 1))
   (forward-line -1)
   (while (and (not (bobp))
-              (looking-at-p haskell-regexen/empty-line))
+              (looking-at-p haskell-regexen/preprocessor-or-empty-line))
     (forward-line -1))
   (end-of-line))
 
@@ -1070,6 +1083,34 @@ value section should have if it is to be properly indented."
                 (replace-match " ")
               (insert " qualified ")))
         (error "Not on a line with import")))))
+
+(defadvice haskell-indentation-indent-line (around
+                                            haskell-indentation-indent-line-expand-yafolding
+                                            activate
+                                            compile)
+  (let ((p (point)))
+    (with-expanded-invisible-overlays
+        (max (save-excursion (haskell-move-to-topmost-start)
+                             (point))
+             (point-min))
+        (save-excursion
+          (haskell-move-to-topmost-end)
+          (point))
+      ad-do-it)))
+
+(defadvice haskell-indentation-indent-backwards (around
+                                                 haskell-indentation-indent-backwards-expand-yafolding
+                                                 activate
+                                                 compile)
+  (let ((p (point)))
+    (with-expanded-invisible-overlays
+        (max (save-excursion (haskell-move-to-topmost-start)
+                             (point))
+             (point-min))
+        (save-excursion
+          (haskell-move-to-topmost-end)
+          (point))
+      ad-do-it)))
 
 (provide 'haskell-misc)
 

@@ -194,15 +194,16 @@ If given, toggle all entries that start at INDENT-LEVEL."
       (yafolding-show-element)
     (yafolding-hide-element)))
 
+
 (add-hook 'isearch-mode-hook
-          (lambda() (mapcar (lambda (overlay)
-                          (overlay-put overlay 'invisible nil))
-                        (yafolding-get-overlays (point-min) (point-max)))))
+          (lambda() (mapc (lambda (overlay)
+                            (overlay-put overlay 'invisible nil))
+                          (yafolding-get-overlays (point-min) (point-max)))))
 
 (add-hook 'isearch-mode-end-hook
-          (lambda() (mapcar (lambda (overlay)
-                          (overlay-put overlay 'invisible t))
-                        (yafolding-get-overlays (point-min) (point-max)))))
+          (lambda() (mapc (lambda (overlay)
+                            (overlay-put overlay 'invisible t))
+                          (yafolding-get-overlays (point-min) (point-max)))))
 
 (defun yafolding-go-parent-element ()
   "Go back to parent element."
