@@ -127,8 +127,7 @@ then Bar would be the result."
    'yas-after-exit-snippet-hook
    #'haskell-abbrev+-align-language-pragmas
    t)
-  (save-current-line-column
-   (haskell-align-language-pragmas yas-snippet-beg)))
+  (haskell-align-language-pragmas yas-snippet-beg))
 
 (defun haskell-abbrev+--register-alignment-of-language-pragmas ()
   (add-hook 'yas-after-exit-snippet-hook
