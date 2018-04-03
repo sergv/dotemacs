@@ -127,8 +127,7 @@ enabled. Otherwise fall back to eproj tags."
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
     ;; Read settings from '.eproj-info' file, if any.
-    (let ((proj (with-demoted-errors "no eproj project found: %s"
-                  (eproj-get-project-for-buf (current-buffer)))))
+    (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
 
       (haskell-setup-indentation
        :offset (eproj-query/haskell/indent-offset proj))

@@ -651,7 +651,7 @@ of project's `.eproj-info' file."
     (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
     nil))
 
-(defun eproj-get-eproj-info-from-dir (dir)
+(defun eproj--get-eproj-info-from-dir (dir)
   "Get filename of .eproj-info file from directory DIR if it exists, else return nil."
   (let ((eproj-info-file (concat (eproj-normalize-file-name dir)
                                  "/.eproj-info")))
@@ -676,7 +676,7 @@ variables accordingly."
   (eproj-populate-from-eproj-info!
    proj
    (eproj-read-eproj-info-file
-    (eproj-get-eproj-info-from-dir (eproj-project/root proj)))))
+    (eproj--get-eproj-info-from-dir (eproj-project/root proj)))))
 
 ;;;; project creation
 
@@ -787,13 +787,6 @@ variables accordingly."
 
 ;;;; utilities
 
-;; Get <initial-project-root> for project governing PATH.
-(defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache (path)
-  (aif (eproj/find-eproj-file-location path)
-      it
-    (error "File .eproj-info not found when looking from %s directory"
-           path)))
-
 (defmacro eproj/evaluate-with-caching-buffer-local-var (value-expr
                                                         buffer-expr
                                                         caching-var
@@ -826,14 +819,9 @@ variables accordingly."
   "Is set to initial project root (i.e. string) for buffer containing this
 variable or symbol 'unresolved.")
 
-(defun eproj-get-initial-project-root-for-buf (buffer)
-  "Retrieve root for project that would contain BUFFER's content."
-  (eproj/evaluate-with-caching-buffer-local-var
-   (ignore-errors
-     (eproj-get-initial-project-root (eproj--get-buffer-directory buffer)))
-   buffer
-   eproj/buffer-initial-project-root-cache
-   #'stringp))
+;; Get <initial-project-root> for project governing PATH.
+(defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache (path)
+  (eproj/find-eproj-file-location path))
 
 (defvar-local eproj/buffer-project-cache nil
   "Caches value computed by `eproj-get-project-for-buf'.
@@ -851,6 +839,35 @@ symbol 'unresolved.")
    eproj/buffer-project-cache
    #'eproj-project-p))
 
+(defun eproj-get-project-for-buf-lax (buffer)
+  (eproj/evaluate-with-caching-buffer-local-var
+   (eproj-get-project-for-path-lax
+    ;; Take directory since file visited by buffer may not be
+    ;; under version control per se.
+    (eproj--get-buffer-directory buffer))
+   buffer
+   eproj/buffer-project-cache
+   #'eproj-project-p))
+
+(defun eproj-get-project-for-path-lax (path)
+  "Retrieve project that contains PATH as its part. Similar to
+`eproj-get-project-for-path' but returns nil if there's not
+project for PATH."
+  (if-let (path-proj (gethash path *eproj-projects* nil))
+      path-proj
+    (if-let (proj-root (eproj-get-initial-project-root path))
+        (if-let (proj (gethash proj-root *eproj-projects* nil))
+            proj
+          (if-let (eproj-info-file (eproj--get-eproj-info-from-dir proj-root))
+              (let ((proj (eproj-make-project proj-root
+                                              (eproj-read-eproj-info-file eproj-info-file))))
+                (puthash (eproj-project/root proj)
+                         proj
+                         *eproj-projects*)
+                proj)
+            nil))
+      nil)))
+
 (defun eproj-get-project-for-path (path)
   "Retrieve project that contains PATH as its part."
   (cl-assert (or (file-exists-p path)
@@ -863,18 +880,21 @@ symbol 'unresolved.")
   ;; those.
   (if-let (path-proj (gethash path *eproj-projects* nil))
       path-proj
-    (let ((initial-root (eproj-get-initial-project-root path)))
-      (if-let (proj (gethash initial-root *eproj-projects* nil))
-          proj
-        (if-let (eproj-info-file (eproj-get-eproj-info-from-dir initial-root))
-            (let ((proj (eproj-make-project initial-root
-                                            (eproj-read-eproj-info-file eproj-info-file))))
-              (puthash (eproj-project/root proj)
-                       proj
-                       *eproj-projects*)
-              proj)
-          (error ".eproj-info file does not exist at %s"
-                 initial-root))))))
+    (if-let (proj-root (eproj-get-initial-project-root path))
+        (if-let (proj (gethash proj-root *eproj-projects* nil))
+            proj
+          (if-let (eproj-info-file (eproj--get-eproj-info-from-dir proj-root))
+              (let ((proj (eproj-make-project proj-root
+                                              (eproj-read-eproj-info-file eproj-info-file))))
+                (puthash (eproj-project/root proj)
+                         proj
+                         *eproj-projects*)
+                proj)
+            (error ".eproj-info file does not exist at %s"
+                   proj-root)))
+      (error "File .eproj-info not found when looking from %s directory"
+             path))))
+
 
 (defun eproj--filter-ignored-files-from-file-list (proj files)
   "Filter list of FILES using ignored-files-regexps of project PROJ."
@@ -1140,12 +1160,12 @@ Returns list of (tag . project) pairs."
   "Like `switch-to-buffer' but includes files from eproj project assigned to
 current buffer."
   (interactive)
-  (let ((proj (ignore-errors
-                (with-demoted-errors "No project for current buffer: %s"
-                  (eproj-get-project-for-buf (current-buffer))))))
+  (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (if proj
         (eproj-switch-to-file-or-buffer proj)
-      (call-interactively #'ivy-switch-buffer))))
+      (progn
+        (message "No project for current buffer: %s" (current-buffer))
+        (call-interactively #'ivy-switch-buffer)))))
 
 (defun eproj-switch-to-file-or-buffer (proj)
   (let ((root (eproj-project/root proj))
