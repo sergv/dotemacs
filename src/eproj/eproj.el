@@ -1213,7 +1213,14 @@ current buffer."
                   (funcall add-file path (file-relative-name path root)))))
           (error "Project %s specifies unrecognised language: %s" root mode)))
       (dolist (buf (nreverse (visible-buffers)))
-        (push (cons (buffer-name buf) buf) files))
+        (let* ((buffer-file (buffer-file-name buf))
+               (name
+                (if buffer-file
+                    (if (string-prefix-p root buffer-file)
+                        (file-relative-name buffer-file root)
+                      buffer-file)
+                  (buffer-name buf))))
+          (push (cons name buf) files)))
       (ivy-read "Buffer or file: "
                 files
                 :require-match nil
