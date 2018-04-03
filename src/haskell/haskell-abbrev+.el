@@ -193,18 +193,18 @@ then Bar would be the result."
                :action-data "{-# SCC \"${1:cost center name}\" #-}$0"
                :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
-               :trigger "##?lang *"
+               :trigger "##?l\\(?:ang\\)? *"
                :action-type 'yas-snippet
                :action-data language-snippet
                :predicate #'point-not-inside-string-or-comment?
                :on-successful-expansion #'haskell-abbrev+--register-alignment-of-language-pragmas)
               (make-abbrev+-abbreviation
-               :trigger "##?opts? *"
+               :trigger "##?o\\(?:pts?\\)? *"
                :action-type 'yas-snippet
                :action-data options-snippet
                :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
-               :trigger "##?dump\\(?:-core\\)? *"
+               :trigger "##?d\\(?:ump\\(?:-core\\)?\\)? *"
                :action-type 'yas-snippet
                :action-data dump-core-snippet
                :predicate #'point-not-inside-string-or-comment?)))
