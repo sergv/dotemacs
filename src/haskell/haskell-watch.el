@@ -155,7 +155,7 @@ roots (i.e. valid and existing keys within
          ;; unwatch old file
          (file-notify-rm-watch descriptor))))))
 
-(defun haskell-watch--subscribe-buffer-for-config-file-updates (buf proj)
+(defun haskell-watch--subscribe-buffer-for-config-file-updates! (buf proj)
   "Subscribe BUF to be marked dirty whenever config files (e.g. cabal files) of
 project PROJ change."
   (puthash buf t (haskell-watched-project/registered-buffers proj)))
@@ -208,14 +208,20 @@ modified and we should reconfigure the project.")
       proj)))
 
 ;;;###autoload
-(defun haskell-watch-register-current-buffer! ()
+(defun haskell-watch-register-current-buffer! (eproj-proj)
   (when (buffer-file-name)
-    (haskell-watch--subscribe-buffer-for-config-file-updates
-     (current-buffer)
-     (let ((root (haskell-watch-get-project-root)))
-       (if root
-           (haskell-watch-get-project root)
-         (error "Failed to find project root for buffer %s" (current-buffer)))))))
+    (let ((proj
+           (let ((root (haskell-watch-get-project-root)))
+             (if root
+                 (haskell-watch-get-project root)
+               (progn
+                 (when eproj-proj
+                   (message "haskell-watch failed to find project root for buffer %s" (current-buffer)))
+                 nil)))))
+      (when proj
+        (haskell-watch--subscribe-buffer-for-config-file-updates!
+         (current-buffer)
+         proj)))))
 
 (provide 'haskell-watch)
 
