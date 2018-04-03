@@ -358,10 +358,12 @@ not exist after command is finished."
 
 ;;;###autoload
 (defun rm (filename)
-  (interactive (list (expand-file-name
-                      (read-file-name "Delete file: "
-                                      nil
-                                      buffer-file-name))))
+  (interactive (list (let ((insert-default-directory nil))
+                       (expand-file-name
+                        (read-file-name "Delete file: "
+                                        nil
+                                        (file-name-nondirectory buffer-file-name)
+                                        t)))))
   (let ((buf (find-buffer-visiting filename)))
     (delete-file filename)
     (when (and (buffer-live-p buf)
