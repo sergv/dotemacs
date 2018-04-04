@@ -519,9 +519,9 @@ of code may be called more than once."
                      align-str)
                     (t
                      (macroexpand-all align-str))))
-        (impl-func (string->symbol (format "%s/impl" func))))
+        (indent-region-func (string->symbol (format "%s-indent-region" func))))
     `(progn
-       (defun ,impl-func (start end)
+       (defun ,indent-region-func (start end)
          (align-regexp start
                        end
                        (eval-when-compile
@@ -535,7 +535,7 @@ of code may be called more than once."
          (interactive "*")
          (when (region-active-p)
            (multiple-value-bind (start end) (get-region-bounds)
-             (,impl-func start end)))))))
+             (,indent-region-func start end)))))))
 
 (defmacro save-current-line (&rest body)
   "Save current line (but not column), execute BODY and go to saved line."
