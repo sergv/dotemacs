@@ -140,7 +140,7 @@ enabled. Otherwise fall back to eproj tags."
             (intero-mode -1)))
 
         (company-mode +1)
-        (setq-local company-backends '(company-eproj))
+        (setq-local company-backends '(company-eproj intero-company))
 
         (setf flycheck-enabled?
               (eproj-query/general/enable-flycheck? proj flycheck-enabled?))
