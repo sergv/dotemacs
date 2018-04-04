@@ -210,17 +210,20 @@ then Bar would be the result."
                                   (cons "SCC" haskell-completions--pragma-names)
                                   #'string=
                                   #'string<)))
-         (ghc-flags (-map (lambda (x)
-                            (cond
-                              ((string? x)
-                               x)
-                              ((and (list? x)
-                                    (not (null? x)))
-                               (first x))
-                              (t
-                               (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
-                                      x))))
-                          pcomplete-ghc-flags))
+         (ghc-flags (-mapcat (lambda (x)
+                               (cond
+                                 ((string? x)
+                                  (list x))
+                                 ((and (list? x)
+                                       (not (null? x)))
+                                  (let ((head (first x)))
+                                    (if (list? head)
+                                        head
+                                      (list head))))
+                                 (t
+                                  (error "invalid ghc flag specification, string or list with first string element expected but got: %s"
+                                         x))))
+                             pcomplete-ghc-flags))
          (options-snippet (format "{-# OPTIONS_GHC ${1:$\$(yas-choose-value '%S)} #-}$0"
                                   ghc-flags))
          (dump-core-snippet
