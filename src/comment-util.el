@@ -25,7 +25,7 @@
 (advices/auto-comment vim:cmd-insert-line-below)
 
 (advices/auto-comment vim:cmd-insert-line-above)
-(advices/auto-comment haskell-newline)
+(advices/auto-comment haskell-newline-with-signature-expansion)
 
 (defvar +comment-util-comment-format-alist+
   '((haskell-mode          (one-line "--") (line-regexp "--+"))
