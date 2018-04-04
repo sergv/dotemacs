@@ -565,7 +565,7 @@ sexps and indentation levels."
         (dolist (e (cdr exts))
           (insert "\n")
           (insert (format "{-# LANGUAGE %s #-}" e))))
-      (haskell-align-on-pragma-close/impl pragma-block-start (point)))))
+      (haskell-align-on-pragma-close-indent-region pragma-block-start (point)))))
 
 (defun haskell--parse-language-pragma (start end)
   "Parse single LANGUAGE pragma within START-END region and return its

@@ -23,6 +23,9 @@
       (and (characterp c)
            (char=? c ?$)))))
 
+(defun haskell--quote-string-for-template-insertion (str)
+  (replace-regexp-in-string "\"" "\\\"" str))
+
 (defun haskell-insert-general-info-template (arg monadic? trace-func-name)
   (let* ((start-position (point))
          (insert-dollar?
@@ -56,8 +59,7 @@
                 (insert ""))
             (lambda () (insert ") " (if insert-dollar? "$ " "")))))
          (quote-input
-          (lambda (x)
-            (replace-regexp-in-string "\"" "\\\"" x)))
+          #'haskell--quote-string-for-template-insertion)
          (insert-continuation
           (lambda (should-merge-messages?)
             (if should-merge-messages?
@@ -93,6 +95,60 @@
 (defun haskell-insert-monadic-info-template (&optional arg)
   (interactive "P")
   (haskell-insert-general-info-template arg t nil))
+
+(defun* haskell-insert-pp-dict-info-template--helper
+    (&key function-name
+          make-print-entry
+          realign)
+  (let ((start-column (indentation-size))
+        (user-input nil)
+        (make-str
+         (lambda (x)
+           (concat "\""
+                   (haskell--quote-string-for-template-insertion x)
+                   "\""))))
+    (insert function-name)
+    (let ((column-after-pp-dict (current-column))
+          (header-message (funcall make-str
+                                   (read-string-no-default "Message header: "
+                                                           nil
+                                                           nil
+                                                           ""))))
+      ;; Decide whether to put message on a separate line or on current line.
+      (if (< 80 (+ 1 column-after-pp-dict (length header-message)))
+          (progn
+            ;; Separate line - otherwise it would go past 80 column.
+            (insert "\n")
+            (indent-to (+ haskell-indent-offset start-column)))
+        (progn
+          ;; Same line - will fit into 80 columns.
+          (insert " ")))
+      (insert header-message "\n")
+      (indent-to (+ haskell-indent-offset start-column)))
+    (let ((loop-start-position (point))
+          (is-first-iteration? t))
+      (while (and (setf user-input
+                        (read-string-no-default "What to print: "
+                                                nil
+                                                nil
+                                                ""))
+                  (not (string= user-input "")))
+        (insert (if is-first-iteration?
+                    "[ "
+                  ", "))
+        (insert (funcall make-print-entry (funcall make-str user-input) user-input) "\n")
+        (funcall realign loop-start-position (point))
+        (indent-to (+ haskell-indent-offset start-column))
+        (setf is-first-iteration? nil))
+      (insert "]"))))
+
+(defun haskell-insert-pp-dict-info-template ()
+  (interactive)
+  (haskell-insert-pp-dict-info-template--helper
+   :function-name "ppDictHeader"
+   :make-print-entry (lambda (x y)
+                       (concat x " --> " y))
+   :realign #'haskell-align-on-arrows-indent-region))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
@@ -252,8 +308,14 @@ then Bar would be the result."
              :action-data expand-qualified-import-snippet
              :predicate import-expand-pred)
 
+
             (make-abbrev+-abbreviation
-             :trigger "\\<\\(info\\|trace\\)\\>"
+             :trigger "\\<\\(?:pp\\(?:[dD]ict\\(?:[hH]eader\\)?\\)?\\)\\>"
+             :action-type 'function-with-side-effects
+             :action-data #'haskell-insert-pp-dict-info-template
+             :predicate #'point-not-inside-string-or-comment?)
+            (make-abbrev+-abbreviation
+             :trigger "\\<\\(?:info\\|trace\\)\\>"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-info-template
              :predicate #'point-not-inside-string-or-comment?)

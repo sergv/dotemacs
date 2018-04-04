@@ -552,7 +552,7 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
                                    ""))))
     (funcall start)
     (while (and (setf user-input (funcall prompt-user))
-                (< 0 (length user-input)))
+                (not (string= user-input "")))
       (let* ((current-is-message? (funcall is-message? user-input))
              (should-merge-messages? prev-was-message?))
         (unless is-initial-insertion?
