@@ -36,7 +36,7 @@
 ;; <langs> - list of major-mode symbols
 ;; <proj-type> - symbol naming type of project, will be verified
 ;;               agains inferred project type
-;; <tree-root> - absolute path to existing directory
+;; <tree-root> - absolute or relative to project root path to an existing directory
 ;; <pattern> - regular expression
 ;; <arg> - emacs strings, arguments to the command
 
@@ -1045,11 +1045,15 @@ such file exists. It is is expected to be a list of zero or more constructs of f
                                          nil
                                          "Invalid patterns under aux-files/tree clause: %s"
                                          patterns)
-                              (find-rec tree-root
-                                        :filep
-                                        (lambda (path)
-                                          (--any? (string-match-p it path)
-                                                  patterns)))))
+                              (let ((resolved-tree-root
+                                     (eproj--resolve-to-abs-path tree-root
+                                                                 project-root)))
+                                (cl-assert (file-name-absolute-p resolved-tree-root))
+                                (find-rec tree-root
+                                          :filep
+                                          (lambda (path)
+                                            (--any? (string-match-p it path)
+                                                    patterns))))))
                            (t
                             (error "Invalid 'aux-files entry: 'tree clause not found"))))
                    aux-files-entry))))))
