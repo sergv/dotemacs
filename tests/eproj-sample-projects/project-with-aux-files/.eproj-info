@@ -1,3 +1,4 @@
 ((languages)
  (aux-files
-  (tree "aux-files" ".*\\.txt$")))
+  (tree "aux-files" ".*\\.txt$" ".*\\.quux$"))
+ (extra-navigation-files "*.extra"))

@@ -16,6 +16,7 @@
 ;;                               should match absolute file names. Will be applied
 ;;                               to file-list and aux files arguments.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
+;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `switch-to-buffer-or-file-in-current-project'.
 ;;
 ;; [(create-tag-files <t-or-nil>)] - whether to cache tags in tag files for this project
 ;;
@@ -37,7 +38,8 @@
 ;; <proj-type> - symbol naming type of project, will be verified
 ;;               agains inferred project type
 ;; <tree-root> - absolute or relative to project root path to an existing directory
-;; <pattern> - regular expression
+;; <pattern>   - regular expression
+;; <glob>      - glob expression
 ;; <arg> - emacs strings, arguments to the command
 
 (eval-when-compile
@@ -404,27 +406,38 @@
 ;; Thunk below is a function of 0 arguments.
 (cl-defstruct (eproj-project
                (:conc-name eproj-project/))
-  root     ;; normalized directory name
-  aux-info ;; alist of (<symbol> . <symbol-dependent-info>) entries
-  tags     ;; Thunk of list of (language-major-mode . <tags-table>);
-           ;; <tags-table> - hashtable of (symbol-str . eproj-tag)
-           ;; bindings
-  related-projects ;; list of other project roots
-  aux-files-source ;; list of other files or function that yields such list
-  languages ;; list of symbols - major-modes for related languages
-  cached-file-list ;; stores list of filenames, if file list is specified in .eproj-info
-  ignored-files-regexps ;; list of absolute filename regexps to ignore
-                        ;; in current project
-  file-list-filename ;; list of files, if specified in aux-info via 'file-list
-  create-tag-files ;; boolean, whether to cache tags for this project
-                   ;; in files
+  ;; normalized directory name
+  (root                  nil :read-only)
+  ;; alist of (<symbol> . <symbol-dependent-info>) entries
+  (aux-info              nil :read-only)
+  ;; Thunk of list of (language-major-mode . <tags-table>);
+  ;; <tags-table> - hashtable of (symbol-str . eproj-tag)
+  ;; bindings
+  (tags                  nil)
+  ;; list of other project roots
+  (related-projects      nil :read-only)
+  ;; list of other files or function that yields such a list
+  (aux-files-source      nil :read-only)
+  ;; list of symbols - major-modes for related languages
+  (languages             nil :read-only)
+  ;; stores list of filenames, if file list is specified in .eproj-info
+  (cached-file-list      nil)
+  ;; list of absolute filename regexps to ignore in current project
+  (ignored-files-regexps nil :read-only)
+  ;; list of files, if specified in aux-info via 'file-list
+  (file-list-filename    nil :read-only)
+  ;; boolean, whether to cache tags for this project in files
+  (create-tag-files      nil :read-only)
+
+  ;; List of glob strings to include into navigation lists
+  (extra-navigation-globs nil :read-onli)
 
   ;; Hash table mapping absolute file paths this project manages to
   ;; the same paths relative to project's root. May not be 100%
   ;; accurate and should be used only for user navigation. This field
   ;; is initialised lazily when file list is first constructed or user
   ;; does a search.
-  cached-files-for-navigation)
+  (cached-files-for-navigation nil))
 
 (defmacro eproj-project/query-aux-info-seq (aux-info &rest keys)
   "Retrieve aux-data assoc entry associated with a KEY in the aux info AUX-INFO."
@@ -482,15 +495,17 @@
 (defun eproj-update-projects ()
   "Update projects in database `*eproj-projects*'."
   (interactive)
-  (maphash (lambda (root proj)
-             (declare (ignore root proj))
-             (eproj-reload-project! proj))
-           *eproj-projects*))
+  (let ((roots (-map #'eproj-project/root
+                     (hash-table-keys *eproj-projects*))))
+    (clrhash *eproj-projects*)
+    (dolist (root roots)
+      (eproj--make-project-and-register! root))))
 
 (defun eproj-update-buffer-project ()
-  "Update project for current buffer or create new project if it does not exists."
+  "Re-create project for current buffer."
   (interactive)
-  (eproj-reload-project! (eproj-get-project-for-buf (current-buffer)))
+  (eproj--make-project-and-register!
+   (eproj-project/root (eproj-get-project-for-buf (current-buffer))))
   (notify "done"))
 
 ;; careful: quite complex procedure
@@ -620,37 +635,6 @@ cache tags in."
                  (eproj-project/languages proj)))))
   nil)
 
-(defun eproj-populate-from-eproj-info! (proj aux-info)
-  "Fill up project structure PROJ from AUX-INFO alist that is the contents
-of project's `.eproj-info' file."
-  (let ((languages (aif (eproj-project/query-aux-info-seq aux-info languages)
-                       it
-                     (progn
-                       (notify "warning: no languages defined for project %s"
-                               (eproj-project/root proj))
-                       nil)))
-        (ignored-files-regexps
-         (cdr-safe (assq 'ignored-files aux-info)))
-        (file-list-filename
-         (awhen (eproj-project/query-aux-info aux-info file-list)
-           (let ((fname (eproj--resolve-to-abs-path it (eproj-project/root proj))))
-             (when (or (null fname)
-                       (not (file-exists-p fname)))
-               (error "File list filename does not exist: %s" fname))
-             fname)))
-        (create-tag-files
-         (eproj-project/query-aux-info aux-info create-tag-files)))
-    (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
-    (setf (eproj-project/aux-info proj) aux-info
-          (eproj-project/related-projects proj) (eproj-get-related-projects (eproj-project/root proj) aux-info)
-          (eproj-project/aux-files-source proj) (eproj-make-aux-files-constructor (eproj-project/root proj) aux-info)
-          (eproj-project/languages proj) languages
-          (eproj-project/ignored-files-regexps proj) ignored-files-regexps
-          (eproj-project/file-list-filename proj) file-list-filename
-          (eproj-project/create-tag-files proj) create-tag-files)
-    (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
-    nil))
-
 (defun eproj--get-eproj-info-from-dir (dir)
   "Get filename of .eproj-info file from directory DIR if it exists, else return nil."
   (let ((eproj-info-file (concat (eproj-normalize-file-name dir)
@@ -658,8 +642,10 @@ of project's `.eproj-info' file."
     (when (file-exists-p eproj-info-file)
       eproj-info-file)))
 
-(defun eproj-read-eproj-info-file (filename)
+(defun eproj-read-eproj-info-file (root filename)
   "Read .eproj-info file from FILENAME."
+  (unless filename
+    (error ".eproj-info file does not exist at: %s" root))
   (unless (file-exists-p filename)
     (error ".eproj-info file does not exist: %s" filename))
   (with-temp-buffer
@@ -667,40 +653,64 @@ of project's `.eproj-info' file."
     (goto-char (point-min))
     (read (current-buffer))))
 
-(defun eproj-reload-project! (proj)
-  "Update project PROJ - re-read its .eproj-info file and update project
-variables accordingly."
-  (cl-assert (and (eproj-project/root proj)
-                  (stringp (eproj-project/root proj))
-                  (file-name-absolute-p (eproj-project/root proj))))
-  (eproj-populate-from-eproj-info!
-   proj
-   (eproj-read-eproj-info-file
-    (eproj--get-eproj-info-from-dir (eproj-project/root proj)))))
-
 ;;;; project creation
 
+(defun eproj--make-project-and-register! (root)
+  "Create fresh project for ROOT directory and register it within
+`*eproj-projects*'."
+  (puthash root
+           (eproj-make-project root
+                               (eproj-read-eproj-info-file
+                                root
+                                (eproj--get-eproj-info-from-dir root)))
+           *eproj-projects*))
+
 (defun eproj-make-project (root aux-info)
+  "Parse associative list AUX-INFO and construct `eproj-project' structure
+for project at ROOT directory."
   (cl-assert (stringp root)
              nil
              "Project root must be a string: %s" root)
   (unless (and (file-exists-p root)
                (file-directory-p root))
     (error "Invalid project root, existing directory required: %s" root))
-  (let ((proj
-         (make-eproj-project :root root
-                             :tags nil
-                             :aux-info nil
-                             :related-projects nil
-                             :aux-files-source nil
-                             :languages nil
-                             :cached-file-list nil
-                             :ignored-files-regexps nil
-                             :cached-files-for-navigation nil)))
-    (when (null proj)
-      (error "Error while trying to obtain project for root %s" root))
-    (eproj-populate-from-eproj-info! proj aux-info)
-    proj))
+  (let ((languages (aif (eproj-project/query-aux-info-seq aux-info languages)
+                       it
+                     (progn
+                       (notify "warning: no languages defined for project %s"
+                               root)
+                       nil)))
+        (ignored-files-regexps
+         (cdr-safe (assq 'ignored-files aux-info)))
+        (file-list-filename
+         (awhen (eproj-project/query-aux-info aux-info file-list)
+           (let ((fname (eproj--resolve-to-abs-path it root)))
+             (when (or (null fname)
+                       (not (file-exists-p fname)))
+               (error "File list filename does not exist: %s" fname))
+             fname)))
+        (create-tag-files
+         (eproj-project/query-aux-info aux-info create-tag-files))
+        (extra-navigation-globs
+         (eproj-project/query-aux-info-seq aux-info extra-navigation-files)))
+    (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
+    (cl-assert (listp extra-navigation-globs))
+    (cl-assert (-all? #'stringp extra-navigation-globs))
+    (let ((proj
+           (make-eproj-project :root root
+                               :aux-info aux-info
+                               :tags nil
+                               :related-projects (eproj-get-related-projects root aux-info)
+                               :aux-files-source (eproj-make-aux-files-constructor root aux-info)
+                               :languages languages
+                               :cached-file-list nil
+                               :ignored-files-regexps ignored-files-regexps
+                               :file-list-filename file-list-filename
+                               :create-tag-files create-tag-files
+                               :extra-navigation-globs extra-navigation-globs
+                               :cached-files-for-navigation nil)))
+      (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
+      proj)))
 
 ;;;; description
 
@@ -860,7 +870,7 @@ project for PATH."
             proj
           (if-let (eproj-info-file (eproj--get-eproj-info-from-dir proj-root))
               (let ((proj (eproj-make-project proj-root
-                                              (eproj-read-eproj-info-file eproj-info-file))))
+                                              (eproj-read-eproj-info-file proj-root eproj-info-file))))
                 (puthash (eproj-project/root proj)
                          proj
                          *eproj-projects*)
@@ -883,15 +893,7 @@ project for PATH."
     (if-let (proj-root (eproj-get-initial-project-root path))
         (if-let (proj (gethash proj-root *eproj-projects* nil))
             proj
-          (if-let (eproj-info-file (eproj--get-eproj-info-from-dir proj-root))
-              (let ((proj (eproj-make-project proj-root
-                                              (eproj-read-eproj-info-file eproj-info-file))))
-                (puthash (eproj-project/root proj)
-                         proj
-                         *eproj-projects*)
-                proj)
-            (error ".eproj-info file does not exist at %s"
-                   proj-root)))
+          (eproj--make-project-and-register! proj-root))
       (error "File .eproj-info not found when looking from %s directory"
              path))))
 
@@ -907,14 +909,31 @@ project for PATH."
     files))
 
 
-(defun eproj--get-all-project-files-for-navigation (proj)
+(defun eproj-get-all-project-files-for-navigation (proj)
+  "Obtain all files related to project PROJ that user might want to quickly
+jump to."
   (aif (eproj-project/cached-files-for-navigation proj)
       it
     (progn
-      (message "Constructing file list for %s"
-               (eproj-project/root proj))
+      (notify "Constructing file list for %s"
+              (eproj-project/root proj))
       (eproj--get-all-files proj)
       (eproj-project/cached-files-for-navigation proj))))
+
+(defun eproj--generic-navigation-files (proj)
+  "Get language-independent files that are useful to have when
+doing `eproj-switch-to-file-or-buffer'."
+  (let ((files
+         (find-rec*
+          :root (eproj-project/root proj)
+          :globs-to-find
+          (append '("*.md" "*.markdown" "*.rst" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*")
+                  (eproj-project/extra-navigation-globs proj))
+          :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
+          :ignored-absolute-dirs (eproj-project/related-projects proj)
+          :ignored-directories +ignored-directories+
+          :ignored-directory-prefixes +ignored-directory-prefixes+)))
+    (eproj--filter-ignored-files-from-file-list proj files)))
 
 (defun eproj--get-all-files (proj)
   "Get all files that are managed by a project PROJ."
@@ -924,6 +943,8 @@ project for PATH."
               (eproj-get-project-files proj)
               it)
            (eproj-get-project-files proj)))
+        (generic-navigation-files
+         (eproj--generic-navigation-files proj))
         (files-cache (eproj-project/cached-files-for-navigation proj))
         (proj-root (eproj-project/root proj)))
     ;; Cache files
@@ -932,6 +953,11 @@ project for PATH."
       (setf files-cache (make-hash-table :test #'equal :size (length files))
             (eproj-project/cached-files-for-navigation proj) files-cache))
     (dolist (file files)
+      (eproj--add-cached-file-for-navigation
+       proj-root
+       file
+       files-cache))
+    (dolist (file generic-navigation-files)
       (eproj--add-cached-file-for-navigation
        proj-root
        file
@@ -973,21 +999,33 @@ paths."
                                  resolved-files))
               (setf (eproj-project/cached-file-list proj) resolved-files)
               resolved-files))
-        (find-rec*
-         :root (eproj-project/root proj)
-         :globs-to-find (-mapcat (lambda (lang)
-                                   (cl-assert (and lang (symbolp lang)) nil
-                                              "Expected a symbor for language but got: %s"
-                                              lang)
-                                   (aif (gethash lang eproj/languages-table)
-                                       (--map (concat "*." it)
-                                              (eproj-language/extensions it))
-                                     (error "Unknown language: %s" lang)))
-                                 (eproj-project/languages proj))
-         :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
-         :ignored-absolute-dirs related-projects-roots
-         :ignored-directories +ignored-directories+
-         :ignored-directory-prefixes +ignored-directory-prefixes+)))))
+        (let ((globs
+               (-mapcat (lambda (lang)
+                          (cl-assert (and lang (symbolp lang)) nil
+                                     "Expected a symbor for language but got: %s"
+                                     lang)
+                          (aif (gethash lang eproj/languages-table)
+                              (--map (concat "*." it)
+                                     (eproj-language/extensions it))
+                            (error "Unknown language: %s" lang)))
+                        (eproj-project/languages proj))))
+          (if globs
+              (find-rec*
+               :root (eproj-project/root proj)
+               :globs-to-find (-mapcat (lambda (lang)
+                                         (cl-assert (and lang (symbolp lang)) nil
+                                                    "Expected a symbor for language but got: %s"
+                                                    lang)
+                                         (aif (gethash lang eproj/languages-table)
+                                             (--map (concat "*." it)
+                                                    (eproj-language/extensions it))
+                                           (error "Unknown language: %s" lang)))
+                                       (eproj-project/languages proj))
+               :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
+               :ignored-absolute-dirs related-projects-roots
+               :ignored-directories +ignored-directories+
+               :ignored-directory-prefixes +ignored-directory-prefixes+)
+            nil))))))
 
 (defun eproj-get-related-projects (root aux-info)
   "Return list of roots of related project for folder ROOT and AUX-INFO.
@@ -1027,36 +1065,41 @@ such file exists. It is is expected to be a list of zero or more constructs of f
       (lambda ()
         (with-temp-buffer
           (cd project-root)
-          (-mapcat (lambda (item)
-                     (cl-assert (listp item) nil
-                                "invalid entry under aux-files clause, list expected: %s"
-                                item)
-                     (cond ((eq (car-safe item) 'tree)
-                            (let ((tree-root (cadr-safe item))
-                                  (patterns (cddr-safe item)))
-                              (cl-assert (and (not (null tree-root))
-                                              (file-exists-p tree-root)
-                                              (file-directory-p tree-root))
-                                         nil
-                                         "Invalid tree root under aux-files/tree clause: %s"
-                                         tree-root)
-                              (cl-assert (and (listp patterns)
-                                              (not (null patterns)))
-                                         nil
-                                         "Invalid patterns under aux-files/tree clause: %s"
-                                         patterns)
-                              (let ((resolved-tree-root
-                                     (eproj--resolve-to-abs-path tree-root
-                                                                 project-root)))
-                                (cl-assert (file-name-absolute-p resolved-tree-root))
-                                (find-rec tree-root
-                                          :filep
-                                          (lambda (path)
-                                            (--any? (string-match-p it path)
-                                                    patterns))))))
-                           (t
-                            (error "Invalid 'aux-files entry: 'tree clause not found"))))
-                   aux-files-entry))))))
+          (--mapcat (eproj--interpret-aux-files-entry project-root it)
+                    aux-files-entry))))))
+
+(defun eproj--interpret-aux-files-entry (project-root item)
+  (cl-assert (listp item) nil
+             "invalid entry under aux-files clause, list expected: %s"
+             item)
+  (cond ((eq (car-safe item) 'tree)
+         (let ((tree-root (cadr-safe item))
+               (patterns (cddr-safe item)))
+           (cl-assert (and (not (null tree-root))
+                           (file-exists-p tree-root)
+                           (file-directory-p tree-root))
+                      nil
+                      "Invalid tree root under aux-files/tree clause: %s"
+                      tree-root)
+           (cl-assert (and (listp patterns)
+                           (not (null patterns)))
+                      nil
+                      "Invalid patterns under aux-files/tree clause: %s"
+                      patterns)
+           (let ((resolved-tree-root
+                  (eproj--resolve-to-abs-path tree-root
+                                              project-root)))
+             (cl-assert (file-name-absolute-p resolved-tree-root)
+                        nil
+                        "Resolved aux tree root is not absolute: %s"
+                        resolved-tree-root)
+             (find-rec tree-root
+                       :filep
+                       (lambda (path)
+                         (--any? (string-match-p it path)
+                                 patterns))))))
+        (t
+         (error "Invalid 'aux-files entry: 'tree clause not found"))))
 
 (defun eproj/find-eproj-file-location (path)
   "Find closest directory parent of PATH that contains .eproj-info file."
@@ -1201,21 +1244,22 @@ current buffer."
       (dolist (related-proj all-related-projects)
         (maphash (lambda (key value)
                    (funcall add-file key value))
-                 (eproj--get-all-project-files-for-navigation related-proj))
+                 (eproj-get-all-project-files-for-navigation related-proj))
         (let ((eproj-file (concat (eproj-project/root related-proj) "/.eproj-info")))
           (funcall add-file eproj-file eproj-file)))
       (dolist (mode (eproj-project/languages proj))
-        (if-let ((lang (gethash (eproj/resolve-synonym-modes mode)
-                                eproj/languages-table)))
-            (awhen (eproj-language/get-extra-navigation-files-procedure lang)
-              (let ((extra-files (funcall it proj)))
-                (cl-assert (and (listp extra-files) (-all? #'file-name-absolute-p extra-files)) nil
-                           "The get-extra-navigation-files-procedure '%s' did not return a list of absolute file paths: %s"
-                           it
-                           extra-files)
-                (dolist (path extra-files)
-                  (funcall add-file path (file-relative-name path root)))))
-          (error "Project %s specifies unrecognised language: %s" root mode)))
+        (let ((lang (gethash (eproj/resolve-synonym-modes mode)
+                             eproj/languages-table)))
+          (unless lang
+            (error "Project %s specifies unrecognised language: %s" root mode))
+          (awhen (eproj-language/get-extra-navigation-files-procedure lang)
+            (let ((extra-files (funcall it proj)))
+              (cl-assert (and (listp extra-files) (-all? #'file-name-absolute-p extra-files)) nil
+                         "The get-extra-navigation-files-procedure '%s' did not return a list of absolute file paths: %s"
+                         it
+                         extra-files)
+              (dolist (path extra-files)
+                (funcall add-file path (file-relative-name path root)))))))
       (dolist (buf (nreverse (visible-buffers)))
         (let* ((buffer-file (buffer-file-name buf))
                (name
