@@ -2982,7 +2982,7 @@ suggestions are available."
             (setf (flycheck-error-message msg)
                   (concat text
                           "\n\n"
-                          (propertize "(Hit `C-c C-r' in the Haskell buffer to apply suggestions)"
+                          (propertize "(Hit `- a' in vim's normal mode in the Haskell buffer to apply suggestions)"
                                       'face 'font-lock-warning-face)))))))
   (setq intero-lighter
         (if (null intero-suggestions)
