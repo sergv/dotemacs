@@ -19,8 +19,7 @@
                :use-fci t
                :use-whitespace 'tabs-only)
   (fontify-merge-markers)
-  (let ((proj (ignore-errors
-                (eproj-get-project-for-buf (current-buffer)))))
+  (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (haskell-setup-indentation
      :offset (eproj-query/haskell/indent-offset proj)
      :simpler-indentation-by-default t)
