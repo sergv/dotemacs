@@ -438,8 +438,17 @@ and indent when all of the following are true:
             ;; inside comment or string
             (goto-char start-of-comment-or-string))
            (start-of-list-expression
-            ;; inside a parenthesized expression
-            (goto-char start-of-list-expression))
+            (let ((zero-column-start (save-excursion
+                                       (save-match-data
+                                         (re-search-backward "^[^ \t\v\f\n\r#]" nil t)
+                                         (point)))))
+              (if (< zero-column-start start-of-list-expression)
+                  ;; inside a parenthesized expression
+                  (goto-char start-of-list-expression)
+                (progn
+                  (goto-char zero-column-start)
+                  ;; We're at 0 indentation now.
+                  (throw 'return nil)))))
            ((= 0 (haskell-indentation-current-indentation))
              (throw 'return nil))))))
     (beginning-of-line)
