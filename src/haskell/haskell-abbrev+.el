@@ -236,6 +236,8 @@ then Bar would be the result."
                         "-dppr-cols200")
                       " ")
            " ${1:-dsuppress-type-signatures }${2:-ddump-to-file }#-}")))
+    (cl-assert (-all? #'stringp haskell-completions--pragma-names))
+    (cl-assert (-all? #'stringp ghc-flags))
     (setf abbrev+-skip-syntax '("w_" "^ >" (" " "w_") (" " "^ >"))
           abbrev+-abbreviations
           (append
