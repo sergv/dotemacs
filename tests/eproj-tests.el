@@ -24,6 +24,10 @@ under ROOT directory."
                     (directory-files path t directory-files-no-dot-files-regexp))))
 
 (defun eproj-tests/normalize-file-list (items)
+  (cl-assert (-all? #'stringp items)
+             nil
+             "Expected a list of strings but got: %s"
+             items)
   (remove-duplicates-sorted
    (sort (-map (comp #'strip-trailing-slash #'expand-file-name) items) #'string<)
    #'string=))
@@ -128,7 +132,21 @@ under ROOT directory."
                               (concat eproj-tests/project-with-aux-files
                                       "/aux-files")
                               t
-                              directory-files-no-dot-files-regexp)))))))
+                              directory-files-no-dot-files-regexp)))))
+    (let ((navigation-files-table (eproj-get-all-project-files-for-navigation proj)))
+      (should (hash-table-p navigation-files-table))
+      (let ((navigation-files (hash-table-keys navigation-files-table)))
+        (should (-all? #'stringp navigation-files))
+        (should (-all? #'file-name-absolute-p navigation-files))
+        (dolist (file '("README.md"
+                        "foo.extra"
+                        "bar.extra"
+                        "file1.txt"
+                        "1.quux"
+                        "2.quux"))
+          (should (member file
+                          (-map #'file-name-nondirectory
+                                navigation-files))))))))
 
 (eproj-tests--define-tests
     eproj-tests/default-file-search/tags-of-c-files
