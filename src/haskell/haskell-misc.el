@@ -31,6 +31,10 @@
 (require 'f)
 (require 'dash)
 
+(defvar-local haskell-indent-offset 2
+  "Haskell indentation amount used by functions written as part
+of my home config.")
+
 (defun* haskell-setup-indentation (&key offset simpler-indentation-by-default)
   "Set up bindings and indentation parameters using OFFSET as a
 single indentation unit."
@@ -53,10 +57,12 @@ single indentation unit."
         ("C-S-<iso-lefttab>" indent-relative-backward))))
 
   (let ((real-offset (or offset 2)))
-    (setq-local vim:shift-width       real-offset)
-    (setq-local haskell-indent-offset real-offset)
-    (setq-local haskell-indent-spaces real-offset)
-    (setq-local tab-width             real-offset)
+    (setq-local vim:shift-width                    real-offset)
+    (setq-local tab-width                          real-offset)
+    (setq-local haskell-indent-offset              real-offset)
+    (setq-local haskell-indentation-layout-offset  real-offset)
+    (setq-local haskell-indentation-starter-offset real-offset)
+    (setq-local haskell-indentation-left-offset    real-offset)
     (haskell-abbrev+-setup real-offset)))
 
 (defun haskell-misc--single-indent ()
