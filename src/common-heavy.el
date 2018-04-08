@@ -362,7 +362,8 @@ not exist after command is finished."
                        (expand-file-name
                         (read-file-name "Delete file: "
                                         nil
-                                        (file-name-nondirectory buffer-file-name)
+                                        (awhen buffer-file-name
+                                          (file-name-nondirectory it))
                                         t)))))
   (let ((buf (find-buffer-visiting filename)))
     (delete-file filename)
