@@ -748,7 +748,15 @@ uppercase or lowercase names)."
 
 (defun haskell-abbrev+-fallback-space ()
   (interactive "*")
-  (haskell-space-with-block-indent))
+  (if (and fci-mode
+           (= 0 (current-column))
+           (= (point) (line-end-position)))
+      (progn
+        (haskell-space-with-block-indent)
+        (fci-redraw-region (line-beginning-position)
+                           (line-end-position)
+                           nil))
+    (haskell-space-with-block-indent)))
 
 (defun haskell-interactive-clear-prompt ()
   "Clear haskell prompt from input."
