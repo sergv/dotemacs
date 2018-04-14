@@ -272,11 +272,13 @@ and switches to insert-mode."
 
 (vim:defcmd vim:cmd-change-rest-of-line (register)
   "Deletes the rest of the current line."
-  (vim:cmd-delete :motion (vim:make-motion :begin (point)
-                                           :end (1- (line-end-position))
-                                           :type 'inclusive)
-                  :register register)
-  (vim:cmd-append :count 1))
+  (let* ((start (point))
+         (end (max start (line-end-position))))
+    (vim:cmd-delete :motion (vim:make-motion :begin start
+                                             :end end
+                                             :type 'exclusive)
+                    :register register)
+    (vim:cmd-insert :count 1)))
 
 (vim:defcmd vim:cmd-change-char (count register)
   "Deletes the next count characters and goes to insert mode."
