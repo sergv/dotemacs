@@ -2504,6 +2504,24 @@
      "        msg = T.strip $ TE.decodeUtf8 $ commitMessage commit"
      "")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--inside-string-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     "quux = "
+     "  [ foobar"
+     "  , \"T.makeInstances [2..6]_|_\" ==> []"
+     "  , baz "
+     "  ]")
+    (haskell-tests--multiline
+     "quux = "
+     "  [ foobar"
+     "  , \"T.makeInstances [2..6]\\"
+     "    \\_|_\" ==> []"
+     "  , baz "
+     "  ]")))
+
 
 (ert-deftest haskell-tests/haskell-move-to-topmost-start-1 ()
   (haskell-tests--test-buffer-contents

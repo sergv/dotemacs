@@ -735,9 +735,16 @@ uppercase or lowercase names)."
                                 func-name
                                 " ")
                         t)))))))))
-    (unless expanded-function-name?
+    (when (null expanded-function-name?)
       (goto-char start-pos)
-      (haskell--simple-indent-newline-same-col))))
+      (let* ((syn (syntax-ppss))
+             (in-string? (nth 3 syn)))
+        (if in-string?
+            (let ((string-start-column (save-excursion
+                                         (goto-char (nth 8 syn))
+                                         (current-column))))
+              (insert "\\\n" (make-string string-start-column ?\s) "\\"))
+          (haskell--simple-indent-newline-same-col))))))
 
 (defun haskell-abbrev+-fallback-space ()
   (interactive "*")
