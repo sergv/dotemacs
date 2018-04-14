@@ -1945,6 +1945,22 @@
      "bar x = x"
      "")))
 
+(ert-deftest haskell-tests/haskell-space-with-block-indent--inside-module-export-list-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-space-with-block-indent))
+    (haskell-tests--multiline
+     ""
+     "module Foo"
+     "_|_"
+     "where"
+     "")
+    (haskell-tests--multiline
+     ""
+     "module Foo"
+     " _|_"
+     "where"
+     "")))
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion-1 ()
   (haskell-tests--test-buffer-contents
