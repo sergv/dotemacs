@@ -6,10 +6,12 @@
 ;; Created: Saturday, 25 April 2015
 ;; Description:
 
+(require 'indentation)
+
 ;;;###autoload
 (autoload 'js2-mode "js2-mode" nil t)
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.js\\(?:on\\)?\\'" . js2-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 
 (setf js2-highlight-level 3
       js2-basic-offset 2
@@ -35,6 +37,26 @@
 
 ;;;###autoload
 (add-hook 'js-mode-hook #'js-setup)
+
+(defun json-indent-buffer ()
+  (interactive)
+  (json-mode-pretty-print-dwim))
+
+(puthash 'json-mode
+         #'json-indent-buffer
+         *mode-indent-functions-table*)
+
+;;;###autoload
+(defun json-setup ()
+  (init-common :use-whitespace 'tabs-only
+               :use-yasnippet t
+               :use-comment t)
+  (setup-hs-minor-mode)
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("- p" json-mode-show-path)))
+
+;;;###autoload
+(add-hook 'json-mode-hook #'json-setup)
 
 (provide 'js-setup)
 

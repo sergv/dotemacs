@@ -103,6 +103,7 @@
     (web-mode              (region-begin "<!--") (region-end "-->") (line-regexp "<!--"))
     (js2-mode              (one-line "//") (line-regexp "//+"))
     (js-mode               (one-line "//") (line-regexp "//+"))
+    (json-mode             (one-line "//") (line-regexp "//+"))
     (css-mode              (one-line "//") (line-regexp "//+"))
     (rst-mode              (one-line ".. ") (line-regexp ".. "))
     (rnc-mode              (one-line "#") (line-regexp "#+"))
