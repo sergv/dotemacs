@@ -106,6 +106,7 @@
                             (mode . css-mode)
                             (mode . js-mode)
                             (mode . js2-mode)
+                            (mode . json-mode)
                             (mode . web-mode)
                             (mode . django-nxhtml-mumamo-mode)
                             (mode . django-html-mumamo-mode)
