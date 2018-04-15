@@ -3106,6 +3106,17 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 ;;;###autoload
 (defalias 'pcomplete/ll 'pcomplete/ls)
 
+(defpcmpl pcomplete/emacs-repo-tool
+  (or
+   ("generate-grafts"
+    (opts
+     (flags
+      ("--output" (pcomplete-here (pcomplete-entries-ignoring-common)))
+      "-f"
+      "--force"
+      "-h"
+      "--help")))))
+
 (provide 'shell-completion)
 
 ;; Local Variables:
