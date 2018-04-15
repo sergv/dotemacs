@@ -25,31 +25,6 @@
 ;;;###autoload
 (require 'agda2)
 
-;;;###autoload (autoload 'agda-align-on-equals "agda-setup.el" nil t)
-(make-align-function agda-align-on-equals
-                     "=[^=]"
-                     :require-one-or-more-spaces t)
-;;;###autoload (autoload 'agda-align-on-arrows "agda-setup.el" nil t)
-(make-align-function agda-align-on-arrows
-                     "\\(?:->\\|→\\)\\(?: \\|$\\)")
-;;;###autoload (autoload 'agda-align-on-left-arrows "agda-setup.el" nil t)
-(make-align-function agda-align-on-left-arrows
-                     "\\(?:<-\\|←\\)\\(?: \\|$\\)")
-;;;###autoload (autoload 'agda-align-on-pipes "agda-setup.el" nil t)
-(make-align-function agda-align-on-pipes
-                     "|\\(?:[^|]\\|$\\)"
-                     :require-one-or-more-spaces t)
-;;;###autoload (autoload 'agda-align-on-commas "agda-setup.el" nil t)
-(make-align-function agda-align-on-commas
-                     ",\\(?:[^,\)]\\|$\\)")
-;;;###autoload (autoload 'agda-align-on-comments "agda-setup.el" nil t)
-(make-align-function agda-align-on-comments
-                     "--+\\(?: \\|$\\)"
-                     :require-one-or-more-spaces t)
-;;;###autoload (autoload 'agda-align-on-colons "agda-setup.el" nil t)
-(make-align-function agda-align-on-colons
-                     "\\(?::[^:]\\)")
-
 (vim:defcmd vim:agda-load-file (nonrepeatable)
   (agda2-load))
 
@@ -101,13 +76,13 @@
     ("C-h"             agda2-next-goal))
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"               agda2-compute-normalised-region)
-    ("g a ="           agda-align-on-equals)
-    ("g a - >"         agda-align-on-arrows)
-    ("g a < -"         agda-align-on-left-arrows)
-    ("g a |"           agda-align-on-pipes)
-    ("g a ,"           agda-align-on-commas)
-    ("g a - -"         agda-align-on-comments)
-    ("g a :"           agda-align-on-colons))
+    ("g a ="           haskell-align-on-equals)
+    ("g a - >"         haskell-align-on-arrows)
+    ("g a < -"         haskell-align-on-left-arrows)
+    ("g a |"           haskell-align-on-guards)
+    ("g a ,"           haskell-align-on-commas)
+    ("g a - -"         haskell-align-on-comments)
+    ("g a :"           haskell-align-on-colons))
   (agda-abbrev+-setup))
 
 ;;;###autoload
