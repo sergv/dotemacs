@@ -20,11 +20,13 @@
   (remove-if-not
    #'font-exist?
    (append
+    '("-*-Iosevka Slab Lig-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
+      "-*-Iosevka Slab Lig-*-*-*-*-16-*-*-*-*-*-*-*"
+      "-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1")
     (fold-platform-os-type
      (cond
        ((platform-use? '(home asus-netbook work))
-        '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-          "-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
+        '("-*-Terminus-normal-normal-normal-*-14-*-*-*-c-80-iso10646-1"
           "-*-Terminus (TTF)-normal-normal-normal-*-16-*-*-*-m-0-iso10646-1"
           "-*-Anonymous Pro-normal-normal-normal-*-17-*-*-*-m-0-iso10646-1"))
        ((platform-use? 'netbook)
@@ -33,8 +35,7 @@
           "-*-Anonymous Pro-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1"))
        (t nil))
      (append
-      '("-*-Iosevka Slab-normal-normal-normal-*-16-*-*-*-*-*-iso10646-1"
-        "-*-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
+      '("-*-Terminus-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
         "-*-Terminus (TTF)-normal-normal-normal-mono-16-*-*-*-m-0-iso10646-1"
         "-raster-Terminus-normal-normal-normal-mono-20-*-*-*-c-*-iso8859-1")
       (if (and (<= (display-pixel-width) 1280)
