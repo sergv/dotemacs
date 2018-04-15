@@ -272,30 +272,30 @@ combinations"
 
 ;;;
 
-(defun point-inside-string? ()
+(defun point-inside-string? (&optional pos)
   "Return t if point is positioned inside a string."
   (save-excursion
-    (let ((state (syntax-ppss (point))))
+    (let ((state (syntax-ppss (or pos (point)))))
       (elt state 3))))
 
-(defun point-inside-comment? ()
+(defun point-inside-comment? (&optional pos)
   "Return t if point is positioned inside a string."
   (declare (pure nil) (side-effect-free t))
   (save-excursion
-    (let ((state (syntax-ppss (point))))
+    (let ((state (syntax-ppss (or pos (point)))))
       (elt state 4))))
 
-(defun point-inside-string-or-comment? ()
+(defun point-inside-string-or-comment? (&optional pos)
   "Return t if point is positioned inside a string."
   (declare (pure nil) (side-effect-free t))
   (save-excursion
-    (let ((state (syntax-ppss (point))))
+    (let ((state (syntax-ppss (or pos (point)))))
       (or (elt state 3)
           (elt state 4)))))
 
-(defsubst point-not-inside-string-or-comment? ()
+(defsubst point-not-inside-string-or-comment? (&optional pos)
   (declare (pure nil) (side-effect-free t))
-  (not (point-inside-string-or-comment?)))
+  (not (point-inside-string-or-comment? pos)))
 
 ;;;
 
