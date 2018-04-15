@@ -12,7 +12,6 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.g\\'" . antlr-mode))
 
-;;;###autoload
 (setf antlr-font-lock-maximum-decoration t)
 
 ;;;###autoload
