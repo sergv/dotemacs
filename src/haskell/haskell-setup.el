@@ -124,6 +124,9 @@ enabled. Otherwise fall back to eproj tags."
     (fontify-conflict-markers!)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
+    (pretty-ligatures-install!)
+    (pretty-ligatures-install-special-haskell-ligatures!)
+
     ;; Read settings from '.eproj-info' file, if any.
     (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
 
@@ -303,6 +306,9 @@ enabled. Otherwise fall back to eproj tags."
   (init-common :use-comment nil :use-yasnippet nil :use-fci nil)
   (init-repl :create-keymaps nil)
 
+  (pretty-ligatures-install!)
+  (pretty-ligatures-install-special-haskell-ligatures!)
+
   (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("SPC SPC"  comint-clear-prompt)
@@ -369,6 +375,9 @@ enabled. Otherwise fall back to eproj tags."
     :bind-colon nil
     :bind-hyphen nil)
 
+  (pretty-ligatures-install!)
+  (pretty-ligatures-install-special-haskell-ligatures!)
+
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
 
   (def-keys-for-map vim:normal-mode-local-keymap
@@ -418,6 +427,9 @@ enabled. Otherwise fall back to eproj tags."
     :bind-colon nil
     :bind-hyphen nil)
 
+  (pretty-ligatures-install!)
+  (pretty-ligatures-install-special-haskell-ligatures!)
+
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
   (dolist (cmd '("re" "restart"))
     (vim:local-emap cmd 'vim:haskell-intero-restart-repl))
@@ -456,6 +468,9 @@ enabled. Otherwise fall back to eproj tags."
 (defun haskell-compilation-setup ()
   (setq-local *compilation-jump-error-regexp*
               +haskell-compile-error-or-warning-navigation-regexp+)
+
+  (pretty-ligatures-install-safe!)
+  (pretty-ligatures-install-special-haskell-ligatures!)
 
   (vim:local-emap "c" 'vim:recompile)
   (def-keys-for-map haskell-compilation-mode-map
@@ -497,6 +512,8 @@ enabled. Otherwise fall back to eproj tags."
 
 ;;;###autoload
 (defun ghc-core-setup ()
+  (pretty-ligatures-install!)
+  (pretty-ligatures-install-special-haskell-ligatures!)
   (hl-line-mode +1))
 
 (provide 'haskell-setup)

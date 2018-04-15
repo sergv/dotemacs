@@ -61,6 +61,8 @@
                :use-whitespace 'tabs-only)
   (yafolding-mode +1)
   (setup-indent-size 2)
+  (pretty-ligatures-install!)
+  (pretty-ligatures-install-special-haskell-ligatures!)
   (setq-local indent-region-function #'ignore)
   (setq-local indent-line-function #'ignore)
   (bind-tab-keys #'eri-indent

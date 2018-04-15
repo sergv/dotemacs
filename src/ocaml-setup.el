@@ -49,6 +49,7 @@
   (bind-tab-keys #'indent-for-tab-command
                  nil
                  :enable-yasnippet t)
+  (pretty-ligatures-install!)
   (def-keys-for-map (vim:normal-mode-local-keymap)
     ("SPC SPC" switch-to-ocaml-repl)
     ("<f6>"    tuareg-eval-buffer)))
@@ -70,6 +71,7 @@
 (defun ocaml-interactive-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
+  (pretty-ligatures-install!)
   (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
     ("C-SPC"      vim:comint-clear-buffer-above-prompt)
