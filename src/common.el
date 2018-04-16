@@ -754,7 +754,8 @@ end of END-LINE in current buffer."
   '(".svn" ".git" ".hg" "_darcs")
   "List of directory names used by version-control systems.")
 
-(defconst +ignored-directories+ +version-control-directories+
+(defconst +ignored-directories+
+  (append +version-control-directories+ (list "node_modules"))
   "List of directory names to generally ignore.")
 
 (defconst +ignored-directory-prefixes+
