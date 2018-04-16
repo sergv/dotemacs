@@ -18,11 +18,27 @@
       js2-bounce-indent-p t)
 
 ;;;###autoload
+(defun js2-hide-indented-or-sexp ()
+  (interactive)
+  (if (haskell-outline-on-sexp?)
+      (hs-hide-block)
+    (js2-mode-hide-element)))
+
+;;;###autoload
+(defun js2-show-indented-or-sexp ()
+  (interactive)
+  (if (haskell-outline-on-sexp?)
+      (hs-show-block)
+    (js2-mode-show-element)))
+
+
+;;;###autoload
 (defun js2-setup ()
   (init-common :use-whitespace 'tabs-only)
+  (setup-hs-minor-mode)
   (def-keys-for-map (vim:normal-mode-local-keymap)
-    ("z c" js2-mode-hide-element)
-    ("z o" js2-mode-show-element)
+    ("z c" js2-hide-indented-or-sexp)
+    ("z o" js2-show-indented-or-sexp)
     ("z O" js2-mode-show-all)))
 
 ;;;###autoload
