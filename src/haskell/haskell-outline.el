@@ -58,6 +58,7 @@ to enable folding of balanced S-expressions."
       (hs-show-block)
     (yafolding-show-element)))
 
+;;;###autoload
 (defun haskell-outline-on-sexp? ()
   (let ((next-char (char-after)))
     (and next-char
