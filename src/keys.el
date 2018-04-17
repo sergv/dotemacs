@@ -230,6 +230,11 @@
   ("<up>"   previous-completion)
   ("<down>" next-completion))
 
+(def-keys-for-map read-expression-map
+  ("<tab>"   completion-at-point)
+  ("C-w"     backward-delete-word)
+  ("C-S-w"   backward-delete-word*))
+
 (provide 'keys)
 
 ;; Local Variables:
