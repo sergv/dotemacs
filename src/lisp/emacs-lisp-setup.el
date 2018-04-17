@@ -118,11 +118,6 @@
                      vim:insert-mode-local-keymap)
     ("C-SPC" company-complete))
 
-  (def-keys-for-map read-expression-map
-    ("<tab>"   lisp-complete-symbol)
-    ("C-w"     backward-delete-word)
-    ("C-S-w"   backward-delete-word*))
-
   ;; should use global after-save-hook because of
   ;; backups
   (add-hook 'after-save-hook #'elisp-compile-and-move)
