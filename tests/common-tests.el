@@ -434,7 +434,8 @@
            (7  " x "    "x "    "x"    " x")
            (8  " x  x"  "x  x"  "x  x" " x  x")
            (9  "x  x "  "x  x " "x  x" "x  x")
-           (10 " x  x " "x  x " "x  x" " x  x")))
+           (10 " x  x " "x  x " "x  x" " x  x")
+           (11 "\rx  x\r" "x  x\r" "x  x" "\rx  x")))
   (destructuring-bind (n input expected-left expected-both expected-right)
       entry
     (eval
