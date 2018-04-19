@@ -25,16 +25,19 @@
            flycheck-highlighting-mode 'lines
            flycheck-display-errors-delay 0)))
 
+(defun flycheck-mode-line--propertise-as-comments (str)
+  (propertize str 'face 'font-lock-comment-face))
+
 ;;;###autoload
 (defun flycheck-pretty-mode-line ()
   (when (and (boundp 'flycheck-mode)
              flycheck-mode
              (boundp 'flycheck-last-status-change))
     (pcase flycheck-last-status-change
-      (`not-checked "unchecked")
-      (`no-checker  "no-checker")
-      (`running     "running")
-      (`errored     "error while checking")
+      (`not-checked (flycheck-mode-line--propertise-as-comments "flycheck:unchecked"))
+      (`no-checker  (flycheck-mode-line--propertise-as-comments "flycheck:no-checker"))
+      (`running     (flycheck-mode-line--propertise-as-comments "flycheck:running"))
+      (`errored     "flycheck:error while checking")
       (`finished
        (let-alist (flycheck-count-errors flycheck-current-errors)
          (when (or .error .warning .info)
@@ -42,9 +45,9 @@
                    (propertize (format "%d" (or .error 0)) 'face 'compilation-error)
                    (propertize (format "%d" (or .warning 0)) 'face 'compilation-warning)
                    (propertize (format "%d" (or .info 0)) 'face 'compilation-info)))))
-      (`interrupted "interrupted")
-      (`suspicious  "suspicious output from checker")
-      (_ "unknown"))))
+      (`interrupted (flycheck-mode-line--propertise-as-comments "flycheck:interrupted"))
+      (`suspicious  "flycheck:suspicious output from checker")
+      (_ (propertize "flycheck:unknown" 'face 'error)))))
 
 ;;;###autoload
 (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
