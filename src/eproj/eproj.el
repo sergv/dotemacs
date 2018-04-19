@@ -970,8 +970,9 @@ doing `eproj-switch-to-file-or-buffer'."
       (insert-file-contents-literally file)
       (goto-char (point-min))
       (while (not (eobp))
-        (push (buffer-substring-no-properties (line-beginning-position)
-                                              (line-end-position))
+        (push (trim-whitespace
+               (buffer-substring-no-properties (line-beginning-position)
+                                               (line-end-position)))
               result)
         (forward-line 1)))
     (nreverse result)))
