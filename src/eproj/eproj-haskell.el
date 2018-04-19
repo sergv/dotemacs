@@ -14,7 +14,7 @@
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
 
 ;;;###autoload
-(defun eproj/create-haskell-tags (proj make-project-files parse-tags-proc)
+(defun eproj/create-haskell-tags (proj project-files-thunk parse-tags-proc)
   (cl-assert (eproj-project-p proj))
   ;; (when eproj-verbose-tag-loading
   ;;   (notify "Creating haskell tags for project %s" (eproj-project/root proj)))
@@ -29,7 +29,7 @@
         (with-temp-buffer
           (with-disabled-undo
            (with-inhibited-modification-hooks
-            (dolist (file (funcall make-project-files))
+            (dolist (file (eproj-thunk-get-value project-files-thunk))
               (when (string-match-p ext-re file)
                 (insert file "\n")))
             (unless (= 0
