@@ -1321,7 +1321,7 @@ confuse when point is not at the beginning of line"
   (when str
     (save-match-data
       (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "\\(?:^[ \t\v\f\n]*\\|[ \t\v\f\n]*$\\)" "" s)))))
+        (replace-regexp-in-string "\\(?:\\`[ \t\v\f\r\n]*\\|[ \t\v\f\r\n]*\\'\\)" "" s)))))
 
 (defun remove-whitespace (str)
   "Remove all occurences of various whitespace characters from string."
@@ -1329,21 +1329,21 @@ confuse when point is not at the beginning of line"
     (let ((s (if (symbolp str)
                  (symbol-name str)
                str)))
-      (replace-regexp-in-string "[ \t\v\f\n]+" "" s))))
+      (replace-regexp-in-string "[ \t\v\f\r\n]+" "" s))))
 
 (defun trim-whitespace-left (str)
   "Trim leading whitespace from STR."
   (when str
     (save-match-data
       (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "^[ \t\v\f\n]*" "" s)))))
+        (replace-regexp-in-string "\\`[ \t\v\f\r\n]*" "" s)))))
 
 (defun trim-whitespace-right (str)
   "Trim trailing whitespace from STR."
   (when str
     (save-match-data
       (let ((s (if (symbolp str) (symbol-name str) str)))
-        (replace-regexp-in-string "[ \t\v\f\n]*$" "" s)))))
+        (replace-regexp-in-string "[ \t\v\f\n\r]*\\'" "" s)))))
 
 
 (defsubst goto-line1 (line)
