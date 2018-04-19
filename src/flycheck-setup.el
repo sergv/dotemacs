@@ -25,6 +25,7 @@
            flycheck-highlighting-mode 'lines
            flycheck-display-errors-delay 0)))
 
+;;;###autoload
 (defun flycheck-pretty-mode-line ()
   (when (and (boundp 'flycheck-mode)
              flycheck-mode
@@ -37,7 +38,10 @@
       (`finished
        (let-alist (flycheck-count-errors flycheck-current-errors)
          (when (or .error .warning .info)
-           (format "e %d/w %d/i %d" (or .error 0) (or .warning 0) (or .info 0)))))
+           (format "%s/%s/%s"
+                   (propertize (format "%d" (or .error 0)) 'face 'compilation-error)
+                   (propertize (format "%d" (or .warning 0)) 'face 'compilation-warning)
+                   (propertize (format "%d" (or .info 0)) 'face 'compilation-info)))))
       (`interrupted "interrupted")
       (`suspicious  "suspicious output from checker")
       (_ "unknown"))))
