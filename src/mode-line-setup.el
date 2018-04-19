@@ -91,16 +91,17 @@
  mode-line-format
  '("%[%b%] "
    modeline--syntax-check-cache
-   ;; if buffer has assigned file and is modified
-   (:eval (when (and buffer-file-name
-                     (buffer-modified-p))
-            "(+)"))
-   (:eval (when buffer-read-only
-            "(RO)"))
-   ("("
-    mode-name
-    mode-line-process
-    ")")
+   (:eval (cond
+            (buffer-read-only
+             "(RO) ")
+            ;; if buffer has assigned file and is modified
+            ((and buffer-file-name
+                  (buffer-modified-p))
+             "(+) ")
+            (t
+             nil)))
+   mode-name
+   mode-line-process
    (:eval
     (case (coding-system-eol-type buffer-file-coding-system)
       ;; here should be unix but it is most of the time so
@@ -115,7 +116,7 @@
    (:eval
     (awhen (and (fboundp #'flycheck-pretty-mode-line)
                 (flycheck-pretty-mode-line))
-      (concat " (" it ")")))
+      (concat " " it)))
    " "
    (line-number-mode
     ("%l"
