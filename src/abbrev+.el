@@ -14,10 +14,10 @@
             (:constructor make--abbrev+-abbreviation))
   ;; Regular expression that should be matchen in order for
   ;; this abbreviation to activate.
-  (trigger nil :read-only)
+  (trigger nil :read-only t)
   ;; Symbol, one of 'literal-string, 'literal-string-no-space-at-end ,
   ;; 'function-result, 'function-with-side-effects or 'yas-snippet.
-  (action-type nil :read-only)
+  (action-type nil :read-only t)
   ;; Action, type depends on value of action-type field.
   ;; For 'literal-string it's a string.
   ;; For 'literal-string-no-space-at-end it's a string.
@@ -25,19 +25,19 @@
   ;; For 'function-with-side-effects it's a function that inserts the
   ;; necessary content itself.
   ;; For 'yas-snippet it's a string that will be passed to `yas-expand-snippet'.
-  (action-data nil :read-only)
+  (action-data nil :read-only t)
   ;; Function of no arguments, either symbol or lambda, that
   ;; will be called before performing ACTION and should return nil or t.
   ;; If t is returned then ACTION would be performed.
   ;;
   ;; Optional.
-  (predicate nil :read-only)
+  (predicate nil :read-only t)
 
   ;; Function of no arguments, either symbol or lambda, that
   ;; will be called before after ACTION. Its return value will be ignored.
   ;;
   ;; Optional.
-  (on-successful-expansion nil :read-only))
+  (on-successful-expansion nil :read-only t))
 
 (defun* make-abbrev+-abbreviation (&key trigger action-type action-data predicate on-successful-expansion)
   (cl-assert (stringp trigger))
