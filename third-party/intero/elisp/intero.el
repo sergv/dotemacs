@@ -3114,7 +3114,8 @@ suggestions are available."
                                     (gt-column (or (plist-get gt :column) 0)))
                                 (or (> lt-line gt-line)
                                     (and (= lt-line gt-line)
-                                         (> lt-column gt-column))))))))
+                                         (> lt-column gt-column)))))))
+              (last-language-pragma-inserted nil))
           ;; # Changes unrelated to the buffer
           (cl-loop
            for suggestion in sorted
@@ -3249,22 +3250,38 @@ suggestions are available."
                 (add-extension
                  (save-excursion
                    (goto-char (point-min))
-                   (intero-skip-shebangs)
+                   (save-match-data
+                     (if (re-search-forward "^{-# *LANGUAGE")
+                         (goto-char (match-beginning 0))
+                       (intero-skip-shebangs)))
+                   (setf last-language-pragma-inserted (point))
                    (insert "{-# LANGUAGE "
                            (plist-get suggestion :extension)
                            " #-}\n")))
                 (add-ghc-option
                  (save-excursion
                    (goto-char (point-min))
-                   (intero-skip-shebangs)
+                   (save-match-data
+                     (if (re-search-forward "^{-# *OPTIONS_GHC")
+                         (goto-char (match-beginning 0))
+                       (intero-skip-shebangs)))
                    (insert "{-# OPTIONS_GHC "
                            (plist-get suggestion :option)
-                           " #-}\n"))))))))))
+                           " #-}\n")))))
+          (when last-language-pragma-inserted
+            (save-excursion
+              (haskell-align-language-pragmas last-language-pragma-inserted))))))))
 
 (defun intero-skip-shebangs ()
   "Skip #! and -- shebangs used in Haskell scripts."
   (when (looking-at-p "#!") (forward-line 1))
-  (when (looking-at-p "-- stack ") (forward-line 1)))
+  (when (looking-at-p "-- stack ") (forward-line 1))
+  (while (and (not (eobp))
+              (looking-at-p "--"))
+    (forward-line 1))
+  (while (and (not (eobp))
+              (= (point) (line-end-position)))
+    (forward-line 1)))
 
 (defun intero--warn (message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
