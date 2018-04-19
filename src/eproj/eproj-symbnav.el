@@ -90,6 +90,14 @@ as accepted by `bounds-of-thing-at-point'.")
         eproj-symbnav/selected-loc nil
         eproj-symbnav/next-homes nil))
 
+(defun eproj-symbnav/on-switch ()
+  "Notify user that switch has taken place."
+  (recenter)
+  (xref-pulse-momentarily))
+
+(defun eproj-symbnav/on-back ()
+  "Notify user that return to previous location has taken place."
+  (xref-pulse-momentarily))
 
 (defun eproj-symbnav/switch-to-home-entry (home-entry)
   (unless (buffer-live-p (eproj-home-entry/buffer home-entry))
@@ -150,6 +158,7 @@ as accepted by `bounds-of-thing-at-point'.")
               (setf eproj-symbnav/next-homes nil)
               (find-file file)
               (eproj-symbnav/locate-entry-in-current-buffer entry)
+              (eproj-symbnav/on-switch)
               (setf eproj-symbnav/selected-loc
                     (make-eproj-home-entry :buffer (current-buffer)
                                            :position (point-marker)
@@ -175,6 +184,7 @@ as accepted by `bounds-of-thing-at-point'.")
                  (string= identifier next-symbol))))
         (progn
           (eproj-symbnav/switch-to-home-entry next-home-entry)
+          (eproj-symbnav/on-switch)
           (push current-home-entry
                 eproj-symbnav/previous-homes)
           (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
@@ -322,7 +332,8 @@ as accepted by `bounds-of-thing-at-point'.")
         (push eproj-symbnav/selected-loc eproj-symbnav/next-homes))
       (let ((prev-home (pop eproj-symbnav/previous-homes)))
         (setf eproj-symbnav/selected-loc prev-home)
-        (eproj-symbnav/switch-to-home-entry prev-home)))))
+        (eproj-symbnav/switch-to-home-entry prev-home)
+        (eproj-symbnav/on-back)))))
 
 ;;;###autoload
 (defun setup-eproj-symbnav ()
