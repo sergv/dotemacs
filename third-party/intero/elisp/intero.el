@@ -2579,9 +2579,12 @@ a list is returned instead of failing with a nil result."
 
 (defvar intero-multiswitch-keymap
   (let ((map (copy-keymap widget-keymap)))
-    (define-key map (kbd "C-c C-c") 'exit-recursive-edit)
-    (define-key map (kbd "C-c C-k") 'abort-recursive-edit)
-    (define-key map (kbd "C-g")     'abort-recursive-edit)
+    (define-key map (kbd "<return>") 'exit-recursive-edit)
+    (define-key map (kbd "<escape>") 'abort-recursive-edit)
+    (define-key map (kbd "q")        'abort-recursive-edit)
+    (define-key map (kbd "C-c C-c")  'exit-recursive-edit)
+    (define-key map (kbd "C-c C-k")  'abort-recursive-edit)
+    (define-key map (kbd "C-g")      'abort-recursive-edit)
     map))
 
 (defun intero-multiswitch (title options)
@@ -2597,15 +2600,9 @@ Each option is a plist of (:key :default :title) wherein:
         (rename-buffer (generate-new-buffer-name "multiswitch"))
         (widget-insert (concat title "\n\n"))
         (widget-insert (propertize "Select options with RET, hit " 'face 'font-lock-comment-face))
-        (widget-create 'push-button :notify
-                       (lambda (&rest ignore)
-                         (exit-recursive-edit))
-                       "C-c C-c")
+        (widget-insert "Return")
         (widget-insert (propertize " to apply these choices, or hit " 'face 'font-lock-comment-face))
-        (widget-create 'push-button :notify
-                       (lambda (&rest ignore)
-                         (abort-recursive-edit))
-                       "C-c C-k")
+        (widget-insert "Escape")
         (widget-insert (propertize " to cancel.\n\n" 'face 'font-lock-comment-face))
         (let* ((me (current-buffer))
                (choices (mapcar (lambda (option)
