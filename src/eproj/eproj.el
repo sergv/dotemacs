@@ -407,30 +407,30 @@
 (cl-defstruct (eproj-project
                (:conc-name eproj-project/))
   ;; normalized directory name
-  (root                  nil :read-only)
+  (root                  nil :read-only t)
   ;; alist of (<symbol> . <symbol-dependent-info>) entries
-  (aux-info              nil :read-only)
+  (aux-info              nil :read-only t)
   ;; Thunk of list of (language-major-mode . <tags-table>);
   ;; <tags-table> - hashtable of (symbol-str . eproj-tag)
   ;; bindings
   (tags                  nil)
   ;; list of other project roots
-  (related-projects      nil :read-only)
+  (related-projects      nil :read-only t)
   ;; list of other files or function that yields such a list
-  (aux-files-source      nil :read-only)
+  (aux-files-source      nil :read-only t)
   ;; list of symbols - major-modes for related languages
-  (languages             nil :read-only)
+  (languages             nil :read-only t)
   ;; stores list of filenames, if file list is specified in .eproj-info
   (cached-file-list      nil)
   ;; list of absolute filename regexps to ignore in current project
-  (ignored-files-regexps nil :read-only)
+  (ignored-files-regexps nil :read-only t)
   ;; list of files, if specified in aux-info via 'file-list
-  (file-list-filename    nil :read-only)
+  (file-list-filename    nil :read-only t)
   ;; boolean, whether to cache tags for this project in files
-  (create-tag-files      nil :read-only)
+  (create-tag-files      nil :read-only t)
 
   ;; List of glob strings to include into navigation lists
-  (extra-navigation-globs nil :read-onli)
+  (extra-navigation-globs nil :read-only t)
 
   ;; Hash table mapping absolute file paths this project manages to
   ;; the same paths relative to project's root. May not be 100%
