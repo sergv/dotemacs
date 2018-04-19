@@ -268,7 +268,7 @@
       (current-line))))
 
 
-(defun eproj/load-ctags-project (lang-mode proj make-project-files parse-tags-proc)
+(defun eproj/load-ctags-project (lang-mode proj project-files-thunk parse-tags-proc)
   (with-temp-buffer
     ;; (when eproj-verbose-tag-loading
     ;;   (notify "Running ctags for %s in project %s"
@@ -277,7 +277,7 @@
     ;;   (redisplay))
     (eproj/run-ctags-on-files lang-mode
                               (eproj-project/root proj)
-                              (funcall make-project-files)
+                              (eproj-thunk-get-value project-files-thunk)
                               (current-buffer))
     ;; (when eproj-verbose-tag-loading
     ;;   (notify "Loading %s tags in project %s"
@@ -311,8 +311,8 @@
     :mode 'c-mode
     :extensions '("c" "h")
     :create-tags-procedure
-    (lambda (proj make-project-files parse-tags-proc)
-      (eproj/load-ctags-project 'c-mode proj make-project-files parse-tags-proc))
+    (lambda (proj project-files-thunk parse-tags-proc)
+      (eproj/load-ctags-project 'c-mode proj project-files-thunk parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
@@ -334,8 +334,8 @@
                   "incl"
                   "ino")
     :create-tags-procedure
-    (lambda (proj make-project-files parse-tags-proc)
-      (eproj/load-ctags-project 'c++-mode proj make-project-files parse-tags-proc))
+    (lambda (proj project-files-thunk parse-tags-proc)
+      (eproj/load-ctags-project 'c++-mode proj project-files-thunk parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/c-tag-kind
@@ -344,8 +344,8 @@
     :mode 'python-mode
     :extensions '("py" "pyx" "pxd" "pxi")
     :create-tags-procedure
-    (lambda (proj make-project-files parse-tags-proc)
-      (eproj/load-ctags-project 'python-mode proj make-project-files parse-tags-proc))
+    (lambda (proj project-files-thunk parse-tags-proc)
+      (eproj/load-ctags-project 'python-mode proj project-files-thunk parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
@@ -354,9 +354,9 @@
     :mode 'clojure-mode
     :extensions '("clj" "java")
     :create-tags-procedure
-    (lambda (proj make-project-files parse-tags-proc)
+    (lambda (proj project-files-thunk parse-tags-proc)
       ;; Use Java mode for now since there's no dedicated Clojure config yet.
-      (eproj/load-ctags-project 'java-mode proj make-project-files parse-tags-proc))
+      (eproj/load-ctags-project 'java-mode proj project-files-thunk parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/generic-tag-kind
@@ -365,8 +365,8 @@
     :mode 'java-mode
     :extensions '("java")
     :create-tags-procedure
-    (lambda (proj make-project-files parse-tags-proc)
-      (eproj/load-ctags-project 'java-mode proj make-project-files parse-tags-proc))
+    (lambda (proj project-files-thunk parse-tags-proc)
+      (eproj/load-ctags-project 'java-mode proj project-files-thunk parse-tags-proc))
     :parse-tags-procedure
     #'eproj/ctags-get-tags-from-buffer
     :show-tag-kind-procedure #'eproj/java-tag-kind
@@ -535,30 +535,38 @@
          (eproj-project/root proj)
          fname
          (eproj-project/cached-files-for-navigation proj))
-        (if-let (old-tags (cdr-safe (assq mode (eproj--get-tags proj))))
-            (let ((new-tags
-                   (eproj/load-tags-for-mode
-                    proj
-                    mode
-                    (lambda () (list fname))
-                    ;; Ignore tag files since we want to reload tags for a
-                    ;; single file and collect tags exactly in the file, not
-                    ;; the cached ones!
-                    :consider-tag-files nil)))
-              (maphash (lambda (symbol-str tags)
-                         (puthash symbol-str
-                                  (-filter is-tag-from-current-buffer? tags)
-                                  old-tags))
-                       old-tags)
-              (hash-table-merge-with!
-               (lambda (symbol-str tags-old tags-new)
-                 (append tags-old
-                         tags-new))
-               old-tags
-               new-tags))
-          (error "Project '%s' does not have tags for '%s'"
-                 (eproj-project/root proj)
-                 mode))))))
+        (let ((tags-thunk (eproj-project/tags proj)))
+          (cl-assert (not (null tags-thunk)) nil
+                     "Got nil tags thunk for project %s"
+                     (eproj-project/root proj))
+          ;; If tags are still a thunk (i.e. value is *not* ready yet) then
+          ;; we should not do anything here - tags will emerge once thunk
+          ;; will become forced.
+          (when (eproj-thunk/value-ready? tags-thunk)
+            (if-let (old-tags (cdr-safe (assq mode (eproj-thunk/value tags-thunk))))
+                (let ((new-tags
+                       (eproj/load-tags-for-mode
+                        proj
+                        mode
+                        (eproj-make-evaluated-thunk (list fname))
+                        ;; Ignore tag files since we want to reload tags for a
+                        ;; single file and collect tags exactly in the file, not
+                        ;; the cached ones!
+                        :consider-tag-files nil)))
+                  (maphash (lambda (symbol-str tags)
+                             (puthash symbol-str
+                                      (-filter is-tag-from-current-buffer? tags)
+                                      old-tags))
+                           old-tags)
+                  (hash-table-merge-with!
+                   (lambda (symbol-str tags-old tags-new)
+                     (append tags-old
+                             tags-new))
+                   old-tags
+                   new-tags))
+              (error "Project '%s' does not have tags for '%s'"
+                     (eproj-project/root proj)
+                     mode))))))))
 
 (defun eproj/tag-file-name (proj mode)
   "Return absolute path for tag file for project PROJ and language mode MODE to
@@ -569,7 +577,7 @@ cache tags in."
           "-"
           (format "%s" mode)))
 
-(defun* eproj/load-tags-for-mode (proj mode make-project-files &key (consider-tag-files t))
+(defun* eproj/load-tags-for-mode (proj mode project-files-thunk &key (consider-tag-files t))
   (if-let ((lang (gethash mode eproj/languages-table)))
       (if-let ((create-tags-procedure (eproj-language/create-tags-procedure lang)))
           (if-let ((parse-tags-procedure (eproj-language/parse-tags-procedure lang)))
@@ -582,14 +590,14 @@ cache tags in."
                           (funcall parse-tags-procedure (current-buffer)))
                       (funcall create-tags-procedure
                                proj
-                               make-project-files
+                               project-files-thunk
                                (lambda (buf)
                                  (with-current-buffer buf
                                    (write-region (point-min) (point-max) tag-file)
                                    (funcall parse-tags-procedure buf))))))
                 (funcall create-tags-procedure
                          proj
-                         make-project-files
+                         project-files-thunk
                          parse-tags-procedure))
             (error "Failed to load tags for mode '%s': language spec has no function to parse tags" mode))
         (error "Failed to load tags for mode '%s': language spec has no function to load tags" mode))
@@ -597,25 +605,39 @@ cache tags in."
 
 (defun eproj--get-tags (proj)
   "Get tags for project PROJ."
-  (funcall (eproj-project/tags proj)))
+  (eproj-thunk-get-value (eproj-project/tags proj)))
+
+(cl-defstruct (eproj-thunk
+               (:conc-name eproj-thunk/))
+  value
+  value-ready?
+  computation)
+
+(defun eproj-thunk-get-value (thunk)
+  (unless (eproj-thunk/value-ready? thunk)
+    (setf (eproj-thunk/value thunk) (funcall (eproj-thunk/computation thunk))
+          (eproj-thunk/value-ready? thunk) t
+          ;; Free the closure.
+          (eproj-thunk/computation thunk) nil))
+  (eproj-thunk/value thunk))
+
+(defun eproj-make-evaluated-thunk (value)
+  (make-eproj-thunk
+   :value value
+   :value-ready? t
+   :computation nil))
 
 (defmacro eproj--make-thunk (&rest body)
-  (let ((evaluated-items-var '#:evaluated-items)
-        (made-items-var '#:made-items))
-    `(let ((,evaluated-items-var nil)
-           (,made-items-var nil))
-       (lambda ()
-         (if ,made-items-var
-             ,evaluated-items-var
-           (progn
-             (setf ,evaluated-items-var
-                   (progn ,@body)
-                   ,made-items-var t)
-             ,evaluated-items-var))))))
+  (let ((uninitialised-value '#:uninitialised))
+    `(make-eproj-thunk
+      :value ',uninitialised-value
+      :value-ready? nil
+      :computation (lambda ()
+                     ,@body))))
 
 (defun eproj--prepare-to-load-fresh-tags-lazily-on-demand! (proj)
   "Reload tags for PROJ."
-  (let* ((make-project-files-func
+  (let* ((project-files-thunk
           (eproj--make-thunk
            (eproj--get-all-files proj))))
     (setf (eproj-project/tags proj)
@@ -623,7 +645,7 @@ cache tags in."
            (-map (lambda (lang-mode)
                    (let ((new-tags (eproj/load-tags-for-mode proj
                                                              lang-mode
-                                                             make-project-files-func
+                                                             project-files-thunk
                                                              :consider-tag-files t)))
                      (cl-assert (and new-tags
                                      (hash-table-p new-tags)))
