@@ -29,22 +29,22 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)")
 
 
 (defstruct select-mode--state
-  (init-buffer           nil                    :read-only) ;; Buffer that was active when selection was initiated.
-  (init-window           nil                    :read-only) ;; Window that was active when selection was initiated.
-  (init-window-config    nil                    :read-only) ;; Window configuration before selection buffer was shown.
+  (init-buffer           nil                    :read-only t) ;; Buffer that was active when selection was initiated.
+  (init-window           nil                    :read-only t) ;; Window that was active when selection was initiated.
+  (init-window-config    nil                    :read-only t) ;; Window configuration before selection buffer was shown.
 
-  (item-show-function    #'identity             :read-only) ;; A function of one item to be displayed. Items will be passed to this function before insertion into buffer.
-  (on-selection-function #'ignore               :read-only) ;; A function of three arguments: index of currently selected item, the selected item and selection type which is either 'same-window or 'other-window.
-  (preamble              nil                    :read-only) ;; String that will be inserted at the top of the buffer;
-  (epilogue              nil                    :read-only) ;; String that will be inserted at the bottom of the buffer;
-  (separator             select-mode-bold-separator :read-only) ;; Separator
+  (item-show-function    #'identity             :read-only t) ;; A function of one item to be displayed. Items will be passed to this function before insertion into buffer.
+  (on-selection-function #'ignore               :read-only t) ;; A function of three arguments: index of currently selected item, the selected item and selection type which is either 'same-window or 'other-window.
+  (preamble              nil                    :read-only t) ;; String that will be inserted at the top of the buffer;
+  (epilogue              nil                    :read-only t) ;; String that will be inserted at the bottom of the buffer;
+  (separator             select-mode-bold-separator :read-only t) ;; Separator
 
   (selected-item         nil) ;; Number, index of selected item withit items field.
   (items                 nil) ;; Vector of possible selections.
   (item-positions        nil) ;; Vector of positions for tracking current selection.
   (items-count           nil) ;; Number of items and item-positions
 
-  (selection-overlay     nil :read-only) ;; Overlay that displays currently selected item.
+  (selection-overlay     nil :read-only t) ;; Overlay that displays currently selected item.
 
   )
 
@@ -282,10 +282,11 @@ case `default-directory' will be used.
   (let ((win-config (select-mode--state-init-window-config select-mode--current-state)))
     (awhen (select-mode--state-selection-overlay select-mode--current-state)
       (delete-overlay it))
-    (setf (select-mode--state-selection-overlay select-mode--current-state) nil
-          (select-mode--state-init-buffer select-mode--current-state) nil
-          (select-mode--state-init-window select-mode--current-state) nil
-          (select-mode--state-init-window-config select-mode--current-state) nil)
+    ;; (setf (select-mode--state-selection-overlay select-mode--current-state) nil
+    ;;       (select-mode--state-init-buffer select-mode--current-state) nil
+    ;;       (select-mode--state-init-window select-mode--current-state) nil
+    ;;       (select-mode--state-init-window-config select-mode--current-state) nil)
+    (setq-local select-mode--current-state nil)
     (set-window-configuration win-config)))
 
 (defun select-mode-exit ()
