@@ -190,6 +190,7 @@ Futher modified by Sergey Vinokurov."
             (font-lock-type-face          ((t (:foreground ,yellow))))
             (font-lock-variable-name-face ((t (:inherit font-lock-function-name-face))))
 
+            (elm-font-lock-operators      ((t (:inherit haskell-operator-face))))
             (haskell-operator-face        ((t (:foreground ,red))))
             (haskell-interactive-face-compile-error ((t (:foreground ,red))))
             (ghc-face-error               ((((supports :underline (:style wave)))
