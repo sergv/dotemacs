@@ -288,6 +288,12 @@ LIST is a FIFO.")
 (defvar-local intero-targets (list)
   "Targets used for the stack process.")
 
+(defvar-local intero-repl-last-loaded nil
+  "Last loaded module in the REPL.")
+
+(defvar-local intero-repl-send-after-load nil
+  "Send a command after every load.")
+
 (defvar-local intero-start-time nil
   "Start time of the stack process.")
 
@@ -1241,6 +1247,18 @@ be activated after evaluation.  PROMPT-OPTIONS are passed to
        (when intero-pop-to-repl
          (pop-to-buffer ,repl-buffer)))))
 
+(defun intero-repl-after-load ()
+  "Set the command to run after load."
+  (interactive)
+  (if (eq major-mode 'intero-repl-mode)
+      (setq intero-repl-send-after-load
+            (read-from-minibuffer
+             "Command to run: "
+             (or intero-repl-send-after-load
+                 (car (ring-elements comint-input-ring))
+                 "")))
+    (error "Run this in the REPL.")))
+
 (defun intero-repl-load (&optional prompt-options)
   "Load the current file in the REPL.
 If PROMPT-OPTIONS is non-nil, prompt with an options list."
@@ -1249,8 +1267,24 @@ If PROMPT-OPTIONS is non-nil, prompt with an options list."
   (let ((file (intero-path-for-ghci (intero-buffer-file-name))))
     (intero-with-repl-buffer prompt-options
       (comint-simple-send
-       (get-buffer-process (current-buffer))
-       (concat ":load " file)))))
+         (get-buffer-process (current-buffer))
+         ":set prompt \"\\n\"")
+        (if (or (not intero-repl-last-loaded)
+                (not (equal file intero-repl-last-loaded)))
+            (progn
+              (comint-simple-send
+               (get-buffer-process (current-buffer))
+               (concat ":load " file))
+              (setq intero-repl-last-loaded file))
+          (comint-simple-send
+           (get-buffer-process (current-buffer))
+           ":reload"))
+        (when intero-repl-send-after-load
+          (comint-simple-send
+           (get-buffer-process (current-buffer))
+           intero-repl-send-after-load))
+        (comint-simple-send (get-buffer-process (current-buffer))
+                            ":set prompt \"\\4 \""))))
 
 (defun intero-repl-reload (&optional prompt-options)
   "Load the current file in the REPL.
@@ -1360,6 +1394,7 @@ STACK-YAML is the stack yaml config to use.  When nil, tries to
 use project-wide intero-stack-yaml when nil, otherwise uses
 stack's default)."
   (setq intero-targets targets)
+  (setq intero-repl-last-loaded nil)
   (when stack-yaml
     (setq intero-stack-yaml stack-yaml))
   (when prompt-options
@@ -2086,15 +2121,19 @@ as (CALLBACK STATE REPLY)."
 
 (defun intero-network-call-sentinel (process event)
   (pcase event
-    ("deleted\n"
-     (kill-buffer (process-buffer process)))
+    ;; This event sometimes gets sent when (delete-process) is called, but
+    ;; inconsistently. We can't rely on it for killing buffers, but we need to
+    ;; handle the possibility.
+    ("deleted\n")
+
     ("open\n"
      (with-current-buffer (process-buffer process)
        (when intero-debug (message "Connected to service, sending %S" intero-async-network-cmd))
        (setq intero-async-network-connected t)
        (if intero-async-network-cmd
            (process-send-string process (concat intero-async-network-cmd "\n"))
-         (delete-process process))))
+         (delete-process process)
+         (kill-buffer (process-buffer process)))))
     (_
      (with-current-buffer (process-buffer process)
        (if intero-async-network-connected
@@ -2113,7 +2152,8 @@ as (CALLBACK STATE REPLY)."
             intero-async-network-cmd
             intero-async-network-state
             intero-async-network-callback))))
-     (delete-process process))))
+     (delete-process process)
+     (kill-buffer (process-buffer process)))))
 
 (defun intero-async-call (worker cmd &optional state callback)
   "Send WORKER the command string CMD.
