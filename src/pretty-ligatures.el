@@ -237,7 +237,21 @@ into accound and do the replacement only within specific circumstances.")
               (append ligatures
                       prettify-symbols-alist))
   (setq-local prettify-symbols-unprettify-at-point t)
+  (setq-local prettify-symbols-compose-predicate #'pretty-ligatures--compose-p)
   (prettify-symbols-mode))
+
+(defun pretty-ligatures--compose-p (start end str)
+  (let* ((start-char (char-after start))
+         (end-char (char-before end))
+         (syntaxes-beg (if (memq (char-syntax start-char) '(?w ?_))
+                           '(?w ?_) '(?. ?\\)))
+         (syntaxes-end (if (memq (char-syntax end-char) '(?w ?_))
+                           '(?w ?_) '(?. ?\\)))
+         (following-char (or (char-after end) ?\s)))
+    (and (not (memq (char-syntax (or (char-before start) ?\s)) syntaxes-beg))
+         (or (char-equal following-char ?,)
+             (not (memq (char-syntax following-char) syntaxes-end)))
+         (not (nth 8 (syntax-ppss))))))
 
 ;;;###autoload
 (defun pretty-ligatures-install! ()
