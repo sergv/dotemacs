@@ -1789,6 +1789,14 @@ are CHAR1 and CHAR2 repsectively."
       nil ;; !(nil < nil)
       )))
 
+(defun scroll-down-command-fast ()
+  (interactive)
+  (scroll-down 500))
+
+(defun scroll-up-command-fast ()
+  (interactive)
+  (scroll-up 500))
+
 ;; Heavy autoloads
 
 (autoload 'insert-info-template "common-heavy")
