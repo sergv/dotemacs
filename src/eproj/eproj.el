@@ -1226,18 +1226,18 @@ Returns list of (tag . project) pairs."
 
 
 ;;;###autoload
-(defun switch-to-buffer-or-file-in-current-project ()
+(defun switch-to-buffer-or-file-in-current-project (&optional include-all-buffers?)
   "Like `switch-to-buffer' but includes files from eproj project assigned to
 current buffer."
-  (interactive)
+  (interactive "P")
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (if proj
-        (eproj-switch-to-file-or-buffer proj)
+        (eproj-switch-to-file-or-buffer proj include-all-buffers?)
       (progn
         (message "No project for current buffer: %s" (current-buffer))
         (call-interactively #'ivy-switch-buffer)))))
 
-(defun eproj-switch-to-file-or-buffer (proj)
+(defun eproj-switch-to-file-or-buffer (proj include-all-buffers?)
   (let ((root (eproj-project/root proj))
         (this-command 'eproj-switch-to-file-or-buffer))
     (unless proj
@@ -1283,7 +1283,9 @@ current buffer."
                          extra-files)
               (dolist (path extra-files)
                 (funcall add-file path (file-relative-name path root)))))))
-      (dolist (buf (nreverse (visible-buffers)))
+      (dolist (buf (nreverse (if include-all-buffers?
+                                 (buffer-list)
+                               (visible-buffers))))
         (let* ((buffer-file (buffer-file-name buf))
                (name
                 (if buffer-file
