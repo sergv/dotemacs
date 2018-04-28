@@ -217,7 +217,7 @@ a pretty symbol."
          (syntax close-parenthesis)
          bol)
      (group-n 1 "\\")
-     (or (any ?\s ?-)
+     (or (any ?\s ?- ?_)
          (syntax whitespace)
          (syntax open-parenthesis)
          (syntax close-parenthesis)
