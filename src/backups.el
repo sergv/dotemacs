@@ -21,7 +21,7 @@
   "Time interval in seconds to make backups on save.")
 
 (defparameter b/last-backup-time nil
-  "Time of last backup made by `run-backup-as-needed'.")
+  "Time of last backup made by `run-backup-if-has-unsaved-changes'.")
 (make-variable-buffer-local 'b/last-backup-time)
 (set-default 'b/last-backup-time nil)
 
@@ -29,6 +29,12 @@
   "Becomes true whenever you perform save that has no corresponding backup.")
 (make-variable-buffer-local 'b/has-unbacked-up-changes)
 (set-default 'b/has-unbacked-up-changes nil)
+
+(defparameter backups--ignore-buffer nil
+  "Buffers with non-nil value of this variable will not be backed up.")
+(make-variable-buffer-local 'backups--ignore-buffer)
+(set-default 'backups--ignore-buffer nil)
+
 
 (defsubst b/get-time ()
   "Return current time as a number of seconds since epoch."
@@ -62,15 +68,13 @@
              nil)
             extension)))
 
-(defun make-backup (&optional buf)
+(defun backups--perform-backup (buf)
   "Make backup of specified buffer or current buffer if BUF is nil."
-  ;; ensure that destination directory exists
-  (unless (file-exists-p b/backup-directory)
-    (make-directory b/backup-directory t))
-
-  (setq buf (or buf (current-buffer)))
   (with-current-buffer buf
     (if-buffer-has-file
+      ;; Ensure that destination directory exists.
+      (unless (file-exists-p b/backup-directory)
+        (make-directory b/backup-directory t))
       (let* ((file buffer-file-name)
              (dest (path-concat b/backup-directory
                                 (b/make-backup-name file))))
@@ -80,24 +84,31 @@
           ;; (error "make-backup: fatal error: backup file %s already exists"
           ;; dest)
           ;; (copy-file file dest t t t))
-          dest)))))
+          )))))
 
+(defun backups--should-backup-buffer? (buf)
+  (not (buffer-local-value 'backups--ignore-buffer buf)))
 
-(defun run-backup-as-needed ()
-  "Run `make-backup' on save at time intervals specified
+(defun backups-ignore-current-buffer! ()
+  (setq-local backups--ignore-buffer t))
+
+(defun run-backup-if-has-unsaved-changes ()
+  "Run `backups--perform-backup' on save at time intervals specified
 by `b/backup-interval'."
-  (if (or (not b/last-backup-time)
-          (< b/backup-interval (- (b/get-time) b/last-backup-time)))
-      (progn
-        (make-backup)
-        (setq b/last-backup-time (b/get-time)
-              b/has-unbacked-up-changes nil))
-    (setq b/has-unbacked-up-changes t)))
+  (let ((buf (current-buffer)))
+    (when (backups--should-backup-buffer? buf)
+      (if (or (not b/last-backup-time)
+              (< b/backup-interval (- (b/get-time) b/last-backup-time)))
+          (progn
+            (backups--perform-backup buf)
+            (setq b/last-backup-time (b/get-time)
+                  b/has-unbacked-up-changes nil))
+        (setq b/has-unbacked-up-changes t)))))
 
 (defun backup-on-buffer-kill ()
   "Backup buffer if it has unsaved changes."
   (when b/has-unbacked-up-changes
-    (make-backup)
+    (backups--perform-backup (current-buffer))
     (setq b/last-backup-time (b/get-time)
           b/has-unbacked-up-changes nil)))
 
@@ -106,10 +117,10 @@ by `b/backup-interval'."
   (dolist (buf (buffer-list))
     (when (and (buffer-file-name buf)
                (buffer-local-value 'b/has-unbacked-up-changes buf))
-      (make-backup buf))))
+      (backups--perform-backup buf))))
 
 
-(add-hook 'after-save-hook #'run-backup-as-needed)
+(add-hook 'after-save-hook #'run-backup-if-has-unsaved-changes)
 (add-hook 'kill-buffer-hook #'backup-on-buffer-kill)
 (add-hook 'kill-emacs-hook #'backup-all-buffers)
 

@@ -286,7 +286,10 @@ directory computed by git.")
 
 (defun git-commit-mode-setup ()
   "Mode for editing commit message."
-  (init-common :use-yasnippet nil :use-comment nil :use-fci t)
+  (init-common :use-yasnippet nil
+               :use-comment nil
+               :use-fci t
+               :enable-backup nil)
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
