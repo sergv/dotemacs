@@ -508,7 +508,9 @@ enabled. Otherwise fall back to eproj tags."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<f9>" haskell-compile)))
+    ("<f9>"       haskell-compile)
+    ("<return>"   haskell--simple-indent-newline-same-col)
+    ("C-<return>" haskell--simple-indent-newline-indent)))
 
 ;;;###autoload
 (defun ghc-core-setup ()
