@@ -21,6 +21,9 @@
   ("<f9>"     compile)
   ("<f10>"    shell)
 
+  ("C-<prior>" scroll-down-command-fast)
+  ("C-<next>"  scroll-up-command-fast)
+
   ("C-<f9>"   enlarge-window)
   ("C-<f10>"  shrink-window)
   ("C-<f11>"  enlarge-window-horizontally)
