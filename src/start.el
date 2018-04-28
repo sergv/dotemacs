@@ -73,10 +73,14 @@ or not.")
                           (use-whitespace nil) ;; can be t, nil, 'tabs-only
                           (use-render-formula nil)
                           (use-hl-line t)
-                          (sp-slurp-sexp-insert-space t))
+                          (sp-slurp-sexp-insert-space t)
+                          (enable-backup t))
   (hl-line-mode (if use-hl-line +1 -1))
   (when use-comment
     (comment-util-mode 1))
+
+  (unless enable-backup
+    (backups-ignore-current-buffer!))
 
   ;; (set-buffer-file-coding-system 'utf-8-unix)
 
