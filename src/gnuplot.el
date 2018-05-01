@@ -168,7 +168,9 @@ lines."
 (define-derived-mode gnuplot-mode nil "Gnuplot"
   "Major mode for editing gnuplot files"
   :syntax-table gnuplot-mode-syntax-table
-  (define-key gnuplot-mode-map (kbd "<f9>") #'gnuplot-run)
+
+  (def-keys-for-map gnuplot-mode-map
+    (("C-m" "<f9>") gnuplot-run))
 
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-end) "")

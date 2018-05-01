@@ -258,14 +258,12 @@ enabled. Otherwise fall back to eproj tags."
       ("M-h"             haskell-compilation-next-error-other-window)
       ("C-SPC"           company-complete)
 
-      ("C-l"             intero-repl-load)
-
       ("S-<tab>"         nil)
       ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline-with-signature-expansion)
       ("C-<return>"      haskell--simple-indent-newline-indent)
-      ("<f6>"            haskell-process-load-file)
-      ("<f9>"            haskell-compile))
+      (("C-l" "<f6>")    intero-repl-load)
+      (("C-m" "<f9>")    haskell-compile))
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:visual-mode-local-keymap)
@@ -508,9 +506,9 @@ enabled. Otherwise fall back to eproj tags."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<f9>"       haskell-compile)
-    ("<return>"   haskell--simple-indent-newline-same-col)
-    ("C-<return>" haskell--simple-indent-newline-indent)))
+    (("C-m" "<f9>") haskell-compile)
+    ("<return>"     haskell--simple-indent-newline-same-col)
+    ("C-<return>"   haskell--simple-indent-newline-indent)))
 
 ;;;###autoload
 (defun ghc-core-setup ()

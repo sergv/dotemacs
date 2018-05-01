@@ -99,8 +99,8 @@
     ("C-."     elisp-slime-nav-find-elisp-thing-at-point)
     ("C-,"     pop-tag-mark)
 
-    ("<tab>"   indent-for-tab-command)
-    ("<f9>"    elisp-compile-and-move))
+    ("<tab>"        indent-for-tab-command)
+    (("C-m" "<f9>") elisp-compile-and-move))
 
   (def-keys-for-map vim:visual-mode-local-keymap
     ("j"       eval-region))

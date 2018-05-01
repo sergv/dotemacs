@@ -18,11 +18,11 @@
 (defconst awk-init-content
   (concat
    "# Keybindings:\n"
-   "# f9   - execute awk program\n"
-   "# S-f9 - restore original input\n"
-   "# f6   - exit\n"
-   "# up   - previous program\n"
-   "# down - next program\n"
+   "# C-m/f9 - execute awk program\n"
+   "# S-f9   - restore original input\n"
+   "# f6     - exit\n"
+   "# up     - previous program\n"
+   "# down   - next program\n"
    "#\n"
    "# Important variables:\n"
    "# FS - input field separator\n"
@@ -83,11 +83,11 @@ in buffer from where `awk' was invoked.")
   ;; make these bindings very local
   (let ((map (copy-keymap awk-mode-map)))
     (def-keys-for-map map
-      ("<f9>"   awk-send-input)
-      ("S-<f9>" awk-restore-original-input)
-      ("<f6>"   awk-exit)
-      ("<up>"   awk-previous-program)
-      ("<down>" awk-next-program))
+      (("C-m" "<f9>") awk-send-input)
+      ("S-<f9>"       awk-restore-original-input)
+      ("<f6>"         awk-exit)
+      ("<up>"         awk-previous-program)
+      ("<down>"       awk-next-program))
     (use-local-map map))
   (use-repl-modeline)
 

@@ -18,8 +18,8 @@
   ("<f5>"     revert-buffer)
   ("<f6>"     nil)
 
-  ("<f9>"     compile)
-  ("<f10>"    shell)
+  (("C-m" "<f9>") compile)
+  ("<f10>"        shell)
 
   ("C-<prior>" scroll-down-command-fast)
   ("C-<next>"  scroll-up-command-fast)
