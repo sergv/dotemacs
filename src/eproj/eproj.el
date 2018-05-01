@@ -12,9 +12,9 @@
 ;; [(related <abs-or-rel-dir>*])
 ;; [(aux-files
 ;;   [(tree <tree-root> <pattern>*)])]
-;; [(ignored-files <regexp>+)] - ignored filenames, <regexp>
-;;                               should match absolute file names. Will be applied
-;;                               to file-list and aux files arguments.
+;; [(ignored-files <glob>+)] - ignored filenames, <glob>
+;;                             should match absolute file names. Will be applied
+;;                             to file-list and aux files arguments.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
 ;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `switch-to-buffer-or-file-in-current-project'.
 ;;
@@ -416,14 +416,12 @@
   (tags                  nil)
   ;; list of other project roots
   (related-projects      nil :read-only t)
-  ;; list of other files or function that yields such a list
-  (aux-files-source      nil :read-only t)
   ;; list of symbols - major-modes for related languages
   (languages             nil :read-only t)
   ;; stores list of filenames, if file list is specified in .eproj-info
   (cached-file-list      nil)
-  ;; list of absolute filename regexps to ignore in current project
-  (ignored-files-regexps nil :read-only t)
+  ;; list of absolute filename globs to ignore in current project
+  (ignored-files-globs   nil :read-only t)
   ;; list of files, if specified in aux-info via 'file-list
   (file-list-filename    nil :read-only t)
   ;; boolean, whether to cache tags for this project in files
@@ -459,15 +457,6 @@
   "Retrieve aux-data value associated with a KEY in the aux info AUX-INFO."
   (declare (indent 1))
   `(car-safe (eproj-project/query-aux-info-seq ,aux-info ,@keys)))
-
-(defun eproj-project/aux-files (proj)
-  (aif (eproj-project/aux-files-source proj)
-      (progn
-        (cl-assert (functionp it) nil "Invalid aux-files-source for project %s: %s"
-                   (eproj-project/root proj)
-                   it)
-        (eproj--filter-ignored-files-from-file-list proj (funcall it)))
-    nil))
 
 (defun eproj-project/root= (proj-a proj-b)
   (string= (eproj-project/root proj-a)
@@ -702,7 +691,7 @@ for project at ROOT directory."
                        (notify "warning: no languages defined for project %s"
                                root)
                        nil)))
-        (ignored-files-regexps
+        (ignored-files-globs
          (cdr-safe (assq 'ignored-files aux-info)))
         (file-list-filename
          (awhen (eproj-project/query-aux-info aux-info file-list)
@@ -723,10 +712,9 @@ for project at ROOT directory."
                                :aux-info aux-info
                                :tags nil
                                :related-projects (eproj-get-related-projects root aux-info)
-                               :aux-files-source (eproj-make-aux-files-constructor root aux-info)
                                :languages languages
                                :cached-file-list nil
-                               :ignored-files-regexps ignored-files-regexps
+                               :ignored-files-globs ignored-files-globs
                                :file-list-filename file-list-filename
                                :create-tag-files create-tag-files
                                :extra-navigation-globs extra-navigation-globs
@@ -921,14 +909,17 @@ project for PATH."
 
 
 (defun eproj--filter-ignored-files-from-file-list (proj files)
-  "Filter list of FILES using ignored-files-regexps of project PROJ."
-  (aif (mk-regexp-from-alts
-        (append (eproj-project/ignored-files-regexps proj)
-                (eproj-project/related-projects proj)))
-      (let ((regexp it))
-        (--filter (not (string-match-p regexp it))
-                  files))
-    files))
+  "Filter list of FILES using ignored-files-globs of project PROJ."
+  (let ((related-projs-globs
+         (--map (concat it "*")
+                (eproj-project/related-projects proj))))
+    (aif (globs-to-regexp
+          (append (eproj-project/ignored-files-globs proj)
+                  related-projs-globs))
+        (let ((regexp it))
+          (--filter (not (string-match-p regexp it))
+                    files))
+      files)))
 
 
 (defun eproj-get-all-project-files-for-navigation (proj)
@@ -951,7 +942,7 @@ doing `eproj-switch-to-file-or-buffer'."
           :globs-to-find
           (append '("*.md" "*.markdown" "*.rst" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*")
                   (eproj-project/extra-navigation-globs proj))
-          :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
+          :ignored-files-globs (eproj-project/ignored-files-globs proj)
           :ignored-absolute-dirs (eproj-project/related-projects proj)
           :ignored-directories +ignored-directories+
           :ignored-directory-prefixes +ignored-directory-prefixes+)))
@@ -1044,7 +1035,7 @@ paths."
                                                     (eproj-language/extensions it))
                                            (error "Unknown language: %s" lang)))
                                        (eproj-project/languages proj))
-               :ignored-files-absolute-regexps (eproj-project/ignored-files-regexps proj)
+               :ignored-files-globs (eproj-project/ignored-files-globs proj)
                :ignored-absolute-dirs related-projects-roots
                :ignored-directories +ignored-directories+
                :ignored-directory-prefixes +ignored-directory-prefixes+)
@@ -1068,28 +1059,15 @@ Returns nil if no relevant entry found in AUX-INFO."
               ))
           it)))
 
-(defun eproj-make-aux-files-constructor (root aux-info)
-  "Make up function that will return list of absolute names for
-auxiliary files of the project at ROOT when invoked. Aux files
-usually are files that are not listed by
-`eproj-get-project-files' \(e.g. files not tracked by version
-control system, etc).
-
-ROOT should be directory with project to make auxiliary files
-for.
-
-AUX-INFO is a datastructure found in ROOT/.eproj-info file, if
-such file exists. It is is expected to be a list of zero or more constructs of form:
-1. \(tree <tree-root> <pattern>*), where
-<tree-root> is a directory to recursively search files in
-<pattern> is a regular expression string."
-  (let ((project-root root))
-    (when-let (aux-files-entry (cdr-safe (assq 'aux-files aux-info)))
-      (lambda ()
-        (with-temp-buffer
-          (cd project-root)
-          (--mapcat (eproj--interpret-aux-files-entry project-root it)
-                    aux-files-entry))))))
+(defun eproj-project/aux-files (proj)
+  (let ((project-root (eproj-project/root proj)))
+    (when-let (aux-files-entry (cdr-safe (assq 'aux-files (eproj-project/aux-info proj))))
+      (with-temp-buffer
+        (cd project-root)
+        (eproj--filter-ignored-files-from-file-list
+         proj
+         (--mapcat (eproj--interpret-aux-files-entry project-root it)
+                   aux-files-entry))))))
 
 (defun eproj--interpret-aux-files-entry (project-root item)
   (cl-assert (listp item) nil

@@ -1,2 +1,2 @@
 ((languages haskell-mode)
- (ignored-files ".*/Foo1.hs"))
+ (ignored-files "*/Foo1.hs"))
