@@ -90,7 +90,7 @@ Valid values are:
                    root
                    globs-to-find
                    ignored-extensions-globs
-                   ignored-files-absolute-regexps
+                   ignored-files-globs
                    ignored-absolute-dirs
                    ignored-directories
                    ignored-directory-prefixes)
@@ -118,13 +118,13 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                (-map (lambda (glob)
                        (list (fold-platform-os-type "-name" "-iname") glob))
                      ignored-extensions-globs)
-               (-map (pcase find-files/find-program-type
-                       ((or `find `cygwin-find `busybox)
-                        (lambda (re) (list "-regex" re)))
-                       (_
-                        (error "find-files/find-program-type has invalid value: %s"
-                               find-files/find-program-type)))
-                     ignored-files-absolute-regexps)))
+               (pcase find-files/find-program-type
+                 ((or `find `cygwin-find `busybox)
+                  (--map (list (fold-platform-os-type "-path" "-ipath") it)
+                         ignored-files-globs))
+                 (_
+                  (error "find-files/find-program-type has invalid value: %s"
+                         find-files/find-program-type)))))
              (to-find (-map (lambda (glob) (list "-name" glob))
                             globs-to-find))
              (find-cmd (or find-files/find-program-executable
@@ -138,8 +138,6 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
                      (when (memq find-files/find-program-type '(find cygwin-find))
                        "-O3")
                      root
-                     (when (memq find-files/find-program-type '(find cygwin-find))
-                       '("-regextype" "emacs"))
                      (when ignored-dirs
                        (list
                         "-type" "d"
@@ -182,7 +180,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (let* ((re-to-find (globs-to-regexp globs-to-find))
            (ignored-files-re (globs-to-regexp ignored-extensions-globs))
            (ignored-files-absolute-re
-            (mk-regexp-from-alts ignored-files-absolute-regexps))
+            (globs-to-regexp ignored-files-globs))
            (ignored-files-all-re
             (mk-regexp-from-alts
              (remq nil
