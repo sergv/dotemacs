@@ -30,7 +30,7 @@
 
       (def-keys-for-map (vim:normal-mode-local-keymap
                          vim:insert-mode-local-keymap)
-        ("<f9>" haskell-compile)))))
+        (("C-m" "<f9>") haskell-compile)))))
 
 ;;;###autoload
 (add-hook 'yaml-mode-hook #'yaml-setup)

@@ -25,9 +25,9 @@
   ;; (setq-local forward-sexp-function #'forward-sexp)
   (def-keys-for-map (vim:insert-mode-local-keymap
                      vim:normal-mode-local-keymap)
-    ("M-/"    complete-symbol)
-    ("<f9>"   clojure-compile)
-    ("S-<f9>" kibit))
+    ("M-/"          complete-symbol)
+    (("C-m" "<f9>") clojure-compile)
+    ("S-<f9>"       kibit))
 
   (setup-eproj-symbnav)
   (clojure-abbrev+-setup))

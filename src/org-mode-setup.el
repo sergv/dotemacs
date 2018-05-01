@@ -532,16 +532,16 @@ the current topic."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    ("<f6>"       org-toggle-display-style)
-    ("<f9>"       vim:org-latex-export-to-pdf)
-    ("S-<f9>"     open-buffer-as-pdf)
-    ("C-SPC"      pcomplete)
-    ("<C-return>" org-meta-return)
-    ("<C-down>"   org-metadown)
-    ("<C-up>"     org-metaup)
-    ("<C-left>"   org-metaleft)
-    ("<C-right>"  org-metaright)
-    ("C-="        input-unicode))
+    ("<f6>"         org-toggle-display-style)
+    (("C-m" "<f9>") vim:org-latex-export-to-pdf)
+    ("S-<f9>"       open-buffer-as-pdf)
+    ("C-SPC"        pcomplete)
+    ("<C-return>"   org-meta-return)
+    ("<C-down>"     org-metadown)
+    ("<C-up>"       org-metaup)
+    ("<C-left>"     org-metaleft)
+    ("<C-right>"    org-metaright)
+    ("C-="          input-unicode))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap

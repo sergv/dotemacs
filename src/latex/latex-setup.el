@@ -108,12 +108,12 @@
     (setq-local compilation-skip-threshold 0))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("S-<f9>"  open-buffer-as-pdf)
-    ("<f9>"    latex-compile)
-    ("<f6>"    latex-toggle-preview-or-russian-spellcheck)
+    ("S-<f9>"       open-buffer-as-pdf)
+    (("C-m" "<f9>") latex-compile)
+    ("<f6>"         latex-toggle-preview-or-russian-spellcheck)
 
-    ("<left>"  prev-w)
-    ("<right>" next-w))
+    ("<left>"       prev-w)
+    ("<right>"      next-w))
 
   ;; (define-key vim:insert-mode-local-keymap (kbd "<f3>") LaTeX-math-keymap)
 
