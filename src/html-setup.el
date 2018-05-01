@@ -231,8 +231,9 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
 ;;;###autoload
 (defun html-setup ()
   (markup-setup #'hl-tags-context-sgml-mode)
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f9>" browse-url-of-buffer)))
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    (("C-m" "<f9>")  browse-url-of-buffer)))
 
 ;;;###autoload
 (add-hook 'html-mode-hook #'html-setup)

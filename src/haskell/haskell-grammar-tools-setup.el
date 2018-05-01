@@ -55,7 +55,7 @@
     ("S-<tab>"         nil)
     ("<S-iso-lefttab>" nil)
     ("<return>"        haskell-newline-with-signature-expansion)
-    ("<f9>"            haskell-compile)))
+    (("C-m" "<f9>")    haskell-compile)))
 
 (provide 'haskell-grammar-tools-setup)
 

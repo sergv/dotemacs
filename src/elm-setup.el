@@ -139,7 +139,7 @@
 
   (def-keys-for-map vim:normal-mode-local-keymap
     (("<f6>" "SPC SPC") elm-repl-load)
-    ("<f9>"             elm-compile-buffer)
+    (("C-m" "<f9>")     elm-compile-buffer)
     ("- t"              elm-oracle-type-at-point)
     ("- d"              elm-oracle-extended-doc-at-point)
 

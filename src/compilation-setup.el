@@ -204,8 +204,8 @@ error location - list of (filename line column)."
        ("v"        set-mark-command)
        ("y"        copy-region-as-kill)
 
-       ("<f9>"     recompile)
-       ("SPC"      compile-goto-error))))
+       (("C-m" "<f9>") recompile)
+       ("SPC"          compile-goto-error))))
 
 (vim:defcmd vim:recompile (nonrepeatable)
   (recompile))
