@@ -398,12 +398,7 @@ greater indenation as current line."
   (vim:local-emap "l"    #'vim:python-shell-send-buffer)
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("<f6>"    python-shell-send-buffer)
-    ("<f9>"    python-run-script)
-    ("S-<f9>"  python-check)
-
     ("j"       python-shell-send-defun)
-    ("M-?"     python-convolute-lines)
 
     ("SPC SPC" switch-to-python)
     ("g s s"   vim-replace-symbol-at-point))
@@ -416,6 +411,12 @@ greater indenation as current line."
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:visual-mode-local-keymap)
+    ("<f6>"         python-shell-send-buffer)
+    (("C-m" "<f9>") python-run-script)
+    ("S-<f9>"       python-check)
+
+    ("M-?"      python-convolute-lines)
+
     ("g t"      beginning-of-defun)
     ("g h"      end-of-defun)
 

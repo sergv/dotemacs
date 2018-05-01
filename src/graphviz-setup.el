@@ -14,8 +14,9 @@
 ;;;###autoload
 (defun graphviz-setup ()
   (init-common :use-whitespace 'tabs-only)
-  (local-set-key (kbd "<f9>") #'compile)
-  (local-set-key (kbd "S-<f9>") #'graphviz-dot-preview))
+  (def-keys-for-map graphviz-dot-mode-map
+    (("C-m" "<f9>") compile)
+    ("S-<f9>"       graphviz-dot-preview)))
 
 ;;;###autoload
 (add-hook 'graphviz-dot-mode-hook #'graphviz-setup)
