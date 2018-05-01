@@ -205,6 +205,7 @@ Futher modified by Sergey Vinokurov."
 
             ;; agda
             (agda2-highlight-bound-variable-face          ((t (:inherit default))))
+            (agda2-highlight-catchall-clause-face         ((t (:underline t))))
             (agda2-highlight-coinductive-constructor-face ((t (:foreground ,yellow))))
             (agda2-highlight-datatype-face                ((t (:inherit font-lock-type-face))))
             (agda2-highlight-dotted-face                  ((t (:inherit default))))
