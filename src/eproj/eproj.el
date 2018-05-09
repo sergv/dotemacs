@@ -928,7 +928,7 @@ jump to."
   (aif (eproj-project/cached-files-for-navigation proj)
       it
     (progn
-      (notify "Constructing file list for %s"
+      (notify "Constructing file navigation list for %s"
               (eproj-project/root proj))
       (eproj--get-all-files proj)
       (eproj-project/cached-files-for-navigation proj))))
