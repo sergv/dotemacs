@@ -16,7 +16,7 @@
       recentf-exclude
       (list
        (eval-when-compile
-         (concat "^.*"
+         (concat "\\`.*"
                  (regexp-opt +ignored-file-extensions+)
                  "\\'"))))
 (recentf-mode +1)
