@@ -343,13 +343,17 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
   "Like `pcomplete-entries' but ignores files mathing RE."
   (let ((pcomplete-file-ignore re)
         (pcomplete-dir-ignore
-         (eval-when-compile (regexp-opt +version-control-directories+))))
+         (eval-when-compile
+           (concat "\\`"
+                   (regexp-opt +version-control-directories+)
+                   "\\'"))))
     (pcomplete-entries)))
 
 (defun pcmpl-entries-ignoring-common ()
   (pcmpl-entries-ignoring
    (eval-when-compile
-     (concat (regexp-opt +ignored-file-extensions+)
+     (concat "\\`.*"
+             (regexp-opt +ignored-file-extensions+)
              "\\'"))))
 
 ;;; Version control

@@ -79,11 +79,25 @@
       ivy-flx-limit 1000
       ivy-extra-directories '("./")
       counsel-find-file-ignore-regexp
-      (regexp-opt
-       (append
-        (list ".#" ".cask")
-        +version-control-directories+
-        +ignored-file-extensions+)))
+      (eval-when-compile
+        (let ((re-group
+               (lambda (x) (concat "\\(?:" x "\\)")))
+              (re-alt
+               (lambda (x y) (concat x "\\|" y))))
+          (concat
+           "\\`"
+           (funcall re-group
+                    (funcall re-alt
+                             (funcall re-group
+                                      (concat
+                                       ".*"
+                                       (regexp-opt
+                                        (append
+                                         (list ".#" ".cask")
+                                         +ignored-file-extensions+))))
+                             (funcall re-group
+                                      (regexp-opt +version-control-directories+))))
+           "\\'"))))
 
 (add-to-list 'ivy-ignore-buffers invisible-buffers-re)
 
