@@ -1094,11 +1094,11 @@ Returns nil if no relevant entry found in AUX-INFO."
                         nil
                         "Resolved aux tree root is not absolute: %s"
                         resolved-tree-root)
-             (find-rec tree-root
-                       :filep
-                       (lambda (path)
-                         (--any? (string-match-p it path)
-                                 patterns))))))
+             (let ((globs (globs-to-regexp patterns)))
+               (find-rec tree-root
+                         :filep
+                         (lambda (path)
+                           (string-match-p globs path)))))))
         (t
          (error "Invalid 'aux-files entry: 'tree clause not found"))))
 
