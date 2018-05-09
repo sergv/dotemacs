@@ -114,7 +114,7 @@ enabled. Otherwise fall back to eproj tags."
                     (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))
              t
            nil))
-        (flycheck-enabled? (not (derived-mode-p 'ghc-core-mode)))
+        (flycheck-enabled? (not (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode))))
         (liquid-haskell-enabled? nil))
     (init-common :use-yasnippet t
                  :use-comment t
