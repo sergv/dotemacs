@@ -65,6 +65,16 @@ single indentation unit."
     (setq-local haskell-indentation-left-offset    real-offset)
     (haskell-abbrev+-setup real-offset)))
 
+(defmacro haskell-misc--with-expanded-invisible-overlays-in-current-function (&rest body)
+  `(with-expanded-invisible-overlays
+       (max (save-excursion (haskell-move-to-topmost-start)
+                            (point))
+            (point-min))
+       (save-excursion
+         (haskell-move-to-topmost-end)
+         (point))
+     ,@body))
+
 (defun haskell-misc--single-indent ()
   "Return a string for single indentation amount for Haskell."
   (make-string vim:shift-width ?\s))
@@ -686,65 +696,66 @@ uppercase or lowercase names)."
 (defun haskell-newline-with-signature-expansion ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
   (interactive "*")
-  (let* ((start-pos (point))
-         (expanded-function-name?
-          (save-match-data
-            (let ((lower-bound
-                   (save-excursion
-                     (when (re-search-backward haskell-regexen/function-signature-colons
-                                               nil
-                                               t)
-                       (line-beginning-position)))))
-              (when lower-bound
-                (let ((found? nil)
-                      (func-name nil))
-                  (while (and (not found?)
-                              (< lower-bound (point))
-                              (not (bolp)))
-                    (haskell-back-up-indent-level)
-                    (when (looking-at (eval-when-compile
-                                        (let ((ws "[ \t\n\r]"))
-                                          (concat "\\(?:\\_<\\(?:let\\|where\\)\\_>" ws "+\\)?"
-                                                  "\\(?1:"
-                                                  (concat "\\(?2:" haskell-regexen/varid "\\)"
-                                                          "\\(?:," ws "*" haskell-regexen/varid "\\)*")
-                                                  "\\)"
-                                                  ws "*"
-                                                  haskell-regexen/function-signature-colons))))
-                      (setf found? t
-                            func-name (match-string 1))))
-                  (when found?
-                    (goto-char (match-beginning 1))
-                    (let ((function-name-column (current-column))
-                          (indented-section-end (line-end-position)))
-                      (forward-line 1)
-                      (while (< function-name-column (indentation-size))
-                        (setf indented-section-end (line-end-position))
-                        (forward-line 1))
-                      (when (and
-                             (= start-pos indented-section-end)
-                             (not
-                              (save-excursion
-                                (forward-line)
-                                (skip-syntax-forward "->")
-                                (looking-at-p (concat (regexp-quote func-name)
-                                                      "\\_>")))))
-                        (goto-char start-pos)
-                        (insert "\n")
-                        (insert (make-string function-name-column ?\s)
-                                func-name
-                                " ")
-                        t)))))))))
-    (when (null expanded-function-name?)
-      (goto-char start-pos)
-      (let* ((syn (syntax-ppss))
-             (in-string? (nth 3 syn)))
-        (if in-string?
-            (let ((string-start-column (save-excursion
-                                         (goto-char (nth 8 syn))
-                                         (current-column))))
-              (insert "\\\n" (make-string string-start-column ?\s) "\\"))
-          (haskell--simple-indent-newline-same-col))))))
+  (haskell-misc--with-expanded-invisible-overlays-in-current-function
+   (let* ((start-pos (point))
+          (expanded-function-name?
+           (save-match-data
+             (let ((lower-bound
+                    (save-excursion
+                      (when (re-search-backward haskell-regexen/function-signature-colons
+                                                nil
+                                                t)
+                        (line-beginning-position)))))
+               (when lower-bound
+                 (let ((found? nil)
+                       (func-name nil))
+                   (while (and (not found?)
+                               (< lower-bound (point))
+                               (not (bolp)))
+                     (haskell-back-up-indent-level)
+                     (when (looking-at (eval-when-compile
+                                         (let ((ws "[ \t\n\r]"))
+                                           (concat "\\(?:\\_<\\(?:let\\|where\\)\\_>" ws "+\\)?"
+                                                   "\\(?1:"
+                                                   (concat "\\(?2:" haskell-regexen/varid "\\)"
+                                                           "\\(?:," ws "*" haskell-regexen/varid "\\)*")
+                                                   "\\)"
+                                                   ws "*"
+                                                   haskell-regexen/function-signature-colons))))
+                       (setf found? t
+                             func-name (match-string 1))))
+                   (when found?
+                     (goto-char (match-beginning 1))
+                     (let ((function-name-column (current-column))
+                           (indented-section-end (line-end-position)))
+                       (forward-line 1)
+                       (while (< function-name-column (indentation-size))
+                         (setf indented-section-end (line-end-position))
+                         (forward-line 1))
+                       (when (and
+                              (= start-pos indented-section-end)
+                              (not
+                               (save-excursion
+                                 (forward-line)
+                                 (skip-syntax-forward "->")
+                                 (looking-at-p (concat (regexp-quote func-name)
+                                                       "\\_>")))))
+                         (goto-char start-pos)
+                         (insert "\n")
+                         (insert (make-string function-name-column ?\s)
+                                 func-name
+                                 " ")
+                         t)))))))))
+     (when (null expanded-function-name?)
+       (goto-char start-pos)
+       (let* ((syn (syntax-ppss))
+              (in-string? (nth 3 syn)))
+         (if in-string?
+             (let ((string-start-column (save-excursion
+                                          (goto-char (nth 8 syn))
+                                          (current-column))))
+               (insert "\\\n" (make-string string-start-column ?\s) "\\"))
+           (haskell--simple-indent-newline-same-col)))))))
 
 (defun haskell-abbrev+-fallback-space ()
   (interactive "*")
@@ -1109,29 +1120,15 @@ value section should have if it is to be properly indented."
                                             haskell-indentation-indent-line-expand-yafolding
                                             activate
                                             compile)
-  (let ((p (point)))
-    (with-expanded-invisible-overlays
-        (max (save-excursion (haskell-move-to-topmost-start)
-                             (point))
-             (point-min))
-        (save-excursion
-          (haskell-move-to-topmost-end)
-          (point))
-      ad-do-it)))
+  (haskell-misc--with-expanded-invisible-overlays-in-current-function
+   ad-do-it))
 
 (defadvice haskell-indentation-indent-backwards (around
                                                  haskell-indentation-indent-backwards-expand-yafolding
                                                  activate
                                                  compile)
-  (let ((p (point)))
-    (with-expanded-invisible-overlays
-        (max (save-excursion (haskell-move-to-topmost-start)
-                             (point))
-             (point-min))
-        (save-excursion
-          (haskell-move-to-topmost-end)
-          (point))
-      ad-do-it)))
+  (haskell-misc--with-expanded-invisible-overlays-in-current-function
+   ad-do-it))
 
 (provide 'haskell-misc)
 
