@@ -76,22 +76,25 @@ Intended to be used with comment-util-mode."
                      ,(util/make-joined-name func "-auto-comment")
                      activate
                      compile)
-     (let ((prev-line (buffer-substring-no-properties
-                       (line-beginning-position)
-                       (point))
-                      ;; (current-line)
-                      )
-           (comment-line-regexp (when *comment-util-current-format*
-                                  (comment-format-line-regexp
-                                   *comment-util-current-format*))))
+     (let* ((comment-line-regexp (when *comment-util-current-format*
+                                   (comment-format-line-regexp
+                                    *comment-util-current-format*)))
+            (enable-advice? (and (not current-prefix-arg)
+                                 comment-line-regexp))
+
+            (prev-line (when enable-advice?
+                         (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (point)))
+                       ;; (current-line)
+                       ))
        ad-do-it
-       (unless current-prefix-arg
+       (when enable-advice?
          (save-match-data
-           (when (and comment-line-regexp
-                      (string-match? (concat "^\\(\\s-*\\(?:"
-                                             comment-line-regexp
-                                             "\\)\\)")
-                                     prev-line))
+           (when (string-match-p (concat "^\\s-*\\(?:"
+                                         comment-line-regexp
+                                         "\\)")
+                                 prev-line)
              (skip-to-indentation)
              (delete-region (line-beginning-position)
                             (point))
