@@ -2538,6 +2538,17 @@
      "  , baz "
      "  ]")))
 
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--at-end-of-buffer-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-newline-with-signature-expansion))
+    (haskell-tests--multiline
+     "makeFunction"
+     "  :: MonadBase IO m _|_=> Env -> CPtrdiff -> CPtrDiff")
+    (haskell-tests--multiline
+     "makeFunction"
+     "  :: MonadBase IO m "
+     "  _|_=> Env -> CPtrdiff -> CPtrDiff")))
 
 (ert-deftest haskell-tests/haskell-move-to-topmost-start-1 ()
   (haskell-tests--test-buffer-contents
