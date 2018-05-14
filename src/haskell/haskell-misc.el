@@ -729,7 +729,8 @@ uppercase or lowercase names)."
                      (let ((function-name-column (current-column))
                            (indented-section-end (line-end-position)))
                        (forward-line 1)
-                       (while (< function-name-column (indentation-size))
+                       (while (and (not (eobp))
+                                   (< function-name-column (indentation-size)))
                          (setf indented-section-end (line-end-position))
                          (forward-line 1))
                        (when (and
