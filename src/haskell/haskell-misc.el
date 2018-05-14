@@ -691,13 +691,15 @@ uppercase or lowercase names)."
   "Make a newline on the current column and indent on step."
   (interactive "*")
   (haskell--simple-indent-newline-same-col)
-  (insert (make-string vim:shift-width ?\s)))
+  (insert (make-string indentation-size ?\s)))
 
 (defun haskell-newline-with-signature-expansion ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
   (interactive "*")
   (haskell-misc--with-expanded-invisible-overlays-in-current-function
    (let* ((start-pos (point))
+          (function-name-column nil)
+          (point-at-end-of-function-signature? nil)
           (expanded-function-name?
            (save-match-data
              (let ((lower-bound
@@ -726,18 +728,22 @@ uppercase or lowercase names)."
                              func-name (match-string 1))))
                    (when found?
                      (goto-char (match-beginning 1))
-                     (let ((function-name-column (current-column))
-                           (indented-section-end (line-end-position)))
+                     (setf function-name-column (current-column))
+                     (let ((indented-section-end (line-end-position)))
                        (forward-line 1)
                        (while (and (not (eobp))
                                    (< function-name-column (indentation-size)))
                          (setf indented-section-end (line-end-position))
                          (forward-line 1))
+                       ;; Do not expand if we're not located at the
+                       ;; type signature's end.
+                       (setf point-at-end-of-function-signature?
+                             (= start-pos indented-section-end))
                        (when (and
-                              (= start-pos indented-section-end)
+                              point-at-end-of-function-signature?
                               (not
                                (save-excursion
-                                 (forward-line)
+                                 (goto-char indented-section-end)
                                  (skip-syntax-forward "->")
                                  (looking-at-p (concat (regexp-quote func-name)
                                                        "\\_>")))))
@@ -751,12 +757,17 @@ uppercase or lowercase names)."
        (goto-char start-pos)
        (let* ((syn (syntax-ppss))
               (in-string? (nth 3 syn)))
-         (if in-string?
-             (let ((string-start-column (save-excursion
-                                          (goto-char (nth 8 syn))
-                                          (current-column))))
-               (insert "\\\n" (make-string string-start-column ?\s) "\\"))
-           (haskell--simple-indent-newline-same-col)))))))
+         (cond
+           (in-string?
+            (let ((string-start-column (save-excursion
+                                         (goto-char (nth 8 syn))
+                                         (current-column))))
+              (insert "\\\n" (make-string string-start-column ?\s) "\\")))
+           ((and function-name-column
+                 point-at-end-of-function-signature?)
+            (insert "\n" (make-string function-name-column ?\s)))
+           (t
+            (haskell--simple-indent-newline-same-col))))))))
 
 (defun haskell-abbrev+-fallback-space ()
   (interactive "*")
