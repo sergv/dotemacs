@@ -12,8 +12,9 @@
   (symbol-macrolet
       ((haskell-filter `(or (mode . haskell-mode)
                             (mode . literate-haskell-mode)
-                            (mode . haskell-c2hs-mode)
                             (mode . haskell-c-mode)
+                            (mode . haskell-c2hs-mode)
+                            (mode . haskell-hsc-mode)
                             (mode . haskell-cabal-mode)
                             (mode . inferior-haskell-mode)
                             (mode . inferior-hugs-mode)
