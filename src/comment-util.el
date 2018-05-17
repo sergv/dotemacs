@@ -31,6 +31,7 @@
   '((haskell-mode          (one-line "--") (line-regexp "--+"))
     (haskell-c-mode        (one-line "--") (line-regexp "--+"))
     (haskell-c2hs-mode     (one-line "--") (line-regexp "--+"))
+    (haskell-hsc-mode      (one-line "--") (line-regexp "--+"))
     (literate-haskell-mode (one-line "--") (line-regexp "--+"))
     (ghc-core-mode         (one-line "--") (line-regexp "--+"))
     (haskell-cabal-mode    (one-line "--") (line-regexp "--+"))

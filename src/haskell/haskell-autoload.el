@@ -55,8 +55,6 @@
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\)?\\'" . haskell-mode))
 (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
-(add-to-list 'auto-mode-alist '("\\.hsc\\'" . haskell-mode))
-(add-to-list 'auto-mode-alist '("\\.chs\\'" . haskell-c2hs-mode))
 
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
@@ -77,6 +75,10 @@
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 (add-hook 'intero-repl-mode-hook #'intero-repl-mode-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
+
+(add-hook 'haskell-c2hs-mode #'haskell-c2hs-setup)
+(add-hook 'haskell-hsc-mode #'haskell-hsc-setup)
+
 
 (add-hook 'alex-mode-hook #'haskell-grammar-tools-setup)
 (add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
