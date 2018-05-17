@@ -135,15 +135,17 @@ enabled. Otherwise fall back to eproj tags."
       (haskell-setup-indentation
        :offset (eproj-query/haskell/indent-offset proj))
 
-      (unless (derived-mode-p 'ghc-core-mode)
+      (company-mode +1)
+      (setq-local company-backends '(company-eproj))
+
+      (when (not non-vanilla-haskell-mode?)
         (setf intero-enabled? (eproj-query/haskell/enable-intero? proj intero-enabled?))
         (if intero-enabled?
             (setf intero-enabled? (intero-mode-maybe))
           (when intero-mode
             (intero-mode -1)))
 
-        (company-mode +1)
-        (setq-local company-backends '(company-eproj intero-company))
+        (add-to-list 'company-backends 'intero-company)
 
         (setf flycheck-enabled?
               (eproj-query/general/enable-flycheck? proj flycheck-enabled?))
