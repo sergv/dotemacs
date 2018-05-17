@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------
 -- |
--- Module      :  Foo
+-- Module      :  Bar
 -- Copyright   :  (c) Sergey Vinokurov 2018
 -- License     :  BSD3-style (see LICENSE)
 --
