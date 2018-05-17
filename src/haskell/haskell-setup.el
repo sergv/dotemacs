@@ -107,15 +107,16 @@ enabled. Otherwise fall back to eproj tags."
 
 ;;;###autoload
 (defun haskell-setup ()
-  (let ((intero-enabled?
-         (if (and (not (derived-mode-p 'ghc-core-mode))
-                  (if (executable-find "intero")
-                      t
-                    (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))
-             t
-           nil))
-        (flycheck-enabled? (not (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode))))
-        (liquid-haskell-enabled? nil))
+  (let* ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
+         (intero-enabled?
+          (if (and (not non-vanilla-haskell-mode?)
+                   (if (executable-find "intero")
+                       t
+                     (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))
+              t
+            nil))
+         (flycheck-enabled? (not non-vanilla-haskell-mode?))
+         (liquid-haskell-enabled? nil))
     (init-common :use-yasnippet t
                  :use-comment t
                  :use-render-formula nil
@@ -294,6 +295,14 @@ enabled. Otherwise fall back to eproj tags."
 
     (setup-outline-headers :header-symbol "-"
                            :length-min 3)))
+
+;;;###autoload
+(defun haskell-c2hs-setup ()
+  (add-to-list 'flycheck-disabled-checkers 'haskell-hlint))
+
+;;;###autoload
+(defun haskell-hsc-setup ()
+  (add-to-list 'flycheck-disabled-checkers 'haskell-hlint))
 
 ;;; Set up inferior-haskell-mode
 
