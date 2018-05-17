@@ -300,6 +300,7 @@
     :tag->string-func #'eproj/haskell-tag->string
     :synonym-modes '(literate-haskell-mode
                      haskell-c-mode
+                     haskell-hsc-mode
                      haskell-c2hs-mode
                      alex-mode
                      happy-mode)
