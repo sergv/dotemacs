@@ -205,14 +205,20 @@ stick it to the previous operator on line."
   "Swap parens with a dollar."
   (interactive)
   (let ((start (point))
+        (strip-next-parens?
+         (save-excursion
+           (skip-syntax-backward " ")
+           (awhen (char-before)
+             (not (char-equal it ?\<)))))
         (paren-start-pos nil))
-    (when (save-excursion
-            (skip-syntax-forward " ")
-            (let ((next-char (char-after)))
-              (when (and next-char
-                         (char= next-char ?\())
-                (setf paren-start-pos (point))
-                t)))
+    (when (and strip-next-parens?
+               (save-excursion
+                 (skip-syntax-forward " ")
+                 (let ((next-char (char-after)))
+                   (when (and next-char
+                              (char= next-char ?\())
+                     (setf paren-start-pos (point))
+                     t))))
       (goto-char paren-start-pos)
       ;; delete parenthesized sexp
       (save-excursion
