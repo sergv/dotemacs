@@ -645,6 +645,48 @@
     "x = f_|_(xs ++ ys)"
     "x = f $ _|_xs ++ ys"))
 
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$--keeps-parens-for-fmap-operator-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f <_|_(xs ++ ys)"
+    "x = f <$ _|_(xs ++ ys)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-fmap-operator-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f<_|_ (xs ++ ys)"
+    "x = f<$_|_ (xs ++ ys)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-fmap-operator-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f <_|_ (xs ++ ys)"
+    "x = f <$_|_ (xs ++ ys)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-fmap-operator-4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f <_|_  (xs ++ ys)"
+    "x = f <$_|_  (xs ++ ys)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-fmap-operator-5 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f <  _|_  (xs ++ ys)"
+    "x = f <$_|_  (xs ++ ys)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-fmap-operator-6 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f <_|_(xs ++ ys)"
+    "x = f <$ _|_(xs ++ ys)"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--operator-$-keeps-parens-for-fmap-operator-7 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators-$)
+    "x = f<_|_(xs ++ ys)"
+    "x = f<$ _|_(xs ++ ys)"))
+
 ;; (ert-deftest haskell-tests/shm/!-1 ()
 ;;   (haskell-tests--test-buffer-contents
 ;;       (shm/!)
