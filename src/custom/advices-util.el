@@ -91,10 +91,10 @@ Intended to be used with comment-util-mode."
        ad-do-it
        (when enable-advice?
          (save-match-data
-           (when (string-match-p (concat "^\\s-*\\(?:"
-                                         comment-line-regexp
-                                         "\\)")
-                                 prev-line)
+           (when (string-match (concat "\\`\\(\\s-*"
+                                       comment-line-regexp
+                                       "\\)")
+                               prev-line)
              (skip-to-indentation)
              (delete-region (line-beginning-position)
                             (point))
