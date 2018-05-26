@@ -295,13 +295,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       Check syntax and code style with hadolint_
 
-      .. _hadolint: http://hadolint.lukasmartinelli.ch/
-
-.. supported-language:: Elixir
-
-   .. syntax-checker:: elixir-dogma
-
-      Check syntax and code style with `Dogma <https://github.com/lpil/dogma>`_.
+      .. _hadolint: https://github.com/hadolint/hadolint
 
 .. supported-language:: Emacs Lisp
 
@@ -638,6 +632,10 @@ to view the docstring of the syntax checker.  Likewise, you may use
          Flycheck automatically :ref:`disables <flycheck-disable-checkers>`
          this syntax checker if eslint cannot find a valid configuration file
          for the current buffer.
+
+      .. defcustom:: flycheck-eslint-args
+
+         A list of additional arguments that are passed to eslint.
 
       .. defcustom:: flycheck-eslint-rules-directories
 
@@ -1219,6 +1217,10 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. _Bash: http://www.gnu.org/software/bash/
 
+      .. defcustom:: flycheck-sh-bash-args
+
+         A list of additional arguments that are passed to bash.
+
    .. syntax-checker:: sh-posix-dash
 
       Check POSIX shell syntax with Dash_.
@@ -1337,7 +1339,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: vhdl-ghdl
 
-      Check syntax with `GHDL <http://ghdl.free.fr/>`_.
+      Check syntax with `GHDL <https://github.com/ghdl/ghdl>`_.
 
       .. defcustom:: flycheck-ghdl-language-standard
 
