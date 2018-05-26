@@ -1,6 +1,6 @@
 ;;; latex.el --- Support for LaTeX documents.
 
-;; Copyright (C) 1991, 1993-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: auctex-devel@gnu.org
 ;; Keywords: tex
@@ -31,7 +31,11 @@
 (require 'tex)
 (require 'tex-style)
 (require 'tex-ispell)
-(eval-when-compile (require 'cl))       ;FIXME: Use cl-lib.
+(when (<= 26 emacs-major-version)
+  ;; latex-flymake requires Emacs 26.
+  (require 'latex-flymake))
+(eval-when-compile
+  (require 'cl-lib))
 
 ;;; Syntax
 
@@ -1622,7 +1626,7 @@ Split the string at commas and remove Biber file extensions."
     (dolist (bib bibs)
       (LaTeX-add-bibliographies (TeX-replace-regexp-in-string
 				 (concat "\\(?:\\."
-					 (mapconcat #'regexp-quote
+					 (mapconcat #'identity
 						    TeX-Biber-file-extensions
 						    "\\|\\.")
 					 "\\)")
@@ -1928,7 +1932,10 @@ defined and ask user for confirmation before proceeding."
 		  (assoc label (LaTeX-label-list)))
 	     (ding)
 	     (when (y-or-n-p
-		    (format-message "Label `%s' exists. Use anyway? " label))
+		    ;; Emacs 24 compatibility
+		    (if (fboundp 'format-message)
+			(format-message "Label `%s' exists. Use anyway? " label)
+		      (format "Label `%s' exists. Use anyway? " label)))
 	       (setq valid t)))
 	    (t
 	     (setq valid t))))
@@ -2613,6 +2620,38 @@ argument, otherwise as a mandatory one.  IGNORE is ignored."
 	  (insert del))
       (insert del (read-from-minibuffer "Text: ") del))
     (setq LaTeX-default-verb-delimiter del)))
+
+(defun TeX-arg-verb-delim-or-brace (optional &optional prompt)
+  "Prompt for delimiter and text.
+If OPTIONAL, indicate optional argument in minibuffer.  PROMPT is
+a string replacing the default one when asking the user for text.
+This function is intended for \\verb like macros which take their
+argument in delimiters like \"\| \|\" or braces \"\{ \}\"."
+  (let ((del (read-quoted-char
+	      (concat "Delimiter (default "
+		      (char-to-string LaTeX-default-verb-delimiter) "): "))))
+    (when (<= del ?\ )
+      (setq del LaTeX-default-verb-delimiter))
+    (if (TeX-active-mark)
+	(progn
+	  (insert del)
+	  (goto-char (mark))
+	  ;; If the delimiter was an opening brace, close it with a
+	  ;; brace, otherwise use the delimiter again
+	  (insert (if (= del ?\{)
+		      ?\}
+		    del)))
+      ;; Same thing again
+      (insert del (read-from-minibuffer
+		   (TeX-argument-prompt optional prompt "Text"))
+	      (if (= del ?\{)
+		  ?\}
+		del)))
+    ;; Do not set `LaTeX-default-verb-delimiter' if the user input was
+    ;; an opening brace.  This would give funny results for the next
+    ;; "C-c C-m \verb RET"
+    (unless (= del ?\{)
+      (setq LaTeX-default-verb-delimiter del))))
 
 (defun TeX-arg-pair (optional first second)
   "Insert a pair of number, prompted by FIRST and SECOND.
@@ -5897,7 +5936,10 @@ of `LaTeX-mode-hook'."
   ;; Defeat filladapt
   (if (and (boundp 'filladapt-mode)
 	   filladapt-mode)
-      (turn-off-filladapt-mode)))
+      (turn-off-filladapt-mode))
+  (when (< 25 emacs-major-version)
+    ;; Set up flymake backend, see latex-flymake.el
+    (add-hook 'flymake-diagnostic-functions 'LaTeX-flymake nil t)))
 
 (TeX-abbrev-mode-setup doctex-mode)
 
@@ -6520,53 +6562,53 @@ function would return non-nil and `(match-string 1)' would return
 
 (defun LaTeX-hanging-ampersand-position ()
   "Return indent column for a hanging ampersand (i.e. ^\\s-*&)."
-  (destructuring-bind
-   (beg-pos . beg-col)
-   (LaTeX-env-beginning-pos-col)
-   (let* ((cur-pos (point)))
-     (save-excursion
-       (if (re-search-backward "\\\\\\\\" beg-pos t)
-	   (let ((cur-idx (how-many "[^\\]&" (point) cur-pos)))
-	     (goto-char beg-pos)
-	     (re-search-forward "[^\\]&" cur-pos t (+ 1 cur-idx))
-	     ;; If the above searchs fails, i.e. no "&" found,
-	     ;; (- (current-column) 1) returns -1, which is wrong.  So
-	     ;; we use a fallback (+ 2 beg-col) whenever this happens:
-	     (max (- (current-column) 1)
-		  (+ 2 beg-col)))
-	 (+ 2 beg-col))))))
+  (cl-destructuring-bind
+      (beg-pos . beg-col)
+      (LaTeX-env-beginning-pos-col)
+    (let* ((cur-pos (point)))
+      (save-excursion
+	(if (re-search-backward "\\\\\\\\" beg-pos t)
+	    (let ((cur-idx (how-many "[^\\]&" (point) cur-pos)))
+	      (goto-char beg-pos)
+	      (re-search-forward "[^\\]&" cur-pos t (+ 1 cur-idx))
+	      ;; If the above searchs fails, i.e. no "&" found,
+	      ;; (- (current-column) 1) returns -1, which is wrong.  So
+	      ;; we use a fallback (+ 2 beg-col) whenever this happens:
+	      (max (- (current-column) 1)
+		   (+ 2 beg-col)))
+	  (+ 2 beg-col))))))
 
 (defun LaTeX-indent-tabular ()
   "Return indent column for the current tabular-like line."
-  (destructuring-bind
-   (beg-pos . beg-col)
-   (LaTeX-env-beginning-pos-col)
-   (let ((tabular-like-end-regex
-	  (format "\\\\end{%s}"
-		  (regexp-opt
-		   (let (out)
-		     (mapc (lambda (x)
-                             (when (eq (cadr x) 'LaTeX-indent-tabular)
-                               (push (car x) out)))
-                           LaTeX-indent-environment-list)
-		     out)))))
-     (cond ((looking-at tabular-like-end-regex)
-	    beg-col)
+  (cl-destructuring-bind
+      (beg-pos . beg-col)
+      (LaTeX-env-beginning-pos-col)
+    (let ((tabular-like-end-regex
+	   (format "\\\\end{%s}"
+		   (regexp-opt
+		    (let (out)
+		      (mapc (lambda (x)
+                              (when (eq (cadr x) 'LaTeX-indent-tabular)
+                                (push (car x) out)))
+                            LaTeX-indent-environment-list)
+		      out)))))
+      (cond ((looking-at tabular-like-end-regex)
+	     beg-col)
 
-	   ((looking-at "\\\\\\\\")
-	    (+ 2 beg-col))
+	    ((looking-at "\\\\\\\\")
+	     (+ 2 beg-col))
 
-	   ((looking-at "&")
-	    (LaTeX-hanging-ampersand-position))
+	    ((looking-at "&")
+	     (LaTeX-hanging-ampersand-position))
 
-	   (t
-	    (+ 2
-	       (let ((any-col (save-excursion
-				(when (re-search-backward "\\\\\\\\\\|[^\\]&" beg-pos t)
-				  (current-column)))))
-		 (if (and any-col (= ?& (char-before (match-end 0))))
-		     (1+ any-col)
-		   beg-col))))))))
+	    (t
+	     (+ 2
+	        (let ((any-col (save-excursion
+				 (when (re-search-backward "\\\\\\\\\\|[^\\]&" beg-pos t)
+				   (current-column)))))
+		  (if (and any-col (= ?& (char-before (match-end 0))))
+		      (1+ any-col)
+		    beg-col))))))))
 
 (provide 'latex)
 

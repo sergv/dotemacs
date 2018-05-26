@@ -1,6 +1,6 @@
 ;;; tex.el --- Support for TeX documents.
 
-;; Copyright (C) 1985-1987, 1991, 1993-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991, 1993-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: auctex-devel@gnu.org
 ;; Keywords: tex
@@ -28,13 +28,13 @@
 
 ;;; Code:
 
-(when (< emacs-major-version 21)
-  (error "AUCTeX requires Emacs 21 or later"))
+(when (< emacs-major-version 24)
+  (error "AUCTeX requires Emacs 24 or later"))
 
 (require 'custom)
 (require 'tex-site)
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (defgroup TeX-file nil
   "Files used by AUCTeX."
@@ -106,11 +106,6 @@ If nil, none is specified."
 
 (defcustom TeX-mode-hook nil
   "A hook run in TeX mode buffers."
-  :type 'hook
-  :group 'TeX-misc)
-
-(defcustom AmS-TeX-mode-hook nil
-  "A hook run in AmS-TeX mode buffers."
   :type 'hook
   :group 'TeX-misc)
 
@@ -587,7 +582,7 @@ Programs should not use these variables directly but the function
 (defun TeX-expand-list ()
   "Complete list of expansion strings for TeX command names.
 
-Concatenate `TeX-expand-list' and `TeX-expand-list-bultin' making
+Concatenate `TeX-expand-list' and `TeX-expand-list-builtin' making
 sure \"%p\" is the first entry."
   (append
    ;; %p must be the first entry, see `TeX-print-command'.
@@ -1038,6 +1033,7 @@ If RESET is non-nil, `TeX-command-next' is reset to
 If no mode is given the current major mode is used."
   (cdr (assoc (or mode major-mode) '((plain-tex-mode . "plain-TeX")
 				     (latex-mode . "LaTeX")
+				     (ams-tex-mode . "AmSTeX")
 				     (doctex-mode . "docTeX")
 				     (texinfo-mode . "Texinfo")
 				     (context-mode . "ConTeXt")))))
@@ -1369,7 +1365,7 @@ viewer."
 		 "%d" (mode-io-correlate " \"# %n '%b'\"")) "dviout")
       ("SumatraPDF"
        ("SumatraPDF -reuse-instance"
-	(mode-io-correlate " -forward-search %b %n") " %o")
+	(mode-io-correlate " -forward-search \"%b\" %n") " %o")
        "SumatraPDF")
       ("dvips and start" "dvips %d -o && start \"\" %f" "dvips")
       ("start" "start \"\" %o")))
@@ -2395,11 +2391,12 @@ this variable to \"<none>\"."
 (defun TeX-dwim-master ()
   "Find a likely `TeX-master'."
   (let ((dir default-directory))
-    (dolist (buf (buffer-list))
-      (when (with-current-buffer buf
-	      (and (equal dir default-directory)
-		   (stringp TeX-master)))
-	(return (with-current-buffer buf TeX-master))))))
+    (cl-loop for buf in (buffer-list)
+             until
+             (when (with-current-buffer buf
+	             (and (equal dir default-directory)
+		          (stringp TeX-master)))
+               (cl-return (with-current-buffer buf TeX-master))))))
 
 (defun TeX-master-file-ask ()
   "Ask for master file, set `TeX-master' and add local variables."
@@ -2710,11 +2707,11 @@ are returned."
 		(dolist (subdir subdirs)
 		  (setq path (file-name-as-directory (concat item subdir)))
 		  (when (file-exists-p path)
-		    (pushnew path input-dir-list :test #'equal)))
+		    (cl-pushnew path input-dir-list :test #'equal)))
 	      (setq path (file-name-as-directory item))
 	      (when (file-exists-p path)
-		(pushnew path input-dir-list :test #'equal))))
-	  ;; No duplication in result is assured since `pushnew' is
+		(cl-pushnew path input-dir-list :test #'equal))))
+	  ;; No duplication in result is assured since `cl-pushnew' is
 	  ;; used above.  Should we introduce an option for speed just
 	  ;; to accumulate all the results without care for
 	  ;; duplicates?
@@ -3131,6 +3128,7 @@ FORCE is not nil."
 
 (defcustom TeX-complete-word 'ispell-complete-word
   "*Function to call for completing non-macros in `tex-mode'."
+  :type 'function
   :group 'TeX-macro)
 
 (defcustom TeX-complete-expert-commands nil
@@ -4417,7 +4415,7 @@ Check for potential LaTeX environments."
 (defcustom TeX-file-extensions '("tex" "sty" "cls" "ltx" "texi" "txi" "texinfo" "dtx")
   "*File extensions used by manually generated TeX files."
   :group 'TeX-file-extension
-  :type '(repeat (string :format "%v")))
+  :type '(repeat (regexp :format "%v")))
 
 (defcustom TeX-all-extensions '("[^.\n]+")
   "All possible file extensions."
@@ -4432,8 +4430,8 @@ Check for potential LaTeX environments."
   (make-variable-buffer-local 'TeX-default-extension)
 
 (defvar TeX-doc-extensions
-  '("dvi" "pdf" "ps" "txt" "html" "dvi.gz" "pdf.gz" "ps.gz" "txt.gz" "html.gz"
-    "dvi.bz2" "pdf.bz2" "ps.bz2" "txt.bz2" "html.bz2")
+  '("dvi" "pdf" "ps" "txt" "html" "dvi\\.gz" "pdf\\.gz" "ps\\.gz" "txt\\.gz"
+    "html\\.gz" "dvi\\.bz2" "pdf\\.bz2" "ps\\.bz2" "txt\\.bz2" "html\\.bz2")
   "File extensions of documentation files.")
 
 (defcustom docTeX-default-extension "dtx"
@@ -4452,22 +4450,22 @@ Access to the value should be through the function `TeX-output-extension'.")
 (defcustom TeX-Biber-file-extensions '("bib" "ris" "xml")
   "Valid file extensions for Biber files."
   :group 'TeX-file-extension
-  :type '(repeat (string :format "%v")))
+  :type '(repeat (regexp :format "%v")))
 
 (defcustom BibTeX-file-extensions '("bib")
   "Valid file extensions for BibTeX files."
   :group 'TeX-file-extension
-  :type '(repeat (string :format "%v")))
+  :type '(repeat (regexp :format "%v")))
 
 (defcustom BibLaTeX-style-extensions '("bbx")
   "Valid file extensions for BibLaTeX styles."
   :group 'TeX-file-extension
-  :type '(repeat (string :format "%v")))
+  :type '(repeat (regexp :format "%v")))
 
 (defcustom BibTeX-style-extensions '("bst")
   "Valid file extensions for BibTeX styles."
   :group 'TeX-file-extension
-  :type '(repeat (string :format "%v")))
+  :type '(repeat (regexp :format "%v")))
 
 (defun TeX-match-extension (file &optional extensions)
   "Return non-nil if FILE has one of EXTENSIONS.
@@ -4521,7 +4519,7 @@ EXTENSIONS defaults to `TeX-file-extensions'."
 				    "$TEXMFDIST")
                                   "latex"))
       (when (file-readable-p dir)
-        (pushnew dir list :test #'equal)))
+        (cl-pushnew dir list :test #'equal)))
     (nreverse list)))
 
 (defcustom TeX-tree-roots (TeX-tree-roots)
@@ -4545,7 +4543,9 @@ non-nil, remove file extension."
 	  result)
       (if (eq scope 'global)
 	  (setq dirs (delete "./" dirs)))
-      (setq extensions (concat "\\." (regexp-opt extensions t) "\\'")
+      (setq extensions (concat "\\.\\(?:"
+			       (mapconcat #'identity extensions "\\|")
+			       "\\)\\'")
 	    result (apply #'append (mapcar (lambda (x)
 					     (when (file-readable-p x)
 					       (directory-files
@@ -4608,7 +4608,6 @@ If optional argument EXTENSIONS is not set, use `TeX-file-extensions'"
 (defvar TeX-search-files-type-alist
   '((texinputs "${TEXINPUTS}" ("tex/") TeX-file-extensions)
     (docs "${TEXDOCS}" ("doc/") TeX-doc-extensions)
-    (graphics "${TEXINPUTS}" ("tex/") LaTeX-includegraphics-extensions)
     (bibinputs "${BIBINPUTS}" ("bibtex/bib/") BibTeX-file-extensions)
     (bstinputs "${BSTINPUTS}" ("bibtex/bst/") BibTeX-style-extensions))
   "Alist of filetypes with locations and file extensions.
@@ -6020,7 +6019,8 @@ With optional argument ARG, also reload the style hooks."
 	    BibLaTeX-global-style-files nil
 	    TeX-Biber-global-files nil
 	    TeX-global-input-files nil
-	    LaTeX-global-class-files nil))
+	    LaTeX-global-class-files nil
+	    LaTeX-includegraphics-global-files nil))
   (let ((TeX-auto-save t))
     (if (buffer-modified-p)
 	(save-buffer)
@@ -6249,11 +6249,11 @@ a bug report.  In addition check if the bug is reproducable with an
 up-to-date version of AUCTeX.  So please upgrade to the version
 available from ")
 	(insert-text-button
-	 "http://www.gnu.org/software/auctex/"
+	 "https://www.gnu.org/software/auctex/"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "http://www.gnu.org/software/auctex/"))
+		   (browse-url "https://www.gnu.org/software/auctex/"))
 	 'follow-link t)
 	(insert " if your
 installation is older than the one available from the web site.
@@ -6265,11 +6265,11 @@ in your report.
 Your report will be posted for the auctex package at the GNU bug
 tracker.  Visit ")
 	(insert-text-button
-	 "http://debbugs.gnu.org/cgi/pkgreport.cgi?pkg=auctex"
+	 "https://debbugs.gnu.org/cgi/pkgreport.cgi?pkg=auctex"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "http://debbugs.gnu.org/cgi/pkgreport.cgi?pkg=auctex"))
+		   (browse-url "https://debbugs.gnu.org/cgi/pkgreport.cgi?pkg=auctex"))
 	 'follow-link t)
 	(insert "\nto browse existing AUCTeX bugs.
 ------------------------------------------------------------------------\n\n")
@@ -6404,7 +6404,7 @@ NAME may be a package, a command, or a document."
       (when (memq major-mode (nth 1 elt))
 	(let ((completions (funcall (nth 2 elt))))
 	  (unless (null completions)
-            (pushnew (cons completions (nth 0 elt)) docs :test #'equal)))))
+            (cl-pushnew (cons completions (nth 0 elt)) docs :test #'equal)))))
     (if (null docs)
 	(progn
 	  (if (executable-find "texdoc")
@@ -6493,7 +6493,7 @@ NAME may be a package, a command, or a document."
 				   (cons (file-name-nondirectory name)
 					 (TeX-style-list)) "\\|")
 			"\\)\\.\\("
-			(mapconcat 'regexp-quote TeX-file-extensions "\\|")
+			(mapconcat #'identity TeX-file-extensions "\\|")
 			"\\)\\'"))
 	(buffers (buffer-list)))
     (while buffers
@@ -6528,7 +6528,7 @@ of the car of `ispell-tex-skip-alists'.  This only happens if
     (let ((raws (car ispell-tex-skip-alists))
 	  (envs (cadr ispell-tex-skip-alists)))
       (dolist (x skip)
-	(pushnew x raws :test #'equal))
+	(cl-pushnew x raws :test #'equal))
       (setq ispell-tex-skip-alists (list raws envs)))))
 
 (defun TeX-ispell-skip-setcdr (skip)
@@ -6541,7 +6541,7 @@ of the cdr of `ispell-tex-skip-alists'.  This only happens if
     (let ((raws (car ispell-tex-skip-alists))
 	  (envs (cadr ispell-tex-skip-alists)))
       (dolist (x skip)
-	(pushnew x envs :test #'equal))
+	(cl-pushnew x envs :test #'equal))
       (setq ispell-tex-skip-alists (list raws envs)))))
 
 (defun TeX-ispell-tex-arg-end (&optional arg1 arg2 arg3)
