@@ -1,10 +1,10 @@
 ;;; org-w3m.el --- Support from Copy and Paste From w3m -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -57,7 +57,7 @@
      :description (or w3m-current-title w3m-current-url))))
 
 (defun org-w3m-copy-for-org-mode ()
-  "Copy current buffer content or active region with `org-mode' style links.
+  "Copy current buffer content or active region with Org style links.
 This will encode `link-title' and `link-location' with
 `org-make-link-string', and insert the transformed test into the kill ring,
 so that it can be yanked into an Org  buffer with links working correctly."
@@ -76,13 +76,13 @@ so that it can be yanked into an Org  buffer with links working correctly."
     (message "Transforming links...")
     (save-excursion
       (goto-char transform-start)
-      (while (and (not out-bound)                 ; still inside region to copy
+      (while (and (not out-bound)	; still inside region to copy
                   (not (org-w3m-no-next-link-p))) ; no next link current buffer
         ;; store current point before jump next anchor
         (setq temp-position (point))
         ;; move to next anchor when current point is not at anchor
         (or (get-text-property (point) 'w3m-href-anchor) (org-w3m-get-next-link-start))
-        (if (<= (point) transform-end)  ; if point is inside transform bound
+        (if (<= (point) transform-end) ; if point is inside transform bound
             (progn
               ;; get content between two links.
               (if (> (point) temp-position)
@@ -94,13 +94,14 @@ so that it can be yanked into an Org  buffer with links working correctly."
               ;; get link title at current point.
               (setq link-title (buffer-substring (point)
                                                  (org-w3m-get-anchor-end)))
-              ;; concat `org-mode' style url to `return-content'.
-              (setq return-content (concat return-content
-                                           (org-make-link-string
-                                            link-location link-title))))
-          (goto-char temp-position)     ; reset point before jump next anchor
-          (setq out-bound t)            ; for break out `while' loop
-          ))
+              ;; concat Org style url to `return-content'.
+              (setq return-content
+		    (concat return-content
+			    (if (org-string-nw-p link-location)
+				(org-make-link-string link-location link-title)
+			      link-title))))
+          (goto-char temp-position) ; reset point before jump next anchor
+          (setq out-bound t)))	    ; for break out `while' loop
       ;; add the rest until end of the region to be copied
       (if (< (point) transform-end)
           (setq return-content

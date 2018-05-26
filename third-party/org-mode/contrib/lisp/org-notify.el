@@ -1,6 +1,6 @@
 ;;; org-notify.el --- Notifications for Org-mode
 
-;; Copyright (C) 2012-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2018  Free Software Foundation, Inc.
 
 ;; Author: Peter Münster <pmrb@free.fr>
 ;; Keywords: notification, todo-list, alarm, reminder, pop-up
@@ -118,7 +118,7 @@ simple timestamp string."
 
 (defun org-notify-make-todo (heading &rest ignored)
   "Create one todo item."
-  (macrolet ((get (k) `(plist-get list ,k))
+  (cl-macrolet ((get (k) `(plist-get list ,k))
              (pr (k v) `(setq result (plist-put result ,k ,v))))
     (let* ((list (nth 1 heading))      (notify (or (get :NOTIFY) "default"))
            (deadline (org-notify-convert-deadline (get :deadline)))
@@ -137,15 +137,16 @@ simple timestamp string."
   "Create the todo-list for one org-agenda file."
   (let* ((files (org-agenda-files 'unrestricted))
          (max (1- (length files))))
-    (setq org-notify-parse-file
-          (if (or (not org-notify-parse-file) (>= org-notify-parse-file max))
-              0
-            (1+ org-notify-parse-file)))
-    (save-excursion
-      (with-current-buffer (find-file-noselect
-                            (nth org-notify-parse-file files))
-        (org-element-map (org-element-parse-buffer 'headline)
-                         'headline 'org-notify-make-todo)))))
+    (when files
+      (setq org-notify-parse-file
+	    (if (or (not org-notify-parse-file) (>= org-notify-parse-file max))
+		0
+	      (1+ org-notify-parse-file)))
+      (save-excursion
+	(with-current-buffer (find-file-noselect
+			      (nth org-notify-parse-file files))
+	  (org-element-map (org-element-parse-buffer 'headline)
+	      'headline 'org-notify-make-todo))))))
 
 (defun org-notify-maybe-too-late (diff period heading)
   "Print warning message, when notified significantly later than defined by
@@ -157,7 +158,7 @@ PERIOD."
 (defun org-notify-process ()
   "Process the todo-list, and possibly notify user about upcoming or
 forgotten tasks."
-  (macrolet ((prm (k) `(plist-get prms ,k))  (td (k) `(plist-get todo ,k)))
+  (cl-macrolet ((prm (k) `(plist-get prms ,k))  (td (k) `(plist-get todo ,k)))
     (dolist (todo (org-notify-todo-list))
       (let* ((deadline (td :deadline))  (heading (td :heading))
              (uid (td :uid))            (last-run-sym
@@ -245,9 +246,10 @@ seconds.  The default value for SECS is 20."
           (switch-to-buffer (find-file-noselect file))
           (org-with-wide-buffer
            (goto-char begin)
-           (show-entry))
+           (outline-show-entry))
           (goto-char begin)
           (search-forward "DEADLINE: <")
+          (search-forward ":")
           (if (display-graphic-p)
               (x-focus-frame nil)))
       (save-excursion
@@ -268,7 +270,7 @@ seconds.  The default value for SECS is 20."
 
 (defun org-notify-on-action-button (button)
   "User wants to see action after button activation."
-  (macrolet ((get (k) `(button-get button ,k)))
+  (cl-macrolet ((get (k) `(button-get button ,k)))
     (org-notify-on-action (get 'plist) (get 'key))
     (org-notify-delete-window (get 'buffer))
     (cancel-timer (get 'timer))))
@@ -311,7 +313,7 @@ seconds.  The default value for SECS is 20."
   (compose-mail user-mail-address (concat "TODO: " (plist-get plist :heading)))
   (insert (org-notify-body-text plist))
   (funcall send-mail-function)
-  (flet ((yes-or-no-p (prompt) t))
+  (cl-letf (((symbol-function 'yes-or-no-p) (lambda (x) t)))
     (kill-buffer)))
 
 (defun org-notify-select-highest-window ()
@@ -334,7 +336,7 @@ org-notify window.  Mostly copied from `appt-select-lowest-window'."
 (defun org-notify-action-window (plist)
   "Pop up a window, mostly copied from `appt-disp-window'."
   (save-excursion
-    (macrolet ((get (k) `(plist-get plist ,k)))
+    (cl-macrolet ((get (k) `(plist-get plist ,k)))
       (let ((this-window (selected-window))
             (buf (get-buffer-create
                   (format org-notify-window-buffer-name (get :uid)))))

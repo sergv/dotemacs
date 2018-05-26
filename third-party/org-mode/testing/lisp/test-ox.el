@@ -445,6 +445,17 @@ Paragraph"
 	    (org-test-with-temp-text "#+FILETAGS: noexp\n* Head1"
 	      (org-export-as (org-test-default-backend)
 			     nil nil nil '(:exclude-tags ("noexp")))))))
+  ;; Excluding a tag excludes its whole group.
+  (should
+   (equal ""
+	  (let (org-export-filter-body-functions
+		org-export-filter-final-output-functions)
+	    (org-test-with-temp-text "* Head1 :baz:"
+	      (let ((org-tag-alist '((:startgrouptag)
+				     ("foo") (:grouptags) ("bar") ("baz")
+				     (:endgrouptag))))
+		(org-export-as (org-test-default-backend)
+			       nil nil nil '(:exclude-tags ("foo"))))))))
   ;; Test include tags for headlines and inlinetasks.
   (should
    (equal (org-test-with-temp-text "* H1\n* H2\n** Sub :exp:\n*** Sub Sub\n* H3"
@@ -452,6 +463,18 @@ Paragraph"
 	      (org-export-as (org-test-default-backend)
 			     nil nil nil '(:select-tags ("exp")))))
 	  "* H2\n** Sub :exp:\n*** Sub Sub\n"))
+  ;; Including a tag includes its whole group.
+  (should
+   (string-match-p
+    "\\`\\* H2"
+    (let (org-export-filter-body-functions
+	  org-export-filter-final-output-functions)
+      (org-test-with-temp-text "* H1\n* H2 :bar:"
+	(let ((org-tag-alist '((:startgrouptag)
+			       ("foo") (:grouptags) ("bar") ("baz")
+			       (:endgrouptag))))
+	  (org-export-as (org-test-default-backend)
+			 nil nil nil '(:select-tags ("foo"))))))))
   ;; If there is an include tag, ignore the section before the first
   ;; headline, if any.
   (should
@@ -1771,12 +1794,19 @@ Footnotes[fn:2], foot[fn:test] and [fn:inline:inline footnote]
    (equal "Success"
 	  (let (org-export-registered-backends)
 	    (org-export-define-backend 'test
-	      '((plain-text . (lambda (text contents info) "Failure"))))
+	      '((verbatim . (lambda (text contents info) "Failure"))))
 	    (org-export-define-backend 'test2
-	      '((plain-text . (lambda (text contents info) "Success"))))
-	    (org-export-with-backend 'test2 "Test"))))
+	      '((verbatim . (lambda (text contents info) "Success"))))
+	    (org-export-with-backend 'test2 '(verbatim (:value "=Test="))))))
+  ;; Corner case: plain-text transcoders have a different arity.
+  (should
+   (equal "Success"
+	  (org-export-with-backend
+	   (org-export-create-backend
+	    :transcoders '((plain-text . (lambda (text info) "Success"))))
+	   "Test")))
   ;; Provide correct back-end if transcoder needs to use recursive
-  ;; calls anyway.
+  ;; calls.
   (should
    (equal "Success\n"
 	  (let ((test-back-end
@@ -2474,11 +2504,11 @@ Para2"
      (org-export-numbered-headline-p
       (org-element-map tree 'headline #'identity info t)
       info)))
-  ;; UNNUMBERED ignores inheritance.  Any non-nil value among
-  ;; ancestors disables numbering.
+  ;; UNNUMBERED is inherited.
   (should
-   (org-test-with-parsed-data
-       "* H
+   (equal '(unnumbered numbered unnumbered)
+	  (org-test-with-parsed-data
+	      "* H
 :PROPERTIES:
 :UNNUMBERED: t
 :END:
@@ -2486,10 +2516,12 @@ Para2"
 :PROPERTIES:
 :UNNUMBERED: nil
 :END:
-*** H3"
-     (cl-every
-      (lambda (h) (not (org-export-numbered-headline-p h info)))
-      (org-element-map tree 'headline #'identity info)))))
+** H3"
+	    (org-element-map tree 'headline
+	      (lambda (h)
+		(if (org-export-numbered-headline-p h info) 'numbered
+		  'unnumbered))
+	      info)))))
 
 (ert-deftest test-org-export/number-to-roman ()
   "Test `org-export-number-to-roman' specifications."
@@ -2675,7 +2707,13 @@ Para2"
       (org-test-with-parsed-data "* Headline\n* Headline 2 :ignore:"
 	(org-element-map tree 'headline
 	  (lambda (h) (if (org-export-last-sibling-p h info) 'yes 'no))
-	  info))))))
+	  info)))))
+  ;; Handle gracefully discontinuous headings.
+  (should
+   (equal '(yes yes)
+	  (org-test-with-parsed-data "** S\n* H"
+	    (org-element-map tree 'headline
+	      (lambda (h) (if (org-export-last-sibling-p h info) 'yes 'no)))))))
 
 (ert-deftest test-org-export/handle-inlinetasks ()
   "Test inlinetask export."
@@ -2820,19 +2858,19 @@ Para2"
   "Test `org-export-insert-image-links' specifications."
   (should-not
    (member "file"
-	   (org-test-with-parsed-data "[[http://orgmode.org][file:image.png]]"
+	   (org-test-with-parsed-data "[[https://orgmode.org][file:image.png]]"
 	     (org-element-map tree 'link
 	       (lambda (l) (org-element-property :type l))))))
   (should
    (member "file"
-	   (org-test-with-parsed-data "[[http://orgmode.org][file:image.png]]"
+	   (org-test-with-parsed-data "[[https://orgmode.org][file:image.png]]"
 	     (org-element-map (org-export-insert-image-links tree info) 'link
 	       (lambda (l) (org-element-property :type l))))))
   ;; Properly set `:parent' property when replace contents with image
   ;; link.
   (should
    (memq 'link
-	 (org-test-with-parsed-data "[[http://orgmode.org][file:image.png]]"
+	 (org-test-with-parsed-data "[[https://orgmode.org][file:image.png]]"
 	   (org-element-map (org-export-insert-image-links tree info) 'link
 	     (lambda (l)
 	       (org-element-type (org-element-property :parent l)))))))
@@ -2840,12 +2878,12 @@ Para2"
   ;; images.
   (should-not
    (member "file"
-	   (org-test-with-parsed-data "[[http://orgmode.org][file:image.xxx]]"
+	   (org-test-with-parsed-data "[[https://orgmode.org][file:image.xxx]]"
 	     (org-element-map (org-export-insert-image-links tree info) 'link
 	       (lambda (l) (org-element-property :type l))))))
   (should
    (member "file"
-	   (org-test-with-parsed-data "[[http://orgmode.org][file:image.xxx]]"
+	   (org-test-with-parsed-data "[[https://orgmode.org][file:image.xxx]]"
 	     (org-element-map
 		 (org-export-insert-image-links tree info '(("file" . "xxx")))
 		 'link
@@ -4319,6 +4357,76 @@ Another text. (ref:text)
       (org-test-with-parsed-data "* H1\n** H2\n*** H3"
 	(let ((scope (org-element-map tree 'headline #'identity info t)))
 	  (length (org-export-collect-headlines info 1 scope)))))))
+
+(ert-deftest test-org-export/toc-entry-backend ()
+  "Test `org-export-toc-entry-backend' specifications."
+  ;; Ignore targets.
+  (should
+   (equal "H \n"
+	  (org-test-with-temp-text "* H <<target>>"
+	    (let (org-export-registered-backends)
+	      (org-export-define-backend 'test
+		'((headline . (lambda (h _c i) (org-export-data-with-backend
+					   (org-element-property :title h)
+					   (org-export-toc-entry-backend 'test)
+					   i)))))
+	      (org-export-as 'test)))))
+  ;; Ignore footnote references.
+  (should
+   (equal "H \n"
+	  (org-test-with-temp-text "[fn:1] Definition\n* H [fn:1]"
+	    (let (org-export-registered-backends)
+	      (org-export-define-backend 'test
+		'((headline . (lambda (h _c i) (org-export-data-with-backend
+					   (org-element-property :title h)
+					   (org-export-toc-entry-backend 'test)
+					   i)))))
+	      (org-export-as 'test)))))
+  ;; Replace plain links with contents, or with path.
+  (should
+   (equal "H Org mode\n"
+	  (org-test-with-temp-text "* H [[https://orgmode.org][Org mode]]"
+	    (let (org-export-registered-backends)
+	      (org-export-define-backend 'test
+		'((headline . (lambda (h _c i) (org-export-data-with-backend
+					   (org-element-property :title h)
+					   (org-export-toc-entry-backend 'test)
+					   i)))))
+	      (org-export-as 'test)))))
+  (should
+   (equal "H https://orgmode.org\n"
+	  (org-test-with-temp-text "* H [[https://orgmode.org]]"
+	    (let (org-export-registered-backends)
+	      (org-export-define-backend 'test
+		'((headline . (lambda (h _c i) (org-export-data-with-backend
+					   (org-element-property :title h)
+					   (org-export-toc-entry-backend 'test)
+					   i)))))
+	      (org-export-as 'test)))))
+  ;; Replace radio targets with contents.
+  (should
+   (equal "H radio\n"
+	  (org-test-with-temp-text "* H <<<radio>>>"
+	    (let (org-export-registered-backends)
+	      (org-export-define-backend 'test
+		'((headline . (lambda (h _c i) (org-export-data-with-backend
+					   (org-element-property :title h)
+					   (org-export-toc-entry-backend 'test)
+					   i)))))
+	      (org-export-as 'test)))))
+  ;; With optional argument TRANSCODERS, specify other
+  ;; transformations.
+  (should
+   (equal "H bold\n"
+	  (org-test-with-temp-text "* H *bold*"
+	    (let (org-export-registered-backends)
+	      (org-export-define-backend 'test
+		'((headline . (lambda (h _c i) (org-export-data-with-backend
+					   (org-element-property :title h)
+					   (org-export-toc-entry-backend 'test
+					     '(bold . (lambda (_b c _i) c)))
+					   i)))))
+	      (org-export-as 'test))))))
 
 
 

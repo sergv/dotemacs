@@ -1,10 +1,10 @@
 ;;; org-id.el --- Global identifiers for Org entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -539,8 +539,7 @@ When FILES is given, scan these files instead."
     (with-temp-buffer
       (condition-case nil
 	  (progn
-	    (insert-file-contents-literally org-id-locations-file)
-	    (goto-char (point-min))
+	    (insert-file-contents org-id-locations-file)
 	    (setq org-id-locations (read (current-buffer))))
 	(error
 	 (message "Could not read org-id-values from %s.  Setting it to nil."

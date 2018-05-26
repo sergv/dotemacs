@@ -1223,10 +1223,10 @@ Some other text
      (org-element-map (org-element-parse-buffer) 'inline-src-block 'identity)))
   ;; Invalid syntax.
   (should-not
-   (org-test-with-temp-text "foosrc_emacs-lisp[]{(+ 1 1)}"
+   (org-test-with-temp-text "src_emacs-lisp[]foo{(+ 1 1)}"
      (org-element-map (org-element-parse-buffer) 'inline-src-block 'identity)))
   (should-not
-   (org-test-with-temp-text "src_emacs-lisp[]foo{(+ 1 1)}"
+   (org-test-with-temp-text "foosrc_emacs-lisp[]{(+ 1 1)}"
      (org-element-map (org-element-parse-buffer) 'inline-src-block 'identity)))
   ;; Invalid language name
   (should-not
@@ -1444,9 +1444,19 @@ DEADLINE: <2012-03-29 thu.>"
 	      'org-element-contents))))
   ;; Block in an item: ignore indentation within the block.
   (should
-   (org-test-with-temp-text "- item\n  #+begin_src emacs-lisp\n(+ 1 1)\n  #+end_src"
-     (forward-char)
-     (= (org-element-property :end (org-element-at-point)) (point-max)))))
+   (org-test-with-temp-text
+       "-<point> item\n  #+begin_src emacs-lisp\n(+ 1 1)\n  #+end_src"
+     (= (org-element-property :end (org-element-at-point)) (point-max))))
+  ;; Last item in a list or sub-list has no `:post-blank' lines, since
+  ;; those belong to the plain-list.
+  (should
+   (= 0
+      (org-test-with-temp-text "- A\n\n- <point>B\n\nEnd list"
+	(org-element-property :post-blank (org-element-at-point)))))
+  (should
+   (= 0
+      (org-test-with-temp-text "- A\n\n  - B\n\n<point>  - C\n\n  End sub-list"
+	(org-element-property :post-blank (org-element-at-point))))))
 
 
 ;;;; Keyword
@@ -1687,14 +1697,14 @@ e^{i\\pi}+1=0
   (should
    (equal
     '("Orgmode.org")
-    (org-test-with-temp-text "[[http://orgmode.org][Orgmode.org]]"
+    (org-test-with-temp-text "[[https://orgmode.org][Orgmode.org]]"
       (org-element-contents
        (org-element-map (org-element-parse-buffer) 'link 'identity nil t)))))
   ;; ... without description.
   (should
    (equal
-    "http"
-    (org-test-with-temp-text "[[http://orgmode.org]]"
+    "https"
+    (org-test-with-temp-text "[[https://orgmode.org]]"
       (org-element-property
        :type
        (org-element-map (org-element-parse-buffer) 'link 'identity nil t)))))
@@ -1703,7 +1713,7 @@ e^{i\\pi}+1=0
    (equal
     "//orgmode.org/worg"
     (org-test-with-temp-text "[[Org:worg]]"
-      (let ((org-link-abbrev-alist '(("Org" . "http://orgmode.org/"))))
+      (let ((org-link-abbrev-alist '(("Org" . "https://orgmode.org/"))))
 	(org-element-property
 	 :path
 	 (org-element-map (org-element-parse-buffer) 'link 'identity nil t))))))
@@ -1711,7 +1721,7 @@ e^{i\\pi}+1=0
   (should
    (equal
     "127.0.0.1"
-    (org-test-with-temp-text "[[http://orgmode.org]]"
+    (org-test-with-temp-text "[[https://orgmode.org]]"
       (let ((org-link-translation-function
 	     (lambda (type _) (cons type "127.0.0.1"))))
 	(org-element-property
@@ -1784,30 +1794,30 @@ e^{i\\pi}+1=0
 	    (org-element-property :path (org-element-context)))))
   ;; Plain link.
   (should
-   (org-test-with-temp-text "A link: http://orgmode.org"
+   (org-test-with-temp-text "A link: https://orgmode.org"
      (org-element-map (org-element-parse-buffer) 'link 'identity)))
   ;; Angular link.  Follow RFC 3986.
   (should
    (eq 'link
-       (org-test-with-temp-text "A link: <point><http://orgmode.org>"
+       (org-test-with-temp-text "A link: <point><https://orgmode.org>"
 	 (org-element-type (org-element-context)))))
   (should
    (equal "//orgmode.org"
-	  (org-test-with-temp-text "A link: <point><http://orgmode\n.org>"
+	  (org-test-with-temp-text "A link: <point><https://orgmode\n.org>"
 	    (org-element-property :path (org-element-context)))))
   ;; Link abbreviation.
   (should
-   (equal "http"
+   (equal "https"
 	  (org-test-with-temp-text
-	      "#+LINK: orgmode http://www.orgmode.org/\n[[orgmode:#docs]]"
+	      "#+LINK: orgmode https://www.orgmode.org/\n[[orgmode:#docs]]"
 	    (progn (org-mode-restart)
 		   (goto-char (1- (point-max)))
 		   (org-element-property :type (org-element-context))))))
   ;; Link abbreviation in a secondary string.
   (should
-   (equal "http"
+   (equal "https"
 	  (org-test-with-temp-text
-	      "#+LINK: orgmode http://www.orgmode.org/\n* H [[orgmode:#docs]]"
+	      "#+LINK: orgmode https://www.orgmode.org/\n* H [[orgmode:#docs]]"
 	    (progn (org-mode-restart)
 		   (org-element-map (org-element-parse-buffer) 'link
 		     (lambda (link) (org-element-property :type link))
@@ -1962,7 +1972,17 @@ e^{i\\pi}+1=0
   "Test `plain-list' parser."
   (org-test-with-temp-text "- item"
     (should (org-element-map (org-element-parse-buffer) 'plain-list 'identity)))
-  ;; Blank lines after the list only belong to outer plain list.
+  ;; Blank lines after a list or sub-list belongs to that list.
+  (should
+   (= 1
+      (org-test-with-temp-text "- A\n\n- B\n\nEnd list"
+	(org-element-property :post-blank (org-element-at-point)))))
+  (should
+   (= 1
+      (org-test-with-temp-text "- A\n\n<point>  - B\n\n  - C\n\n  End sub-list"
+	(org-element-property :post-blank (org-element-at-point)))))
+  ;; Blank lines after the list only belong to outer plain list,
+  ;; however.
   (should
    (equal
     '(t t)
@@ -3080,15 +3100,15 @@ DEADLINE: <2012-03-29 thu.> SCHEDULED: <2012-03-29 thu.> CLOSED: [2012-03-29 thu
 		   (org-test-parse-and-interpret "a radio-target"))
 		 "a radio-target\n"))
   ;; Links without description.
-  (should (equal (org-test-parse-and-interpret "[[http://orgmode.org]]")
-		 "[[http://orgmode.org]]\n"))
+  (should (equal (org-test-parse-and-interpret "[[https://orgmode.org]]")
+		 "[[https://orgmode.org]]\n"))
   ;; Links with a description, even one containing a link.
   (should (equal (org-test-parse-and-interpret
-		  "[[http://orgmode.org][Org mode]]")
-		 "[[http://orgmode.org][Org mode]]\n"))
+		  "[[https://orgmode.org][Org mode]]")
+		 "[[https://orgmode.org][Org mode]]\n"))
   (should (equal (org-test-parse-and-interpret
-		  "[[http://orgmode.org][http://orgmode.org]]")
-		 "[[http://orgmode.org][http://orgmode.org]]\n"))
+		  "[[https://orgmode.org][https://orgmode.org]]")
+		 "[[https://orgmode.org][https://orgmode.org]]\n"))
   ;; File links.
   (should
    (equal (org-test-parse-and-interpret "[[file+emacs:todo.org]]")
@@ -3103,11 +3123,11 @@ DEADLINE: <2012-03-29 thu.> SCHEDULED: <2012-03-29 thu.> CLOSED: [2012-03-29 thu
   ;; Code-ref links.
   (should (equal (org-test-parse-and-interpret "[[(ref)]]") "[[(ref)]]\n"))
   ;; Plain links.
-  (should (equal (org-test-parse-and-interpret "http://orgmode.org")
-		 "http://orgmode.org\n"))
+  (should (equal (org-test-parse-and-interpret "https://orgmode.org")
+		 "https://orgmode.org\n"))
   ;; Angular links.
-  (should (equal (org-test-parse-and-interpret "<http://orgmode.org>")
-		 "<http://orgmode.org>\n"))
+  (should (equal (org-test-parse-and-interpret "<https://orgmode.org>")
+		 "<https://orgmode.org>\n"))
   ;; Pathological case: link with a %-sign in description.
   (should (equal (org-test-parse-and-interpret "[[file://path][%s]]")
 		 "[[file://path][%s]]\n")))
@@ -3530,7 +3550,7 @@ Text
   ;; Special case: objects in inline footnotes.
   (should
    (eq 'link
-       (org-test-with-temp-text "[fn::[[<point>http://orgmode.org]]]"
+       (org-test-with-temp-text "[fn::[[<point>https://orgmode.org]]]"
 	 (org-element-type (org-element-context)))))
   ;; Special case: tags looking like a link.
   (should-not

@@ -1,10 +1,10 @@
 ;;; ob-tangle.el --- Extract Source Code From Org Files -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -494,10 +494,9 @@ non-nil, return the full association list to be used by
 		  link)
 		source-name
 		params
-		(org-unescape-code-in-string
-		 (if org-src-preserve-indentation
-		     (org-trim body t)
-		   (org-trim (org-remove-indentation body))))
+		(if org-src-preserve-indentation
+		    (org-trim body t)
+		  (org-trim (org-remove-indentation body)))
 		comment)))
     (if only-this-block
 	(list (cons src-lang (list result)))

@@ -1,13 +1,13 @@
 ;;; ob-mathomatic.el --- Org-babel functions for mathomatic evaluation
 
-;; Copyright (C) 2009-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018  Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;;	Eric Schulte
 ;;  Luis Anaya (Mathomatic)
 
 ;; Keywords: literate programming, reproducible research, mathomatic
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is not part of GNU Emacs.
 
