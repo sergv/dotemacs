@@ -2,12 +2,36 @@
 
 ## Next
 
+* `company-cmake` supports completion inside string interpolations
+  ([#714](https://github.com/company-mode/company-mode/pull/714)).
+* Workaround for the conflict between `inferior-python-mode`'s completion code
+  and `company-sort-by-occurrence`.
+* In Emacs 26 and newer, `company-css` is removed from `company-backends`.
+  `company-capf` is used instead.
+* Same for `company-nxml`.
+
+## 2018-02-23 (0.9.6)
+
+* Workaround for Emacs' ([bug#23980](https://debbugs.gnu.org/23980)) triggered
+  in combination with Flyspell.
+
+## 2018-02-18 (0.9.5)
+
+* The most common case of tooltip flickering with asynchronous backends (and
+  disabled built-in cache) is fixed
+  ([#510](https://github.com/company-mode/company-mode/issues/510),
+  [#654](https://github.com/company-mode/company-mode/issues/654)).
+* `company-keywords` added entries for `go-mode`, `swift-mode` and
+  `kotlin-mode`.
 * Native line numbers compatibility fixes.
+* `company-dabbrev` and `company-dabbrev-code` are more responsive when user
+  input is pending
+  ([#720](https://github.com/company-mode/company-mode/pull/720)).
 * New feature `company-tng`. It contains a frontend and some helper code.
   The frontend triggers insertion of the candidate as soon as it's selected, so
   you only need to press TAB. Add `(company-tng-configure-default)` to your
-  init script to give it a try.
-  ([#706](https://github.com/company-mode/company-mode/issues/706))
+  init script to give it a try
+  ([#706](https://github.com/company-mode/company-mode/issues/706)).
 * New user option `company-tooltip-maximum-width`.
 
 ## 2017-07-15 (0.9.4)
