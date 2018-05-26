@@ -1,10 +1,10 @@
 ;;; ob-sql.el --- Babel Functions for SQL            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -127,7 +127,7 @@ SQL Server on Windows and Linux platform."
 	     " "))
 
 (defun org-babel-sql-dbstring-sqsh (host user password database)
-  "Make sqsh commmand line args for database connection.
+  "Make sqsh command line args for database connection.
 \"sqsh\" is one method to access Sybase or MS SQL via Linux platform"
   (mapconcat #'identity
              (delq nil

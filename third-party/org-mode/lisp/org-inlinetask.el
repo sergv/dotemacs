@@ -1,10 +1,10 @@
 ;;; org-inlinetask.el --- Tasks Independent of Outline Hierarchy -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -114,7 +114,7 @@ When nil, the first star is not shown."
 (defcustom org-inlinetask-default-state nil
   "Non-nil means make inline tasks have a TODO keyword initially.
 This should be the state `org-inlinetask-insert-task' should use by
-default, or nil of no state should be assigned."
+default, or nil if no state should be assigned."
   :group 'org-inlinetask
   :version "24.1"
   :type '(choice
@@ -152,24 +152,24 @@ The number of levels is controlled by `org-inlinetask-min-level'."
 		  org-inlinetask-min-level)))
     (format "^\\(\\*\\{%d,\\}\\)[ \t]+" nstars)))
 
+(defun org-inlinetask-end-p ()
+  "Return a non-nil value if point is on inline task's END part."
+  (let ((case-fold-search t))
+    (org-match-line (concat (org-inlinetask-outline-regexp) "END[ \t]*$"))))
+
 (defun org-inlinetask-at-task-p ()
-  "Return true if point is at beginning of an inline task."
-  (save-excursion
-    (beginning-of-line)
-    (and (looking-at (concat (org-inlinetask-outline-regexp)  "\\(.*\\)"))
-	 (not (string-match "^end[ \t]*$" (downcase (match-string 2)))))))
+  "Return non-nil if point is at beginning of an inline task."
+  (and (org-match-line (concat (org-inlinetask-outline-regexp)  "\\(.*\\)"))
+       (not (org-inlinetask-end-p))))
 
 (defun org-inlinetask-in-task-p ()
   "Return true if point is inside an inline task."
   (save-excursion
     (beginning-of-line)
-    (let* ((case-fold-search t)
-	   (stars-re (org-inlinetask-outline-regexp))
-	   (task-beg-re (concat stars-re "\\(?:.*\\)"))
-	   (task-end-re (concat stars-re "END[ \t]*$")))
-      (or (looking-at-p task-beg-re)
+    (let ((case-fold-search t))
+      (or (looking-at-p (concat (org-inlinetask-outline-regexp) "\\(?:.*\\)"))
 	  (and (re-search-forward "^\\*+[ \t]+" nil t)
-	       (progn (beginning-of-line) (looking-at-p task-end-re)))))))
+	       (org-inlinetask-end-p))))))
 
 (defun org-inlinetask-goto-beginning ()
   "Go to the beginning of the inline task at point."
@@ -177,29 +177,32 @@ The number of levels is controlled by `org-inlinetask-min-level'."
   (let ((case-fold-search t)
 	(inlinetask-re (org-inlinetask-outline-regexp)))
     (re-search-backward inlinetask-re nil t)
-    (when (looking-at-p (concat inlinetask-re "END[ \t]*$"))
+    (when (org-inlinetask-end-p)
       (re-search-backward inlinetask-re nil t))))
 
 (defun org-inlinetask-goto-end ()
   "Go to the end of the inline task at point.
-Return point."
+    Return point."
   (save-match-data
     (beginning-of-line)
-    (let* ((case-fold-search t)
-	   (inlinetask-re (org-inlinetask-outline-regexp))
-	   (task-end-re (concat inlinetask-re "END[ \t]*$")))
+    (let ((case-fold-search t)
+	  (inlinetask-re (org-inlinetask-outline-regexp)))
       (cond
-       ((looking-at task-end-re))
-       ((looking-at inlinetask-re)
-	(forward-line)
-	(cond
-	 ((looking-at task-end-re))
-	 ((looking-at inlinetask-re))
-	 ((org-inlinetask-in-task-p)
-	  (re-search-forward inlinetask-re nil t))))
-       (t (re-search-forward inlinetask-re nil t)))
-      (end-of-line)
-      (point))))
+       ((org-inlinetask-end-p)
+        (forward-line))
+       ((looking-at-p inlinetask-re)
+        (forward-line)
+        (cond
+         ((org-inlinetask-end-p) (forward-line))
+         ((looking-at-p inlinetask-re))
+         ((org-inlinetask-in-task-p)
+          (re-search-forward inlinetask-re nil t)
+          (forward-line))
+         (t nil)))
+       (t
+        (re-search-forward inlinetask-re nil t)
+        (forward-line)))))
+  (point))
 
 (defun org-inlinetask-get-task-level ()
   "Get the level of the inline task around.
@@ -330,7 +333,9 @@ This function is meant to be used in `org-cycle-hook'."
 	   (org-inlinetask-goto-end)))))
     (`children
      (save-excursion
-       (while (and (outline-next-heading) (org-inlinetask-at-task-p))
+       (while
+	   (or (org-inlinetask-at-task-p)
+	       (and (outline-next-heading) (org-inlinetask-at-task-p)))
 	 (org-inlinetask-toggle-visibility)
 	 (org-inlinetask-goto-end))))))
 

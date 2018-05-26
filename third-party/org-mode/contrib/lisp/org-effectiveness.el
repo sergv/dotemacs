@@ -1,10 +1,10 @@
 ;;; org-effectiveness.el --- Measuring the personal effectiveness
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 ;; Author: David Arroyo Menéndez <davidam@es.gnu.org>
 ;; Keywords: effectiveness, plot
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is not part of GNU Emacs, yet.
 ;;
