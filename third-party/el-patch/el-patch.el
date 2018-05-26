@@ -7,7 +7,7 @@
 ;; Homepage: https://github.com/raxod502/el-patch
 ;; Keywords: extensions
 ;; Package-Requires: ((emacs "25"))
-;; Version: 1.2
+;; Version: 2.0
 
 ;;; Commentary:
 
@@ -49,16 +49,6 @@
 
 (require 'subr-x)
 (require 'cl-lib)
-
-;;;; Compatibility
-
-(eval-and-compile
-  (when (version< emacs-version "26")
-    (with-no-warnings
-      (defalias 'if-let* #'if-let)
-      (defalias 'when-let* #'when-let)
-      (function-put #'if-let* 'lisp-indent-function 2)
-      (function-put #'when-let* 'lisp-indent-function 1))))
 
 ;;;; User-facing variables
 
@@ -144,8 +134,8 @@ nil; otherwise resolve in favor of the new version. TABLE is a
 hash table of `el-patch-let' bindings, which maps symbols to
 their bindings."
   (let ((table (or table (make-hash-table :test 'equal))))
-    (if (listp form)
-        (let* ((directive (nth 0 form))
+    (if (consp form)
+        (let* ((directive (car form))
                (this-directive (pcase directive
                                  ('el-patch-remove 'el-patch-add)
                                  ('el-patch-splice 'el-patch-wrap)
@@ -239,7 +229,17 @@ their bindings."
                (error "Not enough arguments (%d) for `el-patch-literal'"
                       (1- (length form))))
              (cdr form))
-            (_ (list (cl-mapcan resolve form)))))
+            (_
+             (let ((car-forms (funcall resolve (car form)))
+                   (cdr-forms (funcall resolve (cdr form))))
+               (cond
+                ((null car-forms) cdr-forms)
+                ((null cdr-forms) car-forms)
+                (t
+                 (let ((forms (nconc car-forms (butlast cdr-forms))))
+                   (setf (nthcdr (length forms) forms)
+                         (car (last cdr-forms)))
+                   (list forms))))))))
       (or (gethash form table)
           (list form)))))
 
@@ -450,7 +450,7 @@ Return a list of those items. Beware, uses heuristics."
        (list name))
       ((quote define-minor-mode)
        (list (cons 'defun name)
-             (or (when-let* ((rest (member :variable body)))
+             (or (when-let ((rest (member :variable body)))
                    (cadr rest))
                  name)))
       (_ (error "Unexpected definition type %S" type)))))
@@ -722,7 +722,7 @@ two buffers wordwise."
   "Show the patch for an object in Ediff.
 NAME and TYPE are as returned by `el-patch-get'."
   (interactive (el-patch--select-patch))
-  (if-let* ((patch-definition (el-patch-get name type)))
+  (if-let ((patch-definition (el-patch-get name type)))
       (let* ((old-definition (el-patch--resolve-definition
                               patch-definition nil))
              (new-definition (el-patch--resolve-definition
@@ -741,7 +741,7 @@ This is a diff between the expected and actual values of a
 patch's original definition. NAME and TYPE are as returned by
 `el-patch-get'."
   (interactive (el-patch--select-patch))
-  (if-let* ((patch-definition (el-patch-get name type)))
+  (if-let ((patch-definition (el-patch-get name type)))
       (let* ((expected-definition (el-patch--resolve-definition
                                    patch-definition nil))
              (name (cadr expected-definition))
@@ -762,7 +762,7 @@ patch's original definition. NAME and TYPE are as returned by
 This restores the original functionality of the object being
 patched. NAME and TYPE are as returned by `el-patch-get'."
   (interactive (el-patch--select-patch))
-  (if-let* ((patch-definition (el-patch-get name type)))
+  (if-let ((patch-definition (el-patch-get name type)))
       (eval `(el-patch--stealthy-eval ,(el-patch--resolve-definition
                                         patch-definition nil)))
     (error "There is no patch for %S %S" type name)))
