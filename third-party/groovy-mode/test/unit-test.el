@@ -17,7 +17,8 @@
      (setq indent-tabs-mode nil)
      (shut-up
        (indent-region (point-min) (point-max)))
-     (should (equal (buffer-string) ,result))))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    ,result))))
 
 (defmacro should-preserve-indent (source)
   "Assert that SOURCE does not change when indented."
@@ -28,40 +29,110 @@
 (ert-deftest groovy-indent-function ()
   "We should indent according to the number of parens."
   (should-indent-to
-   "def foo() {
+   "
+def foo() {
 bar()
 }"
-   "def foo() {
+   "
+def foo() {
     bar()
+}")
+  ;; Ensure we're not confused by comments.
+  (should-preserve-indent
+   "
+def foo() { // blah
+    def bar = 123
 }"))
 
 (ert-deftest groovy-indent-infix-operator ()
   "We should increase indent after infix operators."
   (should-preserve-indent
-   "def a = b +
+   "
+def a = b +
     1")
   (should-preserve-indent
-   "def a = b+
+   "
+def a = b+
+    1")
+  (should-preserve-indent
+   "
+def a = 'foo'+
+    'bar'")
+  (should-preserve-indent
+   "
+def a = b ||
     1")
   ;; Don't get confused by commented-out lines.
   (should-preserve-indent
-   "// def a = b+
+   "
+// def a = b+
 1")
   ;; Don't get confused by lines that end by / when it isn't division.
   (should-preserve-indent
-   "def x = /foo/
-1"))
+   "
+def x = /foo/
+1")
+  (should-preserve-indent
+   "
+def a = b()+
+    1")
+  (should-preserve-indent
+   "
+def a = b[3]+
+    1")
+  (should-preserve-indent
+   "
+def a = b--+
+    1")
+  (should-preserve-indent
+   "
+def a = b+++
+    1"))
+
+(ert-deftest groovy-indent-after-comma ()
+  "We should increase indent after comma at end-of-line. Unless
+we are in a list, see test `groovy-indent-list'."
+  ;; Indent line after infix comma.
+  (should-preserve-indent
+   "
+func arg1,
+    arg2")
+  (should-preserve-indent
+   "
+func 'arg1',
+    'arg2'")
+  (should-preserve-indent
+   "
+def func(int a, int b) {
+    call_method 'arg1',
+        'arg2'
+    call_method [
+        'arg1',
+        'arg2',
+    ]
+}"))
+
+(ert-deftest groovy-indent-call-with-comma ()
+  "We should not increase indent after a comma in a function call."
+  (should-preserve-indent
+   "
+foobar(
+    baz: 1,
+    biz: 2,
+)"))
 
 (ert-deftest groovy-indent-infix-closure ()
   "We should only indent by one level inside closures."
   (should-preserve-indent
-   "def foo() {
+   "
+def foo() {
     def f = { ->
         \"foo\"
     }
 }")
   (should-preserve-indent
-   "def foo() {
+   "
+def foo() {
     def f = { def bar ->
         \"foo\"
     }
@@ -70,20 +141,23 @@ bar()
 (ert-deftest groovy-indent-repeated-parens ()
   "We should only indent by one level inside closures."
   (should-preserve-indent
-   "def x = [[
+   "
+def x = [[
     1
 ]]"))
 
 (ert-deftest groovy-indent-method-call ()
   "We should increase indent for method calls"
   (should-preserve-indent
-   "foo
+   "
+foo
     .bar()"))
 
 (ert-deftest groovy-indent-try ()
   "We should indent try/finally statements correctly."
   (should-preserve-indent
-   "try {
+   "
+try {
     foo()
 } finally {
     bar()
@@ -93,7 +167,8 @@ bar()
   "We should indent case statements less than their bodies."
   ;; Simple switch statement
   (should-preserve-indent
-   "switch (foo) {
+   "
+switch (foo) {
     case Class1:
         bar()
         break
@@ -102,7 +177,8 @@ bar()
 }")
   ;; Braces within switch statements.
   (should-preserve-indent
-   "switch (foo) {
+   "
+switch (foo) {
     case Class1:
         if (bar) {
             bar()
@@ -113,12 +189,14 @@ bar()
 }")
   ;; Ensure we handle colons correctly.
   (should-preserve-indent
-   "switch (foo) {
+   "
+switch (foo) {
     case Class1 :
         bar()
 }")
   (should-preserve-indent
-   "switch (foo) {
+   "
+switch (foo) {
     case Class1:
         x? y: z
 }")
@@ -128,15 +206,24 @@ bar()
   "Ensure we handle indents inside lists correctly."
   ;; If we have a single empty [ on a line, we should increase by one
   ;; tab stop.
-  (should-preserve-indent "def x = [
+  (should-preserve-indent "
+def x = [
     1,
     2,
 ]")
   ;; But if we have values after the [, we should line up subsequent
   ;; lines.
-  (should-preserve-indent "def x = [1,
+  (should-preserve-indent "
+def x = [1,
          2,
          3,
+]")
+  ;; Infix operator inside list
+  (should-preserve-indent "
+def x = [
+    'a string ' +
+        'another string',
+    'another element'
 ]"))
 
 (defmacro with-highlighted-groovy (src &rest body)
@@ -158,15 +245,33 @@ then run BODY."
      ,@body))
 
 (ert-deftest groovy-highlight-triple-double-quote ()
-  "Ensure we handle single \" correctly inside a triple-double-quoted string."
+  ;; Ensure we handle single " correctly inside a triple-double-quoted string.
   (with-highlighted-groovy "x = \"\"\"foo \" bar \"\"\""
     (search-forward "bar")
-    (should (eq (face-at-point) 'font-lock-string-face))))
+    (should (eq (face-at-point) 'font-lock-string-face)))
+  ;; Ensure we handle triple-single-quotes inside a triple-double-quotes.
+  (with-highlighted-groovy "foo = \"\"\"aaa ''' bbb ''' ccc\"\"\""
+    (search-forward "bbb")
+    (should (eq (face-at-point) 'font-lock-string-face)))
+  ;; Ensure that we handle / at the end of a triple-quoted string.
+  (with-highlighted-groovy "blah \"\"\"baz/\"\"\"\n// foo"
+    (search-forward "f")
+    (should (eq (face-at-point) 'font-lock-comment-face))))
+
+(ert-deftest groovy-highlight-triple-double-quote--containing-slashy ()
+  "Don't get confused by /$ in a triple-quoted string."
+  (with-highlighted-groovy "\"\"\"\n/$\n\"\"\"\nfoo = 1"
+    (search-forward "foo")
+    (should (not (eq (face-at-point) 'font-lock-string-face)))))
 
 (ert-deftest groovy-highlight-triple-single-quote ()
-  "Ensure we handle single \" correctly inside a triple-double-quoted string."
+  ;; Ensure we handle single ' correctly inside a triple-single-quoted string.
   (with-highlighted-groovy "x = '''foo ' bar '''"
     (search-forward "bar")
+    (should (eq (face-at-point) 'font-lock-string-face)))
+  ;; Ensure we handle triple-double-quotes inside a triple-single-quotes.
+  (with-highlighted-groovy "foo = '''xxx \"\"\" yyy \"\"\" zzz'''"
+    (search-forward "yyy")
     (should (eq (face-at-point) 'font-lock-string-face))))
 
 (ert-deftest groovy-highlight-annotation ()
@@ -246,8 +351,12 @@ then run BODY."
 
 (ert-deftest groovy-highlight-slashy-string ()
   "Highlight /foo/ as a string."
-  ;; simple case
+  ;; simple case 1
   (with-highlighted-groovy "x = /foo/"
+    (search-forward "foo")
+    (should (memq 'font-lock-string-face (faces-at-point))))
+  ;; simple case 2
+  (with-highlighted-groovy "x || /foo/"
     (search-forward "foo")
     (should (memq 'font-lock-string-face (faces-at-point))))
   ;; multiline
@@ -264,10 +373,11 @@ then run BODY."
     (search-forward "bar")
     (forward-char -1)
     (should (not (memq 'font-lock-string-face (faces-at-point)))))
-  ;; Don't get confused by $ inside a slashy string.
-  (with-highlighted-groovy "x = /$ foo $/"
+  ;; Don't get confused by tilde at the start of a slashy string.
+  (with-highlighted-groovy "somePattern = ~/+/;
+final int foo = -1;"
     (search-forward "foo")
-    (should (memq 'font-lock-string-face (faces-at-point))))
+    (should (not (memq 'font-lock-string-face (faces-at-point)))))
   ;; Don't get confused by comments.
   (with-highlighted-groovy
       "def bar /* foo */"
@@ -279,6 +389,24 @@ then run BODY."
       "x = /foo\\// + bar"
     (search-forward "bar")
     (forward-char -1)
+    (should (not (memq 'font-lock-string-face (faces-at-point))))))
+
+(ert-deftest groovy-highlight-slashy-string--inner-dollar ()
+  "Don't get confused by slashy-strings that contain $."
+  (with-highlighted-groovy "x = /$ foo $/"
+    (search-forward "foo")
+    (should (memq 'font-lock-string-face (faces-at-point)))))
+
+(ert-deftest groovy-highlight-dollar-slashy-string ()
+  "Highlight $/foo/$ as a string."
+  ;; Ensure that the contents are highlighted as a string.
+  (with-highlighted-groovy "x = $/foo/$"
+    (search-forward "foo")
+    (should (memq 'font-lock-string-face (faces-at-point))))
+  ;; Ensure that later code is not highlighted as a string
+  (with-highlighted-groovy "x = $/foo/$
+bar"
+    (search-forward "b")
     (should (not (memq 'font-lock-string-face (faces-at-point))))))
 
 (ert-deftest groovy-highlight-variable-assignment ()
@@ -364,3 +492,17 @@ then run BODY."
   (with-highlighted-groovy "private List<String> fooBar() {"
     (search-forward "foo")
     (should (memq 'font-lock-function-name-face (faces-at-point)))))
+
+(ert-deftest groovy--remove-comments ()
+  (should
+   (equal
+    (groovy--remove-comments "foo\nbar")
+    "foo\nbar"))
+  (should
+   (equal
+    (groovy--remove-comments "foo // bar")
+    "foo "))
+  (should
+   (equal
+    (groovy--remove-comments "foo /* bar */ baz")
+    "foo  baz")))
