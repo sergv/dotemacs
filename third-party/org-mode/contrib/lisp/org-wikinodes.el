@@ -1,10 +1,10 @@
 ;;; org-wikinodes.el --- Wiki-like CamelCase links to outline nodes
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;; Version: 7.01trans
 ;;
 ;; This file is not part of GNU Emacs.

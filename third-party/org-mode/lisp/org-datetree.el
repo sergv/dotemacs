@@ -1,10 +1,10 @@
 ;;; org-datetree.el --- Create date entries in a tree -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -54,7 +54,7 @@ Added time stamp is active unless value is `inactive'."
   "Find or create an entry for date D.
 If KEEP-RESTRICTION is non-nil, do not widen the buffer.
 When it is nil, the buffer will be widened to make sure an existing date
-tree can be found.  If it is the sympol `subtree-at-point', then the tree
+tree can be found.  If it is the symbol `subtree-at-point', then the tree
 will be built under the headline at point."
   (setq-local org-datetree-base-level 1)
   (save-restriction
@@ -94,7 +94,7 @@ will be built under the headline at point."
 Compared to `org-datetree-find-date-create' this function creates
 entries ordered by week instead of months.
 When it is nil, the buffer will be widened to make sure an existing date
-tree can be found.  If it is the sympol `subtree-at-point', then the tree
+tree can be found.  If it is the symbol `subtree-at-point', then the tree
 will be built under the headline at point."
   (setq-local org-datetree-base-level 1)
   (save-restriction
