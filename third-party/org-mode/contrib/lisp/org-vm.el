@@ -1,10 +1,10 @@
 ;;; org-vm.el --- Support for links to VM messages from within Org-mode
 
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; Support for IMAP folders added
 ;; by Konrad Hinsen <konrad dot hinsen at fastmail dot net>

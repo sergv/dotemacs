@@ -1,10 +1,10 @@
 ;;; org-screenshot.el --- Take and manage screenshots in Org-mode files
 ;;
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Max Mikhanosha <max@openchat.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;; Version: 8.0
 ;;
 ;; Released under the GNU General Public License version 3

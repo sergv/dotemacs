@@ -1,11 +1,11 @@
 ;;; org-gnus.el --- Support for Links to Gnus Groups and Messages -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -31,14 +31,31 @@
 
 ;;; Code:
 
-(require 'org)
+(require 'gnus-sum)
 (require 'gnus-util)
+(require 'nnheader)
+(require 'nnir)
+(require 'org)
 
 
 ;;; Declare external functions and variables
 
+(declare-function gnus-activate-group "gnus-start" (group &optional scan dont-check method dont-sub-check))
+(declare-function gnus-find-method-for-group "gnus" (group &optional info))
+(declare-function gnus-article-show-summary "gnus-art" ())
+(declare-function gnus-group-group-name "gnus-group")
+(declare-function gnus-group-jump-to-group "gnus-group" (group &optional prompt))
+(declare-function gnus-group-read-group "gnus-group" (&optional all no-article group select-articles))
 (declare-function message-fetch-field "message" (header &optional not-all))
+(declare-function message-generate-headers "message" (headers))
+(declare-function message-narrow-to-headers "message")
+(declare-function message-tokenize-header "message" (header &optional separator))
+(declare-function message-unquote-tokens "message" (elems))
 (declare-function nnvirtual-map-article "nnvirtual" (article))
+
+(defvar gnus-newsgroup-name)
+(defvar gnus-summary-buffer)
+(defvar gnus-other-frame-object)
 
 
 ;;; Customization variables
@@ -120,11 +137,20 @@ If `org-store-link' was called with a prefix arg the meaning of
      (let* ((group
 	     (pcase (gnus-find-method-for-group gnus-newsgroup-name)
 	       (`(nnvirtual . ,_)
-		(car (nnvirtual-map-article (gnus-summary-article-number))))
+		(save-excursion
+		  (car (nnvirtual-map-article (gnus-summary-article-number)))))
 	       (`(nnir . ,_)
-		(nnir-article-group (gnus-summary-article-number)))
+		(save-excursion
+		  (nnir-article-group (gnus-summary-article-number))))
 	       (_ gnus-newsgroup-name)))
-	    (header (with-current-buffer gnus-summary-buffer
+	    (header (if (eq major-mode 'gnus-article-mode)
+			;; When in an article, first move to summary
+			;; buffer, with point on the summary of the
+			;; current article before extracting headers.
+			(save-window-excursion
+			  (save-excursion
+			    (gnus-article-show-summary)
+			    (gnus-summary-article-header)))
 		      (gnus-summary-article-header)))
 	    (from (mail-header-from header))
 	    (message-id (org-unbracket-string "<" ">" (mail-header-id header)))

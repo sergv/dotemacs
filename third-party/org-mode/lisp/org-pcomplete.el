@@ -1,11 +1,11 @@
 ;;; org-pcomplete.el --- In-buffer Completion Code -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;         John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -40,11 +40,6 @@
 (declare-function org-tag-alist-to-string "org" (alist &optional skip-key))
 
 ;;;; Customization variables
-
-(defgroup org-complete nil
-  "Outline-based notes management and organizer."
-  :tag "Org"
-  :group 'org)
 
 (defvar org-drawer-regexp)
 (defvar org-property-re)

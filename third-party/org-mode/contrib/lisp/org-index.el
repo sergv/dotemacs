@@ -1,6 +1,6 @@
 ;;; org-index.el --- A personal adaptive index for org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Marc Ihm <org-index@2484.de>
 ;; Version: 5.5.0
@@ -77,7 +77,7 @@
 ;;
 ;;  The latest published version of this file can always be found at:
 ;;
-;;    http://orgmode.org/w/?p=org-mode.git;a=blob_plain;f=contrib/lisp/org-index.el;hb=HEAD
+;;    https://orgmode.org/w/?p=org-mode.git;a=blob_plain;f=contrib/lisp/org-index.el;hb=HEAD
 ;;
 ;;  Development version under:
 ;;
