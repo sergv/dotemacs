@@ -668,8 +668,12 @@ x
       (check-eval "never-export" nil)
       (check-eval "no-export" nil))))
 
-(ert-deftest test-ob/noweb-expansion-1 ()
-  (org-test-with-temp-text "#+begin_src sh :results output :tangle yes
+(ert-deftest test-ob/noweb-expansion ()
+  ;; Standard test.
+  (should
+   (string=
+    "bar"
+    (org-test-with-temp-text "#+begin_src sh :results output :tangle yes
   <<foo>>
 #+end_src
 
@@ -677,10 +681,12 @@ x
 #+begin_src sh
   bar
 #+end_src"
-    (should (string= (org-babel-expand-noweb-references) "bar"))))
-
-(ert-deftest test-ob/noweb-expansion-2 ()
-  (org-test-with-temp-text "#+begin_src sh :results output :tangle yes
+      (org-babel-expand-noweb-references))))
+  ;; Handle :noweb-sep.
+  (should
+   (string=
+    "barbaz"
+    (org-test-with-temp-text "#+begin_src sh :results output :tangle yes
   <<foo>>
 #+end_src
 
@@ -692,7 +698,67 @@ x
 #+begin_src sh :noweb-ref foo :noweb-sep \"\"
   baz
 #+end_src"
-    (should (string= (org-babel-expand-noweb-references) "barbaz"))))
+      (org-babel-expand-noweb-references))))
+  ;; :noweb-ref is extracted from definition, not point of call.
+  (should
+   (string=
+    "(+ 1 1)"
+    (org-test-with-temp-text
+	"
+* Call
+:PROPERTIES:
+:header-args: :noweb-ref bar
+:END:
+
+<point>#+begin_src emacs-lisp :results output :tangle yes
+  <<foo>>
+#+end_src
+
+* Evaluation
+:PROPERTIES:
+:header-args: :noweb-ref foo
+:END:
+
+#+begin_src sh :noweb-sep \"\"
+  (+ 1 1)
+#+end_src"
+      (org-babel-expand-noweb-references))))
+  ;; Handle recursive expansion.
+  (should
+   (equal "baz"
+	  (org-test-with-temp-text "
+#+begin_src emacs-lisp :noweb yes<point>
+  <<foo>>
+#+end_src
+
+#+name: foo
+#+begin_src emacs-lisp :noweb yes
+  <<bar>>
+#+end_src
+
+#+name: bar
+#+begin_src emacs-lisp
+  baz
+#+end_src"
+	    (org-babel-expand-noweb-references))))
+  ;; During recursive expansion, obey to `:noweb' property.
+  (should
+   (equal "<<bar>>"
+	  (org-test-with-temp-text "
+#+begin_src emacs-lisp :noweb yes<point>
+  <<foo>>
+#+end_src
+
+#+name: foo
+#+begin_src emacs-lisp :noweb no
+  <<bar>>
+#+end_src
+
+#+name: bar
+#+begin_src emacs-lisp
+  baz
+#+end_src"
+	    (org-babel-expand-noweb-references)))))
 
 (ert-deftest test-ob/splitting-variable-lists-in-references ()
   (org-test-with-temp-text ""
@@ -888,27 +954,6 @@ x
       (should (string= (concat inline-sb "     .")
 		       (buffer-substring-no-properties
 			(point-at-bol) (point-at-eol)))))))
-
-(defun test-ob-verify-result-and-removed-result (result buffer-text)
-  "Test helper function to test `org-babel-remove-result'.
-A temp buffer is populated with BUFFER-TEXT, the first block is executed,
-and the result of execution is verified against RESULT.
-
-The block is actually executed /twice/ to ensure result
-replacement happens correctly."
-  (org-test-with-temp-text
-      buffer-text
-    (org-babel-next-src-block) (org-babel-execute-maybe) (org-babel-execute-maybe)
-    (should (re-search-forward "\\#\\+results:" nil t))
-    (forward-line)
-    (should (string= result
-		     (buffer-substring-no-properties
-		      (point-at-bol)
-		      (- (point-max) 16))))
-    (org-babel-previous-src-block) (org-babel-remove-result)
-    (should (string= buffer-text
-		     (buffer-substring-no-properties
-		      (point-min) (point-max))))))
 
 (ert-deftest test-ob/org-babel-remove-result--results-default ()
   "Test `org-babel-remove-result' with default :results."
@@ -1114,6 +1159,27 @@ Line 3\"
 
 * next heading"))
 
+(ert-deftest test-ob/org-babel-remove-result--no-blank-line ()
+  "Test `org-babel-remove-result' without blank line between code and results."
+  (should
+   (equal "
+#+begin_src emacs-lisp
+  (+ 1 1)
+#+end_src
+#+results:
+: 2
+* next heading"
+	  (org-test-with-temp-text
+	      "
+<point>#+begin_src emacs-lisp
+  (+ 1 1)
+#+end_src
+#+results:
+: 2
+* next heading"
+	    (org-babel-execute-maybe)
+	    (buffer-string)))))
+
 (ert-deftest test-ob/results-do-not-replace-code-blocks ()
   (org-test-with-temp-text "Block two has a space after the name.
 
@@ -1251,9 +1317,10 @@ Line 3\"
 
 #+RESULTS: test
 : 4
-
+<point>
 Paragraph"
-      (narrow-to-region (point) (save-excursion (forward-line 7) (point)))
+      (narrow-to-region (point-min) (point))
+      (goto-char (point-min))
       (let ((org-babel-results-keyword "RESULTS"))
 	(org-babel-execute-src-block))
       (org-trim (buffer-string)))))

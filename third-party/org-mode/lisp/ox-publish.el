@@ -1,5 +1,5 @@
 ;;; ox-publish.el --- Publish Related Org Mode Files as a Website -*- lexical-binding: t; -*-
-;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
@@ -57,10 +57,10 @@ Every function in this hook will be called with two arguments:
 the name of the original file and the name of the file
 produced.")
 
-(defgroup org-publish nil
+(defgroup org-export-publish nil
   "Options for publishing a set of files."
   :tag "Org Publishing"
-  :group 'org)
+  :group 'org-export)
 
 (defcustom org-publish-project-alist nil
   "Association list to control publishing behavior.
@@ -349,7 +349,6 @@ You can overwrite this default per project in your
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Timestamp-related functions
 
 (defun org-publish-timestamp-filename (filename &optional pub-dir pub-func)
@@ -392,7 +391,6 @@ If there is no timestamp, create one."
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Getting project information out of `org-publish-project-alist'
 
 (defun org-publish-property (property project &optional default)
@@ -407,11 +405,9 @@ definition."
 (defun org-publish--expand-file-name (file project)
   "Return full file name for FILE in PROJECT.
 When FILE is a relative file name, it is expanded according to
-project base directory.  Always return the true name of the file,
-ignoring symlinks."
-  (file-truename
-   (if (file-name-absolute-p file) file
-     (expand-file-name file (org-publish-property :base-directory project)))))
+project base directory."
+  (if (file-name-absolute-p file) file
+    (expand-file-name file (org-publish-property :base-directory project))))
 
 (defun org-publish-expand-projects (projects-alist)
   "Expand projects in PROJECTS-ALIST.
@@ -435,13 +431,35 @@ This splices all the components into the list."
   (let* ((base-dir (file-name-as-directory
 		    (org-publish-property :base-directory project)))
 	 (extension (or (org-publish-property :base-extension project) "org"))
-	 (match (and (not (eq extension 'any))
-		     (concat "^[^\\.].*\\.\\(" extension "\\)$")))
+	 (match (if (eq extension 'any) ""
+		  (format "^[^\\.].*\\.\\(%s\\)$" extension)))
 	 (base-files
-	  (cl-remove-if #'file-directory-p
-			(if (org-publish-property :recursive project)
-			    (directory-files-recursively base-dir match)
-			  (directory-files base-dir t match t)))))
+	  (cond ((not (file-exists-p base-dir)) nil)
+		((not (org-publish-property :recursive project))
+		 (cl-remove-if #'file-directory-p
+			       (directory-files base-dir t match t)))
+		(t
+		 ;; Find all files recursively.  Unlike to
+		 ;; `directory-files-recursively', we follow symlinks
+		 ;; to other directories.
+		 (letrec ((files nil)
+			  (walk-tree
+			   (lambda (dir depth)
+			     (when (> depth 100)
+			       (error "Apparent cycle of symbolic links for %S"
+				      base-dir))
+			     (dolist (f (file-name-all-completions "" dir))
+			       (pcase f
+				 ((or "./" "../") nil)
+				 ((pred directory-name-p)
+				  (funcall walk-tree
+					   (expand-file-name f dir)
+					   (1+ depth)))
+				 ((pred (string-match match))
+				  (push (expand-file-name f dir) files))
+				 (_ nil)))
+			     files)))
+		   (funcall walk-tree base-dir 0))))))
     (org-uniquify
      (append
       ;; Files from BASE-DIR.  Apply exclusion filter before adding
@@ -470,13 +488,13 @@ This splices all the components into the list."
   "Return a project that FILENAME belongs to.
 When UP is non-nil, return a meta-project (i.e., with a :components part)
 publishing FILENAME."
-  (let* ((filename (file-truename filename))
+  (let* ((filename (expand-file-name filename))
 	 (project
 	  (cl-some
 	   (lambda (p)
 	     ;; Ignore meta-projects.
 	     (unless (org-publish-property :components p)
-	       (let ((base (file-truename
+	       (let ((base (expand-file-name
 			    (org-publish-property :base-directory p))))
 		 (cond
 		  ;; Check if FILENAME is explicitly included in one
@@ -501,9 +519,7 @@ publishing FILENAME."
 		  ;; Check if FILENAME belong to project's base
 		  ;; directory, or some of its sub-directories
 		  ;; if :recursive in non-nil.
-		  ((org-publish-property :recursive p)
-		   (and (file-in-directory-p filename base) p))
-		  ((file-equal-p base (file-name-directory filename)) p)
+		  ((member filename (org-publish-get-base-files p)) p)
 		  (t nil)))))
 	   org-publish-project-alist)))
     (cond
@@ -525,7 +541,6 @@ publishing FILENAME."
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Tools for publishing functions in back-ends
 
 (defun org-publish-org-to (backend filename extension plist &optional pub-dir)
@@ -899,7 +914,6 @@ representation for the files to include, as returned by
 	  (org-list-to-org list)))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive publishing functions
 
 ;;;###autoload
@@ -1154,7 +1168,8 @@ references with `org-export-get-reference'."
     (let* ((filename (file-truename file))
 	   (crossrefs
 	    (org-publish-cache-get-file-property filename :crossrefs nil t))
-	   (cells (org-export-string-to-search-cell search)))
+	   (cells
+	    (org-export-string-to-search-cell (org-link-unescape search))))
       (or
        ;; Look for reference associated to search cells triggered by
        ;; LINK.  It can match when targeted file has been published
@@ -1168,6 +1183,17 @@ references with `org-export-get-reference'."
 	 (dolist (cell cells) (push (cons cell new) crossrefs))
 	 (org-publish-cache-set-file-property filename :crossrefs crossrefs)
 	 (org-export-format-reference new))))))
+
+(defun org-publish-file-relative-name (filename info)
+  "Convert FILENAME to be relative to current project's base directory.
+INFO is the plist containing the current export state.  The
+function does not change relative file names."
+  (let ((base (plist-get info :base-directory)))
+    (if (and base
+	     (file-name-absolute-p filename)
+	     (file-in-directory-p filename base))
+	(file-relative-name filename base)
+      filename)))
 
 
 
@@ -1252,25 +1278,21 @@ the file including them will be republished as well."
 	    (with-current-buffer buf
 	      (goto-char (point-min))
 	      (while (re-search-forward "^[ \t]*#\\+INCLUDE:" nil t)
-		(let* ((element (org-element-at-point))
-		       (included-file
-			(and (eq (org-element-type element) 'keyword)
-			     (let ((value (org-element-property :value element)))
-			       (and value
-				    (string-match
-				     "\\`\\(\".+?\"\\|\\S-+\\)\\(?:\\s-+\\|$\\)"
-				     value)
-				    (let ((m (match-string 1 value)))
-				      (org-unbracket-string
-				       "\"" "\""
-				       ;; Ignore search suffix.
-				       (if (string-match "::.*?\"?\\'" m)
-					   (substring m 0 (match-beginning 0))
-					 m))))))))
-		  (when included-file
-		    (push (org-publish-cache-ctime-of-src
-			   (expand-file-name included-file))
-			  included-files-ctime)))))
+		(let ((element (org-element-at-point)))
+		  (when (eq 'keyword (org-element-type element))
+		    (let* ((value (org-element-property :value element))
+			   (filename
+			    (and (string-match "\\`\\(\".+?\"\\|\\S-+\\)" value)
+				 (let ((m (org-unbracket-string
+					   "\"" "\"" (match-string 1 value))))
+				   ;; Ignore search suffix.
+				   (if (string-match "::.*?\\'" m)
+				       (substring m 0 (match-beginning 0))
+				     m)))))
+		      (when filename
+			(push (org-publish-cache-ctime-of-src
+			       (expand-file-name filename))
+			      included-files-ctime)))))))
 	  (unless visiting (kill-buffer buf)))))
     (or (null pstamp)
 	(let ((ctime (org-publish-cache-ctime-of-src filename)))
