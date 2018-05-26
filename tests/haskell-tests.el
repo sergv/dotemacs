@@ -479,6 +479,42 @@
     "x = \[| foobar _|_\]"
     "x = \[| foobar |_|_\]"))
 
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-3 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[foo_|_"
+    "x = \[foo| _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-4 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[fooBar_|_"
+    "x = \[fooBar| _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-5 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[fooBar'_|_"
+    "x = \[fooBar'| _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-6 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[_fooBar_|_"
+    "x = \[_fooBar| _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-7 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[Quux.fooBar_|_"
+    "x = \[Quux.fooBar| _|_"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--oxford-brackets-8 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+    "x = \[a+b_|_"
+    "x = \[a+b | _|_"))
+
 (ert-deftest haskell-tests/haskell-smart-operators--beginning-of-buffer ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?*)
