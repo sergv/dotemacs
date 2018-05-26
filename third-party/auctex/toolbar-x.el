@@ -106,7 +106,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl-lib))
 
 ;; Note that this just gives a useful default.  Icons are expected to
 ;; be in subdirectory "images" or "toolbar" relative to the load-path.
@@ -179,7 +180,7 @@ different.  OPTION-LIST equal to nil is a good option list."
     (dotimes (i n)
       (when (> i 0)
 	(setq temp-opt-list (cddr temp-opt-list)))
-      (pushnew (car temp-opt-list) list-diff :test #'equal)
+      (cl-pushnew (car temp-opt-list) list-diff :test #'equal)
       (setq elt-in-valid (and elt-in-valid
 			      (memq (car temp-opt-list)
 				    valid-options))))
@@ -1491,9 +1492,9 @@ this button is ignored."
 
 
 (defconst toolbarx-default-toolbar-meaning-alist
-  `((separator :image "sep" :command t :enable nil :help "")
+  '((separator :image "sep" :command t :enable nil :help "")
 
-    ('new-file
+    (new-file
      :image ["new" toolbar-file-icon]
      :command [find-file toolbar-open]
      :enable [(not (window-minibuffer-p
@@ -1501,7 +1502,7 @@ this button is ignored."
 	      t]
      :help ["Specify a new file's name, to edit the file" "Visit new file"])
 
-    '(open-file :image ["open" toolbar-file-icon]
+    (open-file :image ["open" toolbar-file-icon]
 		:command [menu-find-file-existing toolbar-open]
 		:enable [(not (window-minibuffer-p
 			       (frame-selected-window menu-updating-frame)))
