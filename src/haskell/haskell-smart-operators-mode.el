@@ -77,6 +77,15 @@
     (beginning-of-line)
     (looking-at-p "^[ \t]+|")))
 
+(defparameter haskell-quasiquoter-name-syntax-table
+  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?. "w" tbl)
+    (modify-syntax-entry ?' "w" tbl)
+    (modify-syntax-entry ?_ "w" tbl)
+    tbl)
+  "Special syntax table for haskell that allows to recognize symbols that contain
+both unicode and ascii characters.")
+
 (defun haskell-smart-operators--insert-char-surrounding-with-spaces (char)
   "Insert CHARacter while trying to surround it with spaces and
 stick it to the previous operator on line."
@@ -121,7 +130,7 @@ stick it to the previous operator on line."
                           (char-equal after ?\\)
                           (and (not (char-equal after ?\s))
                                (not (char-equal after ?\)))
-                               ;; Do not split |] pair when we're inserting the |.
+                               ;; Do not split '|]' token when we're inserting the '|'.
                                (not (and (char-equal char ?|)
                                          (char-equal after ?\])))
                                (if (char-equal char ?@)
@@ -166,9 +175,18 @@ stick it to the previous operator on line."
                     (not (char-equal char ?@))
                     (not (char-equal before ?\s))
                     (not (char-equal before ?\())
-                    ;; Do not split [| pair when we're inserting the .
                     (not (and (char-equal char ?|)
-                              (char-equal before ?\[)))
+                              (or
+                               ;; Do not split '[|' token when we're inserting the '['.
+                               (char-equal before ?\[)
+                               ;; Do not split '[foo|' quasiquoter
+                               ;; when we're inserting the '['.
+                               (save-excursion
+                                 (with-syntax-table haskell-quasiquoter-name-syntax-table
+                                   (skip-syntax-backward "w" (line-beginning-position))
+                                   (let ((before-far (char-before)))
+                                     (and before-far
+                                          (char-equal before-far ?\[))))))))
                     (not (gethash before haskell-smart-operators--operator-chars)))))
              (insert-char ?\s)
            ;; Delete spaces backwards if there's operator or open paren char
