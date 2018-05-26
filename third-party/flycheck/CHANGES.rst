@@ -3,7 +3,8 @@
 
 - **Breaking changes**
 
-  - Remove javascript-jscs checker
+  - Remove ``javascript-jscs`` checker
+  - Remove ``elixir-dogma`` checker [GH-1450]
   - ``rust-cargo`` now requires Rust 1.17 or newer [GH-1289]
   - Rename ``flycheck-cargo-rustc-args`` to ``flycheck-cargo-check-args``
     [GH-1289]
@@ -30,6 +31,9 @@
     ``haskell-stack-ghc`` checker. [GH-1316]
   - Add ``flycheck-perl-module-list`` to use specified modules when
     syntax checking code with the ``perl`` checker.
+  - Add ``flycheck-sh-bash-args`` to pass arguments to ``sh-bash`` [GH-1439].
+  - Add ``flychjeck-eslint-args`` to pass arguments to ``javascript-eslint``
+    [GH-1360]
 
 - Improvements
 
@@ -46,6 +50,8 @@
   - ``rust-cargo`` now uses ``cargo check`` and ``cargo test`` [GH-1289]
   - ``python-pylint`` and ``python-flake8`` are now invoked with ``python -c``,
     to make it easier to change between Python 2 and Python 3 [GH-1113]
+  - ``haskell-stack-ghc`` will not try to install GHC thereby freezing Emacs
+    [GH-1443]
 
 31 (Oct 07, 2017)
 =================
