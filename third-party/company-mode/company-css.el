@@ -1,6 +1,6 @@
 ;;; company-css.el --- company-mode completion backend for css-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009, 2011, 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011, 2014, 2018  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -20,6 +20,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+;;
+;; In Emacs >= 26, company-capf is used instead.
 
 ;;; Code:
 
@@ -422,7 +424,8 @@ Returns \"\" if no property found, but feasible at this position."
                           (string= (web-mode-language-at-pos) "css")))
                  (or (company-grab company-css-tag-regexp 1)
                      (company-grab company-css-pseudo-regexp 1)
-                     (company-grab company-css-property-value-regexp 2)
+                     (company-grab company-css-property-value-regexp 2
+                                   (line-beginning-position))
                      (company-css-grab-property))))
     (candidates
      (cond
@@ -430,7 +433,8 @@ Returns \"\" if no property found, but feasible at this position."
        (all-completions arg company-css-html-tags))
       ((company-grab company-css-pseudo-regexp 1)
        (all-completions arg company-css-pseudo-classes))
-      ((company-grab company-css-property-value-regexp 2)
+      ((company-grab company-css-property-value-regexp 2
+                     (line-beginning-position))
        (all-completions arg
                         (company-css-property-values
                          (company-grab company-css-property-value-regexp 1))))

@@ -1,6 +1,6 @@
 ;;; company-capf.el --- company-mode completion-at-point-functions backend -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -24,7 +24,8 @@
 ;;
 ;; The CAPF back-end provides a bridge to the standard
 ;; completion-at-point-functions facility, and thus can support any major mode
-;; that defines a proper completion function, including emacs-lisp-mode.
+;; that defines a proper completion function, including emacs-lisp-mode,
+;; css-mode and nxml-mode.
 
 ;;; Code:
 
@@ -154,16 +155,24 @@
      (plist-get (nthcdr 4 (company--capf-data)) :company-require-match))
     (`init nil)      ;Don't bother: plenty of other ways to initialize the code.
     (`post-completion
-     (let* ((res (company--capf-data))
-            (exit-function (plist-get (nthcdr 4 res) :exit-function))
-            (table (nth 3 res))
-            (pred (plist-get (nthcdr 4 res) :predicate)))
-       (if exit-function
-           ;; Follow the example of `completion--done'.
-           (funcall exit-function arg
-                    (if (eq (try-completion arg table pred) t)
-                        'finished 'sole)))))
+     (company--capf-post-completion arg))
     ))
+
+(defun company--capf-post-completion (arg)
+  (let* ((res (company--capf-data))
+         (exit-function (plist-get (nthcdr 4 res) :exit-function))
+         (table (nth 3 res))
+         (pred (plist-get (nthcdr 4 res) :predicate)))
+    (if exit-function
+        ;; Follow the example of `completion--done'.
+        (funcall exit-function arg
+                 ;; FIXME: Should probably use an additional heuristic:
+                 ;; completion-at-point doesn't know when the user picked a
+                 ;; particular candidate explicitly (it only checks whether
+                 ;; futher completions exist). Whereas company user can press
+                 ;; RET (or use implicit completion with company-tng).
+                 (if (eq (try-completion arg table pred) t)
+                     'finished 'sole)))))
 
 (provide 'company-capf)
 
