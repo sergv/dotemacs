@@ -43,6 +43,8 @@
     -   Add custom variables `markdown-xhtml-body-preamble` and
         `markdown-xhtml-body-epilogue` for wrapping additional XHTML
         tags around the output.  ([GH-280][], [GH-281][])
+    -   Add `markdown-unused-refs` command to list and clean up unused
+        references (available via `C-c C-c u`).  ([GH-322][])
 
 *   Improvements:
 
@@ -101,6 +103,8 @@
     -   Fix precedence of inline code over inline links.
     -   Improve error reporting for `markdown` and `markdown-open`.
         ([GH-291][])
+    -   Fix M-RET binding for terminals. ([GH-317][])
+    -   Do not fail displaying inline images on empty links. ([GH-320][])
 
   [gh-171]: https://github.com/jrblevin/markdown-mode/issues/171
   [gh-216]: https://github.com/jrblevin/markdown-mode/issues/216
@@ -141,6 +145,9 @@
   [gh-291]: https://github.com/jrblevin/markdown-mode/issues/291
   [gh-296]: https://github.com/jrblevin/markdown-mode/issues/296
   [gh-303]: https://github.com/jrblevin/markdown-mode/pull/303
+  [gh-317]: https://github.com/jrblevin/markdown-mode/pull/317
+  [gh-320]: https://github.com/jrblevin/markdown-mode/pull/320
+  [gh-322]: https://github.com/jrblevin/markdown-mode/pull/322
 
 # Markdown Mode 2.3
 
