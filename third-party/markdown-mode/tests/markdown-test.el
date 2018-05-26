@@ -1079,6 +1079,16 @@ Don't adjust spacing if tabs are used as whitespace."
     (call-interactively 'markdown-insert-list-item)
     (should (string-equal (buffer-string)  "9.\tfoo\n10.\t"))))
 
+(ert-deftest test-markdown-insertion/list-item-bound-keys ()
+  "Test that `markdown-insert-list-item' is bound to M-RET and equivalents."
+  (markdown-test-string "- foo"
+    (goto-char (point-max))
+    (execute-kbd-macro (read-kbd-macro "M-RET bar C-M-m baz"))
+    (should (string-equal (buffer-string) "- foo\n- bar\n- baz"))
+    (when (display-graphic-p)
+      (execute-kbd-macro (read-kbd-macro "M-<return> quux"))
+      (should (string-equal (buffer-string) "- foo\n- bar\n- baz\n- quux")))))
+
 (ert-deftest test-markdown-insertion/nested-list-marker ()
   "Test marker detection for `markdown-insert-list-item'."
   (markdown-test-string
@@ -3605,7 +3615,15 @@ only partially propertized."
   "Test `markdown-get-defined-references'."
   (markdown-test-file "syntax.text"
    (should (equal (markdown-get-defined-references)
-                  '("src" "1" "2" "3" "4" "5" "6" "bq" "l"))))
+                  '(("src" . 37)
+                    ("1" . 55)
+                    ("2" . 56)
+                    ("3" . 57)
+                    ("4" . 58)
+                    ("5" . 59)
+                    ("6" . 60)
+                    ("bq" . 205)
+                    ("l" . 206)))))
   (markdown-test-file "outline.text"
    (should (equal (markdown-get-defined-references) nil)))
   (markdown-test-file "wiki-links.text"
@@ -3825,6 +3843,19 @@ puts 'hello, world'
 
 ;;; Reference Checking:
 
+(ert-deftest test-markdown-references/get-unused-refs ()
+  "Test `markdown-get-unused-refs'."
+  (markdown-test-file "refs.text"
+   (should (equal (markdown-get-unused-refs)
+                  '(("logorrhea" . 8)
+                    ("orphan" . 11))))))
+
+(ert-deftest test-markdown-references/get-undefined-refs ()
+  "Test `markdown-get-undefined-refs'."
+  (markdown-test-file "refs.text"
+   (should (equal (markdown-get-undefined-refs)
+                  '(("problems" ("problems" . 3) ("controversy" . 5)))))))
+
 (ert-deftest test-markdown-references/goto-line-button ()
   "Create and test a goto line button."
   (markdown-test-string "line 1\nline 2\n"
@@ -3856,6 +3887,25 @@ puts 'hello, world'
    (with-current-buffer (get-buffer check)
      (should (equal (local-key-binding (kbd "TAB")) 'forward-button))
      (should (equal (local-key-binding (kbd "<backtab>")) 'backward-button))))))
+
+(ert-deftest test-markdown-references/undefined-refs-killing ()
+  "Test that buttons in unused references buffer delete lines when pushed."
+  (markdown-test-file "refs.text"
+   (let* ((target (buffer-name))
+          (check (markdown-replace-regexp-in-string
+                  "%buffer%" target
+                  markdown-unused-references-buffer))
+          (original-unused-refs (markdown-get-unused-refs)))
+   (markdown-unused-refs)
+   ;; Push X
+   (with-current-buffer (get-buffer check)
+     (forward-button 1)
+     (call-interactively 'push-button))
+   ;; The first orphan should now be gone with the rest of orphans
+   ;; moved up by one line
+   (should (equal (markdown-get-unused-refs)
+                  (mapcar (lambda (o) (cons (car o) (1- (cdr o))))
+                          (cdr original-unused-refs)))))))
 
 ;;; Lists:
 
