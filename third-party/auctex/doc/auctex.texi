@@ -12,7 +12,7 @@ This manual is for @AUCTeX{}
 (version @value{VERSION} from @value{UPDATED}),
 a sophisticated TeX environment for Emacs.
 
-Copyright @copyright{} 1992-1995, 2001, 2002, 2004-2017
+Copyright @copyright{} 1992-1995, 2001, 2002, 2004-2018
 Free Software Foundation, Inc.
 
 @quotation
@@ -3237,6 +3237,7 @@ be the default command to convert the @acronym{PS} file to
 @code{"Dvipdfmx"}: the @acronym{DVI} file is converted to @acronym{PDF}
 with @command{dvipdfmx}.
 @end itemize
+(case is significant; note the uppercase ``D'' in both strings)
 When the @acronym{PDF} file is finally ready, the next suggested command
 will be to open the viewer.
 
@@ -3831,6 +3832,8 @@ will be used regardless of the value of this variable.
 @cindex Running @code{chktex}
 @cindex Style
 @cindex Problems
+@cindex Flymake
+@cindex Running Flymake
 
 Running @TeX{} or @LaTeX{} will only find regular errors in the
 document, not examples of bad style.  Furthermore, description of the
@@ -3844,13 +3847,24 @@ escape the space after an abbreviation or using @samp{...} instead of
 @kbd{C-x `} (@code{next-error}, @pxref{Compilation,,,emacs,The Emacs
 Editor}), which will move point to the location of the next error.
 
-Each of the two utilities will find some errors the other doesn't, but
-@code{chktex} is more configurable, allowing you to create your own
-errors.  You may need to install the programs before using them.  You
-can get @code{lacheck} from
-@file{<URL:ftp://ftp.ctan.org/tex-archive/support/lacheck/>} and
+Alternatively, you may want in-buffer notation.  @AUCTeX{} provides
+support for this using the Flymake package in Emacs 26 or newer
+(@xref{Using Flymake,,,Flymake,GNU Flymake} for details).  To enable,
+call @kbd{M-x flymake-mode RET} in the buffer or enable it in all
+buffers by adding this to your init file:
+@lisp
+(add-hook 'LaTeX-mode-hook #'flymake-mode)
+@end lisp
+Note that @AUCTeX{} currently only provides support for using
+@code{chktex} as the flymake backend.
+
+Each of the two utilities @code{lacheck} and @code{chktex} will find
+some errors the other doesn't, but @code{chktex} is more configurable,
+allowing you to create your own errors.  You may need to install the
+programs before using them.  You can get @code{lacheck} from
+@file{<URL:https://www.ctan.org/pkg/lacheck>} and
 @code{chktex} from
-@file{<URL:ftp://ftp.ctan.org/tex-archive/support/chktex/>}.
+@file{<URL:https://www.ctan.org/pkg/chktex>}.
 
 @node Control
 @section Controlling the output
@@ -4701,15 +4715,12 @@ If non-nil, used for decoding output from Japanese @TeX{} process.
 When @code{nil}, @AUCTeX{} tries to choose suitable coding system.
 @end defopt
 
-The former customize options @code{japanese-TeX-command-default} and
-@code{japanese-LaTeX-command-default} are removed from @AUCTeX{}.  Use
+The former customize options @code{japanese-TeX-command-default},
+@code{japanese-LaTeX-command-default} and
+@code{japanese-TeX-command-list} are removed from @AUCTeX{}.  Use
 @code{japanese-TeX-engine-default} instead.  If you need to customize
 the executable file name such as @samp{"latex"}, the options for them,
 or both, customize @code{TeX-engine-alist}.
-
-Also, the option @code{japanese-TeX-command-list} is considered as
-semi-obsolete.  It still functions as before, but in theory, it is not
-required anymore in normal use.
 
 The following two additional font commands are available in
 @LaTeX{} mode buffer.
@@ -5202,7 +5213,6 @@ defined labels.
 Prompt for a @LaTeX{} length completing with known lengths.  Add length
 to list of defined lengths.
 
-
 @item TeX-arg-define-macro
 Prompt for a @TeX{} macro with completion.  Add macro to list of defined
 macros.
@@ -5262,6 +5272,11 @@ Prompt for a @LaTeX{} pagestyle with completion.
 
 @item TeX-arg-verb
 Prompt for delimiter and text.
+
+@item TeX-arg-verb-delim-or-brace
+Prompt for delimiter and text.  This function is similar to
+@code{TeX-arg-verb}, but is intended for macros which take their
+argument enclosed in delimiters or in braces.
 
 @item TeX-arg-pair
 Insert a pair of numbers, use arguments for prompt. The numbers are
