@@ -204,7 +204,7 @@ node `(haskell-mode)compilation' for more details."
             (let* ((preset
                     (intern
                      (completing-read "build preset: "
-                                      haskell-compile-cabal-build-command-presets
+                                      (-map #'car haskell-compile-cabal-build-command-presets)
                                       nil
                                       t
                                       nil
