@@ -9,6 +9,8 @@
 (load-library "set-up-environment")
 (load-library "base-emacs-fixes")
 
+(load-library "foreign-setup")
+
 (load-library "cycle-on-lines")
 (load-library "common")
 (load-library "persistent-store")

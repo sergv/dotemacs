@@ -85,6 +85,17 @@ Valid values are:
     ((or `find `cygwin-find) "find")
     (`busybox "busybox")))
 
+(defvar find-rec-backend
+  (cond
+    ((fboundp #'haskell-native-find-rec)
+     'native)
+    (find-files/find-program-type
+     'executable)
+    (t
+     'elisp))
+  "Control implementation of `find-rec*'. Valid values: 'native,
+  'executable and 'elisp.")
+
 ;;;###autoload
 (defun* find-rec* (&key
                    root
@@ -101,120 +112,189 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
   (declare (pure nil) (side-effect-free nil))
   (when (null globs-to-find)
     (error "No globs to search for under %s" root))
-  (if find-files/find-program-type
-      (let* ((ignored-dirs-globs
-              (nconc (--map (concat "*/" it)
-                            ignored-directories)
-                     (--map (concat "*/" it "*")
-                            ignored-directory-prefixes)
-                     (--map (strip-trailing-slash it)
-                            ignored-absolute-dirs)))
-             (ignored-dirs
-              (-map (lambda (dir-glob)
-                      (list "-path" dir-glob))
-                    ignored-dirs-globs))
-             (ignored-files
-              (append
-               (-map (lambda (glob)
-                       (list (fold-platform-os-type "-name" "-iname") glob))
-                     ignored-extensions-globs)
-               (pcase find-files/find-program-type
-                 ((or `find `cygwin-find `busybox)
-                  (--map (list (fold-platform-os-type "-path" "-ipath") it)
-                         ignored-files-globs))
-                 (_
-                  (error "find-files/find-program-type has invalid value: %s"
-                         find-files/find-program-type)))))
-             (to-find (-map (lambda (glob) (list "-name" glob))
-                            globs-to-find))
-             (find-cmd (or find-files/find-program-executable
-                           (error "find-files/find-program-type has invalid value: %s"
-                                  find-files/find-program-type)))
-             (cmd
-              (-flatten
-               (list (when (eq 'busybox find-files/find-program-type)
-                       "find")
-                     "-L"
-                     (when (memq find-files/find-program-type '(find cygwin-find))
-                       "-O3")
-                     root
-                     (when ignored-dirs
-                       (list
-                        "-type" "d"
-                        "("
-                        (-interpose "-o" ignored-dirs)
-                        ")"
-                        "-prune"
-                        "-o"))
-                     (when ignored-files
-                       (list
-                        "-type" "f"
-                        "("
-                        (-interpose "-o" ignored-files)
-                        ")"
-                        "-prune"
-                        "-o"))
-                     "-type" "f"
-                     "("
-                     (-interpose "-o" to-find)
-                     ")"
-                     "-print")))
-             (w32-quote-process-args
-              (if (boundp 'w32-quote-process-args)
-                  (pcase find-files/find-program-type
-                    (`cygwin-find ?\\)
-                    (_ w32-quote-process-args))
-                nil)))
-        (with-temp-buffer
-          (with-disabled-undo
-           (with-inhibited-modification-hooks
-            (apply #'call-process
-                   find-cmd
-                   nil
-                   t
-                   nil
-                   cmd)
-            (split-into-lines
-             (buffer-substring-no-properties (point-min)
-                                             (point-max)))))))
-    (let* ((re-to-find (globs-to-regexp globs-to-find))
-           (ignored-files-re (globs-to-regexp ignored-extensions-globs))
-           (ignored-files-absolute-re
-            (globs-to-regexp ignored-files-globs))
-           (ignored-files-all-re
-            (mk-regexp-from-alts
-             (remq nil
-                   (list ignored-files-re
-                         ignored-files-absolute-re))))
-           (ignored-dirs-re
-            (globs-to-regexp
-             (append ignored-directories
-                     (--map (concat it "*") ignored-directory-prefixes))))
-           (ignored-absolute-dirs-re
-            (mk-regexp-from-alts ignored-absolute-dirs)))
-      (find-rec root
-                :filep
-                (if ignored-files-all-re
-                    (lambda (path)
-                      (and (let ((case-fold-search t))
-                             (string-match-p re-to-find path))
-                           (let ((case-fold-search nil))
-                             (not (string-match-p ignored-files-all-re path)))))
+  (funcall (pcase find-rec-backend
+             (`native
+              #'find-rec--haskell-native-impl)
+             (`executable
+              #'find-rec--find-executable-impl)
+             (`elisp
+              #'find-rec--elisp-impl)
+             (invalid
+              (error "Invalid find-rec-type: %s" invalid)))
+           root
+           globs-to-find
+           ignored-extensions-globs
+           ignored-files-globs
+           ignored-absolute-dirs
+           ignored-directories
+           ignored-directory-prefixes))
+
+(defun find-rec--haskell-native-impl (root
+                                      globs-to-find
+                                      ignored-extensions-globs
+                                      ignored-files-globs
+                                      ignored-absolute-dirs
+                                      ignored-directories
+                                      ignored-directory-prefixes)
+  "A version of `find-rec' that uses system's find executable to do the search."
+  (declare (pure nil) (side-effect-free nil))
+  (let ((ignored-dirs
+         (nconc (--map (concat "*/" it)
+                       ignored-directories)
+                (--map (concat "*/" it "*")
+                       ignored-directory-prefixes)
+                (--map (strip-trailing-slash it)
+                       ignored-absolute-dirs)))
+        (ignored-files
+         (append
+          ignored-extensions-globs
+          ignored-files-globs)))
+    (cl-assert (featurep 'haskell-native-emacs-extensions))
+    (cl-assert (fboundp #'haskell-native-find-rec))
+    (haskell-native-find-rec
+     root
+     (coerce globs-to-find 'vector)
+     (coerce ignored-files 'vector)
+     (coerce ignored-dirs  'vector))))
+
+(defun find-rec--find-executable-impl (root
+                                       globs-to-find
+                                       ignored-extensions-globs
+                                       ignored-files-globs
+                                       ignored-absolute-dirs
+                                       ignored-directories
+                                       ignored-directory-prefixes)
+  "A version of `find-rec' that uses system's find executable to do the search."
+  (declare (pure nil) (side-effect-free nil))
+  (when (null globs-to-find)
+    (error "No globs to search for under %s" root))
+  (let* ((ignored-dirs-globs
+          (nconc (--map (concat "*/" it)
+                        ignored-directories)
+                 (--map (concat "*/" it "*")
+                        ignored-directory-prefixes)
+                 (--map (strip-trailing-slash it)
+                        ignored-absolute-dirs)))
+         (ignored-dirs
+          (-map (lambda (dir-glob)
+                  (list "-path" dir-glob))
+                ignored-dirs-globs))
+         (ignored-files
+          (append
+           (-map (lambda (glob)
+                   (list (fold-platform-os-type "-name" "-iname") glob))
+                 ignored-extensions-globs)
+           (pcase find-files/find-program-type
+             ((or `find `cygwin-find `busybox)
+              (--map (list (fold-platform-os-type "-path" "-ipath") it)
+                     ignored-files-globs))
+             (_
+              (error "find-files/find-program-type has invalid value: %s"
+                     find-files/find-program-type)))))
+         (to-find (-map (lambda (glob) (list "-name" glob))
+                        globs-to-find))
+         (find-cmd (or find-files/find-program-executable
+                       (error "find-files/find-program-type has invalid value: %s"
+                              find-files/find-program-type)))
+         (cmd
+          (-flatten
+           (list (when (eq 'busybox find-files/find-program-type)
+                   "find")
+                 "-L"
+                 (when (memq find-files/find-program-type '(find cygwin-find))
+                   "-O3")
+                 root
+                 (when ignored-dirs
+                   (list
+                    "-type" "d"
+                    "("
+                    (-interpose "-o" ignored-dirs)
+                    ")"
+                    "-prune"
+                    "-o"))
+                 (when ignored-files
+                   (list
+                    "-type" "f"
+                    "("
+                    (-interpose "-o" ignored-files)
+                    ")"
+                    "-prune"
+                    "-o"))
+                 "-type" "f"
+                 "("
+                 (-interpose "-o" to-find)
+                 ")"
+                 "-print")))
+         (w32-quote-process-args
+          (if (boundp 'w32-quote-process-args)
+              (pcase find-files/find-program-type
+                (`cygwin-find ?\\)
+                (_ w32-quote-process-args))
+            nil)))
+    (with-temp-buffer
+      (with-disabled-undo
+       (with-inhibited-modification-hooks
+        (apply #'call-process
+               find-cmd
+               nil
+               t
+               nil
+               cmd)
+        (split-into-lines
+         (buffer-substring-no-properties (point-min)
+                                         (point-max))))))))
+
+(defun find-rec--elisp-impl (root
+                             globs-to-find
+                             ignored-extensions-globs
+                             ignored-files-globs
+                             ignored-absolute-dirs
+                             ignored-directories
+                             ignored-directory-prefixes)
+  "An implementation of `find-rec' that does everything via elisp. Thus, it
+does not depend on external executables nor native extensions and is used
+as a fallback if those are not available."
+  (declare (pure nil) (side-effect-free nil))
+  (when (null globs-to-find)
+    (error "No globs to search for under %s" root))
+  (let* ((re-to-find (globs-to-regexp globs-to-find))
+         (ignored-files-re (globs-to-regexp ignored-extensions-globs))
+         (ignored-files-absolute-re
+          (globs-to-regexp ignored-files-globs))
+         (ignored-files-all-re
+          (mk-regexp-from-alts
+           (remq nil
+                 (list ignored-files-re
+                       ignored-files-absolute-re))))
+         (ignored-dirs-re
+          (globs-to-regexp
+           (append ignored-directories
+                   (--map (concat it "*") ignored-directory-prefixes))))
+         (ignored-absolute-dirs-re
+          (mk-regexp-from-alts ignored-absolute-dirs)))
+    (find-rec root
+              :filep
+              (if ignored-files-all-re
                   (lambda (path)
-                    (let ((case-fold-search t))
-                      (string-match-p re-to-find path))))
-                :do-not-visitp
-                (if ignored-absolute-dirs-re
-                    (lambda (path)
-                      (let ((case-fold-search nil))
-                        (or (string-match-p ignored-dirs-re
-                                            (file-name-nondirectory path))
-                            (string-match-p ignored-absolute-dirs-re
-                                            path))))
+                    (and (let ((case-fold-search t))
+                           (string-match-p re-to-find path))
+                         (let ((case-fold-search nil))
+                           (not (string-match-p ignored-files-all-re path)))))
+                (lambda (path)
+                  (let ((case-fold-search t))
+                    (string-match-p re-to-find path))))
+              :do-not-visitp
+              (if ignored-absolute-dirs-re
                   (lambda (path)
                     (let ((case-fold-search nil))
-                      (string-match-p ignored-dirs-re
-                                      (file-name-nondirectory path)))))))))
+                      (or (string-match-p ignored-dirs-re
+                                          (file-name-nondirectory path))
+                          (string-match-p ignored-absolute-dirs-re
+                                          path))))
+                (lambda (path)
+                  (let ((case-fold-search nil))
+                    (string-match-p ignored-dirs-re
+                                    (file-name-nondirectory path))))))))
 
 (provide 'find-files)
 
