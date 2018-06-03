@@ -46,24 +46,37 @@ under ROOT directory."
   (string=? (expand-file-name (strip-trailing-slash path-a))
             (expand-file-name (strip-trailing-slash path-b))))
 
-(defmacro eproj-tests--define-tests (test-name-default-file-search test-name-internal-file-search &rest body)
-  (declare (indent 2))
-  `(progn
-     ;; Default `find-files/find-program-type'
-     (ert-deftest ,test-name-default-file-search ()
-       (let ((eproj/default-projects (make-hash-table :test #'eq))
-             ;; don't want verbose messages in the output
-             (eproj-verbose-tag-loading nil))
-         (eproj-reset-projects)
-         ,@body))
-     ;; Try setting `find-files/find-program-type' to nil an run again.
-     (ert-deftest ,test-name-internal-file-search ()
-       (let ((eproj/default-projects (make-hash-table :test #'eq))
-             ;; don't want verbose messages in the output
-             (eproj-verbose-tag-loading nil)
-             (find-files/find-program-type nil))
-         (eproj-reset-projects)
-         ,@body))))
+(defmacro eproj-tests--define-tests (test-name-template &rest body)
+  (declare (indent 1))
+  (let ((test-name-default-file-search
+         (string->symbol (format test-name-template "default-file-search")))
+        (test-name-executable-file-search
+         (string->symbol (format test-name-template "executable-file-search")))
+        (test-name-foreign-file-search
+         (string->symbol (format test-name-template "foreign-file-search"))))
+    `(progn
+       (ert-deftest ,test-name-default-file-search ()
+         (let ((eproj/default-projects (make-hash-table :test #'eq))
+               ;; don't want verbose messages in the output
+               (eproj-verbose-tag-loading nil)
+               (find-rec-backend 'elisp))
+           (eproj-reset-projects)
+           ,@body))
+       (ert-deftest ,test-name-executable-file-search ()
+         (let ((eproj/default-projects (make-hash-table :test #'eq))
+               ;; don't want verbose messages in the output
+               (eproj-verbose-tag-loading nil)
+               (find-rec-backend 'executable))
+           (eproj-reset-projects)
+           ,@body))
+       (when use-foreign-libraries?
+         (ert-deftest ,test-name-foreign-file-search ()
+           (let ((eproj/default-projects (make-hash-table :test #'eq))
+                 ;; don't want verbose messages in the output
+                 (eproj-verbose-tag-loading nil)
+                 (find-rec-backend 'native))
+             (eproj-reset-projects)
+             ,@body))))))
 
 (defconst eproj-tests/project-dir
   (concat +emacs-config-path+ "/tests/eproj-sample-projects"))
@@ -87,8 +100,7 @@ under ROOT directory."
   (expand-file-name (concat eproj-tests/project-dir "/haskell-project-with-ignored-files")))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/eproj-get-all-related-projects
-    eproj-tests/internal-file-search/eproj-get-all-related-projects
+    "eproj-tests/%s/eproj-get-all-related-projects"
   (let* ((path (concat eproj-tests/folder-with-related-projects "/project-main"))
          (proj (eproj-get-project-for-path path)))
 
@@ -117,8 +129,7 @@ under ROOT directory."
                                 directory-files-no-dot-files-regexp))))))))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/aux-files
-    eproj-tests/internal-file-search/aux-files
+    "eproj-tests/%s/aux-files"
   (let* ((path eproj-tests/project-with-aux-files)
          (proj (eproj-get-project-for-path path)))
     (should (not (null? proj)))
@@ -149,8 +160,7 @@ under ROOT directory."
                                 navigation-files))))))))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/tags-of-c-files
-    eproj-tests/internal-file-search/tags-of-c-files
+    "eproj-tests/%s/tags-of-c-files"
   (let* ((path eproj-tests/project-with-c-files)
          (proj (eproj-get-project-for-path path))
          (tags-table
@@ -190,8 +200,7 @@ under ROOT directory."
        ,@body)))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/eproj/get-fast-tags-from-buffer
-    eproj-tests/internal-file-search/eproj/get-fast-tags-from-buffer
+    "eproj-tests/%s/eproj/get-fast-tags-from-buffer"
   (let ((test-filename "foo.bar"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
@@ -226,8 +235,7 @@ foo3	%s	102	;\"	z
        (should (equal (cons 'type "z") (assq 'type (eproj-tag/properties tag3))))))))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/eproj/get-fast-tags-from-buffer/filenames-with-spaces
-    eproj-tests/internal-file-search/eproj/get-fast-tags-from-buffer/filenames-with-spaces
+    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
   (let ((test-filename "/home/admin/my projects/test project/hello.c"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
@@ -262,8 +270,7 @@ foo3	%s	102	;\"	z
        (should (equal (cons 'type "z") (assq 'type (eproj-tag/properties tag3))))))))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags
-    eproj-tests/internal-file-search/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags
+    "eproj-tests/%s/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
   (let ((test-filename "/home/sergey/Test.hs"))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
@@ -293,8 +300,7 @@ test	%s	102	;\"	f
 
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/project-with-eproj-file-and-tags-file
-    eproj-tests/internal-file-search/project-with-eproj-file-and-tags-file
+    "eproj-tests/%s/project-with-eproj-file-and-tags-file"
   (let* ((path eproj-tests/project-with-eproj-file-and-tags-file)
          (proj (eproj-get-project-for-path path)))
     (should (not (null? (eproj/find-eproj-file-location path))))
@@ -309,8 +315,7 @@ test	%s	102	;\"	f
                    (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/project-with-file-list
-    eproj-tests/internal-file-search/project-with-file-list
+    "eproj-tests/%s/project-with-file-list"
   (let* ((path eproj-tests/project-with-file-list)
          (proj (eproj-get-project-for-path path)))
     (should (not (null? proj)))
@@ -321,8 +326,7 @@ test	%s	102	;\"	f
                    (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/project-with-ignored-files
-    eproj-tests/internal-file-search/project-with-ignored-files
+    "eproj-tests/%s/project-with-ignored-files"
   (let* ((path eproj-tests/project-with-ignored-files)
          (proj (eproj-get-project-for-path path)))
     (should (not (null? proj)))
@@ -364,8 +368,7 @@ test	%s	102	;\"	f
                                            nil)))))
 
 (eproj-tests--define-tests
-    eproj-tests/default-file-search/eproj-related-project-files-are-not-included-into-main-project
-    eproj-tests/internal-file-search/eproj-related-project-files-are-not-included-into-main-project
+    "eproj-tests/%s/eproj-related-project-files-are-not-included-into-main-project"
   (let* ((path (concat eproj-tests/project-with-related-projects-as-subdirs
                        "/main-project"))
          (proj (eproj-get-project-for-path path)))

@@ -152,6 +152,8 @@ directories whose absolute path matches IGNORED-DIR-RE."
 ;; this must go to the end in order to give files in /src dir a chance
 ;; (add-to-list 'load-path +bytecode-lib+ t)
 
+(add-to-list 'load-path (concat +emacs-config-path+ "/lib"))
+
 (add-to-list 'exec-path +execs-path+)
 
 (provide 'set-up-paths)
