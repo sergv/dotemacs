@@ -142,24 +142,6 @@ runtime but rather will be silently relied on)."
                      constructors-tags))
           result-table)))))
 
-(defun eproj-haskell/compare-tags-ignoring-line-numbers (x y)
-  "Compare eproj tags for less-than, without taking line numbers into account."
-  (pcase x
-    (`(,sym-x ,file-x ,line-x . ((type . ,typ-x)))
-     (pcase y
-       (`(,sym-y ,file-y ,line-y . ((type . ,typ-y)))
-        (if (string< sym-x sym-y)
-            t
-          (and (string= sym-x sym-y)
-               (if (string< file-x file-y)
-                   t
-                 (and (string= file-x file-y)
-                      (string< typ-x typ-y))))))
-       (_
-        (error "invalid tag: %s" y))))
-    (_
-     (error "invalid tag: %s" x))))
-
 
 (defun eproj/haskell-tag-kind (tag)
   (pcase (cdr-safe (assq 'type (eproj-tag/properties tag)))
