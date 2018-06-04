@@ -25,6 +25,8 @@
                 ("\\.eproj-info\\'" "insert.eproj-info")
                 ("\\.gitignore\\'"  "insert.haskell.gitignore")
 
+                ("cabal\\.project\\(?:\\.local\\)?\\'" "insert-cabal-project")
+
                 ("\\.awk\\'"        "insert.awk")
                 ("\\.h\\'"          "insert.h")
                 ("\\.html?\\'"      "insert.html")
