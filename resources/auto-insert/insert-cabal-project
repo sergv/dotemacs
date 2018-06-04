@@ -1,0 +1,23 @@
+packages:
+  foo.cabal
+  ../bar.cabal
+
+-- Uncomment to allow picking up extra local unpacked deps:
+--optional-packages: */
+
+allow-newer:
+  some-package:base
+
+constraints:
+    foo >= 0.2
+  , bar +assertions
+
+-- Sperify options for all packages
+program-options
+  ghc-options: -O2
+
+-- Sperify options on a per-package basis
+package Cabal
+  ghc-options: -O2
+package cabal-testsuite
+  ghc-options: -O2
