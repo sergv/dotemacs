@@ -41,7 +41,8 @@
                                             (list out-buffer nil)
                                             nil
                                             "-o-"
-                                            "--nomerge"))
+                                            "--nomerge"
+                                            "-"))
               (error "fast-tags invokation failed: %s"
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
