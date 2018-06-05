@@ -439,7 +439,7 @@ existing file. If PATH is relative then try resolving it against DIR."
         (expand-file-name path))
     (if (file-name-absolute-p path)
         (error "Non-existing absolute file name: %s, probably something went wrong" path)
-      (let ((abs-path (eproj-normalize-file-name (expand-file-name path dir))))
+      (let ((abs-path (eproj-normalise-file-name-cached (expand-file-name path dir))))
         (if (or (file-exists-p abs-path)
                 (file-directory-p abs-path))
             abs-path
