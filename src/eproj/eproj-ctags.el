@@ -164,7 +164,8 @@ BUFFER is expected to contain output of ctags command."
             (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))
                   (file (eproj-ctags--cache-string
-                         (match-string-no-properties 2)))
+                         (eproj-normalise-file-name
+                          (match-string-no-properties 2))))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"

@@ -477,7 +477,7 @@
   (setf *eproj-projects* (make-hash-table :test #'equal))
   (eproj-get-initial-project-root/reset-cache)
   (eproj--resolve-to-abs-path/reset-cache)
-  (eproj-normalize-file-name/reset-cache)
+  (eproj-normalise-file-name-cached/reset-cache)
   ;; do not forget to reset cache
   (eproj/reset-buffer-local-cache)
   (garbage-collect))
@@ -649,7 +649,7 @@ cache tags in."
 
 (defun eproj--get-eproj-info-from-dir (dir)
   "Get filename of .eproj-info file from directory DIR if it exists, else return nil."
-  (let ((eproj-info-file (concat (eproj-normalize-file-name dir)
+  (let ((eproj-info-file (concat (eproj-normalise-file-name-cached dir)
                                  "/.eproj-info")))
     (when (file-exists-p eproj-info-file)
       eproj-info-file)))
@@ -1110,7 +1110,7 @@ Returns nil if no relevant entry found in AUX-INFO."
                  path
                (file-name-directory path))))
     (awhen (locate-dominating-file dir ".eproj-info")
-      (eproj-normalize-file-name it))))
+      (eproj-normalise-file-name-cached it))))
 
 (defvar eproj/default-projects (make-hash-table :test #'eq)
   "Hash table mapping major mode symbols to lists of project roots, that should
@@ -1158,8 +1158,11 @@ projects into the mix."
 (defun-caching eproj--resolve-to-abs-path (path dir) eproj--resolve-to-abs-path/reset-cache (path dir)
   (resolve-to-abs-path path dir))
 
-(defun-caching eproj-normalize-file-name (path) eproj-normalize-file-name/reset-cache (path)
-  (strip-trailing-slash (normalize-file-name (expand-file-name path))))
+(defun eproj-normalise-file-name (path)
+  (strip-trailing-slash (normalize-file-name path)))
+
+(defun-caching eproj-normalise-file-name-cached (path) eproj-normalise-file-name-cached/reset-cache (path)
+  (eproj-normalise-file-name (expand-file-name path)))
 
 (defun eproj--get-buffer-directory (buffer)
   "Get directory associated with BUFFER, either through visited file
