@@ -26,8 +26,12 @@
       grep-files-aliases
       (eval-when-compile
         (let ((haskell-exts
-               (join-lines (--map (concat "*." it)
-                                  (cons "cabal" +haskell-extensions+))
+               (join-lines (cons
+                            "cabal.project"
+                            (cons
+                             "cabal.project.local"
+                             (--map (concat "*." it)
+                                    (cons "cabal" +haskell-extensions+))))
                            " ")))
           `(("all"      . "*")
             ("el"       . "*.el")
