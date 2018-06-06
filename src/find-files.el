@@ -152,7 +152,7 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (cl-assert (featurep 'haskell-native-emacs-extensions))
     (cl-assert (fboundp #'haskell-native-find-rec))
     (haskell-native-find-rec
-     root
+     (vector root)
      (coerce globs-to-find 'vector)
      (coerce ignored-files 'vector)
      (coerce ignored-dirs  'vector))))
