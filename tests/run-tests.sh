@@ -17,7 +17,8 @@ for x in *.el; do
     tests="$tests -l $x"
 done
 
-emacs -Q --batch \
+gdb -ex run --args emacs -Q --batch \
+      --module-assertions \
       -L "$EMACS_ROOT/src" \
       -L "$EMACS_ROOT/third-party/bert-el" \
       --eval "(progn (require 'cl) (require 'bert))" \
