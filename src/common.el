@@ -651,10 +651,10 @@ write buffer contents back into file if flag DONT-WRITE is nil."
   (declare (pure t) (side-effect-free t))
   (mapconcat #'identity lines (or str "\n")))
 
-(defun* split-into-lines (str &optional (omit-nulls t))
+(defun split-into-lines (str &optional keep-nulls)
   "Split string into list of lines."
   (declare (pure t) (side-effect-free t))
-  (split-string str "\n" omit-nulls))
+  (split-string str "\n" (not keep-nulls)))
 
 (defsubst foldr (f init items)
   "F should take two arguments (item accum)."
