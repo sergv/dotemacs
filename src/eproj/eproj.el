@@ -78,16 +78,20 @@
        (integerp (caddr tag-struct))))
 
 (defsubst eproj-tag/symbol (tag-struct)
+  (declare (pure t) (side-effect-free t))
   (car tag-struct))
 
 (defsubst eproj-tag/file (tag-struct)
+  (declare (pure t) (side-effect-free t))
   (cadr tag-struct))
 
 (defsubst eproj-tag/line (tag-struct)
+  (declare (pure t) (side-effect-free t))
   (caddr tag-struct))
 
 ;; Return associative list of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
+  (declare (pure t) (side-effect-free t))
   (cdddr tag-struct))
 
 ;;; eproj languages
