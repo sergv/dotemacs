@@ -176,19 +176,6 @@
   "Word replacements that are likely to conflict with general use of words, e.g.
 in Haskell compilation output. So they're disabled by default.")
 
-(defun python-highlight-disable-pretty-symbols? (&optional position)
-  "Predicate that determines, if POSITION is eligible to be part (beginning) of
-pretty symbol. Intended for use in `font-lock-keywords' and
-`+python-pretty-symbols+'."
-  (save-excursion
-    (when position
-      (goto-char position))
-    (or (python-point-inside-string-or-comment?)
-        (memq (get-text-property (point) 'face)
-              '(font-lock-comment-face
-                font-lock-string-face))
-        (get-text-property (point) 'disable-pretty-symbols))))
-
 (defun pretty-ligatures--disable-pretty-symbols? (pos)
   "Predicate that determines, if point POS is eligible to be the beginning of
 a pretty symbol."
