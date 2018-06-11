@@ -23,7 +23,7 @@
   select-entry ;; String with filename, line number and match highlighted
   )
 
-(defun egrep--make-match-entry (file-name match-start match-end)
+(defun egrep--make-select-entry (file-name match-start match-end)
   "Make text entry for current match that can be shown to the user.
 
 MATCH-START and MATCH-END are match bounds in the current buffer"
@@ -95,9 +95,9 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                   (let* ((match-start (match-beginning 0))
                          (match-end (match-end 0))
                          (entry
-                          (egrep--make-match-entry short-file-name
-                                                   match-start
-                                                   match-end)))
+                          (egrep--make-select-entry short-file-name
+                                                    match-start
+                                                    match-end)))
                     (setf (cdr local-matches)
                           (cons (make-egrep-match
                                  :file filename
