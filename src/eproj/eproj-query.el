@@ -20,36 +20,23 @@
                     indent-offset)))
       (let ((res (car entry)))
         (cl-assert (integerp res) nil
-                   "language-specific.haskell-mode.indent-offset in .eproj-info must be an integer, but got %s"
+                   "language-specific.haskell-mode.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
+                   (eproj-project/root proj)
                    it)
         res)
     default))
 
 ;;;###autoload
-(defun eproj-query/haskell/enable-intero? (proj default)
-  (declare (pure t) (side-effect-free nil))
-  (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-seq (eproj-project/aux-info p)
-                    language-specific
-                    haskell-mode
-                    enable-intero?)))
-      (let ((res (car entry)))
-        (cl-assert (booleanp res) nil
-                   "language-specific.haskell-mode.enable-intero? in .eproj-info must be a boolean, but got %s"
-                   it)
-        res)
-    default))
-
-;;;###autoload
-(defun eproj-query/general/enable-flycheck? (proj default)
+(defun eproj-query/general/flycheck-checker (proj default)
   (declare (pure t) (side-effect-free nil))
   (if-let ((p proj)
            (entry (eproj-project/query-aux-info-seq (eproj-project/aux-info p)
                     general
-                    enable-flycheck?)))
+                    flycheck-checker)))
       (let ((res (car entry)))
-        (cl-assert (booleanp res) nil
-                   "general.enable-flycheck? in .eproj-info must be a boolean, but got %s"
+        (cl-assert (symbolp res) nil
+                   "general.flycheck-checker entry in .eproj-info of %s must be a boolean, but got %s"
+                   (eproj-project/root proj)
                    it)
         res)
     default))
