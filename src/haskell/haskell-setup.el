@@ -108,15 +108,12 @@ enabled. Otherwise fall back to eproj tags."
 ;;;###autoload
 (defun haskell-setup ()
   (let* ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
-         (intero-enabled?
-          (if (and (not non-vanilla-haskell-mode?)
-                   (if (executable-find "intero")
-                       t
-                     (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))
-              t
-            nil))
          (flycheck-enabled? (not non-vanilla-haskell-mode?))
-         (liquid-haskell-enabled? nil))
+         (intero-enabled?
+          (if (executable-find "intero")
+              t
+            (prog1 nil
+              (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))))
     (init-common :use-yasnippet t
                  :use-comment t
                  :use-render-formula nil
@@ -139,27 +136,30 @@ enabled. Otherwise fall back to eproj tags."
       (company-mode +1)
       (setq-local company-backends '(company-eproj))
 
-      (when (not non-vanilla-haskell-mode?)
-        (setf intero-enabled? (eproj-query/haskell/enable-intero? proj intero-enabled?))
-        (if intero-enabled?
-            (setf intero-enabled? (intero-mode-maybe))
-          (when intero-mode
-            (intero-mode -1)))
-
-        (add-to-list 'company-backends 'intero-company)
-
-        (setf flycheck-enabled?
-              (eproj-query/general/enable-flycheck? proj flycheck-enabled?))
-        (if flycheck-enabled?
-            (let ((checker (if intero-enabled? 'intero 'haskell-stack-ghc)))
-              (unless (flycheck-may-use-checker checker)
-                (flycheck-verify-checker checker)
-                (error "Unable to select checker '%s' for buffer '%s'"
-                       checker (current-buffer)))
-              (setq-local flycheck-checker checker)
-              (flycheck-mode +1))
-          (when flycheck-mode
-            (flycheck-mode -1)))))
+      (unless non-vanilla-haskell-mode?
+        (let ((flycheck-backend
+               (eproj-query/general/flycheck-checker
+                proj
+                (if intero-enabled? 'intero 'haskell-stack-ghc))))
+          (if flycheck-backend
+              (progn
+                (when (eq flycheck-backend 'intero)
+                  (setf intero-enabled? t)
+                  (intero-mode +1)
+                  (add-to-list 'company-backends 'intero-company))
+                (unless (flycheck-may-use-checker flycheck-backend)
+                  (flycheck-verify-checker flycheck-backend)
+                  (error "Unable to select checker '%s' for buffer '%s'"
+                         flycheck-backend (current-buffer)))
+                (setq-local flycheck-checker flycheck-backend)
+                (setf flycheck-enabled? t)
+                (flycheck-mode +1))
+            ;; Disable flycheck if it was explicitly set to nil
+            (progn
+              (setf flycheck-enabled? nil
+                    intero-enabled? nil)
+              (when flycheck-mode
+                (flycheck-mode -1)))))))
 
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
@@ -170,7 +170,7 @@ enabled. Otherwise fall back to eproj tags."
     (setq-local vim:word "[:word:]'")
     ;; The underscore should remain part of word so we never search within
     ;; _c_style_identifiers.
-    (modify-syntax-entry ?_ "_")
+    (modify-syntax-entry ?_  "_")
     (modify-syntax-entry ?\' "w")
     (modify-syntax-entry ?\@ "'")
 
