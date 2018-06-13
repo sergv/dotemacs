@@ -46,6 +46,7 @@ single indentation unit."
         (def-keys-for-map (vim:normal-mode-local-keymap
                            vim:insert-mode-local-keymap)
           ("C-<tab>"           haskell-indentation-indent-line)
+          ("C-S-<tab>"         haskell-indentation-indent-backwards)
           ("C-S-<iso-lefttab>" haskell-indentation-indent-backwards)))
     (progn
       (bind-tab-keys #'haskell-indentation-indent-line
@@ -54,6 +55,7 @@ single indentation unit."
       (def-keys-for-map (vim:normal-mode-local-keymap
                          vim:insert-mode-local-keymap)
         ("C-<tab>"           indent-relative-forward)
+        ("C-S-<tab>"         indent-relative-backward)
         ("C-S-<iso-lefttab>" indent-relative-backward))))
 
   (let ((real-offset (or offset 2)))
