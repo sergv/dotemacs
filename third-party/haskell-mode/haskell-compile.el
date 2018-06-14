@@ -162,7 +162,7 @@ This is a child of `compilation-mode-map'.")
                            (point))))
 
 (defvar haskell-compilation-extra-error-modes
-  '(4bssd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft)
+  '(4bsd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft)
   "Extra modes from `compilation-error-regexp-alist-alist' whose warnings
 will be colorized in `haskell-compilation-mode'.")
 
@@ -172,9 +172,13 @@ This mode provides support for GHC 7.[46]'s compile
 messages. Specifically, also the `-ferror-spans` source location
 format is supported, as well as info-locations within compile
 messages pointing to additional source locations."
+  (dolist (sym haskell-compilation-extra-error-modes)
+    (unless (assq sym compilation-error-regexp-alist-alist)
+      (error "The '%s' error mode within `haskell-compilation-extra-error-modes' variable is not listed in `compilation-error-regexp-alist-alist'"
+             sym)))
   (setq-local compilation-error-regexp-alist
               (append haskell-compilation-error-regexp-alist
-                      '(4bssd watcom sun msft lcc gnu java ibm epc edg-1 edg-2 borland aix absoft)))
+                      haskell-compilation-extra-error-modes))
   (add-hook 'compilation-filter-hook
             'haskell-compilation-filter-hook nil t))
 
