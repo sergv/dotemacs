@@ -433,7 +433,8 @@ You can use this to kill them or look inside."
          when (string-match
                "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$"
                use)
-         do (let* ((fp (match-string 1 use))
+         do (let* ((returned-file (match-string 1 use))
+                   (loaded-file (intero-extend-path-by-buffer-host returned-file))
                    (sline (string-to-number (match-string 2 use)))
                    (scol (string-to-number (match-string 3 use)))
                    (eline (string-to-number (match-string 4 use)))
@@ -442,7 +443,7 @@ You can use this to kill them or look inside."
                                           (forward-line (1- sline))
                                           (forward-char (1- scol))
                                           (point))))
-              (when (string= fp (intero-temp-file-name))
+              (when (intero-temp-file-p loaded-file)
                 (unless highlighted
                   (intero-highlight-uses-mode))
                 (setq highlighted t)
@@ -523,8 +524,10 @@ Returns nil when unable to find definition."
   (interactive)
   (save-match-data
     (let ((result (apply #'intero-get-loc-at (intero-thing-at-point))))
-      (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$"
-                          result)
+
+      (if (not (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$"
+                             result))
+          (message "%s" result)
         (push (make-eproj-home-entry :buffer (current-buffer) :position (point-marker) :symbol nil)
               eproj-symbnav/previous-homes)
         (setf eproj-symbnav/next-homes nil)
@@ -538,7 +541,10 @@ Returns nil when unable to find definition."
                     (switch-to-buffer original-buffer)
                   (error "Attempted to load temp file.  Try restarting Intero.
 If the problem persists, please report this as a bug!")))
-            (find-file loaded-file))
+            (find-file
+             (expand-file-name
+              returned-file
+              (intero-extend-path-by-buffer-host (intero-project-root)))))
           (pop-mark)
           (goto-char (point-min))
           (forward-line (1- line))
@@ -1701,10 +1707,11 @@ The path returned is canonicalized and stripped of any text properties."
   (with-current-buffer (or buffer (current-buffer))
     (if (or (eq nil (intero-buffer-host)) (eq "" (intero-buffer-host)))
         path
-      (concat "/"
-              (intero-buffer-host)
-              ":"
-              path))))
+      (expand-file-name
+       (concat "/"
+               (intero-buffer-host)
+               ":"
+               path)))))
 
 (defvar-local intero-temp-file-name nil
   "The name of a temporary file to which the current buffer's content is copied.")
@@ -2116,29 +2123,31 @@ yaml config to use, or stack's default when nil."
   "Send WORKER the command string CMD, via a network connection.
 The result, along with the given STATE, is passed to CALLBACK
 as (CALLBACK STATE REPLY)."
-  (let ((buffer (intero-buffer worker)))
-    (if (and buffer (process-live-p (get-buffer-process buffer)))
-        (with-current-buffer buffer
-          (if intero-service-port
-              (let* ((buffer (generate-new-buffer (format " intero-network:%S" worker)))
-                     (process
-                      (make-network-process
-                       :name (format "%S" worker)
-                       :buffer buffer
-                       :host 'local
-                       :service intero-service-port
-                       :family 'ipv4
-                       :nowait t
-                       :noquery t
-                       :sentinel 'intero-network-call-sentinel)))
-                (with-current-buffer buffer
-                  (setq intero-async-network-cmd cmd)
-                  (setq intero-async-network-state state)
-                  (setq intero-async-network-worker worker)
-                  (setq intero-async-network-callback callback)))
-            (progn (when intero-debug (message "No `intero-service-port', falling back ..."))
-                   (intero-async-call worker cmd state callback))))
-      (error "Intero process is not running: run M-x intero-restart to start it"))))
+  (if (file-remote-p default-directory)
+      (intero-async-call worker cmd state callback)
+      (let ((buffer (intero-buffer worker)))
+        (if (and buffer (process-live-p (get-buffer-process buffer)))
+            (with-current-buffer buffer
+              (if intero-service-port
+                  (let* ((buffer (generate-new-buffer (format " intero-network:%S" worker)))
+                         (process
+                          (make-network-process
+                           :name (format "%S" worker)
+                           :buffer buffer
+                           :host 'local
+                           :service intero-service-port
+                           :family 'ipv4
+                           :nowait t
+                           :noquery t
+                           :sentinel 'intero-network-call-sentinel)))
+                    (with-current-buffer buffer
+                      (setq intero-async-network-cmd cmd)
+                      (setq intero-async-network-state state)
+                      (setq intero-async-network-worker worker)
+                      (setq intero-async-network-callback callback)))
+                (progn (when intero-debug (message "No `intero-service-port', falling back ..."))
+                       (intero-async-call worker cmd state callback))))
+          (error "Intero process is not running: run M-x intero-restart to start it")))))
 
 (defun intero-network-call-sentinel (process event)
   (pcase event
