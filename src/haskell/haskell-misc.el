@@ -151,6 +151,17 @@ and indent them as singe line."
                     ,(funcall stack-command "test --no-run-tests"))
                    (bench
                     ,(funcall stack-command "bench"))
+                   (cabal-new-build
+                    ,(concat
+                      cd-command
+                      sep
+                      (concat "cabal new-build --disable-library-profiling "
+                              (funcall common-conf-opts build-dir) " "
+                              "all")
+                      sep
+                      (concat
+                       "cabal new-test " (funcall mk-build-dir-arg build-dir)
+                       "all")))
                    (cabal-vanilla
                     ,(concat
                       cd-command
