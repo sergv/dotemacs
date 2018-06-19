@@ -15,15 +15,32 @@
 (autoload 'grep-read-files "grep")
 (autoload 'grep-read-regexp "grep")
 
-(defstruct (egrep-match
-            (:conc-name egrep-match/))
-  file         ;; Absolute file name.
-  start-pos    ;; Integer. Buffer position of match start.
-  end-pos      ;; Integer. Buffer position of match end.
-  select-entry ;; String with filename, line number and match highlighted
-  )
 
-(defun egrep--make-select-entry (file-name match-start match-end)
+(defvar egrep-backend
+  (cond
+    ((fboundp #'haskell-native-grep-rec)
+     'native)
+    (t
+     'elisp))
+  "Which immplementation to use to provide grepping capability within Emacs.")
+
+(defun make-egrep-match (file start-pos formatted-entry)
+  (cons file (cons start-pos formatted-entry)))
+
+(defsubst egrep-match-file (x)
+  (declare (pure t) (side-effect-free t))
+  (car x))
+
+(defsubst egrep-match-start-pos (x)
+  (declare (pure t) (side-effect-free t))
+  (cadr x))
+
+(defsubst egrep-match-formatted-entry (x)
+  (declare (pure t) (side-effect-free t))
+  (cddr x))
+
+
+(defun egrep--format-select-entry (file-name match-start match-end)
   "Make text entry for current match that can be shown to the user.
 
 MATCH-START and MATCH-END are match bounds in the current buffer"
@@ -51,7 +68,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                   'face 'compilation-line-number)
                       ":"))
              (header-space (make-string (length header) ?\s))
-             (lines (split-into-lines matched-text nil)))
+             (lines (split-into-lines matched-text t)))
         (cl-assert lines)
         (concat header
                 (if lines
@@ -67,43 +84,75 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                   "!error: no lines in the block!")
                 "\n")))))
 
-(defun egrep--find-matches (regexp exts-globs ignored-exts-globs dir ignore-case)
+(defun egrep--find-matches (regexp exts-globs ignored-files-globs root ignore-case)
+  (pcase egrep-backend
+    (`native
+     (egrep--find-matches--native regexp exts-globs ignored-files-globs root ignore-case))
+    (`elisp
+     (egrep--find-matches--elisp regexp exts-globs ignored-files-globs root ignore-case))))
+
+(defun egrep--find-matches--native (regexp exts-globs ignored-files-globs root ignore-case)
+  (let* ((globs-to-find exts-globs)
+         (ignored-files ignored-files-globs)
+         (ignored-dirs
+          (nconc
+           (--map (strip-trailing-slash it) +ignored-directories+)
+           (--map (concat "*/" it "*") +ignored-directory-prefixes+)))
+         (matches
+          (haskell-native-grep-rec
+           (vector root)
+           regexp
+           (coerce globs-to-find 'vector)
+           (coerce ignored-files 'vector)
+           (coerce ignored-dirs 'vector)
+           ignore-case)))
+    (cl-assert (vectorp matches))
+    (when (or (null matches)
+              (= (length matches) 0))
+      (error "No matches for regexp \"%s\" across files %s"
+             regexp
+             (mapconcat #'identity exts-globs ", ")))
+    matches))
+
+(defun egrep--find-matches--elisp (regexp exts-globs ignored-files-globs root ignore-case)
   (let* ((files (find-rec*
-                 :root dir
+                 :root root
                  :globs-to-find exts-globs
-                 :ignored-extensions-globs ignored-exts-globs
+                 :ignored-files-globs ignored-files-globs
                  :ignored-directories +ignored-directories+
                  :ignored-directory-prefixes +ignored-directory-prefixes+))
          (files-length (length files))
+         (should-report-progress? (<= 100 files-length))
          (progress-reporter
-          (make-standard-progress-reporter files-length "files"))
+          (when should-report-progress?
+            (make-standard-progress-reporter files-length "files")))
          (matches
           (loop
-            for filename in files
+            for filename in (sort files #'string<)
             nconc
             (for-buffer-with-file filename
-              (funcall progress-reporter 1)
+              (when progress-reporter
+                (funcall progress-reporter 1))
               (redisplay t)
               (goto-char (point-min))
               (let* ((result-ptr (cons nil nil))
                      (local-matches result-ptr)
                      (case-fold-search ignore-case)
                      (short-file-name
-                      (propertize (file-relative-name filename dir)
+                      (propertize (file-relative-name filename root)
                                   'face 'compilation-info)))
                 (while (re-search-forward regexp nil t)
                   (let* ((match-start (match-beginning 0))
                          (match-end (match-end 0))
-                         (entry
-                          (egrep--make-select-entry short-file-name
-                                                    match-start
-                                                    match-end)))
+                         (formatted
+                          (egrep--format-select-entry short-file-name
+                                                      match-start
+                                                      match-end)))
                     (setf (cdr local-matches)
                           (cons (make-egrep-match
-                                 :file filename
-                                 :start-pos match-start
-                                 :end-pos match-end
-                                 :select-entry entry)
+                                 filename
+                                 match-start
+                                 formatted)
                                 nil))
                     (setf local-matches (cdr local-matches))
                     ;; Jump to end of line in order to show at most one match per
@@ -114,24 +163,24 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
       (error "No matches for regexp \"%s\" across files %s"
              regexp
              (mapconcat #'identity exts-globs ", ")))
-    (message "Finished looking in files")
-    (redisplay t)
-    matches))
+    (when should-report-progress?
+      (message "Finished looking in files")
+      (redisplay t))
+    (list->vector matches)))
 
-(defun egrep-search (regexp exts-globs ignored-exts-globs dir ignore-case)
+(defun egrep-search (regexp exts-globs ignored-files-globs dir ignore-case)
   "Search for REGEXP in files under directory DIR that match FILE-GLOBS and don't
 match IGNORED-FILE-GLOBS."
-  (let ((matches
-         (list->vector
-          (egrep--find-matches regexp exts-globs ignored-exts-globs dir ignore-case)))
-        (kmap (make-sparse-keymap)))
+  (let* ((get-matches
+          (lambda ()
+            (egrep--find-matches regexp exts-globs ignored-files-globs dir ignore-case)))
+         (matches
+          (funcall get-matches))
+         (kmap (make-sparse-keymap)))
     (def-keys-for-map kmap
       ("H" (lambda ()
              (interactive)
-             (let ((new-matches
-                    (list->vector
-                     (egrep--find-matches regexp exts-globs ignored-exts-globs dir ignore-case))))
-               (select-mode-update-items new-matches 0)))))
+             (select-mode-update-items (funcall get-matches) 0))))
     (select-mode-start-selection
      matches
      :buffer-name "*grep*"
@@ -141,17 +190,17 @@ match IGNORED-FILE-GLOBS."
      (lambda (idx match selection-type)
        ;; NB Don't call `select-mode-exit' here since we may return to *grep* buffer
        ;; to try out another match.
-       (let ((buf (aif (find-buffer-visiting (egrep-match/file match))
+       (let ((buf (aif (find-buffer-visiting (egrep-match-file match))
                       it
-                    (find-file-noselect (egrep-match/file match)))))
+                    (find-file-noselect (egrep-match-file match)))))
          (funcall
           (pcase selection-type
             (`same-window  #'switch-to-buffer)
             (`other-window #'switch-to-buffer-other-window))
           buf)
-         (goto-char (egrep-match/start-pos match))))
+         (goto-char (egrep-match-start-pos match))))
      :item-show-function
-     #'egrep-match/select-entry
+     #'egrep-match-formatted-entry
      :separator nil
      :preamble
      (format "Browse matches for ‘%s’ in files matching %s starting at directory %s\n\n"
@@ -167,10 +216,22 @@ string patterns."
                 "[ \t\n\r\f\v]+"
                 t))
 
+(defvar egrep-tag-default nil)
+(defvar egrep-regexp-history nil)
+
+(defun egrep--read-regexp ()
+  (read-regexp (pcase egrep-backend
+                 (`native
+                  "Extended re")
+                 (`elisp
+                  "Emacs re"))
+               'grep-tag-default
+               'egrep-regexp-history))
+
 ;;;###autoload
 (defun egrep (regexp exts-globs dir &optional ignore-case)
   (interactive
-   (let ((regexp (grep-read-regexp)))
+   (let ((regexp (egrep--read-regexp)))
      (list
       regexp
       (egrep--read-files regexp)
