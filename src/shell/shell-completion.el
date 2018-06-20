@@ -1347,7 +1347,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-ignore-dot-ghci"
     "-interactive-print"
 
-    (("-package-db" "-package-env") (pcomplete-here (pcomplete-entries-ignoring-common)))
+    (("-package-db" "-package-env") (pcomplete-here (pcmpl-entries-ignoring-common)))
     "-clear-package-db"
     "-distrust"
     "-distrust-all-packages"
@@ -3115,7 +3115,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    ("generate-grafts"
     (opts
      (flags
-      ("--output" (pcomplete-here (pcomplete-entries-ignoring-common)))
+      ("--output" (pcomplete-here (pcmpl-entries-ignoring-common)))
       "-f"
       "--force"
       "-h"
