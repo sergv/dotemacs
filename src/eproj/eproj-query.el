@@ -22,7 +22,7 @@
         (cl-assert (integerp res) nil
                    "language-specific.haskell-mode.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
                    (eproj-project/root proj)
-                   it)
+                   res)
         res)
     default))
 
@@ -39,7 +39,25 @@
                    "flycheck-checker.%s entry in .eproj-info of %s must be a boolean, but got %s"
                    mode
                    (eproj-project/root proj)
-                   it)
+                   res)
+        res)
+    default))
+
+(defun eproj-query/flycheck-disabled-checkers (proj mode default)
+  (declare (pure t) (side-effect-free nil))
+  (cl-assert (symbolp mode))
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'flycheck-disabled-checkers
+                    mode)))
+      (let ((res entry))
+        (cl-assert (and (listp res)
+                        (-all-p #'symbolp res))
+                   nil
+                   "flycheck-disabled-checkers.%s entry in .eproj-info of %s must be a list of symbols, but got %s"
+                   mode
+                   (eproj-project/root proj)
+                   res)
         res)
     default))
 

@@ -137,13 +137,14 @@ enabled. Otherwise fall back to eproj tags."
       (setq-local company-backends '(company-eproj))
 
       (unless non-vanilla-haskell-mode?
-        (let ((flycheck-backend
-               (eproj-query/flycheck-checker
-                proj
-                ;; Resolve synonyms so that literate haskell mode & others
-                ;; will get the proper checker.
-                (eproj/resolve-synonym-modes major-mode)
-                (if intero-enabled? 'intero 'haskell-stack-ghc))))
+        (let* ((effective-major-mode (eproj/resolve-synonym-modes major-mode))
+               (flycheck-backend
+                (eproj-query/flycheck-checker
+                 proj
+                 ;; Resolve synonyms so that literate haskell mode & others
+                 ;; will get the proper checker.
+                 effective-major-mode
+                 (if intero-enabled? 'intero 'haskell-stack-ghc))))
           (if flycheck-backend
               (progn
                 (when (eq flycheck-backend 'intero)
@@ -156,6 +157,11 @@ enabled. Otherwise fall back to eproj tags."
                          flycheck-backend (current-buffer)))
                 (setq-local flycheck-checker flycheck-backend)
                 (setf flycheck-enabled? t)
+                (setq-local flycheck-disabled-checkers
+                            (eproj-query/flycheck-disabled-checkers
+                             proj
+                             effective-major-mode
+                             (default-value 'flycheck-disabled-checkers)))
                 (flycheck-mode +1))
             ;; Disable flycheck if it was explicitly set to nil
             (progn
