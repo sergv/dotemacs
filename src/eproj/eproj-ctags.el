@@ -8,6 +8,8 @@
 
 ;;;; ctags facility
 
+(require 'eproj-tag-index)
+
 (eval-when-compile (require 'subr-x))
 
 (defparameter eproj-ctags--exec
@@ -147,7 +149,7 @@ BUFFER is expected to contain output of ctags command."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
-      (let ((tags-table (make-hash-table :test #'equal :size 997))
+      (let ((tags-index (empty-eproj-tag-index))
             (field-cache (make-hash-table :test #'equal))
             (gc-cons-threshold (min (* 100 1024 1024)
                                     (max gc-cons-threshold
@@ -191,18 +193,18 @@ BUFFER is expected to contain output of ctags command."
                                         fields))))
                           (error "Invalid ctags entry: %s" (buffer-substring-no-properties start end)))))))
                 (forward-char)
-                (puthash symbol
-                         (cons (make-eproj-tag
-                                symbol
-                                file
-                                line
-                                fields)
-                               (gethash symbol tags-table nil))
-                         tags-table)))
+                (eproj-tag-index-add! symbol
+                                      (cons (make-eproj-tag
+                                             symbol
+                                             file
+                                             line
+                                             fields)
+                                            (eproj-tag-index-get symbol tags-index nil))
+                                      tags-index)))
 
             (when eproj-verbose-tag-loading
               (funcall progress-reporter 1))))
-        tags-table))))
+        tags-index))))
 
 (provide 'eproj-ctags)
 

@@ -9,6 +9,7 @@
 (require 'common-heavy)
 (require 'eproj)
 (require 'eproj-ctags)
+(require 'eproj-tag-index)
 (require 'haskell-watch)
 
 (defparameter *fast-tags-exec* (executable-find "fast-tags"))
@@ -113,15 +114,16 @@ runtime but rather will be silently relied on)."
           (forward-line 1)
           (when eproj-verbose-tag-loading
             (funcall progress-reporter 1)))
-        (let* ((result-table (make-hash-table :test #'equal :size 997))
+        (let* ((result-index (empty-eproj-tag-index))
                (add-tag-to-result
                 (lambda (tag)
-                  (puthash (eproj-tag/symbol tag)
-                           (cons tag
-                                 (gethash (eproj-tag/symbol tag)
-                                          result-table
-                                          nil))
-                           result-table)))
+                  (eproj-tag-index-add! (eproj-tag/symbol tag)
+                                        (cons tag
+                                              (eproj-tag-index-get
+                                               (eproj-tag/symbol tag)
+                                               result-index
+                                               nil))
+                                        result-index)))
                (data (nested-hash-tables/data tags-tables))
                (constructors-tags
                 (gethash "C" data nil))
@@ -142,7 +144,7 @@ runtime but rather will be silently relied on)."
                        (unless (gethash name-and-file type-tags)
                          (funcall add-tag-to-result tag)))
                      constructors-tags))
-          result-table)))))
+          result-index)))))
 
 
 (defun eproj/haskell-tag-kind (tag)
