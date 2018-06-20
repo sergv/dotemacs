@@ -14,10 +14,10 @@
 (defun eproj-query/haskell/indent-offset (proj &optional default)
   (declare (pure t) (side-effect-free nil))
   (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-seq (eproj-project/aux-info p)
-                    language-specific
-                    haskell-mode
-                    indent-offset)))
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'language-specific
+                    'haskell-mode
+                    'indent-offset)))
       (let ((res (car entry)))
         (cl-assert (integerp res) nil
                    "language-specific.haskell-mode.indent-offset entry in .eproj-info of %s must be an integer, but got %s"
@@ -27,15 +27,17 @@
     default))
 
 ;;;###autoload
-(defun eproj-query/general/flycheck-checker (proj default)
+(defun eproj-query/flycheck-checker (proj mode default)
   (declare (pure t) (side-effect-free nil))
+  (cl-assert (symbolp mode))
   (if-let ((p proj)
-           (entry (eproj-project/query-aux-info-seq (eproj-project/aux-info p)
-                    general
-                    flycheck-checker)))
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'flycheck-checker
+                    mode)))
       (let ((res (car entry)))
         (cl-assert (symbolp res) nil
-                   "general.flycheck-checker entry in .eproj-info of %s must be a boolean, but got %s"
+                   "flycheck-checker.%s entry in .eproj-info of %s must be a boolean, but got %s"
+                   mode
                    (eproj-project/root proj)
                    it)
         res)
