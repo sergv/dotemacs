@@ -52,6 +52,7 @@
 
 (require 'common)
 (require 'eproj-symbnav)
+(require 'eproj-tag-index)
 (require 'haskell-autoload)
 
 ;;; eproj-tag
@@ -416,9 +417,8 @@
   (root                  nil :read-only t)
   ;; alist of (<symbol> . <symbol-dependent-info>) entries
   (aux-info              nil :read-only t)
-  ;; Thunk of list of (language-major-mode . <tags-table>);
-  ;; <tags-table> - hashtable of (symbol-str . eproj-tag)
-  ;; bindings
+  ;; Thunk of list of (language-major-mode . <eproj-tag-index>);
+  ;; <eproj-tag-index> - datastructure mapping 'symbol-str's to 'eproj-tag's. See `eproj-tag-index.el'.
   (tags                  nil)
   ;; list of other project roots
   (related-projects      nil :read-only t)
@@ -642,9 +642,8 @@ cache tags in."
                                                              lang-mode
                                                              project-files-thunk
                                                              :consider-tag-files t)))
-                     (cl-assert (and new-tags
-                                     (hash-table-p new-tags)))
-                     (when (= 0 (hash-table-count new-tags))
+                     (cl-assert (eproj-tag-index-p new-tags))
+                     (when (= 0 (eproj-tag-index-size new-tags))
                        (error "Warning while reloading: project %s loaded no tags for language %s"
                               (eproj-project/root proj)
                               lang-mode))
@@ -1192,8 +1191,8 @@ Returns list of (tag . project) pairs."
                        (if search-with-regexp?
                            (apply
                             #'-concat
-                            (hash-table-entries-matching-re it identifier))
-                         (gethash identifier it nil)))
+                            (eproj-tag-index-values-where-key-matches-regexp it identifier))
+                         (eproj-tag-index-get identifier it nil)))
                nil))
            (eproj-get-all-related-projects-for-mode proj tag-major-mode)))
 
