@@ -25,11 +25,10 @@
 ;;
 ;; [(language-specific
 ;;    [(haskell-mode
-;;       [(indent-offset <integer>)]
-;;       [(disable-intero? <t-or-nil>)])])]
+;;       [(indent-offset <integer>)])])]
 ;;
-;; [(general
-;;    [(disable-flycheck? <t-or-nil>)])]
+;; [(flycheck-checker
+;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|intero|...>)])]
 ;;
 ;; [...] - optional directive
 ;; <abs-or-rel-dir> - absolute or relative path to directory
@@ -443,11 +442,11 @@
   ;; does a search.
   (cached-files-for-navigation nil))
 
-(defmacro eproj-project/query-aux-info-seq (aux-info &rest keys)
+(defmacro eproj-project/query-aux-info-entry (aux-info &rest keys)
   "Retrieve aux-data assoc entry associated with a KEY in the aux info AUX-INFO."
   (declare (indent 1))
-  `(let ((entry ,(foldl (lambda (acc key) (cl-assert (symbolp key))
-                          `(assq ',key ,acc))
+  `(let ((entry ,(foldl (lambda (acc key)
+                          `(assq ,key ,acc))
                         aux-info
                         keys)))
      (cl-assert
@@ -462,7 +461,7 @@
 (defmacro eproj-project/query-aux-info (aux-info &rest keys)
   "Retrieve aux-data value associated with a KEY in the aux info AUX-INFO."
   (declare (indent 1))
-  `(car-safe (eproj-project/query-aux-info-seq ,aux-info ,@keys)))
+  `(car-safe (eproj-project/query-aux-info-entry ,aux-info ,@keys)))
 
 (defun eproj-project/root= (proj-a proj-b)
   (string= (eproj-project/root proj-a)
@@ -690,7 +689,7 @@ for project at ROOT directory."
   (unless (and (file-exists-p root)
                (file-directory-p root))
     (error "Invalid project root, existing directory required: %s" root))
-  (let ((languages (aif (eproj-project/query-aux-info-seq aux-info languages)
+  (let ((languages (aif (eproj-project/query-aux-info-entry aux-info 'languages)
                        it
                      (progn
                        (notify "warning: no languages defined for project %s"
@@ -699,16 +698,16 @@ for project at ROOT directory."
         (ignored-files-globs
          (cdr-safe (assq 'ignored-files aux-info)))
         (file-list-filename
-         (awhen (eproj-project/query-aux-info aux-info file-list)
+         (awhen (eproj-project/query-aux-info aux-info 'file-list)
            (let ((fname (eproj--resolve-to-abs-path it root)))
              (when (or (null fname)
                        (not (file-exists-p fname)))
                (error "File list filename does not exist: %s" fname))
              fname)))
         (create-tag-files
-         (eproj-project/query-aux-info aux-info create-tag-files))
+         (eproj-project/query-aux-info aux-info 'create-tag-files))
         (extra-navigation-globs
-         (eproj-project/query-aux-info-seq aux-info extra-navigation-files)))
+         (eproj-project/query-aux-info-entry aux-info 'extra-navigation-files)))
     (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
     (cl-assert (listp extra-navigation-globs))
     (cl-assert (-all? #'stringp extra-navigation-globs))

@@ -138,8 +138,11 @@ enabled. Otherwise fall back to eproj tags."
 
       (unless non-vanilla-haskell-mode?
         (let ((flycheck-backend
-               (eproj-query/general/flycheck-checker
+               (eproj-query/flycheck-checker
                 proj
+                ;; Resolve synonyms so that literate haskell mode & others
+                ;; will get the proper checker.
+                (eproj/resolve-synonym-modes major-mode)
                 (if intero-enabled? 'intero 'haskell-stack-ghc))))
           (if flycheck-backend
               (progn
