@@ -35,13 +35,6 @@ under ROOT directory."
 (defun eproj-tests/normalize-string-list (items)
   (sort (copy-list items) #'string<))
 
-(defun eproj-tests/hash-table-keys (table)
-  (let ((keys nil))
-    (maphash (lambda (key value)
-               (push key keys))
-             table)
-    keys))
-
 (defun eproj-tests/paths=? (path-a path-b)
   (string=? (expand-file-name (strip-trailing-slash path-a))
             (expand-file-name (strip-trailing-slash path-b))))
@@ -163,7 +156,7 @@ under ROOT directory."
     "eproj-tests/%s/tags-of-c-files"
   (let* ((path eproj-tests/project-with-c-files)
          (proj (eproj-get-project-for-path path))
-         (tags-table
+         (tags-index
           (cdr-safe (assq 'c-mode
                           (eproj--get-tags proj))))
          (project-names
@@ -178,14 +171,14 @@ under ROOT directory."
             "next")))
     (should-not (null? proj))
     (should (eproj-tests/paths=? path (eproj-project/root proj)))
-    (should-not (null? tags-table))
+    (should-not (null? tags-index))
     (should-not (= 0 (length (eproj--get-tags proj))))
-    (should (hash-table-p tags-table))
-    (should-not (= 0 (hash-table-count tags-table)))
-    (should-not (= 0 (length (eproj-tests/hash-table-keys tags-table))))
+    (should (eproj-tag-index-p tags-index))
+    (should-not (= 0 (eproj-tag-index-size tags-index)))
+    (should-not (= 0 (length (eproj-tag-index-keys tags-index))))
     (should (equal (eproj-tests/normalize-string-list project-names)
                    (eproj-tests/normalize-string-list
-                    (eproj-tests/hash-table-keys tags-table))))))
+                    (eproj-tag-index-keys tags-index))))))
 
 (defmacro eproj-tests/test-ctags-get-tags-from-buffer
   (input
@@ -212,23 +205,23 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename
       test-filename)
-     tags-table
+     tags-index
      (eproj/get-fast-tags-tags-from-buffer (current-buffer))
-     (should-not (= 0 (hash-table-size tags-table)))
+     (should-not (= 0 (eproj-tag-index-size tags-index)))
 
-     (let ((tag1 (car-safe (gethash "foo1" tags-table))))
+     (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
        (should tag1)
        (should (string=? test-filename (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
        (should (equal (cons 'type "x") (assq 'type (eproj-tag/properties tag1)))))
 
-     (let ((tag2 (car-safe (gethash "foo2" tags-table))))
+     (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
        (should tag2)
        (should (string=? test-filename (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
        (should (equal (cons 'type "y") (assq 'type (eproj-tag/properties tag2)))))
 
-     (let ((tag3 (car-safe (gethash "foo3" tags-table))))
+     (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
        (should tag3)
        (should (string=? test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
@@ -247,23 +240,23 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename
       test-filename)
-     tags-table
+     tags-index
      (eproj/get-fast-tags-tags-from-buffer (current-buffer))
-     (should-not (= 0 (hash-table-size tags-table)))
+     (should-not (= 0 (eproj-tag-index-size tags-index)))
 
-     (let ((tag1 (car-safe (gethash "foo1" tags-table))))
+     (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
        (should tag1)
        (should (string=? test-filename (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
        (should (equal (cons 'type "x") (assq 'type (eproj-tag/properties tag1)))))
 
-     (let ((tag2 (car-safe (gethash "foo2" tags-table))))
+     (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
        (should tag2)
        (should (string=? test-filename (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
        (should (equal (cons 'type "y") (assq 'type (eproj-tag/properties tag2)))))
 
-     (let ((tag3 (car-safe (gethash "foo3" tags-table))))
+     (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
        (should tag3)
        (should (string=? test-filename (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
@@ -282,17 +275,17 @@ test	%s	102	;\"	f
       test-filename
       test-filename
       test-filename)
-     tags-table
+     tags-index
      (eproj/get-fast-tags-tags-from-buffer (current-buffer))
-     (should-not (= 0 (hash-table-size tags-table)))
+     (should-not (= 0 (eproj-tag-index-size tags-index)))
 
-     (let ((type-tag (car-safe (gethash "Identity" tags-table))))
+     (let ((type-tag (car-safe (eproj-tag-index-get "Identity" tags-index))))
        (should type-tag)
        (should (string=? test-filename (eproj-tag/file type-tag)))
        (should (= 101 (eproj-tag/line type-tag)))
        (should (equal (cons 'type "t") (assq 'type (eproj-tag/properties type-tag)))))
 
-     (let ((function-tag (car-safe (gethash "test" tags-table))))
+     (let ((function-tag (car-safe (eproj-tag-index-get "test" tags-index))))
        (should function-tag)
        (should (string=? test-filename (eproj-tag/file function-tag)))
        (should (= 102 (eproj-tag/line function-tag)))
