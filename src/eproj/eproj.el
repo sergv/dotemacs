@@ -30,6 +30,12 @@
 ;; [(flycheck-checker
 ;;    [(haskell-mode <nil|haskell-stack-ghc|haskell-ghc|intero|...>)])]
 ;;
+;; [(flycheck-disabled-checkers
+;;    [(haskell-mode
+;;        [<haskell-stack-ghc|haskell-ghc|intero|...>]
+;;        [<haskell-stack-ghc|haskell-ghc|intero|...>]
+;;        ...)])]
+;;
 ;; [...] - optional directive
 ;; <abs-or-rel-dir> - absolute or relative path to directory
 ;; <abs-or-rel-file> - absolute or relative path to file
