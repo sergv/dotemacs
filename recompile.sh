@@ -136,6 +136,7 @@ update-dir-autoloads \
     "third-party/magit" \
     "third-party/magit-popup" \
     "third-party/misc-modes" \
+    "third-party/nix-mode" \
     "third-party/pkg-info" \
     "third-party/popup-el" \
     "third-party/pos-tip" \
