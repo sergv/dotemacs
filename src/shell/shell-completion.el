@@ -3121,6 +3121,112 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       "-h"
       "--help")))))
 
+;;;; Nix
+
+(defun pcmpl-nix-get-channels ()
+  "Return a list of git repository remotes."
+  (with-temp-buffer
+    (call-process "nix-channel"
+                  nil
+                  (current-buffer)
+                  nil
+                  "--list")
+    (split-string (buffer-substring-no-properties (point-min)
+                                                  (point-max))
+                  "\n"
+                  t)))
+
+(defpcmpl pcomplete/nix-channel
+  (or
+   ("--add")
+   ("--list")
+   ("--rollback")
+   (("--remove" "--update")
+    (opts
+     (args (pcomplete-here (pcmpl-nix-get-channels)))))))
+
+(defpcmpl pcomplete/nix-env
+  (opts
+   (flags
+    "--help"
+    "--dry-run"
+    (("-f" "--file") (pcomplete-here (pcomplete-entries)))
+    (("-p" "--profile") (pcomplete-here (pcomplete-entries)))
+    (("-v" "--verbose") (pcomplete-here '("0" "1" "2" "3" "4" "5")))
+    "-quiet"
+    "-Q"
+    "--no-build-output"
+    "-j"
+    "--max-jobs"
+    "--cores"
+    "--max-silent-time"
+    "--timeout"
+    "-k"
+    "--keep-going"
+    "-K"
+    "--keep-failed"
+    "--fallback"
+    "--no-build-hook"
+    "--readonly-mode"
+    "--arg"
+    "--argstr"
+    "-A"
+    "--attr"
+    "-E"
+    "--expr"
+    ("-I" (pcomplete-here (pcomplete-entries)))
+    "--option"
+    "--repair"
+
+    "-i"
+    "--install"
+    "--prebuilt-only"
+    "--from-expression"
+    "-P"
+    "--preserve-installed"
+
+    "-u"
+    "--upgrade"
+    "--lt"
+    "--leq"
+    "--eq"
+    "--always"
+
+    "-e"
+    "--uninstall"
+
+    "--set-flag"
+
+    "-q"
+    "--query"
+    "--installed"
+    "--available"
+    "-a"
+    "-s"
+    "--status"
+    "--no-name"
+    "-P"
+    "--attr-path"
+    "--out-path"
+    "-c"
+    "--compare-versions"
+    "--system"
+    "--drv-path"
+    "--description"
+    "--meta"
+    "--xml"
+    "--json"
+
+    "-S"
+    "--switch-profile"
+
+    "--list-generations"
+    "--delete-generations"
+    "-G"
+    "--switch-generation"
+
+    "--rollback")))
+
 (provide 'shell-completion)
 
 ;; Local Variables:
