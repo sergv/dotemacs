@@ -39,6 +39,7 @@
                                                                "idris")
                                                            "*"
                                                            (? "<" (+ digit) ">")))))))
+       (nix-filter `(or (mode . nix-mode)))
        (hdl-filter `(or (mode . verilog-mode)
                         (mode . vhdl-mode)
                         (mode . ucf-mode)))
@@ -214,6 +215,7 @@
     `(("haskell"    ,haskell-filter)
       ("proof assistants" ,proof-assistants-filter)
       ("hdl"        ,hdl-filter)
+      ("nix"        ,nix-filter)
       ("clojure"    ,clojure-filter)
       ("emacs lisp" ,emacs-lisp-filter)
       ("c/c++"      ,c-c++-filter)

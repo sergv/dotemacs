@@ -42,6 +42,7 @@
     (idris-mode            (one-line "--") (line-regexp "--+"))
     (elm-mode              (one-line "--") (line-regexp "--+"))
     (latex-mode            (one-line "%")  (line-regexp "%+"))
+    (nix-mode              (one-line "#")  (line-regexp "#+"))
     (octave-mode           (one-line "%")  (line-regexp "\\(?:%+\\|#+\\)"))
     (blueprint-mode        (one-line ";;") (line-regexp ";+"))
     (clojure-mode          (one-line ";;") (line-regexp ";+"))
