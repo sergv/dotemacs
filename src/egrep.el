@@ -96,7 +96,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
          (ignored-files ignored-files-globs)
          (ignored-dirs
           (nconc
-           (--map (strip-trailing-slash it) +ignored-directories+)
+           (--map (concat "*/" (strip-trailing-slash it) "*") +ignored-directories+)
            (--map (concat "*/" it "*") +ignored-directory-prefixes+)))
          (matches
           (haskell-native-grep-rec
