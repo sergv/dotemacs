@@ -156,7 +156,7 @@ See documentation for logic."
                (when (eq group-separator char)
                  (setcar (cdar groups-alist) group-word-count)
                  (setq group-word-count 0)
-                 (push (nconc (list index group-word-count)) groups-alist))
+                 (push (list index group-word-count) groups-alist))
                (if (= index str-last-index)
                    (setcar (cdar groups-alist) group-word-count)
                  (setq last-char char))))
