@@ -131,7 +131,11 @@ See documentation for logic."
          ;; ++++ base
          (scores (make-vector str-len -35))
          (penalty-lead ?.)
-         (groups-alist (list (list -1 0))))
+         (groups-alist (cons (cons -1        ;; caar, group start
+                                   (cons 0   ;; cadar, word count
+                                         nil ;; cddar - list of word indices
+                                         ))
+                             nil)))
     ;; ++++ final char bonus
     (cl-incf (aref scores str-last-index) 1)
     ;; Establish baseline mapping
@@ -281,11 +285,11 @@ For other parameters, see `flx-score'"
         (if (eq hash-value 'no-match)
             nil
           hash-value)
-      (let ((indexes (flx-bigger-sublist
-                       (gethash (aref query q-index) str-info)
-                       greater-than))
-            (match)
-            (temp-score)
+      (let ((remaining-indices (flx-bigger-sublist
+                                (gethash (aref query q-index) str-info)
+                                greater-than))
+            (matches nil)
+            (temp-score nil)
             (best-score most-negative-fixnum))
 
         ;; Matches are of the form:
@@ -294,47 +298,47 @@ For other parameters, see `flx-score'"
             ;; At the tail end of the recursion, simply
             ;; generate all possible matches with their scores
             ;; and return the list to parent.
-            (setq match (mapcar (lambda (index)
-                                  (cons (list index)
-                                        (cons (aref heatmap index) 0)))
-                                indexes))
-          (dolist (index indexes)
-            (dolist (elem (flx-find-best-match str-info
-                                               heatmap
-                                               index
-                                               query
-                                               query-length
-                                               (1+ q-index)
-                                               match-cache))
+            (setq matches (mapcar (lambda (index)
+                                    (cons (list index)
+                                          (cons (aref heatmap index) 0)))
+                                  remaining-indices))
+          (dolist (index remaining-indices)
+            (dolist (submatch (flx-find-best-match str-info
+                                                   heatmap
+                                                   index
+                                                   query
+                                                   query-length
+                                                   (1+ q-index)
+                                                   match-cache))
               (setq temp-score
-                    (if (= (1- (caar elem)) index)
-                        (+ (cadr elem)
+                    (if (= (1- (caar submatch)) index)
+                        (+ (cadr submatch)
                            (aref heatmap index)
 
                            ;; boost contiguous matches
-                           (* (min (cddr elem)
+                           (* (min (cddr submatch)
                                    3)
                               15)
                            60)
-                      (+ (cadr elem)
+                      (+ (cadr submatch)
                          (aref heatmap index))))
 
               ;; We only care about the optimal match, so only
               ;; forward the match with the best score to parent
               (when (> temp-score best-score)
                 (setq best-score temp-score
-                      match (list (cons (cons index (car elem))
-                                        (cons temp-score
-                                              (if (= (1- (caar elem))
-                                                     index)
-                                                  (1+ (cddr elem))
-                                                0)))))))))
+                      matches (list (cons (cons index (car submatch))
+                                          (cons temp-score
+                                                (if (= (1- (caar submatch))
+                                                       index)
+                                                    (1+ (cddr submatch))
+                                                  0)))))))))
 
         ;; Calls are cached to avoid exponential time complexity
         (puthash hash-key
-                 (if match match 'no-match)
+                 (if matches matches 'no-match)
                  match-cache)
-        match))))
+        matches))))
 
 (defun flx-score (str query &optional cache)
   "Return best score matching QUERY against STR"
