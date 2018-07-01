@@ -3206,19 +3206,23 @@ no sorting is done.")
 
         (nconc
          ;; Compute all of the flx scores in one pass and sort
-         (mapcar #'car
-                 (sort (mapcar
-                        (lambda (cand)
-                          (cons cand
-                                (car (flx-score cand flx-name ivy--flx-cache))))
-                        cands-to-sort)
-                       (lambda (c1 c2)
-                         ;; Break ties by length
-                         (if (/= (cdr c1) (cdr c2))
-                             (> (cdr c1)
-                                (cdr c2))
-                           (< (length (car c1))
-                              (length (car c2)))))))
+         (if (fboundp 'haskell-native-score-matches)
+             (haskell-native-score-matches
+              flx-name
+              cands-to-sort)
+           (mapcar #'car
+                   (sort (mapcar
+                          (lambda (cand)
+                            (cons cand
+                                  (car (flx-score cand flx-name ivy--flx-cache))))
+                          cands-to-sort)
+                         (lambda (c1 c2)
+                           ;; Break ties by length
+                           (if (/= (cdr c1) (cdr c2))
+                               (> (cdr c1)
+                                  (cdr c2))
+                             (< (length (car c1))
+                                (length (car c2))))))))
 
          ;; Add the unsorted candidates
          cands-left))
@@ -3302,7 +3306,10 @@ FACE is the face to apply to STR."
                           (substring ivy-text 1)
                         ivy-text)))
         (ivy--flx-propertize
-         (cons (flx-score str flx-name ivy--flx-cache) str)))
+         (cons (if (fboundp 'haskell-native-score-single-match)
+                   (haskell-native-score-single-match flx-name str)
+                 (flx-score str flx-name ivy--flx-cache))
+               str)))
     (ivy--highlight-default str)))
 
 (defun ivy--highlight-default (str)
