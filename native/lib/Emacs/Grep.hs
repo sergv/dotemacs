@@ -14,7 +14,7 @@
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Emacs.Grep (emacsGrepRecDoc, emacsGrepRec) where
+module Emacs.Grep (initialise) where
 
 import Control.Arrow (first)
 import Control.Concurrent.Async.Lifted.Safe
@@ -43,6 +43,7 @@ import Data.Traversable
 import GHC.Conc (getNumCapabilities)
 
 import Data.Emacs.Module.Args
+import Data.Emacs.Module.SymbolName.TH
 import qualified Data.Emacs.Module.Value as Emacs
 import Emacs.Module
 import Emacs.Module.Assert
@@ -53,8 +54,12 @@ import Data.Regex
 import Path
 import Path.IO
 
-
-import Data.Emacs.Module.SymbolName.TH
+initialise
+  :: (WithCallStack, Throws EmacsThrow, Throws EmacsError, Throws EmacsInternalError)
+  => EmacsM s ()
+initialise =
+  bindFunction [esym|haskell-native-grep-rec|] =<<
+    makeFunction emacsGrepRec emacsGrepRecDoc
 
 emacsGrepRecDoc :: C8.ByteString
 emacsGrepRecDoc =
@@ -188,7 +193,7 @@ formatMatchEntry MatchEntry{matchAbsPath, matchRelPath, matchLineNum, matchLineP
       matchedLines = [ (`addFaceProp` [esym|lazy-highlight|]) =<< makeString line
                      | line <- C8.lines matchLineStr
                      ]
-      suffixLines  = [makeString (C8.snoc matchLineSuffix '\n') | not $ C8.null matchLinePrefix ]
+      suffixLines  = [makeString (C8.snoc matchLineSuffix '\n')]
 
       connect
         :: [m s (Emacs.Value s)]
@@ -204,12 +209,7 @@ formatMatchEntry MatchEntry{matchAbsPath, matchRelPath, matchLineNum, matchLineP
   let paddingSize = C8.length matchPath' + 1 + C8.length matchLineNum'
   headerPadding <- makeString $ C8.replicate paddingSize ' '
 
-  body <- case matchedTextLines of
-    []     -> Checked.throw $ mkUserError "formatMatchEntry" "No matched text lines in the result"
-    xs@[_] -> pure xs
-    x : xs -> do
-      xs' <- traverse (concat2 headerPadding) xs
-      pure $ x : xs'
+  let body = L.intersperse headerPadding matchedTextLines
   formatted <- funcallPrimitive [esym|concat|] $ [fileName, colon, lineNum', colon] ++ body
   pure (matchPath', emacsPath, formatted)
 

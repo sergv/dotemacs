@@ -33,8 +33,9 @@ import Emacs.Module
 import Emacs.Module.Assert
 import Emacs.Module.Errors
 
-import Emacs.FastFileSearch
-import Emacs.Grep
+import qualified Emacs.FastFileSearch
+import qualified Emacs.FuzzyMatch
+import qualified Emacs.Grep
 
 foreign export ccall initialise :: Ptr Runtime -> IO CBool
 
@@ -57,9 +58,8 @@ initialise'
   => EmacsM s Bool
 initialise' = do
   liftIO $ setNumCapabilities 4
-  emacsFindFun <- makeFunction emacsFindRec emacsFindRecDoc
-  bindFunction [esym|haskell-native-find-rec|] emacsFindFun
-  emacsGrepFun <- makeFunction emacsGrepRec emacsGrepRecDoc
-  bindFunction [esym|haskell-native-grep-rec|] emacsGrepFun
+  Emacs.FastFileSearch.initialise
+  Emacs.FuzzyMatch.initialise
+  Emacs.Grep.initialise
   _ <- provide [esym|haskell-native-emacs-extensions|]
   pure True
