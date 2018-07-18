@@ -168,8 +168,6 @@ modified and we should reconfigure the project.")
 (defvar-local haskell-watch--project-for-buffer nil
   "Project this buffer is assigned to.")
 
-;; TODO for 2018-03-13: make flycheck's state dirty in the target buffers,
-;; so that when
 (defun haskell-watch--mark-project-as-dirty (proj)
   (setf (haskell-watched-project/intero-needs-restart proj) t)
   (maphash (lambda (buf _ignored)
