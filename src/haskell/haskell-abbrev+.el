@@ -268,6 +268,11 @@ then Bar would be the result."
                :trigger "##?d\\(?:ump\\(?:-core\\)?\\)? *"
                :action-type 'yas-snippet
                :action-data dump-core-snippet
+               :predicate #'point-not-inside-string-or-comment?)
+              (make-abbrev+-abbreviation
+               :trigger "@@ *"
+               :action-type 'yas-snippet
+               :action-data "{-@ $1 @-}$0"
                :predicate #'point-not-inside-string-or-comment?)))
            (list
             (make-abbrev+-abbreviation
