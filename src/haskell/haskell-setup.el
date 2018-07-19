@@ -99,10 +99,10 @@
   "Try to get symbol location via intero (`intero-goto-definition'), if it's
 enabled. Otherwise fall back to eproj tags."
   (interactive "P")
-  (or (when (and intero-mode
-                 (not use-regexp?))
-        (with-demoted-errors "intero-goto-definition failed: %s"
-          (intero-goto-definition)))
+  (or ;; (when (and intero-mode
+      ;;            (not use-regexp?))
+      ;;   (with-demoted-errors "intero-goto-definition failed: %s"
+      ;;     (intero-goto-definition)))
       (eproj-symbnav/go-to-symbol-home use-regexp?)))
 
 ;;;###autoload
