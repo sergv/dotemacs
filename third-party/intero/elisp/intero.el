@@ -72,9 +72,9 @@
 (defcustom intero-package-version
   (cl-case system-type
     ;; Until <https://github.com/haskell/network/issues/313> is fixed:
-    (windows-nt "0.1.28")
-    (cygwin "0.1.28")
-    (t "0.1.30"))
+    (windows-nt "0.1.32")
+    (cygwin "0.1.32")
+    (t "0.1.32"))
   "Package version to auto-install.
 
 This version does not necessarily have to be the latest version
@@ -2204,10 +2204,11 @@ as (CALLBACK STATE REPLY)."
 
 (defun intero-buffer (worker)
   "Get the WORKER buffer for the current directory."
-  (let ((buffer (intero-get-buffer-create worker)))
+  (let ((buffer (intero-get-buffer-create worker))
+        (targets (buffer-local-value 'intero-targets (current-buffer))))
     (if (get-buffer-process buffer)
         buffer
-      (intero-get-worker-create worker nil (current-buffer)
+      (intero-get-worker-create worker targets (current-buffer)
                                 (buffer-local-value
                                  'intero-stack-yaml (current-buffer))))))
 
@@ -3154,13 +3155,16 @@ suggestions are available."
   (with-current-buffer (intero-buffer 'backend)
     (or intero-extensions
         (setq intero-extensions
-              (split-string
-               (shell-command-to-string
-                (concat intero-stack-executable
-                        (if intero-stack-yaml
-                            (concat "--stack-yaml " intero-stack-yaml)
-                          "")
-                        " exec --verbosity silent -- ghc --supported-extensions")))))))
+              (cl-remove-if-not
+               (lambda (str) (let ((case-fold-search nil))
+                               (string-match "^[A-Z][A-Za-z0-9]+$" str)))
+               (split-string
+                (shell-command-to-string
+                 (concat intero-stack-executable
+                         (if intero-stack-yaml
+                             (concat "--stack-yaml " intero-stack-yaml)
+                           "")
+                         " exec --verbosity silent -- ghc --supported-extensions"))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Auto actions
