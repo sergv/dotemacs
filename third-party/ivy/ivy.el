@@ -3138,20 +3138,28 @@ This function serves as a fallback when nothing else is available."
   0)
 
 (defcustom ivy-minibuffer-faces
-  '(ivy-minibuffer-match-face-1
-    ivy-minibuffer-match-face-2
-    ivy-minibuffer-match-face-3
-    ivy-minibuffer-match-face-4)
+  (vector
+   'ivy-minibuffer-match-face-1
+   'ivy-minibuffer-match-face-2
+   'ivy-minibuffer-match-face-3
+   'ivy-minibuffer-match-face-4)
   "List of `ivy' faces for minibuffer group matches."
-  :type '(repeat :tag "Faces"
-          (choice
-           (const ivy-minibuffer-match-face-1)
-           (const ivy-minibuffer-match-face-2)
-           (const ivy-minibuffer-match-face-3)
-           (const ivy-minibuffer-match-face-4)
-           (face :tag "Other face"))))
+  :type
+  '(restricted-sexp :tag "Vector"
+                    :match-alternatives
+                    (lambda (xs)
+                      (and
+                       (vectorp xs)
+                       (seq-every-p
+                        (lambda (x)
+                          (memq x
+                                '(ivy-minibuffer-match-face-1
+                                  ivy-minibuffer-match-face-2
+                                  ivy-minibuffer-match-face-3
+                                  ivy-minibuffer-match-face-4)))
+                        xs)))))
 
-(defvar ivy-flx-limit 200
+(defvar ivy-flx-limit 256
   "Used to conditionally turn off flx sorting.
 
 When the amount of matching candidates exceeds this limit, then
@@ -3160,17 +3168,19 @@ no sorting is done.")
 (defun ivy--flx-propertize (x)
   "X is (cons (flx-score STR ...) STR)."
   (let ((str (copy-sequence (cdr x)))
-        (i 0)
-        (last-j -2))
+        (i -1)
+        (last-j -2)
+        (face-count (length ivy-minibuffer-faces)))
     (dolist (j (cdar x))
-      (unless (eq j (1+ last-j))
-        (cl-incf i))
-      (setq last-j j)
-      (ivy-add-face-text-property
-       j (1+ j)
-       (nth (1+ (mod (+ i 2) (1- (length ivy-minibuffer-faces))))
-            ivy-minibuffer-faces)
-       str))
+      (let ((face ))
+        (unless (eq j (1+ last-j))
+          (cl-incf i))
+        (setq last-j j)
+        (ivy-add-face-text-property
+         j
+         (1+ j)
+         (aref ivy-minibuffer-faces (mod i face-count))
+         str)))
     str))
 
 (defun ivy--flx-sort (name cands)
