@@ -141,6 +141,11 @@
       "sum_suffix" "system_clock" "tan" "tanh" "target" "template" "then"
       "tiny" "transfer" "transpose" "trim" "true" "type" "ubound" "unpack"
       "use" "value" "verify" "volatile" "wait" "where" "while" "with" "write"))
+    (go-mode
+     ;; from https://golang.org/ref/spec#Keywords
+     "break" "case" "chan" "const" "continue" "default" "defer" "else" "fallthrough"
+     "for" "func" "go" "goto" "if" "import" "interface" "map" "package" "range"
+     "return" "select" "struct" "switch" "type" "var")
     (java-mode
      "abstract" "assert" "boolean" "break" "byte" "case" "catch" "char" "class"
      "continue" "default" "do" "double" "else" "enum" "extends" "final"
@@ -149,9 +154,12 @@
      "return" "short" "static" "strictfp" "super" "switch" "synchronized"
      "this" "throw" "throws" "transient" "try" "void" "volatile" "while")
     (javascript-mode
-     "break" "catch" "const" "continue" "delete" "do" "else" "export" "for"
-     "function" "if" "import" "in" "instanceOf" "label" "let" "new" "return"
-     "switch" "this" "throw" "try" "typeof" "var" "void" "while" "with" "yield")
+     ;; https://tc39.github.io/ecma262/ + async, static and undefined
+     "async" "await" "break" "case" "catch" "class" "const" "continue"
+     "debugger" "default" "delete" "do" "else" "enum" "export" "extends" "false"
+     "finally" "for" "function" "if" "import" "in" "instanceof" "let" "new"
+     "null" "return" "static" "super" "switch" "this" "throw" "true" "try"
+     "typeof" "undefined" "var" "void" "while" "with" "yield")
     (kotlin-mode
      "abstract" "annotation" "as" "break" "by" "catch" "class" "companion"
      "const" "constructor" "continue" "data" "do" "else" "enum" "false" "final"
@@ -209,9 +217,11 @@
      "print" "private" "protected" "public" "require" "require_once" "return"
      "static" "switch" "this" "throw" "try" "unset" "use" "var" "while" "xor")
     (python-mode
-     "and" "assert" "break" "class" "continue" "def" "del" "elif" "else"
-     "except" "exec" "finally" "for" "from" "global" "if" "import" "in" "is"
-     "lambda" "not" "or" "pass" "print" "raise" "return" "try" "while" "yield")
+     ;; https://docs.python.org/3/reference/lexical_analysis.html#keywords
+     "False" "None" "True" "and" "as" "assert" "break" "class" "continue" "def"
+     "del" "elif" "else" "except" "exec" "finally" "for" "from" "global" "if"
+     "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "print" "raise"
+     "return" "try" "while" "with" "yield")
     (ruby-mode
      "BEGIN" "END" "alias" "and"  "begin" "break" "case" "class" "def" "defined?"
      "do" "else" "elsif"  "end" "ensure" "false" "for" "if" "in" "module"
@@ -219,10 +229,6 @@
      "then" "true" "undef" "unless" "until" "when" "while" "yield")
     ;; From https://doc.rust-lang.org/grammar.html#keywords
     ;; but excluding unused reserved words: https://www.reddit.com/r/rust/comments/34fq0k/is_there_a_good_list_of_rusts_keywords/cqucvnj
-    (go-mode
-     "break" "case" "chan" "const" "continue" "default" "defer" "else" "fallthrough"
-     "for" "func" "go" "goto" "if" "import" "interface" "map" "package" "range"
-     "return" "select" "struct" "switch" "type" "var")
     (rust-mode
      "Self"
      "as" "box" "break" "const" "continue" "crate" "else" "enum" "extern"
@@ -267,6 +273,7 @@
     (espresso-mode . javascript-mode)
     (js-mode . javascript-mode)
     (js-jsx-mode . javascript-mode)
+    (rjsx-mode . javascript-mode)
     (cperl-mode . perl-mode)
     (jde-mode . java-mode)
     (ess-julia-mode . julia-mode)
