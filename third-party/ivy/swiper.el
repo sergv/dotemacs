@@ -1,6 +1,6 @@
 ;;; swiper.el --- Isearch with an overview. Oh, man! -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
@@ -24,7 +24,7 @@
 ;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This package gives an overview of the current regex search
 ;; candidates.  The search regex can be split into groups with a
 ;; space.  Each group is highlighted with a different face.
@@ -33,6 +33,7 @@
 ;; lines will be matched.
 
 ;;; Code:
+
 (require 'ivy)
 
 (defgroup swiper nil
@@ -41,7 +42,7 @@
   :prefix "swiper-")
 
 (defface swiper-match-face-1
-  '((t (:inherit isearch-lazy-highlight-face)))
+  '((t (:inherit lazy-highlight)))
   "The background face for `swiper' matches.")
 
 (defface swiper-match-face-2
@@ -399,7 +400,6 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
   (interactive)
   (swiper--ivy (swiper--candidates) initial-input))
 
-(declare-function string-trim-right "subr-x")
 (defvar swiper--current-window-start nil)
 
 (defun swiper--extract-matches (regex cands)
@@ -420,7 +420,6 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
   "Generate a custom occur buffer for `swiper'.
 When REVERT is non-nil, regenerate the current *ivy-occur* buffer.
 When capture groups are present in the input, print them instead of lines."
-  (require 'subr-x)
   (let* ((buffer (ivy-state-buffer ivy-last))
          (fname (propertize
                  (with-ivy-window
@@ -432,17 +431,16 @@ When capture groups are present in the input, print them instead of lines."
                  'compilation-info))
          (re (progn (string-match "\"\\(.*\\)\"" (buffer-name))
                     (match-string 1 (buffer-name))))
+         (re (mapconcat #'identity (ivy--split re) ".*?"))
          (cands
           (mapcar
            (lambda (s)
-             (format "%s:%s:%s"
-                     fname
-                     (propertize
-                      (string-trim-right
-                       (get-text-property 0 'swiper-line-number s))
-                      'face 'compilation-line-number)
-                     (substring s 1)))
-           (if (null revert)
+             (let* ((n (get-text-property 0 'swiper-line-number s))
+                    (i (string-match-p "[ \t\n\r]+\\'" n)))
+               (when i (setq n (substring n 0 i)))
+               (put-text-property 0 (length n) 'face 'compilation-line-number n)
+               (format "%s:%s:%s" fname n (substring s 1))))
+           (if (not revert)
                ivy--old-cands
              (setq ivy--old-re nil)
              (let ((ivy--regex-function 'swiper--re-builder))
@@ -499,9 +497,7 @@ When capture groups are present in the input, print them instead of lines."
   "Transform STR into a swiper regex.
 This is the regex used in the minibuffer where candidates have
 line numbers.  For the buffer, use `ivy--regex' instead."
-  (let* ((re-builder
-          (or (cdr (assoc 'swiper ivy-re-builders-alist))
-              (cdr (assoc t ivy-re-builders-alist))))
+  (let* ((re-builder (ivy-alist-setting ivy-re-builders-alist))
          (re (cond
                ((equal str "")
                 "")
@@ -620,45 +616,51 @@ Matched candidates should have `swiper-invocation-face'."
   (with-ivy-window
     (swiper--cleanup)
     (when (> (length (ivy-state-current ivy-last)) 0)
-      (let* ((re (funcall ivy--regex-function ivy-text))
-             (re (if (stringp re) re (caar re)))
-             (re (replace-regexp-in-string
-                  "    " "\t"
-                  re))
-             (str (get-text-property 0 'swiper-line-number (ivy-state-current ivy-last)))
-             (num (if (string-match "^[0-9]+" str)
-                      (string-to-number (match-string 0 str))
-                    0)))
-        (unless (memq this-command '(ivy-yank-word
-                                     scroll-other-window))
-          (when (cl-plusp num)
-            (unless (if swiper--current-line
-                        (eq swiper--current-line num)
-                      (eq (line-number-at-pos) num))
-              (goto-char swiper--point-min)
-              (if swiper-use-visual-line
-                  (line-move (1- num))
-                (forward-line (1- num))))
-            (if (and (equal ivy-text "")
-                     (>= swiper--opoint (line-beginning-position))
-                     (<= swiper--opoint (line-end-position)))
-                (goto-char swiper--opoint)
-              (if (eq swiper--current-line num)
-                  (when swiper--current-match-start
-                    (goto-char swiper--current-match-start))
-                (setq swiper--current-line num))
-              (when (re-search-forward re (line-end-position) t)
-                (setq swiper--current-match-start (match-beginning 0))))
-            (isearch-range-invisible (line-beginning-position)
-                                     (line-end-position))
-            (unless (and (>= (point) (window-start))
-                         (<= (point) (window-end (ivy-state-window ivy-last) t)))
-              (recenter))
-            (setq swiper--current-window-start (window-start))))
-        (swiper--add-overlays
-         re
-         (max (window-start) swiper--point-min)
-         (min (window-end (selected-window) t) swiper--point-max))))))
+      (let* ((regexp-or-regexps (funcall ivy--regex-function ivy-text))
+             (regexps
+              (if (listp regexp-or-regexps)
+                  (mapcar #'car (cl-remove-if-not #'cdr regexp-or-regexps))
+                (list regexp-or-regexps))))
+        (dolist (re regexps)
+          (let* ((re (replace-regexp-in-string
+                      "    " "\t"
+                      re))
+                 (str (get-text-property 0 'swiper-line-number (ivy-state-current ivy-last)))
+                 (num (if (string-match "^[0-9]+" str)
+                          (string-to-number (match-string 0 str))
+                        0)))
+            (unless (memq this-command '(ivy-yank-word
+                                         ivy-yank-symbol
+                                         ivy-yank-char
+                                         scroll-other-window))
+              (when (cl-plusp num)
+                (unless (if swiper--current-line
+                            (eq swiper--current-line num)
+                          (eq (line-number-at-pos) num))
+                  (goto-char swiper--point-min)
+                  (if swiper-use-visual-line
+                      (line-move (1- num))
+                    (forward-line (1- num))))
+                (if (and (equal ivy-text "")
+                         (>= swiper--opoint (line-beginning-position))
+                         (<= swiper--opoint (line-end-position)))
+                    (goto-char swiper--opoint)
+                  (if (eq swiper--current-line num)
+                      (when swiper--current-match-start
+                        (goto-char swiper--current-match-start))
+                    (setq swiper--current-line num))
+                  (when (re-search-forward re (line-end-position) t)
+                    (setq swiper--current-match-start (match-beginning 0))))
+                (isearch-range-invisible (line-beginning-position)
+                                         (line-end-position))
+                (unless (and (>= (point) (window-start))
+                             (<= (point) (window-end (ivy-state-window ivy-last) t)))
+                  (recenter))
+                (setq swiper--current-window-start (window-start))))
+            (swiper--add-overlays
+             re
+             (max (window-start) swiper--point-min)
+             (min (window-end (selected-window) t) swiper--point-max))))))))
 
 (defun swiper--add-overlays (re &optional beg end wnd)
   "Add overlays for RE regexp in visible part of the current buffer.
@@ -693,39 +695,45 @@ WND, when specified is the window."
           ;; RE can become an invalid regexp
           (while (and (ignore-errors (re-search-forward re end t))
                       (> (- (match-end 0) (match-beginning 0)) 0))
-            (unless (and (consp ivy--old-re)
-                         (null
-                          (save-match-data
-                            (ivy--re-filter ivy--old-re
-                                            (list
-                                             (buffer-substring-no-properties
-                                              (line-beginning-position)
-                                              (line-end-position)))))))
-              (let ((mb (match-beginning 0))
-                    (me (match-end 0)))
-                (unless (> (- me mb) 2017)
-                  (swiper--add-overlay mb me
-                                       (if (zerop ivy--subexps)
-                                           (cadr swiper-faces)
-                                         (car swiper-faces))
-                                       wnd 0))))
-            (let ((i 1)
-                  (j 0))
-              (while (<= (cl-incf j) ivy--subexps)
-                (let ((bm (match-beginning j))
-                      (em (match-end j)))
-                  (when (and (integerp em)
-                             (integerp bm))
-                    (while (and (< j ivy--subexps)
-                                (integerp (match-beginning (+ j 1)))
-                                (= em (match-beginning (+ j 1))))
-                      (setq em (match-end (cl-incf j))))
-                    (swiper--add-overlay
-                     bm em
-                     (nth (1+ (mod (+ i 2) (1- (length swiper-faces))))
-                          swiper-faces)
-                     wnd i)
-                    (cl-incf i)))))))))))
+            ;; Don't highlight a match if it spans multiple
+            ;; lines. `count-lines' returns 1 if the match is within a
+            ;; single line, even if it includes the newline, and 2 or
+            ;; greater otherwise. We hope that the inclusion of the
+            ;; newline will not ever be a problem in practice.
+            (when (< (count-lines (match-beginning 0) (match-end 0)) 2)
+              (unless (and (consp ivy--old-re)
+                           (null
+                            (save-match-data
+                              (ivy--re-filter ivy--old-re
+                                              (list
+                                               (buffer-substring-no-properties
+                                                (line-beginning-position)
+                                                (line-end-position)))))))
+                (let ((mb (match-beginning 0))
+                      (me (match-end 0)))
+                  (unless (> (- me mb) 2017)
+                    (swiper--add-overlay mb me
+                                         (if (zerop ivy--subexps)
+                                             (cadr swiper-faces)
+                                           (car swiper-faces))
+                                         wnd 0))))
+              (let ((i 1)
+                    (j 0))
+                (while (<= (cl-incf j) ivy--subexps)
+                  (let ((bm (match-beginning j))
+                        (em (match-end j)))
+                    (when (and (integerp em)
+                               (integerp bm))
+                      (while (and (< j ivy--subexps)
+                                  (integerp (match-beginning (+ j 1)))
+                                  (= em (match-beginning (+ j 1))))
+                        (setq em (match-end (cl-incf j))))
+                      (swiper--add-overlay
+                       bm em
+                       (nth (1+ (mod (+ i 2) (1- (length swiper-faces))))
+                            swiper-faces)
+                       wnd i)
+                      (cl-incf i))))))))))))
 
 (defun swiper--add-overlay (beg end face wnd priority)
   "Add overlay bound by BEG and END to `swiper--overlays'.
