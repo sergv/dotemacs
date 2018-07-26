@@ -987,6 +987,14 @@ list marker of some kind), and end of the obstacle."
   (setq-local mode-line-process '("/" (:eval (symbol-name haskell-literate)))))
 
 ;;;###autoload
+(add-to-list 'auto-mode-alist        '("\\.[gh]s\\'" . haskell-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist        '("\\.hsig\\'" . haskell-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist        '("\\.l[gh]s\\'" . literate-haskell-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist        '("\\.hsc\\'" . haskell-mode))
+;;;###autoload
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("runhaskell" . haskell-mode))
