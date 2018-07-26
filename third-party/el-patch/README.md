@@ -4,6 +4,8 @@
 
 ## Table of contents
 
+<!-- longlines-start -->
+
 <!-- toc -->
 
 - [TL;DR](#tldr)
@@ -19,12 +21,15 @@
 - [Removing patches](#removing-patches)
 - [Lazy-loading packages](#lazy-loading-packages)
 - [Validating patches that are not loaded yet](#validating-patches-that-are-not-loaded-yet)
+- [Integration with `use-package`](#integration-with-use-package)
 - [Usage with byte-compiled init-file](#usage-with-byte-compiled-init-file)
 - [But how does it work?](#but-how-does-it-work)
 - [But how does it actually work?](#but-how-does-it-actually-work)
 - [But does it actually work?](#but-does-it-actually-work)
 
 <!-- tocstop -->
+
+<!-- longlines-stop -->
 
 ## TL;DR
 
@@ -155,7 +160,7 @@ also [Validating patches that are not loaded yet][not-loaded-yet].
   entire form is replaced with `OLD`, and in the modified definition,
   the entire form is replaced with `NEW`.
 
-* `(el-patch-wrap [TRIML [TRIMR]] ARGS)`
+* `(el-patch-wrap [TRIML [TRIMR]] ARGS...)`
 
   Wrap forms in a list, optionally prepending or postpending
   additional forms. This is the most complicated directive, so an
@@ -192,14 +197,14 @@ also [Validating patches that are not loaded yet][not-loaded-yet].
   one, two, or three—thus eliminating any ambiguity about which
   argument is which.
 
-* `(el-patch-splice [TRIML [TRIMR]] ARGS)`
+* `(el-patch-splice [TRIML [TRIMR]] ARGS...)`
 
   Splice forms into their containing form, optionally removing some
   from the beginning and end first. This is just like `el-patch-wrap`,
   except that the roles of the original and modified definitions are
   exchanged.
 
-* `(el-patch-let VARLIST ARG)`
+* `(el-patch-let VARLIST ARGS...)`
 
   Sometimes you need to restructure a form in an inconvenient way. For
   example, suppose you need to turn the following form:
@@ -251,7 +256,7 @@ also [Validating patches that are not loaded yet][not-loaded-yet].
 
   Well, you can. Welcome to `el-patch`.
 
-* `(el-patch-literal ARG)`
+* `(el-patch-literal ARGS...)`
 
   Hopefully this will never happen, but you might need to use
   `el-patch` to modify functions that use symbols like `el-patch-add`.
@@ -267,6 +272,35 @@ also [Validating patches that are not loaded yet][not-loaded-yet].
 
   in both the original and modified definitions. Thus, you can happily
   write `el-patches` that patch other `el-patch` definitions :)
+
+* `(el-patch-concat ARGS...)`
+
+  This patch directive lets you concatenate strings. It is useful for
+  modifying long string literals. For example, let's say that you have
+  a string
+
+      "Pretend this is a very long string we only want to write once"
+
+  in a function you are patching. To change just a small part of this
+  string, you could use `el-patch-swap` directly:
+
+      (el-patch-swap
+        "Pretend this is a very long string we only want to write once"
+        "Pretend this is a really long string we only want to write once")
+
+  But this repeats the rest of the string, violating DRY. Imagine if
+  you just want to add a sentence to a 40-line docstring! Here's an
+  alternative:
+
+      (el-patch-concat
+        "Pretend this is a "
+        (el-patch-swap "very" "really")
+        " long string we only want to write once")
+
+  Basically, `el-patch-concat` just resolves all of its arguments,
+  which may contain arbitrary patch directives, and then concatenates
+  them as strings and splices the result into *both* the original and
+  modified definition.
 
 ## Defining patches
 
@@ -301,9 +335,19 @@ Some warnings:
   behavior and force the patches to reset the value of the variable,
   if it is already defined, set `el-patch-use-aggressive-defvar`.
 
-* Using `el-patch-use-aggressive-defvar` together with a custom
-  `:variable` in `el-patch-define-minor-mode` is not currently
-  supported. If you have a need for this use case, open an issue.
+You can patch any definition form, not just those above. To register
+your own definition types, use the `el-patch-deftype` macro. For
+example, the `el-patch-defun` function is defined as follows:
+
+    (el-patch-deftype defun
+      :classify el-patch-classify-function
+      :declare ((doc-string 3)
+                (indent defun)))
+
+See the docstrings on the macro `el-patch-deftype` and the variable
+`el-patch-deftype-alist` for more detailed information. See also the
+source code of `el-patch` for examples of how to use
+`el-patch-deftype`.
 
 ## Inspecting patches
 
@@ -454,6 +498,25 @@ If you don't want all of your patches to be defined all the time, you
 can put some functions in `el-patch-post-validate-hook` to disable
 them again. For some examples of how to use these hooks, check out
 [Radian Emacs][radian].
+
+## Integration with `use-package`
+
+You can enable the `use-package` integration of `el-patch` by toggling
+the global minor mode `el-patch-use-package-mode`, but it is more
+convenient to set the variable
+`el-patch-enable-use-package-integration` (defaults to non-nil) and
+then the mode will be toggled appropriately once `el-patch` and
+`use-package` have both been loaded.
+
+The `use-package` integration defines two new `use-package` keywords,
+`:init/el-patch` and `:config/el-patch`. They are analogous to `:init`
+and `:config`, but each top-level form is converted into an `el-patch`
+form: for example, a `defun` will be turned into an `el-patch-defun`,
+and so on. (Definition forms that have no corresponding `el-patch`
+macro are left as is.) The resulting code is prepended to the code in
+`:init` or `:config`, respectively. Also, if you provide either
+keyword, then a call to `el-patch-feature` is inserted into the
+`:init` section.
 
 ## Usage with byte-compiled init-file
 
