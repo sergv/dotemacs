@@ -77,24 +77,6 @@ or `helm--completing-read-default'."
                 (function-item helm--completing-read-default)
                 (function :tag "Other function")))
 
-(defvar magit-no-confirm-default nil
-  "A list of commands which should just use the default choice.
-
-Many commands let the user choose the target they act on offering
-a sensible default as default choice.  If you think that that
-default is so sensible that it should always be used without even
-offering other choices, then add that command here.
-
-Only the following commands support this option:
-  `magit-branch'
-  `magit-branch-and-checkout'
-  `magit-branch-orphan'
-  `magit-worktree-branch'
-    For these four commands `magit-branch-read-upstream-first'
-    must be non-nil, or adding them here has no effect.
-  `magit-branch-rename'
-  `magit-tag'")
-
 (defcustom magit-dwim-selection
   '((magit-stash-apply        nil t)
     (magit-stash-branch       nil t)
@@ -131,11 +113,13 @@ The value has the form ((COMMAND nil|PROMPT DEFAULT)...).
   entry has no effect."
   :package-version '(magit . "2.12.0")
   :group 'magit-commands
-  :type '(repeat (list command
-                       (regexp :tag "Prompt regexp")
-                       (choice (const "Offer other choices" nil)
-                               (const "Require confirmation" ask)
-                               (const "Use default without confirmation" t)))))
+  :type '(repeat
+          (list (symbol :tag "Command") ; It might not be fboundp yet.
+                (choice (const  :tag "for all prompts" nil)
+                        (regexp :tag "for prompts matching regexp"))
+                (choice (const  :tag "offer other choices" nil)
+                        (const  :tag "require confirmation" ask)
+                        (const  :tag "use default without confirmation" t)))))
 
 (defconst magit--confirm-actions
   '((const reverse)           (const discard)
@@ -232,6 +216,28 @@ References:
   This action only concerns the deletion of multiple stashes at
   once.
 
+Edit published history:
+
+  Without adding these symbols here, you will be warned before
+  editing commits that have already been pushed to one of the
+  branches listed in `magit-published-branches'.
+
+  `amend-published' Affects most commands that amend to \"HEAD\".
+
+  `rebase-published' Affects commands that perform interactive
+  rebases.  This includes commands from the commit popup that
+  modify a commit other than \"HEAD\", namely the various fixup
+  and squash variants.
+
+  `edit-published' Affects the commands `magit-edit-line-commit'
+  and `magit-diff-edit-hunk-commit'.  These two commands make
+  it quite easy to accidentally edit a published commit, so you
+  should think twice before configuring them not to ask for
+  confirmation.
+
+  To disable confirmation completely, add all three symbols here
+  or set `magit-published-branches' to nil.
+
 Various:
 
   `kill-process' There seldom is a reason to kill a process.
@@ -310,9 +316,10 @@ and in process buffers to elide `magit-git-global-arguments'."
 (defcustom magit-update-other-window-delay 0.2
   "Delay before automatically updating the other window.
 
-When moving around in certain buffers certain other buffers,
-which are being displayed in another window, may optionally be
-updated to display information about the section at point.
+When moving around in certain buffers, then certain other
+buffers, which are being displayed in another window, may
+optionally be updated to display information about the
+section at point.
 
 When holding down a key to move by more than just one section,
 then that would update that buffer for each section on the way.
@@ -390,14 +397,12 @@ acts similarly to `completing-read', except for the following:
   `magit-builtin-completing-read'."
   (setq magit-completing-read--silent-default nil)
   (-if-let (dwim (and def
-                      (or (nth 2 (-first (lambda (arg)
-                                           (pcase-let ((`(,cmd ,re ,_) arg))
-                                             (and (eq this-command cmd)
-                                                  (or (not re)
-                                                      (string-match-p re prompt)))))
-                                         magit-dwim-selection))
-                          (memq this-command
-                                (with-no-warnings magit-no-confirm-default)))))
+                      (nth 2 (-first (lambda (arg)
+                                       (pcase-let ((`(,cmd ,re ,_) arg))
+                                         (and (eq this-command cmd)
+                                              (or (not re)
+                                                  (string-match-p re prompt)))))
+                                     magit-dwim-selection))))
       (if (eq dwim 'ask)
           (if (y-or-n-p (format "%s %s? " prompt def))
               def
@@ -575,6 +580,10 @@ ACTION is a member of option `magit-slow-confirm'."
       (yes-or-no-p prompt)
     (y-or-n-p prompt)))
 
+(defvar magit--no-confirm-alist
+  '((safe-with-wip magit-wip-before-change-mode
+                   discard reverse stage-all-changes unstage-all-changes)))
+
 (cl-defun magit-confirm (action &optional prompt prompt-n noabort
                                 (items nil sitems))
   (declare (indent defun))
@@ -584,13 +593,15 @@ ACTION is a member of option `magit-slow-confirm'."
                          (car items)))
   (or (cond ((and (not (eq action t))
                   (or (eq magit-no-confirm t)
-                      (memq action
-                            `(,@magit-no-confirm
-                              ,@(and magit-wip-before-change-mode
-                                     (memq 'safe-with-wip magit-no-confirm)
-                                     `(discard reverse
-                                               stage-all-changes
-                                               unstage-all-changes))))))
+                      (memq action magit-no-confirm)
+                      (cl-member-if (lambda (elt)
+                                      (pcase-let ((`(,key ,var . ,sub) elt))
+                                        (and (memq key magit-no-confirm)
+                                             (memq action sub)
+                                             (or (not var)
+                                                 (and (boundp var)
+                                                      (symbol-value var))))))
+                                    magit--no-confirm-alist)))
              (or (not sitems) items))
             ((not sitems)
              (magit-y-or-n-p prompt action))
@@ -726,6 +737,42 @@ that it will align with the text area."
                     (eq face current))
              return nil))
 
+(defun magit--format-spec (format specification)
+  "Like `format-spec' but preserve text properties in SPECIFICATION."
+  (with-temp-buffer
+    (insert format)
+    (goto-char (point-min))
+    (while (search-forward "%" nil t)
+      (cond
+       ;; Quoted percent sign.
+       ((eq (char-after) ?%)
+	(delete-char 1))
+       ;; Valid format spec.
+       ((looking-at "\\([-0-9.]*\\)\\([a-zA-Z]\\)")
+	(let* ((num (match-string 1))
+	       (spec (string-to-char (match-string 2)))
+	       (val (assq spec specification)))
+	  (unless val
+	    (error "Invalid format character: `%%%c'" spec))
+	  (setq val (cdr val))
+	  ;; Pad result to desired length.
+	  (let ((text (format (concat "%" num "s") val)))
+	    ;; Insert first, to preserve text properties.
+            (if (next-property-change 0 (concat " " text))
+                ;; If the inserted text has properties, then preserve those.
+	        (insert text)
+              ;; Otherwise preserve FORMAT's properties, like `format-spec'.
+	      (insert-and-inherit text))
+	    ;; Delete the specifier body.
+            (delete-region (+ (match-beginning 0) (length text))
+                           (+ (match-end 0) (length text)))
+            ;; Delete the percent sign.
+            (delete-region (1- (match-beginning 0)) (match-beginning 0)))))
+       ;; Signal an error on bogus format strings.
+       (t
+	(error "Invalid format string"))))
+    (buffer-string)))
+
 ;;; Missing from Emacs
 
 (defun magit-kill-this-buffer ()
@@ -792,9 +839,9 @@ are not compatible.  Therefore you cannot turn on that minor-mode
 in Magit buffers.  If you try to enable it anyway, then this
 advice prevents that.
 
-It the reason the attempt is made is that `global-whitespace-mode'
-is enabled, then that is done silently.  However if you you call
-the local minor-mode interactively, then that results in an error.
+If the reason the attempt is made is that `global-whitespace-mode'
+is enabled, then that is done silently.  However if you call the local
+minor-mode interactively, then that results in an error.
 
 See `magit-diff-paint-whitespace' for an alternative."
   (if (not (derived-mode-p 'magit-mode))

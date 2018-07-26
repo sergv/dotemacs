@@ -7,7 +7,7 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Magit: (magit).
 #+TEXINFO_DIR_DESC: Using Git from Emacs with Magit.
-#+SUBTITLE: for version 2.12.0
+#+SUBTITLE: for version 2.13.0
 #+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
 
 #+TEXINFO_DEFFN: t
@@ -22,7 +22,7 @@ directly from within Emacs.  While many fine Git clients exist, only
 Magit and Git itself deserve to be called porcelains.
 
 #+TEXINFO: @noindent
-This manual is for Magit version 2.12.0.
+This manual is for Magit version 2.13.0.
 
 #+BEGIN_QUOTE
 Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
@@ -487,8 +487,8 @@ buffers whose major-modes derive from ~magit-mode~.
 
   This function displays most buffers so that they fill the entire
   height of the frame.  However, the buffer is displayed in another
-  window if 1) the buffer's mode derives from ~magit-process-mode~,
-  or 2) the buffer's mode derives from ~magit-diff-mode~, provided
+  window if (1) the buffer's mode derives from ~magit-process-mode~,
+  or (2) the buffer's mode derives from ~magit-diff-mode~, provided
   that the mode of the current buffer derives from ~magit-log-mode~ or
   ~magit-cherry-mode~.
 
@@ -969,9 +969,9 @@ Any of the functions listed below can be used as members of this hook.
 
   Delay before automatically updating the other window.
 
-  When moving around in certain buffers certain other buffers, which
-  are being displayed in another window, may optionally be updated to
-  display information about the section at point.
+  When moving around in certain buffers, then certain other buffers,
+  which are being displayed in another window, may optionally be
+  updated to display information about the section at point.
 
   When holding down a key to move by more than just one section, then
   that would update that buffer for each section on the way.  To
@@ -1326,6 +1326,27 @@ telling Magit to ask fewer questions.
       to confirm by accepting the default (or selecting another).
       This action only concerns the deletion of multiple stashes at
       once.
+
+  - Edit published history:
+
+    Without adding these symbols here, you will be warned before
+    editing commits that have already been pushed to one of the
+    branches listed in ~magit-published-branches~.
+
+    - ~amend-published~ Affects most commands that amend to "HEAD".
+
+    - ~rebase-published~ Affects commands that perform interactive
+      rebases.  This includes commands from the commit popup that
+      modify a commit other than "HEAD", namely the various fixup
+      and squash variants.
+
+    - ~edit-published~ Affects the commands ~magit-edit-line-commit~ and
+      ~magit-diff-edit-hunk-commit~.  These two commands make it quite
+      easy to accidentally edit a published commit, so you should
+      think twice before configuring them not to ask for confirmation.
+
+    To disable confirmation completely, add all three symbols here or
+    set ~magit-published-branches~ to ~nil~.
 
   - Various:
 
@@ -1939,6 +1960,14 @@ The following functions can also be added to the above hook:
 - Function: magit-insert-tracked-files
 
   Insert a tree of tracked files.
+
+- Function: magit-insert-ignored-files
+
+  Insert a tree of ignored files.
+
+  If the first element of ~magit-diff-section-arguments~ is a directory,
+  then limit the list to files below that.  The value of that variable
+  can be set using ~D = f <DIRECTORY> RET g~.
 
 - Function: magit-insert-unpulled-or-recent-commits
 
@@ -2758,6 +2787,8 @@ without having to using one of the diff popups.
 
 *** Diff Buffer
 
+These commands are available in diff buffers.
+
 - Key: RET, magit-diff-visit-file
 
   From a diff, visit the corresponding file at the appropriate position.
@@ -2771,10 +2802,20 @@ without having to using one of the diff popups.
   commit where that line still existed.  Otherwise visit the blob
   for the commit whose changes are being shown.
 
-  When the file or blob to be displayed is already being displayed in
-  another window of the same frame, then just select that window and
-  adjust point.  Otherwise, or with a prefix argument, display the
-  buffer in another window.
+  Interactively, when the file or blob to be displayed is already
+  being displayed in another window of the same frame, then just
+  select that window and adjust point.  Otherwise, or with a prefix
+  argument, display the buffer in another window.  The meaning of
+  the prefix argument can be inverted or further modified using the
+  option ~magit-display-file-buffer-function~.
+
+  Non-interactively the optional OTHER-WINDOW argument is taken
+  literally.  DISPLAY-FN can be used to specify the display
+  function explicitly, in which case OTHER-WINDOW is ignored.
+
+  The optional FORCE-WORKTREE means to force visiting the worktree
+  version of the file.  To do this interactively use the command
+  ~magit-diff-visit-file-worktree~ instead.
 
 - User Option: magit-diff-visit-previous-blob
 
@@ -2806,6 +2847,29 @@ without having to using one of the diff popups.
 
   From a diff, visit the corresponding file at the appropriate
   position in another window.
+
+- Key: C-c C-t, magit-diff-trace-definition
+
+  From a diff, show log for the definition at point.
+
+- Key: C-c C-e, magit-diff-edit-hunk-commit
+
+  From a hunk, edit the respective commit and visit the file.
+
+  First visit the file being modified by the hunk at the correct
+  location using ~magit-diff-visit-file~.  This actually visits a
+  blob.  When point is on a diff header, not within an individual
+  hunk, then this visits the blob the first hunk is about.
+
+  Then invoke ~magit-edit-line-commit~, which uses an interactive
+  rebase to make the commit editable, or if that is not possible
+  because the commit is not reachable from ~HEAD~ by checking out
+  that commit directly.  This also causes the actual worktree file
+  to be visited.
+
+  Neither the blob nor the file buffer are killed when finishing
+  the rebase.  If that is undesirable, then it might be better to
+  use ~magit-rebase-edit-command~ instead of this command.
 
 - Key: j, magit-jump-to-diffstat-or-diff
 
@@ -3380,13 +3444,15 @@ bisect session.
 
 Also see [[man:git-blame]]
 
-To start blaming use ~M-x~ in a file-visiting buffer to invoke one of
-the next tree commands.  In a blob-visiting buffer you can also use
-the key bindings described below, and when Magit-File mode is enabled,
-then you can at least use ~C-c M-g~ to enter the blaming popup instead
-of having to type out the command name.
+To start blaming you can use ~M-x~ in a file-visiting buffer to invoke
+one of the following commands.  You can also invoke these commands
+using the blame popup, which is available on ~b~ in file-visiting
+buffers that already contain blame information and, also on ~b~, in all
+blob-visiting buffers.  You can also enter the blame popup from the
+file popup, which is available on ~C-c M-g~, provided ~magit-file-mode~
+is enabled, see [[*Minor Mode for Buffers Visiting Files]].
 
-- Key: M-x magit-blame, magit-blame
+- Command: magit-blame
 
   This command augments each line or chunk of lines in the current
   file- or blob-visiting buffer with information about what commits
@@ -3398,10 +3464,24 @@ of having to type out the command name.
 
   If Magit-Blame mode is already turned on in the current buffer then
   blaming is done recursively, by visiting REVISION:FILE (using
-  ~magit-find-file~), where REVISION is the revision before the revision
-  that added the current line or chunk of lines.
+  ~magit-find-file~), where REVISION is a parent of the revision that
+  added the current line or chunk of lines.
 
-- Key: M-x magit-blame-reverse, magit-blame-reverse
+- Command: magit-blame-echo
+
+  This command is like ~magit-blame~ except that it doesn't turn on
+  ~read-only-mode~ and that it initially uses the visualization style
+  specified by option ~magit-blame-echo-style~.
+
+- Command: magit-blame-removal
+
+  This command augments each line or chunk of lines in the current
+  blob-visiting buffer with information about the revision that
+  removes it.  It cannot be used in file-visiting buffers.
+
+  Like ~magit-blame~, this command can be used recursively.
+
+- Command: magit-blame-reverse
 
   This command augments each line or chunk of lines in the current
   file- or blob-visiting buffer with information about the last
@@ -3409,23 +3489,10 @@ of having to type out the command name.
 
   Like ~magit-blame~, this command can be used recursively.
 
-- Key: M-x magit-blame-popup, magit-blame-popup
-
-  This prefix command shows the above suffix command along with the
-  appropriate infix arguments in a popup buffer.
-
-The above commands are also bound in the keymaps ~magit-blame-mode-map~
-and ~magit-blob-mode-map~, and in the popup ~magit-file-popup~.  Once
-Magit-Blame mode is enabled in a file-visiting buffer, you can use ~B~
-to show the blaming popup, ~b~ to blame recursively going backward in
-time, and ~f~ to blame recursively going forward in time (i.e. blame in
-reverse).  These bindings are always available in blob-visiting
-buffers.
-
-Additionally the following key bindings are available when Magit-Blame
-mode is enabled.  These commands are also available in other buffers;
-here only the behavior is described that is relevant in file-visiting
-buffers that are being blamed.
+The following key bindings are available when Magit-Blame mode is
+enabled and Read-Only mode is not enabled.  These commands are also
+available in other buffers; here only the behavior is described that
+is relevant in file-visiting buffers that are being blamed.
 
 - Key: RET, magit-show-commit
 
@@ -3448,6 +3515,14 @@ buffers that are being blamed.
   the appropriate buffer, or if that buffer is already being displayed
   in the current frame and if that buffer contains information about
   that commit, then the buffer is scrolled down instead.
+
+The following key bindings are available when Magit-Blame mode is
+enabled and Read-Only mode is not enabled.
+
+- Key: b, magit-blame-popup
+
+  This prefix command shows the above suffix command along with the
+  appropriate infix arguments in a popup buffer.
 
 - Key: n, magit-blame-next-chunk
 
@@ -3478,28 +3553,44 @@ buffers that are being blamed.
   When the region is active, the command saves the region's content
   instead of the hash, like ~kill-ring-save~ would.
 
-- Key: t, magit-blame-toggle-headings
+- Key: c, magit-blame-cycle-style
 
-  This command shows or hides blame chunk headings.
+  This command changes how blame information is visualized in the
+  current buffer by cycling through the styles specified using the
+  option ~magit-blame-styles~.
 
-- User Option: magit-blame-heading-format
+Blaming is also controlled using the following options.
 
-  The format string used for blame headings.
+- User Option: magit-blame-styles
+
+  This option defines a list of styles used to visualize blame
+  information.  For now see its doc-string to learn more.
+
+- User Option: magit-blame-echo-style
+
+  This option specifies the blame visualization style used by the
+  command ~magit-blame-echo~.  This must be a symbol that is used as the
+  identifier for one of the styles defined in ~magit-blame-styles~.
 
 - User Option: magit-blame-time-format
 
-  The format string used for time strings in blame headings.
+  This option specifies the format string used to display times when
+  showing blame information.
 
-- User Option: magit-blame-show-headings
+- User Option: magit-blame-read-only
 
-  This option controls whether blame block headings are initially
-  shown.  The headings can also be toggled locally using the command
-  ~magit-blame-toggle-headings~.
+  This option controls whether blaming a buffer also makes temporarily
+  read-only.
+
+- User Option: magit-blame-disable-modes
+
+  This option lists incompatible minor-modes that should be disabled
+  temporarily when a buffer contains blame information.  They are
+  enabled again when the buffer no longer shows blame information.
 
 - User Option: magit-blame-goto-chunk-hook
 
-  This hook is run by ~magit-blame-next-chunk~ and
-  ~magit-blame-previous-chunk~.
+  This hook is run when moving between chunks.
 
 * Manipulating
 ** Repository Setup
@@ -4193,7 +4284,7 @@ features are available from separate popups.
   branch.  If FROM is not reachable from ~HEAD~ or is reachable from the
   source branch's upstream, then an error is raised.
 
-- Key: b R, magit-branch-pull-request
+- Key: b Y, magit-branch-pull-request
 
   This command creates and configures a new branch from a Github
   pull-request, creating and configuring a new remote if necessary.
@@ -4209,6 +4300,11 @@ features are available from separate popups.
   These variables are always set by this command:
 
   - ~branch.<name>.pullRequest~ is set to the pull-request number.
+  - ~branch.<name>.pullRequestRemote~ is set to the remote on which the
+    pull-request branch is located.
+  - ~branch.<name>.pushRemote~ is set to the same remote as
+    ~branch.<name>.pullRequestRemote~ if that is possible, otherwise
+    it is set to the upstream remote.
   - ~branch.<name>.description~ is set to the pull-request title.
   - ~branch.<name>.rebase~ is set to ~true~ because there should be no
     merge commits among the commits in a pull-request.
@@ -4234,16 +4330,13 @@ features are available from separate popups.
   fork/new-feature".
 
   - If the pull-request branch is located in the upstream repository,
-    then it is not necessary to configure the push-target.
+    then you probably have set ~remote.pushDefault~ to that repository.
+    However some users like to set that variable to their personal
+    fork, even if they have push access to the upstream, so
+    ~branch.<name>.pushRemote~ is set anyway.
 
-    (If you have push access to the upstream repository, then it is
-    usually a good idea to configure that as the push-remote using
-    ~remote.pushDefault~.  However even if you are not using that
-    recommended setting, then it is still easy enough to set
-    ~branch.<name>.pushRemote~ while pushing using ~P p~.)
-
-  - If the pull-request branch is located inside a fork, then you
-    usually are able to push to that branch, because Github by default
+  - If the pull-request branch is located inside a fork, then you are
+    usually able to push to that branch, because Github by default
     allows the recipient of a pull-request to push to the remote
     pull-request branch even if it is located in a fork.  The
     contributor has to explicitly disable this.
@@ -4258,7 +4351,7 @@ features are available from separate popups.
       The most likely such case is when you are being asked to merge
       something like "fork/master" into "origin/master".  The special
       push permission mentioned above is never granted for the branch
-      that is the repository's default branch, and that is almost
+      that is the repository's default branch, and that would almost
       certainly be the case in this scenario.
 
       To enable you to easily push somewhere anyway, the local branch
@@ -4272,8 +4365,8 @@ features are available from separate popups.
     The push-remote is configured using ~branch.<name>.pushRemote~, even
     if the used value is identical to that of ~remote.pushDefault~, just
     in case you change the value of the latter later on.  Additionally
-    the variable ~branch.<name>.pullRequestRemote~ is set to the fork
-    remote.
+    the variable ~branch.<name>.pullRequestRemote~ is set to the remote
+    on which the pull-request branch is located.
 
   When you later delete the local pull-request branch, then you are
   offered to also delete the corresponding remote, provided it is not
@@ -4286,7 +4379,7 @@ features are available from separate popups.
   cleanup mentioned in the previous paragraph is not performed if you
   do that.
 
-- Key: b r, magit-checkout-pull-request
+- Key: b y, magit-checkout-pull-request
 
   This command creates and configures a new branch from a pull
   request, the same way ~magit-branch-pull-request~ does.  Additionally
@@ -5051,7 +5144,7 @@ The following colors are used:
 - The green commit is the commit the rebase sequence stopped at.  If
   this is the same commit as ~HEAD~ (e.g. because you haven't done
   anything yet after rebase stopped at the commit, then this commit is
-  shown in blue, not green.  There can only be a green *and* a blue
+  shown in blue, not green).  There can only be a green *and* a blue
   commit at the same time, if you create one or more new commits after
   rebase stops at a commit.
 
@@ -5895,6 +5988,20 @@ Also see [[man:git-tag]]
 
   Offer to delete tags missing locally from REMOTE, and vice versa.
 
+- Command: magit-tag-release
+
+  Create an opinionated release tag.
+
+  Assume version tags that match "\\`v?[0-9]\\(\\.[0-9]\\)*\\'".
+  Prompt for the name of the new tag using the highest existing tag
+  as initial input and call "git tag --annotate --sign -m MSG" TAG,
+  regardless of whether these arguments are enabled in the popup.
+  Given a TAG "v1.2.3" and a repository "/path/to/foo-bar", the
+  MESSAGE would be "Foo-Bar 1.2.3".
+
+  Because it is so opinionated, this command is not available from
+  the tag popup by default.
+
 ** Notes
 
 Also see [[man:git-notes]]
@@ -6108,6 +6215,43 @@ used.  Otherwise the prefix is read in the minibuffer.
 - Key: O s, magit-subtree-split
 
   Extract the history of the subtree PREFIX.
+
+** Worktree
+
+Also see [[man:git-worktree]]
+
+- Key: %, magit-worktree-popup
+
+  This prefix command shows the following suffix commands in a popup
+  buffer.
+
+- Key: % b, magit-worktree-checkout
+
+  Checkout BRANCH in a new worktree at PATH.
+
+- Key: % c, magit-worktree-branch
+
+  Create a new BRANCH and check it out in a new worktree at PATH.
+
+- Key: % p, magit-worktree-checkout-pull-request
+
+  Create, configure and checkout a new worktree from a pull-request.
+
+  This is like ~magit-checkout-pull-request~ (which see) except that it
+  also creates a new worktree.
+
+- Key: % k, magit-worktree-delete
+
+  Delete a worktree, defaulting to the worktree at point.
+  The primary worktree cannot be deleted.
+
+- Key: % g, magit-worktree-status
+
+  Show the status for the worktree at point.
+
+  If there is no worktree at point, then read one in the minibuffer.
+  If the worktree at point is the one whose status is already being
+  displayed in the current buffer, then show it in Dired instead.
 
 ** Common Commands
 
@@ -6362,16 +6506,43 @@ few key bindings, but this might be extended in the future.
   or when ~--follow~ is part of ~magit-log-arguments~.  When the
   region is active, the log is restricted to the selected line range.
 
+- Key: C-c M-g t, magit-log-trace-definition
+
+  This command shows the log for the definition at point.
+
 - User Option: magit-log-buffer-file-locked
 
   This option controls whether ~magit-log-buffer-file~ uses a dedicated
   buffer.  See [[*Modes and Buffers]].
 
-- Key: C-c M-g b, magit-blame-popup
+- Key: C-c M-g B, magit-blame-popup
 
-  This prefix command shows the ~magit-blame~ suffix command along with
-  the appropriate infix arguments in a popup buffer.  See [[*Initiating
-  a Commit]].
+  This prefix command shows all blaming suffix command along with the
+  appropriate infix arguments in a popup buffer.  See [[*Blaming]].
+
+- Key: C-c M-g b, magit-blame
+
+  This command shows for each line the revision in which it was added.
+
+- Key: C-c M-g r, magit-blame-removal
+
+  This command shows for each line the revision in which it was removed.
+  This command is only available in blob-visiting buffers.
+
+- Key: C-c M-g f, magit-blame-reverse
+
+  This command shows for each line the last revision in which it still
+  exists.  This command is only available in blob-visiting buffers.
+
+- Key: C-c M-g e, magit-edit-line-commit
+
+  This command makes the commit editable that added the current line.
+
+  With a prefix argument it makes the commit editable that removes the
+  line, if any.  The commit is determined using ~git blame~ and made
+  editable using ~git rebase --interactive~ if it is reachable from
+  ~HEAD~, or by checking out the commit (or a branch that points at it)
+  otherwise.
 
 - Key: C-c M-g p, magit-blob-previous
 
@@ -6445,7 +6616,7 @@ just one huge repository use this:
 - ~/path/to/huge/repo/.dir-locals.el~
 
   #+BEGIN_SRC emacs-lisp
-    ((nil . ((magit-refresh-buffers . nil))
+    ((nil . ((magit-refresh-buffers . nil))))
   #+END_SRC
 
 If you want to apply the same settings to several, but not all,
@@ -7689,6 +7860,13 @@ consider ambiguous refnames unsupported and recommend that you use a
 non-ambiguous naming scheme.  However, if you do work with a
 repository that has ambiguous refnames, please report any issues you
 encounter so that we can investigate whether there is a simple fix.
+
+*** My Git hooks work on the command line but not in Magit
+
+When Magit calls ~git~ it adds a few global arguments including
+~--literal-pathspecs~ and the ~git~ process started by Magit then passes
+that setting on to other ~git~ process it starts itself.  This setting
+can be reverted in hook scripts using ~unset GIT_LITERAL_PATHSPECS~.
 
 * Debugging Tools
 
