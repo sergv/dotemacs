@@ -618,9 +618,6 @@ override bindings from other packages (e.g., `company-mode')."
 
 ;;; Minor mode stuff
 
-;; XXX: `last-buffer-undo-list' is somehow needed in Carbon Emacs for MacOSX
-(defvar last-buffer-undo-list nil)
-
 (defvar yas--minor-mode-menu nil
   "Holds the YASnippet menu.")
 
@@ -2987,6 +2984,18 @@ The last element of POSSIBILITIES may be a list of strings."
                (funcall fn "Choose: " possibilities))
              yas-prompt-functions)))
 
+(defun yas--auto-next ()
+  "Helper for `yas-auto-next'."
+  (remove-hook 'post-command-hook #'yas--auto-next t)
+  (yas-next-field))
+
+(defmacro yas-auto-next (&rest body)
+  "Automatically advance to next field after eval'ing BODY."
+  (declare (indent 0) (debug t))
+  `(unless yas-moving-away-p
+     (prog1 ,@body
+       (add-hook 'post-command-hook #'yas--auto-next nil t))))
+
 (defun yas-key-to-value (alist)
   (unless (or yas-moving-away-p
               yas-modified-p)
@@ -3057,6 +3066,10 @@ other fields."
 
 (defvar yas--active-field-overlay nil
   "Overlays the currently active field.")
+
+(defvar yas--active-snippets nil
+  "List of currently active snippets")
+(make-variable-buffer-local 'yas--active-snippets)
 
 (defvar yas--field-protection-overlays nil
   "Two overlays protect the current active field.")
@@ -3261,12 +3274,19 @@ equivalent to a range covering the whole buffer."
          (setq beg (point-min) end (point-max)))
         ((not end)
          (setq end (1+ beg))))
-  (cl-sort
-   (delete-dups ;; Snippets have multiple overlays.
-    (delq nil
-          (mapcar (lambda (ov) (overlay-get ov 'yas--snippet))
-                  (overlays-in beg end))))
-   #'>= :key #'yas--snippet-id))
+  (if (and (eq beg (point-min))
+           (eq end (point-max)))
+      yas--active-snippets
+    ;; Note: don't use `mapcar' here, since it would allocate in
+    ;; proportion to the amount of overlays, even though the list of
+    ;; active snippets should be very small.
+    (let ((snippets nil))
+      (dolist (ov (overlays-in beg end))
+        (let ((snippet (overlay-get ov 'yas--snippet)))
+          ;; Snippets have multiple overlays, so check for dups.
+          (when (and snippet (not (memq snippet snippets)))
+            (push snippet snippets))))
+      (cl-sort snippets #'>= :key #'yas--snippet-id))))
 
 (define-obsolete-function-alias 'yas--snippets-at-point
   'yas-active-snippets "0.12")
@@ -3426,6 +3446,9 @@ This renders the snippet as ordinary text."
     ;;
     (yas--markers-to-points snippet)
 
+    ;; It's no longer an active snippet.
+    (cl-callf2 delq snippet yas--active-snippets)
+
     ;; Take care of snippet revival on undo.
     (if (and yas-snippet-revival (listp buffer-undo-list))
         (push `(apply yas--snippet-revive ,yas-snippet-beg ,yas-snippet-end ,snippet)
@@ -3519,13 +3542,12 @@ HOOK should be a symbol, a hook variable, as in `run-hooks'."
   "Check if point exited the currently active field of the snippet.
 
 If so cleans up the whole snippet up."
-  (let* ((snippets (yas-active-snippets 'all))
-         (snippets-left snippets)
-         (snippet-exit-transform)
+  (let* ((snippet-exit-transform nil)
+         (exited-snippets-p nil)
          ;; Record the custom snippet `yas-after-exit-snippet-hook'
          ;; set in the expand-env field.
          (snippet-exit-hook yas-after-exit-snippet-hook))
-    (dolist (snippet snippets)
+    (dolist (snippet yas--active-snippets)
       (let ((active-field (yas--snippet-active-field snippet)))
         (yas--letenv (yas--snippet-expand-env snippet)
           ;; Note: the `force-exit' field could be a transform in case of
@@ -3533,10 +3555,10 @@ If so cleans up the whole snippet up."
           (setq snippet-exit-transform (yas--snippet-force-exit snippet))
           (cond ((or snippet-exit-transform
                      (not (and active-field (yas--field-contains-point-p active-field))))
-                 (setq snippets-left (delete snippet snippets-left))
                  (setf (yas--snippet-force-exit snippet) nil)
                  (setq snippet-exit-hook yas-after-exit-snippet-hook)
-                 (yas--commit-snippet snippet))
+                 (yas--commit-snippet snippet)
+                 (setq exited-snippets-p t))
                 ((and active-field
                       (or (not yas--active-field-overlay)
                           (not (overlay-buffer yas--active-field-overlay))))
@@ -3550,7 +3572,7 @@ If so cleans up the whole snippet up."
                    (yas--update-mirrors snippet)))
                 (t
                  nil)))))
-    (unless (or (null snippets) snippets-left)
+    (unless (or yas--active-snippets (not exited-snippets-p))
       (when snippet-exit-transform
         (yas--eval-for-effect snippet-exit-transform))
       (let ((yas-after-exit-snippet-hook snippet-exit-hook))
@@ -4043,6 +4065,7 @@ Returns the newly created snippet."
         ;; Move to end
         (goto-char (point-max))
 
+        (push snippet yas--active-snippets)
         snippet))))
 
 
@@ -4901,62 +4924,6 @@ object satisfying `yas--field-p' to restrict the expansion to.")))
 (defun yas--format (format-control &rest format-args)
   (apply #'format (concat "[yas] " format-control) format-args))
 
-
-;;; Some hacks:
-;;
-;; The functions
-;;
-;; `locate-dominating-file'
-;; `region-active-p'
-;;
-;; added for compatibility in emacsen < 23
-(unless (>= emacs-major-version 23)
-  (unless (fboundp 'region-active-p)
-    (defun region-active-p ()  (and transient-mark-mode mark-active)))
-
-  (unless (fboundp 'locate-dominating-file)
-    (defvar locate-dominating-stop-dir-regexp
-      "\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'"
-      "Regexp of directory names which stop the search in `locate-dominating-file'.
-Any directory whose name matches this regexp will be treated like
-a kind of root directory by `locate-dominating-file' which will stop its search
-when it bumps into it.
-The default regexp prevents fruitless and time-consuming attempts to find
-special files in directories in which filenames are interpreted as hostnames,
-or mount points potentially requiring authentication as a different user.")
-
-    (defun locate-dominating-file (file name)
-      "Look up the directory hierarchy from FILE for a file named NAME.
-Stop at the first parent directory containing a file NAME,
-and return the directory.  Return nil if not found."
-      ;; We used to use the above locate-dominating-files code, but the
-      ;; directory-files call is very costly, so we're much better off doing
-      ;; multiple calls using the code in here.
-      ;;
-      ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
-      ;; `name' in /home or in /.
-      (setq file (abbreviate-file-name file))
-      (let ((root nil)
-            try)
-        (while (not (or root
-                        (null file)
-                        ;; FIXME: Disabled this heuristic because it is sometimes
-                        ;; inappropriate.
-                        ;; As a heuristic, we stop looking up the hierarchy of
-                        ;; directories as soon as we find a directory belonging
-                        ;; to another user.  This should save us from looking in
-                        ;; things like /net and /afs.  This assumes that all the
-                        ;; files inside a project belong to the same user.
-                        ;; (let ((prev-user user))
-                        ;;   (setq user (nth 2 (file-attributes file)))
-                        ;;   (and prev-user (not (equal user prev-user))))
-                        (string-match locate-dominating-stop-dir-regexp file)))
-          (setq try (file-exists-p (expand-file-name name file)))
-          (cond (try (setq root file))
-                ((equal file (setq file (file-name-directory
-                                         (directory-file-name file))))
-                 (setq file nil))))
-        root))))
 
 ;;; Unloading
 
