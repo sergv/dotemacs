@@ -36,9 +36,10 @@
 
 (defcustom magit-gitk-executable
   (or (and (eq system-type 'windows-nt)
-           (let ((exe (expand-file-name
-                       "gitk" (file-name-nondirectory magit-git-executable))))
-             (and (file-executable-p exe) exe)))
+           (let ((exe (magit-git-string
+                       "-c" "alias.X=!x() { which \"$1\" | cygpath -mf -; }; x"
+                       "X" "gitk.exe")))
+             (and exe (file-executable-p exe) exe)))
       (executable-find "gitk") "gitk")
   "The Gitk executable."
   :group 'magit-extras
@@ -113,7 +114,7 @@ instead of every time Ido is invoked, so now you can modify it
 like pretty much every other keymap:
 
   (define-key ido-common-completion-map
-    (kbd \"C-x g\") 'ido-enter-magit-status)"
+    (kbd \"C-x g\") \\='ido-enter-magit-status)"
   (interactive)
   (with-no-warnings ; FIXME these are internal variables
     (setq ido-exit 'fallback fallback 'magit-status))
@@ -321,6 +322,76 @@ on a position in a file-visiting buffer."
                           (prompt-for-change-log-name))))
   (magit-add-change-log-entry whoami file-name t))
 
+;;; Edit Line Commit
+
+;;;###autoload
+(defun magit-edit-line-commit (&optional type)
+  "Edit the commit that added the current line.
+
+With a prefix argument edit the commit that removes the line,
+if any.  The commit is determined using `git blame' and made
+editable using `git rebase --interactive' if it is reachable
+from `HEAD', or by checking out the commit (or a branch that
+points at it) otherwise."
+  (interactive (list (and current-prefix-arg 'removal)))
+  (let* ((chunk (magit-current-blame-chunk (or type 'addition)))
+         (rev   (oref chunk orig-rev)))
+    (if (equal rev "0000000000000000000000000000000000000000")
+        (message "This line has not been committed yet")
+      (let ((rebase (magit-rev-ancestor-p rev "HEAD"))
+            (file   (expand-file-name (oref chunk orig-file)
+                                      (magit-toplevel))))
+        (if rebase
+            (let ((magit--rebase-published-symbol 'edit-published))
+              (magit-rebase-edit-commit rev (magit-rebase-arguments)))
+          (magit-checkout (or (magit-rev-branch rev) rev)))
+        (unless (and buffer-file-name
+                     (file-equal-p file buffer-file-name))
+          (let ((blame-type (and magit-blame-mode magit-blame-type)))
+            (if rebase
+                (set-process-sentinel
+                 magit-this-process
+                 (lambda (process event)
+                   (magit-sequencer-process-sentinel process event)
+                   (when (eq (process-status process) 'exit)
+                     (find-file file)
+                     (when blame-type
+                       (magit-blame--pre-blame-setup blame-type)
+                       (magit-blame--run)))))
+              (find-file file)
+              (when blame-type
+                (magit-blame--pre-blame-setup blame-type)
+                (magit-blame--run)))))))))
+
+(put 'magit-edit-line-commit 'disabled t)
+
+(defun magit-diff-edit-hunk-commit ()
+  "From a hunk, edit the respective commit and visit the file.
+
+First visit the file being modified by the hunk at the correct
+location using `magit-diff-visit-file'.  This actually visits a
+blob.  When point is on a diff header, not within an individual
+hunk, then this visits the blob the first hunk is about.
+
+Then invoke `magit-edit-line-commit', which uses an interactive
+rebase to make the commit editable, or if that is not possible
+because the commit is not reachable from `HEAD' by checking out
+that commit directly.  This also causes the actual worktree file
+to be visited.
+
+Neither the blob nor the file buffer are killed when finishing
+the rebase.  If that is undesirable, then it might be better to
+use `magit-rebase-edit-command' instead of this command."
+  (interactive)
+  (let ((magit-diff-visit-previous-blob nil))
+    (magit-diff-visit-file (--if-let (magit-file-at-point)
+                               (expand-file-name it)
+                             (user-error "No file at point"))
+                           nil 'switch-to-buffer))
+  (magit-edit-line-commit))
+
+(put 'magit-diff-edit-hunk-commit 'disabled t)
+
 ;;; Reshelve
 
 ;;;###autoload
@@ -362,12 +433,12 @@ be used on highly rearranged and unpublished history."
                                (- (string-to-number
                                    (magit-git-string "rev-list" "--count"
                                                      range))))))
-        (push time-rev magit--reselve-history)
+        (push time-rev magit--reshelve-history)
         (let ((date (floor
                      (float-time
                       (date-to-time
                        (read-string "Date for first commit: "
-                                    time-now 'magit--reselve-history))))))
+                                    time-now 'magit--reshelve-history))))))
           (magit-with-toplevel
             (magit-run-git-async
              "filter-branch" "--force" "--env-filter"
