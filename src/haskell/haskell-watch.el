@@ -137,7 +137,7 @@ roots (i.e. valid and existing keys within
                descriptor
                file)
     (let ((proj (gethash proj-root haskell-watch--known-projects)))
-      (cl-assert proj-root
+      (cl-assert proj
                  nil
                  "No project with root %s"
                  proj-root)
