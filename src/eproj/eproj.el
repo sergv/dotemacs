@@ -1196,7 +1196,7 @@ Returns list of (tag . project) pairs."
                        (if search-with-regexp?
                            (apply
                             #'-concat
-                            (eproj-tag-index-values-where-key-matches-regexp it identifier))
+                            (eproj-tag-index-values-where-key-matches-regexp identifier it))
                          (eproj-tag-index-get identifier it nil)))
                nil))
            (eproj-get-all-related-projects-for-mode proj tag-major-mode)))
