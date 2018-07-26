@@ -1236,6 +1236,8 @@ current buffer."
     (let* ((all-related-projects
             (eproj-get-all-related-projects proj))
            (files nil)
+           (collected-entries
+            (make-hash-table :test #'equal :size 997))
            (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
                                                       :position (point-marker)
                                                       :symbol nil))
@@ -1252,7 +1254,9 @@ current buffer."
               (let ((buf (get-file-buffer abs-path)))
                 (when (or (not buf)
                           (invisible-buffer? buf))
-                  (push (cons rel-path abs-path) files))))))
+                  (unless (gethash rel-path collected-entries nil)
+                    (puthash rel-path t collected-entries)
+                    (push (cons rel-path abs-path) files)))))))
       (let ((eproj-file (concat root "/.eproj-info")))
         (funcall add-file eproj-file ".epoj-info"))
       (dolist (related-proj all-related-projects)
@@ -1284,7 +1288,9 @@ current buffer."
                         (file-relative-name buffer-file root)
                       buffer-file)
                   (buffer-name buf))))
-          (push (cons name buf) files)))
+          (unless (gethash name collected-entries nil)
+            (puthash name t collected-entries)
+            (push (cons name buf) files))))
       (ivy-read "Buffer or file: "
                 files
                 :require-match nil
