@@ -42,7 +42,10 @@
 ;; For `magit-insert-revision-gravatar'
 (defvar gravatar-size)
 ;; For `magit-show-commit' and `magit-diff-show-or-scroll'
-(declare-function magit-blame-chunk-get "magit-blame" (key &optional pos))
+(declare-function magit-current-blame-chunk "magit-blame" ())
+(eval-when-compile
+  (when (boundp 'eieio--known-slot-names)
+    (add-to-list 'eieio--known-slot-names 'orig-rev)))
 (declare-function magit-blame-mode "magit-blame" (&optional arg))
 (defvar magit-blame-mode)
 (defvar git-rebase-line)
@@ -1009,7 +1012,7 @@ for a revision."
   (interactive
    (let* ((mcommit (magit-section-when module-commit))
           (atpoint (or (and (bound-and-true-p magit-blame-mode)
-                            (magit-blame-chunk-get :hash))
+                            (oref (magit-current-blame-chunk) orig-rev))
                        mcommit
                        (magit-branch-or-commit-at-point))))
      (nconc (cons (or (and (not current-prefix-arg) atpoint)
@@ -1182,7 +1185,8 @@ Customize variable `magit-diff-refine-hunk' to change the default mode."
 
 ;;;; Visit commands
 
-(defun magit-diff-visit-file (file &optional other-window force-worktree)
+(defun magit-diff-visit-file
+    (file &optional other-window force-worktree display-fn)
   "From a diff, visit the corresponding file at the appropriate position.
 
 If the diff shows changes in the worktree, the index, or `HEAD',
@@ -1199,8 +1203,11 @@ being displayed in another window of the same frame, then just
 select that window and adjust point.  Otherwise, or with a prefix
 argument, display the buffer in another window.  The meaning of
 the prefix argument can be inverted or further modified using the
-option `magit-display-file-buffer-function'.  Non-interactively
-the optional OTHER-WINDOW argument is taken literally.
+option `magit-display-file-buffer-function'.
+
+Non-interactively the optional OTHER-WINDOW argument is taken
+literally.  DISPLAY-FN can be used to specify the display
+function explicitly, in which case OTHER-WINDOW is ignored.
 
 The optional FORCE-WORKTREE means to force visiting the worktree
 version of the file.  To do this interactively use the command
@@ -1230,6 +1237,8 @@ version of the file.  To do this interactively use the command
                        (find-file-noselect file)))))
       (cond ((called-interactively-p 'any)
              (magit-display-file-buffer buf))
+            (display-fn
+             (funcall display-fn buf))
             ((or other-window (get-buffer-window buf))
              (switch-to-buffer-other-window buf))
             (t
@@ -1476,7 +1485,7 @@ commit or stash at point, then prompt for a commit."
   (let (rev cmd buf win)
     (cond
      (magit-blame-mode
-      (setq rev (magit-blame-chunk-get :hash))
+      (setq rev (oref (magit-current-blame-chunk) orig-rev))
       (setq cmd 'magit-show-commit)
       (setq buf (magit-mode-get-buffer 'magit-revision-mode)))
      ((derived-mode-p 'git-rebase-mode)
@@ -1617,6 +1626,8 @@ is set in `magit-mode-setup'."
     (define-key map "s" 'magit-stage)
     (define-key map "u" 'magit-unstage)
     (define-key map "&" 'magit-do-async-shell-command)
+    (define-key map "\C-c\C-t" 'magit-diff-trace-definition)
+    (define-key map "\C-c\C-e" 'magit-diff-edit-hunk-commit)
     map)
   "Keymap for `file' sections.")
 
@@ -1633,6 +1644,8 @@ is set in `magit-mode-setup'."
     (define-key map "s" 'magit-stage)
     (define-key map "u" 'magit-unstage)
     (define-key map "&" 'magit-do-async-shell-command)
+    (define-key map "\C-c\C-t" 'magit-diff-trace-definition)
+    (define-key map "\C-c\C-e" 'magit-diff-edit-hunk-commit)
     map)
   "Keymap for `hunk' sections.")
 
@@ -1683,7 +1696,12 @@ section or a child thereof."
         (magit-insert-heading)
         (let (files)
           (while (looking-at "^[-0-9]+\t[-0-9]+\t\\(.+\\)$")
-            (push (magit-decode-git-path (match-string 1)) files)
+            (push (magit-decode-git-path
+                   (let ((f (match-string 1)))
+                     (if (string-match " => " f)
+                         (substring f (match-end 0))
+                       f)))
+                  files)
             (magit-delete-line))
           (setq files (nreverse files))
           (while (looking-at magit-diff-statline-re)
@@ -2134,38 +2152,58 @@ or a ref which is not a branch, then it inserts nothing."
       (insert ?\n))))
 
 (defun magit-insert-revision-gravatars (rev beg)
-  (when (and magit-revision-show-gravatars (window-system))
+  (when (and magit-revision-show-gravatars
+             (window-system))
     (require 'gravatar)
-    (magit-insert-revision-gravatar beg (magit-rev-format "%aE" rev)
-                                    (car magit-revision-show-gravatars))
-    (magit-insert-revision-gravatar beg (magit-rev-format "%cE" rev)
-                                    (cdr magit-revision-show-gravatars))
-    (goto-char (point-max))))
+    (pcase-let ((`(,author . ,committer) magit-revision-show-gravatars))
+      (--when-let (magit-rev-format "%aE" rev)
+        (magit-insert-revision-gravatar beg rev it author))
+      (--when-let (magit-rev-format "%cE" rev)
+        (magit-insert-revision-gravatar beg rev it committer)))))
 
-(defun magit-insert-revision-gravatar (beg email regexp)
-  (when (and email (goto-char beg) (re-search-forward regexp nil t))
-    (ignore-errors
-      (let* ((offset   (length (match-string 0)))
+(defun magit-insert-revision-gravatar (beg rev email regexp)
+  (save-excursion
+    (goto-char beg)
+    (when (re-search-forward regexp nil t)
+      (let* ((column   (length (match-string 0)))
              (font-obj (query-font (font-at (point) (get-buffer-window))))
-             (size     (* 2 (+ (aref font-obj 4) (aref font-obj 5))))
-             (align-to (+ offset (ceiling (/ size (aref font-obj 7) 1.0))))
-             (gravatar-size (- size 2))
-             (slice1  '(slice .0 .0 1.0 0.5))
-             (slice2  '(slice .0 .5 1.0 1.0))
-             (image    (gravatar-retrieve-synchronously email)))
-        (unless (eq image 'error)
-          (when magit-revision-use-gravatar-kludge
-            (cl-rotatef slice1 slice2))
-          (insert (propertize " " 'display `((,@image :ascent center :relief 1)
-                                             ,slice1)))
-          (insert (propertize " " 'display `((space :align-to ,align-to))))
-          (insert " ")
-          (forward-line)
-          (forward-char offset)
-          (insert (propertize " " 'display `((,@image :ascent center :relief 1)
-                                             ,slice2)))
-          (insert (propertize " " 'display `((space :align-to ,align-to))))
-          (insert " "))))))
+             (size     (* 2 (+ (aref font-obj 4)
+                               (aref font-obj 5))))
+             (align-to (+ column
+                          (ceiling (/ size (aref font-obj 7) 1.0))
+                          1))
+             (gravatar-size (- size 2)))
+        (gravatar-retrieve email 'magit-insert-revision-gravatar-cb
+                           (list rev (point-marker) align-to column))))))
+
+(defun magit-insert-revision-gravatar-cb (image rev marker align-to column)
+  (unless (eq image 'error)
+    (-when-let (buffer (marker-buffer marker))
+      (with-current-buffer buffer
+        (save-excursion
+          (goto-char marker)
+          ;; The buffer might display another revision by now or
+          ;; it might have been refreshed, in which case another
+          ;; process might already have inserted the image.
+          (when (and (equal rev (car magit-refresh-args))
+                     (not (eq (car-safe
+                               (car-safe
+                                (get-text-property (point) 'display)))
+                              'image)))
+            (let ((top `((,@image :ascent center :relief 1)
+                         (slice 0.0 0.0 1.0 0.5)))
+                  (bot `((,@image :ascent center :relief 1)
+                         (slice 0.0 0.5 1.0 1.0)))
+                  (align `((space :align-to ,align-to))))
+              (when magit-revision-use-gravatar-kludge
+                (cl-rotatef top bot))
+              (let ((inhibit-read-only t))
+                (insert (propertize " " 'display top))
+                (insert (propertize " " 'display align))
+                (forward-line)
+                (forward-char column)
+                (insert (propertize " " 'display bot))
+                (insert (propertize " " 'display align))))))))))
 
 ;;; Diff Sections
 

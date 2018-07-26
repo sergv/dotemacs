@@ -44,6 +44,7 @@
 (defvar magit-process-error-message-regexps)
 (defvar magit-refresh-args) ; from `magit-mode' for `magit-current-file'
 (defvar magit-branch-prefer-remote-upstream)
+(defvar magit-published-branches)
 
 (defvar magit-tramp-process-environment nil)
 
@@ -644,7 +645,8 @@ tracked file."
   (unless file
     (with-current-buffer (or (buffer-base-buffer)
                              (current-buffer))
-      (setq file (or magit-buffer-file-name buffer-file-name))))
+      (setq file (or magit-buffer-file-name buffer-file-name
+                     (and (derived-mode-p 'dired-mode) default-directory)))))
   (when (and file (or (not tracked)
                       (magit-file-tracked-p (file-relative-name file))))
     (--when-let (magit-toplevel
@@ -682,6 +684,10 @@ tracked file."
 
 (defun magit-unmerged-files ()
   (magit-git-items "diff-files" "-z" "--name-only" "--diff-filter=U"))
+
+(defun magit-ignored-files ()
+  (magit-git-items "ls-files" "-z" "--others" "--ignored"
+                   "--exclude-standard" "--directory"))
 
 (defun magit-revision-files (rev)
   (magit-with-toplevel
@@ -916,7 +922,7 @@ corresponds to a ref outside of the namespace."
 
 (defun magit-rev-branch (rev)
   (--when-let (magit-rev-name rev "refs/heads/*")
-    (unless (string-match-p "~" it) it)))
+    (unless (string-match-p "[~^]" it) it)))
 
 (defun magit-get-shortname (rev)
   (let* ((fn (apply-partially 'magit-rev-name rev))
@@ -1068,15 +1074,24 @@ to, or to some other symbolic-ref that points to the same ref."
 Return nil if no branch is currently checked out."
   (magit-git-string "symbolic-ref" "--short" "HEAD"))
 
+(defvar magit-get-previous-branch-timeout 0.5
+  "Maximum time to spend in `magit-get-previous-branch'.
+Given as a number of seconds.")
+
 (defun magit-get-previous-branch ()
   "Return the refname of the previously checked out branch.
 Return nil if no branch can be found in the `HEAD' reflog
-which is different from the current branch and still exists."
-  (let ((current (magit-get-current-branch))
+which is different from the current branch and still exists.
+The amount of time spent searching is limited by
+`magit-get-previous-branch-timeout'."
+  (let ((t0 (float-time))
+        (current (magit-get-current-branch))
         (i 1) prev)
-    (while (and (setq prev (magit-rev-verify (format "@{-%i}" i)))
-                (or (not (setq prev (magit-rev-branch prev)))
-                    (equal prev current)))
+    (while (if (> (- (float-time) t0) magit-get-previous-branch-timeout)
+               (setq prev nil) ;; Timed out.
+             (and (setq prev (magit-rev-verify (format "@{-%i}" i)))
+                  (or (not (setq prev (magit-rev-branch prev)))
+                      (equal prev current))))
       (cl-incf i))
     prev))
 
@@ -1270,20 +1285,23 @@ SORTBY is a key or list of keys to pass to the `--sort' flag of
 (defun magit-list-remote-branches (&optional remote)
   (magit-list-refs (concat "refs/remotes/" remote)))
 
-(defun magit-list-containing-branches (&optional commit)
-  (--remove (string-match-p "\\`(HEAD" it)
+(defun magit-list-related-branches (relation &optional commit arg)
+  (--remove (string-match-p "\\(\\`(HEAD\\|HEAD -> \\)" it)
             (--map (substring it 2)
-                   (magit-git-lines "branch" "--contains" commit))))
+                   (magit-git-lines "branch" arg relation commit))))
 
-(defun magit-list-merged-branches (&optional commit)
-  (--remove (string-match-p "\\`(HEAD" it)
-            (--map (substring it 2)
-                   (magit-git-lines "branch" "--merged" commit))))
+(defun magit-list-containing-branches (&optional commit arg)
+  (magit-list-related-branches "--contains" commit arg))
 
-(defun magit-list-unmerged-branches (&optional commit)
-  (--remove (string-match-p "\\`(HEAD" it)
-            (--map (substring it 2)
-                   (magit-git-lines "branch" "--no-merged" commit))))
+(defun magit-list-publishing-branches (&optional commit)
+  (--filter (member it magit-published-branches)
+            (magit-list-containing-branches commit "--remote")))
+
+(defun magit-list-merged-branches (&optional commit arg)
+  (magit-list-related-branches "--merged" commit arg))
+
+(defun magit-list-unmerged-branches (&optional commit arg)
+  (magit-list-related-branches "--no-merged" commit arg))
 
 (defun magit-list-unmerged-to-upstream-branches ()
   (--filter (-when-let (upstream (magit-get-upstream-branch it))
@@ -1863,7 +1881,9 @@ the reference is used.  The first regexp submatch becomes the
                       (concat " "
                               (propertize branch 'face 'magit-branch-local))))
                " starting at")
-       (cons "HEAD" (magit-list-refnames))
+       (nconc (list "HEAD")
+              (magit-list-refnames)
+              (directory-files (magit-git-dir) nil "_HEAD\\'"))
        nil nil nil 'magit-revision-history
        (magit--default-starting-point))
       (user-error "Nothing selected")))
@@ -1945,7 +1965,7 @@ the reference is used.  The first regexp submatch becomes the
    (--> key
         (replace-regexp-in-string "\\`[^.]+" #'downcase it t t)
         (replace-regexp-in-string "[^.]+\\'" #'downcase it t t))
-   (magit--with-refresh-cache (list 'config (magit-toplevel))
+   (magit--with-refresh-cache (cons (magit-toplevel) 'config)
      (let ((configs (make-hash-table :test 'equal)))
        (dolist (conf (magit-git-items "config" "--list" "-z"))
          (let* ((nl-pos (cl-position ?\n conf))

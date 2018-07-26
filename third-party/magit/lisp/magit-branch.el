@@ -186,6 +186,12 @@ and change branch related variables."
   :group 'magit-commands
   :type 'boolean)
 
+(defcustom magit-published-branches '("origin/master")
+  "List of branches that are considered to be published."
+  :package-version '(magit . "2.13.0")
+  :group 'magit-commands
+  :type '(repeat string))
+
 ;;; Branch Popup
 
 (defvar magit-branch-config-variables)
@@ -374,17 +380,14 @@ Please see the manual for more information."
                           .base.repo.ssh_url)))
            (upstream-url (magit-get "remote" upstream "url"))
            (remote .head.repo.owner.login)
-           (branch .head.ref)
-           (pr-branch branch))
-      (when (or (not .maintainer_can_modify)
-                (magit-branch-p branch))
-        (setq branch (format "pr-%s" .number)))
-      (when (magit-branch-p branch)
-        (user-error "Branch `%s' already exists" branch))
-      (if (equal .head.repo.full_name
-                 .base.repo.full_name)
-          (let ((inhibit-magit-refresh t))
-            (magit-branch branch (concat upstream "/" pr-branch)))
+           (branch (magit--pullreq-branch pr t))
+           (pr-branch .head.ref))
+      (if (magit--pullreq-from-upstream-p pr)
+          (let ((tracking (concat upstream "/" pr-branch)))
+            (unless (magit-branch-p tracking)
+              (magit-call-git "fetch" upstream))
+            (let ((inhibit-magit-refresh t))
+              (magit-branch branch tracking)))
         (if (magit-remote-p remote)
             (let ((url   (magit-get     "remote" remote "url"))
                   (fetch (magit-get-all "remote" remote "fetch")))
@@ -408,18 +411,17 @@ Please see the manual for more information."
                  ((string-prefix-p "git://" upstream-url)
                   .head.repo.git_url)
                  (t (error "%s has an unexpected format" upstream-url)))))
-        (magit-call-git "branch" branch
-                        (concat remote "/" pr-branch))
-        (magit-call-git "branch" branch
-                        (concat "--set-upstream-to="
-                                (if magit-branch-prefer-remote-upstream
-                                    (concat upstream "/" .base.ref)
-                                  .base.ref)))
-        (magit-set "true" "branch" branch "rebase")
-        (if (or .locked (not (equal branch pr-branch)))
-            (magit-set upstream "branch" branch "pushRemote")
-          (magit-set remote "branch" branch "pushRemote"))
-        (magit-set remote "branch" branch "pullRequestRemote"))
+        (magit-call-git "branch" branch (concat remote "/" pr-branch)))
+      (if (or .locked (not (equal branch pr-branch)))
+          (magit-set upstream "branch" branch "pushRemote")
+        (magit-set remote "branch" branch "pushRemote"))
+      (magit-set remote "branch" branch "pullRequestRemote")
+      (magit-set "true" "branch" branch "rebase")
+      (magit-call-git "branch" branch
+                      (concat "--set-upstream-to="
+                              (if magit-branch-prefer-remote-upstream
+                                  (concat upstream "/" .base.ref)
+                                .base.ref)))
       (magit-set (number-to-string .number) "branch" branch "pullRequest")
       (magit-set .title                     "branch" branch "description")
       (magit-refresh)
@@ -454,9 +456,7 @@ Please see the manual for more information."
               (user-error "Not a valid starting-point: %s" choice))))
       (let ((branch (magit-read-string-ns (concat prompt " named"))))
         (list branch
-              (with-no-warnings
-                (let ((magit-no-confirm-default nil))
-                  (magit-read-starting-point prompt branch)))
+              (magit-read-starting-point prompt branch)
               args)))))
 
 ;;;###autoload
