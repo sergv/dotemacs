@@ -466,13 +466,15 @@ See `el-patch-validate'."
   (run-hooks 'el-patch-pre-validate-hook)
   (unwind-protect
       (let ((patch-count 0)
-            (warning-count 0))
+            (warning-count 0)
+            (failed nil))
         (dolist (name (hash-table-keys el-patch--patches))
           (let ((patch-hash (gethash name el-patch--patches)))
             (dolist (type (hash-table-keys patch-hash))
               (setq patch-count (1+ patch-count))
               (unless (el-patch-validate name type 'nomsg)
-                (setq warning-count (1+ warning-count))))))
+                (setq warning-count (1+ warning-count))
+                (push name failed)))))
         (cond
          ((zerop patch-count)
           (user-error "No patches defined"))
@@ -485,13 +487,14 @@ See `el-patch-validate'."
               (message "Patch is invalid (only one defined)")
             (message "All %d patches are invalid" patch-count)))
          (t
-          (message "%s valid, %s invalid"
+          (message "%s valid, %s invalid: %s"
                    (if (= warning-count (1- patch-count))
                        "1 patch is"
                      (format "%d patches are" (- patch-count warning-count)))
                    (if (= warning-count 1)
                        "1 patch is"
-                     (format "%d patches are" warning-count))))))
+                     (format "%d patches are" warning-count))
+                   failed))))
     (run-hooks 'el-patch-post-validate-hook)))
 
 ;;;; Applying patches
