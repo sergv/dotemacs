@@ -1,4 +1,4 @@
-This is dash.info, produced by makeinfo version 6.5 from dash.texi.
+This is dash.info, produced by makeinfo version 6.1 from dash.texi.
 
 This manual is for ‘dash.el’ version 2.12.1.
 
@@ -2245,13 +2245,16 @@ control.
      Key/value stores:
 
      (&plist key0 a0 ...  keyN aN) - bind value mapped by keyK in the
-     SOURCE plist to aK. If the value is not found, aK is nil.
+     SOURCE plist to aK. If the value is not found, aK is nil.  Uses
+     ‘plist-get’ to fetch values.
 
      (&alist key0 a0 ...  keyN aN) - bind value mapped by keyK in the
-     SOURCE alist to aK. If the value is not found, aK is nil.
+     SOURCE alist to aK. If the value is not found, aK is nil.  Uses
+     ‘assoc’ to fetch values.
 
      (&hash key0 a0 ...  keyN aN) - bind value mapped by keyK in the
      SOURCE hash table to aK. If the value is not found, aK is nil.
+     Uses ‘gethash’ to fetch values.
 
      Further, special keyword &keys supports "inline" matching of
      plist-like key-value pairs, similarly to &keys keyword of
@@ -2261,6 +2264,36 @@ control.
 
      This binds N values from the list to a1 ...  aN, then interprets
      the cdr as a plist (see key/value matching above).
+
+     A shorthand notation for kv-destructuring exists which allows the
+     patterns be optionally left out and derived from the key name in
+     the following fashion:
+
+     - a key :foo is converted into ‘foo’ pattern, - a key ’bar is
+     converted into ‘bar’ pattern, - a key "baz" is converted into
+     ‘baz’ pattern.
+
+     That is, the entire value under the key is bound to the derived
+     variable without any further destructuring.
+
+     This is possible only when the form following the key is not a
+     valid pattern (i.e.  not a symbol, a cons cell or a vector).
+     Otherwise the matching proceeds as usual and in case of an
+     invalid spec fails with an error.
+
+     Thus the patterns are normalized as follows:
+
+     ;; derive all the missing patterns (&plist :foo ’bar "baz") =>
+     (&plist :foo foo ’bar bar "baz" baz)
+
+     ;; we can specify some but not others (&plist :foo ’bar
+     explicit-bar) => (&plist :foo foo ’bar explicit-bar)
+
+     ;; nothing happens, we store :foo in x (&plist :foo x) => (&plist
+     :foo x)
+
+     ;; nothing happens, we match recursively (&plist :foo (a b c)) =>
+     (&plist :foo (a b c))
 
      You can name the source using the syntax SYMBOL &as PATTERN.
      This syntax works with lists (proper or improper), vectors and
@@ -2353,6 +2386,33 @@ control.
               ⇒ '(3 7 11)
           (funcall (-lambda ((_ . a) (_ . b)) (-concat a b)) '(1 2 3) '(4 5 6))
               ⇒ '(2 3 5 6)
+
+ -- Macro: -setq (&rest forms)
+     Bind each MATCH-FORM to the value of its VAL.
+
+     MATCH-FORM destructuring is done according to the rules of ‘-let’
+     (*note -let::).
+
+     This macro allows you to bind multiple variables by destructuring
+     the value, so for example:
+
+     (-setq (a b) x (&plist :c c) plist)
+
+     expands roughly speaking to the following code
+
+     (setq a (car x) b (cadr x) c (plist-get plist :c))
+
+     Care is taken to only evaluate each VAL once so that in case of
+     multiple assignments it does not cause unexpected side effects.
+
+     (fn [MATCH-FORM VAL]...)
+
+          (progn (-setq a 1) a)
+              ⇒ 1
+          (progn (-setq (a b) (list 1 2)) (list a b))
+              ⇒ '(1 2)
+          (progn (-setq (&plist :c c) (list :c "c")) c)
+              ⇒ "c"
 
 
 File: dash.info,  Node: Side-effects,  Next: Destructive operations,  Prev: Binding,  Up: Functions
@@ -2949,13 +3009,13 @@ Index
 * -juxt:                                 Function combinators.
                                                             (line  31)
 * -keep:                                 List to list.      (line   8)
-* -lambda:                               Binding.           (line 220)
+* -lambda:                               Binding.           (line 253)
 * -last:                                 Other list operations.
                                                             (line 232)
 * -last-item:                            Other list operations.
                                                             (line 301)
 * -let:                                  Binding.           (line  66)
-* -let*:                                 Binding.           (line 200)
+* -let*:                                 Binding.           (line 233)
 * -list:                                 Other list operations.
                                                             (line 334)
 * -map:                                  Maps.              (line  10)
@@ -3029,6 +3089,7 @@ Index
 * -select-column:                        Sublist selection. (line 199)
 * -select-columns:                       Sublist selection. (line 180)
 * -separate:                             Partitioning.      (line  63)
+* -setq:                                 Binding.           (line 276)
 * -slice:                                Sublist selection. (line  86)
 * -snoc:                                 Other list operations.
                                                             (line  42)
@@ -3243,38 +3304,39 @@ Ref: -when-let*71822
 Ref: -if-let72350
 Ref: -if-let*72745
 Ref: -let73362
-Ref: -let*78155
-Ref: -lambda79096
-Node: Side-effects79898
-Ref: -each80092
-Ref: -each-while80499
-Ref: -each-indexed80859
-Ref: -dotimes81377
-Ref: -doto81680
-Node: Destructive operations82107
-Ref: !cons82280
-Ref: !cdr82486
-Node: Function combinators82681
-Ref: -partial82955
-Ref: -rpartial83350
-Ref: -juxt83752
-Ref: -compose84184
-Ref: -applify84742
-Ref: -on85189
-Ref: -flip85712
-Ref: -const86024
-Ref: -cut86368
-Ref: -not86854
-Ref: -orfn87164
-Ref: -andfn87598
-Ref: -iteratefn88093
-Ref: -fixfn88796
-Ref: -prodfn90365
-Node: Development91431
-Node: Contribute91780
-Node: Changes92528
-Node: Contributors95527
-Node: Index97151
+Ref: -let*79450
+Ref: -lambda80391
+Ref: -setq81193
+Node: Side-effects82009
+Ref: -each82203
+Ref: -each-while82610
+Ref: -each-indexed82970
+Ref: -dotimes83488
+Ref: -doto83791
+Node: Destructive operations84218
+Ref: !cons84391
+Ref: !cdr84597
+Node: Function combinators84792
+Ref: -partial85066
+Ref: -rpartial85461
+Ref: -juxt85863
+Ref: -compose86295
+Ref: -applify86853
+Ref: -on87300
+Ref: -flip87823
+Ref: -const88135
+Ref: -cut88479
+Ref: -not88965
+Ref: -orfn89275
+Ref: -andfn89709
+Ref: -iteratefn90204
+Ref: -fixfn90907
+Ref: -prodfn92476
+Node: Development93542
+Node: Contribute93891
+Node: Changes94639
+Node: Contributors97638
+Node: Index99262
 
 End Tag Table
 

@@ -1100,6 +1100,40 @@ new list."
     (-let (((_ _ . (&alist 'a a 'c c)) (list 1 2 '(a . b) '(e . f) '(g . h) '(c . d)))) (list a c)) => '(b d)
     (-let (((x y (&alist 'a a 'c c)) (list 1 2 '((a . b) (e . f) (g . h) (c . d))))) (list x y a c)) => '(1 2 b d)
     (-let (((_ _ . ((&alist 'a a 'c c))) (list 1 2 '((a . b) (e . f) (g . h) (c . d))))) (list a c)) => '(b d)
+    ;; test bindings with no explicit val
+    (-let (a) a) => nil
+    (-let ((a)) a) => nil
+    (-let (a b) (list a b)) => '(nil nil)
+    (-let ((a) (b)) (list a b)) => '(nil nil)
+    ;; auto-derived match forms for kv destructuring
+    ;;; test that we normalize all the supported kv stores
+    (-let (((&plist :foo :bar) (list :foo 1 :bar 2))) (list foo bar)) => '(1 2)
+    (-let (((&alist :foo :bar) (list (cons :foo 1) (cons :bar 2)))) (list foo bar)) => '(1 2)
+    (let ((hash (make-hash-table)))
+      (puthash :foo 1 hash)
+      (puthash :bar 2 hash)
+      (-let (((&hash :foo :bar) hash)) (list foo bar))) => '(1 2)
+      (-let (((_ &keys :foo :bar) (list 'ignored :foo 1 :bar 2))) (list foo bar)) => '(1 2)
+    ;;; go over all the variations of match-form derivation
+    (-let (((&plist :foo foo :bar) (list :foo 1 :bar 2))) (list foo bar)) => '(1 2)
+    (-let (((&plist :foo foo :bar bar) (list :foo 1 :bar 2))) (list foo bar)) => '(1 2)
+    (-let (((&plist :foo x :bar y) (list :foo 1 :bar 2))) (list x y)) => '(1 2)
+    (-let (((&plist :foo (x) :bar [y]) (list :foo (list 1) :bar (vector 2)))) (list x y)) => '(1 2)
+    (-let (((&plist 'foo 'bar) (list 'foo 1 'bar 2))) (list foo bar)) => '(1 2)
+    (-let (((&plist 'foo foo 'bar) (list 'foo 1 'bar 2))) (list foo bar)) => '(1 2)
+    (-let (((&plist 'foo foo 'bar bar) (list 'foo 1 'bar 2))) (list foo bar)) => '(1 2)
+    (-let (((&plist 'foo x 'bar y) (list 'foo 1 'bar 2))) (list x y)) => '(1 2)
+    (-let (((&alist "foo" "bar") (list (cons "foo" 1) (cons "bar" 2)))) (list foo bar)) => '(1 2)
+    (-let (((&alist "foo" x "bar") (list (cons "foo" 1) (cons "bar" 2)))) (list x bar)) => '(1 2)
+    (-let (((&alist "foo" x "bar" y) (list (cons "foo" 1) (cons "bar" 2)))) (list x y)) => '(1 2)
+    (-let (((&alist :a 'b "c") (list (cons :a 1) (cons 'b 2) (cons "c" 3)))) (list a b c)) => '(1 2 3)
+    (-let (((&alist 'b :a "c") (list (cons :a 1) (cons 'b 2) (cons "c" 3)))) (list a b c)) => '(1 2 3)
+    (-let (((&alist 'b "c" :a) (list (cons :a 1) (cons 'b 2) (cons "c" 3)))) (list a b c)) => '(1 2 3)
+    (-let (((&alist "c" 'b :a) (list (cons :a 1) (cons 'b 2) (cons "c" 3)))) (list a b c)) => '(1 2 3)
+    (-let (((&alist "c" :a 'b) (list (cons :a 1) (cons 'b 2) (cons "c" 3)))) (list a b c)) => '(1 2 3)
+    (-let (((&alist :a "c" 'b) (list (cons :a 1) (cons 'b 2) (cons "c" 3)))) (list a b c)) => '(1 2 3)
+    (-let (((&plist 'foo 1) (list 'foo 'bar))) (list foo)) !!> error
+    (-let (((&plist foo :bar) (list :foo :bar))) (list foo)) !!> error
     ;; test the &as form
     (-let (((items &as first . rest) (list 1 2 3))) (list first rest items)) => '(1 (2 3) (1 2 3))
     (-let [(all &as [vect &as a b] bar) (list [1 2] 3)] (list a b bar vect all)) => '(1 2 3 [1 2] ([1 2] 3))
@@ -1135,7 +1169,12 @@ new list."
       (-let* (((a . b) a)
               ((c . d) b)) ;; b here comes from above binding
         (list a b c d))) => '(1 (2 3) 2 (3))
-    (-let* ((a "foo") (b a)) (list a b)) => '("foo" "foo"))
+    (-let* ((a "foo") (b a)) (list a b)) => '("foo" "foo")
+    ;; test bindings with no explicit val
+    (-let* (a) a) => nil
+    (-let* ((a)) a) => nil
+    (-let* (a b) (list a b)) => '(nil nil)
+    (-let* ((a) (b)) (list a b)) => '(nil nil))
 
   (defexamples -lambda
     (-map (-lambda ((x y)) (+ x y)) '((1 2) (3 4) (5 6))) => '(3 7 11)
@@ -1146,7 +1185,17 @@ new list."
     (funcall (-lambda ((a) (b)) (+ a b)) '(1 2 3) '(4 5 6)) => 5
     (-lambda a t) !!> wrong-type-argument
     (funcall (-lambda (a b) (+ a b)) 1 2) => 3
-    (funcall (-lambda (a (b c)) (+ a b c)) 1 (list 2 3)) => 6))
+    (funcall (-lambda (a (b c)) (+ a b c)) 1 (list 2 3)) => 6)
+
+  (defexamples -setq
+    (progn (-setq a 1) a) => 1
+    (progn (-setq (a b) (list 1 2)) (list a b)) => '(1 2)
+    (progn (-setq (&plist :c c) (list :c "c")) c) => "c"
+    (progn (-setq a 1 b 2) (list a b)) => '(1 2)
+    (progn (-setq (&plist :a a) (list :a (list :b 1))
+                  (&plist :b b) a) b) => 1
+    (-setq (a b (&plist 'x x 'y y)) (list 1 2 (list 'x 3 'y 4))
+           z x) => 3))
 
 (def-example-group "Side-effects"
   "Functions iterating over lists for side-effect only."
