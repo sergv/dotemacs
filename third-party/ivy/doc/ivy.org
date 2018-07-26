@@ -64,7 +64,7 @@ final candidate is either through simple keyboard character inputs or
 through powerful regular expressions.
 #+TEXINFO: @end ifnottex
 
-Copyright (C) 2015 Free Software Foundation, Inc.
+Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 #+BEGIN_QUOTE
 Permission is granted to copy, distribute and/or modify this document
@@ -137,8 +137,8 @@ discoverability.
 Install Ivy automatically through Emacs's package manager, or manually
 from Ivy's development repository.
 
-Emacs 24.3.1 is the oldest version to run Ivy. Emacs 24.5.1 is the
-oldest version that runs Ivy with fancy faces display.
+Emacs 24.3 is the oldest version to run Ivy. Emacs 24.4 is the oldest
+version that runs Ivy with fancy faces display.
 
 ** Installing from Emacs Package Manager
 :PROPERTIES:
@@ -449,8 +449,9 @@ actions.
 - ~M-j~ (=ivy-yank-word=) ::
      Inserts the sub-word at point into the minibuffer.
 
-     This is similar to ~C-s C-w~ with =isearch=. Ivy reserves ~C-w~
-     for =kill-region=.
+     This is similar to ~C-s C-w~ with =isearch=.  Ivy reserves ~C-w~
+     for =kill-region=.  See also =ivy-yank-symbol= and
+     =ivy-yank-char=.
 
 - ~S-SPC~ (=ivy-restrict-to-matches=) ::
      Deletes the current input, and resets the candidates list to the
@@ -769,8 +770,7 @@ installed.
 - User Option =ivy-display-style= ::
      Specifies highlighting candidates in the minibuffer.
 
-     The default setting is ='fancy= and valid only in Emacs versions
-     24.5 or newer.
+     The default setting is ='fancy= in Emacs versions 24.4 or newer.
 
      Set =ivy-display-style= to =nil= for a plain minibuffer.
 
@@ -1237,14 +1237,15 @@ narrowing) or select a candidate from the visible collection.
 
 #+begin_src elisp
 (defun counsel-locate-function (str)
-  (if (< (length str) 3)
-      (counsel-more-chars 3)
-    (counsel--async-command
-     (format "locate %s '%s'"
-             (mapconcat #'identity counsel-locate-options " ")
-             (counsel-unquote-regex-parens
-              (ivy--regex str))))
-    '("" "working...")))
+  (or
+   (counsel-more-chars)
+   (progn
+     (counsel--async-command
+      (format "locate %s '%s'"
+              (mapconcat #'identity counsel-locate-options " ")
+              (counsel-unquote-regex-parens
+               (ivy--regex str))))
+     '("" "working..."))))
 
 ;;;###autoload
 (defun counsel-locate (&optional initial-input)
