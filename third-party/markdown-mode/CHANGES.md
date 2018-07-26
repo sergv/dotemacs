@@ -15,6 +15,12 @@
         `markdown-font-lock-keywords` is now used instead, but users
         should use `font-lock-add-keywords` instead of modifying this
         variable.
+    -   `markdown-mode` now adds entries to the beginning of
+        `auto-mode-alist` rather than the end. If you were relying on
+        the previous behavior in order to override these entries, you
+        should fix the problem by following best practice and ensuring
+        that your user configuration is loaded after the autoloads for
+        `markdown-mode` are evaluated. ([GH-331][], [GH-335][])
 
 *   New features:
 
@@ -105,6 +111,8 @@
         ([GH-291][])
     -   Fix M-RET binding for terminals. ([GH-317][])
     -   Do not fail displaying inline images on empty links. ([GH-320][])
+    -   Fix off-by-one error in `markdown-inline-code-at-pos`.
+        ([GH-313][])
 
   [gh-171]: https://github.com/jrblevin/markdown-mode/issues/171
   [gh-216]: https://github.com/jrblevin/markdown-mode/issues/216
@@ -145,9 +153,12 @@
   [gh-291]: https://github.com/jrblevin/markdown-mode/issues/291
   [gh-296]: https://github.com/jrblevin/markdown-mode/issues/296
   [gh-303]: https://github.com/jrblevin/markdown-mode/pull/303
+  [gh-313]: https://github.com/jrblevin/markdown-mode/issues/313
   [gh-317]: https://github.com/jrblevin/markdown-mode/pull/317
   [gh-320]: https://github.com/jrblevin/markdown-mode/pull/320
   [gh-322]: https://github.com/jrblevin/markdown-mode/pull/322
+  [gh-331]: https://github.com/jrblevin/markdown-mode/issues/331
+  [gh-335]: https://github.com/jrblevin/markdown-mode/pull/335
 
 # Markdown Mode 2.3
 
