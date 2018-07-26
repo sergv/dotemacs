@@ -55,16 +55,8 @@ last-wconf
 
 # extensions
 *.elc
-*.pdf
-*.org
-*.pyc
-*.tar.gz
-*.tar.bz2
-*.tar.7z
-*.gz
-*.log
-*.aux
-*-session
-
-src/local-autoloads.el
-src/local-autoloads.el~
+*~
+/doc/dir
+*.info
+*-autoloads.el
+.dir-locals-2.el
