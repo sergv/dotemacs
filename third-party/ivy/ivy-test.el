@@ -1,6 +1,6 @@
 ;;; ivy-test.el --- tests for ivy -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 
@@ -20,15 +20,16 @@
 ;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This packages provides the tests for `ert'.  They can be executed
 ;; from the command line as well by calling "make test".
 
 ;;; Code:
+
 (require 'ert)
 (require 'colir)
 
-;; useful for #'ivy-read-remap. It must arrive before (require 'ivy)
+;; Useful for #'ivy-read-remap.  It must arrive before (require 'ivy).
 (define-key global-map (kbd "<S-right>") #'end-of-buffer)
 
 (require 'ivy)
@@ -846,6 +847,13 @@ will bring the behavior in line with the newer Emacsen."
     (should (eq (ivy--sort-function 'a) fn0))
     (should (not (ivy--sort-function 'b)))
     (should (eq (ivy--sort-function 'c) fn1))))
+
+(ert-deftest ivy-read-directory-name ()
+  (should
+   (equal "/tmp/"
+          (ivy-with
+           '(read-directory-name "cd: " "/tmp")
+           "RET"))))
 
 (provide 'ivy-test)
 

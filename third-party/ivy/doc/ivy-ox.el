@@ -1,6 +1,6 @@
-;;; ivy-ox.el --- org-export settings for Ivy
+;;; ivy-ox.el --- org-export settings for Ivy -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel
 
@@ -19,9 +19,13 @@
 ;; For a full copy of the GNU General Public License
 ;; see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;;; Code:
+
 ;;* ox-texinfo
 (require 'ox-texinfo)
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
 (org-export-define-backend 'texinfo
   '((bold . org-texinfo-bold)
     (center-block . org-texinfo-center-block)
@@ -192,3 +196,5 @@ contextual information."
    "Top"))
 
 (provide 'ivy-ox)
+
+;;; ivy-ox.el ends here
