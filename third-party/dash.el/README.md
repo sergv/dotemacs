@@ -288,6 +288,7 @@ Convenient versions of `let` and `let*` constructs combined with flow control.
 * [-let](#-let-varlist-rest-body) `(varlist &rest body)`
 * [-let*](#-let-varlist-rest-body) `(varlist &rest body)`
 * [-lambda](#-lambda-match-form-rest-body) `(match-form &rest body)`
+* [-setq](#-setq-rest-forms) `(&rest forms)`
 
 ### Side-effects
 
@@ -2323,14 +2324,17 @@ Key/value stores:
     (&plist key0 a0 ... keyN aN) - bind value mapped by keyK in the
                                    `source` plist to aK.  If the
                                    value is not found, aK is nil.
+                                   Uses `plist-get` to fetch values.
 
     (&alist key0 a0 ... keyN aN) - bind value mapped by keyK in the
                                    `source` alist to aK.  If the
                                    value is not found, aK is nil.
+                                   Uses `assoc` to fetch values.
 
     (&hash key0 a0 ... keyN aN) - bind value mapped by keyK in the
                                   `source` hash table to aK.  If the
                                   value is not found, aK is nil.
+                                  Uses `gethash` to fetch values.
 
 Further, special keyword &keys supports "inline" matching of
 plist-like key-value pairs, similarly to &keys keyword of
@@ -2340,6 +2344,36 @@ plist-like key-value pairs, similarly to &keys keyword of
 
 This binds `n` values from the list to a1 ... aN, then interprets
 the cdr as a plist (see key/value matching above).
+
+`a` shorthand notation for kv-destructuring exists which allows the
+patterns be optionally left out and derived from the key name in
+the following fashion:
+
+- a key :foo is converted into `foo` pattern,
+- a key 'bar is converted into `bar` pattern,
+- a key "baz" is converted into `baz` pattern.
+
+That is, the entire value under the key is bound to the derived
+variable without any further destructuring.
+
+This is possible only when the form following the key is not a
+valid pattern (i.e. not a symbol, a cons cell or a vector).
+Otherwise the matching proceeds as usual and in case of an
+invalid spec fails with an error.
+
+Thus the patterns are normalized as follows:
+
+     ;; derive all the missing patterns
+     (&plist :foo 'bar "baz") => (&plist :foo foo 'bar bar "baz" baz)
+
+     ;; we can specify some but not others
+     (&plist :foo 'bar explicit-bar) => (&plist :foo foo 'bar explicit-bar)
+
+     ;; nothing happens, we store :foo in x
+     (&plist :foo x) => (&plist :foo x)
+
+     ;; nothing happens, we match recursively
+     (&plist :foo (a b c)) => (&plist :foo (a b c))
 
 You can name the source using the syntax `symbol` &as `pattern`.
 This syntax works with lists (proper or improper), vectors and
@@ -2427,6 +2461,35 @@ See [`-let`](#-let-varlist-rest-body) for the description of destructuring mecha
 (-map (-lambda ((x y)) (+ x y)) '((1 2) (3 4) (5 6))) ;; => '(3 7 11)
 (-map (-lambda ([x y]) (+ x y)) '([1 2] [3 4] [5 6])) ;; => '(3 7 11)
 (funcall (-lambda ((_ . a) (_ . b)) (-concat a b)) '(1 2 3) '(4 5 6)) ;; => '(2 3 5 6)
+```
+
+#### -setq `(&rest forms)`
+
+Bind each `match-form` to the value of its `val`.
+
+`match-form` destructuring is done according to the rules of [`-let`](#-let-varlist-rest-body).
+
+This macro allows you to bind multiple variables by destructuring
+the value, so for example:
+
+    (-setq (a b) x
+           (&plist :c c) plist)
+
+expands roughly speaking to the following code
+
+    (setq a (car x)
+          b (cadr x)
+          c (plist-get plist :c))
+
+Care is taken to only evaluate each `val` once so that in case of
+multiple assignments it does not cause unexpected side effects.
+
+(fn [`match-form` `val`]...)
+
+```el
+(progn (-setq a 1) a) ;; => 1
+(progn (-setq (a b) (list 1 2)) (list a b)) ;; => '(1 2)
+(progn (-setq (&plist :c c) (list :c "c")) c) ;; => "c"
 ```
 
 
