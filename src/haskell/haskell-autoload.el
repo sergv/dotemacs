@@ -54,6 +54,7 @@
 (add-to-list 'auto-mode-alist '("cabal\\.\\(?:config\\|project\\).*\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.cabal\\(?:[./\\]config.*\\)?\\'" . haskell-cabal-mode))
 (add-to-list 'auto-mode-alist '("\\.hs\\(?:-boot\\)?\\'" . haskell-mode))
+(add-to-list 'auto-mode-alist '("\\.hs\\(?:ig\\|c\\)\\'" . haskell-mode))
 (add-to-list 'auto-mode-alist '("\\.lhs\\(?:-boot\\)?\\'" . latex-mode))
 
 (add-to-list 'interpreter-mode-alist '("runghc" . haskell-mode))
