@@ -480,9 +480,9 @@ Futher modified by Sergey Vinokurov."
 
             (ivy-current-match                    ((t :underline t)))
             (ivy-minibuffer-match-face-1          ((t :foreground ,red)))
-            (ivy-minibuffer-match-face-2          ((t :foreground ,yellow)))
-            (ivy-minibuffer-match-face-3          ((t :foreground ,green)))
-            (ivy-minibuffer-match-face-4          ((t :foreground ,magenta)))
+            (ivy-minibuffer-match-face-2          ((t :foreground ,orange)))
+            (ivy-minibuffer-match-face-3          ((t :foreground ,yellow)))
+            (ivy-minibuffer-match-face-4          ((t :foreground ,cyan)))
 
             (ivy-match-required-face              ((t :foreground ,red)))
             (ivy-confirm-face                     ((t :foreground ,green)))
