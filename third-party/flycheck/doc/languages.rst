@@ -28,7 +28,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       Check ADA syntax and types with `GNAT`_.
 
-      .. _GNAT: http://libre.adacore.com/tools/gnat-gpl-edition
+      .. _GNAT: https://www.adacore.com/community/
 
       .. defcustom:: flycheck-gnat-args
 
@@ -221,7 +221,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: coffee
 
-      Check syntax with the `Coffeescript <http://coffeescript.org/>`_ compiler.
+      Check syntax with the `Coffeescript <https://coffeescript.org/>`_ compiler.
 
    .. syntax-checker:: coffee-coffeelint
 
@@ -259,7 +259,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: cwl
 
-      Syntax check with (`Schema Salad <http://www.commonwl.org/v1.0/SchemaSalad.html>`_).
+      Syntax check with (`Schema Salad <https://www.commonwl.org/v1.0/SchemaSalad.html>`_).
 
       .. defcustom:: flycheck-cwl-schema-path
 
@@ -269,7 +269,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: d-dmd
 
-      Check syntax and types with (`DMD <http://dlang.org/>`_).
+      Check syntax and types with (`DMD <https://dlang.org/>`_).
 
       .. note::
 
@@ -625,7 +625,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: javascript-eslint
 
-      Check syntax and lint with `ESLint <http://eslint.org/>`_.
+      Check syntax and lint with `ESLint <https://eslint.org/>`_.
 
       .. note::
 
@@ -655,7 +655,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       Check syntax and code style with Standard_ or Semistandard_.
 
-      .. _Standard: https://github.com/feross/standard
+      .. _Standard: https://github.com/standard/standard
       .. _Semistandard: https://github.com/Flet/semistandard
 
 .. supported-language:: JSON
@@ -674,7 +674,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: jsonnet
 
-      Checks `Jsonnet <http://jsonnet.org>`_ with `jsonnet`.
+      Checks `Jsonnet <https://jsonnet.org>`_ with `jsonnet`.
 
 .. supported-language:: Less
 
@@ -735,7 +735,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: markdown-mdl
 
-      Check Markdown with `markdownlint <https://github.com/mivok/markdownlint/>`_.
+      Check Markdown with `markdownlint <https://github.com/markdownlint/markdownlint/>`_.
 
       .. defcustom:: flycheck-markdown-mdl-rules
 
@@ -899,6 +899,23 @@ to view the docstring of the syntax checker.  Likewise, you may use
          The maximum length of lines.
 
       .. syntax-checker-config-file:: flycheck-flake8rc
+
+   .. syntax-checker:: python-mypy
+
+      Type check python with  `mypy <http://www.mypy-lang.org/>`_.
+
+      .. note::
+
+         This syntax checker requires mypy 0.580 or newer.
+
+      .. syntax-checker-config-file:: flycheck-python-mypy-ini
+
+      .. defcustom:: flycheck-python-mypy-cache-dir
+
+         Directory used to write ``.mypy_cache`` directories.
+
+         Set to ``null-device`` to disable writing cache directories
+         entirely.
 
    .. syntax-checker:: python-pylint
 
@@ -1163,7 +1180,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
    .. syntax-checker:: scala
 
-      Check syntax and types with the `Scala <http://www.scala-lang.org/>`_
+      Check syntax and types with the `Scala <https://www.scala-lang.org/>`_
       compiler.
 
       .. note::
@@ -1171,7 +1188,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
          This syntax checker is fairly primitive.  For a better Scala experience
          we recommend Ensime_.
 
-         .. _Ensime: http://ensime.org/
+         .. _Ensime: http://ensime.github.io/
 
    .. syntax-checker:: scala-scalastyle
 
