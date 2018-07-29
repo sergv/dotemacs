@@ -826,17 +826,18 @@ for project at ROOT directory."
          (is-nil-value `(quote ,is-nil)))
     `(let ((,buffer-var ,buffer-expr))
        (with-current-buffer ,buffer-var
-         (when (null ,caching-var)
+         (when (or (null ,caching-var)
+                   (eq ,caching-var ,is-nil-value))
            (setf ,caching-var (or ,value-expr ,is-nil-value)))
-         (if (eq ,caching-var ,is-nil-value)
-             nil
-           (progn
-             (cl-assert (funcall ,value-predicate ,caching-var)
-                        nil
-                        ,(format "Variable `%s' must contain value that satisfies predicate %s"
-                                 caching-var
-                                 value-predicate))
-             ,caching-var))))))
+         (unless (eq ,caching-var ,is-nil-value)
+           (cl-assert (funcall ,value-predicate ,caching-var)
+                      nil
+                      (format
+                       ,(format "Variable `%s' must contain value that satisfies predicate %s. Value: %%s"
+                                caching-var
+                                value-predicate)
+                       ,caching-var))
+           ,caching-var)))))
 
 (defun eproj/reset-buffer-local-cache ()
   "Reset all caching buffer-local values associated with eproj in all buffers"
