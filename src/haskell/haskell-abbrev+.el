@@ -192,6 +192,18 @@ then Bar would be the result."
             t   ;; local
             ))
 
+(defun haskell-insert-language-pragmas ()
+  (let ((start (point))
+        (ext nil))
+    (unwind-protect
+        (while (and
+                (setf ext (ivy-yas-completing-prompt "Extension: " haskell-language-extensions))
+                (not (string= "" ext)))
+          (setf something-inserted? t)
+          (insert "{-# LANGUAGE " ext " #-}")
+          (haskell-align-language-pragmas start)
+          (insert "\n")))))
+
 ;;;###autoload
 (defun* haskell-abbrev+-setup (indent &key (repl nil))
   (let* ((import-expand-pred (lambda () (let ((c (char-before (point))))
@@ -259,6 +271,11 @@ then Bar would be the result."
                :action-data language-snippet
                :predicate #'point-not-inside-string-or-comment?
                :on-successful-expansion #'haskell-abbrev+--register-alignment-of-language-pragmas)
+              (make-abbrev+-abbreviation
+               :trigger "##?ll\\(?:ang\\)? *"
+               :action-type 'function-with-side-effects
+               :action-data #'haskell-insert-language-pragmas
+               :predicate #'point-not-inside-string-or-comment?)
               (make-abbrev+-abbreviation
                :trigger "##?o\\(?:pts?\\)? *"
                :action-type 'yas-snippet
