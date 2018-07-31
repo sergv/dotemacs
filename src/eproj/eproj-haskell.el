@@ -136,7 +136,7 @@ runtime but rather will be silently relied on)."
                                 (funcall add-tag-to-result tag))
                               tags-table))
                    data)
-          ;; Add constructor tags while filter out thouse that are already covered
+          ;; Add constructor tags but filter out ones that are already covered
           ;; by type tags.
           (when (and constructors-tags
                      type-tags)
