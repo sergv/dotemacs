@@ -150,6 +150,12 @@
                        (concat x " --> " y))
    :realign #'haskell-align-on-arrows-indent-region))
 
+(defun haskell-insert-pp-info-template ()
+  (interactive)
+  (insert "trace (displayDocString $ ")
+  (haskell-insert-pp-dict-info-template)
+  (insert ") $"))
+
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
     (if (zerop (length qualified-name))
@@ -340,6 +346,11 @@ then Bar would be the result."
              :trigger "\\<\\(?:pp\\(?:[dD]ict\\(?:[hH]eader\\)?\\)?\\)\\>"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-pp-dict-info-template
+             :predicate #'point-not-inside-string-or-comment?)
+            (make-abbrev+-abbreviation
+             :trigger "\\<\\(?:\\(?:info\\|trace\\)pp\\|pp\\(?:info\\|trace\\)\\)\\>"
+             :action-type 'function-with-side-effects
+             :action-data #'haskell-insert-pp-info-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
              :trigger "\\<\\(?:info\\|trace\\)\\>"
