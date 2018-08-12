@@ -219,6 +219,8 @@ string patterns."
 (defvar egrep-tag-default nil)
 (defvar egrep-regexp-history nil)
 
+(autoload 'grep-tag-default "grep" nil nil)
+
 (defun egrep--read-regexp ()
   (read-regexp (pcase egrep-backend
                  (`native
