@@ -119,7 +119,7 @@ test-suite ${filename no ext}-test
     Haskell2010
   ghc-options:
     -rtsopts
---     -main-is TestMain
+    -main-is TestMain
     -Wall
     -fwarn-name-shadowing
     -fno-warn-type-defaults
