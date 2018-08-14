@@ -1375,7 +1375,9 @@ STORE-PREVIOUS is non-nil, note the caller's buffer in
     (with-current-buffer
         (or (let ((buf (get-buffer name)))
               (and buf
-                   (get-buffer-process buf)))
+                   (get-buffer-process buf)
+                   ;; return buffer for surrounding context
+                   buf))
             (with-current-buffer
                 (get-buffer-create name)
               ;; The new buffer doesn't know if the initial buffer was hosted
