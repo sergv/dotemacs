@@ -466,6 +466,9 @@ sexps and indentation levels."
 
 ;;;; align functions
 
+(make-align-function haskell-align-on-dollars
+                     "[$][^$]"
+                     :require-one-or-more-spaces t)
 (make-align-function haskell-align-on-equals
                      "=[^=]"
                      :require-one-or-more-spaces t)
@@ -513,6 +516,7 @@ sexps and indentation levels."
   (def-keys-for-map keymap
     ("g a"       nil)
     ("g a a"     haskell-align-generic)
+    ("g a $"     haskell-align-on-dollars)
     ("g a ="     haskell-align-on-equals)
     ("g a - >"   haskell-align-on-arrows)
     ("g a < -"   haskell-align-on-left-arrows)
