@@ -6,6 +6,7 @@
 ;; Created: Sunday,  1 January 2012
 ;; Description:
 
+(require 'vim-motions)
 
 (defun vim-mock:motion-go-to-first-non-blank-beg (&optional count)
   (interactive "p")
@@ -157,9 +158,15 @@
         (goto-char (1+ pos))
         (backward-list)))))
 
-(defun vim-mock:motion-beginning-of-line ()
+(defun vim-mock:motion-beginning-of-line-or-digit-argument ()
   (interactive)
-  (beginning-of-line))
+  (vim--motion-beginning-of-line-or-digit-argument-impl
+   #'beginning-of-line))
+
+(defun vim-mock:motion-first-non-blank ()
+  (interactive)
+  (vim-mock:motion-beginning-of-line-or-digit-argument)
+  (skip-to-indentation))
 
 (defun vim-mock:motion-end-of-line ()
   (interactive)

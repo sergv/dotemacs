@@ -19,6 +19,10 @@
     ("t" previous-line)
     ("n" forward-char)
 
+    ("0" vim-mock:motion-beginning-of-line-or-digit-argument)
+    ("^" vim-mock:motion-first-non-blank)
+    ("$" vim-mock:motion-end-of-line)
+
     ("[" forward-paragraph)
     ("]" backward-paragraph))
   "Essential vi movement keys")
