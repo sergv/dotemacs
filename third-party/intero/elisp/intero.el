@@ -1374,9 +1374,7 @@ STORE-PREVIOUS is non-nil, note the caller's buffer in
          (backend-buffer (intero-buffer 'backend)))
     (with-current-buffer
         (or (let ((buf (get-buffer name)))
-              (and buf
-                   (get-buffer-process buf)
-                   ;; return buffer for surrounding context
+              (and (get-buffer-process buf)
                    buf))
             (with-current-buffer
                 (get-buffer-create name)
