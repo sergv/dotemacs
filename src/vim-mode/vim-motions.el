@@ -244,13 +244,17 @@ e.g. shell prompt.."
   (move-to-window-line (- (window-body-height) (or count 0) 1))
   (back-to-indentation))
 
+(defsubst vim--motion-beginning-of-line-or-digit-argument-impl (beginning-of-line-func)
+  (if (and current-prefix-arg
+           (not (zerop (prefix-numeric-value current-prefix-arg))))
+      (call-interactively #'digit-argument)
+    (call-interactively beginning-of-line-func)))
+
 (defun vim:motion-beginning-of-line-or-digit-argument ()
   "Feeds a 0 count or moves the cursor to the beginning of the line."
   (interactive)
-  (if (and current-prefix-arg
-           (not (zerop (prefix-numeric-value current-prefix-arg))))
-      (call-interactively 'digit-argument)
-    (call-interactively 'vim:motion-beginning-of-line)))
+  (vim--motion-beginning-of-line-or-digit-argument-impl
+   'vim:motion-beginning-of-line))
 
 (vim:defmotion vim:motion-beginning-of-line (exclusive)
   "Move the cursor to the beginning of the current line."
