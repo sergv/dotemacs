@@ -102,6 +102,9 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
   (setf dirtrack-list '("^[^: \r\n]+:\\([^$\r\n]+\\)[$#]" 1))
   (dirtrack-mode +1)
 
+  (with-editor-export-editor)
+  (with-editor-export-git-editor)
+
   (ansi-color-for-comint-mode-on)
   (setq-local comint-scroll-to-bottom-on-input t)
 
