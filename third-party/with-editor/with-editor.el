@@ -355,7 +355,8 @@ And some tools that do not handle $EDITOR properly also break."
   (let ((winconf with-editor-previous-winconf)
         (clients server-buffer-clients)
         (dir default-directory)
-        (pid with-editor--pid))
+        (pid with-editor--pid)
+        (inhibit-read-only t))
     (remove-hook 'kill-buffer-query-functions
                  'with-editor-kill-buffer-noop t)
     (cond (cancel
