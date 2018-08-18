@@ -227,10 +227,14 @@ runtime but rather will be silently relied on)."
 (defun eproj/haskell-get-extra-navigation-files (proj)
   (when-let (watch-project
              (haskell-watch-get-project (eproj-project/root proj)))
-    (let ((res nil))
+    (let ((res nil)
+          (cabal-project
+           (concat (eproj-project/root proj) "/cabal.project")))
       (maphash (lambda (key value)
                  (push key res))
                (haskell-watched-project/watched-files watch-project))
+      (when (file-exists-p cabal-project)
+        (push cabal-project res))
       res)))
 
 (provide 'eproj-haskell)
