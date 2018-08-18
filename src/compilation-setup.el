@@ -97,7 +97,7 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
     (make-compilation-error
      :compilation-root-directory default-directory
      :filename
-     (normalize-file-name
+     (normalise-file-name
       (trim-whitespace
        (match-string-no-properties file-group)))
      :line-number
