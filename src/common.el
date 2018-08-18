@@ -954,14 +954,15 @@ return pair (x (F x))."
   (declare (pure t) (side-effect-free t))
   (car-safe (cdr-safe x)))
 
-(defun normalize-file-name (fname)
+(defun normalise-file-name (fname)
   "Normalize file name"
   (declare (pure t) (side-effect-free t))
   (let ((cmdline-normalized
          (command-line-normalize-file-name fname)))
-    (if (memq system-type '(ms-dos windows-nt))
-        (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
-      cmdline-normalized)))
+    (strip-trailing-slash
+     (if (eval-when-compile (memq system-type '(ms-dos windows-nt)))
+         (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
+       cmdline-normalized))))
 
 ;;; buffer, window and frame utils
 
