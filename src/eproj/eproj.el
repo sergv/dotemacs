@@ -1168,11 +1168,8 @@ projects into the mix."
 (defun-caching eproj--resolve-to-abs-path (path dir) eproj--resolve-to-abs-path/reset-cache (path dir)
   (resolve-to-abs-path path dir))
 
-(defun eproj-normalise-file-name (path)
-  (strip-trailing-slash (normalize-file-name path)))
-
 (defun-caching eproj-normalise-file-name-cached (path) eproj-normalise-file-name-cached/reset-cache (path)
-  (eproj-normalise-file-name (expand-file-name path)))
+  (normalise-file-name (expand-file-name path)))
 
 (defun eproj--get-buffer-directory (buffer)
   "Get directory associated with BUFFER, either through visited file
