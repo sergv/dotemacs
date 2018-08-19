@@ -17,7 +17,7 @@
        (hash-table-p (cdr index))))
 
 (defun eproj-tag-index-size (index)
-  (hash-table-size (cdr index)))
+  (hash-table-count (cdr index)))
 
 (defun eproj-tag-index-add! (key value index)
   (cl-assert (stringp key))
