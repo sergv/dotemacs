@@ -553,15 +553,12 @@
                         ;; single file and collect tags exactly in the file, not
                         ;; the cached ones!
                         :consider-tag-files nil)))
-                  (maphash (lambda (symbol-str tags)
-                             (puthash symbol-str
-                                      (-filter is-tag-from-current-buffer? tags)
-                                      old-tags))
-                           old-tags)
-                  (hash-table-merge-with!
-                   (lambda (symbol-str tags-old tags-new)
-                     (append tags-old
-                             tags-new))
+                  (eproj-tag-index-map-values!
+                   (lambda (tags)
+                     (--filter (not (funcall is-tag-from-current-buffer? it))
+                               tags))
+                   old-tags)
+                  (eproj-tag-index-merge!
                    old-tags
                    new-tags))
               (error "Project '%s' does not have tags for '%s'"
