@@ -140,6 +140,7 @@ update-dir-autoloads \
     "third-party/pkg-info" \
     "third-party/popup-el" \
     "third-party/pos-tip" \
+    "third-party/ptx-mode" \
     "third-party/rust-mode" \
     "third-party/smartparens" \
     "third-party/sml-mode" \

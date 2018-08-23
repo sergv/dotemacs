@@ -78,6 +78,7 @@
                                         (? "<"
                                            (+ digit)
                                            ">")))))
+       (ptx-filter `(or (mode . ptx-mode)))
 
        (prolog-filter `(or (mode . prolog-mode)
                            (name . ,(rx "*prolog*"
@@ -223,6 +224,7 @@
       ("ml"         ,ml-filter)
       ("octave"     ,octave-filter)
       ("python"     ,python-filter)
+      ("ptx"        ,ptx-filter)
 
       ("prolog"     ,prolog-filter)
 
