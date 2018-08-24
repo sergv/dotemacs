@@ -960,9 +960,9 @@ return pair (x (F x))."
   (let ((cmdline-normalized
          (command-line-normalize-file-name fname)))
     (strip-trailing-slash
-     (if (eval-when-compile (memq system-type '(ms-dos windows-nt)))
-         (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)
-       cmdline-normalized))))
+     (fold-platform-os-type
+      cmdline-normalized
+      (replace-regexp-in-string "[\\]+" "/" cmdline-normalized)))))
 
 ;;; buffer, window and frame utils
 
