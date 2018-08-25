@@ -839,7 +839,7 @@ uppercase or lowercase names)."
                   (char= c ?:))))))
     (if entering-command?
         (self-insert-command prefix)
-      (haskell-smart-operators-hyphen prefix))))
+      (haskell-smart-operators-hyphen))))
 
 (defun* install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen)
   (declare (indent 1))
