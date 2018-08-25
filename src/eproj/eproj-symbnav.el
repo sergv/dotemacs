@@ -107,29 +107,29 @@ as accepted by `bounds-of-thing-at-point'.")
   (switch-to-buffer (eproj-home-entry/buffer home-entry))
   (goto-char (eproj-home-entry/position home-entry)))
 
-(defun eproj-symbnav/resolve-entry-file-in-project (entry proj)
+(defun eproj-symbnav/resolve-tag-file-in-project (tag proj)
   (let ((file
-         (eproj--resolve-to-abs-path (eproj-tag/file entry)
+         (eproj--resolve-to-abs-path (eproj-tag/file tag)
                                      (eproj-project/root proj))))
     (unless (file-exists-p file)
       (error "file %s does not exist" file))
     file))
 
-(defun eproj-symbnav/locate-entry-in-current-buffer (entry)
-  (goto-line1 (eproj-tag/line entry))
+(defun eproj-symbnav/locate-tag-in-current-buffer (tag-name tag)
+  (goto-line1 (eproj-tag/line tag))
   (save-match-data
-    (when (re-search-forward (regexp-quote (eproj-tag/symbol entry))
+    (when (re-search-forward (regexp-quote tag-name)
                              (line-end-position)
                              t)
       (goto-char (match-beginning 0))))
   ;; remove annoying "Mark set" message
   (notify ""))
 
-(defun eproj-symbnav/show-entry-in-other-window (entry entry-proj)
+(defun eproj-symbnav/show-tag-in-other-window (tag-name tag entry-proj)
   (find-file-other-window
-   (eproj-symbnav/resolve-entry-file-in-project entry
-                                                entry-proj))
-  (eproj-symbnav/locate-entry-in-current-buffer entry))
+   (eproj-symbnav/resolve-tag-file-in-project tag
+                                              entry-proj))
+  (eproj-symbnav/locate-tag-in-current-buffer tag-name tag))
 
 ;;;###autoload
 (defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
@@ -151,18 +151,18 @@ as accepted by `bounds-of-thing-at-point'.")
                                                     :position (point-marker)
                                                     :symbol nil))
          (jump-to-home
-          (lambda (entry entry-proj)
+          (lambda (tag-name tag entry-proj)
             (let ((file
-                   (eproj-symbnav/resolve-entry-file-in-project entry entry-proj)))
+                   (eproj-symbnav/resolve-tag-file-in-project tag entry-proj)))
               (push current-home-entry eproj-symbnav/previous-homes)
               (setf eproj-symbnav/next-homes nil)
               (find-file file)
-              (eproj-symbnav/locate-entry-in-current-buffer entry)
+              (eproj-symbnav/locate-tag-in-current-buffer tag-name tag)
               (eproj-symbnav/on-switch)
               (setf eproj-symbnav/selected-loc
                     (make-eproj-home-entry :buffer (current-buffer)
                                            :position (point-marker)
-                                           :symbol (eproj-tag/symbol entry))))))
+                                           :symbol tag-name)))))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
     ;; load tags if there're none
     (unless (or (eproj--get-tags proj)
@@ -194,9 +194,9 @@ as accepted by `bounds-of-thing-at-point'.")
              (entry->string-func (eproj-language/tag->string-func lang))
              (show-tag-kind-procedure (eproj-language/show-tag-kind-procedure lang))
              (tag->sort-token
-              (lambda (tag)
+              (lambda (tag-name tag)
                 (list
-                 (eproj-tag/symbol tag)
+                 tag-name
                  (funcall show-tag-kind-procedure tag)
                  (eproj-tag/file tag)
                  (eproj-tag/line tag))))
@@ -242,8 +242,8 @@ as accepted by `bounds-of-thing-at-point'.")
              (expanded-project-root
               (expand-file-name (eproj-project/root proj)))
              (tag->string
-              (lambda (tag-proj tag)
-                (let ((txt (funcall entry->string-func tag-proj tag))
+              (lambda (tag-proj tag-name tag)
+                (let ((txt (funcall entry->string-func tag-proj tag-name tag))
                       (expanded-tag-file
                        (expand-file-name
                         (eproj--resolve-to-abs-path
@@ -258,10 +258,11 @@ as accepted by `bounds-of-thing-at-point'.")
                          (propertize txt 'face 'italic))
                         (t
                          txt)))))
-             (entry-tag #'first)
-             (entry-string #'second)
-             (entry-proj #'third)
-             (entry-sort-token #'fourth)
+             (entry-sort-token #'first)
+             (entry-tag-name #'second)
+             (entry-tag #'third)
+             (entry-string #'fourth)
+             (entry-proj #'fifth)
              (entries
               ;; I'm not entirely sure where duplicates come from, but it's cheap
               ;; to remove them and at the same time I'm reluctant to tweak my
@@ -272,12 +273,13 @@ as accepted by `bounds-of-thing-at-point'.")
                  entry-sort-token
                  #'equal
                  (-map (lambda (tag-entry)
-                         (destructuring-bind (tag . tag-proj)
+                         (destructuring-bind (tag-name tag tag-proj)
                              tag-entry
-                           (list tag
-                                 (funcall tag->string tag-proj tag)
-                                 tag-proj
-                                 (funcall tag->sort-token tag))))
+                           (list (funcall tag->sort-token tag-name tag)
+                                 tag-name
+                                 tag
+                                 (funcall tag->string tag-proj tag-name tag)
+                                 tag-proj)))
                        (eproj-get-matching-tags proj
                                                 effective-major-mode
                                                 identifier
@@ -294,6 +296,7 @@ as accepted by `bounds-of-thing-at-point'.")
                   identifier))
           (`1
            (funcall jump-to-home
+                    (funcall entry-tag-name (elt entries 0))
                     (funcall entry-tag (elt entries 0))
                     (funcall entry-proj (elt entries 0))))
           (_
@@ -301,7 +304,8 @@ as accepted by `bounds-of-thing-at-point'.")
              (def-keys-for-map kmap
                ("SPC" (lambda () (interactive)
                         (let ((entry (elt entries (select-mode-get-selected-index))))
-                          (eproj-symbnav/show-entry-in-other-window
+                          (eproj-symbnav/show-tag-in-other-window
+                           (funcall entry-tag-name entry)
                            (funcall entry-tag entry)
                            (funcall entry-proj entry))))))
              (select-mode-start-selection
@@ -313,6 +317,7 @@ as accepted by `bounds-of-thing-at-point'.")
               (lambda (idx entry selection-type)
                 (select-mode-exit)
                 (funcall jump-to-home
+                         (funcall entry-tag-name entry)
                          (funcall entry-tag entry)
                          (funcall entry-proj entry)))
               :item-show-function
