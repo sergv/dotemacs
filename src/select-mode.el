@@ -13,9 +13,15 @@
 
 ;; Config variables
 
+(defgroup select-mode nil
+  "A mode for presenting and selecting from a list of items."
+  :group 'emacs)
+
 (defcustom select-mode-restore-windows-configuration-on-hide nil
   "Whether to restore windows configuration prior to selection buffer appearance (t)
-or just to bury selection buffer, leaving it's windows inplace (nil).)")
+or just to bury selection buffer, leaving it's windows inplace (nil).)"
+  :type 'boolean
+  :group 'select-mode)
 
 (defun select-make-bold-separator (base)
   (propertize base
@@ -65,7 +71,7 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)")
 ;;; utilities
 
 (defsubst select-mode--list->vector (items)
-  (coerce items 'vector))
+  (cl-coerce items 'vector))
 
 ;;; mode definition
 
