@@ -61,16 +61,7 @@ runtime but rather will be silently relied on)."
   (with-current-buffer buffer
     (save-match-data
       (goto-char (point-min))
-      (let ((tags-tables
-             (mk-nested-hash-tables
-              (list
-               (list #'(lambda (tag)
-                         (cdr (assq 'type (eproj-tag/properties tag))))
-                     #'equal)
-               (list #'(lambda (tag)
-                         (list (eproj-tag/symbol tag)
-                               (eproj-tag/file tag)))
-                     #'equal))))
+      (let ((tags-index (empty-eproj-tag-index))
             (gc-cons-threshold (min (* 100 1024 1024)
                                     (max gc-cons-threshold
                                          ;; Every 1000 lines takes up 1 mb or so.
@@ -105,48 +96,14 @@ runtime but rather will be silently relied on)."
                                file
                                line
                                fields)))
-                (nested-hash-tables/add!
-                 new-tag
-                 tags-tables)
-                ;; (puthash symbol
-                ;;          (cons new-tag (gethash symbol tags-table nil))
-                ;;          tags-table)
-                )))
+                (eproj-tag-index-add! symbol
+                                      (cons new-tag
+                                            (eproj-tag-index-get symbol tags-index nil))
+                                      tags-index))))
           (forward-line 1)
           (when eproj-verbose-tag-loading
             (funcall progress-reporter 1)))
-        (let* ((result-index (empty-eproj-tag-index))
-               (add-tag-to-result
-                (lambda (tag)
-                  (eproj-tag-index-add! (eproj-tag/symbol tag)
-                                        (cons tag
-                                              (eproj-tag-index-get
-                                               (eproj-tag/symbol tag)
-                                               result-index
-                                               nil))
-                                        result-index)))
-               (data (nested-hash-tables/data tags-tables))
-               (constructors-tags
-                (gethash "C" data nil))
-               (type-tags
-                (gethash "t" data nil)))
-          (remhash "C" data)
-          ;; Add all non-constructor tags.
-          (maphash (lambda (_ tags-table)
-                     (maphash (lambda (k tag)
-                                (funcall add-tag-to-result tag))
-                              tags-table))
-                   data)
-          ;; Add constructor tags but filter out ones that are already covered
-          ;; by type tags.
-          (when (and constructors-tags
-                     type-tags)
-            (maphash (lambda (name-and-file tag)
-                       (unless (gethash name-and-file type-tags)
-                         (funcall add-tag-to-result tag)))
-                     constructors-tags))
-          result-index)))))
-
+        tags-index))))
 
 (defun eproj/haskell-tag-kind (tag)
   (pcase (cdr-safe (assq 'type (eproj-tag/properties tag)))
