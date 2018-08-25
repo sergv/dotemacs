@@ -72,33 +72,31 @@
 
 ;; (fmakunbound 'make-eproj-tag)
 
-(defsubst make-eproj-tag (symbol file line props)
-  (cons symbol (cons file (cons line props))))
+(defsubst make-eproj-tag (file line props)
+  (cons file (cons line props)))
 
 (defsubst eproj-tag-p (tag-struct)
   (and (consp tag-struct)
        (stringp (car tag-struct))
        (consp (cdr tag-struct))
-       (stringp (cadr tag-struct))
-       (consp (cddr tag-struct))
-       (integerp (caddr tag-struct))))
+       (integerp (cadr tag-struct))))
 
-(defsubst eproj-tag/symbol (tag-struct)
-  (declare (pure t) (side-effect-free t))
-  (car tag-struct))
+;; (defsubst eproj-tag/symbol (tag-struct)
+;;   (declare (pure t) (side-effect-free t))
+;;   (car tag-struct))
 
 (defsubst eproj-tag/file (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (cadr tag-struct))
+  (car tag-struct))
 
 (defsubst eproj-tag/line (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (caddr tag-struct))
+  (cadr tag-struct))
 
 ;; Return associative list of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
-  (cdddr tag-struct))
+  (cddr tag-struct))
 
 ;;; eproj languages
 
@@ -125,7 +123,7 @@
 
   ;; function that takes a tag and returs a string
   show-tag-kind-procedure
-  ;; function of one argument, a tag, returning string
+  ;; function of 3 arguments, a project, a string tag name and a tag struct, returning string
   tag->string-func
   ;; list of symbols, these modes will resolve to this language during
   ;; tag search
@@ -188,10 +186,10 @@
 (defun eproj/generic-tag-kind (tag)
   (format "%s" (eproj-tag/properties tag)))
 
-(defun eproj/generic-tag->string (proj tag)
+(defun eproj/generic-tag->string (proj tag-name tag)
   (cl-assert (eproj-tag-p tag))
   (concat "Generic tag "
-          (eproj-tag/symbol tag)
+          tag-name
           "\n"
           (eproj--resolve-to-abs-path (eproj-tag/file tag)
                                       (eproj-project/root proj))
@@ -227,9 +225,9 @@
 (defun eproj/c-tag-kind (tag)
   (cdr-safe (assq 'kind (eproj-tag/properties tag))))
 
-(defun eproj/c-tag->string (proj tag)
+(defun eproj/c-tag->string (proj tag-name tag)
   (cl-assert (eproj-tag-p tag))
-  (concat (eproj-tag/symbol tag)
+  (concat tag-name
           (awhen (eproj/c-tag-kind tag)
             (concat " [" it "]"))
           "\n"
@@ -247,16 +245,16 @@
    (awhen (assq 'access (eproj-tag/properties tag))
      (concat "/" (cdr it)))))
 
-(defun eproj/java-tag->string (proj tag)
+(defun eproj/java-tag->string (proj tag-name tag)
   (cl-assert (eproj-tag-p tag))
-  (concat (eproj-tag/symbol tag)
+  (concat tag-name
           (awhen (eproj/java-tag-kind tag)
             (concat " [" it "]"))
           "\n"
           (awhen (assq 'class (eproj-tag/properties tag))
             (concat (cdr it)
                     "."
-                    (eproj-tag/symbol tag)
+                    tag-name
                     "\n"))
           (eproj--resolve-to-abs-path (eproj-tag/file tag)
                                       (eproj-project/root proj))
@@ -793,8 +791,8 @@ for project at ROOT directory."
       (when describe-tags
         (insert "tags:\n")
         (dolist (tags-entry (eproj--get-tags proj))
-          (let ((lang-tags (sort (hash-table->alist (cdr tags-entry))
-                                 (lambda (a b) (string< (car a) (car b))))))
+          (let ((lang-tags (-sort (lambda (a b) (string< (car a) (car b)))
+                                  (eproj-tag-index-entries (cdr tags-entry)))))
             (insert indent "lang: "
                     (pp-to-string (car tags-entry))
                     ", total amount = "
@@ -1185,18 +1183,16 @@ or `default-directory', if no file is visited."
 whose name equals IDENTIFIER or matches regexp IDENTIFIER if SEARCH-WITH-REGEXP?
 is non-nil.
 
-Returns list of (tag . project) pairs."
+Returns list of (tag-name tag project) lists."
   (-mapcat (lambda (proj)
              (aif (cdr-safe
                    (assq tag-major-mode
                          (eproj--get-tags proj)))
-                 (-map (lambda (tag)
-                         (cons tag proj))
-                       (if search-with-regexp?
-                           (apply
-                            #'-concat
+                 (if search-with-regexp?
+                     (--map (list (car it) (cdr it) proj)
                             (eproj-tag-index-values-where-key-matches-regexp identifier it))
-                         (eproj-tag-index-get identifier it nil)))
+                   (--map (list identifier it proj)
+                          (eproj-tag-index-get identifier it nil)))
                nil))
            (eproj-get-all-related-projects-for-mode proj tag-major-mode)))
 
