@@ -80,10 +80,11 @@ runtime but rather will be silently relied on)."
                                  (let ((total-tags-count (count-lines (point-min) (point-max))))
                                    (make-standard-progress-reporter total-tags-count "tags")))))
         (garbage-collect)
+        (while (looking-at-p "^!_TAG_")
+          (forward-line 1))
         (while (not (eobp))
           (beginning-of-line)
-          (when (and (not (looking-at-p "^!_TAG_")) ;; skip metadata
-                     (looking-at eproj-ctags--line-re))
+          (when (looking-at eproj-ctags--line-re)
             (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))
                   (file (eproj-ctags--cache-string
