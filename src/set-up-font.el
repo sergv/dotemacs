@@ -52,7 +52,6 @@
 
 (let ((font (car +emacs-fonts+)))
   (cl-assert (font-exist? font) nil "Font does not exist: %s" font)
-  (set-default-font font)
   (set-frame-font font)
 
   (add-hook 'after-make-frame-functions
