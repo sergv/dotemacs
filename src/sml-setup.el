@@ -9,6 +9,8 @@
 (require 'common)
 (require 'indentation)
 
+(defvar sml-indent-level)
+
 (setf sml-indent-level 2)
 
 ;;;###autoload (autoload 'switch-to-sml-repl "sml-setup" nil t)
