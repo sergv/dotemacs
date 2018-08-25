@@ -36,10 +36,14 @@
 (defun eproj-tag-index-values-where-key-matches-regexp (re index)
   (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (cl-assert (stringp re) nil "Invalid regexp: %s" re)
-  (hash-table-entries-matching-re (cdr index) re))
+  (apply #'-concat
+         (hash-table-entries-matching-re (cdr index) re)))
 
 (defun eproj-tag-index-keys (index)
   (hash-table-keys (cdr index)))
+
+(defun eproj-tag-index-entries (index)
+  (hash-table->alist index))
 
 (defun eproj-tag-index-map-values! (f index)
   "Destructively rewrite values in INDEX index by mapping function F."

@@ -421,14 +421,16 @@ returns true for key and value."
     result))
 
 (defun hash-table-entries-matching-re (table re)
-  "Return list of TABLE values whose keys match RE."
+  "Return list of TABLE (key . value) pairs where keys match RE."
   (declare (pure t) (side-effect-free t))
   (let ((result nil))
     (maphash (lambda (k v)
                (when (string-match-p re k)
-                 (push v result)))
+                 (push (cons k v) result)))
              table)
     result))
+
+
 
 (defun hash-table-merge! (table-main table-aux)
   "Add all entries from TABLE-AUX into TABLE-MAIN."
