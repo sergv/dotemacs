@@ -9,6 +9,7 @@
 ;; Status:
 
 (eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'cl-lib))
 
 (require 'macro-util)
 (require 'custom-predicates)
@@ -21,8 +22,8 @@
   (declare (pure t) (side-effect-free error-free))
   (+ c
      (* (- x a)
-        (/ (coerce (- d c) 'float)
-           (coerce (- b a) 'float)))))
+        (/ (cl-coerce (- d c) 'float)
+           (cl-coerce (- b a) 'float)))))
 
 (defun make-random-gen (init)
   (declare (pure t) (side-effect-free error-free))
@@ -1525,24 +1526,24 @@ last non-whitespace character."
 
 (defsubst string->list (str)
   (declare (pure t) (side-effect-free t))
-  (coerce str 'list))
+  (cl-coerce str 'list))
 
 (defsubst list->string (items)
   (declare (pure t) (side-effect-free t))
-  (coerce items 'string))
+  (cl-coerce items 'string))
 
 (defsubst vector->list (str)
   (declare (pure t) (side-effect-free t))
-  (coerce str 'list))
+  (cl-coerce str 'list))
 
 (defsubst list->vector (items)
   (declare (pure t) (side-effect-free t))
-  (coerce items 'vector))
+  (cl-coerce items 'vector))
 
 (defsubst int-vector->string (v)
   "Convernt vector of integers to string."
   (declare (pure t) (side-effect-free t))
-  (coerce v 'string))
+  (cl-coerce v 'string))
 
 (defsubst char=? (a b)
   (declare (pure t) (side-effect-free t))

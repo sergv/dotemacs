@@ -66,8 +66,7 @@ This lambda accepts the same prefix arguments as
 If region is active and `use-region-p' returns true, the region
 is wrapped instead.  This is useful with selection functions in
 `evil-mode' to wrap regions with pairs."
-  (let* ((arg (or current-prefix-arg 1))
-         (p (point))
+  (let* ((p (point))
          (active-pair (--first (equal (car it) pair-open) sp-pair-list)))
     (destructuring-bind (start . end)
         (if (region-active-p)
@@ -128,7 +127,7 @@ With negative argument move forward, still one level out."
                 :exclusive t
                 :do-not-adjust-point t)
 
-(defun sp-in-minibuffer? (id action context)
+(defun sp-in-minibuffer? (_id _action _context)
   (minibufferp))
 
 ;; do not autoinsert ' pair if the point is preceeded by word.  This
@@ -164,12 +163,12 @@ With negative argument move forward, still one level out."
 ;; /* */ is needed by c mode (and related ones) only
 (sp-pair "/*" nil :actions nil)
 
-(defun cc-mode-open-block (id action context)
+(defun cc-mode-open-block (_id action _context)
   (when (eq action 'insert)
     (newline)
     (newline)
     (indent-according-to-mode)
-    (previous-line)
+    (forward-line -1)
     (indent-according-to-mode)))
 
 (sp-with-modes '(c-mode
