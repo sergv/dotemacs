@@ -11,18 +11,15 @@
 ;;;###autoload
 (defun* find-rec-do (path
                      &key
-                     (filep (lambda (p) t))
-                     (dirp  (lambda (p) nil))
+                     (filep (lambda (_) t))
                      do-not-visitp
                      ;; (lambda (p)
                      ;;   (version-control-directory?
                      ;;    (file-name-nondirectory p)))
 
                      (file-action #'ignore)
-                     (directory-action #'ignore)
                      (do-not-sort-directory-files t))
-  "Call FILE-ACTION on every matching file and DIRECTORY-ACTION on every matching
-folder."
+  "Call FILE-ACTION on every matching file."
   (declare (pure nil) (side-effect-free nil))
   (letrec ((go
             (lambda (path)
@@ -42,8 +39,8 @@ folder."
 ;;;###autoload
 (defun* find-rec (path
                   &key
-                  (filep (lambda (p) t))
-                  (dirp  (lambda (p) nil))
+                  (filep (lambda (_) t))
+                  (dirp  (lambda (_) nil))
                   do-not-visitp)
   "Collect files and/or directories under PATH recursively.
 
@@ -60,8 +57,7 @@ All predicates are called with full absolute paths."
      :filep filep
      :dirp dirp
      :do-not-visitp do-not-visitp
-     :file-action record-path
-     :directory-action record-path)
+     :file-action record-path)
     accum))
 
 
@@ -153,9 +149,9 @@ EXTENSIONS-GLOBS - list of globs that match file extensions to search for."
     (cl-assert (fboundp #'haskell-native-find-rec))
     (haskell-native-find-rec
      (vector root)
-     (coerce globs-to-find 'vector)
-     (coerce ignored-files 'vector)
-     (coerce ignored-dirs  'vector))))
+     (cl-coerce globs-to-find 'vector)
+     (cl-coerce ignored-files 'vector)
+     (cl-coerce ignored-dirs  'vector))))
 
 (defun find-rec--find-executable-impl (root
                                        globs-to-find

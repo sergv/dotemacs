@@ -24,45 +24,58 @@
 
 ;;; search faces
 
+(defgroup searhc nil
+  "A mode for presenting and selecting from a list of items."
+  :group 'search)
+
 (defface search-highlight-face '((t (:inherit lazy-highlight)))
-  "Face to highlight main matches for regexp being searched for.")
+  "Face to highlight main matches for regexp being searched for."
+  :group 'search)
 
 (defface search-red-face `((t (:background ,+solarized-red+)))
-  "Alternative red face.")
+  "Alternative red face."
+  :group 'search)
 (defface search-orange-face `((t (:background ,+solarized-orange+)))
-  "Alternative orange face.")
+  "Alternative orange face."
+  :group 'search)
 (defface search-yellow-face `((t (:background ,+solarized-yellow+)))
-  "Alternative yellow face.")
+  "Alternative yellow face."
+  :group 'search)
 (defface search-green-face `((t (:background ,+solarized-green+)))
-  "Alternative green face.")
+  "Alternative green face."
+  :group 'search)
 (defface search-cyan-face `((t (:background ,+solarized-cyan+)))
-  "Alternative cyan face.")
+  "Alternative cyan face."
+  :group 'search)
 (defface search-blue-face `((t (:background ,+solarized-blue+)))
-  "Alternative blue face.")
+  "Alternative blue face."
+  :group 'search)
 (defface search-violet-face `((t (:background ,+solarized-violet+)))
-  "Alternative violet face.")
+  "Alternative violet face."
+  :group 'search)
 (defface search-magenta-face `((t (:background ,+solarized-magenta+)))
-  "Alternative magenta face.")
+  "Alternative magenta face."
+  :group 'search)
 
 ;;; buffer-local search state
 
-(defparameter-local search--highlight-face-index 0
+(defvar-local search--highlight-face-index 0
   "Index into `+search-highlight-faces+' that determines currently used face for
 highlighting searches.")
 
-(defparameter-local search--current-regexp nil
+(defvar-local search--current-regexp nil
   "Regexp being searched now.")
 
-(defparameter-local search--start-marker nil
+(defvar-local search--start-marker nil
   "Marker which points to location from which search was initiated.")
 
-(defparameter-local search--match-overlays nil
+(defvar-local search--match-overlays nil
   "List of overlays which highlight matches for regexp being searched for.")
 
-(defparameter-local search--direction-forward? nil
+(defvar-local search--direction-forward? nil
   "Whether we're searching in the forward direction right now. Either t or nil.")
 
-(defparameter-local search--case-sensetive nil
+(defvar-local search--case-sensetive nil
   "Becomes set to te during case-sensetive matches.")
 
 (defconst +search-highlight-faces+
@@ -224,7 +237,7 @@ Highlighting starts at the beginning of buffer")
   (remove-hook 'minibuffer-setup-hook  #'search--minibuffer-setup)
   (remove-hook 'after-change-functions #'search--update-after-change t))
 
-(defun search--update-after-change (start end old-len)
+(defun search--update-after-change (_start _end _old-len)
   "Do `search-update' in initiated buffer. Must be called from minibuffer only."
   ;; Get search regexp before we visit buffer that initiated search.
   (let ((re (search--get-current-regexp)))

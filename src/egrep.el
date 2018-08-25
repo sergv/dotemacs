@@ -102,9 +102,9 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
           (haskell-native-grep-rec
            (vector root)
            regexp
-           (coerce globs-to-find 'vector)
-           (coerce ignored-files 'vector)
-           (coerce ignored-dirs 'vector)
+           (cl-coerce globs-to-find 'vector)
+           (cl-coerce ignored-files 'vector)
+           (cl-coerce ignored-dirs 'vector)
            ignore-case)))
     (cl-assert (vectorp matches))
     (when (or (null matches)
