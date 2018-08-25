@@ -92,7 +92,6 @@ runtime but rather will be silently relied on)."
                                   (eproj-ctags--cache-string
                                    (trim-whitespace fields-str)))))
                      (new-tag (make-eproj-tag
-                               symbol
                                file
                                line
                                fields)))
@@ -120,14 +119,14 @@ runtime but rather will be silently relied on)."
             (eproj-tag/properties tag)))))
 
 ;;;###autoload
-(defun eproj/haskell-tag->string (proj tag)
+(defun eproj/haskell-tag->string (proj tag-name tag)
   (cl-assert (eproj-tag-p tag))
   (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))
          (is-module?
           (pcase type
             ("m" t)
             (_   nil))))
-    (concat (eproj-tag/symbol tag)
+    (concat tag-name
             " ["
             (eproj/haskell-tag-kind tag)
             "]\n"

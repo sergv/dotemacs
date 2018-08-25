@@ -196,7 +196,6 @@ BUFFER is expected to contain output of ctags command."
                 (forward-char)
                 (eproj-tag-index-add! symbol
                                       (cons (make-eproj-tag
-                                             symbol
                                              file
                                              line
                                              fields)
