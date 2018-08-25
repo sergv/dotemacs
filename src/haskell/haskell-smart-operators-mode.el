@@ -292,7 +292,7 @@ that next 2 characters are AFTER1 and AFTER2."
 ;;;###autoload
 (defun haskell-smart-operators-hyphen ()
   "Insert hyphen surrounding with spaces. No surrounding within
-strings or commetns. Expand into {- _|_ -} if inside { *}."
+strings or comments. Expand into {- _|_ -} if inside { *}."
   (interactive)
   (destructuring-bind
       (pt-before pt-after is-surrounded?)
