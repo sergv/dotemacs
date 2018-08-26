@@ -6,7 +6,49 @@
 ;; Created: 20 June 2018
 ;; Description:
 ;; This module provides a "tag index" data structure. This datastructure
-;; serves to map
+;; serves to map symbol name to metadata that tracks where corresponding
+;; symbol occurs.
+;;
+;; Conceptually, a tag index is a hash table from symbol names to non-empty
+;; lists of ‘eproj-tag’ structures.
+
+;;; eproj-tag
+
+;; use this to debug type errors
+;; (cl-defstruct (eproj-tag
+;;                (:conc-name eproj-tag/))
+;;   symbol ;; == name - string
+;;   file   ;; string
+;;   line   ;; number
+;;   properties)
+
+(defsubst make-eproj-tag (file line props)
+  (cons file (cons line props)))
+
+(defsubst eproj-tag-p (tag-struct)
+  (and (consp tag-struct)
+       (stringp (car tag-struct))
+       (consp (cdr tag-struct))
+       (integerp (cadr tag-struct))))
+
+;; (defsubst eproj-tag/symbol (tag-struct)
+;;   (declare (pure t) (side-effect-free t))
+;;   (car tag-struct))
+
+(defsubst eproj-tag/file (tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (car tag-struct))
+
+(defsubst eproj-tag/line (tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (cadr tag-struct))
+
+;; Return associative list of tag properties.
+(defsubst eproj-tag/properties (tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (cddr tag-struct))
+
+
 
 (defun empty-eproj-tag-index ()
   (cons 'eproj-tag-index (make-hash-table :test #'equal :size 997)))
@@ -25,9 +67,13 @@
 (defun eproj-tag-index-size (index)
   (hash-table-count (cdr index)))
 
-(defun eproj-tag-index-add! (key value index)
-  (cl-assert (stringp key))
-  (puthash key value (cdr index)))
+(defun eproj-tag-index-add! (symbol file line props index)
+  (cl-assert (stringp symbol))
+  (let ((table (cdr index)))
+    (puthash symbol
+             (cons (make-eproj-tag file line props)
+                   (gethash symbol table))
+             table)))
 
 (defun eproj-tag-index-get (key index &optional default)
   (cl-assert (stringp key))

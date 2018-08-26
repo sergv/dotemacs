@@ -90,14 +90,11 @@ runtime but rather will be silently relied on)."
                      (fields
                       (list (cons 'type
                                   (eproj-ctags--cache-string
-                                   (trim-whitespace fields-str)))))
-                     (new-tag (make-eproj-tag
-                               file
-                               line
-                               fields)))
+                                   (trim-whitespace fields-str))))))
                 (eproj-tag-index-add! symbol
-                                      (cons new-tag
-                                            (eproj-tag-index-get symbol tags-index nil))
+                                      file
+                                      line
+                                      fields
                                       tags-index))))
           (forward-line 1)
           (when eproj-verbose-tag-loading

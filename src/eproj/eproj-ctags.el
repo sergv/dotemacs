@@ -195,13 +195,10 @@ BUFFER is expected to contain output of ctags command."
                           (error "Invalid ctags entry: %s" (buffer-substring-no-properties start end)))))))
                 (forward-char)
                 (eproj-tag-index-add! symbol
-                                      (cons (make-eproj-tag
-                                             file
-                                             line
-                                             fields)
-                                            (eproj-tag-index-get symbol tags-index nil))
+                                      file
+                                      line
+                                      fields
                                       tags-index)))
-
             (when eproj-verbose-tag-loading
               (funcall progress-reporter 1))))
         tags-index))))
