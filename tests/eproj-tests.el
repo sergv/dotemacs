@@ -194,9 +194,9 @@ under ROOT directory."
 
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj/get-fast-tags-from-buffer"
-    (let* ((test-root "/home/test/whatever")
-           (test-filename "foo.bar")
-           (test-filename-abs (expand-file-name test-filename test-root)))
+  (let* ((test-root "/home/test/whatever")
+         (test-filename "foo.bar")
+         (test-filename-abs (expand-file-name test-filename test-root)))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
