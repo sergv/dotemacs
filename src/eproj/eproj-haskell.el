@@ -16,9 +16,6 @@
 
 ;;;###autoload
 (defun eproj/create-haskell-tags (proj project-files-thunk parse-tags-proc)
-  (cl-assert (eproj-project-p proj))
-  ;; (when eproj-verbose-tag-loading
-  ;;   (notify "Creating haskell tags for project %s" (eproj-project/root proj)))
   (unless *fast-tags-exec*
     (error "Cannot load haskell project, fast-tags executable not found (and no tag-file specified)"))
   (with-temp-buffer
@@ -48,10 +45,10 @@
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
             (erase-buffer))))
-        (funcall parse-tags-proc out-buffer))))))
+        (funcall parse-tags-proc (eproj-project/root proj) out-buffer))))))
 
 ;;;###autoload
-(defun eproj/get-fast-tags-tags-from-buffer (buffer)
+(defun eproj/get-fast-tags-tags-from-buffer (proj-root buffer)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain simplified output of ctags - fast-tags command.
 
@@ -79,8 +76,9 @@ runtime but rather will be silently relied on)."
             (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))
                   (file (eproj-ctags--cache-string
-                         (eproj-normalise-file-name-cached
-                          (match-string-no-properties 2))))
+                         (eproj-normalise-file-name-expand-cached
+                          (match-string-no-properties 2)
+                          proj-root)))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"

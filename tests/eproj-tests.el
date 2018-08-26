@@ -194,7 +194,9 @@ under ROOT directory."
 
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj/get-fast-tags-from-buffer"
-  (let ((test-filename "foo.bar"))
+    (let* ((test-root "/home/test/whatever")
+           (test-filename "foo.bar")
+           (test-filename-abs (expand-file-name test-filename test-root)))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
@@ -206,24 +208,24 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-index
-     (eproj/get-fast-tags-tags-from-buffer (current-buffer))
+     (eproj/get-fast-tags-tags-from-buffer test-root (current-buffer))
      (should-not (= 0 (eproj-tag-index-size tags-index)))
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
        (should tag1)
-       (should (string=? test-filename (eproj-tag/file tag1)))
+       (should (string=? test-filename-abs (eproj-tag/file tag1)))
        (should (= 100 (eproj-tag/line tag1)))
        (should (equal (cons 'type "x") (assq 'type (eproj-tag/properties tag1)))))
 
      (let ((tag2 (car-safe (eproj-tag-index-get "foo2" tags-index))))
        (should tag2)
-       (should (string=? test-filename (eproj-tag/file tag2)))
+       (should (string=? test-filename-abs (eproj-tag/file tag2)))
        (should (= 101 (eproj-tag/line tag2)))
        (should (equal (cons 'type "y") (assq 'type (eproj-tag/properties tag2)))))
 
      (let ((tag3 (car-safe (eproj-tag-index-get "foo3" tags-index))))
        (should tag3)
-       (should (string=? test-filename (eproj-tag/file tag3)))
+       (should (string=? test-filename-abs (eproj-tag/file tag3)))
        (should (= 102 (eproj-tag/line tag3)))
        (should (equal (cons 'type "z") (assq 'type (eproj-tag/properties tag3))))))))
 
@@ -241,7 +243,7 @@ foo3	%s	102	;\"	z
       test-filename
       test-filename)
      tags-index
-     (eproj/get-fast-tags-tags-from-buffer (current-buffer))
+     (eproj/get-fast-tags-tags-from-buffer nil (current-buffer))
      (should-not (= 0 (eproj-tag-index-size tags-index)))
 
      (let ((tag1 (car-safe (eproj-tag-index-get "foo1" tags-index))))
@@ -276,7 +278,7 @@ test	%s	102	;\"	f
       test-filename
       test-filename)
      tags-index
-     (eproj/get-fast-tags-tags-from-buffer (current-buffer))
+     (eproj/get-fast-tags-tags-from-buffer nil (current-buffer))
      (should-not (= 0 (eproj-tag-index-size tags-index)))
 
      (let ((type-tag (car-safe (eproj-tag-index-get "Identity" tags-index))))
