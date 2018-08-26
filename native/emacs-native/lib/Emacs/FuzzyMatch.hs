@@ -49,21 +49,22 @@ scoreMatchesDoc =
   \sort the strings according to score of fuzzy matching them against the query."
 
 scoreMatches
-  :: forall m s. (WithCallStack, MonadEmacs m, Monad (m s), MonadIO (m s), MonadThrow (m s), MonadBaseControl IO (m s), Forall (Pure (m s)))
+  :: forall m s. (WithCallStack, MonadEmacs m, Monad (m s), MonadIO (m s), MonadThrow (m s), MonadBaseControl IO (m s), Forall (Pure (m s)), NFData (EmacsRef m s))
   => EmacsFunction ('S ('S 'Z)) 'Z 'False s m
 scoreMatches (R needle (R haystacks Stop)) = do
   needle'    <- extractText needle
-  haystacks' <- traverse (\str -> (, str) <$> extractText str) =<< extractListRev haystacks
+  haystacks' <- extractListRevWith (\str -> (, str) <$> extractText str) haystacks
   let matches
         = map (\(_, _, emacsStr) -> emacsStr)
         $ L.sortOn (\(score, str, _emacsStr) -> (Down score, T.length str))
         $ runPar
         $ parMap (\(str, emacsStr) -> (mScore $ fuzzyMatch (computeHeatMap str mempty) needle' str, str, emacsStr)) haystacks'
-  makeList matches
+  produceRef =<< makeList matches
 
 scoreSingleMatchDoc :: C8.ByteString
 scoreSingleMatchDoc =
-  "."
+  "Fuzzy match a single string against another. Returns match score and \
+  \positions where the match occured."
 
 scoreSingleMatch
   :: forall m s. (WithCallStack, MonadEmacs m, Monad (m s), MonadIO (m s), MonadThrow (m s), MonadBaseControl IO (m s), Forall (Pure (m s)))
@@ -74,4 +75,4 @@ scoreSingleMatch (R needle (R haystack Stop)) = do
   let Match{mScore, mPositions} = fuzzyMatch (computeHeatMap haystack' mempty) needle' haystack'
   score     <- makeInt mScore
   positions <- makeList =<< traverse (makeInt . unStrIdx) (toList mPositions)
-  cons score positions
+  produceRef =<< cons score positions
