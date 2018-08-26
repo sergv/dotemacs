@@ -79,11 +79,12 @@
   (cl-assert (stringp key))
   (gethash key (cdr index) default))
 
-(defun eproj-tag-index-values-where-key-matches-regexp (re index)
+(defun eproj-tag-index-values-where-key-matches-regexp (re index &optional ignore-case)
   (cl-assert (eproj-tag-index-p index) nil "Invalid index: %s" index)
   (cl-assert (stringp re) nil "Invalid regexp: %s" re)
-  (apply #'-concat
-         (hash-table-entries-matching-re (cdr index) re)))
+  (let ((case-fold-search ignore-case))
+    (apply #'-concat
+           (hash-table-entries-matching-re (cdr index) re))))
 
 (defun eproj-tag-index-keys (index)
   (hash-table-keys (cdr index)))
