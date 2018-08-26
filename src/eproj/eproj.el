@@ -77,9 +77,12 @@
   ;; Returns whatever the third function returned.
   create-tags-procedure
 
-  ;; Function of one argument - buffer with tag text to parse,
-  ;; created by e.g. create-tags-procedure.
-  ;; Should return hash table of tags - hashtable of (<identifier> . <eproj-tags>)
+  ;; Function of two arguments:
+  ;; 1. project root, absolute file path pointing to a directory
+  ;; 2. buffer with tag text to parse, created by e.g. create-tags-procedure.
+  ;;
+  ;; Should return `eproj-tag-index' structure, which is isomorphic to
+  ;; hash table of tags - hashtable of (<identifier> . <eproj-tags>)
   ;; bindings for specified files, where <eproj-tags> is a list of tags.
   parse-tags-procedure
 
@@ -254,7 +257,7 @@
     ;;           lang-mode
     ;;           (eproj-project/root proj)
     ;;           (redisplay)))
-    (prog1 (funcall parse-tags-proc (current-buffer))
+    (prog1 (funcall parse-tags-proc (eproj-project/root proj) (current-buffer))
       (erase-buffer))))
 
 (defparameter eproj/languages
@@ -478,11 +481,6 @@
         (eproj-verbose-tag-loading nil))
     (when proj
       (let* ((fname (expand-file-name buffer-file-name))
-             (is-tag-from-current-buffer?
-              (lambda (tag)
-                (not (string= fname
-                              (expand-file-name
-                               (eproj-tag/file tag))))))
              (mode (eproj/resolve-synonym-modes major-mode)))
         (unless (memq mode
                       (eproj-project/languages proj))
@@ -514,11 +512,8 @@
                         ;; single file and collect tags exactly in the file, not
                         ;; the cached ones!
                         :consider-tag-files nil)))
-                  (eproj-tag-index-map-values!
-                   (lambda (tags)
-                     (--filter (not (funcall is-tag-from-current-buffer? it))
-                               tags))
-                   old-tags)
+                  (eproj-tag-index-drop-tags-from-file! fname
+                                                        old-tags)
                   (eproj-tag-index-merge!
                    old-tags
                    new-tags))
@@ -545,14 +540,14 @@ cache tags in."
                     (if (file-exists-p tag-file)
                         (with-temp-buffer
                           (insert-file-contents-literally tag-file)
-                          (funcall parse-tags-procedure (current-buffer)))
+                          (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer)))
                       (funcall create-tags-procedure
                                proj
                                project-files-thunk
                                (lambda (buf)
                                  (with-current-buffer buf
                                    (write-region (point-min) (point-max) tag-file)
-                                   (funcall parse-tags-procedure buf))))))
+                                   (funcall parse-tags-procedure (eproj-project/root proj) buf))))))
                 (funcall create-tags-procedure
                          proj
                          project-files-thunk
@@ -809,7 +804,7 @@ for project at ROOT directory."
 variable or symbol 'unresolved.")
 
 ;; Get <initial-project-root> for project governing PATH.
-(defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache (path)
+(defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache path
   (eproj/find-eproj-file-location path))
 
 (defvar-local eproj/buffer-project-cache nil
@@ -1123,14 +1118,14 @@ projects into the mix."
 ;; If PATH is existing absoute file then return it, otherwise try to check
 ;; whether it's existing file relative to DIR and return that. Report error if
 ;; both conditions don't hold.
-(defun-caching eproj--resolve-to-abs-path (path dir) eproj--resolve-to-abs-path/reset-cache (path dir)
+(defun-caching eproj--resolve-to-abs-path (path dir) eproj--resolve-to-abs-path/reset-cache (cons path dir)
   (resolve-to-abs-path path dir))
 
-(defun-caching eproj-normalise-file-name-cached (path) eproj-normalise-file-name-cached/reset-cache (path)
+(defun-caching eproj-normalise-file-name-cached (path) eproj-normalise-file-name-cached/reset-cache path
   (normalise-file-name path))
 
-(defun-caching eproj-normalise-file-name-expand-cached (path) eproj-normalise-file-name-expand-cached/reset-cache (path)
-  (normalise-file-name (expand-file-name path)))
+(defun-caching eproj-normalise-file-name-expand-cached (path &optional dir) eproj-normalise-file-name-expand-cached/reset-cache (cons path dir)
+  (normalise-file-name (expand-file-name path dir)))
 
 (defun eproj--get-buffer-directory (buffer)
   "Get directory associated with BUFFER, either through visited file
