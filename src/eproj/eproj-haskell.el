@@ -116,11 +116,7 @@ runtime but rather will be silently relied on)."
 ;;;###autoload
 (defun eproj/haskell-tag->string (proj tag-name tag)
   (cl-assert (eproj-tag-p tag))
-  (let* ((type (cdr-safe (assq 'type (eproj-tag/properties tag))))
-         (is-module?
-          (pcase type
-            ("m" t)
-            (_   nil))))
+  (let ((type (cdr-safe (assq 'type (eproj-tag/properties tag)))))
     (concat tag-name
             " ["
             (eproj/haskell-tag-kind tag)
@@ -182,7 +178,7 @@ runtime but rather will be silently relied on)."
     (let ((res nil)
           (cabal-project
            (concat (eproj-project/root proj) "/cabal.project")))
-      (maphash (lambda (key value)
+      (maphash (lambda (key _value)
                  (push key res))
                (haskell-watched-project/watched-files watch-project))
       (when (file-exists-p cabal-project)
