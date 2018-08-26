@@ -1,0 +1,8 @@
+packages:
+  ../emacs-module/emacs-module.cabal
+  ../radix-tree/radix-tree.cabal
+  emacs-native.cabal
+
+-- program-options
+--   ghc-options: -g3
+
