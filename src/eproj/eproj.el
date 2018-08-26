@@ -60,44 +60,6 @@
 (require 'eproj-tag-index)
 (require 'haskell-autoload)
 
-;;; eproj-tag
-
-;; use this to debug type errors
-;; (cl-defstruct (eproj-tag
-;;                (:conc-name eproj-tag/))
-;;   symbol ;; == name - string
-;;   file   ;; string
-;;   line   ;; number
-;;   properties)
-
-;; (fmakunbound 'make-eproj-tag)
-
-(defsubst make-eproj-tag (file line props)
-  (cons file (cons line props)))
-
-(defsubst eproj-tag-p (tag-struct)
-  (and (consp tag-struct)
-       (stringp (car tag-struct))
-       (consp (cdr tag-struct))
-       (integerp (cadr tag-struct))))
-
-;; (defsubst eproj-tag/symbol (tag-struct)
-;;   (declare (pure t) (side-effect-free t))
-;;   (car tag-struct))
-
-(defsubst eproj-tag/file (tag-struct)
-  (declare (pure t) (side-effect-free t))
-  (car tag-struct))
-
-(defsubst eproj-tag/line (tag-struct)
-  (declare (pure t) (side-effect-free t))
-  (cadr tag-struct))
-
-;; Return associative list of tag properties.
-(defsubst eproj-tag/properties (tag-struct)
-  (declare (pure t) (side-effect-free t))
-  (cddr tag-struct))
-
 ;;; eproj languages
 
 (cl-defstruct (eproj-language
