@@ -1,0 +1,12 @@
+packages:
+  ../emacs-module.cabal
+  emacs-module-test.cabal
+
+-- program-options
+--   ghc-options: -g3
+
+constraints:
+  emacs-module +assertions +module-assertions
+
+library-profiling: False
+debug-info: True
