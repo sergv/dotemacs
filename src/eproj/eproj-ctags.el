@@ -143,7 +143,7 @@
 
 ;; tags parsing
 ;;;###autoload
-(defun eproj/ctags-get-tags-from-buffer (buffer)
+(defun eproj/ctags-get-tags-from-buffer (proj-root buffer)
   "Constructs hash-table of (tag . eproj-tag) bindings extracted from buffer BUFFER.
 BUFFER is expected to contain output of ctags command."
   (with-current-buffer buffer
@@ -167,8 +167,9 @@ BUFFER is expected to contain output of ctags command."
             (let ((symbol (eproj-ctags--cache-string
                            (match-string-no-properties 1)))
                   (file (eproj-ctags--cache-string
-                         (eproj-normalise-file-name-cached
-                          (match-string-no-properties 2))))
+                         (eproj-normalise-file-name-expand-cached
+                          (match-string-no-properties 2)
+                          proj-root)))
                   (line (string->number (match-string-no-properties 3))))
               (goto-char (match-end 0))
               ;; now we're past ;"

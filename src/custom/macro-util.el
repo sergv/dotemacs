@@ -118,7 +118,7 @@ CALL-N-TIMES should be non nil to cause this call to be applied n times."
           (t
            func)))))
 
-(defmacro defun-caching (func args reset-cache-func cache-args &rest body)
+(defmacro defun-nested-caching (func args reset-cache-func cache-args &rest body)
   "Defun new function FUNC that automatically caches it's output depending of values of
 CACHE-ARGS, which should be a list.
 
@@ -178,6 +178,34 @@ NB does not expect to cache values of ARGS that are nil."
                                   value-var)
                                 cache-args)
                          cache-var)
+               ,value-var)))))))
+
+(defmacro defun-caching (func args reset-cache-func mk-cache-key &rest body)
+  "Defun new function FUNC that automatically caches it's output
+depending of value of MK-CACHE-KEY, which should be an expression
+that returnsn a value to use as a caching key.
+
+NB does not expect to cache values of ARGS that are nil."
+  (cl-assert (symbol? func))
+  (cl-assert (symbol? reset-cache-func))
+  (let ((cache-var (gentemp "cache"))
+        (query-var '#:query)
+        (hash-table-var '#:hash-table)
+        (value-var '#:value)
+        (cache-arg-var '#:cache-key)
+        (empty-table-expr '(make-hash-table :test #'equal)))
+    `(progn
+       (defvar ,cache-var ,empty-table-expr)
+       (defun ,reset-cache-func ()
+         (setf ,cache-var ,empty-table-expr))
+       (defun ,func ,args
+         (let* ((,cache-arg-var ,mk-cache-key)
+                (,query-var
+                 (gethash ,cache-arg-var ,cache-var)))
+           (if ,query-var
+               ,query-var
+             (let ((,value-var (progn ,@body)))
+               (puthash ,cache-arg-var ,value-var ,cache-var)
                ,value-var)))))))
 
 ;;; circular jumps
