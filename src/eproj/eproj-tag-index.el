@@ -36,6 +36,7 @@
 ;;   (car tag-struct))
 
 (defsubst eproj-tag/file (tag-struct)
+  "Get the file that current tag came from. Always absolute."
   (declare (pure t) (side-effect-free t))
   (car tag-struct))
 
@@ -48,10 +49,6 @@
   (declare (pure t) (side-effect-free t))
   (cddr tag-struct))
 
-
-
-(defun empty-eproj-tag-index ()
-  (cons 'eproj-tag-index (make-hash-table :test #'equal :size 997)))
 
 (defsubst eproj-tag-index--create (tbl)
   (cons 'eproj-tag-index tbl))
@@ -91,6 +88,24 @@
 
 (defun eproj-tag-index-entries (index)
   (hash-table->alist index))
+
+(defun eproj-tag-index-drop-tags-from-file! (fname index)
+  "Remove all tags that come from FNAME file. Tag file names will be expanded
+relative to project root."
+  (cl-assert (eproj-tag-index-p index))
+  (let* ((old-tbl (cdr index))
+         (new-tbl (make-hash-table :test #'equal
+                                   :size (hash-table-size old-tbl))))
+    (maphash (lambda (key tags)
+               (puthash key
+                        (--filter (not
+                                   (string= fname
+                                            (expand-file-name (eproj-tag/file it)
+                                                              proj-root)))
+                                  tags)
+                        new-tbl))
+             old-tbl)
+    (setcdr index new-tbl)))
 
 (defun eproj-tag-index-map-values! (f index)
   "Destructively rewrite values in INDEX index by mapping function F."
