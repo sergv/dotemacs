@@ -206,7 +206,10 @@ error location - list of (filename line column)."
        ("y"        copy-region-as-kill)
 
        (("C-m" "<f9>") recompile)
-       ("SPC"          compile-goto-error))))
+       ("SPC"          compile-goto-error))
+
+     (def-keys-for-map compilation-button-map
+       ("C-m" nil))))
 
 (vim:defcmd vim:recompile (nonrepeatable)
   (recompile))
