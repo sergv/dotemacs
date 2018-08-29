@@ -513,6 +513,7 @@
                         ;; the cached ones!
                         :consider-tag-files nil)))
                   (eproj-tag-index-drop-tags-from-file! fname
+                                                        (eproj-project/root proj)
                                                         old-tags)
                   (eproj-tag-index-merge!
                    old-tags
