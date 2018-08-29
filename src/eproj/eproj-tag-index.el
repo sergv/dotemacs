@@ -102,7 +102,7 @@
     (defun eproj-tag-index-entries (index)
       (hash-table->alist index))
 
-    (defun eproj-tag-index-drop-tags-from-file! (fname index)
+    (defun eproj-tag-index-drop-tags-from-file! (fname proj-root index)
       "Remove all tags that come from FNAME file. Tag file names will be expanded
 relative to project root."
       (cl-assert (eproj-tag-index-p index))
@@ -137,7 +137,7 @@ equal keys using `append'."
       (cl-assert (eproj-tag-index-p index-a))
       (cl-assert (eproj-tag-index-p index-b))
       (hash-table-merge-with!
-       (lambda (tags-a tags-b)
+       (lambda (_sym tags-a tags-b)
          (append tags-a tags-b))
        (cdr index-a)
        (cdr index-b)))))
