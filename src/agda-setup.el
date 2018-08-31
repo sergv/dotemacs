@@ -39,8 +39,8 @@
   (bind-tab-keys #'eri-indent
                  #'eri-indent-reverse
                  :enable-yasnippet t)
-  (vim:local-emap "load" #'vim:agda-load-file)
-  (vim:local-emap "lo"   #'vim:agda-load-file)
+  (dolist (cmd '("load" "lo" "l"))
+    (vim:local-emap "load" #'vim:agda-load-file))
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-l"             agda2-load)
     ("<f6>"            agda2-load)
