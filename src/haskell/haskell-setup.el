@@ -168,7 +168,9 @@ enabled. Otherwise fall back to eproj tags."
               (setf flycheck-enabled? nil
                     intero-enabled? nil)
               (when flycheck-mode
-                (flycheck-mode -1)))))))
+                (flycheck-mode -1))
+              (when intero-mode
+                (intero-mode -1)))))))
 
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
