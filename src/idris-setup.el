@@ -68,12 +68,12 @@
   (bind-tab-keys #'eri-indent
                  #'eri-indent-reverse
                  :enable-yasnippet t)
-  (vim:local-emap "load" #'vim:idris-load-file)
-  (vim:local-emap "lo"   #'vim:idris-load-file)
-  (vim:local-emap "l"    #'vim:idris-load-file)
+  (dolist (cmd '("load" "lo" "l"))
+    (vim:local-emap cmd #'vim:idris-load-file))
   (def-keys-for-map vim:normal-mode-local-keymap
     ("C-t"             vim:idris-previous-error)
     ("C-h"             vim:idris-next-error)
+    ("C-l"             idris-load-file)
     ("SPC SPC"         idris-pop-to-repl-or-start-a-new-one)
     ("+"               input-unicode)
 
