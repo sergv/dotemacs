@@ -394,11 +394,12 @@ greater indenation as current line."
   ;; (causes noticeable delay on inserting (, " or """)
   (setq-local forward-sexp-function nil)
 
-  (vim:local-emap "load" #'vim:python-shell-send-buffer)
-  (vim:local-emap "l"    #'vim:python-shell-send-buffer)
+  (dolist (cmd '("load" "lo" "l"))
+    (vim:local-emap cmd #'vim:python-shell-send-buffer))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("j"       python-shell-send-defun)
+    ("C-l"     python-shell-send-buffer)
 
     ("SPC SPC" switch-to-python)
     ("g s s"   vim-replace-symbol-at-point))
