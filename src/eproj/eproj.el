@@ -1168,19 +1168,7 @@ Returns list of (tag-name tag project) lists."
 (add-to-list 'ivy-re-builders-alist
              '(eproj-switch-to-file-or-buffer . ivy--regex-fuzzy))
 
-
 ;;;###autoload
-(defun switch-to-buffer-or-file-in-current-project (&optional include-all-buffers?)
-  "Like `switch-to-buffer' but includes files from eproj project assigned to
-current buffer."
-  (interactive "P")
-  (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
-    (if proj
-        (eproj-switch-to-file-or-buffer proj include-all-buffers?)
-      (progn
-        (message "No project for current buffer: %s" (current-buffer))
-        (call-interactively #'ivy-switch-buffer)))))
-
 (defun eproj-switch-to-file-or-buffer (proj include-all-buffers?)
   (let ((root (eproj-project/root proj))
         (this-command 'eproj-switch-to-file-or-buffer))
@@ -1197,10 +1185,10 @@ current buffer."
            (on-item-selected
             (lambda (selected-entry)
               (if (stringp selected-entry)
-                  (switch-to-buffer selected-entry)
+                  (switch-to-buffer-create-if-missing selected-entry)
                 (let ((target (cdr selected-entry)))
                   (if (bufferp target)
-                      (switch-to-buffer target)
+                      (switch-to-buffer-create-if-missing target)
                     (find-file target))))))
            (add-file
             (lambda (abs-path rel-path)
@@ -1249,7 +1237,8 @@ current buffer."
                 :require-match nil
                 :caller 'eproj-switch-to-file-or-buffer
                 :history 'eproj-switch-to-file--history
-                :preselect (awhen (buffer-file-name) (expand-file-name it))
+                :preselect (or (awhen (buffer-file-name) (expand-file-name it))
+                               (buffer-name (other-buffer (current-buffer))))
                 :action on-item-selected))))
 
 ;;;###autoload
