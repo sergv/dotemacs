@@ -17,7 +17,35 @@
 ;;;; modes without much customization
 (setq-default frame-background-mode nil)
 
+(setf global-auto-revert-ignore-modes
+      '(comint-mode
+        git-rebase-mode
+        magit-diff-mode
+        magit-log-mode
+        magit-popup-mode
+        magit-process-mode
+        magit-reflog-mode
+        magit-refs-mode
+        magit-revision-mode
+        magit-stash-mode
+        magit-status-mode
+
+        dired-mode
+        haskell-compilation-mode
+        inferior-haskell-mode
+        inferior-scheme-mode
+        intero-help-mode
+        intero-repl-mode
+        lisp-interaction-mode
+        prolog-inferior-mode
+        python-repl-mode
+        select-mode
+        shell-mode
+        special-mode
+        undo-tree-visualizer-mode))
+
 (global-auto-revert-mode 1)
+
 
 ;;;; saveplace - minor mode to remember positions in visited files
 (setq save-place-file (path-concat +prog-data-path+ "saveplace"))

@@ -143,6 +143,7 @@ or not.")
   (setq-local *vim:do-not-adjust-point* t)
   (setq-local vim:insert-mode-exit-move-point 'dont-move-at-line-end)
   (emacs-forget-buffer-process)
+  (setq-local global-auto-revert-ignore-buffer t)
 
   (when create-keymaps
     (vim:bind-local-keymaps))
