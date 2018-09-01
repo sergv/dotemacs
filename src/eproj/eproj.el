@@ -905,7 +905,7 @@ doing `eproj-switch-to-file-or-buffer'."
          (find-rec*
           :root (eproj-project/root proj)
           :globs-to-find
-          (append '("*.md" "*.markdown" "*.rst" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*")
+          (append '("*.org" "*.md" "*.markdown" "*.rst" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*")
                   (eproj-project/extra-navigation-globs proj))
           :ignored-files-globs (eproj-project/ignored-files-globs proj)
           :ignored-absolute-dirs (eproj-project/related-projects proj)
