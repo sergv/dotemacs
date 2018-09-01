@@ -41,6 +41,9 @@
     (vim:local-emap cmd  #'vim:haskell-compile))
   (dolist (cmd '("cc" "ccompile"))
     (vim:local-emap cmd  #'vim:haskell-compile-choosing-command))
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("g i" vim:haskell-navigate-imports)
+    ("g I" haskell-navigate-imports-return))
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
     ("M-t"             haskell-compilation-prev-error-other-window)
