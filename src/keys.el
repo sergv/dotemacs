@@ -19,7 +19,6 @@
   ("<f6>"     nil)
 
   ("<f9>"     compile)
-  ("<f10>"    shell)
 
   ("C-<prior>" scroll-down-command-fast)
   ("C-<next>"  scroll-up-command-fast)
@@ -48,7 +47,7 @@
   ("C-t"      nil)
   ("C-<down>" nil)
   ("C-<up>"   nil)
-  ("C-b"      ivy-switch-buffer)
+  ("C-b"      switch-to-buffer-with-completion)
 
   ;; for icicle
   ("<M-tab>"  nil)
