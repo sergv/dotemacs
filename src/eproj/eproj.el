@@ -1147,10 +1147,13 @@ Returns list of (tag-name tag project) lists."
                    (assq tag-major-mode
                          (eproj--get-tags proj)))
                  (if search-with-regexp?
-                     (--map (list (car it) (cdr it) proj)
-                            (eproj-tag-index-values-where-key-matches-regexp identifier it))
-                   (--map (list identifier it proj)
-                          (eproj-tag-index-get identifier it nil)))
+                     (mapcan (lambda (key-and-tags)
+                               (let ((key (car key-and-tags)))
+                                 (-map (lambda (tag) (list key tag proj))
+                                       (cdr key-and-tags))))
+                             (eproj-tag-index-values-where-key-matches-regexp identifier it))
+                   (-map (lambda (x) (list identifier x proj))
+                         (eproj-tag-index-get identifier it nil)))
                nil))
            (eproj-get-all-related-projects-for-mode proj tag-major-mode)))
 
