@@ -430,8 +430,6 @@ returns true for key and value."
              table)
     result))
 
-
-
 (defun hash-table-merge! (table-main table-aux)
   "Add all entries from TABLE-AUX into TABLE-MAIN."
   (declare (pure nil) (side-effect-free nil))
