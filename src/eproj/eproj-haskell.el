@@ -100,6 +100,7 @@ runtime but rather will be silently relied on)."
         tags-index))))
 
 (defun eproj/haskell-tag-kind (tag)
+  (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
   (pcase (cdr-safe (assq 'type (eproj-tag/properties tag)))
     ("m" "Module")
     ("f" "Function")
