@@ -15,10 +15,7 @@
 
 ;;;###autoload
 (defun haskell-grammar-tools-setup ()
-  (init-common :use-yasnippet t
-               :use-render-formula nil
-               :use-fci t
-               :use-whitespace 'tabs-only)
+  (init-common :use-whitespace 'tabs-only)
   (fontify-merge-markers)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (haskell-setup-indentation
