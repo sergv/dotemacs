@@ -211,6 +211,11 @@ error location - list of (filename line column)."
      (def-keys-for-map compilation-button-map
        ("C-m" nil))))
 
+(defun compilation-mode-setup ()
+  (hl-line-mode +1))
+
+(add-hook 'compilation-mode-hook #'compilation-mode-setup)
+
 (vim:defcmd vim:recompile (nonrepeatable)
   (recompile))
 

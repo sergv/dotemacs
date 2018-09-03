@@ -114,11 +114,7 @@ enabled. Otherwise fall back to eproj tags."
               t
             (prog1 nil
               (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))))
-    (init-common :use-yasnippet t
-                 :use-comment t
-                 :use-render-formula nil
-                 :use-hl-line nil
-                 :use-whitespace 'tabs-only)
+    (init-common :use-whitespace 'tabs-only)
     (fontify-conflict-markers!)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
 
