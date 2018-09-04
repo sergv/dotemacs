@@ -48,6 +48,15 @@
       org-fontify-quote-and-verse-blocks t
       org-use-property-inheritance nil ;; '("DRILL_CARD_TYPE")
 
+      ;; Do not align node's contents to the indentation of the parent heading.
+      org-adapt-indentation nil
+
+      ;; Enable `org-indent-mode' in all files on startup.
+      org-startup-indented t
+      ;; Make tab indent within code blocks as if it was issued in the
+      ;; proper mode for block's language.
+      org-src-tab-acts-natively t
+
       org-highlight-latex-fragments-and-specials t
       org-latex-default-packages-alist
       '(("AUTO" "inputenc"  t)
@@ -503,7 +512,6 @@ the current topic."
   (vim:local-emap "pdf"    #'vim:org-latex-export-to-pdf)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("<print>" org-toggle-inline-images-and-formulae)
-    ("-"       vim:org-mode-make-beamer-presentation)
     ("C-."     org-open-at-point)
     ("C-,"     org-mark-ring-goto)
     ("C-o"     org-open-at-point)
@@ -529,6 +537,7 @@ the current topic."
     ("C-9"     org-mode-show-level-9))
 
   (def-keys-for-map vim:visual-mode-local-keymap
+    ("<tab>"   org-indent-region)
     ("j"       eval-region))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
@@ -552,7 +561,7 @@ the current topic."
     ("$" vim:org-end-of-line))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("SPC"   abbrev+-org-self-insert-or-expand-abbrev))
+    ("SPC"  abbrev+-org-self-insert-or-expand-abbrev))
 
   (def-keys-for-map org-mode-map
     ("C-k"   nil)
