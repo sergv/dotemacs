@@ -27,7 +27,7 @@
    "# Important variables:\n"
    "# FS - input field separator\n"
    "# NF - number of fields in current input record\n"
-   "# NR - number of inputr records seen so far\n"
+   "# NR - number of input records seen so far\n"
    "# String functions:\n"
    "# gensub(regexp, str, (\"g\"|[1-9])[, where]); returns new string\n"
    "# gsub(regexp, str[, where]); modifies string\n"
