@@ -1812,7 +1812,13 @@ This is used to create paths which a remote intero process can load."
   "Return a standardized version of PATH.
 Path names are standardised and drive names are
 capitalized (relevant on Windows)."
-  (intero-capitalize-drive-letter (convert-standard-filename path)))
+  (intero-capitalize-drive-letter
+   (funcall
+    (fold-platform-os-type
+     #'identity
+     (lambda (x) (replace-regexp-in-string "[/]+" "\\\\" x)))
+    (command-line-normalize-file-name
+     (convert-standard-filename path)))))
 
 (defun intero-capitalize-drive-letter (path)
   "Ensures the drive letter is capitalized in PATH.
