@@ -834,7 +834,8 @@ CHECKER and BUFFER are added to each item parsed from STRING."
     (maphash (lambda (tmp-name buf)
                (cl-assert (stringp tmp-name))
                (cl-assert (bufferp buf))
-               (when (buffer-file-name buf)
+               (when (and (buffer-live-p buf)
+                          (buffer-file-name buf))
                  (let ((buffer-name
                         (file-relative-name (buffer-file-name buf) working-dir)))
                    (setf tmp
