@@ -709,7 +709,7 @@ uppercase or lowercase names)."
   "Make a newline on the current column and indent on step."
   (interactive "*")
   (haskell--simple-indent-newline-same-col)
-  (insert (make-string indentation-size ?\s)))
+  (insert (make-string haskell-indent-offset ?\s)))
 
 (defun haskell-newline-with-signature-expansion ()
   "Similar to `sp-newline' but autoexpands haskell signatures."
