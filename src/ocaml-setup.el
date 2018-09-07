@@ -41,21 +41,20 @@
 
 ;;;###autoload
 (defun ocaml-setup ()
-  (init-common :use-yasnippet t
-               :use-comment t
-               :use-render-formula t
-               :use-fci t
+  (init-common :use-render-formula t
                :sp-slurp-sexp-insert-space nil)
   (bind-tab-keys #'indent-for-tab-command
                  nil
                  :enable-yasnippet t)
-  (pretty-ligatures-install!)
+  (pretty-ligatures-install-safe!)
   (def-keys-for-map (vim:normal-mode-local-keymap)
     ("SPC SPC" switch-to-ocaml-repl)
     ("<f6>"    tuareg-eval-buffer)))
 
 ;;;###autoload
 (add-hook 'tuareg-mode-hook #'ocaml-setup)
+;;;###autoload
+(add-hook 'tuareg-menhir-mode-hook #'ocaml-setup)
 
 ;;; ocaml repl
 
@@ -71,7 +70,7 @@
 (defun ocaml-interactive-setup ()
   (init-repl :bind-return nil
              :sp-slurp-sexp-insert-space nil)
-  (pretty-ligatures-install!)
+  (pretty-ligatures-install-safe!)
   (vim:local-emap "clear" #'vim:comint-clear-buffer-above-prompt)
   (def-keys-for-map tuareg-interactive-mode-map
     ("C-SPC"      vim:comint-clear-buffer-above-prompt)
