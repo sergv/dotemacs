@@ -663,7 +663,8 @@ current line."
 (defun vim:visual-denormalize-region ()
   (when (and vim:visual-last-point vim:visual-last-mark)
     (set-mark vim:visual-last-mark)
-    (when (= (point) vim:visual-new-point)
+    (when (and vim:visual-new-point
+               (= (point) vim:visual-new-point))
       (goto-char vim:visual-last-point))
     (setq vim:visual-last-point nil
           vim:visual-last-mark  nil
