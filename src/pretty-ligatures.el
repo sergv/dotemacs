@@ -170,8 +170,8 @@
             ("or"    . #xe124)
             ("and"   . #xe125)
             ("error" . #xe127)
-            ("all"       . #xe128)
-            ("any"       . #xe129))))
+            ("all"   . #xe128)
+            ("any"   . #xe129))))
     (--map (cons (car it) (string ?\t (cdr it) ?\t)) ligs))
   "Word replacements that are likely to conflict with general use of words, e.g.
 in Haskell compilation output. So they're disabled by default.")
