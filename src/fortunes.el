@@ -573,9 +573,6 @@ They are a superb high-level documentation.”
    "“В несчастье судьба всегда оставляет дверцу для выхода.”
 ―Мигель де Сервантес"
 
-   "“Воин, павший в бою, доблестнее спасшегося бегством.”
-―Мигель де Сервантес"
-
    "“В присутствии предмета любви немеют самые смелые уста и остается невысказанным
 именно то, что так хотелось бы сказать.”
 ―Мигель де Сервантес"
@@ -676,9 +673,6 @@ They are a superb high-level documentation.”
    "“Многословие обычно порождает скуку.”
 ―Мигель де Сервантес"
 
-   "“Не проси как милости того, что можешь добыть силой.”
-―Мигель де Сервантес"
-
    "“Нельзя любить по принуждению.”
 ―Мигель де Сервантес"
 
@@ -723,13 +717,6 @@ They are a superb high-level documentation.”
 ―Мигель де Сервантес"
 
    "“Тропинка добродетели очень узка, а дорога порока широка и просторна.”
-―Мигель де Сервантес"
-
-   "“У сеньоры Смерти больше власти, чем деликатности, —
-вот уж кто ничуть не привередлив.”
-―Мигель де Сервантес"
-
-   "“Честность — лучшая политика.”
 ―Мигель де Сервантес"
    ])
 
@@ -836,19 +823,7 @@ be short.”
    "“I’m not afraid to die.  I just don’t want to be there when it happens.”
 ―Woody Allen"
 
-   "“The secret of life is not to do what you like, but to like what you do.”
-―Anonymous"
-
    "“Love is not about who you live with. It’s about who you can’t live without.”
-―Anonymous"
-
-   "“A real friend is someone who walks in when the rest of the world walks out.”
-―Anonymous"
-
-   "“Opportunity may knock only once, but temptation leans on the doorbell.”
-―Anonymous"
-
-   "“Good supervision is the art of getting average people to do superior work.”
 ―Anonymous"
 
    "“Wit is educated insolence.”
@@ -868,9 +843,6 @@ be short.”
 
    "“Wishing to be friends is quick work,  but friendship is a slow ripening fruit.”
 ―Aristotle"
-
-   "“There is safety in numbers.”
-―Anonymous"
 
    "“The worst solitude is to be destitute of sincere friendship.”
 ―Sir Francis Bacon"
@@ -892,14 +864,7 @@ which has opened for us.”
    "“Happiness lies in good health and a bad memory.”
 ―Ingrid Bergman"
 
-   "“Only a fool learns from his own mistakes.
-The wise man learns from the mistakes of others.”
-―Otto von Bismarck"
-
    "“Ability is nothing without opportunity.”
-―Napoleon Bonaparte"
-
-   "“Glory is fleeting, but obscurity is forever.”
 ―Napoleon Bonaparte"
 
    "“Never interrupt your enemy when he is making a mistake.”
@@ -915,9 +880,6 @@ The wise man learns from the mistakes of others.”
 ―Coco Chanel"
 
    "“Don’t ever take a fence down until you know the reason it was put up.”
-―G. K. Chesterton"
-
-   "“A woman uses her intelligence to find reasons to support her intuition.”
 ―G. K. Chesterton"
 
    "“The price of greatness is responsibility.”
@@ -947,13 +909,6 @@ chance to get its pants on.”
    "“Gratitude is not only the greatest of virtues, but the parent of all others.”
 ―Cicero"
 
-   "“Progress is the injustice each generation commits with regard
-to its predecessors.”
-―E.M. Cioran"
-
-   "“I believe in luck; how else can you explain the success of those you dislike?”
-―Jean Cocteau"
-
    "“Our greatest glory is not in never falling, but in rising every time we fall.”
 ―Conficius"
 
@@ -962,9 +917,6 @@ to its predecessors.”
 
    "“Nothing in life is to be feared; it is only to be understood.”
 ―Marie Curie"
-
-   "“The only difference between me and a madman is that I’m not mad.”
-―Salvador Dali"
 
    "“Have no fear of perfection;  you’ll never reach it.”
 ―Salvador Dali"
@@ -976,17 +928,11 @@ but the one most responsive to change.”
    "“It’s the friends you can call up at 4 a.m. that matter.”
 ―Marlene Dietrich"
 
-   "“Talk to a man about himself and he will listen for hours.”
-―Benjamin Disraeli"
-
    "“The greatest good you can do for another is not just share your riches,
 but reveal to him his own.”
 ―Benjamin Disraeli"
 
    "“Little things affect little minds.”
-―Benjamin Disraeli"
-
-   "“The secret of success is constancy of purpose.”
 ―Benjamin Disraeli"
 
    "“Pure love and suspicion cannot dwell together:
@@ -1056,9 +1002,6 @@ not only plan but also believe.”
    "“Creative minds have always been known to survive any kind of bad training.”
 ―Anna Freud"
 
-   "“Men are more moral than they think, and far more immoral than they can imagine.”
-―Sigmund Freud"
-
    "“We cannot teach people anything;
 we can only help them discover it within themselves.”
 ―Galileo Galilei"
@@ -1078,17 +1021,8 @@ we can only help them discover it within themselves.”
    "“Graveyards are full of indispensable men.”
 ―Charles de Gaulle"
 
-   "“Formula for success:  rise early, work hard, strike oil.”
-―J. Paul Getty"
-
-   "“Money isn’t everything but it sure keeps you in touch with your children.”
-―J. Paul Getty"
-
    "“If you can actually count your money, then you’re not a rich man.”
 ―J. Paul Getty"
-
-   "“All the world over I will back the masses against the classes.”
-―William Gladstone"
 
    "“Enjoy when you can and endure when you must.”
 ―Johann Wolfgang van Goethe"
@@ -1140,9 +1074,6 @@ in matters of principle, stand like a rock.”
 One represents danger, the other represents opportunity.”
 ―John F. Kennedy"
 
-   "“Man is still the most extraordinary computer of all.”
-―John F. Kennedy"
-
    "“Liberty without learning is always in peril;
 learning without liberty is always in vain.”
 ―John F. Kennedy"
@@ -1151,22 +1082,11 @@ learning without liberty is always in vain.”
 by the incompetent.”
 ―John Maynard Keynes"
 
-   "“In the end we will remember not the words of our enemies
-but the silence of our friends.”
-―Martin Luther King"
-
    "“Take everything you like seriously, except yourselves.”
 ―Rudyard Kipling"
 
    "“Gardens are not made by sitting in the shade.”
 ―Rudyard Kipling"
-
-   "“The absence of alternatives clears the mind marvellously.”
-―Henry Kissinger"
-
-   "“The nice thing about being a celebrity is that if you bore people they think
-it’s their fault.”
-―Henry Kissinger"
 
    "“We can live without religion and meditation,
 but we cannot survive without human affection.”
@@ -1195,12 +1115,6 @@ but you can’t fool all of the people all of the time.”
 until it is ripe for execution.”
 ―Niccolo Machiavelli"
 
-   "“People ask for criticism, but they only want praise.”
-―W. Somerset Maugham"
-
-   "“It is cruel to discover one’s mediocrity only when it is too late.”
-―W. Somerset Maugham"
-
    "“To the soul, there is hardly anything more healing than friendship.”
 ―Thomas Moore"
 
@@ -1220,9 +1134,6 @@ good things for the first time.”
    "“We don’t see things as they are; we see things as we are.”
 ―Anais Nin"
 
-   "“Life shrinks or expands in proportion to one’s courage.”
-―Anais Nin"
-
    "“Burdens become light when cheerfully borne.”
 ―Ovid"
 
@@ -1235,21 +1146,12 @@ good things for the first time.”
    "“The mind is not a vessel to be filled, but a fire to be kindled.”
 ―Plutarch"
 
-   "“Fools rush in where angels fear to tread.”
-―Alexander Pope"
-
-   "“You don’t stop laughing because you grow old;
-you grow old because you stop laughing.”
-―Michael Pritchard"
-
-   "“The voyage to discovery is not in seeking new landscapes but in having new eyes.”
+   "“The voyage to discovery is not in seeking new landscapes but
+in having new eyes.”
 ―Marcel Proust"
 
    "“If you wish to avoid seeing a fool, you must break your mirror.”
 ―Francois Rabelais"
-
-   "“A statesman is a successful politician who is dead.”
-―Thomas Brackett Reed"
 
    "“Instruction ends in the schoolroom, but education ends only with life.”
 ―F.W. Robertson"
@@ -1257,7 +1159,7 @@ you grow old because you stop laughing.”
    "“Many people despise wealth but few know how to give it away.”
 ―F. de la Rochefoucauld"
 
-   "“Men give away  nothing so liberally as their advice.”
+   "“Men give away nothing so liberally as their advice.”
 ―F. de la Rochefoucauld"
 
    "“The only thing we have to fear is fear itself.”
@@ -1271,10 +1173,6 @@ you grow old because you stop laughing.”
 
    "“When love and skill work together, expect a masterpiece.”
 ―John Ruskin"
-
-   "“Perfection is achieved, not when there is nothing more to add,
-but when there is nothing left to take away.”
-―Antoine de Saint Exupery"
 
    "“Life has taught us that love does not consist in gazing at each other,
 but in looking outward together in the same direction.”
@@ -1360,9 +1258,6 @@ than to open it and remove all doubt.”
    "“Wrinkles should merely indicate where smiles have been.”
 ―Mark Twain"
 
-   "“The only thing in life achieved without effort is failure.”
-―Unknown"
-
    "“The speed of the leader determines the rate of the pack.”
 ―Unknown"
 
@@ -1373,10 +1268,6 @@ than to open it and remove all doubt.”
 ―Unknown"
 
    "“Genius is the ability to reduce the complicated to the simple.”
-―Unknown"
-
-   "“The secret of happiness is not doing what one likes,
-but in liking what one does.”
 ―Unknown"
 
    "“Only those who keep trying eventually win.”
@@ -1392,13 +1283,7 @@ getting something done right is an achievement.”
    "“The best time to do something worthwhile is between yesterday and tomorrow.”
 ―Unknown"
 
-   "“Conscience is a man’s compass.”
-―Vincent Van Gogh"
-
    "“The progress of rivers to the ocean is not so rapid as that of man to error.”
-―Voltaire"
-
-   "“Anything that is too stupid to be spoken in sung.”
 ―Voltaire"
 
    "“God is a comedian playing to an audience too afraid to laugh.”
@@ -1412,9 +1297,6 @@ getting something done right is an achievement.”
 
    "“The secret of being a bore is to tell everything.”
 ―Voltaire"
-
-   "“The only way to get rid of a temptation is to yield to it.”
-―Oscar Wilde"
 
    "“Some cause happiness wherever they go; other whenever they go.”
 ―Oscar Wilde"
@@ -1474,37 +1356,20 @@ Use first-order predicate calculus.
         The sheerist banality
 Will be hailed by the critics: ‘Miraculous!’"
 
-   "“Artificial intelligence, like fusion power, has been ten years away for the
-last 30 years.”
-―Conrad Stack"
-
    "“It is impossible to sharpen a pencil with a blunt axe.
 It is equally vain to try to do it with ten blunt axes instead.”
 ―Edsger W. Dijkstra"
 
-   "“The question of whether a computer can think is no more interesting than the
-question of whether a submarine can swim.”
+   "“The question of whether a computer can think is no more
+interesting than the question of whether a submarine can swim.”
 ―Edsger W. Dijkstra"
 
    "“If you were plowing a field, which would you rather use?  Two strong oxen
 or 1024 chickens?”
 ―Seymour Cray"
 
-   "“A computer, to print out a fact,
-Will divide, multiply, and subtract.
-    But this output can be
-    No more than debris,
-If the input was short of exact.”
-―Gigo"
-
    "Nobody can fix the economy.  Nobody can be trusted with their finger on the
 button.  Nobody’s perfect.  VOTE FOR NOBODY."
-
-   "There is no TRUTH.
-There is no REALITY.
-There is no CONSISTANCY.
-There are no absolute statements.
-I’m probably wrong."
 
    "“One of the things every sorcerer will tell you, is that if you have
 the name of a spirit, you have power over it.”
@@ -1522,10 +1387,6 @@ for machines to execute.”
 the fact that its programs are lists, which everyone, including me,
 has regarded as a disadvantage.”
 ―John McCarthy, “Early History of Lisp”"
-
-   "“Most papers in computer science describe how their author learned what
-someone else already knew.”
-―Peter Landin"
 
    "“Man did not weave the web of life;
 he is merely a strand in it.
@@ -1593,9 +1454,6 @@ So create.”
    "“Simplicity is the ultimate sophistication.”
 ―Leonardo da Vinci"
 
-   "“Simplicity is the direct result of profound thought.”
-―Anonymous"
-
    "“Our lives are frittered away by detail; simplify, simplify.”
 ―Henry David Thoreau"
 
@@ -1608,9 +1466,6 @@ So create.”
    "“A vocabulary of truth and simplicity will be of service
 throughout your life.”
 ―Winston Churchill"
-
-   "“Simplicity is the nature of great souls.”
-―Anonymous"
 
    "“As you simplify your life, the laws of the universe will be simpler;
 solitude will not be solitude, poverty will not be poverty,
@@ -1696,10 +1551,6 @@ Surely You’re Joking, Mr. Feynman, p 92"
    "“Coming back to where you started is not the same as never leaving.”
 ―Terry Pratchett"
 
-   "Q. Why Be Positive?
-
-A. It beats the alternative!"
-
    "“The Goal of a Teacher - To create an environment where learning happens.”
 ―Dr. George F. Corliss"
 
@@ -1766,14 +1617,6 @@ of the world.”
    "“If that makes any sense to you, you have a big problem.”
 ―C. Durance, Computer Science 234"
 
-   "A young man wrote to Mozart and said:
-Q: ‘Herr Mozart, I am thinking of writing symphonies. Can you give me any
-suggestions as to how to get started?’
-A: ‘A symphony is a very complex musical form, perhaps you should begin with
-some simple lieder and work your way up to a symphony.’
-Q: ‘But Herr Mozart, you were writing symphonies when you were 8 years old.’
-A: ‘But I never asked anybody how.’"
-
    "“No man ever steps in the same river twice, for it’s not the
 same river and he’s not the same man.”
 ―Heraclitas"
@@ -1827,25 +1670,6 @@ are like the old ones. Java is the most distressing thing to hit
 computing since MS-DOS.”
 ―Alan Kay \(at OOPSLA97 - http://www.cc.gatech.edu/fac/mark.guzdial/squeak/oopsla.html\)"
 
-   "“... What is actually happening, I am afraid, is that we all tell each
-other and ourselves that software engineering techniques should be
-improved considerably, because there is a crisis. But there are a few
-boundary conditions which apparently have to be satisfied. I will list
-them for you:
-
-1. We may not change our thinking habits.
-2. We may not change our programming tools.
-3. We may not change our hardware.
-4. We may not change our tasks.
-5. We may not change the organisational set-up in which the work has
-to be done.
-
-Now under these five immutable boundary conditions, we have to try to
-improve matters. This is utterly ridiculous. Thank you.
-\(Applause.\)”
-―E. Dijkstra, Conference on Software Engineering, 1968.
-\(as seen in The Anatomy of Lisp’s introduction to Interactive Programming.\)"
-
    "“The best swordsman in the world doesn’t need to fear the second best
 swordsman in the world; no, the person for him to be afraid of is some
 ignorant antagonist who has never had a sword in his hand before; he
@@ -1877,11 +1701,6 @@ experimentum periculosum, iudicium difficile.
 Life short, \[the\] craft long, opportunity fleeting,
 experiment treacherous, judjment difficult.”
 ―Hyppocrates \(c. 400BC\)"
-
-   "“Meta means that you step back from your own place.
-What you used to do is now what you see.
-What you were is now what you act on.”
-―Scott Rosenberg quoting Guy Steele"
 
    "“Anyone who cannot cope with mathematics is not fully human.
 At best he is a tolerable subhuman who has learned to wear shoes,
@@ -1927,14 +1746,6 @@ requires reasoning, while those other subjects merely require scholarship.”
    "“Science is the father of knowledge, but opinion breeds ignorance.”
 ―Hippocrates 460-377 BC"
 
-   "“Sometimes it pays to stay in bed on Monday, rather than spending the rest
-of the week debugging Monday’s code.”
-―Dan Salomon"
-
-   "“Optimism is an occupational hazard of programming;
-feedback is the treatment.”
-―Kent Beck"
-
    "“Everything that can be invented has been invented.”
 ―Charles H. Duell, Commissioner, U.S. Office of Patents"
 
@@ -1961,8 +1772,8 @@ And the other way is to make it so complicated that there are no obvious
 deficiencies.”
 ―C.A.R. Hoare"
 
-   "“True innovation often comes from the small startup who is lean enough to launch
-a market but lacks the heft to own it.”
+   "“True innovation often comes from the small startup who is
+lean enough to launch a market but lacks the heft to own it.”
 ―Timm Martin"
 
    "“Nearly everything is really interesting if you go into it deeply enough.”
@@ -2006,7 +1817,8 @@ can become great.”
    "“One person with passion is better than forty people merely interested.”
 ―E.M. Forster"
 
-   "“Just because it isn’t done doesn’t mean it can’t be done. Just because it can be done doesn’t mean it should be.”
+   "“Just because it isn’t done doesn’t mean it can’t be done.
+Just because it can be done doesn’t mean it should be.”
 ―Barry Glasford"
 
    "“Learn the rules so you know how to break them properly.”
@@ -2027,7 +1839,8 @@ can become great.”
    "“We laugh at that which we cannot bear to face.”
 ―Aristotle"
 
-   "“It is difficult to get a man to understand something when his salary depends on his not understanding it.”
+   "“It is difficult to get a man to understand something when
+his salary depends on his not understanding it.”
 ―Upton Sinclair"
 
    "“If you want to pass, cheat. If you want to learn, research.”
@@ -2075,26 +1888,26 @@ The insect would fly just as well without them.”
    "“In every passionate pursuit, the pursuit counts more than the object pursued.”
 ―Bruce Lee"
 
-   "“When you’re screwing up, and nobody’s saying anything to you anymore, that means they gave up.”
+   "“When you’re screwing up, and nobody’s saying anything to you
+anymore, that means they gave up.”
 ―Randy Pausch"
 
-   "“The ability to speak does not make you intelligent.”
-―Qui-gon Jinn"
-
    "“Watch your thoughts; they become words. Watch your words; they become actions.
-Watch your actions; they become habit. Watch your habits; they become character.
-Watch your character; it becomes your destiny.”
+Watch your actions; they become habit. Watch your habits; they
+become character. Watch your character; it becomes your destiny.”
 ―Lao Tzu (sixth century B.C.)"
 
    "“The only limits you have are the limits you believe.”
 ―Wayne Dyer"
 
-   "“You cannot always control what goes on outside. But you can always control what goes on inside.”
+   "“You cannot always control what goes on outside. But you can
+always control what goes on inside.”
 ―Wayne Dyer"
 
-   "“If you love a flower, don’t pick it up. Because if you pick it up, it dies
-and ceases to be what you love. So if you love a flower, let it be. Love is not
-about possession. Love is about appreciation.”
+   "“If you love a flower, don’t pick it up. Because if you pick
+it up, it dies and ceases to be what you love. So if you love a
+flower, let it be. Love is not about possession. Love is about
+appreciation.”
 ―Osho"
 
    "“Forgive others not because they deserve forgiveness, but because you
@@ -2109,7 +1922,8 @@ unfolding to success. Such emotions make a man forget food, sleep, friends, love
 everything.”
 ―Nikola Tesla"
 
-   "“Don’t rely on someone else for your self-worth; only you can be responsible for that.”
+   "“Don’t rely on someone else for your self-worth; only you can
+be responsible for that.”
 ―Stacey Charter"
 
    "“The first step towards getting somewhere is to decide that you are not going
@@ -2119,7 +1933,8 @@ to stay where you are.”
    "“Life is like riding a bicycle. To keep your balance, you must keep moving.”
 ―Albert Einstein"
 
-   "“You can never cross the ocean, unless you have the courage to lose sight of the shore.”
+   "“You can never cross the ocean, unless you have the courage
+to lose sight of the shore.”
 ―Columbus"
 
    "“Pain is inevitable. Suffering is optional.”
@@ -2173,7 +1988,8 @@ you can achieve it.”
    "“If you do what you’ve always done, you’ll get what you’ve always gotten.”
 ―Anthony Robbins"
 
-   "“If you want something you’ve never had, you must be willing to do something you’ve never done.”
+   "“If you want something you’ve never had, you must be willing
+to do something you’ve never done.”
 ―Thomas Jefferson"
 
    "“The best way to find out if you can trust somebody is to trust them.”
@@ -2191,9 +2007,6 @@ you can achieve it.”
    "“Nothing makes us more vulnerable than loneliness, except greed.”
 ―Bedelia Du Maurier"
 
-   "“Never, ever give up.”
-―Diana Nyad"
-
    "“Those who would give up essential liberty, to purchase a little temporary
 safety, deserve neither liberty nor safety.”
 ―Benjamin Franklin"
@@ -2210,11 +2023,13 @@ safety, deserve neither liberty nor safety.”
    "“The greatest danger occurs at the moment of victory.”
 ―Napoleon Bonaparte"
 
-   "“Upon this, one has to remark that men ought either to be well treated or
-crushed, because they can avenge themselves of lighter injuries, of more serious
-ones they cannot; therefore the injury that is to be done to a man ought to be of
-such a kind that one does not stand in fear of revenge.”
-―Niccolò Machiavelli"
+   "“Upon this, one has to remark that men ought either to be
+well treated or crushed, because they can avenge themselves of
+lighter injuries, of more serious ones they cannot; therefore the
+injury that is to be done to a man ought to be of such a kind
+that one does not stand in fear of revenge.”
+―Niccolò
+Machiavelli"
 
    "“The laws that govern circumstances are abolished by new circumstances.”
 ―Napoleon Bonaparte"
@@ -2224,18 +2039,62 @@ The ability to gain victory by changing and adapting according to the opponent i
 called genius.”
 ―Sun-tzu"
 
-   "“… the man who says it can’t be done is generally interrupted by someone doing it.”
+   "“… the man who says it can’t be done is generally interrupted
+by someone doing it.”
 ―Elbert Hubbard"
 
    "“The Universe is under no obligation to make sense to you.”
 ―Neil deGrasse Tyson"
 
    "“You are the average of the five people you spend the most time with.”
--Jim Rohn"
+―Jim Rohn"
 
    "“Some things are up to us, and some things are not up to us.”
--Epictetus, Stoic philosopher"
-   ]
+―Epictetus, Stoic philosopher"
+
+   "“I returned, and saw under the sun, that the race is not to the
+swift, nor the battle to the strong, neither yet bread to the
+wise, nor yet riches to men of understanding, nor yet favour to
+men of skill; but time and chance happeneth to them all.”
+—קֹהֶלֶת (translation: Ecclesiastes 9:11, King James' Bible)"
+
+   "“You can, for example, never foretell what any one man will
+do, but you can say with precision what an average number will be
+up to. Individuals vary, but percentages remain constant. So says
+the statistician.”
+— Sherlock Holmes / Sir Arthur Conan Doyle, The Sign of Four"
+
+   "“The job of a financial mathematician is not to predict prices
+but instead to relate the movements of price in one asset to that
+of another.”
+— page 4, Mark Joshi, The Concepts and Practice of Mathematical Finance, Cambridge University Press, 2003"
+
+   "“Mathematical bankers generally search for the arbitrage
+opportunities under some assumptions. Whilst all of these
+assumptions can be criticised, they provide a good starting point
+for modelling. The objective is more to come up with a good model
+than a perfect description. There is a certain similarity to
+physics here. Newtonian physics makes certain assumptions about
+the nature of space and time which are demonstrably wrong.
+However, bridges are built with Newtonian physics and they do not
+fall down (or at least not very often). The reason is that
+Newtonian physics provides a good approximation in the everyday
+world which only breaks down in the small subatomic world and the
+huge astronomical scale. Similarly, the models of mathematical
+finance provide good approximations under what one might call
+\"normal\" conditions, but they may perform less well in
+extremeties. However, just as in physics, the fact that models
+are not universally valid actually keeps people in work.”
+— page 19, Mark Joshi, The Concepts and Practice of Mathematical Finance, Cambridge University Press, 2003"
+
+    "“There is a tide in the affairs of men,
+Which, taken at the flood, leads on to fortune;
+Omitted, all the voyage of their life
+Is bound in shallows and miseries.
+We must take the current when it serves,
+Or lose our ventures.”
+— Shakespeare"
+]
   "Good and nice fortunes.")
 
 (defparameter *fortunes*
