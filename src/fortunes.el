@@ -2098,8 +2098,7 @@ Or lose our ventures.”
   "Good and nice fortunes.")
 
 (defparameter *fortunes*
-  (vconcat *perlis-quotes*
-           *good-fortunes*))
+  *good-fortunes*)
 
 (defun fortune--reschedule-queue ()
   "Return queue that with all indices of fortunes
@@ -2150,9 +2149,9 @@ make up new queue if persistent one is empty."
 
 ;;;###autoload
 (defun fortunes-comment-out-fortune (fortune-text)
-  (join-lines
-   (--map (concat ";; " it)
-          (split-into-lines fortune-text))))
+  (mapconcat (lambda (x) (concat ";; " x))
+             (split-into-lines fortune-text)
+             "\n"))
 
 (provide 'fortunes)
 
