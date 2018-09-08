@@ -12,6 +12,7 @@
 
 (require 'common)
 (require 'el-patch)
+(require 'indentation)
 (require 'org-drill)
 (require 'render-formula)
 
@@ -410,6 +411,15 @@ the current topic."
     (outline-up-heading 1)
     (outline-previous-heading)))
 
+;;;###autoload
+(defun org-mode-indent-buffer ()
+  (interactive)
+  (save-excursion
+    (indent-whole-buffer)))
+
+(puthash 'org-mode
+         #'org-mode-indent-buffer
+         *mode-indent-functions-table*)
 
 (vimmize-motion org-beginning-of-line)
 (vimmize-motion org-end-of-line)
