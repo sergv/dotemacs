@@ -545,10 +545,10 @@ cache tags in."
                       (funcall create-tags-procedure
                                proj
                                project-files-thunk
-                               (lambda (buf)
+                               (lambda (proj-root buf)
                                  (with-current-buffer buf
                                    (write-region (point-min) (point-max) tag-file)
-                                   (funcall parse-tags-procedure (eproj-project/root proj) buf))))))
+                                   (funcall parse-tags-procedure proj-root buf))))))
                 (funcall create-tags-procedure
                          proj
                          project-files-thunk
