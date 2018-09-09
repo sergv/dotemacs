@@ -26,6 +26,22 @@
 (defun haskell--quote-string-for-template-insertion (str)
   (replace-regexp-in-string "\"" "\\\"" str))
 
+(defmacro haskell-abbrev+--is-function-available (function-name module-name)
+  `(save-excursion
+     (save-match-data
+       (goto-char (point-min))
+       (re-search-forward
+        (rx (or ,@(when function-name (list `(seq bow ,function-name eow)))
+                ,@(when module-name   (list `(seq bol "import" (* any) ,module-name)))))
+        nil
+        t))))
+
+(defun haskell-abbrev+--ensure-debug-trace-available ()
+  (unless (haskell-abbrev+--is-function-available nil "Debug.Trace")
+    (save-excursion
+      (haskell-navigate-imports-go)
+      (insert "import Debug.Trace\n\n"))))
+
 (defun haskell-insert-general-info-template (arg monadic? trace-func-name)
   (let* ((start-position (point))
          (insert-dollar?
@@ -39,20 +55,20 @@
                 (insert
                  (if trace-func-name
                      trace-func-name
-                   (let ((has-liftio?
-                          (save-match-data
-                            (save-excursion
-                              (goto-char (point-min))
-                              (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t))))
-                         (has-liftbase?
-                          (save-match-data
-                            (save-excursion
-                              (goto-char (point-min))
-                              (re-search-forward "\\<liftBase\\>\\|^import.*Control\\.Monad\\.Base" nil t)))))
-                     (cond
-                       (has-liftio?   "liftIO $ putStrLn")
-                       (has-liftbase? "liftBase $ putStrLn")
-                       (t             "putStrLn"))))
+                   (save-match-data
+                     (haskell-abbrev+--is-function-available
+                      (seq "lift"
+                           (or (group-n 1 "IO")
+                               (group-n 2 "Base")))
+                      (seq "Control.Monad."
+                           (or (group-n 1 "IO.Class")
+                               (group-n 2 "Base"))))
+                     (let ((has-liftio? (match-beginning 1))
+                           (has-liftbase? (match-beginning 2)))
+                       (cond
+                         (has-liftio?   "liftIO $ putStrLn")
+                         (has-liftbase? "liftBase $ putStrLn")
+                         (t             "putStrLn")))))
                  " $ \""))
             (lambda ()
               (insert (if trace-func-name
@@ -92,10 +108,12 @@
 
 (defun haskell-insert-trace-template (&optional arg)
   (interactive "P")
+  (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-insert-general-info-template arg nil "trace"))
 
 (defun haskell-insert-tracem-template (&optional arg)
   (interactive "P")
+  (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-insert-general-info-template arg t "traceM"))
 
 (defun haskell-insert-monadic-info-template (&optional arg)
@@ -150,6 +168,7 @@
 
 (defun haskell-insert-pp-dict-info-template ()
   (interactive)
+  (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-insert-pp-dict-info-template--helper
    :function-name "ppDictHeader"
    :make-print-entry (lambda (x y)
@@ -158,12 +177,14 @@
 
 (defun haskell-insert-pp-info-template ()
   (interactive)
+  (haskell-abbrev+--ensure-debug-trace-available)
   (insert "trace (displayDocString $ ")
   (haskell-insert-pp-dict-info-template)
   (insert ") $"))
 
 (defun haskell-insert-monadic-pp-info-template ()
   (interactive)
+  (haskell-abbrev+--ensure-debug-trace-available)
   (insert "traceM $ displayDocString $ ")
   (haskell-insert-pp-dict-info-template))
 
