@@ -43,10 +43,16 @@
                           (save-match-data
                             (save-excursion
                               (goto-char (point-min))
-                              (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t)))))
-                     (if has-liftio?
-                         "liftIO $ putStrLn"
-                       "putStrLn")))
+                              (re-search-forward "\\<liftIO\\>\\|^import.*Control\\.Monad\\.IO\\.Class" nil t))))
+                         (has-liftbase?
+                          (save-match-data
+                            (save-excursion
+                              (goto-char (point-min))
+                              (re-search-forward "\\<liftBase\\>\\|^import.*Control\\.Monad\\.Base" nil t)))))
+                     (cond
+                       (has-liftio?   "liftIO $ putStrLn")
+                       (has-liftbase? "liftBase $ putStrLn")
+                       (t             "putStrLn"))))
                  " $ \""))
             (lambda ()
               (insert (if trace-func-name
@@ -84,7 +90,7 @@
      :insert-message insert-message
      :insert-variable insert-variable)))
 
-(defun haskell-insert-info-template (&optional arg)
+(defun haskell-insert-trace-template (&optional arg)
   (interactive "P")
   (haskell-insert-general-info-template arg nil "trace"))
 
@@ -155,6 +161,11 @@
   (insert "trace (displayDocString $ ")
   (haskell-insert-pp-dict-info-template)
   (insert ") $"))
+
+(defun haskell-insert-monadic-pp-info-template ()
+  (interactive)
+  (insert "traceM $ displayDocString $ ")
+  (haskell-insert-pp-dict-info-template))
 
 (defun haskell-abbrev+-extract-first-capital-char (qualified-name)
   (when qualified-name
@@ -341,9 +352,8 @@ then Bar would be the result."
              :action-data expand-qualified-import-snippet
              :predicate import-expand-pred)
 
-
             (make-abbrev+-abbreviation
-             :trigger "\\<\\(?:pp\\(?:[dD]ict\\(?:[hH]eader\\)?\\)?\\)\\>"
+             :trigger "\\<\\(?:pp\\(?:dh\\|[dD]ict\\(?:[hH]eader\\)?\\)?\\)\\>"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-pp-dict-info-template
              :predicate #'point-not-inside-string-or-comment?)
@@ -353,9 +363,14 @@ then Bar would be the result."
              :action-data #'haskell-insert-pp-info-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "\\<\\(?:info\\|trace\\)\\>"
+             :trigger "\\<\\(?:\\(?:info\\|trace\\)\\(?:[Mm]pp\\|pp[Mm]\\)\\|pp\\(?:info\\|trace\\)[Mm]\\)\\>"
              :action-type 'function-with-side-effects
-             :action-data #'haskell-insert-info-template
+             :action-data #'haskell-insert-monadic-pp-info-template
+             :predicate #'point-not-inside-string-or-comment?)
+            (make-abbrev+-abbreviation
+             :trigger "\\<trace\\>"
+             :action-type 'function-with-side-effects
+             :action-data #'haskell-insert-trace-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
              :trigger "\\<trace[Mm]\\>"
@@ -375,13 +390,14 @@ then Bar would be the result."
                :action-data (concat "import " module-name " (" type-name ")\n"
                                     "import qualified " module-name " as " alias)
                :predicate import-expand-pred))
-            '(("m"  "Data.Map.Strict"     "Map"     "M")
-              ("s"  "Data.Set"            "Set"     "S")
-              ("v"  "Data.Vector"         "Vector"  "V")
-              ("im" "Data.IntMap"         "IntMap"  "IM")
-              ("is" "Data.IntSet"         "IntSet"  "IS")
-              ("hm" "Data.HashMap.Strict" "HashMap" "HM")
-              ("hs" "Data.HashSet"        "HashSet" "HS"))))))
+            '(("m"  "Data.Map.Strict"     "Map"          "M")
+              ("s"  "Data.Set"            "Set"          "S")
+              ("v"  "Data.Vector"         "Vector"       "V")
+              ("im" "Data.IntMap"         "IntMap"       "IM")
+              ("is" "Data.IntSet"         "IntSet"       "IS")
+              ("hm" "Data.HashMap.Strict" "HashMap"      "HM")
+              ("hs" "Data.HashSet"        "HashSet"      "HS")
+              ("ne" "Data.List.NonEmpty"  "NonEmpty(..)" "NE"))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
