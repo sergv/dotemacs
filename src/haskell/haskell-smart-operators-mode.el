@@ -75,7 +75,8 @@
     ;;                       (line-beginning-position)
     ;;                       (- (point) 1))))
     (beginning-of-line)
-    (looking-at-p "^[ \t]+|")))
+    (and (looking-at-p "^[ \t]+|")
+         (point))))
 
 (defparameter haskell-quasiquoter-name-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
@@ -168,7 +169,8 @@ stick it to the previous operator on line."
                    at-beginning-of-buffer?
                    ;; After | that is a potential guard.
                    (when (char-equal before ?|)
-                     (haskell-smart-operators--on-a-line-with-guard?))
+                     (awhen (haskell-smart-operators--on-a-line-with-guard?)
+                       (equal it (- pt 1))))
                    (and
                     ;; Do not insert spaces before @ since it's mostly used
                     ;; as as-patterns.
