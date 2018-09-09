@@ -723,6 +723,31 @@
     "x = f<_|_(xs ++ ys)"
     "x = f<$ _|_(xs ++ ys)"))
 
+
+(ert-deftest haskell-tests/haskell-smart-operators--guard-1 ()
+  (haskell-tests--test-buffer-contents
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+   (haskell-tests--multiline
+    "foo x xs"
+    "  | _|_x `elem` xs = xs"
+    "  | otherwise   = []")
+   (haskell-tests--multiline
+    "foo x xs"
+    "  | | _|_x `elem` xs = xs"
+    "  | otherwise   = []")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--guard-2 ()
+  (haskell-tests--test-buffer-contents
+   (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
+   (haskell-tests--multiline
+    "foo x xs"
+    "  | x `elem` xs |_|_= xs"
+    "  | otherwise   = []")
+   (haskell-tests--multiline
+    "foo x xs"
+    "  | x `elem` xs ||_|_= xs"
+    "  | otherwise   = []")))
+
 ;; (ert-deftest haskell-tests/shm/!-1 ()
 ;;   (haskell-tests--test-buffer-contents
 ;;       (shm/!)
