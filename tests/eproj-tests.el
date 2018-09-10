@@ -194,7 +194,8 @@ under ROOT directory."
 
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj/get-fast-tags-from-buffer"
-  (let* ((test-root "/home/test/whatever")
+  (let* ((test-root (fold-platform-os-type "/home/test/whatever"
+                                           "c:/home/test/whatever"))
          (test-filename "foo.bar")
          (test-filename-abs (expand-file-name test-filename test-root)))
     (eproj-tests/test-ctags-get-tags-from-buffer
@@ -231,7 +232,9 @@ foo3	%s	102	;\"	z
 
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj/get-fast-tags-from-buffer/filenames-with-spaces"
-  (let ((test-filename "/home/admin/my projects/test project/hello.c"))
+  (let ((test-filename (fold-platform-os-type
+                        "/home/admin/my projects/test project/hello.c"
+                        "c:/home/admin/my projects/test project/hello.c")))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
@@ -266,7 +269,8 @@ foo3	%s	102	;\"	z
 
 (eproj-tests--define-tests
     "eproj-tests/%s/eproj/get-fast-tags-from-buffer/ignore-constructor-tags-that-repeat-type-tags"
-  (let ((test-filename "/home/sergey/Test.hs"))
+  (let ((test-filename (fold-platform-os-type "/home/sergey/Test.hs"
+                                              "c:/home/sergey/Test.hs")))
     (eproj-tests/test-ctags-get-tags-from-buffer
      (format
       "\
