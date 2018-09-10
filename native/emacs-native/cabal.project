@@ -3,6 +3,8 @@ packages:
   ../radix-tree/radix-tree.cabal
   emacs-native.cabal
 
+optimization: 2
+
 -- program-options
 --   ghc-options: -g3
 
