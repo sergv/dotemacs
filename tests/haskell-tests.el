@@ -13,8 +13,10 @@
 (require 'haskell-format-setup)
 (require 'haskell-misc)
 (require 'haskell-smart-operators-mode)
+
 (require 'common)
 (require 'ert)
+(require 'tests-utils)
 
 (ert-deftest haskell-tests/abbrev+-extract-module-name ()
   (should (string= (haskell-abbrev+-extract-mod-name "Foo.Bar")
@@ -24,43 +26,20 @@
   (should (string= (haskell-abbrev+-extract-mod-name "Foo'.Bar2.Baz_3.Quux")
                    "Quux")))
 
-(defun haskell-tests--multiline (&rest lines)
-  (mapconcat #'identity lines "\n"))
-
-(defvar haskell-tests--temp-buffer nil)
-
 (defmacro haskell-tests--with-temp-buffer (action contents)
   (declare (indent 1))
-  `(save-match-data
-     (unless haskell-tests--temp-buffer
-       (setf haskell-tests--temp-buffer (get-buffer-create " haskell-tests-buffer"))
-       (with-current-buffer haskell-tests--temp-buffer
-         (haskell-mode)))
-     (with-current-buffer haskell-tests--temp-buffer
-       (erase-buffer)
-       (insert ,contents)
-       (goto-char (point-min))
-       (if (re-search-forward "_|_" nil t)
-           (replace-match "")
-         (error "No _|_ marker for point position within contents:\n%s" ,contents))
-       (font-lock-fontify-buffer)
-       ,action)))
+  `(tests-utils--with-temp-buffer
+    :action ,action
+    :contents ,contents
+    :initialisation (haskell-mode)))
 
 (defmacro haskell-tests--test-buffer-contents (action contents expected-value)
   (declare (indent 1))
-  `(haskell-tests--with-temp-buffer
-       (progn
-         ,action
-         (insert "_|_")
-         (let ((actual-contents
-                (buffer-substring-no-properties (point-min) (point-max)))
-               (expected-contents
-                ,expected-value))
-           (unless (string-match-p "_|_" expected-contents)
-             (error "Expected buffer contents does not provide point position with _|_"))
-           (should (equal (split-into-lines actual-contents)
-                          (split-into-lines expected-contents)))))
-     ,contents))
+  `(tests-utils--test-buffer-contents
+    :action ,action
+    :contents ,contents
+    :expected-value ,expected-value
+    :initialisation (haskell-mode)))
 
 (defmacro* haskell-tests--test-result (&key action expected-value contents)
   `(haskell-tests--with-temp-buffer
@@ -77,13 +56,13 @@
 (ert-deftest haskell-tests/haskell-align-language-pragmas-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      ""
      "{-# language"
      "             Safe, FlexibleContexts _|_ #-}"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      ""
      "{-# LANGUAGE FlexibleContexts #-}"
@@ -93,13 +72,13 @@
 (ert-deftest haskell-tests/haskell-align-language-pragmas-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "-- foobar"
      "{-# language"
      "             Safe, FlexibleContexts _|_ #-}"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "-- foobar"
      "{-# LANGUAGE FlexibleContexts #-}"
@@ -109,7 +88,7 @@
 (ert-deftest haskell-tests/haskell-align-language-pragmas-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      ""
      "{-# language"
@@ -117,7 +96,7 @@
      " , FlexibleContexts"
      " #-}"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      ""
      "{-# LANGUAGE FlexibleContexts #-}"
@@ -127,7 +106,7 @@
 (ert-deftest haskell-tests/haskell-align-language-pragmas-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "-- foo"
      "{-# language"
@@ -135,7 +114,7 @@
      " , FlexibleContexts"
      " #-}"
      "-- bar")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "-- foo"
      "{-# LANGUAGE FlexibleContexts #-}"
@@ -145,11 +124,11 @@
 (ert-deftest haskell-tests/haskell-align-language-pragmas-4 ()
   (haskell-tests--test-buffer-contents
       (haskell-align-language-pragmas (point))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "{-# LANGUAGE Safe #-}"
      "{-# LANGUAGE AlternativeLayoutRule _|_ #-}"
      "{-# LANGUAGE AllowAmbiguousTypes   #-}")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "{-# LANGUAGE AllowAmbiguousTypes   #-}"
      "{-# LANGUAGE AlternativeLayoutRule #-}"
      "{-# LANGUAGE Safe                  #-}_|_")))
@@ -162,7 +141,7 @@
     :expected-value
     '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
     :contents
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "_|_"
      "{-# LANGUAGE Safe #-}"
      "{-#LANGUAGE AlternativeLayoutRule #-}"
@@ -176,7 +155,7 @@
     :expected-value
     '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
     :contents
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "_|_"
      "{-# LANGUAGE Safe,AlternativeLayoutRule, AllowAmbiguousTypes,"
      "FlexibleContexts #-}")))
@@ -188,7 +167,7 @@
     :expected-value
     '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleContexts")
     :contents
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "_|_"
      "{-# language Safe #-}"
      "{-#language AlternativeLayoutRule #-}"
@@ -202,7 +181,7 @@
     :expected-value
     '("Safe" "AlternativeLayoutRule" "AllowAmbiguousTypes" "FlexibleInstances" "FlexibleContexts")
     :contents
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "_|_"
      "{-# LANGUAGE Safe "
      ""
@@ -221,7 +200,7 @@
     :expected-value
     '("FlexibleContexts" "FlexibleInstances" "RecordWildCards" "AllowAmbiguousTypes")
     :contents
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "----------------------------------------------------------------------------"
      "-- |"
      "-- Module      :  Test"
@@ -555,12 +534,12 @@
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?^)
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  --      _|_ foobar"
      "  pure baz")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  --      ^_|_ foobar"
@@ -569,12 +548,12 @@
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-2 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  --      _|_ foobar"
      "  pure baz")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  --      |_|_ foobar"
@@ -583,12 +562,12 @@
 (ert-deftest haskell-tests/haskell-smart-operators--haddock-comments-no-action-if-not-toplevel-comment-3 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  --      _|_ foobar"
      "  pure baz")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  --      +_|_ foobar"
@@ -727,11 +706,11 @@
 (ert-deftest haskell-tests/haskell-smart-operators--guard-1 ()
   (haskell-tests--test-buffer-contents
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-   (haskell-tests--multiline
+   (tests-utils--multiline
     "foo x xs"
     "  | _|_x `elem` xs = xs"
     "  | otherwise   = []")
-   (haskell-tests--multiline
+   (tests-utils--multiline
     "foo x xs"
     "  | | _|_x `elem` xs = xs"
     "  | otherwise   = []")))
@@ -739,11 +718,11 @@
 (ert-deftest haskell-tests/haskell-smart-operators--guard-2 ()
   (haskell-tests--test-buffer-contents
    (haskell-smart-operators--insert-char-surrounding-with-spaces ?|)
-   (haskell-tests--multiline
+   (tests-utils--multiline
     "foo x xs"
     "  | x `elem` xs |_|_= xs"
     "  | otherwise   = []")
-   (haskell-tests--multiline
+   (tests-utils--multiline
     "foo x xs"
     "  | x `elem` xs ||_|_= xs"
     "  | otherwise   = []")))
@@ -751,12 +730,12 @@
 ;; (ert-deftest haskell-tests/shm/!-1 ()
 ;;   (haskell-tests--test-buffer-contents
 ;;       (shm/!)
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo ::_|_ Set Int"
 ;;      "  , bar :: Map Int Double"
 ;;      "  }")
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo :: !_|_(Set Int)"
 ;;      "  , bar :: Map Int Double"
@@ -765,12 +744,12 @@
 ;; (ert-deftest haskell-tests/shm/!-2 ()
 ;;   (haskell-tests--test-buffer-contents
 ;;       (shm/!)
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo :: _|_Set Int"
 ;;      "  , bar :: Map Int Double"
 ;;      "  }")
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo :: !_|_(Set Int)"
 ;;      "  , bar :: Map Int Double"
@@ -779,12 +758,12 @@
 ;; (ert-deftest haskell-tests/shm/!-3 ()
 ;;   (haskell-tests--test-buffer-contents
 ;;       (shm/!)
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo :: _|_ Set Int"
 ;;      "  , bar :: Map Int Double"
 ;;      "  }")
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo :: !_|_(Set Int)"
 ;;      "  , bar :: Map Int Double"
@@ -793,12 +772,12 @@
 ;; (ert-deftest haskell-tests/shm/!-4 ()
 ;;   (haskell-tests--test-buffer-contents
 ;;       (shm/!)
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo ::      _|_      Set Int"
 ;;      "  , bar :: Map Int Double"
 ;;      "  }")
-;;     (haskell-tests--multiline
+;;     (tests-utils--multiline
 ;;      "data Foo = Foo"
 ;;      "  { foo :: !_|_(Set Int)"
 ;;      "  , bar :: Map Int Double"
@@ -811,7 +790,7 @@
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
         (insert "value2"))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -820,7 +799,7 @@
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -837,7 +816,7 @@
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
         (insert "value2"))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -846,7 +825,7 @@
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -864,7 +843,7 @@
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?-)
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
         (insert "value2"))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -873,7 +852,7 @@
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -893,7 +872,7 @@
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
         (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
         (insert "value2"))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -902,7 +881,7 @@
      "    , \"label3\" --> value3"
      "    ]"
      "  pure baz")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo = do"
      "  bar"
      "  putDocLn $ ppDict \"foobar\""
@@ -925,7 +904,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-backspace-with-block-dedent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -960,7 +939,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1000,7 +979,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-backspace-with-block-dedent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1035,7 +1014,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1075,7 +1054,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-backspace-with-block-dedent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1110,7 +1089,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1150,7 +1129,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-backspace-with-block-dedent 2))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1185,7 +1164,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1225,7 +1204,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-backspace-with-block-dedent 3))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1260,7 +1239,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1302,7 +1281,7 @@
         (haskell-backspace-with-block-dedent)
         (haskell-backspace-with-block-dedent)
         (haskell-backspace-with-block-dedent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1337,7 +1316,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1377,7 +1356,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-backspace-with-block-dedent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1412,7 +1391,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1452,7 +1431,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1487,7 +1466,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1527,7 +1506,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1562,7 +1541,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1602,7 +1581,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1637,7 +1616,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1677,7 +1656,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1712,7 +1691,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1752,7 +1731,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent 2))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1787,7 +1766,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1827,7 +1806,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1862,7 +1841,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1902,7 +1881,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1937,7 +1916,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -1977,7 +1956,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -2012,7 +1991,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -2052,13 +2031,13 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-space-with-block-indent))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "module Foo"
      "_|_"
      "where"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "module Foo"
      " _|_"
@@ -2069,7 +2048,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2079,7 +2058,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2095,7 +2074,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2105,7 +2084,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2121,7 +2100,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2132,7 +2111,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2149,7 +2128,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2160,7 +2139,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2177,7 +2156,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2188,7 +2167,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2205,7 +2184,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2216,7 +2195,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2233,7 +2212,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2245,7 +2224,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2263,7 +2242,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2275,7 +2254,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2293,7 +2272,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2306,7 +2285,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2325,7 +2304,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2338,7 +2317,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2357,7 +2336,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2369,7 +2348,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2387,7 +2366,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2399,7 +2378,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2417,7 +2396,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2428,7 +2407,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2445,7 +2424,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2456,7 +2435,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2473,7 +2452,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2484,7 +2463,7 @@
      "bar2 :: a -> x"
      "bar2 x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "bar1 :: a -> x"
      "bar1 x = x"
@@ -2501,7 +2480,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "generateGrafts :: HasCallStack => GenerateGraftsConfig -> IO ()"
      "generateGrafts GenerateGraftsConfig{ggcOutputFile, ggcOverwriteOutput} = do"
@@ -2561,7 +2540,7 @@
      "      where"
      "        msg = T.strip $ TE.decodeUtf8 $ commitMessage commit"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      ""
      "generateGrafts :: HasCallStack => GenerateGraftsConfig -> IO ()"
      "generateGrafts GenerateGraftsConfig{ggcOutputFile, ggcOverwriteOutput} = do"
@@ -2627,13 +2606,13 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "quux = "
      "  [ foobar"
      "  , \"T.makeInstances [2..6]_|_\" ==> []"
      "  , baz "
      "  ]")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "quux = "
      "  [ foobar"
      "  , \"T.makeInstances [2..6]\\"
@@ -2645,10 +2624,10 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "makeFunction"
      "  :: MonadBase IO m _|_=> Env -> CPtrdiff -> CPtrDiff")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "makeFunction"
      "  :: MonadBase IO m "
      "  _|_=> Env -> CPtrdiff -> CPtrDiff")))
@@ -2657,7 +2636,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "makeFunction"
      "  :: MonadBase IO m"
      "  => Env"
@@ -2665,7 +2644,7 @@
      "  -> CPtrDiff -- ^ Maximum arity"
      "  -> FunPtr (FunctionType a)_|_"
      "makeFunction")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "makeFunction"
      "  :: MonadBase IO m"
      "  => Env"
@@ -2679,7 +2658,7 @@
   (haskell-tests--test-buffer-contents
    (progn
      (haskell-move-to-topmost-start))
-   (haskell-tests--multiline
+   (tests-utils--multiline
     "foo :: a -> x"
     "foo x = x"
     ""
@@ -2714,7 +2693,7 @@
     "bar :: a -> x"
     "bar x = x"
     "")
-   (haskell-tests--multiline
+   (tests-utils--multiline
     "foo :: a -> x"
     "foo x = x"
     ""
@@ -2754,7 +2733,7 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-move-to-topmost-end))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -2789,7 +2768,7 @@
      "bar :: a -> x"
      "bar x = x"
      "")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: a -> x"
      "foo x = x"
      ""
@@ -2829,11 +2808,11 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-qualify-import))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import Data.Ord_|_"
      "import Data.Set (Set)")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import qualified Data.Ord_|_"
      "import Data.Set (Set)")))
@@ -2842,11 +2821,11 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-qualify-import))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import      Data.Ord_|_"
      "import Data.Set (Set)")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import qualified Data.Ord_|_"
      "import Data.Set (Set)")))
@@ -2855,11 +2834,11 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-qualify-import))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import \"foo\"     Data.Ord_|_"
      "import Data.Set (Set)")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import \"foo\" qualified Data.Ord_|_"
      "import Data.Set (Set)")))
@@ -2868,11 +2847,11 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-qualify-import))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import   qualified   Data.Ord_|_"
      "import Data.Set (Set)")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import Data.Ord_|_"
      "import Data.Set (Set)")))
@@ -2881,11 +2860,11 @@
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-qualify-import))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import  \"foo\"  qualified   Data.Ord_|_"
      "import Data.Set (Set)")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "import Data.List"
      "import  \"foo\" Data.Ord_|_"
      "import Data.Set (Set)")))
@@ -2894,14 +2873,14 @@
   (haskell-tests--test-buffer-contents
       (progn
         (should (haskell-back-up-indent-level)))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  let bar x = do"
      "        baz x"
      "        quux _|_x"
      "  bar 10 ")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  let bar x = do"
@@ -2913,14 +2892,14 @@
   (haskell-tests--test-buffer-contents
       (progn
         (should (haskell-back-up-indent-level)))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  let bar x = do"
      "        baz x"
      "        _|_quux x"
      "  bar 10 ")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  _|_let bar x = do"
@@ -2932,14 +2911,14 @@
   (haskell-tests--test-buffer-contents
       (progn
         (should (haskell-back-up-indent-level)))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  _|_let bar x = do"
      "        baz x"
      "        quux x"
      "  bar 10 ")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "_|_foo = do"
      "  let bar x = do"
@@ -2951,14 +2930,14 @@
   (haskell-tests--test-buffer-contents
       (progn
         (should-not (haskell-back-up-indent-level)))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "_|_foo = do"
      "  let bar x = do"
      "        baz x"
      "        quux x"
      "  bar 10 ")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "_|_foo = do"
      "  let bar x = do"
@@ -2970,14 +2949,14 @@
   (haskell-tests--test-buffer-contents
       (progn
         (should (haskell-back-up-indent-level)))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  let bar x = do"
      "        baz x"
      "  _|_      quux x"
      "  bar 10 ")
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  _|_let bar x = do"
@@ -2989,14 +2968,34 @@
   (haskell-tests--test-buffer-contents
       (progn
         (should (haskell-back-up-indent-level)))
-    (haskell-tests--multiline
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  let bar x = do"
      "        baz x"
      "    _|_    quux x"
      "  bar 10 ")
-    (haskell-tests--multiline
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  _|_let bar x = do"
+     "        baz x"
+     "        quux x"
+     "  bar 10 ")))
+
+
+(ert-deftest haskell-tests/haskell-back-up-indent-level-6 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (should (haskell-back-up-indent-level)))
+    (tests-utils--multiline
+     "foo :: Int -> Int"
+     "foo = do"
+     "  let bar x = do"
+     "        baz x"
+     "    _|_    quux x"
+     "  bar 10 ")
+    (tests-utils--multiline
      "foo :: Int -> Int"
      "foo = do"
      "  _|_let bar x = do"
