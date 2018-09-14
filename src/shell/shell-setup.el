@@ -93,6 +93,20 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
  (setf dirtrack-directory-function
        (make-dirtrack-windows-msys-directory-function dirtrack-directory-function)))
 
+(add-to-list
+ 'hs-special-modes-alist
+ (list 'shell-mode
+       ;; start regex
+       (rx (or "[" "(" "{"))
+       ;; end regex
+       nil
+       ;; comment-start regex
+       "#+"
+       ;; forward-sexp function
+       nil
+       ;; adjust beg function
+       nil))
+
 ;;;###autoload
 (defun shell-setup ()
   (init-repl :show-directory t :create-keymaps t)
@@ -101,6 +115,10 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
 
   (setf dirtrack-list '("^[^: \r\n]+:\\([^$\r\n]+\\)[$#]" 1))
   (dirtrack-mode +1)
+
+  (setq-local comment-start "#")
+  (setq-local comment-end   "")
+  (setup-hs-minor-mode)
 
   (with-editor-export-editor)
   (with-editor-export-git-editor)
