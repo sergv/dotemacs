@@ -168,7 +168,6 @@
 
 (defun haskell-insert-pp-dict-info-template ()
   (interactive)
-  (haskell-abbrev+--ensure-debug-trace-available)
   (haskell-insert-pp-dict-info-template--helper
    :function-name "ppDictHeader"
    :make-print-entry (lambda (x y)
