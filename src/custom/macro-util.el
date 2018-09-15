@@ -563,7 +563,15 @@ of code may be called more than once."
          (interactive "*")
          (when (region-active-p)
            (destructuring-bind (start . end) (get-region-bounds)
-             (,indent-region-func start end)))))))
+             (when prettify-symbols-mode
+               (with-silent-modifications
+                (remove-text-properties start end
+                                        '(composition
+                                          prettify-symbols-start
+                                          prettify-symbols-end))))
+             (,indent-region-func start end)
+             (when prettify-symbols-mode
+               (font-lock-flush start end))))))))
 
 (defmacro save-current-line (&rest body)
   "Save current line (but not column), execute BODY and go to saved line."
