@@ -61,37 +61,19 @@ N is obtained from `counsel-more-chars-alist'."
       (list "" (format "%d chars more" diff)))))
 
 (defun counsel-unquote-regex-parens (str)
-  "Unquote regex parenthesis in STR."
+  "Unquote regexp parentheses in STR."
   (if (consp str)
-      (mapconcat
-       #'car
-       (cl-remove-if-not #'cdr str)
-       ".*")
-    (let ((start 0)
-          ms)
-      (while (setq start (string-match "\\\\)\\|\\\\(\\|\\\\{\\|\\\\}\\|[()]" str start))
-        (setq ms (match-string-no-properties 0 str))
-        (cond ((equal ms "\\(")
-               (setq str (replace-match "(" nil t str))
-               (setq start (+ start 1)))
-              ((equal ms "\\{")
-               (setq str (replace-match "{" nil t str))
-               (setq start (+ start 1)))
-              ((equal ms "\\}")
-               (setq str (replace-match "}" nil t str))
-               (setq start (+ start 1)))
-              ((equal ms "\\)")
-               (setq str (replace-match ")" nil t str))
-               (setq start (+ start 1)))
-              ((equal ms "(")
-               (setq str (replace-match "\\(" nil t str))
-               (setq start (+ start 2)))
-              ((equal ms ")")
-               (setq str (replace-match "\\)" nil t str))
-               (setq start (+ start 2)))
-              (t
-               (error "Unexpected"))))
-      str)))
+      (mapconcat #'car (cl-remove-if-not #'cdr str) ".*")
+    (replace-regexp-in-string "\\\\[(){}]\\|[()]"
+                              (lambda (s)
+                                (or (cdr (assoc s '(("\\(" . "(")
+                                                    ("\\)" . ")")
+                                                    ("(" . "\\(")
+                                                    (")" . "\\)")
+                                                    ("\\{" . "{")
+                                                    ("\\}" . "}"))))
+                                    (error "Unexpected parenthesis: %S" s)))
+                              str t t)))
 
 (defun counsel-directory-name (dir)
   "Return the name of directory DIR with a slash."
@@ -114,19 +96,6 @@ N is obtained from `counsel-more-chars-alist'."
            (not (string= program ""))
            (executable-find program))
       (user-error "Required program \"%s\" not found in your path" program)))
-
-(make-obsolete-variable
- 'counsel-prompt-function
- 'ivy-set-prompt
- "0.8.0 <2016-06-20 Mon>")
-
-(defcustom counsel-prompt-function #'counsel-prompt-function-default
-  "A function to return a full prompt string from a basic prompt string."
-  :group 'ivy
-  :type '(radio
-          (function-item counsel-prompt-function-default)
-          (function-item counsel-prompt-function-dir)
-          (function :tag "Custom")))
 
 (defun counsel-prompt-function-default ()
   "Return prompt appended with a semicolon."
@@ -431,7 +400,7 @@ Update the minibuffer with the amount of lines collected every
               :predicate (lambda (candidate)
                            (string-prefix-p prefix (car candidate)))
               :caller 'counsel-irony
-              :action 'ivy-completion-in-region-action)))
+              :action #'ivy-completion-in-region-action)))
 
 (defun counsel-irony-annotate (x)
   "Make Ivy candidate from Irony candidate X."
@@ -453,8 +422,10 @@ Update the minibuffer with the amount of lines collected every
  '(("I" counsel-info-lookup-symbol "info")
    ("d" counsel--find-symbol "definition")))
 
-(defvar counsel-describe-symbol-history nil
-  "History for `counsel-describe-variable' and `counsel-describe-function'.")
+(defvar counsel-describe-symbol-history ()
+  "History list for variable and function names.
+Used by commands `counsel-describe-variable' and
+`counsel-describe-function'.")
 
 (defun counsel-find-symbol ()
   "Jump to the definition of the current symbol."
@@ -470,11 +441,11 @@ Update the minibuffer with the amount of lines collected every
 (declare-function xref-push-marker-stack "xref")
 
 (defalias 'counsel--push-xref-marker
-    (if (require 'xref nil t)
-        #'xref-push-marker-stack
-      (require 'etags)
-      (lambda (&optional m)
-        (ring-insert (with-no-warnings find-tag-marker-ring) (or m (point-marker)))))
+  (if (require 'xref nil t)
+      #'xref-push-marker-stack
+    (require 'etags)
+    (lambda (&optional m)
+      (ring-insert (with-no-warnings find-tag-marker-ring) (or m (point-marker)))))
   "Compatibility shim for `xref-push-marker-stack'.")
 
 (defun counsel--find-symbol (x)
@@ -505,15 +476,11 @@ Update the minibuffer with the amount of lines collected every
 (define-obsolete-function-alias 'counsel-symbol-at-point
     'ivy-thing-at-point "0.7.0")
 
-(defun counsel-variable-list ()
-  "Return the list of all currently bound variables."
-  (let (cands)
-    (mapatoms
-     (lambda (vv)
-       (when (or (get vv 'variable-documentation)
-                 (and (boundp vv) (not (keywordp vv))))
-         (push (symbol-name vv) cands))))
-    (delete "" cands)))
+(defun counsel--variable-p (symbol)
+  "Return non-nil if SYMBOL is a bound or documented variable."
+  (or (and (boundp symbol)
+           (not (keywordp symbol)))
+      (get symbol 'variable-documentation)))
 
 (defcustom counsel-describe-variable-function #'describe-variable
   "Function to call to describe a variable passed as parameter."
@@ -537,17 +504,16 @@ Variables declared using `defcustom' are highlighted according to
 `ivy-highlight-face'."
   (interactive)
   (let ((enable-recursive-minibuffers t))
-    (ivy-read
-     "Describe variable: "
-     (counsel-variable-list)
-     :keymap counsel-describe-map
-     :preselect (ivy-thing-at-point)
-     :history 'counsel-describe-symbol-history
-     :require-match t
-     :sort t
-     :action (lambda (x)
-               (funcall counsel-describe-variable-function (intern x)))
-     :caller 'counsel-describe-variable)))
+    (ivy-read "Describe variable: " obarray
+              :predicate #'counsel--variable-p
+              :require-match t
+              :history 'counsel-describe-symbol-history
+              :keymap counsel-describe-map
+              :preselect (ivy-thing-at-point)
+              :sort t
+              :action (lambda (x)
+                        (funcall counsel-describe-variable-function (intern x)))
+              :caller 'counsel-describe-variable)))
 
 ;;** `counsel-describe-function'
 (ivy-set-actions
@@ -584,21 +550,18 @@ Variables declared using `defcustom' are highlighted according to
 (defun counsel-describe-function ()
   "Forward to `describe-function'.
 
-Interactive functions \(i.e., commands) are highlighted according
+Interactive functions (i.e., commands) are highlighted according
 to `ivy-highlight-face'."
   (interactive)
   (let ((enable-recursive-minibuffers t))
-    (ivy-read "Describe function: "
-              (let (cands)
-                (mapatoms
-                 (lambda (x)
-                   (when (fboundp x)
-                     (push (symbol-name x) cands))))
-                cands)
+    (ivy-read "Describe function: " obarray
+              :predicate (lambda (sym)
+                           (or (fboundp sym)
+                               (get sym 'function-documentation)))
+              :require-match t
+              :history 'counsel-describe-symbol-history
               :keymap counsel-describe-map
               :preselect (funcall counsel-describe-function-preselect)
-              :history 'counsel-describe-symbol-history
-              :require-match t
               :sort t
               :action (lambda (x)
                         (funcall counsel-describe-function-function (intern x)))
@@ -662,12 +625,12 @@ input corresponding to the chosen variable.
 With a prefix arg, restrict list to variables defined using
 `defcustom'."
   (interactive (list (intern
-                      (ivy-read "Variable: " (counsel-variable-list)
-                                :predicate (and current-prefix-arg
-                                                (lambda (varname)
-                                                  (get (intern varname) 'custom-type)))
-                                :preselect (ivy-thing-at-point)
-                                :history 'counsel-set-variable-history))))
+                      (ivy-read "Set variable: " obarray
+                                :predicate (if current-prefix-arg
+                                               #'custom-variable-p
+                                             #'counsel--variable-p)
+                                :history 'counsel-set-variable-history
+                                :preselect (ivy-thing-at-point)))))
   (let ((doc (and (require 'cus-edit)
                   (require 'lv nil t)
                   (not (string= "nil" (custom-variable-documentation sym)))
@@ -712,34 +675,31 @@ With a prefix arg, restrict list to variables defined using
 ;;;###autoload
 (defun counsel-apropos ()
   "Show all matching symbols.
-See `apropos' for further information about what is considered
+See `apropos' for further information on what is considered
 a symbol and how to search for them."
   (interactive)
-  (ivy-read "Search for symbol (word list or regexp): "
-            (counsel-symbol-list)
+  (ivy-read "Search for symbol (word list or regexp): " obarray
+            :predicate (lambda (sym)
+                         (or (fboundp sym)
+                             (boundp sym)
+                             (facep sym)
+                             (symbol-plist sym)))
             :history 'counsel-apropos-history
+            :preselect (ivy-thing-at-point)
+            :sort t
             :action (lambda (pattern)
-                      (when (string-equal pattern "")
+                      (when (string= pattern "")
                         (user-error "Please specify a pattern"))
                       ;; If the user selected a candidate form the list, we use
                       ;; a pattern which matches only the selected symbol.
                       (if (memq this-command '(ivy-immediate-done ivy-alt-done))
                           ;; Regexp pattern are passed verbatim, other input is
                           ;; split into words.
-                          (if (string-equal (regexp-quote pattern) pattern)
+                          (if (string= (regexp-quote pattern) pattern)
                               (apropos (split-string pattern "[ \t]+" t))
                             (apropos pattern))
-                        (apropos (concat "^" pattern "$"))))
+                        (apropos (concat "\\`" pattern "\\'"))))
             :caller 'counsel-apropos))
-
-(defun counsel-symbol-list ()
-  "Return a list of all symbols."
-  (let (cands)
-    (mapatoms
-     (lambda (symbol)
-       (when (or (boundp symbol) (fboundp symbol))
-         (push (symbol-name symbol) cands))))
-    (delete "" cands)))
 
 ;;** `counsel-info-lookup-symbol'
 (defvar info-lookup-mode)
@@ -811,15 +771,16 @@ a symbol and how to search for them."
 
 (defun counsel--M-x-externs ()
   "Return `counsel-M-x' candidates from external packages.
-The currently supported packages are, in order of precedence,
-`amx' and `smex'."
+The return value is a list of strings.  The currently supported
+packages are, in order of precedence, `amx' and `smex'."
   (cond ((require 'amx nil t)
          (unless amx-initialized
            (amx-initialize))
          (when (amx-detect-new-commands)
            (amx-update))
-         (mapcar
-          (lambda (command-item) (symbol-name (car command-item))) amx-cache))
+         (mapcar (lambda (entry)
+                   (symbol-name (car entry)))
+                 amx-cache))
         ((require 'smex nil t)
          (unless smex-initialized-p
            (smex-initialize))
@@ -910,15 +871,14 @@ when available, in that order of precedence."
 ;;** `counsel-load-library'
 (defun counsel-library-candidates ()
   "Return a list of completion candidates for `counsel-load-library'."
-  (interactive)
-  (let ((dirs load-path)
-        (suffix (concat (regexp-opt '(".el" ".el.gz") t) "\\'"))
+  (let ((suffix (concat (regexp-opt '(".el" ".el.gz") t) "\\'"))
         (cands (make-hash-table :test #'equal))
         short-name
         old-val
         dir-parent
         res)
-    (dolist (dir dirs)
+    (dolist (dir load-path)
+      (setq dir (or dir default-directory)) ;; interpret nil in load-path as default-directory
       (when (file-directory-p dir)
         (dolist (file (file-name-all-completions "" dir))
           (when (string-match suffix file)
@@ -946,7 +906,8 @@ when available, in that order of precedence."
                          (cons (propertize
                                 short-name
                                 'full-name (expand-file-name file dir))
-                               dir) cands)))))))
+                               dir)
+                         cands)))))))
     (maphash (lambda (_k v) (push (car v) res)) cands)
     (nreverse res)))
 
@@ -1188,7 +1149,6 @@ selected face."
 INITIAL-INPUT can be given as the initial minibuffer input."
   (interactive)
   (counsel-require-program (car (split-string counsel-git-cmd)))
-  (ivy-set-prompt 'counsel-git counsel-prompt-function)
   (let* ((default-directory (expand-file-name (counsel-locate-git-root)))
          (cands (split-string
                  (shell-command-to-string counsel-git-cmd)
@@ -1198,6 +1158,8 @@ INITIAL-INPUT can be given as the initial minibuffer input."
               :initial-input initial-input
               :action #'counsel-git-action
               :caller 'counsel-git)))
+
+(ivy-set-prompt 'counsel-git #'counsel-prompt-function-default)
 
 (defun counsel-git-action (x)
   "Find file X in current Git repository."
@@ -1390,7 +1352,6 @@ When CMD is a string, use it as a \"git grep\" command.
 When CMD is non-nil, prompt for a specific \"git grep\" command.
 INITIAL-INPUT can be given as the initial minibuffer input."
   (interactive "P")
-  (ivy-set-prompt 'counsel-git-grep counsel-prompt-function)
   (let ((proj-and-cmd (counsel--git-grep-cmd-and-proj cmd))
         proj)
     (setq proj (car proj-and-cmd))
@@ -1423,6 +1384,7 @@ INITIAL-INPUT can be given as the initial minibuffer input."
                 :unwind unwind-function
                 :history 'counsel-git-grep-history
                 :caller 'counsel-git-grep))))
+(ivy-set-prompt 'counsel-git-grep #'counsel-prompt-function-default)
 (cl-pushnew 'counsel-git-grep ivy-highlight-grep-commands)
 
 (defun counsel-git-grep-proj-function (str)
@@ -1586,7 +1548,7 @@ for i in `git stash list --format=\"%gd\"`; do
     git stash show -p $i | grep -H --label=\"$i\" \"$1\"
 done") "\n" t)))
     (ivy-read "git stash: " cands
-              :action 'counsel-git-stash-kill-action
+              :action #'counsel-git-stash-kill-action
               :caller 'counsel-git-stash)))
 
 ;;** `counsel-git-log'
@@ -1621,7 +1583,7 @@ done") "\n" t)))
 The current buffer is assumed to be in a subdirectory of GIT-ROOT-DIR.
 TREE is the selected candidate."
   (let* ((new-root-dir (counsel-git-worktree-parse-root tree))
-         (tree-filename (file-relative-name (buffer-file-name) git-root-dir))
+         (tree-filename (file-relative-name buffer-file-name git-root-dir))
          (file-name (expand-file-name tree-filename new-root-dir)))
     (find-file file-name)))
 
@@ -1665,11 +1627,12 @@ TREE is the selected candidate."
 
 ;;** `counsel-git-checkout'
 (defun counsel-git-checkout-action (branch)
-  "Call the \"git checkout BRANCH\" command.
-
-BRANCH is a string whose first word designates the command argument."
+  "Switch branch by invoking git-checkout(1).
+The command is passed a single argument comprising all characters
+in BRANCH up to, but not including, the first space
+character (#x20), or the string's end if it lacks a space."
   (shell-command
-   (format "git checkout %s" (substring branch 0 (string-match " " branch)))))
+   (format "git checkout %s" (substring branch 0 (string-match-p " " branch)))))
 
 (defun counsel-git-branch-list ()
   "Return list of branches in the current git repository.
@@ -1762,11 +1725,12 @@ currently checked out."
 
 (defun counsel-find-file-delete (x)
   "Delete file X."
-  (dired-delete-file x dired-recursive-deletes delete-by-moving-to-trash))
+  (dired-delete-file x dired-recursive-deletes delete-by-moving-to-trash)
+  (ivy--reset-state ivy-last))
 
 (defun counsel-find-file-move (x)
   "Move or rename file X."
-  (ivy-read "Rename file to: " 'read-file-name-internal
+  (ivy-read "Rename file to: " #'read-file-name-internal
             :matcher #'counsel--find-file-matcher
             :action (lambda (new-name)
                       (require 'dired-aux)
@@ -1872,7 +1836,7 @@ The preselect behaviour can be customized via user options
   "Forward to `find-file'.
 When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
   (interactive)
-  (ivy-read "Find file: " 'read-file-name-internal
+  (ivy-read "Find file: " #'read-file-name-internal
             :matcher #'counsel--find-file-matcher
             :initial-input initial-input
             :action #'counsel-find-file-action
@@ -1887,7 +1851,7 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
 (defvar counsel-find-file-occur-cmd "ls -a | grep -i -E '%s' | xargs -d '\\n' ls -d --group-directories-first"
   "Format string for `counsel-find-file-occur'.")
 
-(defvar counsel-find-file-occur-use-find nil
+(defvar counsel-find-file-occur-use-find (not (eq system-type 'gnu/linux))
   "When non-nil, `counsel-find-file-occur' will use \"find\" as the base cmd.")
 
 (defun counsel--expand-ls (cmd)
@@ -2058,8 +2022,11 @@ By default `counsel-bookmark' opens a dired buffer for directories."
   :type 'boolean
   :group 'ivy)
 
-(declare-function bookmark-all-names "bookmark")
+(defvar bookmark-alist)
 (declare-function bookmark-location "bookmark")
+(declare-function bookmark-all-names "bookmark")
+(declare-function bookmark-get-filename "bookmark")
+(declare-function bookmark-maybe-load-default-file "bookmark")
 
 ;;;###autoload
 (defun counsel-bookmark ()
@@ -2068,6 +2035,7 @@ By default `counsel-bookmark' opens a dired buffer for directories."
   (require 'bookmark)
   (ivy-read "Create or jump to bookmark: "
             (bookmark-all-names)
+            :history 'bookmark-history
             :action (lambda (x)
                       (cond ((and counsel-bookmark-avoid-dired
                                   (member x (bookmark-all-names))
@@ -2095,6 +2063,37 @@ By default `counsel-bookmark' opens a dired buffer for directories."
         "open externally")
    ("r" ,(counsel--apply-bookmark-fn #'counsel-find-file-as-root)
         "open as root")))
+
+;;** `counsel-bookmarked-directory'
+(defun counsel-bookmarked-directory--candidates ()
+  "Get a list of bookmarked directories sorted by file path."
+  (bookmark-maybe-load-default-file)
+  (sort (cl-remove-if-not
+         #'ivy--dirname-p
+         (delq nil (mapcar #'bookmark-get-filename bookmark-alist)))
+        #'string<))
+
+;;;###autoload
+(defun counsel-bookmarked-directory ()
+  "Ivy interface for bookmarked directories.
+
+With a prefix argument, this command creates a new bookmark which points to the
+current value of `default-directory'."
+  (interactive)
+  (require 'bookmark)
+  (ivy-read "Bookmarked directory: "
+            (counsel-bookmarked-directory--candidates)
+            :caller 'counsel-bookmarked-directory
+            :action #'dired))
+
+(ivy-set-actions 'counsel-bookmarked-directory
+                 '(("j" dired-other-window "other window")
+                   ("x" counsel-find-file-extern "open externally")
+                   ("r" counsel-find-file-as-root "open as root")
+                   ("f" (lambda (dir)
+                          (let ((default-directory dir))
+                            (call-interactively #'find-file)))
+                    "find-file")))
 
 ;;** `counsel-file-register'
 ;;;###autoload
@@ -2175,7 +2174,7 @@ string - the full shell command to run."
                                            (t "xdg-open"))
                                          (shell-quote-argument x)))))
 
-(defalias 'counsel-find-file-extern 'counsel-locate-action-extern)
+(defalias 'counsel-find-file-extern #'counsel-locate-action-extern)
 
 (declare-function dired-jump "dired-x")
 
@@ -2228,7 +2227,8 @@ INITIAL-INPUT can be given as the initial minibuffer input."
             :action (lambda (file)
                       (when file
                         (with-ivy-window
-                          (find-file file))))
+                          (find-file
+                           (concat (file-remote-p default-directory) file)))))
             :unwind #'counsel-delete-process
             :caller 'counsel-locate))
 
@@ -2279,7 +2279,6 @@ FZF-PROMPT, if non-nil, is passed as `ivy-read' prompt argument."
     (setq counsel--fzf-dir
           (or initial-directory
               (funcall counsel-fzf-dir-function)))
-    (ivy-set-prompt 'counsel-fzf counsel-prompt-function)
     (ivy-read (or fzf-prompt (concat fzf-basename ": "))
               #'counsel-fzf-function
               :initial-input initial-input
@@ -2288,6 +2287,8 @@ FZF-PROMPT, if non-nil, is passed as `ivy-read' prompt argument."
               :action #'counsel-fzf-action
               :unwind #'counsel-delete-process
               :caller 'counsel-fzf)))
+
+(ivy-set-prompt 'counsel-fzf #'counsel-prompt-function-default)
 
 (defun counsel-fzf-action (x)
   "Find file X in current fzf directory."
@@ -2437,6 +2438,7 @@ It applies no filtering to ivy--all-candidates."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-l") 'ivy-call-and-recenter)
     (define-key map (kbd "M-q") 'counsel-git-grep-query-replace)
+    (define-key map (kbd "C-'") 'swiper-avy)
     map))
 
 (defcustom counsel-ag-base-command
@@ -2455,18 +2457,46 @@ regex string."
 (ivy-set-occur 'counsel-ag 'counsel-ag-occur)
 (ivy-set-display-transformer 'counsel-ag 'counsel-git-grep-transformer)
 
-(defun counsel-ag-function (str)
-  "Grep in the current directory for STRING using BASE-CMD.
-If non-nil, append EXTRA-AG-ARGS to BASE-CMD."
-  (or
-   (counsel-more-chars)
-   (let ((default-directory (ivy-state-directory ivy-last))
-         (regex (counsel-unquote-regex-parens
-                 (setq ivy--old-re
-                       (ivy--regex str)))))
-     (counsel--async-command (format counsel-ag-command
-                                     (shell-quote-argument regex)))
-     nil)))
+(defconst counsel--command-args-separator "-- ")
+
+(defun counsel--split-command-args (arguments)
+  "Split ARGUMENTS into its switches and search-term parts.
+Return pair of corresponding strings (SWITCHES . SEARCH-TERM)."
+  (let ((switches "")
+        (search-term arguments))
+    (when (string-prefix-p "-" arguments)
+      (let ((index (string-match counsel--command-args-separator arguments)))
+        (when index
+          (setq search-term
+                (substring arguments (+ (length counsel--command-args-separator) index)))
+          (setq switches (substring arguments 0 index)))))
+    (cons switches search-term)))
+
+(defun counsel--format-ag-command (extra-args needle)
+  "Construct a complete `counsel-ag-command' as a string.
+EXTRA-ARGS is a string of the additional arguments.
+NEEDLE is the search string."
+  (format counsel-ag-command
+          (if (string-match " \\(--\\) " extra-args)
+              (replace-match needle t t extra-args 1)
+            (concat extra-args " " needle))))
+
+(defun counsel-ag-function (string)
+  "Grep in the current directory for STRING."
+  (let ((command-args (counsel--split-command-args string)))
+    (let ((switches (car command-args))
+          (search-term (cdr command-args)))
+      (if (< (length search-term) 3)
+          (let ((ivy-text search-term))
+            (counsel-more-chars))
+        (let ((default-directory (ivy-state-directory ivy-last))
+              (regex (counsel-unquote-regex-parens
+                      (setq ivy--old-re
+                            (ivy--regex search-term)))))
+          (counsel--async-command (counsel--format-ag-command
+                                   switches
+                                   (shell-quote-argument regex)))
+          nil)))))
 
 ;;;###autoload
 (defun counsel-ag (&optional initial-input initial-directory extra-ag-args ag-prompt)
@@ -2489,20 +2519,7 @@ AG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument."
               (read-from-minibuffer (format
                                      "%s args: "
                                      (car (split-string counsel-ag-command)))))))
-  (when (null extra-ag-args)
-    (setq extra-ag-args ""))
-  (let* ((args-end (string-match "-- " extra-ag-args))
-         (file (if args-end
-                   (substring-no-properties extra-ag-args (match-end 0))
-                 ""))
-         (extra-ag-args (if args-end
-                            (substring-no-properties extra-ag-args 0 args-end)
-                          extra-ag-args)))
-    (setq counsel-ag-command (format counsel-ag-command
-                                     (concat extra-ag-args
-                                             " -- %s "
-                                             file))))
-  (ivy-set-prompt 'counsel-ag counsel-prompt-function)
+  (setq counsel-ag-command (counsel--format-ag-command (or extra-ag-args "") "%s"))
   (let ((default-directory (or initial-directory
                                (locate-dominating-file default-directory ".git")
                                default-directory)))
@@ -2517,6 +2534,8 @@ AG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument."
                         (counsel-delete-process)
                         (swiper--cleanup))
               :caller 'counsel-ag)))
+
+(ivy-set-prompt 'counsel-ag #'counsel-prompt-function-default)
 (cl-pushnew 'counsel-ag ivy-highlight-grep-commands)
 
 (defun counsel-grep-like-occur (cmd-template)
@@ -2526,10 +2545,13 @@ AG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument."
   (setq ivy-text
         (and (string-match "\"\\(.*\\)\"" (buffer-name))
              (match-string 1 (buffer-name))))
-  (let* ((cmd (format cmd-template
-                      (shell-quote-argument
-                       (counsel-unquote-regex-parens
-                        (ivy--regex ivy-text)))))
+  (let* ((command-args (counsel--split-command-args ivy-text))
+         (cmd (format cmd-template
+                      (concat
+                       (car command-args)
+                       (shell-quote-argument
+                        (counsel-unquote-regex-parens
+                         (ivy--regex (cdr command-args)))))))
          (cands (split-string (shell-command-to-string cmd) "\n" t)))
     ;; Need precise number of header lines for `wgrep' to work.
     (insert (format "-*- mode:grep; default-directory: %S -*-\n\n\n"
@@ -2608,6 +2630,13 @@ RG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument."
 (cl-pushnew 'counsel-rg ivy-highlight-grep-commands)
 
 ;;** `counsel-grep'
+(defvar counsel-grep-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-l") 'ivy-call-and-recenter)
+    (define-key map (kbd "M-q") 'swiper-query-replace)
+    (define-key map (kbd "C-'") 'swiper-avy)
+    map))
+
 (defcustom counsel-grep-base-command "grep -E -n -e %s %s"
   "Format string used by `counsel-grep' to build a shell command.
 It should contain two %-sequences (see function `format') to be
@@ -2702,6 +2731,7 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
                                          (line-beginning-position)
                                          (line-end-position)))))
 
+                             :keymap counsel-grep-map
                              :history 'counsel-git-grep-history
                              :update-fn (lambda ()
                                           (counsel-grep-action (ivy-state-current ivy-last)))
@@ -2946,39 +2976,6 @@ otherwise continue prompting for tags."
            (org-agenda-set-tags nil nil))
       (fset 'org-set-tags store))))
 
-(define-obsolete-variable-alias 'counsel-org-goto-display-style
-    'counsel-org-headline-display-style "0.10.0")
-
-(defcustom counsel-org-headline-display-style 'path
-  "The style used when displaying matched `org-mode'-headlines.
-
-If headline, the title and the leading stars are displayed.
-
-If path, the path hierarchy is displayed.  For each entry the title is shown.
-`counsel-org-headline-path-separator' is used as separator between entries.
-
-If title or any other value, only the title of the headline is displayed.
-
-Use `counsel-org-headline-display-tags' and
-`counsel-org-headline-display-todo' to display tags and todo
-keywords, respectively."
-  :type '(choice
-          (const :tag "Title only" title)
-          (const :tag "Headline" headline)
-          (const :tag "Path" path))
-  :group 'ivy)
-
-(define-obsolete-variable-alias 'counsel-org-goto-separator
-    'counsel-org-headline-path-separator "0.10.0")
-
-(defcustom counsel-org-headline-path-separator "/"
-  "Character(s) to separate path entries in matched `org-mode'-headlines.
-
-This variable has no effect unless `counsel-org-headline-display-style' is
-set to path."
-  :type 'string
-  :group 'ivy)
-
 (define-obsolete-variable-alias 'counsel-org-goto-display-tags
     'counsel-org-headline-display-tags "0.10.0")
 
@@ -3000,62 +2997,12 @@ set to path."
   :type 'boolean
   :group 'ivy)
 
-(defcustom counsel-org-goto-face-style nil
-  "The face used for displaying headlines in `counsel-org-goto' functions.
-
-If org, the default faces from `org-mode' are applied, i.e. org-level-1
-through org-level-8.  Note that no cycling is in effect, therefore headlines
-on levels 9 and higher will not be styled.
-
-If verbatim, the face used in the buffer is applied.  For simple headlines
-this is usually the same as org except that it depends on how much of the
-buffer has been completely loaded.  If your buffer exceeds a certain size,
-headlines are styled lazily depending on which parts of the tree are visible.
-Headlines which are not styled yet in the buffer will appear unstyled in the
-minibuffer as well.  If your headlines contain parts which are fontified
-differently than the headline itself (eg. todo keywords, tags, links) and you
-want these parts to be styled properly, verbatim is the way to go, otherwise
-you are probably better off using org instead.
-
-If custom, the faces defined in `counsel-org-goto-custom-faces' are applied.
-Note that no cycling is in effect, therefore if there is no face defined
-for a certain level, headlines on that level will not be styled.
-
-If nil or any other value, no face is applied to the headline.
-
-See `counsel-org-headline-display-tags' and
-`counsel-org-headline-display-todo' if you want to display tags and todo
-keywords in your headlines."
-  :type '(choice
-          (const :tag "Same as org-mode" org)
-          (const :tag "Verbatim" verbatim)
-          (const :tag "Custom" custom))
-  :group 'ivy)
-
-(defcustom counsel-org-goto-custom-faces nil
-  "Custom faces for displaying headlines in `counsel-org-goto' functions.
-
-The n-th entry is used for headlines on level n, starting with n = 1.  If
-a headline is an a level for which there is no entry in the list, it will
-not be styled.
-
-This variable has no effect unless `counsel-org-goto-face-style' is set
-to custom."
-  :type '(repeat face)
-  :group 'ivy)
-
 (declare-function org-get-heading "org")
 (declare-function org-goto-marker-or-bmk "org")
 (declare-function outline-next-heading "outline")
 
 ;;;###autoload
-(defun counsel-org-goto ()
-  "Go to a different location in the current file."
-  (interactive)
-  (ivy-read "Goto: " (counsel-org-goto--get-headlines)
-            :history 'counsel-org-goto-history
-            :action 'counsel-org-goto-action
-            :caller 'counsel-org-goto))
+(defalias 'counsel-org-goto #'counsel-outline)
 
 ;;;###autoload
 (defun counsel-org-goto-all ()
@@ -3065,10 +3012,10 @@ to custom."
     (dolist (b (buffer-list))
       (with-current-buffer b
         (when (derived-mode-p 'org-mode)
-          (setq entries (nconc entries (counsel-org-goto--get-headlines))))))
+          (setq entries (nconc entries (counsel-outline-candidates))))))
     (ivy-read "Goto: " entries
               :history 'counsel-org-goto-history
-              :action 'counsel-org-goto-action
+              :action #'counsel-org-goto-action
               :caller 'counsel-org-goto-all)))
 
 (defun counsel-org-goto-action (x)
@@ -3089,29 +3036,6 @@ version.  Argument values are based on the
                     (< (cdr (func-arity #'org-get-heading)) 3)
                   (version< org-version "9.1.1"))
                 1 0)))
-
-(defun counsel-org-goto--get-headlines ()
-  "Get all headlines from the current org buffer."
-  (counsel-outline-candidates
-   '(:outline-title counsel-outline-title-org
-     :action counsel-org-goto-action)))
-
-(defun counsel-org-goto--add-face (name level)
-  "Add face to headline NAME on LEVEL.
-The face can be customized through `counsel-org-goto-face-style'."
-  (or (and (eq counsel-org-goto-face-style 'org)
-           (propertize
-            name
-            'face
-            (concat "org-level-" (number-to-string level))))
-      (and (eq counsel-org-goto-face-style 'verbatim)
-           name)
-      (and (eq counsel-org-goto-face-style 'custom)
-           (propertize
-            name
-            'face
-            (nth (1- level) counsel-org-goto-custom-faces)))
-      (propertize name 'face 'minibuffer-prompt)))
 
 ;;** `counsel-org-file'
 (declare-function org-attach-dir "org-attach")
@@ -3151,7 +3075,7 @@ include attachments of other Org buffers."
   "Browse all attachments for current Org file."
   (interactive)
   (ivy-read "file: " (counsel-org-files)
-            :action 'counsel-locate-action-dired
+            :action #'counsel-locate-action-dired
             :caller 'counsel-org-file))
 
 ;;** `counsel-org-entity'
@@ -3254,6 +3178,45 @@ include attachments of other Org buffers."
 (defvar counsel-org-agenda-headlines-history nil
   "History for `counsel-org-agenda-headlines'.")
 
+(define-obsolete-variable-alias 'counsel-org-goto-display-style
+    'counsel-outline-display-style "0.10.0")
+(define-obsolete-variable-alias 'counsel-org-headline-display-style
+    'counsel-outline-display-style "0.10.0")
+
+(defcustom counsel-outline-display-style 'path
+  "The style used when displaying matched outline headings.
+
+If `headline', the title is displayed with leading stars
+indicating the outline level.
+
+If `path', the path hierarchy is displayed.  For each entry the
+title is shown.  Entries are separated with
+`counsel-outline-path-separator'.
+
+If `title' or any other value, only the title of the heading is
+displayed.
+
+For displaying tags and TODO keywords in `org-mode' buffers, see
+`counsel-org-headline-display-tags' and
+`counsel-org-headline-display-todo', respectively."
+  :type '(choice
+          (const :tag "Title only" title)
+          (const :tag "Headline" headline)
+          (const :tag "Path" path))
+  :group 'ivy)
+
+(define-obsolete-variable-alias 'counsel-org-goto-separator
+    'counsel-outline-path-separator "0.10.0")
+(define-obsolete-variable-alias 'counsel-org-headline-path-separator
+    'counsel-outline-path-separator "0.10.0")
+
+(defcustom counsel-outline-path-separator "/"
+  "String separating path entries in matched outline headings.
+This variable has no effect unless
+`counsel-outline-display-style' is set to `path'."
+  :type 'string
+  :group 'ivy)
+
 (declare-function org-get-outline-path "org")
 
 (defun counsel-org-agenda-headlines--candidates ()
@@ -3261,7 +3224,7 @@ include attachments of other Org buffers."
   (org-map-entries
    (lambda ()
      (let* ((components (org-heading-components))
-            (level (and (eq counsel-org-headline-display-style 'headline)
+            (level (and (eq counsel-outline-display-style 'headline)
                         (make-string
                          (if org-odd-levels-only
                              (nth 1 components)
@@ -3269,7 +3232,7 @@ include attachments of other Org buffers."
                          ?*)))
             (todo (and counsel-org-headline-display-todo
                        (nth 2 components)))
-            (path (and (eq counsel-org-headline-display-style 'path)
+            (path (and (eq counsel-outline-display-style 'path)
                        (org-get-outline-path)))
             (priority (and counsel-org-headline-display-priority
                            (nth 3 components)))
@@ -3286,10 +3249,11 @@ include attachments of other Org buffers."
                         (and priority (format "[#%c]" priority))
                         (mapconcat 'identity
                                    (append path (list text))
-                                   counsel-org-headline-path-separator)
+                                   counsel-outline-path-separator)
                         tags))
          " ")
-        (buffer-file-name) (point))))
+        buffer-file-name
+        (point))))
    nil
    'agenda))
 
@@ -3349,66 +3313,64 @@ Position of selected mark outside accessible part of buffer")))
 (defvar package-archive-contents)
 (declare-function package-installed-p "package")
 (declare-function package-delete "package")
+(declare-function package-desc-extras "package")
 
-(defun counsel-package ()
-  "Install or delete packages.
-
-Packages not currently installed have a \"+\" prepended.  Selecting one
-of these will try to install it.  Currently installed packages have a
-\"-\" prepended, and selecting one of these will delete the package.
-
-Additional Actions:
-
-  \\<ivy-minibuffer-map>\\[ivy-dispatching-done] d: describe package"
-  (interactive)
+(defun counsel--package-candidates ()
+  "Return completion alist for `counsel-package'."
   (unless package--initialized
     (package-initialize t))
   (unless package-archive-contents
     (package-refresh-contents))
-  (let ((cands (mapcar #'counsel-package-make-package-cell
-                       package-archive-contents)))
-    (ivy-read "Packages (install +pkg or delete -pkg): "
-              (sort cands #'counsel--package-sort)
-              :action #'counsel-package-action
-              :initial-input "^+ "
-              :require-match t
-              :caller 'counsel-package)))
+  (sort (mapcar (lambda (entry)
+                  (cons (let ((pkg (car entry)))
+                          (concat (if (package-installed-p pkg) "-" "+")
+                                  (symbol-name pkg)))
+                        entry))
+                package-archive-contents)
+        #'counsel--package-sort))
 
-(defun counsel-package-make-package-cell (pkg)
-  "Make candidate for package PKG."
-  (let* ((pkg-sym (car pkg))
-         (pkg-name (symbol-name pkg-sym)))
-    (cons (format "%s%s"
-                  (if (package-installed-p pkg-sym) "-" "+")
-                  pkg-name)
-          pkg)))
+(defun counsel-package ()
+  "Install or delete packages.
 
-(defun counsel-package-action (pkg-cons)
-  "Delete or install package in PKG-CONS."
-  (let ((pkg (cadr pkg-cons)))
-    (if (package-installed-p pkg)
-        (package-delete
-         (cadr (assoc pkg package-alist)))
-      (package-install pkg))))
+Packages not currently installed are prefixed with \"+\", and
+selecting one of these will try to install it.
+Packages currently installed are prefixed with \"-\", and
+selecting one of these will try to delete it.
 
-(defun counsel-package-action-describe (pkg-cons)
-  "Call `describe-package' for package in PKG-CONS."
-  (describe-package (cadr pkg-cons)))
+Additional actions:\\<ivy-minibuffer-map>
 
-(declare-function package-desc-extras "package")
+  \\[ivy-dispatching-done] d: Describe package
+  \\[ivy-dispatching-done] h: Visit package's homepage"
+  (interactive)
+  (require 'package)
+  (ivy-read "Packages (install +pkg or delete -pkg): "
+            (counsel--package-candidates)
+            :action #'counsel-package-action
+            :require-match t
+            :caller 'counsel-package))
 
-(defun counsel-package-action-homepage (pkg-cons)
-  "Open homepage for package in PKG-CONS."
-  (let* ((desc-list (cddr pkg-cons))
-         (desc (if (listp desc-list) (car desc-list) desc-list))
-         (url (cdr (assoc :url (package-desc-extras desc)))))
-    (when url
-      (require 'browse-url)
-      (browse-url url))))
+(cl-pushnew '(counsel-package . "^+ ") ivy-initial-inputs-alist :key #'car)
+
+(defun counsel-package-action (package)
+  "Delete or install PACKAGE."
+  (setq package (cadr package))
+  (if (package-installed-p package)
+      (package-delete (cadr (assq package package-alist)))
+    (package-install package)))
+
+(defun counsel-package-action-describe (package)
+  "Call `describe-package' on PACKAGE."
+  (describe-package (cadr package)))
+
+(defun counsel-package-action-homepage (package)
+  "Open homepage for PACKAGE in a WWW browser."
+  (let ((url (cdr (assq :url (package-desc-extras (nth 2 package))))))
+    (if url
+        (browse-url url)
+      (message "No homepage specified for package `%s'" (nth 1 package)))))
 
 (defun counsel--package-sort (a b)
-  "Sort function for `counsel-package'.
-A is the left hand side, B the right hand side."
+  "Sort function for `counsel-package' candidates."
   (let* ((a (car a))
          (b (car b))
          (a-inst (= (string-to-char a) ?+))
@@ -3721,10 +3683,10 @@ PREFIX is used to create the key."
 
 (defun counsel-imenu-categorize-functions (items)
   "Categorize all the functions of imenu."
-  (let* ((others (cl-remove-if-not (lambda (x) (listp (cdr x))) items))
-         (functions (cl-remove-if (lambda (x) (listp (cdr x))) items)))
-    (if functions
-        (append others `(("Functions" ,@functions)))
+  (let ((fns (cl-remove-if #'listp items :key #'cdr)))
+    (if fns
+        (nconc (cl-remove-if #'nlistp items :key #'cdr)
+               `(("Functions" ,@fns)))
       items)))
 
 ;;;###autoload
@@ -3971,7 +3933,7 @@ TREEP is used to expand internal nodes."
                   x))
                (counsel-semantic-tags))))
     (ivy-read "tag: " tags
-              :action 'counsel-semantic-action
+              :action #'counsel-semantic-action
               :history 'counsel-semantic-history
               :caller 'counsel-semantic)))
 
@@ -3983,21 +3945,77 @@ TREEP is used to expand internal nodes."
     (counsel-imenu)))
 
 ;;** `counsel-outline'
+(define-obsolete-variable-alias 'counsel-org-goto-face-style
+    'counsel-outline-face-style "0.10.0")
+
+(defcustom counsel-outline-face-style nil
+  "Determines how to style outline headings during completion.
+
+If `org', the default faces from `org-mode' are applied,
+i.e. `org-level-1' through `org-level-8'.  Note that no cycling
+is performed, so headings on levels 9 and higher are not styled.
+
+If `verbatim', the faces used in the buffer are applied.  For
+simple headlines in `org-mode' buffers, this is usually the same
+as the `org' setting, except that it depends on how much of the
+buffer has been completely fontified.  If your buffer exceeds a
+certain size, headlines are styled lazily depending on which
+parts of the tree are visible.  Headlines which are not yet
+styled in the buffer will appear unstyled in the minibuffer as
+well.  If your headlines contain parts which are fontified
+differently than the headline itself (e.g. TODO keywords, tags,
+links) and you want these parts to be styled properly, verbatim
+is the way to go; otherwise you are probably better off using the
+`org' setting instead.
+
+If `custom', the faces defined in `counsel-outline-custom-faces'
+are applied.  Note that no cycling is performed, so if there is
+no face defined for a certain level, headlines on that level will
+not be styled.
+
+If `nil', no faces are applied to the headlines.
+
+For displaying tags and TODO keywords in `org-mode' buffers, see
+`counsel-org-headline-display-tags' and
+`counsel-org-headline-display-todo', respectively."
+  :type '(choice
+          (const :tag "Same as org-mode" org)
+          (const :tag "Verbatim" verbatim)
+          (const :tag "Custom" custom)
+          (const :tag "No style" nil))
+  :group 'ivy)
+
+(define-obsolete-variable-alias 'counsel-org-goto-custom-faces
+    'counsel-outline-custom-faces "0.10.0")
+
+(defcustom counsel-outline-custom-faces nil
+  "List of faces for custom display of outline headings.
+
+Headlines on level N are fontified with the Nth entry of this
+list, starting with N = 1.  Headline levels with no corresponding
+entry in this list will not be styled.
+
+This variable has no effect unless `counsel-outline-face-style'
+is set to `custom'."
+  :type '(repeat face)
+  :group 'ivy)
+
 (defvar counsel-outline-settings
   '((emacs-lisp-mode
      :outline-regexp ";;[;*]+[\s\t]+"
      :outline-level counsel-outline-level-emacs-lisp)
     (org-mode
      :outline-title counsel-outline-title-org
-     :action counsel-org-goto-action)
-    (markdown-mode
+     :action counsel-org-goto-action
+     :history counsel-org-goto-history
+     :caller counsel-org-goto)
+    (markdown-mode                      ; markdown-mode package
      :outline-title counsel-outline-title-markdown)
-    (latex-mode
+    (latex-mode                         ; Built-in mode or AUCTeX package
      :outline-title counsel-outline-title-latex))
-  "An alist holding `counsel-outline' settings for particular
-major modes.
+  "Alist mapping major modes to their `counsel-outline' settings.
 
-Each entry is a pair \(MAJOR-MODE . PLIST\).  `counsel-outline'
+Each entry is a pair (MAJOR-MODE . PLIST).  `counsel-outline'
 checks whether an entry exists for the current buffer's
 MAJOR-MODE and, if so, loads the settings specified by PLIST
 instead of the default settings.  The following settings are
@@ -4005,151 +4023,200 @@ recognized:
 
 - `:outline-regexp' is a regexp to match the beggining of an
   outline heading.  It is only checked at the start of a line and
-  so need not start with `^'.  The default is to use the value of
-  the variable `outline-regexp'.
+  so need not start with \"^\".
+  Defaults to the value of the variable `outline-regexp'.
 
-- `:outline-level' is a function of no args to compute the level of
-  an outline heading.  It is called with point at the beginning
-  of `outline-regexp' and with the match data reflicting
-  `outline-regexp'.  The default is to use the value of the
-  variable `outline-level'.
+- `:outline-level' is a function of no arguments which computes
+  the level of an outline heading.  It is called with point at
+  the beginning of `outline-regexp' and with the match data
+  corresponding to `outline-regexp'.
+  Defaults to the value of the variable `outline-level'.
 
-- `:outline-title' is a function of no args to get the title of an
-  outline heading.  It is called with point at the end of
-  `outline-regexp' and with the match data reflicting
-  `outline-regexp'.  The default is to use the function
-  `counsel-outline-title'.
+- `:outline-title' is a function of no arguments which returns
+  the title of an outline heading.  It is called with point at
+  the end of `outline-regexp' and with the match data
+  corresponding to `outline-regexp'.
+  Defaults to the function `counsel-outline-title'.
 
-- `:action' is a function of one arg, a marker corresponding to the
-  beginning of the selected outline heading, performing
-  `counsel-outline''s action to jump to this heading.  The
-  default is to use the function `counsel-outline-action'.")
+- `:action' is a function of one argument, the selected outline
+  heading to jump to.  This setting corresponds directly to its
+  eponymous `ivy-read' keyword, as used by `counsel-outline', so
+  the type of the function's argument depends on the value
+  returned by `counsel-outline-candidates'.
+  Defaults to the function `counsel-outline-action'.
+
+- `:history' is a history list, usually a symbol representing a
+  history list variable.  It corresponds directly to its
+  eponymous `ivy-read' keyword, as used by `counsel-outline'.
+  Defaults to the symbol `counsel-outline-history'.
+
+- `:caller' is a symbol to uniquely idendify the caller to
+  `ivy-read'.  It corresponds directly to its eponymous
+  `ivy-read' keyword, as used by `counsel-outline'.
+  Defaults to the symbol `counsel-outline'.
+
+- `:display-style' overrides the variable
+  `counsel-outline-display-style'.
+
+- `:path-separator' overrides the variable
+  `counsel-outline-path-separator'.
+
+- `:face-style' overrides the variable
+  `counsel-outline-face-style'.
+
+- `:custom-faces' overrides the variable
+  `counsel-outline-custom-faces'.")
 
 (defun counsel-outline-title ()
-  "Default function used by `counsel-outline' to get the title of
-the current outline heading. See `counsel-outline-settings'."
+  "Return title of current outline heading.
+Intended as a value for the `:outline-title' setting in
+`counsel-outline-settings', which see."
   (buffer-substring (point) (line-end-position)))
 
 (defun counsel-outline-title-org ()
-  "Function used by `counsel-outline' to get the title of the
-current outline heading in org-mode buffers. See
-`counsel-outline-settings'."
-  (apply 'org-get-heading (counsel--org-get-heading-args)))
+  "Return title of current outline heading.
+Like `counsel-outline-title' (which see), but for `org-mode'
+buffers."
+  (apply #'org-get-heading (counsel--org-get-heading-args)))
 
 (defun counsel-outline-title-markdown ()
-  "Function used by `counsel-outline' to get the title of the
-current outline heading in markdown-mode buffers. See
-`counsel-outline-title'."
+  "Return title of current outline heading.
+Like `counsel-outline-title' (which see), but for
+`markdown-mode' (from the eponymous package) buffers."
   ;; `outline-regexp' is set by `markdown-mode' to match both setext
   ;; (underline) and atx (hash) headings (see
   ;; `markdown-regex-header').
-  (or (match-string 1) ; setext heading title
-      (match-string 5))) ; atx heading title
-
-(defvar LaTeX-section-list)
+  (or (match-string 1)                  ; setext heading title
+      (match-string 5)))                ; atx heading title
 
 (defun counsel-outline-title-latex ()
-  "Function used by `counsel-outline' to get the title of the
-current outline heading in latex-mode buffers. See
-`counsel-outline-settings'."
-  ;; `outline-regexp' is set by `latex-mode' (see
-  ;; `LaTeX-outline-regexp') to match section macros, in which case we
-  ;; get the section name, as well as `\appendix', `\documentclass',
-  ;; `\begin{document}' and `\end{document}', in which case we simply
-  ;; return that.
-  (if (and (assoc (match-string 1) LaTeX-section-list) ;; section macro
-           (progn ; point is at end of macro name, skip stars and optional args
+  "Return title of current outline heading.
+Like `counsel-outline-title' (which see), but for `latex-mode'
+buffers."
+  ;; `outline-regexp' is set by `latex-mode' (see variable
+  ;; `latex-section-alist' for the built-in mode or function
+  ;; `LaTeX-outline-regexp' for the AUCTeX package) to match section
+  ;; macros, in which case we get the section name, as well as
+  ;; `\appendix', `\documentclass', `\begin{document}', and
+  ;; `\end{document}', in which case we simply return that.
+  (if (and (assoc (match-string 1)                             ; Macro name
+                  (or (bound-and-true-p LaTeX-section-list)    ; AUCTeX
+                      (bound-and-true-p latex-section-alist))) ; Built-in
+           (progn
+             ;; Point is at end of macro name, skip stars and optional args
              (skip-chars-forward "*")
-             (while (looking-at "\\[")
+             (while (looking-at-p "\\[")
                (forward-list))
-             (looking-at "{"))) ; first mandatory arg should be section title
-      (buffer-substring (1+ (point)) (1- (forward-list)))
+             ;; First mandatory arg should be section title
+             (looking-at-p "{")))
+      (buffer-substring (1+ (point)) (1- (progn (forward-list) (point))))
     (buffer-substring (line-beginning-position) (point))))
 
 (defun counsel-outline-level-emacs-lisp ()
-  "Function used by `counsel-outline' to compute the level of the
-current outline heading in emacs-lisp-mode buffers. See
-`counsel-outline-settings'."
+  "Return level of current outline heading.
+Like `lisp-outline-level', but adapted for the `:outline-level'
+setting in `counsel-outline-settings', which see."
   (if (looking-at ";;\\([;*]+\\)")
-      (length (match-string 1))
+      (- (match-end 1) (match-beginning 1))
     (funcall outline-level)))
 
-(defvar counsel-outline--preselect nil
+(defvar counsel-outline--preselect 0
   "Index of the presected candidate in `counsel-outline'.")
 
 (defun counsel-outline-candidates (&optional settings)
-  "Return outline candidates."
+  "Return an alist of outline heading completion candidates.
+Each element is a pair (HEADING . MARKER), where the string
+HEADING is located at the position of MARKER.  SETTINGS is a
+plist entry from `counsel-outline-settings', which see."
   (let ((bol-regex (concat "^\\(?:"
                            (or (plist-get settings :outline-regexp)
                                outline-regexp)
                            "\\)"))
         (outline-title-fn (or (plist-get settings :outline-title)
-                              'counsel-outline-title))
+                              #'counsel-outline-title))
         (outline-level-fn (or (plist-get settings :outline-level)
-                              outline-level)))
+                              outline-level))
+        (display-style (or (plist-get settings :display-style)
+                           counsel-outline-display-style))
+        (path-separator (or (plist-get settings :path-separator)
+                            counsel-outline-path-separator))
+        (face-style (or (plist-get settings :face-style)
+                        counsel-outline-face-style))
+        (custom-faces (or (plist-get settings :custom-faces)
+                          counsel-outline-custom-faces))
+        (stack-level 0)
+        (orig-point (point))
+        cands name level marker stack)
     (save-excursion
-      (let (cands
-            name
-            level
-            marker
-            stack
-            (stack-level 0)
-            (orig-point (point)))
-        (setq counsel-outline--preselect 0)
-        (goto-char (point-min))
-        (while (re-search-forward bol-regex nil t)
-          (save-excursion
-            (setq name (or (save-match-data
-                             (funcall outline-title-fn))
-                           ""))
-            (goto-char (match-beginning 0))
-            (setq marker (point-marker))
-            (setq level (funcall outline-level-fn))
-            (cond ((eq counsel-org-headline-display-style 'path)
-                   ;; Update stack. The empty entry guards against incorrect
-                   ;; headline hierarchies e.g. a level 3 headline immediately
-                   ;; following a level 1 entry.
-                   (while (<= level stack-level)
-                     (pop stack)
-                     (cl-decf stack-level))
-                   (while (> level stack-level)
-                     (push "" stack)
-                     (cl-incf stack-level))
-                   (setf (car stack) (counsel-org-goto--add-face name level))
-                   (setq name (mapconcat
-                               #'identity
-                               (reverse stack)
-                               counsel-org-headline-path-separator)))
-                  (t
-                   (when (eq counsel-org-headline-display-style 'headline)
-                     (setq name (concat (make-string level ?*) " " name)))
-                   (setq name (counsel-org-goto--add-face name level))))
-            (push (cons name marker) cands))
-          (unless (or (string= name "")
-                      (< orig-point marker))
-            (cl-incf counsel-outline--preselect)))
-        (nreverse cands)))))
+      (setq counsel-outline--preselect 0)
+      (goto-char (point-min))
+      (while (re-search-forward bol-regex nil t)
+        (save-excursion
+          (setq name (or (save-match-data
+                           (funcall outline-title-fn))
+                         ""))
+          (goto-char (match-beginning 0))
+          (setq marker (point-marker))
+          (setq level (funcall outline-level-fn))
+          (cond ((eq display-style 'path)
+                 ;; Update stack.  The empty entry guards against incorrect
+                 ;; headline hierarchies, e.g. a level 3 headline
+                 ;; immediately following a level 1 entry.
+                 (while (<= level stack-level)
+                   (pop stack)
+                   (cl-decf stack-level))
+                 (while (> level stack-level)
+                   (push "" stack)
+                   (cl-incf stack-level))
+                 (setf (car stack)
+                       (counsel-outline--add-face
+                        name level face-style custom-faces))
+                 (setq name (mapconcat #'identity
+                                       (reverse stack)
+                                       path-separator)))
+                (t
+                 (when (eq display-style 'headline)
+                   (setq name (concat (make-string level ?*) " " name)))
+                 (setq name (counsel-outline--add-face
+                             name level face-style custom-faces))))
+          (push (cons name marker) cands))
+        (unless (or (string= name "")
+                    (< orig-point marker))
+          (cl-incf counsel-outline--preselect))))
+    (nreverse cands)))
+
+(defun counsel-outline--add-face (name level &optional face-style custom-faces)
+  "Set the `face' property on headline NAME according to LEVEL.
+FACE-STYLE and CUSTOM-FACES override `counsel-outline-face-style'
+and `counsel-outline-custom-faces', respectively, which determine
+the face to apply."
+  (let ((face (cl-case (or face-style counsel-outline-face-style)
+                (verbatim)
+                (custom (nth (1- level)
+                             (or custom-faces counsel-outline-custom-faces)))
+                (org (format "org-level-%d" level))
+                (t 'minibuffer-prompt))))
+    (when face
+      (put-text-property 0 (length name) 'face face name)))
+  name)
 
 (defun counsel-outline-action (x)
   "Go to outline X."
-    (goto-char (cdr x)))
+  (goto-char (cdr x)))
 
 ;;;###autoload
 (defun counsel-outline ()
-  "Jump to outline with completion.
-
-This command relies on `outline-regexp', `outline-level', and
-`counsel-outline-title' to match an outline heading and get its
-level and title, respectively.  For major modes where this is not
-adequate or optimal, these variables can be rebound locally in
-the major mode hook.  Replacements are provided for some such
-modes. To set them up, add this to your init file:"
+  "Jump to an outline heading with completion."
   (interactive)
-  (let ((settings (cdr (assoc major-mode counsel-outline-settings))))
-    (ivy-read "outline: " (counsel-outline-candidates settings)
+  (let ((settings (cdr (assq major-mode counsel-outline-settings))))
+    (ivy-read "Outline: " (counsel-outline-candidates settings)
               :action (or (plist-get settings :action)
                           #'counsel-outline-action)
-              :preselect (max (1- counsel-outline--preselect) 0))))
+              :history (or (plist-get settings :history)
+                           'counsel-outline-history)
+              :preselect (max (1- counsel-outline--preselect) 0)
+              :caller (or (plist-get settings :caller)
+                          'counsel-outline))))
 
 ;;** `counsel-ibuffer'
 (defvar counsel-ibuffer--buffer-name nil
@@ -4257,10 +4324,10 @@ The result of `ucs-names' is mostly, but not completely, sorted,
 so this function ensures lexicographic order."
   (let* (cands
          (table (ucs-names))            ; Either hash map or alist
-         (fmt   (lambda (name code)     ; Common format function
-                  (push (propertize (format "%06X %-58s %c" code name code)
-                                    'code code)
-                        cands))))
+         (fmt (lambda (name code)       ; Common format function
+                (let ((cand (format "%06X %-58s %c" code name code)))
+                  (put-text-property 0 1 'code code cand)
+                  (push cand cands)))))
     (if (not (hash-table-p table))
         ;; Support `ucs-names' returning an alist in Emacs < 26.
         ;; The result of `ucs-names' comes pre-reversed so no need to repeat.
@@ -4285,15 +4352,15 @@ COUNT defaults to 1."
     (setq ivy-completion-beg (point))
     (setq ivy-completion-end (point))
     (ivy-read "Unicode name: " counsel--unicode-table
+              :history 'counsel-unicode-char-history
+              :sort t
               :action (lambda (name)
                         (with-ivy-window
                           (delete-region ivy-completion-beg ivy-completion-end)
                           (setq ivy-completion-beg (point))
                           (insert-char (get-text-property 0 'code name) count)
                           (setq ivy-completion-end (point))))
-              :history 'counsel-unicode-char-history
-              :caller 'counsel-unicode-char
-              :sort t)))
+              :caller 'counsel-unicode-char)))
 
 ;;** `counsel-colors'
 (defun counsel-colors-action-insert-hex (color)
@@ -4500,6 +4567,7 @@ selected color."
   '("~/.local/share/applications/"
     "~/.guix-profile/share/applications/"
     "/usr/local/share/applications/"
+    "/var/lib/flatpak/exports/share/applications/"
     "/usr/share/applications/")
   "Directories in which to search for applications (.desktop files)."
   :group 'ivy
@@ -4729,6 +4797,7 @@ Any desktop entries that fail to parse are recorded in
                 (describe-bindings . counsel-descbinds)
                 (describe-function . counsel-describe-function)
                 (describe-variable . counsel-describe-variable)
+                (apropos-command . counsel-apropos)
                 (describe-face . counsel-describe-face)
                 (list-faces-display . counsel-faces)
                 (find-file . counsel-find-file)
@@ -4755,7 +4824,10 @@ Remaps built-in functions to counsel replacements.")
   "Toggle Counsel mode on or off.
 Turn Counsel mode on if ARG is positive, off otherwise. Counsel
 mode remaps built-in emacs functions that have counsel
-replacements. "
+replacements.
+
+Local bindings (`counsel-mode-map'):
+\\{counsel-mode-map}"
   :group 'ivy
   :global t
   :keymap counsel-mode-map
