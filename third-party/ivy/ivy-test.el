@@ -113,6 +113,10 @@ will bring the behavior in line with the newer Emacsen."
            (ivy-with '(ivy-read "test" '("aaab" "aaac"))
                      "a C-n <tab> C-m")
            "aaac"))
+  (should (equal-including-properties
+           (ivy-with '(ivy-read "test" '(("foo" . "bar")))
+                     "C-m")
+           "foo"))
   (should (equal
            (ivy-with '(ivy-read "test" '(("foo" . "bar")))
                      "asdf C-m")
@@ -123,7 +127,7 @@ will bring the behavior in line with the newer Emacsen."
               (ivy-read "test" '(("foo" . "bar"))
                :action (lambda (x) (prin1 x))))
             "f C-m")
-           "(#(\"foo\" 0 1 (idx 0)) . \"bar\")"))
+           "(\"foo\" . \"bar\")"))
   (should (equal
            (ivy-with
             '(with-output-to-string
@@ -140,6 +144,14 @@ will bring the behavior in line with the newer Emacsen."
                        '("ignore" "build" "build-1" "build-2") :preselect "build")
                      "b C-m")
            "build")))
+
+(ert-deftest ivy-read-sort-alist ()
+  (should (equal (ivy-with '(let ((coll '(("b" . "1") ("a" . "2"))))
+                             (ivy-read "test:" coll
+                              :sort t)
+                             coll)
+                           "C-m")
+                 '(("b" . "1") ("a" . "2")))))
 
 (ert-deftest ivy-read-remap ()
   (should (equal
@@ -314,8 +326,16 @@ will bring the behavior in line with the newer Emacsen."
                   (ivy--regex "foo bar"))
                  "(foo).*?(bar)"))
   (should (equal (counsel-unquote-regex-parens
-                  (ivy--regex "(foo bar"))
-                 "(\\(foo).*?(bar)")))
+                  (ivy--regex "(foo bar)"))
+                 "(\\(foo).*?(bar\\))"))
+  (should (equal (counsel-unquote-regex-parens
+                  (ivy--regex "{foo bar}"))
+                 "({foo).*?(bar})"))
+  (should (equal (counsel-unquote-regex-parens "\\{foo bar\\}")
+                 "{foo bar}"))
+  (should (equal (counsel-unquote-regex-parens
+                  '(("foo") ("bar" . t) ("baz" . t)))
+                 "bar.*baz")))
 
 (defmacro ivy--string-buffer (text &rest body)
   "Test helper that wraps TEXT in a temp buffer while running BODY."
@@ -854,6 +874,25 @@ will bring the behavior in line with the newer Emacsen."
           (ivy-with
            '(read-directory-name "cd: " "/tmp")
            "RET"))))
+
+(ert-deftest ivy-partial-files ()
+  (when (file-exists-p "/tmp/ivy-partial-test")
+    (delete-directory "/tmp/ivy-partial-test" t))
+  (mkdir "/tmp/ivy-partial-test/test1" t)
+  (mkdir "/tmp/ivy-partial-test/test2")
+  (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-partial)
+  (should
+   (equal
+    (save-window-excursion
+      (condition-case nil
+          (ivy-with
+           '(let ((default-directory "/tmp/ivy-partial-test/"))
+             (counsel-find-file))
+           "t TAB TAB TAB C-g")
+        (quit ivy--old-cands)))
+    '("test1/" "test2/")))
+  (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-partial-or-done)
+  (delete-directory "/tmp/ivy-partial-test" t))
 
 (provide 'ivy-test)
 
