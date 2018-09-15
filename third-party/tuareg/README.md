@@ -24,18 +24,19 @@ Install
 -------
 
 The easier way to install Tuareg is though
-[`opam`](http://opam.ocaml.org/):
+the [Emacs package system](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html)
+and [Melpa](https://melpa.org/) — you first have to
+[configure the latter](https://melpa.org/#/getting-started).
+
+You can also install it using [OPAM](http://opam.ocaml.org/):
 
     opam install tuareg
 
 and follow the instructions given at the end of the `opam`
 installation.
 
-There are versions of Tuareg in [Melpa](https://melpa.org/) and
-in [Marmalade](https://marmalade-repo.org/) but they may be older.
-
 If you want to install from the Git checkout, just add to your
-[Init File][]the line:
+[Init File][] the line:
 
     (load "path-to-git-checkout-dir/tuareg-site-file")
 
@@ -66,7 +67,8 @@ Run the OCaml debugger with <kbd>M-x ocamldebug FILE</kbd>.
 Tips & customization
 --------------------
 
-- You can comment/uncomment a single line with <kbd>M-;</kbd>.
+- You can comment/uncomment a single line with `tuareg-comment-dwim`
+  which is bound to <kbd>C-cC-;</kbd>.
 
 - By default, Tuareg will align the arguments of functions as follows:
 
@@ -145,6 +147,17 @@ Tips & customization
          '((((class color) (background light)) (:foreground "SaddleBrown"))
            (((class color) (background dark)) (:foreground "burlywood1"))))
 
+- To have a list of definitions in the buffer, use [imenu][].  It is
+  available by right clicking in the buffer.  You can also launch the
+  `speedbar` and click on file to have a list of definitions.
+
+[imenu]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html
+
+- If you wish to have a nice 🐫 as the mode name, add
+
+        (add-hook 'tuareg-mode-hook #'(lambda() (setq mode-name "🐫")))
+
+  to your [Init File][].
 
 Thanks to the work of Stefan Monnier, a new indentation engine based on
 [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html)
