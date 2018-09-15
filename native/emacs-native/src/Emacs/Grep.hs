@@ -48,6 +48,7 @@ import Emacs.Module
 import Emacs.Module.Assert
 import Emacs.Module.Errors
 
+import Data.Emacs.Path
 import Data.Filesystem
 import Data.Regex
 import Path
@@ -96,9 +97,9 @@ emacsGrepRec (R roots (R regexp (R extsGlobs (R ignoredFileGlobs (R ignoredDirGl
   regexp'' <- compileReWithOpts compOpts regexp'
   jobs     <- liftBase getNumCapabilities
 
-  extsToFindRE   <- globsToRegex extsGlobs'
-  ignoredFilesRE <- globsToRegex ignoredFileGlobs'
-  ignoredDirsRE  <- globsToRegex ignoredDirGlobs'
+  extsToFindRE   <- fileGlobsToRegex extsGlobs'
+  ignoredFilesRE <- fileGlobsToRegex ignoredFileGlobs'
+  ignoredDirsRE  <- fileGlobsToRegex ignoredDirGlobs'
 
   let shouldVisit :: Path Abs Dir -> Bool
       shouldVisit = not . reMatchesPath ignoredDirsRE
@@ -112,6 +113,8 @@ emacsGrepRec (R roots (R regexp (R extsGlobs (R ignoredFileGlobs (R ignoredDirGl
               AllMatches ms -> makeMatches root path ms contents
         | otherwise = pure []
 
+  nil' <- nil
+
   let collectEntries :: TMQueue MatchEntry -> m s (EmacsRef m s)
       collectEntries results = go mempty
         where
@@ -123,10 +126,14 @@ emacsGrepRec (R roots (R regexp (R extsGlobs (R ignoredFileGlobs (R ignoredDirGl
             case res of
               Nothing ->
                 makeVector $ toList acc
-              Just x@MatchEntry{matchPos} -> do
+              Just x@MatchEntry{matchPos, matchLineNum, matchColumn} -> do
                 (pathBS, pathEmacs, formatted) <- formatMatchEntry x
-                matchPos'        <- makeInt (fromIntegral matchPos)
-                emacsMatchStruct <- funcallPrimitive [esym|make-egrep-match|] [pathEmacs, matchPos', formatted]
+                matchLineNum'    <- makeInt (fromIntegral matchLineNum)
+                matchColumn'     <- makeInt (fromIntegral matchColumn)
+                emacsMatchStruct <-
+                  funcallPrimitive
+                    [esym|make-egrep-match|]
+                    [pathEmacs, nil', matchLineNum', matchColumn', formatted]
                 go $! M.insert (pathBS, matchPos) emacsMatchStruct acc
 
   results <- liftBase newTMQueueIO
@@ -178,9 +185,9 @@ formatMatchEntry
   :: forall m s. (Monad (m s), MonadThrow (m s), MonadEmacs m, Throws UserError)
   => MatchEntry -> m s (C8.ByteString, EmacsRef m s, EmacsRef m s)
 formatMatchEntry MatchEntry{matchAbsPath, matchRelPath, matchLineNum, matchLinePrefix, matchLineStr, matchLineSuffix} = do
-  let matchPath'    = C8.pack $ toFilePath matchRelPath
+  let matchPath'    = pathForEmacs matchRelPath
       matchLineNum' = packWord matchLineNum
-  emacsPath <- makeString $ C8.pack $ toFilePath matchAbsPath
+  emacsPath <- makeString $ pathForEmacs matchAbsPath
   fileName  <- (`addFaceProp` [esym|compilation-info|])        =<< makeString matchPath'
   lineNum   <- (`addFaceProp` [esym|compilation-line-number|]) =<< makeString matchLineNum'
   colon     <- makeString ":"
@@ -235,22 +242,22 @@ isNewline = \case
 
 makeMatches
   :: (Throws UserError, MonadThrow m)
-  => Path Abs Dir
-  -> Path Abs File
+  => Path Abs Dir  -- ^ Directory where recursive search was initiated
+  -> Path Abs File -- ^ Matched file under the directory
   -> [(MatchOffset, MatchLength)]
   -> C8.ByteString
   -> m [MatchEntry]
-makeMatches root absPath ms str =
-  case stripProperPrefix root absPath of
+makeMatches searchRoot fileAbsPath ms str =
+  case stripProperPrefix searchRoot fileAbsPath of
     Nothing -> Checked.throw $ mkUserError "emacsGrepRec" $
-      "Internal error: findRec produced wrong root for path" <+> pretty (toFilePath absPath) Semi.<>
-      ". The root is" <+> pretty (toFilePath root)
+      "Internal error: findRec produced wrong root for path" <+> pretty (toFilePath fileAbsPath) Semi.<>
+      ". The root is" <+> pretty (toFilePath searchRoot)
     Just relPath ->
-      pure $ reverse $ msResult $ C8.foldl' (\acc c -> accumulateMatch $ bumpPos acc c) initState str
+      pure $ msResult $ C8.foldl' (\acc c -> accumulateMatch $ bumpPos acc c) initState str
       where
         initState = MatchState
           { msPos     = 0
-          , msLine    = 0
+          , msLine    = 1 -- Emacs starts to count lines from 1.
           , msCol     = 0
           , msMatches = L.sortBy (comparing fst) ms
           , msResult  = []
@@ -274,10 +281,10 @@ makeMatches root absPath ms str =
               first (map snd) $ span ((== msPos') . fst) remainingMatches
             newEntries =
               [ MatchEntry
-                 { matchAbsPath    = absPath
+                 { matchAbsPath    = fileAbsPath
                  , matchRelPath    = relPath
-                 , matchPos        = msPos + 1 -- Emacs starts to count positions from 1.
-                 , matchLineNum    = msLine + 1 -- -- Emacs starts to count lines from 1.
+                 , matchPos        = msPos
+                 , matchLineNum    = msLine
                  , matchColumn     = msCol
                  , matchLinePrefix = C8.copy prefix
                  , matchLineStr    = C8.copy matched
