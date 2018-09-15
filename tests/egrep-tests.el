@@ -57,7 +57,12 @@
 (defconst egrep-tests/project-dir
   (concat +emacs-config-path+ "/tests/test-data/egrep"))
 
-(defalias #'egrep-tests--normalise-file-name #'expand-file-name)
+(defun egrep-tests--normalise-file-name (x)
+  (funcall
+   (fold-platform-os-type
+    #'identity
+    #'downcase)
+   (expand-file-name x)))
 
 (grep-tests--define-tests "egrep-tests-1/%s"
     regexp
