@@ -915,20 +915,26 @@ on currently active vim highlight mode."
   (declare (pure nil) (side-effect-free t))
   (unless (region-active-p)
     (error "Region not active"))
-  (if (vim:visual-mode-p)
-      (cond
-        ((eq? vim:visual-mode-type 'normal)
-         (values (region-beginning) (region-end)))
-        ((eq? vim:visual-mode-type 'linewise)
-         (values (save-excursion
-                   (goto-char (region-beginning))
-                   (line-beginning-position))
-                 (save-excursion
-                   (goto-char (region-end))
-                   (line-end-position))))
-        (t
-         (values (region-beginning) (region-end))))
-    (values (region-beginning) (region-end))))
+  (let ((result
+         (if (vim:visual-mode-p)
+             (cond
+               ((eq? vim:visual-mode-type 'normal)
+                (cons (region-beginning) (region-end)))
+               ((eq? vim:visual-mode-type 'linewise)
+                (cons (save-excursion
+                        (goto-char (region-beginning))
+                        (line-beginning-position))
+                      (save-excursion
+                        (goto-char (region-end))
+                        (line-end-position))))
+               (t
+                (cons (region-beginning) (region-end))))
+           (cons (region-beginning) (region-end)))))
+    (if (> (cdr result) (point-max))
+        (progn
+          (setcdr result (point-max))
+          result)
+        result)))
 
 ;;;
 
