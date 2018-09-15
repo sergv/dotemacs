@@ -13,10 +13,6 @@
                      &key
                      (filep (lambda (_) t))
                      do-not-visitp
-                     ;; (lambda (p)
-                     ;;   (version-control-directory?
-                     ;;    (file-name-nondirectory p)))
-
                      (file-action #'ignore)
                      (do-not-sort-directory-files t))
   "Call FILE-ACTION on every matching file."
@@ -40,7 +36,6 @@
 (defun* find-rec (path
                   &key
                   (filep (lambda (_) t))
-                  (dirp  (lambda (_) nil))
                   do-not-visitp)
   "Collect files and/or directories under PATH recursively.
 
@@ -55,7 +50,6 @@ All predicates are called with full absolute paths."
     (find-rec-do
      path
      :filep filep
-     :dirp dirp
      :do-not-visitp do-not-visitp
      :file-action record-path)
     accum))
