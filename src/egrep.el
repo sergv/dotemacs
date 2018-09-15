@@ -24,8 +24,8 @@
      'elisp))
   "Which immplementation to use to provide grepping capability within Emacs.")
 
-(defun make-egrep-match (file start-pos formatted-entry)
-  (cons file (cons start-pos formatted-entry)))
+(defun make-egrep-match (file start-pos line column formatted-entry)
+  (cons file (cons start-pos (cons line (cons column formatted-entry)))))
 
 (defsubst egrep-match-file (x)
   (declare (pure t) (side-effect-free t))
@@ -35,9 +35,17 @@
   (declare (pure t) (side-effect-free t))
   (cadr x))
 
+(defsubst egrep-match-line (x)
+  (declare (pure t) (side-effect-free t))
+  (caddr x))
+
+(defsubst egrep-match-column (x)
+  (declare (pure t) (side-effect-free t))
+  (cadddr x))
+
 (defsubst egrep-match-formatted-entry (x)
   (declare (pure t) (side-effect-free t))
-  (cddr x))
+  (cddddr x))
 
 
 (defun egrep--format-select-entry (file-name match-start match-end)
@@ -144,6 +152,8 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                 (while (re-search-forward regexp nil t)
                   (let* ((match-start (match-beginning 0))
                          (match-end (match-end 0))
+                         ;; (line (line-number-at-pos match-start))
+                         ;; (column (- match-start (line-beginning-position)))
                          (formatted
                           (egrep--format-select-entry short-file-name
                                                       match-start
@@ -152,6 +162,10 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                           (cons (make-egrep-match
                                  filename
                                  match-start
+                                 ;; If there's a match start then it will be used
+                                 ;; instead of line & column.
+                                 nil ;;line
+                                 nil ;;column
                                  formatted)
                                 nil))
                     (setf local-matches (cdr local-matches))
@@ -198,7 +212,11 @@ match IGNORED-FILE-GLOBS."
             (`same-window  #'switch-to-buffer)
             (`other-window #'switch-to-buffer-other-window))
           buf)
-         (goto-char (egrep-match-start-pos match))))
+         (aif (egrep-match-start-pos match)
+             (goto-char it)
+           (progn
+             (goto-line (egrep-match-line match))
+             (move-to-column (egrep-match-column match))))))
      :item-show-function
      #'egrep-match-formatted-entry
      :separator nil
