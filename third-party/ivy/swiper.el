@@ -116,6 +116,8 @@
              (perform-replace from to
                               t t nil))))))))
 
+(defvar inhibit-message)
+
 (defun swiper-all-query-replace ()
   "Start `query-replace' with string to replace from last search string."
   (interactive)
@@ -349,19 +351,21 @@
 
 NUMBERS-WIDTH, when specified, is used for width spec of line
 numbers; replaces calculating the width from buffer line count."
-  (if (and visual-line-mode
-           ;; super-slow otherwise
-           (< (buffer-size) 20000))
-      (progn
-        (when (eq major-mode 'org-mode)
-          (require 'outline)
-          (if (fboundp 'outline-show-all)
-              (outline-show-all)
-            (with-no-warnings
-              (show-all))))
-        (setq swiper-use-visual-line t))
-    (setq swiper-use-visual-line nil))
-  (let ((n-lines (count-lines (point-min) (point-max))))
+  (let* ((inhibit-field-text-motion t)
+         (n-lines (count-lines (point-min) (point-max))))
+    (if (and visual-line-mode
+             ;; super-slow otherwise
+             (< (buffer-size) 20000)
+             (< n-lines 400))
+        (progn
+          (when (eq major-mode 'org-mode)
+            (require 'outline)
+            (if (fboundp 'outline-show-all)
+                (outline-show-all)
+              (with-no-warnings
+                (show-all))))
+          (setq swiper-use-visual-line t))
+      (setq swiper-use-visual-line nil))
     (unless (zerop n-lines)
       (setq swiper--width (or numbers-width
                               (1+ (floor (log n-lines 10)))))
@@ -505,7 +509,13 @@ line numbers.  For the buffer, use `ivy--regex' instead."
                 (setq ivy--subexps 0)
                 ".")
                ((string-match "^\\^" str)
-                (let ((re (funcall re-builder (substring str 1))))
+                (let* ((re (funcall re-builder (substring str 1)))
+                       (re (if (listp re)
+                               (mapconcat (lambda (x) (format "\\(%s\\)" (car x)))
+                                          (cl-remove-if-not
+                                           #'cdr re)
+                                          ".*?")
+                             re)))
                   (if (zerop ivy--subexps)
                       (prog1 (format "^ ?\\(%s\\)" re)
                         (setq ivy--subexps 1))
@@ -826,10 +836,10 @@ Run `swiper' for those buffers."
   (setq swiper-multi-buffers nil)
   (let ((ivy-use-virtual-buffers nil))
     (ivy-read (swiper-multi-prompt)
-              'internal-complete-buffer
-              :action 'swiper-multi-action-1))
+              #'internal-complete-buffer
+              :action #'swiper-multi-action-1))
   (ivy-read "Swiper: " swiper-multi-candidates
-            :action 'swiper-multi-action-2
+            :action #'swiper-multi-action-2
             :unwind #'swiper--cleanup
             :caller 'swiper-multi))
 
@@ -977,7 +987,7 @@ See `ivy-format-function' for further information."
   (let* ((swiper-window-width (- (frame-width) (if (display-graphic-p) 0 1)))
          (ivy-format-function #'swiper--all-format-function))
     (ivy-read "swiper-all: " 'swiper-all-function
-              :action 'swiper-all-action
+              :action #'swiper-all-action
               :unwind #'swiper--cleanup
               :update-fn (lambda ()
                            (swiper-all-action (ivy-state-current ivy-last)))
