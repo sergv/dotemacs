@@ -8,8 +8,8 @@ DIST_NAME = tuareg-$(VERSION)
 TARBALL = $(DIST_NAME).tar.gz
 OPAM_DIR = packages/tuareg/tuareg.$(VERSION)
 
-SOURCES = tuareg.el ocamldebug.el tuareg-opam.el \
-  tuareg-dune.el
+SOURCES = tuareg.el ocamldebug.el tuareg-opam.el tuareg-jbuild.el \
+  tuareg-menhir.el
 ELS = $(SOURCES) tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
@@ -19,14 +19,19 @@ INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp
 DIST_FILES += $(ELS) Makefile README.md tuareg.install
 
 EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
+EMACSMACPORTS = /Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs
 AQUAMACS = $(shell test -d /Applications \
 	&& find /Applications -type f | grep 'Aquamacs$$')
 ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
 EMACS ?= $(EMACSFORMACOSX)
 else
+ifeq ($(wildcard $(EMACSMACPORTS)),$(EMACSMACPORTS))
+EMACS ?= $(EMACSMACPORTS)
+else
 ifneq ($(strip $(AQUAMACS)),)
 ifeq ($(wildcard $(AQUAMACS)),$(AQUAMACS))
 EMACS ?= $(AQUAMACS)
+endif
 endif
 endif
 endif
@@ -42,9 +47,7 @@ INSTALL_RM_R = $(RM) -r
 INSTALL_MKDIR = mkdir -p
 INSTALL_CP = $(CP)
 
-all : tuareg-site-file.el
-
-elc : $(ELC)
+all elc : $(ELC) tuareg-site-file.el
 
 %.elc : %.el
 	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
@@ -95,9 +98,13 @@ $(TARBALL): $(DIST_FILES)
 	tar acvf $@ $(DIST_NAME)
 	$(RM) -r $(DIST_NAME)
 
-opam: $(TARBALL)
+submit: $(TARBALL)
+	@if [ ! -d packages/ ]; then \
+	  echo "Make a symbolic link packages → OPAM repository/packages"; \
+	  exit 1; \
+	fi
 	$(INSTALL_MKDIR) $(OPAM_DIR)
-	$(CP) -a $(filter-out %~, $(wildcard opam/*)) $(OPAM_DIR)
+	$(CP) -a $(wildcard *.opam *.descr) $(OPAM_DIR)
 	echo "archive: \"https://github.com/ocaml/tuareg/releases/download/$(VERSION)/$(TARBALL)\"" > $(OPAM_DIR)/url
 	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
 	  >> $(OPAM_DIR)/url
@@ -106,4 +113,4 @@ clean :
 	$(RM) $(ELC) "$(DIST_NAME).tar.gz" "$(DIST_NAME).tar"
 	$(RM) -r tuareg.$(VERSION)
 
-.PHONY : all elc clean install uninstall check distrib dist opam
+.PHONY : all elc clean install uninstall check distrib dist submit

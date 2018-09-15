@@ -11,7 +11,7 @@
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
-;; Version: 2.1.0
+;; Version: 2.2.0
 ;; Package-Requires: ((caml "3.12.0.1"))
 ;; Keywords: ocaml languages
 ;; URL: https://github.com/ocaml/tuareg
@@ -89,7 +89,7 @@
   "Tuareg revision from the control system used.")
 
 (defconst tuareg-mode-version
-  (let ((version "Tuareg Version 2.1.0"))
+  (let ((version "Tuareg Version 2.2.0"))
     (if (null tuareg-mode-revision)
         version
       (concat version " (" tuareg-mode-revision ")")
@@ -206,9 +206,6 @@ the default is 1.")
         when cond ->
       clause")
 
-;; Automatic indentation
-;; Using abbrev-mode and electric keys
-
 (defcustom tuareg-match-patterns-aligned nil
   "Non-nil means that the pipes for multiple patterns of a single case
 are aligned instead of being slightly shifted to spot the multiple
@@ -219,35 +216,20 @@ patterns better.
          | C -> ...                    | C -> ... "
   :group 'tuareg :type 'boolean)
 
-(defcustom tuareg-use-abbrev-mode nil
-  "*Non-nil means electrically indent lines starting with leading keywords.
-Leading keywords are such as `end', `done', `else' etc.
-It makes use of `abbrev-mode'.
-
-Many people find electric keywords irritating, so you can disable them by
-setting this variable to nil."
-  :group 'tuareg :type 'boolean
-  :set (lambda (var val)
-         (set-default var val)
-         (dolist (buf (buffer-list))
-           (with-current-buffer buf
-             (when (derived-mode-p 'tuareg-mode)
-               (abbrev-mode (if val 1 -1)))))))
-
-(defcustom tuareg-electric-indent t
-  "*Non-nil means electrically indent lines starting with `|', `)', `]' or `}'.
-
-Many people find electric keys irritating, so you can disable them by
-setting this variable to nil."
-  :group 'tuareg :type 'boolean)
-(when (fboundp 'electric-indent-mode)
-  (make-obsolete-variable 'tuareg-electric-indent
-                          'electric-indent-mode "Emacs-24.1"))
-
 ;; Tuareg-Interactive
 ;; Configure via `tuareg-mode-hook'
 
 ;; Automatic indentation
+
+(make-obsolete-variable 'tuareg-use-abbrev-mode
+                        "Use `electric-indent-mode' instead." "2.2.0")
+
+(defcustom tuareg-electric-indent nil
+  "Whether to automatically indent the line after typing one of
+the words in `tuareg-electric-indent-keywords'.  Lines starting
+with `|', `)', `]`, and `}' are always indented when the
+`electric-indent-mode' is turned on."
+  :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-electric-close-vector t
   "*Non-nil means electrically insert `|' before a vector-closing `]' or
@@ -316,14 +298,8 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   "*Path to the OCaml library."
   :group 'tuareg :type 'string)
 
-(defcustom tuareg-definitions-max-items 30
-  "*Maximum number of items a definitions menu can contain."
-  :group 'tuareg :type 'integer)
-
 (defvar tuareg-options-list
-  `(("Automatic indentation of leading keywords" . 'tuareg-use-abbrev-mode)
-    ("Automatic indentation of ), ] and }" . 'tuareg-electric-indent)
-    ["Prettify symbols" prettify-symbols-mode
+  `(["Prettify symbols" prettify-symbols-mode
       :style toggle :selected prettify-symbols-mode :active t])
   "*List of menu-configurable Tuareg options.")
 
@@ -355,7 +331,8 @@ t, Tuareg will try to use opam to set the right environment for
 opam switch at the time the command is run (provided opam is
 found).  You may also use `tuareg-opam-update-env' to set the
 environment for another compiler from within emacs (without
-changing the opam switch)."
+changing the opam switch).  Beware that setting it to t causes
+problems if you compile under tramp."
   :group 'tuareg :type 'boolean)
 
 (defgroup tuareg-faces nil
@@ -454,20 +431,41 @@ changing the opam switch)."
 (defvar tuareg-font-lock-interactive-error-face
   'tuareg-font-lock-interactive-error-face)
 
+(defface tuareg-font-lock-interactive-directive-face
+  '((((background light)) (:foreground "slate gray"))
+    (t (:foreground "light slate gray")))
+  "Face description for all REPL directives such as #load."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-interactive-directive-face
+  'tuareg-font-lock-interactive-directive-face)
+
 (defface tuareg-font-lock-attribute-face
   (if tuareg-faces-inherit-p
       '((t :inherit font-lock-preprocessor-face))
     '((((background light)) (:foreground "DodgerBlue2"))
       (t (:foreground "LightSteelBlue"))))
-  "Face description for OCaml atribute annotations."
+  "Face description for OCaml attribute annotations."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-attribute-face
   'tuareg-font-lock-attribute-face)
 
-(defface tuareg-font-lock-extension-node-face
+(defface tuareg-font-lock-infix-extension-node-face
   (if tuareg-faces-inherit-p
       '((t :inherit font-lock-preprocessor-face))
-    '((((background light)) (:foreground "DodgerBlue2"))
+    '((((background light)) (:foreground "Orchid"))
+      (((background dark)) (:foreground "LightSteelBlue"))
+      (t (:foreground "LightSteelBlue"))))
+  "Face description for OCaml the infix extension node."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-infix-extension-node-face
+  'tuareg-font-lock-infix-extension-node-face)
+
+(defface tuareg-font-lock-extension-node-face
+  (if tuareg-faces-inherit-p
+      '((t :inherit tuareg-font-lock-infix-extension-node-face
+           :background "gray92"))
+    '((((background light)) (:foreground "Orchid" :background "gray92"))
+      (((background dark)) (:foreground "LightSteelBlue" :background "gray92"))
       (t (:foreground "LightSteelBlue"))))
   "Face description for OCaml extension nodes."
   :group 'tuareg-faces)
@@ -607,6 +605,16 @@ do not perturb in essential ways the alignment are used.  See
             ("->" . ,(make-char 'symbol 174))
             (":=" . ,(make-char 'symbol 220))))))
 
+(defun tuareg--prettify-symbols-compose-p (start end _match)
+  "Return true iff the symbol MATCH should be composed.
+See `prettify-symbols-compose-predicate'."
+  ;; Refine `prettify-symbols-default-compose-p' so as not to compose
+  ;; symbols for errors,...
+  (and (prettify-symbols-default-compose-p start end _match)
+       (not (memq (get-text-property start 'face)
+                  '(tuareg-font-lock-error-face
+                    tuareg-font-lock-interactive-output-face
+                    tuareg-font-lock-interactive-error-face)))))
 
 (defun tuareg-font-lock-compose-symbol (alist)
   "Compose a sequence of ascii chars into a symbol.
@@ -618,8 +626,12 @@ Regexp match data 0 points to the chars."
     (if (or (eq (char-syntax (or (char-before mbegin) ?\ )) syntax)
             (eq (char-syntax (or (char-after mend) ?\ )) syntax)
             (memq (get-text-property mbegin 'face)
-                  '(tuareg-doc-face font-lock-string-face
-                    font-lock-comment-face)))
+                  '(tuareg-doc-face
+                    font-lock-string-face
+                    font-lock-comment-face
+                    tuareg-font-lock-error-face
+                    tuareg-font-lock-interactive-output-face
+                    tuareg-font-lock-interactive-error-face)))
         ;; No composition for you. Let's actually remove any composition
         ;;   we may have added earlier and which is now incorrect.
         (remove-text-properties mbegin mend '(composition))
@@ -839,17 +851,22 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
+     (,(concat "^# +\\(#" lid "\\)")
+      1 tuareg-font-lock-interactive-directive-face)
+     (,(concat "^# +#show\\(?:_module\\)? +\\(" uid "\\)")
+      1 tuareg-font-lock-module-face)
      (";;+" 0 tuareg-font-double-colon-face)
      ;; Attributes (`keep' to highlight except strings & chars)
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
       0 tuareg-font-lock-attribute-face keep)
-     ;; Extension nodes
-     (,(concat "\\[%%?" attr-id balanced-brackets "\\]")
-      0 tuareg-font-lock-extension-node-face keep)
+     ;; Extension nodes.
+     (,(concat "\\(\\[%%?" attr-id "\\)" balanced-brackets "\\(\\]\\)")
+      (1 tuareg-font-lock-extension-node-face)
+      (2 tuareg-font-lock-extension-node-face))
      (,(concat "\\(?:\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
 					"fun" "function" "match"))
 	       "\\|;\\)\\(" maybe-infix-attr "\\)")
-      1 tuareg-font-lock-extension-node-face)
+      1 tuareg-font-lock-infix-extension-node-face)
      ;; cppo
      (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
 				    "else" "elif" "endif" "include"
@@ -866,7 +883,7 @@ Regexp match data 0 points to the chars."
      (,(concat "( *\\(type\\) +\\(" lid " *\\)+)")
       (1 font-lock-keyword-face)
       (2 font-lock-type-face))
-     (":[\n]? *\\(type\\)"
+     (":[\n]? *\\(\\<type\\>\\)"
       (1 font-lock-keyword-face))
      ;; First class modules.  In these contexts, "val" and "module"
      ;; are not considered as "governing" (main structure of the code).
@@ -880,7 +897,9 @@ Regexp match data 0 points to the chars."
       (1 font-lock-keyword-face)
       (2 tuareg-font-lock-module-face)
       (3 tuareg-font-lock-module-face))
-     ("let +exception" . tuareg-font-lock-governing-face)
+     ("\\<let +exception\\>" . tuareg-font-lock-governing-face)
+     (,(concat "\\<let +exception +\\(" uid "\\)")
+      1 tuareg-font-lock-constructor-face)
      (,(regexp-opt '("module" "include" "sig" "struct" "functor"
                      "type" "constraint" "class" "in" "inherit"
                      "method" "external" "val" "open"
@@ -938,6 +957,8 @@ Regexp match data 0 points to the chars."
      (,(concat "\\(?:->\\|:[^:>=]\\)" tuareg--whitespace-re
                "\\(" lid "\\)[ \t]*:[^:>=]")
       1 tuareg-font-lock-label-face keep)
+     ;; Polymorphic variants (take precedence on builtin names)
+     (,(concat "`" id) . tuareg-font-lock-constructor-face)
      (,(concat "\\<open\\(! +\\|\\> *\\)\\(" module-path "\\)?")
       (1 tuareg-font-lock-governing-face)
       (2 tuareg-font-lock-module-face keep t))
@@ -951,6 +972,9 @@ Regexp match data 0 points to the chars."
       . font-lock-builtin-face)
      ;; module paths A.B.
      (,(concat module-path "\\.") . tuareg-font-lock-module-face)
+     ,@(and tuareg-support-metaocaml
+            '(("[^-@^!*=<>&/%+~?#]\\(\\(?:\\.<\\|\\.~\\|!\\.\\|>\\.\\)+\\)"
+               1 tuareg-font-lock-multistage-face)))
      (,(concat
          "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
          (regexp-opt
@@ -972,7 +996,8 @@ Regexp match data 0 points to the chars."
      (,(concat "(" lid " *:\\(['_A-Za-z]" balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
-     (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
+     (,(concat "\\<exception +\\(" uid "\\)")
+      1 tuareg-font-lock-constructor-face)
      (,(concat "\\<module" maybe-infix-attr+ext
 	       "\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
@@ -1005,7 +1030,6 @@ Regexp match data 0 points to the chars."
                "\\(" typedef "\\)")
       1 font-lock-type-face keep)
      ;; Constructors
-     (,(concat "`" id) . tuareg-font-lock-constructor-face)
      (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
      ;;; let-bindings
      (,(concat let-binding "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
@@ -1052,9 +1076,6 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<val" maybe-infix-attr+ext
 	       " +\\(" lid "\\)")
       1 font-lock-function-name-face)
-     ,@(and tuareg-support-metaocaml
-            '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
-               0 tuareg-font-lock-multistage-face nil nil)))
      ,@(and tuareg-font-lock-symbols
             (tuareg-font-lock-symbols-keywords)))))
   (setq font-lock-defaults
@@ -1075,10 +1096,6 @@ Regexp match data 0 points to the chars."
 
 (defvar tuareg-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "|" 'tuareg-electric-pipe)
-    (define-key map ")" 'tuareg-electric-rp)
-    (define-key map "}" 'tuareg-electric-rc)
-    (define-key map "]" 'tuareg-electric-rb)
     (define-key map "\M-q" 'tuareg-indent-phrase)
     (define-key map "\C-c\C-q" 'tuareg-indent-phrase)
     ;; Don't bother: it's the global default anyway.
@@ -1133,20 +1150,11 @@ Regexp match data 0 points to the chars."
     "method" "and" "initializer" "to" "downto" "do" "done" "else"
     "begin" "end" "let" "in" "then" "with"))
 
-(defvar tuareg-mode-abbrev-table ()
-  "Abbrev table used for Tuareg mode buffers.")
-
-(if tuareg-mode-abbrev-table ()
-  (define-abbrev-table 'tuareg-mode-abbrev-table
-    (mapcar (lambda (keyword)
-              `(,keyword ,keyword tuareg-abbrev-hook nil t))
-            tuareg-electric-indent-keywords)))
-
 (defun tuareg--electric-indent-predicate (char)
   "Check whether we should auto-indent.
 For use on `electric-indent-functions'."
   (save-excursion
-    (forward-char -1) ;; Go before the inserted char.
+    (tuareg-backward-char);; Go before the inserted char.
     (let ((syntax (char-syntax char)))
       (if (tuareg-in-indentation-p)
           (or (eq char ?|) (eq syntax ?\)))
@@ -1158,13 +1166,13 @@ For use on `electric-indent-functions'."
               (?\] (and (char-equal ?| (preceding-char))
                         (progn (tuareg-backward-char)
                                (tuareg-in-indentation-p)))))
-            (and tuareg-use-abbrev-mode  ;; Misnomer, eh?
+            (and tuareg-electric-indent
                  (not (eq syntax ?w))
                  (let ((end (point)))
                    (skip-syntax-backward "w_")
                    (member (buffer-substring (point) end)
                            tuareg-electric-indent-keywords))
-                                           (tuareg-in-indentation-p)))))))
+                 (tuareg-in-indentation-p)))))))
 
 (defun tuareg--electric-close-vector ()
   ;; Function for use on post-self-insert-hook.
@@ -1181,112 +1189,6 @@ For use on `electric-indent-functions'."
            (save-excursion
              (goto-char (1- (point)))
              (insert (car inners)))))))
-
-(defun tuareg-electric-pipe ()
-  "If inserting a | operator at beginning of line, reindent the line."
-  (interactive "*")
-  (let ((electric (and tuareg-electric-indent
-                       (not (and (boundp 'electric-indent-mode)
-                                 electric-indent-mode))
-                       (tuareg-in-indentation-p)
-                       (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (and electric
-         (not (and (char-equal ?| (preceding-char))
-                   (fboundp 'tuareg-find-pipe-match)
-                   (fboundp 'tuareg-give-match-pipe-kwop-regexp)
-                   (save-excursion
-                     (tuareg-backward-char)
-                     (tuareg-find-pipe-match)
-                     (not (looking-at (tuareg-give-match-pipe-kwop-regexp))))))
-         (indent-according-to-mode))))
-
-(defun tuareg-electric-rp ()
-  "If inserting a ) operator or a comment-end at beginning of line,
-reindent the line."
-  (interactive "*")
-  (let ((electric (and tuareg-electric-indent
-                       (not (and (boundp 'electric-indent-mode)
-                                 electric-indent-mode))
-                       (if (tuareg-in-indentation-p)
-                           (not (tuareg-in-literal-or-comment-p))
-                         (and (looking-back "^[ \t]*\\*"
-                                            (line-beginning-position))
-                              (nth 4 (syntax-ppss)))))))
-    (self-insert-command 1)
-    (and electric
-         (indent-according-to-mode))))
-
-(defun tuareg-electric-rc ()
-  "If inserting a } operator at beginning of line, reindent the line.
-
-Reindent also if } is inserted after a > operator at beginning of line.
-Also, if the matching { is followed by a < and this } is not preceded
-by >, insert one >."
-  (interactive "*")
-  (let* ((prec (preceding-char))
-         (look-bra (and tuareg-electric-close-vector
-                        (not (boundp 'post-self-insert-hook))
-                        (not (tuareg-in-literal-or-comment-p))
-                        (not (char-equal ?> prec))))
-         (electric (and tuareg-electric-indent
-                        (not (and (boundp 'electric-indent-mode)
-                                  electric-indent-mode))
-                        (or (tuareg-in-indentation-p)
-                            (and (char-equal ?> prec)
-                                 (save-excursion (tuareg-backward-char)
-                                                 (tuareg-in-indentation-p))))
-                        (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (when look-bra
-      (save-excursion
-        (let ((inserted-char
-               (save-excursion
-                 (tuareg-backward-char)
-                 (tuareg-backward-up-list)
-                 (cond ((looking-at-p "{<") ">")
-                       (t "")))))
-          (tuareg-backward-char)
-          (insert inserted-char))))
-    (when electric (indent-according-to-mode))))
-
-(defun tuareg-electric-rb ()
-  "If inserting a ] operator at beginning of line, reindent the line.
-
-Reindent also if ] is inserted after a | operator at beginning of line.
-Also, if the matching [ is followed by a | and this ] is not preceded
-by |, insert one |."
-  (interactive "*")
-  (let* ((prec (preceding-char))
-         (look-pipe-or-bra (and tuareg-electric-close-vector
-                                (not (boundp 'post-self-insert-hook))
-                                (not (tuareg-in-literal-or-comment-p))
-                                (not (and (char-equal ?| prec)
-                                          (not (char-equal
-                                                (save-excursion
-                                                  (tuareg-backward-char)
-                                                  (preceding-char))
-                                                ?\[))))))
-         (electric (and tuareg-electric-indent
-                        (not (and (boundp 'electric-indent-mode)
-                                  electric-indent-mode))
-                        (or (tuareg-in-indentation-p)
-                            (and (char-equal ?| prec)
-                                 (save-excursion (tuareg-backward-char)
-                                                 (tuareg-in-indentation-p))))
-                        (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (when look-pipe-or-bra
-      (save-excursion
-        (let ((inserted-char
-               (save-excursion
-                 (tuareg-backward-char)
-                 (tuareg-backward-up-list)
-                 (cond ((looking-at-p "\\[|") "|")
-                       (t "")))))
-          (tuareg-backward-char)
-          (insert inserted-char))))
-    (when electric (indent-according-to-mode))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;				 SMIE
@@ -2276,6 +2178,7 @@ positions delimiting the string (including its delimiters)."
 (defun tuareg--fill-string ()
   "Assume the point is inside a string delimited by \" and jusfify it.
 This function moves the point."
+  ;; FIXME: be more subtle: detect lists and @param
   (let* ((start-end (tuareg--string-boundaries))
          (start (set-marker (make-marker) (car start-end)))
          (end   (set-marker (make-marker) (cdr start-end)))
@@ -2336,7 +2239,7 @@ or indent all lines in the current phrase."
   (save-excursion
     (let ((ppss (syntax-ppss)))
       (cond
-       ((equal ?\"(nth 3 ppss))
+       ((equal ?\" (nth 3 ppss))
         (tuareg--fill-string))
        ((nth 4 ppss)
         (tuareg--fill-comment))
@@ -2401,7 +2304,7 @@ or indent all lines in the current phrase."
             (tuareg-comment-or-uncomment-region (line-beginning-position)
                                                 (line-end-position) arg)))))))
 
-(define-key tuareg-mode-map "\M-;" 'tuareg-comment-dwim)
+(define-key tuareg-mode-map [?\C-c ?\C-\;] 'tuareg-comment-dwim)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
@@ -2471,7 +2374,6 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
         (smie-indent-forward-token))))
 
 (defun tuareg--common-mode-setup ()
-  (setq local-abbrev-table tuareg-mode-abbrev-table)
   (when (fboundp 'tuareg-syntax-propertize)
     (setq-local syntax-propertize-function #'tuareg-syntax-propertize))
   (setq-local parse-sexp-ignore-comments t)
@@ -2488,11 +2390,13 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function 'tuareg-current-fun-name)
-  (setq-local prettify-symbols-alist
-              (if tuareg-prettify-symbols-full
-                  (append tuareg-prettify-symbols-basic-alist
-                          tuareg-prettify-symbols-extra-alist)
-                tuareg-prettify-symbols-basic-alist))
+  (setq prettify-symbols-alist
+        (if tuareg-prettify-symbols-full
+            (append tuareg-prettify-symbols-basic-alist
+                    tuareg-prettify-symbols-extra-alist)
+          tuareg-prettify-symbols-basic-alist))
+  (setq prettify-symbols-compose-predicate
+        #'tuareg--prettify-symbols-compose-p)
   (tuareg-install-font-lock)
   (setq-local open-paren-in-column-0-is-defun-start nil)
 
@@ -2581,10 +2485,6 @@ Short cuts for interactions with the REPL:
 
     (if (functionp 'tuareg-imenu-create-index)
         (setq-local imenu-create-index-function #'tuareg-imenu-create-index))
-
-    (when (and tuareg-use-abbrev-mode
-	       (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
-      (abbrev-mode 1))
     (run-mode-hooks 'tuareg-load-hook)))
 
 (defconst tuareg-starters-syms
@@ -2906,19 +2806,21 @@ switch is not installed, `nil' is returned."
       (message "Switch %s does not exist (or opam not found)" switch))))
 
 
+;; OPAM compilation
+(defun tuareg--compile-opam (&rest r)
+  "Advice to update the OPAM environment to sync it with the OPAM
+switch before compiling."
+  (let* ((env (tuareg-opam-config-env)))
+    (when env
+      (setq-local compilation-environment
+                  (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
+                          (tuareg-opam-config-env))))))
+
 (when (and tuareg-opam-insinuate tuareg-opam)
   (setq tuareg-interactive-program
         (concat tuareg-opam " config exec -- ocaml"))
 
-  ;; OPAM compilation — one must update to the current compiler
-  ;; before launching the compilation.
-  (defadvice compile (before tuareg-compile-opam activate)
-      "Run opam to update environment variables."
-      (let* ((env (tuareg-opam-config-env)))
-	(when env
-	  (setq-local compilation-environment
-	       (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
-		       (tuareg-opam-config-env))))))
+  (advice-add 'compile :before #'tuareg--compile-opam)
 
   (defvar merlin-command)               ;Silence byte-compiler.
   (setq merlin-command 'opam)
@@ -2934,15 +2836,11 @@ switch is not installed, `nil' is returned."
 
 (defvar tuareg-interactive-mode-map
   (let ((map (copy-keymap comint-mode-map)))
-    (define-key map "|" 'tuareg-electric-pipe)
-    (define-key map ")" 'tuareg-electric-rp)
-    (define-key map "}" 'tuareg-electric-rc)
-    (define-key map "]" 'tuareg-electric-rb)
     (define-key map "\C-c\C-i" 'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-repl)
     (define-key map "\C-c?" 'tuareg-interactive-next-error-repl)
-    (define-key map [return] 'tuareg-interactive-send-input)
+    (define-key map "\C-m" 'tuareg-interactive-send-input)
     (define-key map [(shift return)]
       'tuareg-interactive-send-input-end-of-phrase)
     (define-key map [(ctrl return)]
@@ -3295,14 +3193,6 @@ Short cuts for interaction within the REPL:
   (interactive)
   (describe-function 'tuareg-interactive-mode))
 
-(defvar tuareg-definitions-menu (list ["Scan..." tuareg-list-definitions t])
-  "Initial content of the definitions menu.")
-(make-variable-buffer-local 'tuareg-definitions-menu)
-
-(defvar tuareg-definitions-menu-last-buffer nil)
-
-(defvar tuareg-definitions-keymaps nil)
-
 (defun tuareg-build-menu ()
   (easy-menu-define
    tuareg-mode-menu (list tuareg-mode-map)
@@ -3332,8 +3222,6 @@ Short cuts for interaction within the REPL:
      ["Compile..." compile t]
      ["Reference Manual..." tuareg-browse-manual t]
      ["OCaml Library..." tuareg-browse-library t]
-     ("Definitions"
-      ["Scan..." tuareg-list-definitions t])
      "---"
      [ "Show type at point" caml-types-show-type
        tuareg-with-caml-mode-p]
@@ -3363,17 +3251,9 @@ Short cuts for interaction within the REPL:
   (easy-menu-add tuareg-mode-menu)
   (tuareg-update-options-menu))
 
-(defun tuareg-update-definitions-menu ()
-  (when (eq major-mode 'tuareg-mode)
-    (easy-menu-change
-     '("Tuareg") "Definitions"
-     tuareg-definitions-menu)))
-
 (defun tuareg-toggle-option (symbol)
   (interactive)
   (set symbol (not (symbol-value symbol)))
-  (when (eq 'tuareg-use-abbrev-mode symbol)
-    (abbrev-mode tuareg-use-abbrev-mode)) ; toggle abbrev minor mode
   (tuareg-update-options-menu))
 
 (defun tuareg-update-options-menu ()
@@ -3386,7 +3266,8 @@ Short cuts for interaction within the REPL:
                          ':style 'toggle
                          ':selected (nth 1 (cdr pair))
                          ':active t)
-               pair)) tuareg-options-list))
+               pair))
+           tuareg-options-list))
   (easy-menu-change
    '("Tuareg") "Tuareg Interactive Options"
    (mapcar (lambda (pair)
@@ -3396,7 +3277,8 @@ Short cuts for interaction within the REPL:
                          ':style 'toggle
                          ':selected (nth 1 (cdr pair))
                          ':active t)
-               pair)) tuareg-interactive-options-list)))
+               pair))
+           tuareg-interactive-options-list)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Browse Manual
@@ -3490,7 +3372,8 @@ Short cuts for interaction within the REPL:
 ;;                      Related files & modes
 
 (eval-when-compile
-  (autoload 'speedbar-add-supported-extension "speedbar"))
+  (autoload 'speedbar-add-supported-extension "speedbar")
+  (defvar speedbar-obj-alist))
 
 (when (require 'speedbar nil t)
   (speedbar-add-supported-extension
