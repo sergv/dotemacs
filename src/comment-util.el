@@ -172,8 +172,8 @@ Contains single-line and region comments.")
 or down if LINES is negative or comment whole region if region is active."
   (interactive "p")
   (if (region-active-p)
-      (let ((bounds (get-region-bounds)))
-        (comment-util-comment-region (first bounds) (second bounds)))
+      (destructuring-bind (start . end) (get-region-bounds)
+        (comment-util-comment-region start end))
     (comment-util-comment-next-n-lines lines)))
 
 ;;;###autoload
