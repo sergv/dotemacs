@@ -739,7 +739,8 @@ end of END-LINE in current buffer."
   (append
    '(".annot"
      ".cmi" ".cmxa" ".cma" ".cmx" ".cmo"
-     ".o" ".hi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o"
+     ".o" ".hi" ".chi" ".p_o" ".p_hi" ".prof_o" ".prof_hi" ".dyn_o" ".dyn_hi"
+     ".mix" ".tix"
      "~" ".bin" ".out" ".lbin" ".a" ".elc" ".glo" ".idx" ".lot"
      ".fasl" ".lo" ".la" ".gmo" ".mo"
      ".bbl" ".toc" ".aux" ".cp" ".fn" ".ky" ".pg" ".tp" ".vr" ".cps"
@@ -756,11 +757,11 @@ end of END-LINE in current buffer."
   "List of directory names used by version-control systems.")
 
 (defconst +ignored-directories+
-  (append +version-control-directories+ (list "node_modules"))
+  (append +version-control-directories+ (list "dist" "node_modules" ".HTF"))
   "List of directory names to generally ignore.")
 
 (defconst +ignored-directory-prefixes+
-  '(".cabal-sandbox" ".stack-work" "dist")
+  '(".cabal-sandbox" ".stack-work" "dist-")
   "List of directory names to generally ignore as a prefixes.")
 
 (setf completion-ignored-extensions
