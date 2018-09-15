@@ -562,7 +562,7 @@ of code may be called more than once."
        (defun ,func ()
          (interactive "*")
          (when (region-active-p)
-           (multiple-value-bind (start end) (get-region-bounds)
+           (destructuring-bind (start . end) (get-region-bounds)
              (,indent-region-func start end)))))))
 
 (defmacro save-current-line (&rest body)
