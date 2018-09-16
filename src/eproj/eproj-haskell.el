@@ -12,12 +12,8 @@
 (require 'eproj-tag-index)
 (require 'haskell-watch)
 
-(defparameter *fast-tags-exec* (executable-find "fast-tags"))
-
 ;;;###autoload
 (defun eproj/create-haskell-tags (proj project-files-thunk parse-tags-proc)
-  (unless *fast-tags-exec*
-    (error "Cannot load haskell project, fast-tags executable not found (and no tag-file specified)"))
   (with-temp-buffer
     (with-disabled-undo
      (with-inhibited-modification-hooks
@@ -31,16 +27,19 @@
               (when (string-match-p ext-re file)
                 (insert file "\n")))
             (unless (= 0
-                       (call-process-region (point-min)
-                                            (point-max)
-                                            *fast-tags-exec*
-                                            nil
-                                            ;; Discard error output from fast-tags
-                                            (list out-buffer nil)
-                                            nil
-                                            "-o-"
-                                            "--nomerge"
-                                            "-"))
+                       (call-process-region
+                        (point-min)
+                        (point-max)
+                        (or (cached-executable-find "fast-tags")
+                            (unless *fast-tags-exec*
+                              "Cannot load haskell project, fast-tags executable not found (and no tag-file specified)"))
+                        nil
+                        ;; Discard error output from fast-tags
+                        (list out-buffer nil)
+                        nil
+                        "-o-"
+                        "--nomerge"
+                        "-"))
               (error "fast-tags invokation failed: %s"
                      (with-current-buffer out-buffer
                        (buffer-substring-no-properties (point-min) (point-max)))))
