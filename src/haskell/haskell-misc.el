@@ -384,7 +384,7 @@ in haskell compilation buffer.")
   ;; make this list from documentation, e.g.
   ;; http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
   ;; command: '<,'>s/^-X\([^\t]+\)\t\([^\t]+\)\t[^\t]+\t-\(?:X\(.*\)\)?/("\1" "\2" "\3")/
-  (when-let (ghc-exec (executable-find "ghc"))
+  (when-let (ghc-exec (cached-executable-find "ghc"))
     (with-temp-buffer
       (call-process ghc-exec
                     nil
