@@ -86,7 +86,10 @@
                          t t command))))))))
 
      (el-patch-defun grep-read-files (regexp)
-       "Read files arg for interactive grep."
+       "Read a file-name pattern arg for interactive grep.
+The pattern can include shell wildcards.  As whitespace triggers
+completion when entering a pattern, including it requires
+quoting, e.g. `\\[quoted-insert]<space>'."
        (let* ((bn (or (buffer-file-name)
                       (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name))))
               (fn (and bn
@@ -119,7 +122,7 @@
                     (car (car grep-files-aliases))))
               (files (completing-read
                       (concat "Search for \"" regexp
-                              "\" in files"
+                              "\" in files matching wildcard"
                               (if default (concat " (default " default ")"))
                               ": ")
                       (el-patch-swap
