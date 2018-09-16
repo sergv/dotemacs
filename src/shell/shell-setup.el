@@ -93,6 +93,7 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
  (setf dirtrack-directory-function
        (make-dirtrack-windows-msys-directory-function dirtrack-directory-function)))
 
+;;;###autoload
 (add-to-list
  'hs-special-modes-alist
  (list 'shell-mode
@@ -106,6 +107,30 @@ MSYS-style drives, e.g. \"/c/foo/bar.txt\" -> \"c:/foo/bar.txt\"."
        nil
        ;; adjust beg function
        nil))
+
+(let ((st shell-mode-syntax-table))
+  (modify-syntax-entry ?\" ".   " st)
+  (modify-syntax-entry ?\\ ".   " st)
+  ;; We add `p' so that M-c on 'hello' leads to 'Hello' rather than 'hello'.
+  (modify-syntax-entry ?' "w p" st)
+  ;; UAX #29 says HEBREW PUNCTUATION GERESH behaves like a letter
+  ;; for the purposes of finding word boundaries.
+  (modify-syntax-entry #x5f3 "w   ") ; GERESH
+  ;; UAX #29 says HEBREW PUNCTUATION GERSHAYIM should not be a word
+  ;; boundary when surrounded by letters.  Our infrastructure for
+  ;; finding a word boundary doesn't support 3-character
+  ;; definitions, so for now simply make this a word-constituent
+  ;; character.  This leaves a problem of having GERSHAYIM at the
+  ;; beginning or end of a word, where it should be a boundary;
+  ;; FIXME.
+  (modify-syntax-entry #x5f4 "w   ") ; GERSHAYIM
+  ;; These all should not be a word boundary when between letters,
+  ;; according to UAX #29, so they again are prone to the same
+  ;; problem as GERSHAYIM; FIXME.
+  (modify-syntax-entry #xb7 "w   ")	; MIDDLE DOT
+  (modify-syntax-entry #x2027 "w   ")	; HYPHENATION POINT
+  (modify-syntax-entry #xff1a "w   ")	; FULLWIDTH COLON
+  )
 
 ;;;###autoload
 (defun shell-setup ()
