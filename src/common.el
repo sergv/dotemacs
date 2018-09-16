@@ -1806,6 +1806,11 @@ are CHAR1 and CHAR2 repsectively."
   (interactive)
   (scroll-up 500))
 
+;;
+
+(defun-caching cached-executable-find (exe) cached-executable-find--reset-cache exe
+  (executable-find exe))
+
 ;; Heavy autoloads
 
 (autoload 'insert-info-template "common-heavy")
