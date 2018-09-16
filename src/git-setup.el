@@ -30,8 +30,8 @@
 PROMPT is a format string, where either the current branch name
 or \"detached head\" will be substituted for %s."
   ((el-patch-swap
-            magit-read-branch-or-commit
-            magit-read-branch-or-commit-prompt-for-previous-commit-first)
+     magit-read-branch-or-commit
+     magit-read-branch-or-commit-prompt-for-previous-commit-first)
    (format prompt (or (magit-get-current-branch) "detached head"))))
 
 (defun magit-read-branch-or-commit-prompt-for-previous-commit-first (prompt &optional secondary-default)
@@ -39,6 +39,50 @@ or \"detached head\" will be substituted for %s."
                              nil nil nil 'magit-revision-history
                              nil)
       (user-error "Nothing selected")))
+
+(el-patch-defun magit-rebase-interactive-assert (since &optional delay-edit-confirm)
+  (el-patch-swap
+    (let* ((commit (if (string-suffix-p "^" since)
+                       ;; If SINCE is "REV^", then the user selected
+                       ;; "REV", which is the first commit that will
+                       ;; be replaced. (from^..to] <=> [from..to].
+                       (substring since 0 -1)
+                     ;; The "--root" argument is being used.
+                     since))
+           (branches (magit-list-publishing-branches commit)))
+      (setq magit--rebase-public-edit-confirmed
+            (delete (magit-toplevel) magit--rebase-public-edit-confirmed))
+      (when (and branches
+                 (or (not delay-edit-confirm)
+                     ;; The user might have stopped at a published commit
+                     ;; merely to add new commits *after* it.  Try not to
+                     ;; ask users whether they really want to edit public
+                     ;; commits, when they don't actually intend to do so.
+                     (not (--all-p (magit-rev-equal it commit) branches))))
+        (let ((m1 "Some of these commits have already been published to ")
+              (m2 ".\nDo you really want to modify them"))
+          (magit-confirm (or magit--rebase-published-symbol 'rebase-published)
+            (concat m1 "%s" m2)
+            (concat m1 "%i public branches" m2)))
+        (push (magit-toplevel) magit--rebase-public-edit-confirmed)))
+    nil)
+  (if (magit-git-lines "rev-list" "--merges" (concat since "..HEAD"))
+      (magit-read-char-case "Proceed despite merge in rebase range?  " nil
+        (?c "[c]ontinue" since)
+        (?s "[s]elect other" nil)
+        (?a "[a]bort" (user-error "Quit")))
+    since))
+
+(el-patch-defun magit-commit-amend-assert (&optional commit)
+  (el-patch-swap
+    (--when-let (magit-list-publishing-branches commit)
+      (let ((m1 "This commit has already been published to ")
+            (m2 ".\nDo you really want to modify it"))
+        (magit-confirm 'amend-published
+          (concat m1 "%s" m2)
+          (concat m1 "%i public branches" m2)
+          nil it)))
+    t))
 
 ;;; Speed up magit with some caching
 
