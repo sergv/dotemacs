@@ -8,6 +8,7 @@
 
 ;;;; ctags facility
 
+(require 'common)
 (require 'eproj-tag-index)
 
 (eval-when-compile (require 'subr-x))
@@ -18,8 +19,8 @@
         (when (and ctags-exec
                    (file-exists-p ctags-exec))
           ctags-exec))
-      (executable-find "ctags-exuberant")
-      (executable-find "exuberant-ctags")))
+      (cached-executable-find "ctags-exuberant")
+      (cached-executable-find "exuberant-ctags")))
 
 (defparameter *ctags-language-flags*
   '((c-mode
