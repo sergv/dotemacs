@@ -185,7 +185,9 @@ NB does not expect to cache values of ARGS that are nil."
 depending of value of MK-CACHE-KEY, which should be an expression
 that returnsn a value to use as a caching key.
 
-NB does not expect to cache values of ARGS that are nil."
+NB does not expect to cache values of ARGS that are nil. Also will recompute
+BODY if it returns nil."
+  (declare (indent 4))
   (cl-assert (symbol? func))
   (cl-assert (symbol? reset-cache-func))
   (let ((cache-var (gentemp "cache"))

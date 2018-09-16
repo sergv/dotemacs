@@ -6,8 +6,7 @@
 ;; Created:  2 May 2017
 ;; Description:
 
-(defparameter haskell-format-brittany-executable
-  (executable-find "brittany"))
+(require 'common)
 
 ;;;###autoload
 (defun haskell-format-pp-region-with-brittany (width)
@@ -44,8 +43,7 @@
                     "{-#"
                     whitespace
                     "LANGUAGE"
-                    (group
-                     (regexp "\\(?:.\\|[\r\n]\\)*?"))
+                    (group (regexp "\\(?:.\\|[\r\n]\\)*?"))
                     whitespace
                     "#-}")
                   module-header-position ;; bound
@@ -75,7 +73,7 @@
     (call-process-region
      start
      end
-     haskell-format-brittany-executable
+     (cached-executable-find "brittany")
      t ;; delete
      t ;; insert into current buffer before point
      t ;; display

@@ -110,7 +110,7 @@ enabled. Otherwise fall back to eproj tags."
   (let* ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
          (flycheck-enabled? (not non-vanilla-haskell-mode?))
          (intero-enabled?
-          (if (executable-find "intero")
+          (if (cached-executable-find "intero")
               t
             (prog1 nil
               (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))))
