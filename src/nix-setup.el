@@ -11,12 +11,18 @@
 (require 'nix-company)
 (require 'nix-shebang)
 
+(awhen (getenv "EMACS_NIX_STORE_DIR")
+  (setf nix-store-dir it))
+
+(awhen (getenv "EMACS_NIX_STATE_DIR")
+  (setf nix-state-dir it))
+
 ;;;###autoload
 (global-nix-prettify-mode +1)
 
 ;;;###autoload
 (defun nix-setup ()
-  (init-common :use-comment t :use-fci t :use-whitespace t)
+  (init-common :use-whitespace t)
   (fontify-conflict-markers!)
 
   (company-mode +1)
