@@ -727,6 +727,63 @@
     "  | x `elem` xs ||_|_= xs"
     "  | otherwise   = []")))
 
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+   (tests-utils--multiline
+    "{-# LANGUAGE MagicHash #-}"
+    "foo x xs = foo_|_ +# bar"
+    "")
+   (tests-utils--multiline
+    "{-# LANGUAGE MagicHash #-}"
+    "foo x xs = foo#_|_ +# bar"
+    "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo _|_ +# bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo#_|_ +# bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-3 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo# _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--magic-hash-4 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators--insert-char-surrounding-with-spaces ?#))
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo #  _|_bar"
+     "")
+    (tests-utils--multiline
+     "{-# LANGUAGE MagicHash #-}"
+     "foo x xs = foo ## _|_bar"
+     "")))
+
+
 ;; (ert-deftest haskell-tests/shm/!-1 ()
 ;;   (haskell-tests--test-buffer-contents
 ;;       (shm/!)
