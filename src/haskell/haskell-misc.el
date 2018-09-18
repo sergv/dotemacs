@@ -843,6 +843,7 @@ uppercase or lowercase names)."
 
 (defun* install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen)
   (declare (indent 1))
+  (haskell-smart-operators-mode +1)
   (when bind-colon
     (define-key keymap
       (kbd ":")
