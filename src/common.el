@@ -910,7 +910,7 @@ if there's no region."
     (error "Region not active")))
 
 (defun get-region-bounds ()
-  "Return pair of region bounds, (begin end), depending
+  "Return pair of region bounds, (begin . end), depending
 on currently active vim highlight mode."
   (declare (pure nil) (side-effect-free t))
   (unless (region-active-p)
