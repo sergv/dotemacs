@@ -12,13 +12,14 @@
 (defun haskell-format-pp-region-with-brittany (width)
   "Format selected region using brittany haskell formatter."
   (interactive "p")
-  (haskell-format--format-with-brittany
-   haskell-indent-offset
-   (if (< 1 width)
-       width
-     120)
-   (region-beginning)
-   (region-end)))
+  (destructuring-bind (start . end) (get-region-bounds)
+    (haskell-format--format-with-brittany
+     haskell-indent-offset
+     (if (< 1 width)
+         width
+       120)
+     start
+     end)))
 
 (defun haskell-format--get-language-extensions (buf &optional without-properties)
   "Get all LANGUAGE pragma extensions from buffer BUF as a list of strings."
