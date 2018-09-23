@@ -174,7 +174,8 @@ runtime but rather will be silently relied on)."
 ;;;###autoload
 (defun eproj/haskell-get-extra-navigation-files (proj)
   (when-let (watch-project
-             (haskell-watch-get-project (eproj-project/root proj)))
+             (ignore-errors
+               (haskell-watch-get-project (eproj-project/root proj))))
     (let ((res nil)
           (cabal-project
            (concat (eproj-project/root proj) "/cabal.project")))
