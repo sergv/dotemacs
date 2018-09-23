@@ -478,59 +478,60 @@ pattern and replace matches with REPLACEMENT.
                               (save-excursion
                                 (goto-line1 last-line)
                                 (line-end-position))))
-            (let ((nreplaced 0))
-              (if confirm
-                  (progn
-                    ;; this one is more difficult, we have to do the
-                    ;; highlighting and questioning on our own
-                    (overlay-put overlay 'face
-                                 (if (facep 'isearch) 'isearch 'region))
-                    (map-y-or-n-p (lambda (x)
-                                    (set-match-data x)
-                                    (move-overlay overlay (match-beginning 0) (match-end 0))
-                                    (concat "Query replacing "
-                                            (match-string 0)
-                                            " with "
-                                            (match-substitute-replacement replacement
-                                                                          case-fold-search)
-                                            ": "))
-                                  (lambda (x)
-                                    (set-match-data x)
-                                    (replace-match replacement case-fold-search)
-                                    (incf nreplaced)
-                                    (setq last-point (point)))
-                                  (lambda ()
-                                    (let ((end (save-excursion
-                                                 (goto-line1 last-line)
-                                                 (line-end-position))))
-                                      (goto-line1 next-line)
-                                      (beginning-of-line)
-                                      (when (and (> end (point))
-                                                 (re-search-forward regex end t nil))
-                                        (setq last-point (point))
-                                        (setq next-line (1+ (line-number-at-pos (point))))
-                                        (match-data))))))
+            (t
+             (let ((nreplaced 0))
+               (if confirm
+                   (progn
+                     ;; this one is more difficult, we have to do the
+                     ;; highlighting and questioning on our own
+                     (overlay-put overlay 'face
+                                  (if (facep 'isearch) 'isearch 'region))
+                     (map-y-or-n-p (lambda (x)
+                                     (set-match-data x)
+                                     (move-overlay overlay (match-beginning 0) (match-end 0))
+                                     (concat "Query replacing "
+                                             (match-string 0)
+                                             " with "
+                                             (match-substitute-replacement replacement
+                                                                           case-fold-search)
+                                             ": "))
+                                   (lambda (x)
+                                     (set-match-data x)
+                                     (replace-match replacement case-fold-search)
+                                     (incf nreplaced)
+                                     (setq last-point (point)))
+                                   (lambda ()
+                                     (let ((end (save-excursion
+                                                  (goto-line1 last-line)
+                                                  (line-end-position))))
+                                       (goto-line1 next-line)
+                                       (beginning-of-line)
+                                       (when (and (> end (point))
+                                                  (re-search-forward regex end t nil))
+                                         (setq last-point (point))
+                                         (setq next-line (1+ (line-number-at-pos (point))))
+                                         (match-data))))))
 
-                ;; just replace the first occurences per line
-                ;; without highlighting and asking
-                (progn
-                  (goto-line1 first-line)
-                  (beginning-of-line)
-                  (while (and (<= (line-number-at-pos (point)) last-line)
-                              (re-search-forward regex (save-excursion
-                                                         (goto-line1 last-line)
-                                                         (line-end-position))
-                                                 t nil))
-                    (incf nreplaced)
-                    (replace-match replacement)
-                    (setq last-point (point))
-                    (forward-line)
-                    (beginning-of-line))))
+                 ;; just replace the first occurences per line
+                 ;; without highlighting and asking
+                 (progn
+                   (goto-line1 first-line)
+                   (beginning-of-line)
+                   (while (and (<= (line-number-at-pos (point)) last-line)
+                               (re-search-forward regex (save-excursion
+                                                          (goto-line1 last-line)
+                                                          (line-end-position))
+                                                  t nil))
+                     (incf nreplaced)
+                     (replace-match replacement)
+                     (setq last-point (point))
+                     (forward-line)
+                     (beginning-of-line))))
 
-              (goto-char last-point)
-              (if (= nreplaced 1)
-                  (message "Replaced 1 occurence")
-                (message "Replaced %d occurences" nreplaced))))
+               (goto-char last-point)
+               (if (= nreplaced 1)
+                   (message "Replaced 1 occurence")
+                 (message "Replaced %d occurences" nreplaced)))))
 
         ;; clean-up the overlay
         (delete-overlay overlay)))))
