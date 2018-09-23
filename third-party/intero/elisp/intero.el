@@ -763,12 +763,19 @@ running context across :load/:reloads in Intero."
        'backend
        ":sleep 1"))))
 
+(defun intero--may-enable-for-buffer (buf)
+  (flycheck--locate-dominating-file-matching
+   (file-name-directory (buffer-file-name buf))
+   "\\(?:stack.*\\.yaml\\|package\\.yaml\\|.*\\.cabal\\)\\'"))
+
 (flycheck-define-generic-checker 'intero
   "A syntax and type checker for Haskell using an Intero worker
 process."
   :start 'intero-check
   :modes '(haskell-mode literate-haskell-mode)
-  :predicate (lambda () intero-mode)
+  :predicate
+  (lambda () (and intero-mode
+             (intero--may-enable-for-buffer (current-buffer))))
   :next-checkers '((warning . haskell-hlint))
   :working-directory #'flycheck-haskell--find-default-directory)
 
@@ -2574,6 +2581,8 @@ Uses the directory of the current buffer for context."
          (default-directory (if cabal-file
                                 (file-name-directory cabal-file)
                               root)))
+    (unless cabal-file
+      (error "Cannot run intero - no cabal file found"))
     (with-current-buffer
         (get-buffer-create buffer-name)
       (intero-inherit-local-variables initial-buffer)
