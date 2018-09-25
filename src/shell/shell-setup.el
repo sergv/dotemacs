@@ -13,6 +13,10 @@
 (require 'dirtrack)
 (require 'shell-script-abbrev+)
 
+(fold-platform-os-type
+ nil
+ (require 'shell))
+
 ;;;###autoload
 (unless (getenv "SHELL")
   (setenv "SHELL" shell-file-name))
