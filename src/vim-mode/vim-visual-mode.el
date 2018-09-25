@@ -582,7 +582,7 @@ This function is also responsible for setting the X-selection."
 
 (defun vim:append-block-copies ()
   "Called to repeat the last block-insert."
-  (remove-hook 'vim:normal-mode-on-hook 'vim:append-block-copies nil t)
+  (remove-hook 'vim:normal-mode-on-hook 'vim:append-block-copies t)
   (let ((begrow (vim:visual-insert-info-first-line vim:visual-last-insert-info))
         (endcol (vim:visual-insert-info-column vim:visual-last-insert-info))
         (endrow (vim:visual-insert-info-last-line vim:visual-last-insert-info)))
