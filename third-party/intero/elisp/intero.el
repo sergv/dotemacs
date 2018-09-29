@@ -3173,9 +3173,11 @@ suggestions are available."
   (with-current-buffer (intero-buffer 'backend)
     (or intero-extensions
         (setq intero-extensions
-              (cl-remove-if-not
-               (lambda (str) (let ((case-fold-search nil))
-                               (string-match "^[A-Z][A-Za-z0-9]+$" str)))
+              (cl-remove-if
+               (lambda (str)
+                 (let ((case-fold-search nil))
+                   (or (not (string-match-p "^[A-Z][A-Za-z0-9]+$" str))
+                       (string-match-p "^\\(?:No\\)?Rank2Types$" str))))
                (split-string
                 (shell-command-to-string
                  (concat intero-stack-executable
