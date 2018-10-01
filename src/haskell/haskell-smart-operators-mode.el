@@ -294,29 +294,42 @@ that next 2 characters are AFTER1 and AFTER2."
                         (skip-syntax-forward " ")
                         (point)))
          (real-before (char-before pt-before))
-         (real-after  (char-after pt-after)))
-    (list
-     pt-before
-     pt-after
-     (and real-before
-          real-after
-          (char-equal real-before before)
-          (char-equal real-after after)))))
+         (real-after  (char-after pt-after))
+         (is-before? (and real-before
+                          (char-equal real-before before)))
+         (is-after? (and real-after
+                         (char-equal real-after after))))
+    (list pt-before
+          pt-after
+          is-before?
+          is-after?
+          (and is-before?
+               is-after?))))
 
 ;;;###autoload
 (defun haskell-smart-operators-hyphen ()
   "Insert hyphen surrounding with spaces. No surrounding within
 strings or comments. Expand into {- _|_ -} if inside { *}."
   (interactive)
-  (destructuring-bind
-      (pt-before pt-after is-surrounded?)
-      (haskell-smart-operators--point-surrounded-by ?\{ ?\})
-    (if is-surrounded?
-        (progn
-          (delete-region pt-before pt-after)
-          (insert "-  -")
-          (forward-char -2))
-      (haskell-smart-operators--insert-char-surrounding-with-spaces ?-))))
+  (let ((pt (point)))
+    (destructuring-bind
+        (pt-before pt-after is-before? is-after? is-surrounded?)
+        (haskell-smart-operators--point-surrounded-by ?\{ ?\})
+      (cond
+        (is-surrounded?
+         (progn
+           (delete-region pt-before pt-after)
+           (insert "-  -")
+           (forward-char -2)))
+        (is-before?
+         (delete-region pt-before pt)
+         (insert "- "))
+        (is-after?
+         (delete-region pt pt-after)
+         (insert " -")
+         (forward-char -2))
+        (t
+         (haskell-smart-operators--insert-char-surrounding-with-spaces ?-))))))
 
 ;;;###autoload
 (defun haskell-smart-operators-comma ()
@@ -336,7 +349,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
       (pt-pragma-start pt-pragma-end is-surrounded-for-pragma?)
       (haskell-smart-operators--point-surrounded-by2 ?\{ ?- ?- ?\})
     (destructuring-bind
-        (pt-c2hs-start pt-c2hs-end is-surrounded-for-c2hs?)
+        (pt-c2hs-start pt-c2hs-end is-before? is-after? is-surrounded-for-c2hs?)
         (haskell-smart-operators--point-surrounded-by ?\{ ?\})
       (cond (is-surrounded-for-pragma?
              (delete-region pt-pragma-start pt-pragma-end)

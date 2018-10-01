@@ -950,11 +950,155 @@
 
 (ert-deftest haskell-tests/haskell-smart-operators--arrows-in-haddock-comment-1 ()
   (haskell-tests--test-buffer-contents
-      (progn
-        (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
-        (insert "test"))
-    "-- _|_"
-    "-- >test_|_"))
+   (progn
+     (haskell-smart-operators--insert-char-surrounding-with-spaces ?>)
+     (insert "test"))
+   (tests-utils--multiline
+    "-- _|_")
+   (tests-utils--multiline
+    "-- >test_|_")))
+
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--1 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen)
+     (insert "test"))
+   (tests-utils--multiline
+    ""
+    "foo x = do"
+    "  {_|_}bar x"
+    "")
+   (tests-utils--multiline
+    ""
+    "foo x = do"
+    "  {- test_|_ -}bar x"
+    "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--2 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen)
+     (insert "test"))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  { _|_}bar x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test_|_ -}bar x"
+   "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--3 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen)
+     (insert "test"))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {_|_ }bar x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test_|_ -}bar x"
+   "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--4 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen)
+     (insert "test"))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  { _|_ }bar x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test_|_ -}bar x"
+   "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--5 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen)
+     (insert "test"))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  { _|_ bar} x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test_|_ bar} x"
+   "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--6 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen)
+     (insert "test"))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {_|_ bar} x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test_|_ bar} x"
+   "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--7 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test bar_|_} x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test bar_|_ -} x"
+   "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--8 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test bar _|_} x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test bar _|_ -} x"
+   "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators-hyphen--9 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-smart-operators-hyphen))
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test bar  _|_} x"
+   "")
+   (tests-utils--multiline
+   ""
+   "foo x = do"
+   "  {- test bar  _|_ -} x"
+   "")))
 
 
 (ert-deftest haskell-tests/haskell-backspace-with-block-dedent-1 ()
