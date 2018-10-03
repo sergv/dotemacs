@@ -27,6 +27,8 @@
 
                 ("cabal\\.project\\(?:\\.local\\)?\\'" "insert-cabal-project")
 
+                ("LICENSE\\'" "insert.license-bsd-2")
+
                 ("\\.awk\\'"        "insert.awk")
                 ("\\.h\\'"          "insert.h")
                 ("\\.html?\\'"      "insert.html")
@@ -51,6 +53,8 @@
 
 (defparameter auto-insert-fields
   (list
+   (list "license type" (lambda ()
+                          "BSD-2"))
    (list "filename" (lambda ()
                       (file-name-nondirectory
                        buffer-file-name)))
