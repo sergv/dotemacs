@@ -20,6 +20,7 @@
 (require 'haskell-abbrev+)
 (require 'haskell-misc)
 (require 'haskell-outline)
+(require 'haskell-tags-server)
 (require 'intero)
 (require 'shell-setup)
 (require 'vim-intero-highlight-uses-mode)
@@ -99,11 +100,28 @@
   "Try to get symbol location via intero (`intero-goto-definition'), if it's
 enabled. Otherwise fall back to eproj tags."
   (interactive "P")
-  (or ;; (when (and intero-mode
-      ;;            (not use-regexp?))
-      ;;   (with-demoted-errors "intero-goto-definition failed: %s"
-      ;;     (intero-goto-definition)))
-      (eproj-symbnav/go-to-symbol-home use-regexp?)))
+  (haskell-tags-server-ensure-connected)
+  (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+    (when proj
+      (let* ((all-projects (eproj-get-all-related-projects proj))
+             (shallow-dirs nil)
+             (recursive-dirs (-map #'eproj-project/root all-projects))
+             (ignored-globs (-mapcat #'eproj-project/ignored-files-globs all-projects)))
+        ;; (haskell-tags-server-add-watched-dirs
+        ;;  shallow-dirs
+        ;;  recursive-dirs
+        ;;  ignored-globs)
+        (haskell-tags-server-add-watched-dirs
+         nil
+         (list (eproj-project/root proj))
+         nil)))
+    (haskell-tags-server-goto-definition use-regexp?)))
+  ;; (or ;; (when (and intero-mode
+  ;;  ;;            (not use-regexp?))
+  ;;  ;;   (with-demoted-errors "intero-goto-definition failed: %s"
+  ;;  ;;     (intero-goto-definition)))
+  ;;  (eproj-symbnav/go-to-symbol-home use-regexp?))
+
 
 ;;;###autoload
 (defun haskell-setup ()
@@ -300,7 +318,8 @@ enabled. Otherwise fall back to eproj tags."
     (setup-eproj-symbnav)
     ;; Override binding introduced by `setup-eproj-symbnav'.
     (def-keys-for-map vim:normal-mode-local-keymap
-      ("C-." haskell-go-to-symbol-home))
+      ("C-." haskell-go-to-symbol-home)
+      ("C-," haskell-tags-server-go-back))
 
     (setup-outline-headers :header-symbol "-"
                            :length-min 3)))
