@@ -2,7 +2,7 @@
 -- |
 -- Module      :  ${haskell path to module name}
 -- Copyright   :  (c) ${author} ${date year}
--- License     :  BSD3-style (see LICENSE)
+-- License     :  ${license type} (see LICENSE)
 -- Maintainer  :  ${email}
 ----------------------------------------------------------------------------
 
