@@ -407,17 +407,27 @@ then Bar would be the result."
               (make-abbrev+-abbreviation
                :trigger (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) suffix "$")
                :action-type 'literal-string
-               :action-data (concat "import " module-name " (" type-name ")\n"
+               :action-data (concat (if type-name
+                                        (concat "import " module-name " (" type-name ")\n")
+                                      "")
                                     "import qualified " module-name " as " alias)
                :predicate import-expand-pred))
-            '(("m"  "Data.Map.Strict"     "Map"          "M")
-              ("s"  "Data.Set"            "Set"          "S")
-              ("v"  "Data.Vector"         "Vector"       "V")
-              ("im" "Data.IntMap"         "IntMap"       "IM")
-              ("is" "Data.IntSet"         "IntSet"       "IS")
-              ("hm" "Data.HashMap.Strict" "HashMap"      "HM")
-              ("hs" "Data.HashSet"        "HashSet"      "HS")
-              ("ne" "Data.List.NonEmpty"  "NonEmpty(..)" "NE"))))))
+            '(("m"   "Data.Map.Strict"            "Map"          "M")
+              ("s"   "Data.Set"                   "Set"          "S")
+              ("v"   "Data.Vector"                "Vector"       "V")
+              ("im"  "Data.IntMap"                "IntMap"       "IM")
+              ("is"  "Data.IntSet"                "IntSet"       "IS")
+              ("hm"  "Data.HashMap.Strict"        "HashMap"      "HM")
+              ("hs"  "Data.HashSet"               "HashSet"      "HS")
+              ("ne"  "Data.List.NonEmpty"         "NonEmpty(..)" "NE")
+              ("l"   "Data.List"                  nil            "L")
+              ("dl"  "Data.DList"                 "DList"        "DL")
+              ("t"   "Data.Text"                  "Text"         "T")
+              ("tl"  "Data.Text.Lazy"             nil            "TL")
+              ("bs"  "Data.ByteString"            "ByteString"   "BS")
+              ("bsl" "Data.ByteString.Lazy"       nil            "BSL")
+              ("c8"  "Data.ByteString.Char8"      "ByteString"   "C8")
+              ("cl8" "Data.ByteString.Lazy.Char8" nil            "CL8"))))))
   (def-keys-for-map vim:insert-mode-local-keymap
     ("SPC" abbrev+-insert-space-or-expand-abbrev)))
 
