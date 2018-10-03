@@ -30,9 +30,7 @@
                        (call-process-region
                         (point-min)
                         (point-max)
-                        (or (cached-executable-find "fast-tags")
-                            (unless *fast-tags-exec*
-                              "Cannot load haskell project, fast-tags executable not found (and no tag-file specified)"))
+                        (cached-executable-find "fast-tags")
                         nil
                         ;; Discard error output from fast-tags
                         (list out-buffer nil)
