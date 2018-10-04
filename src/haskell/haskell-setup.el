@@ -107,14 +107,10 @@ enabled. Otherwise fall back to eproj tags."
              (shallow-dirs nil)
              (recursive-dirs (-map #'eproj-project/root all-projects))
              (ignored-globs (-mapcat #'eproj-project/ignored-files-globs all-projects)))
-        ;; (haskell-tags-server-add-watched-dirs
-        ;;  shallow-dirs
-        ;;  recursive-dirs
-        ;;  ignored-globs)
         (haskell-tags-server-add-watched-dirs
-         nil
-         (list (eproj-project/root proj))
-         nil)))
+         shallow-dirs
+         recursive-dirs
+         ignored-globs)))
     (haskell-tags-server-goto-definition use-regexp?)))
   ;; (or ;; (when (and intero-mode
   ;;  ;;            (not use-regexp?))
