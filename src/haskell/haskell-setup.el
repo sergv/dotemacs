@@ -96,10 +96,15 @@
   (ignore-errors
     (eproj-update-current-buffer-within-its-project!)))
 
-(defun haskell-go-to-symbol-home (&optional use-regexp?)
-  "Try to get symbol location via intero (`intero-goto-definition'), if it's
-enabled. Otherwise fall back to eproj tags."
+(defun haskell-go-to-local-symbol-home (&optional use-regexp?)
   (interactive "P")
+  (haskell-go-to-symbol-home t use-regexp?))
+
+(defun haskell-go-to-global-symbol-home (&optional use-regexp?)
+  (interactive "P")
+  (haskell-go-to-symbol-home nil use-regexp?))
+
+(defun haskell-go-to-symbol-home (is-local? use-regexp?)
   (haskell-tags-server-ensure-connected)
   (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
     (when proj
@@ -111,7 +116,7 @@ enabled. Otherwise fall back to eproj tags."
          shallow-dirs
          recursive-dirs
          ignored-globs)))
-    (haskell-tags-server-goto-definition use-regexp?)))
+    (haskell-tags-server-goto-definition is-local? use-regexp?)))
   ;; (or ;; (when (and intero-mode
   ;;  ;;            (not use-regexp?))
   ;;  ;;   (with-demoted-errors "intero-goto-definition failed: %s"
@@ -314,8 +319,11 @@ enabled. Otherwise fall back to eproj tags."
     (setup-eproj-symbnav)
     ;; Override binding introduced by `setup-eproj-symbnav'.
     (def-keys-for-map vim:normal-mode-local-keymap
-      ("C-." haskell-go-to-symbol-home)
-      ("C-," haskell-tags-server-go-back))
+      ("C-M-." eproj-symbnav/go-to-symbol-home)
+      ("C-M-," eproj-symbnav/go-back)
+      ("C-."   haskell-go-to-local-symbol-home)
+      ("C-,"   haskell-tags-server-go-back)
+      ("M-."   haskell-go-to-global-symbol-home))
 
     (setup-outline-headers :header-symbol "-"
                            :length-min 3)))
