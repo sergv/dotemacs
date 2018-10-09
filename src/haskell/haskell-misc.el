@@ -628,62 +628,44 @@ extensions as a list of strings. Leaves point at the end of pragma"
 
 ;;; define forward-haskell-symbol
 
-(defparameter haskell-symbol-re
-  (rx (or (group (+ ;; (regexp "[-!#$%&*+./<=>?@^|~:\\]")
-                  (any ?\- ?\! ?\# ?\$ ?\% ?\& ?\* ?\+ ?\. ?\/ ?\< ?\= ?\> ?\? ?\@ ?^ ?\| ?\~ ?\: ?\\ )))
-          (group
-           (seq ;; allow _ as a first char to fit GHC
-            (or (regexp "\\<[_a-z]")
-                ;; allow ' preceding conids because of DataKinds/PolyKinds
-                (regexp "'*[A-Z]")
-                (syntax word))
-            (group
-             (* (regexp "\\(?:['a-zA-Z_0-9#]\\|\\sw\\)")))))))
-
-  "Regexp to recognize haskell symbols as generic entities for search
-(with e.g. \"*\" in vim).")
-
-;;;###autoload
-(put 'haskell-symbol 'forward-op #'forward-haskell-symbol)
-
-(defparameter forward-haskell-symbol-syntax-table
+(defparameter haskell-symbol--identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
     (modify-syntax-entry ?#  "w" tbl)
     (modify-syntax-entry ?_  "w" tbl)
     (modify-syntax-entry ?\' "w" tbl)
+    (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
+    (modify-syntax-entry ?.  "_" tbl) ;; So that we match qualified names.
     tbl)
   "Special syntax table for haskell that allows to recognize symbols that contain
 both unicode and ascii characters.")
 
 ;;;###autoload
-(defun forward-haskell-symbol (arg)
-  "Like `forward-symbol' but for generic Haskell symbols (either operators,
-uppercase or lowercase names)."
-  (interactive "p")
-  (let (;; (name-chars "a-zA-Z0-9_#'")
+(defun bounds-of-haskell-symbol ()
+    (save-excursion
+    (save-match-data
+      (with-syntax-table haskell-symbol--identifier-syntax-table
+        (forward-char 1)
+        (let ((start nil)
+              (end nil)
+              (beginning-quotes "'"))
+          (if (zerop (skip-syntax-backward "w_"))
+              (progn
+                (skip-syntax-backward "._")
+                ;; To get qualified part
+                (skip-syntax-backward "w_")
+                (skip-chars-forward beginning-quotes))
+            (progn
+              (skip-chars-forward beginning-quotes)))
+          (setf start (point))
+          (when (looking-at (rx (+ (char upper) (* (char alnum ?_)) ".")))
+            (goto-char (match-end 0)))
+          (when (zerop (skip-syntax-forward "w_"))
+            (skip-syntax-forward "._"))
+          (setf end (point))
+          (cons start end))))))
 
-        ;; NB constructs like "''Foobar" we'd like to mach "Foobar"
-        ;; via `bounds-of-thing-at-point', not the "''Foobar".
-        (beginning-quotes "'")
-        (operator-chars "\\-!#$%&*+./<=>?@\\^|~:\\\\"))
-    (with-syntax-table forward-haskell-symbol-syntax-table
-      (if (natnump arg)
-          (re-search-forward haskell-symbol-re nil t arg)
-        (while (< arg 0)
-          (when (re-search-backward haskell-symbol-re nil t)
-            (cond ((not (null? (match-beginning 1)))
-                   (skip-chars-backward operator-chars)
-                   ;; we may have matched # thas ends a name
-                   (skip-syntax-backward "w")
-                   (skip-chars-forward beginning-quotes))
-                  ((not (null? (match-beginning 2)))
-                   ;; (goto-char (match-beginning 2))
-                   (when (not (null? (match-beginning 3)))
-                     (skip-syntax-backward "w")
-                     (skip-chars-forward beginning-quotes)))
-                  (t
-                   (error "No group of haskell-symbol-re matched, should not happen"))))
-          (setf arg (1+ arg)))))))
+;;;###autoload
+(put 'haskell-symbol 'bounds-of-thing-at-point #'bounds-of-haskell-symbol)
 
 ;; newline that detects haskell signatures
 
