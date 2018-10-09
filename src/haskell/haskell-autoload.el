@@ -8,6 +8,10 @@
 
 (require 'mmm-setup)
 
+(eval-after-load "intero"
+  '(progn
+     (define-key intero-mode-map (kbd "M-.") nil)))
+
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
@@ -26,8 +30,6 @@
 
 (defconst +haskell-extensions+
   '("hs" "lhs" "hsc" "chs" "hs-boot" "lhs-boot" "alex" "x" "lx" "happy" "y" "ly" "ag" "lag"))
-
-(provide 'haskell-autoload)
 
 (mmm-add-classes
  '((literate-haskell-latex
@@ -85,8 +87,6 @@
 (add-hook 'happy-mode-hook #'haskell-grammar-tools-setup)
 (add-hook 'uuag-mode-hook #'haskell-grammar-tools-setup)
 
-(require 'happy-mode-autoload)
-
 (add-to-list 'auto-mode-alist '("\\.alex\\'" . alex-mode))
 (add-to-list 'auto-mode-alist '("\\.x\\'" . alex-mode))
 (mmm-add-mode-ext-class 'alex-mode "\\.x\\'" 'haskell-blocks)
@@ -95,6 +95,8 @@
 (add-to-list 'auto-mode-alist '("\\.ly\\'" . happy-mode))
 (add-to-list 'auto-mode-alist '("\\.y\\'" . happy-mode))
 (mmm-add-mode-ext-class 'happy-mode "\\.y\\'" 'haskell-blocks)
+
+(provide 'haskell-autoload)
 
 ;; Local Variables:
 ;; End:
