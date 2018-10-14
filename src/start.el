@@ -50,9 +50,9 @@
     makefile-makepp-mode))
 
 (defun vim:bind-local-keymaps ()
-  (setf vim:normal-mode-local-keymap              (make-keymap)
+  (setf vim:normal-mode-local-keymap              (make-sparse-keymap)
         vim:visual-mode-local-keymap              (make-sparse-keymap)
-        vim:insert-mode-local-keymap              (make-keymap)
+        vim:insert-mode-local-keymap              (make-sparse-keymap)
         vim:operator-pending-mode-local-keymap    (make-sparse-keymap)
         vim:motion-mode-local-keymap              (make-sparse-keymap)
         vim:complex-command-override-local-keymap (make-sparse-keymap)))
