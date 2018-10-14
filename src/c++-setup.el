@@ -86,6 +86,7 @@
                      (select-mode-start-selection
                       choices
                       :buffer-name "select file"
+                      :after-init #'select-mode-setup
                       :on-selection
                       (lambda (idx alt-file selection-type)
                         (select-mode-exit)
