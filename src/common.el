@@ -1811,6 +1811,40 @@ are CHAR1 and CHAR2 repsectively."
 (defun-caching cached-executable-find (exe) cached-executable-find--reset-cache exe
   (executable-find exe))
 
+;;
+
+(defun expand-escape-sequences (str)
+  "Expand escape sequences within STR:
+
+\\\\ -> <backspace>
+\\n  -> <newline>
+\\r  -> <carriage-return>
+\\t  -> <tab>
+"
+  (cl-assert (stringp str))
+  (let ((limit (length str))
+        (result nil)
+        (i 0))
+    (while (< i limit)
+      (let ((c (aref str i))
+            (j (+ i 1)))
+        (if (and (char= c ?\\)
+                 (< j limit))
+            (pcase (aref str j)
+              (`?n  (setf result (cons ?\n result)
+                          i (+ i 2)))
+              (`?r  (setf result (cons ?\r result)
+                          i (+ i 2)))
+              (`?t  (setf result (cons ?\t result)
+                          i (+ i 2)))
+              (`?\\ (setf result (cons ?\\ result)
+                          i (+ i 2)))
+              (_    (setf result (cons c result)
+                          i j)))
+          (setf result (cons c result)
+                i j))))
+    (coerce (nreverse result) 'string)))
+
 ;; Heavy autoloads
 
 (autoload 'insert-info-template "common-heavy")
