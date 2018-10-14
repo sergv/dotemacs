@@ -31,38 +31,23 @@
 
 (defun egrep-tests--normalise-egrep-match (entry)
   (make-egrep-match
-   (egrep-tests--normalise-file-name (egrep-match-file entry))
-   (egrep-match-start-pos entry)
+   (egrep-tests--normalise-file-name (egrep-match-file entry) t)
+   (egrep-tests--normalise-file-name (egrep-match-short-file-name entry) nil)
    (egrep-match-line entry)
    (egrep-match-column entry)
-   (substring-no-properties (egrep-match-formatted-entry entry))))
-
-(defun egrep-tests--normalise-expected-match (entry)
-  (pcase egrep-backend
-    (`elisp
-     (make-egrep-match
-      (egrep-tests--normalise-file-name (egrep-match-file entry))
-      (egrep-match-start-pos entry)
-      nil
-      nil
-      (substring-no-properties (egrep-match-formatted-entry entry))))
-    (`native
-     (make-egrep-match
-      (egrep-tests--normalise-file-name (egrep-match-file entry))
-      nil
-      (egrep-match-line entry)
-      (egrep-match-column entry)
-      (substring-no-properties (egrep-match-formatted-entry entry))))))
+   (substring-no-properties (egrep-match-matched-prefix entry))
+   (substring-no-properties (egrep-match-matched-text entry))
+   (substring-no-properties (egrep-match-matched-suffix entry))))
 
 (defconst egrep-tests/project-dir
   (concat +emacs-config-path+ "/tests/test-data/egrep"))
 
-(defun egrep-tests--normalise-file-name (x)
+(defun egrep-tests--normalise-file-name (x expand?)
   (funcall
    (fold-platform-os-type
     #'identity
     #'downcase)
-   (expand-file-name x)))
+   (funcall (if expand? #'expand-file-name #'identity) x)))
 
 (grep-tests--define-tests "egrep-tests-1/%s"
     regexp
@@ -73,11 +58,11 @@
                   #'egrep-tests--normalise-egrep-match
                   (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir nil))
           (cl-map 'vector
-                  #'egrep-tests--normalise-expected-match
+                  #'egrep-tests--normalise-egrep-match
                   (vector
-                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") 52 5 6 "bar.c:5:  int hello = x + y;\n")
-                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") 76 6 9 "bar.c:6:  return hello;\n")
-                   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") 26 3 5 "src/foo.c:3:void hello(char const * name)\n"))))))
+                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")    "bar.c"      5 6 "  int " "hello" " = x + y;")
+                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";")
+                   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)"))))))
 
 (grep-tests--define-tests "egrep-tests-ignore-globs-override-search-globs/%s"
     regexp
@@ -95,10 +80,10 @@
                   #'egrep-tests--normalise-egrep-match
                   (egrep--find-matches regexp '("*.c") '("*src/*") egrep-tests/project-dir t))
           (cl-map 'vector
-                  #'egrep-tests--normalise-expected-match
+                  #'egrep-tests--normalise-egrep-match
                   (vector
-                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") 52 5 6 "bar.c:5:  int hello = x + y;\n")
-                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") 76 6 9 "bar.c:6:  return hello;\n"))))))
+                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") "bar.c" 5 6 "  int " "hello" " = x + y;")
+                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") "bar.c" 6 9 "  return " "hello" ";"))))))
 
 (grep-tests--define-tests "egrep-tests-ignore-case-works/%s"
     regexp
@@ -109,11 +94,11 @@
                   #'egrep-tests--normalise-egrep-match
                   (egrep--find-matches regexp '("*.c") nil egrep-tests/project-dir t))
           (cl-map 'vector
-                  #'egrep-tests--normalise-expected-match
+                  #'egrep-tests--normalise-egrep-match
                   (vector
-                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") 52 5 6 "bar.c:5:  int hello = x + y;\n")
-                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c") 76 6 9 "bar.c:6:  return hello;\n")
-                   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") 26 3 5 "src/foo.c:3:void hello(char const * name)\n"))))))
+                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     5 6 "  int " "hello" " = x + y;")
+                   (make-egrep-match (concat egrep-tests/project-dir "/bar.c")     "bar.c"     6 9 "  return " "hello" ";")
+                   (make-egrep-match (concat egrep-tests/project-dir "/src/foo.c") "src/foo.c" 3 5 "void " "hello" "(char const * name)"))))))
 
 (provide 'egrep-tests)
 
