@@ -28,9 +28,6 @@
     ("h" select-mode-select-next-item)
     ("t" select-mode-select-previous-item)))
 
-;;;###autoload
-(add-hook 'select-mode-hook #'select-mode-setup)
-
 (provide 'select-mode-setup)
 
 ;; Local Variables:

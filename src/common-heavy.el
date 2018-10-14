@@ -61,6 +61,7 @@ if CASE-SENSETIVE is t."
                 (find-file (car files))
               (select-mode-start-selection
                files
+               :after-init #'select-mode-setup
                :on-selection
                (lambda (idx file selection-type)
                  (select-mode-exit)

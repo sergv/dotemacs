@@ -24,14 +24,14 @@
      'elisp))
   "Which immplementation to use to provide grepping capability within Emacs.")
 
-(defun make-egrep-match (file start-pos line column formatted-entry)
-  (cons file (cons start-pos (cons line (cons column formatted-entry)))))
+(defun make-egrep-match (file short-file-name line column matched-prefix matched-text matched-suffix)
+  (cons file (cons short-file-name (cons line (cons column (cons matched-prefix (cons matched-text matched-suffix)))))))
 
 (defsubst egrep-match-file (x)
   (declare (pure t) (side-effect-free t))
   (car x))
 
-(defsubst egrep-match-start-pos (x)
+(defsubst egrep-match-short-file-name (x)
   (declare (pure t) (side-effect-free t))
   (cadr x))
 
@@ -43,54 +43,52 @@
   (declare (pure t) (side-effect-free t))
   (cadddr x))
 
-(defsubst egrep-match-formatted-entry (x)
+(defsubst egrep-match-matched-prefix (x)
   (declare (pure t) (side-effect-free t))
-  (cddddr x))
+  (car (cddddr x)))
+
+(defsubst egrep-match-matched-text (x)
+  (declare (pure t) (side-effect-free t))
+  (cadr (cddddr x)))
+
+(defsubst egrep-match-matched-suffix (x)
+  (declare (pure t) (side-effect-free t))
+  (cddr (cddddr x)))
 
 
-(defun egrep--format-select-entry (file-name match-start match-end)
+(defun egrep--format-match-entry (match-entry)
   "Make text entry for current match that can be shown to the user.
 
 MATCH-START and MATCH-END are match bounds in the current buffer"
-  (save-excursion
-    (goto-char match-start)
-    (let* ((line-start-pos
-            (line-beginning-position))
-           (line-number (line-number-at-pos))
-           (line-end-pos
-            (save-excursion
-              (goto-char match-end)
-              (line-end-position)))
-           (matched-text (buffer-substring line-start-pos
-                                           line-end-pos)))
-      (put-text-property
-       (- match-start line-start-pos)
-       (- match-end line-start-pos)
-       'face
-       'lazy-highlight
-       matched-text)
-      (let* ((header
-              (concat file-name
-                      ":"
-                      (propertize (number->string line-number)
-                                  'face 'compilation-line-number)
-                      ":"))
-             (header-space (make-string (length header) ?\s))
-             (lines (split-into-lines matched-text t)))
-        (cl-assert lines)
-        (concat header
-                (if lines
-                    (concat
-                     (car lines)
-                     (if (cdr lines)
-                         (concat "\n"
-                                 (mapconcat (lambda (line)
-                                              (concat header-space line))
-                                            (cdr lines)
-                                            "\n"))
-                       ""))
-                  "!error: no lines in the block!")
-                "\n")))))
+  (let ((header
+         (concat
+          (propertize (egrep-match-short-file-name match-entry)
+                      'face 'compilation-info)
+          ":"
+          (propertize (number->string (egrep-match-line match-entry))
+                      'face 'compilation-line-number)
+          ":"))
+        (matched-text
+         (concat
+          (egrep-match-matched-prefix match-entry)
+          (propertize (egrep-match-matched-text match-entry)
+                      'face
+                      'lazy-highlight)
+          (egrep-match-matched-suffix match-entry))))
+    (let ((header-space (make-string (length header) ?\s))
+          (lines (split-into-lines matched-text t)))
+      (cl-assert lines)
+      (if lines
+          (concat (propertize (concat (car lines) "\n")
+                              'line-prefix header)
+                  (if (cdr lines)
+                      (mapconcat (lambda (line)
+                                   (propertize (concat line "\n")
+                                               'line-prefix header-space))
+                                 (cdr lines)
+                                 "")
+                    ""))
+        "!error: no lines in the block!"))))
 
 (defun egrep--find-matches (regexp exts-globs ignored-files-globs root ignore-case)
   (pcase egrep-backend
@@ -100,6 +98,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
      (egrep--find-matches--elisp regexp exts-globs ignored-files-globs root ignore-case))))
 
 (defun egrep--find-matches--native (regexp exts-globs ignored-files-globs root ignore-case)
+  (save-some-buffers)
   (let* ((globs-to-find exts-globs)
          (ignored-files ignored-files-globs)
          (ignored-dirs
@@ -123,83 +122,195 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
     matches))
 
 (defun egrep--find-matches--elisp (regexp exts-globs ignored-files-globs root ignore-case)
-  (let* ((files (find-rec*
-                 :root root
-                 :globs-to-find exts-globs
-                 :ignored-files-globs ignored-files-globs
-                 :ignored-directories +ignored-directories+
-                 :ignored-directory-prefixes +ignored-directory-prefixes+))
-         (files-length (length files))
-         (should-report-progress? (<= 100 files-length))
-         (progress-reporter
-          (when should-report-progress?
-            (make-standard-progress-reporter files-length "files")))
-         (matches
-          (loop
-            for filename in (sort files #'string<)
-            nconc
-            (for-buffer-with-file filename
-              (when progress-reporter
-                (funcall progress-reporter 1))
-              (redisplay t)
-              (goto-char (point-min))
-              (let* ((result-ptr (cons nil nil))
-                     (local-matches result-ptr)
-                     (case-fold-search ignore-case)
-                     (short-file-name
-                      (propertize (file-relative-name filename root)
-                                  'face 'compilation-info)))
-                (while (re-search-forward regexp nil t)
-                  (let* ((match-start (match-beginning 0))
-                         (match-end (match-end 0))
-                         ;; (line (line-number-at-pos match-start))
-                         ;; (column (- match-start (line-beginning-position)))
-                         (formatted
-                          (egrep--format-select-entry short-file-name
-                                                      match-start
-                                                      match-end)))
-                    (setf (cdr local-matches)
-                          (cons (make-egrep-match
-                                 filename
-                                 match-start
-                                 ;; If there's a match start then it will be used
-                                 ;; instead of line & column.
-                                 nil ;;line
-                                 nil ;;column
-                                 formatted)
-                                nil))
-                    (setf local-matches (cdr local-matches))
-                    ;; Jump to end of line in order to show at most one match per
-                    ;; line.
-                    (end-of-line)))
-                (cdr result-ptr))))))
-    (when (null matches)
-      (error "No matches for regexp \"%s\" across files %s"
-             regexp
-             (mapconcat #'identity exts-globs ", ")))
-    (when should-report-progress?
-      (message "Finished looking in files")
-      (redisplay t))
-    (list->vector matches)))
+  (save-match-data
+    (let* ((files (find-rec*
+                   :root root
+                   :globs-to-find exts-globs
+                   :ignored-files-globs ignored-files-globs
+                   :ignored-directories +ignored-directories+
+                   :ignored-directory-prefixes +ignored-directory-prefixes+))
+           (files-length (length files))
+           (should-report-progress? (<= 100 files-length))
+           (progress-reporter
+            (when should-report-progress?
+              (make-standard-progress-reporter files-length "files")))
+           (matches
+            (loop
+              for filename in (sort files #'string<)
+              nconc
+              (for-buffer-with-file filename
+                (save-excursion
+                  (when progress-reporter
+                    (funcall progress-reporter 1))
+                  (redisplay t)
+                  (goto-char (point-min))
+                  (let* ((result-ptr (cons nil nil))
+                         (local-matches result-ptr)
+                         (case-fold-search ignore-case))
+                    (while (re-search-forward regexp nil t)
+                      (let* ((match-start (match-beginning 0))
+                             (match-end (match-end 0))
+                             (line (line-number-at-pos match-start))
+                             (column (- match-start (line-beginning-position))))
+                        (save-excursion
+                          (goto-char match-start)
+                          (let ((match-prefix
+                                 (buffer-substring (line-beginning-position)
+                                                   match-start))
+                                (match-text
+                                 (buffer-substring match-start match-end))
+                                (match-suffix
+                                 (progn
+                                   (goto-char match-end)
+                                   (buffer-substring match-end (line-end-position)))))
+                            (setf (cdr local-matches)
+                                  (cons (make-egrep-match
+                                         filename
+                                         (file-relative-name filename root)
+                                         line
+                                         column
+                                         match-prefix
+                                         match-text
+                                         match-suffix)
+                                        nil))))
+                        (setf local-matches (cdr local-matches))
+                        ;; Jump to end of line in order to show at most one match per
+                        ;; line.
+                        (end-of-line)))
+                    (cdr result-ptr)))))))
+      (when (null matches)
+        (error "No matches for regexp \"%s\" across files %s"
+               regexp
+               (mapconcat #'identity exts-globs ", ")))
+      (when should-report-progress?
+        (message "Finished looking in files")
+        (redisplay t))
+      (list->vector matches))))
+
+(defun egrep-commit-changed-entries ()
+  (interactive)
+  (let ((changed-entries nil))
+    (select-mode-on-selectable-items
+     (lambda (match-entry str)
+       (let ((orig-str
+              (concat
+               (substring-no-properties (egrep-match-matched-prefix match-entry))
+               (substring-no-properties (egrep-match-matched-text match-entry))
+               (substring-no-properties (egrep-match-matched-suffix match-entry))))
+             (stripped-str (substring (substring-no-properties str)
+                                      0
+                                      -1)))
+         (when (not (string= orig-str stripped-str))
+           (push (list match-entry orig-str stripped-str) changed-entries)))))
+    (let ((ordered-changed-entries
+           (make-hash-table :test #'equal)))
+      (dolist (entry changed-entries)
+        (let* ((match-entry (car entry))
+               (file-name (egrep-match-file match-entry)))
+          (puthash file-name
+                   (cons entry
+                         (gethash file-name ordered-changed-entries nil))
+                   ordered-changed-entries)))
+
+      (maphash
+       (lambda (file-name entries)
+         (sort entries
+               (lambda (x y)
+                 (let ((x-match (car x))
+                       (y-match (car y)))
+                   ;; Use descending by line numbers order so
+                   ;; that line numbers will not be
+                   ;; invalidated when changes are applied.
+                   (> (egrep-match-line x-match)
+                      (egrep-match-line y-match)))))
+         (for-buffer-with-file file-name
+           (dolist (entry entries)
+             (let ((match-entry (car entry))
+                   (orig-str (cadr entry))
+                   (new-contents (caddr entry)))
+               (cl-assert (stringp orig-str))
+               (cl-assert (stringp new-contents))
+               (goto-line (egrep-match-line match-entry))
+               (move-to-column 0)
+               (let ((current-str
+                      (buffer-substring-no-properties (point)
+                                                      (+ (point)
+                                                         (length orig-str)))))
+                 (unless (string= orig-str current-str)
+                   (error "Cannot apply changes in file %s at line %s: grep looked at too old version.\nExpected contents:\n%s\nCurrent contents:\n%s\n"
+                          (egrep-match-short-file-name match-entry)
+                          (egrep-match-line match-entry)
+                          orig-str
+                          current-str)))))))
+       ordered-changed-entries)
+
+      (maphash
+       (lambda (file-name entries)
+         (with-temp-buffer
+           (insert-file-contents file-name
+                                 t ;; make current buffer visit inserted file
+                                 )
+           (dolist (entry entries)
+             (let ((match-entry (car entry))
+                   (orig-str (cadr entry))
+                   (new-contents (caddr entry)))
+               (cl-assert (stringp orig-str))
+               (cl-assert (stringp new-contents))
+               (goto-line (egrep-match-line match-entry))
+               (move-to-column 0)
+               (delete-region (point)
+                              (+ (point)
+                                 (length orig-str)))
+               (insert new-contents)))
+           (write-region (point-min) (point-max) file-name)
+           (set-buffer-modified-p nil)))
+       ordered-changed-entries)
+
+      (select-mode-exit))))
 
 (defun egrep-search (regexp exts-globs ignored-files-globs dir ignore-case)
-  "Search for REGEXP in files under directory DIR that match FILE-GLOBS and don't
-match IGNORED-FILE-GLOBS."
+  "Search for REGEXP in files under directory DIR that match
+FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
   (let* ((get-matches
           (lambda ()
-            (egrep--find-matches regexp exts-globs ignored-files-globs dir ignore-case)))
+            (let ((matches
+                   (egrep--find-matches regexp exts-globs ignored-files-globs dir ignore-case)))
+              (remove-duplicates-by-hashing-projections
+               (lambda (match)
+                 (cons (egrep-match-line match) (egrep-match-file match)))
+               #'equal
+               matches))))
          (matches
           (funcall get-matches))
          (kmap (make-sparse-keymap)))
     (def-keys-for-map kmap
-      ("H" (lambda ()
-             (interactive)
-             (select-mode-update-items (funcall get-matches) 0))))
+      ("H"   (lambda ()
+               (interactive)
+               (select-mode-update-items (funcall get-matches) 0)))
+      ("C-S" #'egrep-commit-changed-entries))
     (select-mode-start-selection
      matches
      :buffer-name "*grep*"
+     :enable-undo t
      :after-init (lambda ()
-                   (select-mode-extend-keymap-with kmap))
+                   (use-local-map (make-sparse-keymap))
+                   (undo-tree-mode +1)
+                   (setf vim:normal-mode-local-keymap kmap
+                         vim:insert-mode-local-keymap (make-sparse-keymap))
+                   (def-keys-for-map vim:normal-mode-local-keymap
+                     ("<up>"     select-mode-select-previous-item)
+                     ("<down>"   select-mode-select-next-item)
+                     ("<return>" select-mode-do-select-same-window)
+                     ("SPC"      select-mode-do-select-other-window)
+                     ("h"        select-mode-select-next-item)
+                     ("t"        select-mode-select-previous-item)
+                     ("<escape>" select-mode-exit))
+                   (def-keys-for-map (vim:normal-mode-local-keymap
+                                      vim:insert-mode-local-keymap)
+                     ("C-g" select-mode-exit))
+                   ;; Required to make additions made to `vim:normal-mode-local-keymap'
+                   ;; effective immediately.
+                   (vim:activate-normal-mode))
      :on-selection
      (lambda (idx match selection-type)
        ;; NB Don't call `select-mode-exit' here since we may return to *grep* buffer
@@ -212,20 +323,22 @@ match IGNORED-FILE-GLOBS."
             (`same-window  #'switch-to-buffer)
             (`other-window #'switch-to-buffer-other-window))
           buf)
-         (aif (egrep-match-start-pos match)
-             (goto-char it)
-           (progn
-             (goto-line (egrep-match-line match))
-             (move-to-column (egrep-match-column match))))))
+         (progn
+           (goto-line (egrep-match-line match))
+           (move-to-column (egrep-match-column match)))))
      :item-show-function
-     #'egrep-match-formatted-entry
-     :separator nil
+     #'egrep--format-match-entry
      :preamble
-     (format "Browse matches for ‘%s’ in files matching %s starting at directory %s\n\n"
-             regexp
-             (mapconcat #'identity exts-globs " ")
-             dir)
-     :working-directory dir)))
+     (propertize
+      "\n"
+      'display
+      (format "Browse matches for ‘%s’ in files matching %s starting at directory %s\n\n"
+              regexp
+              (mapconcat #'identity exts-globs " ")
+              dir)
+      'read-only t)
+     :working-directory dir
+     :read-only nil)))
 
 (defun egrep--read-files (regexp)
   "Query user for list of glob patterns to search in and return list of
