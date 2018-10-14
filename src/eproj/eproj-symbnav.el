@@ -298,6 +298,7 @@ as accepted by `bounds-of-thing-at-point'.")
               entries
               :buffer-name "Symbol homes"
               :after-init (lambda ()
+                            (select-mode-setup)
                             (select-mode-extend-keymap-with kmap))
               :on-selection
               (lambda (idx entry _selection-type)

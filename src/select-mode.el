@@ -26,7 +26,8 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 (defun select-make-bold-separator (base)
   (propertize base
               'face 'bold
-              'font-lock-face 'bold))
+              'font-lock-face 'bold
+              'read-only t))
 
 (defface select-mode-selection-face '((t (:inherit secondary-selection)))
   "Face to highlight currently selected item")
@@ -107,7 +108,9 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
      (preamble "")
      (epilogue "")
      (separator select-mode-bold-separator)
-     (working-directory nil))
+     (working-directory nil)
+     (read-only t)
+     (enable-undo nil))
   "Initiate select session.
 
 ON-SELECTION - function of 2 arguments, index of selected item inside ITEMS collection
@@ -130,7 +133,8 @@ case `default-directory' will be used.
         (init-window (selected-window))
         (init-window-config (current-window-configuration))
         (working-dir (or working-directory
-                         default-directory)))
+                         default-directory))
+        (inhibit-read-only t))
     (cl-assert (< 0 items-count))
     (with-current-buffer (switch-to-buffer-other-window buffer-name)
       (read-only-mode -1)
@@ -138,7 +142,7 @@ case `default-directory' will be used.
 
       (cd working-dir)
       ;; Disable undo tracking in this buffer
-      (setq-local buffer-undo-list t)
+      (setq-local buffer-undo-list (not enable-undo))
 
       (let ((selection-overlay (make-overlay (point-min) (point-min))))
         (overlay-put selection-overlay
@@ -147,7 +151,6 @@ case `default-directory' will be used.
         (overlay-put selection-overlay
                      'font-lock-face
                      'select-mode-selection-face)
-
 
         (setq-local select-mode--current-state
                     (make-select-mode--state
@@ -168,15 +171,15 @@ case `default-directory' will be used.
                      :item-positions (make-vector items-count nil)
                      :items-count items-count
 
-                     :selection-overlay selection-overlay
-                     )))
+                     :selection-overlay selection-overlay)))
 
       (select-mode--render-state select-mode--current-state)
 
       (when after-init
         (funcall after-init))
       (set-buffer-modified-p nil)
-      (read-only-mode +1))))
+      (when read-only
+        (read-only-mode +1)))))
 
 (defun select-mode--move-selection-to (state idx &optional move-point)
   (cl-assert (and (<= 0 idx)
@@ -191,13 +194,31 @@ case `default-directory' will be used.
                   end)
     (force-mode-line-update)))
 
+(defun select-mode-on-selectable-items (f)
+  "Call function F on all items and their shown strings as they
+currently appear in the selection buffer. The function should
+take 2 arguments: item which was provided to
+`select-mode-start-selection' and a string - result of rendering
+it via `select-mode--state-item-show-function' (possibly modified
+by the user)."
+  (let ((items
+         (loop
+           for item being the elements of (select-mode--state-items select-mode--current-state)
+           for positions being the elements of (select-mode--state-item-positions select-mode--current-state)
+           collect
+           (let ((start (car positions))
+                 (end (cdr positions)))
+             (cons item (buffer-substring start end))))))
+    (dolist (entry items)
+      (funcall f (car entry) (cdr entry)))))
+
 (defun select-mode--render-state (state)
   "It's assumed that this function is only called inside select buffer."
   (let ((insert-item
          (lambda (i item)
-           (let ((start (point)))
+           (let ((start (point-marker)))
              (insert (funcall (select-mode--state-item-show-function state) item))
-             (let ((end (point)))
+             (let ((end (point-marker)))
                (setf (aref (select-mode--state-item-positions state) i)
                      (cons start end)))))))
     (erase-buffer)
