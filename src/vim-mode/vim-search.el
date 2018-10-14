@@ -565,7 +565,7 @@ regular expressions."
                           (not (char= (aref str i) delimiter)))
                 ;; skip quoted character
                 (if (char= (aref str i) ?\\)
-                  (incf i 2)
+                    (incf i 2)
                   (incf i)))))
            (skip-flags
             (lambda ()
@@ -573,31 +573,7 @@ regular expressions."
                           (member* (aref str i)
                                    (string-to-list "niIcg")
                                    :test #'char=))
-                (incf i))))
-           (pattern-expand-newlines
-            (lambda (pat)
-              (letrec ((expand
-                        (lambda (pos result-pat)
-                          (cond
-                            ((= pos (length pat))
-                             result-pat)
-                            ((and (char= (aref pat pos) ?\\)
-                                  (< (1+ pos) (length pat))
-                                  (or (char= (aref pat (1+ pos)) ?n)
-                                      (char= (aref pat (1+ pos)) ?t)))
-                             (let ((next-c (aref pat (1+ pos))))
-                               (funcall expand
-                                        (+ pos 2)
-                                        (cons (cond
-                                                ((char= next-c ?n) ?\n)
-                                                ((char= next-c ?t) ?\t))
-                                              result-pat))))
-                            (t
-                             (funcall expand (1+ pos)
-                                      (cons (aref pat pos)
-                                            result-pat)))))))
-                (concatenate 'string
-                             (nreverse (funcall expand 0 '())))))))
+                (incf i)))))
       (while (and (< i len)
                   (not (member* (aref str i)
                                 delimiters
@@ -622,8 +598,8 @@ regular expressions."
           (setf flags-start i)
           (funcall skip-flags)
           (setf flags-end i)))
-      (values (funcall pattern-expand-newlines
-                       (subseq str pattern-start (min len pattern-end)))
+      (values (expand-escape-sequences
+               (subseq str pattern-start (min len pattern-end)))
               (when (and replacement-start
                          replacement-end
                          ;; hack
