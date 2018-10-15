@@ -253,6 +253,7 @@ by the user)."
                     (cl-assert (< (car pos-pair) (cdr pos-pair)))
                     (< pos (car pos-pair))))))
     (if (and selection-idx
+             (< selection-idx (length positions))
              (funcall pos-inside-pos-pair
                       pos
                       (aref positions selection-idx)))
