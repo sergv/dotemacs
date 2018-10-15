@@ -26,7 +26,8 @@
     +vim-special-keys+
 
     ("h" select-mode-select-next-item)
-    ("t" select-mode-select-previous-item)))
+    ("t" select-mode-select-previous-item))
+  (vim:activate-emacs-mode))
 
 (provide 'select-mode-setup)
 
