@@ -32,10 +32,12 @@
               (seq "~" eol)         ;; backup-files
               ))
       dired-omit-extensions
-      (append dired-latex-unclean-extensions
-              dired-tex-unclean-extensions
-              dired-bibtex-unclean-extensions
-              dired-texinfo-unclean-extensions))
+      (--remove (equal ".log" it)
+                (append dired-latex-unclean-extensions
+                        dired-tex-unclean-extensions
+                        dired-bibtex-unclean-extensions
+                        dired-texinfo-unclean-extensions)))
+
 (add-hook 'dired-mode-hook
           (lambda ()
             (dired-omit-mode 1)))
