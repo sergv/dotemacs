@@ -374,8 +374,14 @@ usage: (attrap-alternatives CLAUSES...)"
         (replace-match (concat "(" type-expr ")") t))))
    ((--any? (s-matches? it msg) attrap-haskell-extensions)
     (--map (attrap-option (list 'use-extension it)
-             (goto-char 1)
-             (insert (concat "{-# LANGUAGE " it " #-}\n")))
+             (goto-char (point-min))
+             (attrap-skip-shebangs)
+             (when (looking-at-p "^module")
+               (insert "\n")
+               (forward-line -1))
+             (let ((start (point)))
+               (insert (concat "{-# LANGUAGE " it " #-}\n"))
+               (haskell-align-language-pragmas start)))
            (--filter (s-matches? it msg) attrap-haskell-extensions)))))
 
 (defun attrap-add-operator-parens (name)
@@ -383,6 +389,17 @@ usage: (attrap-alternatives CLAUSES...)"
   (if (string-match-p "^[[:upper:][:lower:]_']" name)
       name
     (concat "(" name ")")))
+
+(defun attrap-skip-shebangs ()
+  "Skip #! and -- shebangs used in Haskell scripts."
+  (when (looking-at-p "#!") (forward-line 1))
+  (when (looking-at-p "-- stack ") (forward-line 1))
+  (while (and (not (eobp))
+              (looking-at-p "--"))
+    (forward-line 1))
+  (while (and (not (eobp))
+              (= (point) (line-end-position)))
+    (forward-line 1)))
 
 (provide 'attrap)
 ;;; attrap.el ends here
