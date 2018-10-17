@@ -311,7 +311,7 @@ usage: (attrap-alternatives CLAUSES...)"
         (forward-line (1- line))
         (move-to-column (1- end-col))
         (skip-chars-backward " \t")
-        (unless (looking-back "(" (- (point) 2)) (insert ","))
+        (unless (looking-back "(" (- (point) 2)) (insert ", "))
         (insert (attrap-add-operator-parens missing)))))
     ;; Not in scope: data constructor ‘SimpleBroadcast’
     ;; Perhaps you meant ‘SimpleBroadCast’ (imported from TypedFlow.Types)
