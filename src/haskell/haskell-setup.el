@@ -265,7 +265,7 @@
       ("- u"     intero-uses-at)
       ("- i"     intero-info)
       ("- ."     intero-goto-definition)
-      ("- a"     intero-apply-suggestions)
+      ("- a"     attrap-flycheck)
       ("- s"     intero-expand-splice-at-point))
 
     (def-keys-for-map vim:visual-mode-local-keymap

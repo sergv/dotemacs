@@ -114,6 +114,7 @@ update-dir-autoloads \
     "src/python" \
     "src/shell" \
     "third-party/async" \
+    "third-party/attrap" \
     "third-party/auctex" \
     "third-party/button-lock" \
     "third-party/clojure-mode" \

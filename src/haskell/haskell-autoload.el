@@ -12,6 +12,15 @@
   '(progn
      (define-key intero-mode-map (kbd "M-.") nil)))
 
+(eval-after-load "attrap"
+  '(progn
+     (setf attrap-flycheck-checkers-alist
+           (append
+            '((haskell-ghc . attrap-ghc-fixer)
+              (haskell-stack-ghc . attrap-ghc-fixer)
+              (intero . attrap-ghc-fixer))
+            attrap-flycheck-checkers-alist))))
+
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
