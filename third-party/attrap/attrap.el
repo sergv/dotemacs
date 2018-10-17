@@ -360,7 +360,7 @@ usage: (attrap-alternatives CLAUSES...)"
             ;; toto search for full words
             (search-forward r)
             (replace-match "")))
-        (when (looking-at ",") (delete-char 1)))))
+        (when (looking-at ",[ \t]*") (delete-region (match-beginning 0) (match-end 0))))))
    ((string-match "The import of ‘[^’]*’ is redundant" msg)
     (attrap-one-option 'delete-module-import
       (beginning-of-line)
