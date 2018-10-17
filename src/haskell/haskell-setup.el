@@ -63,10 +63,16 @@
   (haskell-compile t))
 
 (vim:defcmd vim:haskell-intero-load-file-into-repl (nonrepeatable)
+  (unless intero-mode
+    (error "Intero is not enabled"))
   (intero-repl-load))
 (vim:defcmd vim:haskell-intero-restart (nonrepeatable)
+  (unless intero-mode
+    (error "Intero is not enabled"))
   (intero-restart))
 (vim:defcmd vim:haskell-intero-restart-repl (nonrepeatable)
+  (unless intero-mode
+    (error "Intero is not enabled"))
   (intero-restart-repl))
 
 (vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
