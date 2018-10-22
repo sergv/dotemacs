@@ -372,16 +372,15 @@ usage: (attrap-alternatives CLAUSES...)"
         (goto-char pos)
         (search-forward wildcard)
         (replace-match (concat "(" type-expr ")") t))))
+   ((and (string-match-p "parse error on input ‘case’" msg)
+         (save-excursion
+           (goto-char pos)
+           (string-match-p (rx "\\case\\_>") (buffer-substring-no-properties pos (line-end-position)))))
+    (attrap-one-option (list 'use-extension "LambdaCase")
+      (attrap-insert-extension "LambdaCase")))
    ((--any? (s-matches? it msg) attrap-haskell-extensions)
     (--map (attrap-option (list 'use-extension it)
-             (goto-char (point-min))
-             (attrap-skip-shebangs)
-             (when (looking-at-p "^module")
-               (insert "\n")
-               (forward-line -1))
-             (let ((start (point)))
-               (insert (concat "{-# LANGUAGE " it " #-}\n"))
-               (haskell-align-language-pragmas start)))
+             (attrap-insert-extension it))
            (--filter (s-matches? it msg) attrap-haskell-extensions)))))
 
 (defun attrap-add-operator-parens (name)
@@ -390,10 +389,24 @@ usage: (attrap-alternatives CLAUSES...)"
       name
     (concat "(" name ")")))
 
+(defun attrap-insert-extension (ext)
+  (save-match-data
+    (goto-char (point-min))
+    (if (re-search-forward "{-#[ \t]*LANGUAGE\\_>" nil t)
+        (goto-char (match-beginning 0))
+      (progn
+        (attrap-skip-shebangs)
+        (when (looking-at-p "^module\\_>")
+          (insert "\n")
+          (forward-line -1))))
+    (let ((start (point)))
+      (insert (concat "{-# LANGUAGE " ext " #-}\n"))
+      (haskell-align-language-pragmas start))))
+
 (defun attrap-skip-shebangs ()
   "Skip #! and -- shebangs used in Haskell scripts."
   (when (looking-at-p "#!") (forward-line 1))
-  (when (looking-at-p "-- stack ") (forward-line 1))
+  (when (looking-at-p "--[ \t]*stack\\>") (forward-line 1))
   (while (and (not (eobp))
               (looking-at-p "--"))
     (forward-line 1))
