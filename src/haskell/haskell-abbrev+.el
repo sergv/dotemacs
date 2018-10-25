@@ -37,7 +37,7 @@
         t))))
 
 (defun haskell-abbrev+--ensure-debug-trace-available ()
-  (unless (haskell-abbrev+--is-function-available nil "Debug.Trace")
+  (unless (haskell-abbrev+--is-function-available nil (seq symbol-start "Debug.Trace" symbol-end))
     (save-excursion
       (haskell-navigate-imports-go)
       (insert "import Debug.Trace\n\n"))))
