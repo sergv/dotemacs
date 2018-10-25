@@ -700,6 +700,8 @@ both unicode and ascii characters.")
    (let* ((start-pos (point))
           (function-name-column nil)
           (point-at-end-of-function-signature? nil)
+          ;; Whether we already performed expansion of the function name
+          ;; and no futher expansion should be attempted.
           (expanded-function-name?
            (save-match-data
              (let ((lower-bound
@@ -766,6 +768,20 @@ both unicode and ascii characters.")
            ((and function-name-column
                  point-at-end-of-function-signature?)
             (insert "\n" (make-string function-name-column ?\s)))
+           ((save-excursion
+              (skip-syntax-backward " ")
+              (skip-syntax-backward "w_.")
+              (looking-at-p
+               (rx (or (seq
+                        symbol-start
+                        (or "where"
+                            "of"
+                            "do")
+                        symbol-end)
+                       (or "="
+                           "->"
+                           "<-")))))
+            (haskell--simple-indent-newline-indent))
            (t
             (haskell--simple-indent-newline-same-col))))))))
 
