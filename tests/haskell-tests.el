@@ -2469,37 +2469,53 @@
      "bar2 x = x"
      "")))
 
-(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-1 ()
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion-9 ()
   (haskell-tests--test-buffer-contents
       (progn
         (haskell-newline-with-signature-expansion))
     (tests-utils--multiline
      ""
-     "bar1 :: a -> x"
-     "bar1 x = x"
+     "(.!=) :: Functor m => m (Maybe a) -> a -> m a_|_"
      ""
-     "foo :: Int -> Int"
-     "foo = go"
-     "  where"
-     "    go :: a -> a_|_"
-     ""
-     "bar2 :: a -> x"
-     "bar2 x = x"
      "")
     (tests-utils--multiline
      ""
-     "bar1 :: a -> x"
-     "bar1 x = x"
+     "(.!=) :: Functor m => m (Maybe a) -> a -> m a"
+     "(.!=) _|_"
      ""
-     "foo :: Int -> Int"
-     "foo = go"
-     "  where"
-     "    go :: a -> a"
-     "    go _|_"
-     ""
-     "bar2 :: a -> x"
-     "bar2 x = x"
      "")))
+
+(ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-1 ()
+  (haskell-tests--test-buffer-contents
+   (progn
+     (haskell-newline-with-signature-expansion))
+   (tests-utils--multiline
+    ""
+    "bar1 :: a -> x"
+    "bar1 x = x"
+    ""
+    "foo :: Int -> Int"
+    "foo = go"
+    "  where"
+    "    go :: a -> a_|_"
+    ""
+    "bar2 :: a -> x"
+    "bar2 x = x"
+    "")
+   (tests-utils--multiline
+    ""
+    "bar1 :: a -> x"
+    "bar1 x = x"
+    ""
+    "foo :: Int -> Int"
+    "foo = go"
+    "  where"
+    "    go :: a -> a"
+    "    go _|_"
+    ""
+    "bar2 :: a -> x"
+    "bar2 x = x"
+    "")))
 
 (ert-deftest haskell-tests/haskell-newline-with-signature-expansion--within-where-block-2 ()
   (haskell-tests--test-buffer-contents

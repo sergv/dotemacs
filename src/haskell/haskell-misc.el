@@ -718,11 +718,23 @@ both unicode and ascii characters.")
                                (not (bolp)))
                      (haskell-back-up-indent-level)
                      (when (looking-at (eval-when-compile
-                                         (let ((ws "[ \t\n\r]"))
+                                         (let ((ws "[ \t\n\r]")
+                                               (name-re (concat
+                                                         "\\(?:"
+                                                         (concat "\\(?:"
+                                                                 haskell-regexen/varid
+                                                                 "\\)")
+                                                         "\\|"
+                                                         (concat "[(]"
+                                                                 "\\(?:"
+                                                                 haskell-regexen/sym
+                                                                 "\\)+"
+                                                                 "[)]")
+                                                         "\\)")))
                                            (concat "\\(?:\\_<\\(?:let\\|where\\)\\_>" ws "+\\)?"
                                                    "\\(?1:"
-                                                   (concat "\\(?2:" haskell-regexen/varid "\\)"
-                                                           "\\(?:," ws "*" haskell-regexen/varid "\\)*")
+                                                   (concat "\\(?2:" name-re "\\)"
+                                                           "\\(?:," ws "*" name-re "\\)*")
                                                    "\\)"
                                                    ws "*"
                                                    haskell-regexen/function-signature-colons))))
