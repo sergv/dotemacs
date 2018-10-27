@@ -28,9 +28,19 @@
 (defun switch-to-buffer-create-if-missing (buffer-name)
   (interactive)
   (let ((buf (get-buffer buffer-name)))
+    (message "buffer-name = %s"
+             (pp-to-string buffer-name))
     (cond
       (buf (switch-to-buffer buf))
-      ((string-match-p "^\\*shell.*$" buffer-name)
+      ((string-match-p (rx bol
+                           (or (seq "*shell" (* any))
+                               (seq (? "*")
+                                    "sh"
+                                    (? (seq (or "-"
+                                                (char (?0 . ?9)))
+                                            (* any)))))
+                           eol)
+                       buffer-name)
        (let ((shell-buf (get-buffer-create buffer-name)))
          (switch-to-buffer shell-buf nil t)
          (shell shell-buf)))
