@@ -56,11 +56,12 @@
 
 (setq-default indent-tabs-mode nil) ;; never use tabs for indentation
 (setq-default cursor-type 'box)     ;; 'bar)
-(setf cursor-type 'box
+(setf cursor-type 'hbar
       ;; default-major-mode 'text-mode ;;'lisp-interaction-mode
       tab-width 2
       tab-always-indent t)
-(setq-default major-mode 'text-mode)
+(setq-default major-mode 'text-mode
+              cursor-type 'hbar)
 (blink-cursor-mode -1)
 
 (setq-default major-mode 'text-mode)
