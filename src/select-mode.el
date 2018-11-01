@@ -142,7 +142,8 @@ case `default-directory' will be used.
 
       (cd working-dir)
       ;; Disable undo tracking in this buffer
-      (setq-local buffer-undo-list (not enable-undo))
+      (setq-local buffer-undo-list
+                  (if enable-undo nil t))
 
       (let ((selection-overlay (make-overlay (point-min) (point-min))))
         (overlay-put selection-overlay
