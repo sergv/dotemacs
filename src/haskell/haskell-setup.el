@@ -431,7 +431,8 @@
     ("SPC SPC"  haskell-interactive-clear-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
-    ("-"        haskell--ghci-hyphen))
+    ("-"        haskell--ghci-hyphen)
+    (":"        haskell--ghci-colon))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap
@@ -491,6 +492,7 @@
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("-"        haskell--ghci-hyphen)
+    (":"        haskell--ghci-colon)
     ("`"        vim:wrap-backticks))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
