@@ -851,6 +851,19 @@ both unicode and ascii characters.")
         (self-insert-command prefix)
       (haskell-smart-operators-hyphen))))
 
+(defun haskell--ghci-colon (&optional prefix)
+  "Version of `haskell-smart-operators-hyphen' for ghci."
+  (interactive "*p")
+  (let ((entering-command?
+         (or (= (point) (line-beginning-position))
+             (save-excursion
+               ;; skip whitespace
+               (skip-syntax-backward "-")
+               (get-pos-property (point) 'prompt)))))
+    (if entering-command?
+        (self-insert-command prefix)
+      (haskell-smart-operators-self-insert prefix))))
+
 (defun* install-haskell-smart-operators! (keymap &key bind-colon bind-hyphen)
   (declare (indent 1))
   (haskell-smart-operators-mode +1)
