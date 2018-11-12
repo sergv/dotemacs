@@ -120,11 +120,13 @@
     (let ((fixers (-map #'cdr (--filter (eq (car it) checker) attrap-flycheck-checkers-alist))))
       (when (not fixers) (error "No fixers for flycheck-checker %s" checker))
       (attrap-select-and-apply-option
-       (-non-nil (-mapcat
-                  (lambda (msg) (-mapcat
-                                 (lambda (fixer) (apply fixer msg))
-                                 fixers))
-                  messages))))))
+       (let ((-compare-fn (lambda (x y) (equal (car x) (car y)))))
+         (-distinct
+          (-non-nil (-mapcat
+                     (lambda (msg) (-mapcat
+                               (lambda (fixer) (apply fixer msg))
+                               fixers))
+                     messages))))))))
 
 ;;;###autoload
 (defun attrap-attrap (pos)
