@@ -430,7 +430,7 @@ entries."
                                          mode)
               (setf mode (or (and (fboundp mode)
                                   mode)
-                             default-major-mode))
+                             (default-value 'major-mode)))
               (unless (eq? major-mode mode)
                 (sessions/call-symbol-function mode)))
             (sessions/report-and-ignore-asserts
