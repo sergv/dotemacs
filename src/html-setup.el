@@ -64,12 +64,13 @@ end1 and end2 should be exclusive ends of tags.")
   (defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
     "Execute BODY with BB, BE, EB and EE bound to enclonig tags' boundaries
 if such tag can be found."
+    (declare (indent 5))
     (let ((test-var '#:test))
       `(let ((,test-var (funcall *markup-tags-context-func*)))
          (if ,test-var
-           (destructuring-bind ((,bb . ,be) . (,eb . ,ee))
-               ,test-var
-             ,on-found)
+             (destructuring-bind ((,bb . ,be) . (,eb . ,ee))
+                 ,test-var
+               ,on-found)
            ,on-not-found)))))
 
 ;;;###autoload (autoload 'vim:motion-jump-tag "html-setup" "" t)
@@ -81,7 +82,7 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
     (if (let ((synt (char-syntax (char-after))))
           (or (char=? synt ?\()
               (char=? synt ?\))))
-      (vim:motion-jump-item)
+        (vim:motion-jump-item)
       (let ((tag-start (point))
             (type nil)
             ;; note: be and ee are exclusive ends
@@ -124,32 +125,32 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
                                               eb pre-eb
                                               ee pre-ee))))))
         (if bb ;; if bb is non-nil then interesting type was found
-          (let ((next-open (condition-case nil
-                               (1- (scan-lists (point) 1 -1))
-                             (error (point-max))))
-                (next-close (condition-case nil
-                                (1- (scan-lists (point) 1 +1))
-                              (error (point-max)))))
-            (let ((pos (min next-open next-close)))
-              (if (>= pos (line-end-position))
-                ;; original error "No matching item found on the current line"
-                (setf pos tag-start)
-                ;; else use closest position
-                (setf pos (min pos tag-start)))
-              (cond ((= pos next-open)
-                     (goto-char pos)
-                     (forward-list)
-                     (backward-char))
-                    ((= pos next-close)
-                     (goto-char (1+ pos))
-                     (backward-list))
-                    ((inside? pos bb be)
-                     ;; ee is an exclusive end
-                     (goto-char (- ee 1)))
-                    ((inside? pos eb ee)
-                     (goto-char bb))
-                    (t
-                     (error "No matching item found")))))
+            (let ((next-open (condition-case nil
+                                 (1- (scan-lists (point) 1 -1))
+                               (error (point-max))))
+                  (next-close (condition-case nil
+                                  (1- (scan-lists (point) 1 +1))
+                                (error (point-max)))))
+              (let ((pos (min next-open next-close)))
+                (if (>= pos (line-end-position))
+                    ;; original error "No matching item found on the current line"
+                    (setf pos tag-start)
+                  ;; else use closest position
+                  (setf pos (min pos tag-start)))
+                (cond ((= pos next-open)
+                       (goto-char pos)
+                       (forward-list)
+                       (backward-char))
+                      ((= pos next-close)
+                       (goto-char (1+ pos))
+                       (backward-list))
+                      ((inside? pos bb be)
+                       ;; ee is an exclusive end
+                       (goto-char (- ee 1)))
+                      ((inside? pos eb ee)
+                       (goto-char bb))
+                      (t
+                       (error "No matching item found")))))
           (vim:motion-jump-item))))))
 
 (eval-after-load "rng-valid"
@@ -286,12 +287,6 @@ of the matching tag, else fallback to `vim:motion-jump-item'."
   (setup-hs-minor-mode)
 
   (put 'hs-set-up-overlay 'permanent-local t)
-
-  ;; set up nxml environment
-  (unless nxml-prolog-end (setq nxml-prolog-end (copy-marker (point-min))))
-  (unless nxml-scan-end (setq nxml-scan-end (copy-marker (point-min))))
-  ;; (add-hook 'after-change-functions 'nxml-after-change nil t)
-  (setq-local syntax-propertize-function #'nxml-after-change)
 
   ;; (markup-setup)
   (setf *markup-tags-context-func* #'hl-tags-context-nxml-mode)
