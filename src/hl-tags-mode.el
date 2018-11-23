@@ -68,6 +68,11 @@
 ;;;###autoload
 (defun hl-tags-context-nxml-mode ()
   (ignore-errors
+
+    (when (or (not (boundp 'nxml-prolog-end))
+              (not nxml-prolog-end))
+      (nxml-scan-prolog))
+
     (save-excursion
       (let (start1 end1 start2 end2)
         (when (looking-at-p "<") (forward-char))
