@@ -118,11 +118,16 @@ roots (i.e. valid and existing keys within
 
 (defun haskell-watch--unwatch-file (proj file)
   (cl-assert (file-name-absolute-p file))
-  (remhash file (haskell-watched-project/watched-files proj))
-  (let ((descriptor (bimap-lookup-reverse file
-                                          (haskell-watched-project/registered-file-watches proj))))
-    (bimap-delete file (haskell-watched-project/registered-file-watches proj))
-    (remhash descriptor haskell-watch--registered-file-watchers)))
+  (cl-assert proj
+             nil
+             "No project with root %s"
+             proj-root)
+  (when proj
+    (remhash file (haskell-watched-project/watched-files proj))
+    (let ((descriptor (bimap-lookup-reverse file
+                                            (haskell-watched-project/registered-file-watches proj))))
+      (bimap-delete file (haskell-watched-project/registered-file-watches proj))
+      (remhash descriptor haskell-watch--registered-file-watchers))))
 
 (defun haskell-watch--on-watched-file-changed (event)
   (let* ((descriptor (car event))
@@ -137,15 +142,12 @@ roots (i.e. valid and existing keys within
                descriptor
                file)
     (let ((proj (gethash proj-root haskell-watch--known-projects)))
-      (cl-assert proj
-                 nil
-                 "No project with root %s"
-                 proj-root)
       (pcase action
         ('changed
          (haskell-watch--mark-project-as-dirty proj))
         ((or 'deleted 'stopped)
-         (haskell-watch--unwatch-file proj file))
+         (when proj
+           (haskell-watch--unwatch-file proj file)))
         ((or 'created 'attribute-changed)
          ;; It was not present but now is - just continue watching over it.
          )
