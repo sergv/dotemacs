@@ -406,9 +406,10 @@
 
   ;; Hash table mapping absolute file paths this project manages to
   ;; the same paths relative to project's root. May not be 100%
-  ;; accurate and should be used only for user navigation. This field
-  ;; is initialised lazily when file list is first constructed or user
-  ;; does a search.
+  ;; accurate (meaning that it may contain files that are no longer
+  ;; present on disk) and should be used only for user navigation.
+  ;; This field is initialised lazily when file list is first
+  ;; constructed or user does a search.
   (cached-files-for-navigation nil))
 
 (defmacro eproj-project/query-aux-info-entry (aux-info &rest keys)
@@ -1179,7 +1180,11 @@ Returns list of (tag-name tag project) lists."
       (error "No project for current buffer"))
     (let* ((all-related-projects
             (eproj-get-all-related-projects proj))
+           ;; List of (<display-name> . <absolute-file-name>).
+           ;; <display-name> will be shown to the user anad used for completion.
+           ;; <absolute-file-name> will be used to actually locate the file.
            (files nil)
+           ;; Hash table to filter out duplicates.
            (collected-entries
             (make-hash-table :test #'equal :size 997))
            (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
@@ -1198,9 +1203,10 @@ Returns list of (tag-name tag project) lists."
               (let ((buf (get-file-buffer abs-path)))
                 (when (or (not buf)
                           (invisible-buffer? buf))
-                  (unless (gethash rel-path collected-entries nil)
-                    (puthash rel-path t collected-entries)
-                    (push (cons rel-path abs-path) files)))))))
+                  (dolist (p (list abs-path rel-path))
+                    (unless (gethash p collected-entries nil)
+                      (puthash p t collected-entries)
+                      (push (cons p abs-path) files))))))))
       (let ((eproj-file (concat root "/.eproj-info")))
         (funcall add-file eproj-file ".epoj-info"))
       (dolist (related-proj all-related-projects)
@@ -1225,23 +1231,36 @@ Returns list of (tag-name tag project) lists."
       (dolist (buf (nreverse (if include-all-buffers?
                                  (buffer-list)
                                (visible-buffers))))
-        (let* ((buffer-file (buffer-file-name buf))
-               (name
-                (if buffer-file
-                    (if (string-prefix-p root buffer-file)
-                        (file-relative-name buffer-file root)
-                      buffer-file)
-                  (buffer-name buf))))
-          (unless (gethash name collected-entries nil)
-            (puthash name t collected-entries)
-            (push (cons name buf) files))))
+        (let* ((buffer-abs-file (buffer-file-name buf))
+               (names
+                (if buffer-abs-file
+                    ;; If buffer is under current project's root, add it under
+                    ;; both relative and absolute names.
+                    (if (string-prefix-p root buffer-abs-file)
+                        (list (file-relative-name buffer-abs-file root)
+                              buffer-abs-file)
+                      (list buffer-abs-file))
+                  ;; Buffer has no file, use buffer name instead.
+                  (list (buffer-name buf)))))
+          (dolist (name names)
+            (unless (gethash name collected-entries nil)
+              (puthash name t collected-entries)
+              (push (cons name buf) files)))))
       (ivy-read "Buffer or file: "
                 files
                 :require-match nil
                 :caller 'eproj-switch-to-file-or-buffer
                 :history 'eproj-switch-to-file--history
-                :preselect (or (awhen (buffer-file-name) (expand-file-name it))
-                               (buffer-name (other-buffer (current-buffer))))
+                :preselect (or (if-let (abs-name (buffer-file-name))
+                                   (let ((rel-name (file-relative-name abs-name root)))
+                                     (cond
+                                       ((gethash rel-name collected-entries nil)
+                                        rel-name)
+                                       ((gethash abs-name collected-entries nil)
+                                        abs-name)
+                                       (t
+                                        nil)))
+                                 (buffer-name (other-buffer (current-buffer)))))
                 :action on-item-selected))))
 
 ;;;###autoload
