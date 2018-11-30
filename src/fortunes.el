@@ -14,24 +14,7 @@
 (require 'persistent-store)
 
 (defparameter *perlis-quotes*
-  ["“I think that it’s extraordinarily important that we in computer
-science keep fun in computing. When it started out, it was an awful
-lot of fun. Of course, the paying customers got shafted every now and
-then, and after a while we began to take their complaints seriously.
-We began to feel as if we really were responsible for the successful,
-error-free perfect use of these machines. I don’t think we are. I
-think we’re responsible for stretching them, setting them off in new
-directions, and keeping fun in the house. I hope the field of computer
-science never loses its sense of fun. Above all, I hope we don’t
-become missionaries. Don’t feel as if you’re Bible salesmen. The world
-has too many of those already. What you know about computing other
-people will learn. Don’t feel as if the key to successful computing is
-only in your hands. What’s in your hands, I think and hope, is
-intelligence: the ability to see the machine as more than when you
-were first led up to it, that you can make it more.”
-―Alan Perlis, The Structure and Interpretation of Computer Programs"
-
-   "“Both knowledge and wisdom extend man’s reach. Knowledge led to
+  ["“Both knowledge and wisdom extend man’s reach. Knowledge led to
 computers, wisdom to chopsticks.”
 ―Alan Perlis"
 
@@ -546,199 +529,19 @@ They are a superb high-level documentation.”
    ]
   "Quotes and epigrams by Alan J. Perlis")
 
-(defparameter *cervantes-quotes*
-  ["“Беду ни праздностью, ни ленью не поправишь.”
-―Мигель де Сервантес"
-
-   "“Богатство — не в самом обладании богатством,
-а в умении целесообразно пользоваться им.”
-―Мигель де Сервантес"
-
-   "“Бывают люди, которым знание латыни не мешает всё-таки быть ослами.”
-―Мигель де Сервантес"
-
-   "“В душах трусливых нет места для счастья.”
-―Мигель де Сервантес"
-
-   "“Великие люди способны на великую доброту.”
-―Мигель де Сервантес"
-
-   "“В жизни героев есть предел счастью и славе, на котором они должны остановиться;
-если они пойдут далее, то впадут в несчастье и презрение.”
-―Мигель де Сервантес"
-
-   "“В любой науке, в любом искусстве лучший учитель — опыт.”
-―Мигель де Сервантес"
-
-   "“В несчастье судьба всегда оставляет дверцу для выхода.”
-―Мигель де Сервантес"
-
-   "“В присутствии предмета любви немеют самые смелые уста и остается невысказанным
-именно то, что так хотелось бы сказать.”
-―Мигель де Сервантес"
-
-   "“Всё на свете можно исправить, кроме смерти.”
-―Мигель де Сервантес"
-
-   "“Всякого человека должно судить по его делам.”
-―Мигель де Сервантес"
-
-   "“Всякой комедии, как и всякой песне, — своё время и своя пора.”
-―Мигель де Сервантес"
-
-   "“Говорить не думая — всё равно, что стрелять не целясь.”
-―Мигель де Сервантес"
-
-   "“Горе в одинаковой мере может и связать и развязать язык страдающего.”
-―Мигель де Сервантес"
-
-   "“Грех, если женщина выглядит менее красивой, чем могла бы быть.”
-―Мигель де Сервантес"
-
-   "“Делать добро дуракам — всё равно что подливать воду в море.”
-―Мигель де Сервантес"
-
-   "“Доблестным сердцам… столь же подобает быть терпеливыми в годину бедствий,
-сколь и радостными в пору преуспеваний.”
-―Мигель де Сервантес"
-
-   "“Добрые деяния никогда не следует откладывать:
-всякая проволочка неблагоразумна и часто опасна.”
-―Мигель де Сервантес"
-
-   "“Единственное средство побороть любовь — бежать от неё.”
-―Мигель де Сервантес"
-
-   "“Если бы всё то, что блестит, было золото — золото стоило бы много дешевле.”
-―Мигель де Сервантес"
-
-   "“Живи по правде — вот самая лучшая проповедь.”
-―Мигель де Сервантес"
-
-   "“Жестокость не может быть спутницей доблести.”
-―Мигель де Сервантес"
-
-   "“Женщина всегда ненавидит того, кто её любит, и любит того, кто ненавидит её.”
-―Мигель де Сервантес"
-
-   "“Живи в ладу со своей совестью, и пускай себе люди говорят всё, что им вздумается.”
-―Мигель де Сервантес"
-
-   "“Заслуги отца на сына не распространяются.”
-―Мигель де Сервантес"
-
-   "“Затравленный и прижатый к стенке кот превращается в тигра.”
-―Мигель де Сервантес"
-
-   "“Злые преследуют добродетель сильнее, чем добрые её любят.”
-―Мигель де Сервантес"
-
-   "“И самое лучшее лекарство не поможет больному, если он отказывается его принять.”
-―Мигель де Сервантес"
-
-   "“История — сокровищница наших деяний, свидетельница прошлого,
-пример и поучение для настоящего, предостережение для будущего.”
-―Мигель де Сервантес"
-
-   "“Каждый из нас — сын своих дел.”
-―Мигель де Сервантес"
-
-   "“Когда болит голова, страдает всё тело.”
-―Мигель де Сервантес"
-
-   "“Колесо судьбы вертится быстрее, чем крылья мельницы, и те,
-что ещё вчера были наверху, сегодня повержены во прах.”
-―Мигель де Сервантес"
-
-   "“Кто не умеет пользоваться счастьем, когда оно приходит, не должен жаловаться,
-когда оно проходит.”
-―Мигель де Сервантес"
-
-   "“Кто приготовился к бою, тот его наполовину выиграл.”
-―Мигель де Сервантес"
-
-   "“Любой судьбе любовь даёт отпор.”
-―Мигель де Сервантес"
-
-   "“Лживых историков следовало бы казнить, как фальшивомонетчиков.”
-―Мигель де Сервантес"
-
-   "“Лучше краска на лице, чем пятно на сердце.”
-―Мигель де Сервантес"
-
-   "“Любовь носит такие очки, сквозь которые медь кажется золотом,
-бедность — богатством, а капли огня — жемчужинами.”
-―Мигель де Сервантес"
-
-   "“Многословие обычно порождает скуку.”
-―Мигель де Сервантес"
-
-   "“Нельзя любить по принуждению.”
-―Мигель де Сервантес"
-
-   "“Нет такой боли, нет такого страдания, телесного или душевного,
-которых не ослабило бы время и не исцелила бы смерть.”
-―Мигель де Сервантес"
-
-   "“Ничто не обходится нам так дёшево и не ценится так дорого, как вежливость.”
-―Мигель де Сервантес"
-
-   "“О мужественное сердце разбиваются все невзгоды.”
-―Мигель де Сервантес"
-
-   "“Писатель творит не своими сединами, а разумом.”
-―Мигель де Сервантес"
-
-   "“Похвала только тогда хороша, когда хорош тот, кто хвалит.”
-―Мигель де Сервантес"
-
-   "“Правда иной раз гнётся, но никогда не ломается и всплывает поверх лжи,
-как масло — поверх воды.”
-―Мигель де Сервантес"
-
-   "“Ревность всегда смотрит в подзорную трубу, делающую маленькие предметы большими,
-карликов — гигантами, подозрения — истинами.”
-―Мигель де Сервантес"
-
-   "“Самая опасная ловушка, какую только дьявол может поставить человеку, —
-это внушить ему мысль, что он в состоянии написать книгу,
-которая принесёт ему столько же славы, сколько и денег,
-и столько же денег, сколько и славы.”
-―Мигель де Сервантес"
-
-   "“Слово — что камень: коли метнёт его рука, то уж потом назад не воротишь.”
-―Мигель де Сервантес"
-
-   "“Собственная похвала унижает человека.”
-―Мигель де Сервантес"
-
-   "“Совершенно невозможно написать произведение,
-которое удовлетворило бы всех читателей.”
-―Мигель де Сервантес"
-
-   "“Тропинка добродетели очень узка, а дорога порока широка и просторна.”
-―Мигель де Сервантес"
-   ])
-
 (defparameter *good-fortunes*
   ["“γνωθι σεαUτόυ \(Познай себя\)”
 ―Inscription at Temple of Apollo at Delphi"
 
+   "“Non est salvatori salvator,
+neque defensori dominus,
+nec pater nec mater,
+nihil supernum.”
+―Godric Gryffindor, 1202 A.D."
+
    "“Everything always takes twice as long and costs four times
 as much as you planned.”
 ―programmer’s axiom"
-
-   "“Magic is real, unless declared integer.”
-―the collected sayings of Wiz Zumwalt"
-
-   "Робкий отказ tar.
-Дерзкое согласие apt-get
-Застенчивый комплимент bash
-Невыносимое хамство git
-Жаркий секс с make
-Извращения с ghc
-
-Linux. It is your only woman."
 
    "“To those accustomed to the precise, structured methods of conventional
 system development, exploratory development techniques may seem messy,
@@ -820,14 +623,8 @@ be short.”
    "“When I was born, I was so surprised I didn’t talk for a year and a half.”
 ―Gracie Allen"
 
-   "“I’m not afraid to die.  I just don’t want to be there when it happens.”
-―Woody Allen"
-
    "“Love is not about who you live with. It’s about who you can’t live without.”
 ―Anonymous"
-
-   "“Wit is educated insolence.”
-―Aristotle"
 
    "“Education is the best provision for the journey to old age.”
 ―Aristotle"
@@ -841,7 +638,7 @@ be short.”
    "“We are what we repeatedly do.”
 ―Aristotle"
 
-   "“Wishing to be friends is quick work,  but friendship is a slow ripening fruit.”
+   "“Wishing to be friends is quick work, but friendship is a slow ripening fruit.”
 ―Aristotle"
 
    "“The worst solitude is to be destitute of sincere friendship.”
@@ -849,9 +646,6 @@ be short.”
 
    "“Knowledge is power.”
 ―Sir Francis Bacon"
-
-   "“Behind every great fortune there is a crime.”
-―Honore de Balzac"
 
    "“An error doesn’t become a mistake until you refuse to correct it.”
 ―Orlando A. Battista"
@@ -925,21 +719,12 @@ chance to get its pants on.”
 but the one most responsive to change.”
 ―Charles Darwin"
 
-   "“It’s the friends you can call up at 4 a.m. that matter.”
-―Marlene Dietrich"
-
    "“The greatest good you can do for another is not just share your riches,
 but reveal to him his own.”
 ―Benjamin Disraeli"
 
-   "“Little things affect little minds.”
-―Benjamin Disraeli"
-
    "“Pure love and suspicion cannot dwell together:
 at the door where the latter enters, the former makes its exit.”
-―Alexandre Dumas"
-
-   "“All for one and one for all.”
 ―Alexandre Dumas"
 
    "“Genius is one percent inspiration and ninety-nine percent perspiration.”
@@ -1002,24 +787,11 @@ not only plan but also believe.”
    "“Creative minds have always been known to survive any kind of bad training.”
 ―Anna Freud"
 
-   "“We cannot teach people anything;
-we can only help them discover it within themselves.”
-―Galileo Galilei"
-
-   "“I believe in equality for everyone, except reporters and photographers.”
-―Mahatma Gandhi"
-
    "“You must be the change you wish to see in the world.”
 ―Mahatma Gandhi"
 
    "“Live as if you were to die tomorrow; learn as if you were to live forever.”
 ―Mahatma Gandhi"
-
-   "“Nothing strengthens authority as much as silence”
-―Charles de Gaulle"
-
-   "“Graveyards are full of indispensable men.”
-―Charles de Gaulle"
 
    "“If you can actually count your money, then you’re not a rich man.”
 ―J. Paul Getty"
@@ -1048,13 +820,6 @@ we can only help them discover it within themselves.”
    "“Intelligence is the wife, imagination is the mistress, memory is the servant.”
 ―Victor Hugo"
 
-   "“Maybe this world is another planet’s hell.”
-―Aldous Huxley"
-
-   "“In matters of style, swim with the current;
-in matters of principle, stand like a rock.”
-―Thomas Jefferson"
-
    "“Our brightest blazes are commonly kindled by unexpected sparks.”
 ―Samuel Johnson"
 
@@ -1077,10 +842,6 @@ One represents danger, the other represents opportunity.”
    "“Liberty without learning is always in peril;
 learning without liberty is always in vain.”
 ―John F. Kennedy"
-
-   "“Education: the inculcation of the incomprehensible into the indifferent
-by the incompetent.”
-―John Maynard Keynes"
 
    "“Take everything you like seriously, except yourselves.”
 ―Rudyard Kipling"
@@ -1155,12 +916,6 @@ in having new eyes.”
 
    "“Instruction ends in the schoolroom, but education ends only with life.”
 ―F.W. Robertson"
-
-   "“Many people despise wealth but few know how to give it away.”
-―F. de la Rochefoucauld"
-
-   "“Men give away nothing so liberally as their advice.”
-―F. de la Rochefoucauld"
 
    "“The only thing we have to fear is fear itself.”
 ―Franklin D. Roosevelt"
@@ -1258,12 +1013,6 @@ than to open it and remove all doubt.”
    "“Wrinkles should merely indicate where smiles have been.”
 ―Mark Twain"
 
-   "“The speed of the leader determines the rate of the pack.”
-―Unknown"
-
-   "“Many receive advice; only the wise profit from it.”
-―Unknown"
-
    "“Remember, no one can make you feel inferior, without your consent.”
 ―Unknown"
 
@@ -1277,9 +1026,6 @@ than to open it and remove all doubt.”
 getting something done right is an achievement.”
 ―Unknown"
 
-   "“Do not let what you cannot do interfere with what you can do.”
-―Unknown"
-
    "“The best time to do something worthwhile is between yesterday and tomorrow.”
 ―Unknown"
 
@@ -1288,21 +1034,6 @@ getting something done right is an achievement.”
 
    "“God is a comedian playing to an audience too afraid to laugh.”
 ―Voltaire"
-
-   "“The greatest consolation in life is to say what one thinks.”
-―Voltaire"
-
-   "“Doubt is not an agreeable condition, but certainty is an absurd one.”
-―Voltaire"
-
-   "“The secret of being a bore is to tell everything.”
-―Voltaire"
-
-   "“Some cause happiness wherever they go; other whenever they go.”
-―Oscar Wilde"
-
-   "“My own business always bores me to death;  I prefer other people’s.”
-―Oscar Wilde"
 
    "“Experience is the name so many people give to their mistakes.”
 ―Oscar Wilde"
@@ -1331,12 +1062,6 @@ and the other is getting it.”
 every six months.”
 ―Oscar Wilde"
 
-   "“All cruel people describe themselves as paragons of frankness.”
-―Tennessee Williams"
-
-   "“Education is not the filling of a pail, but rather the lighting of a fire.”
-―William Butler Yeats"
-
    "“The artist is nothing without the gift, but the gift is nothing without work.”
 ―Emile Zola"
 
@@ -1364,12 +1089,8 @@ It is equally vain to try to do it with ten blunt axes instead.”
 interesting than the question of whether a submarine can swim.”
 ―Edsger W. Dijkstra"
 
-   "“If you were plowing a field, which would you rather use?  Two strong oxen
-or 1024 chickens?”
-―Seymour Cray"
-
-   "Nobody can fix the economy.  Nobody can be trusted with their finger on the
-button.  Nobody’s perfect.  VOTE FOR NOBODY."
+   ;; "Nobody can fix the economy.  Nobody can be trusted with their finger on the
+;; button.  Nobody’s perfect.  VOTE FOR NOBODY."
 
    "“One of the things every sorcerer will tell you, is that if you have
 the name of a spirit, you have power over it.”
@@ -1400,12 +1121,6 @@ hope, you who enter!]”
        _La Divina Commedia [The Divine Comedy]_ (1310-1321)
                                     “Inferno” canto 3, l. 1"
 
-   "“Misquotation is, in fact, the pride and privilege of
-the learned. A widely-read man never quotes accurately,
-for the rather obvious reason that he has read too widely.”
-                                Hesketh Pearson (1887-1964)
-                 _Common Misquotations_ (1934) introduction"
-
    "“When a distinguished but elderly scientist states that something is
 possible, he is almost certainly right.  When he states that something
 is impossible, he is very probably wrong.”
@@ -1430,7 +1145,7 @@ venture a little way past them into the impossible.”
 
    "“When, however, the lay public rallies round an idea that is
 denounced by distinguished but elderly scientists and supports that
-idea with great fervor and emotion--the distinguished but elderly
+idea with great fervor and emotion — the distinguished but elderly
 scientists are then, after all, probably right.”
                                                Isaac Asimov (1920-1992)
                             _Fantasy & Science Fiction_ 1977 [magazine]
@@ -1451,14 +1166,8 @@ So create.”
    "“Things should be made as simple as possible, but no simpler.”
 ―Albert Einstein"
 
-   "“Simplicity is the ultimate sophistication.”
-―Leonardo da Vinci"
-
    "“Our lives are frittered away by detail; simplify, simplify.”
 ―Henry David Thoreau"
-
-   "“If you can’t describe it simply, you can’t use it simply.”
-―Anonymous"
 
    "“You can always recognize truth by its beauty and simplicity.”
 ―Richard Feynman"
@@ -1480,13 +1189,6 @@ it is simplicity that emerges as the crowning reward of art.”
    "“Perfection is achieved, not when there is nothing more to add,
 but when there is nothing left to take away.”
 ―Antoine de Saint Exupéry"
-
-   "“Simplicity is making the journey of this life with just baggage enough.”
-―Charles Dudley Warner"
-
-   "“Purity and simplicity are the two wings with which man soars above
-the earth and all temporary nature.”
-―Thomas Kempis"
 
    "“Nothing is true, but that which is simple.”
 ―Johann Wolfgang von Goethe"
@@ -1601,11 +1303,6 @@ bombardment, explosions, cave-ins, and/or frogs falling from the sky."
 even know existed can render your own computer unusable.”
 ―Leslie Lamport \(CACM, June 1992\)"
 
-   "“As an adolescent I aspired to lasting fame, I craved factual certainty, and
-I thirsted for a meaningful vision of human life - so I became a scientist.
-This is like becoming an archbishop so you can meet girls.”
-―Matt Cartmill"
-
    "“A fractal is by definition a set for which the Hausdorff Besicovitch
 dimension strictly exceeds the topological dimension.”
 ―Mandelbrot, The Fractal Geometry of Nature"
@@ -1620,8 +1317,6 @@ of the world.”
    "“No man ever steps in the same river twice, for it’s not the
 same river and he’s not the same man.”
 ―Heraclitas"
-
-   "“The number you have dialed is imaginary.  Please divide by 0 and try again.”"
 
    "“We should be careful to get out of an experience only the wisdom that is
 in it-and stop there; lest we be like the cat that sits down on a hot
@@ -1641,10 +1336,6 @@ confusion of ideas that could provoke such a question.”
 
    "“Save the environment.  Create a closure today.”
 ―Cormac Flanagan"
-
-   "“We can find no scientific discipline, nor a healthy profession on the
-technical mistakes of the Department of Defense and IBM.”
-―Edsger Dijkstra"
 
    "“Price Wang’s programmer was coding software.  His fingers danced upon
 the keyboard.  The program compiled without an error message, and the program
@@ -1827,6 +1518,11 @@ Just because it can be done doesn’t mean it should be.”
    "“Never attribute to malice what incompetence will explain.”
 ―Robert J. Hanlon"
 
+   "Never assume malice when stupidity will suffice.
+Never assume stupidity when ignorance will suffice.
+Never assume ignorance when forgivable error will suffice.
+Never assume error when information you hadn't adequately accounted for will suffice."
+
    "“Supposing is good, but finding out is better.”
 ―Samuel Clemens (Mark Twain)"
 
@@ -1878,12 +1574,6 @@ The insect would fly just as well without them.”
 
    "“Obsessed is a word the lazy use to describe the dedicated.”
 ―Russell Warren"
-
-   "“Technical skill is mastery of complexity, while creativity is mastery of simplicity.”
-―Erik Christopher Zeeman"
-
-   "“Stop feeling sorry for yourself and you will be happy.”
-―Stephen Fry"
 
    "“In every passionate pursuit, the pursuit counts more than the object pursued.”
 ―Bruce Lee"
@@ -1944,14 +1634,8 @@ to lose sight of the shore.”
 life that is waiting for us.”
 ―Joseph Campbell"
 
-   "“It is in your moments of decision that your destiny is shaped.”
-―Anthony Robbins"
-
    "“The best way out is always through.”
 ―Robert Frost"
-
-   "“Believe and act as if it were impossible to fail.”
-―Charles Kettering"
 
    "“The difference between ordinary and extraordinary is that little extra.”
 ―Jimmy Johnson"
@@ -1977,13 +1661,6 @@ life that is waiting for us.”
    "“It’s better to be alone rather than being with someone who makes you feel
 like you’re alone.”
 ―Ivan Junius"
-
-   "“Your ability to achieve something largely depends on how much you believe
-you can achieve it.”
-―Anonymous"
-
-   "“The people who take risks are often the ones who end up being the happiest.”
-―Anonymous"
 
    "“If you do what you’ve always done, you’ll get what you’ve always gotten.”
 ―Anthony Robbins"
@@ -2028,8 +1705,7 @@ well treated or crushed, because they can avenge themselves of
 lighter injuries, of more serious ones they cannot; therefore the
 injury that is to be done to a man ought to be of such a kind
 that one does not stand in fear of revenge.”
-―Niccolò
-Machiavelli"
+―Niccolò Machiavelli"
 
    "“The laws that govern circumstances are abolished by new circumstances.”
 ―Napoleon Bonaparte"
@@ -2082,7 +1758,7 @@ Newtonian physics provides a good approximation in the everyday
 world which only breaks down in the small subatomic world and the
 huge astronomical scale. Similarly, the models of mathematical
 finance provide good approximations under what one might call
-\"normal\" conditions, but they may perform less well in
+‘normal’ conditions, but they may perform less well in
 extremeties. However, just as in physics, the fact that models
 are not universally valid actually keeps people in work.”
 — page 19, Mark Joshi, The Concepts and Practice of Mathematical Finance, Cambridge University Press, 2003"
@@ -2094,6 +1770,23 @@ Is bound in shallows and miseries.
 We must take the current when it serves,
 Or lose our ventures.”
 — Shakespeare"
+
+    "“I think that it’s extraordinarily important that we in computer
+science keep fun in computing. When it started out, it was an awful
+lot of fun. Of course, the paying customers got shafted every now and
+then, and after a while we began to take their complaints seriously.
+We began to feel as if we really were responsible for the successful,
+error-free perfect use of these machines. I don’t think we are. I
+think we’re responsible for stretching them, setting them off in new
+directions, and keeping fun in the house. I hope the field of computer
+science never loses its sense of fun. Above all, I hope we don’t
+become missionaries. Don’t feel as if you’re Bible salesmen. The world
+has too many of those already. What you know about computing other
+people will learn. Don’t feel as if the key to successful computing is
+only in your hands. What’s in your hands, I think and hope, is
+intelligence: the ability to see the machine as more than when you
+were first led up to it, that you can make it more.”
+―Alan Perlis, The Structure and Interpretation of Computer Programs"
 ]
   "Good and nice fortunes.")
 
