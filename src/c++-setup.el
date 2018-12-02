@@ -16,6 +16,10 @@
 (defparameter *c++-related-file-cache*
   (make-hash-table :test 'equal))
 
+;;;###autoload
+(defconst +cpp-extensions+
+  '("c" "cc" "cxx" "cpp" "c++" "h" "hh" "hxx" "hpp" "h++" "inl" "inc" "incl"))
+
 (defun c++-find-related-file ()
   (interactive)
   (let* ((filename   buffer-file-name)
