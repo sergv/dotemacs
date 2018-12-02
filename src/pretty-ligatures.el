@@ -228,6 +228,7 @@ into accound and do the replacement only within specific circumstances.")
   (prettify-symbols-mode))
 
 (defun pretty-ligatures--compose-p (start end str)
+  "Do not prettify withing strings, comments or within words/operators."
   (let* ((start-char (char-after start))
          (end-char (char-before end))
          (syntaxes-beg (if (memq (char-syntax start-char) '(?w ?_))
