@@ -32,6 +32,9 @@
                              "cabal.project.local"
                              (--map (concat "*." it)
                                     (cons "cabal" +haskell-extensions+))))
+                           " "))
+              (c++-exts
+               (join-lines (--map (concat "*." it) +cpp-extensions+)
                            " ")))
           `(("all"      . "*")
             ("el"       . "*.el")
@@ -40,7 +43,7 @@
             ("ch"       . "*.c *.h")
             ("hh"       . "*.hh *.hxx *.hpp *.h *.h++")
             ("cc"       . "*.cc *.cxx *.cpp *.c *.c++")
-            ("cchh"     . "*.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++ *.inl *.inc *.incl")
+            ("cchh"     . ,c++-exts)
             ("clj"      . "*.clj")
             ("clojure"  . "*.clj")
             ("java"     . "*.java")
