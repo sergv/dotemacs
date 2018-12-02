@@ -9,16 +9,32 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
+(require 'haskell-autoload)
 
 (require 'recentf)
-(setf recentf-max-saved-items 100
+
+(setf recentf-max-saved-items 1024
       recentf-save-file (concat +prog-data-path+ "/recentf")
       recentf-exclude
       (list
        (eval-when-compile
          (concat "\\`.*"
                  (regexp-opt +ignored-file-extensions+)
-                 "\\'"))))
+                 "\\'")))
+      recentf-arrange-rules
+      (list
+       (list "Haskell files (%d)" (eval-when-compile
+                                    (concat ".\\."
+                                            (regexp-opt (cons "cabal" +haskell-extensions+))
+                                            "\\'")))
+       '("Latex files (%d)" ".\\.tex\\'")
+       '("Elisp files (%d)" ".\\.el\\'")
+       '("C/C++ files (%d)" (eval-when-compile
+                                    (concat ".\\."
+                                            (regexp-opt +cpp-extensions+)
+                                            "\\'")))
+       '("Java files (%d)"  ".\\.java\\'")))
+
 (recentf-mode +1)
 
 (provide 'recentf-setup)
