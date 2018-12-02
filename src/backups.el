@@ -87,7 +87,9 @@
           )))))
 
 (defun backups--should-backup-buffer? (buf)
-  (not (buffer-local-value 'backups--ignore-buffer buf)))
+  (and (not (buffer-local-value 'backups--ignore-buffer buf))
+       (not (string= (buffer-file-name buf)
+                     recentf-save-file))))
 
 (defun backups-ignore-current-buffer! ()
   (setq-local backups--ignore-buffer t))
