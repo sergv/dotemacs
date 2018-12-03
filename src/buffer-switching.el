@@ -28,8 +28,6 @@
 (defun switch-to-buffer-create-if-missing (buffer-name)
   (interactive)
   (let ((buf (get-buffer buffer-name)))
-    (message "buffer-name = %s"
-             (pp-to-string buffer-name))
     (cond
       (buf (switch-to-buffer buf))
       ((string-match-p (rx bol
