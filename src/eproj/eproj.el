@@ -1173,13 +1173,15 @@ Returns list of (tag-name tag project) lists."
              '(eproj-switch-to-file-or-buffer . ivy--regex-fuzzy))
 
 ;;;###autoload
-(defun eproj-switch-to-file-or-buffer (proj include-all-buffers?)
+(defun eproj-switch-to-file-or-buffer (proj include-related-projects? include-all-buffers?)
   (let ((root (eproj-project/root proj))
         (this-command 'eproj-switch-to-file-or-buffer))
     (unless proj
       (error "No project for current buffer"))
     (let* ((all-related-projects
-            (eproj-get-all-related-projects proj))
+            (if include-related-projects?
+                (eproj-get-all-related-projects proj)
+              (list proj)))
            ;; List of (<display-name> . <absolute-file-name>).
            ;; <display-name> will be shown to the user anad used for completion.
            ;; <absolute-file-name> will be used to actually locate the file.
