@@ -47,6 +47,7 @@
     ("M-h"             haskell-compilation-next-error-other-window)
     ("C-SPC"           company-complete)
     ("C-b"             switch-to-buffer-or-file-in-current-project)
+    ("M-b"             switch-to-buffer-or-file-in-current-or-related-projects)
 
     ("C-l"             intero-repl-load)
 
