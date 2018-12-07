@@ -460,24 +460,21 @@ pattern and replace matches with REPLACEMENT.
           (cond
             ((vim:pattern-whole-line pattern)
              ;; this one is easy, just use the built in function
-             (message "perform-replace, regex = %s, replacement = %s, confirm = %s, start = %s, end = %s, case-fold-search = %s"
-                      (pp-to-string regex)
-                      (pp-to-string replacement)
-                      (pp-to-string confirm)
-                      (save-excursion
-                        (goto-line1 first-line)
-                        (line-beginning-position))
-                      (save-excursion
-                        (goto-line1 last-line)
-                        (line-end-position))
-                      case-fold-search)
-             (perform-replace regex replacement confirm t nil nil nil
-                              (save-excursion
-                                (goto-line1 first-line)
-                                (line-beginning-position))
-                              (save-excursion
-                                (goto-line1 last-line)
-                                (line-end-position))))
+             (let ((start (save-excursion
+                            (goto-line1 first-line)
+                            (line-beginning-position)))
+                   (end (save-excursion
+                          (goto-line1 last-line)
+                          (line-end-position))))
+               (perform-replace regex
+                                replacement
+                                confirm
+                                t   ;; is-regexp
+                                nil ;; delimited-count
+                                nil ;; repeat-count
+                                nil ;; map
+                                start
+                                end)))
             (t
              (let ((nreplaced 0))
                (if confirm
