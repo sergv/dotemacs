@@ -20,8 +20,7 @@ done
 emacs -Q --batch \
       -L "$EMACS_ROOT/src" \
       -L "$EMACS_ROOT/tests" \
-      -L "$EMACS_ROOT/third-party/bert-el" \
-      --eval "(progn (require 'cl) (require 'bert))" \
+      --eval "(progn (require 'cl))" \
       -l start \
       $tests \
       -f ert-run-tests-batch-and-exit
