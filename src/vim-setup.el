@@ -183,6 +183,7 @@ like \"d w\".")
 (def-keys-for-map vim:visual-mode-keymap
   ("'"       self-insert-command)
 
+  ("!"       shell-command-on-region)
   ("TAB"     indent-region)
   ("<tab>"   indent-region)
   ("s"       vim:visual-ex-read-command)
