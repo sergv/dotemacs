@@ -202,27 +202,32 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                                       -1)))
          (when (not (string= orig-str stripped-str))
            (push (list match-entry orig-str stripped-str) changed-entries)))))
-    (let ((ordered-changed-entries
+    (let ((changed-entries-hash-table
+           (make-hash-table :test #'equal))
+          (ordered-changed-entries
            (make-hash-table :test #'equal)))
       (dolist (entry changed-entries)
         (let* ((match-entry (car entry))
                (file-name (egrep-match-file match-entry)))
           (puthash file-name
                    (cons entry
-                         (gethash file-name ordered-changed-entries nil))
-                   ordered-changed-entries)))
-
+                         (gethash file-name changed-entries-hash-table nil))
+                   changed-entries-hash-table)))
+      (maphash (lambda (file-name entries)
+                 (puthash file-name
+                          (sort entries
+                                (lambda (x y)
+                                  (let ((x-match (car x))
+                                        (y-match (car y)))
+                                    ;; Use descending by line numbers order so
+                                    ;; that line numbers will not be
+                                    ;; invalidated when changes are applied.
+                                    (> (egrep-match-line x-match)
+                                       (egrep-match-line y-match)))))
+                          ordered-changed-entries))
+               changed-entries-hash-table)
       (maphash
        (lambda (file-name entries)
-         (sort entries
-               (lambda (x y)
-                 (let ((x-match (car x))
-                       (y-match (car y)))
-                   ;; Use descending by line numbers order so
-                   ;; that line numbers will not be
-                   ;; invalidated when changes are applied.
-                   (> (egrep-match-line x-match)
-                      (egrep-match-line y-match)))))
          (for-buffer-with-file file-name
            (dolist (entry entries)
              (let ((match-entry (car entry))
