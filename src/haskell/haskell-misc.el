@@ -213,6 +213,11 @@ and indent them as singe line."
           (error "Failed to set up haskell-compile-cabal-build-command"))
       ;; 'cabal-repl is good as well
 
+      haskell-tags-server-extra-args (eval-when-compile
+                                       (list "--serialised-state"
+                                             (concat (strip-trailing-slash +tmp-global-path+)
+                                                     "/haskell-tags-server-state")))
+
       ;; Don't kill any associated buffers when issuing `haskell-session-kill'.
       haskell-ask-also-kill-buffers nil
 
