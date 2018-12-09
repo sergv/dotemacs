@@ -1787,6 +1787,11 @@ only in your hands. What’s in your hands, I think and hope, is
 intelligence: the ability to see the machine as more than when you
 were first led up to it, that you can make it more.”
 ―Alan Perlis, The Structure and Interpretation of Computer Programs"
+
+    "“If you want more effective programmers, you will discover that
+they should not waste their time debugging, they should not introduce
+the bugs to start with.”
+—Edsger Dijkstra, Turing Award Lecture (1972)"
 ]
   "Good and nice fortunes.")
 
