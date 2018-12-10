@@ -45,6 +45,9 @@
                         (mode . ucf-mode)))
        (clojure-filter `(or (mode . clojure-mode)
                             (mode . kibit-check-mode)))
+       (lisp-filter `(or (mode . lisp-mode)
+                         (mode . common-lisp-mode)
+                         (mode . scheme-mode)))
        (emacs-lisp-filter `(or (predicate
                                 .
                                 (and (memq major-mode
@@ -218,6 +221,7 @@
       ("hdl"        ,hdl-filter)
       ("nix"        ,nix-filter)
       ("clojure"    ,clojure-filter)
+      ("lisp"       ,lisp-filter)
       ("emacs lisp" ,emacs-lisp-filter)
       ("c/c++"      ,c-c++-filter)
       ("rust"       ,rust-filter)
