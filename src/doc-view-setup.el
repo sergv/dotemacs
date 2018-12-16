@@ -45,10 +45,6 @@
            mode-line-process
            ")")
           " "
-          (:eval
-           (when vc-mode
-             (concat vc-mode " ")))
-          " "
           (:eval (number-to-string (doc-view-current-page)))
           "/"
           (:eval (number-to-string (doc-view-last-page-number)))))
