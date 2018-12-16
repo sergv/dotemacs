@@ -135,11 +135,11 @@
          (flycheck-enabled? (not non-vanilla-haskell-mode?))
          (intero-enabled?
           (if (and buffer-file-name
-                   (cached-executable-find "intero")
                    (intero--may-enable-for-buffer (current-buffer)))
               t
-            (prog1 nil
-              (message "[WARNING] Could not enable Intero because 'intero' executable was not found")))))
+            (progn
+              (message "[WARNING] Could not enable Intero for a buffer without cabal file")
+              nil))))
     (init-common :use-whitespace 'tabs-only)
     (fontify-conflict-markers!)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
