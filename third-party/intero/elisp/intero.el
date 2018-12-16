@@ -764,9 +764,11 @@ running context across :load/:reloads in Intero."
        ":sleep 1"))))
 
 (defun intero--may-enable-for-buffer (buf)
-  (flycheck--locate-dominating-file-matching
-   (file-name-directory (buffer-file-name buf))
-   "\\(?:stack.*\\.yaml\\|package\\.yaml\\|.*\\.cabal\\)\\'"))
+  (and
+   (not (cl-some #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
+   (flycheck--locate-dominating-file-matching
+    (file-name-directory (buffer-file-name buf))
+    "\\(?:stack.*\\.yaml\\|package\\.yaml\\|.*\\.cabal\\)\\'")))
 
 (flycheck-define-generic-checker 'intero
   "A syntax and type checker for Haskell using an Intero worker
