@@ -1,0 +1,8 @@
+resolver: lts-12.17
+
+arch: i386
+
+packages:
+  - "."
+  - "../emacs-module"
+  - "../radix-tree"
