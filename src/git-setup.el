@@ -314,6 +314,7 @@ directory computed by git.")
   (hl-line-mode +1)
   (def-keys-for-map git-rebase-mode-map
     +vi-keys+
+    +vim-search-keys+
     +vim-mock:word-motion-keys+
     +vim-special-keys+
     ("C-k"      nil) ;; its kill buffer in global map
