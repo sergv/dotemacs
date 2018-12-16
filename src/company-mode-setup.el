@@ -18,7 +18,7 @@
       company-tooltip-minimum-width 40
       company-tooltip-align-annotations t
       company-tooltip-offset-display 'lines
-      company-statistics-size (* 1024 1024))
+      company-statistics-size 512)
 
 (company-statistics-mode +1)
 
