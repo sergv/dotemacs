@@ -2258,10 +2258,10 @@ If supplied, use the given TARGETS, SOURCE-BUFFER and STACK-YAML."
                 (not-installed "Intero is not installed in the Stack environment.")
                 (wrong-version "The wrong version of Intero is installed for this Emacs package.")))
       (if (intero-version>= (intero-stack-version) '(1 6 1))
-          (intero-copy-compiler-tool-auto-install source-buffer targets buffer)
+          (intero-copy-compiler-tool-auto-install source-buffer targets buffer stack-yaml)
         (intero-old-auto-install source-buffer targets buffer stack-yaml)))))
 
-(defun intero-copy-compiler-tool-auto-install (source-buffer targets buffer)
+(defun intero-copy-compiler-tool-auto-install (source-buffer targets buffer stack-yaml)
   "Automatically install Intero appropriately for BUFFER.
 Use the given TARGETS, SOURCE-BUFFER and STACK-YAML."
   (let ((ghc-version (intero-ghc-version-raw)))
@@ -2273,13 +2273,17 @@ Installing intero-%s for GHC %s ...
 " intero-package-version ghc-version))
     (redisplay)
     (cl-case
-        (let ((default-directory (make-temp-file "intero" t)))
+        (let ((current-stack-yaml (when default-directory
+                                    (let ((path (concat default-directory "/stack.yaml")))
+                                      (when (file-exists-p path)
+                                        path))))
+              (default-directory (make-temp-file "intero" t)))
           (intero-call-stack
-           nil (current-buffer) t nil "build"
+           nil (current-buffer) t (or stack-yaml current-stack-yaml) "build"
            "--copy-compiler-tool"
            (concat "intero-" intero-package-version)
            "--flag" "haskeline:-terminfo"
-           "--resolver" (concat "ghc-" ghc-version)
+           ;; "--resolver" (concat "ghc-" ghc-version)
            "ghc-paths-0.1.0.9" "mtl-2.2.2" "network-2.7.0.0" "random-1.1" "syb-0.7"))
       (0
        (message "Installed successfully! Starting Intero in a moment ...")
@@ -2510,7 +2514,10 @@ This is a standard process sentinel function."
     (cl-case (save-excursion
                (intero-call-stack
                 nil (current-buffer) t intero-stack-yaml "path" "--compiler-tools-bin"))
-      (0 (replace-regexp-in-string "[\r\n]+$" "/intero" (buffer-string)))
+      (0 (let ((path (replace-regexp-in-string "[\r\n]+$" "/intero" (buffer-string))))
+           (if (file-exists-p path)
+               path
+             (error "Path to intero does not exist: %s. Intero will not work unless executable gets installed there, check intero's log for details" path))))
       (1 "intero"))))
 
 (defun intero-installed-p ()
