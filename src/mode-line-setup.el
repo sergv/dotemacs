@@ -112,7 +112,6 @@
    (:eval
     (when (buffer-narrowed?)
       "(Narrowed)"))
-   vc-mode
    (:eval
     (awhen (and (fboundp #'flycheck-pretty-mode-line)
                 (flycheck-pretty-mode-line))
