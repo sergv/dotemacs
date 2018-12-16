@@ -18,7 +18,7 @@
       max-specpdl-size    5000)
 
 ;; speeds up startup time considerably, worth to use
-(setq gc-cons-threshold (* 5 1024 1024)
+(setq gc-cons-threshold (* 1 1024 1024)
       gc-cons-percentage 0.01)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
