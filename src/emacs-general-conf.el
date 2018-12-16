@@ -132,7 +132,11 @@
       ;; Set only variables marked as safe, ignore all other.
       enable-local-variables :safe
 
-      sentence-end-double-space nil)
+      sentence-end-double-space nil
+
+      vc-display-status nil)
+
+(remove-hook 'find-file-hook #'vc-refresh-state)
 
 ;; Speed up display of long lines at the expense of correct
 ;; handling of bidirectional text.
