@@ -1,0 +1,267 @@
+name:
+  haskell-tags-server
+version:
+  0.1.0.0
+synopsis:
+  Server that looks up haskell entities, similar to tags in editors but more precise
+-- description:
+license:
+  BSD3
+license-file:
+  LICENSE
+author:
+  Sergey Vinokurov
+maintainer:
+  serg.foo@gmail.com
+category:
+  Development
+build-type:
+  Simple
+cabal-version:
+  >=1.16
+
+flag dev
+  description:
+    Enable development aids
+  default:
+    False
+  manual:
+    True
+
+library
+  if flag(dev)
+    cpp-options: -DDEVELOPMENT
+  if os(windows)
+    build-depends: unix-compat
+  else
+    build-depends: unix >= 2.6, unix-compat
+  build-depends:
+    abstract-par,
+    array,
+    async,
+    attoparsec >= 0.13.1.0,
+    base >= 4,
+    bimap,
+    binary,
+    bytestring,
+    containers,
+    deepseq,
+    directory,
+    dlist,
+    exceptions >= 0.8,
+    extra >= 1.4.2,
+    fast-tags >= 1.3,
+    filepath,
+    fsnotify,
+    hashable,
+    haskell-src-exts >= 1.16,
+    lifted-async,
+    microlens,
+    monad-control >= 1.0,
+    monad-par,
+    monad-par-extras,
+    mtl >= 2.2,
+    network >= 2.6,
+    parallel,
+    pointed,
+    prettyprinter,
+    prettyprinter-combinators,
+    profunctors >= 5.2,
+    regex-tdfa >= 1.2.2,
+    regex-tdfa-text,
+    scientific,
+    semigroupoids,
+    semigroups,
+    sexp-grammar,
+    streaming-commons,
+    stm,
+    stm-chans,
+    text,
+    time,
+    transformers,
+    transformers-base,
+    unordered-containers,
+    unsafe,
+    utf8-string >= 0.3,
+    zlib
+  exposed-modules:
+    Control.Arrow.Ext
+    Control.Monad.Ext
+    Control.Monad.ErrorExcept
+    Control.Monad.Except.Ext
+    Control.Monad.Filesystem
+    Control.Monad.Logging
+    Control.Monad.Logging.Simple
+    Control.Monad.Par.Combinator.Ext
+    Control.Parallel.Strategies.Ext
+
+    Data.Binary.Ext
+    Data.CompiledRegex
+    Data.Condition
+    Data.ErrorMessage
+    Data.Foldable.Ext
+    Data.HasLens
+    Data.IgnoreEqOrdHashNFData
+    Data.KeyMap
+    Data.Map.NonEmpty
+    Data.MonoidalMap
+    Data.Path
+    Data.Promise
+    Data.SubkeyMap
+    Data.SymbolMap
+    Data.Symbols
+    Data.Symbols.MacroName
+    Data.Text.Prettyprint.Doc.Ext
+
+    GHC.Stack.Ext
+
+    Haskell.Language.LexerSimple.LensBlaze
+    Haskell.Language.LexerSimple.Lexer
+    Haskell.Language.LexerSimple.Types
+
+    Haskell.Language.Lexer
+    Haskell.Language.Lexer.FastTags
+    Haskell.Language.Lexer.Types
+
+    Haskell.Language.Lexer.Env
+    Haskell.Language.Lexer.InputStack
+    Haskell.Language.Lexer.Input
+    Haskell.Language.Lexer.Lexer
+    Haskell.Language.Lexer.Monad
+    Haskell.Language.Lexer.Preprocessor
+    Haskell.Language.Lexer.RulePredicate
+    Haskell.Language.Lexer.State
+
+    Haskell.Language.Server.Sexp
+    Haskell.Language.Server.Tags
+    Haskell.Language.Server.Tags.AnalyzeHeader
+    Haskell.Language.Server.Tags.Types
+    Haskell.Language.Server.Tags.Types.Imports
+    Haskell.Language.Server.Tags.Types.Modules
+  other-modules:
+    Control.Monad.EitherCPS
+
+    Data.Filesystem
+    Data.NBSem
+    Data.Path.Internal
+    Data.Strict.Pair
+
+    Haskell.Language.Server.Tags.LoadModule
+    Haskell.Language.Server.Tags.LoadFiles
+    Haskell.Language.Server.Tags.Search
+    Haskell.Language.Server.Tags.SearchM
+  hs-source-dirs:
+    src
+  default-language:
+    Haskell2010
+  ghc-options:
+    -Wall
+    -Werror
+    -fno-warn-type-defaults
+    -fno-warn-name-shadowing
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
+  ghc-prof-options:
+    -fprof-auto
+  build-tools:
+    alex >= 3.1.7
+
+executable haskell-tags-server
+  if !os(windows)
+    build-depends: unix >= 2.6
+  main-is:
+    src/Main.hs
+  build-depends:
+    base >=4,
+    containers,
+    directory,
+    filepath,
+    mtl,
+    network,
+    optparse-applicative,
+    haskell-tags-server,
+    text
+  default-language:
+    Haskell2010
+  ghc-options:
+    -Wall
+    -fno-warn-type-defaults
+    -fno-warn-name-shadowing
+    -rtsopts
+    -threaded
+    "-with-rtsopts=-N"
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
+  ghc-prof-options:
+    -fprof-auto
+
+test-suite test-haskell-tags-server
+  if !os(windows)
+    build-depends: unix >= 2.6
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    tests
+  main-is:
+    Main.hs
+  other-modules:
+    Control.Monad.Logging.DiscardLogs
+    Data.Map.NonEmpty.Tests
+    Haskell.Language.Lexer.Preprocessor.Tests
+    Haskell.Language.Lexer.Tests
+    Haskell.Language.Lexer.Tokenisation
+    Haskell.Language.Lexer.TokenisationUtils
+    Haskell.Language.Server.Tags.AnalyzeHeaderTests
+    Haskell.Language.Server.Tags.AnalyzeHeaderTests.Regressions
+    Haskell.Language.Server.Tags.TypesTests
+    PortPool
+    ServerTests
+    ServerTests.Data
+    ServerTests.LogCollectingServer
+    TestUtils
+  build-depends:
+    QuickCheck,
+    base,
+    bytestring,
+    containers,
+    deepseq,
+    directory,
+    dlist,
+    exceptions,
+    fast-tags,
+    filepath,
+    monad-control,
+    mtl,
+    network,
+    prettyprinter,
+    raw-strings-qq,
+    regex-tdfa,
+    regex-tdfa-text,
+    scientific,
+    semigroups,
+    sexp-grammar,
+    stm,
+    haskell-tags-server,
+    tasty >= 0.7,
+    tasty-hunit >= 0.4,
+    tasty-quickcheck,
+    template-haskell,
+    text,
+    transformers-base,
+    utf8-string
+  ghc-options:
+    -Wall
+    -fno-warn-type-defaults
+    -fno-warn-name-shadowing
+    -rtsopts
+    -threaded
+    "-with-rtsopts=-A32m -N"
+  if impl(ghc >= 8.0)
+    ghc-options:
+      -Wcompat
+  ghc-prof-options:
+    -fprof-auto
