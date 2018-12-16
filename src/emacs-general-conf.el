@@ -113,7 +113,7 @@
       ;; Any kind of bell is annoying, but not when we're on windows
       ;; since it uses audible bell everywhere.
       visible-bell (fold-platform-os-type nil t)
-      message-log-max t
+      message-log-max 2048
 
       ;; Length from the beginning of buffer for magic mode detection.
       magic-mode-regexp-match-limit 1000000
