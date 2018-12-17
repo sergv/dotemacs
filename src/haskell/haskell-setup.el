@@ -148,7 +148,9 @@
     (pretty-ligatures-install-special-haskell-ligatures!)
 
     ;; Read settings from '.eproj-info' file, if any.
-    (let ((proj (eproj-get-project-for-buf-lax (current-buffer))))
+    (let (
+          ;; NB may be nil.
+          (proj (eproj-get-project-for-buf-lax (current-buffer))))
 
       (haskell-watch-register-current-buffer! proj)
 
@@ -192,7 +194,9 @@
               (when flycheck-mode
                 (flycheck-mode -1))
               (when intero-mode
-                (intero-mode -1)))))))
+                (intero-mode -1))))))
+
+      (setf intero-auto-install (eproj-query/intero-auto-install proj t)))
 
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)

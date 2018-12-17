@@ -61,6 +61,21 @@
         res)
     default))
 
+(defun eproj-query/intero-auto-install (proj default)
+  (declare (pure t) (side-effect-free nil))
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'intero-auto-install)))
+      (let ((res (car entry)))
+        (cl-assert (or (eq res 'nil)
+                       (eq res 't))
+                   nil
+                   "intero-auto-install entry in .eproj-info of %s must be a boolean (either 't or 'nil), but got %s"
+                   (eproj-project/root proj)
+                   res)
+        res)
+    default))
+
 (provide 'eproj-query)
 
 ;; Local Variables:
