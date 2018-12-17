@@ -2442,7 +2442,7 @@ Uses the specified TARGETS if supplied.
 Uses the default stack config file, or STACK-YAML file if given."
   (let* ((options
           (intero-make-options-list
-           (intero-executable-path stack-yaml)
+           (intero-executable-path stack-yaml t)
            (or targets
                (let ((package-name (buffer-local-value 'intero-package-name buffer)))
                  (unless (equal "" package-name)
@@ -2518,16 +2518,18 @@ This is a standard process sentinel function."
       (goto-char (point-min))
       (search-forward-regexp "cannot satisfy -package" nil t 1))))
 
-(defun intero-executable-path (stack-yaml)
+(defun intero-executable-path (stack-yaml check-existence)
   "The path for the intero executable."
   (intero-with-temp-buffer
     (cl-case (save-excursion
                (intero-call-stack
                 nil (current-buffer) t intero-stack-yaml "path" "--compiler-tools-bin"))
       (0 (let ((path (replace-regexp-in-string "[\r\n]+$" "/intero" (buffer-string))))
-           (if (file-exists-p path)
-               path
-             (error "Path to intero does not exist: %s. Intero will not work unless executable gets installed there, check intero's log for details" path))))
+           (if check-existence
+               (if (file-exists-p path)
+                   path
+                 (error "Path to intero does not exist: %s. Intero will not work unless executable gets installed there, check intero's log for details" path))
+             path)))
       (1 "intero"))))
 
 (defun intero-installed-p ()
@@ -2539,7 +2541,7 @@ This is a standard process sentinel function."
               "exec"
               "--verbosity" "silent"
               "--"
-              (intero-executable-path intero-stack-yaml)
+              (intero-executable-path intero-stack-yaml nil)
               "--version"))
         (progn
           (goto-char (point-min))
