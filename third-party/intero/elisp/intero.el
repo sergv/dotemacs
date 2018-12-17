@@ -2234,6 +2234,9 @@ as (CALLBACK STATE REPLY)."
   "Get the WORKER process for the current directory."
   (get-buffer-process (intero-buffer worker)))
 
+(defvar-local intero-enable-auto-install t
+  "Whether auto-installation of missing intero executabel should be enabled.")
+
 (defun intero-get-worker-create (worker &optional targets source-buffer stack-yaml)
   "Start the given WORKER.
 If provided, use the specified TARGETS, SOURCE-BUFFER and STACK-YAML."
@@ -2241,9 +2244,16 @@ If provided, use the specified TARGETS, SOURCE-BUFFER and STACK-YAML."
     (if (get-buffer-process buffer)
         buffer
       (let ((install-status (intero-installed-p)))
-        (if (eq install-status 'installed)
-            (intero-start-process-in-buffer buffer targets source-buffer stack-yaml)
-          (intero-auto-install buffer install-status targets source-buffer stack-yaml))))))
+        (cond
+          ((eq install-status 'installed)
+           (intero-start-process-in-buffer buffer targets source-buffer stack-yaml))
+          (intero-enable-auto-install
+           (intero-auto-install buffer install-status targets source-buffer stack-yaml))
+          (t
+           (error "No suitable intero executable found for current project: %s"
+                  (cl-case install-status
+                    (not-installed "no 'intero' executable found")
+                    (wrong-version "present 'intero' executable has wrong version")))))))))
 
 (defun intero-auto-install (buffer install-status &optional targets source-buffer stack-yaml)
   "Automatically install Intero appropriately for BUFFER.
