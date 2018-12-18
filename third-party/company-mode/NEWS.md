@@ -2,6 +2,29 @@
 
 ## Next
 
+* When an symbol is already typed in full, calling `M-x company-complete` will
+  now run its post-completion action (e.g. inserting method parameters
+  template). Calling `M-x company-manual-begin` or invoking a backend command
+  directly will show the popup
+  ([#150](https://github.com/company-mode/company-mode/issues/150),
+  [#476](https://github.com/company-mode/company-mode/issues/476)).
+
+## 2018-12-13 (0.9.9)
+
+* Fix for the changes in the previous release.
+* New hook `company-after-completion-hook`.
+* `company-clang` removes identity preprocessor #defines from completions
+  ([#841](https://github.com/company-mode/company-mode/issues/841)).
+
+## 2018-12-08 (0.9.8)
+
+* CAPF backend fixed to use the right `:exit-function`. It can now safely be a
+  closure with lexical context capturing the buffer state at the moment when the
+  completion table was returned
+  ([#845](https://github.com/company-mode/company-mode/pull/845)).
+
+## 2018-11-06 (0.9.7)
+
 * For more sophisticated highlighting in non-prefix completion, a backend may
   now respond to a `match` request with a list of regions.  See
   `company-backends`.
