@@ -54,12 +54,12 @@ import Control.Monad.Except.Ext
 
 import Data.Attoparsec.Text
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Binary
 import Data.Char (isUpper, isAlphaNum)
 import Data.Coerce
 import Data.Hashable
 import qualified Data.List as L
 import Data.Maybe
+import Data.Store (Store)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Ext
@@ -74,7 +74,7 @@ import Data.Path
 -- | e.g. Foo, Foo.Bar. Assume that this is not an import qualifier.
 -- Import qualifiers should be labeled as 'ImportQualifer'.
 newtype ModuleName = ModuleName { getModuleName :: Text }
-  deriving (Eq, Ord, Show, Pretty, Hashable, NFData, Binary)
+  deriving (Eq, Ord, Show, Pretty, Hashable, NFData, Store)
 
 {-# INLINE mkModuleName #-}
 mkModuleName :: Text -> ModuleName
@@ -113,7 +113,7 @@ fileNameToModuleName fname =
 -- import Foo.Bar as XXX
 -- import qualified Fizz.Buzz as XXX
 newtype ImportQualifier = ImportQualifier { getImportQualifier :: ModuleName }
-  deriving (Eq, Ord, Show, Pretty, Hashable, NFData, Binary)
+  deriving (Eq, Ord, Show, Pretty, Hashable, NFData, Store)
 
 {-# INLINE mkImportQualifier #-}
 mkImportQualifier :: ModuleName -> ImportQualifier
@@ -121,7 +121,7 @@ mkImportQualifier = ImportQualifier
 
 -- | Name the @ResolvedSymbol@ refers to. Can be either qualified or unqualified.
 newtype SymbolName = SymbolName { getSymbolName :: Text }
-  deriving (Eq, Ord, Show, Pretty, Hashable, NFData, Binary)
+  deriving (Eq, Ord, Show, Pretty, Hashable, NFData, Store)
 
 {-# INLINE mkSymbolName #-}
 mkSymbolName :: Text -> SymbolName
@@ -129,7 +129,7 @@ mkSymbolName = SymbolName
 
 -- | Name the @ResolvedSymbol@ refers to.
 newtype UnqualifiedSymbolName = UnqualifiedSymbolName { getUnqualifiedSymbolName :: SymbolName }
-  deriving (Eq, Ord, Show, Hashable, NFData, Binary)
+  deriving (Eq, Ord, Show, Hashable, NFData, Store)
 
 instance Pretty UnqualifiedSymbolName where
   pretty = pretty . getUnqualifiedSymbolName
@@ -181,9 +181,9 @@ data ResolvedSymbol = ResolvedSymbol
   , rsParent :: !(Maybe Text)
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary   ResolvedSymbol
 instance Hashable ResolvedSymbol
 instance NFData   ResolvedSymbol
+instance Store    ResolvedSymbol
 
 instance HasKey ResolvedSymbol where
   type Key ResolvedSymbol = UnqualifiedSymbolName

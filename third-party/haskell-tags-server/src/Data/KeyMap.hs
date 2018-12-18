@@ -44,12 +44,12 @@ import Prelude hiding (lookup, null)
 import Control.Arrow
 import Control.DeepSeq
 
-import Data.Binary
 import Data.Coerce
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Data.Pointed
 import Data.Set (Set)
+import Data.Store (Store)
 import GHC.Generics
 
 import Data.Text.Prettyprint.Doc.Combinators
@@ -63,7 +63,7 @@ deriving instance (Eq   (f a), Eq   (Key a)) => Eq   (KeyMap f a)
 deriving instance (Ord  (f a), Ord  (Key a)) => Ord  (KeyMap f a)
 deriving instance (Show (f a), Show (Key a)) => Show (KeyMap f a)
 
-instance (Binary (f a), Binary (Key a)) => Binary (KeyMap f a)
+instance (Store (f a), Store (Key a), Ord (Key a)) => Store (KeyMap f a)
 instance (NFData (f a), NFData (Key a)) => NFData (KeyMap f a)
 
 instance (Pretty (Key a), Pretty (f a)) => Pretty (KeyMap f a) where
