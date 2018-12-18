@@ -35,10 +35,10 @@ module Haskell.Language.Server.Tags.Types.Imports
 
 import Control.DeepSeq
 
-import Data.Binary
 import Data.Hashable
 import Data.Map.Strict (Map)
 import Data.Set (Set)
+import Data.Store (Store)
 import Data.Text.Prettyprint.Doc.Ext
 import GHC.Generics (Generic)
 
@@ -58,9 +58,9 @@ data ImportKey = ImportKey
   , ikModuleName   :: !ModuleName
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary   ImportKey
 instance Hashable ImportKey
 instance NFData   ImportKey
+instance Store    ImportKey
 
 instance HasSubkey ImportKey where
   type Subkey ImportKey = ModuleName
@@ -74,9 +74,9 @@ instance Pretty ImportKey where
 data ImportTarget = VanillaModule | HsBootModule
   deriving (Eq, Ord, Show, Enum, Bounded, Generic)
 
-instance Binary   ImportTarget
 instance Hashable ImportTarget
 instance NFData   ImportTarget
+instance Store    ImportTarget
 
 instance Pretty ImportTarget where
   pretty = ppGeneric
@@ -88,8 +88,8 @@ data ImportSpec = ImportSpec
   , ispecImportList    :: !(ImportListSpec ImportList)
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary ImportSpec
 instance NFData ImportSpec
+instance Store  ImportSpec
 
 instance Pretty ImportSpec where
   pretty = ppGeneric
@@ -146,9 +146,9 @@ data ImportQualification =
   | BothQualifiedAndUnqualified !ImportQualifier
   deriving (Eq, Ord, Show, Generic)
 
-instance Binary   ImportQualification
 instance Hashable ImportQualification
 instance NFData   ImportQualification
+instance Store    ImportQualification
 
 instance Pretty ImportQualification where
   pretty = ppGeneric
@@ -174,9 +174,9 @@ data ImportType =
     Hidden
   deriving (Eq, Ord, Show, Generic)
 
-instance Binary   ImportType
 instance Hashable ImportType
 instance NFData   ImportType
+instance Store    ImportType
 
 instance Pretty ImportType where
   pretty = ppGeneric
@@ -189,8 +189,8 @@ data ImportListSpec a =
   | SpecificImports !a
   deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
 
-instance Binary a => Binary (ImportListSpec a)
 instance NFData a => NFData (ImportListSpec a)
+instance Store  a => Store  (ImportListSpec a)
 
 instance Pretty a => Pretty (ImportListSpec a) where
   pretty = ppGeneric
@@ -201,8 +201,8 @@ data ImportList = ImportList
   , ilImportType :: !ImportType
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary ImportList
 instance NFData ImportList
+instance Store  ImportList
 
 instance Pretty ImportList where
   pretty ImportList{ilImportType, ilEntries} =
@@ -213,8 +213,8 @@ data EntryWithChildren childAnn name = EntryWithChildren
   , entryChildrenVisibility :: !(Maybe (ChildrenVisibility childAnn))
   } deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
 
-instance (Binary a, Binary b) => Binary (EntryWithChildren a b)
 instance (NFData a, NFData b) => NFData (EntryWithChildren a b)
+instance (Store  a, Store  b) => Store  (EntryWithChildren a b)
 
 instance (Pretty ann, Pretty name) => Pretty (EntryWithChildren ann name) where
   pretty = ppGeneric
@@ -244,8 +244,8 @@ data ChildrenVisibility ann =
   | VisibleAllChildrenPlusSome !(Map UnqualifiedSymbolName ann)
   deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
 
-instance Binary a => Binary (ChildrenVisibility a)
 instance NFData a => NFData (ChildrenVisibility a)
+instance Store  a => Store  (ChildrenVisibility a)
 
 instance Pretty a => Pretty (ChildrenVisibility a) where
   pretty = ppGeneric

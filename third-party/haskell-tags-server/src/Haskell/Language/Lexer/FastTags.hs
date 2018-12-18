@@ -34,13 +34,13 @@ module Haskell.Language.Lexer.FastTags
 import Control.Arrow (second)
 import Control.DeepSeq
 
-import Data.Binary
 import Data.Either
 import Data.Hashable
 import Data.IgnoreEqOrdHashNFData
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Data.Maybe
+import Data.Store (Store)
 import Data.Text (Text)
 import Data.Text.Prettyprint.Doc.Ext
 import Data.Void (Void)
@@ -150,16 +150,16 @@ instance Pretty FastTags.TokenVal where
   pretty = ppGeneric
 
 deriving instance Generic  Line
-deriving instance Binary   Line
 deriving instance Hashable Line
 deriving instance Pretty   Line
+deriving instance Store    Line
 
 instance Pretty SrcPos where
   pretty SrcPos{posFile, posLine} = pretty posFile <> ":" <> pretty (unLine posLine)
 
 deriving instance Generic Type
-instance Binary   Type
 instance Hashable Type
+instance Store    Type
 
 instance Pretty Type where
   pretty = ppGeneric
