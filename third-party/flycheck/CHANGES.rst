@@ -6,6 +6,7 @@
   - Remove ``javascript-jscs`` checker
   - Remove ``elixir-dogma`` checker [GH-1450]
   - ``rust-cargo`` now requires Rust 1.17 or newer [GH-1289]
+  - ``rust`` now requires 1.18 or newer [GH-1501]
   - Rename ``flycheck-cargo-rustc-args`` to ``flycheck-cargo-check-args``
     [GH-1289]
   - ``rust-cargo`` does not use the variable ``flycheck-rust-args`` anymore
@@ -35,6 +36,14 @@
   - Add ``flycheck-sh-bash-args`` to pass arguments to ``sh-bash`` [GH-1439].
   - Add ``flychjeck-eslint-args`` to pass arguments to ``javascript-eslint``
     [GH-1360]
+  - Add ``flycheck-default-executable-find``, the new default value for
+    ``flycheck-executable-find``, to allow using relative paths to checkers
+    (set e.g. in file or dir-local variables). [GH-1485]
+  - Add ``idle-buffer-switch`` option for use in
+    ``flycheck-check-syntax-automatically``.  Variables
+    ``flycheck-idle-buffer-switch-delay`` and
+    ``flycheck-buffer-switch-check-intermediate-buffers`` control the
+    functionality [GH-1297]
 
 - Improvements
 
