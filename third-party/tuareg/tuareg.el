@@ -31,7 +31,6 @@
 ;;
 ;; (add-to-list 'load-path "DIR")
 
-
 ;;; Usage:
 ;; Tuareg allows you to run batch OCaml compilations from Emacs (using
 ;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
@@ -71,7 +70,6 @@
 ;; GNU General Public License for more details.
 
 ;;; Code:
-
 
 (eval-when-compile (require 'cl))
 (require 'easymenu)
@@ -176,10 +174,10 @@ if it has to."
   :set (lambda (var val)
          (set-default var val)
          (ignore-errors
-           (dolist (buf (buffer-list))
+           (dolist (buf (buffer-list))
              (with-current-buffer buf
                (when (derived-mode-p 'tuareg-mode 'tuareg-interactive-mode)
-                 (tuareg-install-font-lock)))))))
+                 (tuareg--install-font-lock)))))))
 
 (defcustom tuareg-in-indent 0 ; tuareg-default-indent
   "*How many spaces to indent from a `in' keyword.
@@ -514,7 +512,7 @@ use `prettify-symbols-mode'."
                           'prettify-symbols-mode "Emacs-24.4"))
 
 (defcustom tuareg-prettify-symbols-full nil
-  "It t, add fun and -> and such to be prettified with symbols.
+  "If non-nil, add fun and -> and such to be prettified with symbols.
 This may sound like a neat trick, but note that it can change the
 alignment and can thus lead to surprises.  By default, only symbols that
 do not perturb in essential ways the alignment are used.  See
@@ -605,12 +603,12 @@ do not perturb in essential ways the alignment are used.  See
             ("->" . ,(make-char 'symbol 174))
             (":=" . ,(make-char 'symbol 220))))))
 
-(defun tuareg--prettify-symbols-compose-p (start end _match)
+(defun tuareg--prettify-symbols-compose-p (start end match)
   "Return true iff the symbol MATCH should be composed.
 See `prettify-symbols-compose-predicate'."
   ;; Refine `prettify-symbols-default-compose-p' so as not to compose
   ;; symbols for errors,...
-  (and (prettify-symbols-default-compose-p start end _match)
+  (and (prettify-symbols-default-compose-p start end match)
        (not (memq (get-text-property start 'face)
                   '(tuareg-font-lock-error-face
                     tuareg-font-lock-interactive-output-face
@@ -653,14 +651,14 @@ Regexp match data 0 points to the chars."
                    (not (assoc (car x) alist))) ; not yet in alist.
           (push x alist)))
       (when alist
-        `((,(regexp-opt (mapcar 'car alist) t)
+        `((,(regexp-opt (mapcar #'car alist) t)
            (0 (tuareg-font-lock-compose-symbol ',alist))))))))
 
 (defvar tuareg-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?_ "_" st)
     (modify-syntax-entry ?. "'" st)     ;Make qualified names a single symbol.
-    (modify-syntax-entry ?# "_" st)     ;Make name#method a single symbol
+    (modify-syntax-entry ?# "." st)
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
     ;; See http://caml.inria.fr/pub/docs/manual-ocaml/lex.html.
@@ -759,7 +757,7 @@ Regexp match data 0 points to the chars."
           tuareg-doc-face
         font-lock-comment-face))))
 
-;; Initially empty, set in `tuareg-install-font-lock'
+;; Initially empty, set in `tuareg--install-font-lock'
 (defvar tuareg-font-lock-keywords ()
   "Font-Lock patterns for Tuareg mode.")
 
@@ -775,7 +773,9 @@ Regexp match data 0 points to the chars."
   ;; N spaces in N+1 different ways :-(
   " *\\(?:[\t\n] *\\)?")
 
-(defun tuareg-install-font-lock ()
+(defun tuareg--install-font-lock (&optional interactive-p)
+  "Setup `font-lock-defaults'.  INTERACTIVE-P says whether it is
+for the interactive mode."
   (let* ((id "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
          (lid "\\<[a-z_][A-Za-z0-9_']*\\>")
          (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
@@ -851,9 +851,15 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
-     (,(concat "^# +\\(#" lid "\\)")
-      1 tuareg-font-lock-interactive-directive-face)
-     (,(concat "^# +#show\\(?:_module\\)? +\\(" uid "\\)")
+     ,@(if interactive-p
+           `((,(concat "^# +\\(#" lid "\\)")
+              1 tuareg-font-lock-interactive-directive-face)
+             (,(concat "^ *\\(#" lid "\\)")
+              1 tuareg-font-lock-interactive-directive-face))
+         `((,(concat "^\\(#" lid "\\)")
+            . tuareg-font-lock-interactive-directive-face)))
+     (,(concat (if interactive-p "^ *#\\(?: +#\\)?" "^#")
+               "show\\(?:_module\\)? +\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
      (";;+" 0 tuareg-font-double-colon-face)
      ;; Attributes (`keep' to highlight except strings & chars)
@@ -1294,7 +1300,11 @@ For use on `electric-indent-functions'."
                     ("let" "exception-let" exception "in" exp1)
                     ("object" class-body "end")
                     ("(" exp:>type ")")
-                    ("{<" fields ">}"))
+                    ("{<" fields ">}")
+                    ;; MetaOCaml thingies.
+                    ;; Let's not do anything special for .~ for now,
+                    ;; as for !. it's deprecated anyway!
+                    (".<" exp ">."))
               ;; Like `exp' but additionally allow if-then without else.
               (exp (exp1) ("if" exp "then" exp))
               (forbounds (iddef "to" exp) (iddef "downto" exp))
@@ -1505,6 +1515,8 @@ For use on `electric-indent-functions'."
         (match-string 0)))
      ((and (equal tok "|") (looking-at-p "\\]")) (forward-char 1) "|]")
      ((and (equal tok ">") (looking-at-p "}")) (forward-char 1) ">}")
+     ((and (equal tok ".") (memq (char-after) '(?< ?~)))
+      (forward-char 1) (string ?. (char-before)))
      ((or (member tok '("let" "=" "->"
                         "module" "class" "open" "type" "with" "and"
                         "exception"))
@@ -1535,11 +1547,34 @@ For use on `electric-indent-functions'."
   ;;   (dolist (cat tuareg-smie-bnf)
   ;;     (dolist (rule (cdr cat))
   ;;       (setq rule (reverse rule))
-  ;;       (while (setq rule (cdr (memq 'exp rule)))
+  ;;       (while (setq rule (cdr (cl-member 'dummy rule
+  ;;                                         :test (lambda (_ x)
+  ;;                                                 (memq x '(exp exp1))))))
   ;;         (push (car rule) leaders))))
-  ;;   leaders)
-  '("if" "then" "try" "match" "do" "while" "begin" "in" "when"
-    "downto" "to" "else"))
+  ;;   (prin1-to-string (sort (delete-dups leaders) #'string-lessp)))
+  ;; BEWARE: In let-disambiguate, we compare this against the output of
+  ;; tuareg-smie--backward-token which never returns refined tokens like "d=",
+  ;; so we manually replace those with just "=" here!
+  '("->" ".<" ";" "[|" "begin" "=" "do" "downto" "else" "if" "in"
+    "match" "then" "to" "try" "when" "while"))
+
+(defun tuareg-smie--let-disambiguate ()
+  "Return \"d-let\" if \"let\" at point is a decl, or just \"let\" if it's an exp."
+  (save-excursion
+    (let ((prev (tuareg-smie--backward-token)))
+      (if (or (member prev tuareg-smie--exp-leaders)
+              (if (zerop (length prev))
+                  (and (not (bobp))
+                       ;; See if prev char has open-paren syntax.
+                       (eq 4 (mod (car (syntax-after (1- (point)))) 256)))
+                (and (eq ?. (char-syntax (aref prev 0)))
+                     (and (not (equal prev ";;"))
+                          (let ((tokinfo (assoc prev smie-grammar)))
+                            ;; Check that prev is not a closing token like ">."
+                            (or (null tokinfo)
+                                (integerp (nth 2 tokinfo))))))))
+          "let"
+        "d-let"))))
 
 (defun tuareg-smie--label-colon-p ()
   (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
@@ -1649,17 +1684,8 @@ Return values can be
   (let ((tok (tuareg-smie--backward-token)))
     (cond
      ;; Distinguish a let expression from a let declaration.
-     ((equal tok "let")
-      (save-excursion
-        (let ((prev (tuareg-smie--backward-token)))
-          (if (or (member prev tuareg-smie--exp-leaders)
-                  (if (zerop (length prev))
-                      (and (not (bobp))
-                           (eq 4 (mod (car (syntax-after (1- (point)))) 256)))
-                    (and (eq ?. (char-syntax (aref prev 0)))
-                         (not (equal prev ";;")))))
-              tok
-            "d-let"))))
+     ((equal tok "let") (tuareg-smie--let-disambiguate))
+     ((equal ".<.~" tok) (forward-char 2) ".~") ;FIXME: Likely too ad-hoc!
      ;; Handle "let module" and friends.
      ((member tok '("module" "class" "open"))
       (let ((prev (save-excursion (tuareg-smie--backward-token))))
@@ -1716,7 +1742,7 @@ Return values can be
      ;; See http://caml.inria.fr/pub/docs/manual-ocaml/expr.html.
      ((memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
       (cond
-       ((member tok '("|" "||" "&" "&&" "<-" "->")) tok)
+       ((member tok '("|" "||" "&" "&&" "<-" "->" ">.")) tok)
        ((and (eq (aref tok 0) ?*) (> (length tok) 1) (eq (aref tok 1) ?*))
         "**…")
        (t (string (aref tok 0) ?…))))
@@ -2245,7 +2271,7 @@ or indent all lines in the current phrase."
         (tuareg--fill-comment))
        (t (let ((phrase (tuareg-discover-phrase)))
             (if phrase
-                (indent-region (car phrase) (cadr phrase))))))))) 
+                (indent-region (car phrase) (cadr phrase)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2389,15 +2415,15 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
                     #'tuareg--hanging-eolp-advice)))
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
-  (setq-local add-log-current-defun-function 'tuareg-current-fun-name)
+  (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
   (setq prettify-symbols-alist
         (if tuareg-prettify-symbols-full
             (append tuareg-prettify-symbols-basic-alist
                     tuareg-prettify-symbols-extra-alist)
           tuareg-prettify-symbols-basic-alist))
+  ;; FIXME: Use `add-function' (when Emacs≥24.4 can be assumed)!
   (setq prettify-symbols-compose-predicate
         #'tuareg--prettify-symbols-compose-p)
-  (tuareg-install-font-lock)
   (setq-local open-paren-in-column-0-is-defun-start nil)
 
   (add-hook 'completion-at-point-functions #'tuareg-completion-at-point nil t)
@@ -2479,6 +2505,7 @@ Short cuts for interactions with the REPL:
     ;; TABs should NOT be used in OCaml files:
     (setq indent-tabs-mode nil)
     (tuareg--common-mode-setup)
+    (tuareg--install-font-lock)
     (when (fboundp 'tuareg-auto-fill-function)
       ;; Emacs-21's newcomment.el provides this functionality by default.
       (setq-local normal-auto-fill-function #'tuareg-auto-fill-function))
@@ -2807,7 +2834,7 @@ switch is not installed, `nil' is returned."
 
 
 ;; OPAM compilation
-(defun tuareg--compile-opam (&rest r)
+(defun tuareg--compile-opam (&rest _)
   "Advice to update the OPAM environment to sync it with the OPAM
 switch before compiling."
   (let* ((env (tuareg-opam-config-env)))
@@ -2938,7 +2965,7 @@ be sent from another buffer in tuareg mode.
 
 Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
-  (add-hook 'comint-output-filter-functions 'tuareg-interactive-filter)
+  (add-hook 'comint-output-filter-functions #'tuareg-interactive-filter)
   (setq comint-prompt-regexp "^#  *")
   (setq comint-process-echoes nil)
   (setq comint-get-old-input 'tuareg-interactive-get-old-input)
@@ -2951,6 +2978,7 @@ Short cuts for interactions with the REPL:
   (setq-local comint-prompt-read-only t)
 
   (tuareg--common-mode-setup)
+  (tuareg--install-font-lock t)
   (when (or tuareg-interactive-input-font-lock
             tuareg-interactive-output-font-lock
             tuareg-interactive-error-font-lock)
