@@ -1199,6 +1199,145 @@
       (sleep-for 1.1)
       (should (flycheck-deferred-check-p)))))
 
+(ert-deftest flycheck-check-syntax-automatically/does-not-check-after-buffer-switch-by-default ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '())
+        (flycheck-idle-buffer-switch-delay 0)
+        (checks 0))
+    (find-file (flycheck-ert-resource-filename "automatic-check-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (add-hook 'flycheck-before-syntax-check-hook (lambda () (cl-incf checks)) nil 'local)
+
+    (switch-to-buffer "*scratch*")
+    (switch-to-buffer "automatic-check-dummy.el")
+    (sleep-for 0.1)
+    (should (= checks 0))
+    (kill-buffer "automatic-check-dummy.el")))
+
+(ert-deftest flycheck-check-syntax-automatically/idle-buffer-switch-checks-after-buffer-switch ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '(idle-buffer-switch))
+        (flycheck-idle-buffer-switch-delay 0)
+        (checks 0))
+    (find-file (flycheck-ert-resource-filename "automatic-check-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (add-hook 'flycheck-before-syntax-check-hook (lambda () (cl-incf checks)) nil 'local)
+
+    (switch-to-buffer "*scratch*")
+    (switch-to-buffer "automatic-check-dummy.el")
+    (sleep-for 0.1)
+    (should (= checks 1))
+    (kill-buffer "automatic-check-dummy.el")))
+
+(ert-deftest flycheck-check-syntax-automatically/idle-change-cancels-idle-buffer-switch ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '(idle-change idle-buffer-switch))
+        (flycheck-idle-change-delay 0.02)
+        (flycheck-idle-buffer-switch-delay 0.01)
+        (checks 0))
+    (find-file (flycheck-ert-resource-filename "automatic-check-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (add-hook 'flycheck-before-syntax-check-hook (lambda () (cl-incf checks)) nil 'local)
+
+    (switch-to-buffer "*scratch*")
+    (switch-to-buffer "automatic-check-dummy.el")
+    (insert "Hello")
+    (sleep-for 0.015)
+    (should (= checks 0))
+    (sleep-for 0.01)
+    (should (= checks 1))
+    (kill-buffer "automatic-check-dummy.el")))
+
+(ert-deftest flycheck-check-syntax-automatically/idle-buffer-switch-cancels-idle-change ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '(idle-change idle-buffer-switch))
+        (flycheck-idle-change-delay 0.01)
+        (flycheck-idle-buffer-switch-delay 0.02)
+        (checks 0))
+    (find-file (flycheck-ert-resource-filename "automatic-check-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (add-hook 'flycheck-before-syntax-check-hook (lambda () (cl-incf checks)) nil 'local)
+
+    (insert "Hello")
+    (switch-to-buffer "*scratch*")
+    (switch-to-buffer "automatic-check-dummy.el")
+    (sleep-for 0.015)
+    (should (= checks 0))
+    (sleep-for 0.01)
+    (should (= checks 1))
+    (kill-buffer "automatic-check-dummy.el")))
+
+(ert-deftest flycheck-check-syntax-automatically/idle-buffer-switch-does-not-check-intermediate-buffers-by-default ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '(idle-buffer-switch))
+        (flycheck-idle-buffer-switch-delay 0.01)
+        (checks 0))
+    (find-file (flycheck-ert-resource-filename "automatic-check-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (find-file (flycheck-ert-resource-filename "global-mode-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (add-hook 'flycheck-before-syntax-check-hook (lambda () (cl-incf checks)) nil 'local)
+
+    (switch-to-buffer "*scratch*")
+    (switch-to-buffer "automatic-check-dummy.el")
+    (switch-to-buffer "global-mode-dummy.el")
+    (sleep-for 0.015)
+    (should (= checks 1))
+    ;; Since the buffer is not visible, the check would be automatically deferred
+    (set-buffer "automatic-check-dummy.el")
+    (should-not (flycheck-deferred-check-p))
+    (kill-buffer "automatic-check-dummy.el")
+    (kill-buffer "global-mode-dummy.el")))
+
+(ert-deftest flycheck-check-syntax-automatically/idle-buffer-switch-checks-intermediate-buffers-with-option ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '(idle-buffer-switch))
+        (flycheck-idle-buffer-switch-delay 0.01)
+        (flycheck-buffer-switch-check-intermediate-buffers t)
+        (checks 0))
+    (find-file (flycheck-ert-resource-filename "automatic-check-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (find-file (flycheck-ert-resource-filename "global-mode-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+    (add-hook 'flycheck-before-syntax-check-hook (lambda () (cl-incf checks)) nil 'local)
+
+    (switch-to-buffer "*scratch*")
+    (switch-to-buffer "automatic-check-dummy.el")
+    (switch-to-buffer "global-mode-dummy.el")
+    (sleep-for 0.015)
+    (should (= checks 1))
+    ;; Since the buffer is not visible, the check will be automatically deferred
+    (set-buffer "automatic-check-dummy.el")
+    (should (flycheck-deferred-check-p))
+    (kill-buffer "automatic-check-dummy.el")
+    (kill-buffer "global-mode-dummy.el")))
+
+(ert-deftest flycheck-check-syntax-automatically/buffer-switch-check-intermediate-buffers-does-not-cancel-idle-change ()
+  :tags '(automatic)
+  (let ((flycheck-check-syntax-automatically '(idle-change idle-buffer-switch))
+        (flycheck-buffer-switch-check-intermediate-buffers t)
+        (flycheck-idle-change-delay 0.01)
+        (flycheck-idle-buffer-switch-delay 0))
+    (find-file (flycheck-ert-resource-filename "automatic-check-dummy.el"))
+    (emacs-lisp-mode)
+    (flycheck-mode)
+
+    (insert "Hello")
+    (switch-to-buffer "*scratch*")
+    (sleep-for 0.015)
+    ;; Since the buffer is not visible, the check will be automatically deferred
+    (set-buffer "automatic-check-dummy.el")
+    (should (flycheck-deferred-check-p))
+    (kill-buffer "automatic-check-dummy.el")))
+
 (ert-deftest flycheck-check-syntax-automatically/new-line-is-disabled ()
   :tags '(automatic)
   (flycheck-ert-with-resource-buffer "automatic-check-dummy.el"
@@ -2983,7 +3122,7 @@ See https://github.com/flycheck/flycheck/issues/531 and Emacs bug #19206"))
 (flycheck-ert-def-checker-test dockerfile-hadolint dockerfile error
   (flycheck-ert-should-syntax-check
    "language/dockerfile/Dockerfile.error" 'dockerfile-mode
-   '(2 1 error "unexpected 'I' expecting '#', ADD, ARG, CMD, COPY, ENTRYPOINT, ENV, EXPOSE, FROM, HEALTHCHECK, LABEL, MAINTAINER, ONBUILD, RUN, SHELL, STOPSIGNAL, USER, VOLUME, WORKDIR, end of input, or the rest of a new line followed by the next instruction"
+   '(2 1 error "unexpected 'I' expecting '#', ADD, ARG, CMD, COPY, ENTRYPOINT, ENV, EXPOSE, FROM, HEALTHCHECK, LABEL, MAINTAINER, ONBUILD, RUN, SHELL, STOPSIGNAL, USER, VOLUME, WORKDIR, end of input, or whitespace"
        :checker dockerfile-hadolint)))
 
 (flycheck-ert-def-checker-test dockerfile-hadolint dockerfile warnings
@@ -3676,7 +3815,7 @@ Why not:
     (flycheck-ert-with-env '(("LC_ALL" . nil))
       (flycheck-ert-should-syntax-check
        "language/text.txt" '(text-mode markdown-mode)
-       '(1 7 warning "Substitute 'damn' every time you're inclined to write 'very;' your editor will delete it and the writing will be just as it should be."
+       '(1 7 warning "Substitute 'damn' every time you're inclined to write 'very'; your editor will delete it and the writing will be just as it should be."
            :id "weasel_words.very"
            :checker proselint)
        '(2 4 warning "Redundancy. Use 'associate' instead of 'associate together'."
@@ -3774,7 +3913,7 @@ Why not:
         (flycheck-python-mypy-cache-dir null-device))
     (flycheck-ert-should-syntax-check
      "language/python/invalid_type.py" 'python-mode
-     '(2 nil error "Incompatible return value type (got \"str\", expected \"int\")"
+     '(2 5 error "Incompatible return value type (got \"str\", expected \"int\")"
          :checker python-mypy))))
 
 (flycheck-ert-def-checker-test python-pylint python syntax-error
@@ -3783,7 +3922,7 @@ Why not:
         (flycheck-python-pylint-executable "python3"))
     (flycheck-ert-should-syntax-check
      "language/python/syntax-error.py" 'python-mode
-     '(3 1 error "invalid syntax (<string>, line 3)"
+     '(3 1 error "invalid syntax (<unknown>, line 3)"
          :id "syntax-error" :checker python-pylint))))
 
 (flycheck-ert-def-checker-test python-pylint python nil
@@ -3798,18 +3937,20 @@ Why not:
      '(5 1 warning "Unused import antigravit" :id "unused-import"
          :checker python-pylint)
      '(7 1 info "Missing class docstring" :id "missing-docstring" :checker python-pylint)
+     '(7 1 warning "Class 'Spam' inherits from object, can be safely removed from bases in python3"
+         :id "useless-object-inheritance" :checker python-pylint)
      '(9 5 info "Method name \"withEggs\" doesn't conform to snake_case naming style"
          :id "invalid-name" :checker python-pylint)
      '(9 5 info "Missing method docstring" :id "missing-docstring" :checker python-pylint)
      '(9 5 warning "Method could be a function" :id "no-self-use"
          :checker python-pylint)
-     '(12 1 info "No space allowed around keyword argument assignment"
-          :id "bad-whitespace" :checker python-pylint)
      '(12 5 info "Missing method docstring" :id "missing-docstring" :checker python-pylint)
      '(12 5 warning "Either all return statements in a function should return an expression, or none of them should."
           :id "inconsistent-return-statements" :checker python-pylint)
      '(12 5 warning "Method could be a function"
           :id "no-self-use" :checker python-pylint)
+     '(12 30 info "No space allowed around keyword argument assignment"
+          :id "bad-whitespace" :checker python-pylint)
      '(14 16 error "Module 'sys' has no 'python_version' member" :id "no-member"
           :checker python-pylint)
      '(22 1 error "Undefined variable 'antigravity'" :id "undefined-variable"
@@ -3828,18 +3969,20 @@ Why not:
      '(5 1 warning "Unused import antigravit" :id "W0611"
          :checker python-pylint)
      '(7 1 info "Missing class docstring" :id "C0111" :checker python-pylint)
+     '(7 1 warning "Class 'Spam' inherits from object, can be safely removed from bases in python3"
+         :id "R0205" :checker python-pylint)
      '(9 5 info "Method name \"withEggs\" doesn't conform to snake_case naming style"
          :id "C0103" :checker python-pylint)
      '(9 5 info "Missing method docstring" :id "C0111" :checker python-pylint)
      '(9 5 warning "Method could be a function" :id "R0201"
          :checker python-pylint)
-     '(12 1 info "No space allowed around keyword argument assignment"
-          :id "C0326" :checker python-pylint)
      '(12 5 info "Missing method docstring" :id "C0111" :checker python-pylint)
      '(12 5 warning "Either all return statements in a function should return an expression, or none of them should."
           :id "R1710" :checker python-pylint)
      '(12 5 warning "Method could be a function"
           :id "R0201" :checker python-pylint)
+     '(12 30 info "No space allowed around keyword argument assignment"
+          :id "C0326" :checker python-pylint)
      '(14 16 error "Module 'sys' has no 'python_version' member" :id "E1101"
           :checker python-pylint)
      '(22 1 error "Undefined variable 'antigravity'" :id "E0602"
@@ -4215,17 +4358,18 @@ The manifest path is relative to
   (let ((flycheck-disabled-checkers '(rust-cargo)))
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/importing.rs" 'rust-mode
-     '(1 5 error "failed to resolve. There are too many initial `super`s. (There are too many initial `super`s.)" :checker rust :id "E0433" :group 2)
+     '(1 5 error "failed to resolve: there are too many initial `super`s. (there are too many initial `super`s.)" :checker rust :id "E0433" :group 2)
      '(1 5 warning "unused import: `super::imported`" :checker rust :id "unused_imports" :group 1)
      '(1 5 info "#[warn(unused_imports)] on by default" :checker rust :id "unused_imports" :group 1)
-     '(4 24 error "failed to resolve. Use of undeclared type or module `imported` (Use of undeclared type or module `imported`)" :checker rust :id "E0433" :group 3)
+     '(4 24 error "failed to resolve: use of undeclared type or module `imported` (use of undeclared type or module `imported`)" :checker rust :id "E0433" :group 3)
      )))
 
 (flycheck-ert-def-checker-test rust rust macro-error
   (let ((flycheck-disabled-checkers '(rust-cargo)))
     (flycheck-ert-should-syntax-check
      "language/rust/flycheck-test/src/macro-error.rs" 'rust-mode
-     '(2 3 info "1 positional argument in format string, but no arguments were given" :checker rust :group 1))))
+     '(2 3 info "1 positional argument in format string, but no arguments were given" :checker rust :group 1)
+     '(2 13 error "1 positional argument in format string, but no arguments were given" :checker rust :group 1))))
 
 (flycheck-ert-def-checker-test sass sass nil
   (let ((flycheck-disabled-checkers '(sass/scss-sass-lint)))
@@ -4273,10 +4417,28 @@ The manifest path is relative to
    '(2 nil warning "in procedure call to `g1', expected a value of type `(procedure (* *) *)' but was given a value of type `number'"
        :checker scheme-chicken)))
 
+(flycheck-ert-def-checker-test scheme-chicken scheme error-no-line-number
+  (flycheck-ert-should-syntax-check
+   "language/chicken/error-no-line-number.scm" 'flycheck/chicken-mode
+   '(0 nil error "(cddr) during expansion of (for-each ...) - bad argument type: ()\n\n\tCall history:\n\n\tlibrary.scm:3448: print-exit54375438\t  \n\tlibrary.scm:2290: body3981\t  \n\tlibrary.scm:2292: assign\t  \n\tlibrary.scm:3448: current-print-length54395440\t  \n\tlibrary.scm:2290: body3981\t  \n\tlibrary.scm:2292: assign\t  \n\tlibrary.scm:3926: ##sys#print\t  \n\tlibrary.scm:3188: case-sensitive\t  \n\tlibrary.scm:3189: keyword-style\t  \n\tlibrary.scm:3190: ##sys#print-length-limit\t  \n\tlibrary.scm:3297: outchr\t  \n\tlibrary.scm:3188: g5148\t  \n\tlibrary.scm:3927: print-call-chain\t  \n\tlibrary.scm:3882: ##sys#get-call-chain\t  \n\tlibrary.scm:3834: ##sys#make-vector\t  \n\tlibrary.scm:1371: ##sys#allocate-vector\t  \t<--"
+       :checker scheme-chicken)))
+
+(flycheck-ert-def-checker-test scheme-chicken scheme io-type-error
+  (flycheck-ert-should-syntax-check
+   "language/chicken/io-type-warning.scm" 'flycheck/chicken-mode
+   '(4 nil warning "in procedure call to `read-all', expected argument #1 of type `(or input-port string)' but was given an argument of type `output-port'"
+       :checker scheme-chicken)))
+
 (flycheck-ert-def-checker-test scheme-chicken scheme syntax-error
   (flycheck-ert-should-syntax-check
    "language/chicken/syntax-error.scm" 'flycheck/chicken-mode
    '(1 nil error "not enough arguments\n\n\t(define)\n\n\tExpansion history:\n\n\textras.scm:630: loop\t  \n\textras.scm:633: get-output-string\t  \n\tlibrary.scm:3655: ##sys#substring\t  \n\tlibrary.scm:603: ##sys#make-string\t  \n\tlibrary.scm:511: ##sys#allocate-vector\t  \n\textras.scm:633: ##sys#print\t  \n\tlibrary.scm:3188: case-sensitive\t  \n\tlibrary.scm:3189: keyword-style\t  \n\tlibrary.scm:3190: ##sys#print-length-limit\t  \n\tlibrary.scm:3319: ##sys#number?\t  \n\tlibrary.scm:3349: outstr\t  \n\tlibrary.scm:3188: g5138\t  \n\tsupport.scm:122: print-call-chain\t  \n\tlibrary.scm:3882: ##sys#get-call-chain\t  \n\tlibrary.scm:3834: ##sys#make-vector\t  \n\tlibrary.scm:1371: ##sys#allocate-vector\t  \t<--"
+       :checker scheme-chicken)))
+
+(flycheck-ert-def-checker-test scheme-chicken scheme syntax-error-no-line-number
+  (flycheck-ert-should-syntax-check
+   "language/chicken/syntax-error-no-line-number.scm" 'flycheck/chicken-mode
+   '(0 nil error "illegal atomic form\n\n\t()\n\n\tExpansion history:\n\n\textras.scm:630: loop\t  \n\textras.scm:633: get-output-string\t  \n\tlibrary.scm:3655: ##sys#substring\t  \n\tlibrary.scm:603: ##sys#make-string\t  \n\tlibrary.scm:511: ##sys#allocate-vector\t  \n\textras.scm:633: ##sys#print\t  \n\tlibrary.scm:3188: case-sensitive\t  \n\tlibrary.scm:3189: keyword-style\t  \n\tlibrary.scm:3190: ##sys#print-length-limit\t  \n\tlibrary.scm:3319: ##sys#number?\t  \n\tlibrary.scm:3349: outstr\t  \n\tlibrary.scm:3188: g5138\t  \n\tsupport.scm:122: print-call-chain\t  \n\tlibrary.scm:3882: ##sys#get-call-chain\t  \n\tlibrary.scm:3834: ##sys#make-vector\t  \n\tlibrary.scm:1371: ##sys#allocate-vector\t  \t<--"
        :checker scheme-chicken)))
 
 (flycheck-ert-def-checker-test scheme-chicken scheme syntax-read-error
