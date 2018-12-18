@@ -231,7 +231,7 @@ See the code below for adding MELPA to the list of package archives:
 @lisp
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa" . "http://melpa.org/packages/"))
+	     '("melpa" . "https://melpa.org/packages/"))
 @end lisp
 
 After this do @kbd{M-x} @code{package-refresh-contents} @kbd{RET}, followed by @kbd{M-x}
@@ -323,7 +323,8 @@ documentation.
 @node Global key bindings
 @section Global key bindings
 
-The recommended key bindings are:
+Here is a list of commands that are useful to be bound globally, along
+with some sample bindings:
 
 @subsubheading Ivy-based interface to standard commands
 @indentedblock
@@ -1426,11 +1427,8 @@ features such as multi-actions, non-exiting actions, @code{ivy-occur} and
 
 @subsubheading @code{prompt}
 @indentedblock
-A format string normally ending in a colon and a space.
-
-@code{%d} anywhere in the string is replaced by the current number of
-matching candidates. To use a literal @code{%} character, escape it as
-@code{%%}. See also @code{ivy-count-format}.
+A prompt string normally ending in a colon and a space.
+@code{ivy-count-format} is prepended to it during completion.
 @end indentedblock
 @subsubheading @code{collection}
 @indentedblock
@@ -1635,7 +1633,7 @@ narrowing) or select a candidate from the visible collection.
 @lisp
 (defun counsel-locate-function (str)
   (or
-   (counsel-more-chars)
+   (ivy-more-chars)
    (progn
      (counsel--async-command
       (format "locate %s '%s'"
@@ -1671,7 +1669,7 @@ of strings. Note that it's not compatible with @code{all-completions},
 but since we're not using that here, might as well use one argument
 instead of three.
 @item
-@code{counsel-more-chars} is a simple function that returns e.g.
+@code{ivy-more-chars} is a simple function that returns e.g.
 @code{'("2 chars more")} asking the user for more input.
 @item
 @code{counsel--async-command} is a very easy API simplification that
