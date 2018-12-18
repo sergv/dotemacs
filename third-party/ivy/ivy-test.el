@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; For a full copy of the GNU General Public License
-;; see <http://www.gnu.org/licenses/>.
+;; see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -143,7 +143,11 @@ will bring the behavior in line with the newer Emacsen."
            (ivy-with '(ivy-read "pattern: "
                        '("ignore" "build" "build-1" "build-2") :preselect "build")
                      "b C-m")
-           "build")))
+           "build"))
+  (should (equal (ivy-with
+                  '(ivy-read "x: " '("one" "two" ("three" . "four")))
+                  "th C-m")
+                 "three")))
 
 (ert-deftest ivy-read-sort-alist ()
   (should (equal (ivy-with '(let ((coll '(("b" . "1") ("a" . "2"))))
@@ -249,13 +253,13 @@ will bring the behavior in line with the newer Emacsen."
 
 (ert-deftest ivy--regex-fuzzy ()
   (should (string= (ivy--regex-fuzzy "tmux")
-                   "\\(t\\).*?\\(m\\).*?\\(u\\).*?\\(x\\)"))
+                   "\\(t\\)[^m]*\\(m\\)[^u]*\\(u\\)[^x]*\\(x\\)"))
   (should (string= (ivy--regex-fuzzy ".tmux")
-                   "\\(\\.\\).*?\\(t\\).*?\\(m\\).*?\\(u\\).*?\\(x\\)"))
+                   "\\(\\.\\)[^t]*\\(t\\)[^m]*\\(m\\)[^u]*\\(u\\)[^x]*\\(x\\)"))
   (should (string= (ivy--regex-fuzzy "^tmux")
-                   "^\\(t\\).*?\\(m\\).*?\\(u\\).*?\\(x\\)"))
+                   "^\\(t\\)[^m]*\\(m\\)[^u]*\\(u\\)[^x]*\\(x\\)"))
   (should (string= (ivy--regex-fuzzy "^tmux$")
-                   "^\\(t\\).*?\\(m\\).*?\\(u\\).*?\\(x\\)$"))
+                   "^\\(t\\)[^m]*\\(m\\)[^u]*\\(u\\)[^x]*\\(x\\)$"))
   (should (string= (ivy--regex-fuzzy "")
                    ""))
   (should (string= (ivy--regex-fuzzy "^")
@@ -738,6 +742,13 @@ will bring the behavior in line with the newer Emacsen."
    (equal "c"
           (ivy-with '(ivy-completing-read "Pick: " '("a" "b" "c") nil t nil nil nil)
                     "c RET")))
+  ;; DEF list, empty input (no text collection), non-text default, same object
+  (let ((def '([a b])))
+    (should
+     (eq (car def)
+         (ivy-with
+          (eval `'(ivy-completing-read "Pick: " nil nil 'require-match nil nil ',def))
+          "RET"))))
   ;; DEF nil, and called via `ivy-completing-read-with-empty-string-def'
   (should
    (equal ""
@@ -893,6 +904,75 @@ will bring the behavior in line with the newer Emacsen."
     '("test1/" "test2/")))
   (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-partial-or-done)
   (delete-directory "/tmp/ivy-partial-test" t))
+
+(defun ivy-with-temp-buffer (expr keys)
+  (let ((temp-buffer (generate-new-buffer " *temp*")))
+    (save-window-excursion
+      (unwind-protect
+           (progn
+             (switch-to-buffer temp-buffer)
+             (ivy-with expr keys)
+             (list (point)
+                   (buffer-string)))
+        (and (buffer-name temp-buffer)
+             (kill-buffer temp-buffer))))))
+
+(ert-deftest counsel-yank-pop ()
+  (let ((kill-ring '("foo")))
+    (should (equal
+             (ivy-with-temp-buffer '(counsel-yank-pop) "C-m")
+             '(4 "foo")))
+    (let ((counsel-yank-pop-after-point t))
+      (should (equal
+               (ivy-with-temp-buffer '(counsel-yank-pop) "C-m")
+               '(1 "foo"))))))
+
+(ert-deftest ivy-read-file-name-in-buffer-visiting-file ()
+  "Test `ivy-immediate-done' command in `read-file-name' without any editing in
+a buffer visiting a file."
+  (let ((ivy-mode-reset-arg (if ivy-mode 1 0)))
+    (ivy-mode 1)
+    (should
+     (equal "~/dummy-dir/dummy-file" ;visiting file name, abbreviated form
+            (ivy-with
+             '(let ((insert-default-directory t))
+                (with-temp-buffer
+                  (set-visited-file-name "~/dummy-dir/dummy-file")
+                  (read-file-name "Load file: " nil nil 'lambda))) ;load-file
+             ;; No editing, just command ivy-immediate-done
+             "C-M-j")))
+    (ivy-mode ivy-mode-reset-arg)))
+
+(ert-deftest ivy-starts-with-dotslash ()
+  (should (ivy--starts-with-dotslash "./test1"))
+  (should (ivy--starts-with-dotslash ".\\test2"))
+  (should (not (ivy--starts-with-dotslash "test3")))
+  (should (not (ivy--starts-with-dotslash "t/est4")))
+  (should (not (ivy--starts-with-dotslash "t\\est5")))
+  (should (not (ivy--starts-with-dotslash "tes./t6"))))
+
+(ert-deftest counsel--normalize-grep-match ()
+  (with-temp-buffer
+    (let ((match-data-orig
+           (progn
+             (insert "abcd\nefgh")
+             (goto-char (point-min))
+             (re-search-forward "\\(ab\\)\\(cd\\)")
+             (match-data)))
+          input expected out)
+      (dolist (test '(("./FILENAME:1234:32:  TEXT   MORETEXT" .
+                       "./FILENAME:1234:  TEXT   MORETEXT")
+                      ("FILENAME:1234:  TEXT   MORETEXT" .
+                       "./FILENAME:1234:  TEXT   MORETEXT")
+                      ))
+        (setq input (car test))
+        (setq expected (cdr test))
+        (setq out (counsel--normalize-grep-match input))
+        (should (equal out expected))
+        (should (equal match-data-orig (match-data)))
+        (setq out (counsel--normalize-grep-match out))
+        (should (equal out expected))
+        (should (equal match-data-orig (match-data)))))))
 
 (provide 'ivy-test)
 
