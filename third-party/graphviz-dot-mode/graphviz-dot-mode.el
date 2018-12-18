@@ -52,8 +52,6 @@
 ;;   many diagrams don't need those, but it would be worth having a note (and
 ;;   it makes sense that the default is now for electric indentation to be
 ;;   off).
-;; * lines that start with # are comments, lines that start with one or more
-;;   whitespaces and then a # should give an error.
 
 ;;; History:
 
@@ -145,6 +143,7 @@
 
 ;;; Code:
 
+(require 'compile)
 (require 'subr-x)
 
 (defconst graphviz-dot-mode-version "0.3.10"
@@ -248,7 +247,8 @@ key is pressed."
   '("graph" "digraph" "subgraph" "node" "edge" "strict" "rankdir"
     "size" "page" "Damping" "Epsilon" "URL" "arrowhead" "arrowsize"
     "arrowtail" "bb" "bgcolor" "bottomlabel" "center" "clusterrank"
-    "color" "comment" "compound" "concentrate" "constraint" "decorate"
+    "color" "colorscheme" "comment" "compound"
+    "concentrate" "constraint" "decorate"
     "dim" "dir" "distortion" "fillcolor" "fixedsize" "fontcolor"
     "fontname" "fontpath" "fontsize" "group" "headURL" "headlabel"
     "headport" "height" "label" "labelangle" "labeldistance" "labelfloat"
@@ -436,14 +436,12 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
     (define-key map "{"        'electric-graphviz-dot-open-brace)
     (define-key map "}"        'electric-graphviz-dot-close-brace)
     (define-key map ";"        'electric-graphviz-dot-semi)
-    (define-key map "\M-\t"    'graphviz-dot-complete-word)
+    (define-key map "\C-c\M-t" 'graphviz-dot-complete-word)
     (define-key map "\C-\M-q"  'graphviz-dot-indent-graph)
-    (define-key map "\C-cp"    'graphviz-dot-preview)
-    (define-key map "\C-cc"    'compile)
-    (define-key map "\C-cv"    'graphviz-dot-view)
-    (define-key map "\C-c\C-c" 'comment-region)
-    (define-key map "\C-c\C-u" 'graphviz-dot-uncomment-region)
-    (setq graphviz-dot-mode-map map))
+    (define-key map "\C-c\C-p" 'graphviz-dot-preview)
+    (define-key map "\C-c\C-c" 'compile)
+    (define-key map "\C-c\C-v" 'graphviz-dot-view)
+    map)
   "Keymap used in Graphviz Dot mode.")
 
 ;;; Syntax table
@@ -452,16 +450,19 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
     (modify-syntax-entry ?/  ". 124b" st)
     (modify-syntax-entry ?*  ". 23"   st)
     (modify-syntax-entry ?\n "> b"    st)
-    (modify-syntax-entry ?#  "< b"    st)
     (modify-syntax-entry ?=  "."      st)
     (modify-syntax-entry ?_  "_"      st)
     (modify-syntax-entry ?-  "_"      st)
     (modify-syntax-entry ?>  "."      st)
-    (modify-syntax-entry ?[  "(]"     st)
-                         (modify-syntax-entry ?]  ")["     st)
+    (modify-syntax-entry ?\[  "(]"     st)
+    (modify-syntax-entry ?\]  ")["     st)
     (modify-syntax-entry ?\" "\""     st)
     (setq graphviz-dot-mode-syntax-table st))
   "Syntax table for `graphviz-dot-mode'.")
+
+(defvar graphviz-dot-syntax-propertize-function
+  (syntax-propertize-rules
+   ("^#" (0 "< b"))))
 
 (defvar graphviz-dot-font-lock-keywords
   `(("\\(:?di\\|sub\\)?graph \\(\\sw+\\)"
@@ -474,14 +475,25 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
     ;; convert them to a list of strings, and make
     ;; an optimized regexp from them
     (,(let ((max-specpdl-size (max max-specpdl-size 1200)))
-  (regexp-opt graphviz-dot-color-keywords))
+        (regexp-opt graphviz-dot-color-keywords 'words))
      . font-lock-string-face)
     (,(concat
        (regexp-opt graphviz-dot-attr-keywords 'words)
        "[ \\t\\n]*=")
      ;; RR - ugly, really, but I dont know why xemacs does not work
      ;; if I change the next car to "1"...
-     (0 font-lock-variable-name-face)))
+     (0 font-lock-variable-name-face))
+    ;; See the 'graph' nonterminal in
+    ;; https://graphviz.gitlab.io/_pages/doc/info/lang.html.
+    ("\\(?:\\_<\\(strict\\)[[:space:]]+\\)?\\(\\(?:di\\)?graph\\)\\_>"
+     (1 'font-lock-keyword-face) (2 'font-lock-keyword-face))
+    ;; See the 'attr_stmt' nonterminal in
+    ;; https://graphviz.gitlab.io/_pages/doc/info/lang.html.
+    ("\\_<\\(edge\\|graph\\|node\\)\\_>[[:space:]]*\\["
+     1 'font-lock-keyword-face)
+    ;; See the 'subgraph' nonterminal in
+    ;; https://graphviz.gitlab.io/_pages/doc/info/lang.html.
+    ("\\_<subgraph\\_>" . 'font-lock-keyword-face))
   "Keyword highlighting specification for `graphviz-dot-mode'.")
 
 (defun graphviz-output-file-name (f-name)
@@ -497,6 +509,11 @@ The list of constant is available at http://www.research.att.com/~erg/graphviz\
                   " -o "
                   (shell-quote-argument
                    (graphviz-output-file-name f-name))))))
+
+(defvar dot-menu nil
+  "Menu for Graphviz Dot Mode.
+This menu will get created automatically if you have the `easymenu'
+package. Note that the latest X/Emacs releases contain this package.")
 
 ;;;###autoload
 (define-derived-mode graphviz-dot-mode prog-mode "dot"
@@ -548,6 +565,8 @@ Turning on Graphviz Dot mode calls the value of the variable
   (setq-local comment-start "//")
   (setq-local comment-start-skip "/\\*+ *\\|//+ *")
   (setq-local indent-line-function 'graphviz-dot-indent-line)
+  (setq-local syntax-propertize-function
+              graphviz-dot-syntax-propertize-function)
   (when (buffer-file-name)
     (setq-local compile-command
                 (graphviz-compile-command (buffer-file-name))))
@@ -558,11 +577,6 @@ Turning on Graphviz Dot mode calls the value of the variable
 
 ;;;; Menu definitions
 
-(defvar dot-menu nil
-  "Menu for Graphviz Dot Mode.
-This menu will get created automatically if you have the `easymenu'
-package. Note that the latest X/Emacs releases contain this package.")
-
 (and (condition-case nil
          (require 'easymenu)
        (error nil))
@@ -571,7 +585,7 @@ package. Note that the latest X/Emacs releases contain this package.")
       '("Graphviz"
         ["Indent Graph"       graphviz-dot-indent-graph     t]
         ["Comment Out Region" comment-region                (mark)]
-        ["Uncomment Region"   graphviz-dot-uncomment-region (mark)]
+        ["Uncomment Region"   uncomment-region              (mark)]
         "-"
         ["Compile"            compile                       t]
         ["Preview"            graphviz-dot-preview
@@ -608,8 +622,7 @@ package. Note that the latest X/Emacs releases contain this package.")
   "Parse the current buffer for dot errors.
 See variable `compilation-parse-errors-functions' for interface."
   (interactive)
-  (save-excursion
-    (set-buffer "*compilation*")
+  (with-current-buffer "*compilation*"
     (goto-char (point-min))
     (setq compilation-error-list nil)
     (let (buffer-of-error)
@@ -629,10 +642,9 @@ See variable `compilation-parse-errors-functions' for interface."
       (cons
        (cons
         (point-marker)
-        (save-excursion
-          (set-buffer buffer-of-error)
-          (goto-line line-of-error)
-          (beginning-of-line)
+        (with-current-buffer buffer-of-error
+          (goto-char (point-min))
+          (forward-line (1- line-of-error))
           (point-marker)))
        compilation-error-list))))
     (t t))
@@ -641,10 +653,6 @@ See variable `compilation-parse-errors-functions' for interface."
 ;;;;
 ;;;; Indentation
 ;;;;
-(defun graphviz-dot-uncomment-region (begin end)
-  "Uncomments a region of code."
-  (interactive "r")
-  (comment-region begin end '(4)))
 
 (defun graphviz-dot-indent-line ()
   "Indent current line of dot code."
@@ -653,13 +661,6 @@ See variable `compilation-parse-errors-functions' for interface."
       (graphviz-dot-real-indent-line)
     (save-excursion
       (graphviz-dot-real-indent-line))))
-
-(defun graphviz-dot-get-indendation()
-  "Return current line's indentation"
-  (interactive)
-  (message "Current indentation is %d."
-           (current-indentation))
-  (current-indentation))
 
 (defun graphviz-dot-real-indent-line ()
   "Indent current line of dot code."
@@ -977,6 +978,8 @@ buffer is saved before the command is executed."
 (add-to-list 'auto-mode-alist '("\\.dot\\'" . graphviz-dot-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gv\\'" . graphviz-dot-mode))
+
+(defvar org-src-lang-modes)  ; defined in org-src.el
 
 (eval-after-load 'org-mode
     '(add-to-list 'org-src-lang-modes  '("dot" . graphviz-dot)))
