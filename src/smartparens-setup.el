@@ -161,7 +161,7 @@ With negative argument move forward, still one level out."
 (sp-pair "“" "”" :actions '(insert wrap))
 
 ;; /* */ is needed by c mode (and related ones) only
-(sp-pair "/*" nil :actions nil)
+(sp-pair "/*" "*/" :actions nil)
 
 (defun cc-mode-open-block (_id action _context)
   (when (eq action 'insert)
