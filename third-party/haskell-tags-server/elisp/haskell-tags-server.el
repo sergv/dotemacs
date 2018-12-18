@@ -22,7 +22,7 @@
   :group 'haskell-completions
   :type 'stringp)
 
-(defcustom haskell-tags-server-port 10000
+(defcustom haskell-tags-server-port 4872
   "Port to user for connecting to Haskell tags server."
   :group 'haskell-completions
   :type 'integerp)
@@ -77,10 +77,12 @@
                 (progn
                   (setf haskell-tags-server--subprocess-proc server-proc)
                   proc)
-              (progn
+              (let ((output (with-current-buffer haskell-tags-server--subprocess-buffer
+                              (buffer-substring-no-properties (point-min) (point-max)))))
                 (delete-process server-proc)
                 (kill-buffer haskell-tags-server--subprocess-buffer)
-                (error "Failed to initiate connection to the freshly created haskell-tags-server subprocess")))))))))
+                (error "Failed to initiate connection to the freshly created haskell-tags-server subprocess. Process' output:\n%s"
+                       output)))))))))
 
 (defun haskell-tags-server--subprocess-sentinel (proc event-description)
   (unless (memq (process-status proc) '(run open))

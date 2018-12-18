@@ -37,12 +37,12 @@ module Haskell.Language.Server.Tags.Types
   , emptyTagsServerState
   ) where
 
-import Data.Binary
 import Data.Kind
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Map.Strict (Map)
 import Data.Set (Set)
 import qualified Data.Set as S
+import Data.Store (Store)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Ext
@@ -114,7 +114,7 @@ data Namespace = Namespace
   , nsIgnoredGlobs  :: !(Set Text)
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary Namespace
+instance Store Namespace
 
 instance Pretty Namespace where
   pretty = ppGeneric
@@ -224,7 +224,7 @@ data TagsServerState = TagsServerState
   , tssNamespace       :: !Namespace
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary TagsServerState
+instance Store TagsServerState
 
 emptyTagsServerState :: TagsServerState
 emptyTagsServerState = TagsServerState mempty mempty mempty mempty mempty

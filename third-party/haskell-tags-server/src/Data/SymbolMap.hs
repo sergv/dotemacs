@@ -38,7 +38,6 @@ import Prelude hiding (lookup, null)
 import Control.Arrow ((&&&), second)
 import Control.DeepSeq
 
-import Data.Binary
 import qualified Data.Foldable
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
@@ -48,6 +47,7 @@ import Data.Maybe
 import Data.Semigroup as Semigroup
 import Data.Set (Set)
 import qualified Data.Set as S
+import Data.Store (Store)
 import GHC.Generics (Generic)
 
 import Data.Symbols
@@ -69,7 +69,7 @@ data SymbolMap = SymbolMap
   , smAllSymbols  :: !(Map UnqualifiedSymbolName (NonEmpty ResolvedSymbol))
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary SymbolMap
+instance Store SymbolMap
 instance NFData SymbolMap
 
 instance Semigroup SymbolMap where

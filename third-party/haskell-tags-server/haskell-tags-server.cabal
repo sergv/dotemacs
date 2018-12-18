@@ -42,8 +42,9 @@ library
     attoparsec >= 0.13.1.0,
     base >= 4,
     bimap,
-    binary,
     bytestring,
+    conduit,
+    conduit-extra,
     containers,
     deepseq,
     directory,
@@ -76,14 +77,14 @@ library
     streaming-commons,
     stm,
     stm-chans,
+    store,
     text,
     time,
     transformers,
     transformers-base,
     unordered-containers,
     unsafe,
-    utf8-string >= 0.3,
-    zlib
+    utf8-string >= 0.3
   exposed-modules:
     Control.Arrow.Ext
     Control.Monad.Ext
@@ -95,7 +96,6 @@ library
     Control.Monad.Par.Combinator.Ext
     Control.Parallel.Strategies.Ext
 
-    Data.Binary.Ext
     Data.CompiledRegex
     Data.Condition
     Data.ErrorMessage
