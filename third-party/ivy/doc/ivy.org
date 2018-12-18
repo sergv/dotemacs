@@ -159,7 +159,7 @@ See the code below for adding MELPA to the list of package archives:
 #+begin_src elisp
 (require 'package)
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.org/packages/"))
+             '("melpa" . "https://melpa.org/packages/"))
 #+end_src
 
 After this do ~M-x~ =package-refresh-contents= ~RET~, followed by ~M-x~
@@ -742,6 +742,14 @@ installed.
      #+begin_src elisp
      (setq ivy-use-virtual-buffers t)
      #+end_src
+
+- =ivy-modified-buffer= ::
+     Highlights modified buffers when switching buffer.
+- =ivy-modified-outside-buffer= ::
+     Highlights buffers modified outside Emacs when switching buffer.
+
+     This takes precedence over =ivy-modified-buffer=.
+
 ** Defcustoms
 :PROPERTIES:
 :CUSTOM_ID: defcustoms
@@ -1070,11 +1078,8 @@ features such as multi-actions, non-exiting actions, =ivy-occur= and
 :CUSTOM_ID: required-arguments-for-ivy-read
 :END:
 - =prompt= ::
-     A format string normally ending in a colon and a space.
-
-     =%d= anywhere in the string is replaced by the current number of
-     matching candidates. To use a literal =%= character, escape it as
-     =%%=. See also =ivy-count-format=.
+     A prompt string normally ending in a colon and a space.
+     =ivy-count-format= is prepended to it during completion.
 
 - =collection= ::
      Either a list of strings, a function, an alist or a hash table.
@@ -1239,7 +1244,7 @@ narrowing) or select a candidate from the visible collection.
 #+begin_src elisp
 (defun counsel-locate-function (str)
   (or
-   (counsel-more-chars)
+   (ivy-more-chars)
    (progn
      (counsel--async-command
       (format "locate %s '%s'"
@@ -1272,7 +1277,7 @@ that they appear:
   of strings. Note that it's not compatible with =all-completions=,
   but since we're not using that here, might as well use one argument
   instead of three.
-- =counsel-more-chars= is a simple function that returns e.g.
+- =ivy-more-chars= is a simple function that returns e.g.
   ='("2 chars more")= asking the user for more input.
 - =counsel--async-command= is a very easy API simplification that
   takes a single string argument suitable for

@@ -13,7 +13,7 @@ commands.
 
 # Ivy
 
-[![MELPA](http://melpa.org/packages/ivy-badge.svg)](http://melpa.org/#/ivy)
+[![MELPA](https://melpa.org/packages/ivy-badge.svg)](https://melpa.org/#/ivy)
 
 Ivy is a generic completion mechanism for Emacs. While it operates
 similarly to other completion schemes such as `icomplete-mode`, Ivy
@@ -31,7 +31,7 @@ Install the `ivy` package from MELPA / GNU ELPA.
 ## Documentation
 
 ### Manual
-The manual is available as [HTML](http://oremacs.com/swiper/).
+The manual is available as [HTML](https://oremacs.com/swiper/).
 
 After installing from MELPA, the manual is also available through the `(ivy)` Info node.
 
@@ -106,14 +106,14 @@ counsel replacements:
 Swiper is an alternative to isearch that uses ivy to show an overview
 of all matches.
 
-![swiper.png](http://oremacs.com/download/swiper.png)
+![swiper.png](https://oremacs.com/download/swiper.png)
 
 A helm version of swiper is also available:
 [swiper-helm](https://github.com/abo-abo/swiper-helm).
 
 ## Screenshots
 
-![ivy-swiper-1.png](http://oremacs.com/download/ivy-swiper-1.png)
+![ivy-swiper-1.png](https://oremacs.com/download/ivy-swiper-1.png)
 
 There's also a ten minute [video demo](https://www.youtube.com/watch?v=VvnJQpTFVDc).
 
