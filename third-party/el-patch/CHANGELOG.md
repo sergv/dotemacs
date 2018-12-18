@@ -3,13 +3,22 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog].
 
-## Unreleased
+## 2.2.2 (released 2018-12-14)
+### Enhancements
+* When a definition is patched, `el-patch` automatically adds a note
+  to the docstring so that you know a patch is in effect. Previously,
+  this behavior was suppressed if the modified definition did not
+  contain a docstring at all; now, the note is included regardless,
+  adding a docstring if one was missing ([#31]).
+
+[#31]: https://github.com/raxod502/el-patch/pull/31
+
+## 2.2.1 (released 2018-09-04)
+
+This release includes only a minor documentation enhancement.
+
+## 2.2 (released 2018-08-14)
 ### New features
-* `el-patch-let` now allows more than one body form; all body forms
-  are spliced into the containing s-expression. This is fully
-  backwards compatible.
-* `el-patch-literal` always allowed more than one body form, but this
-  fact is now documented.
 * The new patch directive `el-patch-concat` may be used to modify
   string literals in a patch without repeating their contents twice
   ([#14]).
@@ -26,6 +35,18 @@ The format is based on [Keep a Changelog].
   note to the end of the docstring indicating that a patch was made
   ([#14]).
 
+[#14]: https://github.com/raxod502/el-patch/issues/14
+[#24]: https://github.com/raxod502/el-patch/issues/24
+[#25]: https://github.com/raxod502/el-patch/issues/25
+
+## 2.1 (released 2018-07-12)
+### New features
+* `el-patch-let` now allows more than one body form; all body forms
+  are spliced into the containing s-expression. This is fully
+  backwards compatible.
+* `el-patch-literal` always allowed more than one body form, but this
+  fact is now documented.
+
 ### Bugfixes
 * Using `el-patch-let` could previously cause a circular list error.
   For example:
@@ -33,10 +54,6 @@ The format is based on [Keep a Changelog].
       (el-patch-let ((x y)) (x x x))
 
   That has now been fixed.
-
-[#14]: https://github.com/raxod502/el-patch/issues/14
-[#24]: https://github.com/raxod502/el-patch/issues/24
-[#25]: https://github.com/raxod502/el-patch/issues/25
 
 ## 2.0.1 (released 2018-06-21)
 ### Internal changes
@@ -198,4 +215,4 @@ The format is based on [Keep a Changelog].
 [melpa/melpa#4512]: https://github.com/melpa/melpa/pull/4512#issuecomment-274682089
 
 [elint]: https://github.com/raxod502/elint
-[keep a changelog]: [Keep a Changelog]: http://keepachangelog.com/
+[keep a changelog]: https://keepachangelog.com/en/1.0.0/

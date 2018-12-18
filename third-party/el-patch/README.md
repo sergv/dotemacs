@@ -66,16 +66,16 @@ prefer.
 
 Emacs provides a comprehensive set of customizable variables and hooks
 as well as a powerful [advice][advice] system. Sometimes, however,
-these are not enough and you must override the entire function in
-order to change a detail of its implementation.
+these are not enough and you must override an entire function in order
+to change a detail of its implementation.
 
 Such a situation is not ideal, since the original definition of the
 function might change when you update Emacs or one of its packages,
 and your overridden version would then be outdated. This could prevent
 you from benefitting from bugfixes made to the original function, or
-even introduce new bugs into your configuration. Even worse, there is
-no way to tell when the original definition has changed! The
-correctness of your configuration is basically based on faith.
+introduce new bugs into your configuration. Even worse, there is no
+way to tell when the original definition has changed! The correctness
+of your configuration is basically based on faith.
 
 `el-patch` introduces another way to override Emacs Lisp functions.
 You can provide a *patch* which simutaneously specifies both the
@@ -85,6 +85,14 @@ are modifying. However, you can later ask `el-patch` to *validate*
 your patches—that is, to make sure that the original function
 definitions have not changed since you created the patches. If they
 have, `el-patch` will show you the difference using Ediff.
+
+Of course, in an ideal world, `el-patch` would not be necessary,
+because the original definition of the function in Emacs or in one of
+its packages could just be fixed. Sometimes, it is simple to submit a
+pull request and get your desired change implemented upstream.
+Unfortunately, this is not always practical or desirable, so—like the
+advice system—`el-patch` offers a concession to the practical needs of
+your Emacs configuration.
 
 ## Basic usage
 
@@ -333,7 +341,7 @@ Some warnings:
   the value of the variable, if it has already been defined. Thus,
   they are only useful for lazy-loading by default. To override this
   behavior and force the patches to reset the value of the variable,
-  if it is already defined, set `el-patch-use-aggressive-defvar`.
+  even if it is already defined, set `el-patch-use-aggressive-defvar`.
 
 You can patch any definition form, not just those above. To register
 your own definition types, use the `el-patch-deftype` macro. For
@@ -341,6 +349,7 @@ example, the `el-patch-defun` function is defined as follows:
 
     (el-patch-deftype defun
       :classify el-patch-classify-function
+      :locate el-patch-locate-function
       :declare ((doc-string 3)
                 (indent defun)))
 
@@ -527,6 +536,10 @@ patches. This means that if you byte-compile your init-file, then
 For this to work, you will need to stick to defining patches with
 `el-patch-def*` and declaring features with `el-patch-feature`.
 Anything else will cause `el-patch` to be loaded at runtime.
+
+Note, of course, that you must have `el-patch` loaded at
+byte-compilation time, since otherwise the macros will expand
+incorrectly. This is true for all packages, not just `el-patch`.
 
 If you do not byte-compile your init-file, then all of this is
 immaterial.
