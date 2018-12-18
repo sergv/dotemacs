@@ -21,6 +21,8 @@
         should fix the problem by following best practice and ensuring
         that your user configuration is loaded after the autoloads for
         `markdown-mode` are evaluated. ([GH-331][], [GH-335][])
+    -   Point at the end of fenced code blocks is no-longer considered
+        part of the code block ([GH-#349][]).
 
 *   New features:
 
@@ -51,6 +53,10 @@
         tags around the output.  ([GH-280][], [GH-281][])
     -   Add `markdown-unused-refs` command to list and clean up unused
         references (available via `C-c C-c u`).  ([GH-322][])
+    -   Add `markdown-insert-table` (`C-c C-s t`) for interactive
+        table insertion.  ([GH-369][])
+    -   Add `markdown-kill-outline` and `markdown-kill-block`
+        functions.
 
 *   Improvements:
 
@@ -81,9 +87,13 @@
         via `markdown-sub-superscript-display`.
     -   Several font-lock performance improvements.
     -   Support horizontal rules consisting of underscores.
+    -   Change default character encoding to UTF-8.
+        ([GH-340][], [GH-350][])
 
 *   Bug fixes:
 
+    -   Fix infloop caused by incorrect detection of end of code
+        blocks ([GH-349][]).
     -   Remove GFM checkbox overlays when switching major modes.
         ([GH-238][], [GH-257][])
     -   Don't test the value of the `composition` property to avoid
@@ -113,7 +123,9 @@
     -   Do not fail displaying inline images on empty links. ([GH-320][])
     -   Fix off-by-one error in `markdown-inline-code-at-pos`.
         ([GH-313][])
+    -   Fix bounds during inline comment syntax propertization. ([GH-327][])
 
+  [gh-349]: https://github.com/jrblevin/markdown-mode/issues/349]
   [gh-171]: https://github.com/jrblevin/markdown-mode/issues/171
   [gh-216]: https://github.com/jrblevin/markdown-mode/issues/216
   [gh-222]: https://github.com/jrblevin/markdown-mode/issues/222
@@ -157,8 +169,12 @@
   [gh-317]: https://github.com/jrblevin/markdown-mode/pull/317
   [gh-320]: https://github.com/jrblevin/markdown-mode/pull/320
   [gh-322]: https://github.com/jrblevin/markdown-mode/pull/322
+  [gh-327]: https://github.com/jrblevin/markdown-mode/issues/327
   [gh-331]: https://github.com/jrblevin/markdown-mode/issues/331
   [gh-335]: https://github.com/jrblevin/markdown-mode/pull/335
+  [gh-340]: https://github.com/jrblevin/markdown-mode/issues/340
+  [gh-350]: https://github.com/jrblevin/markdown-mode/pull/350
+  [gh-369]: https://github.com/jrblevin/markdown-mode/pull/369
 
 # Markdown Mode 2.3
 

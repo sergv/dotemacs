@@ -3499,13 +3499,14 @@ echo hey
    (should (equal (markdown-code-block-at-pos 1) '(1 35)))
    (should (equal (markdown-code-block-at-pos 13) '(1 35)))
    (should (equal (markdown-code-block-at-pos 23) '(1 35)))
-   (should (equal (markdown-code-block-at-pos 35) '(1 35)))))
+   (should (equal (markdown-code-block-at-pos 34) '(1 35)))
+   (should (equal (markdown-code-block-at-pos 35) nil))))
 
 (ert-deftest test-markdown-parsing/code-block-at-pos-yaml-metadata ()
   "Ensure `markdown-code-block-at-pos' works in YAML metadata blocks."
   (let ((markdown-use-pandoc-style-yaml-metadata t))
     (markdown-test-string
-     "---
+      "---
 a: b
 ---
 
@@ -3520,7 +3521,7 @@ data: pandoc
      (should (equal (markdown-code-block-at-pos 15) '(15 35)))
      (should (equal (markdown-code-block-at-pos 19) '(15 35)))
      (should (equal (markdown-code-block-at-pos 34) '(15 35)))
-     (should (equal (markdown-code-block-at-pos 35) '(15 35))))))
+     (should (equal (markdown-code-block-at-pos 35) nil)))))
 
 (ert-deftest test-markdown-parsing/syntax-get-fenced-blocks ()
   "Test whether *-get-fenced-block-* functions work in the case where a block is
@@ -5457,12 +5458,61 @@ See GH-288."
 
 (ert-deftest test-markdown-table/table-begin-top-of-file ()
   "Test beginning of table detection at top of file."
-  (markdown-test-string "\n| 1 | 2 |\n"
-    (should-not (markdown-table-at-point-p))
+  (markdown-test-string "| 1 | 2 |\n| 3 | 4 |\n"
+    (should (markdown-table-at-point-p))
     (forward-line)
     (should (markdown-table-at-point-p))
-    (should (= (markdown-table-begin) 2))))
+    (should (= (markdown-table-begin) 1))))
 
+;;; Extension: pipe table insertion
+
+(ert-deftest test-markdown-insertion/create-table-with-left-align ()
+  "Insert table with left column alignment."
+  (markdown-test-string
+   ""
+   (execute-kbd-macro (read-kbd-macro "M-x markdown-insert-table RET 3 RET 2 RET l RET"))
+   (should (string-equal (buffer-string) "|   |   |
+|:--|:--|
+|   |   |
+|   |   |
+"))
+   (should (= (point) 3))))
+
+(ert-deftest test-markdown-insertion/create-table-with-right-align ()
+  "Insert table with right column alignment."
+  (markdown-test-string
+   ""
+   (execute-kbd-macro (read-kbd-macro "M-x markdown-insert-table RET 3 RET 2 RET r RET"))
+   (should (string-equal (buffer-string) "|   |   |
+|--:|--:|
+|   |   |
+|   |   |
+"))
+   (should (= (point) 3))))
+
+(ert-deftest test-markdown-insertion/create-table-with-center-align ()
+  "Insert table with center column alignment."
+  (markdown-test-string
+   ""
+   (execute-kbd-macro (read-kbd-macro "M-x markdown-insert-table RET 3 RET 2 RET c RET"))
+   (should (string-equal (buffer-string) "|   |   |
+|:-:|:-:|
+|   |   |
+|   |   |
+"))
+   (should (= (point) 3))))
+
+(ert-deftest test-markdown-insertion/create-table-with-default-align ()
+  "Insert table with default column alignment."
+  (markdown-test-string
+   ""
+   (execute-kbd-macro (read-kbd-macro "M-x markdown-insert-table RET 3 RET 2 RET RET"))
+   (should (string-equal (buffer-string) "|   |   |
+|---|---|
+|   |   |
+|   |   |
+"))
+   (should (= (point) 3))))
 
 ;;; gfm-mode tests:
 
