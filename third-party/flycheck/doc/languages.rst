@@ -1069,7 +1069,7 @@ to view the docstring of the syntax checker.  Likewise, you may use
       .. note::
 
          `rust-cargo` requires Rust 1.17 or newer.
-         `rust` requires Rust 1.7 or newer.
+         `rust` requires Rust 1.18 or newer.
          `rust-clippy` requires the nightly version of Rust.
 
       .. _Cargo: http://doc.crates.io/index.html
@@ -1117,6 +1117,18 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
          For `rust-cargo`, always required unless `flycheck-rust-crate-type` is
          ``lib`` or nil, in which case it is ignored.
+
+         Ignored by `rust`.
+
+      .. defcustom:: flycheck-rust-features
+
+         List of features to activate during build or check.
+
+         The value of this variable is a list of strings denoting features
+         that will be activated to build the target to check. Features will
+         be passed to `cargo check --features=FEATURES'.
+
+         Empty by default.
 
          Ignored by `rust`.
 
