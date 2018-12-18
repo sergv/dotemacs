@@ -1,6 +1,6 @@
 ;;; tex-buf.el --- External commands for AUCTeX.
 
-;; Copyright (C) 1991-1999, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1999, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: auctex-devel@gnu.org
 ;; Keywords: tex, wp
@@ -480,6 +480,11 @@ Run function `TeX-check-engine' to check the correct engine has
 been set."
   (TeX-check-engine name)
 
+  ;; Make sure that `TeX-command-buffer' is set always.
+  ;; It isn't safe to remove similar lines in `TeX-run-command' etc.
+  ;; because preview-latex calls `TeX-run-command' directly.
+  (setq-default TeX-command-buffer (current-buffer))
+
   (cond ((eq file #'TeX-region-file)
 	 (setq TeX-current-process-region-p t))
 	((eq file #'TeX-master-file)
@@ -542,12 +547,8 @@ without further expansion."
   (let (pat
 	pos ;;FIXME: Should this be dynamically scoped?
 	entry TeX-command-text TeX-command-pos
-        ;; FIXME: This variable appears to be unused!
-	(file `(lambda (&rest args)
-		 (shell-quote-argument
-		  (concat (and (stringp TeX-command-pos) TeX-command-pos)
-			  (apply #',file args)
-			  (and (stringp TeX-command-pos) TeX-command-pos)))))
+	(orig-file file)
+	(file #'TeX--master-or-region-file-with-extra-quotes)
         expansion-res case-fold-search string expansion arguments)
     (setq list (cons
 		(list "%%" (lambda nil
@@ -584,6 +585,47 @@ without further expansion."
 	  (setq command
 		(replace-match string t t command)))))
   command)
+
+(defun TeX--master-or-region-file-with-extra-quotes
+    (&optional extension nondirectory ask extra)
+  "Return file name with quote for shell.
+Wrapper for `TeX-master-file', `TeX-region-file' or
+`TeX-active-master' to be used in `TeX-command-expand'.
+It is assumed that `orig-file' has dynamic binding of the value
+of `TeX-master-file', `TeX-region-file' or `TeX-active-master'.
+Pass EXTENSION, NONDIRECTORY and ASK to that function as-is, and
+arrange the returned file name for use with command shell.
+Enclose the file name with space within quotes `\"' first when
+\" \\input\" is supplemented (indicated by dynamically binded
+variable `TeX-command-text' having string value.)
+Enclose the file name within \\detokenize{} when the following three
+conditions are met:
+1. compiling with standard (pdf)LaTeX or upLaTeX
+2. \" \\input\" is supplemented
+3. EXTRA is non-nil. (default when expanding \"%T\")"
+  (shell-quote-argument
+   (let* ((raw (funcall orig-file extension nondirectory ask))
+	  ;; String `TeX-command-text' means that the file name is
+	  ;; given through \input command.
+	  (quote-for-space (if (and (stringp TeX-command-text)
+				    (string-match " " raw))
+			       "\"" "")))
+     (format
+      (if (and extra
+	       (stringp TeX-command-text)
+	       (memq major-mode '(latex-mode doctex-mode))
+	       (memq TeX-engine '(default uptex)))
+	  ;; Since TeXLive 2018, the default encoding for LaTeX
+	  ;; files has been changed to UTF-8 if used with
+	  ;; classic TeX or pdfTeX.  I.e.,
+	  ;; \usepackage[utf8]{inputenc} is enabled by default
+	  ;; in (pdf)latex.
+	  ;; c.f. LaTeX News issue 28
+	  ;; Due to this change, \detokenize is required to
+	  ;; recognize non-ascii characters in the file name
+	  ;; when \input precedes.
+	  "\\detokenize{ %s }" "%s")
+      (concat quote-for-space raw quote-for-space)))))
 
 (defun TeX-check-files (derived originals extensions)
   "Check if DERIVED is newer than any of the ORIGINALS.
@@ -1987,14 +2029,22 @@ command."
        (with-current-buffer TeX-command-buffer
 	 (TeX-process-buffer (TeX-active-master)))))
 
-(defun TeX-active-master (&optional extension nondirectory)
+(defun TeX-active-master (&optional extension nondirectory _ignore)
   "The master file currently being compiled.
 
 If optional argument EXTENSION is non-nil, add that file extension to
 the name.  Special value t means use `TeX-default-extension'.
 
 If optional second argument NONDIRECTORY is non-nil, do not include
-the directory."
+the directory.
+
+The compatibility argument IGNORE is ignored."
+  ;; The third argument `_ignore' is kept for symmetry with
+  ;; `TeX-master-file's third argument `ask'.  For example, it's used
+  ;; in `TeX--master-or-region-file-with-extra-quotes', where we don't
+  ;; know which function has to be called.  Keep this in mind should
+  ;; you want to use another argument here.
+  ;; See also the similar comment in `TeX-region-file'.
   (if TeX-current-process-region-p
       (TeX-region-file extension nondirectory)
     (TeX-master-file extension nondirectory)))
@@ -2032,7 +2082,33 @@ The hooks are run in the region buffer, you may use the variable
     (while (setq pos (string-match "[~#]" file pos))
       (setq file (replace-match "\\\\string\\&" t nil file 0)
 	    pos (+ pos 8))))
-  file)
+  ;; Use \unexpanded so that \message outputs the raw file name.
+  ;; When \usepackage[utf8]{inputenc} is used in standard (pdf)latex,
+  ;; \message does not output non-ascii file name in raw form without
+  ;; \unexpanded, which makes AUCTeX to fail to recognize the file
+  ;; names right when analysing the process output buffer.
+  ;; Note that \usepackage[utf8]{inputenc} is enabled by default in
+  ;; standard (pdf)latex since TeXLive 2018.
+  (if (and (memq major-mode '(latex-mode doctex-mode))
+	   ;; Japanese upLaTeX requires the same treatment with
+	   ;; respect to non-ascii characters other than Japanese, in
+	   ;; file names within \message{}.
+	   ;; However, pLaTeX (non u- version) does not support
+	   ;; non-ascii file name encoded in UTF-8.  So considering
+	   ;; `ptex' doesn't make sense here.  We cater for only
+	   ;; `default' and `uptex' engines.
+	   (memq TeX-engine '(default uptex)))
+      ;; It would fail to put entire `file' inside \unexpanded{} when
+      ;; the above loop injects \string before "#" and "~".  So put
+      ;; only multibyte characters inside \unexpanded{}.
+      ;; It is safe in upLaTeX to use \unexpanded{} on Japanese
+      ;; characters though they are handled by upLaTeX in a totally
+      ;; different way from inputenc.
+      ;; Thus put all multibyte characters, without considering
+      ;; whether they are Japanese or not, inside \unexpanded{}.
+      (replace-regexp-in-string "[[:multibyte:]]+"
+				"\\\\unexpanded{\\&}" file t)
+    file))
 
 (defvar font-lock-mode-enable-list)
 (defvar font-lock-auto-fontify)
@@ -2097,8 +2173,10 @@ original file."
 			   (if (not (re-search-forward TeX-header-end nil t))
 			       ""
 			     (re-search-forward "[\r\n]" nil t)
-			     (buffer-substring (point-min) (point)))))))))
+			     (buffer-substring-no-properties
+			      (point-min) (point)))))))))
 	 (header-offset 0)
+	 first-line
 	 ;; We search for the trailer from the master file, if it is
 	 ;; not present in the region.
 	 (trailer-offset 0)
@@ -2118,21 +2196,36 @@ original file."
 			      ;;(beginning-of-line 1)
 			      (re-search-backward "[\r\n]" nil t)
 			      (setq trailer-offset (TeX-current-offset))
-			      (buffer-substring (point) (point-max))))))))))
+			      (buffer-substring-no-properties
+			       (point) (point-max))))))))))
     ;; file name should be relative to master
     (setq original (TeX-quote-filename (file-relative-name
 					original (TeX-master-directory)))
 	  master-name (TeX-quote-filename master-name))
+
+    ;; If the first line begins with "%&", put that line separately on
+    ;; the very first line of the region file so that the first line
+    ;; parsing will work.
+    (setq first-line (if (and (> (length header) 1)
+			      (string= (substring header 0 2) "%&"))
+			 ;; This would work even if header has no newline.
+			 (substring header 0 (string-match "\n" header))
+		       ""))
+    (unless (string= first-line "")
+      ;; Remove first-line from header.
+      (setq header (substring header (length first-line)))
+      (setq first-line (concat first-line "\n")))
+
     (with-current-buffer file-buffer
       (setq buffer-read-only t
 	    buffer-undo-list t)
       (setq original-content (buffer-string))
       (let ((inhibit-read-only t))
 	(erase-buffer)
-	(when (boundp 'buffer-file-coding-system)
-	  (setq buffer-file-coding-system
-		(with-current-buffer master-buffer buffer-file-coding-system)))
-	(insert "\\message{ !name(" master-name ")}"
+	(setq buffer-file-coding-system
+	      (with-current-buffer master-buffer buffer-file-coding-system))
+	(insert first-line
+		"\\message{ !name(" master-name ")}"
 		header
 		TeX-region-extra
 		"\n\\message{ !name(" original ") !offset(")
@@ -3264,46 +3357,40 @@ error."
   :group 'TeX-output)
 
 (defface TeX-error-description-error
-  (if (< emacs-major-version 22)
-      nil
-    ;; This is the same as `error' face in latest GNU Emacs versions.
-    '((((class color) (min-colors 88) (background light))
-       :foreground "Red1" :weight bold)
-      (((class color) (min-colors 88) (background dark))
-       :foreground "Pink" :weight bold)
-      (((class color) (min-colors 16) (background light))
-       :foreground "Red1" :weight bold)
-      (((class color) (min-colors 16) (background dark))
-       :foreground "Pink" :weight bold)
-      (((class color) (min-colors 8))
-       :foreground "red" :weight bold)
-      (t (:inverse-video t :weight bold))))
+  ;; This is the same as `error' face in latest GNU Emacs versions.
+  '((((class color) (min-colors 88) (background light))
+     :foreground "Red1" :weight bold)
+    (((class color) (min-colors 88) (background dark))
+     :foreground "Pink" :weight bold)
+    (((class color) (min-colors 16) (background light))
+     :foreground "Red1" :weight bold)
+    (((class color) (min-colors 16) (background dark))
+     :foreground "Pink" :weight bold)
+    (((class color) (min-colors 8))
+     :foreground "red" :weight bold)
+    (t (:inverse-video t :weight bold)))
   "Face for \"Error\" string in error descriptions.")
 
 (defface TeX-error-description-warning
-  (if (< emacs-major-version 22)
-      nil
-    ;; This is the same as `warning' face in latest GNU Emacs versions.
-    '((((class color) (min-colors 16)) :foreground "DarkOrange" :weight bold)
-      (((class color)) :foreground "yellow" :weight bold)))
+  ;; This is the same as `warning' face in latest GNU Emacs versions.
+  '((((class color) (min-colors 16)) :foreground "DarkOrange" :weight bold)
+    (((class color)) :foreground "yellow" :weight bold))
   "Face for \"Warning\" string in error descriptions.")
 
 (defface TeX-error-description-tex-said
-  (if (< emacs-major-version 22)
-      nil
-    ;; This is the same as `font-lock-function-name-face' face in latest GNU
-    ;; Emacs versions.
-    '((((class color) (min-colors 88) (background light))
-       :foreground "Blue1")
-      (((class color) (min-colors 88) (background dark))
-       :foreground "LightSkyBlue")
-      (((class color) (min-colors 16) (background light))
-       :foreground "Blue")
-      (((class color) (min-colors 16) (background dark))
-       :foreground "LightSkyBlue")
-      (((class color) (min-colors 8))
-       :foreground "blue" :weight bold)
-      (t (:inverse-video t :weight bold))))
+  ;; This is the same as `font-lock-function-name-face' face in latest GNU
+  ;; Emacs versions.
+  '((((class color) (min-colors 88) (background light))
+     :foreground "Blue1")
+    (((class color) (min-colors 88) (background dark))
+     :foreground "LightSkyBlue")
+    (((class color) (min-colors 16) (background light))
+     :foreground "Blue")
+    (((class color) (min-colors 16) (background dark))
+     :foreground "LightSkyBlue")
+    (((class color) (min-colors 8))
+     :foreground "blue" :weight bold)
+    (t (:inverse-video t :weight bold)))
   "Face for \"TeX said\" string in error descriptions.")
 
 (defface TeX-error-description-help
@@ -3607,32 +3694,31 @@ forward, if negative)."
 (easy-menu-define TeX-error-overview-menu
   TeX-error-overview-mode-map
   "Menu used in TeX error overview mode."
-  (TeX-menu-with-help
-   '("TeX errors"
-     ["Next error" TeX-error-overview-next-error
-      :help "Jump to the next error"]
-     ["Previous error" TeX-error-overview-previous-error
-      :help "Jump to the previous error"]
-     ["Go to source" TeX-error-overview-goto-source
-      :help "Show the error in the source"]
-     ["Jump to source" TeX-error-overview-jump-to-source
-      :help "Move point to the error in the source"]
-     ["Go to log" TeX-error-overview-goto-log
-      :help "Show the error in the log buffer"]
-     "-"
-     ["Debug Bad Boxes" TeX-error-overview-toggle-debug-bad-boxes
-      :style toggle :selected TeX-debug-bad-boxes
-      :help "Show overfull and underfull boxes"]
-     ["Debug Warnings" TeX-error-overview-toggle-debug-warnings
-      :style toggle :selected TeX-debug-warnings
-      :help "Show warnings"]
-     ["Ignore Unimportant Warnings"
-      TeX-error-overview-toggle-suppress-ignored-warnings
-      :style toggle :selected TeX-suppress-ignored-warnings
-      :help "Hide specified warnings"]
-     "-"
-     ["Quit" TeX-error-overview-quit
-      :help "Quit"])))
+  '("TeX errors"
+    ["Next error" TeX-error-overview-next-error
+     :help "Jump to the next error"]
+    ["Previous error" TeX-error-overview-previous-error
+     :help "Jump to the previous error"]
+    ["Go to source" TeX-error-overview-goto-source
+     :help "Show the error in the source"]
+    ["Jump to source" TeX-error-overview-jump-to-source
+     :help "Move point to the error in the source"]
+    ["Go to log" TeX-error-overview-goto-log
+     :help "Show the error in the log buffer"]
+    "-"
+    ["Debug Bad Boxes" TeX-error-overview-toggle-debug-bad-boxes
+     :style toggle :selected TeX-debug-bad-boxes
+     :help "Show overfull and underfull boxes"]
+    ["Debug Warnings" TeX-error-overview-toggle-debug-warnings
+     :style toggle :selected TeX-debug-warnings
+     :help "Show warnings"]
+    ["Ignore Unimportant Warnings"
+     TeX-error-overview-toggle-suppress-ignored-warnings
+     :style toggle :selected TeX-suppress-ignored-warnings
+     :help "Hide specified warnings"]
+    "-"
+    ["Quit" TeX-error-overview-quit
+     :help "Quit"]))
 
 (defvar TeX-error-overview-list-entries nil
   "List of errors to be used in the error overview.")
@@ -3743,35 +3829,7 @@ warnings and bad boxes"
 
 ;;; Output mode
 
-(defalias 'TeX-special-mode
-  (if (fboundp 'special-mode)
-      (progn
-        (defvaralias 'TeX-special-mode-map 'special-mode-map)
-        #'special-mode)
-    (defvar TeX-special-mode-map
-      (let ((map (make-sparse-keymap)))
-        (suppress-keymap map)
-        (define-key map "q" (if (fboundp 'quit-window)
-                                'quit-window
-                              'bury-buffer))
-        (define-key map " " (if (fboundp 'scroll-up-command)
-                                'scroll-up-command
-                              'scroll-up))
-        (define-key map [backspace] (if (fboundp 'scroll-down-command)
-                                        'scroll-down-command
-                                      'scroll-down))
-        (define-key map "\C-?" (if (fboundp 'scroll-down-command)
-                                   'scroll-down-command
-                                 'scroll-down))
-        (define-key map "?" 'describe-mode)
-        (define-key map "h" 'describe-mode)
-        (define-key map ">" 'end-of-buffer)
-        (define-key map "<" 'beginning-of-buffer)
-        (define-key map "g" 'revert-buffer)
-        map)
-      "Keymap for `TeX-special-mode-map'.")
-    (lambda ()
-      "Placeholder mode for Emacsen which don't have `special-mode'.")))
+(define-derived-mode TeX-special-mode special-mode "TeX")
 
 (defvar TeX-output-mode-map
   (let ((map (make-sparse-keymap)))

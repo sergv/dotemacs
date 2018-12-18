@@ -1,6 +1,6 @@
 ;;; enumitem.el --- AUCTeX style for `enumitem.sty' (v3.5.2)
 
-;; Copyright (C) 2015, 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2016, 2018 Free Software Foundation, Inc.
 
 ;; Author: Arash Esbati <arash@gnu.org>
 ;; Maintainer: auctex-devel@gnu.org
@@ -41,8 +41,13 @@
 (eval-when-compile
   (require 'cl-lib))
 
-;; Needed for auto-parsing.
+;; Needed for auto-parsing:
 (require 'tex)
+
+;; Silence the compiler:
+(declare-function font-latex-add-keywords
+		  "font-latex"
+		  (keywords class))
 
 (defvar LaTeX-enumitem-key-val-options
   '(;; Vertical Spacing
@@ -364,7 +369,7 @@ in `enumitem'-completions."
     '("setlist"
       [TeX-arg-eval mapconcat #'identity
 		    (TeX-completing-read-multiple
-		     "Environment(s), level(s): "
+		     (TeX-argument-prompt optional nil "Environment(s), level(s)")
 		     `(,@LaTeX-enumitem-newlist-list-local
 		       ("1") ("2") ("3") ("4"))) ","]
       (TeX-arg-eval
@@ -377,7 +382,7 @@ in `enumitem'-completions."
     '("setlist*"
       [TeX-arg-eval mapconcat #'identity
 		    (TeX-completing-read-multiple
-		     "Environment, level: "
+		     (TeX-argument-prompt optional nil "Environment(s), level(s)")
 		     `(,@LaTeX-enumitem-newlist-list-local
 		       ("1") ("2") ("3") ("4"))) ","]
       (TeX-arg-eval
