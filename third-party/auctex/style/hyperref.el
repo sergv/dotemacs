@@ -1,6 +1,6 @@
 ;;; hyperref.el --- AUCTeX style for `hyperref.sty' v6.83m
 
-;; Copyright (C) 2008, 2013--2016 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2013--2016, 2018 Free Software Foundation, Inc.
 
 ;; Author: Ralf Angeli <angeli@caeruleus.net>
 ;; Maintainer: auctex-devel@gnu.org
@@ -29,6 +29,11 @@
 ;; This file adds support for the hyperref package.
 
 ;;; Code:
+
+;; Silence the compiler:
+(declare-function font-latex-add-keywords
+		  "font-latex"
+		  (keywords class))
 
 (defvar LaTeX-hyperref-package-options-list
   '(;; See https://www.tug.org/applications/hyperref/manual.html#x1-40003
@@ -221,6 +226,9 @@
    (TeX-add-symbols
     '("hypersetup" (TeX-arg-key-val LaTeX-hyperref-package-options-list))
     '("href" [ (TeX-arg-key-val LaTeX-hyperref-href-options) ] "URL" "Text")
+    ;; Completion for \url is provided via url.el.  Hence the entry in
+    ;; this style is commented:
+    ;; '("url" "URL" ignore)
     '("nolinkurl" t)
     '("hyperbaseurl" t)
     '("hyperimage" "Image URL" "Text")
@@ -304,6 +312,11 @@
 			      'function)
      ;; For syntactic fontification, e.g. verbatim constructs.
      (font-latex-set-syntactic-keywords))
+
+   ;; Option management
+   (if (and (LaTeX-provided-package-options-member "hyperref" "dvipdfmx")
+            (not (eq TeX-engine 'xetex)))
+       (setq TeX-PDF-from-DVI "Dvipdfmx"))
 
    ;; Activate RefTeX reference style.
    (and LaTeX-reftex-ref-style-auto-activate
