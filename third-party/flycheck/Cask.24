@@ -18,7 +18,8 @@
  (depends-on "d-mode")
  (depends-on "dockerfile-mode")
  (depends-on "erlang")
- (depends-on "ess")
+ ;; Latest ess requires `project' from Emacs 25+.
+ ;; (depends-on "ess")
  (depends-on "geiser")
  (depends-on "go-mode")
  (depends-on "groovy-mode")
