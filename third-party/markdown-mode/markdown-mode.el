@@ -324,17 +324,17 @@ Math support can be enabled, disabled, or toggled later using
   :group 'markdown
   :type '(repeat (string :tag "CSS File Path")))
 
-(defcustom markdown-content-type ""
+(defcustom markdown-content-type "text/html"
   "Content type string for the http-equiv header in XHTML output.
-When set to a non-empty string, insert the http-equiv attribute.
-Otherwise, this attribute is omitted."
+When set to an empty string, this attribute is omitted.  Defaults to
+`text/html'."
   :group 'markdown
   :type 'string)
 
 (defcustom markdown-coding-system nil
   "Character set string for the http-equiv header in XHTML output.
 Defaults to `buffer-file-coding-system' (and falling back to
-`iso-8859-1' when not available).  Common settings are `utf-8'
+`utf-8' when not available).  Common settings are `iso-8859-1'
 and `iso-latin-1'.  Use `list-coding-systems' for more choices."
   :group 'markdown
   :type 'coding-system)
@@ -1559,11 +1559,13 @@ start which was previously propertized."
   (save-excursion
     (goto-char start)
     (while (re-search-forward markdown-regex-hr end t)
-      (unless (or (markdown-on-heading-p)
-                  (markdown-code-block-at-point-p))
-        (put-text-property (match-beginning 0) (match-end 0)
-                           'markdown-hr
-                           (match-data t))))))
+      (let ((beg (match-beginning 0))
+            (end (match-end 0)))
+        (goto-char beg)
+        (unless (or (markdown-on-heading-p)
+                    (markdown-code-block-at-point-p))
+          (put-text-property beg end 'markdown-hr (match-data t)))
+        (goto-char end)))))
 
 (defun markdown-syntax-propertize-yaml-metadata (start end)
   "Propertize elements inside YAML metadata blocks from START to END.
@@ -1601,7 +1603,8 @@ region of a YAML metadata block as propertized by
 
 (defun markdown-syntax-propertize-comments (start end)
   "Match HTML comments from the START to END."
-  (let* ((in-comment (nth 4 (syntax-ppss))))
+  (let* ((in-comment (nth 4 (syntax-ppss)))
+         (comment-begin (nth 8 (syntax-ppss))))
     (goto-char start)
     (cond
      ;; Comment start
@@ -1615,10 +1618,9 @@ region of a YAML metadata block as propertized by
         (markdown-syntax-propertize-comments
          (min (1+ (match-end 0)) end (point-max)) end)))
      ;; Comment end
-     ((and in-comment
+     ((and in-comment comment-begin
            (re-search-forward markdown-regex-comment-end end t))
-      (let ((comment-end (match-end 0))
-            (comment-begin (nth 8 (syntax-ppss))))
+      (let ((comment-end (match-end 0)))
         (put-text-property (1- comment-end) comment-end
                            'syntax-table (string-to-syntax ">"))
         ;; Remove any other text properties inside the comment
@@ -2849,12 +2851,12 @@ Like `markdown-inline-code-at-pos`, but preserves match data."
 See `markdown-inline-code-at-pos' for details."
   (markdown-inline-code-at-pos (point)))
 
-(defun markdown-inline-code-at-point-p ()
-  "Return non-nil if there is inline code at the point.
+(defun markdown-inline-code-at-point-p (&optional pos)
+  "Return non-nil if there is inline code at the POS.
 This is a predicate function counterpart to
 `markdown-inline-code-at-point' which does not modify the match
 data.  See `markdown-code-block-at-point-p' for code blocks."
-  (save-match-data (markdown-inline-code-at-pos (point))))
+  (save-match-data (markdown-inline-code-at-pos (or pos (point)))))
 
 (make-obsolete 'markdown-code-at-point-p 'markdown-inline-code-at-point-p "v2.2")
 
@@ -2863,29 +2865,30 @@ data.  See `markdown-code-block-at-point-p' for code blocks."
 Uses text properties at the beginning of the line position.
 This includes pre blocks, tilde-fenced code blocks, and GFM
 quoted code blocks.  Return nil otherwise."
-  (setq pos (save-excursion (goto-char pos) (point-at-bol)))
-  (or (get-text-property pos 'markdown-pre)
-      (markdown-get-enclosing-fenced-block-construct pos)
-      ;; polymode removes text properties set by markdown-mode, so
-      ;; check if `poly-markdown-mode' is active and whether the
-      ;; `chunkmode' property is non-nil at POS.
-      (and (bound-and-true-p poly-markdown-mode)
-           (get-text-property pos 'chunkmode))))
+  (let ((bol (save-excursion (goto-char pos) (point-at-bol))))
+    (or (get-text-property bol 'markdown-pre)
+        (let* ((bounds (markdown-get-enclosing-fenced-block-construct pos))
+               (second (cl-second bounds)))
+          (if second
+              ;; chunks are right open
+              (when (< pos second)
+                bounds)
+            bounds)))))
 
 ;; Function was renamed to emphasize that it does not modify match-data.
 (defalias 'markdown-code-block-at-point 'markdown-code-block-at-point-p)
 
-(defun markdown-code-block-at-point-p ()
-  "Return non-nil if there is a code block at the point.
+(defun markdown-code-block-at-point-p (&optional pos)
+  "Return non-nil if there is a code block at the POS.
 This includes pre blocks, tilde-fenced code blocks, and GFM
 quoted code blocks.  This function does not modify the match
 data.  See `markdown-inline-code-at-point-p' for inline code."
-  (save-match-data (markdown-code-block-at-pos (point))))
+  (save-match-data (markdown-code-block-at-pos (or pos (point)))))
 
-(defun markdown-heading-at-point ()
-  "Return non-nil if there is a heading at the point.
+(defun markdown-heading-at-point (&optional pos)
+  "Return non-nil if there is a heading at the POS.
 Set match data for `markdown-regex-header'."
-  (let ((match-data (get-text-property (point) 'markdown-heading)))
+  (let ((match-data (get-text-property (or pos (point)) 'markdown-heading)))
     (when match-data
       (set-match-data match-data)
       t)))
@@ -3071,7 +3074,8 @@ Restore match data previously stored in PROPERTY."
         pos)
     (unless saved
       (setq pos (next-single-property-change (point) property nil last))
-      (setq saved (get-text-property pos property)))
+      (unless (= pos last)
+        (setq saved (get-text-property pos property))))
     (when saved
       (set-match-data saved)
       ;; Step at least one character beyond point. Otherwise
@@ -4813,6 +4817,20 @@ text to kill ring), and list items."
      (t
       (user-error "Nothing found at point to kill")))))
 
+(defun markdown-kill-outline ()
+  "Kill visible heading and add it to `kill-ring'."
+  (interactive)
+  (save-excursion
+    (markdown-outline-previous)
+    (kill-region (point) (progn (markdown-outline-next) (point)))))
+
+(defun markdown-kill-block ()
+  "Kill visible code block, list item, or blockquote and add it to `kill-ring'."
+  (interactive)
+  (save-excursion
+    (markdown-backward-block)
+    (kill-region (point) (progn (markdown-forward-block) (point)))))
+
 
 ;;; Indentation ====================================================================
 
@@ -5279,6 +5297,7 @@ Assumes match data is available for `markdown-regex-italic'."
     (define-key map (kbd "P") 'markdown-pre-region)
     (define-key map (kbd "q") 'markdown-insert-blockquote)
     (define-key map (kbd "s") 'markdown-insert-strike-through)
+    (define-key map (kbd "t") 'markdown-insert-table)
     (define-key map (kbd "Q") 'markdown-blockquote-region)
     (define-key map (kbd "w") 'markdown-insert-wiki-link)
     (define-key map (kbd "-") 'markdown-insert-hr)
@@ -5524,6 +5543,7 @@ See also `markdown-mode-map'.")
       :enable (markdown-table-at-point-p)]
      ["Insert Column" markdown-table-insert-column
       :enable (markdown-table-at-point-p)]
+     ["Insert Table" markdown-insert-table]
      "--"
      ["Convert Region to Table" markdown-table-convert-region]
      ["Sort Table Lines" markdown-table-sort-lines
@@ -5683,7 +5703,7 @@ See `imenu-create-index-function' and `imenu--index-alist' for details."
       ;; Headings
       (goto-char (point-min))
       (while (re-search-forward markdown-regex-header (point-max) t)
-        (when (and (not (markdown-code-block-at-point-p))
+        (when (and (not (markdown-code-block-at-point-p (point-at-bol)))
                    (not (markdown-text-property-at-point 'markdown-yaml-metadata-begin)))
           (cond
            ((setq heading (match-string-no-properties 1))
@@ -7313,7 +7333,7 @@ Standalone XHTML output is identified by an occurrence of
           "<head>\n<title>")
   (insert title)
   (insert "</title>\n")
-  (when (> (length markdown-content-type) 0)
+  (unless (= (length markdown-content-type) 0)
     (insert
      (format
       "<meta http-equiv=\"Content-Type\" content=\"%s;charset=%s\"/>\n"
@@ -7325,7 +7345,7 @@ Standalone XHTML output is identified by an occurrence of
           (and (fboundp 'coding-system-get)
                (coding-system-get buffer-file-coding-system
                                   'mime-charset))
-          "iso-8859-1"))))
+          "utf-8"))))
   (if (> (length markdown-css-paths) 0)
       (insert (mapconcat #'markdown-stylesheet-link-string
                          markdown-css-paths "\n")))
@@ -8799,7 +8819,8 @@ This function assumes point is on a table."
     (while (and (not (bobp))
                 (markdown-table-at-point-p))
       (forward-line -1))
-    (unless (eobp)
+    (unless (or (eobp)
+                (markdown-table-at-point-p))
       (forward-line 1))
     (point)))
 
@@ -9330,6 +9351,37 @@ spaces, or alternatively a TAB should be used as the separator."
       (while (re-search-forward re end t) (replace-match "| " t t)))
     (goto-char begin)
     (markdown-table-align)))
+
+(defun markdown-insert-table (&optional rows columns align)
+  "Insert an empty pipe table.
+Optional arguments ROWS, COLUMNS, and ALIGN specify number of
+rows and columns and the column alignment."
+  (interactive)
+  (let* ((rows (or rows (string-to-number (read-string "Row size: "))))
+         (columns (or columns (string-to-number (read-string "Column size: "))))
+         (align (or align (read-string "Alignment ([l]eft, [r]ight, [c]enter, or RET for default): ")))
+         (align (cond ((equal align "l") ":--")
+                      ((equal align "r") "--:")
+                      ((equal align "c") ":-:")
+                      (t "---")))
+         (pos (point))
+         (indent (make-string (current-column) ?\ ))
+         (line (concat
+                (apply 'concat indent "|"
+                       (make-list columns "   |")) "\n"))
+         (hline (apply 'concat indent "|"
+                       (make-list columns (concat align "|")))))
+    (if (string-match
+         "^[ \t]*$" (buffer-substring-no-properties
+                     (point-at-bol) (point)))
+        (beginning-of-line 1)
+      (newline))
+    (dotimes (_ rows) (insert line))
+    (goto-char pos)
+    (if (> rows 1)
+        (progn
+          (end-of-line 1) (insert (concat "\n" hline)) (goto-char pos)))
+    (markdown-table-forward-cell)))
 
 
 ;;; ElDoc Support
