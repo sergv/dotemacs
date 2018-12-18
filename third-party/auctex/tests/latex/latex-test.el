@@ -1,6 +1,6 @@
 ;;; latex-test.el --- tests for LaTeX mode
 
-;; Copyright (C) 2014--2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014--2018 Free Software Foundation, Inc.
 
 ;; This file is part of AUCTeX.
 
@@ -164,6 +164,15 @@ backend=biber % here is a comment
 
 (ert-deftest LaTeX-includegraphics-extensions ()
   "Check correct extensions are generated accoding to `TeX-engine'."
+  ;; Emacs 26.1 has a bug in byte compile optimization, which makes
+  ;; compiled `LaTeX-includegraphics-extensions-list' to return wrong
+  ;; value when `TeX-engine' is neither `default', `xetex' nor
+  ;; `luatex'.
+  ;; c.f. https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31718
+  :expected-result (if (and (= emacs-major-version 26)
+			    (= emacs-minor-version 1))
+		       :failed
+		     :passed)
   (with-temp-buffer
     (LaTeX-mode)
     (TeX-load-style "graphicx")
@@ -247,5 +256,68 @@ backend=biber % here is a comment
       (should
        (equal (sort (LaTeX-includegraphics-extensions-list) #'string<)
 	      (sort '("eps" "jpe?g" "pdf" "png") #'string<))))))
+
+(ert-deftest LaTeX-style-hook-with-class-option ()
+  "Check style hooks associated with class option are processed."
+  (with-temp-buffer
+    (let ((TeX-parse-self t))
+      ;; test for dvips option
+      ;; This depends on the following code in latex.el:
+      ;; (TeX-add-style-hook "dvips"
+      ;;		      (lambda ()
+      ;;			(setq TeX-PDF-from-DVI "Dvips"))
+      ;;		      :classopt)
+      (insert "\\documentclass[dvips]{article}\n")
+      (latex-mode)
+      (TeX-update-style)
+      (should (equal (TeX-PDF-from-DVI) "Dvips"))
+      (should (not (member "dvips" TeX-active-styles)))
+
+      ;; test for dvipdfmx option
+      (erase-buffer)
+      ;; This depends on the following code in latex.el:
+      ;; (TeX-add-style-hook "dvipdfmx"
+      ;; 		      (lambda ()
+      ;; 			(TeX-PDF-mode-on)
+      ;; 			;; XeLaTeX normally don't use dvipdfmx
+      ;; 			;; explicitly.
+      ;; 			(unless (eq TeX-engine 'xetex)
+      ;; 			  (setq TeX-PDF-from-DVI "Dvipdfmx")))
+      ;; 		      :classopt)
+      (insert "\\documentclass[dvipdfmx]{article}\n")
+      (latex-mode)
+      (TeX-update-style)
+      (should TeX-PDF-mode)
+      (should (equal (TeX-PDF-from-DVI) "Dvipdfmx"))
+      (should (not (member "dvipdfmx" TeX-active-styles)))
+
+      ;; dvipdfmx option should not trigger `TeX-PDF-from-DVI' for
+      ;; XeLaTeX document
+      (latex-mode)
+      (let ((TeX-engine 'xetex))
+	(TeX-update-style))
+      (should TeX-PDF-mode)
+      (should (not (TeX-PDF-from-DVI)))
+      (should (not (member "dvipdfmx" TeX-active-styles)))
+
+      ;; test for pdftricks option
+      (erase-buffer)
+      ;; This depends on the following code in latex.el:
+      ;; (TeX-add-style-hook "pdftricks" #'TeX-PDF-mode-on :classopt)
+      (insert "\\documentclass[pdftricks]{article}\n")
+      (latex-mode)
+      (TeX-update-style)
+      (should TeX-PDF-mode)
+      (should (not (member "pdftricks" TeX-active-styles)))
+
+      ;; test for psfrag option
+      (erase-buffer)
+      ;; This depends on the following code in latex.el:
+      ;; (TeX-add-style-hook "psfrag" #'TeX-PDF-mode-off :classopt)
+      (insert "\\documentclass[psfrag]{article}\n")
+      (latex-mode)
+      (TeX-update-style)
+      (should (not TeX-PDF-mode))
+      (should (not (member "psfrag" TeX-active-styles))))))
 
 ;;; latex-test.el ends here
