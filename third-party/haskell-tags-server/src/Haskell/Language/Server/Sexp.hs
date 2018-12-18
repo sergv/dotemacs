@@ -62,7 +62,7 @@ import Haskell.Language.Lexer.FastTags (Type, Line(..))
 import Haskell.Language.Server.Tags.Types
 
 sexpDefaultPort :: Network.PortNumber
-sexpDefaultPort = 10000
+sexpDefaultPort = 4872
 
 data SexpServer = SexpServer
   { ssThreadId    :: ThreadId
