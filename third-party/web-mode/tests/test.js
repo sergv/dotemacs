@@ -8,6 +8,15 @@ let newList = list.skipWhile(f)
 a()
 b()
 
+function Switch() {
+  return whatever;
+}
+
+type T = {|
+  x: number,
+  titi: y
+|};
+
 Relay.createContainer(Story, {
   initialVariables: {
     numCommentsToShow: 10,
