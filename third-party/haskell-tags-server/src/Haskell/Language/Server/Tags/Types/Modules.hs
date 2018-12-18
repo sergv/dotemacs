@@ -37,12 +37,12 @@ import Control.DeepSeq
 import Control.Monad.Except.Ext
 import Control.Parallel.Strategies.Ext
 
-import Data.Binary.Ext
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Data.Set (Set)
+import Data.Store (Store)
 import Data.Text.Prettyprint.Doc.Ext
 import Data.Time.Clock (UTCTime(..))
 import Data.Traversable (for)
@@ -76,8 +76,8 @@ data Module a = Module
   , modIsDirty          :: !Bool
   } deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Generic)
 
-instance Binary a => Binary (Module a)
 instance NFData a => NFData (Module a)
+instance Store  a => Store  (Module a)
 
 type UnresolvedModule = Module ()
 type ResolvedModule   = Module SymbolMap
@@ -115,8 +115,8 @@ data ModuleHeader = ModuleHeader
   , mhImports          :: !(SubkeyMap ImportKey (NonEmpty ImportSpec))
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary ModuleHeader
 instance NFData ModuleHeader
+instance Store  ModuleHeader
 
 instance Pretty ModuleHeader where
   pretty ModuleHeader{mhModName, mhExports, mhImportQualifiers, mhImports} =
@@ -167,8 +167,8 @@ data ModuleExportSpec a =
     SpecificExports !a
   deriving (Eq, Ord, Show, Generic, Functor, Foldable, Traversable)
 
-instance Binary a => Binary (ModuleExportSpec a)
 instance NFData a => NFData (ModuleExportSpec a)
+instance Store  a => Store  (ModuleExportSpec a)
 
 instance Pretty a => Pretty (ModuleExportSpec a) where
   pretty = ppGeneric
@@ -194,8 +194,8 @@ data ModuleExports = ModuleExports
   , meHasWildcardExports :: !Bool
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary ModuleExports
 instance NFData ModuleExports
+instance Store  ModuleExports
 
 instance Pretty ModuleExports where
   pretty = ppGeneric
@@ -223,9 +223,9 @@ data PosAndType = PosAndType
   , patType     :: !Type
   } deriving (Eq, Ord, Show, Generic)
 
-instance Binary   PosAndType
 instance Hashable PosAndType
 instance NFData   PosAndType
+instance Store    PosAndType
 
 instance Pretty PosAndType where
   pretty = ppGeneric

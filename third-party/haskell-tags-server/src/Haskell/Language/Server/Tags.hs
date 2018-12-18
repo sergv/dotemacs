@@ -31,14 +31,16 @@ module Haskell.Language.Server.Tags
   , emptyTagsServerState
   ) where
 
-import Codec.Compression.GZip
 import Control.Concurrent
 import Control.Monad.Base
 import Control.Monad.Catch
 import Control.Monad.Except.Ext
 import Control.Monad.Trans.Control
-import Data.Binary
 import qualified Data.ByteString.Lazy as BSL
+import Data.Conduit ((.|))
+import qualified Data.Conduit as C
+import qualified Data.Conduit.Binary as C
+import qualified Data.Conduit.Zlib as Zlib
 import Data.Foldable
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Map.Strict as M
@@ -46,10 +48,12 @@ import Data.Maybe
 import Data.Semigroup.Foldable
 import Data.Set (Set)
 import qualified Data.Set as S
+import qualified Data.Store as Store
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Ext (Pretty(..), (##), (<+>))
 import qualified System.Directory as Directory
 import qualified System.FSNotify as FSNotify
+import System.IO
 
 import qualified Data.Promise as Promise
 
@@ -181,10 +185,12 @@ startTagsServer searchCfg conf = do
       exists <- liftBase $ Directory.doesFileExist file
       if exists
       then do
-        contents <- liftBase $ BSL.readFile file
-        case decodeOrFail $ decompress contents of
-          Left (_, _, msg) -> throwErrorWithCallStack $ "Failed to read server state from" <+> pretty file ## pretty msg
-          Right (_, _, x)  -> pure x
+        contents <- liftBase $ withFile file ReadMode $ \h ->
+          C.runConduit $
+            C.sourceHandleUnsafe h .| Zlib.decompress Zlib.defaultWindowBits .| C.sinkLbs
+        case Store.decode $ BSL.toStrict contents of
+          Left msg -> throwErrorWithCallStack $ "Failed to read server state from" <+> pretty file ## pretty (show msg)
+          Right x  -> pure x
       else pure emptyTagsServerState
   initState'    <- preloadFiles searchCfg conf initState
   reqChan       <- liftBase newChan
@@ -229,11 +235,8 @@ startTagsServer searchCfg conf = do
             Nothing   -> pure ()
             Just dest -> do
               logInfo $ "[startTagsServer.handleReq] storing state in" <+> pretty dest
-              liftBase $ BSL.writeFile dest $ compressWith params $ encode s
-              where
-                params = defaultCompressParams
-                  { compressLevel        = bestCompression
-                  }
+              liftBase $ C.runConduitRes $
+                C.sourceLbs (BSL.fromStrict (Store.encode s)) .| Zlib.compress 9 Zlib.defaultWindowBits .| C.sinkFileCautious dest
           liftBase $ putMVar doneLock s
         handleReq
           :: SomeRequest
