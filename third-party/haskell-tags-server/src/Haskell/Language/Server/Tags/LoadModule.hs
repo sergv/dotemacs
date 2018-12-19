@@ -122,24 +122,31 @@ loadModule liftN key@ImportKey{ikModuleName} = do
     mods <- case M.lookup key (tssLoadedModules s) of
       Nothing -> do
         mods' <- doLoad
-        for_ mods' $ \mods'' ->
-          modify (\s' -> s' { tssLoadedModules = M.insert key mods'' $ tssLoadedModules s' })
-        pure mods'
+        case mods' of
+          []     -> pure Nothing
+          m : ms -> do
+            let mods'' = m :| ms
+            Just mods'' <$ modify (\s' -> s' { tssLoadedModules = M.insert key mods'' $ tssLoadedModules s' })
       Just ms -> do
         logDebug $ "[loadModule] module was loaded before, reusing:" <+> pretty key
-        (ms', Any anyReloaded) <- Strict.runWriterT $ for ms $ \m -> do
+        (ms', Any anyReloaded) <- fmap (first catMaybes) $ Strict.runWriterT $ for (toList ms) $ \m -> do
           m' <- lift $ reloadIfNecessary liftN key m
           case m' of
-            Nothing  -> pure m
-            Just m'' -> m'' <$ tell (Any True)
-        when anyReloaded $
-          modify $ \s' -> s' { tssLoadedModules = M.insert key ms' $ tssLoadedModules s' }
-        pure $ Just ms'
+            Gone            -> pure Nothing
+            AlreadyUpToDate -> pure $ Just m
+            Reloaded m''    -> Just m'' <$ tell (Any True)
+        case ms' of
+          []       -> pure Nothing
+          m : ms'' -> do
+            let ms''' = m :| ms''
+            when anyReloaded $
+              modify $ \s' -> s' { tssLoadedModules = M.insert key ms''' $ tssLoadedModules s' }
+            pure $ Just ms'''
     -- for_ mods $ \mods' ->
     --   logDebug $ ppFoldableHeader "[loadModule] loaded modules:" mods'
     pure mods
   where
-    doLoad :: WithCallStack => m (Maybe (NonEmpty ResolvedModule))
+    doLoad :: WithCallStack => m [ResolvedModule]
     doLoad = do
       logDebug $ "[loadModule.doLoad] module was not loaded before, loading now:" <+> pretty ikModuleName
       TagsServerState{tssUnloadedFiles} <- get
@@ -149,14 +156,21 @@ loadModule liftN key@ImportKey{ikModuleName} = do
           TagsServerConf{tsconfNameResolution} <- ask
           case tsconfNameResolution of
             NameResolutionStrict -> throwErrorWithCallStack msg
-            NameResolutionLax    -> Nothing <$ logWarning msg
+            NameResolutionLax    -> [] <$ logWarning msg
         (Just mods, tssUnloadedFiles') -> do
           modify $ \s -> s { tssUnloadedFiles = tssUnloadedFiles' }
-          fmap Just $ for mods $ \m -> do
+          fmap catMaybes $ for (toList mods) $ \m -> do
             m' <- reloadIfNecessary liftN key m
             case m' of
-              Nothing  -> registerAndResolve liftN key m
-              Just m'' -> pure m''
+              Gone            -> pure Nothing
+              AlreadyUpToDate -> Just <$> registerAndResolve liftN key m
+              Reloaded m''    -> pure $ Just m''
+
+data ReloadResult a =
+    Reloaded a
+  | AlreadyUpToDate
+  | Gone
+  deriving (Eq, Ord, Show)
 
 -- TODO: consider using hashes to track whether a module needs reloading?
 reloadIfNecessary
@@ -165,15 +179,19 @@ reloadIfNecessary
   => (forall a. n a -> m a)
   -> ImportKey
   -> Module b
-  -> m (Maybe ResolvedModule)
+  -> m (ReloadResult ResolvedModule)
 reloadIfNecessary liftN key@ImportKey{ikModuleName} m@Module{modFile, modHeader} = do
-  (needsReloading, modifTime) <- moduleNeedsReloading m
-  if needsReloading
+  exists <- MonadFS.doesFileExist modFile
+  if exists
   then do
-    logInfo $ "[reloadIfNecessary] reloading module" <+> pretty (mhModName modHeader)
-    m' <- registerAndResolve liftN key =<< readFileAndLoad (Just ikModuleName) modifTime modFile
-    pure $ Just m'
-  else pure Nothing
+    (needsReloading, modifTime) <- moduleNeedsReloading m
+    if needsReloading
+    then do
+      logInfo $ "[reloadIfNecessary] reloading module" <+> pretty (mhModName modHeader)
+      m' <- registerAndResolve liftN key =<< readFileAndLoad (Just ikModuleName) modifTime modFile
+      pure $ Reloaded m'
+    else pure AlreadyUpToDate
+  else pure Gone
 
 registerAndResolve
   :: (WithCallStack, MonadError ErrorMessage m, MonadState TagsServerState m, MonadReader TagsServerConf m, MonadLog m, MonadFS m)
