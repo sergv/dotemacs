@@ -44,7 +44,6 @@ import qualified Data.Conduit.Zlib as Zlib
 import Data.Foldable
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Map.Strict as M
-import Data.Maybe
 import Data.Semigroup.Foldable
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -138,10 +137,15 @@ watchDirs
   -> SearchCfg
   -> m ()
 watchDirs conf manager reqChan searchCfg@SearchCfg{scShallowPaths, scRecursivePaths, scIgnoredDirs} = do
+  ignoredGlobsRE <- searchCfgIgnoredRE searchCfg
   let shouldAct :: FSNotify.Event -> Bool
       shouldAct event =
         not (FSNotify.eventIsDirectory event) &&
-        isJust (classifyPath conf path')
+        case classifyPath conf path' of
+          Nothing -> False
+          -- Must check that path does not match ignored globs because they
+          -- may include filename patterns as well as directory patterns.
+          Just{}  -> not (reMatches ignoredGlobsRE path)
         where
           path' = mkSinglePathFragment path
           path = T.pack $ FSNotify.eventPath event
@@ -157,7 +161,6 @@ watchDirs conf manager reqChan searchCfg@SearchCfg{scShallowPaths, scRecursivePa
         FSNotify.Modified path _ _ -> reportEvent' path FSModified
         FSNotify.Removed  path _ _ -> reportEvent' path FSRemoved
         FSNotify.Unknown{}         -> pure ()
-  ignoredGlobsRE <- searchCfgIgnoredRE searchCfg
   liftBase $ do
     (dirsToWatch :: Set (FullPath 'Dir)) <- findRecurCollect
       scIgnoredDirs          -- ignored dirs

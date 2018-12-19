@@ -83,6 +83,7 @@
     { name: "Use :"
     , within: "Haskell.Language.Server.Tags.Types.ppEntryWithChildren"
     }
+- ignore: {name: "Reduce duplication"}
 
 # Ignore some builtin hints
 # - ignore: {name: Use let}
