@@ -18,7 +18,8 @@
                   (`(,filename-regexp ,insert-template)
                    (cons filename-regexp
                          (vector insert-template #'auto-insert-update)))))
-              '(("tests?[/\\].*Test[^/\\]*\\.hs\\'" "insert-haskell-tests.hs")
+              '(("tests?[/\\].*Test[^/\\]*\\.hs\\'" "insert-haskell-test.hs")
+                ("\\(?:exes?[/\\][^/\\]+\\|[/\\]Main\\)\\.hs\\'" "insert-haskell-exe.hs")
                 ("\\.\\(?:hsc?\\|chs\\)\\'"         "insert.hs.template")
                 ("\\.cabal\\'"      "insert.cabal.template")
                 ("stack\\.yaml\\'"  "insert-stack.yaml.template")
