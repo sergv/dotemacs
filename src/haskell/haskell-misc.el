@@ -19,6 +19,7 @@
 
 (require 'abbrev+)
 (require 'haskell-compile)
+(require 'haskell-format-setup)
 (require 'haskell-mode)
 (require 'haskell-regexen)
 (require 'compilation-setup)
@@ -29,6 +30,7 @@
 (require 'intero)
 
 (require 'f)
+(require 's)
 (require 'dash)
 
 (defvar-local haskell-indent-offset 2
@@ -531,29 +533,85 @@ sexps and indentation levels."
     ("g a : :"   haskell-align-on-double-colons)
     ("g a # - }" haskell-align-on-pragma-close)))
 
-(defun haskell-reindent-at-point ()
+(defun haskell-reindent-at-point (&optional width)
   "Do some sensible reindentation depending on the current position in file."
-  (interactive "*")
+  (interactive "p*")
   (save-match-data
     (cond
       ((save-excursion
          (beginning-of-line)
          (looking-at-p haskell-abbrev+/language-pragma-prefix))
        (save-current-line-column
-        (haskell-align-language-pragmas (point))))
+         (haskell-align-language-pragmas (point))))
       ((and (eq (get-char-property (point) 'face) 'haskell-pragma-face)
             (save-excursion
               (re-search-backward haskell-regexen/pragma-start nil t)
               (looking-at-p haskell-abbrev+/language-pragma-prefix)))
        (save-current-line-column
-        (haskell-align-language-pragmas (point))))
+         (haskell-align-language-pragmas (point))))
       ((save-excursion
          (beginning-of-line)
          (looking-at-p "import "))
        (save-current-line-column
-        (haskell-sort-imports)))
+         (haskell-sort-imports)))
+      ((save-excursion
+         (beginning-of-line)
+         (not (looking-at-p "^[ \t]*$")))
+       (let* ((p (point))
+              (fingerprint-re (haskell-misc--fingerprint-re (current-line)))
+              (end-mark nil)
+              (end (save-excursion
+                     (haskell-move-to-topmost-end)
+                     (skip-chars-forward "\r\n")
+                     (prog1 (point)
+                       (unless (eobp)
+                         (save-excursion
+                           (forward-line 1)
+                           (setf end-mark (point-marker)))))))
+              (start (save-excursion
+                       (haskell-move-to-topmost-start)
+                       (while (and (not (bobp))
+                                   (not (looking-at-p "^[ \t]*$"))
+                                   (= 0 (indentation-size)))
+                         (forward-line -1))
+                       (point))))
+         (haskell-format--format-with-brittany haskell-indent-offset
+                                               (if (and width
+                                                        (< 1 width))
+                                                   width
+                                                 haskell-format-default-width)
+                                               start
+                                               end)
+         (goto-char start)
+         (if (re-search-forward fingerprint-re end-mark t)
+             (goto-char (match-beginning 0))
+           (goto-char p))))
       (t
        (error "Don't know how to reindent construct at point")))))
+
+(defun haskell-misc--fingerprint-re (str)
+  "Take current line and come up with a fingerprint
+regexp that will find this line after the indentation was
+applied.
+
+E.g. given a line like
+
+>      foo = bar $ baz (quux fizz) frob
+
+the regex should look like
+
+foo\\w*=\\w*bar\\w*[$]\\w*baz\\w*[(]\\w*quux\\w*fizz\\w*[)]\\w*frob
+
+where \\w matches any whitespace including newlines"
+  (s-join "[ \t\r\n]*"
+          (--map (regexp-quote it)
+                 (--filter (not (s-blank-str? it))
+                           (--map (list->string it)
+                                  (-partition-by #'char-syntax
+                                                 (string->list
+                                                  (s-collapse-whitespace
+                                                   (s-trim
+                                                    str)))))))))
 
 (defun haskell-align-language-pragmas--point-inside-pragma (point)
   (save-excursion
