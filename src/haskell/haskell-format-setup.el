@@ -76,9 +76,8 @@
     (call-process-region
      start
      end
-     ;; (cached-executable-find "brittany")
-     ;;"/home/sergey/projects/haskell/projects/dev-tools/brittany/.stack-work-master/install/x86_64-linux-tinfo6/lts-12.17/8.4.4/bin/brittany"
-     "/home/sergey/projects/haskell/projects/dev-tools/brittany/.stack-work-master/install/x86_64-linux-tinfo6/lts-12.5/8.4.3/bin/brittany"
+     (cached-executable-find "brittany")
+     ;;"/home/sergey/projects/haskell/projects/dev-tools/brittany/.stack-work-master/install/x86_64-linux-tinfo6/lts-12.14/8.4.3/bin/brittany"
      t ;; delete
      t ;; insert into current buffer before point
      t ;; display
