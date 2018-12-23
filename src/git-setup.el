@@ -22,6 +22,11 @@
 ;;;###autoload
 (el-patch-feature magit)
 
+(setf magit-completing-read-function 'ivy-completing-read)
+
+(dolist (x '(magit-reset-soft magit-reset-hard magit-reset-head magit-reset magit-reset-index))
+  (push (cons x nil) ivy-sort-functions-alist))
+
 ;;; Magit redefinitions
 
 (el-patch-defun magit-reset-read-branch-or-commit (prompt)
