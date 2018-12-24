@@ -570,10 +570,6 @@ sexps and indentation levels."
                            (setf end-mark (point-marker)))))))
               (start (save-excursion
                        (haskell-move-to-topmost-start)
-                       (while (and (not (bobp))
-                                   (not (looking-at-p "^[ \t]*$"))
-                                   (= 0 (indentation-size)))
-                         (forward-line -1))
                        (point))))
          (haskell-format--format-with-brittany haskell-indent-offset
                                                (if (and width
