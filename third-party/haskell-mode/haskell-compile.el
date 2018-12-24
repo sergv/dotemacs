@@ -118,7 +118,7 @@ The `%s' placeholder is replaced by the current buffer's filename."
         (concat
          "^[ \t]+\\(?1:[^ \n\r\v\t\f].*?" ext-re "\\):"
          lines-and-columns-re
-         ":\\(?:[ \t]+[Ee]rror:\\|\\(?6:[ \t\r\n]+[Ww]arning:\\)\\)")
+         ":\\(?:[ \t]+[Ee]rror\\|\\(?6:[ \t\r\n]+[Ww]arning\\)\\):")
         "\\)")
        1            ;; file
        (cons 2 3)   ;; line
@@ -174,8 +174,7 @@ The `%s' placeholder is replaced by the current buffer's filename."
         )
 
        ;; failed tasty tests
-       '(".*error, called at \\(.*\\.hs\\):\\([0-9]+\\):\\([0-9]+\\) in .*" 1 2 3 2 1)
-       '(" +\\(.*\\.hs\\):\\([0-9]+\\):$" 1 2 nil 2 1)
+       '("\\<error, called at \\(.*\\.hs\\):\\([0-9]+\\):\\([0-9]+\\) in\\>" 1 2 3 2 1)
 
        haskell-compilation-error-auxiliary-filename-regexp)))
   "Regexps used for matching GHC compile messages.
