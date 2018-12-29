@@ -731,6 +731,7 @@ both unicode and ascii characters.")
 (defun haskell--simple-indent-newline-same-col ()
   "Make a newline and go to the same column as the current line."
   (interactive "*")
+  (delete-horizontal-space t)
   (let ((indentation-size
          (save-excursion
            (let* ((start (line-beginning-position))
@@ -821,6 +822,7 @@ both unicode and ascii characters.")
                                  (looking-at-p (concat (regexp-quote func-name)
                                                        "\\_>")))))
                          (goto-char start-pos)
+                         (delete-horizontal-space t)
                          (insert "\n")
                          (insert (make-string function-name-column ?\s)
                                  func-name
@@ -835,9 +837,11 @@ both unicode and ascii characters.")
             (let ((string-start-column (save-excursion
                                          (goto-char (nth 8 syn))
                                          (current-column))))
+              (delete-horizontal-space t)
               (insert "\\\n" (make-string string-start-column ?\s) "\\")))
            ((and function-name-column
                  point-at-end-of-function-signature?)
+            (delete-horizontal-space t)
             (insert "\n" (make-string function-name-column ?\s)))
            ((save-excursion
               (skip-syntax-backward " ")
