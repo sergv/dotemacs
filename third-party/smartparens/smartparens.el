@@ -9247,7 +9247,46 @@ properly balanced."
                        (goto-char (match-end 0)))))
           (looking-at-p "[[:blank:]\n]*\\'"))))))
 
+(defun sp-newline--interal (indent-sexp?)
+  "Insert a newline and indent it.
+
+This is like `newline-and-indent', but it not only indents the
+line that the point is on but also the S-expression following the
+point, if there is one.
+
+If in a string, just insert a literal newline.
+
+If in a comment and if followed by invalid structure, call
+`indent-new-comment-line' to keep the invalid structure in a
+comment."
+  (cond
+   ((sp-point-in-string)
+    (newline))
+   ((sp-point-in-comment)
+    (if (sp-region-ok-p (point) (point-at-eol))
+        (progn (newline-and-indent) (ignore-errors (indent-sexp)))
+      (newline-and-indent)))
+   (t
+    (newline-and-indent)
+    (when indent-sexp?
+      (ignore-errors (indent-sexp))))))
+
 (defun sp-newline ()
+  "Insert a newline but don't indent it.
+
+This is like `newline-and-indent', but it not only indents the
+line that the point is on but also the S-expression following the
+point, if there is one.
+
+If in a string, just insert a literal newline.
+
+If in a comment and if followed by invalid structure, call
+`indent-new-comment-line' to keep the invalid structure in a
+comment."
+  (interactive)
+  (sp-newline--interal nil))
+
+(defun sp-newline-and-indent-sexp ()
   "Insert a newline and indent it.
 
 This is like `newline-and-indent', but it not only indents the
@@ -9260,16 +9299,7 @@ If in a comment and if followed by invalid structure, call
 `indent-new-comment-line' to keep the invalid structure in a
 comment."
   (interactive)
-  (cond
-   ((sp-point-in-string)
-    (newline))
-   ((sp-point-in-comment)
-    (if (sp-region-ok-p (point) (point-at-eol))
-        (progn (newline-and-indent) (ignore-errors (indent-sexp)))
-      (newline-and-indent)))
-   (t
-    (newline-and-indent)
-    (ignore-errors (indent-sexp)))))
+  (sp-newline--interal t))
 
 (defun sp-comment ()
   "Insert the comment character and adjust hanging sexps such
