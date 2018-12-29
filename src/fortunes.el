@@ -1835,7 +1835,7 @@ make up new queue if persistent one is empty."
     (unless fortune-queue
       (setq fortune-queue (fortune--reschedule-queue)))
     (prog1 (aref *fortunes*
-                 (car fortune-queue))
+                 (min (car fortune-queue) (1- (length *fortunes*))))
       (persistent-store-put 'fortunes-fortune-queue (cdr fortune-queue)))))
 
 ;;;###autoload
