@@ -2524,7 +2524,7 @@ This is a standard process sentinel function."
     (cl-case (save-excursion
                (intero-call-stack
                 nil (current-buffer) t intero-stack-yaml "path" "--compiler-tools-bin"))
-      (0 (let ((path (replace-regexp-in-string "[\r\n]+$" "/intero" (buffer-string))))
+      (0 (let ((path (replace-regexp-in-string "[\r\n]+$" (fold-platform-os-type "/intero" "\\\\intero.exe") (buffer-string))))
            (if check-existence
                (if (file-exists-p path)
                    path
