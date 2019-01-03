@@ -2518,19 +2518,36 @@ This is a standard process sentinel function."
       (goto-char (point-min))
       (search-forward-regexp "cannot satisfy -package" nil t 1))))
 
+(defvar intero-executable-path--cache (make-hash-table :test #'equal))
+
+(defun intero--file-hash (filename)
+  (with-temp-buffer
+    (insert-file-contents-literally filename)
+    (buffer-hash)))
+
 (defun intero-executable-path (stack-yaml check-existence)
   "The path for the intero executable."
-  (intero-with-temp-buffer
-    (cl-case (save-excursion
-               (intero-call-stack
-                nil (current-buffer) t intero-stack-yaml "path" "--compiler-tools-bin"))
-      (0 (let ((path (replace-regexp-in-string "[\r\n]+$" (fold-platform-os-type "/intero" "\\\\intero.exe") (buffer-string))))
-           (if check-existence
-               (if (file-exists-p path)
-                   path
-                 (error "Path to intero does not exist: %s. Intero will not work unless executable gets installed there, check intero's log for details" path))
-             path)))
-      (1 "intero"))))
+  (let* ((stack-config (or stack-yaml intero-stack-yaml))
+         (hash (when stack-config (intero--file-hash stack-config))))
+    (aif (and hash
+              (gethash hash intero-executable-path--cache))
+        it
+      (let ((res
+             (intero-with-temp-buffer
+              (pcase (save-excursion
+                       (intero-call-stack
+                        nil (current-buffer) t stack-config "path" "--compiler-tools-bin"))
+                ('0 (let ((path (replace-regexp-in-string "[\r\n]+$" (fold-platform-os-type "/intero" "\\\\intero.exe") (buffer-string))))
+                      (if check-existence
+                          (if (file-exists-p path)
+                              path
+                            (error "Path to intero does not exist: %s. Intero will not work unless executable gets installed there, check intero's log for details" path))
+                        path)))
+                (_ "intero")))))
+        (when hash
+          (puthash hash res intero-executable-path--cache))
+        res
+        ))))
 
 (defun intero-installed-p ()
   "Return non-nil if intero (of the right version) is installed in the stack environment."
