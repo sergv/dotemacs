@@ -158,7 +158,11 @@
        :offset (eproj-query/haskell/indent-offset proj))
 
       (company-mode +1)
-      (setq-local company-backends '(company-eproj))
+      (setq-local company-backends
+                  (append (if intero-enabled?
+                              '(intero-company)
+                            nil)
+                          '(company-eproj)))
 
       (unless non-vanilla-haskell-mode?
         (let* ((effective-major-mode (eproj/resolve-synonym-modes major-mode))
