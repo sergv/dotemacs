@@ -78,6 +78,9 @@
       ivy-case-fold-search-default t ;; ignore case
       ivy-flx-limit 1000
       ivy-extra-directories '("./")
+      ;; Ivy uses strange popup for completing in region which may leave
+      ;; Emacs unresponsive on some setups.
+      ivy-do-completion-in-region nil
       counsel-find-file-ignore-regexp
       (eval-when-compile
         (let ((re-group
