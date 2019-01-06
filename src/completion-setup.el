@@ -70,7 +70,6 @@
 
 (require 'ivy-smex)
 (require 'flx)
-(ivy-mode +1)
 
 (setf ivy-use-virtual-buffers t
       ivy-initial-inputs-alist nil
@@ -101,6 +100,7 @@
                              (funcall re-group
                                       (regexp-opt +version-control-directories+))))
            "\\'"))))
+(ivy-mode +1)
 
 (add-to-list 'ivy-ignore-buffers invisible-buffers-re)
 
