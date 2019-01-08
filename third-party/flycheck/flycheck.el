@@ -2899,15 +2899,13 @@ buffer."
   ;; Save and restore the match data, as recommended in (elisp)Change Hooks
   (save-match-data
     (when flycheck-mode
-      (if (string-match-p (rx "\n") (buffer-substring beg end))
-          (flycheck-buffer-automatically 'new-line 'force-deferred)
-        (when (memq 'idle-change flycheck-check-syntax-automatically)
-          (flycheck--clear-idle-trigger-timer)
-          (cl-pushnew 'idle-change flycheck--idle-trigger-conditions)
-          (setq flycheck--idle-trigger-timer
-                (run-at-time flycheck-idle-change-delay nil
-                             #'flycheck--handle-idle-trigger
-                             (current-buffer))))))))
+      (when (memq 'idle-change flycheck-check-syntax-automatically)
+        (flycheck--clear-idle-trigger-timer)
+        (cl-pushnew 'idle-change flycheck--idle-trigger-conditions)
+        (setq flycheck--idle-trigger-timer
+              (run-at-time flycheck-idle-change-delay nil
+                           #'flycheck--handle-idle-trigger
+                           (current-buffer)))))))
 
 (defvar flycheck--last-buffer (current-buffer)
   "The current buffer or the buffer that was previously current.
