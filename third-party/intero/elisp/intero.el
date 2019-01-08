@@ -1918,7 +1918,7 @@ type as arguments."
                 ":set -fbyte-code")
                (set-buffer-modified-p t)
                (save-buffer)
-               (unless (member 'save flycheck-check-syntax-automatically)
+               (unless (memq 'save flycheck-check-syntax-automatically)
                  (intero-async-call
                   'backend
                   (concat ":load " (intero-path-for-ghci (intero-temp-file-name)))))
