@@ -23,7 +23,8 @@
      (setf flycheck-indication-mode nil
            ;; Highlight whole line with error
            flycheck-highlighting-mode 'lines
-           flycheck-display-errors-delay 0)))
+           flycheck-display-errors-delay 0
+           flycheck-check-syntax-automatically '(save mode-enabled))))
 
 (defun flycheck-mode-line--propertise-as-comments (str)
   (propertize str 'face 'font-lock-comment-face))
