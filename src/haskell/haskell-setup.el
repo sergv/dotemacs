@@ -229,6 +229,9 @@
     ;; Don't skip any messages.
     (setq-local compilation-skip-threshold 0)
 
+    (setq-local flycheck-check-syntax-automatically '(save mode-enabled idle-change))
+    (setq-local flycheck-idle-change-delay 2)
+
     (flycheck-install-ex-commands!
      :install-flycheck flycheck-enabled?
      :compile-func #'vim:haskell-compile
