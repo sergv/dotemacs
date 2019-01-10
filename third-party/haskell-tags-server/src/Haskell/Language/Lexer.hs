@@ -38,5 +38,7 @@ tokenize filename = SimpleLexer.tokenize filename mode
   where
     mode :: LiterateLocation a
     mode
-      | takeExtension filename == ".lhs" = LiterateOutside
-      | otherwise                        = Vanilla
+      | takeExtension filename `elem` [".lhs", ".lhs-boot"]
+      = LiterateOutside
+      | otherwise
+      = Vanilla
