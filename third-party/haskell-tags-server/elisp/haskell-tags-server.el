@@ -114,7 +114,7 @@
                                        (setf done t)
                                        (setcar result res)))))
     (while (and (not done)
-                (< i (eval-when-compile (* 4 100))))
+                (< i (eval-when-compile (* 2 120 100))))
       (setf i (+ i 1))
       (when (accept-process-output proc 0 100 t)
         (setf i 0))
