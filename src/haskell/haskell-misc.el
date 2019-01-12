@@ -108,43 +108,19 @@ and indent them as singe line."
           (save-excursion
             (join-line t)))))))
 
-(let* ((build-dir
-        (fold-platform-os-type
-         "/tmp/dist"
-         nil))
-       (mk-build-dir-arg
-        (lambda (custom-build-dir)
-          (if custom-build-dir
-              (concat "--builddir " custom-build-dir " ")
-            "")
-          ;;""
-          ))
-       (common-conf-opts
-        (lambda (custom-build-dir)
-          (concat (funcall mk-build-dir-arg custom-build-dir)
-                  "--enable-tests")))
-       (build-command
-        (lambda (custom-build-dir)
-          (concat
-           "cabal build " (funcall mk-build-dir-arg custom-build-dir))))
-       (test-command
-        (lambda (custom-build-dir)
-          (concat
-           "cabal test " (funcall mk-build-dir-arg custom-build-dir) "--show-details=always")))
-       (sep " && \\\n")
-
-       (stack-command
-        (lambda (cmd)
-          (format "cd \"%%s\" && stack %s --ghc-options=\"-j4 +RTS -A128m -H256m -RTS\"" cmd)))
-       (cd-command "cd \"%s\""))
+(let ((stack-command
+       (lambda (cmd)
+         (format "cd \"%%s\" && stack %s --ghc-options=\"-j4 +RTS -A128m -H1G -RTS\"" cmd))))
   (setf haskell-compile-cabal-build-command-presets
-        (-mapcat (lambda (entry) (if (listp (car entry))
-                                (-map (lambda (cmd) (list cmd (cadr entry))) (car entry))
-                              (list entry)))
-                 `(((vanilla stack default)
+        (-mapcat (lambda (entry)
+                   (let ((target (car entry)))
+                     (if (listp target)
+                         (--map (list it (cadr entry)) target)
+                       (list entry))))
+                 `(((build vanilla)
                     ,(funcall stack-command "build"))
                    (prof
-                    ,(funcall stack-command "build --profile --test --no-run-tests"))
+                    ,(funcall stack-command "build --profile --test --no-run-tests --bench --no-run-benchmarks"))
                    (clean
                     ,(funcall stack-command "clean"))
                    (test
@@ -153,62 +129,8 @@ and indent them as singe line."
                     ,(funcall stack-command "test --no-run-tests"))
                    (bench
                     ,(funcall stack-command "bench"))
-                   (cabal-new-build
-                    ,(concat
-                      cd-command
-                      sep
-                      (concat "cabal new-build --disable-library-profiling "
-                              (funcall common-conf-opts build-dir) " "
-                              "all")
-                      sep
-                      (concat
-                       "cabal new-test " (funcall mk-build-dir-arg build-dir)
-                       "all")))
-                   (cabal-vanilla
-                    ,(concat
-                      cd-command
-                      sep
-                      (concat "cabal "
-                              "configure "
-                              "--disable-library-profiling "
-                              "--disable-profiling "
-                              (funcall common-conf-opts build-dir))
-                      sep
-                      (funcall build-command build-dir)
-                      sep
-                      (funcall test-command build-dir)))
-                   (cabal-build
-                    ,(concat
-                      cd-command
-                      sep
-                      (funcall build-command build-dir)))
-                   (cabal-build-inlpace
-                    ,(concat
-                      cd-command
-                      sep
-                      (funcall build-command nil)))
-                   (cabal-test
-                    ,(concat
-                      cd-command
-                      sep
-                      (funcall test-command build-dir)))
-                   (cabal-clean
-                    ,(concat
-                      cd-command
-                      sep
-                      "cabal clean --builddir " build-dir))
-                   (cabal-prof
-                    ,(concat
-                      cd-command
-                      sep
-                      (concat "cabal "
-                              "configure "
-                              "--enable-profiling "
-                              (funcall common-conf-opts build-dir))
-                      sep
-                      (funcall build-command build-dir)
-                      sep
-                      (funcall test-command build-dir)))))))
+                   ((bench-norun build-bench)
+                    ,(funcall stack-command "bench --no-run-benchmarks"))))))
 
 (setf haskell-compile-cabal-build-command
       (or (cadr-safe (assoc 'vanilla haskell-compile-cabal-build-command-presets))
