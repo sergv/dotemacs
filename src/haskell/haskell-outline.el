@@ -28,7 +28,7 @@
   "Configure folding for Haskell. ENABLE-HS-MINOR-MODE controls whether
 to enable folding of balanced S-expressions."
   (when enable-hs-minor-mode
-    (setup-hs-minor-mode))
+    (hs-minor-mode +1))
   (yafolding-mode +1)
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table

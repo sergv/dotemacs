@@ -92,7 +92,7 @@
 
 ;;;###autoload
 (defun setup-hs-minor-mode ()
-  (hs-minor-mode 1)
+  (hs-minor-mode +1)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("z o" hs-show-block)
     ("z c" hs-hide-block)

@@ -149,13 +149,13 @@ Contains single-line and region comments.")
             (make-comment-format :one-line     one-line
                                  :region-begin region-begin
                                  :region-end   region-end
-                                 :line-regexp (cond
-                                                ((not (null line-regexp))
-                                                 line-regexp)
-                                                ((not (null one-line))
-                                                 (regexp-quote one-line))
-                                                (t
-                                                 nil)))))))
+                                 :line-regexp  (cond
+                                                 ((not (null line-regexp))
+                                                  line-regexp)
+                                                 ((not (null one-line))
+                                                  (regexp-quote one-line))
+                                                 (t
+                                                  nil)))))))
 
 (defstruct comment-format
   one-line
