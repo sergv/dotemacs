@@ -33,7 +33,7 @@ to enable folding of balanced S-expressions."
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table
                           'selective-display
-                          (string-to-vector " ...\n"))
+                          (string-to-vector " ..."))
 
   (def-keys-for-map vim:normal-mode-local-keymap
     ("z C" yafolding-hide-all)
