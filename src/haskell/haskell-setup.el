@@ -478,6 +478,13 @@
                :use-yasnippet nil
                :use-whitespace nil
                :use-fci nil)
+
+  ;; To make hideshow work
+  (setq-local comment-start "--")
+  (setq-local comment-end "")
+  (setq-local comment-column 32)
+  (setq-local comment-start-skip "--+ *")
+
   (init-repl :create-keymaps t
              :bind-return nil
              :bind-vim:motion-current-line nil)
@@ -523,6 +530,7 @@
 
     (("C-l" "<f5>") intero-repl-reload))
 
+  (haskell-setup-folding :enable-hs-minor-mode t)
   (haskell-abbrev+-setup 2 :repl t))
 
 ;;;###autoload
