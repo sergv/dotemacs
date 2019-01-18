@@ -252,12 +252,19 @@
       (dolist (cmd '("conf" "configure"))
         (vim:local-emap cmd #'vim:haskell-flycheck-configure)))
 
+    (if intero-enabled?
+        (def-keys-for-map vim:normal-mode-local-keymap
+          ("SPC SPC"      intero-repl)
+          (("C-l" "<f6>") intero-repl-load))
+      (def-keys-for-map vim:normal-mode-local-keymap
+          ("SPC SPC"      haskell-misc-switch-to-haskell)
+          (("C-l" "<f6>") haskell-process-load-file)))
+
     (def-keys-for-map vim:normal-mode-local-keymap
       ("\\"      vim:flycheck-run)
       ("j"       vim:haskell-load-file-into-repl)
       ("g c c"   haskell-comment-node)
       ("+"       input-unicode)
-      ("SPC SPC" haskell-misc-switch-to-haskell)
       ("g i"     vim:haskell-navigate-imports)
       ("g I"     haskell-navigate-imports-return)
       ("g <tab>" haskell-reindent-at-point)
@@ -311,7 +318,6 @@
       ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline-with-signature-expansion)
       ("C-<return>"      haskell--simple-indent-newline-indent)
-      (("C-l" "<f6>")    intero-repl-load)
       (("C-m" "<f9>")    haskell-compile))
 
     (def-keys-for-map (vim:normal-mode-local-keymap
