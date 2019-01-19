@@ -113,17 +113,16 @@
   (haskell-go-to-symbol-home nil use-regexp?))
 
 (defun haskell-go-to-symbol-home (is-local? use-regexp?)
-  (let* ((proj (eproj-get-project-for-buf-lax (current-buffer)))
-         (namespace
-          (when proj
-            (let* ((all-projects (eproj-get-all-related-projects proj))
-                   (shallow-dirs nil)
-                   (recursive-dirs (-map #'eproj-project/root all-projects))
-                   (ignored-globs (-mapcat #'eproj-project/ignored-files-globs all-projects)))
-              (list shallow-dirs
-                    recursive-dirs
-                    ignored-globs)))))
-    (haskell-tags-server-goto-definition is-local? use-regexp? namespace)))
+  (if-let (proj (eproj-get-project-for-buf-lax (current-buffer)))
+      (let ((namespace (let* ((all-projects (eproj-get-all-related-projects proj))
+                              (shallow-dirs nil)
+                              (recursive-dirs (-map #'eproj-project/root all-projects))
+                              (ignored-globs (-mapcat #'eproj-project/ignored-files-globs all-projects)))
+                         (list shallow-dirs
+                               recursive-dirs
+                               ignored-globs))))
+        (haskell-tags-server-goto-definition is-local? use-regexp? namespace))
+    (error "Current buffer has no project")))
   ;; (or ;; (when (and intero-mode
   ;;  ;;            (not use-regexp?))
   ;;  ;;   (with-demoted-errors "intero-goto-definition failed: %s"
