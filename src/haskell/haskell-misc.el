@@ -781,6 +781,11 @@ both unicode and ascii characters.")
                            "->"
                            "<-")))))
             (haskell--simple-indent-newline-indent))
+           ((save-excursion
+              (skip-to-indentation)
+              (looking-at-p "let\\_>"))
+            (haskell--simple-indent-newline-same-col)
+            (insert (make-string 4 ?\s)))
            (t
             (haskell--simple-indent-newline-same-col))))))))
 
