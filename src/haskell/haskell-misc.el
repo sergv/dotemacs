@@ -331,6 +331,8 @@ in haskell compilation buffer.")
 See http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/flag-reference.html
 for more information.")
 
+(setf attrap-haskell-extensions haskell-language-extensions)
+
 ;;; up level navigation
 
 (defun haskell-back-up-indent-level ()
