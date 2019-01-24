@@ -2706,7 +2706,7 @@
      "    Nothing ->"
      "      error \"Failed to find git repository starting at current directory\""
      "    Just x  -> pure x"
-     "  withRepo repo $ \git -> do"
+     "  withRepo repo $ \\git -> do"
      "    let branches = [RefName \"dev\"] -- [, RefName \"master\"]    -- <- toList <$> branchList git"
      "    branchesRefs <- for branches $ \branchRefName -> do"
      "      let rev = Revision.fromString $ refNameRaw branchRefName"
@@ -2766,7 +2766,7 @@
      "    Nothing ->"
      "      error \"Failed to find git repository starting at current directory\""
      "    Just x  -> pure x"
-     "  withRepo repo $ \git -> do"
+     "  withRepo repo $ \\git -> do"
      "    let branches = [RefName \"dev\"] -- [, RefName \"master\"]    -- <- toList <$> branchList git"
      "    branchesRefs <- for branches $ \branchRefName -> do"
      "      let rev = Revision.fromString $ refNameRaw branchRefName"
@@ -2777,7 +2777,7 @@
      "    putStrLn $ \"Known branches: \" ++ show (map refNameRaw branches)"
      "    (_, entries) <- runWriterT $ traverseAllCommitsTransitively git processCommit branchesRefs"
      "    let graftsContents"
-     "    _|_graftsContents = formatGraftEntries entries"
+     "        _|_graftsContents = formatGraftEntries entries"
      "    outFile <- makeAbsolute ggcOutputFile"
      "    exists  <- doesFileExist outFile"
      "    TLIO.putStrLn $ TL.replicate 40 $ TL.singleton '-'"
@@ -3222,16 +3222,16 @@
 
 ;; (ert "haskell-tests/.*")
 
-;; (setf haskell-tests/tests
-;;       '(haskell-tests/abbrev+-extract-module-name))
-;;
+(setf haskell-tests/tests
+      '(haskell-tests/abbrev+-extract-module-name))
+
 ;; (let ((ert-debug-on-error nil))
 ;;   (eproj-reset-projects)
-;;   (ert (join-lines (-map (comp #'regexp-quote #'symbol->string)
-;;                          haskell-tests/tests)
-;;                    "\\|")
-;;        ;; "haskell-tests/.*"
-;;        )
+;;   (ert
+;;    ;; (join-lines (-map (comp #'regexp-quote #'symbol->string)
+;;    ;;                   haskell-tests/tests)
+;;    ;;             "\\|")
+;;    "haskell-tests/.*")
 ;;   nil)
 
 ;; Local Variables:
