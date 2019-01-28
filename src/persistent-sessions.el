@@ -379,15 +379,8 @@ entries."
   (with-temp-buffer
     (insert ":;exec emacs --load \"$0\"\n\n")
     (insert ";:;exec gdb -ex \"run\" --args emacs --load \"$0\"\n\n")
-    (insert (format ";; this session was created on %s\n;; Today's quotes are\n%s\n"
-                    (format-time-string "%A, %e %B %Y")
-                    (loop
-                      for i from 0 to 5
-                      concating
-                      (concat
-                       (fortunes-comment-out-fortune
-                        (fortunes-get-next-fortune))
-                       "\n;;\n"))))
+    (insert (format ";; this session was created on %s\n"
+                    (format-time-string "%A, %e %B %Y")))
     (print '(require 'persistent-sessions) (current-buffer))
     (let ((session (sessions/save-buffers/make-session)))
       (insert "(sessions/load-from-data\n")
