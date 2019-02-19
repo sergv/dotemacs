@@ -24,7 +24,9 @@
            ;; Highlight whole line with error
            flycheck-highlighting-mode 'lines
            flycheck-display-errors-delay 0
-           flycheck-check-syntax-automatically '(save mode-enabled))))
+           flycheck-check-syntax-automatically '(save mode-enabled)
+           ;; Display all errors & warnings from all relevant files.
+           flycheck-relevant-error-other-file-minimum-level nil)))
 
 (defun flycheck-mode-line--propertise-as-comments (str)
   (propertize str 'face 'font-lock-comment-face))
