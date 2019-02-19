@@ -211,6 +211,8 @@ attention to case differences."
     markdown-markdownlint-cli
     markdown-mdl
     nix
+    nix-linter
+    opam
     perl
     perl-perlcritic
     php
@@ -260,6 +262,7 @@ attention to case differences."
     tex-chktex
     tex-lacheck
     texinfo
+    textlint
     typescript-tslint
     verilog-verilator
     vhdl-ghdl
@@ -689,6 +692,17 @@ using \\[flycheck-error-list-reset-filter]."
   :type 'flycheck-minimum-level
   :safe #'flycheck-error-level-p
   :package-version '(flycheck . "0.24"))
+
+(defcustom flycheck-relevant-error-other-file-minimum-level 'error
+  "The minimum level of errors from other files to display in this buffer.
+
+If set to an error level, only display errors from other files
+whose error level is at least as severe as this one.  If nil,
+display all errors from other files."
+  :group 'flycheck
+  :type 'flycheck-minimum-level
+  :safe #'flycheck-error-level-p
+  :package-version '(flycheck . "32"))
 
 (defcustom flycheck-completing-read-function #'completing-read
   "Function to read from minibuffer with completion.
@@ -3362,7 +3376,10 @@ Return ERRORS, modified in-place."
   (let ((file-name (flycheck-error-filename err)))
     (and file-name
          (or (null buffer-file-name)
-             (not (flycheck-same-files-p buffer-file-name file-name))))))
+             (not (flycheck-same-files-p buffer-file-name file-name)))
+         (<= (flycheck-error-level-severity
+              flycheck-relevant-error-other-file-minimum-level)
+             (flycheck-error-level-severity (flycheck-error-level err))))))
 
 (defun flycheck-relevant-error-p (err)
   "Determine whether ERR is relevant for the current buffer.
@@ -4019,7 +4036,8 @@ instead.  With non-nil RESET, search from `point-min', otherwise
 search from the current point.
 
 Return the position of the next or previous error, or nil if
-there is none."
+there is none.  If N is zero, return `point', or `point-min' if
+RESET is non-nil."
   (let ((n (or n 1))
         (pos (if reset (point-min) (point))))
     (if (>= n 0)
@@ -6587,10 +6605,7 @@ See URL `http://clang.llvm.org/'."
             "-")
   :standard-input t
   :error-patterns
-  ((error line-start
-          (message "In file included from") " " (or "<stdin>" (file-name))
-          ":" line ":" line-end)
-   (info line-start (or "<stdin>" (file-name)) ":" line ":" column
+  ((info line-start (or "<stdin>" (file-name)) ":" line ":" column
          ": note: " (optional (message)) line-end)
    (warning line-start (or "<stdin>" (file-name)) ":" line ":" column
             ": warning: " (optional (message)) line-end)
@@ -6605,7 +6620,7 @@ See URL `http://clang.llvm.org/'."
         ;; them past our error filtering
         (setf (flycheck-error-message err)
               (or (flycheck-error-message err) "no message")))
-      (flycheck-fold-include-levels errors "In file included from")))
+      errors))
   :modes (c-mode c++-mode)
   :next-checkers ((warning . c/c++-cppcheck)))
 
@@ -6747,20 +6762,13 @@ Requires GCC 4.4 or newer.  See URL `https://gcc.gnu.org/'."
             "-")
   :standard-input t
   :error-patterns
-  ((error line-start
-          (message "In file included from") " " (or "<stdin>" (file-name))
-          ":" line ":" column ":" line-end)
-   (info line-start (or "<stdin>" (file-name)) ":" line ":" column
+  ((info line-start (or "<stdin>" (file-name)) ":" line ":" column
          ": note: " (message) line-end)
    (warning line-start (or "<stdin>" (file-name)) ":" line ":" column
             ": warning: " (message (one-or-more (not (any "\n["))))
             (optional "[" (id (one-or-more not-newline)) "]") line-end)
    (error line-start (or "<stdin>" (file-name)) ":" line ":" column
           ": " (or "fatal error" "error") ": " (message) line-end))
-  :error-filter
-  (lambda (errors)
-    (flycheck-fold-include-levels (flycheck-sanitize-errors errors)
-                                  "In file included from"))
   :modes (c-mode c++-mode)
   :next-checkers ((warning . c/c++-cppcheck)))
 
@@ -8596,6 +8604,38 @@ See URL `http://www.lua.org/'."
           ": stdin:" line ": " (message) line-end))
   :modes lua-mode)
 
+(flycheck-define-checker opam
+  "A Opam syntax and style checker using opam lint.
+
+See URL `https://opam.ocaml.org/doc/man/opam-lint.html'."
+  :command ("opam" "lint" "-")
+  :standard-input t
+  :error-patterns
+  ((error line-start                    ; syntax error
+          (one-or-more space) "error  " (id ?2)
+          ": File format error"
+          (or (and " at line " line ", column " column ": " (message))
+              (and ": " (message)))
+          line-end)
+   (error line-start
+          (one-or-more space) "error  " (id ?3)
+          (minimal-match (zero-or-more not-newline))
+          "at line " line ", column " column ": " (message)
+          line-end)
+   (error line-start
+          (one-or-more space) "error " (id (one-or-more num))
+          ": " (message (one-or-more not-newline))
+          line-end)
+   (warning line-start
+            (one-or-more space) "warning " (id (one-or-more num))
+            ": " (message)
+            line-end))
+  :error-filter
+  (lambda (errors)
+    (flycheck-increment-error-columns
+     (flycheck-fill-empty-line-numbers errors)))
+  :modes tuareg-opam-mode)
+
 (flycheck-def-option-var flycheck-perl-include-path nil perl
   "A list of include directories for Perl.
 
@@ -8795,7 +8835,7 @@ See URL `http://proselint.com/'."
   :command ("proselint" "--json" "-")
   :standard-input t
   :error-parser flycheck-proselint-parse-errors
-  :modes (text-mode markdown-mode gfm-mode message-mode))
+  :modes (text-mode markdown-mode gfm-mode message-mode org-mode))
 
 (flycheck-define-checker protobuf-protoc
   "A protobuf syntax checker using the protoc compiler.
@@ -9160,10 +9200,10 @@ See URL `http://mypy-lang.org/'."
             (option "--cache-dir" flycheck-python-mypy-cache-dir)
             source-original)
   :error-patterns
-  ((error line-start (file-name) ":" line ":" column ": error:" (message)
-          line-end)
-   (warning line-start (file-name) ":" line ":" column  ": warning:" (message)
-            line-end))
+  ((error line-start (file-name) ":" line (optional ":" column)
+          ": error:" (message) line-end)
+   (warning line-start (file-name) ":" line (optional ":" column)
+            ": warning:" (message) line-end))
   :modes python-mode
   ;; Ensure the file is saved, to work around
   ;; https://github.com/python/mypy/issues/4746.
@@ -9418,6 +9458,37 @@ See URL `https://nixos.org/nix/manual/#sec-nix-instantiate'."
   (lambda (errors)
     (flycheck-sanitize-errors
      (flycheck-remove-error-file-names "(string)" errors)))
+  :next-checkers ((warning . nix-linter))
+  :modes nix-mode)
+
+(defun flycheck-parse-nix-linter (output checker buffer)
+  "Parse nix-linter warnings from JSON OUTPUT.
+
+CHECKER and BUFFER denote the CHECKER that returned OUTPUT and
+the BUFFER that was checked respectively.
+
+See URL `https://github.com/Synthetica9/nix-linter' for more
+information about nix-linter."
+  (mapcar (lambda (err)
+            (let-alist err
+              (flycheck-error-new-at
+               .pos.spanBegin.sourceLine
+               .pos.spanBegin.sourceColumn
+               'warning
+               .description
+               :id .offense
+               :checker checker
+               :buffer buffer
+               :filename (buffer-file-name buffer))))
+          (flycheck-parse-json output)))
+
+(flycheck-define-checker nix-linter
+  "Nix checker using nix-linter.
+
+See URL `https://github.com/Synthetica9/nix-linter'."
+  :command ("nix-linter" "--json-stream" "-")
+  :standard-input t
+  :error-parser flycheck-parse-nix-linter
   :modes nix-mode)
 
 (defun flycheck-locate-sphinx-source-directory ()
@@ -10448,6 +10519,64 @@ See URL `http://www.gnu.org/software/texinfo/'."
           "-:" line (optional ":" column) ": " (message)
           line-end))
   :modes texinfo-mode)
+
+(flycheck-def-config-file-var flycheck-textlint-config
+    textlint "textlintrc.json"
+  :safe #'stringp)
+
+;; This needs to be set because textlint plugins are installed seperately,
+;; and there is no way to check their installation status -- textlint simply
+;; prints a backtrace.
+(flycheck-def-option-var flycheck-textlint-plugin-alist
+    '((markdown-mode . "@textlint/markdown")
+      (gfm-mode . "@textlint/markdown")
+      (t . "@textlint/text"))
+    textlint
+  "An alist mapping major modes to textlint plugins.
+
+Each item is a cons cell `(MAJOR-MODE . PLUGIN)', where MAJOR-MODE is a mode
+`flycheck-textlint' supports and PLUGIN is a textlint plugin. As a catch-all,
+when MAJOR-MODE is t, that PLUGIN will be used for any supported mode that
+isn't specified.
+
+See URL `https://npms.io/search?q=textlint-plugin' for all textlint plugins
+published on NPM."
+  :type '(repeat (choice (cons symbol string)
+                         (cons (const t) string))))
+
+(flycheck-define-checker textlint
+  "A text prose linter using textlint.
+
+See URL `https://textlint.github.io/'."
+  :command ("textlint"
+            (config-file "--config" flycheck-textlint-config)
+            "--format" "json"
+            ;; get the first matching plugin from plugin-alist
+            "--plugin"
+            (eval (cdr
+                   (-first
+                    (lambda (pair)
+                      (let ((mode (car pair)))
+                        (or (and (booleanp mode) mode) ; mode is t
+                            (derived-mode-p mode))))
+                    flycheck-textlint-plugin-alist)))
+            source)
+  ;; textlint seems to say that its json output is compatible with ESLint.
+  ;; https://textlint.github.io/docs/formatter.html
+  :error-parser flycheck-parse-eslint
+  ;; textlint can support different formats with textlint plugins, but
+  ;; only text and markdown formats are installed by default. Ask the
+  ;; user to add mode->plugin mappings manually in
+  ;; `flycheck-textlint-plugin-alist'.
+  :modes
+  (text-mode markdown-mode gfm-mode message-mode adoc-mode
+             mhtml-mode latex-mode org-mode rst-mode)
+  :enabled
+  (lambda () (or (eq major-mode 'markdown-mode)
+                 (eq major-mode 'gfm-mode)
+                 (eq major-mode 'text-mode)
+                 (memq major-mode
+                       (mapcar #'car flycheck-textlint-plugin-alist)))))
 
 (flycheck-def-config-file-var flycheck-typescript-tslint-config
     typescript-tslint "tslint.json"
