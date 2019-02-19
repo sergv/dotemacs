@@ -116,7 +116,6 @@ update-dir-autoloads \
     "third-party/async" \
     "third-party/attrap" \
     "third-party/auctex" \
-    "third-party/button-lock" \
     "third-party/clojure-mode" \
     "third-party/company-statistics" \
     "third-party/cuda-mode" \
@@ -124,7 +123,6 @@ update-dir-autoloads \
     "third-party/elm-mode" \
     "third-party/flycheck" \
     "third-party/flycheck-elm" \
-    "third-party/flycheck-liquidhs" \
     "third-party/flx" \
     "third-party/ghub" \
     "third-party/git-modes" \
@@ -134,14 +132,12 @@ update-dir-autoloads \
     "third-party/intero/elisp" \
     "third-party/ivy" \
     "third-party/ivy-smex" \
-    "third-party/liquid-types" \
     "third-party/magit" \
     "third-party/magit-popup" \
     "third-party/misc-modes" \
     "third-party/nix-mode" \
     "third-party/pkg-info" \
     "third-party/popup-el" \
-    "third-party/pos-tip" \
     "third-party/ptx-mode" \
     "third-party/rust-mode" \
     "third-party/smartparens" \
