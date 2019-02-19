@@ -6,7 +6,7 @@ module Main where
 
 import Control.Exception
 import Control.Monad.IO.Class
-import Control.Monad (forM_)
+import Control.Monad (when, forM_)
 import Data.Char
 import System.IO
 import System.IO.Temp
@@ -59,6 +59,13 @@ argsparser =
              ":type-at"
              "<no location info>: Expected a span: \"<module-name/filepath>\" <start line> <start column> <end line> <end column> \"<sample string>\"\n"))
 
+maybeModuleStr :: String
+#if __GLASGOW_HASKELL__ >= 806
+maybeModuleStr = "GHC.Maybe"
+#else
+maybeModuleStr = "GHC.Base"
+#endif
+
 -- | Basic commands that should work out of the box.
 basics :: Spec
 basics =
@@ -70,7 +77,7 @@ basics =
           (do reply <- withIntero [] (\_ repl -> repl ":i Nothing")
               shouldBe
                 (subRegex (mkRegex "Data.Maybe") reply "GHC.Base")
-                ("data Maybe a = Nothing | ... \t-- Defined in " ++ (quote "GHC.Base") ++ "\n"))
+                ("data Maybe a = Nothing | ... \t-- Defined in " ++ (quote maybeModuleStr) ++ "\n"))
         it ":k Just" (eval ":k Maybe" "Maybe :: * -> *\n"))
   where
     quote s = opQuote : s ++ [clQuote]
@@ -404,7 +411,21 @@ completion = do
                 (["\"sort\"", "\"sortBy\""])))
   describe
     "Completion in module context"
-    (do it
+    (do when
+          ghc8_2
+          (issue
+             ":complete-at for defered scope names"
+             "https://github.com/chrisdone/intero/issues/531"
+             (atFile
+                ":complete-at"
+                "X.hs"
+                         -- All these type annotations are required for GHC 8.6.3
+                         -- to accept the input without error.
+                "{-# OPTIONS -fdefer-type-errors #-}\nmodule X where\ng a = fiiila (filu :: Char) a (fi :: Int)\n where fiiila _ _ _ = 123"
+                (2, 14, 2, 17, "fi")
+                lines
+                ["fiiila", "filter"]))
+        it
           ":complete-at for put*"
           (atFile
              ":complete-at"
