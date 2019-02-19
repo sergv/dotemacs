@@ -2896,12 +2896,21 @@ evaluating BODY."
          :checker c/c++-clang)
      '(8 7 warning "no message" :checker c/c++-clang))))
 
-(flycheck-ert-def-checker-test c/c++-clang (c c++) included-file-error
+(flycheck-ert-def-checker-test c/c++-clang (c c++) included-file-warning
   (let ((flycheck-clang-include-path '("./include"))
-        (flycheck-disabled-checkers '(c/c++-gcc)))
+        (flycheck-disabled-checkers '(c/c++-gcc))
+        (flycheck-relevant-error-other-file-minimum-level 'warning))
     (flycheck-ert-should-syntax-check
      "language/c_c++/in-included-file.cpp" 'c++-mode
-     `(3 nil warning "In include ./warning.c" :checker c/c++-clang))))
+     `(5 10 warning "unused variable 'unused'"
+         :filename ,(flycheck-ert-resource-filename "language/c_c++/warning.c")
+         :checker c/c++-clang)
+     `(7 15 warning "comparison of integers of different signs: 'int' and 'unsigned int'"
+         :filename ,(flycheck-ert-resource-filename "language/c_c++/warning.c")
+         :checker c/c++-clang)
+     `(8 7 warning "no message"
+         :filename ,(flycheck-ert-resource-filename "language/c_c++/warning.c")
+         :checker c/c++-clang))))
 
 (flycheck-ert-def-checker-test c/c++-gcc (c c++) error
   (let ((flycheck-disabled-checkers '(c/c++-clang)))
@@ -2927,12 +2936,21 @@ evaluating BODY."
          :id "-Wsign-compare" :checker c/c++-gcc)
      '(8 7 warning "#warning" :id "-Wcpp" :checker c/c++-gcc))))
 
-(flycheck-ert-def-checker-test c/c++-gcc (c c++) included-file-error
+(flycheck-ert-def-checker-test c/c++-gcc (c c++) included-file-warning
   (let ((flycheck-gcc-include-path '("./include"))
-        (flycheck-disabled-checkers '(c/c++-clang)))
+        (flycheck-disabled-checkers '(c/c++-clang))
+        (flycheck-relevant-error-other-file-minimum-level 'warning))
     (flycheck-ert-should-syntax-check
      "language/c_c++/in-included-file.cpp" 'c++-mode
-     `(3 nil warning "In include warning.c" :checker c/c++-gcc))))
+     `(5 10 warning "unused variable 'unused'"
+         :filename ,(flycheck-ert-resource-filename "language/c_c++/warning.c")
+         :id "-Wunused-variable" :checker c/c++-gcc)
+     `(7 15 warning "comparison between signed and unsigned integer expressions"
+         :filename ,(flycheck-ert-resource-filename "language/c_c++/warning.c")
+         :id "-Wsign-compare" :checker c/c++-gcc)
+     `(8 7 warning "#warning"
+         :filename ,(flycheck-ert-resource-filename "language/c_c++/warning.c")
+         :id "-Wcpp" :checker c/c++-gcc))))
 
 (flycheck-ert-def-checker-test c/c++-cppcheck (c c++) nil
   :tags '(cppcheck-xml)
@@ -3728,6 +3746,20 @@ Why not:
      '(5 nil error "unfinished string near '\"oh no'"
          :checker lua))))
 
+(flycheck-ert-def-checker-test opam opam nil
+  (flycheck-ert-should-syntax-check
+   "language/opam.opam" 'tuareg-opam-mode
+   '(0 nil error "Missing field 'maintainer'"
+       :id "23" :checker opam)
+   '(0 nil warning "Missing field 'authors'"
+       :id "25" :checker opam)
+   '(0 nil warning "Missing field 'homepage'"
+       :id "35" :checker opam)
+   '(0 nil warning "Missing field 'bug-reports'"
+       :id "36" :checker opam)
+   '(2 1 error "Invalid field maintainers"
+       :id "3" :checker opam)))
+
 (flycheck-ert-def-checker-test (perl perl-perlcritic) perl nil
   (flycheck-ert-should-syntax-check
    "language/perl.pl" '(perl-mode cperl-mode)
@@ -3814,7 +3846,7 @@ Why not:
   (let ((flycheck-disabled-checkers '(markdown-markdownlint-cli markdown-mdl)))
     (flycheck-ert-with-env '(("LC_ALL" . nil))
       (flycheck-ert-should-syntax-check
-       "language/text.txt" '(text-mode markdown-mode)
+       "language/text/text.txt" '(text-mode markdown-mode)
        '(1 7 warning "Substitute 'damn' every time you're inclined to write 'very'; your editor will delete it and the writing will be just as it should be."
            :id "weasel_words.very"
            :checker proselint)
@@ -4062,8 +4094,14 @@ Why not:
 
 (flycheck-ert-def-checker-test nix nix nil
   (flycheck-ert-should-syntax-check
-   "language/nix.nix" 'nix-mode
+   "language/nix/syntax-error.nix" 'nix-mode
    '(3 1 error "syntax error, unexpected IN, expecting ';'," :checker nix)))
+
+(flycheck-ert-def-checker-test nix-linter nix nil
+  (flycheck-ert-should-syntax-check
+   "language/nix/warnings.nix" 'nix-mode
+   '(1 1 warning "LetInInheritRecset" :id "LetInInheritRecset" :checker nix-linter)
+   '(3 4 warning "Unneeded `rec` on set" :id "UnneededRec" :checker nix-linter)))
 
 (ert-deftest flycheck-locate-sphinx-source-directory/not-in-a-sphinx-project ()
   :tags '(language-rst)
@@ -4562,6 +4600,13 @@ The manifest path is relative to
    '(7 nil error "misplaced }" :checker texinfo)
    '(9 nil warning "printindex before document beginning: @printindex cp"
        :checker texinfo)))
+
+(flycheck-ert-def-checker-test textlint (text markdown) nil
+  (let ((flycheck-textlint-config "language/text/textlintrc.json"))
+    (flycheck-ert-should-syntax-check
+     "language/text/text.txt" '(text-mode markdown-mode)
+     '(1 7 warning "\"very\" is a weasel word and can weaken meaning [Error/write-good]"
+         :checker textlint))))
 
 (flycheck-ert-def-checker-test typescript-tslint typescript nil
   (flycheck-ert-should-syntax-check
