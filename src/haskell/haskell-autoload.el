@@ -6,6 +6,7 @@
 ;; Created: Thursday, 12 July 2012
 ;; Description:
 
+(require 'happy-mode-autoload)
 (require 'mmm-setup)
 
 (eval-after-load "intero"
