@@ -25,8 +25,6 @@
 (require 'shell-setup)
 (require 'vim-intero-highlight-uses-mode)
 
-(require 'flycheck-liquidhs)
-
 ;; never cache module alist to a file
 (setf inferior-haskell-module-alist-file nil)
 
