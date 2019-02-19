@@ -755,6 +755,20 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. _nix-instantiate: https://nixos.org/nix/manual/#sec-nix-instantiate
 
+   .. syntax-checker:: nix-linter
+
+      Check Nix with nix-linter_.
+
+      .. _nix-linter: https://github.com/Synthetica9/nix-linter
+
+.. supported-language:: Opam
+
+   .. syntax-checker:: opam
+
+      Check Opam configuration files with `opam lint`_.
+
+      .. _opam lint: https://opam.ocaml.org/doc/man/opam-lint.html
+
 .. supported-language:: Perl
 
    Flycheck checks Perl with `perl` and `perl-perlcritic`.
@@ -1314,6 +1328,27 @@ to view the docstring of the syntax checker.  Likewise, you may use
    .. syntax-checker:: proselint
 
       Check English prose with `Proselint <http://proselint.com/>`_.
+
+   .. syntax-checker:: textlint
+
+      Check prose with `textlint <https://textlint.github.io/>`_.
+
+      .. syntax-checker-config-file:: flycheck-textlint-config
+
+      .. defcustom:: flycheck-textlint-plugin-alist
+
+         An alist mapping major modes to textlint plugins.
+
+         Flycheck currently supports the following textlint plugins on NPM:
+
+         * textlint-plugin-rst
+         * textlint-plugin-html
+         * textlint-plugin-latex
+         * textlint-plugin-asciidoctor (as well as other AsciiDoc plugins)
+
+      .. note::
+
+         textlint plugins need to be installed seperately.
 
 .. supported-language:: TeX/LaTeX
 
