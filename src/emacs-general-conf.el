@@ -229,7 +229,8 @@
 ;;;; fill-column-indicator
 
 (setf fci-handle-truncate-lines t
-      fci-rule-column 80)
+      fci-rule-column 80
+      fill-colunm 80)
 
 ;;;; customizations without dedicated setup file
 
