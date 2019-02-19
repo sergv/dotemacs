@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2016-2018 Sergey Vinokurov <serg.foo@gmail.com>
 ;; Copyright (C) 2014-2016 Sebastian Wiesner <swiesner@lunaryorn.com>
-;; Copyright (C) 2016 Danny Navarro
+;; Copyright (C) 2016-2018 Danny Navarro <j@dannynavarro.net>
 ;; Copyright (C) 2015 Mark Karpov <markkarpov@opmbx.org>
 ;; Copyright (C) 2015 Michael Alan Dorman <mdorman@ironicdesign.com>
 ;; Copyright (C) 2015 Alex Rozenshteyn <rpglover64@gmail.com>
@@ -78,9 +78,23 @@
         (runghc-exe (funcall flycheck-executable-find "runghc")))
     (cond
       (stack-exe
-       `(,stack-exe "--verbosity" "silent" "runghc" "--no-ghc-package-path" "--" "--ghc-arg=-i"))
+       `(,stack-exe "--verbosity" "silent" "runghc" "--no-ghc-package-path" "--" "-i"
+                    "-packageCabal"
+                    "-packagebase"
+                    "-packagebytestring"
+                    "-packagecontainers"
+                    "-packageprocess"
+                    "-packagedirectory"
+                    "-packagefilepath"))
       (runghc-exe
-       `(,runghc-exe "-i"))
+       `(,runghc-exe "--" "-i"
+                     "-packageCabal"
+                     "-packagebase"
+                     "-packagebytestring"
+                     "-packagecontainers"
+                     "-packageprocess"
+                     "-packagedirectory"
+                     "-packagefilepath"))
       (t
        ;; A reasonable default.
        '("runghc" "-i"))))
@@ -108,7 +122,7 @@ value will make this library ignore `package.yaml' file, even if it's present."
   "How to handle projects with both `.cabal' and `package.yaml' files present.
 
 This option controls which configuration file this library will pick for
-a projcet that has both `.cabal' and `package.yaml' files present.
+a project that has both `.cabal' and `package.yaml' files present.
 The default, 'prefer-hpack, will make it pick `package.yaml' file as the source
 of configuration parameters.  Another possible value, 'prefer-cabal will
 make it pick `.cabal' file in such a case."
@@ -144,21 +158,21 @@ Take the base command from `flycheck-haskell-runghc-command'."
 
 (defun flycheck-haskell--read-configuration-with-helper (args)
   (with-temp-buffer
-    (let ((cmd
+    ;; Hack around call-process' limitation handling standard error
+    (let ((error-file (make-temp-file "flycheck-haskell-errors"))
+          (cmd
            (if flycheck-haskell--compiled-haskell-helper
                (cons flycheck-haskell--compiled-haskell-helper args)
              (append flycheck-haskell-runghc-command
                      (cons flycheck-haskell-helper
                            args)))))
-      (pcase (apply 'call-process
-                    (car cmd)
-                    nil ;; in file
-                    t   ;; destination, current buffer
-                    nil ;; do not redisplay
-                    (cdr cmd))
-        (0 (goto-char (point-min))
+      (pcase (apply 'call-process (car cmd) nil (list t error-file) nil (cdr cmd))
+        (0 (delete-file error-file)
+           (goto-char (point-min))
            (read (current-buffer)))
-        (retcode (message "Reading Haskell configuration failed with exit code %s and output:\n%s"
+        (retcode (insert-file-contents error-file)
+                 (delete-file error-file)
+                 (message "Reading Haskell configuration failed with exit code %s and output:\n%s"
                           retcode (buffer-string))
                  nil)))))
 
@@ -335,9 +349,10 @@ buffer."
                                   .autogen-directories)
                          (when (car .should-include-version-header)
                            '("-optP-include" "-optPcabal_macros.h"))
-                         (cons "-hide-all-packages"
+                         (when (not (car .package-env-exists))
+                           (cons "-hide-all-packages"
                                (seq-map (apply-partially #'concat "-package=")
-                                        .dependencies))
+                                        .dependencies)))
                          flycheck-ghc-args)))
     (setq-local flycheck-hlint-args
                 (flycheck-haskell--delete-dups
