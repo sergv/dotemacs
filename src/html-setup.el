@@ -33,13 +33,12 @@
 (dolist (mode '(nxml-mode web-mode))
   (setf hs-special-modes-alist
         (cons `(,mode
-                "<[^/>]>\\|<[^>]*"
-                "</"
-                "<!--" ;; won't work on its own; uses syntax table
+                "<!--\\|<[^/>]*[^/]\\|[\(\[\{]" ;; start
+                "-->\\|</[^/>]*[^/]\\|[\)\]\}]" ;; end
+                "<!--"                          ;; commend-start, won't work on its own; uses syntax table
                 my-nxml-forward-element
                 nil)
               (assq-delete-all mode hs-special-modes-alist))))
-
 
 (defvar-local *markup-tags-context-func*
   (lambda ()
@@ -51,14 +50,17 @@ end1 and end2 should be exclusive ends of tags.")
 
 ;;;###autoload
 (defun my-nxml-forward-element (n)
-  (let ((nxml-sexp-element-flag (not (looking-at-p "<!--"))))
-    (condition-case nil
-        (progn
-          (message "start line: %s" (current-line))
-          (nxml-forward-balanced-item n)
-          (skip-to-indentation)
-          (message "end line: %s" (current-line)))
-      (error nil))))
+  (let ((c (char-after)))
+    (if (memq c '(?\( ?\[ ?\{))
+        (let ((forward-sexp-function nil))
+          (forward-sexp n)
+          (forward-char -1))
+      (let ((nxml-sexp-element-flag (not (looking-at-p "<!--"))))
+        (condition-case nil
+            (progn
+              (nxml-forward-balanced-item n)
+              (skip-to-indentation))
+          (error nil))))))
 
 (eval-when-compile
   (defmacro with-html-tags-context (bb be eb ee on-found &optional on-not-found)
