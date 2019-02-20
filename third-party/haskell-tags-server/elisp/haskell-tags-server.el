@@ -116,7 +116,7 @@
     (while (and (not done)
                 (< i (eval-when-compile (* 2 60 100))))
       (setf i (+ i 1))
-      (sit-for 0.01)
+      (sleep-for 0 100)
       ;; (when (eval-when-compile (fboundp #'thread-yield))
       ;;   (thread-yield))
       )
