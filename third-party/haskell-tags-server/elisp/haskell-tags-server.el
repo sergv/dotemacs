@@ -417,13 +417,14 @@ uppercase or lowercase names)."
                       (haskell-tags-server-home-entry--search-query next-home-entry))
                      (next-symbol-regex?
                       (haskell-tags-server-home-entry--is-regex? next-home-entry)))
-                 (if use-regexp?
-                     (if next-symbol-regex?
-                         nil
-                       (string-match-p identifier next-symbol))
-                   (if next-symbol-regex?
-                       nil
-                     (string= identifier next-symbol)))))
+                 (and next-symbol
+                      (if use-regexp?
+                          (if next-symbol-regex?
+                              nil
+                            (string-match-p identifier next-symbol))
+                        (if next-symbol-regex?
+                            nil
+                          (string= identifier next-symbol))))))
           (progn
             (haskell-tags-server--switch-to-home-entry next-home-entry)
             (push current-home-entry
