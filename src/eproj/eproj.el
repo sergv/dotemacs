@@ -15,6 +15,9 @@
 ;; [(ignored-files <glob>+)] - ignored filenames, <glob>
 ;;                             should match absolute file names. Will be applied
 ;;                             to file-list and aux files arguments.
+;;                             Can use ${eproj-root} variable which points to
+;;                             the directory of the .eproj-info file, without
+;;                             trailing slash.
 ;; [(file-list <abs-or-rel-file>)] - filename listing all files on on each line
 ;; [(extra-navigation-files <glob>+)] - more files to include into navigation via `switch-to-buffer-or-file-in-current-project'.
 ;;
@@ -660,7 +663,7 @@ for project at ROOT directory."
                                root)
                        nil)))
         (ignored-files-globs
-         (cdr-safe (assq 'ignored-files aux-info)))
+         (eproj--get-ignored-files root aux-info))
         (file-list-filename
          (awhen (eproj-project/query-aux-info aux-info 'file-list)
            (let ((fname (eproj--resolve-to-abs-path it root)))
@@ -1119,6 +1122,11 @@ projects into the mix."
                                    (eproj-project/related-projects p))
                              projs)))))
     (hash-table-values visited)))
+
+(defun eproj--get-ignored-files (root aux-info)
+  (cl-assert (stringp root))
+  (--map (replace-regexp-in-string "[$]{eproj-root}" root it)
+         (cdr-safe (assq 'ignored-files aux-info))))
 
 ;; If PATH is existing absoute file then return it, otherwise try to check
 ;; whether it's existing file relative to DIR and return that. Report error if
