@@ -2281,6 +2281,16 @@ If supplied, use the given TARGETS, SOURCE-BUFFER and STACK-YAML."
           (intero-copy-compiler-tool-auto-install source-buffer targets buffer stack-yaml)
         (intero-old-auto-install source-buffer targets buffer stack-yaml)))))
 
+(defun intero--locate-dominating-file-matching (directory regexp)
+  "Search for a file in directory hierarchy starting at DIRECTORY.
+
+Look up the directory hierarchy from DIRECTORY for a directory
+containing a file that matches REGEXP."
+  (locate-dominating-file
+   directory
+   (lambda (dir)
+     (directory-files dir nil regexp t))))
+
 (defun intero-copy-compiler-tool-auto-install (source-buffer targets buffer stack-yaml)
   "Automatically install Intero appropriately for BUFFER.
 Use the given TARGETS, SOURCE-BUFFER and STACK-YAML."
@@ -2293,13 +2303,19 @@ Installing intero-%s for GHC %s ...
 " intero-package-version ghc-version))
     (redisplay)
     (cl-case
-        (let ((current-stack-yaml (when default-directory
-                                    (let ((path (concat default-directory "/stack.yaml")))
-                                      (when (file-exists-p path)
-                                        path))))
+        (let ((current-stack-yaml (if (and stack-yaml
+                                           (file-exists-p stack-yaml)
+                                           stack-yaml)
+                                      (when default-directory
+                                        (let ((path
+                                               (intero--locate-dominating-file-matching
+                                                (file-name-directory default-directory)
+                                                "stack.*\\.yaml\\'")))
+                                          (when (file-exists-p path)
+                                            path)))))
               (default-directory (make-temp-file "intero" t)))
           (intero-call-stack
-           nil (current-buffer) t (or stack-yaml current-stack-yaml) "build"
+           nil (current-buffer) t current-stack-yaml "build"
            "--copy-compiler-tool"
            (concat "intero-" intero-package-version)
            "--flag" "haskeline:-terminfo"
