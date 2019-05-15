@@ -757,7 +757,8 @@ end of END-LINE in current buffer."
   "List of directory names used by version-control systems.")
 
 (defconst +ignored-directories+
-  (append +version-control-directories+ (list "dist" "node_modules" ".HTF"))
+  (append +version-control-directories+
+          (list "dist" "node_modules" ".HTF" ".idea"))
   "List of directory names to generally ignore.")
 
 (defconst +ignored-directory-prefixes+
