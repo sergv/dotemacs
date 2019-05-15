@@ -1,4 +1,4 @@
-
+;; -*- mode: emacs-lisp; no-byte-compile: t; lexical-binding: t; -*-
 
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
@@ -32,9 +32,9 @@
 ;; 1. EMACS_ROOT - path to .emacs.d directory.
 ;;
 ;; 2. EMACS_ENV_DEFS - paths to .bash_env file - shell script that sets
-;; up environment variables on the system for current user.t
+;; up environment variables on the system for current user.
 ;;
-;; 3. BASHRC_ENV_LOADED - whecher ~/.bash_env was already loaded.
+;; 3. BASHRC_ENV_LOADED - whether ~/.bash_env was already loaded.
 (unless (featurep 'start)
   (let ((emacs-root (getenv "EMACS_ROOT")))
     (if emacs-root
@@ -54,11 +54,3 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Customizations done by emacs customize routine
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;; Emacs/W3 Configuration
-;; (custom-set-faces)
-
-
-
-
-
