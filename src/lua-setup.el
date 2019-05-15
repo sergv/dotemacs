@@ -6,6 +6,8 @@
 ;; Created: Sunday, 23 September 2012
 ;; Description:
 
+(require 'cc-setup)
+
 ;;;###autoload
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
 ;;;###autoload
@@ -21,7 +23,11 @@
                :use-whitespace 'tabs-only
                :use-fci t)
   (setup-hs-minor-mode)
-  (setup-indent-size 2))
+  (setup-indent-size 2)
+
+  (def-keys-for-map vim:visual-mode-local-keymap
+    ("g a a" align)
+    ("g a =" c-align-on-equals)))
 
 ;;;###autoload
 (add-hook 'lua-mode-hook #'lua-setup)
