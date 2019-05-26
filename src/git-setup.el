@@ -447,10 +447,21 @@ under git version control."
                                    nil
                                    "rev-parse"
                                    "--show-toplevel"))
-            (strip-trailing-slash
-             (trim-whitespace
-              (buffer-substring-no-properties (point-min)
-                                              (point-max)))))))))
+            (let ((fix-cygwin-paths
+                   (fold-platform-os-type
+                    #'identity
+                    (lambda (x)
+                      (save-match-data
+                        (if (string-match "^/\\([a-zA-Z]\\)\\(.*\\)$" x)
+                            (concat (match-string 1 x)
+                                    ":"
+                                    (match-string 2 x))
+                          x))))))
+              (funcall fix-cygwin-paths
+                       (strip-trailing-slash
+                        (trim-whitespace
+                         (buffer-substring-no-properties (point-min)
+                                                         (point-max)))))))))))
 
   (defun git-update-file-repository ()
     "Update git-repository for current buffer."
