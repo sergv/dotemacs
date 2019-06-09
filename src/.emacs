@@ -36,14 +36,20 @@
 ;;
 ;; 3. BASHRC_ENV_LOADED - whether ~/.bash_env was already loaded.
 (unless (featurep 'start)
-  (let ((emacs-root (getenv "EMACS_ROOT")))
-    (if emacs-root
-        (progn
-          (cl-assert (file-directory-p emacs-root))
-          (let ((src-dir (concat emacs-root "/src")))
-            (cl-assert (file-directory-p src-dir))
-            (add-to-list 'load-path src-dir)))
-      (error "EMACS_ROOT not defined")))
+  (let* ((emacs-root (getenv "EMACS_ROOT"))
+         (default-emacs-dir (expand-file-name "~/.emacs.d"))
+         (default-src-dir (expand-file-name "src" default-emacs-dir)))
+    (cond
+      (emacs-root
+       (progn
+         (cl-assert (file-directory-p emacs-root))
+         (let ((src-dir (concat emacs-root "/src")))
+           (cl-assert (file-directory-p src-dir))
+           (add-to-list 'load-path src-dir))))
+      ((file-directory-p default-src-dir)
+       (add-to-list 'load-path default-src-dir))
+      (t
+       (error "EMACS_ROOT not defined"))))
   (load-library "start"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
