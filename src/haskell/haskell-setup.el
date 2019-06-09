@@ -163,7 +163,8 @@
                             nil)
                           '(company-eproj)))
 
-      (unless non-vanilla-haskell-mode?
+      (when (and (not non-vanilla-haskell-mode?)
+                 (not noninteractive))
         (let* ((effective-major-mode (eproj/resolve-synonym-modes major-mode))
                (flycheck-backend
                 (eproj-query/flycheck-checker
