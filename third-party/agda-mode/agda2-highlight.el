@@ -96,6 +96,8 @@ Also sets the default value of VARIABLE to GROUP."
              :foreground "medium blue")
             (agda2-highlight-bound-variable-face
              :foreground "purple")
+            (agda2-highlight-generalizable-variable-face
+             :foreground "purple")
             (agda2-highlight-inductive-constructor-face
              :foreground "firebrick3")
             (agda2-highlight-coinductive-constructor-face
@@ -155,6 +157,9 @@ Also sets the default value of VARIABLE to GROUP."
                       (agda2-highlight-face-attributes
                        font-lock-keyword-face))
                 (cons 'agda2-highlight-bound-variable-face
+                      (agda2-highlight-face-attributes
+                       font-lock-variable-name-face))
+                (cons 'agda2-highlight-generalizable-variable-face
                       (agda2-highlight-face-attributes
                        font-lock-variable-name-face))
                 (cons 'agda2-highlight-inductive-constructor-face
@@ -260,6 +265,11 @@ If `agda2-highlight-face-groups' is nil."
   "The face used for bound variables."
   :group 'agda2-highlight-faces)
 
+(defface agda2-highlight-generalizable-variable-face
+  '((t nil))
+  "The face used for generalizable variables."
+  :group 'agda2-highlight-faces)
+
 (defface agda2-highlight-inductive-constructor-face
   '((t (:foreground "green4")))
   "The face used for inductive constructors."
@@ -293,6 +303,11 @@ If `agda2-highlight-face-groups' is nil."
 (defface agda2-highlight-postulate-face
   '((t (:foreground "medium blue")))
   "The face used for postulates."
+  :group 'agda2-highlight-faces)
+
+(defface agda2-highlight-pragma-face
+  '((t nil))
+  "The face used for (some text in) pragmas."
   :group 'agda2-highlight-faces)
 
 (defface agda2-highlight-primitive-face
@@ -345,9 +360,9 @@ If `agda2-highlight-face-groups' is nil."
   "The face used for positivity problems."
   :group 'agda2-highlight-faces)
 
-(defface agda2-highlight-reachability-problem-face
+(defface agda2-highlight-deadcode-face
   '((t (:background "dark gray")))
-  "The face used for reachability problems."
+  "The face used for dead code (unreachable clauses, etc.)."
   :group 'agda2-highlight-faces)
 
 (defface agda2-highlight-coverage-problem-face
@@ -369,11 +384,14 @@ If `agda2-highlight-face-groups' is nil."
 (defvar agda2-highlight-faces
   '((keyword                . agda2-highlight-keyword-face)
     (comment                . font-lock-comment-face)
+    (background             . font-lock-comment-face)
+    (markup                 . font-lock-comment-face)
     (string                 . agda2-highlight-string-face)
     (number                 . agda2-highlight-number-face)
     (symbol                 . agda2-highlight-symbol-face)
     (primitivetype          . agda2-highlight-primitive-type-face)
     (bound                  . agda2-highlight-bound-variable-face)
+    (generalizable          . agda2-highlight-generalizable-variable-face)
     (inductiveconstructor   . agda2-highlight-inductive-constructor-face)
     (coinductiveconstructor . agda2-highlight-coinductive-constructor-face)
     (datatype               . agda2-highlight-datatype-face)
@@ -381,6 +399,7 @@ If `agda2-highlight-face-groups' is nil."
     (function               . agda2-highlight-function-face)
     (module                 . agda2-highlight-module-face)
     (postulate              . agda2-highlight-postulate-face)
+    (pragma                 . agda2-highlight-pragma-face)
     (primitive              . agda2-highlight-primitive-face)
     (macro                  . agda2-highlight-macro-face)
     (record                 . agda2-highlight-record-face)
@@ -390,7 +409,7 @@ If `agda2-highlight-face-groups' is nil."
     (unsolvedmeta           . agda2-highlight-unsolved-meta-face)
     (unsolvedconstraint     . agda2-highlight-unsolved-constraint-face)
     (terminationproblem     . agda2-highlight-termination-problem-face)
-    (reachabilityproblem    . agda2-highlight-reachability-problem-face)
+    (deadcode               . agda2-highlight-deadcode-face)
     (coverageproblem        . agda2-highlight-coverage-problem-face)
     (positivityproblem      . agda2-highlight-positivity-problem-face)
     (incompletepattern      . agda2-highlight-incomplete-pattern-face)
@@ -407,6 +426,7 @@ The aspects currently recognised are the following:
 `error'                  Errors.
 `field'                  Record fields.
 `function'               Functions.
+`generalizable'          Generalizable variables.
 `incompletepattern'      Incomplete patterns.
 `inductiveconstructor'   Inductive constructors.
 `keyword'                Keywords.
@@ -414,6 +434,8 @@ The aspects currently recognised are the following:
 `number'                 Numbers.
 `operator'               Operators.
 `postulate'              Postulates.
+`pragma'                 Text occurring in pragmas that does not have
+                           a more specific (syntactic) aspect.
 `primitive'              Primitive functions.
 `primitivetype'          Primitive types (like Set and Prop).
 `macro'                  Macros.
@@ -422,13 +444,16 @@ The aspects currently recognised are the following:
 `symbol'                 Symbols like forall, =, ->, etc.
 `terminationproblem'     Termination problems.
 `positivityproblem'      Positivity problems.
-`reachabilityproblem'    Reachability problems.
+`deadcode'               Deadcode (like unreachable clauses or RHS)
 `coverageproblem'        Coverage problems.
 `catchallclause'         Clause not holding definitionally.
 `typechecks'             Code which is being type-checked.
 `unsolvedconstraint'     Unsolved constraints, not connected to meta
                            variables.
 `unsolvedmeta'           Unsolved meta variables.
+`background'             Non-Agda code contents in literate mode.
+`markup'                 Delimiters to separate the Agda code blocks
+                           from other contents
 `comment'                Comments.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -443,23 +468,26 @@ The aspects currently recognised are the following:
 
 (defun agda2-highlight-setup nil
   "Set up the `annotation' library for use with `agda2-mode'."
+  (agda2-highlight-set-faces 'agda2-highlight-face-groups agda2-highlight-face-groups)
   (setq annotation-bindings agda2-highlight-faces))
 
-(defun agda2-highlight-apply (&rest cmds)
+(defun agda2-highlight-apply (remove &rest cmds)
   "Adds the syntax highlighting information in the annotation list CMDS.
 
-Old syntax highlighting information is not removed."
+If REMOVE is nil, then old syntax highlighting information is not
+removed. Otherwise all token-based syntax highlighting is removed."
   (let (;; Ignore read-only status, otherwise this function may fail.
         (inhibit-read-only t))
     (apply 'annotation-load
            "Click mouse-2 to jump to definition"
+           remove
            cmds)))
 
-(defun agda2-highlight-add-annotations (&rest cmds)
+(defun agda2-highlight-add-annotations (remove &rest cmds)
   "Like `agda2-highlight-apply'.
 But only if `agda2-highlight-in-progress' is non-nil."
   (if agda2-highlight-in-progress
-      (apply 'agda2-highlight-apply cmds)))
+      (apply 'agda2-highlight-apply remove cmds)))
 
 (defun agda2-highlight-load (file)
   "Load syntax highlighting information from FILE.
@@ -481,12 +509,15 @@ is non-nil."
           (agda2-highlight-load file))
     (delete-file file)))
 
-(defun agda2-highlight-clear nil
-  "Remove all syntax highlighting added by `agda2-highlight-reload'."
+(defun agda2-highlight-clear (&optional token-based)
+  "Remove all syntax highlighting.
+
+If TOKEN-BASED is non-nil, then only token-based highlighting is
+removed."
   (interactive)
   (let ((inhibit-read-only t))
        ; Ignore read-only status, otherwise this function may fail.
-    (annotation-remove-annotations)))
+    (annotation-remove-annotations token-based)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Administrative details
