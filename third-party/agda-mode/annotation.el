@@ -1,15 +1,9 @@
 ;;; annotation.el --- Functions for annotating text with faces and help bubbles
 
-;;; Commentary:
-;;
+;; Note that this library enumerates buffer positions starting from 1,
+;; just like Emacs.
 
-;;; Code:
 (require 'cl)
-
-(defconst annotations-offset (- (save-restriction (widen) (point-min)) 1)
-  "Offset between buffer positions and annotations's positions.
-Annotations's positions are based on 1, so this adjusts it to the base
-position used by your Emacs.")
 
 (defvar annotation-bindings nil
   "An association list mapping symbols to faces.")
@@ -90,26 +84,33 @@ given position."
             (if other-window
                 (find-file-other-window file)
               (find-file file))
-            (annotation-goto-position (cdr filepos))
+            (goto-char (cdr filepos))
             t)
         (error "File does not exist or is unreadable: %s." file)))))
 
-(defun annotation-goto-position (position)
-  "Move point to POSITION."
-  (goto-char (+ position annotations-offset)))
+(defun annotation-merge-faces (start end faces)
+  "Helper procedure used by `annotation-annotate'.
+For each position in the range the FACES are merged
+with the current value of the annotation-faces text property, and
+both the face and the annotation-faces text properties are set to
+the resulting list of faces.
 
-(defun annotation-append-text-property (start end prop values)
-  "Merges VALUES to text property PROP between START and END."
+Precondition: START and END must be numbers, and START must be
+less than END."
+  (assert (condition-case nil (< start end) (error nil)))
   (let ((pos start)
         mid)
     (while (< pos end)
-      (setq mid (next-single-property-change pos prop nil end))
-      (let* ((old-values (get-text-property pos prop))
-             (all-values (union old-values values)))
-        (put-text-property pos mid prop all-values)
+      (setq mid (next-single-property-change pos 'annotation-faces
+                                             nil end))
+      (let* ((old-faces (get-text-property pos 'annotation-faces))
+             (all-faces (union old-faces faces)))
+        (mapc (lambda (prop) (put-text-property pos mid prop all-faces))
+              '(annotation-faces face))
         (setq pos mid)))))
 
-(defun annotation-annotate (start end anns &optional info goto)
+(defun annotation-annotate
+    (start end anns &optional token-based info goto)
   "Annotate text between START and END in the current buffer.
 
 Nothing happens if either START or END are out of bounds for the
@@ -120,8 +121,17 @@ that have been set by this function are deleted. Otherwise the
 following happens.
 
 All the symbols in ANNS are looked up in `annotation-bindings',
-and the font-lock-face text property for the given character
-range is set to the resulting list of faces.
+and the resulting list of faces is used to set the face text
+property. For each position in the range the faces are merged
+with the current value of the annotation-faces text property, and
+both the face and the annotation-faces text properties are set to
+the resulting list of faces.
+
+If TOKEN-BASED is non-nil, then the annotation-token-based
+property is set to t. This means that all text properties set by
+`annotation-annotate' in this range are interpreted as being
+token-based, including those set by previous calls to this
+procedure.
 
 If the string INFO is non-nil, the mouse-face
 property is set to highlight, and INFO is used as the help-echo
@@ -139,21 +149,24 @@ annotation-annotations is set to a list with all the properties
 that have been set; this ensures that the text properties can
 later be removed (if the annotation-* properties are not tampered
 with)."
-  (incf start annotations-offset)
-  (incf end annotations-offset)
   (when (and (<= (point-min) start)
              (< start end)
              (<= end (point-max)))
     (if (null anns)
-        (annotation-remove-annotations start end)
+        (annotation-remove-annotations nil start end)
       (let ((faces (delq nil
                          (mapcar (lambda (ann)
                                    (cdr (assoc ann annotation-bindings)))
                                  anns)))
             (props nil))
         (when faces
-          (annotation-append-text-property start end 'font-lock-face faces)
-          (add-to-list 'props 'font-lock-face))
+          (annotation-merge-faces start end faces)
+          (add-to-list 'props 'face)
+          (add-to-list 'props 'annotation-faces))
+        (when token-based
+          (add-text-properties start end
+                               `(annotation-token-based t))
+          (add-to-list 'props 'annotation-token-based))
         (when (consp goto)
           (add-text-properties start end
                                `(annotation-goto ,goto
@@ -166,6 +179,7 @@ with)."
           (add-to-list 'props 'mouse-face)
           (add-to-list 'props 'help-echo))
         (when props
+          (add-to-list 'props 'annotation-annotated)
           (let ((pos start)
                 mid)
             (while (< pos end)
@@ -180,6 +194,7 @@ with)."
 (defmacro annotation-preserve-mod-p-and-undo (&rest code)
   "Run CODE preserving both the undo data and the modification bit.
 Modification hooks are also disabled."
+  (declare (debug (&rest form)))
   (let ((modp (make-symbol "modp")))
   `(let ((,modp (buffer-modified-p))
          ;; Don't check if the file is being modified by some other process.
@@ -192,11 +207,13 @@ Modification hooks are also disabled."
          (progn ,@code)
        (restore-buffer-modified-p ,modp)))))
 
-(defun annotation-remove-annotations (&optional start end)
-  "Remove all text properties set by `annotation-annotate'.
+(defun annotation-remove-annotations (&optional token-based start end)
+  "Remove text properties set by `annotation-annotate'.
 
 In the current buffer. If START and END are given, then
-properties are only removed between these positions.
+properties are only removed between these positions. If
+TOKEN-BASED is non-nil, then only token-based properties are
+removed.
 
 This function preserves the file modification stamp of the
 current buffer, does not modify the undo list, and temporarily
@@ -208,20 +225,24 @@ buffer."
   ;; remove-text-properties fails for read-only text.
 
   (annotation-preserve-mod-p-and-undo
-   (let ((pos (or start (point-min)))
+   (let ((tag (if token-based
+                  'annotation-token-based
+                'annotation-annotated))
+         (pos (or start (point-min)))
+         (end (or end (point-max)))
          pos2)
      (while pos
-       (setq pos2 (next-single-property-change pos 'annotation-annotated
-                                               nil end))
        (let ((props (get-text-property pos 'annotation-annotations)))
-         (when props
+         (setq pos2 (next-single-property-change pos tag nil end))
+         (when (and props
+                    (or (not token-based)
+                        (member 'annotation-token-based props)))
            (remove-text-properties pos (or pos2 (point-max))
               (mapcan (lambda (prop) (list prop nil))
-                      (append '(annotation-annotated annotation-annotations)
-                              props)))))
-       (setq pos (unless (equal pos2 end) pos2))))))
+                      (cons 'annotation-annotations props)))))
+       (setq pos (unless (or (not pos2) (>= pos2 end)) pos2))))))
 
-(defun annotation-load (goto-help &rest cmds)
+(defun annotation-load (goto-help remove &rest cmds)
   "Apply highlighting annotations in CMDS in the current buffer.
 
 The argument CMDS should be a list of lists (start end anns
@@ -235,6 +256,14 @@ argument is a cons-cell, then the INFO argument is set to
 GOTO-HELP. The intention is that the default help text should
 inform the user about the \"goto\" facility.
 
+If REMOVE is nil, then old syntax highlighting information is not
+removed. Otherwise all token-based syntax highlighting is
+removed. In order to reduce the risk of flicker this highlighting
+is removed step by step, in conjunction with the addition of new
+highlighting. (This process assumes that CMDS is ordered by the
+positions of the annotations. If it isn't, then the highlighting
+is still applied correctly, but perhaps with more flicker.)
+
 This function preserves the file modification stamp of the
 current buffer, does not modify the undo list, and temporarily
 disables all modification hooks.
@@ -243,12 +272,22 @@ Note: This function may fail if there is read-only text in the
 buffer."
   (annotation-preserve-mod-p-and-undo
     (when (listp cmds)
-      (dolist (cmd cmds)
-        (destructuring-bind (start end anns &optional info goto) cmd
-          (let ((info (if (and (not info) (consp goto))
-                          goto-help
-                        info)))
-            (annotation-annotate start end anns info goto)))))))
+      (let ((pos (point-min)))
+        (dolist (cmd cmds)
+          (destructuring-bind
+              (start end anns &optional token-based info goto) cmd
+            (let ((info (if (and (not info) (consp goto))
+                            goto-help
+                          info)))
+              (when remove
+                (annotation-remove-annotations
+                 'token-based pos end)
+                (setq pos end))
+              (annotation-annotate
+               start end anns token-based info goto))))
+        (when remove
+          (annotation-remove-annotations
+           'token-based pos (point-max)))))))
 
 (provide 'annotation)
 ;;; annotation.el ends here
