@@ -109,8 +109,7 @@ and indent them as singe line."
             (join-line t)))))))
 
 (let ((stack-command
-       (lambda (cmd)
-         (format "cd \"%%s\" && stack %s --ghc-options=\"-j4 +RTS -A128m -H1G -RTS\"" cmd))))
+       (lambda (cmd) (format "cd \"%%s\" && stack %s" cmd))))
   (setf haskell-compile-cabal-build-command-presets
         (-mapcat (lambda (entry)
                    (let ((target (car entry)))
