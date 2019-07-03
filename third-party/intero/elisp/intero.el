@@ -72,9 +72,9 @@
 (defcustom intero-package-version
   (cl-case system-type
     ;; Until <https://github.com/haskell/network/issues/313> is fixed:
-    (windows-nt "0.1.39")
-    (cygwin "0.1.39")
-    (t "0.1.39"))
+    (windows-nt "0.1.40")
+    (cygwin "0.1.40")
+    (t "0.1.40"))
   "Package version to auto-install.
 
 This version does not necessarily have to be the latest version
@@ -2320,6 +2320,7 @@ Installing intero-%s for GHC %s ...
            (concat "intero-" intero-package-version)
            "--flag" "haskeline:-terminfo"
            ;; "--resolver" (concat "ghc-" ghc-version)
+           "haskeline-0.7.5.0"
            "ghc-paths-0.1.0.9" "mtl-2.2.2" "network-2.7.0.0" "random-1.1" "syb-0.7"))
       (0
        (message "Installed successfully! Starting Intero in a moment ...")
@@ -3577,6 +3578,7 @@ Equivalent to 'warn', but label the warning as coming from intero."
                    (intero-help-refresh)))
        'keymap (let ((map (make-sparse-keymap)))
                  (define-key map [mouse-1] 'push-button)
+                 (define-key map (kbd "RET") 'push-button)
                  map))
       (insert " ")
       (insert-text-button
@@ -3584,6 +3586,7 @@ Equivalent to 'warn', but label the warning as coming from intero."
        'buffer (current-buffer)
        'keymap (let ((map (make-sparse-keymap)))
                  (define-key map [mouse-1] 'push-button)
+                 (define-key map (kbd "RET") 'push-button)
                  map)
        'action (lambda (&rest ignore)
                  (setq intero-help-entries
@@ -3595,6 +3598,7 @@ Equivalent to 'warn', but label the warning as coming from intero."
        'buffer (current-buffer)
        'keymap (let ((map (make-sparse-keymap)))
                  (define-key map [mouse-1] 'push-button)
+                 (define-key map (kbd "RET") 'push-button)
                  map)
        'action (lambda (&rest ignore)
                  (pop intero-help-entries)
