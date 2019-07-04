@@ -98,6 +98,8 @@ or just to bury selection buffer, leaving it's windows inplace (nil).)"
 
 ;; TODO: add option to use recursive edit?
 ;; API for user
+
+;;;###autoload
 (defun* select-mode-start-selection
     (items
      &key
