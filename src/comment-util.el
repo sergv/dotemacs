@@ -39,6 +39,7 @@
     (uuag-mode             (one-line "--") (line-regexp "--+"))
     (happy-mode            (one-line "--") (line-regexp "--+"))
     (agda2-mode            (one-line "--") (line-regexp "--+"))
+    (lean-mode             (one-line "--") (line-regexp "--+"))
     (idris-mode            (one-line "--") (line-regexp "--+"))
     (elm-mode              (one-line "--") (line-regexp "--+"))
     (latex-mode            (one-line "%")  (line-regexp "%+"))
