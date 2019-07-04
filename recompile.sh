@@ -132,6 +132,7 @@ update-dir-autoloads \
     "third-party/intero/elisp" \
     "third-party/ivy" \
     "third-party/ivy-smex" \
+    "third-party/lean-mode" \
     "third-party/magit" \
     "third-party/magit-popup" \
     "third-party/misc-modes" \

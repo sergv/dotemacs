@@ -31,10 +31,12 @@
        (proof-assistants-filter `(or (mode . agda2-mode)
                                      (mode . coq-mode)
                                      (mode . idris-mode)
+                                     (mode . lean-mode)
                                      (name . ,(rx (or "*Agda information*"
                                                       (seq "*"
                                                            (or (seq "agda"
                                                                     (? "2"))
+                                                               "lean"
                                                                "coq"
                                                                "idris")
                                                            "*"
