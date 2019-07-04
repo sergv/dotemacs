@@ -21,7 +21,6 @@
 ;;; Code:
 
 (require 'dash)
-(require 'helm)
 (require 'lean-server)
 
 (defcustom helm-lean-keybinding-helm-lean-definitions (kbd "C-c C-d")
