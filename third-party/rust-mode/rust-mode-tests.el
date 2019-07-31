@@ -450,6 +450,17 @@ fn foo4(a:i32,
 }
 "))
 
+(ert-deftest indent-return-type-non-visual ()
+  (let ((rust-indent-return-type-to-arguments nil))
+(test-indent
+   "
+fn imagine_long_enough_to_wrap_at_arrow(a:i32, b:char)
+    -> i32
+{
+    let body;
+}
+")))
+
 (ert-deftest indent-body-after-where ()
   (let ((rust-indent-where-clause t))
     (test-indent
@@ -1441,6 +1452,19 @@ fn g() {
      "g" font-lock-function-name-face
      "\"xs\"" font-lock-string-face)))
 
+(ert-deftest font-lock-string-ending-with-r-word-boundary ()
+  (with-temp-buffer
+    (rust-mode)
+    (insert "const foo = \"foo bar\"")
+    (font-lock-fontify-buffer)
+    ;; right-word should move the point to the end of the words.
+    (goto-char 14)
+    (right-word)
+    (should (equal 17 (point)))
+    (right-word)
+    (should (equal 21 (point)))
+    ))
+
 (ert-deftest font-lock-raw-string-trick-ending-followed-by-string-with-quote ()
   (rust-test-font-lock
    "r\"With what looks like the start of a raw string at the end r#\";
@@ -2402,6 +2426,14 @@ fn main() {
      "\"" font-lock-string-face
      "/* " font-lock-comment-delimiter-face
      "no-op */" font-lock-comment-face)))
+
+(ert-deftest font-lock-fontify-angle-brackets ()
+    "Test that angle bracket fontify"
+    (should (equal (rust-test-fontify-string "<>") "<>"))
+    (should (equal (rust-test-fontify-string "<foo>") "<foo>"))
+    (should (equal (rust-test-fontify-string "<<>>") "<<>>"))
+    (should (equal (rust-test-fontify-string "<>>") "<>>"))
+    (should (equal (rust-test-fontify-string "<<>") "<<>")))
 
 (ert-deftest rust-test-basic-paren-matching ()
   (rust-test-matching-parens
