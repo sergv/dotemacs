@@ -1,10 +1,11 @@
-;;; smartparens-javascript.el --- Additional configuration for JavaScript based modes.  -*- lexical-binding: t; -*-
+;;; smartparens-rst.el --- Additional configuration for rst based modes.  -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2017 Marinin Tim
-;; Author: Tim Marinin <mt@marinin.xyz>
-;; Maintainer: Tim Marinin <mt@marinin.xyz>
-;; Created: 2017-03-03
-;; Keywords: abbrev convenience editing javascript
+;; Copyright (C) 2019 Matus Goljer
+
+;; Author: Matus Goljer <matus.goljer@gmail.com>
+;; Maintainer: Matus Goljer <matus.goljer@gmail.com>
+;; Created: 28th January 2019
+;; Keywords: abbrev convenience editing
 ;; URL: https://github.com/Fuco1/smartparens
 
 ;; This file is not part of GNU Emacs.
@@ -28,10 +29,10 @@
 
 ;;; Commentary:
 
-;; This file provides some additional configuration for JavaScript based
+;; This file provides some additional configuration for rst based
 ;; modes.  To use it, simply add:
 ;;
-;; (require 'smartparens-javascript)
+;; (require 'smartparens-rst)
 ;;
 ;; into your configuration.  You can use this in conjunction with the
 ;; default config or your own configuration.
@@ -45,11 +46,17 @@
 ;;; Code:
 
 (require 'smartparens)
+(require 'smartparens-text)
+(require 'smartparens-markdown)
 
-;; (|sys).path.append---the dot should not travel with the closing
-;; paren
-(--each '(js-mode javascript-mode js2-mode typescript-mode rjsx-mode)
-  (add-to-list 'sp-sexp-suffix (list it 'regexp "")))
+(sp-with-modes 'rst-mode
+  (sp-local-pair "*" "*"
+                 :unless '(sp--gfm-point-after-word-p sp-point-at-bol-p)
+                 :post-handlers '(("[d1]" "SPC"))
+                 :skip-match 'sp--gfm-skip-asterisk)
+  (sp-local-pair "**" "**")
+  (sp-local-pair "_" "_" :unless '(sp-point-after-word-p))
+  (sp-local-pair "``" "``"))
 
-(provide 'smartparens-javascript)
-;;; smartparens-javascript.el ends here
+(provide 'smartparens-rst)
+;;; smartparens-rst.el ends here
