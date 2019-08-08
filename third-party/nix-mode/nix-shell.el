@@ -3,6 +3,7 @@
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Homepage: https://github.com/NixOS/nix-mode
 ;; Keywords: nix
+;; Version: 1.4.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -19,6 +20,13 @@
 (require 'nix)
 (require 'nix-instantiate)
 (require 'nix-store)
+
+;; Tell the byte compiler these are dynamically bound
+(defvar woman-manpath)
+(defvar Man-header-file-path)
+(defvar irony-additional-clang-options)
+(defvar eshell-path-env)
+(defvar ffap-c-path)
 
 (defgroup nix-shell nil
   "All nix-shell options."
@@ -160,7 +168,7 @@ The DRV file to use."
 	  (add-to-list 'irony-additional-clang-options
 		       (format "-I%s" include))))
 
-      (when flycheck-mode
+      (when (bound-and-true-p flycheck-mode)
 	(flycheck-buffer))
       )))
 
