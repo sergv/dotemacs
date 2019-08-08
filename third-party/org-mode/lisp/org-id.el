@@ -1,6 +1,6 @@
 ;;; org-id.el --- Global identifiers for Org entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -73,6 +73,7 @@
 (require 'org)
 
 (declare-function message-make-fqdn "message" ())
+(declare-function org-goto-location "org-goto" (&optional _buf help))
 
 ;;; Customization
 
@@ -83,8 +84,7 @@
 
 (defcustom org-id-link-to-org-use-id nil
   "Non-nil means storing a link to an Org file will use entry IDs.
-\\<org-mode-map>\
-
+\\<org-mode-map>
 The variable can have the following values:
 
 t     Create an ID if needed to make a link to the current entry.
@@ -160,9 +160,9 @@ to have no space characters in them."
 (defcustom org-id-include-domain nil
   "Non-nil means add the domain name to new IDs.
 This ensures global uniqueness of IDs, and is also suggested by
-RFC 2445 in combination with RFC 822.  This is only relevant if
-`org-id-method' is `org'.  When uuidgen is used, the domain will never
-be added.
+the relevant RFCs.  This is relevant only if `org-id-method' is
+`org'.  When uuidgen is used, the domain will never be added.
+
 The default is to not use this because we have no really good way to get
 the true domain, and Org entries will normally not be shared with enough
 people to make this necessary."
@@ -276,9 +276,9 @@ If necessary, the ID is created."
 ;;;###autoload
 (defun org-id-get-with-outline-drilling ()
   "Use an outline-cycling interface to retrieve the ID of an entry.
-This only finds entries in the current buffer, using `org-get-location'.
+This only finds entries in the current buffer, using `org-goto-location'.
 It returns the ID of the entry.  If necessary, the ID is created."
-  (let* ((spos (org-get-location (current-buffer) org-goto-help))
+  (let* ((spos (org-goto-location))
 	 (pom (and spos (move-marker (make-marker) (car spos)))))
     (prog1 (org-id-get pom 'create)
       (move-marker pom nil))))
@@ -357,7 +357,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
   "Return string with random (version 4) UUID."
   (let ((rnd (md5 (format "%s%s%s%s%s%s%s"
 			  (random)
-			  (current-time)
+			  (org-current-time-as-list)
 			  (user-uid)
 			  (emacs-pid)
 			  (user-full-name)
@@ -416,7 +416,7 @@ The input I may be a character, or a single-letter string."
   "Encode TIME as a 10-digit string.
 This string holds the time to micro-second accuracy, and can be decoded
 using `org-id-decode'."
-  (setq time (or time (current-time)))
+  (setq time (or time (org-current-time-as-list)))
   (concat (org-id-int-to-b36 (nth 0 time) 4)
 	  (org-id-int-to-b36 (nth 1 time) 4)
 	  (org-id-int-to-b36 (or (nth 2 time) 0) 4)))

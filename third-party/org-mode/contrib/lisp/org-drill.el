@@ -241,10 +241,9 @@ the hidden cloze during a test.")
 
 (defun org-drill--compute-cloze-keywords ()
   (list (list (org-drill--compute-cloze-regexp)
-              (copy-list '(1 'org-drill-visible-cloze-face nil))
-              (copy-list '(2 'org-drill-visible-cloze-hint-face t))
-              (copy-list '(3 'org-drill-visible-cloze-face nil))
-              )))
+              (list 1 'org-drill-visible-cloze-face nil)
+              (list 2 'org-drill-visible-cloze-hint-face t)
+              (list 3 'org-drill-visible-cloze-face nil))))
 
 (defvar-local org-drill-cloze-regexp
   (org-drill--compute-cloze-regexp))
@@ -268,6 +267,9 @@ with the cursor at the current item..")
 item.")
 (defvar org-drill--tags-key ?t
   "If this character is pressed during a drill session, edit the tags for
+the current item.")
+(defvar org-drill--pronounce-key ?p
+  "If this character is pressed during a drill session, pronounce for
 the current item.")
 
 
@@ -531,6 +533,34 @@ exponential effect on inter-repetition spacing."
   :group 'org-drill
   :type 'float)
 
+(defcustom org-drill-entry-before-hook nil
+  "A hook to run functions when every org-drill entry."
+  :group 'org-drill
+  :type 'hook)
+
+(defcustom org-drill-entry-after-hook nil
+  "A hook to run functions when every org-drill entry."
+  :group 'org-drill
+  :type 'hook)
+
+(defcustom org-drill-auto-pronounce t
+  "Auto pronounce org-drill word if non-nil."
+  :group 'org-drill
+  :type 'boolean
+  :safe #'booleanp)
+
+(defcustom org-drill-pronounce-command (executable-find "espeak")
+  "Org-drill pronounce command."
+  :group 'org-drill
+  :type 'string)
+
+(defcustom org-drill-pronounce-command-args
+  (if (string= org-drill-pronounce-command "/usr/bin/espeak")
+      "-v en")
+  "Org-drill pronounce command arguments."
+  :group 'org-drill
+  :type 'string)
+
 
 (defvar drill-answer nil
   "Global variable that can be bound to a correct answer when an
@@ -761,7 +791,7 @@ situation use `org-part-of-drill-entry-p'."
   (save-excursion
     (when marker
       (org-drill-goto-entry marker))
-    (member org-drill-question-tag (org-get-local-tags))))
+    (member org-drill-question-tag (org-get-tags nil t))))
 
 
 (defun org-drill-goto-entry (marker)
@@ -774,7 +804,7 @@ situation use `org-part-of-drill-entry-p'."
 or a subheading within a drill item?"
   (or (org-drill-entry-p)
       ;; Does this heading INHERIT the drill tag
-      (member org-drill-question-tag (org-get-tags-at))))
+      (member org-drill-question-tag (org-get-tags))))
 
 
 (defun org-drill-goto-drill-entry-heading ()
@@ -793,7 +823,7 @@ drill entry."
 (defun org-drill-entry-leech-p ()
   "Is the current entry a 'leech item'?"
   (and (org-drill-entry-p)
-       (member "leech" (org-get-local-tags))))
+       (member "leech" (org-get-tags nil t))))
 
 
 ;; (defun org-drill-entry-due-p ()
@@ -980,7 +1010,7 @@ in the matrix."
      (learn-str
       (let ((learn-data (or (and learn-str
                                  (read learn-str))
-                            (copy-list initial-repetition-state))))
+                            (copy-sequence initial-repetition-state))))
         (list (nth 0 learn-data)        ; last interval
               (nth 1 learn-data)        ; repetitions
               (org-drill-entry-failure-count)
@@ -995,7 +1025,7 @@ in the matrix."
             (org-drill-entry-total-repeats)
             (org-drill-entry-average-quality)
             (org-drill-entry-ease)))
-     (t  ; virgin item
+     (t					; virgin item
       (list 0 0 0 0 nil nil)))))
 
 
@@ -1364,15 +1394,16 @@ of QUALITY."
   (let ((ch nil)
         (input nil)
         (next-review-dates (org-drill-hypothetical-next-review-dates))
-        (key-prompt (format "(0-5, %c=help, %c=edit, %c=tags, %c=quit)"
+        (key-prompt (format "(0-5, %c=help, %c=pronounce, %c=edit, %c=tags, %c=quit)"
                             org-drill--help-key
+			    org-drill--pronounce-key
                             org-drill--edit-key
                             org-drill--tags-key
                             org-drill--quit-key)))
     (save-excursion
       (while (not (memq ch (list org-drill--quit-key
                                  org-drill--edit-key
-                                 7          ; C-g
+                                 7	; C-g
                                  ?0 ?1 ?2 ?3 ?4 ?5)))
         (setq input (read-key-sequence
                      (if (eq ch org-drill--help-key)
@@ -1391,7 +1422,9 @@ How well did you do? %s"
                                  (round (nth 4 next-review-dates))
                                  (round (nth 5 next-review-dates))
                                  key-prompt)
-                       (format "How well did you do? %s" key-prompt))))
+                       (format "How well did you do? %s" key-prompt))
+		     (when (eq ch org-drill--pronounce-key)
+		       (org-drill-pronounce-word))))
         (cond
          ((stringp input)
           (setq ch (elt input 0)))
@@ -1486,7 +1519,7 @@ the current topic."
                         (funcall test))
              (hide-subtree))
            (push (point) drill-sections)))
-       "" 'tree))
+       nil 'tree))
     (reverse drill-sections)))
 
 
@@ -1511,7 +1544,8 @@ the current topic."
                      (first fmt-and-args)
                      (rest fmt-and-args))
             (format (concat "Press key for answer, "
-                            "%c=edit, %c=tags, %c=skip, %c=quit.")
+                            "%c=pronounce, %c=edit, %c=tags, %c=skip, %c=quit.")
+		    org-drill--pronounce-key
                     org-drill--edit-key
                     org-drill--tags-key
                     org-drill--skip-key
@@ -1561,19 +1595,21 @@ You seem to be having a lot of trouble memorising this item.
 Consider reformulating the item to make it easier to remember.\n"
                                   'face '(:foreground "red"))
                       prompt)))
-    (while (memq ch '(nil org-drill--tags-key))
+    (while (memq ch '(nil org-drill--tags-key org-drill--pronounce-key))
       (setq ch nil)
       (while (not (input-pending-p))
-        (let ((elapsed (time-subtract (current-time) item-start-time)))
-          (message (concat (if (>= (time-to-seconds elapsed) (* 60 60))
-                               "++:++ "
-                             (format-time-string "%M:%S " elapsed))
-                           prompt))
-          (sit-for 1)))
+	(let ((elapsed (time-subtract (current-time) item-start-time)))
+	  (message (concat (if (>= (time-to-seconds elapsed) (* 60 60))
+			       "++:++ "
+			     (format-time-string "%M:%S " elapsed))
+			   prompt))
+	  (sit-for 1)))
       (setq input (read-key-sequence nil))
       (if (stringp input) (setq ch (elt input 0)))
       (if (eql ch org-drill--tags-key)
-          (org-set-tags-command)))
+	  (org-set-tags-command))
+      (when (eq ch org-drill--pronounce-key)
+	(org-drill-pronounce-word)))
     (case ch
       (org-drill--quit-key nil)
       (org-drill--edit-key 'edit)
@@ -2163,6 +2199,16 @@ If ANSWER is supplied, set the global variable `drill-answer' to its value."
     (prog1 (org-drill-presentation-prompt)
       (org-drill-hide-subheadings-if 'org-drill-entry-p)))))
 
+(defun org-drill-pronounce-word ()
+  "Pronounce word after querying."
+  (interactive)
+  (start-process-shell-command
+   "org-drill pronounce"
+   nil
+   (concat org-drill-pronounce-command
+	   " " org-drill-pronounce-command-args " "
+	   (shell-quote-argument
+            (substring-no-properties (org-get-heading t t t t))))))
 
 (defun org-drill-entry ()
   "Present the current topic for interactive review, as in `org-drill'.
@@ -2202,6 +2248,8 @@ See `org-drill' for more details."
                                    'org-drill-present-default-answer)
                      present-empty-cards (third presentation-fn)
                      presentation-fn (first presentation-fn)))
+	  (when org-drill-auto-pronounce (org-drill-pronounce-word))
+	  (run-hook-with-args 'org-drill-entry-before-hook)
           (prog1
               (cond
                ((null presentation-fn)
@@ -2223,7 +2271,8 @@ See `org-drill' for more details."
                   (save-excursion
                     (funcall answer-fn
                              (lambda () (org-drill-reschedule))))))))
-            (org-remove-latex-fragment-image-overlays)))))))
+	    (run-hook-with-args 'org-drill-entry-after-hook)
+	    (org-remove-latex-fragment-image-overlays)))))))
 
 
 (defun org-drill-entries-pending-p ()
