@@ -578,7 +578,7 @@ requires Emacs to be built with ImageMagick support."
                         (const :tag "No maximum height" nil)))))
 
 
-;;; Markdown-Specific `rx' Macro
+;;; Markdown-Specific `rx' Macro ==============================================
 
 ;; Based on python-rx from python.el.
 (eval-and-compile
@@ -1648,7 +1648,7 @@ START and END delimit region to propertize."
       (markdown-syntax-propertize-comments start end))))
 
 
-;;; Markup Hiding
+;;; Markup Hiding =============================================================
 
 (defconst markdown-markup-properties
   '(face markdown-markup-face invisible markdown-markup)
@@ -4516,7 +4516,7 @@ at the beginning of the block."
                  (goto-char (next-single-property-change (point) prop)))))))
 
 
-;;; Footnotes ==================================================================
+;;; Footnotes =================================================================
 
 (defun markdown-footnote-counter-inc ()
   "Increment `markdown-footnote-counter' and return the new value."
@@ -4832,7 +4832,7 @@ text to kill ring), and list items."
     (kill-region (point) (progn (markdown-forward-block) (point)))))
 
 
-;;; Indentation ====================================================================
+;;; Indentation ===============================================================
 
 (defun markdown-indent-find-next-position (cur-pos positions)
   "Return the position after the index of CUR-POS in POSITIONS.
@@ -5442,7 +5442,7 @@ Assumes match data is available for `markdown-regex-italic'."
 See also `markdown-mode-map'.")
 
 
-;;; Menu ==================================================================
+;;; Menu ======================================================================
 
 (easy-menu-define markdown-mode-menu markdown-mode-map
   "Menu for Markdown mode"
@@ -8436,7 +8436,7 @@ BEG and END are the limits of scanned region."
       (remove-overlays nil nil 'face 'markdown-gfm-checkbox-face))))
 
 
-;;; Display inline image =================================================
+;;; Display inline image ======================================================
 
 (defvar markdown-inline-image-overlays nil)
 (make-variable-buffer-local 'markdown-inline-image-overlays)
@@ -8448,6 +8448,33 @@ or \\[markdown-toggle-inline-images]."
   (interactive)
   (mapc #'delete-overlay markdown-inline-image-overlays)
   (setq markdown-inline-image-overlays nil))
+
+(defcustom markdown-display-remote-images nil
+  "If non-nil, download and display remote images.
+See also `markdown-inline-image-overlays'.
+
+Only image URLs specified with a protocol listed in
+`markdown-remote-image-protocols' are displayed."
+  :group 'markdown
+  :type 'boolean)
+
+(defcustom markdown-remote-image-protocols '("https")
+  "List of protocols to use to download remote images.
+See also `markdown-display-remote-images'."
+  :group 'markdown
+  :type '(repeat string))
+
+(defvar markdown--remote-image-cache
+  (make-hash-table :test 'equal)
+  "A map from URLs to image paths.")
+
+(defun markdown--get-remote-image (url)
+  "Retrieve the image path for a given URL."
+  (or (gethash url markdown--remote-image-cache)
+      (let ((dl-path (make-temp-file "markdown-mode--image")))
+        (require 'url)
+        (url-copy-file url dl-path t)
+        (puthash url dl-path markdown--remote-image-cache))))
 
 (defun markdown-display-inline-images ()
   "Add inline image overlays to image links in the buffer.
@@ -8466,24 +8493,29 @@ or \\[markdown-toggle-inline-images]."
               (end (match-end 0))
               (file (match-string-no-properties 6)))
           (when (and imagep
-                     (not (zerop (length file)))
-		     (file-exists-p file))
-            (let* ((abspath (if (file-name-absolute-p file)
-                                file
-                              (concat default-directory file)))
-                   (image
-                    (if (and markdown-max-image-size
-                             (image-type-available-p 'imagemagick))
-                        (create-image
-                         abspath 'imagemagick nil
-                         :max-width (car markdown-max-image-size)
-                         :max-height (cdr markdown-max-image-size))
-                      (create-image abspath))))
-              (when image
-                (let ((ov (make-overlay start end)))
-                  (overlay-put ov 'display image)
-                  (overlay-put ov 'face 'default)
-                  (push ov markdown-inline-image-overlays))))))))))
+                     (not (zerop (length file))))
+            (unless (file-exists-p file)
+              (when (and markdown-display-remote-images
+                         (member (downcase (url-type (url-generic-parse-url file)))
+                                 markdown-remote-image-protocols))
+                (setq file (markdown--get-remote-image file))))
+            (when (file-exists-p file)
+              (let* ((abspath (if (file-name-absolute-p file)
+                                  file
+                                (concat default-directory file)))
+                     (image
+                      (if (and markdown-max-image-size
+                               (image-type-available-p 'imagemagick))
+                          (create-image
+                           abspath 'imagemagick nil
+                           :max-width (car markdown-max-image-size)
+                           :max-height (cdr markdown-max-image-size))
+                        (create-image abspath))))
+                (when image
+                  (let ((ov (make-overlay start end)))
+                    (overlay-put ov 'display image)
+                    (overlay-put ov 'face 'default)
+                    (push ov markdown-inline-image-overlays)))))))))))
 
 (defun markdown-toggle-inline-images ()
   "Toggle inline image overlays in the buffer."
@@ -8664,7 +8696,7 @@ position."
                (markdown-edit-code-block))))))
 
 
-;;; Table Editing
+;;; Table Editing =============================================================
 
 ;; These functions were originally adapted from `org-table.el'.
 
@@ -9384,7 +9416,7 @@ rows and columns and the column alignment."
     (markdown-table-forward-cell)))
 
 
-;;; ElDoc Support
+;;; ElDoc Support =============================================================
 
 (defun markdown-eldoc-function ()
   "Return a helpful string when appropriate based on context.
@@ -9600,7 +9632,7 @@ rows and columns and the column alignment."
  'markdown-mode-font-lock-keywords "v2.4")
 
 
-;;; Viewing modes
+;;; Viewing modes =============================================================
 
 (defcustom markdown-hide-markup-in-view-modes t
   "Enable hidden markup mode in `markdown-view-mode' and `gfm-view-mode'."
@@ -9641,7 +9673,7 @@ rows and columns and the column alignment."
   (read-only-mode 1))
 
 
-;;; Live Preview Mode  ============================================
+;;; Live Preview Mode  ========================================================
 ;;;###autoload
 (define-minor-mode markdown-live-preview-mode
   "Toggle native previewing on save for a specific markdown file."
