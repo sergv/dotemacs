@@ -1,21 +1,38 @@
 # Changelog
 
-## master
-
-### New files
-
-* create CHANGELOG.md
+## 1.4.1
 
 ### Changes
 
-## 2.0
+* Made smie-setup optional. Some really large files can take a little
+  bit to load. You can smie by setting nix-mode-use-smie to nil. It is
+  still enabled by default.
+
+* Tweaks to how smie works.
+
+## 1.4.0
+
+### Changes
+
+* Introduced SMIE indentation mode. It is now the default. The old
+  behavior can be restored by setting ‘nix-indent-function’ to
+  indent-relative.
+
+* Added the ‘nix-indent-region’ function to indent blocks of Nix
+  expressions. This can be used as a dumb formatter.
+
+* Better testing has been added to make sure we handle more cases of
+  Nix indentation style.
+
+## 1.3.0
 
 * Added manual.
+
+* Create CHANGELOG.md
 
 ### New files
 
 * nix.el: customization settings for nix installation
-* 
 
 ## 1.2.1
 
