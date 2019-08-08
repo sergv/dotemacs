@@ -291,7 +291,9 @@ and over."
     (if (and unchanged same-buffer) (buffer-local-value 'dante-load-message buffer) ; see #52
       (setq dante-temp-epoch epoch)
       (vc-before-save)
-      (basic-save-buffer-1) ;; save without re-triggering flycheck/flymake nor any save hook
+      ;; Noninteractive to avoid messages about saved file.
+      (let ((noninteractive t))
+        (basic-save-buffer-1)) ;; save without re-triggering flycheck/flymake nor any save hook
       (vc-after-save)
       ;; GHCi will interpret the buffer iff. both -fbyte-code and :l * are used.
       (lcr-call dante-async-call (if interpret ":set -fbyte-code" ":set -fobject-code"))
@@ -300,7 +302,8 @@ and over."
                              (concat ":l " (if interpret "*" "") (dante-local-name fname))))
         (cl-destructuring-bind (_status err-messages _loaded-modules) (lcr-call dante-load-loop "" nil)
           (setq dante-loaded-file fname)
-          (setq dante-load-message err-messages))))))
+          (setq dante-load-message
+                (--map (-map #'ansi-color-apply it) err-messages)))))))
 
 (defun dante-local-name (fname)
   "Local name of FNAME on the remote host."
@@ -386,13 +389,15 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
   (cl-case command
     (interactive (company-begin-backend 'dante-company))
     (sorted t)
-    (prefix (when (and dante-mode (not (dante--in-a-comment)) (dante-ident-pos-at-point))
-              (let* ((id-start (car (dante-ident-pos-at-point)))
-                     (_ (save-excursion (re-search-backward "import[\t ]*" (line-beginning-position) t)))
-                     (import-end (match-end 0))
-                     (import-start (match-beginning 0))
-                     (is-import (eq import-end id-start)))
-                (buffer-substring-no-properties (if is-import import-start id-start) (point)))))
+    (prefix
+     (let ((bounds (dante-ident-pos-at-point)))
+       (when (and dante-mode (not (dante--in-a-comment)) bounds)
+         (let* ((id-start (car bounds))
+                (_ (save-excursion (re-search-backward "import[\t ]*" (line-beginning-position) t)))
+                (import-end (match-end 0))
+                (import-start (match-beginning 0))
+                (is-import (eq import-end id-start)))
+           (buffer-substring-no-properties (if is-import import-start id-start) (point))))))
     (candidates
      (unless (eq (dante-get-var 'dante-state) 'dead)
        (cons :async (apply-partially 'dante-complete arg))))))
@@ -406,14 +411,16 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
   "Return (list START END) the indent at point, or the region if it is active."
   (if (region-active-p)
       (list (region-beginning) (region-end))
-    (dante-ident-pos-at-point)))
+    (or (dante-ident-pos-at-point)
+        (dante--bounds-of-haskell-symbol))))
 
 (defun dante-ident-at-point ()
   "Return the identifier under point, or nil if none found.
 May return a qualified name."
-  (let ((reg (dante-ident-pos-at-point)))
+  (let ((reg (or (dante-ident-pos-at-point)
+                 (dante--bounds-of-haskell-symbol))))
     (when reg
-      (apply #'buffer-substring-no-properties reg))))
+      (buffer-substring-no-properties (car reg) (cdr reg)))))
 
 (defun dante-ident-pos-at-point ()
   "Return the span of the identifier under point, or nil if none found.
@@ -446,7 +453,44 @@ May return a qualified name."
           (setq start (point)))
         ;; This is it.
         (unless (= start end)
-          (list start end))))))
+          (cons start end))))))
+
+(defvar dante--identifier-syntax-table
+  (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
+    (modify-syntax-entry ?#  "w" tbl)
+    (modify-syntax-entry ?_  "w" tbl)
+    (modify-syntax-entry ?\' "w" tbl)
+    (modify-syntax-entry ?,  "/" tbl) ;; Disable , since it's part of syntax
+    (modify-syntax-entry ?.  "_" tbl) ;; So that we match qualified names.
+    tbl)
+  "Special syntax table for haskell that allows to recognize symbols that contain
+both unicode and ascii characters.")
+
+(defun dante--bounds-of-haskell-symbol ()
+  "Like `forward-symbol' but for generic Haskell symbols (either operators,
+uppercase or lowercase names)."
+  (save-excursion
+    (save-match-data
+      (with-syntax-table dante--identifier-syntax-table
+        (forward-char 1)
+        (let ((start nil)
+              (end nil)
+              (beginning-quotes "'"))
+          (if (zerop (skip-syntax-backward "w_"))
+              (progn
+                (skip-syntax-backward "._")
+                ;; To get qualified part
+                (skip-syntax-backward "w_")
+                (skip-chars-forward beginning-quotes))
+            (progn
+              (skip-chars-forward beginning-quotes)))
+          (setf start (point))
+          (when (looking-at (rx (+ (char upper) (* (char alnum ?_)) ".")))
+            (goto-char (match-end 0)))
+          (when (zerop (skip-syntax-forward "w_"))
+            (skip-syntax-forward "._"))
+          (setf end (point))
+          (cons start end))))))
 
 (defun dante-buffer-file-name (&optional buffer)
   "Call function `buffer-file-name' for BUFFER and clean its result.
@@ -481,14 +525,15 @@ x:\\foo\\bar (i.e., Windows)."
 
 (defun dante--ghc-subexp (reg)
   "Format the subexpression denoted by REG for GHCi commands."
-  (pcase reg (`(,beg ,end)
-              (format "%S %d %d %d %d %s"
-                      (buffer-file-name (current-buffer))
-                      (line-number-at-pos beg)
-                      (dante--ghc-column-number-at-pos beg)
-                      (line-number-at-pos end)
-                      (dante--ghc-column-number-at-pos end)
-                      (buffer-substring-no-properties beg end)))))
+  (let ((beg (car reg))
+        (end (cdr reg)))
+    (format "%S %d %d %d %d %s"
+            (buffer-file-name (current-buffer))
+            (line-number-at-pos beg)
+            (dante--ghc-column-number-at-pos beg)
+            (line-number-at-pos end)
+            (dante--ghc-column-number-at-pos end)
+            (buffer-substring-no-properties beg end))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GHCi process communication
@@ -627,7 +672,7 @@ ACC umulate input and ERR-MSGS."
         (while (not matched)
           (setq acc (concat acc (lcr-call dante-async-read)))
           (setq matched (string-match dante-ghci-prompt acc)))
-        (s-trim-right (substring acc 0 (1- (match-beginning 1)))))))
+        (ansi-color-apply (s-trim-right (substring acc 0 (1- (match-beginning 1))))))))
 
 (defun dante-sentinel (process change)
   "Handle when PROCESS reports a CHANGE.
@@ -686,7 +731,7 @@ Process state change: " change "
   "Create a dante process buffer name."
   (let* ((root (dante-project-root))
          (package-name (dante-package-name)))
-    (concat "*dante:" package-name ":" dante-target ":" root "*")))
+    (concat " *dante:" package-name ":" dante-target ":" root "*")))
 
 (defun dante-buffer-create ()
   "Create the buffer for GHCi."
@@ -733,7 +778,7 @@ CABAL-FILE rather than trying to locate one."
 (defun dante--xref-backend () "Dante xref backend." (when dante-mode 'dante))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql dante)))
-  (dante--ghc-subexp (dante-ident-pos-at-point)))
+  (dante--ghc-subexp (dante-thing-at-point)))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql dante)))
   nil)
