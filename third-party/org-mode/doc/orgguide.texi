@@ -40,7 +40,7 @@
 @end macro
 @copying
 
-Copyright @copyright{} 2010--2018 Free Software Foundation
+Copyright @copyright{} 2010--2019 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1653,7 +1653,7 @@ the right location, and then pasting the note is cumbersome.  To simplify
 this process, use the following commands:
 
 @table @kbd
-@item C-c M-x
+@item C-c M-w
 Copy the entry or region at point.  This command behaves like
 @code{org-refile}, except that the original note will not be deleted.
 @item C-c C-w
@@ -2156,11 +2156,11 @@ but not any simpler
 @node Emphasis and monospace, Comment lines, Paragraphs, Structural markup elements
 @subheading Emphasis and monospace
 
-You can make words @b{*bold*}, @i{/italic/}, _underlined_, @code{=code=}
-and @code{~verbatim~}, and, if you must, @samp{+strike-through+}.  Text
-in the code and verbatim string is not processed for Org-mode specific
-syntax, it is exported verbatim.  To insert a horizontal rules, use a line 
-consisting of only dashes, and at least 5 of them.
+You can make words @b{*bold*}, @i{/italic/}, _underlined_, @code{=verbatim=}
+and @code{~code~}, and, if you must, @samp{+strike-through+}.  Text in the
+code and verbatim string is not processed for Org-mode specific syntax, it is
+exported verbatim.  To insert a horizontal rules, use a line consisting of
+only dashes, and at least 5 of them.
 
 @node Comment lines,  , Emphasis and monospace, Structural markup elements
 @subheading Comment lines
@@ -2278,7 +2278,7 @@ its files.  You can directly use TeX-like syntax for special symbols, enter
 formulas and entire @LaTeX{} environments.
 
 @smallexample
-Angles are written as Greek letters \alpha, \beta and \gamma.  The mass if
+Angles are written as Greek letters \alpha, \beta and \gamma.  The mass of
 the sun is M_sun = 1.989 x 10^30 kg.  The radius of the sun is R_@{sun@} =
 6.96 x 10^8 m.  If $a^2=b$ and $b=2$, then the solution must be either
 $a=+\sqrt@{2@}$ or $a=-\sqrt@{2@}$.

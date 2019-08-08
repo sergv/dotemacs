@@ -1,6 +1,6 @@
 ;;; org-eshell.el - Support for Links to Working Directories in Eshell -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Konrad Hinsen <konrad.hinsen AT fastmail.net>
 
@@ -32,12 +32,12 @@
 			 :store #'org-eshell-store-link)
 
 (defun org-eshell-open (link)
-  "Switch to am eshell buffer and execute a command line.
+  "Switch to an eshell buffer and execute a command line.
    The link can be just a command line (executed in the default
    eshell buffer) or a command line prefixed by a buffer name
    followed by a colon."
   (let* ((buffer-and-command
-          (if (string-match "\\([A-Za-z0-9-+*]+\\):\\(.*\\)" link)
+          (if (string-match "\\([A-Za-z0-9+*-]+\\):\\(.*\\)" link)
 	      (list (match-string 1 link)
 		    (match-string 2 link))
             (list eshell-buffer-name link)))

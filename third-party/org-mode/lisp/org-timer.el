@@ -1,6 +1,6 @@
 ;;; org-timer.el --- Timer code for Org mode         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -141,10 +141,7 @@ the region 0:00:00."
 	  (setq delta (org-timer-hms-to-secs (org-timer-fix-incomplete s)))))
 	(setq org-timer-start-time
 	      (seconds-to-time
-	       ;; Pass `current-time' result to `float-time' (instead
-	       ;; of calling without arguments) so that only
-	       ;; `current-time' has to be overridden in tests.
-	       (- (float-time (current-time)) delta))))
+	       (- (float-time) delta))))
       (setq org-timer-pause-time nil)
       (org-timer-set-mode-line 'on)
       (message "Timer start time set to %s, current value is %s"
@@ -152,6 +149,7 @@ the region 0:00:00."
 	       (org-timer-secs-to-hms (or delta 0)))
       (run-hooks 'org-timer-start-hook)))))
 
+;;;###autoload
 (defun org-timer-pause-or-continue (&optional stop)
   "Pause or continue the relative or countdown timer.
 With prefix arg STOP, stop it entirely."
@@ -162,6 +160,9 @@ With prefix arg STOP, stop it entirely."
    (org-timer-pause-time
     (let ((start-secs (float-time org-timer-start-time))
 	  (pause-secs (float-time org-timer-pause-time)))
+      ;; Note: We pass the result of `current-time' to `time-add' and
+      ;; `float-time' below so that we can easily override the value
+      ;; in tests.
       (if org-timer-countdown-timer
 	  (let ((new-secs (- start-secs pause-secs)))
 	    (setq org-timer-countdown-timer
@@ -170,10 +171,7 @@ With prefix arg STOP, stop it entirely."
 	    (setq org-timer-start-time
 		  (time-add (current-time) (seconds-to-time new-secs))))
 	(setq org-timer-start-time
-	      ;; Pass `current-time' result to `float-time' (instead
-	      ;; of calling without arguments) so that only
-	      ;; `current-time' has to be overridden in tests.
-	      (seconds-to-time (- (float-time (current-time))
+	      (seconds-to-time (- (float-time)
 				  (- pause-secs start-secs)))))
       (setq org-timer-pause-time nil)
       (org-timer-set-mode-line 'on)
@@ -189,6 +187,7 @@ With prefix arg STOP, stop it entirely."
     (org-timer-set-mode-line 'paused)
     (message "Timer paused at %s" (org-timer-value-string)))))
 
+;;;###autoload
 (defun org-timer-stop ()
   "Stop the relative or countdown timer."
   (interactive)
@@ -227,20 +226,12 @@ it in the buffer."
       (insert (org-timer-value-string)))))
 
 (defun org-timer-value-string ()
-  "Set the timer string."
+  "Return current timer string."
   (format org-timer-format
 	  (org-timer-secs-to-hms
-	   (abs (floor (org-timer-seconds))))))
-
-(defun org-timer-seconds ()
-  ;; Pass `current-time' result to `float-time' (instead of calling
-  ;; without arguments) so that only `current-time' has to be
-  ;; overridden in tests.
-  (if org-timer-countdown-timer
-      (- (float-time org-timer-start-time)
-	 (float-time (or org-timer-pause-time (current-time))))
-    (- (float-time (or org-timer-pause-time (current-time)))
-       (float-time org-timer-start-time))))
+	   (let ((time (- (float-time org-timer-pause-time)
+			  (float-time org-timer-start-time))))
+	     (abs (floor (if org-timer-countdown-timer (- time) time)))))))
 
 ;;;###autoload
 (defun org-timer-change-times-in-region (beg end delta)
@@ -463,6 +454,8 @@ using three `C-u' prefix arguments."
 		(org-timer--run-countdown-timer
 		 secs org-timer-countdown-timer-title))
 	  (run-hooks 'org-timer-set-hook)
+	  ;; Pass `current-time' result to `time-add' (instead of nil)
+	  ;; for for Emacs 24 compatibility.
 	  (setq org-timer-start-time
 		(time-add (current-time) (seconds-to-time secs)))
 	  (setq org-timer-pause-time nil)
