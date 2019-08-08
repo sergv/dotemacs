@@ -1,11 +1,11 @@
 ;;; company.el --- Modular text completion framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2018  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 ;; Maintainer: Dmitry Gutov <dgutov@yandex.ru>
 ;; URL: http://company-mode.github.io/
-;; Version: 0.9.9
+;; Version: 0.9.10
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -584,6 +584,7 @@ The prefix still has to satisfy `company-minimum-prefix-length' before that
 happens.  The value of nil means no idle completion."
   :type '(choice (const :tag "never (nil)" nil)
                  (const :tag "immediate (0)" 0)
+                 (function :tag "Predicate function")
                  (number :tag "seconds")))
 
 (defcustom company-tooltip-idle-delay .5
@@ -631,6 +632,14 @@ commands in the `company-' namespace, abort completion."
   "If enabled, show quick-access numbers for the first ten candidates."
   :type '(choice (const :tag "off" nil)
                  (const :tag "on" t)))
+
+(defcustom company-show-numbers-function #'company--show-numbers
+  "Function called to get custom quick-access numbers for the first then candidates.
+
+If nil falls back to default function that generates 1...8, 9, 0. The function get
+the number of candidates (from 1 to 10 means 1st to 10th candidate) and should
+return a string prefixed with one space."
+  :type 'function)
 
 (defcustom company-selection-wrap-around nil
   "If enabled, selecting item before first or after last wraps around."
@@ -765,9 +774,11 @@ keymap during active completions (`company-active-map'):
       (progn
         (add-hook 'pre-command-hook 'company-pre-command nil t)
         (add-hook 'post-command-hook 'company-post-command nil t)
+        (add-hook 'yas-keymap-disable-hook 'company--active-p nil t)
         (mapc 'company-init-backend company-backends))
     (remove-hook 'pre-command-hook 'company-pre-command t)
     (remove-hook 'post-command-hook 'company-post-command t)
+    (remove-hook 'yas-keymap-disable-hook 'company--active-p t)
     (company-cancel)
     (kill-local-variable 'company-point)))
 
@@ -832,7 +843,7 @@ means that `company-mode' is always turned on except in `message-mode' buffers."
 (defun company--company-command-p (keys)
   "Checks if the keys are part of company's overriding keymap"
   (or (equal [company-dummy-event] keys)
-      (lookup-key company-my-keymap keys)))
+      (commandp (lookup-key company-my-keymap keys))))
 
 ;; Hack:
 ;; Emacs calculates the active keymaps before reading the event.  That means we
@@ -1236,6 +1247,7 @@ can retrieve meta-data for them."
 
 (defun company--fetch-candidates (prefix)
   (let* ((non-essential (not (company-explicit-action-p)))
+         (inhibit-redisplay t)
          (c (if (or company-selection-changed
                     ;; FIXME: This is not ideal, but we have not managed to deal
                     ;; with these situations in a better way yet.
@@ -1244,8 +1256,7 @@ can retrieve meta-data for them."
               (company-call-backend-raw 'candidates prefix))))
     (if (not (eq (car c) :async))
         c
-      (let ((res 'none)
-            (inhibit-redisplay t))
+      (let ((res 'none))
         (funcall
          (cdr c)
          (lambda (candidates)
@@ -1594,8 +1605,9 @@ prefix match (same case) will be prioritized."
                      t))
               ;; ...abort and run the hooks, e.g. to clear the cache.
               (company-cancel 'unique))
-             ((and (null c) company--manual-action)
-              (message "No completion found"))
+             ((null c)
+              (when company--manual-action
+                (message "No completion found")))
              (t ;; We got completions!
               (when company--manual-action
                 (setq company--manual-prefix prefix))
@@ -1659,6 +1671,9 @@ prefix match (same case) will be prioritized."
 (defsubst company-keep (command)
   (and (symbolp command) (get command 'company-keep)))
 
+(defun company--active-p ()
+  company-candidates)
+
 (defun company-pre-command ()
   (company--electric-restore-window-configuration)
   (unless (company-keep this-command)
@@ -1693,25 +1708,28 @@ prefix match (same case) will be prioritized."
               (company--perform)))
           (if company-candidates
               (company-call-frontends 'post-command)
-            (and (or (numberp company-idle-delay)
-                     ;; Deprecated.
-                     (eq company-idle-delay t))
-                 (not defining-kbd-macro)
-                 (company--should-begin)
-                 (setq company-timer
-                       (run-with-timer (company--idle-delay) nil
-                                       'company-idle-begin
-                                       (current-buffer) (selected-window)
-                                       (buffer-chars-modified-tick) (point))))))
+            (let ((delay (company--idle-delay)))
+             (and (numberp delay)
+                  (not defining-kbd-macro)
+                  (company--should-begin)
+                  (setq company-timer
+                        (run-with-timer delay nil
+                                        'company-idle-begin
+                                        (current-buffer) (selected-window)
+                                        (buffer-chars-modified-tick) (point)))))))
       (error (message "Company: An error occurred in post-command")
              (message "%s" (error-message-string err))
              (company-cancel))))
   (company-install-map))
 
 (defun company--idle-delay ()
-  (if (memql company-idle-delay '(t 0 0.0))
-      0.01
-    company-idle-delay))
+  (let ((delay
+          (if (functionp company-idle-delay)
+              (funcall company-idle-delay)
+            company-idle-delay)))
+    (if (memql delay '(t 0 0.0))
+        0.01
+      delay)))
 
 (defvar company--begin-inhibit-commands '(company-abort
                                           company-complete-mouse
@@ -2175,10 +2193,12 @@ inserted."
   (interactive)
   (when (company-manual-begin)
     (if (or company-selection-changed
-            (eq last-command 'company-complete-common))
+            (and (eq real-last-command 'company-complete)
+                 (eq last-command 'company-complete-common)))
         (call-interactively 'company-complete-selection)
       (call-interactively 'company-complete-common)
-      (setq this-command 'company-complete-common))))
+      (when company-candidates
+        (setq this-command 'company-complete-common)))))
 
 (defun company-complete-number (n)
   "Insert the Nth candidate visible in the tooltip.
@@ -2634,6 +2654,9 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
           new
           (company-safe-substring old (+ offset (length new)))))
 
+(defun company--show-numbers (numbered)
+  (format " %d" (mod numbered 10)))
+
 (defsubst company--window-height ()
   (if (fboundp 'window-screen-lines)
       (floor (window-screen-lines))
@@ -2786,7 +2809,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
           (when (< numbered 10)
             (cl-decf width 2)
             (cl-incf numbered)
-            (setq right (concat (format " %d" (mod numbered 10)) right)))
+            (setq right (concat (funcall company-show-numbers-function numbered) right)))
           (push (concat
                  (company-fill-propertize str annotation
                                           width (equal i selection)
