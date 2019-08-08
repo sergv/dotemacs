@@ -149,6 +149,9 @@
     "DeriveGeneric"
     "DeriveTraversable"
     "EmptyCase"
+    "EmptyDataDecls"
+    "EmptyDataDeriving"
+    "ExplicitNamespaces"
     "FlexibleContexts"
     "FlexibleInstances"
     "FunctionalDependencies"
@@ -158,6 +161,7 @@
     "KindSignatures"
     "MultiParamTypeClasses"
     "NamedFieldPuns"
+    "ParallelListComp"
     "PartialTypeSignatures"
     "PatternSynonyms"
     "PolyKinds"
@@ -165,6 +169,7 @@
     "RecordWildCards"
     "ScopedTypeVariables"
     "StandaloneDeriving"
+    "TemplateHaskell"
     "TransformListComp"
     "TupleSections"
     "TypeApplications"
@@ -241,150 +246,159 @@ usage: (attrap-alternatives CLAUSES...)"
 (defun attrap-ghc-fixer (msg pos _end)
   "An `attrap' fixer for any GHC error or warning given as MSG and reported between POS and END."
   (save-match-data
-    (cond
-      ((string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
-       (attrap-one-option 'delete-reduntant-constraint
-         (let ((constraint (match-string 1 msg)))
-           (search-forward constraint)  ; find type sig
-           (delete-region (match-beginning 0) (match-end 0))
-           (when (looking-at "[ \t]*,")
-             (delete-region (point) (search-forward ",")))
-           (when (looking-at "[ \t]*=>")
-             (delete-region (point) (search-forward "=>"))))))
-      ((string-match "The type signature for ‘\\(.*\\)’[ \t\n]*lacks an accompanying binding" msg)
-       (attrap-one-option 'add-binding
-         (beginning-of-line)
-         (forward-line)
-         (insert (concat (match-string 1 msg) " = _\n"))))
-      ((string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
-       (attrap-one-option 'add-constraint-to-context
-         (let ((missing-constraint (match-string 1 msg))
-               (function-name (match-string 2 msg)))
-           (search-backward-regexp (concat (regexp-quote function-name) "[ \t]*::[ \t]*" )) ; find type sig
-           (goto-char (match-end 0))
-           (when (looking-at "forall\\|∀") ; skip quantifiers
-             (search-forward "."))
-           (skip-chars-forward "\n\t ") ; skip spaces
-           (insert (concat missing-constraint " => ")))))
-      ((string-match "Unticked promoted constructor: ‘\\(.*\\)’" msg)
-       (let ((constructor (match-string 1 msg)))
-         (attrap-one-option 'tick-promoted-constructor
+    (let ((normalized-msg (s-collapse-whitespace msg)))
+      (cond
+        ((string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
+         (attrap-one-option 'delete-reduntant-constraint
+           (let ((constraint (match-string 1 msg)))
+             (search-forward constraint) ; find type sig
+             (delete-region (match-beginning 0) (match-end 0))
+             (when (looking-at "[ \t]*,")
+               (delete-region (point) (search-forward ",")))
+             (when (looking-at "[ \t]*=>")
+               (delete-region (point) (search-forward "=>"))))))
+        ((string-match "The type signature for ‘\\(.*\\)’[ \t\n]*lacks an accompanying binding" msg)
+         (attrap-one-option 'add-binding
+           (beginning-of-line)
+           (forward-line)
+           (insert (concat (match-string 1 msg) " = _\n"))))
+        ((string-match "add (\\(.*\\)) to the context of[\n ]*the type signature for:[ \n]*\\([^ ]*\\) ::" msg)
+         (attrap-one-option 'add-constraint-to-context
+           (let ((missing-constraint (match-string 1 msg))
+                 (function-name (match-string 2 msg)))
+             (search-backward-regexp (concat (regexp-quote function-name) "[ \t]*::[ \t]*" )) ; find type sig
+             (goto-char (match-end 0))
+             (when (looking-at "forall\\|∀") ; skip quantifiers
+               (search-forward "."))
+             (skip-chars-forward "\n\t ") ; skip spaces
+             (insert (concat missing-constraint " => ")))))
+        ((string-match "Unticked promoted constructor: ‘\\(.*\\)’" msg)
+         (let ((constructor (match-string 1 msg)))
+           (attrap-one-option 'tick-promoted-constructor
+             (goto-char pos)
+             ;; when the constructor is infix, flycheck reports the wrong position.
+             (search-forward constructor)
+             (backward-char (length constructor))
+             (insert "'"))))
+        ((string-match "Patterns not matched:" msg)
+         (attrap-one-option 'add-missing-patterns
+           (let ((patterns (mapcar #'string-trim (split-string (substring msg (match-end 0)) "\n" t " ")))) ;; patterns to match
+             (if (string-match "In an equation for ‘\\(.*\\)’:" msg)
+                 (let ((function-name (match-string 1 msg)))
+                   (end-of-line)
+                   (dolist (pattern patterns)
+                     (insert (concat "\n" function-name " " pattern " = _"))))
+               (end-of-line) ;; assuming that the case expression is on multiple lines and that "of" is at the end of the line
+               (dolist (pattern patterns)
+                 (insert "\n     ") ;; fixme: guess how much indent is needed.
+                 (insert (concat pattern " -> _")))))))
+        ((string-match "A do-notation statement discarded a result of type" msg)
+         (attrap-one-option 'explicitly-discard-result
            (goto-char pos)
-           ;; when the constructor is infix, flycheck reports the wrong position.
-           (search-forward constructor)
-           (backward-char (length constructor))
-           (insert "'"))))
-      ((string-match "Patterns not matched:" msg)
-       (attrap-one-option 'add-missing-patterns
-         (let ((patterns (mapcar #'string-trim (split-string (substring msg (match-end 0)) "\n" t " ")))) ;; patterns to match
-           (if (string-match "In an equation for ‘\\(.*\\)’:" msg)
-               (let ((function-name (match-string 1 msg)))
-                 (end-of-line)
-                 (dolist (pattern patterns)
-                   (insert (concat "\n" function-name " " pattern " = _"))))
-             (end-of-line) ;; assuming that the case expression is on multiple lines and that "of" is at the end of the line
-             (dolist (pattern patterns)
-               (insert "\n     ") ;; fixme: guess how much indent is needed.
-               (insert (concat pattern " -> _")))))))
-      ((string-match "A do-notation statement discarded a result of type" msg)
-       (attrap-one-option 'explicitly-discard-result
-         (goto-char pos)
-         (insert "_ <- ")))
-      ((string-match "Failed to load interface for ‘\\(.*\\)’\n[ ]*Perhaps you meant[ \n]*\\([^ ]*\\)" msg)
-       (attrap-one-option 'rename-module-import
-         (let ((replacement (match-string 2 msg)))
-           ;; ^^ delete-region may garble the matches
-           (search-forward (match-string 1 msg))
-           (delete-region (match-beginning 0) (point))
-           (insert replacement))))
-      ((string-match "Unsupported extension: \\(.*\\)\n[ ]*Perhaps you meant ‘\\([^‘]*\\)’" msg)
-       (attrap-one-option 'rename-extension
-         (let ((replacement (match-string 2 msg)))
-           ;; ^^ delete-region may garble the matches
+           (insert "_ <- ")))
+        ((string-match "\\(Failed to load interface for\\|Could not find module\\) ‘\\(.*\\)’\n[ ]*Perhaps you meant[ \n]*\\([^ ]*\\)" msg)
+         (attrap-one-option 'rename-module-import
+           (let ((replacement (match-string 3 msg)))
+             ;; ^^ delete-region may garble the matches
+             (search-forward (match-string 2 msg))
+             (delete-region (match-beginning 0) (point))
+             (insert replacement))))
+        ((string-match "Unsupported extension: \\(.*\\)\n[ ]*Perhaps you meant ‘\\([^‘]*\\)’" msg)
+         (attrap-one-option 'rename-extension
+           (let ((replacement (match-string 2 msg)))
+             ;; ^^ delete-region may garble the matches
+             (goto-char pos)
+             (search-forward (match-string 1 msg))
+             (delete-region (match-beginning 0) (point))
+             (insert replacement))))
+        ((string-match "Perhaps you want to add ‘\\(.*\\)’ to the import list[\n\t ]+in the import of[ \n\t]*‘.*’[\n\t ]+([^:]*:\\([0-9]*\\):[0-9]*-\\([0-9]*\\))" msg)
+         (attrap-one-option 'add-to-import-list
+           (let ((missing (match-string 1 msg))
+                 (line (string-to-number (match-string 2 msg)))
+                 (end-col (string-to-number (match-string 3 msg))))
+             (goto-char (point-min))
+             (forward-line (1- line))
+             (move-to-column (1- end-col))
+             (skip-chars-backward " \t")
+             (unless (looking-back "(" (- (point) 2)) (insert ", "))
+             (insert (attrap-add-operator-parens missing)))))
+        ;; Not in scope: data constructor ‘SimpleBroadcast’
+        ;; Perhaps you meant ‘SimpleBroadCast’ (imported from TypedFlow.Types)
+        ;;     Not in scope: ‘BackCore.argmax’
+        ;;     Perhaps you meant one of these:
+        ;;       ‘BackCore.argMax’ (imported from TensorFlow.GenOps.Core),
+        ;;       ‘BackCore.argMax'’ (imported from TensorFlow.GenOps.Core),
+        ;;       ‘BackCore.max’ (imported from TensorFlow.GenOps.Core)
+        ((string-match (s-join "\\|"
+                               '("Data constructor not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
+                                 "Variable not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
+                                 "not in scope: data constructor ‘\\(?1:[^’]*\\)’"
+                                 "not in scope: type constructor or class ‘\\(?1:[^’]*\\)’"
+                                 "Not in scope: ‘\\(?1:[^’]*\\)’"
+                                 ))     ; in patterns
+                       msg)
+         (let* ((delete (match-string 1 msg))
+                (delete-has-paren (eq ?\( (elt delete 0)))
+                (delete-no-paren (if delete-has-paren (substring delete 1 (1- (length delete))) delete))
+                (replacements (s-match-strings-all "‘\\([^’]*\\)’ (\\([^)]*\\))" msg)))
+           (--map (attrap-option (list 'replace delete-no-paren (nth 1 it) (nth 2 it))
+                                 (goto-char pos)
+                                 (let ((case-fold-search nil))
+                                   (search-forward delete-no-paren (+ (length delete) pos))
+                                   (replace-match (nth 1 it) t)))
+                  replacements)))
+        ((string-match "It could refer to either" msg) ;; ambiguous identifier
+         (let ((replacements (--map (nth 1 it) (s-match-strings-all  "‘\\([^‘]*\\)’," msg))))
+           (--map (attrap-option (list 'rename it)
+                                 (apply #'delete-region (dante-ident-pos-at-point))
+                                 (insert it))
+                  replacements)))
+        ((string-match "\\(Top-level binding\\|Pattern synonym\\) with no type signature:[\n ]*" msg)
+         (attrap-one-option 'add-signature
+           (beginning-of-line)
+           (insert (concat (substring msg (match-end 0)) "\n"))))
+        ((string-match "Defined but not used" msg)
+         (attrap-one-option 'add-underscore
            (goto-char pos)
-           (search-forward (match-string 1 msg))
-           (delete-region (match-beginning 0) (point))
-           (insert replacement))))
-      ((string-match "Perhaps you want to add ‘\\(.*\\)’ to the import list[\n\t ]+in the import of[ \n\t]*‘.*’[\n\t ]+([^:]*:\\([0-9]*\\):[0-9]*-\\([0-9]*\\))" msg)
-       (attrap-one-option 'add-to-import-list
-         (let ((missing (match-string 1 msg))
-               (line (string-to-number (match-string 2 msg)))
-               (end-col (string-to-number (match-string 3 msg))))
-           (goto-char (point-min))
-           (forward-line (1- line))
-           (move-to-column (1- end-col))
-           (skip-chars-backward " \t")
-           (unless (looking-back "(" (- (point) 2)) (insert ", "))
-           (insert (attrap-add-operator-parens missing)))))
-      ;; Not in scope: data constructor ‘SimpleBroadcast’
-      ;; Perhaps you meant ‘SimpleBroadCast’ (imported from TypedFlow.Types)
-      ;;     Not in scope: ‘BackCore.argmax’
-      ;;     Perhaps you meant one of these:
-      ;;       ‘BackCore.argMax’ (imported from TensorFlow.GenOps.Core),
-      ;;       ‘BackCore.argMax'’ (imported from TensorFlow.GenOps.Core),
-      ;;       ‘BackCore.max’ (imported from TensorFlow.GenOps.Core)
-      ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
-      ((string-match (s-join "\\|"
-                             '("Data constructor not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
-                               "Variable not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
-                               "not in scope: data constructor ‘\\(?1:[^’]*\\)’"
-                               "not in scope: type constructor or class ‘\\(?1:[^’]*\\)’"
-                               "Not in scope: ‘\\(?1:[^’]*\\)’"
-                               ))       ; in patterns
-                     msg)
-       (let* ((delete (match-string 1 msg))
-              (delete-has-paren (eq ?\( (elt delete 0)))
-              (delete-no-paren (if delete-has-paren (substring delete 1 (1- (length delete))) delete))
-              (replacements (s-match-strings-all "‘\\([^’]*\\)’ (\\([^)]*\\))" msg)))
-         (--map (attrap-option (list 'replace delete-no-paren (nth 1 it) (nth 2 it))
-                               (goto-char pos)
-                               (let ((case-fold-search nil))
-                                 (search-forward delete-no-paren (+ (length delete) pos))
-                                 (replace-match (nth 1 it) t)))
-                replacements)))
-      ((string-match "\\(Top-level binding\\|Pattern synonym\\) with no type signature:[\n ]*" msg)
-       (attrap-one-option 'add-signature
-         (beginning-of-line)
-         (insert (concat (substring msg (match-end 0)) "\n"))))
-      ((string-match "Defined but not used" msg)
-       (attrap-one-option 'add-underscore
-         (goto-char pos)
-         (insert "_")))
-      ((string-match "Unused quantified type variable ‘\\(.*\\)’" msg)
-       (attrap-one-option 'delete-type-variable
-         ;; note there can be a kind annotation, not just a variable.
-         (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))))
-      ((string-match "The import of ‘\\(.*\\)’ from module ‘[^’]*’ is redundant" msg)
-       (attrap-one-option 'delete-import
-         (let ((redundant (match-string 1 msg)))
-           (dolist (r (s-split ", " redundant t))
-             (save-excursion
-               ;; todo check for operators
-               ;; toto search for full words
-               (search-forward r)
-               (replace-match "")))
-           (when (looking-at ",[ \t]*") (delete-region (match-beginning 0) (match-end 0))))))
-      ((string-match "The import of ‘[^’]*’ is redundant" msg)
-       (attrap-one-option 'delete-module-import
-         (beginning-of-line)
-         (delete-region (point) (progn (next-logical-line) (point)))))
-      ((string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
-       (attrap-one-option 'explicit-type-wildcard
-         (let ((wildcard (match-string 1 msg))
-               (type-expr (match-string 2 msg)))
-           (goto-char pos)
-           (search-forward wildcard)
-           (replace-match (concat "(" type-expr ")") t))))
-      ((and (string-match-p "parse error on input ‘case’" msg)
-            (save-excursion
-              (goto-char pos)
-              (string-match-p (rx "\\case\\_>") (buffer-substring-no-properties pos (line-end-position)))))
-       (attrap-one-option (list 'use-extension "LambdaCase")
-         (attrap-insert-extension "LambdaCase")))
-      ((--any? (s-matches? it msg) attrap-haskell-extensions)
-       (--map (attrap-option (list 'use-extension it)
-                             (attrap-insert-extension it))
-              (--filter (s-matches? it msg) attrap-haskell-extensions))))))
+           (insert "_")))
+        ((string-match "Unused quantified type variable ‘\\(.*\\)’" msg)
+         (attrap-one-option 'delete-type-variable
+           ;; note there can be a kind annotation, not just a variable.
+           (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))))
+        ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
+
+        ((string-match "The import of ‘\\(.*\\)’ from module ‘[^’]*’ is redundant\\|Module ‘.*’ does not export ‘\\(.*\\)’" normalized-msg)
+         (attrap-one-option 'delete-import
+           (let ((redundant (or (match-string 1 normalized-msg) (match-string 2 normalized-msg))))
+             (dolist (r (s-split ", " redundant t))
+               (save-excursion
+                 ;; todo check for operators
+                 ;; toto search for full words
+                 (search-forward r)
+                 (replace-match "")
+                 (when (looking-at "(..)") (delete-char 4))
+                 (when (looking-at ",[ \t]*") (delete-region (match-beginning 0) (match-end 0))))))))
+        ((string-match "The import of ‘[^’]*’ is redundant" msg)
+         (attrap-one-option 'delete-module-import
+           (beginning-of-line)
+           (delete-region (point) (progn (next-logical-line) (point)))))
+        ((string-match "Found type wildcard ‘\\(.*\\)’[ \t\n]*standing for ‘\\([^’]*\\)’" msg)
+         (attrap-one-option 'explicit-type-wildcard
+           (let ((wildcard (match-string 1 msg))
+                 (type-expr (match-string 2 msg)))
+             (goto-char pos)
+             (search-forward wildcard)
+             (replace-match (concat "(" type-expr ")") t))))
+        ((and (string-match-p "parse error on input ‘case’" msg)
+              (save-excursion
+                (goto-char pos)
+                (string-match-p (rx "\\case\\_>") (buffer-substring-no-properties pos (line-end-position)))))
+         (attrap-one-option (list 'use-extension "LambdaCase")
+           (attrap-insert-extension "LambdaCase")))
+        ((--any? (s-matches? it msg) attrap-haskell-extensions)
+         (--map (attrap-option (list 'use-extension it)
+                               (attrap-insert-extension it))
+                (--filter (s-matches? it msg) attrap-haskell-extensions)))))))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."
