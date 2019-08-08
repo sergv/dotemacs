@@ -49,6 +49,13 @@
 
 (defcustom nasm-basic-offset (default-value 'tab-width)
   "Indentation level for `nasm-mode'."
+  :type 'integer
+  :group 'nasm-mode)
+
+(defcustom nasm-after-mnemonic-whitespace :tab
+  "In `nasm-mode', determines the whitespace to use after mnemonics.
+This can be :tab, :space, or nil (do nothing)."
+  :type '(choice (const :tab) (const :space) (const nil))
   :group 'nasm-mode)
 
 (defface nasm-registers
@@ -621,8 +628,10 @@ is not immediately after a mnemonic; otherwise, we insert a tab."
                  (bti (progn (back-to-indentation) (point))))
              (buffer-substring-no-properties bti point)))))
     (if (string-match nasm-full-instruction-regexp before)
-        ;; We are immediately after an instruction, just insert a tab
-        (insert "\t")
+        ;; We are immediately after a mnemonic
+        (cl-case nasm-after-mnemonic-whitespace
+          (:tab   (insert "\t"))
+          (:space (insert-char ?\s nasm-basic-offset)))
       ;; We're literally anywhere else, indent the whole line
       (let ((orig (- (point-max) (point))))
         (back-to-indentation)
@@ -667,6 +676,15 @@ is not immediately after a mnemonic; otherwise, we insert a tab."
           (start (progn (beginning-of-line) (point)))
           (end (progn (back-to-indentation) (point))))
       (and (<= start point) (<= point end)))))
+
+(defun nasm-comment-indent ()
+  "Compute desired indentation for comment on the current line."
+  comment-column)
+
+(defun nasm-insert-comment ()
+  "Insert a comment if the current line doesn’t contain one."
+  (let ((comment-insert-comment-function nil))
+    (comment-indent)))
 
 (defun nasm-comment (&optional arg)
   "Begin or edit a comment with context-sensitive placement.
@@ -728,9 +746,13 @@ With a prefix arg, kill the comment on the current line with
   :group 'nasm-mode
   (make-local-variable 'indent-line-function)
   (make-local-variable 'comment-start)
+  (make-local-variable 'comment-insert-comment-function)
+  (make-local-variable 'comment-indent-function)
   (setf font-lock-defaults '(nasm-font-lock-keywords nil :case-fold)
         indent-line-function #'nasm-indent-line
         comment-start ";"
+        comment-indent-function #'nasm-comment-indent
+        comment-insert-comment-function #'nasm-insert-comment
         imenu-generic-expression nasm-imenu-generic-expression))
 
 (provide 'nasm-mode)
