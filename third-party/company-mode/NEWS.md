@@ -2,7 +2,24 @@
 
 ## Next
 
-* When an symbol is already typed in full, calling `M-x company-complete` will
+* Snippet/template field interaction is inhibited while completion is active
+  (where by default `TAB` calls `company-complete-common`, clashing with snippet
+  map binding `TAB` to "jump to the next field"). Affects both
+  `company-template` and `yasnippet` (requires changes from 2019-04-21,
+  currently unreleased).
+
+## 2019-04-15 (0.9.10)
+
+* `company-clang`: better compatibility with Clang 8
+  ([#885](https://github.com/company-mode/company-mode/issues/885)).
+* The change in `company-clang` regarding identity #defines is reverted because
+  it affected other completions as well
+  ([#884](https://github.com/company-mode/company-mode/issues/884)).
+* `company-idle-delay` now accepts a function which generates the idle time or
+  nil indicating no idle completion.
+* Add custom variable `company-show-numbers-function` to make numbers of
+  candidates customizable. 
+* When a symbol is already typed in full, calling `M-x company-complete` will
   now run its post-completion action (e.g. inserting method parameters
   template). Calling `M-x company-manual-begin` or invoking a backend command
   directly will show the popup
