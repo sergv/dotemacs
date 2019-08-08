@@ -1,10 +1,13 @@
 emacs ?= emacs
 elmake = $(emacs) -batch -l makefi.el -f
 
-LOAD = -l colir.el -l ivy-overlay.el -l ivy.el -l swiper.el -l counsel.el
+LOAD = -l elpa.el -l colir.el -l ivy-overlay.el -l ivy.el -l swiper.el -l counsel.el
 RM ?= rm -f
 
 all: test
+
+deps:
+	$(emacs) -batch -l targets/install-deps.el
 
 test:
 	$(emacs) -batch $(LOAD) -l ivy-test.el -f ert-run-tests-batch-and-exit
