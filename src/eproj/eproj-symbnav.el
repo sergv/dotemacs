@@ -132,14 +132,22 @@ as accepted by `bounds-of-thing-at-point'.")
   (eproj-symbnav/locate-tag-in-current-buffer tag-name tag))
 
 ;;;###autoload
-(defun eproj-symbnav/go-to-symbol-home (&optional use-regexp)
+(defun eproj-symbnav/go-to-symbol-home (&optional use-regexp?)
   (interactive "P")
+  (let ((identifier (if use-regexp?
+                        (read-regexp "enter regexp to search for")
+                      (eproj-symbnav/identifier-at-point nil))))
+    (eproj-symbnav/go-to-symbol-home-impl identifier use-regexp?)))
+
+(defun eproj-symbnav-current-home-entry ()
+  (make-eproj-home-entry :buffer (current-buffer)
+                         :position (point-marker)
+                         :symbol nil))
+
+(defun eproj-symbnav/go-to-symbol-home-impl (identifier use-regexp?)
   (let* ((proj (eproj-get-project-for-buf (current-buffer)))
          (case-fold-search (and (not (null current-prefix-arg))
                                 (<= 16 (car current-prefix-arg))))
-         (identifier (if use-regexp
-                         (read-regexp "enter regexp to search for")
-                       (eproj-symbnav/identifier-at-point nil)))
          (effective-major-mode (eproj/resolve-synonym-modes major-mode))
          (orig-file-name (cond
                            (buffer-file-name
@@ -147,24 +155,9 @@ as accepted by `bounds-of-thing-at-point'.")
                            ((and (boundp 'magit-buffer-file-name)
                                  magit-buffer-file-name)
                             (expand-file-name magit-buffer-file-name))))
-         (current-home-entry (make-eproj-home-entry :buffer (current-buffer)
-                                                    :position (point-marker)
-                                                    :symbol nil))
-         (jump-to-home
-          (lambda (tag-name tag entry-proj)
-            (let ((file
-                   (eproj-symbnav/resolve-tag-file-in-project tag entry-proj)))
-              (push current-home-entry eproj-symbnav/previous-homes)
-              (setf eproj-symbnav/next-homes nil)
-              (find-file file)
-              (eproj-symbnav/locate-tag-in-current-buffer tag-name tag)
-              (eproj-symbnav/on-switch)
-              (setf eproj-symbnav/selected-loc
-                    (make-eproj-home-entry :buffer (current-buffer)
-                                           :position (point-marker)
-                                           :symbol tag-name)))))
+         (current-home-entry (eproj-symbnav-current-home-entry))
          (next-home-entry (car-safe eproj-symbnav/next-homes)))
-    ;; load tags if there're none
+    ;; Load tags if there're none.
     (unless (or (eproj--get-tags proj)
                 (assq effective-major-mode (eproj--get-tags proj)))
       (eproj-reload-project! proj)
@@ -179,137 +172,158 @@ as accepted by `bounds-of-thing-at-point'.")
     (if (and eproj-symbnav-remember-choices
              next-home-entry
              (when-let (next-symbol (eproj-home-entry/symbol next-home-entry))
-               (if use-regexp
+               (if use-regexp?
                    (string-match-p identifier next-symbol)
                  (string= identifier next-symbol))))
         (progn
           (eproj-symbnav/switch-to-home-entry next-home-entry)
           (eproj-symbnav/on-switch)
-          (push current-home-entry
+          (push (eproj-symbnav--current-home-entry)
                 eproj-symbnav/previous-homes)
           (setf eproj-symbnav/selected-loc (pop eproj-symbnav/next-homes)))
-      (let* ((lang (aif (gethash effective-major-mode eproj/languages-table)
-                       it
-                     (error "unsupported language %s" effective-major-mode)))
-             (entry->string-func (eproj-language/tag->string-func lang))
-             (show-tag-kind-procedure (eproj-language/show-tag-kind-procedure lang))
-             (tag->sort-token
-              (lambda (tag-name tag)
-                (list
-                 tag-name
-                 (funcall show-tag-kind-procedure tag)
-                 (eproj-tag/file tag)
-                 (eproj-tag/line tag))))
-             (sort-tokens<
-              (lambda (x y)
-                (let ((symbol-x (first x))
-                      (symbol-y (first y))
-                      (tag-kind-x (second x))
-                      (tag-kind-y (second y))
-                      (file-x (third x))
-                      (file-y (third y))
-                      (line-x (fourth x))
-                      (line-y (fourth y)))
-                  (cl-assert (stringp symbol-x))
-                  (cl-assert (stringp symbol-y))
-                  (cl-assert (stringp tag-kind-x))
-                  (cl-assert (stringp tag-kind-y))
-                  (cl-assert (stringp file-x))
-                  (cl-assert (stringp file-y))
-                  (cl-assert (numberp line-x))
-                  (cl-assert (numberp line-y))
-                  (or (string< symbol-x symbol-y)
-                      (and (string= symbol-x symbol-y)
-                           (or (string< tag-kind-x tag-kind-y)
-                               (and (string= tag-kind-x tag-kind-y)
-                                    (or (string< file-x file-y)
-                                        (and (string= file-x file-y)
-                                             (< line-x line-y))))))))))
-             (expanded-project-root
-              (expand-file-name (eproj-project/root proj)))
-             (tag->string
-              (lambda (tag-proj tag-name tag)
-                (let ((txt (funcall entry->string-func tag-proj tag-name tag))
-                      (expanded-tag-file
-                       (expand-file-name
-                        (eproj--resolve-to-abs-path
-                         (eproj-tag/file tag)
-                         (eproj-project/root tag-proj)))))
-                  (cond ((string= orig-file-name
-                                  expanded-tag-file)
-                         (propertize txt 'face 'font-lock-negation-char-face))
-                        ((string= (eproj-project/root proj)
-                                  (eproj-project/root tag-proj))
-                         ;; use italic instead of underscore
-                         (propertize txt 'face 'italic))
-                        (t
-                         txt)))))
-             (entry-sort-token #'first)
-             (entry-tag-name #'second)
-             (entry-tag #'third)
-             (entry-string #'fourth)
-             (entry-proj #'fifth)
-             (entries
-              ;; I'm not entirely sure where duplicates come from, but it's cheap
-              ;; to remove them and at the same time I'm reluctant to tweak my
-              ;; Emacs because of it's dynamically-typed lisp.
-              (list->vector
-               (sort
-                (remove-duplicates-by-hashing-projections
-                 entry-sort-token
-                 #'equal
-                 (-map (lambda (tag-entry)
-                         (destructuring-bind (tag-name tag tag-proj)
-                             tag-entry
-                           (list (funcall tag->sort-token tag-name tag)
-                                 tag-name
-                                 tag
-                                 (funcall tag->string tag-proj tag-name tag)
-                                 tag-proj)))
-                       (eproj-get-matching-tags proj
-                                                effective-major-mode
-                                                identifier
-                                                use-regexp)))
-                (lambda (a b)
-                  ;; compare results of tag->sort-token
-                  (funcall sort-tokens<
-                           (funcall entry-sort-token a)
-                           (funcall entry-sort-token b)))))))
-        (pcase (length entries)
-          (`0
-           (error "No entries for %s %s"
-                  (if use-regexp "regexp" "identifier")
-                  identifier))
-          (`1
-           (funcall jump-to-home
-                    (funcall entry-tag-name (elt entries 0))
-                    (funcall entry-tag (elt entries 0))
-                    (funcall entry-proj (elt entries 0))))
-          (_
-           (let ((kmap (make-sparse-keymap)))
-             (def-keys-for-map kmap
-               ("SPC" (lambda () (interactive)
-                        (let ((entry (elt entries (select-mode-get-selected-index))))
-                          (eproj-symbnav/show-tag-in-other-window
-                           (funcall entry-tag-name entry)
-                           (funcall entry-tag entry)
-                           (funcall entry-proj entry))))))
-             (select-mode-start-selection
-              entries
-              :buffer-name "Symbol homes"
-              :after-init (lambda ()
-                            (select-mode-setup)
-                            (select-mode-extend-keymap-with kmap))
-              :on-selection
-              (lambda (idx entry _selection-type)
-                (select-mode-exit)
-                (funcall jump-to-home
-                         (funcall entry-tag-name entry)
-                         (funcall entry-tag entry)
-                         (funcall entry-proj entry)))
-              :item-show-function
-              entry-string
-              :preamble "Choose symbol\n\n"))))))))
+
+      (eproj-symbnav/choose-symbol-home-to-jump-to
+       identifier
+       effective-major-mode
+       orig-file-name
+       proj
+       (eproj-symbnav-current-home-entry)
+       (eproj-get-matching-tags proj
+                                effective-major-mode
+                                identifier
+                                use-regexp?)))))
+
+(defun eproj-symbnav/choose-symbol-home-to-jump-to (identifier current-major-mode current-buffer-file-name current-proj current-home-entry tag-entries)
+  (let* ((lang (aif (gethash current-major-mode eproj/languages-table)
+                   it
+                 (error "unsupported language %s" current-major-mode)))
+         (entry->string-func (eproj-language/tag->string-func lang))
+         (show-tag-kind-procedure (eproj-language/show-tag-kind-procedure lang))
+         (tag->sort-token
+          (lambda (tag-name tag)
+            (list
+             tag-name
+             (funcall show-tag-kind-procedure tag)
+             (eproj-tag/file tag)
+             (eproj-tag/line tag))))
+         (sort-tokens<
+          (lambda (x y)
+            (let ((symbol-x (first x))
+                  (symbol-y (first y))
+                  (tag-kind-x (second x))
+                  (tag-kind-y (second y))
+                  (file-x (third x))
+                  (file-y (third y))
+                  (line-x (fourth x))
+                  (line-y (fourth y)))
+              (cl-assert (stringp symbol-x))
+              (cl-assert (stringp symbol-y))
+              (cl-assert (stringp tag-kind-x))
+              (cl-assert (stringp tag-kind-y))
+              (cl-assert (stringp file-x))
+              (cl-assert (stringp file-y))
+              (cl-assert (numberp line-x))
+              (cl-assert (numberp line-y))
+              (or (string< symbol-x symbol-y)
+                  (and (string= symbol-x symbol-y)
+                       (or (string< tag-kind-x tag-kind-y)
+                           (and (string= tag-kind-x tag-kind-y)
+                                (or (string< file-x file-y)
+                                    (and (string= file-x file-y)
+                                         (< line-x line-y))))))))))
+         (tag->string
+          (lambda (tag-proj tag-name tag)
+            (let ((txt (funcall entry->string-func tag-proj tag-name tag))
+                  (expanded-tag-file
+                   (expand-file-name
+                    (eproj--resolve-to-abs-path
+                     (eproj-tag/file tag)
+                     (eproj-project/root tag-proj)))))
+              (cond ((string= current-buffer-file-name
+                              expanded-tag-file)
+                     (propertize txt 'face 'font-lock-negation-char-face))
+                    ((string= (eproj-project/root current-proj)
+                              (eproj-project/root tag-proj))
+                     ;; use italic instead of underscore
+                     (propertize txt 'face 'italic))
+                    (t
+                     txt)))))
+         (entry-sort-token #'first)
+         (entry-tag-name #'second)
+         (entry-tag #'third)
+         (entry-string #'fourth)
+         (entry-proj #'fifth)
+         (entries
+          ;; I'm not entirely sure where duplicates come from, but it's cheap
+          ;; to remove them and at the same time I'm reluctant to tweak my
+          ;; Emacs because of it's dynamically-typed lisp.
+          (list->vector
+           (sort
+            (remove-duplicates-by-hashing-projections
+             entry-sort-token
+             #'equal
+             (-map (lambda (tag-entry)
+                     (destructuring-bind (tag-name tag tag-proj)
+                         tag-entry
+                       (list (funcall tag->sort-token tag-name tag)
+                             tag-name
+                             tag
+                             (funcall tag->string tag-proj tag-name tag)
+                             tag-proj)))
+                   tag-entries))
+            (lambda (a b)
+              ;; compare results of tag->sort-token
+              (funcall sort-tokens<
+                       (funcall entry-sort-token a)
+                       (funcall entry-sort-token b))))))
+
+         (jump-to-home
+          (lambda (tag-name tag entry-proj)
+            (let ((file
+                   (eproj-symbnav/resolve-tag-file-in-project tag entry-proj)))
+              (push current-home-entry eproj-symbnav/previous-homes)
+              (setf eproj-symbnav/next-homes nil)
+              (find-file file)
+              (eproj-symbnav/locate-tag-in-current-buffer tag-name tag)
+              (eproj-symbnav/on-switch)
+              (setf eproj-symbnav/selected-loc
+                    (make-eproj-home-entry :buffer (current-buffer)
+                                           :position (point-marker)
+                                           :symbol tag-name))))))
+    (pcase (length entries)
+      (`0
+       (error "No entries for %s" identifier))
+      (`1
+       (let ((entry (elt entries 0)))
+         (funcall jump-to-home
+                  (funcall entry-tag-name entry)
+                  (funcall entry-tag entry)
+                  (funcall entry-proj entry))))
+      (_
+       (let ((kmap (make-sparse-keymap)))
+         (def-keys-for-map kmap
+           ("SPC" (lambda () (interactive)
+                    (let ((entry (elt entries (select-mode-get-selected-index))))
+                      (eproj-symbnav/show-tag-in-other-window
+                       (funcall entry-tag-name entry)
+                       (funcall entry-tag entry)
+                       (funcall entry-proj entry))))))
+         (select-mode-start-selection
+          entries
+          :buffer-name "Symbol homes"
+          :after-init (lambda ()
+                        (select-mode-setup)
+                        (select-mode-extend-keymap-with kmap))
+          :on-selection
+          (lambda (idx entry _selection-type)
+            (select-mode-exit)
+            (funcall jump-to-home
+                     (funcall entry-tag-name entry)
+                     (funcall entry-tag entry)
+                     (funcall entry-proj entry)))
+          :item-show-function
+          entry-string
+          :preamble "Choose symbol\n\n"))))))
 
 ;;;###autoload
 (defun eproj-symbnav/go-back ()
@@ -328,14 +342,15 @@ as accepted by `bounds-of-thing-at-point'.")
         (eproj-symbnav/on-back)))))
 
 ;;;###autoload
-(defun setup-eproj-symbnav ()
-  (awhen (current-local-map)
-    (def-keys-for-map it
+(defun* setup-eproj-symbnav (&key bind-keybindings)
+  (when bind-keybindings
+    (awhen (current-local-map)
+      (def-keys-for-map it
+        ("C-." eproj-symbnav/go-to-symbol-home)
+        ("C-," eproj-symbnav/go-back)))
+    (def-keys-for-map vim:normal-mode-local-keymap
       ("C-." eproj-symbnav/go-to-symbol-home)
-      ("C-," eproj-symbnav/go-back)))
-  (def-keys-for-map vim:normal-mode-local-keymap
-    ("C-." eproj-symbnav/go-to-symbol-home)
-    ("C-," eproj-symbnav/go-back)))
+      ("C-," eproj-symbnav/go-back))))
 
 (provide 'eproj-symbnav)
 

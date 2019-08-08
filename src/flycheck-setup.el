@@ -33,9 +33,7 @@
 
 ;;;###autoload
 (defun flycheck-pretty-mode-line ()
-  (when (and (boundp 'flycheck-mode)
-             flycheck-mode
-             (boundp 'flycheck-last-status-change))
+  (when flycheck-mode
     (pcase flycheck-last-status-change
       (`not-checked (flycheck-mode-line--propertise-as-comments "flycheck:unchecked"))
       (`no-checker  (flycheck-mode-line--propertise-as-comments "flycheck:no-checker"))

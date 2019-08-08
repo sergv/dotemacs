@@ -25,6 +25,12 @@
 (add-hook 'ghc-profiling-mode-hook #'ghc-profiling-mode-setup)
 (add-to-list 'auto-mode-alist '("\\.prof\\'" . ghc-profiling-mode))
 
+(add-hook 'dante-mode-hook
+          '(lambda ()
+             (flycheck-add-next-checker 'haskell-dante
+                                        '(warning . haskell-hlint))))
+
+
 (autoload 'vim:ghc-core-create-core "haskell-setup" nil t)
 (autoload 'vim:haskell-compile "haskell-setup" nil t)
 (autoload 'vim:haskell-compile-choosing-command "haskell-setup" nil t)
@@ -87,6 +93,7 @@
 (add-hook 'haskell-mode-hook #'haskell-setup)
 (add-hook 'inferior-haskell-mode-hook #'inferior-haskell-mode-setup)
 (add-hook 'intero-repl-mode-hook #'intero-repl-mode-setup)
+(add-hook 'dante-repl-mode-hook #'dante-repl-mode-setup)
 (add-hook 'literate-haskell-mode-hook #'haskell-setup)
 
 (add-hook 'haskell-c2hs-mode #'haskell-c2hs-setup)

@@ -96,20 +96,23 @@ runtime but rather will be silently relied on)."
             (funcall progress-reporter 1)))
         tags-index))))
 
+;;;###autoload
 (defun eproj/haskell-tag-kind (tag)
   (cl-assert (eproj-tag-p tag) nil "Invalid tag: %s" tag)
-  (pcase (cdr-safe (assq 'type (eproj-tag/properties tag)))
-    ("m" "Module")
-    ("f" "Function")
-    ("c" "Class")
-    ("t" "Type")
-    ("C" "Constructor")
-    ("o" "Operator")
-    ("p" "Pattern")
-    ("F" "Type family")
-    (_
-     (error "Invalid haskell tag property %s"
-            (eproj-tag/properties tag)))))
+  (aif (cdr-safe (assq 'type (eproj-tag/properties tag)))
+      (pcase it
+        ("m" "Module")
+        ("f" "Function")
+        ("c" "Class")
+        ("t" "Type")
+        ("C" "Constructor")
+        ("o" "Operator")
+        ("p" "Pattern")
+        ("F" "Type family")
+        (_
+         (error "Invalid haskell tag property %s"
+                (eproj-tag/properties tag))))
+    "Unknown"))
 
 ;;;###autoload
 (defun eproj/haskell-tag->string (proj tag-name tag)
@@ -123,10 +126,13 @@ runtime but rather will be silently relied on)."
                                         (eproj-project/root proj))
             ":"
             (number->string (eproj-tag/line tag))
+            (awhen (eproj-tag/column tag)
+              (concat ":" (number->string it)))
             "\n"
             (awhen (eproj/haskell-extract-tag-signature proj tag)
               (concat it "\n")))))
 
+;;;###autoload
 (defun eproj/haskell-extract-tag-signature (proj tag)
   "Fetch line where TAG is defined."
   (cl-assert (eproj-tag-p tag) nil "Eproj tag is required.")
@@ -150,6 +156,7 @@ runtime but rather will be silently relied on)."
           ;;     (current-line)))
           )))))
 
+;;;###autoload
 (defun eproj/haskel-extract-block ()
   "Extract indented Haskell block that starts on the current line."
   (beginning-of-line)

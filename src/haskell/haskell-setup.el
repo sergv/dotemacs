@@ -15,15 +15,15 @@
 (require 'company-eproj)
 (require 'company-mode-setup)
 (require 'compilation-setup)
+(require 'dante)
 (require 'eproj)
 (require 'flycheck-setup)
 (require 'haskell-abbrev+)
 (require 'haskell-misc)
 (require 'haskell-outline)
 (require 'haskell-tags-server)
-(require 'intero)
+(require 'lcr)
 (require 'shell-setup)
-(require 'vim-intero-highlight-uses-mode)
 
 ;; never cache module alist to a file
 (setf inferior-haskell-module-alist-file nil)
@@ -62,6 +62,7 @@
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
   (haskell-compile t))
 
+
 (vim:defcmd vim:haskell-intero-load-file-into-repl (nonrepeatable)
   (unless intero-mode
     (error "Intero is not enabled"))
@@ -75,13 +76,21 @@
     (error "Intero is not enabled"))
   (intero-restart-repl))
 
-(vim:defcmd vim:haskell-load-file-into-repl (nonrepeatable)
-  (haskell-process-load-file))
 
-;; (vim:defcmd vim:haskell-set-target (nonrepeatable)
-;;   (call-interactively #'haskell-session-change-target))
+(vim:defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
+  (dante-repl-load-file))
+
+(vim:defcmd vim:haskell-dante-restart (nonrepeatable)
+  (unless dante-mode
+    (error "dante is not enabled"))
+  (dante-restart))
+
+
 (vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
   (haskell-interactive-clear-buffer-above-prompt))
+
+(vim:defcmd vim:dante-clear-buffer-above-prompt (nonrepeatable)
+  dante-repl-clear-buffer-above-prompt)
 
 (vim:defcmd vim:haskell-flycheck-configure (nonrepeatable)
   (flycheck-haskell-clear-config-cache)
@@ -121,24 +130,50 @@
                                ignored-globs))))
         (haskell-tags-server-goto-definition is-local? use-regexp? namespace))
     (error "Current buffer has no project")))
-  ;; (or ;; (when (and intero-mode
-  ;;  ;;            (not use-regexp?))
-  ;;  ;;   (with-demoted-errors "intero-goto-definition failed: %s"
-  ;;  ;;     (intero-goto-definition)))
-  ;;  (eproj-symbnav/go-to-symbol-home use-regexp?))
 
+(defun haskell-go-to-symbol-home-via-dante-or-eproj (&optional use-regexp?)
+  (interactive "P")
+  (if (or (not dante-mode) use-regexp?)
+      (eproj-symbnav/go-to-symbol-home use-regexp?)
+    (let* ((dante-ident-bounds (dante-thing-at-point))
+           (dante-identifier
+            (when dante-ident-bounds
+              (buffer-substring-no-properties (car dante-ident-bounds)
+                                              (cdr dante-ident-bounds)))))
+      (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil))
+                    (targets (dante-async-call
+                              (concat ":loc-at " (dante--ghc-subexp dante-ident-bounds)))))
+        (let ((ghci-tags (delq nil
+                               (-map #'haskell-misc--ghc-src-span-to-eproj-tag
+                                     (s-lines targets)))))
+          (if ghci-tags
+              (let ((proj (eproj-get-project-for-buf (current-buffer))))
+                (eproj-symbnav/choose-symbol-home-to-jump-to
+                 dante-identifier
+                 (eproj/resolve-synonym-modes major-mode)
+                 (expand-file-name buffer-file-name)
+                 proj
+                 (eproj-symbnav-current-home-entry)
+                 (--map (list dante-identifier it proj) ghci-tags)))
+            (eproj-symbnav/go-to-symbol-home use-regexp?)))))))
+
+(defun haskell-misc--ghc-src-span-to-eproj-tag (string)
+  "Extract a location from a ghc span STRING."
+  ;; On external symbols, GHC may return a location such as integer-gmp-1.0.0.1:integer-gmp-1.0.0.1:GHC.Integer.Type
+  (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$" string)
+    (let ((file (match-string 1 string))
+          (line (string-to-number (match-string 2 string)))
+          (col (string-to-number (match-string 3 string))))
+      (make-eproj-tag (expand-file-name file dante-project-root)
+                      line
+                      `((column . ,(1- col)))))))
+
+(defconst haskell-flycheck-checker 'haskell-dante
+  "Either 'intero, 'haskell-dante or nil")
 
 ;;;###autoload
 (defun haskell-setup ()
-  (let* ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode)))
-         (flycheck-enabled? (not non-vanilla-haskell-mode?))
-         (intero-enabled?
-          (if (and buffer-file-name
-                   (intero--may-enable-for-buffer (current-buffer)))
-              t
-            (progn
-              (message "[WARNING] Could not enable Intero for a buffer without cabal file")
-              nil))))
+  (let ((non-vanilla-haskell-mode? (-any? #'derived-mode-p '(ghc-core-mode haskell-c2hs-mode haskell-hsc-mode))))
     (init-common :use-whitespace 'tabs-only)
     (fontify-conflict-markers!)
     (add-hook 'after-save-hook #'haskell-update-eproj-tags-on-save nil t)
@@ -157,11 +192,9 @@
        :offset (eproj-query/haskell/indent-offset proj))
 
       (company-mode +1)
-      (setq-local company-backends
-                  (append (if intero-enabled?
-                              '(intero-company)
-                            nil)
-                          '(company-eproj)))
+      (setq-local company-backends '(company-eproj))
+
+      (setf intero-auto-install (eproj-query/intero-auto-install proj t))
 
       (when (and (not non-vanilla-haskell-mode?)
                  (not noninteractive))
@@ -172,35 +205,35 @@
                  ;; Resolve synonyms so that literate haskell mode & others
                  ;; will get the proper checker.
                  effective-major-mode
-                 (if intero-enabled? 'intero 'haskell-stack-ghc))))
+                 haskell-flycheck-checker)))
+          (setq-local flycheck-disabled-checkers
+                      (eproj-query/flycheck-disabled-checkers
+                       proj
+                       effective-major-mode
+                       (default-value 'flycheck-disabled-checkers)))
           (if flycheck-backend
               (progn
-                (when (eq flycheck-backend 'intero)
-                  (setf intero-enabled? t)
-                  (intero-mode +1)
-                  (add-to-list 'company-backends 'intero-company))
+                (when (and (eq haskell-flycheck-checker 'haskell-dante)
+                           (eq flycheck-backend 'haskell-dante))
+                  (dante-mode +1))
+                (when (and (eq haskell-flycheck-checker 'intero)
+                           (eq flycheck-backend 'intero))
+                  (intero-mode +1))
                 (unless (flycheck-may-use-checker flycheck-backend)
                   (flycheck-verify-checker flycheck-backend)
                   (error "Unable to select checker '%s' for buffer '%s'"
                          flycheck-backend (current-buffer)))
                 (setq-local flycheck-checker flycheck-backend)
-                (setf flycheck-enabled? t)
-                (setq-local flycheck-disabled-checkers
-                            (eproj-query/flycheck-disabled-checkers
-                             proj
-                             effective-major-mode
-                             (default-value 'flycheck-disabled-checkers)))
                 (flycheck-mode +1))
             ;; Disable flycheck if it was explicitly set to nil
             (progn
-              (setf flycheck-enabled? nil
-                    intero-enabled? nil)
               (when flycheck-mode
-                (flycheck-mode -1))
-              (when intero-mode
-                (intero-mode -1))))))
+                (flycheck-mode -1)))))))
 
-      (setf intero-auto-install (eproj-query/intero-auto-install proj t)))
+    (when dante-mode
+      (add-to-list 'company-backends 'dante-company))
+    (when intero-mode
+      (add-to-list 'company-backends 'intero-company))
 
     ;; ghci interaction uses comint - same as shell mode
     (turn-on-font-lock)
@@ -227,73 +260,105 @@
     ;; Don't skip any messages.
     (setq-local compilation-skip-threshold 0)
 
-    (setq-local flycheck-check-syntax-automatically '(save mode-enabled idle-change))
-    (setq-local flycheck-idle-change-delay 2)
+    ;; Dante doesn't play well with idle-change checks.
+    (cond
+      ((and (eq haskell-flycheck-checker 'haskell-dante)
+            dante-mode)
+       (setq-local flycheck-check-syntax-automatically '(save mode-enabled)))
+      ((and (eq haskell-flycheck-checker 'intero)
+            intero-mode)
+       (setq-local flycheck-check-syntax-automatically '(save mode-enabled idle-change))
+       (setq-local flycheck-idle-change-delay 2)))
+
+    (setq-local mode-line-format
+                (apply #'default-mode-line-format
+                       (append
+                        (when dante-mode
+                          (list
+                           " "
+                           '(:eval (dante-status))))
+                        (when flycheck-mode
+                          (list
+                           " "
+                           '(:eval (flycheck-pretty-mode-line)))))))
 
     (flycheck-install-ex-commands!
-     :install-flycheck flycheck-enabled?
+     :install-flycheck flycheck-mode
      :compile-func #'vim:haskell-compile
      :load-func
-     (if intero-enabled?
-         #'vim:haskell-intero-load-file-into-repl
-       #'vim:haskell-load-file-into-repl))
+     (cond
+       ((and (eq haskell-flycheck-checker 'haskell-dante)
+             dante-mode)
+        #'vim:haskell-dante-load-file-into-repl)
+       ((and (eq haskell-flycheck-checker 'intero)
+             intero-mode)
+        #'vim:haskell-intero-load-file-into-repl)))
 
-    (when intero-enabled?
-      (dolist (cmd '("re" "restart"))
-        (vim:local-emap cmd #'vim:haskell-intero-restart)))
+    (dolist (cmd '("re" "restart"))
+      (vim:local-emap cmd #'vim:haskell-dante-restart))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
     (dolist (cmd '("cc" "ccompile"))
       (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
-    (when (or flycheck-enabled?
-              intero-enabled?)
+    (when flycheck-mode
       (dolist (cmd '("conf" "configure"))
         (vim:local-emap cmd #'vim:haskell-flycheck-configure)))
 
-    (if intero-enabled?
-        (def-keys-for-map vim:normal-mode-local-keymap
-          ("SPC SPC"      intero-repl)
-          (("C-l" "<f6>") intero-repl-load))
-      (def-keys-for-map vim:normal-mode-local-keymap
-          ("SPC SPC"      haskell-misc-switch-to-haskell)
-          (("C-l" "<f6>") haskell-process-load-file)))
+    (cond
+      ((and (eq haskell-flycheck-checker 'haskell-dante)
+            dante-mode)
+       (def-keys-for-map vim:normal-mode-local-keymap
+         (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
+         (("- e" "j")    dante-eval-block))
+
+       (def-keys-for-map (vim:normal-mode-local-keymap
+                          vim:visual-mode-local-keymap)
+         ("- t"          dante-type-at)
+         ("- i"          dante-info)))
+      ((and (eq haskell-flycheck-checker 'intero)
+            intero-mode)
+       (def-keys-for-map vim:normal-mode-local-keymap
+         ("SPC SPC"      intero-repl)
+         (("C-l" "<f6>") intero-repl-load)
+
+         ("- t"          intero-type-at)
+         ("- u"          intero-uses-at)
+         ("- i"          intero-info)
+         ("- ."          intero-goto-definition)
+         ("- s"          intero-expand-splice-at-point))
+
+       (def-keys-for-map vim:visual-mode-local-keymap
+         ("- e"          intero-repl-eval-region))))
 
     (def-keys-for-map vim:normal-mode-local-keymap
-      ("\\"      vim:flycheck-run)
-      ("j"       vim:haskell-load-file-into-repl)
-      ("g c c"   haskell-comment-node)
-      ("+"       input-unicode)
-      ("g i"     vim:haskell-navigate-imports)
-      ("g I"     haskell-navigate-imports-return)
-      ("g <tab>" haskell-reindent-at-point)
+      ("\\"           vim:flycheck-run)
+      ("SPC SPC"      haskell-misc-switch-to-dante)
+      ("g c c"        haskell-comment-node)
+      ("+"            input-unicode)
+      ("g i"          vim:haskell-navigate-imports)
+      ("g I"          haskell-navigate-imports-return)
+      ("g <tab>"      haskell-reindent-at-point)
 
-      ;; ("- t" ghc-show-type)
-      ;; ("- i" ghc-show-info)
-      ;; ("- e" ghc-expand-th)
-      ;; ("- m" ghc-insert-module)
-      ;; ("- c" ghc-case-split)
-      ;; ("- r" ghc-refine)
-      ;; ("- a" ghc-auto)
-      ;; ("- s" ghc-insert-template-or-signature)
-
-      ("- q"     haskell-qualify-import)
-
-      ("- t"     intero-type-at)
-      ("- u"     intero-uses-at)
-      ("- i"     intero-info)
-      ("- ."     intero-goto-definition)
-      ("- a"     attrap-flycheck)
-      ("- s"     intero-expand-splice-at-point))
+      ("- q"          haskell-qualify-import)
+      ("- a"          attrap-flycheck))
 
     (def-keys-for-map vim:visual-mode-local-keymap
-      ("`"       vim:wrap-backticks)
-      ("g TAB"   haskell-format-pp-region-with-brittany)
+      ("`"            vim:wrap-backticks)
+      ("g TAB"        haskell-format-pp-region-with-brittany))
 
-      ("- e"     intero-repl-eval-region))
+    (def-keys-for-map (vim:normal-mode-local-keymap
+                       vim:visual-mode-local-keymap)
+      ("*"            search-for-haskell-symbol-at-point-forward)
+      ("C-*"          search-for-haskell-symbol-at-point-forward-new-color)
+      ("#"            search-for-haskell-symbol-at-point-backward)
+      ("C-#"          search-for-haskell-symbol-at-point-backward-new-color)
+      ("'"            vim:haskell-backward-up-indentation-or-sexp)
+      ("g t"          haskell-move-to-topmost-start)
+      ("g h"          haskell-move-to-topmost-end))
 
     (def-keys-for-map vim:insert-mode-local-keymap
-      ("`"   vim:wrap-backticks)
-      (","   haskell-smart-operators-comma))
+      ("`"            vim:wrap-backticks)
+      (","            haskell-smart-operators-comma))
 
     (install-haskell-smart-operators!
         vim:insert-mode-local-keymap
@@ -318,16 +383,6 @@
       ("C-<return>"      haskell--simple-indent-newline-indent)
       (("C-m" "<f9>")    haskell-compile))
 
-    (def-keys-for-map (vim:normal-mode-local-keymap
-                       vim:visual-mode-local-keymap)
-      ("*"           search-for-haskell-symbol-at-point-forward)
-      ("C-*"         search-for-haskell-symbol-at-point-forward-new-color)
-      ("#"           search-for-haskell-symbol-at-point-backward)
-      ("C-#"         search-for-haskell-symbol-at-point-backward-new-color)
-      ("'"           vim:haskell-backward-up-indentation-or-sexp)
-      ("g t"         haskell-move-to-topmost-start)
-      ("g h"         haskell-move-to-topmost-end))
-
     (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
     (def-keys-for-map (vim:normal-mode-local-keymap
@@ -338,14 +393,22 @@
       ("q" vim:haskell-up-sexp))
 
     (haskell-setup-folding)
-    (setup-eproj-symbnav)
+    (setup-eproj-symbnav :bind-keybindings nil)
     ;; Override binding introduced by `setup-eproj-symbnav'.
     (def-keys-for-map vim:normal-mode-local-keymap
-      ("C-M-." eproj-symbnav/go-to-symbol-home)
-      ("C-M-," eproj-symbnav/go-back)
-      ("C-."   haskell-go-to-local-symbol-home)
-      ("C-,"   haskell-tags-server-go-back)
-      ("M-."   haskell-go-to-global-symbol-home))
+      ("C-." haskell-go-to-symbol-home-via-dante-or-eproj)
+      ("C-," eproj-symbnav/go-back)
+      ("C-?" xref-find-references)
+
+      ;; ("C-."   eproj-symbnav/go-to-symbol-home)
+      ;; ("C-,"   eproj-symbnav/go-back)
+      ;; ;; ("C-M-." eproj-symbnav/go-to-symbol-home)
+      ;; ;; ("C-M-," eproj-symbnav/go-back)
+      ;; ("C-M-." haskell-go-to-local-symbol-home)
+      ;; ("C-M-," haskell-tags-server-go-back)
+      ;; ("M-."   haskell-go-to-global-symbol-home)
+
+      )
 
     (setup-outline-headers :header-symbol "-"
                            :length-min 3)))
@@ -533,6 +596,67 @@
     ("C-S-p"    browse-comint-input-history)
 
     (("C-l" "<f5>") intero-repl-reload))
+
+  (haskell-setup-folding :enable-hs-minor-mode t)
+  (haskell-abbrev+-setup 2 :repl t))
+
+;;;###autoload
+(defun dante-repl-mode-setup ()
+  ;; undo-tree is useless for ghci interaction
+  ;; well I'm not sure now, I hope it's useful since it proved itself useful
+  ;; for other repls
+  ;; (undo-tree-mode -1)
+  (init-common :use-comment nil
+               :use-yasnippet nil
+               :use-whitespace nil
+               :use-fci nil)
+
+  ;; To make hideshow work
+  (setq-local comment-start "--")
+  (setq-local comment-end "")
+  (setq-local comment-column 32)
+  (setq-local comment-start-skip "--+ *")
+
+  (init-repl :create-keymaps t
+             :bind-return nil
+             :bind-vim:motion-current-line nil)
+  (setq-local indent-region-function #'ignore)
+  ;; very useful to automatically surround with spaces inserted operators
+  (install-haskell-smart-operators! vim:insert-mode-local-keymap
+    :bind-colon nil
+    :bind-hyphen nil)
+
+  (pretty-ligatures-install!)
+  (pretty-ligatures-install-special-haskell-ligatures!)
+
+  (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
+
+  (def-keys-for-map vim:normal-mode-local-keymap
+    ("SPC SPC"  comint-clear-prompt)
+
+    ("C-t"      comint-previous-prompt)
+    ("C-h"      comint-next-prompt)
+    ("S-<up>"   comint-previous-prompt)
+    ("S-<down>" comint-next-prompt))
+
+  (def-keys-for-map vim:insert-mode-local-keymap
+    ("-"        haskell--ghci-hyphen)
+    (":"        haskell--ghci-colon)
+    ("`"        vim:wrap-backticks))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:insert-mode-local-keymap)
+    ("<tab>"    completion-at-point)
+    ("<up>"     comint-previous-input)
+    ("<down>"   comint-next-input)
+
+    ("C-("      vim:sp-backward-slurp-sexp)
+    ("C-)"      vim:sp-forward-slurp-sexp)
+    ("M-("      sp-absorb-sexp)
+    ("M-)"      sp-emit-sexp)
+
+    ("C-SPC"    vim:comint-clear-buffer-above-prompt)
+    ("C-S-p"    browse-comint-input-history))
 
   (haskell-setup-folding :enable-hs-minor-mode t)
   (haskell-abbrev+-setup 2 :repl t))

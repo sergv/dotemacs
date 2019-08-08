@@ -15,7 +15,7 @@
   registered-file-watches ;; Bimap of identifiers returned by
                           ;; `file-notify-add-watch' to absolute file
                           ;; names being watched over.
-  intero-needs-restart    ;; Whether we need to call `intero-restart'
+  checker-needs-restart   ;; Whether we need to call restart for current checker
                           ;; next time we'll be performing checks.
   )
 
@@ -96,7 +96,7 @@ roots (i.e. valid and existing keys within
             :registered-buffers (make-hash-table :test #'equal) ;; Hash table from buffers to `t'.
             :watched-files (make-hash-table :test #'equal)
             :registered-file-watches registered-file-watches
-            :intero-needs-restart nil)))
+            :checker-needs-restart nil)))
       (puthash root proj haskell-watch--known-projects)
       (dolist (file watched-files)
         (haskell-watch--watch-file! proj file))
@@ -171,7 +171,7 @@ modified and we should reconfigure the project.")
   "Project this buffer is assigned to.")
 
 (defun haskell-watch--mark-project-as-dirty (proj)
-  (setf (haskell-watched-project/intero-needs-restart proj) t)
+  (setf (haskell-watched-project/checker-needs-restart proj) t)
   (maphash (lambda (buf _ignored)
              (declare (ignore _ignored))
              (when (buffer-live-p buf)
@@ -188,10 +188,16 @@ modified and we should reconfigure the project.")
 (defun haskell-watch--refresh-config-if-needed ()
   (when haskell-watch--buffer-project-is-dirty?
     (cond
-      ((and intero-mode
-            (haskell-watched-project/intero-needs-restart haskell-watch--project-for-buffer))
-       (intero-restart)
-       (setf (haskell-watched-project/intero-needs-restart haskell-watch--project-for-buffer) nil))
+      ((haskell-watched-project/checker-needs-restart haskell-watch--project-for-buffer)
+       (eval-when-compile
+         (when (fboundp #'intero-mode)
+           '(when intero-mode
+              (intero-restart))))
+       (eval-when-compile
+         (when (fboundp #'dante-mode)
+           '(when dante-mode
+              (dante-restart))))
+       (setf (haskell-watched-project/checker-needs-restart haskell-watch--project-for-buffer) nil))
       (flycheck-mode
        (flycheck-haskell-configure)))
     (setf haskell-watch--buffer-project-is-dirty? nil)))

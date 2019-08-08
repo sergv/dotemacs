@@ -119,6 +119,7 @@ update-dir-autoloads \
     "third-party/clojure-mode" \
     "third-party/company-statistics" \
     "third-party/cuda-mode" \
+    "third-party/dante" \
     "third-party/el-patch" \
     "third-party/elm-mode" \
     "third-party/flycheck" \
@@ -132,6 +133,7 @@ update-dir-autoloads \
     "third-party/intero/elisp" \
     "third-party/ivy" \
     "third-party/ivy-smex" \
+    "third-party/lcr" \
     "third-party/lean-mode" \
     "third-party/magit" \
     "third-party/magit-popup" \
