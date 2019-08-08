@@ -149,6 +149,9 @@
     "DeriveGeneric"
     "DeriveTraversable"
     "EmptyCase"
+    "EmptyDataDecls"
+    "EmptyDataDeriving"
+    "ExplicitNamespaces"
     "FlexibleContexts"
     "FlexibleInstances"
     "FunctionalDependencies"
@@ -158,6 +161,7 @@
     "KindSignatures"
     "MultiParamTypeClasses"
     "NamedFieldPuns"
+    "ParallelListComp"
     "PartialTypeSignatures"
     "PatternSynonyms"
     "PolyKinds"
@@ -165,6 +169,7 @@
     "RecordWildCards"
     "ScopedTypeVariables"
     "StandaloneDeriving"
+    "TemplateHaskell"
     "TransformListComp"
     "TupleSections"
     "TypeApplications"
@@ -240,6 +245,7 @@ usage: (attrap-alternatives CLAUSES...)"
 
 (defun attrap-ghc-fixer (msg pos _end)
   "An `attrap' fixer for any GHC error or warning given as MSG and reported between POS and END."
+  (let ((normalized-msg (s-collapse-whitespace msg)))
   (cond
    ((string-match "Redundant constraints?: (?\\([^,)\n]*\\)" msg)
     (attrap-one-option 'delete-reduntant-constraint
@@ -289,11 +295,11 @@ usage: (attrap-alternatives CLAUSES...)"
     (attrap-one-option 'explicitly-discard-result
       (goto-char pos)
       (insert "_ <- ")))
-   ((string-match "Failed to load interface for ‘\\(.*\\)’\n[ ]*Perhaps you meant[ \n]*\\([^ ]*\\)" msg)
+   ((string-match "\\(Failed to load interface for\\|Could not find module\\) ‘\\(.*\\)’\n[ ]*Perhaps you meant[ \n]*\\([^ ]*\\)" msg)
     (attrap-one-option 'rename-module-import
-      (let ((replacement (match-string 2 msg)))
+      (let ((replacement (match-string 3 msg)))
         ;; ^^ delete-region may garble the matches
-        (search-forward (match-string 1 msg))
+        (search-forward (match-string 2 msg))
         (delete-region (match-beginning 0) (point))
         (insert replacement))))
    ((string-match "Unsupported extension: \\(.*\\)\n[ ]*Perhaps you meant ‘\\([^‘]*\\)’" msg)
@@ -317,12 +323,11 @@ usage: (attrap-alternatives CLAUSES...)"
         (insert (attrap-add-operator-parens missing)))))
     ;; Not in scope: data constructor ‘SimpleBroadcast’
     ;; Perhaps you meant ‘SimpleBroadCast’ (imported from TypedFlow.Types)
-;;     Not in scope: ‘BackCore.argmax’
-;;     Perhaps you meant one of these:
-;;       ‘BackCore.argMax’ (imported from TensorFlow.GenOps.Core),
-;;       ‘BackCore.argMax'’ (imported from TensorFlow.GenOps.Core),
-;;       ‘BackCore.max’ (imported from TensorFlow.GenOps.Core)
-;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
+    ;;     Not in scope: ‘BackCore.argmax’
+    ;;     Perhaps you meant one of these:
+    ;;       ‘BackCore.argMax’ (imported from TensorFlow.GenOps.Core),
+    ;;       ‘BackCore.argMax'’ (imported from TensorFlow.GenOps.Core),
+    ;;       ‘BackCore.max’ (imported from TensorFlow.GenOps.Core)
     ((string-match (s-join "\\|"
                            '("Data constructor not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
                              "Variable not in scope:[ \n\t]*\\(?1:[^ \n]*\\)"
@@ -341,6 +346,12 @@ usage: (attrap-alternatives CLAUSES...)"
                  (search-forward delete-no-paren (+ (length delete) pos))
                  (replace-match (nth 1 it) t)))
              replacements)))
+    ((string-match "It could refer to either" msg) ;; ambiguous identifier
+     (let ((replacements (--map (nth 1 it) (s-match-strings-all  "‘\\([^‘]*\\)’," msg))))
+       (--map (attrap-option (list 'rename it)
+                (apply #'delete-region (dante-ident-pos-at-point))
+                (insert it))
+              replacements)))
    ((string-match "\\(Top-level binding\\|Pattern synonym\\) with no type signature:[\n ]*" msg)
     (attrap-one-option 'add-signature
       (beginning-of-line)
@@ -353,16 +364,19 @@ usage: (attrap-alternatives CLAUSES...)"
     (attrap-one-option 'delete-type-variable
       ;; note there can be a kind annotation, not just a variable.
       (delete-region (point) (+ (point) (- (match-end 1) (match-beginning 1))))))
-   ((string-match "The import of ‘\\(.*\\)’ from module ‘[^’]*’ is redundant" msg)
+   ;;     Module ‘TensorFlow.GenOps.Core’ does not export ‘argmax’.
+
+   ((string-match "The import of ‘\\(.*\\)’ from module ‘[^’]*’ is redundant\\|Module ‘.*’ does not export ‘\\(.*\\)’" normalized-msg)
     (attrap-one-option 'delete-import
-      (let ((redundant (match-string 1 msg)))
+      (let ((redundant (or (match-string 1 normalized-msg) (match-string 2 normalized-msg))))
         (dolist (r (s-split ", " redundant t))
           (save-excursion
             ;; todo check for operators
             ;; toto search for full words
             (search-forward r)
-            (replace-match "")))
-        (when (looking-at ",[ \t]*") (delete-region (match-beginning 0) (match-end 0))))))
+            (replace-match "")
+            (when (looking-at "(..)") (delete-char 4))
+            (when (looking-at ",[ \t]*") (delete-region (match-beginning 0) (match-end 0))))))))
    ((string-match "The import of ‘[^’]*’ is redundant" msg)
     (attrap-one-option 'delete-module-import
       (beginning-of-line)
@@ -383,7 +397,7 @@ usage: (attrap-alternatives CLAUSES...)"
    ((--any? (s-matches? it msg) attrap-haskell-extensions)
     (--map (attrap-option (list 'use-extension it)
              (attrap-insert-extension it))
-           (--filter (s-matches? it msg) attrap-haskell-extensions)))))
+           (--filter (s-matches? it msg) attrap-haskell-extensions))))))
 
 (defun attrap-add-operator-parens (name)
   "Add parens around a NAME if it refers to a Haskell operator."
