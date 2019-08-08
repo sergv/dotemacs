@@ -98,6 +98,25 @@ Change `readme-template.md` or `examples-to-docs.el` instead.
 
 ## Changelist
 
+### From 2.15 to 2.16
+
+- Added `--doto`, anaphoric version of `-doto` (#282)
+- Aliased `-cons-pair-p` to `-cons-pair?`(#288)
+- Generalized `-rotate` for |n| greater than the length of the list (@leungbk, #290)
+- Added a mechanism to extend destructuring with custom matchers (@yyoncho, #277)
+
+### From 2.14 to 2.15
+
+This release brings new destructuring features, some new control flow
+functions and performance optimizations.
+
+- Added `-setq` with destructuring binding support similar to `-let` family ([#116](https://github.com/magnars/dash.el/issues/116))
+- Added smarter key destructuring in `-let` and friends where variables are auto-derived from keys ([#111](https://github.com/magnars/dash.el/issues/111))
+- Allow `-let` bindings with place only ([#256](https://github.com/magnars/dash.el/issues/256))
+- Added `-each-r` and `-each-r-while` (@doublep, [#159](https://github.com/magnars/dash.el/issues/159))
+- Added `-common-suffix` (@basil-conto, [#263](https://github.com/magnars/dash.el/issues/263))
+- Improved performance of folds (`-reduce` and friends) (@basil-conto, [#264](https://github.com/magnars/dash.el/issues/264))
+
 ### From 2.13 to 2.14
 
 This release retires Emacs 23 support.  We will still try to keep
@@ -265,6 +284,7 @@ things compatible but no future guarantees are made.
  - [William West](https://github.com/occidens) made `-fixfn` more robust at handling floats.
  - [Cam Saül](https://github.com/camsaul) contributed `-some->`, `-some->>`, and `-some-->`.
  - [Basil L. Contovounesios](https://github.com/basil-conto) contributed `-common-prefix`.
+ - [Paul Pogonyshev](https://github.com/doublep) contributed `-each-r` and `-each-r-while`.
 
 Thanks!
 
