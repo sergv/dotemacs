@@ -141,7 +141,9 @@
          (decorator-end (overlay-get ov 'after-string))
          (beg (yas-debug-ov-fom-start range))
          (end (yas-debug-ov-fom-end range)))
-    (if (and beg end (not (integerp beg)) (not (integerp end)))
+    (if (and beg end (or (overlayp range)
+                         (and (not (integerp beg))
+                              (not (integerp end)))))
         (propertize (format "from %d to %d" (+ beg) (+ end))
                     'cursor-sensor-functions
                     `(,(lambda (_window _oldpos dir)
@@ -155,7 +157,7 @@
       "<dead>")))
 
 (defmacro yas-debug-with-tracebuf (outbuf &rest body)
-  (declare (indent 1))
+  (declare (indent 1) (debug (sexp body)))
   (let ((tracebuf-var (make-symbol "tracebuf")))
     `(let ((,tracebuf-var (or ,outbuf (get-buffer-create "*YASnippet trace*"))))
        (unless (eq ,tracebuf-var (current-buffer))
@@ -252,6 +254,8 @@ buffer-locally, otherwise install it globally.  If HOOK is
             (setq yas-debug-target-snippets
                   (cl-delete-if-not #'yas--snippet-p yas-debug-target-snippets)))
           (let ((yas-debug-recently-live-indicators nil))
+            (printf "(length yas--snippets-snippets) => %d\n"
+                    (length yas--active-snippets))
             (dolist (snippet (or yas-debug-target-snippets
                                  (yas-active-snippets)))
               (printf "snippet %d\n" (yas--snippet-id snippet))
