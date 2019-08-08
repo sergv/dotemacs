@@ -131,6 +131,13 @@
 
   (setq-local elm-sort-imports-on-save t)
 
+  (setq-local mode-line-format
+              (apply #'default-mode-line-format
+                     (when flycheck-mode
+                       (list
+                        " "
+                        '(:eval (flycheck-pretty-mode-line))))))
+
   (flycheck-install-ex-commands!
    :install-flycheck t
    :compile-func #'vim:elm-compile

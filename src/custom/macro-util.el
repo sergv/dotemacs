@@ -689,6 +689,19 @@ return nil otherwise."
        (dolist (ov invisible-ovs)
          (overlay-put ov 'invisible t)))))
 
+(defmacro with-temporary-file (var prefix suffix contents &rest body)
+  "Create temporary file with PREFIX and SUFFIX in it's name (see
+`make-temp-file' for meaning of these parameters). If CONTENTS is
+non-nil, write it to the new file. Name of the created file will be bound to VAR.
+Temporary file will be removed after BODY finishes."
+  (declare (indent 4))
+  `(let ((,var (make-temp-file ,prefix nil ,suffix ,contents)))
+     (unwind-protect
+         (progn
+           ,@body)
+       (when (file-exists-p ,var)
+         (delete-file ,var)))))
+
 ;;; aif, awhen
 
 (defmacro aif (condition true-branch &optional false-branch)

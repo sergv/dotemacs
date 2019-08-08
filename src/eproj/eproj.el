@@ -163,6 +163,8 @@
                                       (eproj-project/root proj))
           ":"
           (number->string (eproj-tag/line tag))
+          (awhen (eproj-tag/column tag)
+            (concat ":" it))
           "\n"
           (eproj/generic-tag-kind tag)
           "\n")
