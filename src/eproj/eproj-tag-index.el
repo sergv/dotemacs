@@ -44,6 +44,10 @@
   (declare (pure t) (side-effect-free t))
   (cadr tag-struct))
 
+(defsubst eproj-tag/column (tag-struct)
+  (declare (pure t) (side-effect-free t))
+  (cdr-safe (assq 'column (eproj-tag/properties tag-struct))))
+
 ;; Return associative list of tag properties.
 (defsubst eproj-tag/properties (tag-struct)
   (declare (pure t) (side-effect-free t))
