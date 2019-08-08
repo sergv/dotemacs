@@ -1,6 +1,6 @@
 ;;; ox-ascii.el --- ASCII Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -632,7 +632,7 @@ Return value is a symbol among `left', `center', `right' and
     (or justification 'left)))
 
 (defun org-ascii--build-title
-  (element info text-width &optional underline notags toc)
+    (element info text-width &optional underline notags toc)
   "Format ELEMENT title and return it.
 
 ELEMENT is either an `headline' or `inlinetask' element.  INFO is
@@ -651,13 +651,12 @@ possible.  It doesn't apply to `inlinetask' elements."
   (let* ((headlinep (eq (org-element-type element) 'headline))
 	 (numbers
 	  ;; Numbering is specific to headlines.
-	  (and headlinep (org-export-numbered-headline-p element info)
-	       ;; All tests passed: build numbering string.
-	       (concat
-		(mapconcat
-		 'number-to-string
-		 (org-export-get-headline-number element info) ".")
-		" ")))
+	  (and headlinep
+	       (org-export-numbered-headline-p element info)
+	       (let ((numbering (org-export-get-headline-number element info)))
+		 (if toc (format "%d. " (org-last numbering))
+		   (concat (mapconcat #'number-to-string numbering ".")
+			   " ")))))
 	 (text
 	  (org-trim
 	   (org-export-data
@@ -672,8 +671,7 @@ possible.  It doesn't apply to `inlinetask' elements."
 		    (plist-get info :with-tags)
 		    (let ((tag-list (org-export-get-tags element info)))
 		      (and tag-list
-			   (format ":%s:"
-				   (mapconcat 'identity tag-list ":"))))))
+			   (org-make-tag-string tag-list)))))
 	 (priority
 	  (and (plist-get info :with-priority)
 	       (let ((char (org-element-property :priority element)))
@@ -960,7 +958,7 @@ channel."
 	(t
 	 (concat
 	  (org-ascii--fill-string
-	   (format "[%s] %s" anchor (org-element-property :raw-link link))
+	   (format "[%s] <%s>" anchor (org-element-property :raw-link link))
 	   width info)
 	  "\n\n")))))
    links ""))
@@ -1474,8 +1472,8 @@ contextual information."
 		   (replace-regexp-in-string
 		    "-" "•"
 		    (replace-regexp-in-string
-		     "+" "⁃"
-		     (replace-regexp-in-string "*" "‣" bul))))))))
+		     "\\+" "⁃"
+		     (replace-regexp-in-string "\\*" "‣" bul))))))))
 	 (indentation (if (eq list-type 'descriptive) org-ascii-quote-margin
 			(string-width bullet))))
     (concat
@@ -1602,11 +1600,13 @@ INFO is a plist holding contextual information."
 	  ;; Don't know what to do.  Signal it.
 	  (_ "???"))))
      (t
-      (let ((raw-link (org-element-property :raw-link link)))
-	(if (not (org-string-nw-p desc)) (format "[%s]" raw-link)
+      (let ((raw-link (concat (org-element-property :type link)
+			      ":"
+			      (org-element-property :path link))))
+	(if (not (org-string-nw-p desc)) (format "<%s>" raw-link)
 	  (concat (format "[%s]" desc)
 		  (and (not (plist-get info :ascii-links-to-notes))
-		       (format " (%s)" raw-link)))))))))
+		       (format " (<%s>)" raw-link)))))))))
 
 
 ;;;; Node Properties
@@ -2065,6 +2065,20 @@ a communication channel."
 
 
 ;;; End-user functions
+
+;;;###autoload
+(defun org-ascii-convert-region-to-ascii ()
+  "Assume region has Org syntax, and convert it to plain ASCII."
+  (interactive)
+  (let ((org-ascii-charset 'ascii))
+    (org-export-replace-region-by 'ascii)))
+
+;;;###autoload
+(defun org-ascii-convert-region-to-utf8 ()
+  "Assume region has Org syntax, and convert it to UTF-8."
+  (interactive)
+  (let ((org-ascii-charset 'utf-8))
+    (org-export-replace-region-by 'ascii)))
 
 ;;;###autoload
 (defun org-ascii-export-as-ascii
