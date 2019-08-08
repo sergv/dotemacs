@@ -6,8 +6,14 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Ivy: (ivy).
 #+TEXINFO_DIR_DESC: Using Ivy for completion.
-#+SETUPFILE: ~/git/org-html-themes/setup/theme-readtheorg.setup
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="kbd-style.css"/>
+
+#+HTML_HEAD: <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+#+HTML_HEAD: <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/styles/lib/js/jquery.stickytableheaders.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://fniessen.github.io/org-html-themes/styles/readtheorg/js/readtheorg.js"></script>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="css/htmlize.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="css/readtheorg.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="css/kbd-style.css"/>
 #+OPTIONS: H:6 num:6 toc:4
 #+STARTUP: indent
 * Setup                                                                               :noexport:
@@ -52,7 +58,7 @@ ivy-ox.el then ~C-c C-e i t~ in the ivy.org buffer.
 :CUSTOM_ID: copying
 :END:
 #+TEXINFO: @ifnottex
-Ivy manual, version 0.8.0
+Ivy manual, version 0.11.0
 
 Ivy is an interactive interface for completion in Emacs. Emacs uses
 completion mechanism in a variety of contexts: code, menus, commands,
@@ -112,7 +118,7 @@ discoverability.
      example, adding a custom display function that points to a
      selected candidate with =>=, instead of highlighting the selected
      candidate with the =ivy-current-match= face (see
-     =ivy-format-function=). Or take the customization of actions, say
+     =ivy-format-functions-alist=). Or take the customization of actions, say
      after the candidate function is selected. ~RET~ uses
      =counsel-describe-function= to describe the function, whereas
      ~M-o d~ jumps to that function's definition in the code. The
@@ -258,6 +264,7 @@ with some sample bindings:
 - Ivy-based interface to shell and system tools ::
 
      #+begin_src elisp
+     (global-set-key (kbd "C-c c") 'counsel-compile)
      (global-set-key (kbd "C-c g") 'counsel-git)
      (global-set-key (kbd "C-c j") 'counsel-git-grep)
      (global-set-key (kbd "C-c k") 'counsel-ag)
@@ -309,7 +316,7 @@ where the familiar ~C-a~, ~C-f~, ~M-d~, ~M-DEL~, ~M-b~, ~M-w~, ~C-k~,
      =ivy-wrap= is set to =t=, =ivy-next-line= and =ivy-previous-line=
      will cycle past the last and the first candidates respectively.
 
-     Warp-around behavior is off by default.
+     Wrap-around behavior is off by default.
 
 - User Option =ivy-height= ::
      Use this option to adjust the minibuffer height, which also
@@ -946,13 +953,9 @@ To examine each action with each candidate in a key-efficient way, try:
      =completing-read-function= (which =ivy-mode= sets). Try refiling
      headings with similar names to appreciate =ivy-mode=.
 - =magit= ::
-     Magit requires this setting for ivy completion:
-
-     #+begin_src elisp
-     (setq magit-completing-read-function 'ivy-completing-read)
-     #+end_src
+     Uses ivy by default if Ivy is installed.
 - =find-file-in-project= ::
-     It uses ivy by default if Ivy is installed.
+     Uses ivy by default if Ivy is installed.
 - =projectile= ::
      Projectile requires this setting for ivy completion:
 
@@ -965,6 +968,10 @@ To examine each action with each candidate in a key-efficient way, try:
      #+begin_src elisp
      (setq helm-make-completion-method 'ivy)
      #+end_src
+
+- automatically integrated packages ::
+     Ivy re-uses the following packages if they are installed:
+     =avy=, =amx= or =smex=, =flx=, and =wgrep=.
 
 * Commands
 :PROPERTIES:
@@ -1015,6 +1022,26 @@ bindings that work here:
      files previously opened. It also works with TRAMP files.
 
 *** Using TRAMP
+:PROPERTIES:
+:CUSTOM_ID: using-tramp
+:END:
+- ~~~ (tilde) ::
+     Move to the home directory. Either the local or the remote one, depending on the
+     current directory. The boolean option =ivy-magic-tilde= decides whether the binding to
+     do this is ~~~ or ~~/~.
+
+- ~//~ (double slash) ::
+     Move to the root directory. Either the local or the remote one, depending on the
+     current directory. Here, you can also select a TRAMP connection method, such as =ssh=
+     or =scpx=.
+
+- ~/ C-j~ ::
+     Move the the local root directory.
+
+- ~~~~ ::
+     Move to the local home directory.
+
+
 From any directory, with the empty input, inputting =/ssh:= and pressing
 ~C-j~ (or ~RET~, which is the same thing) completes for host and user
 names.
@@ -1107,13 +1134,17 @@ features such as multi-actions, non-exiting actions, =ivy-occur= and
 - =history= ::
      Name of the symbol to store history. See =completing-read=.
 - =preselect= ::
-     When set to a string value, select the first candidate matching
-     this value.
+     Determines which one of the candidates to initially select.
 
      When set to an integer value, select the candidate with that
      index value.
 
-     Every time the input becomes empty, the item corresponding to to
+     When set to any other non-nil value, select the first candidate
+     matching this value.  Comparison is first done with =equal=.
+     If this fails, and when applicable, match =preselect= as a
+     regular expression.
+
+     Every time the input becomes empty, the item corresponding to
      =preselect= is selected.
 - =keymap= ::
      A keymap to be composed with =ivy-minibuffer-map=. This keymap
@@ -1249,7 +1280,7 @@ narrowing) or select a candidate from the visible collection.
      (counsel--async-command
       (format "locate %s '%s'"
               (mapconcat #'identity counsel-locate-options " ")
-              (counsel-unquote-regex-parens
+              (counsel--elisp-to-pcre
                (ivy--regex str))))
      '("" "working..."))))
 

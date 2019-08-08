@@ -14,6 +14,7 @@ commands.
 # Ivy
 
 [![MELPA](https://melpa.org/packages/ivy-badge.svg)](https://melpa.org/#/ivy)
+[![MELPA Stable](https://stable.melpa.org/packages/ivy-badge.svg)](https://stable.melpa.org/#/ivy)
 
 Ivy is a generic completion mechanism for Emacs. While it operates
 similarly to other completion schemes such as `icomplete-mode`, Ivy
@@ -47,6 +48,8 @@ Ivy and Swiper wiki is here: [the wiki](https://github.com/abo-abo/swiper/wiki).
 (ivy-mode 1)
 (setq ivy-use-virtual-buffers t)
 (setq enable-recursive-minibuffers t)
+;; enable this if you want `swiper' to use it
+;; (setq search-default-mode #'char-fold-to-regexp)
 (global-set-key "\C-s" 'swiper)
 (global-set-key (kbd "C-c C-r") 'ivy-resume)
 (global-set-key (kbd "<f6>") 'ivy-resume)
@@ -68,6 +71,9 @@ Ivy and Swiper wiki is here: [the wiki](https://github.com/abo-abo/swiper/wiki).
 Note: parts of this config can be replaced by using `counsel-mode`.
 
 # Counsel
+
+[![MELPA](https://melpa.org/packages/counsel-badge.svg)](https://melpa.org/#/counsel)
+[![MELPA Stable](https://stable.melpa.org/packages/counsel-badge.svg)](https://stable.melpa.org/#/counsel)
 
 `ivy-mode` ensures that any Emacs command using
 `completing-read-function` uses ivy for completion.
@@ -102,6 +108,7 @@ counsel replacements:
 # Swiper
 
 [![MELPA](https://melpa.org/packages/swiper-badge.svg)](https://melpa.org/#/swiper)
+[![MELPA Stable](https://stable.melpa.org/packages/swiper-badge.svg)](https://stable.melpa.org/#/swiper)
 
 Swiper is an alternative to isearch that uses ivy to show an overview
 of all matches.
