@@ -1,4 +1,4 @@
-;;; ocamldebug.el --- Run ocamldebug / camldebug under Emacs.
+;;; ocamldebug.el --- Run ocamldebug / camldebug under Emacs  -*- lexical-binding:t -*-
 ;; Derived from gdb.el.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,7 +36,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'comint)
 (require 'shell)
 (require 'tuareg (expand-file-name
@@ -63,31 +62,35 @@
 (defvar ocamldebug-prompt-pattern "^(\\(ocd\\|cdb\\)) *"
   "A regexp to recognize the prompt for ocamldebug.")
 
-(defvar ocamldebug-overlay-event nil
-  "Overlay for displaying the current event.")
-(defvar ocamldebug-overlay-under nil
-  "Overlay for displaying the current event.")
-(defvar ocamldebug-event-marker nil
+(defvar ocamldebug-overlay-event
+  (let ((ol (make-overlay (point) (point))))
+    (overlay-put ol 'face 'ocamldebug-event)
+    (delete-overlay ol) ;; Disconnect it from current buffer.
+    ol)
+  "Overlay for displaying the first/last char of current event.")
+(defvar ocamldebug-overlay-under
+  (let ((ol (make-overlay (point) (point))))
+    (overlay-put ol 'face 'ocamldebug-underline)
+    (delete-overlay ol) ;; Disconnect it from current buffer.
+    ol)
+  "Overlay for displaying the rest of current event.")
+(defvar ocamldebug-event-marker (make-marker)
   "Marker for displaying the current event.")
 
 (defvar ocamldebug-track-frame t
   "*If non-nil, always display current frame position in another window.")
 
-(cond
- ((and (fboundp 'make-overlay) window-system)
-  (make-face 'ocamldebug-event)
-  (make-face 'ocamldebug-underline)
-  (unless (face-differs-from-default-p 'ocamldebug-event)
-    (invert-face 'ocamldebug-event))
-  (unless (face-differs-from-default-p 'ocamldebug-underline)
-    (set-face-underline 'ocamldebug-underline t))
-  (setq ocamldebug-overlay-event (make-overlay 1 1))
-  (overlay-put ocamldebug-overlay-event 'face 'ocamldebug-event)
-  (setq ocamldebug-overlay-under (make-overlay 1 1))
-  (overlay-put ocamldebug-overlay-under 'face 'ocamldebug-underline))
- (t
-  (setq ocamldebug-event-marker (make-marker))
-  (setq overlay-arrow-string "=>")))
+(defface ocamldebug-event
+  '((t :invert t))
+  "Face to highlight the first/last char of current event."
+  :group 'tuareg)
+
+(defface ocamldebug-underline
+  ;; FIXME: The name should describe what it's used for, not what it looks
+  ;; like by default!
+  '((t :underline t))
+  "Face to highlight the rest of current event."
+  :group 'tuareg)
 
 ;;; OCamldebug mode.
 
@@ -138,15 +141,12 @@ C-x SPACE sets break point at current line."
   (setq-local ocamldebug-filter-accumulator "")
   (setq-local ocamldebug-filter-function #'ocamldebug-marker-filter)
   (setq-local comint-prompt-regexp ocamldebug-prompt-pattern)
-  (setq-local comint-dynamic-complete-functions
-       (cons (if (boundp 'completion-at-point-functions)
-                 #'ocamldebug-capf #'ocamldebug-complete)
-             comint-dynamic-complete-functions))
+  (add-hook 'comint-dynamic-complete-functions #'ocamldebug-capf nil 'local)
   (setq-local comint-prompt-read-only t)
   (setq-local paragraph-start comint-prompt-regexp)
   (setq-local ocamldebug-last-frame-displayed-p t)
   (setq-local shell-dirtrackp t)
-  (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t))
+  (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t))
 
 ;;; Keymaps.
 
@@ -235,7 +235,7 @@ representation is simply concatenated with the COMMAND."
 	  (accept-process-output proc))))
     (if (not (car ocamldebug-kill-output))
 	(error (cdr ocamldebug-kill-output))
-      (sit-for 0 300)
+      (sit-for 0.3)
       (ocamldebug-call-1 (if (y-or-n-p (cdr ocamldebug-kill-output)) "y" "n")))))
 ;;FIXME: ocamldebug doesn't output the Hide marker on kill
 
@@ -434,8 +434,7 @@ around point."
                           (sort (all-completions command-word (nth 2 capf-data))
                                 #'string-lessp))))
 
-(when (fboundp 'completion-at-point)
-  (make-obsolete 'ocamldebug-complete 'completion-at-point "24.1"))
+(make-obsolete 'ocamldebug-complete 'completion-at-point "24.1")
 
 (defun ocamldebug-capf ()
   ;; FIXME: Use an `end' after point when applicable.
@@ -515,9 +514,9 @@ the ocamldebug commands `cd DIR' and `directory'."
                "-emacs" "-cd" default-directory
                (append (cdr cmdlist) (cons pgm-path args)))
         (set-process-filter (get-buffer-process (current-buffer))
-                            'ocamldebug-filter)
+                            #'ocamldebug-filter)
         (set-process-sentinel (get-buffer-process (current-buffer))
-                              'ocamldebug-sentinel)
+                              #'ocamldebug-sentinel)
         (ocamldebug-mode)))
   (ocamldebug-set-buffer)))
 
@@ -670,6 +669,7 @@ Obeying it means displaying in another window the specified file and line."
 ;; Put the mark on this character in that buffer.
 
 (defun ocamldebug-display-line (true-file schar echar kind)
+  ;; FIXME: What is this pre-display-buffer-function?
   (let* ((pre-display-buffer-function nil) ; screw it, put it all in one screen
 	 (pop-up-windows t)
 	 (buffer (find-file-noselect true-file))
@@ -694,7 +694,7 @@ Obeying it means displaying in another window the specified file and line."
 ;;; Events.
 
 (defun ocamldebug-remove-current-event ()
-  (if (and (fboundp 'make-overlay) window-system)
+  (if window-system
       (progn
         (delete-overlay ocamldebug-overlay-event)
         (delete-overlay ocamldebug-overlay-under))
@@ -708,7 +708,7 @@ Obeying it means displaying in another window the specified file and line."
             (move-overlay ocamldebug-overlay-under
                           (+ spos 1) epos buffer))
         (move-overlay ocamldebug-overlay-event (1- epos) epos buffer)
-        (move-overlay ocamldebug-overlay-under spos (- epos 1) buffer))
+        (move-overlay ocamldebug-overlay-under spos (1- epos) buffer))
     (with-current-buffer buffer
       (goto-char pos)
       (beginning-of-line)
@@ -734,19 +734,19 @@ Obeying it means displaying in another window the specified file and line."
              (cmd (match-string 1 str))
              (end (match-end 0))
              (subst
-              (case key
-                (?m
+              (pcase key
+                (`?m
                  (ocamldebug-module-name
                   (if insource buffer-file-name (nth 0 frame))))
-                (?d
+                (`?d
                  (file-name-directory
                   (if insource buffer-file-name (nth 0 frame))))
-                (?c
+                (`?c
                  (int-to-string
                   ;; FIXME: Should this be (- (point) (point-min))?
                   ;; What happens with multibyte chars?
                   (if insource (1- (point)) (nth 1 frame))))
-                (?e
+                (`?e
                  (save-excursion
                    (skip-chars-backward "_0-9A-Za-z\277-\377")
                    (looking-at "[_0-9A-Za-z\277-\377]*")

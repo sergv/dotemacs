@@ -19,16 +19,17 @@ Contents
 `tuareg.el`      — A major mode for editing OCaml code in Emacs.  
 `ocamldebug.el`  — To run the OCaml debugger under Emacs.  
 `sample.ml`      — Sample file to check the indentation engine.
+`compilation.txt` — To check the compilation regexp `tuareg--error-regexp`.
 
 Install
 -------
 
 The easier way to install Tuareg is though
 the [Emacs package system](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html)
-and [Melpa](https://melpa.org/) — you first have to
+and [MELPA][] — you first have to
 [configure the latter](https://melpa.org/#/getting-started).
 
-You can also install it using [OPAM](http://opam.ocaml.org/):
+You can also install it using [OPAM][]:
 
     opam install tuareg
 
@@ -50,8 +51,12 @@ Usage & Configuration
 ---------------------
 
 The Tuareg major mode is triggered by visiting a file with extension
-`.ml`, `.mli`, `.mly`, `.mll`, and `.mlp` or manually by
-<kbd>M-x tuareg-mode</kbd>.
+`.ml`, `.mli`, and `.mlp` or manually by <kbd>M-x tuareg-mode</kbd>.
+A [Menhir][] mode, `tuareg-menhir`, supports `.mly` files.  (A special
+mode for `.mll` has yet to be written.)
+
+For the convenience of users of [ocsigen][], the extensions
+[`.eliom`](http://ocsigen.org/eliom/), `.eliomi` trigger `tuareg-mode`.
 
 Start the OCaml REPL with <kbd>M-x run-ocaml</kbd>.
 To evaluate a
@@ -120,6 +125,18 @@ Tips & customization
   `tuareg-mode-hook`.
 
   [electric-indent-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
+
+- Syntax highlighting has 3 levels.  You can select the one you prefer
+  by setting [font-lock-maximum-decoration][] from `0` to `2`.  By
+  default, [font-lock-maximum-decoration][] is set to `t` which
+  means that the maximum level of decoration will be used.
+
+[font-lock-maximum-decoration]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Font-Lock.html
+
+- Fontifying all operators (as opposed to only non-standard ones) is a
+  costly operation that slows down font-lock.  This is why it is
+  disabled by default.  If you nonetheless want it, set
+  `tuareg-highlight-all-operators` to `t` in your [Init File][].
 
 - You can turn on and off the rendering of certain sequences of
   characters as symbols (such as `∔` and `∧` instead of `+.`and `&&`),
@@ -190,6 +207,26 @@ See [dot-emacs.el](dot-emacs.el) for some examples.
 
 [Init File]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
 
+Additional packages
+-------------------
+
+It is recommended to install [Merlin][] which is available in
+[OPAM][].  Tuareg is automatically detect it and use some of its
+features (e.g. for *imenu*).  Merlin offers auto-completion, the
+possibility to query the type with <kbd>C-cC-t</kbd>, to find the
+location of an identifier with <kbd>C-cC-l</kbd>, to go to the next
+(resp. previous) phrase with <kbd>C-cC-n</kbd>
+(resp. <kbd>C-cC-p</kbd>),...  Highly recommended.
+
+[caml-mode][] (available in [MELPA][]) is used to display types (using
+the obsolete `*.annot` files), open a module for documentation,...
+
+[Menhir]: http://gallium.inria.fr/~fpottier/menhir/
+[ocsigen]: http://ocsigen.org/
+[Merlin]: https://github.com/ocaml/merlin
+[OPAM]: http://opam.ocaml.org/
+[caml-mode]: https://github.com/ocaml/caml-mode
+[MELPA]: https://melpa.org/
 
 Bugs
 ----
