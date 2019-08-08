@@ -8,7 +8,7 @@
 
 @copying
 @ifnottex
-Ivy manual, version 0.8.0
+Ivy manual, version 0.11.0
 
 Ivy is an interactive interface for completion in Emacs. Emacs uses
 completion mechanism in a variety of contexts: code, menus, commands,
@@ -181,7 +181,7 @@ interfaces of completion to tailor the selection process. For
 example, adding a custom display function that points to a
 selected candidate with @code{>}, instead of highlighting the selected
 candidate with the @code{ivy-current-match} face (see
-@code{ivy-format-function}). Or take the customization of actions, say
+@code{ivy-format-functions-alist}). Or take the customization of actions, say
 after the candidate function is selected. @kbd{RET} uses
 @code{counsel-describe-function} to describe the function, whereas
 @kbd{M-o d} jumps to that function's definition in the code. The
@@ -342,6 +342,7 @@ with some sample bindings:
 @subsubheading Ivy-based interface to shell and system tools
 @indentedblock
 @lisp
+(global-set-key (kbd "C-c c") 'counsel-compile)
 (global-set-key (kbd "C-c g") 'counsel-git)
 (global-set-key (kbd "C-c j") 'counsel-git-grep)
 (global-set-key (kbd "C-c k") 'counsel-ag)
@@ -408,7 +409,7 @@ Specifies the wrap-around behavior for @kbd{C-n} and @kbd{C-p}. When
 @code{ivy-wrap} is set to @code{t}, @code{ivy-next-line} and @code{ivy-previous-line}
 will cycle past the last and the first candidates respectively.
 
-Warp-around behavior is off by default.
+Wrap-around behavior is off by default.
 @end defopt
 
 @defopt ivy-height
@@ -1010,6 +1011,18 @@ Enable virtual buffers with:
 (setq ivy-use-virtual-buffers t)
 @end lisp
 @end indentedblock
+@subsubheading @code{ivy-modified-buffer}
+@vindex ivy-modified-buffer
+@indentedblock
+Highlights modified buffers when switching buffer.
+@end indentedblock
+@subsubheading @code{ivy-modified-outside-buffer}
+@vindex ivy-modified-outside-buffer
+@indentedblock
+Highlights buffers modified outside Emacs when switching buffer.
+
+This takes precedence over @code{ivy-modified-buffer}.
+@end indentedblock
 
 @node Defcustoms
 @section Defcustoms
@@ -1237,15 +1250,11 @@ headings with similar names to appreciate @code{ivy-mode}.
 @end indentedblock
 @subsubheading @code{magit}
 @indentedblock
-Magit requires this setting for ivy completion:
-
-@lisp
-(setq magit-completing-read-function 'ivy-completing-read)
-@end lisp
+Uses ivy by default if Ivy is installed.
 @end indentedblock
 @subsubheading @code{find-file-in-project}
 @indentedblock
-It uses ivy by default if Ivy is installed.
+Uses ivy by default if Ivy is installed.
 @end indentedblock
 @subsubheading @code{projectile}
 @indentedblock
@@ -1262,6 +1271,11 @@ Helm-make requires this setting for ivy completion.
 @lisp
 (setq helm-make-completion-method 'ivy)
 @end lisp
+@end indentedblock
+@subsubheading automatically integrated packages
+@indentedblock
+Ivy re-uses the following packages if they are installed:
+@code{avy}, @code{amx} or @code{smex}, @code{flx}, and @code{wgrep}.
 @end indentedblock
 
 @node Commands
@@ -1345,6 +1359,32 @@ files previously opened. It also works with TRAMP files.
 
 @node Using TRAMP
 @subsection Using TRAMP
+
+@subsubheading @kbd{~} (tilde)
+@kindex ~
+@indentedblock
+Move to the home directory. Either the local or the remote one, depending on the
+current directory. The boolean option @code{ivy-magic-tilde} decides whether the binding to
+do this is @kbd{~} or @kbd{~/}.
+@end indentedblock
+@subsubheading @kbd{//} (double slash)
+@kindex //
+@indentedblock
+Move to the root directory. Either the local or the remote one, depending on the
+current directory. Here, you can also select a TRAMP connection method, such as @code{ssh}
+or @code{scpx}.
+@end indentedblock
+@subsubheading @kbd{/ C-j}
+@kindex / C-j
+@indentedblock
+Move the the local root directory.
+@end indentedblock
+@subsubheading @kbd{~~}
+@kindex ~~
+@indentedblock
+Move to the local home directory.
+@end indentedblock
+
 
 From any directory, with the empty input, inputting @code{/ssh:} and pressing
 @kbd{C-j} (or @kbd{RET}, which is the same thing) completes for host and user
@@ -1466,13 +1506,17 @@ Name of the symbol to store history. See @code{completing-read}.
 @end indentedblock
 @subsubheading @code{preselect}
 @indentedblock
-When set to a string value, select the first candidate matching
-this value.
+Determines which one of the candidates to initially select.
 
 When set to an integer value, select the candidate with that
 index value.
 
-Every time the input becomes empty, the item corresponding to to
+When set to any other non-nil value, select the first candidate
+matching this value.  Comparison is first done with @code{equal}.
+If this fails, and when applicable, match @code{preselect} as a
+regular expression.
+
+Every time the input becomes empty, the item corresponding to
 @code{preselect} is selected.
 @end indentedblock
 @subsubheading @code{keymap}
@@ -1638,7 +1682,7 @@ narrowing) or select a candidate from the visible collection.
      (counsel--async-command
       (format "locate %s '%s'"
 	      (mapconcat #'identity counsel-locate-options " ")
-	      (counsel-unquote-regex-parens
+	      (counsel--elisp-to-pcre
 	       (ivy--regex str))))
      '("" "working..."))))
 
