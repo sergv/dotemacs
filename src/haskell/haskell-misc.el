@@ -109,27 +109,36 @@ and indent them as singe line."
             (join-line t)))))))
 
 (let ((stack-command
-       (lambda (cmd) (format "cd \"%%s\" && stack %s" cmd))))
+       (lambda (cmd) (format "cd \"%%s\" && stack %s" cmd)))
+      (cabal-command
+       (lambda (cmd) (format "cd \"%%s\" && cabal %s" cmd))))
   (setf haskell-compile-cabal-build-command-presets
         (-mapcat (lambda (entry)
                    (let ((target (car entry)))
                      (if (listp target)
                          (--map (list it (cadr entry)) target)
                        (list entry))))
-                 `(((build vanilla)
+                 `((stack-build
                     ,(funcall stack-command "build"))
-                   (prof
+                   (stack-prof
                     ,(funcall stack-command "build --profile --test --no-run-tests --bench --no-run-benchmarks"))
-                   (clean
+                   (stack-clean
                     ,(funcall stack-command "clean"))
-                   (test
+                   (stack-test
                     ,(funcall stack-command "test"))
-                   ((test-norun build-tests)
+                   ((stack-test-norun stack-build-tests)
                     ,(funcall stack-command "test --no-run-tests"))
-                   (bench
+                   (stack-bench
                     ,(funcall stack-command "bench"))
-                   ((bench-norun build-bench)
-                    ,(funcall stack-command "bench --no-run-benchmarks"))))))
+                   ((stack-bench-norun stack-build-bench)
+                    ,(funcall stack-command "bench --no-run-benchmarks"))
+
+                   (cabal-build
+                    ,(funcall cabal-command "build"))
+                   (cabal-prof
+                    ,(funcall cabal-command "build --enable-profiling"))
+                   (cabal-clean
+                    ,(funcall cabal-command "clean"))))))
 
 (setf haskell-compile-cabal-build-command
       (or (cadr-safe (assoc 'vanilla haskell-compile-cabal-build-command-presets))
