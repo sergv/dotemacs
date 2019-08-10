@@ -750,7 +750,7 @@ for project at ROOT directory."
       (insert "number of tags loaded: "
               (let ((tag-count 0))
                 (dolist (tags-entry (eproj--get-tags proj))
-                  (let ((lang-tags (hash-table->alist (cdr tags-entry))))
+                  (let ((lang-tags (eproj-tag-index-entries (cdr tags-entry))))
                     (setf tag-count
                           (+ tag-count (length lang-tags)))))
                 (number->string tag-count))
