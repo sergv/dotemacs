@@ -103,7 +103,7 @@
       (hash-table-keys (cdr index)))
 
     (defun eproj-tag-index-entries (index)
-      (hash-table->alist index))
+      (hash-table->alist (cdr index)))
 
     (defun eproj-tag-index-drop-tags-from-file! (fname proj-root index)
       "Remove all tags that come from FNAME file. Tag file names will be expanded
