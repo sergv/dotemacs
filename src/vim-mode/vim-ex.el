@@ -745,26 +745,24 @@ the offset and the new position."
     (let ((minibuffer-local-completion-map vim:ex-keymap)
           ;; We will add user input to history ourselves, if it's long enough.
           (history-add-new-input nil)
-          (history-var 'vim:ex-history)
           (ivy-height 4)
           (ivy-count-format ""))
       (add-hook 'minibuffer-setup-hook #'vim:ex-start-session)
-      (let* ((result
-              (ivy-read vim--ex-propmt
-                        (or vim:all-known-local-and-global-ex-commands
-                            vim:all-known-global-ex-commands)
-                        :predicate nil
-                        :require-match nil
-                        :initial-input initial-input
-                        :history history-var
-                        :keymap vim:ex-keymap
-                        :caller 'vim:ex-read-command))
-             (result-len (length result)))
-        (when (and result
-                   (not (zerop result-len)))
+      (let ((result
+             (ivy-read vim--ex-propmt
+                       (or vim:all-known-local-and-global-ex-commands
+                           vim:all-known-global-ex-commands)
+                       :predicate nil
+                       :require-match nil
+                       :initial-input initial-input
+                       :history 'vim:ex-history
+                       :keymap vim:ex-keymap
+                       :caller 'vim:ex-read-command)))
+        (when result
           ;; Filter out commands like "w" and "hs"
-          (when (< 2 result-len)
-            (add-to-history history-var result))
+          (when (and vim:ex-history
+                     (<= (length (car vim:ex-history)) 2))
+            (pop vim:ex-history))
           (vim:ex-execute-command result))))))
 
 (provide 'vim-ex)
