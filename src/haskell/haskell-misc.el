@@ -118,7 +118,14 @@ and indent them as singe line."
                      (if (listp target)
                          (--map (list it (cadr entry)) target)
                        (list entry))))
-                 `((stack-build
+                 `((cabal-build
+                    ,(funcall cabal-command "build"))
+                   (cabal-prof
+                    ,(funcall cabal-command "build --enable-profiling"))
+                   (cabal-clean
+                    ,(funcall cabal-command "clean"))
+
+                   (stack-build
                     ,(funcall stack-command "build"))
                    (stack-prof
                     ,(funcall stack-command "build --profile --test --no-run-tests --bench --no-run-benchmarks"))
@@ -131,17 +138,10 @@ and indent them as singe line."
                    (stack-bench
                     ,(funcall stack-command "bench"))
                    ((stack-bench-norun stack-build-bench)
-                    ,(funcall stack-command "bench --no-run-benchmarks"))
-
-                   (cabal-build
-                    ,(funcall cabal-command "build"))
-                   (cabal-prof
-                    ,(funcall cabal-command "build --enable-profiling"))
-                   (cabal-clean
-                    ,(funcall cabal-command "clean"))))))
+                    ,(funcall stack-command "bench --no-run-benchmarks"))))))
 
 (setf haskell-compile-cabal-build-command
-      (or (cadr-safe (assoc 'vanilla haskell-compile-cabal-build-command-presets))
+      (or (cadr-safe (assoc 'cabal-build haskell-compile-cabal-build-command-presets))
           (error "Failed to set up haskell-compile-cabal-build-command"))
       ;; 'cabal-repl is good as well
 
