@@ -2074,7 +2074,7 @@ customizations apply to the current completion session."
                  (unless (equal item "")
                    (set hist (cons (propertize item 'ivy-index ivy--index)
                                    (delete item
-                                           (cdr (symbol-value hist))))))))
+                                           (symbol-value hist)))))))
              (setq result (ivy-state-current ivy-last))))
       (ivy--cleanup))
     (ivy-call)
