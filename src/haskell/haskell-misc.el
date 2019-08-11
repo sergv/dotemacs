@@ -124,6 +124,10 @@ and indent them as singe line."
                     ,(funcall cabal-command "build --enable-profiling"))
                    (cabal-clean
                     ,(funcall cabal-command "clean"))
+                   (cabal-test
+                    ,(funcall cabal-command "test"))
+                   (cabal-bench
+                    ,(funcall cabal-command "bench"))
 
                    (stack-build
                     ,(funcall stack-command "build"))
