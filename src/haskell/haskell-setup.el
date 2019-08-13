@@ -224,6 +224,8 @@
                   (error "Unable to select checker '%s' for buffer '%s'"
                          flycheck-backend (current-buffer)))
                 (setq-local flycheck-checker flycheck-backend)
+                (when (memq flycheck-backend '(haskell-stack-ghc haskell-ghc))
+                  (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup nil t))
                 (flycheck-mode +1))
             ;; Disable flycheck if it was explicitly set to nil
             (progn
