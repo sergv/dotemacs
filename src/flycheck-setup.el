@@ -51,9 +51,6 @@
       (_ (propertize "flycheck:unknown" 'face 'error)))))
 
 ;;;###autoload
-(add-hook 'flycheck-mode-hook #'flycheck-haskell-setup)
-
-;;;###autoload
 (defun flycheck-error-list-setup ()
   (def-keys-for-map flycheck-error-list-mode-map
     +vim-search-keys+
