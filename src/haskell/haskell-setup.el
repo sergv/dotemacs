@@ -196,6 +196,8 @@
 
       (setf intero-auto-install (eproj-query/intero-auto-install proj t))
 
+      (setq-local dante-package-name (eproj-query/dante-package-name proj nil))
+
       (when (and (not non-vanilla-haskell-mode?)
                  (not noninteractive))
         (let* ((effective-major-mode (eproj/resolve-synonym-modes major-mode))

@@ -78,6 +78,21 @@
         res)
     default))
 
+;;;###autoload
+(defun eproj-query/dante-package-name (proj default)
+  (declare (pure t) (side-effect-free nil))
+  (if-let ((p proj)
+           (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
+                    'dante-package-name)))
+      (let ((res (car entry)))
+        (cl-assert (stringp res)
+                   nil
+                   "dante-package-name entry in .eproj-info of %s must be a string, but got %s"
+                   (eproj-project/root proj)
+                   res)
+        res)
+    default))
+
 (provide 'eproj-query)
 
 ;; Local Variables:
