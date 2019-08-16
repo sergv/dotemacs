@@ -43,6 +43,7 @@
         res)
     default))
 
+;;;###autoload
 (defun eproj-query/flycheck-disabled-checkers (proj mode default)
   (declare (pure t) (side-effect-free nil))
   (cl-assert (symbolp mode))
@@ -61,6 +62,7 @@
         res)
     default))
 
+;;;###autoload
 (defun eproj-query/intero-auto-install (proj default)
   (declare (pure t) (side-effect-free nil))
   (if-let ((p proj)
