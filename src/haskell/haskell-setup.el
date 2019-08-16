@@ -168,7 +168,7 @@
                       line
                       `((column . ,(1- col)))))))
 
-(defconst haskell-flycheck-checker 'haskell-dante
+(defconst haskell-default-flycheck-checker 'haskell-dante
   "Either 'intero, 'haskell-dante or nil")
 
 ;;;###autoload
@@ -207,7 +207,7 @@
                  ;; Resolve synonyms so that literate haskell mode & others
                  ;; will get the proper checker.
                  effective-major-mode
-                 haskell-flycheck-checker)))
+                 haskell-default-flycheck-checker)))
           (setq-local flycheck-disabled-checkers
                       (eproj-query/flycheck-disabled-checkers
                        proj
@@ -215,18 +215,16 @@
                        (default-value 'flycheck-disabled-checkers)))
           (if flycheck-backend
               (progn
-                (when (and (eq haskell-flycheck-checker 'haskell-dante)
-                           (eq flycheck-backend 'haskell-dante))
+                (when (eq flycheck-backend 'haskell-dante)
                   (dante-mode +1))
-                (when (and (eq haskell-flycheck-checker 'intero)
-                           (eq flycheck-backend 'intero))
+                (when (eq flycheck-backend 'intero)
                   (intero-mode +1))
                 (unless (flycheck-may-use-checker flycheck-backend)
                   (flycheck-verify-checker flycheck-backend)
                   (error "Unable to select checker '%s' for buffer '%s'"
                          flycheck-backend (current-buffer)))
                 (setq-local flycheck-checker flycheck-backend)
-                (when (memq flycheck-backend '(haskell-stack-ghc haskell-ghc))
+                (when (memq flycheck-checker '(haskell-stack-ghc haskell-ghc))
                   (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup nil t))
                 (flycheck-mode +1))
             ;; Disable flycheck if it was explicitly set to nil
@@ -266,13 +264,21 @@
 
     ;; Dante doesn't play well with idle-change checks.
     (cond
-      ((and (eq haskell-flycheck-checker 'haskell-dante)
-            dante-mode)
-       (setq-local flycheck-check-syntax-automatically '(save mode-enabled)))
-      ((and (eq haskell-flycheck-checker 'intero)
-            intero-mode)
+      (dante-mode
+       (setq-local flycheck-check-syntax-automatically '(save mode-enabled))
+
+       (dolist (cmd '("re" "restart"))
+         (vim:local-emap cmd #'vim:haskell-dante-restart)))
+      (intero-mode
        (setq-local flycheck-check-syntax-automatically '(save mode-enabled idle-change))
-       (setq-local flycheck-idle-change-delay 2)))
+       (setq-local flycheck-idle-change-delay 2)
+
+       (dolist (cmd '("re" "restart"))
+         (vim:local-emap cmd #'vim:haskell-intero-restart)))
+      ((and flycheck-mode
+            (memq flycheck-checker '(haskell-stack-ghc haskell-ghc)))
+       (dolist (cmd '("conf" "configure"))
+         (vim:local-emap cmd #'vim:haskell-flycheck-configure))))
 
     (setq-local mode-line-format
                 (apply #'default-mode-line-format
@@ -291,26 +297,17 @@
      :compile-func #'vim:haskell-compile
      :load-func
      (cond
-       ((and (eq haskell-flycheck-checker 'haskell-dante)
-             dante-mode)
+       (dante-mode
         #'vim:haskell-dante-load-file-into-repl)
-       ((and (eq haskell-flycheck-checker 'intero)
-             intero-mode)
+       (intero-mode
         #'vim:haskell-intero-load-file-into-repl)))
-
-    (dolist (cmd '("re" "restart"))
-      (vim:local-emap cmd #'vim:haskell-dante-restart))
 
     (vim:local-emap "core" #'vim:ghc-core-create-core)
     (dolist (cmd '("cc" "ccompile"))
       (vim:local-emap cmd #'vim:haskell-compile-choosing-command))
-    (when flycheck-mode
-      (dolist (cmd '("conf" "configure"))
-        (vim:local-emap cmd #'vim:haskell-flycheck-configure)))
 
     (cond
-      ((and (eq haskell-flycheck-checker 'haskell-dante)
-            dante-mode)
+      (dante-mode
        (def-keys-for-map vim:normal-mode-local-keymap
          (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
          (("- e" "j")    dante-eval-block))
@@ -319,8 +316,7 @@
                           vim:visual-mode-local-keymap)
          ("- t"          dante-type-at)
          ("- i"          dante-info)))
-      ((and (eq haskell-flycheck-checker 'intero)
-            intero-mode)
+      (intero-mode
        (def-keys-for-map vim:normal-mode-local-keymap
          ("SPC SPC"      intero-repl)
          (("C-l" "<f6>") intero-repl-load)
@@ -365,9 +361,9 @@
       (","            haskell-smart-operators-comma))
 
     (install-haskell-smart-operators!
-        vim:insert-mode-local-keymap
-      :bind-colon t
-      :bind-hyphen t)
+     vim:insert-mode-local-keymap
+     :bind-colon t
+     :bind-hyphen t)
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:insert-mode-local-keymap)
