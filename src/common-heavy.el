@@ -287,7 +287,7 @@ number of spaces equal to `tab-width'."
   "Definitions of various executables that can be started in particular folder.")
 
 ;;;###autoload
-(defun custom/run-first-matching-exec (execs)
+(defun custom--run-first-matching-exec (execs)
   (let ((dir (expand-file-name
               (aif buffer-file-name
                   (file-name-directory it)
@@ -308,20 +308,21 @@ number of spaces equal to `tab-width'."
                                                (shell-quote-argument dir)))
                   (return-from 'found)))
             (error "No specification found for exec-spec %s" exec))
-          (if (or (cached-executable-find exec))
+          (when (cached-executable-find exec)
+            (return-from found
               (funcall (gethash (car execs)
                                 custom--known-executables)
-                       dir)
-            (funcall iter (cdr execs))))))))
+                       dir))))))))
 
 ;;;###autoload
 (defun start-file-manager ()
   "Start suitable file manager in folder associated with current buffer."
   (interactive)
   (save-window-excursion
-    (custom/run-first-matching-exec
+    (custom--run-first-matching-exec
      (fold-platform-os-type
-      '("thunar" "nautilus")
+      (eval-when-compile
+        (-filter #'executable-find '("thunar" "nautilus")))
       '("explorer")))))
 
 ;;;###autoload
@@ -329,11 +330,11 @@ number of spaces equal to `tab-width'."
   "Start suitable terminal emulator in folder associated with current buffer."
   (interactive)
   (save-window-excursion
-    (custom/run-first-matching-exec '("xfce4-terminal"
-                                      "exo-open"
-                                      "konsole"
-                                      ;; "gnome-terminal"
-                                      ))))
+    (custom--run-first-matching-exec
+     (eval-when-compile
+       (-filter #'executable-find '("mate-terminal" "xfce4-terminal" "exo-open" "konsole"
+                                    ;; "gnome-terminal"
+                                    ))))))
 
 ;;;
 
