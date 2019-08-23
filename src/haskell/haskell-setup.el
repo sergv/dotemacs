@@ -196,7 +196,8 @@
 
       (setf intero-auto-install (eproj-query/intero-auto-install proj t))
 
-      (setq-local dante-package-name (eproj-query/dante-package-name proj nil))
+      (dolist (entry (eproj-query/local-variables proj nil))
+        (set (make-local-variable (car entry)) (cadr entry)))
 
       (when (and (not non-vanilla-haskell-mode?)
                  (not noninteractive))
