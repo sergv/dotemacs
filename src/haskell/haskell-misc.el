@@ -218,6 +218,9 @@ and indent them as singe line."
         "-Wcompat")
       flycheck-ghc-no-user-package-database t
 
+      dante-load-flags
+      '("+c" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-O0" "-fdefer-typed-holes")
+
       intero-extra-ghc-options
       '("-O0"
         "-Wall"
