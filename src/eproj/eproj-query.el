@@ -79,15 +79,17 @@
     default))
 
 ;;;###autoload
-(defun eproj-query/dante-package-name (proj default)
+(defun eproj-query/local-variables (proj default)
   (declare (pure t) (side-effect-free nil))
   (if-let ((p proj)
            (entry (eproj-project/query-aux-info-entry (eproj-project/aux-info p)
-                    'dante-package-name)))
-      (let ((res (car entry)))
-        (cl-assert (stringp res)
+                    'local-variabales)))
+      (let ((res (cdr entry)))
+        (cl-assert (--all? (and (symbolp (car it))
+                                (null (cddr it)))
+                           res)
                    nil
-                   "dante-package-name entry in .eproj-info of %s must be a string, but got %s"
+                   "local-variables entry in .eproj-info of %s must be an associative list of (<var-name-symbol> <value>) lists, but got %s"
                    (eproj-project/root proj)
                    res)
         res)
