@@ -316,8 +316,9 @@ and over."
       (let* ((temp-file (dante-local-name (buffer-file-name (current-buffer)))))
         (funcall cont
                  'finished
-                 (--remove (eq 'splice (flycheck-error-level it))
-                           (--map (dante-fly-message it checker (current-buffer) temp-file) messages)))))))
+                 (let ((errs (--remove (eq 'splice (flycheck-error-level it))
+                                       (--map (dante-fly-message it checker (current-buffer) temp-file) messages))))
+                   errs))))))
 
 (defun dante-flycheck-available-p ()
   "Return non-nil if the flycheck backend should be active."
@@ -335,20 +336,25 @@ process."
 (defun dante-fly-message (matched checker buffer temp-file)
   "Convert the MATCHED message to flycheck format.
 CHECKER and BUFFER are added if the error is in TEMP-FILE."
-  (cl-destructuring-bind (file location-raw err-type msg) matched
-    (let* ((type (cond
-                  ((s-matches? "^warning: \\[-W\\(typed-holes\\|deferred-\\(type-errors\\|out-of-scope-variables\\)\\)\\]" err-type) 'error)
-                  ((s-matches? "^warning:" err-type) 'warning)
-                  ((s-matches? "^splicing " err-type) 'splice)
-                  (t 'error)))
-           (location (dante-parse-error-location location-raw)))
-      ;; FIXME: sometimes the "error type" contains the actual error too.
-      (flycheck-error-new-at (car location) (cadr location) type (concat err-type "\n" (s-trim-right msg))
-                             :checker checker
-                             :buffer buffer
-                             :filename (if (string= temp-file file)
-                                           (dante-buffer-file-name buffer)
-                                         file)))))
+  (save-match-data
+    (cl-destructuring-bind (file location-raw err-type msg) matched
+      (let* ((fixed-err-type-and-kind
+              (cond
+                ((string-match "^\\(warning\\): \\[-W\\(?:typed-holes\\|deferred-\\(type-errors\\|out-of-scope-variables\\)\\)\\]" err-type)
+                 (cons (replace-match "error" nil nil err-type 1) 'error))
+                ((s-matches? "^warning:" err-type) (cons err-type 'warning))
+                ((s-matches? "^splicing " err-type) (cons err-type 'splice))
+                (t (cons err-type 'error))))
+             (fixed-err-type (car fixed-err-type-and-kind))
+             (type (cdr fixed-err-type-and-kind))
+             (location (dante-parse-error-location location-raw)))
+        ;; FIXME: sometimes the "error type" contains the actual error too.
+        (flycheck-error-new-at (car location) (cadr location) type (concat fixed-err-type "\n" (s-trim-right msg))
+                               :checker checker
+                               :buffer buffer
+                               :filename (if (string= temp-file file)
+                                             (dante-buffer-file-name buffer)
+                                           file))))))
 
 (defun dante-parse-error-location (string)
   "Parse the line/col numbers from the error in STRING."
