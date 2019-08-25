@@ -219,7 +219,12 @@ and indent them as singe line."
       flycheck-ghc-no-user-package-database t
 
       dante-load-flags
-      '("+c" "-fno-diagnostics-show-caret" "-Wwarn=missing-home-modules" "-O0" "-fdefer-typed-holes")
+      '("+c"
+        "-fno-diagnostics-show-caret"
+        "-Wwarn=missing-home-modules"
+        "-O0"
+        "-fdefer-typed-holes"
+        "-fdefer-type-errors")
 
       intero-extra-ghc-options
       '("-O0"
