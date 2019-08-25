@@ -291,8 +291,7 @@ and over."
     (if (and unchanged same-buffer) (buffer-local-value 'dante-load-message buffer) ; see #52
       (setq dante-temp-epoch epoch)
       (vc-before-save)
-      ;; Noninteractive to avoid messages about saved file.
-      (let ((noninteractive t))
+      (let ((save-silently t))
         (basic-save-buffer-1)) ;; save without re-triggering flycheck/flymake nor any save hook
       (vc-after-save)
       ;; GHCi will interpret the buffer iff. both -fbyte-code and :l * are used.
