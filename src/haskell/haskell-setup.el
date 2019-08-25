@@ -225,7 +225,7 @@
                   (error "Unable to select checker '%s' for buffer '%s'"
                          flycheck-backend (current-buffer)))
                 (setq-local flycheck-checker flycheck-backend)
-                (when (memq flycheck-checker '(haskell-stack-ghc haskell-ghc))
+                (when (memq flycheck-checker '(haskell-stack-ghc haskell-ghc haskell-dante))
                   (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup nil t))
                 (flycheck-mode +1))
             ;; Disable flycheck if it was explicitly set to nil
@@ -362,9 +362,9 @@
       (","            haskell-smart-operators-comma))
 
     (install-haskell-smart-operators!
-     vim:insert-mode-local-keymap
-     :bind-colon t
-     :bind-hyphen t)
+        vim:insert-mode-local-keymap
+      :bind-colon t
+      :bind-hyphen t)
 
     (def-keys-for-map (vim:normal-mode-local-keymap
                        vim:insert-mode-local-keymap)
