@@ -736,7 +736,7 @@ Process state change: " change "
   "Create a dante process buffer name."
   (let* ((root (dante-project-root))
          (package-name (dante-package-name)))
-    (concat " *dante:" package-name ":" dante-target ":" root "*")))
+    (concat " *dante#" package-name "#" dante-target "#" root "*")))
 
 (defun dante-buffer-create ()
   "Create the buffer for GHCi."
