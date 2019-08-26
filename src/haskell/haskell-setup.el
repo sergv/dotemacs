@@ -398,7 +398,8 @@
     (setup-eproj-symbnav :bind-keybindings nil)
     ;; Override binding introduced by `setup-eproj-symbnav'.
     (def-keys-for-map vim:normal-mode-local-keymap
-      ("C-." haskell-go-to-symbol-home-via-dante-or-eproj)
+      ("M-." haskell-go-to-symbol-home-via-dante-or-eproj)
+      ("C-." eproj-symbnav/go-to-symbol-home)
       ("C-," eproj-symbnav/go-back)
       ("C-?" xref-find-references)
 
