@@ -194,7 +194,7 @@ flag       = <flag-string> | (<flag-string> <completion-expr>)
 
 terminals:
 flag-string     - emacs string describing flag, must include - or --
-completion-expr - elisp expression, like (pcomplete-here (pcomplete-entries))
+completion-expr - elisp expression, like (pcomplete-here (pcmpl-entries))
 positional-arg  - emacs string, usually without -s
 
 N.B. Small deviations to the grammar may be tolerated, but they're mostly
@@ -339,18 +339,27 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                      ;; command name.
                      1))))))
 
-(defun pcmpl-entries-ignoring (re)
+(defun* pcmpl-entries (&key select ignore)
   "Like `pcomplete-entries' but ignores files mathing RE."
-  (let ((pcomplete-file-ignore re)
+  (let ((pcomplete-file-ignore ignore)
         (pcomplete-dir-ignore
          (eval-when-compile
            (concat "\\`"
                    (regexp-opt +version-control-directories+)
                    "\\'"))))
-    (pcomplete-entries)))
+    (pcomplete-entries select)))
+
+(defun pcmpl-dirs ()
+  (let ((pcomplete-dir-ignore
+         (eval-when-compile
+           (concat "\\`"
+                   (regexp-opt +version-control-directories+)
+                   "\\'"))))
+    (pcomplete-dirs)))
 
 (defun pcmpl-entries-ignoring-common ()
-  (pcmpl-entries-ignoring
+  (pcmpl-entries
+   :ignore
    (eval-when-compile
      (concat "\\`.*"
              (regexp-opt +ignored-file-extensions+)
@@ -384,7 +393,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--refresh"
                "--ignore-errors"
                "--ignore-missing")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
       ("bisect"
        (or
         ("help")
@@ -550,7 +559,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--no-post-rewrite"
                "-u"
                "--untracked-files")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
       ("diff"
        (opts
         (flags "--no-index"
@@ -724,13 +733,13 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-O"
                "--open-files-in-pager"
                "--ext-grep")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
       ("init"
        (opts
         (flags "--bare"
                "--shared"
                ("--separate-git-dir" (pcomplete-here (pcomplete-dirs))))
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
       ("log"
        (opts
         (flags "-q"
@@ -940,7 +949,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-f"
                "--force"
                "-k")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
       ("p4"
        (or ("submit")
            ("rebase")
@@ -1110,7 +1119,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--cached"
                "--dry-run"
                "--force")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
       ("show"
        (opts
         (flags "-q"
@@ -1119,7 +1128,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--source"
                "--use-mailmap"
                "--decorate")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
       ("status"
        (opts
         (flags
@@ -1155,21 +1164,21 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                  "--force"
                  "--name"
                  "--reference")
-          (args (pcomplete-here (pcomplete-dirs)))))
+          (args (pcomplete-here (pcmpl-dirs)))))
         ("status"
          (opts
           (flags "--cached"
                  "--recursive")
-          (args (pcomplete-here (pcomplete-dirs)))))
+          (args (pcomplete-here (pcmpl-dirs)))))
 
         ("init"
          (opts
-          (args (pcomplete-here (pcomplete-dirs)))))
+          (args (pcomplete-here (pcmpl-dirs)))))
         ("deinit"
          (opts
           (flags "-f"
                  "--force")
-          (args (pcomplete-here (pcomplete-dirs)))))
+          (args (pcomplete-here (pcmpl-dirs)))))
         ("update"
          (opts
           (flags "--init"
@@ -1182,21 +1191,21 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                  "--reference"
                  "--merge"
                  "--recursive")
-          (args (pcomplete-here (pcomplete-dirs)))))
+          (args (pcomplete-here (pcmpl-dirs)))))
         ("summary"
          (opts
           (flags "--cached"
                  "--files"
                  "--summary-limit"
                  "--commit")
-          (args (pcomplete-here (pcomplete-dirs)))))
+          (args (pcomplete-here (pcmpl-dirs)))))
         ("foreach"
          (opts
           (flags "--recursive")))
         ("sync"
          (opts
           (flags "--recursive")
-          (args (pcomplete-here (pcomplete-dirs)))))))
+          (args (pcomplete-here (pcmpl-dirs)))))))
       ("tag"
        (opts
         (args (pcomplete-here (pcmpl-git-get-refs "tags")))))))
@@ -1204,15 +1213,21 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 ;;; Haskell
 
 (defun pcmpl-haskell-source-files ()
-  (pcomplete-entries
+  (pcmpl-entries
+   :select
    (eval-when-compile
      (concat
       "\\."
       (regexp-opt +haskell-extensions+)
       "\\'"))))
 
+(defun pcmpl-haskell-hi-files ()
+  (pcmpl-entries
+   :select "\\.hi\\'"))
+
 (defun pcmpl-haskell-source-or-obj-files ()
-  (pcomplete-entries
+  (pcmpl-entries
+   :select
    (eval-when-compile
      (concat
       "\\."
@@ -1225,10 +1240,15 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "a"
           ,@(fold-platform-os-type
              '("so")
-             '("lib"
-               "dll")))
+             '("lib" "dll")))
         +haskell-extensions+))
       "\\'"))))
+
+(defun pcmpl-haskell-cabal-project-file ()
+  (pcmpl-entries
+   :select
+   (eval-when-compile
+     "\\.project\\(?:\\.local\)?\\'")))
 
 ;;;###autoload (autoload 'pcomplete/runghc "shell-completion" nil t)
 (defpcmpl pcomplete/runghc
@@ -1285,7 +1305,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--mk-dll"
     "--numeric-version"
     "--print-libdir"
-    ("--show-iface" (pcomplete-here (pcomplete-entries)))
+    ("--show-iface" (pcomplete-here (pcmpl-haskell-hi-files)))
     "--show-options"
     "--supported-extensions"
     "--supported-languages"
@@ -1301,8 +1321,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-S"
     "-x"
 
-    (("--show-iface" "--exclude-module" "-dep-makefile" "-o" "-ohi") (pcomplete-here (pcomplete-entries)))
-    (("-i" "-I" "-L" "--dumpdir" "-hidir" "-odir" "-outputdir" "-stubdir" "-tmpdir") (pcomplete-here (pcomplete-dirs)))
+    (("--exclude-module" "-dep-makefile" "-o") (pcomplete-here (pcmpl-entries)))
+    (("-i" "-I" "-L" "--dumpdir" "-hidir" "-odir" "-outputdir" "-stubdir" "-tmpdir") (pcomplete-here (pcmpl-dirs)))
     "-ddump-mod-cycles"
     "-dep-suffix"
     "-hcsuf"
@@ -1838,7 +1858,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-dsuppress-unfoldings"
     "-dsuppress-uniques"
     "-dsuppress-var-kinds"
-    ("-dth-dec-file" (pcomplete-here (pcomplete-entries)))
+    ("-dth-dec-file" (pcomplete-here (pcmpl-entries)))
     "-dunique-increment=⟨i⟩"
     "-dverbose-core2core"
     "-dverbose-stg2stg"
@@ -1867,23 +1887,23 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                      "ar"
                      "c2hs"
                      "cpphs"
-                     "ffihugs"
+                     ;;"ffihugs"
                      "gcc"
                      "ghc"
                      "ghc-pkg"
-                     "greencard"
+                     ;;"greencard"
                      "haddock"
                      "happy"
                      "hmake"
                      "hpc"
                      "hsc2hs"
                      "hscolour"
-                     "hugs"
-                     "jhc"
+                     ;;"hugs"
+                     ;;"jhc"
                      "ld"
-                     "lhc"
-                     "lhc-pkg"
-                     "nhc98"
+                     ;;"lhc"
+                     ;;"lhc-pkg"
+                     ;;"nhc98"
                      "pkg-config"
                      "ranlib"
                      "strip"
@@ -1898,14 +1918,18 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                                  "--verbose=1"
                                  "--verbose=2"
                                  "--verbose=3"))
-         (builddir-flags '(("--builddir" (pcomplete-here (pcomplete-dirs)))))
-         (solver-flags '("--solver"
-                         "--solver=topdown"
-                         "--solver=modular"
-                         "--solver=choose"))
+         (builddir-flags '(("--builddir" (pcomplete-here (pcmpl-dirs)))))
+         (solver-flags '("--solver=modular"))
          (fetch-flags '("--max-backjumps"
                         "--reorder-goals"
-                        "--shadow-installed-packages"))
+                        "--count-conflicts"
+                        "--minimize-conflict-set"
+                        "--independent-goals"
+                        "--shadow-installed-packages"
+                        "--strong-flags"
+                        "--allow-boot-library-installs"
+                        "--reject-unconstrained-dependencies=none"
+                        "--reject-unconstrained-dependencies=all"))
          (program-options-flags
           (-mapcat (lambda (p)
                      `((,(concat "--" p)
@@ -1913,20 +1937,22 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                        ,(concat "--" p "-option")
                        ,(concat "--" p "-options")))
                    programs))
+         (build-flags `("--only-dependencies"
+                        "--dependencies-only"))
          (run-flags `(,@help-verbosity-flags
                       ,@builddir-flags
+                      ,@build-flags
                       "-j"
                       "--jobs"
-                      "--only"
                       ,@program-options-flags))
          (configure-flags `(,@help-verbosity-flags
                             ,@builddir-flags
                             "-g"
                             "--ghc"
-                            "--nhc98"
-                            "--jhc"
-                            "--lhc"
-                            "--hugs"
+                            ;; "--nhc98"
+                            ;; "--jhc"
+                            ;; "--lhc"
+                            ;; "--hugs"
                             "--uhc"
                             "-w"
                             "--with-compiler"
@@ -1944,89 +1970,137 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                               "--sysconfdir"
                               "-b"
                               "--scratchdir")
-                             (pcomplete-here (pcomplete-dirs)))
+                             (pcomplete-here (pcmpl-dirs)))
 
                             "--program-prefix"
                             "--program-suffix"
-                            "--enable-library-vanilla"
-                            "--disable-library-vanilla"
                             "-p"
-                            "--enable-library-profiling"
-                            "--disable-library-profiling"
-                            "--enable-shared"
-                            "--disable-shared"
-                            "--enable-executable-dynamic"
-                            "--disable-executable-dynamic"
-                            "--enable-executable-profiling"
-                            "--disable-executable-profiling"
-                            "--enable-profiling"
-                            "--disable-profiling"
+                            "--library-profiling-detail=default"
+                            "--library-profiling-detail=none"
+                            "--library-profiling-detail=exported-functions"
+                            "--library-profiling-detail=toplevel-functions"
+                            "--library-profiling-detail=all-functions"
+                            "--profiling-detail=default"
+                            "--profiling-detail=none"
+                            "--profiling-detail=exported-functions"
+                            "--profiling-detail=toplevel-functions"
+                            "--profiling-detail=all-functions"
+                            ,@(--mapcat (list (concat "--enable-" it)
+                                              (concat "--disable-" it))
+                                        '("library-vanilla"
+                                          "library-profiling"
+                                          "shared"
+                                          "static"
+                                          "executable-dynamic"
+                                          "executable-static"
+                                          "profiling"
+                                          "executable-profiling"
+                                          "library-for-ghci"
+                                          "split-objs"
+                                          "spit-sections"
+                                          "library-stripping"
+                                          "executable-stripping"
+                                          "deterministic"
+                                          "tests"
+                                          "coverage"
+                                          "library-coverage"
+                                          "benchmarks"
+                                          "relocatable"
+                                          "documentation"
+                                          "per-component"))
+
                             "-O"
                             "--enable-optimization"
                             "--enable-optimization=0"
                             "--enable-optimization=1"
                             "--enable-optimization=2"
                             "--disable-optimization"
-                            "--enable-library-for-ghci"
-                            "--disable-library-for-ghci"
-                            "--enable-split-objs"
-                            "--disable-split-objs"
-                            "--enable-executable-stripping"
-                            "--disable-executable-stripping"
+
+                            "--enable-debug-info"
+                            "--enable-debug-info=1"
+                            "--enable-debug-info=2"
+                            "--enable-debug-info=3"
+                            "--disable-debug-info"
+
                             "--configure-option"
                             "--user"
                             "--global"
                             ("--package-db" (pcomplete-here (pcmpl-entries-ignoring-common)))
                             "-f"
                             "--flags"
+                            "--allow-depending-on-private-libs"
                             (("--extra-include-dirs" "--extra-lib-dirs" "--extra-prog-path")
-                             (pcomplete-here (pcomplete-dirs)))
-                            "--enable-tests"
-                            "--disable-tests"
-                            "--enable-library-coverage"
-                            "--disable-library-coverage"
-                            "--enable-benchmarks"
-                            "--disable-benchmarks"
+                             (pcomplete-here (pcmpl-dirs)))
                             ,@program-options-flags
                             "--cabal-lib-version"
                             "--constraint"
                             "--preference"
+                            ,@fetch-flags
                             ,@solver-flags
-                            "--allow-newer")))
+                            "--allow-older"
+                            "--allow-newer"
+                            "--write-ghc-environment-files=always"
+                            "--write-ghc-environment-files=never"
+                            "--write-ghc-environment-files=ghc8.4.4+"
+
+                            "--dry-run"
+
+                            "--instantiate-with"
+                            "--ipid"
+                            "--cid"
+
+                            "--doc-index-file"
+
+                            "--reinstall"
+                            "--avoid-reinstalls"
+                            "--force-reinstalls"
+                            "--upgrade-dependencies"
+                            "--index-state="
+                            ("--symlink-bindir" (pcomplete-here (pcmpl-dirs)))
+                            "--build-summary="
+                            "--build-log="
+                            "--remote-build-reporting"
+                            "--remote-build-reporting=none"
+                            "--remote-build-reporting=anonymous"
+                            "--remote-build-reporting=detailed"
+                            "--report-planning-failure"
+
+                            "--one-shot"
+                            "--run-tests"
+                            "-j"
+                            "--jobs"
+                            "--offline"
+                            ("--project-file" (pcomplete-here (pcmpl-haskell-cabal-project-file))))))
     `(or
       ("install"
        (opts
         (flags ,@configure-flags
+               ,@build-flags
                "--enable-documentation"
                "--disable-documentation"
                "--doc-index-file"
-               "--dry-run"
                ,@fetch-flags
-               "--reinstall"
-               "--avoid-reinstalls"
-               "--force-reinstalls"
-               "--upgrade-dependencies"
-               "--only-dependencies"
-               "--dependencies-only"
-               "--root-cmd"
-               ("--symlink-bindir" (pcomplete-here (pcomplete-dirs)))
-               "--build-summary"
-               "--build-log"
-               "--remote-build-reporting"
-               "--remote-build-reporting=none"
-               "--remote-build-reporting=anonymous"
-               "--remote-build-reporting=detailed"
-               "--one-shot"
-               "-j"
-               "--jobs"
                "--haddock-hoogle"
                "--haddock-html"
                "--haddock-html-location=URL"
+               "--haddoc-for-hackage"
                "--haddock-executables"
+               "--haddock-tests"
+               "--haddock-benchmarks"
+               "--haddock-all"
                "--haddock-internal"
                (("--haddock-css" "--haddock-hscolour-css") (pcomplete-here (pcmpl-entries-ignoring-common)))
+               "--haddock-quickjump"
                "--haddock-hyperlink-source"
-               "--haddock-contents-location")))
+               "--haddock-contents-location=URL"
+
+               ("-package-env" (pcomplete-here (pcmpl-entries-ignoring-common)))
+               "--lib"
+               "--overwrite-policy=always"
+               "--overwrite-policy=never"
+               "--install-method=copy"
+               "--install-method=symlink"
+               ("--installdir" (pcomplete-here (pcmpl-dirs))))))
       ("update"
        (opts
         (flags ,@help-verbosity-flags)))
@@ -2048,7 +2122,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
       ("get"
        (opts
         (flags ,@help-verbosity-flags
-               (("-d" "--destdir") (pcomplete-here (pcomplete-dirs)))
+               (("-d" "--destdir") (pcomplete-here (pcmpl-dirs)))
                "-s"
                "--source-repository"
                "--source-repository=head"
@@ -2118,9 +2192,9 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
        (opts
         (flags ,@help-verbosity-flags
                ,@builddir-flags
+               ,@build-flags
                "-j"
                "--jobs"
-               "--only"
                ,@program-options-flags)))
       ("repl"
        (opts
@@ -2149,18 +2223,20 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
        (opts
         (flags ,@help-verbosity-flags
                ,@builddir-flags
-               "--log"
-               "--machine-log"
-               "--show-details"
-               "--show-details=always"
-               "--show-details=never"
-               "--show-details=failures"
-               "--keep-tix-files"
+               "--test-log="
+               "--test-machine-log="
+               "--test-show-details=always"
+               "--test-show-details=never"
+               "--test-show-details=failures"
+               "--test-show-details=streaming"
+               "--test-show-details=direct"
+               "--test-keep-tix-files"
+               "--test-fail-when-no-test-suites"
+               "--test-wrapper"
                "--test-options"
                "--test-option"
                "-j"
-               "--jobs"
-               "--only")))
+               "--jobs")))
       ("bench")
       ("help")))
   :evaluate-definition t)
@@ -2184,12 +2260,12 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-tf"
           "-y"
           "-c")
-   (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
+   (args (pcomplete-here (pcmpl-entries "\\.hp\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pdf "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pdf
   (opts
-   (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
+   (args (pcomplete-here (pcmpl-entries "\\.hp\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hp2pretty "shell-completion" nil t)
 (defpcmpl pcomplete/hp2pretty
@@ -2199,7 +2275,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--uniform-scale=time"
     "--uniform-scale=memory"
     "--uniform-scale=both")
-   (args (pcomplete-here (pcomplete-entries "\\.hp\\'")))))
+   (args (pcomplete-here (pcmpl-entries "\\.hp\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hp2svg "shell-completion" nil nil)
 (defalias 'pcomplete/hp2svg 'pcomplete/hp2pretty)
@@ -2244,7 +2320,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
            "--compiler"
            "--terminal"
            "--no-terminal"
-           ("--stack-yaml" (pcomplete-here (pcomplete-entries "\\.yaml\\'")))))
+           ("--stack-yaml" (pcomplete-here (pcmpl-entries "\\.yaml\\'")))))
         (build-args
          '("--dry-run"
            "--pedantic"
@@ -2457,7 +2533,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--silent"
     "-f"
     "--fource")
-   (args (pcomplete-here (pcomplete-entries "\\`package\\.yaml\\'")))))
+   (args (pcomplete-here (pcmpl-entries "\\`package\\.yaml\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/hlint "shell-completion" nil t)
 (defpcmpl pcomplete/hlint
@@ -2476,17 +2552,17 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
          '("-e"
            "--extension"))
         (hint-flags
-         '(("--datadir" (pcomplete-here (pcomplete-dirs)))
-           (("-r" "--report") (pcomplete-here (pcomplete-entries)))
-           (("-h" "--hint") (pcomplete-here (pcomplete-entries)))
+         '(("--datadir" (pcomplete-here (pcmpl-dirs)))
+           (("-r" "--report") (pcomplete-here (pcmpl-entries)))
+           (("-h" "--hint") (pcomplete-here (pcmpl-entries)))
            "-w"
            "--with"))
         (cpp-flags
          '("-p"
            "--path"
            "--cpp-define"
-           ("--cpp-include" (pcomplete-here (pcomplete-dirs)))
-           ("--cpp-file" (pcomplete-here (pcomplete-entries)))
+           ("--cpp-include" (pcomplete-here (pcmpl-dirs)))
+           ("--cpp-file" (pcomplete-here (pcmpl-entries)))
            "--cpp-simple"
            "--cpp-ansi")))
     `(or
@@ -2536,8 +2612,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
         (flags
          ,@standard-flags
          ,@hint-flags
-         ("--proof" (pcomplete-here (pcomplete-entries)))
-         ("--tempdir" (pcomplete-here (pcomplete-dirs)))
+         ("--proof" (pcomplete-here (pcmpl-entries)))
+         ("--tempdir" (pcomplete-here (pcmpl-dirs)))
          "--quickcheck"
          "--typecheck")))
       ("hse"
@@ -2609,7 +2685,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "--help"
           "-V"
           "--version")
-   (args (pcomplete-here (pcomplete-entries)))))
+   (args (pcomplete-here (pcmpl-entries)))))
 
 (defun pcmpl-gcc-assembler-flags ()
   '())
@@ -2668,35 +2744,35 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
           "-std=c++11"
           "-std=c99"
           "-std=c89"
-          ("--sysroot" (pcomplete-here (pcomplete-dirs)))
-          ("-B" (pcomplete-here (pcomplete-dirs)))
+          ("--sysroot" (pcomplete-here (pcmpl-dirs)))
+          ("-B" (pcomplete-here (pcmpl-dirs)))
           "-v"
           "-###"
           "-E"
           "-S"
           "-c"
-          ("-o" (pcomplete-here (pcomplete-entries)))
+          ("-o" (pcomplete-here (pcmpl-entries)))
           "-pie"
           "-shared"
           ("-x" (pcomplete-here '("c" "c++" "assembler" "none")))
 
           "-static"
 
-          (("-I" "-L") (pcomplete-here (pcomplete-dirs)))
+          (("-I" "-L") (pcomplete-here (pcmpl-dirs)))
           "-Os"
           "-O2"
           "-O3"
           "-marh"
           "-march=native"
           "-fomit-frame-pontier")
-   (args (pcomplete-here (pcomplete-entries)))))
+   (args (pcomplete-here (pcmpl-entries)))))
 
 ;;; simpler definitions, vanilla Unix & GNU tools
 
 ;;;###autoload (autoload 'pcomplete/cp "shell-completion" nil t)
 (defpcmpl pcomplete/cp
   (opts (flags "-r")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
 
 ;;;###autoload (autoload 'pcomplete/ls "shell-completion" nil t)
 (defpcmpl pcomplete/ls
@@ -2783,7 +2859,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-1"
                "--help"
                "--version")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
 
 ;;;###autoload (autoload 'pcomplete/cat "shell-completion" nil t)
 (defpcmpl pcomplete/cat
@@ -2813,7 +2889,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "--verbose"
                "--help"
                "--version")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
 
 ;;;###autoload (autoload 'pcomplete/bash "shell-completion" nil t)
 (defpcmpl pcomplete/bash
@@ -2941,7 +3017,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
                "-X"
                "-s"
                "-e")
-        (args (pcomplete-here (pcomplete-entries)))))
+        (args (pcomplete-here (pcmpl-entries)))))
 
 ;;;###autoload (autoload 'pcomplete/find "shell-completion" nil t)
 (defpcmpl pcomplete/find
@@ -2962,7 +3038,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-print"
     "-print0")
    (args
-    (pcomplete-here* (pcomplete-dirs)))))
+    (pcomplete-here* (pcmpl-dirs)))))
 
 ;;;###autoload (autoload 'pcomplete/du "shell-completion" nil t)
 (defpcmpl pcomplete/du
@@ -2976,10 +3052,9 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "-a"
     "--all"
     "-L"
-    "--dereference"
-    )
+    "--dereference")
    (args
-    (pcomplete-here* (pcomplete-dirs)))))
+    (pcomplete-here* (pcmpl-dirs)))))
 
 ;;;###autoload (autoload 'pcomplete/busybox "shell-completion" nil t)
 (defpcmpl pcomplete/busybox
@@ -3015,7 +3090,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 (defpcmpl pcomplete/untar
   (opts
    (args
-    (pcomplete-here* (pcomplete-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'")))))
+    (pcomplete-here* (pcmpl-entries "\\.tar\\(?:\\.\\(?:gz\\|bz2\\|xz\\|lz\\|lzip\\|7z\\)\\)?\\'")))))
 
 ;;;###autoload (autoload 'pcomplete/ln "shell-completion" nil t)
 (defpcmpl pcomplete/ln
@@ -3042,7 +3117,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--symbolic"
     "-S"
     "--suffix"
-    (("-t" "--target-directony") (pcomplete-here (pcomplete-dirs)))
+    (("-t" "--target-directony") (pcomplete-here (pcmpl-dirs)))
     "-T"
     "--no-target-directony"
     "-v"
@@ -3057,7 +3132,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
 (defpcmpl pcomplete/unzip
   (opts
    (flags
-    ("-d" (pcomplete-here (pcomplete-dirs)))
+    ("-d" (pcomplete-here (pcmpl-dirs)))
     "-Z"
     "-A"
     "-c"
@@ -3150,8 +3225,8 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
    (flags
     "--help"
     "--dry-run"
-    (("-f" "--file") (pcomplete-here (pcomplete-entries)))
-    (("-p" "--profile") (pcomplete-here (pcomplete-entries)))
+    (("-f" "--file") (pcomplete-here (pcmpl-entries)))
+    (("-p" "--profile") (pcomplete-here (pcmpl-entries)))
     (("-v" "--verbose") (pcomplete-here '("0" "1" "2" "3" "4" "5")))
     "-quiet"
     "-Q"
@@ -3174,7 +3249,7 @@ useless, e.g. (opts (args)) would be accepted but to no effect.
     "--attr"
     "-E"
     "--expr"
-    ("-I" (pcomplete-here (pcomplete-entries)))
+    ("-I" (pcomplete-here (pcmpl-entries)))
     "--option"
     "--repair"
 
