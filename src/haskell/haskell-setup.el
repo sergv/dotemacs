@@ -433,7 +433,7 @@
   (init-common :use-comment nil :use-yasnippet nil :use-fci nil)
   (init-repl :create-keymaps nil)
 
-  (pretty-ligatures-install!)
+  (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
   (vim:local-emap "clear" 'vim:comint-clear-buffer-above-prompt)
@@ -502,7 +502,7 @@
     :bind-colon nil
     :bind-hyphen nil)
 
-  (pretty-ligatures-install!)
+  (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
@@ -562,7 +562,7 @@
     :bind-colon nil
     :bind-hyphen nil)
 
-  (pretty-ligatures-install!)
+  (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
@@ -627,7 +627,7 @@
     :bind-colon nil
     :bind-hyphen nil)
 
-  (pretty-ligatures-install!)
+  (pretty-ligatures-install-safe!)
   (pretty-ligatures-install-special-haskell-ligatures!)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
