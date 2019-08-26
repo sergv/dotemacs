@@ -657,17 +657,16 @@ PROJECT. EQ-FUNC will be used as hash-table comparison."
 ;;;
 
 ;;;###autoload
-(defun copy-file-name-to-clipboard ()
+(defun copy-buffer-file-name-to-clipboard ()
   "Copy the current buffer file name to the clipboard."
   (interactive)
-  (let ((filename (if (equal major-mode 'dired-mode)
-                      default-directory
-                    (buffer-file-name))))
-    (if filename
-        (progn
-          (kill-new filename)
-          (message "Copied buffer file name '%s' to the clipboard." filename))
-      (error "Currrent buffer has no filename"))))
+  (if-let ((filename (if (equal major-mode 'dired-mode)
+                         default-directory
+                       (buffer-file-name))))
+      (progn
+        (kill-new filename)
+        (message "Copied buffer filename '%s' to the clipboard." filename))
+    (error "Currrent buffer has no filename")))
 
 ;;;###autoload
 (defun split-shell-command-into-arguments (command)
