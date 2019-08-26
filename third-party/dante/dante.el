@@ -244,7 +244,7 @@ If `haskell-mode' is not loaded, just return EXPRESSION."
   "Get the type of the thing or selection at point.
 When the universal argument INSERT is non-nil, insert the type in the buffer."
   (interactive "P")
-  (let ((tap (dante--ghc-subexp (dante-thing-at-point))))
+  (let ((tap (dante--ghc-subexp (dante-thing-at-point t))))
     (lcr-cps-let ((_load_messages (dante-async-load-current-buffer nil))
                     (ty (dante-async-call (concat ":type-at " tap))))
       (if insert (save-excursion (goto-char (line-beginning-position))
@@ -412,12 +412,23 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Source buffer operations
 
-(defun dante-thing-at-point ()
-  "Return (list START END) the indent at point, or the region if it is active."
+(defun dante-thing-at-point (&optional include-parens)
+  "Return (START . END) the indent at point, or the region if it is active."
   (if (region-active-p)
       (list (region-beginning) (region-end))
     (or (dante-ident-pos-at-point)
-        (dante--bounds-of-haskell-symbol))))
+        (let ((bounds (dante--bounds-of-haskell-symbol)))
+          (if (and include-parens
+                   bounds)
+              (let ((start (car bounds))
+                    (end (cdr bounds)))
+                (cons (if (char-equal ?\( (char-before start))
+                          (- start 1)
+                        start)
+                      (if (char-equal ?\) (char-after end))
+                          (+ end 1)
+                        end)))
+            bounds)))))
 
 (defun dante-ident-at-point ()
   "Return the identifier under point, or nil if none found.
