@@ -869,6 +869,17 @@ to deleted items. ITEMS will be mutated in order to obtain result."
 
 ;;;
 
+;;;###autoload
+(defun mouse-open-file-at-point-other-window (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (let ((filename (ffap-guesser)))
+    (if filename
+        (if (file-exists-p filename)
+            (find-file-other-window filename)
+          (error "File does not exist: %s" filename))
+      (error "Failed to find a file ptah around point"))))
+
 (provide 'common-heavy)
 
 ;; Local Variables:
