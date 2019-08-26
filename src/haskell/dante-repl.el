@@ -10,8 +10,8 @@
 
 (defun dante-repl-buffer-name ()
   (replace-regexp-in-string
-   "^ *\\*dante:"
-   "*dante-repl:"
+   "^ *\\*dante#"
+   "*dante-repl#"
    (dante-buffer-name)))
 
 (defun dante-repl-switch-to-repl-buffer ()
@@ -86,7 +86,7 @@
                   (comint-simple-send proc (if extra-command
                                                (concat cmd "\n" extra-command)
                                              cmd)))
-                (message "Started REPL with %s" (s-join " " dante-repl-command-line))
+                (message "Started REPL with %s" (s-join " " command-line))
                 t))))
       (error "Dante not started - don't have command line for GHCI REPL yet."))))
 
