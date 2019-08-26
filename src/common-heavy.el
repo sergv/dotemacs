@@ -97,6 +97,17 @@ if CASE-SENSETIVE is t."
     (remove-text-properties 0 (length symb) '(font-lock-face nil) symb)
     (insert symb)))
 
+(defun org-to-json (buf)
+  "Export the current Org-mode buffer as JSON to the supplied PATH."
+  (with-current-buffer buf
+    (let ((tree (org-element-parse-buffer)))
+      (org-element-map tree
+          (append org-element-all-objects org-element-all-elements)
+        (lambda (el)
+          (org-element-put-property el :parent nil)
+          (org-element-put-property el :structure nil)))
+      (json-encode tree))))
+
 ;;;
 
 ;;;###autoload
