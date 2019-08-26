@@ -74,7 +74,9 @@
   ("<right>"  forward-char)
   ("<left>"   backward-char)
 
-  ("C-M-k"    remove-buffer))
+  ("C-M-k"    remove-buffer)
+
+  ("<mouse-3>" mouse-open-file-at-point-other-window))
 
 (def-keys-for-map universal-argument-map
   ("<f2>" universal-argument-more))
