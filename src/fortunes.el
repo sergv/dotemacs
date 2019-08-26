@@ -1432,8 +1432,6 @@ requires reasoning, while those other subjects merely require scholarship.”
    "“Work expands so as to fill the time available for its completion.”
 ―Parkinson’s law"
 
-   "“Творчески мыслящий взрослый — это ребёнок, который выжил.”"
-
    "“Science is the father of knowledge, but opinion breeds ignorance.”
 ―Hippocrates 460-377 BC"
 
