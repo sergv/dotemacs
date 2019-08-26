@@ -83,6 +83,7 @@
      t ;; display
      "--indent" (number-to-string indent)
      "--columns" (number-to-string width)
+     "--output-on-errors"
      "--ghc-options" opts)
     (goto-char start)))
 
