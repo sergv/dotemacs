@@ -342,6 +342,24 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
       (insert-char ?\s))))
 
 ;;;###autoload
+(defun haskell-smart-operators-dot ()
+  "Insert comma followed by space."
+  (interactive)
+  (let* ((pos-before-spaces
+          (save-excursion
+            (skip-syntax-backward " ")
+            (point)))
+         (preceded-by-operator?
+          (awhen (char-before pos-before-spaces)
+            (gethash it haskell-smart-operators--operator-chars))))
+    (when preceded-by-operator?
+      (delete-region pos-before-spaces (point)))
+    (insert-char ?\.)
+    (when (and preceded-by-operator?
+               (not (memq (char-after) '(?\) ?\] ?\}))))
+      (insert-char ?\s))))
+
+;;;###autoload
 (defun haskell-smart-operators-hash ()
   "Smart insertion of #."
   (interactive)
@@ -405,6 +423,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
     (define-key keymap (kbd "-") #'haskell-smart-operators-hyphen)
     (define-key keymap (kbd "#") #'haskell-smart-operators-hash)
     (define-key keymap (kbd ",") #'haskell-smart-operators-comma)
+    (define-key keymap (kbd ".") #'haskell-smart-operators-dot)
     (define-key keymap (kbd "$") #'haskell-smart-operators-$)
     keymap))
 
