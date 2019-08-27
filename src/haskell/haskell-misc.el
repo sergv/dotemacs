@@ -903,6 +903,7 @@ both unicode and ascii characters.")
     ("$"   haskell-smart-operators-$)
     ("#"   haskell-smart-operators-hash)
     (","   haskell-smart-operators-comma)
+    ("."   haskell-smart-operators-dot)
     ("C-=" input-unicode)))
 
 (defun haskell-prof-search-column (column pred)
