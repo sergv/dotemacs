@@ -311,6 +311,7 @@
     (cond
       (dante-mode
        (def-keys-for-map vim:normal-mode-local-keymap
+         ("SPC SPC"      dante-repl-switch-to-repl-buffer)
          (("C-l" "<f6>") vim:haskell-dante-load-file-into-repl)
          (("- e" "j")    dante-eval-block))
 
@@ -334,7 +335,6 @@
 
     (def-keys-for-map vim:normal-mode-local-keymap
       ("\\"           vim:flycheck-run)
-      ("SPC SPC"      haskell-misc-switch-to-dante)
       ("g c c"        haskell-comment-node)
       ("+"            input-unicode)
       ("g i"          vim:haskell-navigate-imports)
