@@ -16,6 +16,7 @@
 (require 'company-mode-setup)
 (require 'compilation-setup)
 (require 'dante)
+(require 'dante-repl)
 (require 'eproj)
 (require 'flycheck-setup)
 (require 'haskell-abbrev+)
@@ -79,6 +80,10 @@
 
 (vim:defcmd vim:haskell-dante-load-file-into-repl (nonrepeatable)
   (dante-repl-load-file))
+
+(vim:defcmd vim:haskell-dante-repl-restart (nonrepeatable)
+  (dante-repl-restart))
+
 
 (vim:defcmd vim:haskell-dante-restart (nonrepeatable)
   (unless dante-mode
@@ -633,14 +638,11 @@
   (pretty-ligatures-install-special-haskell-ligatures!)
 
   (vim:local-emap "clear" 'vim:haskell-interactive-clear-buffer-above-prompt)
+  (dolist (cmd '("re" "restart"))
+    (vim:local-emap cmd #'vim:haskell-dante-repl-restart))
 
   (def-keys-for-map vim:normal-mode-local-keymap
-    ("SPC SPC"  comint-clear-prompt)
-
-    ("C-t"      comint-previous-prompt)
-    ("C-h"      comint-next-prompt)
-    ("S-<up>"   comint-previous-prompt)
-    ("S-<down>" comint-next-prompt))
+    ("SPC SPC"  comint-clear-prompt))
 
   (def-keys-for-map vim:insert-mode-local-keymap
     ("-"        haskell--ghci-hyphen)
@@ -652,6 +654,11 @@
     ("<tab>"    completion-at-point)
     ("<up>"     comint-previous-input)
     ("<down>"   comint-next-input)
+
+    ("C-t"      comint-previous-prompt)
+    ("C-h"      comint-next-prompt)
+    ("S-<up>"   comint-previous-prompt)
+    ("S-<down>" comint-next-prompt)
 
     ("C-("      vim:sp-backward-slurp-sexp)
     ("C-)"      vim:sp-forward-slurp-sexp)
