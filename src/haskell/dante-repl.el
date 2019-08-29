@@ -39,9 +39,9 @@
 ;;;###autoload
 (defun dante-repl-start ()
   (interactive)
-  (dante-relp--start-with-buffer-name (dante-repl-buffer-name)))
+  (dante-repl--start-with-buffer-name (dante-repl-buffer-name)))
 
-(defun dante-relp--start-with-buffer-name (buf-name)
+(defun dante-repl--start-with-buffer-name (buf-name)
   (let ((repl-buf (get-buffer-create buf-name)))
     (condition-case err
         (progn
