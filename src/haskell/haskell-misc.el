@@ -226,6 +226,36 @@ and indent them as singe line."
         "-fdefer-typed-holes"
         "-fdefer-type-errors")
 
+      dante-methods-alist
+      (eval-when-compile
+        (let* ((ghci-options
+                '("-fbyte-code"
+                  "-fdiagnostics-color=always"
+                  "-Wno-missing-home-modules"
+                  "-dsuppress-module-prefixes"
+                  "-fshow-loaded-modules"))
+               (build-dir (list "--builddir" (fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
+               (repl-options (--mapcat (list "--repl-option" it) ghci-options))
+               (stack-ghci-options (--mapcat (list "--ghci-options" it) ghci-options)))
+          `((new-impure-nix dante-cabal-new-nix
+                            `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir)))
+                            `("nix-shell" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir ,@repl-options)))
+                            )
+            (new-nix dante-cabal-new-nix
+                     ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir)))
+                     ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "new-repl" (or dante-target (dante-package-name) "") ,@build-dir ,@repl-options))))
+            (nix dante-cabal-nix
+                 ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "repl" (or dante-target "") ,@build-dir)))
+                 ("nix-shell" "--pure" "--run" (s-join " " (list "cabal" "repl" (or dante-target "") ,@build-dir ,@repl-options))))
+            (impure-nix dante-cabal-nix
+                        ("nix-shell" "--run" (s-join " " (list "cabal" "repl" (or dante-target "") ,@build-dir)))
+                        ("nix-shell" "--run" (s-join " " (list "cabal" "repl" (or dante-target "") ,@build-dir ,@repl-options))))
+            (new-build "cabal.project"
+                       ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@build-dir)
+                       ("cabal" "new-repl" (or dante-target (dante-package-name) nil) ,@build-dir ,@repl-options))
+            (stack "stack.yaml" ("stack" "repl" dante-target) ("stack" "repl" dante-target ,@stack-ghci-options))
+            (bare-ghci ,(lambda (_) t) ("ghci")))))
+
       intero-extra-ghc-options
       '("-O0"
         "-Wall"
