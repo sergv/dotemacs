@@ -807,7 +807,7 @@ for project at ROOT directory."
   (dolist (buf (buffer-list))
     (with-current-buffer buf
       (kill-local-variable 'eproj/buffer-initial-project-root-cache)
-      (kill-local-variable 'eproj/buffer-project-cache))))
+      (kill-local-variable 'eproj/buffer-directory))))
 
 (defvar-local eproj/buffer-initial-project-root-cache nil
   "Is set to initial project root (i.e. string) for buffer containing this
@@ -817,31 +817,31 @@ variable or symbol 'unresolved.")
 (defun-caching eproj-get-initial-project-root (path) eproj-get-initial-project-root/reset-cache path
   (eproj/find-eproj-file-location path))
 
-(defvar-local eproj/buffer-project-cache nil
-  "Caches value computed by `eproj-get-project-for-buf'.
+(defvar-local eproj/buffer-directory nil
+  "Caches value computed by `eproj--get-buffer-directory'.
 
 Set to project that corresponds to buffer containing this variable or
 symbol 'unresolved.")
 
 (defun eproj-get-project-for-buf (buffer)
-  (eproj/evaluate-with-caching-buffer-local-var
-   (eproj-get-project-for-path
+  (eproj-get-project-for-path
+   (eproj/evaluate-with-caching-buffer-local-var
     ;; Take directory since file visited by buffer may not be
     ;; under version control per se.
-    (eproj--get-buffer-directory buffer))
-   buffer
-   eproj/buffer-project-cache
-   #'eproj-project-p))
+    (eproj--get-buffer-directory buffer)
+    buffer
+    eproj/buffer-directory
+    #'stringp)))
 
 (defun eproj-get-project-for-buf-lax (buffer)
-  (eproj/evaluate-with-caching-buffer-local-var
-   (eproj-get-project-for-path-lax
+  (eproj-get-project-for-path-lax
+   (eproj/evaluate-with-caching-buffer-local-var
     ;; Take directory since file visited by buffer may not be
     ;; under version control per se.
-    (eproj--get-buffer-directory buffer))
-   buffer
-   eproj/buffer-project-cache
-   #'eproj-project-p))
+    (eproj--get-buffer-directory buffer)
+    buffer
+    eproj/buffer-directory
+    #'stringp)))
 
 (defun eproj-get-project-for-path-lax (path)
   "Retrieve project that contains PATH as its part. Similar to
