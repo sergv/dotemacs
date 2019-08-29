@@ -139,10 +139,11 @@
           (shell-quote-argument (file-name-nondirectory (buffer-name)))
           "tmp"
           (buffer-substring-no-properties (point-min) (point-max))
-        (dante-repl--send-load-command repl-buf-name repl-buf tmp-file)))))
+        (dante-repl--send-load-command repl-buf-name repl-buf tmp-file)))
+    (switch-to-buffer-other-window (get-buffer repl-buf-name))))
 
-(defun dante-repl--send-load-command (repl-buf-name repl-buf file-name)
-  (let ((cmd (concat ":load \"" file-name "\"")))
+(defun dante-repl--send-load-command (repl-buf-name repl-buf file-to-load)
+  (let ((cmd (concat ":load \"" file-to-load "\"")))
     (if (and repl-buf
              (buffer-live-p repl-buf))
         (let ((proc (get-buffer-process repl-buf)))
@@ -150,8 +151,7 @@
               (comint-simple-send proc cmd)
             (dante-repl--start-in-buffer repl-buf cmd)))
       (let ((buf (get-buffer-create repl-buf-name)))
-        (dante-repl--start-in-buffer buf cmd)
-        (switch-to-buffer-other-window buf)))))
+        (dante-repl--start-in-buffer buf cmd)))))
 
 (defun dante-repl-clear-buffer-above-prompt ()
   (interactive)
