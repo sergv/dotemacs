@@ -233,7 +233,8 @@ and indent them as singe line."
                   "-fdiagnostics-color=always"
                   "-Wno-missing-home-modules"
                   "-dsuppress-module-prefixes"
-                  "-fshow-loaded-modules"))
+                  "-fshow-loaded-modules"
+                  "-fprint-potential-instances"))
                (build-dir (list "--builddir" (fold-platform-os-type "/tmp/dist/dante" "dist/dante")))
                (repl-options (--mapcat (list "--repl-option" it) ghci-options))
                (stack-ghci-options (--mapcat (list "--ghci-options" it) ghci-options)))
