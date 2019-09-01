@@ -31,11 +31,11 @@
 
 ;;; Commentary:
 
-;; DANTE: Do Not Aim To Expand.
+;; DANTE: Do Aim Not To Expand.
 
-;; This is a mode for GHCi advanced "IDE" features.  The mode depends
-;; on GHCi only, keeping the logic simple.  Additionally it aims to be
-;; minimal as far as possible.
+;; This is a mode to provide Emacs interface for GHCi.  The mode
+;; depends on GHCi only, keeping the logic simple.  Additionally it
+;; aims to be minimal as far as possible.
 
 ;;; Code:
 
@@ -93,7 +93,7 @@ will be in different GHCi sessions."
 (defun dante-cabal-new-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
   (and (directory-files d t "shell.nix\\|default.nix")
-       (directory-files d t "cabal.project")))
+       (directory-files d t "cabal.project\\(?:.local\\)?")))
 
 (defun dante-cabal-nix (d)
   "non-nil iff D contains a nix file and a cabal file."
@@ -288,11 +288,13 @@ When the universal argument INSERT is non-nil, insert the type in the buffer."
                (dante-fontify-expression info))
               (goto-char (point-min)))))))))
 
-;;;;;;;;;;;;;;;;;;;;;
-;; Flycheck checker
-
 (defvar-local dante-temp-epoch -1
   "The value of `buffer-modified-tick' when the contents were last loaded.")
+
+(defvar-local dante-interpreted nil)
+
+(defvar dante-original-buffer-map (make-hash-table :test 'equal)
+  "Hash table from (local) temp file names to the file they originate.")
 
 (lcr-def dante-async-load-current-buffer (interpret)
   "Load and maybe INTERPRET the temp file for current buffer.
@@ -301,22 +303,26 @@ scope. Compiling to avoids re-interpreting the dependencies over
 and over."
   (let* ((epoch (buffer-modified-tick))
          (unchanged (equal epoch dante-temp-epoch))
-         (fname (buffer-file-name (current-buffer)))
+         (src-fname (buffer-file-name (current-buffer)))
+         (fname (dante-temp-file-name (current-buffer)))
          (buffer (lcr-call dante-session))
-         (same-buffer (s-equals? (buffer-local-value 'dante-loaded-file buffer) fname)))
-    (if (and unchanged same-buffer) (buffer-local-value 'dante-load-message buffer) ; see #52
+         (same-target (and (or dante-interpreted (not interpret))
+                       (s-equals? (buffer-local-value 'dante-loaded-file buffer) src-fname))))
+    (if (and unchanged same-target) ; see #52
+        (buffer-local-value 'dante-load-message buffer)
       (setq dante-temp-epoch epoch)
-      (vc-before-save)
-      (let ((save-silently t))
-        (basic-save-buffer-1)) ;; save without re-triggering flycheck/flymake nor any save hook
-      (vc-after-save)
+      (setq dante-interpreted interpret)
+      (puthash (dante-local-name fname) src-fname dante-original-buffer-map)
+      ;; Set `noninteractive' to suppress messages from `write-region'.
+      (let ((noninteractive t))
+        (write-region nil nil fname nil 0))
       ;; GHCi will interpret the buffer iff. both -fbyte-code and :l * are used.
       (lcr-call dante-async-call (if interpret ":set -fbyte-code" ":set -fobject-code"))
       (with-current-buffer buffer
-        (dante-async-write (if (and (not interpret) same-buffer) ":r"
+        (dante-async-write (if same-target ":r"
                              (concat ":l " (if interpret "*" "") (dante-local-name fname))))
         (cl-destructuring-bind (_status err-messages _loaded-modules) (lcr-call dante-load-loop "" nil)
-          (setq dante-loaded-file fname)
+          (setq dante-loaded-file src-fname)
           (setq dante-load-message
                 (--map (-map #'ansi-color-apply it) err-messages)))))))
 
@@ -324,26 +330,25 @@ and over."
   "Local name of FNAME on the remote host."
   (string-remove-prefix (or (file-remote-p fname) "") fname))
 
+;;;;;;;;;;;;;;;;;;;;;
+;; Flycheck checker
+
 (defun dante-check (checker cont)
   "Run a check with CHECKER and pass the status onto CONT."
   (if (eq (dante-get-var 'dante-state) 'dead) (funcall cont 'interrupted)
     (lcr-cps-let ((messages (dante-async-load-current-buffer nil)))
-      (let* ((temp-file (dante-local-name (buffer-file-name (current-buffer)))))
+      (let* ((temp-file (dante-local-name (dante-temp-file-name (current-buffer)))))
         (funcall cont
                  'finished
                  (let ((errs (--remove (eq 'splice (flycheck-error-level it))
                                        (--map (dante-fly-message it checker (current-buffer) temp-file) messages))))
                    errs))))))
 
-(defun dante-flycheck-available-p ()
-  "Return non-nil if the flycheck backend should be active."
-  dante-mode)
-
 (flycheck-define-generic-checker 'haskell-dante
   "A syntax and type checker for Haskell using a Dante worker
 process."
   :start 'dante-check
-  :predicate #'dante-flycheck-available-p
+  :predicate (lambda () dante-mode)
   :modes '(haskell-mode literate-haskell-mode))
 
 (add-to-list 'flycheck-checkers 'haskell-dante)
@@ -411,7 +416,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
     (interactive (company-begin-backend 'dante-company))
     (sorted t)
     (prefix
-     (let ((bounds (dante-ident-pos-at-point)))
+     (let ((bounds (dante-ident-pos-at-point -1)))
        (when (and dante-mode (not (dante--in-a-comment)) bounds)
          (let* ((id-start (car bounds))
                 (_ (save-excursion (re-search-backward "import[\t ]*" (line-beginning-position) t)))
@@ -454,38 +459,20 @@ May return a qualified name."
     (when reg
       (buffer-substring-no-properties (car reg) (cdr reg)))))
 
-(defun dante-ident-pos-at-point ()
-  "Return the span of the identifier under point, or nil if none found.
-May return a qualified name."
-  (save-excursion
-    (let ((case-fold-search nil))
-      (cl-multiple-value-bind (start end)
-          (list
-           (progn (skip-syntax-backward "w_") (point))
-           (progn (skip-syntax-forward "w_") (point)))
-        ;; If we're looking at a module ID that qualifies further IDs, add
-        ;; those IDs.
-        (goto-char start)
-        (while (and (looking-at "[[:upper:]]") (eq (char-after end) ?.)
-                    ;; It's a module ID that qualifies further IDs.
-                    (goto-char (1+ end))
-                    (save-excursion
-                      (when (not (zerop (skip-syntax-forward
-                                         (if (looking-at "\\s_") "_" "w'"))))
-                        (setq end (point))))))
-        ;; If we're looking at an ID that's itself qualified by previous
-        ;; module IDs, add those too.
-        (goto-char start)
-        (if (eq (char-after) ?.) (forward-char 1)) ;Special case for "."
-        (while (and (eq (char-before) ?.)
-                    (progn (forward-char -1)
-                           (not (zerop (skip-syntax-backward "w'"))))
-                    (skip-syntax-forward "'")
-                    (looking-at "[[:upper:]]"))
-          (setq start (point)))
-        ;; This is it.
-        (unless (= start end)
-          (cons start end))))))
+(defun dante-ident-pos-at-point (&optional offset)
+  "Return the span of the (qualified) identifier at point+OFFSET, or nil if none found."
+  (let* ((qualifier-regex "\\([[:upper:]][[:alnum:]]*\\.\\)")
+         (ident-regex (concat qualifier-regex "*\\(\\s.+\\|\\(\\sw\\|\\s_\\)+\\)"))) ; note * for many qualifiers
+    (save-excursion
+      (goto-char (+ (point) (or offset 0)))
+      (when (looking-at ident-regex)
+        (let ((end (match-end 0)))
+          (skip-syntax-backward (if (looking-at "\\s.") "." "w_")) ;; find start of operator/variable
+          (while (save-excursion
+                   (and (re-search-backward (concat "\\b" qualifier-regex) (line-beginning-position) t)
+                        (s-matches? (concat "^" ident-regex "$") (buffer-substring-no-properties (point) end))))
+            (goto-char (match-beginning 0)))
+          (cons (point) end))))))
 
 (defvar dante--identifier-syntax-table
   (let ((tbl (copy-syntax-table haskell-mode-syntax-table)))
@@ -531,6 +518,34 @@ The path returned is canonicalized and stripped of any text properties."
     (when name
       (dante-canonicalize-path (substring-no-properties name)))))
 
+(defvar-local dante-temp-file-name nil
+  "The name of a temporary file to which the current buffer's content is copied.")
+
+(defun dante-tramp-make-tramp-temp-file (buffer)
+  "Create a temporary file for BUFFER, perhaps on a remote host."
+  (let* ((fname (buffer-file-name buffer))
+         (suffix (file-name-extension fname t)))
+    (if (file-remote-p fname)
+        (with-parsed-tramp-file-name (buffer-file-name buffer) vec
+          (let ((prefix (concat
+                         (expand-file-name
+                          tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))
+                         "dante"))
+                result)
+            (while (not result)
+              (setq result (concat (make-temp-name prefix) suffix))
+              (if (file-exists-p result)
+                  (setq result nil)))
+                ;; This creates the file by side effect.
+            (set-file-times result)
+            (set-file-modes result #o700)
+            result))
+      (make-temp-file "dante" nil suffix))))
+
+(defun dante-temp-file-name (buffer)
+  "Return a (possibly remote) filename suitable to store BUFFER's contents."
+  (with-current-buffer buffer
+    (or dante-temp-file-name (setq dante-temp-file-name (dante-tramp-make-tramp-temp-file buffer)))))
 
 (defun dante-canonicalize-path (path)
   "Return a standardized version of PATH.
@@ -560,7 +575,7 @@ x:\\foo\\bar (i.e., Windows)."
   (let ((beg (car reg))
         (end (cdr reg)))
     (format "%S %d %d %d %d %s"
-            (buffer-file-name (current-buffer))
+            (dante-local-name (dante-temp-file-name (current-buffer)))
             (line-number-at-pos beg)
             (dante--ghc-column-number-at-pos beg)
             (line-number-at-pos end)
@@ -665,7 +680,7 @@ ACC umulate input and ERR-MSGS."
                   "^Ok, modules loaded:[ ]*\\([^\n ]*\\)\\( (.*)\\)?\."
                   "^Ok, .*modules loaded." ;; .* stands for a number in english (two, three, ...) (GHC 8.2)
                   "^Ok, one module loaded."))
-        (progress "^\\[\\([0-9]*\\) of \\([0-9]*\\)\\] Compiling \\([^ ]*\\).*")
+        (progress "^\\[\\([0-9]*\\) of \\([0-9]*\\)\\] Compiling \\([^ \n]*\\).*")
         (err-regexp "^\\([A-Z]?:?[^ \n:][^:\n\r]+\\):\\([0-9()-:]+\\): \\(.*\\)\n\\(\\([ ]+.*\n\\)*\\)")
         (result nil))
     (while (not result)
@@ -827,7 +842,8 @@ CABAL-FILE rather than trying to locate one."
           (line (string-to-number (match-string 2 string)))
           (col (string-to-number (match-string 3 string))))
       (xref-make-file-location
-       (expand-file-name file dante-project-root)
+       (or (gethash file dante-original-buffer-map)
+           (expand-file-name file dante-project-root))
        line (1- col)))))
 
 (defun dante--summarize-src-spans (spans file)
@@ -864,14 +880,16 @@ CABAL-FILE rather than trying to locate one."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Idle-hook
 
-(defcustom dante-tap-type-time nil "Number of seconds after which
-GHCi is queried for the type of the thing at point, to display in
-the echo area. Use nil to disable."
-  :group 'dante)
+(defcustom dante-tap-type-time nil
+"Delay after to display type of the thing at point, in seconds.
+Use nil to disable." :type 'integer :group 'dante)
 (defvar dante-timer nil)
 (defvar dante-last-valid-idle-type-message nil)
 
+(defvar-local dante-idle-point nil "point when idler kicked in.")
+
 (defun dante-idle-function ()
+  "Eldoc-like support function."
   (when (and dante-mode ;; don't start GHCi if dante is not on.
              (dante-buffer-p) ;; buffer exists
              (with-current-buffer (dante-buffer-p)
@@ -886,7 +904,7 @@ the echo area. Use nil to disable."
                        (or (not cur-msg)
                            (string-match-p (concat "^Wrote " (buffer-file-name)) cur-msg)
                            (and dante-last-valid-idle-type-message
-                                (string-match-p dante-last-valid-idle-type-message cur-msg))))
+                                (string-equal dante-last-valid-idle-type-message cur-msg))))
                      ;; echo area is free, or the buffer was just saved from having triggered a check, or the queue had many requests for idle display and is displaying the last fulfilled idle type request
                      (not (s-match "^<interactive>" ty)) ;; no error
                      (eq (point) dante-idle-point)) ;; cursor did not move
@@ -937,7 +955,7 @@ Calls DONE when done.  BLOCK-END is a marker for the end of the evaluation block
   "Run a check and pass the status onto REPORT-FN."
   (if (eq (dante-get-var 'dante-state) 'dead) (funcall report-fn :panic :explanation "Ghci is dead")
     (lcr-cps-let ((messages (dante-async-load-current-buffer nil)))
-      (let* ((temp-file (dante-local-name (buffer-file-name (current-buffer))))
+      (let* ((temp-file (dante-local-name (dante-temp-file-name (current-buffer))))
              (diags (-non-nil (--map (dante-fm-message it (current-buffer) temp-file) messages))))
         (funcall report-fn diags)))))
 
