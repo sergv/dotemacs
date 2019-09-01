@@ -287,6 +287,11 @@ number of spaces equal to `tab-width'."
                 (make-exec-spec
                  :path "xfce4-terminal"
                  :args '("--default-working-directory"))
+                tbl)
+       (puthash "mate-terminal"
+                (make-exec-spec
+                 :path "mate-terminal"
+                 :args '())
                 tbl))
      (progn
        (puthash "explorer"
