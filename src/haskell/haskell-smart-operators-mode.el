@@ -356,7 +356,7 @@ strings or comments. Expand into {- _|_ -} if inside { *}."
       (delete-region pos-before-spaces (point)))
     (insert-char ?\.)
     (when (and preceded-by-operator?
-               (not (memq (char-after) '(?\) ?\] ?\}))))
+               (not (memq (char-after) '(?\s ?\) ?\] ?\}))))
       (insert-char ?\s))))
 
 ;;;###autoload

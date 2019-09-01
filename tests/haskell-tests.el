@@ -783,6 +783,34 @@
      "foo x xs = foo ## _|_bar"
      "")))
 
+(ert-deftest haskell-tests/haskell-smart-operators--dot-1 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators-dot))
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo .+  _|_bar"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo .+. _|_bar"
+     "")))
+
+(ert-deftest haskell-tests/haskell-smart-operators--dot-2 ()
+  (haskell-tests--test-buffer-contents
+      (progn
+        (haskell-smart-operators-mode +1)
+        (haskell-smart-operators-dot))
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo .+  _|_ bar"
+     "")
+    (tests-utils--multiline
+     ""
+     "foo x xs = foo .+._|_ bar"
+     "")))
+
 
 ;; (ert-deftest haskell-tests/shm/!-1 ()
 ;;   (haskell-tests--test-buffer-contents
