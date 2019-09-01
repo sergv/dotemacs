@@ -342,7 +342,7 @@ as accepted by `bounds-of-thing-at-point'.")
         (eproj-symbnav/on-back)))))
 
 ;;;###autoload
-(defun* setup-eproj-symbnav (&key bind-keybindings)
+(defun* setup-eproj-symbnav (&key (bind-keybindings t))
   (when bind-keybindings
     (awhen (current-local-map)
       (def-keys-for-map it
