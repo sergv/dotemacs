@@ -1123,8 +1123,9 @@ topmost `kill-ring' item is equal to text."
 
 ;;;;
 
-(defun current-column ()
-  "Return current column - integer number."
+(defun current-character-column ()
+  "Return current column in number of characters since the beginning of line.
+Does well against `prettify-symbols-mode' and `compose-region'."
   (declare (pure nil) (side-effect-free nil))
   (- (point) (line-beginning-position)))
 
