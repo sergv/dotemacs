@@ -568,7 +568,7 @@ x:\\foo\\bar (i.e., Windows)."
 
 (defun dante--ghc-column-number-at-pos (pos)
   "Format the point POS as a column number as expected by GHCi."
-  (1+ (save-excursion (goto-char pos) (current-column))))
+  (1+ (save-excursion (goto-char pos) (current-character-column))))
 
 (defun dante--ghc-subexp (reg)
   "Format the subexpression denoted by REG for GHCi commands."
