@@ -9,12 +9,15 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'common)
+(require 'dash)
 
 (defstruct (abbrev+-abbreviation
             (:constructor make--abbrev+-abbreviation))
-  ;; Regular expression that should be matchen in order for
+  ;; Regular expression that should be matched in order for
   ;; this abbreviation to activate.
   (trigger nil :read-only t)
+  ;; Whether to ignore case when matching the trigger.
+  (trigger-is-case-sensitive nil :read-only t)
   ;; Symbol, one of 'literal-string, 'literal-string-no-space-at-end ,
   ;; 'function-result, 'function-with-side-effects or 'yas-snippet.
   (action-type nil :read-only t)
@@ -39,7 +42,7 @@
   ;; Optional.
   (on-successful-expansion nil :read-only t))
 
-(defun* make-abbrev+-abbreviation (&key trigger action-type action-data predicate on-successful-expansion)
+(defun* make-abbrev+-abbreviation (&key trigger trigger-is-case-sensitive action-type action-data predicate on-successful-expansion)
   (cl-assert (stringp trigger))
   (cl-assert (or (null predicate) (functionp predicate)))
   (cl-assert (or (null on-successful-expansion)
@@ -57,7 +60,8 @@
       t)
      (typ nil)))
   (make--abbrev+-abbreviation
-   :trigger trigger
+   :trigger (concat "\\`" trigger "\\'")
+   :trigger-is-case-sensitive trigger-is-case-sensitive
    :action-type action-type
    :action-data action-data
    :predicate predicate
@@ -85,13 +89,11 @@ met then this hook would not run.")
 (defun abbrev+-get-substitution (str)
   "Return substitution for STR obtained by matching STR against
 trigger of `abbrev+-abbreviations' and returning corresponding element in cdr."
-  (save-match-data
-    (find-if
-     (lambda (abbrev)
-       (and (string-match (abbrev+-abbreviation-trigger abbrev) str)
-            (= (match-beginning 0) 0)
-            (= (match-end 0) (length str))))
-     abbrev+-abbreviations)))
+  ;; Do not ignore case during matches.
+  (--find
+   (let ((case-fold-search (not (abbrev+-abbreviation-trigger-is-case-sensitive it))))
+     (string-match-p (abbrev+-abbreviation-trigger it) str))
+   abbrev+-abbreviations))
 
 (defun abbrev+-perform-substitution (abbrev)
   "Perform actual substitution. Return two arguments: first being
