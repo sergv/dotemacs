@@ -368,7 +368,13 @@ then Bar would be the result."
              :predicate import-expand-pred)
 
             (make-abbrev+-abbreviation
-             :trigger "\\<\\(?:pp\\(?:dh\\|[dD]ict\\(?:[hH]eader\\)?\\)?\\)\\>"
+             :trigger "\\<pp\\>"
+             :trigger-is-case-sensitive t
+             :action-type 'function-with-side-effects
+             :action-data #'haskell-insert-pp-dict-info-template
+             :predicate #'point-not-inside-string-or-comment?)
+            (make-abbrev+-abbreviation
+             :trigger "\\<\\(?:pp\\(?:dh\\|[dD]ict\\(?:[hH]eader\\)?\\)\\)\\>"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-pp-dict-info-template
              :predicate #'point-not-inside-string-or-comment?)
@@ -410,6 +416,8 @@ then Bar would be the result."
             '(("m"   "Data.Map.Strict"            "Map"          "M")
               ("s"   "Data.Set"                   "Set"          "S")
               ("v"   "Data.Vector"                "Vector"       "V")
+              ("u"   "Data.Vector.Unbox"          "Vector"       "U")
+              ("vs"  "Data.Vector.Storable"       "Vector"       "VS")
               ("im"  "Data.IntMap"                "IntMap"       "IM")
               ("is"  "Data.IntSet"                "IntSet"       "IS")
               ("hm"  "Data.HashMap.Strict"        "HashMap"      "HM")
@@ -420,6 +428,7 @@ then Bar would be the result."
               ("t"   "Data.Text"                  "Text"         "T")
               ("tl"  "Data.Text.Lazy"             nil            "TL")
               ("bs"  "Data.ByteString"            "ByteString"   "BS")
+              ("bl"  "Data.ByteString.Lazy"       nil            "BSL")
               ("bsl" "Data.ByteString.Lazy"       nil            "BSL")
               ("c8"  "Data.ByteString.Char8"      "ByteString"   "C8")
               ("cl8" "Data.ByteString.Lazy.Char8" nil            "CL8"))))))
