@@ -42,27 +42,13 @@ from \\label{...} and \\ref{...} constructs."
         abbrev+-abbreviations
         (list
          (make-abbrev+-abbreviation
-          :trigger (rx "\\" "i")
+          :trigger (rx "\\" (or "i" "п" "и"))
           :action-type 'literal-string
           :action-data "\\item")
          (make-abbrev+-abbreviation
-          :trigger (rx "\\" "п")
-          :action-type 'literal-string
-          :action-data "\\item")
-         (make-abbrev+-abbreviation
-          :trigger (rx "\\" "и")
-          :action-type 'literal-string
-          :action-data "\\item")
-         (make-abbrev+-abbreviation
-          :trigger (rx "\\" "r" (? "e" (? "f")))
-          :action-type 'function-with-side-effects
-          :action-data #'latex-insert-reference-template)
-         (make-abbrev+-abbreviation
-          :trigger (rx "\\" "щ" (? "в" (? "н")))
-          :action-type 'function-with-side-effects
-          :action-data#'latex-insert-reference-template)
-         (make-abbrev+-abbreviation
-          :trigger (rx "\\" "р" (? "е" (? "ф")))
+          :trigger (rx "\\" (or (seq "r" (? "e" (? "f")))
+                                (seq "щ" (? "в" (? "н")))
+                                (seq "р" (? "е" (? "ф")))))
           :action-type 'function-with-side-effects
           :action-data #'latex-insert-reference-template)))
 
