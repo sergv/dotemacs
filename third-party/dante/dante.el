@@ -436,7 +436,7 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
 (defun dante-thing-at-point (&optional include-parens)
   "Return (START . END) the indent at point, or the region if it is active."
   (if (region-active-p)
-      (list (region-beginning) (region-end))
+      (cons (region-beginning) (region-end))
     (or (dante-ident-pos-at-point)
         (let ((bounds (dante--bounds-of-haskell-symbol)))
           (if (and include-parens
