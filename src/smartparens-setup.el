@@ -186,7 +186,8 @@ With negative argument move forward, still one level out."
                  haskell-cabal-mode
                  haskell-interactive-mode
                  inferior-haskell-mode
-                 intero-repl-mode)
+                 intero-repl-mode
+                 dante-repl-mode)
   (sp-local-pair "{-#" "#-}")
   (sp-local-pair "'" nil :actions '(insert) :unless '(sp-point-after-word-p))
 
