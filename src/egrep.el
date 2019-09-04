@@ -236,7 +236,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                (cl-assert (stringp orig-str))
                (cl-assert (stringp new-contents))
                (goto-line (egrep-match-line match-entry))
-               (move-to-column 0)
+               (beginning-of-line)
                (let ((current-str
                       (buffer-substring-no-properties (point)
                                                       (+ (point)
@@ -262,7 +262,7 @@ MATCH-START and MATCH-END are match bounds in the current buffer"
                (cl-assert (stringp orig-str))
                (cl-assert (stringp new-contents))
                (goto-line (egrep-match-line match-entry))
-               (move-to-column 0)
+               (beginning-of-line)
                (delete-region (point)
                               (+ (point)
                                  (length orig-str)))
@@ -331,7 +331,7 @@ FILE-GLOBS and don't match IGNORED-FILE-GLOBS."
           buf)
          (progn
            (goto-line (egrep-match-line match))
-           (move-to-column (egrep-match-column match)))))
+           (move-to-character-column (egrep-match-column match)))))
      :item-show-function
      #'egrep--format-match-entry
      :preamble
