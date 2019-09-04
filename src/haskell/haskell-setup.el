@@ -167,10 +167,14 @@
   "Extract a location from a ghc span STRING."
   ;; On external symbols, GHC may return a location such as integer-gmp-1.0.0.1:integer-gmp-1.0.0.1:GHC.Integer.Type
   (when (string-match "\\(.*?\\):(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))$" string)
-    (let ((file (match-string 1 string))
-          (line (string-to-number (match-string 2 string)))
-          (col (string-to-number (match-string 3 string))))
-      (make-eproj-tag (expand-file-name file dante-project-root)
+    (let* ((file (match-string 1 string))
+           (resolved-file
+            (or (gethash file dante-original-buffer-map)
+                (gethash (dante-local-name file) dante-original-buffer-map)
+                file))
+           (line (string-to-number (match-string 2 string)))
+           (col (string-to-number (match-string 3 string))))
+      (make-eproj-tag (expand-file-name resolved-file dante-project-root)
                       line
                       `((column . ,(1- col)))))))
 
