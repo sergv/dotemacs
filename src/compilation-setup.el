@@ -167,7 +167,7 @@ error location - list of (filename line column)."
   (vim:save-position)
   (goto-line1 (compilation-error/line-number err))
   (awhen (compilation-error/column-number err)
-    (move-to-column it)))
+    (move-to-character-column it)))
 
 (defun compilation/goto-error ()
   "Jump to location of error or warning (file, line and column) in current window."
