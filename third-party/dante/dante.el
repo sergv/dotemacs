@@ -965,7 +965,7 @@ Calls DONE when done.  BLOCK-END is a marker for the end of the evaluation block
     (save-excursion
       (goto-char (point-min))
       (forward-line (1- l))
-      (move-to-column (1- c))
+      (move-to-character-column (1- c))
       (point))))
 
 (defun dante-fm-message (matched buffer temp-file)
