@@ -1129,6 +1129,11 @@ Does well against `prettify-symbols-mode' and `compose-region'."
   (declare (pure nil) (side-effect-free nil))
   (- (point) (line-beginning-position)))
 
+(defun move-to-character-column (col)
+  "Move point to column COL."
+  (declare (pure nil) (side-effect-free nil))
+  (goto-char (min (+ (line-beginning-position) col) (line-end-position))))
+
 (defun remove-buffer (&optional buffer-or-name)
   "Remove buffer completely bypassing all its prompt functions.
 Save buffer if it has assigned file and this file exists on disk."

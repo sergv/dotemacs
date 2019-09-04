@@ -162,7 +162,7 @@
       (find-file (flycheck-error-filename next-error))
       (goto-line1 (flycheck-error-line next-error))
       (awhen (flycheck-error-column next-error)
-        (move-to-column it))
+        (move-to-character-column it))
       (flycheck-display-error-at-point))))
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
