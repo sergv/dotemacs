@@ -61,14 +61,14 @@
         abbrev+-abbreviations
         (list
          (make-abbrev+-abbreviation
-          :trigger "\\_<info\\_>"
+          :trigger "info"
           :action-type 'function-with-side-effects
           :action-data #'clojure-print-info-template
           :predicate (lambda ()
                        (and (not (lisp-point-inside-string-or-comment?))
                             (not (lisp-prev-pos-is-beginning-of-list? (point))))))
         (make-abbrev+-abbreviation
-          :trigger "\\_<log\\_>"
+          :trigger "log"
           :action-type 'function-with-side-effects
           :action-data #'clojure-android-log-template
           :predicate (lambda ()
