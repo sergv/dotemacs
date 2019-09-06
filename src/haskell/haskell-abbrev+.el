@@ -198,7 +198,7 @@
   "Extract module name from QUALIFIED-NAME, e.g. if QUALIFIED-NAME = Foo.Bar
 then Bar would be the result."
   (save-match-data
-    (if (string-match "^\\(?:[A-Z][a-zA-Z0-9_']*\\.\\)+\\([A-Z][a-zA-Z0-9_']*\\)$"
+    (if (string-match "\\`\\(?:[A-Z][a-zA-Z0-9_']*\\.\\)+\\([A-Z][a-zA-Z0-9_']*\\)\\'"
                       qualified-name)
         (match-string 1 qualified-name)
       qualified-name)))
@@ -325,88 +325,88 @@ then Bar would be the result."
                :predicate #'point-not-inside-string-or-comment?)))
            (list
             (make-abbrev+-abbreviation
-             :trigger "^hpr?f$"
+             :trigger "hpr?f"
              :action-type 'literal-string
              :action-data "hPrintf"
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "^pr?f$"
+             :trigger "pr?f"
              :action-type 'literal-string
              :action-data "printf"
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "^\\(?:ps\\|p\\)l?n$"
+             :trigger "\\(?:ps\\|p\\)l?n"
              :action-type 'literal-string
              :action-data "putStrLn"
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "^hps?l?n$"
+             :trigger "hps?l?n"
              :action-type 'literal-string
              :action-data "hPutStrLn"
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "^hp\\(?:s\\|l\\)\\{1,2\\}$"
+             :trigger "hp\\(?:s\\|l\\)\\{1,2\\}"
              :action-type 'literal-string
              :action-data "hPutStr"
              :predicate #'point-not-inside-string-or-comment?)
 
             (make-abbrev+-abbreviation
-             :trigger (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) "$")
+             :trigger (concat (abbrev+--make-re-with-optional-suffix "import" 2))
              :action-type 'literal-string
              :action-data "import"
              :predicate import-expand-pred)
 
             (make-abbrev+-abbreviation
-             :trigger (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) "q$")
+             :trigger (concat (abbrev+--make-re-with-optional-suffix "import" 2) "q")
              :action-type 'yas-snippet
              :action-data expand-qualified-import-snippet
              :predicate import-expand-pred)
             (make-abbrev+-abbreviation
-             :trigger (concat "^q" (abbrev+--make-re-with-optional-suffix "import" 2) "$")
+             :trigger (concat "q" (abbrev+--make-re-with-optional-suffix "import" 2))
              :action-type 'yas-snippet
              :action-data expand-qualified-import-snippet
              :predicate import-expand-pred)
 
             (make-abbrev+-abbreviation
-             :trigger "\\<pp\\>"
+             :trigger "pp"
              :trigger-is-case-sensitive t
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-pp-dict-info-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "\\<\\(?:pp\\(?:dh\\|[dD]ict\\(?:[hH]eader\\)?\\)\\)\\>"
+             :trigger "\\(?:pp\\(?:dh\\|[dD]ict\\(?:[hH]eader\\)?\\)\\)"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-pp-dict-info-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "\\<\\(?:\\(?:info\\|trace\\)pp\\|pp\\(?:info\\|trace\\)\\)\\>"
+             :trigger "\\(?:\\(?:info\\|trace\\)pp\\|pp\\(?:info\\|trace\\)\\)"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-pp-info-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "\\<\\(?:\\(?:info\\|trace\\)\\(?:[Mm]pp\\|pp[Mm]\\)\\|pp\\(?:info\\|trace\\)[Mm]\\)\\>"
+             :trigger "\\(?:\\(?:info\\|trace\\)\\(?:[Mm]pp\\|pp[Mm]\\)\\|pp\\(?:info\\|trace\\)[Mm]\\)"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-monadic-pp-info-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "\\<trace\\>"
+             :trigger "trace"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-trace-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "\\<trace[Mm]\\>"
+             :trigger "trace[Mm]"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-tracem-template
              :predicate #'point-not-inside-string-or-comment?)
             (make-abbrev+-abbreviation
-             :trigger "\\<info[Mm]\\>"
+             :trigger "info[Mm]"
              :action-type 'function-with-side-effects
              :action-data #'haskell-insert-monadic-info-template
              :predicate #'point-not-inside-string-or-comment?))
            (--map
-            (destructuring-bind (suffix module-name type-name alias) it
+            (destructuring-bind (suffix module-name type-name alias full-match?) it
               (make-abbrev+-abbreviation
-               :trigger (concat "^" (abbrev+--make-re-with-optional-suffix "import" 2) suffix "$")
+               :trigger (concat (if full-match? "import" (abbrev+--make-re-with-optional-suffix "import" 2)) suffix)
                :action-type 'literal-string
                :action-data (concat (if type-name
                                         (concat "import " module-name " (" type-name ")\n")
