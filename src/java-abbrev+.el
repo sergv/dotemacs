@@ -50,7 +50,7 @@ while interactively prompting for variables/messages."
         abbrev+-abbreviations
         (list
          (make-abbrev+-abbreviation
-          :trigger "\\<Utils\\.d\\>"
+          :trigger "Utils\\.d"
           :action-type 'function-with-side-effects
           :action-data #'java-print-info-template
           :predicate #'point-not-inside-string-or-comment?)))
