@@ -32,7 +32,7 @@
         abbrev+-abbreviations
         (list
          (make-abbrev+-abbreviation
-          :trigger "\\_<info\\_>"
+          :trigger "info"
           :action-type 'function-with-side-effects
           :action-data #'shell-script-info-message-template
           :predicate (lambda () (and (not (lisp-point-inside-string-or-comment?))

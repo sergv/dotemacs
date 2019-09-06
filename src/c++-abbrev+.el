@@ -13,41 +13,39 @@
         abbrev+-abbreviations
         (list
          (make-abbrev+-abbreviation
-          :trigger "\\<pr\\(?:i\\(?:nt?\\)?\\)?f?\\>"
+          :trigger "pr\\(?:i\\(?:nt?\\)?\\)?f?"
           :action-type 'yas-snippet
           :action-data "printf(\"$1\\n\"$2);$0"
           :predicate #'point-not-inside-string-or-comment?)
          (make-abbrev+-abbreviation
-          :trigger "\\<info\\>"
+          :trigger "info"
           :action-type 'yas-snippet
           :action-data "std::cout << \"$1: \" << $1 << std::endl;$2"
           :predicate #'point-not-inside-string-or-comment?)
          (make-abbrev+-abbreviation
-          :trigger "\\(?:std::?\\)?\\<cout\\>"
+          :trigger "\\(?:std::?\\)?cout"
           :action-type 'yas-snippet
           :action-data "std::cout << $1 << std::endl;$2"
           :predicate #'point-not-inside-string-or-comment?)
          (make-abbrev+-abbreviation
-          :trigger "\\(?:std::?\\)?\\<endl\\>"
+          :trigger "\\(?:std::?\\)?endl"
           :action-type 'literal-string-no-space-at-end
           :action-data "std::cout << std::endl;"
           :predicate #'point-not-inside-string-or-comment?)
          (make-abbrev+-abbreviation
-          :trigger "\\(?:std::?\\)?\\<cerr\\>"
+          :trigger "\\(?:std::?\\)?cerr"
           :action-type 'yas-snippet
           :action-data "std::cerr << $1 << std::endl;$2"
           :predicate #'point-not-inside-string-or-comment?)
          (make-abbrev+-abbreviation
-          :trigger (rx bow
-                       "s"
+          :trigger (rx "s"
                        (? "t"
                           (? "a"
                              (? "t"
                                 (? "i"
                                    (? "c")))))
                        (? "_")
-                       "cast"
-                       eow)
+                       "cast")
           :action-type 'yas-snippet
           :action-data "static_cast<${1:target}>($2)$3"
           :predicate #'point-not-inside-string-or-comment?)))
