@@ -73,12 +73,12 @@ while interactively prompting for variables/messages."
         abbrev+-abbreviations
         (list
          (make-abbrev+-abbreviation
-          :trigger "\\<prf?\\>"
+          :trigger "prf?"
           :action-type 'yas-snippet
           :action-data "printf(\"${1}\\n\");"
           :predicate #'point-not-inside-string-or-comment?)
          (make-abbrev+-abbreviation
-          :trigger "\\<info\\>"
+          :trigger "info"
           :action-type 'function-with-side-effects
           :action-data #'octave-print-info-template
           :predicate #'point-not-inside-string-or-comment?)))
