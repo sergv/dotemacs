@@ -437,19 +437,18 @@ See ``company-backends'' for the meaning of COMMAND, ARG and _IGNORED."
   "Return (START . END) the indent at point, or the region if it is active."
   (if (region-active-p)
       (cons (region-beginning) (region-end))
-    (or (dante-ident-pos-at-point)
-        (let ((bounds (dante--bounds-of-haskell-symbol)))
-          (if (and include-parens
-                   bounds)
-              (let ((start (car bounds))
-                    (end (cdr bounds)))
-                (cons (if (char-equal ?\( (char-before start))
-                          (- start 1)
-                        start)
-                      (if (char-equal ?\) (char-after end))
-                          (+ end 1)
-                        end)))
-            bounds)))))
+    (let ((bounds (dante--bounds-of-haskell-symbol)))
+      (if (and include-parens
+               bounds)
+          (let ((start (car bounds))
+                (end (cdr bounds)))
+            (cons (if (char-equal ?\( (char-before start))
+                      (- start 1)
+                    start)
+                  (if (char-equal ?\) (char-after end))
+                      (+ end 1)
+                    end)))
+        bounds))))
 
 (defun dante-ident-at-point ()
   "Return the identifier under point, or nil if none found.
