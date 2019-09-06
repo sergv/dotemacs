@@ -178,7 +178,7 @@ expansion was performed."
         (goto-char start))
       result)))
 
-(defvar-local abbrev+-fallback-function (lambda () (insert " "))
+(defvar-local abbrev+-fallback-function (lambda () (insert-char ?\s))
   "Fallback function called by `abbrev+-insert-space-or-expand-abbrev'
 if no expansion was produced.")
 
