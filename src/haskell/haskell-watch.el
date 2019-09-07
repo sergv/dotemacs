@@ -109,10 +109,6 @@ roots (i.e. valid and existing keys within
 
 (defun haskell-watch--unwatch-file (proj file)
   (cl-assert (file-name-absolute-p file))
-  (cl-assert proj
-             nil
-             "No project with root %s"
-             proj-root)
   (when proj
     (remhash file (haskell-watched-project/watched-files proj))
     (let ((descriptor (bimap-lookup-reverse file
@@ -137,8 +133,7 @@ roots (i.e. valid and existing keys within
         ('changed
          (haskell-watch--mark-project-as-dirty proj))
         ((or 'deleted 'stopped)
-         (when proj
-           (haskell-watch--unwatch-file proj file)))
+         (haskell-watch--unwatch-file proj file))
         ((or 'created 'attribute-changed)
          ;; It was not present but now is - just continue watching over it.
          )
@@ -158,9 +153,6 @@ project PROJ change."
   "Whether project of current buffer had it's configuration (e.g. cabal file)
 modified and we should reconfigure the project.")
 
-(defvar-local haskell-watch--project-for-buffer nil
-  "Project this buffer is assigned to.")
-
 (defun haskell-watch--mark-project-as-dirty (proj)
   (setf (haskell-watched-project/checker-needs-restart proj) t)
   (maphash (lambda (buf _ignored)
@@ -168,7 +160,6 @@ modified and we should reconfigure the project.")
              (when (buffer-live-p buf)
                (with-current-buffer buf
                  (setq-local haskell-watch--buffer-project-is-dirty? t)
-                 (setq-local haskell-watch--project-for-buffer proj)
                  ;; Schedule a check next time we visit the buffer.
                  (flycheck-buffer-automatically
                   nil
@@ -177,21 +168,25 @@ modified and we should reconfigure the project.")
            (haskell-watched-project/registered-buffers proj)))
 
 (defun haskell-watch--refresh-config-if-needed ()
-  (when haskell-watch--buffer-project-is-dirty?
-    (cond
-      ((haskell-watched-project/checker-needs-restart haskell-watch--project-for-buffer)
-       (eval-when-compile
-         (when (fboundp #'intero-mode)
-           '(when intero-mode
-              (intero-restart))))
-       (eval-when-compile
-         (when (fboundp #'dante-mode)
-           '(when dante-mode
-              (dante-restart))))
-       (setf (haskell-watched-project/checker-needs-restart haskell-watch--project-for-buffer) nil))
-      (flycheck-mode
-       (flycheck-haskell-configure)))
-    (setf haskell-watch--buffer-project-is-dirty? nil)))
+  (when-let ((buffer-dirty? haskell-watch--buffer-project-is-dirty?)
+             (proj
+              (gethash (haskell-watch-get-project-root)
+                       haskell-watch--known-projects))
+             (restart-needed?
+              (haskell-watched-project/checker-needs-restart proj)))
+    (haskell-watch--refresh-config)
+    (setf haskell-watch--buffer-project-is-dirty? nil
+          (haskell-watched-project/checker-needs-restart proj) nil)))
+
+(defun haskell-watch--refresh-config ()
+  (cond
+    (dante-mode
+     (flycheck-haskell-configure)
+     (dante-restart))
+    (intero-mode
+     (intero-restart))
+    (flycheck-mode
+     (flycheck-haskell-configure))))
 
 (add-hook 'flycheck-before-syntax-check-hook
           #'haskell-watch--refresh-config-if-needed)
