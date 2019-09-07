@@ -714,8 +714,7 @@
                  :enable-yasnippet t)
   (def-keys-for-map vim:normal-mode-local-keymap
     ("g <tab>" haskell-misc-cabal-align-and-sort-subsection)
-    ("'"       yafolding-go-parent-element)
-    ("SPC SPC" haskell-misc-switch-to-haskell))
+    ("'"       yafolding-go-parent-element))
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)

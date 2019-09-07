@@ -1016,48 +1016,6 @@ it's position in current window."
    #'compilation-jump-to-prev-error
    #'flycheck-previous-error))
 
-(defvar haskell-misc--switch-to-haskell-process-type-history nil)
-(defvar haskell-misc--switch-to-haskell-ghci-command-history nil)
-
-(defun haskell-misc-switch-to-haskell (&optional query-for-process-type)
-  (interactive "P")
-  (let* ((process-type
-          (if query-for-process-type
-              (string->symbol
-               (ivy-completing-read "Process type: "
-                                    '("auto"
-                                      "cabal-repl"
-                                      "stack-ghci"
-                                      "ghci"
-                                      "ghci-custom-command")
-                                    nil ;; predicate
-                                    t   ;; require match
-                                    (symbol->string haskell-process-type) ;; initial-input
-                                    'haskell-misc--switch-to-haskell-process-type-history
-                                    ))
-            haskell-process-type))
-         (edit-command? (eq process-type 'ghci-custom-command))
-         (haskell-process-type
-          (if edit-command?
-              'ghci
-            process-type))
-         (old-wrapper haskell-process-wrapper-function))
-    (let ((haskell-process-wrapper-function
-           (lambda (args)
-             (let ((transformed-args (funcall old-wrapper args))
-                   (enable-recursive-minibuffers t))
-               (if edit-command?
-                   (split-shell-command-into-arguments
-                    (read-shell-command
-                     "Ghci command: "
-                     (join-lines transformed-args " ")
-                     'haskell-misc--switch-to-haskell-ghci-command-history))
-                 transformed-args)))))
-      (when (and buffer-file-name
-                 (member (file-name-extension buffer-file-name) +haskell-extensions+))
-        (haskell-process-load-file))
-      (haskell-interactive-bring))))
-
 (defun haskell-misc--cabal-indented-subsection ()
   "Similar to `haskell-cabal-subsection' but sets `:data-start-column' to the
 value section should have if it is to be properly indented."
