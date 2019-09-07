@@ -1,4 +1,4 @@
-;;; el-patch.el --- Future-proof your Elisp. -*- lexical-binding: t -*-
+;;; el-patch.el --- Future-proof your Elisp -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016 Radon Rosborough
 
@@ -7,7 +7,7 @@
 ;; Homepage: https://github.com/raxod502/el-patch
 ;; Keywords: extensions
 ;; Package-Requires: ((emacs "25"))
-;; Version: 2.2.2
+;; Version: 2.2.3
 
 ;;; Commentary:
 
@@ -481,6 +481,7 @@ is a sentence to put in brackets at the end of the docstring."
                               (remove ',item current-load-list)))
                      items))))))
 
+;;;###autoload
 (defmacro el-patch--definition (patch-definition)
   "Activate a PATCH-DEFINITION and update `el-patch--patches'.
 PATCH-DEFINITION is an unquoted list starting with `defun',
@@ -621,7 +622,7 @@ is the Lisp form, read from the buffer at point."
                           ;; definition happens to be in the *current*
                           ;; buffer.
                           (cl-letf (((symbol-function #'get-file-buffer)
-                                     (symbol-function #'ignore)))
+                                     #'ignore))
                             ,@body)))
           (defun-buffer (car buffer-point))
           (defun-point (cdr buffer-point)))
@@ -899,11 +900,13 @@ two buffers wordwise."
   (let (min1 max1 min2 max2)
     (with-current-buffer (get-buffer-create name1)
       (erase-buffer)
+      (emacs-lisp-mode)
       (pp form1 (current-buffer))
       (setq min1 (point-min)
             max1 (point-max)))
     (with-current-buffer (get-buffer-create name2)
       (erase-buffer)
+      (emacs-lisp-mode)
       (pp form2 (current-buffer))
       (setq min2 (point-min)
             max2 (point-max)))
@@ -989,6 +992,7 @@ This mode is enabled or disabled automatically when the
 `el-patch' library is loaded, according to the value of
 `el-patch-enable-use-package-integration'."
   :global t
+  :group 'el-patch
   (if el-patch-use-package-mode
       (with-eval-after-load 'use-package-core
         (dolist (kw '(:init/el-patch :config/el-patch))
