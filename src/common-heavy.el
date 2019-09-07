@@ -461,8 +461,7 @@ existing file. If PATH is relative then try resolving it against DIR."
         (if (or (file-exists-p abs-path)
                 (file-directory-p abs-path))
             abs-path
-          (error "File %s does not exist, try `eproj-update-buffer-project'"
-                 abs-path))))))
+          (error "File/directory does not exist: %s" abs-path))))))
 
 ;;;###autoload
 (defun remove-duplicates-sorted (xs eq-func)
