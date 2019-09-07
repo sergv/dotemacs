@@ -181,7 +181,7 @@ modified and we should reconfigure the project.")
 (defun haskell-watch--refresh-config ()
   (cond
     (dante-mode
-     (flycheck-haskell-configure)
+     (haskell-misc--configure-dante)
      (dante-restart))
     (intero-mode
      (intero-restart))
