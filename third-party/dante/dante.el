@@ -346,7 +346,15 @@ and over."
                  'finished
                  (let ((errs (--remove (eq 'splice (flycheck-error-level it))
                                        (--map (dante-fly-message it checker (current-buffer) temp-file) messages))))
-                   errs))))))
+                   (remove-duplicates-by-hashing-projections
+                    (lambda (err)
+                      (list (flycheck-error-level err)
+                            (flycheck-error-message err)
+                            (flycheck-error-filename err)
+                            (flycheck-error-line err)
+                            (flycheck-error-column err)))
+                    #'equal
+                    errs)))))))
 
 (flycheck-define-generic-checker 'haskell-dante
   "A syntax and type checker for Haskell using a Dante worker
