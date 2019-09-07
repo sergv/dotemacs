@@ -139,7 +139,7 @@ ENTRY should be of format used by `compilation-error-regexp-alist'."
                                           compilation-error-regexp-alist)))
         (compilation/parse-matched-error-entry err-entry)))))
 
-(defun compilation/find-buffer (filename root)
+(defun compilation/find-buffer (filename &optional root)
   "Get buffer that corresponds to FILENAME, which may be neither full nor
 relative path. In case it's neither, the filename with suffix equal to FILENAME
 will searched for."

@@ -447,7 +447,7 @@ If MODE is nil - fontify in current buffer."
       0 'warning t))))
 
 ;;;###autoload
-(defun resolve-to-abs-path (path dir)
+(defun resolve-to-abs-path (path &optional dir)
   "Try to come up with an absolute filename that refers to
 existing file. If PATH is relative then try resolving it against DIR."
   (if (or (file-exists-p path)
