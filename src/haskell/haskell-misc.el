@@ -967,23 +967,22 @@ with the position of the selected error."
         (line (line-number-at-pos)))
     (with-selected-window win
       (with-current-buffer haskell-compilation-buffer
-        (let ((selected-err (compilation/get-selected-error)))
-          (if selected-err
-              (if (and
-                   (eq (compilation/find-buffer
-                        (compilation-error/filename selected-err)
-                        (compilation-error/compilation-root-directory selected-err))
-                       buf)
-                   (equal (compilation-error/line-number selected-err)
-                          line))
-                  ;; If we're already on the selected error then jump to next error.
-                  (progn
-                    (funcall jump-to-next-err-func)
-                    (compilation/get-selected-error))
-                selected-err)
-            (progn
-              (funcall jump-to-next-err-func)
-              (compilation/get-selected-error))))))))
+        (if-let ((selected-err (compilation/get-selected-error)))
+            (if (and
+                 (eq (compilation/find-buffer
+                      (compilation-error/filename selected-err)
+                      (compilation-error/compilation-root-directory selected-err))
+                     buf)
+                 (equal (compilation-error/line-number selected-err)
+                        line))
+                ;; If we're already on the selected error then jump to next error.
+                (progn
+                  (funcall jump-to-next-err-func)
+                  (compilation/get-selected-error))
+              selected-err)
+          (progn
+            (funcall jump-to-next-err-func)
+            (compilation/get-selected-error)))))))
 
 (defun haskell-compilation-go-navigate-errors (jump-to-next-err-func fallback)
   "Navigate errors in `haskell-compilation-buffer'."
