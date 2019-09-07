@@ -11,6 +11,9 @@
 
 (provide 'flycheck-setup)
 
+(defvar-local flycheck-enhancements--get-project-roots-for-current-buffer (lambda () nil)
+  "Function that should return potential project root this buffer is part of.")
+
 ;;;###autoload
 (eval-after-load "flycheck" '(require 'flycheck-setup))
 
@@ -154,16 +157,23 @@
                              ;; Make errors wrap around.
                              current-file-errors-before-current-line)))))
              (other-all
-             ;; Any warnings or hlint suggestions in dependent buffers.
+              ;; Any warnings or hlint suggestions in dependent buffers.
               (car other-all))
              (t nil))))
-      (unless next-error
-        (error "No more errors"))
-      (find-file (flycheck-error-filename next-error))
-      (goto-line1 (flycheck-error-line next-error))
-      (awhen (flycheck-error-column next-error)
-        (move-to-character-column it))
-      (flycheck-display-error-at-point))))
+      (if next-error
+          (if-let ((filename (flycheck-error-filename next-error)))
+              (progn
+                (if (file-exists-p (flycheck-error-filename next-error))
+                    (find-file (flycheck-error-filename next-error))
+                  (awhen (compilation/find-buffer (flycheck-error-filename next-error)
+                                                  (funcall flycheck-enhancements--get-project-roots-for-current-buffer))
+                    (switch-to-buffer it)))
+                (goto-line1 (flycheck-error-line next-error))
+                (awhen (flycheck-error-column next-error)
+                  (move-to-character-column it))
+                (flycheck-display-error-at-point))
+            (error "Error does not refer to any file: %s" next-error))
+        (message "No more errors")))))
 
 (defun flycheck-enhancements-previous-error-with-wraparound ()
   (interactive)

@@ -191,12 +191,14 @@
     (pretty-ligatures-install!)
     (pretty-ligatures-install-special-haskell-ligatures!)
 
+    (haskell-watch-register-current-buffer!)
+    (setq-local flycheck-enhancements--get-project-roots-for-current-buffer
+                #'haskell-misc--get-potential-project-roots)
+
     ;; Read settings from '.eproj-info' file, if any.
     (let (
           ;; NB may be nil.
           (proj (eproj-get-project-for-buf-lax (current-buffer))))
-
-      (haskell-watch-register-current-buffer! proj)
 
       (haskell-setup-indentation
        :offset (eproj-query/haskell/indent-offset proj))
