@@ -1016,6 +1016,9 @@ it's position in current window."
    #'compilation-jump-to-prev-error
    #'flycheck-previous-error))
 
+(defun haskell-misc--get-potential-project-roots ()
+  (haskell-watch-get-project-root))
+
 (defun haskell-misc--cabal-indented-subsection ()
   "Similar to `haskell-cabal-subsection' but sets `:data-start-column' to the
 value section should have if it is to be properly indented."

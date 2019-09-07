@@ -200,20 +200,17 @@ modified and we should reconfigure the project.")
       proj)))
 
 ;;;###autoload
-(defun haskell-watch-register-current-buffer! (eproj-proj)
+(defun haskell-watch-register-current-buffer! ()
   (when (buffer-file-name)
-    (let ((proj
-           (let ((root (haskell-watch-get-project-root)))
-             (if root
-                 (haskell-watch-get-project root)
-               (progn
-                 (when eproj-proj
-                   (message "haskell-watch failed to find project root for buffer %s" (current-buffer)))
-                 nil)))))
-      (when proj
-        (haskell-watch--subscribe-buffer-for-config-file-updates!
-         (current-buffer)
-         proj)))))
+    (when-let ((proj
+                (if-let ((root (haskell-watch-get-project-root)))
+                    (haskell-watch-get-project root)
+                  (progn
+                    (message "haskell-watch failed to find project root for buffer %s" (current-buffer))
+                    nil))))
+      (haskell-watch--subscribe-buffer-for-config-file-updates!
+       (current-buffer)
+       proj))))
 
 (provide 'haskell-watch)
 
