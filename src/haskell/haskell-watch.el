@@ -32,43 +32,34 @@ roots (i.e. valid and existing keys within
 `haskell-watch--known-projects').")
 
 
-(defun haskell-watch--get-project-root-for-path (file)
+(defun haskell-watch--get-project-root-for-path (start-dir)
   "Obtain root of a Haskell project that FILE is part of."
-  (cl-assert (file-name-absolute-p file))
-  (let* ((build-dir-regexp
-          (rx bos
-              (or "cabal.project"
-                  ".cabal.sandbox"
-                  (seq "stack" (* nonl) ".yaml"))
-              eos))
-         (proj-file-regexp
-          (rx bos
-              (or (seq (+ nonl) ".cabal")
-                  "package.yaml")
-              eos))
-         (search-start (file-name-directory file))
-         (lookup-with
-          (lambda (filename-regexp)
-            (let ((get-files
-                   (lambda (dir-name)
-                     (directory-files dir-name
-                                      nil ;; Relative names.
-                                      filename-regexp
-                                      t ;; Do not sort.
-                                      ))))
-              (locate-dominating-file search-start get-files)))))
-    (or (funcall lookup-with build-dir-regexp)
-        (funcall lookup-with proj-file-regexp))))
+  (cl-assert (file-directory-p start-dir))
+  (let ((regexp
+         (rx (seq bos
+                  (or (seq "cabal.project" (? ".local"))
+                      ".cabal.sandbox"
+                      (seq "stack" (* nonl) ".yaml")
+
+                      (seq (+ nonl) ".cabal")
+                      "package.yaml")
+                  eos))))
+    (locate-dominating-file start-dir
+                            (lambda (dir-name)
+                              (directory-files dir-name
+                                               nil ;; Relative names.
+                                               regexp
+                                               t ;; Do not sort - faster this way.
+                                               )))))
 
 (defun haskell-watch-get-project-root ()
   "Get absolute project root for current buffer."
-  (unless buffer-file-name
-    (error "Haskell watch does not work for temporary buffers: %s"
-           (current-buffer)))
-  (unless haskell-watch--project-root
+  (if haskell-watch--project-root
+      haskell-watch--project-root
     (setf haskell-watch--project-root
-          (haskell-watch--get-project-root-for-path buffer-file-name)))
-  haskell-watch--project-root)
+          (haskell-watch--get-project-root-for-path (or (and buffer-file-name
+                                                             (file-name-directory buffer-file-name))
+                                                        default-directory)))))
 
 (defun haskell-watch--find-watched-files (root)
   "Find files under ROOT directory to watch for."
