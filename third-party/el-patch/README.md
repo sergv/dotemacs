@@ -16,6 +16,7 @@
 - [Basic usage](#basic-usage)
 - [Patch directives](#patch-directives)
 - [Defining patches](#defining-patches)
+  * [Defining forks](#defining-forks)
 - [Inspecting patches](#inspecting-patches)
 - [Validating patches](#validating-patches)
 - [Removing patches](#removing-patches)
@@ -87,12 +88,11 @@ definitions have not changed since you created the patches. If they
 have, `el-patch` will show you the difference using Ediff.
 
 Of course, in an ideal world, `el-patch` would not be necessary,
-because the original definition of the function in Emacs or in one of
-its packages could just be fixed. Sometimes, it is simple to submit a
-pull request and get your desired change implemented upstream.
-Unfortunately, this is not always practical or desirable, so—like the
-advice system—`el-patch` offers a concession to the practical needs of
-your Emacs configuration.
+because user options and hooks could be made configurable enough to
+satisfy everyone's needs. Unfortunately, that will never truly be
+possible (or, arguably, desirable), so—like the advice
+system—`el-patch` offers a concession to the practical needs of your
+Emacs configuration.
 
 ## Basic usage
 
@@ -358,6 +358,19 @@ See the docstrings on the macro `el-patch-deftype` and the variable
 source code of `el-patch` for examples of how to use
 `el-patch-deftype`.
 
+### Defining forks
+
+Sometimes you want to define a *slightly modified* version of a
+function, so that you can use the patched version in your own code but
+you can still use the original version under its original name. This
+is easy to do:
+
+    (el-patch-defun (el-patch-swap my-old-fn my-new-fn) ...)
+
+Be sure to include patch directives in the function body showing how
+your modified function is derived from the original, just like in any
+other patch.
+
 ## Inspecting patches
 
 You can run Ediff on a patch (original vs. modified definitions) by
@@ -536,10 +549,6 @@ patches. This means that if you byte-compile your init-file, then
 For this to work, you will need to stick to defining patches with
 `el-patch-def*` and declaring features with `el-patch-feature`.
 Anything else will cause `el-patch` to be loaded at runtime.
-
-Note, of course, that you must have `el-patch` loaded at
-byte-compilation time, since otherwise the macros will expand
-incorrectly. This is true for all packages, not just `el-patch`.
 
 If you do not byte-compile your init-file, then all of this is
 immaterial.
