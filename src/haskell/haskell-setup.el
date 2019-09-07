@@ -91,6 +91,11 @@
   (dante-restart)
   (flycheck-buffer))
 
+(vim:defcmd vim:haskell-dante-configure (nonrepeatable)
+  (unless dante-mode
+    (error "dante is not enabled"))
+  (haskell-misc--configure-dante)
+  (vim:haskell-dante-restart))
 
 (vim:defcmd vim:haskell-interactive-clear-buffer-above-prompt (nonrepeatable)
   (haskell-interactive-clear-buffer-above-prompt))
@@ -237,8 +242,10 @@
                   (error "Unable to select checker '%s' for buffer '%s'"
                          flycheck-backend (current-buffer)))
                 (setq-local flycheck-checker flycheck-backend)
-                (when (memq flycheck-checker '(haskell-stack-ghc haskell-ghc haskell-dante))
+                (when (memq flycheck-checker '(haskell-stack-ghc haskell-ghc))
                   (add-hook 'flycheck-mode-hook #'flycheck-haskell-setup nil t))
+                (when (memq flycheck-checker '(haskell-dante))
+                  (add-hook 'flycheck-mode-hook #'haskell-misc--configure-dante nil t))
                 (flycheck-mode +1))
             ;; Disable flycheck if it was explicitly set to nil
             (progn
@@ -281,7 +288,9 @@
        (setq-local flycheck-check-syntax-automatically '(save mode-enabled))
 
        (dolist (cmd '("re" "restart"))
-         (vim:local-emap cmd #'vim:haskell-dante-restart)))
+         (vim:local-emap cmd #'vim:haskell-dante-restart))
+       (dolist (cmd '("conf" "configure"))
+         (vim:local-emap cmd #'vim:haskell-dante-configure)))
       (intero-mode
        (setq-local flycheck-check-syntax-automatically '(save mode-enabled idle-change))
        (setq-local flycheck-idle-change-delay 2)
