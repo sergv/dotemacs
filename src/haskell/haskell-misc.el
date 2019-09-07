@@ -1192,6 +1192,59 @@ value section should have if it is to be properly indented."
   (haskell-misc--with-expanded-invisible-overlays-in-current-function
    ad-do-it))
 
+(defun haskell-misc--configure-dante ()
+  (when (and (buffer-file-name) (file-directory-p default-directory))
+    (let ((config-file (flycheck-haskell--find-config-file)))
+      (when config-file
+        (let ((config (flycheck-haskell-get-configuration config-file)))
+          (when config
+            (let ((package-name (cadr-safe (assq 'package-name config)))
+                  (components (cdr-safe (assq 'components config))))
+              (when-let ((component
+                          (haskell-misc--configure-dante--find-cabal-component-for-file
+                           components
+                           (buffer-file-name))))
+                (cl-assert (stringp package-name) nil
+                           "Expected package name to be as tring but got %s" package-name)
+                (setq-local dante-target
+                            (concat package-name ":" component))))))))))
+
+(defun haskell-misc--configure-dante--find-cabal-component-for-file (components filename)
+  (when filename
+    (let ((entry
+           (-find (lambda (component-descr)
+                    (let ((main-file (cl-third component-descr))
+                          (modules (cl-fourth component-descr)))
+                      (when (or main-file modules)
+                        (let* ((mod-regexps
+                                (when modules
+                                  (mapconcat (lambda (x)
+                                               (concat "\\(?:"
+                                                       (mapconcat #'identity x ".")
+                                                       "\\)"))
+                                             modules
+                                             "\\|")))
+                               (re
+                                (concat (when main-file
+                                          (concat "\\(?:" main-file "\\)"))
+                                        (when (and main-file mod-regexps)
+                                          "\\|")
+                                        (when mod-regexps
+                                          (concat
+                                           "\\(?:"
+                                           mod-regexps
+                                           "\\)"
+                                           "[.]"
+                                           (regexp-opt +haskell-extensions+)))
+                                        "\\'")))
+                          (and re
+                               (string-match-p re filename))))))
+                  components)))
+      (when entry
+        (let ((typ (car entry))
+              (name (cadr entry)))
+          (concat typ ":" name))))))
+
 (provide 'haskell-misc)
 
 ;; Local Variables:
