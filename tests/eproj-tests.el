@@ -311,7 +311,40 @@ test	%s	102	;\"	f
     (should (equal (eproj-tests/normalize-file-list
                     (find-rec path
                               :filep (lambda (path) (string-match-p "\\.hs$" path))))
-                   (eproj-tests/normalize-file-list (eproj-get-project-files proj))))))
+                   (eproj-tests/normalize-file-list (eproj-get-project-files proj))))
+
+    (let ((identity-monad-test-path (concat path "/Foo/Bar/IdentityMonad.hs"))
+          (nonexistent-test-path (concat path "/Foo/Bar/Nonexistent.hs")))
+
+      ;; IdentityM is there but not in the tags file. The file should override
+      ;; the reality...
+      (should-not (eproj-get-matching-tags proj
+                                           'haskell-mode
+                                           "IdentityM"
+                                           nil))
+
+      (should (equal
+               (list (list ">>>="
+                           (make-eproj-tag identity-monad-test-path
+                                           13
+                                           '((type . "o")))))
+               (-map (lambda (x) (list (first x) (second x)))
+                     (eproj-get-matching-tags proj
+                                              'haskell-mode
+                                              ">>>="
+                                              nil))))
+
+      ;; This is only present in the tags file
+      (should (equal
+               (list (list "outdated"
+                           (make-eproj-tag nonexistent-test-path
+                                           100000
+                                           '((type . "f")))))
+               (-map (lambda (x) (list (first x) (second x)))
+                     (eproj-get-matching-tags proj
+                                              'haskell-mode
+                                              "outdated"
+                                              nil)))))))
 
 (eproj-tests--define-tests
     "eproj-tests/%s/project-with-file-list"
