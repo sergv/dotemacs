@@ -11,7 +11,7 @@
 ;;                         then no attempt will be made to infer languages used
 ;; [(related <abs-or-rel-dir>*])
 ;; [(aux-files
-;;   [(tree <tree-root> <pattern>*)])]
+;;   [(tree <tree-root> <glob>*)])]
 ;; [(ignored-files <glob>+)] - ignored filenames, <glob>
 ;;                             should match absolute file names. Will be applied
 ;;                             to file-list and aux files arguments.
@@ -23,7 +23,9 @@
 ;;
 ;; [(create-tag-files <t-or-nil>)] - whether to cache tags in tag files for this project
 ;;
-;; ;; these are mostly for haskell
+;; Use this file as a source of tags instead of creating tags ourselves.
+;; If specified together with 'create-tag-files then it will be created
+;; automatically.
 ;; [(tag-file <abs-or-rel-file>)]
 ;;
 ;; [(language-specific
@@ -46,7 +48,6 @@
 ;; <proj-type> - symbol naming type of project, will be verified
 ;;               agains inferred project type
 ;; <tree-root> - absolute or relative to project root path to an existing directory
-;; <pattern>   - regular expression
 ;; <glob>      - glob expression
 ;; <arg> - emacs strings, arguments to the command
 
@@ -391,8 +392,13 @@ get proper flycheck checker."
                (:conc-name eproj-project/))
   ;; normalized directory name
   (root                  nil :read-only t)
-  ;; alist of (<symbol> . <symbol-dependent-info>) entries
+  ;; alist of (<symbol> . <symbol-dependent-info>) entries for eproj-query.el
   (aux-info              nil :read-only t)
+
+  ;; List of aux-files-entries:
+  ;; (tree <tree-root> <glob>*)
+  (aux-files-entries     nil :read-only t)
+
   ;; Thunk of list of (language-major-mode . <eproj-tag-index>);
   ;; <eproj-tag-index> - datastructure mapping 'symbol-str's to 'eproj-tag's. See `eproj-tag-index.el'.
   (tags                  nil)
@@ -400,14 +406,16 @@ get proper flycheck checker."
   (related-projects      nil :read-only t)
   ;; list of symbols - major-modes for related languages
   (languages             nil :read-only t)
-  ;; stores list of filenames, if file list is specified in .eproj-info
+  ;; Stores list of filenames, if specified in aux-info via 'file-list
   (cached-file-list      nil)
-  ;; list of absolute filename globs to ignore in current project
+  ;; List of absolute filename globs to ignore in current project.
   (ignored-files-globs   nil :read-only t)
   ;; list of files, if specified in aux-info via 'file-list
   (file-list-filename    nil :read-only t)
   ;; boolean, whether to cache tags for this project in files
   (create-tag-files      nil :read-only t)
+  ;; string, provided path to the tags file
+  (tag-file              nil :read-only t)
 
   ;; List of glob strings to include into navigation lists
   (extra-navigation-globs nil :read-only t)
@@ -547,20 +555,36 @@ cache tags in."
   (if-let ((lang (gethash mode eproj/languages-table)))
       (if-let ((create-tags-procedure (eproj-language/create-tags-procedure lang)))
           (if-let ((parse-tags-procedure (eproj-language/parse-tags-procedure lang)))
-              (if (and consider-tag-files
-                       (eproj-project/create-tag-files proj))
-                  (let ((tag-file (eproj/tag-file-name proj mode)))
-                    (if (file-exists-p tag-file)
-                        (with-temp-buffer
-                          (insert-file-contents-literally tag-file)
-                          (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer)))
-                      (funcall create-tags-procedure
-                               proj
-                               project-files-thunk
-                               (lambda (proj-root buf)
-                                 (with-current-buffer buf
-                                   (write-region (point-min) (point-max) tag-file)
-                                   (funcall parse-tags-procedure proj-root buf))))))
+              (if consider-tag-files
+                  (cond
+                    ((eproj-project/create-tag-files proj)
+                     (let ((tag-file (or (eproj-project/tag-file proj)
+                                         (eproj/tag-file-name proj mode))))
+                       (if (file-exists-p tag-file)
+                           (with-temp-buffer
+                             (insert-file-contents-literally tag-file)
+                             (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer)))
+                         (funcall create-tags-procedure
+                                  proj
+                                  project-files-thunk
+                                  (lambda (proj-root buf)
+                                    (with-current-buffer buf
+                                      (write-region (point-min) (point-max) tag-file)
+                                      (funcall parse-tags-procedure proj-root buf)))))))
+                    ((eproj-project/tag-file proj)
+                     (let ((tag-file (or (eproj-project/tag-file proj)
+                                         (eproj/tag-file-name proj mode))))
+                       (if (file-exists-p tag-file)
+                           (with-temp-buffer
+                             (insert-file-contents-literally tag-file)
+                             (funcall parse-tags-procedure (eproj-project/root proj) (current-buffer)))
+                         (error "The specified tag file does not exist and create-tag-files was not specified in the .eproj-info: %s"
+                                tag-file))))
+                    (t
+                     (funcall create-tags-procedure
+                              proj
+                              project-files-thunk
+                              parse-tags-procedure)))
                 (funcall create-tags-procedure
                          proj
                          project-files-thunk
@@ -629,6 +653,20 @@ cache tags in."
     (when (file-exists-p eproj-info-file)
       eproj-info-file)))
 
+(defconst eproj--known-eproj-info-entries
+  '(languages
+    related
+    aux-files
+    ignored-files
+    file-list
+    extra-navigation-files
+    create-tag-files
+    tag-file
+    language-specific
+    flycheck-checker
+    flycheck-disabled-checkers)
+  "List .eproj-info keys that are currently supported.")
+
 (defun eproj-read-eproj-info-file (root filename)
   "Read .eproj-info file from FILENAME."
   (unless filename
@@ -638,7 +676,16 @@ cache tags in."
   (with-temp-buffer
     (insert-file-contents-literally filename)
     (goto-char (point-min))
-    (read (current-buffer))))
+    (let ((info (read (current-buffer))))
+      (cl-assert (listp info) nil "Expected eproj info to be a list: %s" nifo)
+      (cl-assert (--every? (memq (car it) eproj--known-eproj-info-entries)
+                           info)
+                 nil
+                 "Some entries in .eproj-info are not supported:\n%s"
+                 (pp-to-string
+                  (--filter (not (memq (car it) eproj--known-eproj-info-entries))
+                            info)))
+      info)))
 
 ;;;; project creation
 
@@ -660,7 +707,7 @@ for project at ROOT directory."
              "Project root must be a string: %s" root)
   (unless (and (file-exists-p root)
                (file-directory-p root))
-    (error "Invalid project root, existing directory required: %s" root))
+    (error "Invalid project root, directory must exist: %s" root))
   (let ((languages (aif (eproj-project/query-aux-info-entry aux-info 'languages)
                        it
                      (progn
@@ -678,6 +725,8 @@ for project at ROOT directory."
              fname)))
         (create-tag-files
          (eproj-project/query-aux-info aux-info 'create-tag-files))
+        (tag-file
+         (eproj-project/query-aux-info aux-info 'tag-file))
         (extra-navigation-globs
          (eproj-project/query-aux-info-entry aux-info 'extra-navigation-files)))
     (cl-assert (sequencep languages) nil "Project languages is not a sequence: %s" languages)
@@ -686,6 +735,7 @@ for project at ROOT directory."
     (let ((proj
            (make-eproj-project :root root
                                :aux-info aux-info
+                               :aux-files-entries (cdr-safe (assq 'aux-files aux-info))
                                :tags nil
                                :related-projects (eproj-get-related-projects root aux-info)
                                :languages languages
@@ -693,6 +743,8 @@ for project at ROOT directory."
                                :ignored-files-globs ignored-files-globs
                                :file-list-filename file-list-filename
                                :create-tag-files create-tag-files
+                               :tag-file (awhen tag-file
+                                           (eproj--resolve-to-abs-path it root))
                                :extra-navigation-globs extra-navigation-globs
                                :cached-files-for-navigation nil)))
       (eproj--prepare-to-load-fresh-tags-lazily-on-demand! proj)
@@ -827,6 +879,7 @@ Set to project that corresponds to buffer containing this variable or
 symbol 'unresolved.")
 
 (defun eproj-get-project-for-buf (buffer)
+  "Get project for BUFFER. Throw error if there's no project for it."
   (eproj-get-project-for-path
    (eproj/evaluate-with-caching-buffer-local-var
     ;; Take directory since file visited by buffer may not be
@@ -837,6 +890,7 @@ symbol 'unresolved.")
     #'stringp)))
 
 (defun eproj-get-project-for-buf-lax (buffer)
+  "Get project for BUFFER. Return nil if there's no project for it."
   (eproj-get-project-for-path-lax
    (eproj/evaluate-with-caching-buffer-local-var
     ;; Take directory since file visited by buffer may not be
@@ -848,7 +902,7 @@ symbol 'unresolved.")
 
 (defun eproj-get-project-for-path-lax (path)
   "Retrieve project that contains PATH as its part. Similar to
-`eproj-get-project-for-path' but returns nil if there's not
+`eproj-get-project-for-path' but returns nil if there's no
 project for PATH."
   (if-let (path-proj (gethash path *eproj-projects* nil))
       path-proj
@@ -1037,8 +1091,8 @@ Returns nil if no relevant entry found in AUX-INFO."
           it)))
 
 (defun eproj-project/aux-files (proj)
-  (let ((project-root (eproj-project/root proj)))
-    (when-let (aux-files-entry (cdr-safe (assq 'aux-files (eproj-project/aux-info proj))))
+  (when-let (aux-files-entry (eproj-project/aux-files-entries proj))
+    (let ((project-root (eproj-project/root proj)))
       (with-temp-buffer
         (cd project-root)
         (eproj--filter-ignored-files-from-file-list
@@ -1175,6 +1229,8 @@ Returns list of (tag-name tag project) lists."
            (eproj-get-all-related-projects-for-mode proj tag-major-mode)))
 
 (defsubst eproj--add-cached-file-for-navigation (proj-root fname files-cache)
+  (cl-assert (stringp proj-root))
+  (cl-assert (stringp fname))
   (puthash fname
            (file-relative-name fname proj-root)
            files-cache))
