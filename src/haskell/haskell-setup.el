@@ -211,25 +211,21 @@
       (company-mode +1)
       (setq-local company-backends '(company-eproj))
 
-      (setf intero-auto-install (eproj-query/intero-auto-install proj t))
-
-      (dolist (entry (eproj-query/local-variables proj nil))
+      (dolist (entry (eproj-query/local-variables proj major-mode nil))
         (set (make-local-variable (car entry)) (cadr entry)))
 
       (when (and (not non-vanilla-haskell-mode?)
                  (not noninteractive))
-        (let* ((effective-major-mode (eproj/resolve-synonym-modes major-mode))
+        (let* (
                (flycheck-backend
                 (eproj-query/flycheck-checker
                  proj
-                 ;; Resolve synonyms so that literate haskell mode & others
-                 ;; will get the proper checker.
-                 effective-major-mode
+                 major-mode
                  haskell-default-flycheck-checker)))
           (setq-local flycheck-disabled-checkers
                       (eproj-query/flycheck-disabled-checkers
                        proj
-                       effective-major-mode
+                       major-mode
                        (default-value 'flycheck-disabled-checkers)))
           (if flycheck-backend
               (progn
