@@ -75,7 +75,7 @@
 `newline' should be 'above or 'below or nil which determines
 where to insert a newline."
   (setq vim:insert-count count
-	vim:insert-newline newline)
+        vim:insert-newline newline)
   (vim:insert-mode-insert-newline)
   (when (eq vim:insert-newline 'above)
     (setq vim:insert-newline 'below))
@@ -118,16 +118,16 @@ where to insert a newline."
     (vim:insert-mode-insert-newline)
     (execute-kbd-macro vim:current-key-sequence))
   (when (and vim:insert-marker
-	     (not (eq vim:insert-marker 'eob)))
+             (not (eq vim:insert-marker 'eob)))
     (move-marker vim:insert-marker nil))
   (setq vim:insert-marker nil
-	vim:insert-count nil))
+        vim:insert-count nil))
 
 
 (defun vim:insert-save-key-sequence ()
   "Called in insert-mode to save key-events."
   (when (and (not (eq this-command 'vim:intercept-ESC))
-	     (functionp this-command))
+             (functionp this-command))
     (setq vim:current-key-sequence (vconcat vim:current-key-sequence
                                             (this-command-keys-vector)))))
 
