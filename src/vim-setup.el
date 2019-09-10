@@ -206,17 +206,34 @@ like \"d w\".")
   ("C-'"     vim:wrap-typographical-single-quotes)
   ("C-\""    vim:wrap-typographical-double-quotes))
 
+
+(defun vim-wrap-parens-impl ()
+  "Wrap region in (...)."
+  (interactive)
+  (sp-wrap-or-insert "("))
+
+(defun vim-wrap-braces-impl ()
+  "Wrap region in [...]."
+  (interactive)
+  (sp-wrap-or-insert "["))
+
+(defun vim-wrap-brackets-impl ()
+  "Wrap region in {...}."
+  (interactive)
+  (sp-wrap-or-insert "{"))
+
+
 (vim:defcmd vim:wrap-parens (nonrepeatable)
   "Wrap region in (...)."
-  (sp-wrap-or-insert "("))
+  (vim-wrap-parens-impl))
 
 (vim:defcmd vim:wrap-braces (nonrepeatable)
   "Wrap region in [...]."
-  (sp-wrap-or-insert "["))
+  (vim-wrap-braces-impl))
 
 (vim:defcmd vim:wrap-brackets (nonrepeatable)
   "Wrap region in {...}."
-  (sp-wrap-or-insert "{"))
+  (vim-wrap-brackets-impl))
 
 (vim:defcmd vim:wrap-typographical-single-quotes (nonrepeatable)
   "Wrap region in ‘...’."
@@ -246,9 +263,9 @@ like \"d w\".")
   ("M-b"           switch-to-buffer-or-file-in-current-or-related-projects)
   ("C-:"           pp-eval-expression)
 
-  ("("             vim:wrap-parens)
-  ("["             vim:wrap-braces)
-  ("{"             vim:wrap-brackets)
+  ("("             vim-wrap-parens-impl)
+  ("["             vim-wrap-braces-impl)
+  ("{"             vim-wrap-brackets-impl)
   ("C-'"           typopunct-insert-single-quotation-mark)
   ("C-\""          typopunct-insert-quotation-mark)
   ("C--"           typopunct-insert-typographical-dashes))
