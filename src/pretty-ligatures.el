@@ -85,7 +85,7 @@
        (#xe131 . 2) ;; intersection
        (#xe12b . 2) ;; elem, member
        (#xe12c . 2) ;; notElem, notMember
-       (#xe12f . 2) ;; isSubsetOf
+       (#xe12f . t) ;; isSubsetOf, 2 but glyph is broken
        (#xe12e . 2) ;; isProperSubsetOf
        (#xe12a . 2) ;; empty, mempty
 
@@ -101,9 +101,11 @@
 ;; Make [?\s (Bl . Br) ?\s (Bl . Br) ?\s (Bc . Bc) #xe11d] out of #xe11d (">>=").
 (defun pretty-ligatures--make-composition (c)
   (if-let ((width (gethash c pretty-ligatures--glyph-widths)))
-    (vconcat
-     (apply #'vconcat [?\s] (-repeat (1- width) [(Bl . Br) ?\s]))
-     (vector '(Bc . Bc) c))
+      (if (eq width t)
+          (string ?\t c ?\t)
+        (vconcat
+         (apply #'vconcat [?\s] (-repeat (1- width) [(Bl . Br) ?\s]))
+         (vector '(Bc . Bc) c)))
     (error "No width for character '%s'" c)))
 
 (defconst pretty-ligatures--symbol-replacements
