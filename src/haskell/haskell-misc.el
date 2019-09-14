@@ -129,7 +129,7 @@ and indent them as singe line."
                    (cabal-clean
                     ,(funcall cabal-command "clean" "--builddir" "/tmp/dist"))
                    (cabal-test
-                    ,(funcall cabal-command "test" "--builddir" "/tmp/dist" "--test-show-details=streaming"))
+                    ,(funcall cabal-command "test" "--builddir" "/tmp/dist" "--test-show-details=direct"))
                    (cabal-bench
                     ,(funcall cabal-command "bench" "--builddir" "/tmp/dist"))
 
