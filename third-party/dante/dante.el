@@ -382,7 +382,10 @@ CHECKER and BUFFER are added if the error is in TEMP-FILE."
              (type (cdr fixed-err-type-and-kind))
              (location (dante-parse-error-location location-raw)))
         ;; FIXME: sometimes the "error type" contains the actual error too.
-        (flycheck-error-new-at (car location) (cadr location) type (concat fixed-err-type "\n" (s-trim-right msg))
+        (flycheck-error-new-at (car location) (cadr location) type
+                               (replace-regexp-in-string (regexp-quote temp-file)
+                                                         (dante-buffer-file-name buffer)
+                                                         (concat fixed-err-type "\n" (s-trim-right msg)))
                                :checker checker
                                :buffer buffer
                                :filename (if (string= temp-file file)
