@@ -15,6 +15,7 @@ constraints:
 -- Sperify options for all packages
 program-options
   ghc-options: -O2
+  -- alex-options: --debug
 
 -- Sperify options on a per-package basis
 package Cabal
