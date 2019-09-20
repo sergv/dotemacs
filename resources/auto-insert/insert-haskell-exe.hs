@@ -33,7 +33,7 @@ import Options.Applicative
 -- readVerbosity :: String -> Either String Verbosity
 -- readVerbosity s = case BM.lookup s knownVerbosities of
 --   Nothing -> Left $
---     "Invalid verbosity \"" ++ str ++ "\". Valid values: " ++ L.intercalate ", " (BM.keys knownVerbosities)
+--     "Invalid verbosity \"" ++ s ++ "\". Valid values: " ++ L.intercalate ", " (BM.keys knownVerbosities)
 --   Just x  -> Right x
 --
 -- showVerbosity :: Verbosity -> String
