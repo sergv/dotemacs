@@ -88,8 +88,10 @@
 (vim:defcmd vim:haskell-dante-restart (nonrepeatable)
   (unless dante-mode
     (error "dante is not enabled"))
-  (dante-restart)
-  (flycheck-buffer))
+  (flycheck-clear t)
+  (dante-destroy)
+  (lcr-cps-let ((_ (dante-session)))
+    (flycheck-buffer)))
 
 (vim:defcmd vim:haskell-dante-configure (nonrepeatable)
   (unless dante-mode
