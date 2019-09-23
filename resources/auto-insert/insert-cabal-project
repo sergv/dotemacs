@@ -12,13 +12,38 @@ constraints:
     foo >= 0.2
   , bar +assertions
 
+-- optimization: 2
+
 -- Sperify options for all packages
 program-options
-  ghc-options: -O2
   -- alex-options: --debug
+  ld-options: -fuse-ld=lld
+  ghc-options:
+    -- -O2
+    -fprint-potential-instances
+    -- 'lld' links even faster than 'gold' so it makes sense to use it instead.
+    -- cf. https://stackoverflow.com/questions/43243322/how-to-link-with-the-gnu-gold-linker-instead-of-ld-in-haskell/43243323#43243323
+    -pgmP=clang
+    -optP=-E
+    -optP=-undef
+    -optP=-traditional
+    -pgmc=clang
+    -pgma=clang
+    -pgml=clang
+    -optl-fuse-ld=lld
 
--- Sperify options on a per-package basis
-package Cabal
-  ghc-options: -O2
-package cabal-testsuite
-  ghc-options: -O2
+--     -fllvm
+--     -optc=-O3
+--     -optc=-march=x86-64
+--     -optc=-mcpu=haswell
+--     -optlo=-O3
+--     -optlo=-march=x86-64
+--     -optlo=-mcpu=haswell
+--     -funfolding-creation-threshold=2500
+--     -funfolding-use-threshold=1250
+
+-- -- Sperify options on a per-package basis
+-- package Cabal
+--   ghc-options: -O2
+-- package cabal-testsuite
+--   ghc-options: -O2
