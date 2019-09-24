@@ -103,7 +103,9 @@
   ;; Procedure of single argument - current eproj project. Should return
   ;; a list of absolute paths of files that should be included into
   ;; navigation candidates of `eproj-switch-to-file-or-buffer'.
-  get-extra-navigation-files-procedure)
+  get-extra-navigation-files-procedure
+  ;; List of strings - globs for files to consider during quick navigation.
+  extra-navigation-globs)
 
 (defun* mk-eproj-lang (&key mode
                             extensions
@@ -113,7 +115,8 @@
                             tag->string-func
                             synonym-modes
                             normalise-identifier-before-navigation-procedure
-                            get-extra-navigation-files-procedure)
+                            get-extra-navigation-files-procedure
+                            extra-navigation-globs)
   (cl-assert (symbolp mode))
   (cl-assert (listp extensions))
   (cl-assert (-all? #'stringp extensions))
@@ -134,6 +137,8 @@
   (cl-assert (or (null get-extra-navigation-files-procedure)
                  (functionp get-extra-navigation-files-procedure)
                  (autoloadp get-extra-navigation-files-procedure)))
+  (cl-assert (or (null extra-navigation-globs)
+                 (-all? #'stringp extra-navigation-globs)))
   (make-eproj-language
    :mode mode
    :extensions extensions
@@ -148,7 +153,9 @@
    :normalise-identifier-before-navigation-procedure
    normalise-identifier-before-navigation-procedure
    :get-extra-navigation-files-procedure
-   get-extra-navigation-files-procedure))
+   get-extra-navigation-files-procedure
+   :extra-navigation-globs
+   extra-navigation-globs))
 
 ;;;; language definitions
 
@@ -287,10 +294,13 @@
     :normalise-identifier-before-navigation-procedure
     #'haskell-remove-module-qualification
     :get-extra-navigation-files-procedure
-    #'eproj/haskell-get-extra-navigation-files)
+    #'eproj/haskell-get-extra-navigation-files
+    :extra-navigation-globs
+    (append +haskell-watch-watched-files-globs+
+            +cpp-extensions+))
    (mk-eproj-lang
     :mode 'c-mode
-    :extensions '("c" "h")
+    :extensions +c-extensions+
     :create-tags-procedure
     (lambda (proj project-files-thunk parse-tags-proc)
       (eproj/load-ctags-project 'c-mode proj project-files-thunk parse-tags-proc))
@@ -300,20 +310,7 @@
     :tag->string-func #'eproj/c-tag->string)
    (mk-eproj-lang
     :mode 'c++-mode
-    :extensions '("c"
-                  "cc"
-                  "cxx"
-                  "cpp"
-                  "c++"
-                  "h"
-                  "hh"
-                  "hxx"
-                  "hpp"
-                  "h++"
-                  "inl"
-                  "inc"
-                  "incl"
-                  "ino")
+    :extensions +cpp-extensions+
     :create-tags-procedure
     (lambda (proj project-files-thunk parse-tags-proc)
       (eproj/load-ctags-project 'c++-mode proj project-files-thunk parse-tags-proc))
@@ -964,15 +961,28 @@ jump to."
       (eproj--get-all-files proj)
       (eproj-project/cached-files-for-navigation proj))))
 
+(defun eproj--navigation-globs (proj)
+  "Get globs for files to consider during quick navigation."
+  (let ((globs
+         (append (eproj-project/extra-navigation-globs proj)
+                 '("*.org" "*.md" "*.markdown" "*.rst" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*"))))
+    (dolist (mode (eproj-project/languages proj))
+      (let ((lang (gethash (eproj/resolve-synonym-modes mode)
+                           eproj/languages-table)))
+        (unless lang
+          (error "Project %s specifies unrecognised language: %s" root mode))
+        (setf globs
+              (append (eproj-language/extra-navigation-globs lang)
+                      globs))))
+    globs))
+
 (defun eproj--generic-navigation-files (proj)
   "Get language-independent files that are useful to have when
 doing `eproj-switch-to-file-or-buffer'."
   (let ((files
          (find-rec*
           :root (eproj-project/root proj)
-          :globs-to-find
-          (append '("*.org" "*.md" "*.markdown" "*.rst" "*.sh" "*.mk" "*.txt" "*.yaml" "*.xml" "*.nix" "makefile*" "Makefile*" "*.inc" "*.spec" "README" "ChangeLog*" "Changelog*")
-                  (eproj-project/extra-navigation-globs proj))
+          :globs-to-find (eproj--navigation-globs proj)
           :ignored-files-globs (eproj-project/ignored-files-globs proj)
           :ignored-absolute-dirs (eproj-project/related-projects proj)
           :ignored-directories +ignored-directories+

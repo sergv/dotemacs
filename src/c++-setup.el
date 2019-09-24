@@ -17,8 +17,25 @@
   (make-hash-table :test 'equal))
 
 ;;;###autoload
+(defconst +c-header-exts+ '("h"))
+;;;###autoload
+(defconst +c-source-exts+ '("c"))
+
+;;;###autoload
+(defconst +cpp-header-exts+
+  (append +c-header-exts+
+          '("hh" "hxx" "hpp" "h++" "inl" "inc" "incl" "ino")))
+;;;###autoload
+(defconst +cpp-source-exts+
+  (append +c-source-exts+
+          '("cc" "cxx" "cpp" "c++")))
+
+;;;###autoload
+(defconst +c-extensions+
+  (append +c-header-exts+ +c-source-exts+))
+;;;###autoload
 (defconst +cpp-extensions+
-  '("c" "cc" "cxx" "cpp" "c++" "h" "hh" "hxx" "hpp" "h++" "inl" "inc" "incl"))
+  (append +cpp-header-exts+ +cpp-source-exts+))
 
 (defun c++-find-related-file ()
   (interactive)
@@ -113,8 +130,7 @@
   (clang-format-buffer))
 
 ;;;###autoload
-(when (platform-use? 'work)
-  (add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode)))
+(add-to-list 'auto-mode-alist '("\\.in\\(?:l\\|c\\|cl\\)\\'" . c++-mode))
 
 (puthash 'c++-mode
          #'c++-indentation-indent-buffer
@@ -140,8 +156,7 @@
     (let ((ext (file-name-extension buffer-file-name)))
       ;; check for null since .emacs doesn't have extension
       (when (and ext
-                 (member* ext '("h" "inl" "inc" "incl")
-                          :test #'string=))
+                 (member ext +cpp-header-exts+))
         (save-excursion
           (save-match-data
             (let ((search-result
