@@ -61,13 +61,18 @@ roots (i.e. valid and existing keys within
                                                              (file-name-directory buffer-file-name))
                                                         default-directory)))))
 
+;;;###autoload
+(defconst +haskell-watch-watched-files-globs+
+  '("*.cabal" "package.yaml" "stack*.yaml")
+  "Files to watch for changes.")
+
 (defun haskell-watch--find-watched-files (root)
   "Find files under ROOT directory to watch for."
   (cl-assert (file-accessible-directory-p root))
   (seq-sort #'string<
             (find-rec*
              :root root
-             :globs-to-find '("*.cabal" "package.yaml" "stack*.yaml")
+             :globs-to-find +haskell-watch-watched-files-globs+
              :ignored-directories +ignored-directories+
              :ignored-directory-prefixes +ignored-directory-prefixes+)))
 
