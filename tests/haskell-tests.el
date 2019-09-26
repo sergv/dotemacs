@@ -422,6 +422,18 @@
     "x = x +  _|_y"
     "x = x +@ _|_y"))
 
+(ert-deftest haskell-tests/haskell-smart-operators--inserting-within-backtics-avoids-spaces-1 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+    "x = x `andI_|_` y"
+    "x = x `andI#_|_` y"))
+
+(ert-deftest haskell-tests/haskell-smart-operators--inserting-within-backtics-avoids-spaces-2 ()
+  (haskell-tests--test-buffer-contents
+      (haskell-smart-operators--insert-char-surrounding-with-spaces ?#)
+    "x = x `_|_` y"
+    "x = x `#_|_` y"))
+
 (ert-deftest haskell-tests/haskell-smart-operators--sections-1 ()
   (haskell-tests--test-buffer-contents
       (haskell-smart-operators--insert-char-surrounding-with-spaces ?+)
