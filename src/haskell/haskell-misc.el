@@ -19,6 +19,7 @@
 
 (require 'abbrev+)
 (require 'haskell-compile)
+(require 'haskell-compilation-commands)
 (require 'haskell-format-setup)
 (require 'haskell-mode)
 (require 'haskell-regexen)
@@ -108,52 +109,9 @@ and indent them as singe line."
           (save-excursion
             (join-line t)))))))
 
-(setf haskell-compile-cabal-build-command-presets
-      (let ((stack-command
-             (lambda (cmd) (format "cd \"%%s\" && stack %s" cmd)))
-            (cabal-command
-             (lambda (cmd &rest args) (format "cd \"%%s\" && cabal %s%s"
-                                         cmd
-                                         (if args
-                                             (concat " " (s-join " " args))
-                                           "")))))
-        (-mapcat (lambda (entry)             ;
-                   (let ((target (car entry)))
-                     (if (listp target)
-                         (--map (list it (cadr entry)) target)
-                       (list entry))))
-                 `((cabal-build
-                    ,(funcall cabal-command "build" "--builddir" "/tmp/dist"))
-                   (cabal-prof
-                    ,(funcall cabal-command "build" "--enable-profiling" "--builddir" "/tmp/dist"))
-                   (cabal-clean
-                    ,(funcall cabal-command "clean" "--builddir" "/tmp/dist"))
-                   (cabal-test
-                    ,(funcall cabal-command "test" "--builddir" "/tmp/dist" "--test-show-details=direct"))
-                   (cabal-bench
-                    ,(funcall cabal-command "bench" "--builddir" "/tmp/dist"))
 
-                   (stack-build
-                    ,(funcall stack-command "build"))
-                   (stack-prof
-                    ,(funcall stack-command "build --profile --test --no-run-tests --bench --no-run-benchmarks"))
-                   (stack-clean
-                    ,(funcall stack-command "clean"))
-                   (stack-test
-                    ,(funcall stack-command "test"))
-                   ((stack-test-norun stack-build-tests)
-                    ,(funcall stack-command "test --no-run-tests"))
-                   (stack-bench
-                    ,(funcall stack-command "bench"))
-                   ((stack-bench-norun stack-build-bench)
-                    ,(funcall stack-command "bench --no-run-benchmarks"))))))
 
-(setf haskell-compile-cabal-build-command
-      (or (cadr-safe (assoc 'cabal-build haskell-compile-cabal-build-command-presets))
-          (error "Failed to set up haskell-compile-cabal-build-command"))
-      ;; 'cabal-repl is good as well
-
-      haskell-tags-server-extra-args (eval-when-compile
+(setf haskell-tags-server-extra-args (eval-when-compile
                                        (list "--serialised-state"
                                              (concat (strip-trailing-slash +tmp-global-path+)
                                                      "/haskell-tags-server-state")))
