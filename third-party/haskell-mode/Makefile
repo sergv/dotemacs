@@ -67,9 +67,9 @@ build-$(EMACS_VERSION) :
 # proper dependency tracking (yet).
 build-$(EMACS_VERSION)/%.elc : %.el $(ELFILES)
 	$(BATCH) --eval '(setq byte-compile-error-on-warn t)'						\
-	         --eval "(defun byte-compile-dest-file (filename)					\
+	         --eval "(setq byte-compile-dest-file-function (lambda (filename)					\
 	               	       (concat (file-name-directory filename) \"build-\" emacs-version \"/\"	\
-	                      	    (file-name-nondirectory filename) \"c\"))"				\
+	                      	    (file-name-nondirectory filename) \"c\")))"				\
 	         --eval "(when (check-declare-file \"$<\") (kill-emacs 2))" \
 	         -f batch-byte-compile $<								\
 
@@ -82,11 +82,7 @@ check-%: tests/%-tests.el
 check: compile $(AUTOLOADS) check-ert
 
 check-ert: $(ELCHECKS)
-	$(BATCH) --eval "(when (= emacs-major-version 24)					\
-                           (require 'undercover)						\
-                           (undercover \"*.el\"							\
-                              (:exclude \"haskell-mode-pkg.el\" \"haskell-compat.el\")))"	\
-                 -L tests									\
+	$(BATCH) -L tests									\
                  $(patsubst %,-l %,$(ELCHECKS))							\
                  -f ert-run-tests-batch-and-exit
 	@echo "checks passed!"

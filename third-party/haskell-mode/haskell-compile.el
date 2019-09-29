@@ -248,33 +248,58 @@ base directory for build tools, or the current buffer for
   (interactive "P")
   (save-some-buffers (not compilation-ask-about-save)
                      compilation-save-buffers-predicate)
-  (let* ((cabdir (haskell-cabal-find-dir))
-         (raw-command
-          (if edit-command
-              (let* ((preset
-                      (intern
-                       (completing-read "Build preset: "
-                                        (-map #'car haskell-compile-cabal-build-command-presets)
-                                        nil
-                                        t
-                                        nil
-                                        'haskell-compile--build-presets-history)))
-                     (command
-                      (cadr
-                       (assoc preset haskell-compile-cabal-build-command-presets))))
-                ;; remember command so it will be called again in the future
-                (setf haskell-compile-cabal-build-command command)
-                command)
-            haskell-compile-cabal-build-command))
-         (srcname (buffer-file-name))
-         (command (cond (cabdir
-                         (format raw-command (expand-file-name cabdir)))
-                        ((and srcname (derived-mode-p 'haskell-mode))
-                         (format haskell-compile-command srcname))
-                        (t
-                         raw-command))))
+  (let ((cabaldir (and
+                   (not haskell-compile-ignore-cabal)
+                   (or (haskell-cabal-find-dir)
+                       (flycheck--locate-dominating-file-matching
+                        default-directory
+                        "cabal.project\\(?:.local\\)?\\'")))))
+    (if cabaldir
+        (haskell--compile cabaldir edit-command
+                          'haskell--compile-cabal-last
+                          haskell-compile-cabal-build-command
+                          haskell-compile-cabal-build-alt-command)
+      (let ((stackdir (and haskell-compile-ignore-cabal
+                           (locate-dominating-file default-directory "stack.yaml"))))
+        (if stackdir
+            (haskell--compile stackdir edit-command
+                              'haskell--compile-stack-last
+                              haskell-compile-stack-build-command
+                              haskell-compile-stack-build-alt-command)
+          (let ((srcfile (buffer-file-name)))
+            (haskell--compile srcfile edit-command
+                              'haskell--compile-ghc-last
+                              haskell-compile-command
+                              haskell-compile-command)))))))
 
-    (compilation-start command 'haskell-compilation-mode)))
+(defvar haskell--compile-stack-last nil)
+(defvar haskell--compile-cabal-last nil)
+(defvar haskell--compile-ghc-last nil)
+
+(defun haskell--directory-name-p (name)
+  "Version of `directory-name-p', which is unavailable in Emacs 24.4."
+  (string= (file-name-as-directory name) name))
+
+(defun haskell--compile (dir-or-file edit last-sym fallback alt)
+  (let* ((default (or (symbol-value last-sym) fallback))
+         (template (cond
+                    ((null edit) default)
+                    ((< edit 0) alt)
+                    (t (compilation-read-command default))))
+         (command (format template dir-or-file))
+         (dir (if (haskell--directory-name-p dir-or-file)
+                  dir-or-file
+                default-directory))
+         (name (if (haskell--directory-name-p dir-or-file)
+                   (file-name-base (directory-file-name dir-or-file))
+                 (file-name-nondirectory dir-or-file))))
+    (unless (eq edit'-)
+      (set last-sym template))
+    (let ((default-directory dir))
+      (compilation-start
+       command
+       'haskell-compilation-mode
+       (lambda (mode) (format "*%s* <%s>" mode name))))))
 
 (provide 'haskell-compile)
 ;;; haskell-compile.el ends here
