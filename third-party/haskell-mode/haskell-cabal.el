@@ -284,10 +284,15 @@ a list is returned instead of failing with a nil result."
   ;; Distribution.Simple.Utils.findPackageDesc function
   ;;  http://hackage.haskell.org/packages/archive/Cabal/1.16.0.3/doc/html/Distribution-Simple-Utils.html
   ;; but without the exception throwing.
-  (let* ((cabal-files
-          (cl-remove-if 'file-directory-p
-                        (cl-remove-if-not 'file-exists-p
-                                          (directory-files dir t ".\\.cabal\\'")))))
+  (let ((cabal-files
+         (cl-remove-if (lambda (x)
+                         (or (file-directory-p x)
+                             (not (file-exists-p x))))
+                       (directory-files dir
+                                        t
+                                        ".\\.cabal\\'"
+                                        t ;; nosort
+                                        ))))
     (cond
      ((= (length cabal-files) 1) (car cabal-files)) ;; exactly one candidate found
      (allow-multiple cabal-files) ;; pass-thru multiple candidates
