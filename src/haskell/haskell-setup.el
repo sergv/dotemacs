@@ -59,9 +59,9 @@
     (ghc-core-create-core current-prefix-arg)))
 
 (vim:defcmd vim:haskell-compile (nonrepeatable)
-  (haskell-compile nil))
+  (haskell-start-compilation nil))
 (vim:defcmd vim:haskell-compile-choosing-command (nonrepeatable)
-  (haskell-compile t))
+  (haskell-start-compilation t))
 
 
 (vim:defcmd vim:haskell-intero-load-file-into-repl (nonrepeatable)
@@ -199,7 +199,7 @@
     (pretty-ligatures-install-special-haskell-ligatures!)
 
     (haskell-watch-register-current-buffer!)
-    (setq-local flycheck-enhancements--get-project-roots-for-current-buffer
+    (setq-local flycheck-enhancements--get-project-root-for-current-buffer
                 #'haskell-misc--get-potential-project-roots)
 
     ;; Read settings from '.eproj-info' file, if any.
@@ -401,7 +401,7 @@
       ("<S-iso-lefttab>" nil)
       ("<return>"        haskell-newline-with-signature-expansion)
       ("C-<return>"      haskell--simple-indent-newline-indent)
-      (("C-m" "<f9>")    haskell-compile))
+      (("C-m" "<f9>")    haskell-start-compilation))
 
     (haskell-define-align-bindings! vim:visual-mode-local-keymap)
 
@@ -727,7 +727,7 @@
 
   (def-keys-for-map (vim:normal-mode-local-keymap
                      vim:insert-mode-local-keymap)
-    (("C-m" "<f9>") haskell-compile)
+    (("C-m" "<f9>") haskell-start-compilation)
     ("<return>"     haskell--simple-indent-newline-same-col)
     ("C-<return>"   haskell--simple-indent-newline-indent)))
 
