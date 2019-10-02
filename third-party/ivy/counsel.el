@@ -914,7 +914,7 @@ when available, in that order of precedence."
 (ivy-set-actions
  'counsel-M-x
  `(("d" counsel--find-symbol "definition")
-   ("h" ,(lambda (x) (describe-function (intern x))) "help")))
+   ("h" ,(lambda (x) (funcall counsel-describe-function-function (intern x))) "help")))
 
 (ivy-set-display-transformer
  'counsel-M-x
@@ -1371,7 +1371,9 @@ Typical value: '(recenter)."
                   (ivy-state-directory ivy-last)))
       (goto-char (point-min))
       (forward-line (1- (string-to-number line-number)))
-      (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
+      (when (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
+        (when swiper-goto-start-of-match
+          (goto-char (match-beginning 0))))
       (swiper--ensure-visible)
       (run-hooks 'counsel-grep-post-action-hook)
       (unless (eq ivy-exit 'done)
@@ -2605,12 +2607,13 @@ FZF-PROMPT, if non-nil, is passed as `ivy-read' prompt argument."
   (counsel--call
    (cons find-program args)
    (lambda ()
-     (goto-char (point-min))
      (let (files)
+       (goto-char (point-min))
        (while (< (point) (point-max))
-         (push (buffer-substring
-                (+ 2 (line-beginning-position)) (line-end-position)) files)
-         (forward-line 1))
+         (when (looking-at "\\./")
+           (goto-char (match-end 0)))
+         (push (buffer-substring (point) (line-end-position)) files)
+         (beginning-of-line 2))
        (nreverse files)))))
 
 (defcustom counsel-file-jump-args (split-string ". -name .git -prune -o -type f -print")
@@ -2898,8 +2901,8 @@ This uses `counsel-ag' with `counsel-ack-base-command' replacing
 ;;** `counsel-rg'
 (defcustom counsel-rg-base-command
   (if (memq system-type '(ms-dos windows-nt))
-      "rg -S --no-heading --line-number --color never %s ."
-    "rg -S --no-heading --line-number --color never %s")
+      "rg --with-filename --no-heading --line-number --color never %s ."
+    "rg --with-filename --no-heading --line-number --color never %s")
   "Alternative to `counsel-ag-base-command' using ripgrep.
 
 Note: don't use single quotes for the regex."
@@ -2908,6 +2911,23 @@ Note: don't use single quotes for the regex."
 (counsel-set-async-exit-code 'counsel-rg 1 "No matches found")
 (ivy-set-occur 'counsel-rg 'counsel-ag-occur)
 (ivy-set-display-transformer 'counsel-rg 'counsel-git-grep-transformer)
+
+(defun counsel--rg-targets ()
+  "Return a list of files to operate on, based on `dired-mode' marks."
+  (if (eq major-mode 'dired-mode)
+      (let ((files
+             (dired-get-marked-files 'no-dir nil nil t)))
+        (if (and (null (cdr files))
+                 (not (when (string-match-p "\\*ivy-occur" (buffer-name))
+                        (dired-toggle-marks)
+                        (setq files (dired-get-marked-files 'no-dir))
+                        (dired-toggle-marks)
+                        t)))
+            ""
+          (concat
+           " "
+           (mapconcat #'shell-quote-argument (delq t files) " "))))
+    ""))
 
 ;;;###autoload
 (defun counsel-rg (&optional initial-input initial-directory extra-rg-args rg-prompt)
@@ -2920,7 +2940,8 @@ RG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
 Example input with inclusion and exclusion file patterns:
     -g*.py -g!*test* -- ..."
   (interactive)
-  (let ((counsel-ag-base-command counsel-rg-base-command)
+  (let ((counsel-ag-base-command
+         (concat counsel-rg-base-command (counsel--rg-targets)))
         (counsel--grep-tool-look-around
          (let ((rg (car (split-string counsel-rg-base-command)))
                (switch "--pcre2"))
@@ -2983,7 +3004,9 @@ substituted by the search regexp and file, respectively.  Neither
             (goto-char (point-min))
             (forward-line (1- line-number)))
           (setq counsel-grep-last-line line-number)
-          (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
+          (when (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
+            (when swiper-goto-start-of-match
+              (goto-char (match-beginning 0))))
           (run-hooks 'counsel-grep-post-action-hook)
           (if (eq ivy-exit 'done)
               (swiper--ensure-visible)
@@ -3735,24 +3758,30 @@ This variable has no effect unless
   "Browse `mark-ring' interactively.
 Obeys `widen-automatically', which see."
   (interactive)
-  (let ((counsel--mark-ring-calling-point (point))
-        (cands
-         (save-excursion
-           (save-restriction
-             ;; Widen, both to save `line-number-at-pos' the trouble
-             ;; and for `buffer-substring' to work.
-             (widen)
-             (let ((fmt (format "%%%dd %%s"
-                                (length (number-to-string
-                                         (line-number-at-pos (point-max)))))))
-               (mapcar (lambda (mark)
-                         (goto-char (marker-position mark))
-                         (let ((linum (line-number-at-pos))
-                               (line  (buffer-substring
-                                       (line-beginning-position)
-                                       (line-end-position))))
-                           (cons (format fmt linum line) (point))))
-                       (sort (delete-dups (copy-sequence mark-ring)) #'<)))))))
+  (let* ((counsel--mark-ring-calling-point (point))
+         (width (length (number-to-string (line-number-at-pos (point-max)))))
+         (fmt (format "%%%dd %%s" width))
+         (make-candidate
+          (lambda (mark)
+            (goto-char (marker-position mark))
+            (let ((linum (line-number-at-pos))
+                  (line (buffer-substring
+                         (line-beginning-position) (line-end-position))))
+              (cons (format fmt linum line) (point)))))
+         (marks (copy-sequence mark-ring))
+         (marks
+          ;; mark-marker is empty?
+          (if (equal (mark-marker) (make-marker))
+              marks
+            (cons (copy-marker (mark-marker)) marks)))
+         (marks (sort (delete-dups marks) #'<))
+         (cands
+          ;; Widen, both to save `line-number-at-pos' the trouble
+          ;; and for `buffer-substring' to work.
+          (save-excursion
+            (save-restriction
+              (widen)
+              (mapcar make-candidate marks)))))
     (if cands
         (ivy-read "Mark: " cands
                   :require-match t
@@ -4944,6 +4973,22 @@ selected color."
  '(("h" counsel-colors-action-insert-hex "insert hexadecimal value")
    ("H" counsel-colors-action-kill-hex "kill hexadecimal value")))
 
+;;** `counsel-fonts'
+(defvar counsel-fonts-history ()
+  "History for `counsel-fonts'.")
+
+;;;###autoload
+(defun counsel-fonts ()
+  "Show a list of all supported font families for a particular frame.
+
+You can insert or kill the name of the selected font."
+  (interactive)
+  (ivy-read "Font: " (delete-dups (font-family-list))
+            :require-match t
+            :history 'counsel-fonts-history
+            :action #'insert
+            :caller 'counsel-fonts))
+
 ;;* Misc. OS
 ;;** `counsel-rhythmbox'
 (declare-function dbus-call-method "dbus")
@@ -5528,7 +5573,7 @@ list is passed to `compilation-environment'."
   "History for `counsel-compile-env'.")
 
 (defvar counsel-compile-env-pattern
-  "[_[:digit:][:upper:]]+=[/[:album:]]*"
+  "[_[:digit:][:upper:]]+=[/[:alnum:]]*"
   "Pattern to match valid environment variables.")
 
 (defcustom counsel-compile-make-pattern "\\`\\(?:GNUm\\|[Mm]\\)akefile\\'"
@@ -5723,9 +5768,11 @@ specified by the `blddir' property."
 (defun counsel-compile (&optional dir)
   "Call `compile' completing with smart suggestions, optionally for DIR."
   (interactive)
-  (setq counsel-compile--current-build-dir (or dir default-directory))
+  (setq counsel-compile--current-build-dir (or dir
+                                               (counsel--compile-root)
+                                               default-directory))
   (ivy-read "Compile command: "
-            (counsel--get-compile-candidates dir)
+            (delete-dups (counsel--get-compile-candidates dir))
             :action #'counsel-compile--action
             :caller 'counsel-compile))
 
