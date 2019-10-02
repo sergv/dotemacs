@@ -62,6 +62,14 @@ to view the docstring of the syntax checker.  Likewise, you may use
 
       .. _AsciiDoc: http://www.methods.co.nz/asciidoc
 
+.. supported-language:: Bazel
+
+   .. syntax-checker:: bazel-buildifier
+
+      Check Bazel with buildifier_.
+
+      .. _buildifier: https://github.com/bazelbuild/buildtools
+
 .. supported-language:: C/C++
    :index_as: C
               C++
@@ -407,6 +415,21 @@ to view the docstring of the syntax checker.  Likewise, you may use
    .. syntax-checker:: eruby-erubis
 
       Check ERuby with `erubis <http://www.kuwata-lab.com/erubis/>`_.
+
+   .. syntax-checker:: eruby-ruumba
+
+      Check syntax and lint with `Ruumba <https://github.com/ericqweinstein/ruumba>`_.
+
+      .. note::
+
+         This syntax checker requires Ruumba 0.1.7 or newer.
+
+      .. defcustom:: flycheck-ruumba-lint-only
+
+         Whether to suppress warnings about style issues, via the ``--lint``
+         option.
+
+      .. syntax-checker-config-file:: flycheck-ruumbarc
 
 .. supported-language:: Fortran
 
