@@ -7,6 +7,7 @@
 ;; Description:
 
 (require 'common)
+(require 'git-setup)
 
 ;;;###autoload
 (defun toml-setup ()
@@ -17,7 +18,12 @@
   (fontify-conflict-markers!)
 
   (setq-local whitespace-line-column 80)
-  (setq-local whitespace-style '(face tabs lines-tail)))
+  (setq-local whitespace-style '(face tabs lines-tail))
+
+  (def-keys-for-map (vim:normal-mode-local-keymap
+                     vim:visual-mode-local-keymap)
+    ("g a =" gitconfig-align-on-equals)
+    ("g a a" gitconfig-align-generic)))
 
 (add-hook 'toml-mode-hook #'toml-setup)
 
