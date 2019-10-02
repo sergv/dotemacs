@@ -22,7 +22,7 @@ This package was inspired by - and based in part on -
 Ensure `ivy-smex.el` is in a directory on your load-path, and
 add the following to your `~/.emacs` or `~/.emacs.d/init.el`:
 
-``` lisp
+```elisp
 (require 'ivy-smex)
 (global-set-key (kbd "M-x") 'ivy-smex)
 ```
@@ -37,7 +37,7 @@ If you're an Emacs 24 user or you have a recent version of
 To make `ivy-smex` your default `M-x` command, add the following to
 your `~/.emacs` or `~/.emacs.d/init.el`:
 
-``` lisp
+```elisp
 (global-set-key (kbd "M-x") 'ivy-smex)
 ```
 
