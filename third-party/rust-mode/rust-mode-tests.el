@@ -6,6 +6,7 @@
 (require 'imenu)
 
 (setq rust-test-fill-column 32)
+(setq-default indent-tabs-mode nil)
 
 (defun rust-compare-code-after-manip (original point-pos manip-func expected got)
   (equal expected got))
@@ -3106,6 +3107,16 @@ impl Two<'a> {
 "
    '(("Impl" "One" "Two")
      ("Fn" "one" "two"))))
+
+(ert-deftest font-lock-function-parameters ()
+  (rust-test-font-lock
+   "fn foo(a: u32, b : u32) {}"
+   '("fn" font-lock-keyword-face
+     "foo" font-lock-function-name-face
+     "a" font-lock-variable-name-face
+     "u32" font-lock-type-face
+     "b" font-lock-variable-name-face
+     "u32" font-lock-type-face)))
 
 (when (executable-find rust-cargo-bin)
   (ert-deftest rust-test-project-located ()
