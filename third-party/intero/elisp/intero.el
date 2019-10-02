@@ -416,15 +416,13 @@ You can use this to kill them or look inside."
 (defun intero-fontify-expression (expression)
   "Return a haskell-fontified version of EXPRESSION."
   (intero-with-temp-buffer
-    (when (fboundp 'haskell-mode)
-      (let ((flycheck-checkers nil)
-            (haskell-mode-hook nil))
-        (haskell-mode)))
-    (insert expression)
-    (if (fboundp 'font-lock-ensure)
-        (font-lock-ensure)
-      (font-lock-fontify-buffer))
-    (buffer-string)))
+   (insert expression)
+   (when (fboundp 'haskell-mode)
+     (delay-mode-hooks (haskell-mode))
+     (if (fboundp 'font-lock-ensure)
+         (font-lock-ensure)
+       (font-lock-fontify-buffer)))
+   (buffer-string)))
 
 (defun intero-uses-at ()
   "Highlight where the identifier at point is used."
@@ -956,10 +954,11 @@ Should only be used in the repl"
   "Company source for intero, with the standard COMMAND and ARG args.
 Other arguments are IGNORED."
   (interactive (list 'interactive))
-  (cl-case command
-    (interactive (company-begin-backend 'intero-company))
-    (prefix
-     (unless (intero-gave-up 'backend)
+  (when (and (or intero-mode (derived-mode-p 'intero-repl-mode))
+             (not (intero-gave-up 'backend)))
+    (cl-case command
+      (interactive (company-begin-backend 'intero-company))
+      (prefix
        (or (let ((hole (intero-grab-hole)))
              (when hole
                (save-excursion
@@ -969,9 +968,8 @@ Other arguments are IGNORED."
              (when prefix-info
                (cl-destructuring-bind
                    (beg end prefix _type) prefix-info
-                 prefix))))))
-    (candidates
-     (unless (intero-gave-up 'backend)
+                 prefix)))))
+      (candidates
        (let ((beg-end (intero-grab-hole)))
          (if beg-end
              (cons :async
@@ -1294,7 +1292,7 @@ be activated after evaluation.  PROMPT-OPTIONS are passed to
 (defun intero-repl-after-load ()
   "Set the command to run after load."
   (interactive)
-  (if (eq major-mode 'intero-repl-mode)
+  (if (derived-mode-p 'intero-repl-mode)
       (setq intero-repl-send-after-load
             (read-from-minibuffer
              "Command to run: "
@@ -1745,14 +1743,15 @@ The path returned is canonicalized and stripped of any text properties."
 
 (defun intero-temp-file-origin-buffer (temp-file)
   "Get the original buffer that TEMP-FILE was created for."
-  (or
-   (gethash (intero-canonicalize-path temp-file)
-            intero-temp-file-buffer-mapping)
-   (cl-loop
-    for buffer in (buffer-list)
-    when (string= (intero-canonicalize-path temp-file)
-                  (buffer-local-value 'intero-temp-file-name buffer))
-    return buffer)))
+  (let ((canonical-path (intero-canonicalize-path temp-file)))
+    (or
+     (gethash canonical-path
+              intero-temp-file-buffer-mapping)
+     (cl-loop
+      for buffer in (buffer-list)
+      when (string= canonical-path
+                    (buffer-local-value 'intero-temp-file-name buffer))
+      return buffer))))
 
 (defun intero-unmangle-file-path (file)
   "If FILE is an intero temp file, return the original source path, otherwise FILE."
