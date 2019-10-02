@@ -6,6 +6,8 @@
 ;; Created: 29 September 2019
 ;; Description:
 
+(require 's)
+
 (defvar haskell-compilation-cabal-build-command-presets
   (let ((cabal-command
          (lambda (cmd &rest args)
